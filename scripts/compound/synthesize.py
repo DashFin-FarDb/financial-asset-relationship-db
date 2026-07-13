@@ -1,0 +1,280 @@
+"""Regenerate domain docs and index from the observation ledger.
+
+Synthesize is the sole writer of canonical compound docs. Emitters only append.
+"""
+
+from __future__ import annotations
+
+import argparse
+import sys
+from collections import defaultdict
+from datetime import datetime, timezone
+from pathlib import Path
+
+_SCRIPTS_ROOT = Path(__file__).resolve().parent.parent
+if str(_SCRIPTS_ROOT) not in sys.path:
+    sys.path.insert(0, str(_SCRIPTS_ROOT))
+
+from compound.schema import (  # noqa: E402
+    DOMAINS,
+    DOMAINS_DIR,
+    INDEX_PATH,
+    LEDGER_PATH,
+    Observation,
+    ObservationStatus,
+    PathPolicyError,
+    SchemaError,
+    assert_writable,
+    parse_observation_line,
+)
+
+REPO_ROOT = Path(__file__).resolve().parents[2]
+
+DEPENDENCY_BOT_MARKERS = (
+    "dependabot",
+    "depfu",
+    "renovate",
+    "chore(deps)",
+    "chore(deps):",
+    "npm-dependencies",
+    "python-dependencies",
+    "actions-dependencies",
+)
+
+
+def _parse_created_at(value: str) -> datetime:
+    """Parse an ISO-8601 ``created_at`` string into a timezone-aware datetime.
+
+    Returns ``datetime.min`` (UTC) for empty or unparseable values so callers
+    can use this safely as a sort key without additional error handling.
+    """
+    if not value:
+        return datetime.min.replace(tzinfo=timezone.utc)
+    try:
+        parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+        return parsed.replace(tzinfo=timezone.utc) if parsed.tzinfo is None else parsed
+    except ValueError:
+        return datetime.min.replace(tzinfo=timezone.utc)
+
+
+def load_ledger(ledger_path: Path) -> list[Observation]:
+    """Load all observations from a JSONL ledger.
+
+    Malformed lines are skipped so a single corrupt entry cannot permanently
+    block synthesize / standing-brief runs. Skips are reported on stderr.
+    """
+    if not ledger_path.exists():
+        return []
+    observations: list[Observation] = []
+    for lineno, line in enumerate(ledger_path.read_text(encoding="utf-8").splitlines(), start=1):
+        stripped = line.strip()
+        if not stripped or stripped.startswith("#"):
+            continue
+        try:
+            observations.append(parse_observation_line(stripped))
+        except (SchemaError, ValueError, TypeError) as exc:
+            print(
+                f"warning: skipping malformed ledger line {lineno}: {exc}",
+                file=sys.stderr,
+            )
+            continue
+    return observations
+
+
+def is_dependency_bot_observation(obs: Observation) -> bool:
+    """Return True when observation looks like dependency-bot noise."""
+    haystack = " ".join(
+        [
+            obs.summary.lower(),
+            obs.primary_ref.lower(),
+            " ".join(ref.lower() for ref in obs.refs),
+        ]
+    )
+    return any(marker in haystack for marker in DEPENDENCY_BOT_MARKERS)
+
+
+def should_hot_path_synthesize(
+    observations: list[Observation],
+    *,
+    force: bool = False,
+    event_hint: str | None = None,
+) -> bool:
+    """Decide whether synthesize should run immediately.
+
+    Hot path: force, merge hints, watched/manual/bootstrap, or non-bot events.
+    Dependency-bot-only batches return False unless force/merge.
+    """
+    if force:
+        return True
+    hint = (event_hint or "").lower()
+    if "merge" in hint or hint in {"push", "push.main", "workflow_dispatch", "manual"}:
+        return True
+    if not observations:
+        return True
+    # Gate on the triggering observation: last ledger row (append order), not max timestamp.
+    # Append-only ledgers may contain out-of-order or custom created_at values.
+    newest = observations[-1]
+    if is_dependency_bot_observation(newest):
+        return False
+    return True
+
+
+def latest_by_primary_ref(observations: list[Observation]) -> list[Observation]:
+    """Keep the latest observation per primary_ref (landed preferred over provisional)."""
+    by_ref: dict[str, Observation] = {}
+    for obs in observations:
+        existing = by_ref.get(obs.primary_ref)
+        if existing is None:
+            by_ref[obs.primary_ref] = obs
+            continue
+        if obs.status is ObservationStatus.LANDED and existing.status is ObservationStatus.PROVISIONAL:
+            by_ref[obs.primary_ref] = obs
+            continue
+        if _parse_created_at(obs.created_at) >= _parse_created_at(existing.created_at) and not (
+            existing.status is ObservationStatus.LANDED and obs.status is ObservationStatus.PROVISIONAL
+        ):
+            by_ref[obs.primary_ref] = obs
+    return list(by_ref.values())
+
+
+def _render_section(title: str, items: list[Observation]) -> str:
+    lines = [f"## {title}", ""]
+    if not items:
+        lines.append(f"_No {title.lower()} observations yet._")
+        lines.append("")
+        return "\n".join(lines)
+    for obs in sorted(items, key=lambda item: (_parse_created_at(item.created_at), item.observation_id)):
+        evidence = ", ".join(obs.evidence_pointers) if obs.evidence_pointers else obs.primary_ref
+        lines.append(f"- **{obs.primary_ref}** ({obs.status.value}): {obs.summary}")
+        lines.append(f"  - evidence: {evidence}")
+    lines.append("")
+    return "\n".join(lines)
+
+
+def render_domain_doc(domain: str, observations: list[Observation]) -> str:
+    """Render one domain markdown document with Landed/Provisional sections."""
+    titles = {
+        "architecture": "Architecture & seams",
+        "api": "API contracts",
+        "persistence": "Persistence / SQL",
+        "ci-guardrails": "CI / guardrails",
+        "rebuild-reconciliation": "Rebuild / reconciliation",
+        "deployment": "Deployment / readiness",
+    }
+    title = titles.get(domain, domain)
+    relevant = [obs for obs in observations if domain in obs.domains]
+    relevant = latest_by_primary_ref(relevant)
+    landed = [obs for obs in relevant if obs.status is ObservationStatus.LANDED]
+    provisional = [obs for obs in relevant if obs.status is ObservationStatus.PROVISIONAL]
+    parts = [
+        f"# {title}",
+        "",
+        f"Compounded memory for `{domain}` (regenerated by synthesize; do not hand-edit).",
+        "",
+        _render_section("Landed", landed),
+        _render_section("Provisional", provisional),
+    ]
+    return "\n".join(parts).rstrip() + "\n"
+
+
+def render_index(observations: list[Observation]) -> str:
+    """Render the thin cross-seam index."""
+    counts: dict[str, dict[str, int]] = defaultdict(lambda: {"landed": 0, "provisional": 0})
+    latest = latest_by_primary_ref(observations)
+    for obs in latest:
+        for domain in obs.domains:
+            counts[domain][obs.status.value] += 1
+    rows = []
+    for domain in DOMAINS:
+        landed = counts[domain]["landed"]
+        provisional = counts[domain]["provisional"]
+        rows.append(f"| {domain} | [domains/{domain}.md](domains/{domain}.md) | {landed} | {provisional} |")
+    body = "\n".join(rows)
+    return (
+        "# Architecture Expert Compound Index\n\n"
+        "Docs-first memory for architecture, seams, API, persistence/SQL, CI/guardrails,\n"
+        "rebuild/reconciliation, and deployment/readiness.\n\n"
+        "- **Canon writer:** `scripts/compound/synthesize.py` only\n"
+        "- **Ledger:** `docs/compound/ledger/observations.jsonl` (append-only)\n"
+        "- **Knowledge branch:** `knowledge/architecture-expert` "
+        "(intended human promotion to `main`; verify before treating as current)\n"
+        "- **Status:** Label every claim **landed** or **provisional** only after "
+        "verifying branch/PR/ref state vs `main`\n\n"
+        "## Domains\n\n"
+        "| Domain | Doc | Landed | Provisional |\n"
+        "|--------|-----|--------|-------------|\n"
+        f"{body}\n\n"
+        "## Operator notes\n\n"
+        "See [README.md](README.md). Watched series: [watched-series.yml](watched-series.yml).\n"
+        "Runtime writer mode: [runtime.yml](runtime.yml).\n"
+    )
+
+
+def write_text(path: Path, content: str, *, repo_root: Path) -> None:
+    """Write content after path-policy checks."""
+    rel = path.relative_to(repo_root).as_posix()
+    assert_writable(rel)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(content, encoding="utf-8", newline="\n")
+
+
+def synthesize(
+    repo_root: Path,
+    *,
+    dry_run: bool = False,
+    force: bool = False,
+    event_hint: str | None = None,
+) -> dict[str, str]:
+    """Regenerate domain docs + index from the ledger.
+
+    Returns mapping of repo-relative path -> content. Writes unless dry_run.
+    """
+    ledger_path = repo_root / LEDGER_PATH
+    observations = load_ledger(ledger_path)
+    decision_window = observations[-1:] if observations else []
+    if not should_hot_path_synthesize(decision_window, force=force, event_hint=event_hint):
+        return {}
+
+    outputs: dict[str, str] = {}
+    for domain in DOMAINS:
+        rel = f"{DOMAINS_DIR.as_posix()}/{domain}.md"
+        outputs[rel] = render_domain_doc(domain, observations)
+    outputs[INDEX_PATH.as_posix()] = render_index(observations)
+
+    if dry_run:
+        return outputs
+
+    for rel, content in outputs.items():
+        write_text(repo_root / rel, content, repo_root=repo_root)
+    return outputs
+
+
+def main(argv: list[str] | None = None) -> int:
+    """CLI entrypoint for synthesize."""
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--repo-root", type=Path, default=REPO_ROOT)
+    parser.add_argument("--dry-run", action="store_true")
+    parser.add_argument("--force", action="store_true", help="Bypass dependency-bot batching")
+    parser.add_argument("--event-hint", default=None)
+    args = parser.parse_args(argv)
+    try:
+        outputs = synthesize(
+            args.repo_root,
+            dry_run=args.dry_run,
+            force=args.force,
+            event_hint=args.event_hint,
+        )
+        if not outputs:
+            print("synthesize skipped (batched dependency-bot observations)")
+            return 0
+        mode = "dry-run" if args.dry_run else "wrote"
+        for path in sorted(outputs):
+            print(f"{mode}: {path}")
+        return 0
+    except (SchemaError, PathPolicyError, OSError) as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 1
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
