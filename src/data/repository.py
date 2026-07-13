@@ -5,7 +5,7 @@ from __future__ import annotations
 from collections.abc import Callable, Generator, Iterable
 from contextlib import contextmanager
 from dataclasses import dataclass
-from datetime import UTC, datetime, timedelta, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Any, NoReturn, TypeAlias, TypedDict
 from uuid import uuid4
 
@@ -34,6 +34,8 @@ from .db_models import (
     RegulatoryEventAssetORM,
     RegulatoryEventORM,
 )
+
+UTC = timezone.utc
 
 
 @dataclass(frozen=True, slots=True)
@@ -98,7 +100,7 @@ class CoordinationLockRepository:
         """
         if ttl_seconds <= 0:
             raise ValueError("ttl_seconds must be greater than 0")
-        now = datetime.now(UTC)
+        now = datetime.now(timezone.utc)  # noqa: UP017
         expires_at = now + timedelta(seconds=ttl_seconds)
 
         update_stmt = (
@@ -123,7 +125,7 @@ class CoordinationLockRepository:
             if record:
                 updated_at = record.updated_at
                 if updated_at.tzinfo is None:
-                    updated_at = updated_at.replace(tzinfo=UTC)
+                    updated_at = updated_at.replace(tzinfo=timezone.utc)  # noqa: UP017
                 token = int(updated_at.timestamp() * 1_000_000)
                 return LockWriteResult(
                     success=True,
@@ -158,7 +160,7 @@ class CoordinationLockRepository:
                 if record:
                     updated_at = record.updated_at
                     if updated_at.tzinfo is None:
-                        updated_at = updated_at.replace(tzinfo=UTC)
+                        updated_at = updated_at.replace(tzinfo=timezone.utc)  # noqa: UP017
                     token = int(updated_at.timestamp() * 1_000_000)
                     return LockWriteResult(
                         success=True,
@@ -173,7 +175,7 @@ class CoordinationLockRepository:
             if record:
                 updated_at = record.updated_at
                 if updated_at.tzinfo is None:
-                    updated_at = updated_at.replace(tzinfo=UTC)
+                    updated_at = updated_at.replace(tzinfo=timezone.utc)  # noqa: UP017
                 token = int(updated_at.timestamp() * 1_000_000)
                 return LockWriteResult(
                     success=False,
@@ -219,7 +221,7 @@ class CoordinationLockRepository:
 
     def get_lock_state(self, *, lock_name: str, holder_id: str) -> LockStateSnapshot:
         """Check the current state of a distributed lock and return a materialized snapshot DTO."""
-        now = datetime.now(UTC)
+        now = datetime.now(timezone.utc)  # noqa: UP017
         stmt = select(DistributedLockORM).where(DistributedLockORM.lock_name == lock_name)
         record = self.session.execute(stmt).scalar_one_or_none()
 
@@ -235,11 +237,11 @@ class CoordinationLockRepository:
 
         updated_at = record.updated_at
         if updated_at is not None and updated_at.tzinfo is None:
-            updated_at = updated_at.replace(tzinfo=UTC)
+            updated_at = updated_at.replace(tzinfo=timezone.utc)  # noqa: UP017
 
         expires_at = record.expires_at
         if expires_at is not None and expires_at.tzinfo is None:
-            expires_at = expires_at.replace(tzinfo=UTC)
+            expires_at = expires_at.replace(tzinfo=timezone.utc)  # noqa: UP017
 
         valid = (record.holder_id == holder_id) and (expires_at is not None and now < expires_at)
         fencing_token = int(updated_at.timestamp() * 1_000_000) if updated_at is not None else None
@@ -1325,7 +1327,7 @@ class AssetGraphRepository:
         self.session.flush()
 
         # Atomic conditional update: only succeeds if job is in PENDING or RUNNING status
-        now = datetime.now(UTC)
+        now = datetime.now(timezone.utc)  # noqa: UP017
         stmt = (
             update(RebuildJobORM)
             .where(RebuildJobORM.job_id == job_id)

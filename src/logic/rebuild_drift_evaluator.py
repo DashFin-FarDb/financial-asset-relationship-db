@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import logging
 from collections.abc import Callable
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from typing import TYPE_CHECKING
 
 from sqlalchemy.exc import SQLAlchemyError
@@ -22,6 +22,8 @@ from src.logic.rebuild_failure_detection import InconsistencyType, detect_rebuil
 from src.logic.reconciliation_engine import Severity
 from src.observability.events import ObservabilityEvent
 from src.observability.logger import log_event
+
+UTC = timezone.utc
 
 if TYPE_CHECKING:
     from src.data.db_models import RebuildJobORM
@@ -65,17 +67,7 @@ class RebuildDriftEvaluator:
 
         Returns:
             tuple[str, Severity, dict[str, str | int | float | bool | None]]:
-                - `drift_type`: Classification string describing the detected drift
-                  (e.g., `"lock_lost"`, `"persistence_unavailable"`, or an inconsistency type value).
-                - `Severity`: Severity enum value for the detected drift.
-                - `metadata`: A dictionary with contextual information. Always includes
-                  `lock_state`, `lock_is_valid`, `runtime_has_active_executor`, and
-                  `detected_at` (when applicable). For normal evaluations the metadata also
-                  contains `job_id`, `reason`, and job-specific fields added by
-                  `_build_job_metadata()` such as `job_status`, `active_worker_id`,
-                  `last_heartbeat_at`, `owner_mismatch`, and `lock_holder_id`. In early-failure
-                  cases the metadata contains error-related fields (for example `error_type`
-                  and `reason`).
+                drift_type, severity, and contextual metadata for the detected drift.
         """
         # Check lock state first
         lock_state = self.lock.check_state()

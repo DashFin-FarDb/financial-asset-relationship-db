@@ -10,7 +10,7 @@ import ast
 import functools
 import threading
 from contextlib import contextmanager
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from unittest.mock import MagicMock
 
@@ -20,6 +20,8 @@ import api.routers.graph_admin as graph_admin
 from api.api_models import GraphRebuildResponse
 from api.graph_lifecycle_providers import GraphLifecycleSettings
 from src.data.distributed_lock import LockLifecycleState, LockState
+
+UTC = timezone.utc
 
 pytestmark = pytest.mark.unit
 

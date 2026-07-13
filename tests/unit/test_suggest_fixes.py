@@ -13,11 +13,13 @@ This module tests all functions in the suggest_fixes.py script including:
 
 import os
 import sys
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from unittest.mock import Mock, mock_open, patch
 
 import pytest
 from github import GithubException
+
+UTC = timezone.utc
 
 # Add the script directory to path before importing the script under test
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../../.github/pr-copilot/scripts"))
@@ -34,8 +36,9 @@ def _create_env_without_runner_temp(additional_vars: dict) -> dict:
         additional_vars: Dictionary of environment variables to include.
 
     Returns:
-        dict: Environment dictionary with all current env vars except RUNNER_TEMP,
-              plus any additional vars provided (additional_vars take precedence).
+        dict: Environment dictionary with all current env vars except
+        RUNNER_TEMP, plus any additional vars provided (additional_vars
+        take precedence).
     """
     # Start from the real environment, excluding RUNNER_TEMP
     env = {key: value for key, value in os.environ.items() if key != "RUNNER_TEMP"}
@@ -106,13 +109,9 @@ def mock_pr():
 
 def test_load_config_file_exists():
     """Test load_config when config file exists."""
-    config_data = """
-review_handling:
-  actionable_keywords:
-    - please
-    - should
-    - fix
-"""
+    config_data = (
+        "review_handling:\n" "    actionable_keywords:\n" "        - please\n" "        - should\n" "        - fix\n"
+    )
     with patch("builtins.open", mock_open(read_data=config_data)), patch("os.path.exists", return_value=True):
         config = suggest_fixes.load_config()
 

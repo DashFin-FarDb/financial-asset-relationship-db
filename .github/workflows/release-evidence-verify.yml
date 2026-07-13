@@ -35,7 +35,7 @@ jobs:
       name: ${{ (contains(inputs.tags, '[manual-stop]') || contains(inputs.tags, '[star]')) && 'staging-manual-gate' || 'release-evidence' }}
     steps:
       - name: Checkout
-        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           fetch-depth: 0
           persist-credentials: false
@@ -50,7 +50,7 @@ jobs:
           fi
 
       - name: Checkout Release SHA
-        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           ref: ${{ github.event.inputs.release_sha }}
           path: release-source
@@ -108,8 +108,8 @@ jobs:
         run: |
           set +e
           status=0
+          pytest tests/unit/test_graph_lifecycle_persistence.py -q --junitxml=results-restart-0.xml || status=1
           pytest tests/integration/test_restart_recovery_clean_path.py -q --junitxml=results-restart-1.xml || status=1
-          # De-duplicated tests/integration/test_distributed_hosting_failure_modes.py (it's also in Recovery/Rebuild, so we'll run it there or here)
           pytest tests/integration/test_distributed_hosting_failure_modes.py -q --junitxml=results-restart-2.xml || status=1
           exit $status
 
@@ -125,7 +125,7 @@ jobs:
           pytest tests/unit/test_recovery_gate_startup.py -q --junitxml=results-recovery-3.xml || status=1
           pytest tests/integration/test_recovery_gate_integration.py -q --junitxml=results-recovery-4.xml || status=1
           pytest tests/integration/test_lock_refresh_flow.py -q --junitxml=results-recovery-5.xml || status=1
-          # test_distributed_hosting_failure_modes.py omitted here as it was run in Restart/Reload
+          # tests/integration/test_distributed_hosting_failure_modes.py is exercised in Restart/Reload gate (see docs/release-evidence-pack.md)
           exit $status
 
       - name: Run Gate Tests (API Contract)
@@ -201,7 +201,7 @@ jobs:
 
       - name: Upload Artifacts
         if: always()
-        uses: actions/upload-artifact@6543ce64cb6eb0d110ebf6fb5b172aeb41d3b5b6 # v4
+        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4
         with:
           name: release-evidence
           path: |
@@ -290,13 +290,15 @@ jobs:
                   return "FAIL"
 
           gates = [
+              ("Architecture", "MANUAL EVIDENCE REQUIRED", "docs/adr/0001-production-architecture.md; docs/enterprise-deployment-operating-model.md"),
               ("Durable Persistence", junit_status("results-persistence-*.xml"), "results-persistence-*.xml"),
               ("Restart / Reload", junit_status("results-restart-*.xml"), "results-restart-*.xml"),
-              ("Recovery / Rebuild", junit_status("results-recovery-*.xml"), "results-recovery-*.xml"),
+              ("Promotion", json_status("readiness-output.json"), "readiness-output.json"),
               ("API Contract", junit_status("results-api-*.xml"), "results-api-*.xml"),
+              ("Recovery / Rebuild", junit_status("results-recovery-*.xml"), "results-recovery-*.xml"),
               ("Security", junit_status("results-security-*.xml"), "results-security-*.xml"),
-              ("Documentation (Article 13/14)", json_status("docs-readiness.json"), "docs-readiness.json"),
-              ("Promotion (hosted readiness)", json_status("readiness-output.json"), "readiness-output.json"),
+              ("Governance", "MANUAL EVIDENCE REQUIRED", "docs/GOVERNANCE.md; docs/governance/state-machine-and-operating-authority.md"),
+              ("Disaster Recovery", "MANUAL EVIDENCE REQUIRED", "docs/runbooks/backup-restore-dr.md; docs/adr/0005-backup-restore-dr-strategy.md"),
           ]
 
           summary_path = os.environ["GITHUB_STEP_SUMMARY"]
@@ -306,6 +308,11 @@ jobs:
               out.write("| --- | --- | --- |\n")
               for gate, status, evidence in gates:
                   out.write(f"| {gate} | {status} | {evidence} |\n")
+              out.write("\n")
+              out.write("Supplementary checks (not part of the nine canonical gates):\n")
+              out.write(
+                  f"- AI System Documentation (Article 13/14): {json_status('docs-readiness.json')} (`docs-readiness.json`)\n"
+              )
 
           sys.exit(0)
           PY

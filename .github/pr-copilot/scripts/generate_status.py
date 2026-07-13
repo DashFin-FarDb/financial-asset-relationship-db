@@ -14,7 +14,9 @@ import sys
 import tempfile
 import traceback
 from dataclasses import dataclass
-from datetime import UTC, datetime
+from datetime import datetime, timezone
+
+UTC = timezone.utc
 
 try:
     from github import Github, GithubException
@@ -219,7 +221,8 @@ def format_checks_section(checks: list[CheckRunInfo]) -> str:
 def generate_markdown(status: PRStatus) -> str:
     """Build a Markdown-formatted status report for the pull request.
 
-    Generate a complete PR report including PR metadata, review statistics, CI/check details, mergeability, a task checklist, and a UTC timestamp footer.
+    Generate a complete PR report including PR metadata, review statistics,
+    CI/check details, mergeability, a task checklist, and a UTC timestamp footer.
 
     Parameters:
         status (PRStatus): Aggregated data and metrics for the pull request used to populate the report.
@@ -277,7 +280,7 @@ def generate_markdown(status: PRStatus) -> str:
 
 def write_output(content: str) -> None:
     """
-    Write the PR Markdown report to the GitHub Actions step summary (when allowed), to a standard temp file, and to stdout.
+    Write the PR Markdown report to summary, temp file, and stdout.
 
     If the GITHUB_STEP_SUMMARY environment variable is set and resolves inside the system
     temporary directory, append content to that file; otherwise skip the step-summary write

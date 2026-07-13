@@ -52,12 +52,12 @@ jobs:
       security-events: write
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           submodules: true
 
       - name: Run Pyre
-        uses: facebook/pyre-action@60697a7858f7cc8470d8cc494a3cf2ad6b06560d
+        uses: facebook/pyre-action@12b8d923443ea66cb657facc2e5faac1c8c86e64
         with:
           # To customize these inputs:
           # See https://github.com/facebook/pyre-action#inputs

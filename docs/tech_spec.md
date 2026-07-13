@@ -8848,7 +8848,6 @@ flowchart TB
 | `test_requirements.py`       | Validate production dependencies  |
 | `test_requirements_dev.py`   | Validate development dependencies |
 | `test_github_workflows.py`   | CI/CD workflow validation         |
-| `test_debricked_workflow.py` | Security workflow validation      |
 
 ---
 
@@ -9069,7 +9068,6 @@ flowchart TB
 | ---------------- | ------------------------------------------ | ---------------------- |
 | Safety           | CircleCI                                   | Python dependencies    |
 | Snyk Open Source | `.github/workflows/snyk-security.yml`      | All dependencies       |
-| Debricked        | `.github/workflows/debricked_workflow.yml` | Dependency analysis    |
 | OSV Scanner      | `.github/workflows/osv-scanner.yml`        | Vulnerability database |
 
 #### 6.6.6.3 Container Security
@@ -9100,7 +9098,6 @@ flowchart TB
         subgraph SCA[Dependency Scanning]
             Safety[Safety<br/>Python Deps]
             Snyk[Snyk<br/>All Deps]
-            Debricked[Debricked<br/>Analysis]
         end
 
         subgraph Container[Container Security]

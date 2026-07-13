@@ -13,9 +13,9 @@ jobs:
     if: vars.JF_URL != ''
     steps:
       - name: Checkout
-        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
       - name: Setup JFrog CLI
-        uses: jfrog/setup-jfrog-cli@5a4fbe1e30dbb570cc62d2513421c4b9bc3c9959 # v4
+        uses: jfrog/setup-jfrog-cli@deda456d982fc5e9a7a020b63eb0d2968aedd33e # v5.1.0
         env:
           JF_URL: ${{ vars.JF_URL }}
         with:
