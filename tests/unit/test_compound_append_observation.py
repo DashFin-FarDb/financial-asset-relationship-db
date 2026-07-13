@@ -3,10 +3,12 @@
 from __future__ import annotations
 
 import json
+import threading
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 import pytest
+from compound import append_observation as append_observation_mod
 from compound.append_observation import (
     _load_observation_payload,
     _parse_runtime_yaml,
@@ -52,6 +54,26 @@ def _base_payload(**overrides: object) -> dict:
     }
     payload.update(overrides)
     return payload
+
+
+def _capture_thread(fn) -> tuple[threading.Thread, list[Exception]]:
+    """Run ``fn`` on a thread, capturing exceptions for the parent to assert."""
+    errors: list[Exception] = []
+
+    def _run() -> None:
+        try:
+            fn()
+        except Exception as exc:  # pragma: no cover - re-raised via parent assertions
+            errors.append(exc)
+
+    return threading.Thread(target=_run), errors
+
+
+def _join_thread(thread: threading.Thread, *, timeout: float = 1.0) -> None:
+    """Join a thread and require it finished within ``timeout``."""
+    if thread.ident is not None:
+        thread.join(timeout=timeout)
+    assert thread.ident is None or not thread.is_alive()
 
 
 @pytest.mark.unit
@@ -103,13 +125,64 @@ class TestAppendObservation:
         assert "github_only" in message
         assert _observation_lines(compound_repo) == []
 
+    def test_append_serializes_writer_mode_check_with_conflict_recording(
+        self, compound_repo: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """A conflict recorder cannot flip writer mode between the Cursor gate and append."""
+        (compound_repo / "docs/compound/runtime.yml").write_text(
+            "writer_mode: dual\n"
+            "conflict_count: 2\n"
+            "conflict_window_minutes: 30\n"
+            "last_conflict_at: 2026-07-09T12:00:00Z\n",
+            encoding="utf-8",
+        )
+        entered_ledger_load = threading.Event()
+        release_ledger_load = threading.Event()
+        conflict_recorded = threading.Event()
+        append_result: dict[str, tuple[object, str]] = {}
+        original_load = append_observation_mod.load_existing_dedupe_keys
+
+        def blocking_load(ledger_path: Path) -> set[tuple[str, str, str]]:
+            entered_ledger_load.set()
+            assert release_ledger_load.wait(timeout=1.0)
+            return original_load(ledger_path)
+
+        def run_append() -> None:
+            append_result["result"] = append_observation(
+                _base_payload(source=ObservationSource.CURSOR.value),
+                repo_root=compound_repo,
+            )
+
+        def run_conflict_record() -> None:
+            record_push_conflict(compound_repo, now=datetime(2026, 7, 9, 12, 1, tzinfo=timezone.utc))
+            conflict_recorded.set()
+
+        monkeypatch.setattr(append_observation_mod, "load_existing_dedupe_keys", blocking_load)
+        append_thread, append_errors = _capture_thread(run_append)
+        conflict_thread, conflict_errors = _capture_thread(run_conflict_record)
+
+        append_thread.start()
+        try:
+            assert entered_ledger_load.wait(timeout=1.0)
+            conflict_thread.start()
+            assert not conflict_recorded.wait(timeout=0.2)
+        finally:
+            release_ledger_load.set()
+        _join_thread(append_thread)
+        _join_thread(conflict_thread)
+
+        assert not append_errors
+        assert not conflict_errors
+        assert conflict_recorded.is_set()
+        obs, message = append_result["result"]
+        assert obs is not None
+        assert "appended" in message
+
     def test_cli_json_round_trip(self, compound_repo: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """CLI accepts --json and appends successfully."""
-        from compound import append_observation as mod
-
-        monkeypatch.setattr(mod, "REPO_ROOT", compound_repo)
+        monkeypatch.setattr(append_observation_mod, "REPO_ROOT", compound_repo)
         payload = json.dumps(_base_payload(observation_id="cli-1"))
-        assert mod.main(["--json", payload, "--repo-root", str(compound_repo)]) == 0
+        assert append_observation_mod.main(["--json", payload, "--repo-root", str(compound_repo)]) == 0
 
     def test_record_push_conflict_flips_at_threshold(self, compound_repo: Path) -> None:
         """Three conflicts inside the window flip writer_mode to github_only (A12)."""

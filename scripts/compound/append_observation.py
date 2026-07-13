@@ -40,8 +40,14 @@ _LEDGER_LOCK_NAME = "observations.jsonl.lock"
 
 
 def _repo_path(relative: Path | str, repo_root: Path | None = None) -> Path:
-    root = repo_root or REPO_ROOT
-    return root / Path(relative)
+    """Resolve a repo-relative path and reject traversal outside the root."""
+    root = (repo_root or REPO_ROOT).resolve()
+    candidate = (root / Path(relative)).resolve()
+    try:
+        candidate.relative_to(root)
+    except ValueError as exc:
+        raise PathPolicyError(f"Path outside repo: {relative}") from exc
+    return candidate
 
 
 @contextmanager
@@ -95,22 +101,39 @@ def _parse_runtime_yaml(text: str) -> dict[str, str | int | None]:
         "last_conflict_at": None,
     }
     for line in text.splitlines():
-        stripped = line.strip()
-        if not stripped or stripped.startswith("#") or ":" not in stripped:
-            continue
-        key, value = stripped.split(":", 1)
-        key = key.strip()
-        value = value.strip()
-        if key == "writer_mode":
-            data[key] = value
-        elif key in {"conflict_count", "conflict_window_minutes"}:
-            try:
-                data[key] = int(value)
-            except ValueError as exc:
-                raise SchemaError(f"Invalid integer for {key}: {value}") from exc
-        elif key == "last_conflict_at":
-            data[key] = None if value in {"null", "~", ""} else value
+        _merge_runtime_entry(data, line)
     return data
+
+
+def _merge_runtime_entry(data: dict[str, str | int | None], line: str) -> None:
+    """Parse and merge one supported runtime.yml line."""
+    parsed = _split_runtime_line(line)
+    if parsed is None:
+        return
+    key, value = parsed
+    if key == "writer_mode":
+        data[key] = value
+    elif key in {"conflict_count", "conflict_window_minutes"}:
+        data[key] = _parse_runtime_int(key, value)
+    elif key == "last_conflict_at":
+        data[key] = None if value in {"null", "~", ""} else value
+
+
+def _split_runtime_line(line: str) -> tuple[str, str] | None:
+    """Return a key/value pair for non-comment YAML lines."""
+    stripped = line.strip()
+    if not stripped or stripped.startswith("#") or ":" not in stripped:
+        return None
+    key, value = stripped.split(":", 1)
+    return key.strip(), value.strip()
+
+
+def _parse_runtime_int(key: str, value: str) -> int:
+    """Parse a runtime integer field with SchemaError context."""
+    try:
+        return int(value)
+    except ValueError as exc:
+        raise SchemaError(f"Invalid integer for {key}: {value}") from exc
 
 
 def _write_runtime_yaml(path: Path, data: Mapping[str, Any], *, repo_root: Path | None = None) -> None:
@@ -260,31 +283,33 @@ def append_observation(
         payload["created_at"] = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
     observation = observation_from_mapping(payload)
-    blocked = _cursor_emit_blocked(
-        observation,
-        read_writer_mode(root),
-        allow_cursor=allow_cursor_when_github_only,
-    )
-    if blocked is not None:
-        return None, blocked
+    runtime_lock_path = _repo_path(RUNTIME_YML_REL, root).parent / _RUNTIME_LOCK_NAME
+    ledger_lock_path = ledger_path.parent / _LEDGER_LOCK_NAME
+    with _exclusive_lock(runtime_lock_path):
+        blocked = _cursor_emit_blocked(
+            observation,
+            read_writer_mode(root),
+            allow_cursor=allow_cursor_when_github_only,
+        )
+        if blocked is not None:
+            return None, blocked
 
-    lock_path = ledger_path.parent / _LEDGER_LOCK_NAME
-    with _exclusive_lock(lock_path):
-        existing = load_existing_dedupe_keys(ledger_path)
-        if observation.dedupe_key() in existing:
-            return None, f"idempotent-no-op for {observation.dedupe_key()}"
+        with _exclusive_lock(ledger_lock_path):
+            existing = load_existing_dedupe_keys(ledger_path)
+            if observation.dedupe_key() in existing:
+                return None, f"idempotent-no-op for {observation.dedupe_key()}"
 
-        ledger_path.parent.mkdir(parents=True, exist_ok=True)
-        if not ledger_path.exists():
-            ledger_path.write_text(
-                "# Architecture Expert observation ledger (JSONL, append-only).\n"
-                "# schema_version=1 — see scripts/compound/schema.py\n",
-                encoding="utf-8",
-            )
+            ledger_path.parent.mkdir(parents=True, exist_ok=True)
+            if not ledger_path.exists():
+                ledger_path.write_text(
+                    "# Architecture Expert observation ledger (JSONL, append-only).\n"
+                    "# schema_version=1 — see scripts/compound/schema.py\n",
+                    encoding="utf-8",
+                )
 
-        with ledger_path.open("a", encoding="utf-8", newline="\n") as handle:
-            handle.write(observation.to_json_line())
-            handle.write("\n")
+            with ledger_path.open("a", encoding="utf-8", newline="\n") as handle:
+                handle.write(observation.to_json_line())
+                handle.write("\n")
 
     return observation, f"appended {observation.observation_id}"
 
