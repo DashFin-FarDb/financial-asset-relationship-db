@@ -56,6 +56,26 @@ def _base_payload(**overrides: object) -> dict:
     return payload
 
 
+def _capture_thread(fn) -> tuple[threading.Thread, list[Exception]]:
+    """Run ``fn`` on a thread, capturing exceptions for the parent to assert."""
+    errors: list[Exception] = []
+
+    def _run() -> None:
+        try:
+            fn()
+        except Exception as exc:  # pragma: no cover - re-raised via parent assertions
+            errors.append(exc)
+
+    return threading.Thread(target=_run), errors
+
+
+def _join_thread(thread: threading.Thread, *, timeout: float = 1.0) -> None:
+    """Join a thread and require it finished within ``timeout``."""
+    if thread.ident is not None:
+        thread.join(timeout=timeout)
+    assert thread.ident is None or not thread.is_alive()
+
+
 @pytest.mark.unit
 class TestAppendObservation:
     """Append idempotency and writer-mode gates."""
@@ -119,9 +139,7 @@ class TestAppendObservation:
         entered_ledger_load = threading.Event()
         release_ledger_load = threading.Event()
         conflict_recorded = threading.Event()
-        append_result = {}
-        append_errors: list[Exception] = []
-        conflict_errors: list[Exception] = []
+        append_result: dict[str, tuple[object, str]] = {}
         original_load = append_observation_mod.load_existing_dedupe_keys
 
         def blocking_load(ledger_path: Path) -> set[tuple[str, str, str]]:
@@ -130,24 +148,19 @@ class TestAppendObservation:
             return original_load(ledger_path)
 
         def run_append() -> None:
-            try:
-                append_result["result"] = append_observation(
-                    _base_payload(source=ObservationSource.CURSOR.value),
-                    repo_root=compound_repo,
-                )
-            except Exception as exc:  # pragma: no cover - re-raised by the parent test thread
-                append_errors.append(exc)
+            append_result["result"] = append_observation(
+                _base_payload(source=ObservationSource.CURSOR.value),
+                repo_root=compound_repo,
+            )
 
         def run_conflict_record() -> None:
-            try:
-                record_push_conflict(compound_repo, now=datetime(2026, 7, 9, 12, 1, tzinfo=timezone.utc))
-                conflict_recorded.set()
-            except Exception as exc:  # pragma: no cover - re-raised by the parent test thread
-                conflict_errors.append(exc)
+            record_push_conflict(compound_repo, now=datetime(2026, 7, 9, 12, 1, tzinfo=timezone.utc))
+            conflict_recorded.set()
 
         monkeypatch.setattr(append_observation_mod, "load_existing_dedupe_keys", blocking_load)
-        append_thread = threading.Thread(target=run_append)
-        conflict_thread = threading.Thread(target=run_conflict_record)
+        append_thread, append_errors = _capture_thread(run_append)
+        conflict_thread, conflict_errors = _capture_thread(run_conflict_record)
+
         append_thread.start()
         try:
             assert entered_ledger_load.wait(timeout=1.0)
@@ -155,13 +168,9 @@ class TestAppendObservation:
             assert not conflict_recorded.wait(timeout=0.2)
         finally:
             release_ledger_load.set()
-        append_thread.join(timeout=1.0)
-        if conflict_thread.ident is not None:
-            conflict_thread.join(timeout=1.0)
+        _join_thread(append_thread)
+        _join_thread(conflict_thread)
 
-        assert not append_thread.is_alive()
-        assert conflict_thread.ident is not None
-        assert not conflict_thread.is_alive()
         assert not append_errors
         assert not conflict_errors
         assert conflict_recorded.is_set()
