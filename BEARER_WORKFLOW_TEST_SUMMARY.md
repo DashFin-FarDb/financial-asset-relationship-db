@@ -155,7 +155,7 @@ Generated comprehensive unit tests for the Bearer security scanning GitHub Actio
 ## Related Files
 
 - Workflow under test: `.github/workflows/bearer.yml`
-- Similar test patterns: `tests/integration/test_debricked_workflow.py`
+- Similar test patterns: `tests/integration/test_workflow_yaml_validation.py`
 - Workflow validator: `src/workflow_validator.py`
 
 ---

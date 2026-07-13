@@ -227,7 +227,8 @@ class TestVersionSpecifications:
         """Test that zipp has the security-required minimum version."""
         zipp_specs = [ver for pkg, ver in requirements if pkg.lower() == "zipp"]
         assert len(zipp_specs) > 0, "zipp should be present for security fix"
-        assert _has_lower_bound_at_least(zipp_specs[0], "3.19.1"), f"zipp should be >=3.19.1, got {zipp_specs[0]}"
+        if not _has_lower_bound_at_least(zipp_specs[0], "3.19.1"):
+            pytest.fail(f"zipp should be >=3.19.1, got {zipp_specs[0]}")
 
     def test_uses_minimum_versions(self, requirements: list[tuple[str, str]]):
         """Test that most packages use >= for version specifications."""
@@ -360,7 +361,8 @@ class TestSecurityAndCompliance:
         zipp_entries = [(pkg, ver) for pkg, ver in requirements if pkg.lower() == "zipp"]
         assert len(zipp_entries) == 1, "zipp security pin should be present exactly once"
         pkg, ver = zipp_entries[0]
-        assert _has_lower_bound_at_least(ver, "3.19.1"), f"zipp version should be >=3.19.1, got {ver}"
+        if not _has_lower_bound_at_least(ver, "3.19.1"):
+            pytest.fail(f"zipp version should be >=3.19.1, got {ver}")
 
     @staticmethod
     def test_zipp_has_security_comment(file_content: str):

@@ -14,30 +14,71 @@ from pathlib import Path
 import pytest
 import yaml
 
-WORKFLOW_PATH_PATTERNS = (
-    r"working-directory:\s+(.+)",
-    r'path:\s+["\']([^"\']+)["\']',
-)
+
+def _load_yaml(path: Path) -> dict:
+    with open(path) as f:
+        return yaml.safe_load(f) or {}
 
 
-def _extract_referenced_paths(content: str) -> list[str]:
-    """Extract candidate file paths from workflow YAML text."""
+def _checkout_dir_from_step(step: object) -> str | None:
+    if not isinstance(step, dict):
+        return None
+
+    if "actions/checkout" not in str(step.get("uses", "")):
+        return None
+
+    checkout_path = str((step.get("with") or {}).get("path", "")).strip().removeprefix("./")
+    if checkout_path.startswith("./"):
+        checkout_path = checkout_path[2:]
+    if not checkout_path or "$" in checkout_path:
+        return None
+
+    return Path(checkout_path).parts[0]
+
+
+def _checkout_dirs_from_job(job: object) -> set[str]:
+    if not isinstance(job, dict):
+        return set()
+
+    checkout_dirs: set[str] = set()
+    for step in job.get("steps", []):
+        checkout_dir = _checkout_dir_from_step(step)
+        if checkout_dir:
+            checkout_dirs.add(checkout_dir)
+
+    return checkout_dirs
+
+
+def _checkout_dynamic_dirs(workflow_yaml: dict) -> set[str]:
+    return set().union(*(_checkout_dirs_from_job(job) for job in workflow_yaml.get("jobs", {}).values()))
+
+
+def _referenced_workflow_paths(content: str) -> list[str]:
     referenced_paths: list[str] = []
-    for pattern in WORKFLOW_PATH_PATTERNS:
-        referenced_paths.extend(match.strip() for match in re.findall(pattern, content))
+
+    for pattern in (r"working-directory:\s+(.+)", r'path:\s+["\']([^"\']+)["\']'):
+        for match in re.findall(pattern, content):
+            path = match.strip()
+            if path.startswith("./"):
+                path = path[2:]
+            if "$" not in path and "*" not in path:
+                referenced_paths.append(path)
+
     return referenced_paths
 
 
-def _normalize_workflow_path(path: str) -> str:
-    """Normalize workflow paths so they can be resolved from the repository root."""
-    if path.startswith("./"):
-        return path[2:]
-    return path
+def _is_runtime_checkout_path(path: str, dynamic_dirs: set[str]) -> bool:
+    path_parts = Path(path).parts
+    return bool(path_parts and path_parts[0] in dynamic_dirs)
 
 
-def _is_dynamic_or_runtime_path(path: str) -> bool:
-    """Return True for paths created at runtime or containing shell/glob expansion."""
-    return path == "release-source" or path.startswith("release-source/") or "$" in path or "*" in path
+def _assert_referenced_path_exists(path: str, dynamic_dirs: set[str], repo_root: Path, workflow_file_name: str) -> None:
+    if _is_runtime_checkout_path(path, dynamic_dirs):
+        return
+
+    full_path = repo_root / path
+    if not full_path.exists():
+        pytest.fail(f"Path {path} referenced in {workflow_file_name} doesn't exist")
 
 
 class TestPRAgentWorkflowChanges:
@@ -52,9 +93,7 @@ class TestPRAgentWorkflowChanges:
         Returns:
             dict: Parsed contents of .github/workflows/pr-agent.yml as native Python objects.
         """
-        workflow_path = Path(".github/workflows/pr-agent.yml")
-        with open(workflow_path) as f:
-            return yaml.safe_load(f)
+        return _load_yaml(Path(".github/workflows/pr-agent.yml"))
 
     def test_pr_agent_workflow_structure(self, pr_agent_workflow):
         """Verify PR agent workflow has expected structure."""
@@ -75,7 +114,9 @@ class TestPRAgentWorkflowChanges:
         """
         Validate the pr-agent-action job uses a single Python dependency installation step and does not install PyYAML.
 
-        Finds a step whose name includes "Install Python dependencies", asserts exactly one such step exists, and verifies the step's run script contains no references to "pyyaml" or "PyYAML".
+        Finds a step whose name includes "Install Python dependencies", asserts
+        exactly one such step exists, and verifies the step's run script contains
+        no references to "pyyaml" or "PyYAML".
         """
         pr_agent_job = pr_agent_workflow["jobs"]["pr-agent-action"]
         steps = pr_agent_job["steps"]
@@ -113,7 +154,8 @@ class TestPRAgentWorkflowChanges:
         """
         Verify the PR Agent workflow exposes minimal permissions.
 
-        Asserts the workflow top-level 'permissions' sets 'contents' to 'read' and the 'pr-agent-action' job-level 'permissions' sets 'issues' to 'write'.
+        Asserts the workflow top-level 'permissions' sets 'contents' to 'read'
+        and the 'pr-agent-action' job-level 'permissions' sets 'issues' to 'write'.
         """
         # Top-level permissions
         assert pr_agent_workflow.get("permissions", {}).get("contents") == "read"
@@ -135,9 +177,7 @@ class TestGreetingsWorkflowChanges:
         Returns:
             Parsed workflow content as native Python structures (typically a dict).
         """
-        workflow_path = Path(".github/workflows/greetings.yml")
-        with open(workflow_path) as f:
-            return yaml.safe_load(f)
+        return _load_yaml(Path(".github/workflows/greetings.yml"))
 
     @staticmethod
     def test_greetings_workflow_simplified(greetings_workflow):
@@ -146,11 +186,11 @@ class TestGreetingsWorkflowChanges:
         step = job["steps"][0]
 
         # Should use simple placeholder messages, not complex templates
-        assert "issue-message" in step["with"]
-        assert "pr-message" in step["with"]
+        assert "issue_message" in step["with"]
+        assert "pr_message" in step["with"]
 
-        issue_msg = step["with"]["issue-message"]
-        pr_msg = step["with"]["pr-message"]
+        issue_msg = step["with"]["issue_message"]
+        pr_msg = step["with"]["pr_message"]
 
         # Simplified messages should be short
         assert len(issue_msg) < 200
@@ -169,9 +209,7 @@ class TestAPISecWorkflowChanges:
         Returns:
             workflow (dict): Parsed content of .github/workflows/apisec-scan.yml.
         """
-        workflow_path = Path(".github/workflows/apisec-scan.yml")
-        with open(workflow_path) as f:
-            return yaml.safe_load(f)
+        return _load_yaml(Path(".github/workflows/apisec-scan.yml"))
 
     @staticmethod
     def test_apisec_no_credential_checks(apisec_workflow):
@@ -240,7 +278,9 @@ class TestWorkflowSecurityBestPractices:
         """
         Ensure workflow steps that use actions specify a pinned version and do not use 'latest' or 'master'.
 
-        Asserts that every step with a `uses` reference includes a version specifier (contains '@') and that the specified version is not '@latest' or '@master' (case-insensitive).
+        Asserts that every step with a `uses` reference includes a version
+        specifier (contains '@') and that the specified version is not '@latest'
+        or '@master' (case-insensitive).
         """
         workflows_dir = Path(".github/workflows")
 
@@ -306,7 +346,8 @@ class TestWorkflowYAMLValidity:
         """
         Ensure every workflow in .github/workflows defines top-level 'name', 'on', and 'jobs' keys.
 
-        Asserts that each .yml file contains 'name', 'on', and 'jobs'; a failing assertion includes the workflow filename and the missing key.
+        Asserts that each .yml file contains 'name', 'on', and 'jobs'; a failing
+        assertion includes the workflow filename and the missing key.
         """
         workflows_dir = Path(".github/workflows")
 
@@ -351,21 +392,23 @@ class TestWorkflowIntegration:
         """
         Verify that file paths referenced in workflow YAML files exist in the repository.
 
-        Scans .github/workflows/*.yml for path-like references (for example `working-directory` and `path`), normalizes leading `./`, ignores references containing variables (`$`) or wildcards (`*`), and asserts that each remaining referenced path exists.
+        Scans .github/workflows/*.yml for path-like references (for example
+        `working-directory` and `path`), normalizes leading `./`, ignores
+        references containing variables (`$`) or wildcards (`*`), skips
+        directories that are dynamically created by `actions/checkout` steps
+        (i.e. checkout `path:` destinations), and asserts that each remaining
+        referenced path exists.
         """
         workflows_dir = Path(".github/workflows")
         repo_root = Path(".")
 
         for workflow_file in workflows_dir.glob("*.yml"):
             content = workflow_file.read_text()
+            workflow_yaml = _load_yaml(workflow_file)
+            dynamic_dirs = _checkout_dynamic_dirs(workflow_yaml)
 
-            for path in _extract_referenced_paths(content):
-                path = _normalize_workflow_path(path)
-                if _is_dynamic_or_runtime_path(path):
-                    continue
-
-                full_path = repo_root / path
-                assert full_path.exists(), f"Path {path} referenced in {workflow_file.name} doesn't exist"
+            for path in _referenced_workflow_paths(content):
+                _assert_referenced_path_exists(path, dynamic_dirs, repo_root, workflow_file.name)
 
 
 class TestDependencyCheckWorkflowPresence:

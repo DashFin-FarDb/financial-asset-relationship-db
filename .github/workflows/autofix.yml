@@ -11,15 +11,15 @@ jobs:
   autofix:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
-      # Use uv to ensure we have the same ruff version in CI and locally.
-      - uses: astral-sh/setup-uv@681c641aba71e4a1c380be3ab5e12ad51f415867
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v6
+      # Use uv to ensure we have the same tool versions in CI and locally.
+      - uses: astral-sh/setup-uv@11f9893b081a58869d3b5fccaea48c9e9e46f990
         with:
           version: "0.4.15"
-      # Fix lint errors
-      - run: uvx ruff check --fix-only .
-      # Format code
-      - run: uvx ruff format .
+      # Keep import sorting aligned with pre-commit (ruff I-only).
+      - run: uvx ruff@0.15.20 check --fix-only --select I .
+      # Format with Black to match CI (`black --check`) and pre-commit.
+      # Do not use `ruff format` here — it conflicts with Black's assert wrapping.
+      - run: uvx black@26.5.1 .
 
-
-      - uses: autofix-ci/action@635ffb0c9798bd160680f18fd73371e355b85f27
+      - uses: autofix-ci/action@c5b2d67aa2274e7b5a18224e8171550871fc7e4a

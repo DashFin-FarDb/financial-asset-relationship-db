@@ -70,7 +70,11 @@ def _assert_rebuild_operator_denial(
     settings = SimpleNamespace(admin_username=admin_username)
 
     with patch("api.auth.log_event") as mock_log_event, pytest.raises(HTTPException) as exc_info:
-        get_current_rebuild_operator_user(user, settings, request=_request("/api/graph/rebuild"))  # type: ignore[arg-type]
+        get_current_rebuild_operator_user(
+            user,
+            settings,  # type: ignore[arg-type]
+            request=_request("/api/graph/rebuild"),
+        )
 
     assert exc_info.value.status_code == expected_status
     event = _logged_event(mock_log_event)
