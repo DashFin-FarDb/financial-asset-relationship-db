@@ -135,7 +135,11 @@ jobs:
             pip install safety bandit
           test: |
             echo "===== Safety ====="
-            safety check --policy-file .safety-policy.json --json
+            # Scan requirements.txt (direct + transitive runtime deps), not the
+            # full CI environment. Environment scans also cover safety/bandit
+            # toolchains and resolve >= floors to latest, which can hide a still-
+            # vulnerable committed lower bound that users may install.
+            safety check -r requirements.txt --policy-file .safety-policy.json --json
 
             echo "===== Bandit ====="
             bandit -r src/ -ll
