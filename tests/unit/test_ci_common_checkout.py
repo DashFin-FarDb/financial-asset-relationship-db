@@ -70,8 +70,7 @@ def _ci_common_violations_for_job(workflow_name: str, job_id: str, steps: list) 
         if saw_checkout:
             continue
         violations.append(
-            f"{workflow_name}: jobs.{job_id}.steps[{index}] "
-            "uses ci-common without a preceding actions/checkout"
+            f"{workflow_name}: jobs.{job_id}.steps[{index}] " "uses ci-common without a preceding actions/checkout"
         )
     return violations
 
