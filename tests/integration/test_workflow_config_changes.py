@@ -214,8 +214,8 @@ class TestGreetingsWorkflowChanges:
         assert "with" in action_step
 
         # Messages should be simple placeholders
-        issue_message = action_step["with"].get("issue-message", "")
-        pr_message = action_step["with"].get("pr-message", "")
+        issue_message = action_step["with"].get("issue_message", "")
+        pr_message = action_step["with"].get("pr_message", "")
 
         # Should be simple generic messages, not multi-line detailed ones
         assert len(issue_message) < 200, "Issue message should be simplified"
@@ -230,8 +230,8 @@ class TestGreetingsWorkflowChanges:
         action_step = next((s for s in steps if "actions/first-interaction" in s.get("uses", "")), None)
 
         if action_step and "with" in action_step:
-            issue_message = action_step["with"].get("issue-message", "")
-            pr_message = action_step["with"].get("pr-message", "")
+            issue_message = action_step["with"].get("issue_message", "")
+            pr_message = action_step["with"].get("pr_message", "")
 
             # Should not contain resources section or checkmarks
             assert "**Resources:**" not in issue_message

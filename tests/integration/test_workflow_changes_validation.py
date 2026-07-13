@@ -72,6 +72,15 @@ def _is_runtime_checkout_path(path: str, dynamic_dirs: set[str]) -> bool:
     return bool(path_parts and path_parts[0] in dynamic_dirs)
 
 
+def _assert_referenced_path_exists(path: str, dynamic_dirs: set[str], repo_root: Path, workflow_file_name: str) -> None:
+    if _is_runtime_checkout_path(path, dynamic_dirs):
+        return
+
+    full_path = repo_root / path
+    if not full_path.exists():
+        pytest.fail(f"Path {path} referenced in {workflow_file_name} doesn't exist")
+
+
 class TestPRAgentWorkflowChanges:
     """Test PR agent workflow simplification changes."""
 
@@ -105,7 +114,9 @@ class TestPRAgentWorkflowChanges:
         """
         Validate the pr-agent-action job uses a single Python dependency installation step and does not install PyYAML.
 
-        Finds a step whose name includes "Install Python dependencies", asserts exactly one such step exists, and verifies the step's run script contains no references to "pyyaml" or "PyYAML".
+        Finds a step whose name includes "Install Python dependencies", asserts
+        exactly one such step exists, and verifies the step's run script contains
+        no references to "pyyaml" or "PyYAML".
         """
         pr_agent_job = pr_agent_workflow["jobs"]["pr-agent-action"]
         steps = pr_agent_job["steps"]
@@ -143,7 +154,8 @@ class TestPRAgentWorkflowChanges:
         """
         Verify the PR Agent workflow exposes minimal permissions.
 
-        Asserts the workflow top-level 'permissions' sets 'contents' to 'read' and the 'pr-agent-action' job-level 'permissions' sets 'issues' to 'write'.
+        Asserts the workflow top-level 'permissions' sets 'contents' to 'read'
+        and the 'pr-agent-action' job-level 'permissions' sets 'issues' to 'write'.
         """
         # Top-level permissions
         assert pr_agent_workflow.get("permissions", {}).get("contents") == "read"
@@ -174,11 +186,11 @@ class TestGreetingsWorkflowChanges:
         step = job["steps"][0]
 
         # Should use simple placeholder messages, not complex templates
-        assert "issue-message" in step["with"]
-        assert "pr-message" in step["with"]
+        assert "issue_message" in step["with"]
+        assert "pr_message" in step["with"]
 
-        issue_msg = step["with"]["issue-message"]
-        pr_msg = step["with"]["pr-message"]
+        issue_msg = step["with"]["issue_message"]
+        pr_msg = step["with"]["pr_message"]
 
         # Simplified messages should be short
         assert len(issue_msg) < 200
@@ -266,7 +278,9 @@ class TestWorkflowSecurityBestPractices:
         """
         Ensure workflow steps that use actions specify a pinned version and do not use 'latest' or 'master'.
 
-        Asserts that every step with a `uses` reference includes a version specifier (contains '@') and that the specified version is not '@latest' or '@master' (case-insensitive).
+        Asserts that every step with a `uses` reference includes a version
+        specifier (contains '@') and that the specified version is not '@latest'
+        or '@master' (case-insensitive).
         """
         workflows_dir = Path(".github/workflows")
 
@@ -332,7 +346,8 @@ class TestWorkflowYAMLValidity:
         """
         Ensure every workflow in .github/workflows defines top-level 'name', 'on', and 'jobs' keys.
 
-        Asserts that each .yml file contains 'name', 'on', and 'jobs'; a failing assertion includes the workflow filename and the missing key.
+        Asserts that each .yml file contains 'name', 'on', and 'jobs'; a failing
+        assertion includes the workflow filename and the missing key.
         """
         workflows_dir = Path(".github/workflows")
 
@@ -377,7 +392,12 @@ class TestWorkflowIntegration:
         """
         Verify that file paths referenced in workflow YAML files exist in the repository.
 
-        Scans .github/workflows/*.yml for path-like references (for example `working-directory` and `path`), normalizes leading `./`, ignores references containing variables (`$`) or wildcards (`*`), skips directories that are dynamically created by `actions/checkout` steps (i.e. checkout `path:` destinations), and asserts that each remaining referenced path exists.
+        Scans .github/workflows/*.yml for path-like references (for example
+        `working-directory` and `path`), normalizes leading `./`, ignores
+        references containing variables (`$`) or wildcards (`*`), skips
+        directories that are dynamically created by `actions/checkout` steps
+        (i.e. checkout `path:` destinations), and asserts that each remaining
+        referenced path exists.
         """
         workflows_dir = Path(".github/workflows")
         repo_root = Path(".")
@@ -388,11 +408,7 @@ class TestWorkflowIntegration:
             dynamic_dirs = _checkout_dynamic_dirs(workflow_yaml)
 
             for path in _referenced_workflow_paths(content):
-                if _is_runtime_checkout_path(path, dynamic_dirs):
-                    continue
-                full_path = repo_root / path
-                if not full_path.exists():
-                    pytest.fail(f"Path {path} referenced in {workflow_file.name} doesn't exist")
+                _assert_referenced_path_exists(path, dynamic_dirs, repo_root, workflow_file.name)
 
 
 class TestDependencyCheckWorkflowPresence:

@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import json
 from dataclasses import asdict, dataclass, field
+from datetime import datetime
 from enum import Enum
 from pathlib import Path
 from typing import Any, Iterable, Mapping, Sequence
@@ -183,6 +184,17 @@ def _as_str_tuple(value: Any, field_name: str) -> tuple[str, ...]:
     return tuple(items)
 
 
+def _validate_created_at(value: str) -> str:
+    """Validate optional ISO-8601 created_at text."""
+    if not value:
+        return ""
+    try:
+        datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except ValueError as exc:
+        raise SchemaError(f"created_at must be ISO-8601 (e.g. 2026-07-09T00:00:00Z): {value!r}") from exc
+    return value
+
+
 def validate_domains(domains: Iterable[str]) -> tuple[str, ...]:
     """Validate domain names against the fixed partition set."""
     normalized: list[str] = []
@@ -222,14 +234,7 @@ def observation_from_mapping(data: Mapping[str, Any]) -> Observation:
     if schema_version != SCHEMA_VERSION:
         raise SchemaError(f"Unsupported schema_version {schema_version}; expected {SCHEMA_VERSION}")
 
-    created_at = str(data.get("created_at") or "")
-    if created_at:
-        from datetime import datetime
-
-        try:
-            datetime.fromisoformat(created_at.replace("Z", "+00:00"))
-        except ValueError as exc:
-            raise SchemaError(f"created_at must be ISO-8601 (e.g. 2026-07-09T00:00:00Z): {created_at!r}") from exc
+    created_at = _validate_created_at(str(data.get("created_at") or ""))
 
     return Observation(
         observation_id=str(data["observation_id"]),
@@ -310,6 +315,15 @@ def normalize_repo_relative(path: str | Path) -> str:
     return "/".join(parts)
 
 
+def _domain_for_path(path: str) -> str | None:
+    """Return the first compound domain matching a normalized path."""
+    wrapped = f"/{path}"
+    for prefix, domain in _PATH_DOMAIN_RULES:
+        if path.startswith(prefix) or f"/{prefix}" in wrapped:
+            return domain
+    return None
+
+
 def detect_domains_from_paths(paths: Iterable[str]) -> tuple[str, ...]:
     """Map changed file paths to compound domains.
 
@@ -322,13 +336,33 @@ def detect_domains_from_paths(paths: Iterable[str]) -> tuple[str, ...]:
             normalized = normalize_repo_relative(raw)
         except PathPolicyError:
             continue
-        for prefix, domain in _PATH_DOMAIN_RULES:
-            if normalized.startswith(prefix) or f"/{prefix}" in f"/{normalized}":
-                if domain not in found_set:
-                    found.append(domain)
-                    found_set.add(domain)
-                break
+        domain = _domain_for_path(normalized)
+        if domain is not None and domain not in found_set:
+            found.append(domain)
+            found_set.add(domain)
     return tuple(found) if found else ("architecture",)
+
+
+def _matches_denylist_prefix(normalized: str, prefix: str) -> bool:
+    """Return True when a normalized path matches a denylist entry.
+
+    Directory prefixes also match the bare directory name (``docs/adr`` for
+    ``docs/adr/``) so policy cannot be bypassed by omitting the trailing slash.
+    """
+    if prefix.endswith("/"):
+        return normalized.startswith(prefix) or normalized == prefix.rstrip("/")
+    return normalized == prefix
+
+
+def _matches_allowlist_prefix(normalized: str, prefix: str) -> bool:
+    """Return True when a normalized path matches an allowlist entry.
+
+    Directory prefixes require a path under the directory (``startswith``), not
+    equality with the bare directory name.
+    """
+    if prefix.endswith("/"):
+        return normalized.startswith(prefix)
+    return normalized == prefix
 
 
 def is_denylisted(path: str | Path) -> bool:
@@ -337,13 +371,7 @@ def is_denylisted(path: str | Path) -> bool:
         normalized = normalize_repo_relative(path)
     except PathPolicyError:
         return True
-    for prefix in WRITE_DENYLIST_PREFIXES:
-        if prefix.endswith("/"):
-            if normalized.startswith(prefix) or normalized == prefix.rstrip("/"):
-                return True
-        elif normalized == prefix:
-            return True
-    return False
+    return any(_matches_denylist_prefix(normalized, prefix) for prefix in WRITE_DENYLIST_PREFIXES)
 
 
 def is_allowlisted(path: str | Path) -> bool:
@@ -352,13 +380,7 @@ def is_allowlisted(path: str | Path) -> bool:
         normalized = normalize_repo_relative(path)
     except PathPolicyError:
         return False
-    for prefix in WRITE_ALLOWLIST_PREFIXES:
-        if prefix.endswith("/"):
-            if normalized.startswith(prefix):
-                return True
-        elif normalized == prefix:
-            return True
-    return False
+    return any(_matches_allowlist_prefix(normalized, prefix) for prefix in WRITE_ALLOWLIST_PREFIXES)
 
 
 def assert_writable(path: str | Path) -> str:

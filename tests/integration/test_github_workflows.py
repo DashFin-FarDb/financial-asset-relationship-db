@@ -1176,6 +1176,7 @@ class TestAutoAssignWorkflow:
         }:
             pytest.fail("Auto-assign should keep the validated v4.0.1 input contract")
 
+
     def test_auto_assign_configuration_has_with_block(self, auto_assign_workflow: dict[str, Any]):
         """Test that the step has a 'with' configuration block."""
         run_job = auto_assign_workflow["jobs"]["auto-assign"]
