@@ -35,7 +35,7 @@ jobs:
           JF_URL: ${{ secrets.JF_URL }}
         run: |
           if [ -z "${JF_URL}" ]; then
-            echo "JF_URL is not configured; skipping Frogbot."
+            echo "JFrog credentials are not configured; skipping Frogbot."
             echo "run_frogbot=false" >> "$GITHUB_OUTPUT"
           else
             echo "run_frogbot=true" >> "$GITHUB_OUTPUT"
