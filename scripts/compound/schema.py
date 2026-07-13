@@ -343,11 +343,18 @@ def detect_domains_from_paths(paths: Iterable[str]) -> tuple[str, ...]:
     return tuple(found) if found else ("architecture",)
 
 
-def _matches_policy_prefix(normalized: str, prefix: str) -> bool:
-    """Return True when a normalized path matches an exact or directory policy."""
-    if prefix.endswith("/"):
-        return normalized.startswith(prefix) or normalized == prefix.rstrip("/")
-    return normalized == prefix
+def is_allowlisted(path: str | Path) -> bool:
+    try:
+        normalized = normalize_repo_relative(path)
+    except PathPolicyError:
+        return False
+    for prefix in WRITE_ALLOWLIST_PREFIXES:
+        if prefix.endswith("/"):
+            if normalized.startswith(prefix):
+                return True
+        elif normalized == prefix:
+            return True
+    return False
 
 
 def is_denylisted(path: str | Path) -> bool:
