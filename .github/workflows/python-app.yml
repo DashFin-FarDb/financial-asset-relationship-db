@@ -10,9 +10,8 @@ name: Python application
       - '**/*.py'
       - 'requirements*.txt'
       - '.github/workflows/python-app.yml'
-    paths-ignore:
-      - '**/*.md'
-      - 'docs/**'
+      - '!**/*.md'
+      - '!docs/**'
   pull_request:
     types: [opened, synchronize, reopened]
     branches: [ "main" ]
@@ -20,9 +19,8 @@ name: Python application
       - '**/*.py'
       - 'requirements*.txt'
       - '.github/workflows/python-app.yml'
-    paths-ignore:
-      - '**/*.md'
-      - 'docs/**'
+      - '!**/*.md'
+      - '!docs/**'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -37,6 +35,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+    - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
     - name: Python CI common (3.10)
       uses: ./.github/actions/ci-common
       with:
@@ -48,7 +48,8 @@ jobs:
         install: |
           python -m pip install --upgrade pip &&
           pip install flake8 pytest &&
-          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi &&
+          if [ -f requirements-dev.txt ]; then pip install -r requirements-dev.txt; fi
         test: |
           flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics &&
           flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics &&

@@ -121,6 +121,5 @@ jobs:
     - name: Upload SARIF file
       if: steps.contrast_preflight.outputs.run_scan == 'true'
       uses: github/codeql-action/upload-sarif@54f647b7e1bb85c95cddabcd46b0c578ec92bc1a # v4.36.3
-
       with:
         sarif_file: results.sarif # The file name must be 'results.sarif', as this is what the Github Action will output

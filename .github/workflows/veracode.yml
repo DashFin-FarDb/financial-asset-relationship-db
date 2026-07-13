@@ -86,7 +86,6 @@ jobs:
     - run: unzip -o pipeline-scan-LATEST.zip
 
     - uses: actions/setup-java@0f481fcb613427c0f801b606911222b5b6f3083a # v5.5.0
-
       with:
         java-version: 8
         distribution: 'temurin'
@@ -99,7 +98,6 @@ jobs:
       with:
         pipeline-results-json: results.json
     - uses: github/codeql-action/upload-sarif@54f647b7e1bb85c95cddabcd46b0c578ec92bc1a # v4.36.3
-
       with:
         # Path to SARIF file relative to the root of the repository
         sarif_file: veracode-results.sarif
