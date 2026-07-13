@@ -57,7 +57,7 @@ Claims are labeled landed vs provisional. ADRs/policy are not rewritten.
 - [provisional] **pr:1403**: fix(ci): resolve compound workflow failures
 
 ### ci-guardrails
-- [provisional] **pr:1458**: x(y)  v y y 
+- [landed] **pr:1458**: x(y)  v y y 
 - [landed] **pr:1457**: x   y  
 - [provisional] **pr:1471**: x   ww v 
 - [landed] **pr:1454**: x() v   
