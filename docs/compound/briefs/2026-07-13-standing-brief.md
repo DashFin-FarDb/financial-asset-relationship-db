@@ -6,6 +6,7 @@ Claims are labeled landed vs provisional. ADRs/policy are not rewritten.
 ## Seam movement by domain
 
 ### architecture
+- [provisional] **pr:1471**: x   ww v 
 - [landed] **sha:007398ac6055ce57da09ade11142187e8aefdfb0**: Merge/push to main 007398ac6055ce57da09ade11142187e8aefdfb0
 - [landed] **sha:7b456c24a5972c0f700754458f295d3cf0b542ed**: Merge/push to main 7b456c24a5972c0f700754458f295d3cf0b542ed
 - [landed] **sha:4172998f573fdfd9a10de5c9224a7d5d9792be54**: Merge/push to main 4172998f573fdfd9a10de5c9224a7d5d9792be54
@@ -20,7 +21,6 @@ Claims are labeled landed vs provisional. ADRs/policy are not rewritten.
 - [landed] **pr:1459**: x()      
 - [landed] **sha:73415d8774dc835f9b88d77a88342aff88fb3c20**: Merge/push to main 73415d8774dc835f9b88d77a88342aff88fb3c20
 - [landed] **pr:1366**: ()   y-  w  
-- [landed] **sha:946a00889b2f7aec1e777f603883fe785edefea4**: Merge/push to main 946a00889b2f7aec1e777f603883fe785edefea4
 
 ### api
 - [landed] **pr:1466**: x()  ww  
@@ -41,7 +41,6 @@ Claims are labeled landed vs provisional. ADRs/policy are not rewritten.
 
 ### persistence
 - [landed] **pr:1455**: x    y 
-- [provisional] **pr:1471**: x   ww v 
 - [provisional] **pr:1443**: x()    # vw 
 - [provisional] **pr:1439**: x() v   
 - [provisional] **pr:1438**: x()    y   
@@ -55,6 +54,7 @@ Claims are labeled landed vs provisional. ADRs/policy are not rewritten.
 - [provisional] **pr:1414**: x() y    w
 - [provisional] **pr:1409**: x()    
 - [provisional] **pr:1403**: fix(ci): resolve compound workflow failures
+- [provisional] **pr:1402**: fix: support Python 3.10 UTC timestamps
 
 ### ci-guardrails
 - [landed] **pr:1470**: x v  y  xy 
@@ -63,7 +63,6 @@ Claims are labeled landed vs provisional. ADRs/policy are not rewritten.
 - [landed] **pr:1466**: x()  ww  
 - [landed] **pr:1458**: x(y)  v y y 
 - [landed] **pr:1457**: x   y  
-- [provisional] **pr:1471**: x   ww v 
 - [landed] **pr:1454**: x() v   
 - [provisional] **pr:1445**: x()     
 - [provisional] **pr:1393**: fix(ci): harden architecture compound workflows
@@ -72,10 +71,10 @@ Claims are labeled landed vs provisional. ADRs/policy are not rewritten.
 - [provisional] **pr:1443**: x()    # vw 
 - [provisional] **pr:1439**: x() v   
 - [provisional] **pr:1438**: x()    y   
+- [provisional] **pr:1431**: fix(ci): repair autofix branch gates
 
 ### rebuild-reconciliation
 - [landed] **pr:1455**: x    y 
-- [provisional] **pr:1471**: x   ww v 
 - [provisional] **pr:1439**: x() v   
 - [provisional] **pr:1431**: fix(ci): repair autofix branch gates
 - [provisional] **pr:1435**: x()  x  w -
