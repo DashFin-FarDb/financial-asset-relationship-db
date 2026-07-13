@@ -59,7 +59,8 @@ class TestPRAgentWorkflowChanges:
         Assert that the parsed pr-agent workflow config includes pull request triggers.
 
         Parameters:
-            pr_agent_workflow (dict): Parsed YAML of .github/workflows/pr-agent.yml as a dictionary; may use either `on` or `"on"` key.
+            pr_agent_workflow (dict): Parsed YAML of .github/workflows/pr-agent.yml
+                as a dictionary; may use either `on` or `"on"` key.
         """
         triggers = pr_agent_workflow.get("on") or pr_agent_workflow.get('"on"')
         assert triggers is not None
@@ -281,7 +282,10 @@ class TestRequirementsDevChanges:
         """
         Check that requirements-dev.txt contains no duplicate package entries.
 
-        Ignores blank lines and comments, normalizes package names to lowercase and strips version specifiers (e.g., ==, >=, <=, ~=, >, <), and asserts there are no duplicate package names; on failure, reports the duplicated package names.
+        Ignores blank lines and comments, normalizes package names to lowercase and
+        strips version specifiers (e.g., ==, >=, <=, ~=, >, <), and asserts there
+        are no duplicate package names; on failure, reports the duplicated package
+        names.
         """
         req_path = Path("requirements-dev.txt")
         with open(req_path) as f:
