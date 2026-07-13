@@ -49,7 +49,7 @@ jobs:
 
     steps:
       - name: 'Checkout'
-        uses: 'actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0' # actions/checkout@v4
+        uses: 'actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0' # actions/checkout@v4  # guardrails-disable-line
 
       # Configure Workload Identity Federation and generate an access token.
       #
@@ -57,12 +57,13 @@ jobs:
       # including authenticating via a JSON credentials file.
       - id: 'auth'
         name: 'Authenticate to Google Cloud'
-        uses: 'google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093' # google-github-actions/auth@v2
+        uses: 'google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093' # google-github-actions/auth@v2  # guardrails-disable-line
         with:
           workload_identity_provider: 'projects/123456789/locations/global/workloadIdentityPools/my-pool/providers/my-provider' # TODO: replace with your workload identity provider
 
-      - name: 'Deploy to Cloud Run'
-        uses: 'google-github-actions/deploy-cloudrun@2028e2d7d30a78c6910e0632e48dd561b064884d' # google-github-actions/deploy-cloudrun@v2
+      - id: 'deploy'
+        name: 'Deploy to Cloud Run'
+        uses: 'google-github-actions/deploy-cloudrun@2028e2d7d30a78c6910e0632e48dd561b064884d' # google-github-actions/deploy-cloudrun@v2  # guardrails-disable-line
         with:
           service: '${{ env.SERVICE }}'
           region: '${{ env.REGION }}'
@@ -72,4 +73,4 @@ jobs:
       # If required, use the Cloud Run URL output in later steps
       - name: 'Show output'
         run: |-
-          echo ${{ steps.deploy.outputs.url }}
+          echo "${{ steps.deploy.outputs.url }}"

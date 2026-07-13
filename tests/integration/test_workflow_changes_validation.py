@@ -279,7 +279,8 @@ class TestWorkflowSecurityBestPractices:
         Ensure workflow steps that use actions specify a pinned version and do not use 'latest' or 'master'.
 
         Asserts that every step with a `uses` reference includes a version
-        specifier and that the specified version is not '@latest' or '@master'.
+        specifier (contains '@') and that the specified version is not '@latest'
+        or '@master' (case-insensitive).
         """
         workflows_dir = Path(".github/workflows")
 
@@ -345,8 +346,8 @@ class TestWorkflowYAMLValidity:
         """
         Ensure every workflow in .github/workflows defines top-level 'name', 'on', and 'jobs' keys.
 
-        Asserts that each .yml file contains 'name', 'on', and 'jobs';
-        a failing assertion includes the workflow filename and the missing key.
+        Asserts that each .yml file contains 'name', 'on', and 'jobs'; a failing
+        assertion includes the workflow filename and the missing key.
         """
         workflows_dir = Path(".github/workflows")
 
@@ -392,9 +393,12 @@ class TestWorkflowIntegration:
         """
         Verify that file paths referenced in workflow YAML files exist in the repository.
 
-        Scans .github/workflows/*.yml for path-like references, normalizes leading
-        `./`, ignores references containing variables or wildcards, skips dynamic
-        `actions/checkout` destinations, and asserts that each remaining path exists.
+        Scans .github/workflows/*.yml for path-like references (for example
+        `working-directory` and `path`), normalizes leading `./`, ignores
+        references containing variables (`$`) or wildcards (`*`), skips
+        directories that are dynamically created by `actions/checkout` steps
+        (i.e. checkout `path:` destinations), and asserts that each remaining
+        referenced path exists.
         """
         workflows_dir = Path(".github/workflows")
         repo_root = Path(".")

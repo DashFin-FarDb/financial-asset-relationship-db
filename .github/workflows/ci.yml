@@ -132,10 +132,14 @@ jobs:
           install: |
             python -m pip install --upgrade pip
             pip install -r requirements.txt
+            # Freeze resolved runtime packages (direct + transitive) before
+            # installing CI security tooling, so Safety can scan the installed
+            # runtime set without also covering safety/bandit toolchains.
+            pip freeze > .ci-runtime-freeze.txt
             pip install safety bandit
           test: |
             echo "===== Safety ====="
-            safety check -r requirements.txt --policy-file .safety-policy.json --json
+            safety check -r .ci-runtime-freeze.txt --policy-file .safety-policy.json --json
 
             echo "===== Bandit ====="
             bandit -r src/ -ll
