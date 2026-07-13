@@ -53,7 +53,9 @@ class TestSnykWorkflowStructure:
         """
         Verify the workflow file is valid YAML and parses to a mapping.
 
-        Asserts that loading the workflow file produces a non - None mapping(dict), indicating syntactically valid YAML suitable for further structural checks.
+        Asserts that loading the workflow file produces a non-None mapping
+        (dict), indicating syntactically valid YAML suitable for further
+        structural checks.
         """
         with open(snyk_workflow_path) as f:
             data = yaml.safe_load(f)
@@ -123,7 +125,9 @@ class TestSnykWorkflowTriggers:
         """
         Validate that the workflow schedule's `cron` expression has five space - separated fields.
 
-        Checks the first schedule entry in the workflow triggers and asserts the presence of a `cron` key whose expression splits into exactly five parts.
+        Checks the first schedule entry in the workflow triggers and asserts
+        the presence of a `cron` key whose expression splits into exactly
+        five parts.
         """
         triggers = snyk_workflow.get(True) or snyk_workflow.get("on")
         schedule = triggers["schedule"][0]
@@ -347,7 +351,9 @@ class TestSnykJobConfiguration:
         """
         Verify the SARIF upload step for the snyk job defines a `sarif_file` input equal to "snyk.sarif".
 
-        Locates the step using the CodeQL SARIF uploader("codeql-action/upload-sarif") and asserts that the step has a `with ` mapping containing `sarif_file` set to "snyk.sarif".
+        Locates the step using the CodeQL SARIF uploader
+        ("codeql-action/upload-sarif") and asserts that the step has a `with`
+        mapping containing `sarif_file` set to "snyk.sarif".
         """
         steps = snyk_job["steps"]
         sarif_steps = [s for s in steps if "uses" in s and "codeql-action/upload-sarif" in s["uses"]]
@@ -539,11 +545,7 @@ class TestSnykContainerWorkflow:
     def test_job_fails_when_sarif_missing(self, container_job):
         """Workflow must fail when Snyk does not produce the expected SARIF artifact."""
         steps = container_job["steps"]
-        verifier_steps = [
-            s
-            for s in steps
-            if s.get("run") and "snyk.sarif" in s["run"] and "exit 1" in s["run"]
-        ]
+        verifier_steps = [s for s in steps if s.get("run") and "snyk.sarif" in s["run"] and "exit 1" in s["run"]]
         assert len(verifier_steps) == 1
 
     def test_upload_requires_verified_sarif(self, container_job):
@@ -552,6 +554,13 @@ class TestSnykContainerWorkflow:
         upload_steps = [s for s in steps if "uses" in s and "codeql-action/upload-sarif" in s["uses"]]
         assert len(upload_steps) == 1
         assert "if" not in upload_steps[0]
+
+    def test_sanitizes_security_severity_before_upload(self, container_job):
+        """Invalid Snyk security-severity values must be normalized before upload."""
+        steps = container_job["steps"]
+        sanitize_steps = [s for s in steps if s.get("name") == "Sanitize Snyk SARIF security-severity"]
+        assert len(sanitize_steps) == 1
+        assert "security-severity" in sanitize_steps[0]["run"]
 
     def test_job_does_not_continue_on_error(self, container_job):
         """Missing SARIF or upload failures must fail the workflow."""
