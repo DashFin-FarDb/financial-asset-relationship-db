@@ -120,8 +120,8 @@ class TestAppendObservation:
         release_ledger_load = threading.Event()
         conflict_recorded = threading.Event()
         append_result = {}
-        append_errors: list[BaseException] = []
-        conflict_errors: list[BaseException] = []
+        append_errors: list[Exception] = []
+        conflict_errors: list[Exception] = []
         original_load = append_observation_mod.load_existing_dedupe_keys
 
         def blocking_load(ledger_path: Path) -> set[tuple[str, str, str]]:
@@ -135,14 +135,14 @@ class TestAppendObservation:
                     _base_payload(source=ObservationSource.CURSOR.value),
                     repo_root=compound_repo,
                 )
-            except BaseException as exc:  # pragma: no cover - re-raised by the parent test thread
+            except Exception as exc:  # pragma: no cover - re-raised by the parent test thread
                 append_errors.append(exc)
 
         def run_conflict_record() -> None:
             try:
                 record_push_conflict(compound_repo, now=datetime(2026, 7, 9, 12, 1, tzinfo=timezone.utc))
                 conflict_recorded.set()
-            except BaseException as exc:  # pragma: no cover - re-raised by the parent test thread
+            except Exception as exc:  # pragma: no cover - re-raised by the parent test thread
                 conflict_errors.append(exc)
 
         monkeypatch.setattr(append_observation_mod, "load_existing_dedupe_keys", blocking_load)
