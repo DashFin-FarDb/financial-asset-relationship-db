@@ -7,6 +7,7 @@ from pathlib import Path
 import pytest
 import yaml
 from compound.schema import (  # noqa: E402
+    WRITE_DENYLIST_PREFIXES,
     ObservationSource,
     ObservationStatus,
     PathPolicyError,
@@ -80,10 +81,12 @@ class TestCompoundSchema:
         path = "docs/compound/domains/api.md"
         assert is_allowlisted(path)
         assert assert_writable(path) == path
+        assert not is_allowlisted("docs/compound")
 
     def test_denylist_rejects_adr_and_agents(self) -> None:
         """Denylist rejects ADR paths and AGENTS.md."""
         assert is_denylisted("docs/adr/0001-production-architecture.md")
+        assert is_denylisted("docs/adr")
         assert is_denylisted("AGENTS.md")
         with pytest.raises(PathPolicyError, match="denylist"):
             assert_writable("docs/adr/0001-production-architecture.md")
@@ -119,8 +122,6 @@ class TestCompoundSchema:
 
     def test_denylist_paths_exist(self) -> None:
         """Denylist entries map to real repo paths so policy cannot silently drift."""
-        from compound.schema import WRITE_DENYLIST_PREFIXES
-
         repo_root = Path(__file__).resolve().parents[2]
         for entry in WRITE_DENYLIST_PREFIXES:
             target = repo_root / entry.rstrip("/")

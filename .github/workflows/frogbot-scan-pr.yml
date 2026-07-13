@@ -28,12 +28,24 @@ jobs:
     # (JF_URL, JF_ACCESS_TOKEN) and the scan will be skipped. This is the intended secure behavior.
     # Maintainers can manually trigger scans for approved external contributions using workflow_dispatch
     # or by requesting the contributor to open the PR from a branch in the main repository.
-    # Only run if JF_URL secret is configured (will be empty/unavailable for forked PRs)
-    if: secrets.JF_URL != ''
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - name: Verify JFrog credentials
+        id: check-creds
+        env:
+          JF_URL: ${{ secrets.JF_URL }}
+          JF_ACCESS_TOKEN: ${{ secrets.JF_ACCESS_TOKEN }}
+        run: |
+          if [ -n "$JF_URL" ] && [ -n "$JF_ACCESS_TOKEN" ]; then
+            echo "has_credentials=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_credentials=false" >> "$GITHUB_OUTPUT"
+          fi
 
-      - uses: jfrog/frogbot@5d9c42c30f1169d8be4ba5510b40e75ffcbbc2a9  # v2.21.2
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        if: steps.check-creds.outputs.has_credentials == 'true'
+
+      - uses: jfrog/frogbot@9ed6b65f3147992357cd1b27a9a95ecd5094c2d6  # v3.3.1
+        if: steps.check-creds.outputs.has_credentials == 'true'
         env:
           # [Mandatory if the two conditions below are met]
           # 1. The project uses npm, yarn 2, NuGet or .NET to download its dependencies

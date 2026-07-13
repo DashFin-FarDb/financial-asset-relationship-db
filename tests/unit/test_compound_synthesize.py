@@ -6,7 +6,7 @@ import json
 from pathlib import Path
 
 import pytest
-from compound.schema import PathPolicyError, assert_writable  # noqa: E402
+from compound.schema import Observation, PathPolicyError, assert_writable, observation_from_mapping  # noqa: E402
 from compound.synthesize import (  # noqa: E402
     load_ledger,
     should_hot_path_synthesize,
@@ -19,6 +19,22 @@ def _write_obs(ledger: Path, rows: list[dict]) -> None:
     for row in rows:
         lines.append(json.dumps(row, sort_keys=True))
     ledger.write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+
+def _observation(**overrides: object) -> Observation:
+    """Build a valid observation with focused overrides."""
+    row: dict[str, object] = {
+        "observation_id": "obs",
+        "source": "github",
+        "event_type": "pull_request.opened",
+        "status": "provisional",
+        "primary_ref": "pr:1",
+        "summary": "Architecture seam change",
+        "domains": ["architecture"],
+        "created_at": "2026-07-01T00:00:00Z",
+    }
+    row.update(overrides)
+    return observation_from_mapping(row)
 
 
 @pytest.fixture
@@ -127,11 +143,7 @@ class TestCompoundSynthesize:
                 "created_at": "2026-07-01T00:00:00Z",
             }
         ]
-        obs_list = []
-        from compound.schema import observation_from_mapping
-
-        for row in rows:
-            obs_list.append(observation_from_mapping(row))
+        obs_list = [observation_from_mapping(row) for row in rows]
         assert should_hot_path_synthesize(obs_list) is False
         assert should_hot_path_synthesize(obs_list, force=True) is True
         assert should_hot_path_synthesize(obs_list, event_hint="push") is True
@@ -143,64 +155,36 @@ class TestCompoundSynthesize:
 
     def test_dependabot_batching_ignores_historical_non_bot(self) -> None:
         """Newest dependabot event still batches even if older non-bot rows exist."""
-        from compound.schema import observation_from_mapping
-
         mixed = [
-            observation_from_mapping(
-                {
-                    "observation_id": "old",
-                    "source": "github",
-                    "event_type": "pull_request.opened",
-                    "status": "provisional",
-                    "primary_ref": "pr:1",
-                    "summary": "Architecture seam change",
-                    "domains": ["architecture"],
-                    "created_at": "2026-06-01T00:00:00Z",
-                }
+            _observation(
+                observation_id="old",
+                created_at="2026-06-01T00:00:00Z",
             ),
-            observation_from_mapping(
-                {
-                    "observation_id": "new",
-                    "source": "github",
-                    "event_type": "pull_request.synchronize",
-                    "status": "provisional",
-                    "primary_ref": "pr:1366",
-                    "summary": "chore(deps): bump the python-dependencies group",
-                    "domains": ["ci-guardrails"],
-                    "created_at": "2026-07-09T00:00:00Z",
-                }
+            _observation(
+                observation_id="new",
+                event_type="pull_request.synchronize",
+                primary_ref="pr:1366",
+                summary="chore(deps): bump the python-dependencies group",
+                domains=["ci-guardrails"],
+                created_at="2026-07-09T00:00:00Z",
             ),
         ]
         assert should_hot_path_synthesize(mixed) is False
 
     def test_hot_path_uses_append_order_not_max_timestamp(self) -> None:
         """Trigger gate uses the last ledger row even if an older row has a newer timestamp."""
-        from compound.schema import observation_from_mapping
-
         rows = [
-            observation_from_mapping(
-                {
-                    "observation_id": "stale-ts",
-                    "source": "github",
-                    "event_type": "pull_request.opened",
-                    "status": "provisional",
-                    "primary_ref": "pr:1",
-                    "summary": "Architecture seam change",
-                    "domains": ["architecture"],
-                    "created_at": "2026-12-01T00:00:00Z",
-                }
+            _observation(
+                observation_id="stale-ts",
+                created_at="2026-12-01T00:00:00Z",
             ),
-            observation_from_mapping(
-                {
-                    "observation_id": "appended-last",
-                    "source": "github",
-                    "event_type": "pull_request.synchronize",
-                    "status": "provisional",
-                    "primary_ref": "pr:1366",
-                    "summary": "chore(deps): bump the python-dependencies group",
-                    "domains": ["ci-guardrails"],
-                    "created_at": "2026-01-01T00:00:00Z",
-                }
+            _observation(
+                observation_id="appended-last",
+                event_type="pull_request.synchronize",
+                primary_ref="pr:1366",
+                summary="chore(deps): bump the python-dependencies group",
+                domains=["ci-guardrails"],
+                created_at="2026-01-01T00:00:00Z",
             ),
         ]
         assert should_hot_path_synthesize(rows) is False
