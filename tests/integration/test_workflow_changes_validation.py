@@ -112,7 +112,7 @@ class TestPRAgentWorkflowChanges:
 
     def test_pr_agent_python_setup_simplified(self, pr_agent_workflow):
         """
-        Validate the pr-agent-action job uses a single Python dependency installation step and does not install PyYAML.
+        Validate the pr-agent-action job uses one Python dependency installation step and does not install PyYAML.
 
         Finds a step whose name includes "Install Python dependencies", asserts
         exactly one such step exists, and verifies the step's run script contains
@@ -369,7 +369,8 @@ class TestWorkflowYAMLValidity:
         """
         Ensure every job in every GitHub Actions workflow specifies its runner with the 'runs-on' key.
 
-        If a job is missing 'runs-on', the test fails with an assertion identifying the job name and workflow filename.
+        If a job is missing 'runs-on', the test fails with an assertion identifying
+        the job name and workflow filename.
         """
         workflows_dir = Path(".github/workflows")
 
