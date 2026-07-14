@@ -1,7 +1,7 @@
 # Current state of FarDB
 
-**Claim class:** CURRENT, with explicit limitations  
-**Evidence date:** 14 July 2026  
+**Claim class:** CURRENT, with explicit limitations
+**Evidence date:** 14 July 2026
 **Repository baseline:** `main` at `2afe77212fba06b6556d38696a5323e55f04a35a`
 
 ## Executive statement

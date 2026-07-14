@@ -1,8 +1,8 @@
 # Claims and truth policy
 
-**Status:** proposed governance baseline  
+**Status:** proposed governance baseline
 **Applies to:** repository documentation, ADRs, issues, pull requests, board materials, brochures, demos, proposals
-and public statements  
+and public statements
 **Reviewed:** 14 July 2026
 
 ## Purpose
