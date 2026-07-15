@@ -2,7 +2,14 @@
 
 **Status:** foundation in progress
 **Evidence baseline:** `main` at `7b424b0012f0e4e56f7b3f5f5e4cd1533ca55990`
+**Baseline verification (15 July 2026):** `origin/main` resolved to the baseline; PR 1477 was merged and
+closed, with no open PR for that baseline.
+**Checked-out review ref (15 July 2026):** `docs/fardb-big-read`; PR 1480 was open against `main`, and the ref
+differed from `main`.
 **Reviewed:** 15 July 2026
+
+Re-run the manuscript's reviewer verification gate before treating these volatile ref and PR observations as
+current.
 
 ## Purpose
 

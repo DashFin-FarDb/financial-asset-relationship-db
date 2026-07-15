@@ -7,6 +7,21 @@
 **Claim convention:** section-level CURRENT, NEXT, RESEARCH, ASPIRATION and EXCLUDED labels follow the
 [claims and truth policy](claims-and-truth-policy.md)
 
+### Reviewer verification gate
+
+Before treating repository state claims in this manuscript as settled evidence, a reviewer must:
+
+1. fetch `origin/main` and `origin/docs/fardb-big-read`, record `git branch --show-current`, and confirm
+   `git rev-parse HEAD` matches `git rev-parse origin/docs/fardb-big-read`;
+2. confirm `git rev-parse origin/main` resolves to the stated baseline commit;
+3. verify on GitHub that PR 1477 is merged and closed, and that PR 1480 is still open against `main`; and
+4. run `git rev-list --left-right --count origin/main...HEAD` and record whether the checked-out ref differs from
+   `main`.
+
+Verified on 15 July 2026: the checked-out ref was `docs/fardb-big-read` and its head matched the remote ref; PR
+1480 was open against `main` and the ref differed from `main`; `origin/main` resolved to the baseline below; and
+PR 1477 was merged and closed.
+
 **Evidence baseline:** repository main at
 7b424b0012f0e4e56f7b3f5f5e4cd1533ca55990, merged PR 1477 head at
 576cca12df449678ca9c146a0ff8fa2d2750fb60, and live platform observations made on 15 July 2026
@@ -1678,6 +1693,22 @@ These observations were made through the connected platform APIs while preparing
 a substitute for a redacted release evidence pack and should be recaptured for promotion.
 
 ### GitHub
+
+#### Verification required
+
+Before relying on the bullets below, re-run the reviewer verification gate at the start of this manuscript and
+confirm all four results: the active branch/ref and head, the baseline against current `origin/main`, the current
+open or merged state of each referenced PR, and whether the active ref differs from `main`.
+
+Recorded on 15 July 2026:
+
+- Active review ref: `docs/fardb-big-read`; its head matched the remote ref and it differed from `main`.
+
+- PR 1480: open against `main` for the active review ref.
+
+- PR 1477: merged and closed; it was not open.
+
+- `origin/main`: resolved to the stated baseline commit.
 
 - Repository: DashFin-FarDb/financial-asset-relationship-db.
 
