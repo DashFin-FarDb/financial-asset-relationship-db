@@ -14,7 +14,8 @@ The organising thesis is:
 > FarDB is intended to make consequential relationships explainable, evidence-bound, governed over time and
 > operationally trustworthy.
 
-The current implementation is a financial relationship platform. The proposed direction is a governed
+**CURRENT — evidence date 14 July 2026:** The current implementation is a financial relationship platform.
+**ASPIRATION — evidence date 14 July 2026:** The proposed direction is a governed
 relationship-assertion and operational-assurance layer. That direction can be tested across carefully selected
 domains without turning every domain into a fork.
 
