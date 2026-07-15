@@ -1,8 +1,8 @@
 # FarDB strategy documentation
 
 **Status:** foundation in progress
-**Evidence baseline:** `main` at `2afe77212fba06b6556d38696a5323e55f04a35a`
-**Reviewed:** 14 July 2026
+**Evidence baseline:** `main` at `7b424b0012f0e4e56f7b3f5f5e4cd1533ca55990`
+**Reviewed:** 15 July 2026
 
 ## Purpose
 

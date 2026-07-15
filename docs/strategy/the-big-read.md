@@ -1,7 +1,5 @@
 # FarDB: the long way round to trustworthy relationships
 
-<!-- markdownlint-disable MD013 -->
-
 ## Why the hard part of graph software begins after the graph appears
 
 **Document class:** STRATEGY manuscript
@@ -242,6 +240,8 @@ proved.
 
 The present platform can be summarised as follows.
 
+<!-- markdownlint-disable MD013 -->
+
 | Layer | Current role | Current qualification |
 | --- | --- | --- |
 | Next.js | Primary production user experience | Product-specific, bounded graph views; not a generic dashboard builder |
@@ -254,6 +254,8 @@ The present platform can be summarised as follows.
 | GitHub delivery system | Code, tests, ADRs, evidence and review history | Repository evidence complements but does not replace target-environment proof |
 | Vercel | Current web and function hosting | Current production deployment READY; earlier project history records iteration |
 | Supabase | Current managed PostgreSQL service | ACTIVE_HEALTHY; access-control policy requires remediation before broader exposure |
+
+<!-- markdownlint-enable MD013 -->
 
 ### 8. What the June release candidate proved
 
@@ -278,11 +280,15 @@ A platform that aims to govern disputed relationships should begin by governing 
 
 The current architecture has three distinct concerns even when one provider hosts more than one of them.
 
+<!-- markdownlint-disable MD013 -->
+
 | Concern | Question it answers | Current implementation |
 | --- | --- | --- |
 | Product plane | What may an authorised user see or request? | Next.js and FastAPI |
 | Durable truth plane | Which assets and relationships survive process failure? | Repository abstractions backed by PostgreSQL hosted and SQLite local |
 | Recovery control plane | Who may change or rebuild truth, and how is failure resolved? | Locks, leases, jobs, heartbeat, fencing, RecoveryGate and reconciliation |
+
+<!-- markdownlint-enable MD013 -->
 
 The separation is more important than the brand names. Vercel can change. The managed PostgreSQL supplier can
 change. A specialist graph engine could one day be added for measured workloads. The stable architectural
@@ -839,6 +845,8 @@ Current FarDB is not a credible substitute for Neo4j as a general graph database
 exploration products, NeoDash or Graphileon as dashboard builders, or Cytoscape, Cosmograph, KeyLines and yFiles
 as specialist visualisation technology.
 
+<!-- markdownlint-disable MD013 -->
+
 | Buyer need | Stronger current default | Current FarDB position |
 | --- | --- | --- |
 | Store and traverse a very large general graph | Mature graph database and analytics engine | Capacity not certified; PostgreSQL-backed product architecture |
@@ -850,6 +858,8 @@ as specialist visualisation technology.
 | Reconstruct how a disputed relationship became accepted | Usually a custom application workflow | FarDB's target differentiation; semantic model not yet implemented |
 | Separate research proposals from accepted production truth | Usually custom governance | FarDB's target Research Workbench; current Gradio boundary provides groundwork |
 | Align relationship governance with recovery and release evidence | Usually assembled across several layers | FarDB has relevant operational groundwork; full product alignment is NEXT |
+
+<!-- markdownlint-enable MD013 -->
 
 The honest conclusion is not that FarDB loses. It is that several rows describe games FarDB should not spend
 years trying to win.
@@ -883,6 +893,8 @@ FarDB should own the layers that express its thesis:
 
 The mature target comparison therefore looks different from a feature checklist.
 
+<!-- markdownlint-disable MD013 -->
+
 | Layer | Fully formed FarDB strategy | Competitors that remain stronger in their speciality |
 | --- | --- | --- |
 | Storage and traversal | Pluggable, workload-measured persistence; PostgreSQL baseline | Neo4j and other graph engines for raw graph scale, algorithms and query ecosystem |
@@ -895,6 +907,8 @@ The mature target comparison therefore looks different from a feature checklist.
 | Operational trust | Recovery authority, readiness and artefact-bound evidence | Infrastructure vendors provide components; FarDB makes the alignment product-visible |
 | Rights and governance | Purpose, correction, explanation, review and prohibited uses in the product contract | Varies widely by application and implementation |
 
+<!-- markdownlint-enable MD013 -->
+
 In this position, FarDB does not need to defeat Neo4j. A mature deployment could use Neo4j. It does not need to
 defeat Cytoscape. A biomedical domain pack could embed it. FarDB competes with the expensive custom glue,
 semantic ambiguity and procedural fragmentation that remain after those capable components have been selected.
@@ -905,6 +919,8 @@ semantic ambiguity and procedural fragmentation that remain after those capable 
 
 Architecture alone does not create a market category. FarDB needs proof across five dimensions.
 
+<!-- markdownlint-disable MD013 -->
+
 | Dimension | Proof required |
 | --- | --- |
 | Semantic | Two independent domains use the same assertion lifecycle without core forks |
@@ -912,6 +928,8 @@ Architecture alone does not create a market category. FarDB needs proof across f
 | Human | Users can understand, contest and correct consequential relationship decisions |
 | Ecosystem | Standards adapters and an external implementation exchange data through conformance tests |
 | Market | Design partners select FarDB for the governed relationship workflow and measure an improvement |
+
+<!-- markdownlint-enable MD013 -->
 
 Useful commercial measures include time to reconstruct an evidence chain, reviewer effort, exception-cycle time,
 percentage of decisions with complete provenance, rate of corrected unsupported assertions, restoration
@@ -1354,6 +1372,8 @@ becomes appropriate only after adoption, not at schema publication.
 
 ### 48. Roadmap summary
 
+<!-- markdownlint-disable MD013 -->
+
 | Gate | Highest-value result | Board-level evidence |
 | --- | --- | --- |
 | Immediate | Secure data boundary | Adviser errors resolved, policy tests and staged rollback proof |
@@ -1363,6 +1383,8 @@ becomes appropriate only after adoption, not at schema publication.
 | 4 | Platform generality | Two domains, one core, measurable expert workflow outcome |
 | 5 | Operational profile | Independently reviewed offline and field-safety evidence |
 | 6 | Ecosystem potential | External conformance implementation and exchange |
+
+<!-- markdownlint-enable MD013 -->
 
 ---
 
@@ -1392,6 +1414,8 @@ Several decisions should remain stable unless new evidence justifies an ADR:
 
 > **Claim class:** NEXT
 
+<!-- markdownlint-disable MD013 -->
+
 | Decision | Why it matters | Preferred direction to test |
 | --- | --- | --- |
 | Database authorisation | Current RLS finding and future sensitive data | Private-by-default schemas, least-privilege roles and tested purpose-bound access |
@@ -1406,6 +1430,8 @@ Several decisions should remain stable unless new evidence justifies an ADR:
 | Multi-tenancy | Determines security and commercial topology | Isolation model selected before sensitive design-partner data |
 | Federation | Cross-organisation work should not require one data lake | Verify necessary assertions while evidence remains with lawful custodians |
 | Operational profile | Offline and crisis work changes the safety case | Separate optional profile and certification envelope |
+
+<!-- markdownlint-enable MD013 -->
 
 ### 51. A reversible architecture
 
@@ -1449,6 +1475,8 @@ If the roadmap is executed in order, the expected outcomes are:
 
 > **Claim class:** CURRENT and NEXT
 
+<!-- markdownlint-disable MD013 -->
+
 | Risk | Present signal | Response |
 | --- | --- | --- |
 | Access-control gap | RLS disabled across public tables | Treat as immediate release-blocking hardening |
@@ -1461,6 +1489,8 @@ If the roadmap is executed in order, the expected outcomes are:
 | AI-assisted change volume | Automated contributors can widen scope or add noise | One PR equals one decision, explicit production boundary and human approval |
 | High-stakes misuse | Attractive domains include people, rights and safety | Prohibited uses, purpose controls, independent review and staged shadow mode |
 | Premature standardisation | A schema without adopters creates ceremony | Cross-domain and external implementation before standards claims |
+
+<!-- markdownlint-enable MD013 -->
 
 ### 54. Measures that matter
 
@@ -1620,6 +1650,8 @@ still attached.
 
 > **Claim class:** CURRENT historical record
 
+<!-- markdownlint-disable MD013 -->
+
 | Date or period | Milestone | Meaning |
 | --- | --- | --- |
 | 19 October 2025 | Current Supabase project created | Managed PostgreSQL entered the platform story during the prototype period |
@@ -1637,6 +1669,8 @@ still attached.
 | 14 July 2026 | PR 1477 opened | CURRENT/NEXT/RESEARCH/ASPIRATION/EXCLUDED taxonomy proposed as documentation policy |
 | 15 July 2026 | PR 1477 merged | Claim taxonomy accepted into main through merge commit 7b424b00 |
 | 15 July 2026 | Live Vercel and Supabase observation | Current production deployment READY; PostgreSQL ACTIVE_HEALTHY; RLS hardening finding surfaced |
+
+<!-- markdownlint-enable MD013 -->
 
 ## Appendix B — Live observation record
 
@@ -1694,6 +1728,8 @@ staged testing because enabling RLS without correct policies can block legitimat
 
 ## Appendix C — Claim glossary
 
+<!-- markdownlint-disable MD013 -->
+
 | Class | Meaning in this manuscript |
 | --- | --- |
 | CURRENT | Implemented or observed at the named baseline, with stated limitations |
@@ -1701,6 +1737,8 @@ staged testing because enabling RLS without correct policies can block legitimat
 | RESEARCH | Hypothesis, experiment or reference-domain investigation |
 | ASPIRATION | Long-range possibility dependent on prior proofs |
 | EXCLUDED | Capability or use that should not be claimed or pursued under the stated platform direction |
+
+<!-- markdownlint-enable MD013 -->
 
 ## Appendix D — Reading paths
 
