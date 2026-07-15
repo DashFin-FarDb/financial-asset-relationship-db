@@ -1,6 +1,6 @@
 # Enterprise Readiness Index
 
-**Date:** 2026-06-25
+**Date:** 2026-07-15
 **Purpose:** Single entry point for enterprise-readiness audit, roadmap, PR plan, release criteria, and release evidence
 
 ## What To Read
@@ -16,6 +16,7 @@
 | `docs/operations/operational-evidence-capture-framework.md`   | Canonical evidence grammar for classifying, redacting, and reviewing operational proof artifacts                           |
 | `docs/testing/operational-drill-and-scale-validation-pack.md` | Operational drill matrix and bounded scale-validation guidance for observability, SLO, dashboard, alert, and runbook proof |
 | `docs/governance/state-machine-and-operating-authority.md`    | Current operational authority for rebuild/recovery state machines, invariants, ownership, and exception paths              |
+| `docs/adr/0007-database-authorization-boundary.md`            | Proposed hosted database authorization boundary and bounded verification contract                                          |
 | `docs/adr/0006-release-and-deployment-automation.md`          | Release and Deployment automation strategy, GitHub actions constraints                                                     |
 | `docs/adr/0005-backup-restore-dr-strategy.md`                 | Backup, restore, DR strategy, data classification, RPO, and RTO                                                            |
 | `docs/runbooks/backup-restore-dr.md`                          | Operator procedures for backup verification, restore execution, and post-restore checks                                    |
@@ -31,6 +32,7 @@ part of the repository baseline.
 
 The remaining work is no longer primarily architectural. It is concentrated in live release evidence and bounded follow-up hardening:
 
+- release-blocking database authorization closure with restricted live evidence and public redacted proof;
 - hosted promotion evidence showing durable graph truth in the target environment (coordinated via
   `.github/workflows/release-evidence-verify.yml` and attached target-environment outputs);
 - DR restore rehearsal evidence against the documented backup/restore process;
@@ -53,7 +55,7 @@ Status legend follows the [Release Evidence Pack](release-evidence-pack.md): **S
 | Satisfied - documented               | PR 6 distributed hosting semantics; PR C governance/state-machine authority; production architecture and deployment operating model                                                                                                                                                                 |
 | Satisfied - manual evidence required | PR 3 hosted durable promotion proof for the target environment; PR 8 security scanner summary, exception review, and release sign-off; PR 9 restore rehearsal and post-restore smoke evidence                                                                                                       |
 | Partially satisfied                  | Strict stale-owner restart composition is covered by integration tests; the operational evidence-capture framework and drill pack are documented; production-scale validation remains future operating-maturity work                                                                                |
-| Blocked                              | No repository source-of-truth reconciliation blocker remains. Enterprise release sign-off stays blocked until hosted promotion evidence, release-commit security scanner/exception review (via `.github/workflows/release-evidence-verify.yml` plus source workflows), and named operator sign-off + DR restore rehearsal evidence are attached or approved. |
+| Blocked                              | Database authorization closure remains release-blocking. Enterprise release sign-off also requires hosted promotion evidence, release-commit security scanner/exception review (via `.github/workflows/release-evidence-verify.yml` plus source workflows), and named operator sign-off + DR restore rehearsal evidence. |
 
 ## Recommended Reading Order
 
@@ -64,8 +66,9 @@ Status legend follows the [Release Evidence Pack](release-evidence-pack.md): **S
 5. `docs/roadmap/enterprise-readiness-pr-board.md`
 6. `docs/roadmap/enterprise-readiness-pr-plan.md`
 7. `docs/governance/state-machine-and-operating-authority.md`
-8. `docs/adr/0005-backup-restore-dr-strategy.md`
-9. `docs/runbooks/backup-restore-dr.md`
+8. `docs/adr/0007-database-authorization-boundary.md`
+9. `docs/adr/0005-backup-restore-dr-strategy.md`
+10. `docs/runbooks/backup-restore-dr.md`
 
 ## Operational Rule
 
@@ -82,6 +85,7 @@ Repository tests and documentation may satisfy implementation evidence, but stag
 - [docs/operations/operational-evidence-capture-framework.md](./operations/operational-evidence-capture-framework.md) — canonical evidence grammar for claims, redaction, and review
 - [docs/testing/operational-drill-and-scale-validation-pack.md](./testing/operational-drill-and-scale-validation-pack.md) — operator-facing drill matrix and bounded scale-validation guidance
 - [docs/governance/state-machine-and-operating-authority.md](./governance/state-machine-and-operating-authority.md) — current authority for rebuild/recovery/persistence state-machine governance
+- [docs/adr/0007-database-authorization-boundary.md](./adr/0007-database-authorization-boundary.md) — proposed hosted database authorization boundary and bounded checker contract
 - [docs/adr/0002-hosted-deployment-and-persistence.md](./adr/0002-hosted-deployment-and-persistence.md) — hosted persistence decision
 - [docs/adr/0006-release-and-deployment-automation.md](./adr/0006-release-and-deployment-automation.md) — release and deployment automation strategy
 - [docs/adr/0005-backup-restore-dr-strategy.md](./adr/0005-backup-restore-dr-strategy.md) — backup, restore, and DR strategy
