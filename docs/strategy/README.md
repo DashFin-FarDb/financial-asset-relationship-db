@@ -43,6 +43,7 @@ authoritative for rebuild, recovery and persistence behaviour.
 | --- | --- |
 | [Claims and truth policy](claims-and-truth-policy.md) | Defines the five claim classes. |
 | [Current-state snapshot](current-state.md) | States what the reviewed baseline establishes and what it does not. |
+| [The big read](the-big-read.md) | Tells the accessible, evidence-qualified story from prototype to platform vision. |
 
 ## Planned corpus
 
