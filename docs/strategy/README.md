@@ -47,16 +47,16 @@ authoritative for rebuild, recovery and persistence behaviour.
 
 The following documents should be introduced through separate, one-decision pull requests:
 
-- product thesis and principles;
-- governed relationship assertion proposal;
-- long-range roadmap and evidence gates;
-- domain-fit and explicit exclusion doctrine;
+- Product thesis and principles;
+- Governed relationship assertion proposal;
+- Long-range roadmap and evidence gates;
+- Domain-fit and explicit exclusion doctrine;
 - Operational Assurance Profile;
-- responsible use, governance and rights;
-- competitive positioning;
-- standardisation and ecosystem strategy;
-- repository documentation and delivery plan;
-- shared glossary and references.
+- Responsible use, governance and rights;
+- Competitive positioning;
+- Standardisation and ecosystem strategy;
+- Repository documentation and delivery plan;
+- Shared glossary and references.
 
 The board roadmap, detailed next-phase roadmap and product brochure are dated strategy artefacts. They should be
 regenerated from this corpus after the underlying documents are reviewed, rather than treated as technical sources
