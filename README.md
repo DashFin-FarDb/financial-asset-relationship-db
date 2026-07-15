@@ -96,6 +96,10 @@ See [DEPLOYMENT.md](DEPLOYMENT.md) for detailed deployment instructions and Verc
 
 For the full enterprise-readiness package, see [docs/enterprise-readiness-index.md](./docs/enterprise-readiness-index.md).
 
+For dated product strategy, current-versus-target claims, and the long-range FarDB platform direction, see
+[docs/strategy/README.md](./docs/strategy/README.md). Strategy material is subordinate to code, accepted ADRs, and
+release evidence.
+
 ### Hosted Readiness Smoke Check
 
 You can verify a hosted deployment's liveness and readiness endpoints:

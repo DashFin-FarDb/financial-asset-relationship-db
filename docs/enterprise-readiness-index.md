@@ -76,6 +76,8 @@ Repository tests and documentation may satisfy implementation evidence, but stag
 ## Related Entry Points
 
 - [README.md](../README.md) — main repository entry point and production setup overview
+- [docs/strategy/README.md](./strategy/README.md) — product strategy and claim taxonomy; subordinate to this
+  release-status authority
 - [docs/release-evidence-pack.md](./release-evidence-pack.md) — auditable release evidence matrix
 - [docs/operations/operational-evidence-capture-framework.md](./operations/operational-evidence-capture-framework.md) — canonical evidence grammar for claims, redaction, and review
 - [docs/testing/operational-drill-and-scale-validation-pack.md](./testing/operational-drill-and-scale-validation-pack.md) — operator-facing drill matrix and bounded scale-validation guidance
