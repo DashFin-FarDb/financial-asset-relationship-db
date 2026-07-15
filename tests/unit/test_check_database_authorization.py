@@ -74,7 +74,7 @@ class _FakeCursor:
         ("unsafe_policy_count",),
     ]
 
-    def __init__(self, row: tuple[int, ...]) -> None:
+    def __init__(self, row: tuple[int, ...] | None) -> None:
         self.row = row
         self.query = ""
         self.parameters: dict[str, str] = {}
@@ -89,14 +89,14 @@ class _FakeCursor:
         self.query = query
         self.parameters = parameters
 
-    def fetchone(self) -> tuple[int, ...]:
+    def fetchone(self) -> tuple[int, ...] | None:
         return self.row
 
 
 class _FakeConnection:
     """Minimal DB-API connection that records safety settings."""
 
-    def __init__(self, row: tuple[int, ...]) -> None:
+    def __init__(self, row: tuple[int, ...] | None) -> None:
         self.fake_cursor = _FakeCursor(row)
         self.readonly = False
         self.autocommit = True
@@ -130,6 +130,15 @@ def test_collect_snapshot_uses_read_only_parameterized_query() -> None:
     assert connection.rolled_back is True
     assert connection.fake_cursor.parameters == {"schema": "public"}
     assert "public" not in connection.fake_cursor.query
+
+
+@pytest.mark.unit
+def test_collect_snapshot_rejects_missing_schema_evidence() -> None:
+    """A missing schema should fail closed instead of passing with zero counts."""
+    connection = _FakeConnection(None)
+
+    with pytest.raises(RuntimeError, match="authorization query returned no evidence"):
+        checker.collect_snapshot(connection, "typo_schema")
 
 
 @pytest.mark.unit
@@ -215,3 +224,19 @@ def test_main_rejects_unsafe_schema_without_connecting(
     captured = capsys.readouterr()
     assert result == checker.USAGE_ERROR
     assert captured.err == "database authorization check configuration is invalid\n"
+
+
+@pytest.mark.unit
+def test_main_fails_closed_when_schema_is_missing(
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """A non-existent exposed schema label must not pass the authorization gate."""
+    monkeypatch.setenv("DATABASE_URL", "postgresql://example.invalid/fardb")
+    connection = _FakeConnection(None)
+
+    result = checker.main(["--exposed-schema", "typo_schema"], connector=lambda _url: connection)
+
+    captured = capsys.readouterr()
+    assert result == checker.CHECK_FAILED
+    assert captured.err == "database authorization check could not complete\n"

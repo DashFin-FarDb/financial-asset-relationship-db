@@ -22,12 +22,16 @@ SUPPORTED_DATABASE_URL_ENVS = (
 SAFE_SCHEMA_PATTERN = re.compile(r"^[a-z_][a-z0-9_]*$")
 
 AUTHORIZATION_POSTURE_QUERY = """
-WITH exposed_tables AS (
+WITH schema_namespace AS (
+    SELECT oid
+    FROM pg_namespace
+    WHERE nspname = %(schema)s
+),
+exposed_tables AS (
     SELECT c.oid, c.relrowsecurity
     FROM pg_class AS c
-    JOIN pg_namespace AS n ON n.oid = c.relnamespace
-    WHERE n.nspname = %(schema)s
-      AND c.relkind IN ('r', 'p')
+    JOIN schema_namespace AS sn ON sn.oid = c.relnamespace
+    WHERE c.relkind IN ('r', 'p')
 ),
 table_posture AS (
     SELECT
@@ -48,9 +52,8 @@ table_posture AS (
 sequence_posture AS (
     SELECT COUNT(*)::INTEGER AS untrusted_sequence_count
     FROM pg_class AS c
-    JOIN pg_namespace AS n ON n.oid = c.relnamespace
-    WHERE n.nspname = %(schema)s
-      AND c.relkind = 'S'
+    JOIN schema_namespace AS sn ON sn.oid = c.relnamespace
+    WHERE c.relkind = 'S'
       AND (
           has_sequence_privilege('anon', c.oid, 'USAGE')
           OR has_sequence_privilege('anon', c.oid, 'SELECT')
@@ -63,9 +66,8 @@ sequence_posture AS (
 function_posture AS (
     SELECT COUNT(*)::INTEGER AS untrusted_function_count
     FROM pg_proc AS p
-    JOIN pg_namespace AS n ON n.oid = p.pronamespace
-    WHERE n.nspname = %(schema)s
-      AND (
+    JOIN schema_namespace AS sn ON sn.oid = p.pronamespace
+    WHERE (
           has_function_privilege('anon', p.oid, 'EXECUTE')
           OR has_function_privilege('authenticated', p.oid, 'EXECUTE')
       )
@@ -73,9 +75,8 @@ function_posture AS (
 view_posture AS (
     SELECT COUNT(*)::INTEGER AS untrusted_view_count
     FROM pg_class AS c
-    JOIN pg_namespace AS n ON n.oid = c.relnamespace
-    WHERE n.nspname = %(schema)s
-      AND c.relkind IN ('v', 'm')
+    JOIN schema_namespace AS sn ON sn.oid = c.relnamespace
+    WHERE c.relkind IN ('v', 'm')
       AND (
           has_table_privilege('anon', c.oid, 'SELECT')
           OR has_table_privilege('authenticated', c.oid, 'SELECT')
@@ -100,7 +101,8 @@ SELECT
     function_posture.untrusted_function_count,
     view_posture.untrusted_view_count,
     policy_posture.unsafe_policy_count
-FROM table_posture
+FROM schema_namespace
+CROSS JOIN table_posture
 CROSS JOIN sequence_posture
 CROSS JOIN function_posture
 CROSS JOIN view_posture
