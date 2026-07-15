@@ -45,7 +45,8 @@ See [ADR 0001](../adr/0001-production-architecture.md),
 
 - Database-backed recovery authority.
 - Lease and lock ownership with heartbeat and freshness handling.
-- Fencing against stale writers.
+- Owner-only rebuild mutations require matching `execution_id`; pre-persistence and pre-commit lock-loss checks block
+  stale or unsafe rebuild writers before persistence commit or success marking.
 - RecoveryGate, reconciliation and fail-closed safety paths.
 
 The [state-machine and operating authority](../governance/state-machine-and-operating-authority.md) is canonical for
@@ -102,11 +103,14 @@ subsequent release sign-off.
 
 ### Proposed target capabilities
 
-- A proposition/evidence/assertion/determination/projection semantic model.
-- Immutable `ResearchRun` records and a proposed-assertion workflow.
-- Protected identity separation from pseudonymous decision graphs.
-- Offline-first operational workflows and federated cross-organisation verification.
-- Domain packs for biomedical research, patents, workforce, public benefits and other selected areas.
+- **RESEARCH — evidence date 14 July 2026:** A proposition/evidence/assertion/determination/projection semantic
+  model.
+- **RESEARCH — evidence date 14 July 2026:** Immutable `ResearchRun` records and a proposed-assertion workflow.
+- **RESEARCH — evidence date 14 July 2026:** Protected identity separation from pseudonymous decision graphs.
+- **ASPIRATION — evidence date 14 July 2026:** Offline-first operational workflows and federated cross-organisation
+  verification.
+- **ASPIRATION — evidence date 14 July 2026:** Domain packs for biomedical research, patents, workforce, public
+  benefits and other selected areas.
 
 ## Accurate present positioning
 

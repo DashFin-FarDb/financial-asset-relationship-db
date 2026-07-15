@@ -19,13 +19,22 @@ around current capability remains clear.
 
 Use only where the claimed behaviour is tied to identifiable evidence.
 
-Examples from the reviewed repository baseline:
+Examples from the reviewed repository baseline (`main` at `2afe77212fba06b6556d38696a5323e55f04a35a`,
+evidence date 14 July 2026):
 
-- FastAPI and Next.js form the production application path.
-- PostgreSQL is the hosted durable target and SQLite compatibility is retained for local development and tests.
-- Persisted startup, database-backed recovery authority, lease/lock, heartbeat, fencing, RecoveryGate and
-  reconciliation are represented in code and tests.
-- Release-evidence, disaster-recovery and operator-sign-off mechanisms exist.
+- **CURRENT — evidence date 14 July 2026; source:** [ADR 0001](../adr/0001-production-architecture.md) declares
+  FastAPI and Next.js as the production application path, while Gradio remains non-production and some deployment
+  artefacts still require follow-up alignment.
+- **CURRENT — evidence date 14 July 2026; source:**
+  [ADR 0002](../adr/0002-hosted-deployment-and-persistence.md) identifies PostgreSQL as the hosted durable target and
+  preserves SQLite compatibility for local development and tests.
+- **CURRENT — evidence date 14 July 2026; source:**
+  [state-machine and operating authority](../governance/state-machine-and-operating-authority.md) records persisted
+  startup, database-backed recovery authority, lease/lock ownership, heartbeat, fencing-token semantics, RecoveryGate
+  and reconciliation invariants.
+- **CURRENT — evidence date 14 July 2026; source:** The
+  [enterprise-readiness index](../enterprise-readiness-index.md) tracks release-evidence, disaster-recovery and
+  operator-sign-off mechanisms.
 
 "Implemented" does not automatically mean "production-scale certified," "generally available" or "independently
 assured." Historical evidence for one release candidate does not prove the state of a later commit.
