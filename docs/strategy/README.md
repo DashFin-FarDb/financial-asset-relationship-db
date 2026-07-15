@@ -1,8 +1,15 @@
 # FarDB strategy documentation
 
 **Status:** foundation in progress
-**Evidence baseline:** `main` at `2afe77212fba06b6556d38696a5323e55f04a35a`
-**Reviewed:** 14 July 2026
+**Evidence baseline:** `main` at `7b424b0012f0e4e56f7b3f5f5e4cd1533ca55990`
+**Baseline verification (15 July 2026):** `origin/main` resolved to the baseline; PR 1477 was merged and
+closed, with no open PR for that baseline.
+**Checked-out review ref (15 July 2026):** `docs/fardb-big-read`; PR 1480 was open against `main`, and the ref
+differed from `main`.
+**Reviewed:** 15 July 2026
+
+Re-run the manuscript's reviewer verification gate before treating these volatile ref and PR observations as
+current.
 
 ## Purpose
 
@@ -14,8 +21,8 @@ The organising thesis is:
 > FarDB is intended to make consequential relationships explainable, evidence-bound, governed over time and
 > operationally trustworthy.
 
-**CURRENT — evidence date 14 July 2026:** The current implementation is a financial relationship platform.
-**ASPIRATION — evidence date 14 July 2026:** The proposed direction is a governed
+**CURRENT — evidence date 15 July 2026:** The current implementation is a financial relationship platform.
+**ASPIRATION — evidence date 15 July 2026:** The proposed direction is a governed
 relationship-assertion and operational-assurance layer. That direction can be tested across carefully selected
 domains without turning every domain into a fork.
 
@@ -43,6 +50,7 @@ authoritative for rebuild, recovery and persistence behaviour.
 | --- | --- |
 | [Claims and truth policy](claims-and-truth-policy.md) | Defines the five claim classes. |
 | [Current-state snapshot](current-state.md) | States what the reviewed baseline establishes and what it does not. |
+| [The big read](the-big-read.md) | Tells the accessible, evidence-qualified story from prototype to platform vision. |
 
 ## Planned corpus
 
