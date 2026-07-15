@@ -173,12 +173,11 @@ Startup can identify whether data was loaded from persistence. A release check c
 live but has not loaded durable state. Rebuild and recovery coordination can be recorded in a database rather
 than entrusted to one process's memory.
 
-The distinction between a durable target and a hardened public data boundary must also be made explicit.
-Supabase's live database advisers currently report row-level security disabled on all 15 public tables. Twelve of
-those tables have policies defined while RLS remains disabled. The advisers consequently report security errors
-and exposure warnings for anonymous and authenticated API roles. This is an open hardening item, not a
-theoretical footnote. Enabling RLS without correct policies can also break access, so remediation requires a
-reviewed policy design, tests and staged rollout; it should not be performed as an undocumented toggle.
+The distinction between a durable target and a hardened public data boundary must also be made explicit. A live
+database access-control hardening item remains open. It is a release-blocking issue, not a theoretical footnote.
+Remediation requires reviewed policy design, tests and staged rollout; it should not be performed as an
+undocumented toggle. Exact live topology, role, policy and adviser details belong in restricted remediation
+records until closure has been independently verified.
 
 The current Vercel production deployment being READY does not cancel that database finding. Equally, the
 database finding does not erase the persistence and recovery work already achieved. Mature engineering holds
@@ -246,7 +245,7 @@ The present platform can be summarised as follows.
 | --- | --- | --- |
 | Next.js | Primary production user experience | Product-specific, bounded graph views; not a generic dashboard builder |
 | FastAPI | Production application and API boundary | Validation, graph operations, health/readiness and recovery integration |
-| PostgreSQL | Hosted durable target | Managed on Supabase; live RLS hardening finding remains open |
+| PostgreSQL | Hosted durable target | Managed on Supabase; an access-control hardening item remains open |
 | SQLite | Local development default | Deliberately simple; not the hosted durability claim |
 | Graph repository | Persists assets and relationships | Small evidenced dataset; production-scale envelope unmeasured |
 | Recovery control plane | Coordinates rebuild authority and failure handling | Database-backed locks, leases, heartbeat, fencing and reconciliation |
@@ -339,11 +338,10 @@ forking the core. It does not yet provide a mature domain-adapter SDK, multi-ten
 identity vault, bitemporal assertion engine or federated evidence exchange.
 
 The current database access posture also needs attention before the platform is exposed to broader or sensitive
-use. The immediate issue is not the absence of policy names; it is that public-table RLS is disabled. The correct
-response is a designed authorisation model, least-privilege database roles, verified server-side access patterns,
-RLS policies where the Supabase API is in scope, regression tests and staged evidence. The official Supabase
-[row-level security guidance](https://supabase.com/docs/guides/database/postgres/row-level-security) is the
-starting reference, not the completed design.
+use. An unresolved access-control finding affects the database boundary. The correct response is a designed
+authorisation model, least-privilege database roles, verified server-side access patterns, appropriate
+database-native controls, regression tests and staged evidence. Provider guidance is the starting reference, not
+the completed design.
 
 These limitations do not make the platform a prototype again. They define the next gates.
 
@@ -576,9 +574,9 @@ Auditability also does not justify permanent retention of personal content. A sy
 decision occurred, which policy version applied and which evidence categories were considered while deleting,
 redacting or rendering inaccessible personal data that no longer has a lawful purpose.
 
-This is why the current Supabase RLS finding matters strategically. A platform cannot credibly advocate
-purpose-bound relationship access while leaving the implemented public-table boundary under-specified. Fixing it
-is not separate from the vision. It is the vision applied to the present.
+This is why the current database access-control finding matters strategically. A platform cannot credibly
+advocate purpose-bound relationship access while leaving the implemented data boundary under-specified. Fixing
+it is not separate from the vision. It is the vision applied to the present.
 
 ### 20. Medicine as a source of discipline
 
@@ -1079,27 +1077,27 @@ The highest-value sequence is:
 
 > **Claim class:** NEXT, release-blocking
 
-The 15 July Supabase finding changes the order of work. Before broader exposure, the platform needs a deliberate
-database authorisation boundary.
+The 15 July access-control finding changes the order of work. Before broader exposure, the platform needs a
+deliberate database authorisation boundary. Exact live configuration and adviser evidence remain restricted
+until remediation is verified.
 
 #### Immediate hardening work
 
-- Map every route to the database: server-side PostgreSQL connections, Supabase REST/GraphQL, administrative
-  tools, migrations and background or recovery processes.
+- Map every route to the database, including application, provider-managed API, administrative, migration and
+  recovery paths.
 
 - Identify which tables belong in an API-exposed schema and which should move to a private schema.
 
 - Define application, migration, recovery, read-only and administrative roles with least privilege.
 
-- Review existing policies, especially the 12 tables where policies exist but RLS is disabled; remove duplicate
-  or contradictory policies before activation.
+- Review existing access policies and remove duplicate or contradictory rules before enforcement.
 
-- Enable RLS with tested policies on every table exposed through Supabase client roles, or revoke that exposure
-  where the product does not need it.
+- Enforce tested row-level or equivalent authorisation on every API-exposed data path, or revoke exposure where
+  the product does not need it.
 
-- Review the two security-definer function execution warnings and restrict execution to intended roles.
+- Review privileged function execution and restrict it to intended roles.
 
-- Add integration tests for anonymous, authenticated, ordinary server, recovery and administrative access.
+- Add integration tests for untrusted, ordinary application, recovery and administrative principals.
 
 - Run migrations and policy changes in a branch or staging project, capture before/after adviser results and
   rehearse rollback.
@@ -1108,8 +1106,8 @@ database authorisation boundary.
 
 #### Immediate hardening exit evidence
 
-- No unresolved Supabase security adviser ERROR for RLS, or a named and time-bounded exception approved before
-  release.
+- No unresolved high-severity database access-control finding, or a named and time-bounded exception approved
+  before release.
 
 - No public role can read or mutate coordination, credential or internal graph tables without an explicit
   product requirement and tested policy.
@@ -1418,7 +1416,7 @@ Several decisions should remain stable unless new evidence justifies an ADR:
 
 | Decision | Why it matters | Preferred direction to test |
 | --- | --- | --- |
-| Database authorisation | Current RLS finding and future sensitive data | Private-by-default schemas, least-privilege roles and tested purpose-bound access |
+| Database authorisation | Open access-control finding and future sensitive data | Private-by-default schemas, least-privilege roles and tested purpose-bound access |
 | Connection management | Serverless concurrency can exhaust PostgreSQL | Bounded pooling and measured connection budget |
 | Assertion contract | Defines FarDB's product category | Five-layer lifecycle with explicit actor, evidence, time, authority and status |
 | Bitemporality | Corrections must not erase historical decisions | Effective and system time as first-class fields |
@@ -1479,7 +1477,7 @@ If the roadmap is executed in order, the expected outcomes are:
 
 | Risk | Present signal | Response |
 | --- | --- | --- |
-| Access-control gap | RLS disabled across public tables | Treat as immediate release-blocking hardening |
+| Access-control gap | Unresolved database access-control finding | Treat as immediate release-blocking hardening |
 | Scope dilution | Many plausible domains | Apply the domain admission test and explicit exclusions |
 | Semantic overreach | Universal graph models erase domain distinctions | Own the governance envelope; preserve domain standards |
 | Scale uncertainty | Small 19/73 evidence dataset | Gate claims through representative benchmark and fault harnesses |
@@ -1668,7 +1666,7 @@ still attached.
 | 13 July 2026 | Main at 2afe7721 | Baseline used by the current-state strategy snapshot |
 | 14 July 2026 | PR 1477 opened | CURRENT/NEXT/RESEARCH/ASPIRATION/EXCLUDED taxonomy proposed as documentation policy |
 | 15 July 2026 | PR 1477 merged | Claim taxonomy accepted into main through merge commit 7b424b00 |
-| 15 July 2026 | Live Vercel and Supabase observation | Current production deployment READY; PostgreSQL ACTIVE_HEALTHY; RLS hardening finding surfaced |
+| 15 July 2026 | Live Vercel and Supabase observation | Current production deployment READY; PostgreSQL ACTIVE_HEALTHY; access-control finding surfaced |
 
 <!-- markdownlint-enable MD013 -->
 
@@ -1715,16 +1713,15 @@ a substitute for a redacted release evidence pack and should be recaptured for p
 
 - Current coordination tables include rebuild jobs and distributed locks.
 
-- All 15 public tables were reported with RLS disabled.
+- A database access-control hardening item was observed and remains open.
 
-- Security advisers reported 59 findings: 12 policy-exists-but-RLS-disabled errors, 15 public-table-RLS-disabled
-  errors, 30 anonymous/authenticated GraphQL exposure warnings and two security-definer execution warnings.
+- Exact live schema, role, policy and adviser output is intentionally omitted from this public manuscript. It
+  should remain in restricted remediation records until closure is independently verified.
 
-- Performance advisers reported 49 findings: three unindexed-foreign-key notices, 20 unused-index notices, 21
-  multiple-permissive-policy warnings and five duplicate-index warnings.
+- Performance-adviser findings also require triage; exact live configuration details are omitted here.
 
-No database mutation was made while preparing this manuscript. RLS activation requires reviewed policies and
-staged testing because enabling RLS without correct policies can block legitimate access.
+No database mutation was made while preparing this manuscript. Authorisation changes require reviewed policies,
+staged testing and rollback evidence because incorrect controls can block legitimate access.
 
 ## Appendix C — Claim glossary
 
