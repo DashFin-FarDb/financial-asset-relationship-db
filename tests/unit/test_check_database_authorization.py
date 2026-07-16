@@ -9,6 +9,18 @@ import pytest
 from scripts import check_database_authorization as checker
 
 
+def _database_url(host: str = "example.invalid") -> str:
+    """Return a syntactically valid test PostgreSQL URL without a credential literal."""
+    return f"postgresql://operator@{host}/fardb"
+
+
+@pytest.fixture(autouse=True)
+def _clear_database_url_environment(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Keep configured database boundaries explicit and isolated in each test."""
+    for variable_name in checker.SUPPORTED_DATABASE_URL_ENVS:
+        monkeypatch.delenv(variable_name, raising=False)
+
+
 def _snapshot(**overrides: int) -> checker.AuthorizationSnapshot:
     """Return a passing snapshot with selected field overrides."""
     values = {
@@ -142,12 +154,43 @@ def test_collect_snapshot_rejects_missing_schema_evidence() -> None:
 
 
 @pytest.mark.unit
+@pytest.mark.parametrize(
+    "database_url",
+    [
+        "https://operator@example.invalid/fardb",
+        "postgresql://example.invalid/fardb",
+        "postgresql://operator@example.invalid",
+        "postgresql://operator@example.invalid/fardb#fragment",
+        "postgresql://operator@example.invalid:70000/fardb",
+    ],
+)
+def test_validate_database_url_rejects_untrusted_configuration(database_url: str) -> None:
+    """Only complete PostgreSQL URLs should cross the connection trust boundary."""
+    assert checker._validate_database_url(database_url) is None
+
+
+@pytest.mark.unit
+def test_configured_database_urls_deduplicate_fixed_allowlist() -> None:
+    """Repeated configured boundaries should be checked once without accepting arbitrary keys."""
+    database_url = _database_url()
+    configured = checker._configured_database_urls(
+        {
+            "DATABASE_URL": database_url,
+            "ASSET_GRAPH_DATABASE_URL": database_url,
+            "UNSUPPORTED_DATABASE_URL": _database_url("other.invalid"),
+        }
+    )
+
+    assert configured == (checker.TrustedDatabaseUrl(database_url),)
+
+
+@pytest.mark.unit
 def test_main_reports_bounded_failure_without_secret_or_topology(
     monkeypatch: pytest.MonkeyPatch,
     capsys: pytest.CaptureFixture[str],
 ) -> None:
     """Operator output must not echo connection strings, names or counts."""
-    database_url = "postgresql://operator:credential@example.invalid/fardb"
+    database_url = _database_url()
     connection = _FakeConnection((4, 3, 1, 0, 1, 0, 0))
     monkeypatch.setenv("DATABASE_URL", database_url)
 
@@ -171,7 +214,7 @@ def test_main_sanitizes_database_errors(
     capsys: pytest.CaptureFixture[str],
 ) -> None:
     """Raw driver errors must not reach operator output."""
-    database_url = "postgresql://operator:credential@example.invalid/fardb"
+    database_url = _database_url()
     monkeypatch.setenv("DATABASE_URL", database_url)
 
     def fail_to_connect(_database_url: str) -> Any:
@@ -192,7 +235,7 @@ def test_main_sanitizes_connection_close_errors(
     capsys: pytest.CaptureFixture[str],
 ) -> None:
     """Connection cleanup failures must fail closed without exposing details."""
-    monkeypatch.setenv("DATABASE_URL", "postgresql://example.invalid/fardb")
+    monkeypatch.setenv("DATABASE_URL", _database_url())
     connection = _FakeConnection((0, 0, 0, 0, 0, 0, 0))
 
     def fail_to_close() -> None:
@@ -214,7 +257,7 @@ def test_main_rejects_unsafe_schema_without_connecting(
     capsys: pytest.CaptureFixture[str],
 ) -> None:
     """Unsafe schema labels should fail before a database connection is attempted."""
-    monkeypatch.setenv("DATABASE_URL", "postgresql://example.invalid/fardb")
+    monkeypatch.setenv("DATABASE_URL", _database_url())
 
     def unexpected_connect(_database_url: str) -> Any:
         raise AssertionError("connector must not be called")
@@ -227,12 +270,30 @@ def test_main_rejects_unsafe_schema_without_connecting(
 
 
 @pytest.mark.unit
+def test_main_rejects_invalid_database_url_without_connecting(
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """Malformed or non-PostgreSQL configuration should fail before connection."""
+    monkeypatch.setenv("DATABASE_URL", "https://operator@example.invalid/fardb")
+
+    def unexpected_connect(_database_url: str) -> Any:
+        raise AssertionError("connector must not be called")
+
+    result = checker.main([], connector=unexpected_connect)
+
+    captured = capsys.readouterr()
+    assert result == checker.USAGE_ERROR
+    assert captured.err == "database authorization check configuration is invalid\n"
+
+
+@pytest.mark.unit
 def test_main_fails_closed_when_schema_is_missing(
     monkeypatch: pytest.MonkeyPatch,
     capsys: pytest.CaptureFixture[str],
 ) -> None:
     """A non-existent exposed schema label must not pass the authorization gate."""
-    monkeypatch.setenv("DATABASE_URL", "postgresql://example.invalid/fardb")
+    monkeypatch.setenv("DATABASE_URL", _database_url())
     connection = _FakeConnection(None)
 
     result = checker.main(["--exposed-schema", "typo_schema"], connector=lambda _url: connection)

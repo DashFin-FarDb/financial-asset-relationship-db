@@ -7,7 +7,9 @@ import os
 import re
 import sys
 from collections.abc import Callable, Mapping, Sequence
+from contextlib import closing
 from typing import Any, NamedTuple
+from urllib.parse import urlsplit
 
 SUCCESS = 0
 CHECK_FAILED = 1
@@ -129,6 +131,10 @@ class Finding(NamedTuple):
     message: str
 
 
+class TrustedDatabaseUrl(str):
+    """A PostgreSQL URL accepted from the fixed deployment configuration boundary."""
+
+
 CONTROL_MESSAGES = {
     "authorization-evidence-integrity": "authorization evidence was internally inconsistent",
     "exposed-schema-rls": "one or more exposed-schema tables do not have row-level security enabled",
@@ -206,7 +212,43 @@ def collect_snapshot(connection: Any, schema: str) -> AuthorizationSnapshot:
     return _snapshot_from_mapping(row)
 
 
-def _connect(database_url: str) -> Any:
+def _validate_database_url(database_url: str) -> TrustedDatabaseUrl | None:
+    """Return a trusted hosted PostgreSQL URL or fail closed without exposing it."""
+    try:
+        parsed = urlsplit(database_url)
+        port = parsed.port
+    except ValueError:
+        return None
+
+    if (
+        parsed.scheme not in {"postgres", "postgresql"}
+        or parsed.hostname is None
+        or parsed.username is None
+        or parsed.path in {"", "/"}
+        or parsed.fragment
+        or port is not None
+        and not 1 <= port <= 65535
+    ):
+        return None
+    return TrustedDatabaseUrl(database_url)
+
+
+def _configured_database_urls(environment: Mapping[str, str]) -> tuple[TrustedDatabaseUrl, ...] | None:
+    """Resolve and validate distinct URLs from the fixed deployment configuration allowlist."""
+    configured: list[TrustedDatabaseUrl] = []
+    for variable_name in SUPPORTED_DATABASE_URL_ENVS:
+        raw_url = environment.get(variable_name)
+        if not raw_url:
+            continue
+        database_url = _validate_database_url(raw_url)
+        if database_url is None:
+            return None
+        if database_url not in configured:
+            configured.append(database_url)
+    return tuple(configured)
+
+
+def _connect(database_url: TrustedDatabaseUrl) -> Any:
     """Open a bounded PostgreSQL connection without importing the driver during unit tests."""
     import psycopg2
 
@@ -216,12 +258,6 @@ def _connect(database_url: str) -> Any:
 def _parse_args(argv: Sequence[str] | None) -> argparse.Namespace:
     """Parse command-line arguments."""
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument(
-        "--database-url-env",
-        choices=SUPPORTED_DATABASE_URL_ENVS,
-        default="DATABASE_URL",
-        help="Environment variable containing the PostgreSQL connection string.",
-    )
     parser.add_argument(
         "--exposed-schema",
         default="public",
@@ -237,10 +273,35 @@ def _print_findings(findings: Sequence[Finding]) -> None:
         print(f"- {finding.control}: {finding.message}")
 
 
+def _collect_configured_snapshots(
+    database_urls: Sequence[TrustedDatabaseUrl],
+    schema: str,
+    connector: Callable[[TrustedDatabaseUrl], Any],
+) -> list[AuthorizationSnapshot] | None:
+    """Collect all configured snapshots, treating connection and cleanup errors as one bounded failure."""
+    snapshots: list[AuthorizationSnapshot] = []
+    try:
+        for database_url in database_urls:
+            with closing(connector(database_url)) as connection:
+                snapshots.append(collect_snapshot(connection, schema))
+    except Exception:
+        return None
+    return snapshots
+
+
+def _evaluate_snapshots(snapshots: Sequence[AuthorizationSnapshot]) -> list[Finding]:
+    """Combine control failures without revealing which configured boundary produced them."""
+    findings_by_control: dict[str, Finding] = {}
+    for snapshot in snapshots:
+        for finding in evaluate_snapshot(snapshot):
+            findings_by_control.setdefault(finding.control, finding)
+    return list(findings_by_control.values())
+
+
 def main(
     argv: Sequence[str] | None = None,
     *,
-    connector: Callable[[str], Any] | None = None,
+    connector: Callable[[TrustedDatabaseUrl], Any] | None = None,
 ) -> int:
     """Run the database authorization gate."""
     args = _parse_args(argv)
@@ -248,32 +309,21 @@ def main(
         print("database authorization check configuration is invalid", file=sys.stderr)
         return USAGE_ERROR
 
-    database_url = os.getenv(args.database_url_env)
-    if not database_url:
+    database_urls = _configured_database_urls(os.environ)
+    if database_urls is None:
+        print("database authorization check configuration is invalid", file=sys.stderr)
+        return USAGE_ERROR
+    if not database_urls:
         print("database authorization check requires a configured database URL", file=sys.stderr)
         return USAGE_ERROR
 
     connect = connector or _connect
-    connection = None
-    snapshot = None
-    check_failed = False
-    try:
-        connection = connect(database_url)
-        snapshot = collect_snapshot(connection, args.exposed_schema)
-    except Exception:
-        check_failed = True
-    finally:
-        if connection is not None:
-            try:
-                connection.close()
-            except Exception:
-                check_failed = True
-
-    if check_failed or snapshot is None:
+    snapshots = _collect_configured_snapshots(database_urls, args.exposed_schema, connect)
+    if snapshots is None:
         print("database authorization check could not complete", file=sys.stderr)
         return CHECK_FAILED
 
-    findings = evaluate_snapshot(snapshot)
+    findings = _evaluate_snapshots(snapshots)
     if findings:
         _print_findings(findings)
         return CHECK_FAILED

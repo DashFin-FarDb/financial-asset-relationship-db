@@ -74,17 +74,17 @@ FarDB adopts the following authorization boundary for hosted PostgreSQL.
 - absence of untrusted-role table, sequence, view and function access;
 - absence of unsafe authorization-claim patterns.
 
-Run it separately for each configured PostgreSQL boundary:
+One invocation validates and checks every distinct PostgreSQL URL present in the fixed configuration allowlist:
 
 ```bash
-python scripts/check_database_authorization.py --database-url-env DATABASE_URL
-python scripts/check_database_authorization.py --database-url-env ASSET_GRAPH_DATABASE_URL
-python scripts/check_database_authorization.py --database-url-env COORDINATION_DATABASE_URL
+python scripts/check_database_authorization.py
 ```
 
-When two environment variables intentionally resolve to one database boundary, the restricted evidence record
-may document one execution and the approved shared-boundary decision. The checker produces bounded pass/fail
-output and does not replace provider advisers, application integration tests or recovery exercises.
+The allowlist comprises `DATABASE_URL`, `ASSET_GRAPH_DATABASE_URL`, `COORDINATION_DATABASE_URL` and
+`POSTGRES_URL`. Duplicate URLs are checked once. When environment variables intentionally resolve to one database
+boundary, the restricted evidence record may document the approved shared-boundary decision. The checker
+produces bounded pass/fail output and does not replace provider advisers, application integration tests or
+recovery exercises.
 
 ## Remediation sequence
 
