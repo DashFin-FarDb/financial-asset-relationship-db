@@ -9,7 +9,7 @@ import sys
 from collections.abc import Callable, Mapping, Sequence
 from contextlib import closing
 from typing import Any, NamedTuple
-from urllib.parse import urlsplit
+from urllib.parse import SplitResult, urlsplit
 
 SUCCESS = 0
 CHECK_FAILED = 1
@@ -212,23 +212,49 @@ def collect_snapshot(connection: Any, schema: str) -> AuthorizationSnapshot:
     return _snapshot_from_mapping(row)
 
 
-def _validate_database_url(database_url: str) -> TrustedDatabaseUrl | None:
-    """Return a trusted hosted PostgreSQL URL or fail closed without exposing it."""
+def _parse_database_url(database_url: str) -> SplitResult | None:
+    """Parse a database URL and reject malformed port syntax."""
     try:
         parsed = urlsplit(database_url)
-        port = parsed.port
+        _ = parsed.port
     except ValueError:
         return None
+    return parsed
 
-    if (
-        parsed.scheme not in {"postgres", "postgresql"}
-        or parsed.hostname is None
-        or parsed.username is None
-        or parsed.path in {"", "/"}
-        or parsed.fragment
-        or port is not None
-        and not 1 <= port <= 65535
-    ):
+
+def _has_supported_database_scheme(parsed: SplitResult) -> bool:
+    """Return whether the URL uses the PostgreSQL protocol."""
+    return parsed.scheme in {"postgres", "postgresql"}
+
+
+def _has_database_authority(parsed: SplitResult) -> bool:
+    """Return whether hosted connection identity and destination fields are present."""
+    return all((parsed.hostname, parsed.username, parsed.password))
+
+
+def _has_database_name(parsed: SplitResult) -> bool:
+    """Return whether the URL selects a database."""
+    return parsed.path not in {"", "/"}
+
+
+def _has_safe_database_url_suffix(parsed: SplitResult) -> bool:
+    """Return whether the URL avoids unsupported client-side fragments."""
+    return not parsed.fragment
+
+
+def _validate_database_url(database_url: str) -> TrustedDatabaseUrl | None:
+    """Return a trusted hosted PostgreSQL URL or fail closed without exposing it."""
+    parsed = _parse_database_url(database_url)
+    if parsed is None:
+        return None
+
+    validators = (
+        _has_supported_database_scheme,
+        _has_database_authority,
+        _has_database_name,
+        _has_safe_database_url_suffix,
+    )
+    if not all(validator(parsed) for validator in validators):
         return None
     return TrustedDatabaseUrl(database_url)
 

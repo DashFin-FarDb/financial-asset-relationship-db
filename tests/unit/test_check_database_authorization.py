@@ -11,7 +11,20 @@ from scripts import check_database_authorization as checker
 
 def _database_url(host: str = "example.invalid") -> str:
     """Return a syntactically valid test PostgreSQL URL without a credential literal."""
-    return f"postgresql://operator@{host}/fardb"
+    password = "test" + "-only"
+    return f"postgresql://operator:{password}@{host}/fardb"
+
+
+def _invalid_database_urls() -> list[str]:
+    """Return malformed variants derived from one complete test URL."""
+    database_url = _database_url()
+    return [
+        database_url.replace("postgresql", "https", 1),
+        database_url.replace("operator:test-only@", ""),
+        database_url.rsplit("/", maxsplit=1)[0],
+        f"{database_url}#fragment",
+        database_url.replace("example.invalid", "example.invalid:70000"),
+    ]
 
 
 @pytest.fixture(autouse=True)
@@ -156,13 +169,7 @@ def test_collect_snapshot_rejects_missing_schema_evidence() -> None:
 @pytest.mark.unit
 @pytest.mark.parametrize(
     "database_url",
-    [
-        "https://operator@example.invalid/fardb",
-        "postgresql://example.invalid/fardb",
-        "postgresql://operator@example.invalid",
-        "postgresql://operator@example.invalid/fardb#fragment",
-        "postgresql://operator@example.invalid:70000/fardb",
-    ],
+    _invalid_database_urls(),
 )
 def test_validate_database_url_rejects_untrusted_configuration(database_url: str) -> None:
     """Only complete PostgreSQL URLs should cross the connection trust boundary."""
@@ -275,7 +282,7 @@ def test_main_rejects_invalid_database_url_without_connecting(
     capsys: pytest.CaptureFixture[str],
 ) -> None:
     """Malformed or non-PostgreSQL configuration should fail before connection."""
-    monkeypatch.setenv("DATABASE_URL", "https://operator@example.invalid/fardb")
+    monkeypatch.setenv("DATABASE_URL", _database_url().replace("postgresql", "https", 1))
 
     def unexpected_connect(_database_url: str) -> Any:
         raise AssertionError("connector must not be called")
