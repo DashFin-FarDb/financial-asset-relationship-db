@@ -2,7 +2,7 @@
 
 ## Status
 
-Proposed
+Accepted
 
 ## Date
 
@@ -36,6 +36,7 @@ FarDB adopts the following authorization boundary for hosted PostgreSQL.
 
 1. Provider-managed unauthenticated and authenticated API roles receive no table, view, sequence or function
    authority unless a later ADR approves a bounded product requirement.
+   Their database role identities are explicit verification inputs rather than assumed provider-neutral names.
 2. Every table in an exposed schema has row-level security enabled even when direct Data API access is revoked.
 3. A future direct-client workflow requires explicit ownership predicates, negative tests and a separately
    reviewed policy contract. Authentication alone is not authorization.
@@ -71,7 +72,7 @@ FarDB adopts the following authorization boundary for hosted PostgreSQL.
 `scripts/check_database_authorization.py` performs a read-only aggregate check for:
 
 - row-level security on exposed-schema tables;
-- absence of untrusted-role table, sequence, view and function access;
+- absence of configured untrusted-role table, sequence, view and function access;
 - absence of unsafe authorization-claim patterns.
 
 One invocation validates and checks every distinct PostgreSQL URL present in the fixed configuration allowlist:
@@ -83,8 +84,15 @@ python scripts/check_database_authorization.py
 The allowlist comprises `DATABASE_URL`, `ASSET_GRAPH_DATABASE_URL`, `COORDINATION_DATABASE_URL` and
 `POSTGRES_URL`. Duplicate URLs are checked once. When environment variables intentionally resolve to one database
 boundary, the restricted evidence record may document the approved shared-boundary decision. The checker
-produces bounded pass/fail output and does not replace provider advisers, application integration tests or
-recovery exercises.
+defaults the current provider-role identities to `anon` and `authenticated`; another provider must set
+`FARDB_UNTRUSTED_DATABASE_ROLES` to its comma-separated untrusted database role identities and retain that choice
+in restricted evidence. Missing configured roles are treated as having no authority. Connection establishment,
+statement execution and catalog lock waits are time-bounded. The checker produces bounded pass/fail output and
+does not replace provider advisers, application integration tests or recovery exercises.
+
+The checker cannot infer which business functions are privileged solely from catalog shape. The restricted
+closure record must therefore inventory privileged and security-definer functions and verify their schema,
+owner, fixed safe search path and execution grants as a manual control.
 
 ## Remediation sequence
 
@@ -102,7 +110,8 @@ The release-blocking authorization gate closes only when:
 
 - every exposed-schema table passes the row-level-security control;
 - untrusted provider roles have no unintended database authority;
-- views and privileged functions pass their dedicated checks;
+- views pass their automated access check, and privileged functions pass both the automated execution check and
+  the manual fixed-search-path review;
 - application, recovery and restore integration tests pass after enforcement;
 - no unresolved high-severity access-control finding remains, except a named, time-bounded exception approved by
   the release authority;

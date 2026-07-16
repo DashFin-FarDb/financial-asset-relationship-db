@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import sys
+from types import SimpleNamespace
 from typing import Any
 
 import pytest
@@ -23,6 +25,7 @@ def _invalid_database_urls() -> list[str]:
         database_url.replace("operator:test-only@", ""),
         database_url.rsplit("/", maxsplit=1)[0],
         f"{database_url}#fragment",
+        database_url.replace("example.invalid", "example.invalid:0"),
         database_url.replace("example.invalid", "example.invalid:70000"),
     ]
 
@@ -32,6 +35,7 @@ def _clear_database_url_environment(monkeypatch: pytest.MonkeyPatch) -> None:
     """Keep configured database boundaries explicit and isolated in each test."""
     for variable_name in checker.SUPPORTED_DATABASE_URL_ENVS:
         monkeypatch.delenv(variable_name, raising=False)
+    monkeypatch.delenv(checker.UNTRUSTED_DATABASE_ROLES_ENV, raising=False)
 
 
 def _snapshot(**overrides: int) -> checker.AuthorizationSnapshot:
@@ -70,8 +74,19 @@ def test_evaluate_snapshot_accepts_closed_boundary() -> None:
 def test_evaluate_snapshot_reports_only_control_class(overrides: dict[str, int], expected_control: str) -> None:
     """Each failed control should return a bounded finding."""
     findings = checker.evaluate_snapshot(_snapshot(**overrides))
-    assert [finding.control for finding in findings] == [expected_control]
-    assert all("table_" not in finding.message for finding in findings)
+    assert findings == [checker.Finding(expected_control, checker.CONTROL_MESSAGES[expected_control])]
+
+
+@pytest.mark.unit
+def test_evaluate_snapshot_rejects_empty_exposed_schema() -> None:
+    """An existing but empty exposed schema must not pass vacuously."""
+    findings = checker.evaluate_snapshot(_snapshot(table_count=0, rls_enabled_count=0))
+    assert findings == [
+        checker.Finding(
+            "exposed-schema-rls",
+            "one or more exposed-schema tables do not have row-level security enabled",
+        )
+    ]
 
 
 @pytest.mark.unit
@@ -102,7 +117,7 @@ class _FakeCursor:
     def __init__(self, row: tuple[int, ...] | None) -> None:
         self.row = row
         self.query = ""
-        self.parameters: dict[str, str] = {}
+        self.parameters: dict[str, object] = {}
 
     def __enter__(self) -> _FakeCursor:
         return self
@@ -110,7 +125,7 @@ class _FakeCursor:
     def __exit__(self, *_args: object) -> None:
         return None
 
-    def execute(self, query: str, parameters: dict[str, str]) -> None:
+    def execute(self, query: str, parameters: dict[str, object]) -> None:
         self.query = query
         self.parameters = parameters
 
@@ -153,8 +168,14 @@ def test_collect_snapshot_uses_read_only_parameterized_query() -> None:
     assert connection.readonly is True
     assert connection.autocommit is False
     assert connection.rolled_back is True
-    assert connection.fake_cursor.parameters == {"schema": "public"}
+    assert connection.fake_cursor.parameters == {
+        "schema": "public",
+        "untrusted_roles": ["anon", "authenticated"],
+    }
     assert "public" not in connection.fake_cursor.query
+    assert "has_table_privilege('anon'" not in connection.fake_cursor.query
+    assert "FROM pg_roles" in connection.fake_cursor.query
+    assert "TRUNCATE, REFERENCES, TRIGGER" in connection.fake_cursor.query
 
 
 @pytest.mark.unit
@@ -177,6 +198,13 @@ def test_validate_database_url_rejects_untrusted_configuration(database_url: str
 
 
 @pytest.mark.unit
+def test_validate_database_url_accepts_external_authentication() -> None:
+    """The checker should permit URLs that obtain credentials outside the URL."""
+    database_url = _database_url().replace(":test-only@", "@")
+    assert checker._validate_database_url(database_url) == database_url
+
+
+@pytest.mark.unit
 def test_configured_database_urls_deduplicate_fixed_allowlist() -> None:
     """Repeated configured boundaries should be checked once without accepting arbitrary keys."""
     database_url = _database_url()
@@ -189,6 +217,57 @@ def test_configured_database_urls_deduplicate_fixed_allowlist() -> None:
     )
 
     assert configured == (checker.TrustedDatabaseUrl(database_url),)
+
+
+@pytest.mark.unit
+def test_configured_untrusted_roles_support_provider_specific_identities() -> None:
+    """Provider role identities should be explicit, validated and deduplicated."""
+    configured = checker._configured_untrusted_roles(
+        {checker.UNTRUSTED_DATABASE_ROLES_ENV: "public_reader, public_reader,api_user"}
+    )
+    assert configured == ("public_reader", "api_user")
+
+
+@pytest.mark.unit
+def test_configured_untrusted_roles_reject_unsafe_identity() -> None:
+    """Malformed provider-role configuration should fail before database access."""
+    configured = checker._configured_untrusted_roles({checker.UNTRUSTED_DATABASE_ROLES_ENV: "anon,role;select"})
+    assert configured is None
+
+
+@pytest.mark.unit
+def test_connect_sets_client_and_server_timeouts(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Connection establishment, catalog statements and lock waits should all be bounded."""
+    observed: dict[str, object] = {}
+
+    def fake_connect(database_url: str, **kwargs: object) -> object:
+        observed.update({"database_url": database_url, **kwargs})
+        return object()
+
+    monkeypatch.setitem(sys.modules, "psycopg2", SimpleNamespace(connect=fake_connect))
+    database_url = checker.TrustedDatabaseUrl(_database_url())
+
+    checker._connect(database_url)
+
+    assert observed["database_url"] == database_url
+    assert observed["connect_timeout"] == checker.CONNECT_TIMEOUT_SECONDS
+    assert observed["options"] == (
+        f"-c statement_timeout={checker.STATEMENT_TIMEOUT_MILLISECONDS} "
+        f"-c lock_timeout={checker.LOCK_TIMEOUT_MILLISECONDS}"
+    )
+
+
+@pytest.mark.unit
+def test_main_passes_configured_untrusted_roles_to_query(monkeypatch: pytest.MonkeyPatch) -> None:
+    """A provider-specific role contract should reach the parameterized catalog query."""
+    monkeypatch.setenv("DATABASE_URL", _database_url())
+    monkeypatch.setenv(checker.UNTRUSTED_DATABASE_ROLES_ENV, "public_reader,api_user")
+    connection = _FakeConnection((4, 4, 0, 0, 0, 0, 0))
+
+    result = checker.main([], connector=lambda _url: connection)
+
+    assert result == checker.SUCCESS
+    assert connection.fake_cursor.parameters["untrusted_roles"] == ["public_reader", "api_user"]
 
 
 @pytest.mark.unit
@@ -308,3 +387,20 @@ def test_main_fails_closed_when_schema_is_missing(
     captured = capsys.readouterr()
     assert result == checker.CHECK_FAILED
     assert captured.err == "database authorization check could not complete\n"
+
+
+@pytest.mark.unit
+def test_main_fails_closed_when_exposed_schema_is_empty(
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """An existing schema with no tables must fail the public authorization gate."""
+    monkeypatch.setenv("DATABASE_URL", _database_url())
+    connection = _FakeConnection((0, 0, 0, 0, 0, 0, 0))
+
+    result = checker.main([], connector=lambda _url: connection)
+
+    captured = capsys.readouterr()
+    assert result == checker.CHECK_FAILED
+    assert captured.err == ""
+    assert "exposed-schema-rls" in captured.out

@@ -16,7 +16,7 @@
 | `docs/operations/operational-evidence-capture-framework.md`   | Canonical evidence grammar for classifying, redacting, and reviewing operational proof artifacts                           |
 | `docs/testing/operational-drill-and-scale-validation-pack.md` | Operational drill matrix and bounded scale-validation guidance for observability, SLO, dashboard, alert, and runbook proof |
 | `docs/governance/state-machine-and-operating-authority.md`    | Current operational authority for rebuild/recovery state machines, invariants, ownership, and exception paths              |
-| `docs/adr/0007-database-authorization-boundary.md`            | Proposed hosted database authorization boundary and bounded verification contract                                          |
+| `docs/adr/0007-database-authorization-boundary.md`            | Accepted hosted database authorization boundary and bounded verification contract                                          |
 | `docs/adr/0006-release-and-deployment-automation.md`          | Release and Deployment automation strategy, GitHub actions constraints                                                     |
 | `docs/adr/0005-backup-restore-dr-strategy.md`                 | Backup, restore, DR strategy, data classification, RPO, and RTO                                                            |
 | `docs/runbooks/backup-restore-dr.md`                          | Operator procedures for backup verification, restore execution, and post-restore checks                                    |
@@ -85,7 +85,7 @@ Repository tests and documentation may satisfy implementation evidence, but stag
 - [docs/operations/operational-evidence-capture-framework.md](./operations/operational-evidence-capture-framework.md) — canonical evidence grammar for claims, redaction, and review
 - [docs/testing/operational-drill-and-scale-validation-pack.md](./testing/operational-drill-and-scale-validation-pack.md) — operator-facing drill matrix and bounded scale-validation guidance
 - [docs/governance/state-machine-and-operating-authority.md](./governance/state-machine-and-operating-authority.md) — current authority for rebuild/recovery/persistence state-machine governance
-- [docs/adr/0007-database-authorization-boundary.md](./adr/0007-database-authorization-boundary.md) — proposed hosted database authorization boundary and bounded checker contract
+- [docs/adr/0007-database-authorization-boundary.md](./adr/0007-database-authorization-boundary.md) — accepted hosted database authorization boundary and bounded checker contract
 - [docs/adr/0002-hosted-deployment-and-persistence.md](./adr/0002-hosted-deployment-and-persistence.md) — hosted persistence decision
 - [docs/adr/0006-release-and-deployment-automation.md](./adr/0006-release-and-deployment-automation.md) — release and deployment automation strategy
 - [docs/adr/0005-backup-restore-dr-strategy.md](./adr/0005-backup-restore-dr-strategy.md) — backup, restore, and DR strategy

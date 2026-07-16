@@ -21,10 +21,21 @@ SUPPORTED_DATABASE_URL_ENVS = (
     "COORDINATION_DATABASE_URL",
     "POSTGRES_URL",
 )
+UNTRUSTED_DATABASE_ROLES_ENV = "FARDB_UNTRUSTED_DATABASE_ROLES"
+DEFAULT_UNTRUSTED_DATABASE_ROLES = ("anon", "authenticated")
 SAFE_SCHEMA_PATTERN = re.compile(r"^[a-z_][a-z0-9_]*$")
+SAFE_ROLE_PATTERN = re.compile(r"^[a-z_][a-z0-9_]*$")
+CONNECT_TIMEOUT_SECONDS = 10
+STATEMENT_TIMEOUT_MILLISECONDS = 15_000
+LOCK_TIMEOUT_MILLISECONDS = 5_000
 
 AUTHORIZATION_POSTURE_QUERY = """
-WITH schema_namespace AS (
+WITH untrusted_roles AS (
+    SELECT oid
+    FROM pg_roles
+    WHERE rolname = ANY(%(untrusted_roles)s)
+),
+schema_namespace AS (
     SELECT oid
     FROM pg_namespace
     WHERE nspname = %(schema)s
@@ -40,48 +51,52 @@ table_posture AS (
         COUNT(*)::INTEGER AS table_count,
         COUNT(*) FILTER (WHERE relrowsecurity)::INTEGER AS rls_enabled_count,
         COUNT(*) FILTER (
-            WHERE has_table_privilege('anon', oid, 'SELECT')
-               OR has_table_privilege('anon', oid, 'INSERT')
-               OR has_table_privilege('anon', oid, 'UPDATE')
-               OR has_table_privilege('anon', oid, 'DELETE')
-               OR has_table_privilege('authenticated', oid, 'SELECT')
-               OR has_table_privilege('authenticated', oid, 'INSERT')
-               OR has_table_privilege('authenticated', oid, 'UPDATE')
-               OR has_table_privilege('authenticated', oid, 'DELETE')
+            WHERE EXISTS (
+                SELECT 1
+                FROM untrusted_roles AS ur
+                WHERE has_table_privilege(
+                    ur.oid,
+                    et.oid,
+                    'SELECT, INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER'
+                )
+            )
         )::INTEGER AS untrusted_grant_table_count
-    FROM exposed_tables
+    FROM exposed_tables AS et
 ),
 sequence_posture AS (
     SELECT COUNT(*)::INTEGER AS untrusted_sequence_count
     FROM pg_class AS c
     JOIN schema_namespace AS sn ON sn.oid = c.relnamespace
     WHERE c.relkind = 'S'
-      AND (
-          has_sequence_privilege('anon', c.oid, 'USAGE')
-          OR has_sequence_privilege('anon', c.oid, 'SELECT')
-          OR has_sequence_privilege('anon', c.oid, 'UPDATE')
-          OR has_sequence_privilege('authenticated', c.oid, 'USAGE')
-          OR has_sequence_privilege('authenticated', c.oid, 'SELECT')
-          OR has_sequence_privilege('authenticated', c.oid, 'UPDATE')
+      AND EXISTS (
+          SELECT 1
+          FROM untrusted_roles AS ur
+          WHERE has_sequence_privilege(ur.oid, c.oid, 'USAGE, SELECT, UPDATE')
       )
 ),
 function_posture AS (
     SELECT COUNT(*)::INTEGER AS untrusted_function_count
     FROM pg_proc AS p
     JOIN schema_namespace AS sn ON sn.oid = p.pronamespace
-    WHERE (
-          has_function_privilege('anon', p.oid, 'EXECUTE')
-          OR has_function_privilege('authenticated', p.oid, 'EXECUTE')
-      )
+    WHERE EXISTS (
+        SELECT 1
+        FROM untrusted_roles AS ur
+        WHERE has_function_privilege(ur.oid, p.oid, 'EXECUTE')
+    )
 ),
 view_posture AS (
     SELECT COUNT(*)::INTEGER AS untrusted_view_count
     FROM pg_class AS c
     JOIN schema_namespace AS sn ON sn.oid = c.relnamespace
     WHERE c.relkind IN ('v', 'm')
-      AND (
-          has_table_privilege('anon', c.oid, 'SELECT')
-          OR has_table_privilege('authenticated', c.oid, 'SELECT')
+      AND EXISTS (
+          SELECT 1
+          FROM untrusted_roles AS ur
+          WHERE has_table_privilege(
+              ur.oid,
+              c.oid,
+              'SELECT, INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER'
+          )
       )
 ),
 policy_posture AS (
@@ -177,7 +192,7 @@ def evaluate_snapshot(snapshot: AuthorizationSnapshot) -> list[Finding]:
 
     findings: list[Finding] = []
     checks = (
-        (snapshot.rls_enabled_count != snapshot.table_count, "exposed-schema-rls"),
+        (snapshot.table_count == 0 or snapshot.rls_enabled_count != snapshot.table_count, "exposed-schema-rls"),
         (snapshot.untrusted_grant_table_count != 0, "untrusted-table-access"),
         (snapshot.untrusted_sequence_count != 0, "untrusted-sequence-access"),
         (snapshot.untrusted_function_count != 0, "untrusted-function-access"),
@@ -198,11 +213,18 @@ def _description_name(description: Any) -> str:
     return str(description[0])
 
 
-def collect_snapshot(connection: Any, schema: str) -> AuthorizationSnapshot:
+def collect_snapshot(
+    connection: Any,
+    schema: str,
+    untrusted_roles: Sequence[str] = DEFAULT_UNTRUSTED_DATABASE_ROLES,
+) -> AuthorizationSnapshot:
     """Collect one read-only aggregate authorization snapshot."""
     connection.set_session(readonly=True, autocommit=False)
     with connection.cursor() as cursor:
-        cursor.execute(AUTHORIZATION_POSTURE_QUERY, {"schema": schema})
+        cursor.execute(
+            AUTHORIZATION_POSTURE_QUERY,
+            {"schema": schema, "untrusted_roles": list(untrusted_roles)},
+        )
         raw_row = cursor.fetchone()
         if raw_row is None or cursor.description is None:
             raise RuntimeError("authorization query returned no evidence")
@@ -229,7 +251,7 @@ def _has_supported_database_scheme(parsed: SplitResult) -> bool:
 
 def _has_database_authority(parsed: SplitResult) -> bool:
     """Return whether hosted connection identity and destination fields are present."""
-    return all((parsed.hostname, parsed.username, parsed.password))
+    return bool(parsed.hostname and parsed.username)
 
 
 def _has_database_name(parsed: SplitResult) -> bool:
@@ -240,6 +262,11 @@ def _has_database_name(parsed: SplitResult) -> bool:
 def _has_safe_database_url_suffix(parsed: SplitResult) -> bool:
     """Return whether the URL avoids unsupported client-side fragments."""
     return not parsed.fragment
+
+
+def _has_valid_database_port(parsed: SplitResult) -> bool:
+    """Return whether an explicit PostgreSQL port is in the usable TCP range."""
+    return parsed.port is None or 1 <= parsed.port <= 65535
 
 
 def _validate_database_url(database_url: str) -> TrustedDatabaseUrl | None:
@@ -253,6 +280,7 @@ def _validate_database_url(database_url: str) -> TrustedDatabaseUrl | None:
         _has_database_authority,
         _has_database_name,
         _has_safe_database_url_suffix,
+        _has_valid_database_port,
     )
     if not all(validator(parsed) for validator in validators):
         return None
@@ -274,11 +302,29 @@ def _configured_database_urls(environment: Mapping[str, str]) -> tuple[TrustedDa
     return tuple(configured)
 
 
+def _configured_untrusted_roles(environment: Mapping[str, str]) -> tuple[str, ...] | None:
+    """Resolve untrusted provider-role identities without exposing them in output."""
+    raw_roles = environment.get(UNTRUSTED_DATABASE_ROLES_ENV)
+    if raw_roles is None:
+        return DEFAULT_UNTRUSTED_DATABASE_ROLES
+
+    roles = tuple(dict.fromkeys(role.strip() for role in raw_roles.split(",")))
+    if not roles or any(not SAFE_ROLE_PATTERN.fullmatch(role) for role in roles):
+        return None
+    return roles
+
+
 def _connect(database_url: TrustedDatabaseUrl) -> Any:
     """Open a bounded PostgreSQL connection without importing the driver during unit tests."""
     import psycopg2
 
-    return psycopg2.connect(database_url, connect_timeout=10, application_name="fardb-authorization-check")
+    options = f"-c statement_timeout={STATEMENT_TIMEOUT_MILLISECONDS} " f"-c lock_timeout={LOCK_TIMEOUT_MILLISECONDS}"
+    return psycopg2.connect(
+        database_url,
+        connect_timeout=CONNECT_TIMEOUT_SECONDS,
+        application_name="fardb-authorization-check",
+        options=options,
+    )
 
 
 def _parse_args(argv: Sequence[str] | None) -> argparse.Namespace:
@@ -302,6 +348,7 @@ def _print_findings(findings: Sequence[Finding]) -> None:
 def _collect_configured_snapshots(
     database_urls: Sequence[TrustedDatabaseUrl],
     schema: str,
+    untrusted_roles: Sequence[str],
     connector: Callable[[TrustedDatabaseUrl], Any],
 ) -> list[AuthorizationSnapshot] | None:
     """Collect all configured snapshots, treating connection and cleanup errors as one bounded failure."""
@@ -309,7 +356,7 @@ def _collect_configured_snapshots(
     try:
         for database_url in database_urls:
             with closing(connector(database_url)) as connection:
-                snapshots.append(collect_snapshot(connection, schema))
+                snapshots.append(collect_snapshot(connection, schema, untrusted_roles))
     except Exception:
         return None
     return snapshots
@@ -336,7 +383,8 @@ def main(
         return USAGE_ERROR
 
     database_urls = _configured_database_urls(os.environ)
-    if database_urls is None:
+    untrusted_roles = _configured_untrusted_roles(os.environ)
+    if database_urls is None or untrusted_roles is None:
         print("database authorization check configuration is invalid", file=sys.stderr)
         return USAGE_ERROR
     if not database_urls:
@@ -344,7 +392,7 @@ def main(
         return USAGE_ERROR
 
     connect = connector or _connect
-    snapshots = _collect_configured_snapshots(database_urls, args.exposed_schema, connect)
+    snapshots = _collect_configured_snapshots(database_urls, args.exposed_schema, untrusted_roles, connect)
     if snapshots is None:
         print("database authorization check could not complete", file=sys.stderr)
         return CHECK_FAILED
