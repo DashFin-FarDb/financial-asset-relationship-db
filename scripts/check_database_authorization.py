@@ -68,11 +68,11 @@ sequence_posture AS (
     FROM pg_class AS c
     JOIN schema_namespace AS sn ON sn.oid = c.relnamespace
     WHERE c.relkind = 'S'
-      AND EXISTS (
-          SELECT 1
-          FROM untrusted_roles AS ur
-          WHERE has_sequence_privilege(ur.oid, c.oid, 'USAGE, SELECT, UPDATE')
-      )
+        AND EXISTS (
+            SELECT 1
+            FROM untrusted_roles AS ur
+            WHERE has_sequence_privilege(ur.oid, c.oid, 'USAGE, SELECT, UPDATE')
+        )
 ),
 function_posture AS (
     SELECT COUNT(*)::INTEGER AS untrusted_function_count
@@ -89,26 +89,26 @@ view_posture AS (
     FROM pg_class AS c
     JOIN schema_namespace AS sn ON sn.oid = c.relnamespace
     WHERE c.relkind IN ('v', 'm')
-      AND EXISTS (
-          SELECT 1
-          FROM untrusted_roles AS ur
-          WHERE has_table_privilege(
-              ur.oid,
-              c.oid,
-              'SELECT, INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER'
-          )
-      )
+        AND EXISTS (
+            SELECT 1
+            FROM untrusted_roles AS ur
+            WHERE has_table_privilege(
+                ur.oid,
+                c.oid,
+                'SELECT, INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER'
+            )
+        )
 ),
 policy_posture AS (
     SELECT COUNT(*)::INTEGER AS unsafe_policy_count
     FROM pg_policies
     WHERE schemaname = %(schema)s
-      AND (
-          COALESCE(qual, '') ILIKE '%%user_metadata%%'
-          OR COALESCE(with_check, '') ILIKE '%%user_metadata%%'
-          OR COALESCE(qual, '') ILIKE '%%auth.role%%'
-          OR COALESCE(with_check, '') ILIKE '%%auth.role%%'
-      )
+        AND (
+            COALESCE(qual, '') ILIKE '%%user_metadata%%'
+            OR COALESCE(with_check, '') ILIKE '%%user_metadata%%'
+            OR COALESCE(qual, '') ILIKE '%%auth.role%%'
+            OR COALESCE(with_check, '') ILIKE '%%auth.role%%'
+        )
 )
 SELECT
     table_posture.table_count,

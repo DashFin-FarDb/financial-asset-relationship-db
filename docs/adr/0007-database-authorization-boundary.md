@@ -143,7 +143,7 @@ The release-blocking authorization gate closes only when:
 - This ADR does not mutate the live database.
 - This ADR does not publish the restricted live authorization inventory.
 - This ADR does not introduce a browser Supabase client.
-- This ADR does not implement domain-level multi-tenancy or end-user row ownership.
+- This ADR does not implement domain-level multi-tenancy or end user row ownership.
 - This ADR does not close the gate without target-environment evidence.
 
 ## References
