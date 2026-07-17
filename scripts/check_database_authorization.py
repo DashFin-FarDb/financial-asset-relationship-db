@@ -35,6 +35,10 @@ WITH untrusted_roles AS (
     FROM pg_roles
     WHERE rolname = ANY(%(untrusted_roles)s)
 ),
+role_posture AS (
+    SELECT COUNT(*)::INTEGER AS resolved_untrusted_role_count
+    FROM untrusted_roles
+),
 schema_namespace AS (
     SELECT oid
     FROM pg_namespace
@@ -59,6 +63,11 @@ table_posture AS (
                     et.oid,
                     'SELECT, INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER'
                 )
+                    OR has_any_column_privilege(
+                        ur.oid,
+                        et.oid,
+                        'SELECT, INSERT, UPDATE, REFERENCES'
+                    )
             )
         )::INTEGER AS untrusted_grant_table_count
     FROM exposed_tables AS et
@@ -97,6 +106,11 @@ view_posture AS (
                 c.oid,
                 'SELECT, INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER'
             )
+                OR has_any_column_privilege(
+                    ur.oid,
+                    c.oid,
+                    'SELECT, INSERT, UPDATE, REFERENCES'
+                )
         )
 ),
 policy_posture AS (
@@ -117,8 +131,10 @@ SELECT
     sequence_posture.untrusted_sequence_count,
     function_posture.untrusted_function_count,
     view_posture.untrusted_view_count,
-    policy_posture.unsafe_policy_count
+    policy_posture.unsafe_policy_count,
+    role_posture.resolved_untrusted_role_count
 FROM schema_namespace
+CROSS JOIN role_posture
 CROSS JOIN table_posture
 CROSS JOIN sequence_posture
 CROSS JOIN function_posture
@@ -137,6 +153,7 @@ class AuthorizationSnapshot(NamedTuple):
     untrusted_function_count: int
     untrusted_view_count: int
     unsafe_policy_count: int
+    resolved_untrusted_role_count: int
 
 
 class Finding(NamedTuple):
@@ -171,6 +188,7 @@ def _snapshot_from_mapping(row: Mapping[str, Any]) -> AuthorizationSnapshot:
         untrusted_function_count=int(row["untrusted_function_count"]),
         untrusted_view_count=int(row["untrusted_view_count"]),
         unsafe_policy_count=int(row["unsafe_policy_count"]),
+        resolved_untrusted_role_count=int(row["resolved_untrusted_role_count"]),
     )
 
 
@@ -217,6 +235,7 @@ def collect_snapshot(
     connection: Any,
     schema: str,
     untrusted_roles: Sequence[str] = DEFAULT_UNTRUSTED_DATABASE_ROLES,
+    require_all_untrusted_roles: bool = False,
 ) -> AuthorizationSnapshot:
     """Collect one read-only aggregate authorization snapshot."""
     connection.set_session(readonly=True, autocommit=False)
@@ -231,7 +250,13 @@ def collect_snapshot(
         columns = [_description_name(item) for item in cursor.description]
         row = dict(zip(columns, raw_row, strict=True))
     connection.rollback()
-    return _snapshot_from_mapping(row)
+    snapshot = _snapshot_from_mapping(row)
+    resolved_role_count = snapshot.resolved_untrusted_role_count
+    if resolved_role_count > len(untrusted_roles):
+        raise RuntimeError("authorization query returned inconsistent role evidence")
+    if require_all_untrusted_roles and resolved_role_count != len(untrusted_roles):
+        raise RuntimeError("authorization query did not resolve configured roles")
+    return snapshot
 
 
 def _parse_database_url(database_url: str) -> SplitResult | None:
@@ -349,6 +374,7 @@ def _collect_configured_snapshots(
     database_urls: Sequence[TrustedDatabaseUrl],
     schema: str,
     untrusted_roles: Sequence[str],
+    require_all_untrusted_roles: bool,
     connector: Callable[[TrustedDatabaseUrl], Any],
 ) -> list[AuthorizationSnapshot] | None:
     """Collect all configured snapshots, treating connection and cleanup errors as one bounded failure."""
@@ -356,7 +382,14 @@ def _collect_configured_snapshots(
     try:
         for database_url in database_urls:
             with closing(connector(database_url)) as connection:
-                snapshots.append(collect_snapshot(connection, schema, untrusted_roles))
+                snapshots.append(
+                    collect_snapshot(
+                        connection,
+                        schema,
+                        untrusted_roles,
+                        require_all_untrusted_roles=require_all_untrusted_roles,
+                    )
+                )
     except Exception:
         return None
     return snapshots
@@ -384,6 +417,7 @@ def main(
 
     database_urls = _configured_database_urls(os.environ)
     untrusted_roles = _configured_untrusted_roles(os.environ)
+    require_all_untrusted_roles = UNTRUSTED_DATABASE_ROLES_ENV in os.environ
     if database_urls is None or untrusted_roles is None:
         print("database authorization check configuration is invalid", file=sys.stderr)
         return USAGE_ERROR
@@ -392,7 +426,13 @@ def main(
         return USAGE_ERROR
 
     connect = connector or _connect
-    snapshots = _collect_configured_snapshots(database_urls, args.exposed_schema, untrusted_roles, connect)
+    snapshots = _collect_configured_snapshots(
+        database_urls,
+        args.exposed_schema,
+        untrusted_roles,
+        require_all_untrusted_roles,
+        connect,
+    )
     if snapshots is None:
         print("database authorization check could not complete", file=sys.stderr)
         return CHECK_FAILED

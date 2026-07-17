@@ -72,7 +72,8 @@ FarDB adopts the following authorization boundary for hosted PostgreSQL.
 `scripts/check_database_authorization.py` performs a read-only aggregate check for:
 
 - row-level security on exposed-schema tables;
-- absence of configured untrusted-role table, sequence, view and function access;
+- absence of configured untrusted-role relation-level and column-level table/view access, sequence access and
+  function execution;
 - absence of unsafe authorization-claim patterns.
 
 One invocation validates and checks every distinct PostgreSQL URL present in the fixed configuration allowlist:
@@ -86,9 +87,11 @@ The allowlist comprises `DATABASE_URL`, `ASSET_GRAPH_DATABASE_URL`, `COORDINATIO
 boundary, the restricted evidence record may document the approved shared-boundary decision. The checker
 defaults the current provider-role identities to `anon` and `authenticated`; another provider must set
 `FARDB_UNTRUSTED_DATABASE_ROLES` to its comma-separated untrusted database role identities and retain that choice
-in restricted evidence. Missing configured roles are treated as having no authority. Connection establishment,
-statement execution and catalog lock waits are time-bounded. The checker produces bounded pass/fail output and
-does not replace provider advisers, application integration tests or recovery exercises.
+in restricted evidence. Missing default provider roles are treated as having no authority. When the role
+environment variable is explicitly set, every configured identity must resolve on every checked boundary or the
+gate fails closed. Connection establishment, statement execution and catalog lock waits are time-bounded. The
+checker produces bounded pass/fail output and does not replace provider advisers, application integration tests
+or recovery exercises.
 
 The checker cannot infer which business functions are privileged solely from catalog shape. The restricted
 closure record must therefore inventory privileged and security-definer functions and verify their schema,

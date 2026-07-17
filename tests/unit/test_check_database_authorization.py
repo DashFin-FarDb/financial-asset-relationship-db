@@ -48,6 +48,7 @@ def _snapshot(**overrides: int) -> checker.AuthorizationSnapshot:
         "untrusted_function_count": 0,
         "untrusted_view_count": 0,
         "unsafe_policy_count": 0,
+        "resolved_untrusted_role_count": 2,
     }
     values.update(overrides)
     return checker.AuthorizationSnapshot(**values)
@@ -101,6 +102,19 @@ def test_evaluate_snapshot_rejects_inconsistent_counts() -> None:
     ]
 
 
+@pytest.mark.unit
+@pytest.mark.parametrize("field", checker.AuthorizationSnapshot._fields)
+def test_evaluate_snapshot_rejects_negative_aggregate_field(field: str) -> None:
+    """Every aggregate field should participate in the explicit non-negative invariant."""
+    findings = checker.evaluate_snapshot(_snapshot(**{field: -1}))
+    assert findings == [
+        checker.Finding(
+            "authorization-evidence-integrity",
+            "authorization evidence was internally inconsistent",
+        )
+    ]
+
+
 class _FakeCursor:
     """Minimal DB-API cursor for aggregate-check tests."""
 
@@ -112,6 +126,7 @@ class _FakeCursor:
         ("untrusted_function_count",),
         ("untrusted_view_count",),
         ("unsafe_policy_count",),
+        ("resolved_untrusted_role_count",),
     ]
 
     def __init__(self, row: tuple[int, ...] | None) -> None:
@@ -160,7 +175,7 @@ class _FakeConnection:
 @pytest.mark.unit
 def test_collect_snapshot_uses_read_only_parameterized_query() -> None:
     """The collector should set a read-only transaction and bind the schema."""
-    connection = _FakeConnection((4, 4, 0, 0, 0, 0, 0))
+    connection = _FakeConnection((4, 4, 0, 0, 0, 0, 0, 2))
 
     snapshot = checker.collect_snapshot(connection, "public")
 
@@ -176,6 +191,31 @@ def test_collect_snapshot_uses_read_only_parameterized_query() -> None:
     assert "has_table_privilege('anon'" not in connection.fake_cursor.query
     assert "FROM pg_roles" in connection.fake_cursor.query
     assert "TRUNCATE, REFERENCES, TRIGGER" in connection.fake_cursor.query
+    assert connection.fake_cursor.query.count("has_any_column_privilege") == 2
+
+
+@pytest.mark.unit
+def test_collect_snapshot_allows_missing_default_provider_roles() -> None:
+    """Default roles that do not exist should represent no authority, not an infrastructure failure."""
+    connection = _FakeConnection((4, 4, 0, 0, 0, 0, 0, 0))
+
+    snapshot = checker.collect_snapshot(connection, "public")
+
+    assert snapshot == _snapshot(resolved_untrusted_role_count=0)
+
+
+@pytest.mark.unit
+def test_collect_snapshot_rejects_missing_explicit_provider_role() -> None:
+    """Every explicitly configured provider role should resolve before the gate may pass."""
+    connection = _FakeConnection((4, 4, 0, 0, 0, 0, 0, 1))
+
+    with pytest.raises(RuntimeError, match="did not resolve configured roles"):
+        checker.collect_snapshot(
+            connection,
+            "public",
+            ("public_reader", "api_user"),
+            require_all_untrusted_roles=True,
+        )
 
 
 @pytest.mark.unit
@@ -262,12 +302,29 @@ def test_main_passes_configured_untrusted_roles_to_query(monkeypatch: pytest.Mon
     """A provider-specific role contract should reach the parameterized catalog query."""
     monkeypatch.setenv("DATABASE_URL", _database_url())
     monkeypatch.setenv(checker.UNTRUSTED_DATABASE_ROLES_ENV, "public_reader,api_user")
-    connection = _FakeConnection((4, 4, 0, 0, 0, 0, 0))
+    connection = _FakeConnection((4, 4, 0, 0, 0, 0, 0, 2))
 
     result = checker.main([], connector=lambda _url: connection)
 
     assert result == checker.SUCCESS
     assert connection.fake_cursor.parameters["untrusted_roles"] == ["public_reader", "api_user"]
+
+
+@pytest.mark.unit
+def test_main_fails_closed_when_explicit_provider_role_is_missing(
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """A misspelled explicit role identity must not produce a passing authorization result."""
+    monkeypatch.setenv("DATABASE_URL", _database_url())
+    monkeypatch.setenv(checker.UNTRUSTED_DATABASE_ROLES_ENV, "public_reader,misspelled_role")
+    connection = _FakeConnection((4, 4, 0, 0, 0, 0, 0, 1))
+
+    result = checker.main([], connector=lambda _url: connection)
+
+    captured = capsys.readouterr()
+    assert result == checker.CHECK_FAILED
+    assert captured.err == "database authorization check could not complete\n"
 
 
 @pytest.mark.unit
@@ -277,7 +334,7 @@ def test_main_reports_bounded_failure_without_secret_or_topology(
 ) -> None:
     """Operator output must not echo connection strings, names or counts."""
     database_url = _database_url()
-    connection = _FakeConnection((4, 3, 1, 0, 1, 0, 0))
+    connection = _FakeConnection((4, 3, 1, 0, 1, 0, 0, 2))
     monkeypatch.setenv("DATABASE_URL", database_url)
 
     result = checker.main([], connector=lambda _url: connection)
@@ -322,7 +379,7 @@ def test_main_sanitizes_connection_close_errors(
 ) -> None:
     """Connection cleanup failures must fail closed without exposing details."""
     monkeypatch.setenv("DATABASE_URL", _database_url())
-    connection = _FakeConnection((0, 0, 0, 0, 0, 0, 0))
+    connection = _FakeConnection((0, 0, 0, 0, 0, 0, 0, 2))
 
     def fail_to_close() -> None:
         raise RuntimeError("restricted cleanup detail")
@@ -396,7 +453,7 @@ def test_main_fails_closed_when_exposed_schema_is_empty(
 ) -> None:
     """An existing schema with no tables must fail the public authorization gate."""
     monkeypatch.setenv("DATABASE_URL", _database_url())
-    connection = _FakeConnection((0, 0, 0, 0, 0, 0, 0))
+    connection = _FakeConnection((0, 0, 0, 0, 0, 0, 0, 2))
 
     result = checker.main([], connector=lambda _url: connection)
 
