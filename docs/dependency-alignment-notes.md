@@ -5,7 +5,7 @@
 - Compared normalized runtime dependencies declared in:
   - `pyproject.toml` (`[project].dependencies`)
   - `requirements.txt` (runtime/deployment set)
-- Re-validated frontend install/lint/build on branch `agent/database-authorization-boundary`.
+- Re-validated frontend install/lint/build on the active development branch.
 
 ## Result
 
