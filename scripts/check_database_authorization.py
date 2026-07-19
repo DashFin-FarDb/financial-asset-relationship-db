@@ -365,7 +365,7 @@ def _connect(database_url: TrustedDatabaseUrl) -> Any:
     """Open a bounded PostgreSQL connection without importing the driver during unit tests."""
     import psycopg2
 
-    options = f"-c statement_timeout={STATEMENT_TIMEOUT_MILLISECONDS} " f"-c lock_timeout={LOCK_TIMEOUT_MILLISECONDS}"
+    options = f"-c statement_timeout={STATEMENT_TIMEOUT_MILLISECONDS} " + f"-c lock_timeout={LOCK_TIMEOUT_MILLISECONDS}"
     return psycopg2.connect(
         database_url,
         connect_timeout=CONNECT_TIMEOUT_SECONDS,
