@@ -85,7 +85,9 @@ jobs:
         # when a partial SARIF was written, then fail visibly if nothing was produced.
         id: codacy
         continue-on-error: true
-        uses: codacy/codacy-analysis-cli-action@562ee3e92b8e92df8b67e0a5ff8aa8e261919c08
+        # Keep pinned to the last policy-compatible release: newer upstream revisions
+        # currently transitively invoke actions/setup-go@v3 (unpinned), which fails org policy.
+        uses: codacy/codacy-analysis-cli-action@d840f886c4bd4edc059706d09c6a1586111c540b
         with:
           # Check https://github.com/codacy/codacy-analysis-cli#project-token to get your project token from your Codacy repository
           # You can also omit the token and run the tools that support default configurations
