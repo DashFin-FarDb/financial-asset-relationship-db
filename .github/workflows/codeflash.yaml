@@ -48,7 +48,7 @@ jobs:
           python-version: '3.12'
       - name: Skip Codeflash when API key is unavailable
         if: ${{ steps.codeflash-api-key.outputs.available == 'false' }}
-        run: echo "Skipping Codeflash because CODEFLASH_API_KEY is not available."
+        run: echo "Skipping Codeflash because the API key is not available."
       - name: 📦 Install Dependencies
         if: ${{ steps.codeflash-api-key.outputs.available == 'true' }}
         run: |
