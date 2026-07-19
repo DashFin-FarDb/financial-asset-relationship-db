@@ -51,6 +51,8 @@ dependencies = [
     "passlib[bcrypt]>=1.7.4",
     "slowapi>=0.1.4",
     "structlog>=24.1.0",
+    "urllib3>=2.7.0",
+    "zipp>=4.1.0",
 ]
 
 [project.optional-dependencies]
