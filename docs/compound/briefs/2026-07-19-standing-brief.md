@@ -57,8 +57,8 @@ Claims are labeled landed vs provisional. ADRs/policy are not rewritten.
 - [provisional] **pr:1402**: fix: support Python 3.10 UTC timestamps
 
 ### ci-guardrails
-- [provisional] **pr:1489**: ()   -  w  
 - [provisional] **pr:1488**:    w   v
+- [provisional] **pr:1489**: ()   -  w  
 - [landed] **pr:1456**: ()   -    y w  
 - [landed] **pr:1470**: x v  y  xy 
 - [landed] **pr:1469**: x()  ww v 
