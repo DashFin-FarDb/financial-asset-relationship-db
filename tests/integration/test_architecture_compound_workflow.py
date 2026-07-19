@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import unittest
 from pathlib import Path
 
 import pytest
@@ -29,44 +30,44 @@ PUSH_CONFLICT_COMMIT_CMD = " ".join(
 
 
 @pytest.mark.integration
-class TestArchitectureCompoundWorkflow:
+class TestArchitectureCompoundWorkflow(unittest.TestCase):
     """Guardrails for the architecture compound workflow YAML."""
 
     def test_workflow_loads(self) -> None:
         """Workflow YAML parses with GitHub Actions loader."""
-        assert WORKFLOW.exists()
+        self.assertTrue(WORKFLOW.exists())
         data = yaml.load(
             WORKFLOW.read_text(encoding="utf-8"),
             Loader=GitHubActionsYamlLoader,
         )  # nosec B506
-        assert data["name"] == "Architecture Compound"
-        assert "on" in data or True in data  # PyYAML may coerce `on` to bool True
+        self.assertEqual(data["name"], "Architecture Compound")
+        self.assertTrue("on" in data or True in data)  # PyYAML may coerce `on` to bool True
         jobs = data["jobs"]
-        assert "synthesize" in jobs
-        assert "observe" not in jobs
+        self.assertIn("synthesize", jobs)
+        self.assertNotIn("observe", jobs)
 
     def test_closed_merged_trigger_and_landed_promotion(self) -> None:
         """Merged PR close is in trigger set and promotes status to landed (AE2)."""
         text = WORKFLOW.read_text(encoding="utf-8")
-        assert "closed" in text
-        assert "types: [opened, synchronize, reopened, labeled, closed]" in text
-        assert 'STATUS="landed"' in text
-        assert "pull_request.closed" in text
-        assert "github.event.pull_request.merged == true" in text
-        assert "PR_MERGED_JSON:" in text
-        assert "toJson(github.event.pull_request.merged || false)" in text
-        assert '[ "$PR_ACTION" = "closed" ] && [ "$PR_MERGED_JSON" = "true" ]' in text
-        assert "PR_HEAD_SHA:" in text
-        assert "pull_request.${PR_ACTION}.${HEAD_SHORT}" in text
+        self.assertIn("closed", text)
+        self.assertIn("types: [opened, synchronize, reopened, labeled, closed]", text)
+        self.assertIn('STATUS="landed"', text)
+        self.assertIn("pull_request.closed", text)
+        self.assertIn("github.event.pull_request.merged == true", text)
+        self.assertIn("PR_MERGED_JSON:", text)
+        self.assertIn("toJson(github.event.pull_request.merged || false)", text)
+        self.assertIn('[ "$PR_ACTION" = "closed" ] && [ "$PR_MERGED_JSON" = "true" ]', text)
+        self.assertIn("PR_HEAD_SHA:", text)
+        self.assertIn("pull_request.${PR_ACTION}.${HEAD_SHORT}", text)
 
     def test_pr_title_via_env_not_inline_expression(self) -> None:
         """PR title must come from env (injection-safe); not interpolated into shell."""
         text = WORKFLOW.read_text(encoding="utf-8")
-        assert "PR_TITLE:" in text
-        assert "github.event.pull_request.title" in text
-        assert "'${{ github.event.pull_request.title }}'" not in text
-        assert '"${{ github.event.pull_request.title }}"' not in text
-        assert 'SUMMARY=$(jq -rn --arg t "$PR_TITLE"' in text
+        self.assertIn("PR_TITLE:", text)
+        self.assertIn("github.event.pull_request.title", text)
+        self.assertNotIn("'${{ github.event.pull_request.title }}'", text)
+        self.assertNotIn('"${{ github.event.pull_request.title }}"', text)
+        self.assertIn('SUMMARY=$(jq -rn --arg t "$PR_TITLE"', text)
 
     def test_no_main_auto_merge(self) -> None:
         """Workflow must not merge to main or auto-merge PRs."""
@@ -78,10 +79,10 @@ class TestArchitectureCompoundWorkflow:
                 non_comment_lines.append(line)
         code_only = "\n".join(non_comment_lines)
         lowered = code_only.lower()
-        assert "gh pr merge" not in lowered
-        assert "auto-merge" not in lowered
-        assert "merge origin/main" not in lowered
-        assert "knowledge/architecture-expert" in text
+        self.assertNotIn("gh pr merge", lowered)
+        self.assertNotIn("auto-merge", lowered)
+        self.assertNotIn("merge origin/main", lowered)
+        self.assertIn("knowledge/architecture-expert", text)
 
     def test_permission_split(self) -> None:
         """Synthesize job elevates contents write; top-level defaults to read."""
@@ -90,53 +91,53 @@ class TestArchitectureCompoundWorkflow:
             Loader=GitHubActionsYamlLoader,
         )  # nosec B506
         top_perms = data.get("permissions", {})
-        assert top_perms.get("contents") == "read"
+        self.assertEqual(top_perms.get("contents"), "read")
         synth_perms = data["jobs"]["synthesize"].get("permissions", {})
-        assert synth_perms.get("contents") == "write"
+        self.assertEqual(synth_perms.get("contents"), "write")
 
     def test_push_conflict_records_hybrid_backup(self) -> None:
         """Failed knowledge-branch push records conflict for A12 hybrid backup."""
         text = WORKFLOW.read_text(encoding="utf-8")
-        assert "--record-push-conflict" in text
-        assert "docs/compound/runtime.yml" in text
-        assert "record knowledge-branch push conflict" in text
-        assert "push_knowledge()" in text
-        assert "exit 0" in text
-        assert "Push still rejected after rebase retry" in text
+        self.assertIn("--record-push-conflict", text)
+        self.assertIn("docs/compound/runtime.yml", text)
+        self.assertIn("record knowledge-branch push conflict", text)
+        self.assertIn("push_knowledge()", text)
+        self.assertIn("exit 0", text)
+        self.assertIn("Push still rejected after rebase retry", text)
         # Conflict counter must be committed and pushed (not only written locally).
-        assert PUSH_CONFLICT_APPEND_CMD in text
-        assert PUSH_CONFLICT_COMMIT_CMD in text
-        assert "Failed to push conflict-counter update" in text
-        assert "record-push-conflict failed; hybrid-backup counter not updated" in text
+        self.assertIn(PUSH_CONFLICT_APPEND_CMD, text)
+        self.assertIn(PUSH_CONFLICT_COMMIT_CMD, text)
+        self.assertIn("Failed to push conflict-counter update", text)
+        self.assertIn("record-push-conflict failed; hybrid-backup counter not updated", text)
 
     def test_workflow_dispatch_pins_scripts_to_origin_main(self) -> None:
         """Manual dispatch must run reviewed scripts from origin/main."""
         text = WORKFLOW.read_text(encoding="utf-8")
-        assert 'elif [ "$EVENT_NAME" = "workflow_dispatch" ]; then' in text
-        assert "git fetch --no-tags --depth=1 origin main" in text
-        assert 'TRIGGER_SHA="$(git rev-parse origin/main)"' in text
-        assert "never the selected non-main ref" in text
+        self.assertIn('elif [ "$EVENT_NAME" = "workflow_dispatch" ]; then', text)
+        self.assertIn("git fetch --no-tags --depth=1 origin main", text)
+        self.assertIn('TRIGGER_SHA="$(git rev-parse origin/main)"', text)
+        self.assertIn("never the selected non-main ref", text)
 
     def test_commit_stages_allowlisted_sidecars_only(self) -> None:
         """Commit step stages allowlisted outputs and restores scripts/compound."""
         text = WORKFLOW.read_text(encoding="utf-8")
-        assert "git add .cursor/rules" not in text
-        assert ".cursor/rules/architecture-expert.mdc" in text
-        assert ".cursor/rules/architecture-expert-query.mdc" in text
-        assert ".openhands/microagents/architecture_expert.md" in text
-        assert "git add docs/compound" in text
-        assert RESTORE_SCRIPTS_CMD in text
-        assert "git push origin" in text
+        self.assertNotIn("git add .cursor/rules", text)
+        self.assertIn(".cursor/rules/architecture-expert.mdc", text)
+        self.assertIn(".cursor/rules/architecture-expert-query.mdc", text)
+        self.assertIn(".openhands/microagents/architecture_expert.md", text)
+        self.assertIn("git add docs/compound", text)
+        self.assertIn(RESTORE_SCRIPTS_CMD, text)
+        self.assertIn("git push origin", text)
 
     def test_actions_pinned_and_scripts_overlay(self) -> None:
         """Checkout/setup-python are SHA-pinned; scripts overlay from triggering SHA."""
         text = WORKFLOW.read_text(encoding="utf-8")
-        assert "actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0" in text
-        assert "actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1" in text
-        assert 'git checkout "${TRIGGER_SHA}" -- scripts/compound' in text
-        assert "git restore --staged scripts/compound" in text
-        assert RESTORE_SCRIPTS_CMD in text
-        assert 'echo "TRIGGER_SHA=${TRIGGER_SHA}" >> "$GITHUB_ENV"' in text
-        assert "continue-on-error:" not in text
-        assert "cancel-in-progress: false" in text
-        assert "architecture-compound-knowledge" in text
+        self.assertIn("actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0", text)
+        self.assertIn("actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1", text)
+        self.assertIn('git checkout "${TRIGGER_SHA}" -- scripts/compound', text)
+        self.assertIn("git restore --staged scripts/compound", text)
+        self.assertIn(RESTORE_SCRIPTS_CMD, text)
+        self.assertIn('echo "TRIGGER_SHA=${TRIGGER_SHA}" >> "$GITHUB_ENV"', text)
+        self.assertNotIn("continue-on-error:", text)
+        self.assertIn("cancel-in-progress: false", text)
+        self.assertIn("architecture-compound-knowledge", text)
