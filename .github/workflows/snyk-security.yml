@@ -38,7 +38,6 @@ jobs:
     runs-on: ubuntu-latest
     continue-on-error: true
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
       - name: Check Snyk token availability
         id: snyk-token
         env:
@@ -52,6 +51,8 @@ jobs:
       - name: Skip Snyk when token is unavailable
         if: ${{ steps.snyk-token.outputs.available == 'false' }}
         run: echo "Skipping Snyk scans because SNYK_TOKEN is not available."
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        if: ${{ steps.snyk-token.outputs.available == 'true' }}
       - name: Set up Snyk CLI to check for security issues
         if: ${{ steps.snyk-token.outputs.available == 'true' }}
         # Snyk can be used to break the build when it detects security issues.
@@ -95,9 +96,20 @@ jobs:
         #   env:
         #     SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
 
+        # hashFiles() is truthy for zero-byte files; require non-empty content before upload.
+      - name: Check SARIF output
+        id: sarif
+        if: ${{ always() && steps.snyk-token.outputs.available == 'true' }}
+        run: |
+          if [ -s snyk-code.sarif ]; then
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "present=false" >> "$GITHUB_OUTPUT"
+          fi
+
         # Push the Snyk Code results into GitHub Code Scanning tab
       - name: Upload result to GitHub Code Scanning
-        if: ${{ always() && steps.snyk-token.outputs.available == 'true' && hashFiles('snyk-code.sarif') != '' }}
+        if: ${{ always() && steps.snyk-token.outputs.available == 'true' && steps.sarif.outputs.present == 'true' }}
         uses: github/codeql-action/upload-sarif@54f647b7e1bb85c95cddabcd46b0c578ec92bc1a # v4.36.3
         with:
           sarif_file: snyk-code.sarif
