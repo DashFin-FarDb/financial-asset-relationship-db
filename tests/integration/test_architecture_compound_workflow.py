@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import re
 from pathlib import Path
 
 import pytest
@@ -11,6 +10,8 @@ import yaml
 from tests.integration.test_github_workflows import GitHubActionsYamlLoader
 
 WORKFLOW = Path(__file__).resolve().parents[2] / ".github" / "workflows" / "architecture-compound.yml"
+CHECKOUT_ACTION_PIN = "actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0"
+SETUP_PYTHON_ACTION_PIN = "actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1"
 
 
 @pytest.mark.integration
@@ -106,8 +107,9 @@ class TestArchitectureCompoundWorkflow:
     def test_actions_pinned_and_scripts_overlay(self) -> None:
         """Checkout/setup-python are SHA-pinned; scripts overlay from triggering SHA."""
         text = WORKFLOW.read_text(encoding="utf-8")
-        assert re.search(r"actions/checkout@[0-9a-f]{40}\b", text)
-        assert re.search(r"actions/setup-python@[0-9a-f]{40}\b", text)
+        for action_pin in (CHECKOUT_ACTION_PIN, SETUP_PYTHON_ACTION_PIN):
+            if action_pin not in text:
+                pytest.fail(f"Missing expected action pin: {action_pin}")
         assert 'git checkout "${TRIGGER_SHA}" -- scripts/compound' in text
         assert "git restore --staged scripts/compound" in text
         assert "git restore --source=HEAD --staged --worktree -- scripts/compound" in text
