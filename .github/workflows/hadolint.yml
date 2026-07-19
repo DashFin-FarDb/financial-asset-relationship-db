@@ -10,41 +10,41 @@ name: Hadolint
 
 "on":
   push:
-    branches: [ "main", "Default" ]
+    branches: ["main", "Default"]
     paths:
-      - 'Dockerfile'
-      - '**/Dockerfile'
-      - '**/Dockerfile.*'
-      - '**/*.dockerfile'
-      - '.dockerignore'
-      - 'docker-compose.yml'
-      - '**/docker-compose*.yml'
-      - 'compose.yml'
-      - 'compose.yaml'
-      - 'docker/**'
-      - '.github/workflows/hadolint.yml'
-      - '!**/*.md'
-      - '!docs/**'
+      - "Dockerfile"
+      - "**/Dockerfile"
+      - "**/Dockerfile.*"
+      - "**/*.dockerfile"
+      - ".dockerignore"
+      - "docker-compose.yml"
+      - "**/docker-compose*.yml"
+      - "compose.yml"
+      - "compose.yaml"
+      - "docker/**"
+      - ".github/workflows/hadolint.yml"
+      - "!**/*.md"
+      - "!docs/**"
   pull_request:
     types: [opened, synchronize, reopened]
     # The branches below must be a subset of the branches above
-    branches: [ "main" ]
+    branches: ["main"]
     paths:
-      - 'Dockerfile'
-      - '**/Dockerfile'
-      - '**/Dockerfile.*'
-      - '**/*.dockerfile'
-      - '.dockerignore'
-      - 'docker-compose.yml'
-      - '**/docker-compose*.yml'
-      - 'compose.yml'
-      - 'compose.yaml'
-      - 'docker/**'
-      - '.github/workflows/hadolint.yml'
-      - '!**/*.md'
-      - '!docs/**'
+      - "Dockerfile"
+      - "**/Dockerfile"
+      - "**/Dockerfile.*"
+      - "**/*.dockerfile"
+      - ".dockerignore"
+      - "docker-compose.yml"
+      - "**/docker-compose*.yml"
+      - "compose.yml"
+      - "compose.yaml"
+      - "docker/**"
+      - ".github/workflows/hadolint.yml"
+      - "!**/*.md"
+      - "!docs/**"
   schedule:
-    - cron: '17 15 * * 1'
+    - cron: "17 15 * * 1"
 
 permissions:
   contents: read

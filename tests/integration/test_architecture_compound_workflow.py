@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from pathlib import Path
 
 import pytest
@@ -105,8 +106,8 @@ class TestArchitectureCompoundWorkflow:
     def test_actions_pinned_and_scripts_overlay(self) -> None:
         """Checkout/setup-python are SHA-pinned; scripts overlay from triggering SHA."""
         text = WORKFLOW.read_text(encoding="utf-8")
-        assert "actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5" in text
-        assert "actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065" in text
+        assert re.search(r"actions/checkout@[0-9a-f]{40}\b", text)
+        assert re.search(r"actions/setup-python@[0-9a-f]{40}\b", text)
         assert 'git checkout "${TRIGGER_SHA}" -- scripts/compound' in text
         assert "git restore --staged scripts/compound" in text
         assert "git restore --source=HEAD --staged --worktree -- scripts/compound" in text

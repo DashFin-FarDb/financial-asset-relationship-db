@@ -32,12 +32,12 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0  # guardrails-disable-line
         with:
-          python-version: '3.11'
+          python-version: "3.11"
 
       - name: Setup Node.js
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v6.4.0  # guardrails-disable-line
         with:
-          node-version: '18'
+          node-version: "18"
 
       - name: Install Python dependencies
         run: |

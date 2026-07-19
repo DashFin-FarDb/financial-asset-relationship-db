@@ -7,15 +7,15 @@ on:
   workflow_dispatch:
     inputs:
       evidence_file:
-        description: 'Path to the release-candidate evidence file'
+        description: "Path to the release-candidate evidence file"
         required: true
       base_url:
-        description: 'Staging base URL (optional; falls back to HOSTED_READINESS_BASE_URL secret)'
+        description: "Staging base URL (optional; falls back to HOSTED_READINESS_BASE_URL secret)"
         required: false
       tags:
-        description: 'Manual sign-off tags (e.g., [manual-stop] or [star])'
+        description: "Manual sign-off tags (e.g., [manual-stop] or [star])"
         required: false
-        default: ''
+        default: ""
 
 jobs:
   promotion-gate:
@@ -32,7 +32,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
         with:
-          python-version: '3.12'
+          python-version: "3.12"
 
       - name: Install Dependencies
         run: pip install -r requirements.txt

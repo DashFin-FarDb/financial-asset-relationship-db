@@ -15,51 +15,51 @@ name: Codacy Security Scan
 
 "on":
   push:
-    branches: [ "main", "Default" ]
+    branches: ["main", "Default"]
     paths:
-      - '**/*.py'
-      - '**/*.js'
-      - '**/*.ts'
-      - '**/*.tsx'
-      - '**/*.jsx'
-      - '**/*.java'
-      - '**/*.go'
-      - '**/*.rb'
-      - '**/*.php'
-      - '**/*.swift'
-      - '**/*.cs'
-      - '**/*.c'
-      - '**/*.cpp'
-      - '**/*.h'
-      - '**/*.hpp'
-      - '.github/workflows/codacy.yml'
-      - '!**/*.md'
-      - '!docs/**'
+      - "**/*.py"
+      - "**/*.js"
+      - "**/*.ts"
+      - "**/*.tsx"
+      - "**/*.jsx"
+      - "**/*.java"
+      - "**/*.go"
+      - "**/*.rb"
+      - "**/*.php"
+      - "**/*.swift"
+      - "**/*.cs"
+      - "**/*.c"
+      - "**/*.cpp"
+      - "**/*.h"
+      - "**/*.hpp"
+      - ".github/workflows/codacy.yml"
+      - "!**/*.md"
+      - "!docs/**"
   pull_request:
     types: [opened, synchronize, reopened]
     # The branches below must be a subset of the branches above
-    branches: [ "main" ]
+    branches: ["main"]
     paths:
-      - '**/*.py'
-      - '**/*.js'
-      - '**/*.ts'
-      - '**/*.tsx'
-      - '**/*.jsx'
-      - '**/*.java'
-      - '**/*.go'
-      - '**/*.rb'
-      - '**/*.php'
-      - '**/*.swift'
-      - '**/*.cs'
-      - '**/*.c'
-      - '**/*.cpp'
-      - '**/*.h'
-      - '**/*.hpp'
-      - '.github/workflows/codacy.yml'
-      - '!**/*.md'
-      - '!docs/**'
+      - "**/*.py"
+      - "**/*.js"
+      - "**/*.ts"
+      - "**/*.tsx"
+      - "**/*.jsx"
+      - "**/*.java"
+      - "**/*.go"
+      - "**/*.rb"
+      - "**/*.php"
+      - "**/*.swift"
+      - "**/*.cs"
+      - "**/*.c"
+      - "**/*.cpp"
+      - "**/*.h"
+      - "**/*.hpp"
+      - ".github/workflows/codacy.yml"
+      - "!**/*.md"
+      - "!docs/**"
   schedule:
-    - cron: '26 15 * * 3'
+    - cron: "26 15 * * 3"
 
 permissions:
   contents: read
@@ -85,7 +85,7 @@ jobs:
         # when a partial SARIF was written, then fail visibly if nothing was produced.
         id: codacy
         continue-on-error: true
-        uses: codacy/codacy-analysis-cli-action@562ee3e92b8e92df8b67e0a5ff8aa8e261919c08
+        uses: codacy/codacy-analysis-cli-action@d840f886c4bd4edc059706d09c6a1586111c540b
         with:
           # Check https://github.com/codacy/codacy-analysis-cli#project-token to get your project token from your Codacy repository
           # You can also omit the token and run the tools that support default configurations
