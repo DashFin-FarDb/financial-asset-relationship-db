@@ -118,16 +118,7 @@ def test_evaluate_snapshot_rejects_negative_aggregate_field(field: str) -> None:
 class _FakeCursor:
     """Minimal DB-API cursor for aggregate-check tests."""
 
-    description = [
-        ("table_count",),
-        ("rls_enabled_count",),
-        ("untrusted_grant_table_count",),
-        ("untrusted_sequence_count",),
-        ("untrusted_function_count",),
-        ("untrusted_view_count",),
-        ("unsafe_policy_count",),
-        ("resolved_untrusted_role_count",),
-    ]
+    description = [(field,) for field in checker.AuthorizationSnapshot._fields]
 
     def __init__(self, row: tuple[int, ...] | None) -> None:
         self.row = row
