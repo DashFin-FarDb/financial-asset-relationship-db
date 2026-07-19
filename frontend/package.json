@@ -29,7 +29,7 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.6",
-    "@eslint/js": "^10.0.1",
+    "@eslint/js": "^9.39.5",
     "@microsoft/eslint-formatter-sarif": "^3.1.0",
     "@next/eslint-plugin-next": "16.2.10",
     "@tailwindcss/postcss": "^4.3.3",
@@ -44,7 +44,7 @@
     "@typescript-eslint/eslint-plugin": "^8.64.0",
     "@typescript-eslint/parser": "^8.64.0",
     "autoprefixer": "^10.5.4",
-    "eslint": "^10.7.0",
+    "eslint": "^9.39.5",
     "eslint-config-next": "16.2.10",
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^7.1.1",
@@ -54,7 +54,7 @@
     "jest-junit": "^17.0.0",
     "postcss": "^8.5.19",
     "tailwindcss": "^4.3.2",
-    "typescript": "~7.0.2",
+    "typescript": "~5.9.3",
     "typescript-eslint": "^8.62.1"
   },
   "overrides": {
