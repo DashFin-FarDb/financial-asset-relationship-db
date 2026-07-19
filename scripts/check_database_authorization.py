@@ -8,6 +8,7 @@ import re
 import sys
 from collections.abc import Callable, Mapping, Sequence
 from contextlib import closing
+from functools import partial
 from typing import Any, NamedTuple
 from urllib.parse import SplitResult, urlsplit
 
@@ -231,14 +232,8 @@ def _description_name(description: Any) -> str:
     return str(description[0])
 
 
-def collect_snapshot(
-    connection: Any,
-    schema: str,
-    untrusted_roles: Sequence[str] = DEFAULT_UNTRUSTED_DATABASE_ROLES,
-    require_all_untrusted_roles: bool = False,
-) -> AuthorizationSnapshot:
-    """Collect one read-only aggregate authorization snapshot."""
-    connection.set_session(readonly=True, autocommit=False)
+def _query_snapshot_mapping(connection: Any, schema: str, untrusted_roles: Sequence[str]) -> Mapping[str, Any]:
+    """Execute the aggregate posture query and return a named result mapping."""
     with connection.cursor() as cursor:
         cursor.execute(
             AUTHORIZATION_POSTURE_QUERY,
@@ -248,14 +243,41 @@ def collect_snapshot(
         if raw_row is None or cursor.description is None:
             raise RuntimeError("authorization query returned no evidence")
         columns = [_description_name(item) for item in cursor.description]
-        row = dict(zip(columns, raw_row, strict=True))
-    connection.rollback()
-    snapshot = _snapshot_from_mapping(row)
-    resolved_role_count = snapshot.resolved_untrusted_role_count
-    if resolved_role_count > len(untrusted_roles):
+    return dict(zip(columns, raw_row, strict=True))
+
+
+def _validate_role_resolution(
+    resolved_role_count: int,
+    configured_untrusted_role_count: int,
+    *,
+    require_all_untrusted_roles: bool,
+) -> None:
+    """Reject inconsistent or incomplete role resolution evidence when required."""
+    if resolved_role_count > configured_untrusted_role_count:
         raise RuntimeError("authorization query returned inconsistent role evidence")
-    if require_all_untrusted_roles and resolved_role_count != len(untrusted_roles):
+    if require_all_untrusted_roles and resolved_role_count != configured_untrusted_role_count:
         raise RuntimeError("authorization query did not resolve configured roles")
+
+
+def collect_snapshot(
+    connection: Any,
+    schema: str,
+    untrusted_roles: Sequence[str] = DEFAULT_UNTRUSTED_DATABASE_ROLES,
+    require_all_untrusted_roles: bool = False,
+) -> AuthorizationSnapshot:
+    """Collect one read-only aggregate authorization snapshot."""
+    connection.set_session(readonly=True, autocommit=False)
+    try:
+        row = _query_snapshot_mapping(connection, schema, untrusted_roles)
+        snapshot = _snapshot_from_mapping(row)
+    finally:
+        connection.rollback()
+
+    _validate_role_resolution(
+        snapshot.resolved_untrusted_role_count,
+        len(untrusted_roles),
+        require_all_untrusted_roles=require_all_untrusted_roles,
+    )
     return snapshot
 
 
@@ -372,9 +394,7 @@ def _print_findings(findings: Sequence[Finding]) -> None:
 
 def _collect_configured_snapshots(
     database_urls: Sequence[TrustedDatabaseUrl],
-    schema: str,
-    untrusted_roles: Sequence[str],
-    require_all_untrusted_roles: bool,
+    snapshot_collector: Callable[[Any], AuthorizationSnapshot],
     connector: Callable[[TrustedDatabaseUrl], Any],
 ) -> list[AuthorizationSnapshot] | None:
     """Collect all configured snapshots, treating connection and cleanup errors as one bounded failure."""
@@ -382,14 +402,7 @@ def _collect_configured_snapshots(
     try:
         for database_url in database_urls:
             with closing(connector(database_url)) as connection:
-                snapshots.append(
-                    collect_snapshot(
-                        connection,
-                        schema,
-                        untrusted_roles,
-                        require_all_untrusted_roles=require_all_untrusted_roles,
-                    )
-                )
+                snapshots.append(snapshot_collector(connection))
     except Exception:
         return None
     return snapshots
@@ -426,11 +439,15 @@ def main(
         return USAGE_ERROR
 
     connect = connector or _connect
+    snapshot_collector = partial(
+        collect_snapshot,
+        schema=args.exposed_schema,
+        untrusted_roles=untrusted_roles,
+        require_all_untrusted_roles=require_all_untrusted_roles,
+    )
     snapshots = _collect_configured_snapshots(
         database_urls,
-        args.exposed_schema,
-        untrusted_roles,
-        require_all_untrusted_roles,
+        snapshot_collector,
         connect,
     )
     if snapshots is None:
