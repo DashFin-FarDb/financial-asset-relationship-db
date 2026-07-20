@@ -53,7 +53,7 @@ jobs:
           VALIDATE_TYPESCRIPT_STANDARD: false
           VALIDATE_TYPESCRIPT_TSX: false
           VALIDATE_JSCPD: false
-          # Tracking cleanup/re-enablement for the three validators below:
+          # Tracking cleanup/re-enablement for the validator below:
           # https://github.com/DashFin-FarDb/financial-asset-relationship-db/issues/1496
           # NOTE: VALIDATE_GITHUB_ACTIONS and VALIDATE_CHECKOV are intentionally
           # omitted so they remain enabled by default in Super-Linter v7.
