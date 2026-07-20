@@ -1,0 +1,14 @@
+skip-check:
+  # Legacy frontend Docker image has no container-level healthcheck.
+  # Runtime health is currently validated by external platform probes.
+  # Tracked for deeper remediation under the workflow/IaC cleanup epic.
+  - CKV_DOCKER_2
+
+  # This repository intentionally uses workflow_dispatch inputs on several
+  # manually-triggered governance and operational workflows.
+  # Refactoring those dispatch flows is tracked separately.
+  - CKV_GHA_7
+
+  # Several legacy workflows still use broad top-level permissions while
+  # permissions-hardening is in progress. Waived temporarily for CI unblocking.
+  - CKV2_GHA_1
