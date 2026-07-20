@@ -307,7 +307,7 @@ If the restore point predates repository compatibility migrations, run the repos
 Current startup behavior (verified from `src.data.database.init_db(engine)` and `src.data.migrations`):
 
 - `Base.metadata.create_all(engine)` creates any missing ORM tables.
-- On SQLite file databases, `apply_migrations()` runs repository migration steps `001` through `004` (including execution/checkpoint/cancellation columns).
+- On SQLite file databases, `apply_migrations(db_path)` runs repository migration steps `001` through `004` (including execution/checkpoint/cancellation columns).
 - On PostgreSQL, `apply_postgresql_heartbeat_migration(engine)` applies idempotent compatibility updates to `rebuild_jobs`, including:
   - `active_worker_id`
   - `last_heartbeat_at`
@@ -316,7 +316,7 @@ Current startup behavior (verified from `src.data.database.init_db(engine)` and 
   - `cancellation_requested_at`
   - the status constraint values `('pending', 'running', 'succeeded', 'failed', 'cancel_requested', 'cancelled')`
 
-For local SQLite validation only, use `src.data.migrations.apply_migrations()`.
+For local SQLite validation only, use `src.data.migrations.apply_migrations(db_path)`.
 
 Inspect the expected tables:
 
@@ -363,7 +363,7 @@ WHERE constraint_schema = 'public'
 
 The result should contain both `cancel_requested` and `cancelled` in `check_clause`.
 
-If any expected compatibility column is missing, or the status constraint is absent/outdated, run the standard app initialization path before declaring restore readiness.
+If any expected compatibility column is missing, or the status constraint is absent/outdated, run the repository initialization path (`src.data.database.init_db(engine)`) against the restored database before declaring restore readiness.
 
 ### 5. Rollback guidance for failed restore
 
