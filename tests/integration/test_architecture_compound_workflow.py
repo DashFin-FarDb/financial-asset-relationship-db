@@ -135,9 +135,13 @@ class TestArchitectureCompoundWorkflow:
         """Checkout/setup-python are SHA-pinned; scripts overlay from triggering SHA."""
         text = WORKFLOW.read_text(encoding="utf-8")
         # Exact SHA pins (not format-only) so bumps remain an intentional test update.
-        for action_pin in (CHECKOUT_ACTION_PIN, SETUP_PYTHON_ACTION_PIN):
-            if action_pin not in text:
-                pytest.fail(f"Missing expected action pin: {action_pin}")
+        missing_action_pins = [
+            action_pin
+            for action_pin in (CHECKOUT_ACTION_PIN, SETUP_PYTHON_ACTION_PIN)
+            if action_pin not in text
+        ]
+        if missing_action_pins:
+            pytest.fail(f"Missing expected action pin: {missing_action_pins[0]}")
         expected = [
             'git checkout "${TRIGGER_SHA}" -- scripts/compound',
             "git restore --staged scripts/compound",
@@ -146,8 +150,8 @@ class TestArchitectureCompoundWorkflow:
             "cancel-in-progress: false",
             "architecture-compound-knowledge",
         ]
-        for needle in expected:
-            if needle not in text:
-                pytest.fail(f"Missing expected workflow content: {needle}")
+        missing_workflow_content = [needle for needle in expected if needle not in text]
+        if missing_workflow_content:
+            pytest.fail(f"Missing expected workflow content: {missing_workflow_content[0]}")
         if "continue-on-error:" in text:
             pytest.fail("continue-on-error must not be present")
