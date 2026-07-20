@@ -8,4 +8,5 @@ _No landed observations yet._
 
 ## Provisional
 
-_No provisional observations yet._
+- **pr:1506** (provisional):       
+  - evidence: pr:1506
