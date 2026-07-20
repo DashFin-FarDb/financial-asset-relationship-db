@@ -85,6 +85,8 @@ jobs:
         # when a partial SARIF was written, then fail visibly if nothing was produced.
         id: codacy
         continue-on-error: true
+        # Keep pinned to the last policy-compatible release: newer upstream revisions
+        # currently transitively invoke actions/setup-go@v3 (unpinned), which fails org policy.
         uses: codacy/codacy-analysis-cli-action@d840f886c4bd4edc059706d09c6a1586111c540b
         with:
           # Check https://github.com/codacy/codacy-analysis-cli#project-token to get your project token from your Codacy repository
