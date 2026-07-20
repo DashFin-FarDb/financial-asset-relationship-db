@@ -108,6 +108,17 @@ jobs:
           echo "Logging promotion decision for AI system transparency (Article 13)..."
           echo "Promotion run at $(date -u) — result: ${{ job.status }}" >> promotion_audit.log
 
+      - name: Prepare Artifact Placeholders
+        if: always()
+        run: |
+          if [ ! -f readiness-output.json ]; then
+            echo '{"status":"skipped","reason":"hosted_readiness_not_run"}' > readiness-output.json
+          fi
+          if [ ! -f db-authz-output.json ]; then
+            echo '{"status":"skipped","reason":"db_authz_not_run"}' > db-authz-output.json
+          fi
+          touch db-authz-log.txt
+
       - name: Upload Artifacts
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -116,4 +127,5 @@ jobs:
           path: |
             readiness-output.json
             db-authz-output.json
+            db-authz-log.txt
             promotion_audit.log

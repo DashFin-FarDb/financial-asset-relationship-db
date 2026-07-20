@@ -208,7 +208,20 @@ def test_check_urls():
 def test_check_hardening_foundation_accepts_required_markers():
     """Test that P0 hardening markers satisfy the foundation check."""
     missing = []
-    _check_hardening_foundation(HARDENING_MARKERS + "db_authz: PASS|run-123\n", missing)
+    _check_hardening_foundation(HARDENING_MARKERS, missing)
+    assert not missing
+
+
+@pytest.mark.unit
+def test_check_hardening_foundation_accepts_db_authz_opaque_ref():
+    """Test that db_authz PASS|<ref> is accepted without a plain PASS line."""
+    missing = []
+    _check_hardening_foundation(
+        "hardening_ids: H-P0-01, H-P0-02, H-P0-03, H-P0-04, H-P0-06\n"
+        "topology: jobs=asset_graph; locks=coordination\n"
+        "db_authz: PASS|run-123\n",
+        missing,
+    )
     assert not missing
 
 

@@ -233,6 +233,21 @@ jobs:
           echo "{\"status\":\"failed\",\"exit_code\":$code}" > db-authz-output.json
           exit 1
 
+      - name: Prepare Artifact Placeholders
+        if: always()
+        working-directory: release-source
+        run: |
+          if [ ! -f readiness-output.json ]; then
+            echo '{"status":"skipped","reason":"hosted_readiness_not_run"}' > readiness-output.json
+          fi
+          if [ ! -f docs-readiness.json ]; then
+            echo '{"status":"skipped","reason":"docs_gate_not_run"}' > docs-readiness.json
+          fi
+          if [ ! -f db-authz-output.json ]; then
+            echo '{"status":"skipped","reason":"db_authz_not_run"}' > db-authz-output.json
+          fi
+          touch db-authz-log.txt
+
       - name: Upload Artifacts
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -243,6 +258,7 @@ jobs:
             release-source/readiness-output.json
             release-source/docs-readiness.json
             release-source/db-authz-output.json
+            release-source/db-authz-log.txt
 
       - name: Assert All Gates Passed
         if: always()
