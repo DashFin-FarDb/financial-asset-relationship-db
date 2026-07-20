@@ -352,7 +352,18 @@ WHERE table_schema = 'public'
 ORDER BY column_name;
 ```
 
-If any expected compatibility column is missing, run the standard app initialization path before declaring restore readiness.
+Also verify the expanded status check constraint (required for `cancel_requested` / `cancelled`):
+
+```sql
+SELECT constraint_name, check_clause
+FROM information_schema.check_constraints
+WHERE constraint_schema = 'public'
+  AND constraint_name = 'ck_rebuild_jobs_status';
+```
+
+The result should contain both `cancel_requested` and `cancelled` in `check_clause`.
+
+If any expected compatibility column is missing, or the status constraint is absent/outdated, run the standard app initialization path before declaring restore readiness.
 
 ### 5. Rollback guidance for failed restore
 
