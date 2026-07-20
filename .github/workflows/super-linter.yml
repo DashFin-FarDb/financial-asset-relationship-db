@@ -55,13 +55,8 @@ jobs:
           VALIDATE_JSCPD: false
           # Tracking cleanup/re-enablement for the three validators below:
           # https://github.com/DashFin-FarDb/financial-asset-relationship-db/issues/1496
-          # Temporarily disable actionlint here: legacy workflows still trip
-          # super-linter's embedded actionlint and block unrelated PRs.
-          VALIDATE_GITHUB_ACTIONS: false
-          # CHECKOV currently reports pre-existing repository-wide findings
-          # (e.g., workflow_dispatch input policy + Dockerfile healthcheck)
-          # and blocks unrelated PRs in this generic lint gate.
-          VALIDATE_CHECKOV: false
+          # NOTE: VALIDATE_GITHUB_ACTIONS and VALIDATE_CHECKOV are intentionally
+          # omitted so they remain enabled by default in Super-Linter v7.
           # YAML_PRETTIER currently flags broad legacy workflow formatting debt.
           # Keep dedicated workflow semantics checks elsewhere until #1496.
           VALIDATE_YAML_PRETTIER: false
