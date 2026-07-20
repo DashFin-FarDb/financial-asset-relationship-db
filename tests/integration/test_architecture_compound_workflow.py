@@ -136,9 +136,7 @@ class TestArchitectureCompoundWorkflow:
         text = WORKFLOW.read_text(encoding="utf-8")
         # Exact SHA pins (not format-only) so bumps remain an intentional test update.
         missing_action_pins = [
-            action_pin
-            for action_pin in (CHECKOUT_ACTION_PIN, SETUP_PYTHON_ACTION_PIN)
-            if action_pin not in text
+            action_pin for action_pin in (CHECKOUT_ACTION_PIN, SETUP_PYTHON_ACTION_PIN) if action_pin not in text
         ]
         if missing_action_pins:
             pytest.fail(f"Missing expected action pin: {missing_action_pins[0]}")
