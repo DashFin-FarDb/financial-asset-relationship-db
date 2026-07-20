@@ -34,6 +34,7 @@ Boundary hardening follow-ups are tracked as stable IDs **H-P0-*** … **H-P3-**
 [Release Evidence Pack — Hardening backlog](release-evidence-pack.md#hardening-backlog-p0p3)
 and mirrored on the [enterprise-readiness PR board](roadmap/enterprise-readiness-pr-board.md#hardening-backlog-p0p3).
 RC dispatch defaults to `hardening_tier=P0` (strict hosted readiness). Soft rehearsal uses `hardening_tier=none`.
+Workflow input currently implements only those two values; P1–P3 remain backlog IDs until tier-specific checks land.
 
 The remaining work is no longer primarily architectural. It is concentrated in live release evidence and bounded follow-up hardening:
 

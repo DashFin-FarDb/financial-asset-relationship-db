@@ -368,6 +368,8 @@ connection strings, role inventories, or topology details from the authorization
 
 Release-evidence dispatch: set `hardening_tier=P0` (default) so hosted readiness cannot SKIP under the Assert path.
 Use `hardening_tier=none` only for soft rehearsal runs that must not be treated as RC proof.
+Higher tiers (P1–P3) remain backlog IDs in this pack; they are not selectable in
+`release-evidence-verify.yml` until tier-specific checks are wired.
 
 ## Release Evidence Attachment Checklist
 

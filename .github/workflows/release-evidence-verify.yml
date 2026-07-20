@@ -21,14 +21,11 @@ on:
         type: boolean
         default: false
       hardening_tier:
-        description: "Hardening backlog tier to enforce (P0 default for RC; none = soft rehearsal)"
+        description: "Hardening backlog tier to enforce. Only none and P0 are implemented; P0 (default) forces strict hosted readiness. none = soft rehearsal."
         type: choice
         options:
           - none
           - P0
-          - P1
-          - P2
-          - P3
         default: P0
       tags:
         description: "Manual sign-off tags (e.g., [manual-stop] or [star])"

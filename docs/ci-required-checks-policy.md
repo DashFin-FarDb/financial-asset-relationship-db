@@ -38,7 +38,7 @@ branch-protection checks for ordinary PR merge. RC cuts must run them explicitly
 
 | Workflow | Purpose | Hardening notes |
 | --- | --- | --- |
-| `release-evidence-verify.yml` | Pytest gate bundles + hosted readiness + gate summary | Default `hardening_tier=P0` forces strict hosted readiness (fail on SKIPPED). Use `hardening_tier=none` only for soft rehearsal. |
+| `release-evidence-verify.yml` | Pytest gate bundles + hosted readiness + gate summary | Input allows only `none` / `P0`. Default `P0` forces strict hosted readiness (fail on SKIPPED). Use `none` only for soft rehearsal. P1–P3 are backlog IDs until tier-specific checks exist. |
 | `staging-promotion.yml` | Evidence-file checklist + live `--require-persistence` | Verifier requires P0 hardening markers (`hardening_ids`, topology, `db_authz`). Optional live DB authorization check when secrets exist. |
 | `hosted-readiness.yml` | Thin hosted smoke | Does not replace release-evidence or staging-promotion. |
 
