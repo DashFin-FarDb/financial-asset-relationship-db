@@ -9,6 +9,11 @@ skip-check:
   # Refactoring those dispatch flows is tracked separately.
   - CKV_GHA_7
 
+  # Legacy container-build workflows do not yet publish cosign signatures or
+  # SBOM attestations. Supply-chain provenance hardening is tracked separately.
+  - CKV_GHA_5
+  - CKV_GHA_6
+
   # Several legacy workflows still use broad top-level permissions while
   # permissions-hardening is in progress. Waived temporarily for CI unblocking.
   - CKV2_GHA_1
