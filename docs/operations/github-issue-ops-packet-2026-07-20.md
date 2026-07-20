@@ -137,6 +137,8 @@ Remove global `CKV2_GHA_1` waiver by remediating workflow permissions to least p
 ## 3) Ready-to-run commands (execute in a write-enabled environment)
 
 ```bash
+set -euo pipefail
+
 # Verification gate (required before issue lifecycle actions)
 CURRENT_BRANCH="$(git rev-parse --abbrev-ref HEAD)"
 git fetch origin main
