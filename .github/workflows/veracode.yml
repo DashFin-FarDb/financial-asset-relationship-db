@@ -9,51 +9,51 @@ name: Veracode Static Analysis Pipeline Scan
 
 "on":
   push:
-    branches: [ "main", "Default" ]
+    branches: ["main", "Default"]
     paths:
-      - '**/*.py'
-      - '**/*.js'
-      - '**/*.ts'
-      - '**/*.tsx'
-      - '**/*.jsx'
-      - '**/*.java'
-      - '**/*.go'
-      - '**/*.rb'
-      - '**/*.php'
-      - '**/*.swift'
-      - '**/*.cs'
-      - '**/*.c'
-      - '**/*.cpp'
-      - '**/*.h'
-      - '**/*.hpp'
-      - '.github/workflows/veracode.yml'
-      - '!**/*.md'
-      - '!docs/**'
+      - "**/*.py"
+      - "**/*.js"
+      - "**/*.ts"
+      - "**/*.tsx"
+      - "**/*.jsx"
+      - "**/*.java"
+      - "**/*.go"
+      - "**/*.rb"
+      - "**/*.php"
+      - "**/*.swift"
+      - "**/*.cs"
+      - "**/*.c"
+      - "**/*.cpp"
+      - "**/*.h"
+      - "**/*.hpp"
+      - ".github/workflows/veracode.yml"
+      - "!**/*.md"
+      - "!docs/**"
   pull_request:
     types: [opened, synchronize, reopened]
     # The branches below must be a subset of the branches above
     branches: ["main"]
     paths:
-      - '**/*.py'
-      - '**/*.js'
-      - '**/*.ts'
-      - '**/*.tsx'
-      - '**/*.jsx'
-      - '**/*.java'
-      - '**/*.go'
-      - '**/*.rb'
-      - '**/*.php'
-      - '**/*.swift'
-      - '**/*.cs'
-      - '**/*.c'
-      - '**/*.cpp'
-      - '**/*.h'
-      - '**/*.hpp'
-      - '.github/workflows/veracode.yml'
-      - '!**/*.md'
-      - '!docs/**'
+      - "**/*.py"
+      - "**/*.js"
+      - "**/*.ts"
+      - "**/*.tsx"
+      - "**/*.jsx"
+      - "**/*.java"
+      - "**/*.go"
+      - "**/*.rb"
+      - "**/*.php"
+      - "**/*.swift"
+      - "**/*.cs"
+      - "**/*.c"
+      - "**/*.cpp"
+      - "**/*.h"
+      - "**/*.hpp"
+      - ".github/workflows/veracode.yml"
+      - "!**/*.md"
+      - "!docs/**"
   schedule:
-    - cron: '25 18 * * 6'
+    - cron: "25 18 * * 6"
 
 concurrency:
   group: veracode-${{ github.workflow }}-${{ github.ref }}
@@ -73,31 +73,30 @@ jobs:
       actions: read # only required for a private repository by github/codeql-action/upload-sarif to get the Action run status
     runs-on: ubuntu-latest
     steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it and copies all sources into ZIP file for submitting for analysis. Replace this section with your applications build steps
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          repository: ""
 
-    # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it and copies all sources into ZIP file for submitting for analysis. Replace this section with your applications build steps
-    - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
-      with:
-        repository: ''
+      - run: zip -r veracode-scan-target.zip ./
 
-    - run: zip -r veracode-scan-target.zip ./
+      # download the Veracode Static Analysis Pipeline scan jar
+      - run: curl --silent --show-error --fail -O https://downloads.veracode.com/securityscan/pipeline-scan-LATEST.zip
+      - run: unzip -o pipeline-scan-LATEST.zip
 
-    # download the Veracode Static Analysis Pipeline scan jar
-    - run: curl --silent --show-error --fail -O https://downloads.veracode.com/securityscan/pipeline-scan-LATEST.zip
-    - run: unzip -o pipeline-scan-LATEST.zip
-
-    - uses: actions/setup-java@03ad4de0992f5dab5e18fcb136590ce7c4a0ac95 # v5.6.0
-      with:
-        java-version: 8
-        distribution: 'temurin'
-    - name: Run Veracode pipeline scan (non-blocking)
-      run: java -jar pipeline-scan.jar --veracode_api_id "${{secrets.VERACODE_API_ID}}" --veracode_api_key "${{secrets.VERACODE_API_KEY}}" --fail_on_severity="Very High, High" --file veracode-scan-target.zip
-      continue-on-error: true
-    - name: Convert pipeline scan output to SARIF format
-      id: convert
-      uses: veracode/veracode-pipeline-scan-results-to-sarif@a968aed9d556a0af204bf6dc7f8f1884e19839bc
-      with:
-        pipeline-results-json: results.json
-    - uses: github/codeql-action/upload-sarif@7188fc363630916deb702c7fdcf4e481b751f97a # v4.37.1
-      with:
-        # Path to SARIF file relative to the root of the repository
-        sarif_file: veracode-results.sarif
+      - uses: actions/setup-java@03ad4de0992f5dab5e18fcb136590ce7c4a0ac95 # v5.6.0
+        with:
+          java-version: 8
+          distribution: "temurin"
+      - name: Run Veracode pipeline scan (non-blocking)
+        run: java -jar pipeline-scan.jar --veracode_api_id "${{secrets.VERACODE_API_ID}}" --veracode_api_key "${{secrets.VERACODE_API_KEY}}" --fail_on_severity="Very High, High" --file veracode-scan-target.zip
+        continue-on-error: true
+      - name: Convert pipeline scan output to SARIF format
+        id: convert
+        uses: veracode/veracode-pipeline-scan-results-to-sarif@a968aed9d556a0af204bf6dc7f8f1884e19839bc
+        with:
+          pipeline-results-json: results.json
+      - uses: github/codeql-action/upload-sarif@7188fc363630916deb702c7fdcf4e481b751f97a # v4.37.1
+        with:
+          # Path to SARIF file relative to the root of the repository
+          sarif_file: veracode-results.sarif

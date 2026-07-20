@@ -15,51 +15,51 @@ name: Codacy Security Scan
 
 "on":
   push:
-    branches: [ "main", "Default" ]
+    branches: ["main", "Default"]
     paths:
-      - '**/*.py'
-      - '**/*.js'
-      - '**/*.ts'
-      - '**/*.tsx'
-      - '**/*.jsx'
-      - '**/*.java'
-      - '**/*.go'
-      - '**/*.rb'
-      - '**/*.php'
-      - '**/*.swift'
-      - '**/*.cs'
-      - '**/*.c'
-      - '**/*.cpp'
-      - '**/*.h'
-      - '**/*.hpp'
-      - '.github/workflows/codacy.yml'
-      - '!**/*.md'
-      - '!docs/**'
+      - "**/*.py"
+      - "**/*.js"
+      - "**/*.ts"
+      - "**/*.tsx"
+      - "**/*.jsx"
+      - "**/*.java"
+      - "**/*.go"
+      - "**/*.rb"
+      - "**/*.php"
+      - "**/*.swift"
+      - "**/*.cs"
+      - "**/*.c"
+      - "**/*.cpp"
+      - "**/*.h"
+      - "**/*.hpp"
+      - ".github/workflows/codacy.yml"
+      - "!**/*.md"
+      - "!docs/**"
   pull_request:
     types: [opened, synchronize, reopened]
     # The branches below must be a subset of the branches above
-    branches: [ "main" ]
+    branches: ["main"]
     paths:
-      - '**/*.py'
-      - '**/*.js'
-      - '**/*.ts'
-      - '**/*.tsx'
-      - '**/*.jsx'
-      - '**/*.java'
-      - '**/*.go'
-      - '**/*.rb'
-      - '**/*.php'
-      - '**/*.swift'
-      - '**/*.cs'
-      - '**/*.c'
-      - '**/*.cpp'
-      - '**/*.h'
-      - '**/*.hpp'
-      - '.github/workflows/codacy.yml'
-      - '!**/*.md'
-      - '!docs/**'
+      - "**/*.py"
+      - "**/*.js"
+      - "**/*.ts"
+      - "**/*.tsx"
+      - "**/*.jsx"
+      - "**/*.java"
+      - "**/*.go"
+      - "**/*.rb"
+      - "**/*.php"
+      - "**/*.swift"
+      - "**/*.cs"
+      - "**/*.c"
+      - "**/*.cpp"
+      - "**/*.h"
+      - "**/*.hpp"
+      - ".github/workflows/codacy.yml"
+      - "!**/*.md"
+      - "!docs/**"
   schedule:
-    - cron: '26 15 * * 3'
+    - cron: "26 15 * * 3"
 
 permissions:
   contents: read

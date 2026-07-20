@@ -11,13 +11,13 @@ name: ESLint
 
 "on":
   push:
-    branches: [ "main", "Default" ]
+    branches: ["main", "Default"]
   pull_request:
     types: [opened, synchronize, reopened]
     # The branches below must be a subset of the branches above
-    branches: [ "main" ]
+    branches: ["main"]
   schedule:
-    - cron: '43 22 * * 3'
+    - cron: "43 22 * * 3"
 
 jobs:
   eslint:
@@ -33,7 +33,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
-          node-version: '22'
+          node-version: "22"
       - name: Install Dependencies
         run: |
           cd frontend

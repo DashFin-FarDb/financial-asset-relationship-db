@@ -11,6 +11,9 @@ from tests.integration.test_github_workflows import GitHubActionsYamlLoader
 
 WORKFLOW = Path(__file__).resolve().parents[2] / ".github" / "workflows"
 WORKFLOW = WORKFLOW / "architecture-compound.yml"
+CHECKOUT_ACTION_PIN = "actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0"
+SETUP_PYTHON_ACTION_SHA = "ece7cb06caefa5fff74198d8649806c4678c61a1"
+SETUP_PYTHON_ACTION_PIN = f"actions/setup-python@{SETUP_PYTHON_ACTION_SHA}"
 RESTORE_SCRIPTS_CMD = " ".join(
     [
         "git restore --source=HEAD --staged --worktree --",
@@ -131,12 +134,20 @@ class TestArchitectureCompoundWorkflow:
     def test_actions_pinned_and_scripts_overlay(self) -> None:
         """Checkout/setup-python are SHA-pinned; scripts overlay from triggering SHA."""
         text = WORKFLOW.read_text(encoding="utf-8")
-        assert "actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0" in text
-        assert "actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1" in text
-        assert 'git checkout "${TRIGGER_SHA}" -- scripts/compound' in text
-        assert "git restore --staged scripts/compound" in text
-        assert RESTORE_SCRIPTS_CMD in text
-        assert 'echo "TRIGGER_SHA=${TRIGGER_SHA}" >> "$GITHUB_ENV"' in text
-        assert "continue-on-error:" not in text
-        assert "cancel-in-progress: false" in text
-        assert "architecture-compound-knowledge" in text
+        # Exact SHA pins (not format-only) so bumps remain an intentional test update.
+        for action_pin in (CHECKOUT_ACTION_PIN, SETUP_PYTHON_ACTION_PIN):
+            if action_pin not in text:
+                pytest.fail(f"Missing expected action pin: {action_pin}")
+        expected = [
+            'git checkout "${TRIGGER_SHA}" -- scripts/compound',
+            "git restore --staged scripts/compound",
+            RESTORE_SCRIPTS_CMD,
+            'echo "TRIGGER_SHA=${TRIGGER_SHA}" >> "$GITHUB_ENV"',
+            "cancel-in-progress: false",
+            "architecture-compound-knowledge",
+        ]
+        for needle in expected:
+            if needle not in text:
+                pytest.fail(f"Missing expected workflow content: {needle}")
+        if "continue-on-error:" in text:
+            pytest.fail("continue-on-error must not be present")

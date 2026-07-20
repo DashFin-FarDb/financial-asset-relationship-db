@@ -4,26 +4,26 @@ on:
   workflow_dispatch:
     inputs:
       release_sha:
-        description: 'Commit SHA to verify'
+        description: "Commit SHA to verify"
         required: true
       base_url:
-        description: 'Hosted readiness base URL'
+        description: "Hosted readiness base URL"
         required: false
       base_url_label:
-        description: 'Hosted readiness base URL label'
+        description: "Hosted readiness base URL label"
         required: false
       require_persistence:
-        description: 'Require persistence proof'
+        description: "Require persistence proof"
         type: boolean
         default: true
       strict_rc_gate:
-        description: 'Strict RC promotion gate (fails if hosted readiness is skipped)'
+        description: "Strict RC promotion gate (fails if hosted readiness is skipped)"
         type: boolean
         default: false
       tags:
-        description: 'Manual sign-off tags (e.g., [manual-stop] or [star])'
+        description: "Manual sign-off tags (e.g., [manual-stop] or [star])"
         required: false
-        default: ''
+        default: ""
 
 permissions:
   contents: read
@@ -69,7 +69,7 @@ jobs:
         uses: ./.github/actions/ci-common
         with:
           language: python
-          python-version: '3.12'
+          python-version: "3.12"
           dependency-paths: |
             release-source/requirements.txt
             release-source/requirements-dev.txt
@@ -82,7 +82,7 @@ jobs:
         uses: ./.github/actions/ci-common
         with:
           language: node
-          node-version: '22'
+          node-version: "22"
           working-directory: release-source/frontend
           dependency-paths: release-source/frontend/package-lock.json
           install: npm ci
@@ -141,7 +141,6 @@ jobs:
           pytest tests/unit/test_asset_page_response_alias.py -q --junitxml=results-api-4.xml || status=1
           (cd frontend && npm test -- api-contract-seams.test.ts) || status=1
           exit $status
-
 
       - name: Verify AI System Documentation Requirements
         id: gate_docs

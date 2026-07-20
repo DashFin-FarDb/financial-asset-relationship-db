@@ -10,9 +10,9 @@ name: Scorecard supply-chain security
   # To guarantee Maintained check is occasionally updated. See
   # https://github.com/ossf/scorecard/blob/main/docs/checks.md#maintained
   schedule:
-    - cron: '45 15 * * 4'
+    - cron: "45 15 * * 4"
   push:
-    branches: [ "main" ]
+    branches: ["main"]
 
 # Declare default permissions as read only.
 permissions: read-all

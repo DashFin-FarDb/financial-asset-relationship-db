@@ -17,12 +17,12 @@
 name: Zscaler IaC Scan
 "on":
   push:
-    branches: [ "main", "Default" ]
+    branches: ["main", "Default"]
   pull_request:
     types: [opened, synchronize, reopened]
-    branches: [ "main" ]
+    branches: ["main"]
   schedule:
-    - cron: '41 14 * * 2'
+    - cron: "41 14 * * 2"
 
 permissions:
   contents: read
@@ -34,22 +34,22 @@ jobs:
       security-events: write # for github/codeql-action/upload-sarif to upload SARIF results
     runs-on: ubuntu-latest
     steps:
-      - name : Code Checkout
+      - name: Code Checkout
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
-      - name : Zscaler IAC Scan
-        uses : ZscalerCWP/Zscaler-IaC-Action@df1ce913b51df9f5e42eca910f0b6b5e8ad61945
-        id : zscaler-iac-scan
+      - name: Zscaler IAC Scan
+        uses: ZscalerCWP/Zscaler-IaC-Action@df1ce913b51df9f5e42eca910f0b6b5e8ad61945
+        id: zscaler-iac-scan
         continue-on-error: true
         with:
-          client_id : ${{ secrets.ZSCANNER_CLIENT_ID }}
-          client_secret : ${{ secrets.ZSCANNER_CLIENT_SECRET }}
+          client_id: ${{ secrets.ZSCANNER_CLIENT_ID }}
+          client_secret: ${{ secrets.ZSCANNER_CLIENT_SECRET }}
           #This is the user region specified during the onboarding process within the ZPC Admin Portal.
-          region : 'US'
-          iac_dir : #Enter the IaC directory path from root.
-          iac_file : #Enter the IaC file path from root.
-          output_format : #(Optional) By default, the output is provided in a human readable format. However, if you require a different format, you can specify it here.
+          region: "US"
+          iac_dir: #Enter the IaC directory path from root.
+          iac_file: #Enter the IaC file path from root.
+          output_format: #(Optional) By default, the output is provided in a human readable format. However, if you require a different format, you can specify it here.
           #To fail the build based on policy violations identified in the IaC templates, set the input value (fail_build) to true.
-          fail_build : #Enter true/false
+          fail_build: #Enter true/false
       #Ensure that the following step is included in order to post the scan results under the code scanning alerts section within the repository.
       - name: Upload SARIF file
         if: ${{ (success() || failure()) && (steps.zscaler-iac-scan.outputs.sarif_file_path != '') }}

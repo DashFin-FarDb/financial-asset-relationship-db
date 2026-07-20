@@ -7,38 +7,38 @@ name: DevSkim
 
 "on":
   push:
-    branches: [ "main", "Default" ]
+    branches: ["main", "Default"]
     paths:
-      - '**/*.py'
-      - '**/*.js'
-      - '**/*.ts'
-      - '**/*.tsx'
-      - '**/*.jsx'
-      - '**/*.sh'
-      - '**/*.yaml'
-      - '**/*.yml'
-      - '**/*.json'
-      - '.github/workflows/devskim.yml'
-      - '!**/*.md'
-      - '!docs/**'
+      - "**/*.py"
+      - "**/*.js"
+      - "**/*.ts"
+      - "**/*.tsx"
+      - "**/*.jsx"
+      - "**/*.sh"
+      - "**/*.yaml"
+      - "**/*.yml"
+      - "**/*.json"
+      - ".github/workflows/devskim.yml"
+      - "!**/*.md"
+      - "!docs/**"
   pull_request:
     types: [opened, synchronize, reopened]
-    branches: [ "main" ]
+    branches: ["main"]
     paths:
-      - '**/*.py'
-      - '**/*.js'
-      - '**/*.ts'
-      - '**/*.tsx'
-      - '**/*.jsx'
-      - '**/*.sh'
-      - '**/*.yaml'
-      - '**/*.yml'
-      - '**/*.json'
-      - '.github/workflows/devskim.yml'
-      - '!**/*.md'
-      - '!docs/**'
+      - "**/*.py"
+      - "**/*.js"
+      - "**/*.ts"
+      - "**/*.tsx"
+      - "**/*.jsx"
+      - "**/*.sh"
+      - "**/*.yaml"
+      - "**/*.yml"
+      - "**/*.json"
+      - ".github/workflows/devskim.yml"
+      - "!**/*.md"
+      - "!docs/**"
   schedule:
-    - cron: '40 7 * * 3'
+    - cron: "40 7 * * 3"
 
 concurrency:
   group: devskim-${{ github.workflow }}-${{ github.ref }}

@@ -9,18 +9,18 @@ name: Deploy Next.js site to Pages
   push:
     branches: ["main"]
     paths:
-      - 'frontend/**'
-      - '**/*.js'
-      - '**/*.ts'
-      - '**/*.tsx'
-      - '**/*.jsx'
-      - 'package.json'
-      - 'package-lock.json'
-      - 'pnpm-lock.yaml'
-      - 'yarn.lock'
-      - '.github/workflows/nextjs.yml'
-      - '!**/*.md'
-      - '!docs/**'
+      - "frontend/**"
+      - "**/*.js"
+      - "**/*.ts"
+      - "**/*.tsx"
+      - "**/*.jsx"
+      - "package.json"
+      - "package-lock.json"
+      - "pnpm-lock.yaml"
+      - "yarn.lock"
+      - ".github/workflows/nextjs.yml"
+      - "!**/*.md"
+      - "!docs/**"
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
