@@ -136,6 +136,36 @@ curl http://localhost:${BACKEND_PORT:-8000}/api/visualization
 
 If `/api/health` fails, fix the backend startup first. If `/api/health` works but the frontend still fails, check `NEXT_PUBLIC_API_URL` and the browser Network tab.
 
+#### Backend fails with `sqlite3.OperationalError: unable to open database file`
+
+The API startup path (`api/database.py`) resolves SQLite file paths using a custom resolver, not SQLAlchemy URL path semantics. A URL like `sqlite:///./dev.db` can resolve to `/dev.db`, which is often unwritable in local environments.
+
+Use one of these known-good `DATABASE_URL` values instead:
+
+```bash
+# repo-relative file in the current working directory
+export DATABASE_URL="sqlite:dev.db"
+
+# in-memory SQLite
+export DATABASE_URL="sqlite:///:memory:"
+
+# explicit writable absolute path
+export DATABASE_URL="sqlite:////absolute/path/dev.db"
+```
+
+Then restart the backend:
+
+```bash
+python -m uvicorn api.main:app --reload --port ${BACKEND_PORT:-8000}
+```
+
+#### `python: command not found` in Linux cloud/dev containers
+
+Some Linux environments provide `python3` but not `python` on `PATH`.
+
+- Use `python3 -m venv .venv` to create the virtual environment.
+- Activate it (`source .venv/bin/activate`) so `python` resolves from the venv, or run commands with `python3`.
+
 Note: the application creates a startup trace context (trace_id/span_id) during lifespan-based state initialization, so observability events emitted during startup (reconciliation, get_graph, etc.) include trace metadata.
 
 For implementation details, see the code and tests:
