@@ -10,41 +10,41 @@ name: Hadolint
 
 "on":
   push:
-    branches: [ "main", "Default" ]
+    branches: ["main", "Default"]
     paths:
-      - 'Dockerfile'
-      - '**/Dockerfile'
-      - '**/Dockerfile.*'
-      - '**/*.dockerfile'
-      - '.dockerignore'
-      - 'docker-compose.yml'
-      - '**/docker-compose*.yml'
-      - 'compose.yml'
-      - 'compose.yaml'
-      - 'docker/**'
-      - '.github/workflows/hadolint.yml'
-      - '!**/*.md'
-      - '!docs/**'
+      - "Dockerfile"
+      - "**/Dockerfile"
+      - "**/Dockerfile.*"
+      - "**/*.dockerfile"
+      - ".dockerignore"
+      - "docker-compose.yml"
+      - "**/docker-compose*.yml"
+      - "compose.yml"
+      - "compose.yaml"
+      - "docker/**"
+      - ".github/workflows/hadolint.yml"
+      - "!**/*.md"
+      - "!docs/**"
   pull_request:
     types: [opened, synchronize, reopened]
     # The branches below must be a subset of the branches above
-    branches: [ "main" ]
+    branches: ["main"]
     paths:
-      - 'Dockerfile'
-      - '**/Dockerfile'
-      - '**/Dockerfile.*'
-      - '**/*.dockerfile'
-      - '.dockerignore'
-      - 'docker-compose.yml'
-      - '**/docker-compose*.yml'
-      - 'compose.yml'
-      - 'compose.yaml'
-      - 'docker/**'
-      - '.github/workflows/hadolint.yml'
-      - '!**/*.md'
-      - '!docs/**'
+      - "Dockerfile"
+      - "**/Dockerfile"
+      - "**/Dockerfile.*"
+      - "**/*.dockerfile"
+      - ".dockerignore"
+      - "docker-compose.yml"
+      - "**/docker-compose*.yml"
+      - "compose.yml"
+      - "compose.yaml"
+      - "docker/**"
+      - ".github/workflows/hadolint.yml"
+      - "!**/*.md"
+      - "!docs/**"
   schedule:
-    - cron: '17 15 * * 1'
+    - cron: "17 15 * * 1"
 
 permissions:
   contents: read
@@ -72,7 +72,7 @@ jobs:
           no-fail: true
 
       - name: Upload analysis results to GitHub
-        uses: github/codeql-action/upload-sarif@54f647b7e1bb85c95cddabcd46b0c578ec92bc1a # v4.36.3
+        uses: github/codeql-action/upload-sarif@7188fc363630916deb702c7fdcf4e481b751f97a # v4.37.1
         with:
           sarif_file: hadolint-results.sarif
           wait-for-processing: true

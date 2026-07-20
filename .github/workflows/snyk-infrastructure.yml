@@ -18,7 +18,7 @@ name: Snyk Infrastructure as Code
   pull_request:
     branches: ["main"]
   schedule:
-    - cron: '0 8 * * 1'  # Run weekly on Mondays at 8 AM UTC
+    - cron: "0 8 * * 1" # Run weekly on Mondays at 8 AM UTC
 
 permissions:
   contents: read
@@ -51,6 +51,6 @@ jobs:
           sarif: true
       - name: Upload result to GitHub Code Scanning
         if: ${{ hashFiles('snyk.sarif') != '' }}
-        uses: github/codeql-action/upload-sarif@54f647b7e1bb85c95cddabcd46b0c578ec92bc1a # v4.36.3
+        uses: github/codeql-action/upload-sarif@7188fc363630916deb702c7fdcf4e481b751f97a # v4.37.1
         with:
           sarif_file: snyk.sarif

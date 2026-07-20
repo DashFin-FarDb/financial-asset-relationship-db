@@ -15,51 +15,51 @@ name: Codacy Security Scan
 
 "on":
   push:
-    branches: [ "main", "Default" ]
+    branches: ["main", "Default"]
     paths:
-      - '**/*.py'
-      - '**/*.js'
-      - '**/*.ts'
-      - '**/*.tsx'
-      - '**/*.jsx'
-      - '**/*.java'
-      - '**/*.go'
-      - '**/*.rb'
-      - '**/*.php'
-      - '**/*.swift'
-      - '**/*.cs'
-      - '**/*.c'
-      - '**/*.cpp'
-      - '**/*.h'
-      - '**/*.hpp'
-      - '.github/workflows/codacy.yml'
-      - '!**/*.md'
-      - '!docs/**'
+      - "**/*.py"
+      - "**/*.js"
+      - "**/*.ts"
+      - "**/*.tsx"
+      - "**/*.jsx"
+      - "**/*.java"
+      - "**/*.go"
+      - "**/*.rb"
+      - "**/*.php"
+      - "**/*.swift"
+      - "**/*.cs"
+      - "**/*.c"
+      - "**/*.cpp"
+      - "**/*.h"
+      - "**/*.hpp"
+      - ".github/workflows/codacy.yml"
+      - "!**/*.md"
+      - "!docs/**"
   pull_request:
     types: [opened, synchronize, reopened]
     # The branches below must be a subset of the branches above
-    branches: [ "main" ]
+    branches: ["main"]
     paths:
-      - '**/*.py'
-      - '**/*.js'
-      - '**/*.ts'
-      - '**/*.tsx'
-      - '**/*.jsx'
-      - '**/*.java'
-      - '**/*.go'
-      - '**/*.rb'
-      - '**/*.php'
-      - '**/*.swift'
-      - '**/*.cs'
-      - '**/*.c'
-      - '**/*.cpp'
-      - '**/*.h'
-      - '**/*.hpp'
-      - '.github/workflows/codacy.yml'
-      - '!**/*.md'
-      - '!docs/**'
+      - "**/*.py"
+      - "**/*.js"
+      - "**/*.ts"
+      - "**/*.tsx"
+      - "**/*.jsx"
+      - "**/*.java"
+      - "**/*.go"
+      - "**/*.rb"
+      - "**/*.php"
+      - "**/*.swift"
+      - "**/*.cs"
+      - "**/*.c"
+      - "**/*.cpp"
+      - "**/*.h"
+      - "**/*.hpp"
+      - ".github/workflows/codacy.yml"
+      - "!**/*.md"
+      - "!docs/**"
   schedule:
-    - cron: '26 15 * * 3'
+    - cron: "26 15 * * 3"
 
 permissions:
   contents: read
@@ -85,6 +85,8 @@ jobs:
         # when a partial SARIF was written, then fail visibly if nothing was produced.
         id: codacy
         continue-on-error: true
+        # Keep pinned to the last policy-compatible release: newer upstream revisions
+        # currently transitively invoke actions/setup-go@v3 (unpinned), which fails org policy.
         uses: codacy/codacy-analysis-cli-action@d840f886c4bd4edc059706d09c6a1586111c540b
         with:
           # Check https://github.com/codacy/codacy-analysis-cli#project-token to get your project token from your Codacy repository
@@ -103,7 +105,7 @@ jobs:
       - name: Upload SARIF results file
         if: hashFiles('results.sarif') != ''
         continue-on-error: true
-        uses: github/codeql-action/upload-sarif@54f647b7e1bb85c95cddabcd46b0c578ec92bc1a # v4.36.3
+        uses: github/codeql-action/upload-sarif@7188fc363630916deb702c7fdcf4e481b751f97a # v4.37.1
         with:
           sarif_file: results.sarif
 

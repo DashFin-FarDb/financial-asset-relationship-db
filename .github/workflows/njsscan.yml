@@ -10,37 +10,37 @@ name: njsscan sarif
 
 "on":
   push:
-    branches: [ "main", "Default" ]
+    branches: ["main", "Default"]
     paths:
-      - '**/*.js'
-      - '**/*.ts'
-      - '**/*.tsx'
-      - '**/*.jsx'
-      - 'package.json'
-      - 'package-lock.json'
-      - 'pnpm-lock.yaml'
-      - 'yarn.lock'
-      - '.github/workflows/njsscan.yml'
-      - '!**/*.md'
-      - '!docs/**'
+      - "**/*.js"
+      - "**/*.ts"
+      - "**/*.tsx"
+      - "**/*.jsx"
+      - "package.json"
+      - "package-lock.json"
+      - "pnpm-lock.yaml"
+      - "yarn.lock"
+      - ".github/workflows/njsscan.yml"
+      - "!**/*.md"
+      - "!docs/**"
   pull_request:
     types: [opened, synchronize, reopened]
     # The branches below must be a subset of the branches above
     branches: ["main"]
     paths:
-      - '**/*.js'
-      - '**/*.ts'
-      - '**/*.tsx'
-      - '**/*.jsx'
-      - 'package.json'
-      - 'package-lock.json'
-      - 'pnpm-lock.yaml'
-      - 'yarn.lock'
-      - '.github/workflows/njsscan.yml'
-      - '!**/*.md'
-      - '!docs/**'
+      - "**/*.js"
+      - "**/*.ts"
+      - "**/*.tsx"
+      - "**/*.jsx"
+      - "package.json"
+      - "package-lock.json"
+      - "pnpm-lock.yaml"
+      - "yarn.lock"
+      - ".github/workflows/njsscan.yml"
+      - "!**/*.md"
+      - "!docs/**"
   schedule:
-    - cron: '25 16 * * 0'
+    - cron: "25 16 * * 0"
 
 concurrency:
   group: njsscan-${{ github.workflow }}-${{ github.ref }}
@@ -58,14 +58,14 @@ jobs:
     runs-on: ubuntu-latest
     name: njsscan code scanning
     steps:
-    - name: Checkout the code
-      uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
-    - name: nodejsscan scan
-      id: njsscan
-      uses: ajinabraham/njsscan-action@231750a435d85095d33be7d192d52ec650625146
-      with:
-        args: '. --sarif --output results.sarif || true'
-    - name: Upload njsscan report
-      uses: github/codeql-action/upload-sarif@54f647b7e1bb85c95cddabcd46b0c578ec92bc1a # v4.36.3
-      with:
-        sarif_file: results.sarif
+      - name: Checkout the code
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - name: nodejsscan scan
+        id: njsscan
+        uses: ajinabraham/njsscan-action@231750a435d85095d33be7d192d52ec650625146
+        with:
+          args: ". --sarif --output results.sarif || true"
+      - name: Upload njsscan report
+        uses: github/codeql-action/upload-sarif@7188fc363630916deb702c7fdcf4e481b751f97a # v4.37.1
+        with:
+          sarif_file: results.sarif

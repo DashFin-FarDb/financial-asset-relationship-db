@@ -14,51 +14,51 @@
 
 "on":
   push:
-    branches: [ "main", "Default" ]
+    branches: ["main", "Default"]
     paths:
-      - '**/*.jar'
-      - '**/*.war'
-      - '**/*.zip'
-      - '**/*.js'
-      - '**/*.ts'
-      - '**/*.tsx'
-      - '**/*.jsx'
-      - '**/*.dll'
-      - '**/*.exe'
-      - '**/*.csproj'
-      - '**/*.sln'
-      - '**/*.java'
-      - 'pom.xml'
-      - 'build.gradle'
-      - 'build.gradle.kts'
-      - '.github/workflows/contrast-scan.yml'
-      - '!**/*.md'
-      - '!docs/**'
+      - "**/*.jar"
+      - "**/*.war"
+      - "**/*.zip"
+      - "**/*.js"
+      - "**/*.ts"
+      - "**/*.tsx"
+      - "**/*.jsx"
+      - "**/*.dll"
+      - "**/*.exe"
+      - "**/*.csproj"
+      - "**/*.sln"
+      - "**/*.java"
+      - "pom.xml"
+      - "build.gradle"
+      - "build.gradle.kts"
+      - ".github/workflows/contrast-scan.yml"
+      - "!**/*.md"
+      - "!docs/**"
   pull_request:
     types: [opened, synchronize, reopened]
     # The branches below must be a subset of the branches above
-    branches: [ "main" ]
+    branches: ["main"]
     paths:
-      - '**/*.jar'
-      - '**/*.war'
-      - '**/*.zip'
-      - '**/*.js'
-      - '**/*.ts'
-      - '**/*.tsx'
-      - '**/*.jsx'
-      - '**/*.dll'
-      - '**/*.exe'
-      - '**/*.csproj'
-      - '**/*.sln'
-      - '**/*.java'
-      - 'pom.xml'
-      - 'build.gradle'
-      - 'build.gradle.kts'
-      - '.github/workflows/contrast-scan.yml'
-      - '!**/*.md'
-      - '!docs/**'
+      - "**/*.jar"
+      - "**/*.war"
+      - "**/*.zip"
+      - "**/*.js"
+      - "**/*.ts"
+      - "**/*.tsx"
+      - "**/*.jsx"
+      - "**/*.dll"
+      - "**/*.exe"
+      - "**/*.csproj"
+      - "**/*.sln"
+      - "**/*.java"
+      - "pom.xml"
+      - "build.gradle"
+      - "build.gradle.kts"
+      - ".github/workflows/contrast-scan.yml"
+      - "!**/*.md"
+      - "!docs/**"
   schedule:
-    - cron: '32 20 * * 3'
+    - cron: "32 20 * * 3"
 
 permissions:
   contents: read
@@ -70,55 +70,55 @@ jobs:
       group: contrast-${{ github.workflow }}-${{ github.ref }}
       cancel-in-progress: true
     permissions:
-        contents: read # for actions/checkout
-        security-events: write # for github/codeql-action/upload-sarif
-        actions: read # only required for a private repository by github/codeql-action/upload-sarif to get the Action run status
+      contents: read # for actions/checkout
+      security-events: write # for github/codeql-action/upload-sarif
+      actions: read # only required for a private repository by github/codeql-action/upload-sarif to get the Action run status
     runs-on: ubuntu-latest
     # check out project
     steps:
-    - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
-    # -name: Build Project
-    # ...
-    # Scan Artifact
-    - name: Preflight Contrast scan inputs
-      id: contrast_preflight
-      env:
-        CONTRAST_API_KEY: ${{ secrets.CONTRAST_API_KEY }}
-        CONTRAST_ORGANIZATION_ID: ${{ secrets.CONTRAST_ORGANIZATION_ID }}
-        CONTRAST_AUTH_HEADER: ${{ secrets.CONTRAST_AUTH_HEADER }}
-        # Path is non-sensitive; prefer vars with secrets fallback (PR scanner-config fix).
-        # Local env name differs from the secret name so shell echoes cannot
-        # accidentally log the secret identifier.
-        SCAN_ARTIFACT_PATH: ${{ vars.CONTRAST_ARTIFACT_PATH || secrets.CONTRAST_ARTIFACT_PATH }}
-      run: |
-        if [ -z "${CONTRAST_API_KEY}" ] || [ -z "${CONTRAST_ORGANIZATION_ID}" ] || [ -z "${CONTRAST_AUTH_HEADER}" ]; then
-          echo "Contrast secrets are not configured; skipping scan."
-          echo "run_scan=false" >> "$GITHUB_OUTPUT"
-          exit 0
-        fi
-        if [ -z "${SCAN_ARTIFACT_PATH}" ]; then
-          echo "Contrast artifact path is not configured; skipping scan."
-          echo "run_scan=false" >> "$GITHUB_OUTPUT"
-          exit 0
-        fi
-        if [ ! -f "${SCAN_ARTIFACT_PATH}" ]; then
-          echo "Contrast artifact file was not found; skipping scan."
-          echo "run_scan=false" >> "$GITHUB_OUTPUT"
-          exit 0
-        fi
-        echo "artifact_path=${SCAN_ARTIFACT_PATH}" >> "$GITHUB_OUTPUT"
-        echo "run_scan=true" >> "$GITHUB_OUTPUT"
-    - name: Contrast Scan Action
-      if: steps.contrast_preflight.outputs.run_scan == 'true'
-      uses: Contrast-Security-OSS/contrastscan-action@339c87f4614b05aae7373929c56573c1bf362c02
-      with:
-        artifact: ${{ steps.contrast_preflight.outputs.artifact_path }}
-        apiKey: ${{ secrets.CONTRAST_API_KEY }}
-        orgId: ${{ secrets.CONTRAST_ORGANIZATION_ID }}
-        authHeader: ${{ secrets.CONTRAST_AUTH_HEADER }}
-    #Upload the results to GitHub
-    - name: Upload SARIF file
-      if: steps.contrast_preflight.outputs.run_scan == 'true'
-      uses: github/codeql-action/upload-sarif@54f647b7e1bb85c95cddabcd46b0c578ec92bc1a # v4.36.3
-      with:
-        sarif_file: results.sarif # The file name must be 'results.sarif', as this is what the Github Action will output
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      # -name: Build Project
+      # ...
+      # Scan Artifact
+      - name: Preflight Contrast scan inputs
+        id: contrast_preflight
+        env:
+          CONTRAST_API_KEY: ${{ secrets.CONTRAST_API_KEY }}
+          CONTRAST_ORGANIZATION_ID: ${{ secrets.CONTRAST_ORGANIZATION_ID }}
+          CONTRAST_AUTH_HEADER: ${{ secrets.CONTRAST_AUTH_HEADER }}
+          # Path is non-sensitive; prefer vars with secrets fallback (PR scanner-config fix).
+          # Local env name differs from the secret name so shell echoes cannot
+          # accidentally log the secret identifier.
+          SCAN_ARTIFACT_PATH: ${{ vars.CONTRAST_ARTIFACT_PATH || secrets.CONTRAST_ARTIFACT_PATH }}
+        run: |
+          if [ -z "${CONTRAST_API_KEY}" ] || [ -z "${CONTRAST_ORGANIZATION_ID}" ] || [ -z "${CONTRAST_AUTH_HEADER}" ]; then
+            echo "Contrast secrets are not configured; skipping scan."
+            echo "run_scan=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          if [ -z "${SCAN_ARTIFACT_PATH}" ]; then
+            echo "Contrast artifact path is not configured; skipping scan."
+            echo "run_scan=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          if [ ! -f "${SCAN_ARTIFACT_PATH}" ]; then
+            echo "Contrast artifact file was not found; skipping scan."
+            echo "run_scan=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "artifact_path=${SCAN_ARTIFACT_PATH}" >> "$GITHUB_OUTPUT"
+          echo "run_scan=true" >> "$GITHUB_OUTPUT"
+      - name: Contrast Scan Action
+        if: steps.contrast_preflight.outputs.run_scan == 'true'
+        uses: Contrast-Security-OSS/contrastscan-action@339c87f4614b05aae7373929c56573c1bf362c02
+        with:
+          artifact: ${{ steps.contrast_preflight.outputs.artifact_path }}
+          apiKey: ${{ secrets.CONTRAST_API_KEY }}
+          orgId: ${{ secrets.CONTRAST_ORGANIZATION_ID }}
+          authHeader: ${{ secrets.CONTRAST_AUTH_HEADER }}
+      #Upload the results to GitHub
+      - name: Upload SARIF file
+        if: steps.contrast_preflight.outputs.run_scan == 'true'
+        uses: github/codeql-action/upload-sarif@7188fc363630916deb702c7fdcf4e481b751f97a # v4.37.1
+        with:
+          sarif_file: results.sarif # The file name must be 'results.sarif', as this is what the Github Action will output

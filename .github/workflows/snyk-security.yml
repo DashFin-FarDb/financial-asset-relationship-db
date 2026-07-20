@@ -38,8 +38,23 @@ jobs:
     runs-on: ubuntu-latest
     continue-on-error: true
     steps:
+      - name: Check Snyk token availability
+        id: snyk-token
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        run: |
+          if [ -n "$SNYK_TOKEN" ]; then
+            echo "available=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "available=false" >> "$GITHUB_OUTPUT"
+          fi
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        if: ${{ steps.snyk-token.outputs.available == 'true' }}
+      - name: Skip Snyk when token is unavailable
+        if: ${{ steps.snyk-token.outputs.available == 'false' }}
+        run: echo "Skipping Snyk scans because the token is not available."
       - name: Set up Snyk CLI to check for security issues
+        if: ${{ steps.snyk-token.outputs.available == 'true' }}
         # Snyk can be used to break the build when it detects security issues.
         # In this case we want to upload the SAST issues to GitHub Code Scanning
         uses: snyk/actions/setup@8e119fbb6c251787721d34ba683ed48eba792766
@@ -49,13 +64,10 @@ jobs:
         #- uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         #    node-version: 20
 
-        env:
-          # This is where you will need to introduce the Snyk API token created with your Snyk account
-          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-
         # Runs Snyk Code (SAST) analysis and uploads result into GitHub.
         # Code review scans are quota-limited - use continue-on-error for graceful degradation
       - name: Snyk Code test
+        if: ${{ steps.snyk-token.outputs.available == 'true' }}
         run: snyk code test --sarif > snyk-code.sarif
         continue-on-error: true  # Quota-limited scan
         env:
@@ -63,6 +75,7 @@ jobs:
 
         # Runs Snyk Open Source (SCA) analysis and uploads result to Snyk.
       - name: Snyk Open Source monitor
+        if: ${{ steps.snyk-token.outputs.available == 'true' }}
         run: snyk monitor --all-projects
         continue-on-error: true  # May fail if no supported manifests found
         env:
@@ -70,6 +83,7 @@ jobs:
 
         # Runs Snyk Infrastructure as Code (IaC) analysis and uploads result to Snyk.
       - name: Snyk IaC test and report
+        if: ${{ steps.snyk-token.outputs.available == 'true' }}
         run: snyk iac test --report
         continue-on-error: true  # May fail if no IaC files present
         env:
@@ -82,9 +96,20 @@ jobs:
         #   env:
         #     SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
 
+        # hashFiles() is truthy for zero-byte files; require non-empty content before upload.
+      - name: Check SARIF output
+        id: sarif
+        if: ${{ always() && steps.snyk-token.outputs.available == 'true' }}
+        run: |
+          if [ -s snyk-code.sarif ]; then
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "present=false" >> "$GITHUB_OUTPUT"
+          fi
+
         # Push the Snyk Code results into GitHub Code Scanning tab
       - name: Upload result to GitHub Code Scanning
-        if: always()  # Upload even if Code test was skipped due to quota
+        if: ${{ always() && steps.snyk-token.outputs.available == 'true' && steps.sarif.outputs.present == 'true' }}
         uses: github/codeql-action/upload-sarif@54f647b7e1bb85c95cddabcd46b0c578ec92bc1a # v4.36.3
         with:
           sarif_file: snyk-code.sarif
