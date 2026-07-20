@@ -231,6 +231,35 @@ def test_check_hardening_foundation_requires_ids_topology_and_db_authz():
 
 
 @pytest.mark.unit
+@pytest.mark.parametrize("db_authz_line", ["db_authz: PASSED\n", "db_authz: PASSWORD\n", "db_authz: PASSAGE\n"])
+def test_check_hardening_foundation_rejects_non_exact_db_authz_pass(db_authz_line):
+    """Test that db_authz only accepts exact PASS markers."""
+    missing = []
+    _check_hardening_foundation(
+        "hardening_ids: H-P0-01, H-P0-02, H-P0-03, H-P0-04, H-P0-06\n"
+        "topology: jobs=asset_graph; locks=coordination\n"
+        f"{db_authz_line}",
+        missing,
+    )
+    assert "db_authz: PASS (optional opaque ref allowed)" in missing
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize("invalid_id", ["H-P0-06-deferred", "H-P0-060"])
+def test_check_hardening_foundation_requires_exact_hardening_ids(invalid_id):
+    """Test that hardening IDs are validated as discrete identifiers."""
+    missing = []
+    _check_hardening_foundation(
+        "hardening_ids: H-P0-01, H-P0-02, H-P0-03, H-P0-04, "
+        f"{invalid_id}\n"
+        "topology: jobs=asset_graph; locks=coordination\n"
+        "db_authz: PASS\n",
+        missing,
+    )
+    assert "hardening_ids missing required IDs: H-P0-06" in missing
+
+
+@pytest.mark.unit
 def test_check_operational_evidence():
     """Test that operational evidence like smoke tests are correctly checked."""
     missing = []

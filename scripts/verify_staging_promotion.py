@@ -280,8 +280,12 @@ TOPOLOGY_MARKER_PATTERN = re.compile(
     r"topology\s*:\s*jobs\s*=\s*asset_graph\s*;\s*locks\s*=\s*coordination",
     re.IGNORECASE,
 )
-DB_AUTHZ_PASS_PATTERN = re.compile(r"\bdb_authz\s*:\s*PASS(?:\s*\|[^\n]*)?", re.IGNORECASE)
+DB_AUTHZ_PASS_PATTERN = re.compile(
+    r"^\s*db_authz\s*:\s*PASS(?:\s*\|\s*\S[^\n]*)?\s*$",
+    re.IGNORECASE | re.MULTILINE,
+)
 HARDENING_IDS_LINE_PATTERN = re.compile(r"hardening_ids\s*:\s*([^\n]+)", re.IGNORECASE)
+HARDENING_ID_TOKEN_PATTERN = re.compile(r"(?<![A-Z0-9-])H-P0-\d{2}(?![A-Z0-9-])")
 
 
 def _check_hardening_foundation(content: str, missing: List[str]) -> None:
@@ -290,8 +294,8 @@ def _check_hardening_foundation(content: str, missing: List[str]) -> None:
     if ids_match is None:
         missing.append("hardening_ids marker with P0 foundation IDs")
     else:
-        ids_blob = ids_match.group(1).upper()
-        missing_ids = [item_id for item_id in REQUIRED_HARDENING_IDS if item_id not in ids_blob]
+        ids_tokens = set(HARDENING_ID_TOKEN_PATTERN.findall(ids_match.group(1).upper()))
+        missing_ids = [item_id for item_id in REQUIRED_HARDENING_IDS if item_id not in ids_tokens]
         if missing_ids:
             missing.append("hardening_ids missing required IDs: " + ", ".join(missing_ids))
 
