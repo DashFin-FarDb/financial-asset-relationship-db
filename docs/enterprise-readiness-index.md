@@ -30,6 +30,11 @@ durable promotion checker, API contract cleanup, recovery/governance hardening, 
 validation, security/governance documentation, DR documentation, and release evidence pack are now
 part of the repository baseline.
 
+Boundary hardening follow-ups are tracked as stable IDs **H-P0-*** … **H-P3-*** in
+[Release Evidence Pack — Hardening backlog](release-evidence-pack.md#hardening-backlog-p0p3)
+and mirrored on the [enterprise-readiness PR board](roadmap/enterprise-readiness-pr-board.md#hardening-backlog-p0p3).
+RC dispatch defaults to `hardening_tier=P0` (strict hosted readiness). Soft rehearsal uses `hardening_tier=none`.
+
 The remaining work is no longer primarily architectural. It is concentrated in live release evidence and bounded follow-up hardening:
 
 - release-blocking database authorization closure with restricted live evidence and public redacted proof;

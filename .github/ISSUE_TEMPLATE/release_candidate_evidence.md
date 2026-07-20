@@ -128,6 +128,24 @@ Record named owners for this release candidate:
 - [ ] Restore rehearsal decision recorded: Passed / Failed / Blocked.
 - [ ] Follow-up issues are linked for unresolved ambiguity or failed steps.
 
+## Hardening backlog (machine-checkable markers)
+
+Copy these markers into the committed evidence file used by `staging-promotion.yml`.
+Reference: [Hardening evidence markers](https://github.com/DashFin-FarDb/financial-asset-relationship-db/blob/main/docs/release-evidence-pack.md#hardening-evidence-markers).
+
+```text
+hardening_ids: H-P0-01, H-P0-02, H-P0-03, H-P0-04, H-P0-06
+topology: jobs=asset_graph; locks=coordination
+db_authz: PASS
+```
+
+- [ ] H-P0-01 topology marker present (`jobs=asset_graph; locks=coordination`)
+- [ ] H-P0-02 table-scoped restore cleanup confirmed on job + lock boundaries
+- [ ] H-P0-03 `release-evidence-verify` run with `hardening_tier=P0` (strict; hosted must PASS)
+- [ ] H-P0-04 `db_authz: PASS` (or `PASS|<opaque-ref>`) attached; no topology/secrets leaked
+- [ ] H-P0-06 this packet is SHA-bound to the release commit above (RC1 not reused as CURRENT)
+- [ ] Release-evidence / staging-promotion workflow run URL attached:
+
 ## Gate Status Summary
 
 Use the status values from the release evidence pack.

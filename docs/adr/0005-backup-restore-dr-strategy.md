@@ -23,7 +23,7 @@ FarDb uses a dual-database architecture:
 
 The two database boundaries may point to the same physical PostgreSQL instance or to separate logical databases. Operators must treat them as separate recovery concerns unless the deployment explicitly documents a shared database boundary.
 
-The rebuild coordination plane may also be isolated through `COORDINATION_DATABASE_URL`. When present, that URL is the authoritative location for coordination tables such as `rebuild_jobs` and `distributed_locks`; when absent, it falls back to `DATABASE_URL` and then provider fallback configuration. DR procedures must therefore resolve the actual deployed connection-string topology before backup or restore.
+The rebuild coordination plane may also be isolated through `COORDINATION_DATABASE_URL`. **Landed runtime placement** (`api/routers/graph_admin.py`): `distributed_locks` use the coordination session (`COORDINATION_DATABASE_URL`, falling back through `DATABASE_URL` then `POSTGRES_URL` in settings), while `rebuild_jobs` (heartbeats/checkpoints) use the domain / Asset Graph session (`ASSET_GRAPH_DATABASE_URL`). DR procedures must resolve the actual deployed connection-string topology and clean up **table-scoped** (locks vs jobs) before restart.
 
 Graph data and coordination/auth data have different recovery properties. Graph data can be rebuilt from source data through `RebuildExecutor` when source data remains available and fresh enough for the target environment. Coordination/auth data is less replaceable: user credentials, rebuild job history, lock state, and checkpoint metadata cannot be fully reconstructed from the graph source feed alone.
 

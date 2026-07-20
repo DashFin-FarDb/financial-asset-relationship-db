@@ -27,6 +27,7 @@ assignees: ""
 - [ ] Degraded DB
 - [ ] Failed durable smoke
 
+**Mapped hardening ID(s), if any:** <!-- e.g. H-P1-03, H-P2-05 -->
 **Result classification:** <!-- Passed / Failed / Blocked / Not run / Manual evidence required / Follow-up required -->
 
 ## Expected and Actual Behavior

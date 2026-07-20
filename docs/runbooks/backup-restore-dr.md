@@ -41,7 +41,13 @@ FarDb can use up to three logical PostgreSQL database boundaries, although a dep
 - Coordination DB: `COORDINATION_DATABASE_URL`, falling back to `DATABASE_URL` and then `POSTGRES_URL` when unset.
 - Asset Graph DB: `ASSET_GRAPH_DATABASE_URL`.
 
-The Coordination DB is the authoritative location for rebuild coordination state when `COORDINATION_DATABASE_URL` is set separately. This includes `rebuild_jobs` and `distributed_locks`; omitting this boundary from backup or restore can lose checkpoint state or resurrect stale lock/job state after a DR event.
+**Landed table placement (verify against `api/routers/graph_admin.py` before restore):**
+
+- `rebuild_jobs` (including heartbeats/checkpoints) are written on the **domain / Asset Graph** session (`ASSET_GRAPH_DATABASE_URL`).
+- `distributed_locks` are written on the **coordination** session (`COORDINATION_DATABASE_URL`, falling back through `DATABASE_URL` then `POSTGRES_URL` in `src/config/settings.py`).
+- Evidence marker for staging packets: `topology: jobs=asset_graph; locks=coordination`.
+
+Omitting either physical boundary from backup or restore can lose checkpoint state or resurrect stale lock/job state after a DR event. Do not assume jobs live on the Coordination DB merely because that URL is set.
 
 For each environment, resolve and record the effective connection strings before backup:
 
@@ -148,7 +154,7 @@ SELECT COUNT(*) AS distributed_locks_count FROM distributed_locks;
 
 For the Auth DB, run equivalent checks for application/auth tables present in that boundary. If user credentials are stored, verify the credentials table exists and has expected row counts without exposing hashes or secrets.
 
-For a separate Coordination DB, verify `rebuild_jobs` and `distributed_locks` from the coordination scratch restore, not from the graph scratch restore.
+Verify `distributed_locks` on the restored coordination boundary and `rebuild_jobs` on the restored Asset Graph (domain) boundary. When both URLs resolve to one physical database, one restore covers both tables — still record that shared-boundary topology in the evidence.
 
 ### 5. Backup schedule recommendation
 
@@ -204,13 +210,13 @@ DELETE FROM distributed_locks
 WHERE lock_name = 'graph_rebuild';
 ```
 
-This live-database quiescence step does not clean the restored database. PITR or `pg_restore` can reintroduce historical `distributed_locks` and `rebuild_jobs` rows, so the post-restore, pre-restart cleanup step below must still be executed on the restored Coordination DB.
+This live-database quiescence step does not clean the restored database. PITR or `pg_restore` can reintroduce historical `distributed_locks` and `rebuild_jobs` rows, so the post-restore, pre-restart cleanup step below must still be executed **table-scoped** (locks on the coordination boundary; jobs on the Asset Graph boundary).
 
 ### 4. Record in-flight rebuild state for incident evidence
 
 Before restoring, record any in-flight `rebuild_jobs` rows and the selected restore timestamp in the incident or rehearsal evidence. Do not rely on pre-restore updates to `rebuild_jobs` for cleanup: the restore operation overwrites the current database state with the selected historical state.
 
-RecoveryGate false-orphan prevention must be performed after restore and before application restart, against the restored Coordination DB.
+RecoveryGate false-orphan prevention must be performed after restore and before application restart, against the restored boundaries that actually hold locks and jobs (see table placement above).
 
 ## Restore Execution Procedure
 
@@ -263,11 +269,15 @@ pg_restore \
 
 If Auth DB, Coordination DB, and Asset Graph DB are separate, restore each dump to its corresponding target database. Do not restore the graph dump over the auth or coordination database, or the auth/coordination dump over the graph database.
 
-### 3. Post-restore, pre-restart coordination cleanup
+### 3. Post-restore, pre-restart table-scoped cleanup
 
-Run this step after PITR/`pg_restore` has completed and before any application process is allowed to start against the restored database. Execute it against the restored Coordination DB. If `COORDINATION_DATABASE_URL` is unset, this means the restored database reached through the settings fallback order.
+Run this step after PITR/`pg_restore` has completed and before any application process is allowed to start against the restored database. Cleanup is **table-scoped**, not URL-label-scoped:
 
-Inspect restored locks:
+1. Clear or expire `distributed_locks` on the **coordination** boundary (`COORDINATION_DATABASE_URL`, else `DATABASE_URL` / `POSTGRES_URL` fallback).
+2. Fail in-flight `rebuild_jobs` on the **Asset Graph / domain** boundary (`ASSET_GRAPH_DATABASE_URL`).
+3. Confirm `running_rebuild_jobs_count = 0` on the **job** boundary before restart.
+
+Inspect restored locks (coordination boundary):
 
 ```sql
 SELECT lock_name, holder_id, expires_at, updated_at
@@ -284,7 +294,7 @@ WHERE lock_name = 'graph_rebuild';
 
 A restored lock row with a mismatched `holder_id` can block new lock acquisition until it expires or is cleared.
 
-Clean up restored in-flight rebuild jobs so RecoveryGate does not classify historical state as a live orphaned rebuild. For schemas using the current `sanitized_failure_category` and `sanitized_failure_message` columns:
+Clean up restored in-flight rebuild jobs on the **Asset Graph** boundary so RecoveryGate does not classify historical state as a live orphaned rebuild. For schemas using the current `sanitized_failure_category` and `sanitized_failure_message` columns:
 
 ```sql
 UPDATE rebuild_jobs
@@ -495,7 +505,7 @@ Private personal contact details, phone numbers, and provider account identifier
 A restore incident or rehearsal is complete only when:
 
 1. the selected database restore point is documented;
-2. stale lock and in-flight rebuild job state have been resolved on the restored Coordination DB;
+2. stale lock state has been resolved on the coordination boundary and in-flight rebuild jobs have been cleaned on the Asset Graph (job) boundary;
 3. schema verification passes;
 4. graph integrity checks pass;
 5. the application has restarted successfully;

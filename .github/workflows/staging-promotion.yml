@@ -42,6 +42,31 @@ jobs:
           EVIDENCE_FILE: ${{ github.event.inputs.evidence_file }}
         run: python scripts/verify_staging_promotion.py "$EVIDENCE_FILE"
 
+      - name: Check Database Authorization
+        id: db_authz
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          ASSET_GRAPH_DATABASE_URL: ${{ secrets.ASSET_GRAPH_DATABASE_URL }}
+          COORDINATION_DATABASE_URL: ${{ secrets.COORDINATION_DATABASE_URL }}
+          POSTGRES_URL: ${{ secrets.POSTGRES_URL }}
+          FARDB_UNTRUSTED_DATABASE_ROLES: ${{ secrets.FARDB_UNTRUSTED_DATABASE_ROLES }}
+        run: |
+          if [ -z "${DATABASE_URL}${ASSET_GRAPH_DATABASE_URL}${COORDINATION_DATABASE_URL}${POSTGRES_URL}" ]; then
+            echo "No database URL secrets configured; relying on evidence-file db_authz marker (H-P0-04)."
+            echo '{"status":"skipped","reason":"no_database_url_configured"}' > db-authz-output.json
+            exit 0
+          fi
+          set +e
+          python scripts/check_database_authorization.py > db-authz-log.txt 2>&1
+          code=$?
+          if [ "$code" -eq 0 ]; then
+            echo '{"status":"passed"}' > db-authz-output.json
+            exit 0
+          fi
+          echo "{\"status\":\"failed\",\"exit_code\":$code}" > db-authz-output.json
+          echo "Database authorization gate failed (H-P0-04)."
+          exit 1
+
       - name: Check Hosted Readiness
         id: readiness
         env:
@@ -90,4 +115,5 @@ jobs:
           name: staging-readiness
           path: |
             readiness-output.json
+            db-authz-output.json
             promotion_audit.log

@@ -24,7 +24,7 @@ The current database layer (`api/database.py`) only supports SQLite connections.
 
 The initial hosted deployment target is the existing Vercel monorepo path for both the Next.js frontend and FastAPI backend.
 
-**PostgreSQL support is not yet implemented in the current database layer.** Until PostgreSQL support lands, hosted deployments using SQLite are demo/preview only and must not be treated as durable production persistence.
+**PostgreSQL support is landed** in `api/database.py` and the graph persistence layer (Phases 1–3 complete). Hosted staging/production must use PostgreSQL durable boundaries; SQLite remains local/dev (and non-durable demo/preview) only.
 
 ## Options Considered
 
@@ -152,10 +152,15 @@ Connection pooling tuning, caching strategy, and monitoring remain future produc
 ## Required Hosted Environment Variables
 
 **Backend (Required):**
-- `DATABASE_URL` — current implementation requires a SQLite URI. For hosted preview/demo before Phase 1, use ephemeral SQLite only, such as `sqlite:///:memory:` or an explicit `/tmp` SQLite path. PostgreSQL connection strings are the Phase 1+ production target and are not supported by `api/database.py` yet.
-- `SECRET_KEY` — JWT signing key
+- `DATABASE_URL` — Auth/application database. Local/dev: recommended `sqlite:dev.db` or `sqlite:///:memory:` (avoid `sqlite:///./…` under this repo’s custom resolver in `api/database.py`). Hosted staging/production: PostgreSQL URL (**landed** in `api/database.py`; Phase 1 complete).
+- `SECRET_KEY` — JWT signing key (≥32 characters outside development/test)
 - `ADMIN_USERNAME` — Bootstrap admin username
 - `ADMIN_PASSWORD` — Bootstrap admin password
+
+**Backend (Hosted durable graph — required for staging/production promotion):**
+- `ASSET_GRAPH_DATABASE_URL` — Durable graph-truth boundary (PostgreSQL in hosted environments)
+- `COORDINATION_DATABASE_URL` — Optional; rebuild lock boundary. When unset, settings fall back to `DATABASE_URL` then `POSTGRES_URL`.
+- `POSTGRES_URL` — Provider fallback when `DATABASE_URL` is unset (for example Vercel Postgres)
 
 **Backend (Optional):**
 - `ENV` — Environment mode (production/staging/development)

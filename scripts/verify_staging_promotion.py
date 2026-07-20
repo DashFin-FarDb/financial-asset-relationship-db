@@ -269,6 +269,39 @@ def _check_operational_evidence(content: str, missing: List[str]) -> None:
         missing.append("Non-redacted evidence found (secrets/tokens must be redacted)")
 
 
+REQUIRED_HARDENING_IDS = (
+    "H-P0-01",
+    "H-P0-02",
+    "H-P0-03",
+    "H-P0-04",
+    "H-P0-06",
+)
+TOPOLOGY_MARKER_PATTERN = re.compile(
+    r"topology\s*:\s*jobs\s*=\s*asset_graph\s*;\s*locks\s*=\s*coordination",
+    re.IGNORECASE,
+)
+DB_AUTHZ_PASS_PATTERN = re.compile(r"\bdb_authz\s*:\s*PASS(?:\s*\|[^\n]*)?", re.IGNORECASE)
+HARDENING_IDS_LINE_PATTERN = re.compile(r"hardening_ids\s*:\s*([^\n]+)", re.IGNORECASE)
+
+
+def _check_hardening_foundation(content: str, missing: List[str]) -> None:
+    """Check P0 hardening backlog markers required for staging promotion."""
+    ids_match = HARDENING_IDS_LINE_PATTERN.search(content)
+    if ids_match is None:
+        missing.append("hardening_ids marker with P0 foundation IDs")
+    else:
+        ids_blob = ids_match.group(1).upper()
+        missing_ids = [item_id for item_id in REQUIRED_HARDENING_IDS if item_id not in ids_blob]
+        if missing_ids:
+            missing.append("hardening_ids missing required IDs: " + ", ".join(missing_ids))
+
+    if TOPOLOGY_MARKER_PATTERN.search(content) is None:
+        missing.append("topology: jobs=asset_graph; locks=coordination")
+
+    if DB_AUTHZ_PASS_PATTERN.search(content) is None:
+        missing.append("db_authz: PASS (optional opaque ref allowed)")
+
+
 def verify_staging_promotion(evidence_file: str) -> None:
     """Verify baseline items in a staging promotion evidence file."""
     evidence_path_obj = REPO_ROOT / _repo_relative_evidence_path(evidence_file)
@@ -293,6 +326,7 @@ def verify_staging_promotion(evidence_file: str) -> None:
     _check_persistence_proof(content_raw, missing)
     _check_urls(content_lower, missing)
     _check_operational_evidence(content_lower, missing)
+    _check_hardening_foundation(content_raw, missing)
 
     if missing:
         print(

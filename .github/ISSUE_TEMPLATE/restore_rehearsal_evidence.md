@@ -50,11 +50,22 @@ assignees: ""
 **Does coordination share the app/auth boundary?**
 **If yes, what shared-boundary fallback was confirmed?**
 
+## Hardening / topology (H-P0-01, H-P0-02)
+
+```text
+topology: jobs=asset_graph; locks=coordination
+```
+
+- [ ] Locks inspected/cleared on the **coordination** boundary
+- [ ] In-flight jobs failed/cleaned on the **Asset Graph (job)** boundary
+- [ ] `running_rebuild_jobs_count == 0` confirmed on the **job** boundary before restart
+- [ ] Hardening ID H-P0-02 recorded as closed for this rehearsal (or follow-up linked)
+
 ## Verification Evidence
 
 **Restore cleanup / restart precheck:**
-**Restored distributed lock inspection result:**
-**Restored in-flight rebuild job inspection result:**
+**Restored distributed lock inspection result (coordination boundary):**
+**Restored in-flight rebuild job inspection result (Asset Graph boundary):**
 **Cleanup action taken, if any:**
 **Confirmation that `running_rebuild_jobs_count == 0` before restart, or documented exception:**
 

@@ -7,12 +7,19 @@ import pytest
 
 from scripts.verify_staging_promotion import (
     _check_database_boundaries,
+    _check_hardening_foundation,
     _check_operational_evidence,
     _check_persistence_proof,
     _check_provider_labels,
     _check_urls,
     _read_evidence_file,
     verify_staging_promotion,
+)
+
+HARDENING_MARKERS = (
+    "hardening_ids: H-P0-01, H-P0-02, H-P0-03, H-P0-04, H-P0-06\n"
+    "topology: jobs=asset_graph; locks=coordination\n"
+    "db_authz: PASS\n"
 )
 
 
@@ -198,6 +205,32 @@ def test_check_urls():
 
 
 @pytest.mark.unit
+def test_check_hardening_foundation_accepts_required_markers():
+    """Test that P0 hardening markers satisfy the foundation check."""
+    missing = []
+    _check_hardening_foundation(HARDENING_MARKERS + "db_authz: PASS|run-123\n", missing)
+    assert not missing
+
+
+@pytest.mark.unit
+def test_check_hardening_foundation_requires_ids_topology_and_db_authz():
+    """Test that missing hardening markers are reported distinctly."""
+    missing = []
+    _check_hardening_foundation("no hardening markers here", missing)
+    assert "hardening_ids marker with P0 foundation IDs" in missing
+    assert "topology: jobs=asset_graph; locks=coordination" in missing
+    assert "db_authz: PASS (optional opaque ref allowed)" in missing
+
+    missing = []
+    _check_hardening_foundation(
+        "hardening_ids: H-P0-01, H-P0-02\ntopology: jobs=asset_graph; locks=coordination\ndb_authz: FAIL\n",
+        missing,
+    )
+    assert any("hardening_ids missing required IDs" in item for item in missing)
+    assert "db_authz: PASS (optional opaque ref allowed)" in missing
+
+
+@pytest.mark.unit
 def test_check_operational_evidence():
     """Test that operational evidence like smoke tests are correctly checked."""
     missing = []
@@ -241,7 +274,8 @@ def test_verify_staging_promotion_success(tmp_path):
     """Test successful staging promotion verification."""
     evidence_path = tmp_path / "evidence.md"
     evidence_path.write_text(
-        "supabase vercel mapping database_url asset_graph_database_url distinct asset_graph_database_url shared-boundary statement "
+        HARDENING_MARKERS
+        + "supabase vercel mapping database_url asset_graph_database_url distinct asset_graph_database_url shared-boundary statement "
         "durable preview "
         "https://github.com/org/repo/actions/runs/123 asset smoke evidence hosted readiness --require-persistence health json named owners scanner summary "
         "```json\n"
