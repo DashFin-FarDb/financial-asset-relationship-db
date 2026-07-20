@@ -302,7 +302,21 @@ If a future schema renames `sanitized_failure_category` to `failure_category`, u
 
 For hosted PostgreSQL restores, the restored schema should come from PITR or the `pg_restore` dump. Do not run `migrations/001_initial.sql` through `psql`; the repository SQL migration files are SQLite-oriented, and a full PostgreSQL restore already contains schema and data.
 
-If the restore point predates repository compatibility migrations, use the repository's PostgreSQL-compatible initialization path against the restored database before restarting live traffic. The current code path is `src.data.database.init_db(engine)`, which calls SQLAlchemy `Base.metadata.create_all(engine)` and the PostgreSQL compatibility migration helper for rebuild heartbeat/checkpoint columns. For local SQLite validation only, use `src.data.migrations.apply_migrations()`.
+If the restore point predates repository compatibility migrations, run the repository initialization path against the restored database before restarting live traffic.
+
+Current startup behavior (**landed** on `main`; evidence: `src/data/database.py` `init_db`, `src/data/migrations.py`, `src/data/db_models.py` `ck_rebuild_jobs_status`; compound index: `docs/compound/domains/persistence.md`):
+
+- **Landed:** `Base.metadata.create_all(engine)` creates any missing ORM tables (`src/data/database.py`).
+- **Landed:** On SQLite file databases, `apply_migrations(db_path)` runs repository migration steps `001` through `004` (including execution/checkpoint/cancellation columns) (`src/data/migrations.py`).
+- **Landed:** On PostgreSQL, `apply_postgresql_heartbeat_migration(engine)` applies idempotent compatibility updates to `rebuild_jobs` (`src/data/migrations.py`), including:
+  - `active_worker_id`
+  - `last_heartbeat_at`
+  - `execution_id`
+  - `checkpoint_data`
+  - `cancellation_requested_at`
+  - the status constraint values `('pending', 'running', 'succeeded', 'failed', 'cancel_requested', 'cancelled')` (also declared on the ORM model in `src/data/db_models.py`)
+
+For local SQLite validation only (**landed**), use `src.data.migrations.apply_migrations(db_path)` (`src/data/migrations.py`).
 
 Inspect the expected tables:
 
@@ -320,6 +334,36 @@ WHERE table_schema = 'public'
   )
 ORDER BY table_name;
 ```
+
+On PostgreSQL restores, also verify rebuild compatibility columns:
+
+```sql
+SELECT column_name
+FROM information_schema.columns
+WHERE table_schema = 'public'
+  AND table_name = 'rebuild_jobs'
+  AND column_name IN (
+    'active_worker_id',
+    'last_heartbeat_at',
+    'execution_id',
+    'checkpoint_data',
+    'cancellation_requested_at'
+  )
+ORDER BY column_name;
+```
+
+Also verify the expanded status check constraint (required for `cancel_requested` / `cancelled`):
+
+```sql
+SELECT constraint_name, check_clause
+FROM information_schema.check_constraints
+WHERE constraint_schema = 'public'
+  AND constraint_name = 'ck_rebuild_jobs_status';
+```
+
+The result should contain both `cancel_requested` and `cancelled` in `check_clause`.
+
+If any expected compatibility column is missing, or the status constraint is absent/outdated, run the repository initialization path (`src.data.database.init_db(engine)`) against the restored database before declaring restore readiness.
 
 ### 5. Rollback guidance for failed restore
 
