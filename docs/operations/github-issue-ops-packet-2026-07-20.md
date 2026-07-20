@@ -6,7 +6,7 @@ for Super-Linter validator re-enablement.
 ## Merged context
 
 - PR #1497 (merged): Re-enable Super-Linter Checkov and GitHub Actions validators
- - Merge commit: `dd19b5b0d5be009f665ff962bc57885a6262cd13`
+- Merge commit: `dd19b5b0d5be009f665ff962bc57885a6262cd13`
 
 ## 1) Close no-longer-needed issues
 
@@ -20,7 +20,9 @@ Suggested close comment:
 Closing as completed.
 
 Delivered on `main`:
-- `VALIDATE_CHECKOV` and `VALIDATE_GITHUB_ACTIONS` are re-enabled in `.github/workflows/super-linter.yml` (enabled by omission in Super-Linter v7).
+
+- `VALIDATE_CHECKOV` and `VALIDATE_GITHUB_ACTIONS` are re-enabled in
+  `.github/workflows/super-linter.yml` (enabled by omission in Super-Linter v7).
 - Checkov waivers are documented in `.github/linters/.checkov.yaml`.
 - Representative `Lint Code Base` validation passed during implementation and follow-up hardening.
 
@@ -35,6 +37,7 @@ Suggested close comment:
 
 ```md
 Closing in favor of narrower follow-up issues for remaining debt:
+
 - YAML_PRETTIER re-enable cleanup
 - Checkov waiver hardening (global waiver removal path)
 
@@ -230,7 +233,8 @@ gh issue comment 1496 --body-file - <<EOF
 Closing as completed.
 
 Delivered on \`main\`:
-- \`VALIDATE_CHECKOV\` and \`VALIDATE_GITHUB_ACTIONS\` are re-enabled in \`.github/workflows/super-linter.yml\` (enabled by omission in Super-Linter v7).
+- \`VALIDATE_CHECKOV\` and \`VALIDATE_GITHUB_ACTIONS\` are re-enabled in
+  \`.github/workflows/super-linter.yml\` (enabled by omission in Super-Linter v7).
 - Checkov waivers are documented in \`.github/linters/.checkov.yaml\`.
 - Representative \`Lint Code Base\` validation passed during implementation and follow-up hardening.
 
