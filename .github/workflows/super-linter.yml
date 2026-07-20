@@ -53,6 +53,7 @@ jobs:
           VALIDATE_TYPESCRIPT_STANDARD: false
           VALIDATE_TYPESCRIPT_TSX: false
           VALIDATE_JSCPD: false
+          # Tracking cleanup and re-enablement: https://github.com/DashFin-FarDb/financial-asset-relationship-db/issues/1496
           # Temporarily disable actionlint here: legacy workflows still trip
           # super-linter's embedded actionlint and block unrelated PRs.
           # Re-enable once workflow actionlint debt is cleared repo-wide.
