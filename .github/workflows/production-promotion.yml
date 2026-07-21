@@ -10,7 +10,7 @@ on:
         description: "Path to the release-candidate evidence file"
         required: true
       base_url:
-        description: "Production base URL (optional; falls back to HOSTED_READINESS_BASE_URL secret)"
+        description: "Optional exact match for HOSTED_READINESS_BASE_URL (must equal the production Environment secret when set)"
         required: false
       tags:
         description: "Manual sign-off tags (e.g., [manual-stop] or [star])"
@@ -18,7 +18,21 @@ on:
         default: ""
 
 jobs:
+  require-main:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Require main branch
+        env:
+          REF: ${{ github.ref }}
+        run: |
+          if [ "$REF" != "refs/heads/main" ]; then
+            echo "Error: production-promotion must be dispatched from refs/heads/main (got $REF)."
+            exit 1
+          fi
+
   promotion-gate:
+    needs: require-main
     runs-on: ubuntu-latest
     environment:
       name: ${{ (contains(inputs.tags, '[manual-stop]') || contains(inputs.tags, '[star]')) && 'production-manual-gate' || 'production' }}
@@ -27,6 +41,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
+          ref: main
           persist-credentials: false
 
       - name: Setup Python
@@ -34,8 +49,10 @@ jobs:
         with:
           python-version: "3.12"
 
+      # Gate scripts are stdlib-only except check_database_authorization (psycopg2).
+      # Install the minimal binary-only driver instead of the full requirements tree.
       - name: Install Dependencies
-        run: pip install -r requirements.txt
+        run: pip install --only-binary ":all:" "psycopg2-binary>=2.9.9"
 
       - name: Verify Production Baseline and Database Authorization
         id: db_authz
@@ -72,15 +89,28 @@ jobs:
           HOSTED_READINESS_BASE_URL: ${{ secrets.HOSTED_READINESS_BASE_URL }}
           BASE_URL_INPUT: ${{ github.event.inputs.base_url }}
         run: |
-          URL="${BASE_URL_INPUT:-$HOSTED_READINESS_BASE_URL}"
-          if [ -z "$URL" ]; then
-            echo "Error: Base URL is missing"
+          if [ -z "$HOSTED_READINESS_BASE_URL" ]; then
+            echo "Error: HOSTED_READINESS_BASE_URL secret is required for production promotion"
             exit 1
           fi
+          if [ -n "$BASE_URL_INPUT" ] && [ "$BASE_URL_INPUT" != "$HOSTED_READINESS_BASE_URL" ]; then
+            echo "Error: base_url input must exactly match HOSTED_READINESS_BASE_URL"
+            exit 1
+          fi
+          URL="$HOSTED_READINESS_BASE_URL"
           echo "::add-mask::$URL"
 
           # --require-persistence also enables --assets-smoke (H-P1-01 / H-P1-02).
-          python scripts/check_hosted_readiness.py "$URL" --json --require-persistence > readiness-output.json
+          # Write to a temp file first so a failed run does not leave an empty artifact.
+          if ! python scripts/check_hosted_readiness.py "$URL" --json --require-persistence > readiness-output.tmp; then
+            if [ -s readiness-output.tmp ]; then
+              mv readiness-output.tmp readiness-output.json
+            else
+              rm -f readiness-output.tmp
+            fi
+            exit 1
+          fi
+          mv readiness-output.tmp readiness-output.json
 
       - name: Assert Persistence Loaded
         run: |
@@ -105,7 +135,7 @@ jobs:
             exit 1
           fi
           total="$(jq -r '.observed_fields."assets.total" // 0' readiness-output.json)"
-          if [ "$total" = "0" ]; then
+          if ! [ "$total" -gt 0 ] 2>/dev/null; then
             echo "Error: assets.total is not a positive count in the readiness output."
             exit 1
           fi
@@ -121,10 +151,10 @@ jobs:
         if: always()
         working-directory: ${{ github.workspace }}
         run: |
-          if [ ! -f readiness-output.json ]; then
+          if [ ! -s readiness-output.json ]; then
             echo '{"status":"skipped","reason":"hosted_readiness_not_run"}' > readiness-output.json
           fi
-          if [ ! -f db-authz-output.json ]; then
+          if [ ! -s db-authz-output.json ]; then
             echo '{"status":"skipped","reason":"db_authz_not_run"}' > db-authz-output.json
           fi
 
