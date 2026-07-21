@@ -1,0 +1,139 @@
+name: Production Promotion
+
+permissions:
+  contents: read
+
+on:
+  workflow_dispatch:
+    inputs:
+      evidence_file:
+        description: "Path to the release-candidate evidence file"
+        required: true
+      base_url:
+        description: "Production base URL (optional; falls back to HOSTED_READINESS_BASE_URL secret)"
+        required: false
+      tags:
+        description: "Manual sign-off tags (e.g., [manual-stop] or [star])"
+        required: false
+        default: ""
+
+jobs:
+  promotion-gate:
+    runs-on: ubuntu-latest
+    environment:
+      name: ${{ (contains(inputs.tags, '[manual-stop]') || contains(inputs.tags, '[star]')) && 'production-manual-gate' || 'production' }}
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+
+      - name: Setup Python
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
+        with:
+          python-version: "3.12"
+
+      - name: Install Dependencies
+        run: pip install -r requirements.txt
+
+      - name: Verify Production Baseline and Database Authorization
+        id: db_authz
+        env:
+          EVIDENCE_FILE: ${{ github.event.inputs.evidence_file }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          ASSET_GRAPH_DATABASE_URL: ${{ secrets.ASSET_GRAPH_DATABASE_URL }}
+          COORDINATION_DATABASE_URL: ${{ secrets.COORDINATION_DATABASE_URL }}
+          POSTGRES_URL: ${{ secrets.POSTGRES_URL }}
+          FARDB_UNTRUSTED_DATABASE_ROLES: ${{ secrets.FARDB_UNTRUSTED_DATABASE_ROLES }}
+        run: |
+          python scripts/verify_staging_promotion.py "$EVIDENCE_FILE"
+          if [ -z "${DATABASE_URL}${ASSET_GRAPH_DATABASE_URL}${COORDINATION_DATABASE_URL}${POSTGRES_URL}" ]; then
+            echo '{"status":"failed","reason":"no_database_url_configured"}' > db-authz-output.json
+            echo "H-P0-04 requires live database authorization secrets on the production Environment."
+            echo "Configure the auth/app, asset-graph, and optional coordination/postgres URL secrets."
+            exit 1
+          fi
+          set +e
+          # Bounded stdout/stderr only (control ids/messages). Do not upload raw logs as artifacts.
+          python scripts/check_database_authorization.py
+          code=$?
+          if [ "$code" -eq 0 ]; then
+            echo '{"status":"passed"}' > db-authz-output.json
+            exit 0
+          fi
+          echo "{\"status\":\"failed\",\"exit_code\":$code}" > db-authz-output.json
+          echo "Database authorization gate failed (H-P0-04)."
+          exit 1
+
+      - name: Check Hosted Readiness
+        id: readiness
+        env:
+          HOSTED_READINESS_BASE_URL: ${{ secrets.HOSTED_READINESS_BASE_URL }}
+          BASE_URL_INPUT: ${{ github.event.inputs.base_url }}
+        run: |
+          URL="${BASE_URL_INPUT:-$HOSTED_READINESS_BASE_URL}"
+          if [ -z "$URL" ]; then
+            echo "Error: Base URL is missing"
+            exit 1
+          fi
+          echo "::add-mask::$URL"
+
+          # --require-persistence also enables --assets-smoke (H-P1-01 / H-P1-02).
+          python scripts/check_hosted_readiness.py "$URL" --json --require-persistence > readiness-output.json
+
+      - name: Assert Persistence Loaded
+        run: |
+          if [ "$(jq -r '.observed_fields."graph_persistence_configured"' readiness-output.json)" != "true" ]; then
+            echo "Error: graph_persistence_configured is not true in the readiness output."
+            exit 1
+          fi
+          if [ "$(jq -r '.observed_fields."graph.persistence_enabled"' readiness-output.json)" != "true" ]; then
+            echo "Error: graph.persistence_enabled is not true in the readiness output."
+            exit 1
+          fi
+          if [ "$(jq -r '.observed_fields."graph.persistence_loaded"' readiness-output.json)" != "true" ]; then
+            echo "Error: graph.persistence_loaded is not true in the readiness output."
+            exit 1
+          fi
+          if [ "$(jq -r '.observed_fields."graph.startup_source"' readiness-output.json)" != "persisted" ]; then
+            echo "Error: startup_source is not \"persisted\" in the readiness output."
+            exit 1
+          fi
+          if [ "$(jq -r '.checks.assets_smoke.passed // false' readiness-output.json)" != "true" ]; then
+            echo "Error: assets_smoke check did not pass in the readiness output."
+            exit 1
+          fi
+          total="$(jq -r '.observed_fields."assets.total" // 0' readiness-output.json)"
+          if [ "$total" = "0" ]; then
+            echo "Error: assets.total is not a positive count in the readiness output."
+            exit 1
+          fi
+          echo "Assertion passed: graph is persistence loaded and assets smoke passed."
+
+      - name: Audit Logging
+        if: always()
+        run: |
+          echo "Logging promotion decision for AI system transparency (Article 13)..."
+          echo "Production promotion run at $(date -u) — result: ${{ job.status }}" >> promotion_audit.log
+
+      - name: Prepare Artifact Placeholders
+        if: always()
+        working-directory: ${{ github.workspace }}
+        run: |
+          if [ ! -f readiness-output.json ]; then
+            echo '{"status":"skipped","reason":"hosted_readiness_not_run"}' > readiness-output.json
+          fi
+          if [ ! -f db-authz-output.json ]; then
+            echo '{"status":"skipped","reason":"db_authz_not_run"}' > db-authz-output.json
+          fi
+
+      - name: Upload Artifacts
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: production-readiness
+          path: |
+            readiness-output.json
+            db-authz-output.json
+            promotion_audit.log

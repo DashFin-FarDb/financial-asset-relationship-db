@@ -323,8 +323,9 @@ Blocking rule:
 
 Stable IDs for boundary hardening follow-ups. Status legend matches this pack. An item may move to
 `Satisfied - automated` only when it is enforced in `release-evidence-verify.yml` (Assert path),
-`staging-promotion.yml`, merge-required CI, or `ci-gate-spec.yaml`. Manual items require the
-machine-checkable evidence markers listed under [Hardening evidence markers](#hardening-evidence-markers).
+`staging-promotion.yml`, `production-promotion.yml`, merge-required CI, or `ci-gate-spec.yaml`. Manual
+items require the machine-checkable evidence markers listed under
+[Hardening evidence markers](#hardening-evidence-markers).
 
 Board mirror: [Enterprise Readiness PR Board — Hardening backlog](roadmap/enterprise-readiness-pr-board.md#hardening-backlog-p0p3).
 
@@ -337,7 +338,7 @@ Board mirror: [Enterprise Readiness PR Board — Hardening backlog](roadmap/ente
 | H-P0-05 | P0       | Refresh ADR 0002 / `.env.example` to runtime truth (Postgres supported; recommended SQLite URL forms)                | Architecture / Durable Persistence | Docs                                             | Satisfied - documented               |
 | H-P0-06 | P0       | Fresh RC companion record for current `main` SHA (do not reuse RC1 as CURRENT)                                       | All manual gates                   | Issue template + evidence-records                | Satisfied - manual evidence required |
 | H-P1-01 | P1       | `--assets-smoke` on hosted readiness when persistence required                                                       | Promotion                          | Script + workflows                               | Satisfied - automated                |
-| H-P1-02 | P1       | Production promotion twin of `staging-promotion.yml`                                                                 | Promotion                          | New workflow                                     | Partially satisfied                  |
+| H-P1-02 | P1       | Production promotion twin of `staging-promotion.yml`                                                                 | Promotion                          | `production-promotion.yml`                       | Satisfied - automated                |
 | H-P1-03 | P1       | Post-rollback / post-restore mandatory re-smoke artifact                                                             | DR / Promotion                     | Dispatch recipe + artifact                       | Partially satisfied                  |
 | H-P1-04 | P1       | Reconcile required check names (policy ↔ Mergify ↔ branch protection)                                              | Governance / CI                    | Docs + Mergify                                   | Partially satisfied                  |
 | H-P1-05 | P1       | Docker/Compose: Gradio non-prod in CI; production images smoke with persistence                                      | Architecture                       | CI + compose                                     | Partially satisfied                  |
