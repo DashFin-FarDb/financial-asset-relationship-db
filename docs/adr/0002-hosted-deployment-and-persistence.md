@@ -31,6 +31,7 @@ The initial hosted deployment target is the existing Vercel monorepo path for bo
 ### Option 1: Vercel monorepo + PostgreSQL (Chosen)
 
 **Pros:**
+
 - Vercel already configured (`vercel.json` present)
 - Single project for frontend + backend
 - Automatic preview deployments
@@ -39,16 +40,19 @@ The initial hosted deployment target is the existing Vercel monorepo path for bo
 - Good Python/FastAPI ecosystem support for PostgreSQL
 
 **Cons:**
+
 - Requires database migration implementation
 - Serverless cold starts (acceptable for initial use)
 
 ### Option 2: Vercel frontend + separate backend service + PostgreSQL
 
 **Pros:**
+
 - Dedicated backend resources
 - More control over backend scaling
 
 **Cons:**
+
 - More complex deployment
 - Separate service management
 - Higher operational overhead
@@ -56,9 +60,11 @@ The initial hosted deployment target is the existing Vercel monorepo path for bo
 ### Option 3: Managed SQLite-compatible storage
 
 **Pros:**
+
 - Minimal code changes
 
 **Cons:**
+
 - Limited serverless-compatible options
 - Turso/libSQL requires dependency changes
 - Less mature ecosystem
@@ -66,9 +72,11 @@ The initial hosted deployment target is the existing Vercel monorepo path for bo
 ### Option 4: Hosted file-backed SQLite with persistent volume
 
 **Pros:**
+
 - Existing SQLite code works
 
 **Cons:**
+
 - Not compatible with Vercel serverless
 - Requires VM or container hosting
 - Connection pooling challenges
@@ -76,9 +84,11 @@ The initial hosted deployment target is the existing Vercel monorepo path for bo
 ### Option 5: Local-first only (defer hosted deployment)
 
 **Pros:**
+
 - No immediate work
 
 **Cons:**
+
 - Blocks hosted use cases
 - Delays production feedback
 
@@ -114,6 +124,7 @@ Current database tests exercise SQLite URIs only. Phase 1 must add PostgreSQL-sp
 Add PostgreSQL support for the API auth/user database while preserving SQLite local dev compatibility.
 
 **Scope:**
+
 - Add PostgreSQL adapter to `api/database.py` ✅
 - Add psycopg2-binary driver to `requirements.txt` ✅
 - PostgreSQL-compatible DDL for `user_credentials` table ✅
@@ -124,6 +135,7 @@ Add PostgreSQL support for the API auth/user database while preserving SQLite lo
 - Comprehensive test coverage (unit + opt-in integration) ✅
 
 **Explicitly Deferred to Phase 4:**
+
 - Production-grade connection pooling for serverless
 - Database migration tooling (Alembic)
 
@@ -152,23 +164,27 @@ Connection pooling tuning, caching strategy, and monitoring remain future produc
 ## Required Hosted Environment Variables
 
 **Backend (Required):**
+
 - `DATABASE_URL` — Auth/application database. Local/dev: recommended `sqlite:dev.db` or `sqlite:///:memory:` (avoid `sqlite:///./…` under this repo’s custom resolver in `api/database.py`). Hosted staging/production: PostgreSQL URL (**landed** in `api/database.py`; Phase 1 complete).
 - `SECRET_KEY` — JWT signing key (≥32 characters outside development/test)
 - `ADMIN_USERNAME` — Bootstrap admin username
 - `ADMIN_PASSWORD` — Bootstrap admin password
 
 **Backend (Hosted durable graph — required for staging/production promotion):**
+
 - `ASSET_GRAPH_DATABASE_URL` — Durable graph-truth boundary (PostgreSQL in hosted environments)
 - `COORDINATION_DATABASE_URL` — Optional; rebuild lock boundary. When unset, settings fall back to `DATABASE_URL` then `POSTGRES_URL`.
 - `POSTGRES_URL` — Provider fallback when `DATABASE_URL` is unset (for example Vercel Postgres)
 
 **Backend (Optional):**
+
 - `ENV` — Environment mode (production/staging/development)
 - `ALLOWED_ORIGINS` — CORS allowlist (comma-separated)
 - `GRAPH_CACHE_PATH` — Graph cache path (ephemeral on serverless)
 - `USE_REAL_DATA_FETCHER` — Enable real data fetcher
 
 **Frontend (Required):**
+
 - `NEXT_PUBLIC_API_URL` — API endpoint URL
 
 ## Deferred Items

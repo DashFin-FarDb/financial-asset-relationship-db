@@ -89,13 +89,13 @@ Use this only when a drill is directly release-blocking or explicitly included i
 
 Record named owners for this release candidate:
 
-| Role | Named owner | Sign-off status | Notes |
-| --- | --- | --- | --- |
-| Deploy operator |  | Pending |  |
-| Promotion approver |  | Pending |  |
-| Rollback owner |  | Pending |  |
-| Restore operator |  | Pending |  |
-| Persistence verification owner |  | Pending |  |
+| Role                           | Named owner | Sign-off status | Notes |
+| ------------------------------ | ----------- | --------------- | ----- |
+| Deploy operator                |             | Pending         |       |
+| Promotion approver             |             | Pending         |       |
+| Rollback owner                 |             | Pending         |       |
+| Restore operator               |             | Pending         |       |
+| Persistence verification owner |             | Pending         |       |
 
 ## Disaster Recovery Rehearsal Evidence
 
@@ -156,17 +156,17 @@ such as `TBD` / angle-bracket templates are rejected.
 
 Use the status values from the release evidence pack.
 
-| Gate | Status | Evidence link or note | Release blocker? |
-| --- | --- | --- | --- |
-| Architecture |  |  |  |
-| Durable Persistence |  |  |  |
-| Restart / Reload |  |  |  |
-| Promotion |  |  |  |
-| API Contract |  |  |  |
-| Recovery / Rebuild |  |  |  |
-| Security |  |  |  |
-| Governance |  |  |  |
-| Disaster Recovery |  |  |  |
+| Gate                | Status | Evidence link or note | Release blocker? |
+| ------------------- | ------ | --------------------- | ---------------- |
+| Architecture        |        |                       |                  |
+| Durable Persistence |        |                       |                  |
+| Restart / Reload    |        |                       |                  |
+| Promotion           |        |                       |                  |
+| API Contract        |        |                       |                  |
+| Recovery / Rebuild  |        |                       |                  |
+| Security            |        |                       |                  |
+| Governance          |        |                       |                  |
+| Disaster Recovery   |        |                       |                  |
 
 ## Final Decision
 

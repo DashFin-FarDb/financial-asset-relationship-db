@@ -66,6 +66,8 @@ jobs:
           VALIDATE_PYTHON_ISORT: false
           VALIDATE_PYTHON_MYPY: false
           VALIDATE_PYTHON_PYLINT: false
-          # Pyink is still enabled by default in super-linter v7 (removed in v8).
-          # There is no PYTHON_PYINK_LINE_LENGTH setting; use pyproject.toml instead.
-          PYTHON_PYINK_CONFIG_FILE: pyproject.toml
+          # Keep Python formatting out of super-linter; black/ruff/pre-commit own it.
+          # Pyink defaults on in v7 and was removed in v8; do not point
+          # PYTHON_PYINK_CONFIG_FILE at repo-root pyproject.toml (resolved under
+          # LINTER_RULES_PATH and fatals when missing).
+          VALIDATE_PYTHON_PYINK: false
