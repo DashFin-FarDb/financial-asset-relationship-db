@@ -130,7 +130,8 @@ Record named owners for this release candidate:
 
 ## Hardening backlog (machine-checkable markers)
 
-Copy these markers into the committed evidence file used by `staging-promotion.yml`.
+Copy these markers into the committed evidence file used by `staging-promotion.yml` or
+`production-promotion.yml`.
 Reference: [Hardening evidence markers](https://github.com/DashFin-FarDb/financial-asset-relationship-db/blob/main/docs/release-evidence-pack.md#hardening-evidence-markers).
 
 ```text
@@ -148,9 +149,9 @@ such as `TBD` / angle-bracket templates are rejected.
 - [ ] H-P0-01 topology marker present (`jobs=asset_graph; locks=coordination`)
 - [ ] H-P0-02 table-scoped restore cleanup confirmed on job + lock boundaries
 - [ ] H-P0-03 `release-evidence-verify` run with `hardening_tier=P0` (strict; hosted must PASS)
-- [ ] H-P0-04 live DB authorization passed in staging-promotion (secrets required); evidence has `db_authz: PASS|<opaque-ref>`
+- [ ] H-P0-04 live DB authorization passed in staging-promotion or production-promotion (secrets required); evidence has `db_authz: PASS|<opaque-ref>`
 - [ ] H-P0-06 this packet is SHA-bound to the release commit above (RC1 not reused as CURRENT)
-- [ ] Release-evidence / staging-promotion workflow run URL attached:
+- [ ] Release-evidence / staging-promotion / production-promotion workflow run URL attached:
 
 ## Gate Status Summary
 
