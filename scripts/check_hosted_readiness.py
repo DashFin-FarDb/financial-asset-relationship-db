@@ -125,14 +125,11 @@ def _validate_no_extra_components(parsed: ParseResult) -> str | None:
 
 
 def _validate_request_query(parsed: ParseResult, allowed_query: str | None) -> str | None:
-    """Return an error when the request query is absent from the allowlist."""
+    """Return an error when the request query does not match the allowlist exactly."""
     if parsed.params or parsed.fragment:
         return "request URL must not include params or fragments"
-    if allowed_query is None:
-        if parsed.query:
-            return "request URL query is not in the smoke-check allowlist"
-        return None
-    if parsed.query != allowed_query:
+    expected_query = "" if allowed_query is None else allowed_query
+    if parsed.query != expected_query:
         return "request URL query is not in the smoke-check allowlist"
     return None
 

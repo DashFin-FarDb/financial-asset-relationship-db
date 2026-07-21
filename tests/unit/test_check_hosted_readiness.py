@@ -673,14 +673,43 @@ def test_assets_smoke_rejects_empty_page(monkeypatch: pytest.MonkeyPatch) -> Non
     assert "/api/assets items list is empty" in failures
 
 
-def test_validate_request_query_requires_allowlisted_query_when_configured() -> None:
-    """When allowed_query is set, an empty query must fail closed."""
+def test_validate_request_query_matches_allowlist_strictly() -> None:
+    """Request query must equal allowed_query, defaulting to empty when unset."""
     script = _load_script()
     assert (
         script._validate_request_query(urlparse("https://example.com/api/assets"), "per_page=1")
         == "request URL query is not in the smoke-check allowlist"
     )
     assert script._validate_request_query(urlparse("https://example.com/api/assets?per_page=1"), "per_page=1") is None
+    assert script._validate_request_query(urlparse("https://example.com/api/health"), None) is None
+    assert (
+        script._validate_request_query(urlparse("https://example.com/api/health?x=1"), None)
+        == "request URL query is not in the smoke-check allowlist"
+    )
+
+
+def test_json_assets_smoke_skipped_when_liveness_runtime_fails(
+    capsys: pytest.CaptureFixture[str],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Assets smoke is reported failed/skipped when liveness raises at runtime."""
+    script = _load_script()
+
+    def fake_get_json(url: str, timeout: float, *, allowed_query: str | None = None) -> tuple[int, dict[str, Any]]:
+        if url.endswith("/api/health"):
+            raise RuntimeError("liveness unavailable")
+        raise AssertionError(f"unexpected URL: {url}")
+
+    monkeypatch.setattr(script, "_get_json", fake_get_json)
+    exit_code = script.main(["https://example.com", "--json", "--assets-smoke"])
+    data = json.loads(capsys.readouterr().out)
+
+    assert exit_code == script.CHECK_FAILED
+    assert data["assets_smoke"] is True
+    assert data["checks"]["assets_smoke"] == {
+        "passed": False,
+        "failures": ["Assets smoke check not run because liveness check failed"],
+    }
 
 
 def test_require_persistence_auto_enables_assets_smoke(
