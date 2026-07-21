@@ -1,8 +1,8 @@
 # FarDB Project Continuity Ledger
 
-**Repository:** `DashFin-FarDb/financial-asset-relationship-db`  
-**Established:** 2026-07-21  
-**Repository evidence cutoff:** `main` at `74c5451acbb462b2a5923eaac1d600f780824e07`  
+**Repository:** `DashFin-FarDb/financial-asset-relationship-db`
+**Established:** 2026-07-21
+**Repository evidence cutoff:** `main` at `74c5451acbb462b2a5923eaac1d600f780824e07`
 **Continuity status:** Initial ledger landed; reconciled to post–H-P1-02 `main`
 
 This ledger preserves durable project decisions, plans, milestones, and handoffs across ChatGPT, Codex, and
