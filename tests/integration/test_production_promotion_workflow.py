@@ -123,12 +123,7 @@ def test_production_promotion_limits_external_script_steps(
     for step in production_promotion_workflow["jobs"]["promotion-gate"]["steps"]:
         run_cmd = step.get("run", "") or ""
         uses_cmd = step.get("uses", "") or ""
-        if (
-            "scripts/" in run_cmd
-            or ".github/" in run_cmd
-            or "scripts/" in uses_cmd
-            or ".github/" in uses_cmd
-        ):
+        if "scripts/" in run_cmd or ".github/" in run_cmd or "scripts/" in uses_cmd or ".github/" in uses_cmd:
             external_refs += 1
     ASSERTIONS.assertLessEqual(external_refs, 2)
 
