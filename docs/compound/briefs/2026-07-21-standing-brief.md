@@ -6,6 +6,7 @@ Claims are labeled landed vs provisional. ADRs/policy are not rewritten.
 ## Seam movement by domain
 
 ### architecture
+- [provisional] **pr:1509**:     w ww (--)
 - [landed] **sha:5c507f6ca31ac39a3907fd62127ac7d3c121d6a6**: Merge/push to main 5c507f6ca31ac39a3907fd62127ac7d3c121d6a6
 - [landed] **sha:193f744e004cfd9eaa2cb0b84a5e3a476219d64a**: Merge/push to main 193f744e004cfd9eaa2cb0b84a5e3a476219d64a
 - [landed] **sha:cabb82223b021787d5b1032d332eb38fc6d2d9b4**: Merge/push to main cabb82223b021787d5b1032d332eb38fc6d2d9b4
@@ -20,7 +21,6 @@ Claims are labeled landed vs provisional. ADRs/policy are not rewritten.
 - [landed] **sha:1a2114d71a442ea03893950a118900db6d1f1818**: Merge/push to main 1a2114d71a442ea03893950a118900db6d1f1818
 - [landed] **sha:2a7b6089f2a51ad12e8ee6445bb07610740d05a8**: Merge/push to main 2a7b6089f2a51ad12e8ee6445bb07610740d05a8
 - [provisional] **pr:1494**: x()     x v 
-- [landed] **sha:1f654514377cd5f3de9cd2dee3d3939e863a4a67**: Merge/push to main 1f654514377cd5f3de9cd2dee3d3939e863a4a67
 
 ### api
 - [landed] **pr:1507**: (-v)    ..  ..  /
@@ -57,6 +57,7 @@ Claims are labeled landed vs provisional. ADRs/policy are not rewritten.
 - [provisional] **pr:1402**: fix: support Python 3.10 UTC timestamps
 
 ### ci-guardrails
+- [provisional] **pr:1509**:     w ww (--)
 - [landed] **pr:1508**:     w    (--)
 - [landed] **pr:1506**:       
 - [landed] **pr:1499**: ()   y    w-
@@ -71,7 +72,6 @@ Claims are labeled landed vs provisional. ADRs/policy are not rewritten.
 - [landed] **pr:1466**: x()  ww  
 - [landed] **pr:1458**: x(y)  v y y 
 - [landed] **pr:1457**: x   y  
-- [landed] **pr:1454**: x() v   
 
 ### rebuild-reconciliation
 - [landed] **pr:1455**: x    y 
@@ -86,5 +86,6 @@ Claims are labeled landed vs provisional. ADRs/policy are not rewritten.
 - [provisional] **pr:1403**: fix(ci): resolve compound workflow failures
 
 ### deployment
+- [provisional] **pr:1509**:     w ww (--)
 - [landed] **pr:1508**:     w    (--)
 - [landed] **pr:1506**:
