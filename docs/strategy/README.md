@@ -11,6 +11,11 @@ differed from `main`.
 Re-run the manuscript's reviewer verification gate before treating these volatile ref and PR observations as
 current.
 
+## Continuity
+
+- [FarDB Project Continuity Ledger](fardb-project-continuity.md) — durable decisions, commitments, milestones, and
+  agent handoffs. Reconcile against current `main` / open PRs before treating its cutoff as current.
+
 ## Purpose
 
 This section explains FarDB's product thesis, strategic direction and realistic long-range opportunity without
@@ -46,11 +51,11 @@ authoritative for rebuild, recovery and persistence behaviour.
 
 ## Foundation documents
 
-| Document | Purpose |
-| --- | --- |
-| [Claims and truth policy](claims-and-truth-policy.md) | Defines the five claim classes. |
-| [Current-state snapshot](current-state.md) | States what the reviewed baseline establishes and what it does not. |
-| [The big read](the-big-read.md) | Tells the accessible, evidence-qualified story from prototype to platform vision. |
+| Document                                              | Purpose                                                                           |
+| ----------------------------------------------------- | --------------------------------------------------------------------------------- |
+| [Claims and truth policy](claims-and-truth-policy.md) | Defines the five claim classes.                                                   |
+| [Current-state snapshot](current-state.md)            | States what the reviewed baseline establishes and what it does not.               |
+| [The big read](the-big-read.md)                       | Tells the accessible, evidence-qualified story from prototype to platform vision. |
 
 ## Planned corpus
 
