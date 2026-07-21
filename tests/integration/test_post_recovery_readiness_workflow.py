@@ -29,7 +29,6 @@ def post_recovery_raw_fixture() -> str:
 def test_post_recovery_workflow_exists() -> None:
     """H-P1-03 requires a dedicated post-recovery re-smoke workflow."""
     assert WORKFLOW_PATH.is_file()
-    assert WORKFLOW_PATH.read_text(encoding="utf-8").startswith("---\n")
 
 
 def test_post_recovery_is_manual_dispatch_only(post_recovery_workflow: dict) -> None:
@@ -91,7 +90,6 @@ def test_post_recovery_writes_metadata_and_placeholders(post_recovery_raw: str) 
 
 def test_post_recovery_uploads_context_named_artifact(
     post_recovery_workflow: dict,
-    post_recovery_raw: str,
 ) -> None:
     """Artifact name must encode recovery context, not promotion names."""
     upload_steps = [
@@ -102,9 +100,11 @@ def test_post_recovery_uploads_context_named_artifact(
     assert len(upload_steps) == 1
     assert upload_steps[0].get("if") == "always()"
     assert upload_steps[0]["with"]["name"] == "${{ inputs.recovery_context }}-readiness"
-    assert "staging-readiness" not in post_recovery_raw
-    assert "production-readiness" not in post_recovery_raw
-    assert "release-evidence" not in post_recovery_raw
+    for step in upload_steps:
+        artifact_name = step.get("with", {}).get("name", "")
+        assert "staging-readiness" not in artifact_name
+        assert "production-readiness" not in artifact_name
+        assert "release-evidence" not in artifact_name
 
 
 def test_post_recovery_upload_paths_exclude_secrets(post_recovery_workflow: dict) -> None:

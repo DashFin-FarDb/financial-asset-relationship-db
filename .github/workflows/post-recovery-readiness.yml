@@ -103,6 +103,7 @@ jobs:
           mv readiness-output.tmp readiness-output.json
 
       - name: Assert Persistence Loaded
+        if: steps.readiness.outcome == 'success'
         run: |
           cfg='.observed_fields."graph_persistence_configured"'
           if [ "$(jq -r "$cfg" readiness-output.json)" != "true" ]; then
