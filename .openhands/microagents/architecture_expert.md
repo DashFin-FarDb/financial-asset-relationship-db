@@ -36,12 +36,12 @@ rebuild/reconciliation, and deployment/readiness.
 
 | Domain | Doc | Landed | Provisional |
 |--------|-----|--------|-------------|
-| architecture | [/docs/compound/domains/architecture.md](/docs/compound/domains/architecture.md) | 57 | 25 |
+| architecture | [/docs/compound/domains/architecture.md](/docs/compound/domains/architecture.md) | 58 | 24 |
 | api | [/docs/compound/domains/api.md](/docs/compound/domains/api.md) | 9 | 20 |
 | persistence | [/docs/compound/domains/persistence.md](/docs/compound/domains/persistence.md) | 1 | 16 |
-| ci-guardrails | [/docs/compound/domains/ci-guardrails.md](/docs/compound/domains/ci-guardrails.md) | 15 | 23 |
+| ci-guardrails | [/docs/compound/domains/ci-guardrails.md](/docs/compound/domains/ci-guardrails.md) | 16 | 22 |
 | rebuild-reconciliation | [/docs/compound/domains/rebuild-reconciliation.md](/docs/compound/domains/rebuild-reconciliation.md) | 1 | 9 |
-| deployment | [/docs/compound/domains/deployment.md](/docs/compound/domains/deployment.md) | 2 | 1 |
+| deployment | [/docs/compound/domains/deployment.md](/docs/compound/domains/deployment.md) | 3 | 0 |
 
 ## Operator notes
 
