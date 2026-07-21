@@ -2,8 +2,8 @@
 
 **Repository:** `DashFin-FarDb/financial-asset-relationship-db`
 **Established:** 2026-07-21
-**Repository evidence cutoff:** `main` at `74c5451acbb462b2a5923eaac1d600f780824e07`
-**Continuity status:** Initial ledger landed; reconciled to post–H-P1-02 `main`
+**Repository evidence cutoff:** `main` at `21f54a429713923865b531e50ed5b2cf98c2f6bd`
+**Continuity status:** Initial ledger landed; reconciled to post–H-P1-03 `main`
 
 This ledger preserves durable project decisions, plans, milestones, and handoffs across ChatGPT, Codex, and
 repository work. It is an index of authoritative evidence, not a replacement for detailed specifications, issues,
@@ -37,9 +37,8 @@ recovery evidence.
 
 At the evidence cutoff:
 
-- `main` resolves to `74c5451acbb462b2a5923eaac1d600f780824e07` (includes H-P0 foundation gates PR #1506,
-  H-P1-01 PR #1508, and H-P1-02 PR #1509).
-- Open PR #1510 lands H-P1-03 (`post-recovery-readiness.yml`); treat it as in-flight until merged.
+- `main` resolves to `21f54a429713923865b531e50ed5b2cf98c2f6bd` (includes H-P0 foundation gates PR #1506,
+  H-P1-01 PR #1508, H-P1-02 PR #1509, and H-P1-03 PR #1510).
 - Database authorization remains release-blocking until the target environment passes ADR 0007's automated and
   manual exit criteria with restricted evidence and a public redacted result (H-P0-04 Partially satisfied).
 - Production-scale capacity, repeated immutable promotion, and domain-neutral reuse remain unproven.
@@ -92,7 +91,7 @@ Primary authorities:
 - **Dependencies or blockers:** Selected release SHA; target environment; database authorization closure; named
   operators; fresh hosted and restore outputs.
 - **Evidence and provenance:** The current-state strategy and enterprise-readiness index both preserve fresh-evidence
-  requirements for later releases. Hardening automation through H-P1-02 is on `main`; H-P1-03 is open as PR #1510.
+  requirements for later releases. Hardening automation through H-P1-03 is on `main`.
 - **Next action and completion test:** Promote the same immutable artefact through the governed path and obtain a
   complete evidence ledger with durable persisted startup, scanner review, operator sign-off, rollback, and restore
   proof.
@@ -319,9 +318,9 @@ Primary authorities:
   - PR #1506 — P0 foundation gates (`cabb8222` lineage on `main`)
   - PR #1508 — H-P1-01 `--assets-smoke` with `--require-persistence` (`5c507f6c`)
   - PR #1509 — H-P1-02 `production-promotion.yml` twin (`74c5451a`)
-- **Evidence and provenance:** Merged history on `main`; evidence pack / board rows for H-P1-01 and H-P1-02 marked
+  - PR #1510 — H-P1-03 post-recovery readiness re-smoke dispatch recipe and artifacts (`21f54a42`)
+- **Evidence and provenance:** Merged history on `main`; evidence pack / board rows for H-P1-01 through H-P1-03 marked
   Satisfied - automated. H-P0-04 remains Partially satisfied pending target-environment redacted PASS.
-- **In flight:** PR #1510 — H-P1-03 post-recovery readiness re-smoke dispatch recipe + artifacts.
 - **Last updated:** 2026-07-21
 
 ## Deferred work
@@ -361,8 +360,9 @@ Primary authorities:
 - Durable graph load, startup provenance, promotion checking, recovery control plane, API contracts, governance, DR
   documentation, and release-evidence mechanisms exist in the repository.
 - RC1 has candidate-specific approved hosted and restore evidence.
-- `main` is `74c5451acbb462b2a5923eaac1d600f780824e07` at this cutoff (H-P0 foundation, H-P1-01, H-P1-02 merged).
-- PR #1510 (H-P1-03 post-recovery re-smoke) is open at ledger update time.
+- `main` is `21f54a429713923865b531e50ed5b2cf98c2f6bd` at this cutoff (H-P0 foundation, H-P1-01,
+  H-P1-02, and H-P1-03 merged).
+- PR #1510 merged H-P1-03 post-recovery re-smoke into `main` before this ledger landed.
 
 ### Governing constraints
 
@@ -379,8 +379,8 @@ Primary authorities:
 Close FPC-2026-07-21-01: execute and evidence the ADR 0007 hosted database authorization contract in staging. This is
 the nearest release blocker and a prerequisite for credible sensitive-domain or enterprise positioning.
 
-Repository automation follow-through (merge #1510 / H-P1-03, then H-P1-04/H-P1-05 as scoped) supports
-FPC-2026-07-21-02 but does not substitute for live authorization closure.
+Repository automation follow-through (H-P1-04/H-P1-05 as scoped) supports FPC-2026-07-21-02 but does not
+substitute for live authorization closure.
 
 ### Completion test
 
@@ -393,14 +393,14 @@ time-bounded exception.
 
 ### Sources reviewed
 
-- Repository `main` through `74c5451acbb462b2a5923eaac1d600f780824e07` on 2026-07-21.
+- Repository `main` through `21f54a429713923865b531e50ed5b2cf98c2f6bd` on 2026-07-21.
 - Repository agent instructions and production-architecture declaration.
 - Enterprise-readiness index, audit, roadmap, PR board, validation-gap audit, release checklist, release evidence pack,
   hosted staging baseline, operational evidence framework, drill and scale-validation documents, and risk register.
 - ADRs and governance authorities referenced by those indexes, including ADRs 0001, 0002, 0005, 0006, and 0007.
 - RC1 committed evidence record and its repository companion issue record.
 - Current-state strategy, claims taxonomy, and Big Read chronology.
-- Merged hardening PRs #1506, #1508, #1509 and open PR #1510.
+- Merged hardening PRs #1506, #1508, #1509, and #1510.
 - Available ChatGPT continuity context covering the enterprise-readiness program, PR #1096 onward, RC1 evidence work,
   hosted startup incidents, audit completion, and agreed future-work discussions.
 
