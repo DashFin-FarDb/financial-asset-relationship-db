@@ -15,6 +15,30 @@ import pytest
 SCRIPT_PATH = Path(__file__).resolve().parents[2] / "scripts" / "check_hosted_readiness.py"
 
 
+def _require_equal(actual: Any, expected: Any, label: str) -> None:
+    """Fail a test when two values differ without using bare assert."""
+    if actual != expected:
+        pytest.fail(f"{label} expected {expected!r}, got {actual!r}")
+
+
+def _require_same(actual: Any, expected: Any, label: str) -> None:
+    """Fail a test when two values are not the same singleton."""
+    if actual is not expected:
+        pytest.fail(f"{label} expected {expected!r}, got {actual!r}")
+
+
+def _require_in(member: Any, container: Any, label: str) -> None:
+    """Fail a test when a member is missing from a container."""
+    if member not in container:
+        pytest.fail(f"{label} missing {member!r}")
+
+
+def _require_not_in(member: Any, container: Any, label: str) -> None:
+    """Fail a test when a member is unexpectedly present in a container."""
+    if member in container:
+        pytest.fail(f"{label} unexpectedly contains {member!r}")
+
+
 def _load_script() -> ModuleType:
     """Load the smoke-check script as a module for unit testing."""
     spec = importlib.util.spec_from_file_location("check_hosted_readiness", SCRIPT_PATH)
@@ -783,13 +807,14 @@ def test_main_json_outputs_machine_readable_success(capsys: pytest.CaptureFixtur
     assert data["status"] == "passed"
     assert data["base_url_label"] == "staging-api"
     assert data["require_persistence"] is False
-    assert data["assets_smoke"] is False
-    assert "assets_smoke" not in data["checks"]
+    _require_same(data["assets_smoke"], False, "assets_smoke")
+    _require_not_in("assets_smoke", data["checks"], "checks")
     assert data["checks"]["liveness"] == {"passed": True, "failures": []}
     assert data["checks"]["detailed_readiness"] == {"passed": True, "failures": []}
     assert data["observed_fields"]["graph.persistence_loaded"] is True
     assert data["observed_fields"]["graph.startup_source"] == "persisted"
-    assert not any(key.startswith("assets.") for key in data["observed_fields"])
+    if any(key.startswith("assets.") for key in data["observed_fields"]):
+        pytest.fail("observed_fields unexpectedly contains assets.* keys")
     assert "example.com" not in captured.out
 
 
@@ -839,7 +864,7 @@ def test_main_json_outputs_machine_readable_failure(capsys: pytest.CaptureFixtur
             payload["graph"]["startup_source"] = "sample_data"
             return 200, payload
         if url.endswith("/api/assets?per_page=1"):
-            assert allowed_query == "per_page=1"
+            _require_equal(allowed_query, "per_page=1", "allowed_query")
             return 200, {"items": [], "total": 0, "page": 1, "per_page": 1, "hasMore": False}
         raise AssertionError(f"unexpected URL: {url}")
 
@@ -872,11 +897,11 @@ def test_main_json_outputs_machine_readable_failure(capsys: pytest.CaptureFixtur
     assert (
         "/api/health/detailed graph.persistence_loaded is not true" in data["checks"]["detailed_readiness"]["failures"]
     )
-    assert data["checks"]["assets_smoke"]["passed"] is False
-    assert "/api/assets total is less than 1" in data["checks"]["assets_smoke"]["failures"]
-    assert "/api/assets items list is empty" in data["checks"]["assets_smoke"]["failures"]
+    _require_same(data["checks"]["assets_smoke"]["passed"], False, "assets_smoke.passed")
+    _require_in("/api/assets total is less than 1", data["checks"]["assets_smoke"]["failures"], "assets_smoke.failures")
+    _require_in("/api/assets items list is empty", data["checks"]["assets_smoke"]["failures"], "assets_smoke.failures")
     assert data["observed_fields"]["graph.persistence_loaded"] is False
     assert data["observed_fields"]["graph.startup_source"] == "sample_data"
-    assert data["observed_fields"]["assets.total"] == 0
-    assert data["observed_fields"]["assets.item_count"] == 0
+    _require_equal(data["observed_fields"]["assets.total"], 0, "assets.total")
+    _require_equal(data["observed_fields"]["assets.item_count"], 0, "assets.item_count")
     assert "example.com" not in captured.out
