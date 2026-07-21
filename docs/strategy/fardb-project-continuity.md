@@ -192,7 +192,9 @@ Primary authorities:
 - **Decision or objective:** Separate liveness from readiness, add hosted smoke checking, support PostgreSQL URL
   handling, and prove graph save/load fidelity including stale-row removal and legacy relationship expansion.
 - **Repository scope:** PRs #1096, #1100, #1103, #1107, #1108, #1114, and #1119.
-- **Evidence and provenance:** Enterprise-readiness index, roadmap, audit, repository tests, and merged history.
+- **Evidence and provenance:** [Enterprise Readiness Index](../enterprise-readiness-index.md),
+  [roadmap](../roadmap/enterprise-readiness-roadmap.md),
+  [audit](../audits/enterprise-readiness-audit.md), repository tests, and merged history.
 - **Last updated:** 2026-07-21
 
 ### FPC-2026-05-15-01 — Rebuild and recovery control plane made explicit
@@ -228,7 +230,9 @@ Primary authorities:
 - **Repository scope:** PRs #1287 through #1301 and their canonical audit, roadmap, board, checklist, and evidence pack.
 - **Rationale and constraints:** Durable persistence gates restart, promotion, and DR; one PR equals one decision.
 - **Evidence and provenance:** [Enterprise Readiness Index](../enterprise-readiness-index.md),
-  [audit](../audits/enterprise-readiness-audit.md), roadmap, PR board, and merged implementation.
+  [audit](../audits/enterprise-readiness-audit.md),
+  [roadmap](../roadmap/enterprise-readiness-roadmap.md),
+  [PR board](../roadmap/enterprise-readiness-pr-board.md), and merged implementation.
 - **Last updated:** 2026-07-21
 
 ### FPC-2026-06-27-01 — Release evidence became a canonical operating discipline
@@ -340,9 +344,9 @@ Primary authorities:
    evidence says otherwise (FPC-2026-07-21-01 / H-P0-04).
 2. **Current-release identity:** RC1 is approved for its June 2026 SHA. No later SHA inherits that approval. Select the
    next immutable candidate before claiming a current enterprise release.
-3. **Documentation freshness:** The enterprise-readiness index dated 2026-07-15 predates PR #1482 and the 2026-07-20
-   through 2026-07-21 hardening sequence. Reconcile its implementation inventory when the next release record is
-   prepared.
+3. **Documentation freshness:** The [Enterprise Readiness Index](../enterprise-readiness-index.md) dated 2026-07-15
+   predates PR #1482 and the 2026-07-20 through 2026-07-21 hardening sequence. Reconcile its implementation inventory
+   when the next release record is prepared.
 4. **Tracker vs ledger:** Active commitments in this ledger may outlive or precede open GitHub issues/PRs. Empty or
    sparse trackers are not evidence that release gates are satisfied.
 5. **Product category decision:** The governed assertion model is a recommended next decision, not yet an accepted ADR
