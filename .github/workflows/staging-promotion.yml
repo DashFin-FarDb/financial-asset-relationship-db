@@ -52,12 +52,14 @@ jobs:
           FARDB_UNTRUSTED_DATABASE_ROLES: ${{ secrets.FARDB_UNTRUSTED_DATABASE_ROLES }}
         run: |
           if [ -z "${DATABASE_URL}${ASSET_GRAPH_DATABASE_URL}${COORDINATION_DATABASE_URL}${POSTGRES_URL}" ]; then
-            echo "No database URL secrets configured; relying on evidence-file db_authz marker (H-P0-04)."
-            echo '{"status":"skipped","reason":"no_database_url_configured"}' > db-authz-output.json
-            exit 0
+            echo '{"status":"failed","reason":"no_database_url_configured"}' > db-authz-output.json
+            echo "H-P0-04 requires live database authorization secrets on the staging Environment."
+            echo "Configure DATABASE_URL and/or ASSET_GRAPH_DATABASE_URL (and optional COORDINATION/POSTGRES) secrets."
+            exit 1
           fi
           set +e
-          python scripts/check_database_authorization.py > db-authz-log.txt 2>&1
+          # Bounded stdout/stderr only (control ids/messages). Do not upload raw logs as artifacts.
+          python scripts/check_database_authorization.py
           code=$?
           if [ "$code" -eq 0 ]; then
             echo '{"status":"passed"}' > db-authz-output.json
@@ -110,6 +112,7 @@ jobs:
 
       - name: Prepare Artifact Placeholders
         if: always()
+        working-directory: ${{ github.workspace }}
         run: |
           if [ ! -f readiness-output.json ]; then
             echo '{"status":"skipped","reason":"hosted_readiness_not_run"}' > readiness-output.json
@@ -117,7 +120,6 @@ jobs:
           if [ ! -f db-authz-output.json ]; then
             echo '{"status":"skipped","reason":"db_authz_not_run"}' > db-authz-output.json
           fi
-          touch db-authz-log.txt
 
       - name: Upload Artifacts
         if: always()
@@ -127,5 +129,4 @@ jobs:
           path: |
             readiness-output.json
             db-authz-output.json
-            db-authz-log.txt
             promotion_audit.log

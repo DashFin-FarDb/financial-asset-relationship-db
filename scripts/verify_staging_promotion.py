@@ -280,12 +280,33 @@ TOPOLOGY_MARKER_PATTERN = re.compile(
     r"topology\s*:\s*jobs\s*=\s*asset_graph\s*;\s*locks\s*=\s*coordination",
     re.IGNORECASE,
 )
+# Bare PASS is rejected; require an opaque run/artifact reference after '|'.
 DB_AUTHZ_PASS_PATTERN = re.compile(
-    r"^\s*db_authz\s*:\s*PASS(?:\s*\|\s*\S[^\n]*)?\s*$",
+    r"^\s*db_authz\s*:\s*PASS\s*\|\s*(\S[^\n]*?)\s*$",
     re.IGNORECASE | re.MULTILINE,
 )
 HARDENING_IDS_LINE_PATTERN = re.compile(r"hardening_ids\s*:\s*([^\n]+)", re.IGNORECASE)
-HARDENING_ID_TOKEN_PATTERN = re.compile(r"(?<![A-Z0-9-])H-P0-\d{2}(?![A-Z0-9-])")
+HARDENING_ID_TOKEN_PATTERN = re.compile(r"^H-P0-\d{2}$")
+PLACEHOLDER_OPAQUE_REFS = frozenset(
+    {
+        "REPLACE-WITH-WORKFLOW-RUN-ID",
+        "REPLACE_WITH_WORKFLOW_RUN_ID",
+        "<WORKFLOW-RUN-OR-OPAQUE-REF>",
+        "<REPLACE-WITH-WORKFLOW-RUN-ID>",
+    }
+)
+
+
+def _hardening_id_tokens(ids_blob: str) -> set[str]:
+    """Split a hardening_ids value on commas and keep exact H-P0-NN tokens."""
+    tokens: set[str] = set()
+    for raw_token in ids_blob.split(","):
+        # Drop trailing `# ...` comments on a comma segment before matching.
+        without_comment = raw_token.split("#", 1)[0]
+        token = without_comment.strip().upper()
+        if HARDENING_ID_TOKEN_PATTERN.fullmatch(token):
+            tokens.add(token)
+    return tokens
 
 
 def _check_hardening_foundation(content: str, missing: List[str]) -> None:
@@ -294,7 +315,7 @@ def _check_hardening_foundation(content: str, missing: List[str]) -> None:
     if ids_match is None:
         missing.append("hardening_ids marker with P0 foundation IDs")
     else:
-        ids_tokens = set(HARDENING_ID_TOKEN_PATTERN.findall(ids_match.group(1).upper()))
+        ids_tokens = _hardening_id_tokens(ids_match.group(1))
         missing_ids = [item_id for item_id in REQUIRED_HARDENING_IDS if item_id not in ids_tokens]
         if missing_ids:
             missing.append("hardening_ids missing required IDs: " + ", ".join(missing_ids))
@@ -302,8 +323,13 @@ def _check_hardening_foundation(content: str, missing: List[str]) -> None:
     if TOPOLOGY_MARKER_PATTERN.search(content) is None:
         missing.append("topology: jobs=asset_graph; locks=coordination")
 
-    if DB_AUTHZ_PASS_PATTERN.search(content) is None:
-        missing.append("db_authz: PASS (optional opaque ref allowed)")
+    authz_match = DB_AUTHZ_PASS_PATTERN.search(content)
+    if authz_match is None:
+        missing.append("db_authz: PASS|<opaque-ref> (bare PASS is not accepted)")
+    else:
+        opaque_ref = authz_match.group(1).strip()
+        if opaque_ref.upper() in PLACEHOLDER_OPAQUE_REFS or opaque_ref.startswith("<"):
+            missing.append("db_authz opaque ref must be a real workflow run/artifact id, not a template placeholder")
 
 
 def verify_staging_promotion(evidence_file: str) -> None:

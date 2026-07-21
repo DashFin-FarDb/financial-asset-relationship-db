@@ -177,7 +177,7 @@ For hosted deployments, this is usually performed by stopping traffic, disabling
 
 ### 2. Verify no active rebuild is in progress
 
-Use `/api/health/detailed` if the application is still reachable and safe to query. If the application is offline, query the effective Coordination DB directly:
+Use `/api/health/detailed` if the application is still reachable and safe to query. If the application is offline, query **`rebuild_jobs` on the Asset Graph (domain) boundary** (`ASSET_GRAPH_DATABASE_URL`), not the Coordination DB:
 
 ```sql
 SELECT job_id, status, active_worker_id, last_heartbeat_at, updated_at
@@ -190,7 +190,7 @@ If any active rebuild exists, prefer to wait for it to complete or fail before r
 
 ### 3. Handle live distributed locks before restore
 
-Inspect the rebuild lock in the effective Coordination DB:
+Inspect the rebuild lock on the **coordination** boundary (`COORDINATION_DATABASE_URL`, else `DATABASE_URL` / `POSTGRES_URL` fallback):
 
 ```sql
 SELECT lock_name, holder_id, expires_at, updated_at

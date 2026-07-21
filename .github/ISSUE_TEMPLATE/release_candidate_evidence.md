@@ -136,13 +136,17 @@ Reference: [Hardening evidence markers](https://github.com/DashFin-FarDb/financi
 ```text
 hardening_ids: H-P0-01, H-P0-02, H-P0-03, H-P0-04, H-P0-06
 topology: jobs=asset_graph; locks=coordination
-db_authz: PASS
+db_authz: PASS|<replace-with-workflow-run-id>
 ```
+
+Replace the `db_authz` placeholder with a real opaque ref from a workflow that ran
+`scripts/check_database_authorization.py` (for example `db_authz: PASS|1506-run-123456`).
+Bare `db_authz: PASS` is rejected by `verify_staging_promotion.py`. Do not leave the template placeholder.
 
 - [ ] H-P0-01 topology marker present (`jobs=asset_graph; locks=coordination`)
 - [ ] H-P0-02 table-scoped restore cleanup confirmed on job + lock boundaries
 - [ ] H-P0-03 `release-evidence-verify` run with `hardening_tier=P0` (strict; hosted must PASS)
-- [ ] H-P0-04 `db_authz: PASS` (or `PASS|<opaque-ref>`) attached; no topology/secrets leaked
+- [ ] H-P0-04 live DB authorization passed in staging-promotion (secrets required); evidence has `db_authz: PASS|<opaque-ref>`
 - [ ] H-P0-06 this packet is SHA-bound to the release commit above (RC1 not reused as CURRENT)
 - [ ] Release-evidence / staging-promotion workflow run URL attached:
 

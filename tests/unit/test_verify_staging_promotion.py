@@ -19,8 +19,9 @@ from scripts.verify_staging_promotion import (
 HARDENING_MARKERS = (
     "hardening_ids: H-P0-01, H-P0-02, H-P0-03, H-P0-04, H-P0-06\n"
     "topology: jobs=asset_graph; locks=coordination\n"
-    "db_authz: PASS\n"
+    "db_authz: PASS|run-123\n"
 )
+DB_AUTHZ_REQUIRED_MSG = "db_authz: PASS|<opaque-ref> (bare PASS is not accepted)"
 
 
 @pytest.mark.unit
@@ -213,16 +214,37 @@ def test_check_hardening_foundation_accepts_required_markers():
 
 
 @pytest.mark.unit
-def test_check_hardening_foundation_accepts_db_authz_opaque_ref():
-    """Test that db_authz PASS|<ref> is accepted without a plain PASS line."""
+def test_check_hardening_foundation_rejects_bare_db_authz_pass():
+    """Test that bare db_authz: PASS is rejected without an opaque ref."""
     missing = []
     _check_hardening_foundation(
         "hardening_ids: H-P0-01, H-P0-02, H-P0-03, H-P0-04, H-P0-06\n"
         "topology: jobs=asset_graph; locks=coordination\n"
-        "db_authz: PASS|run-123\n",
+        "db_authz: PASS\n",
         missing,
     )
-    assert not missing
+    assert DB_AUTHZ_REQUIRED_MSG in missing
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    "db_authz_line",
+    [
+        "db_authz: PASS|<replace-with-workflow-run-id>\n",
+        "db_authz: PASS|<workflow-run-or-opaque-ref>\n",
+        "db_authz: PASS|REPLACE-WITH-WORKFLOW-RUN-ID\n",
+    ],
+)
+def test_check_hardening_foundation_rejects_placeholder_opaque_ref(db_authz_line):
+    """Test that template placeholder opaque refs are rejected."""
+    missing = []
+    _check_hardening_foundation(
+        "hardening_ids: H-P0-01, H-P0-02, H-P0-03, H-P0-04, H-P0-06\n"
+        "topology: jobs=asset_graph; locks=coordination\n"
+        f"{db_authz_line}",
+        missing,
+    )
+    assert "db_authz opaque ref must be a real workflow run/artifact id, not a template placeholder" in missing
 
 
 @pytest.mark.unit
@@ -232,7 +254,7 @@ def test_check_hardening_foundation_requires_ids_topology_and_db_authz():
     _check_hardening_foundation("no hardening markers here", missing)
     assert "hardening_ids marker with P0 foundation IDs" in missing
     assert "topology: jobs=asset_graph; locks=coordination" in missing
-    assert "db_authz: PASS (optional opaque ref allowed)" in missing
+    assert DB_AUTHZ_REQUIRED_MSG in missing
 
     missing = []
     _check_hardening_foundation(
@@ -240,13 +262,16 @@ def test_check_hardening_foundation_requires_ids_topology_and_db_authz():
         missing,
     )
     assert any("hardening_ids missing required IDs" in item for item in missing)
-    assert "db_authz: PASS (optional opaque ref allowed)" in missing
+    assert DB_AUTHZ_REQUIRED_MSG in missing
 
 
 @pytest.mark.unit
-@pytest.mark.parametrize("db_authz_line", ["db_authz: PASSED\n", "db_authz: PASSWORD\n", "db_authz: PASSAGE\n"])
+@pytest.mark.parametrize(
+    "db_authz_line",
+    ["db_authz: PASSED\n", "db_authz: PASSWORD\n", "db_authz: PASSAGE\n", "db_authz: PASS\n"],
+)
 def test_check_hardening_foundation_rejects_non_exact_db_authz_pass(db_authz_line):
-    """Test that db_authz only accepts exact PASS markers."""
+    """Test that db_authz only accepts PASS|<opaque-ref> markers."""
     missing = []
     _check_hardening_foundation(
         "hardening_ids: H-P0-01, H-P0-02, H-P0-03, H-P0-04, H-P0-06\n"
@@ -254,7 +279,7 @@ def test_check_hardening_foundation_rejects_non_exact_db_authz_pass(db_authz_lin
         f"{db_authz_line}",
         missing,
     )
-    assert "db_authz: PASS (optional opaque ref allowed)" in missing
+    assert DB_AUTHZ_REQUIRED_MSG in missing
 
 
 @pytest.mark.unit
@@ -266,10 +291,23 @@ def test_check_hardening_foundation_requires_exact_hardening_ids(invalid_id):
         "hardening_ids: H-P0-01, H-P0-02, H-P0-03, H-P0-04, "
         f"{invalid_id}\n"
         "topology: jobs=asset_graph; locks=coordination\n"
-        "db_authz: PASS\n",
+        "db_authz: PASS|run-123\n",
         missing,
     )
     assert "hardening_ids missing required IDs: H-P0-06" in missing
+
+
+@pytest.mark.unit
+def test_check_hardening_foundation_ignores_comment_text_after_comma_tokens():
+    """Test that comma tokenization keeps only exact ID tokens."""
+    missing = []
+    _check_hardening_foundation(
+        "hardening_ids: H-P0-01, H-P0-02, H-P0-03, H-P0-04, H-P0-06 # H-P0-99 elsewhere\n"
+        "topology: jobs=asset_graph; locks=coordination\n"
+        "db_authz: PASS|run-123\n",
+        missing,
+    )
+    assert not missing
 
 
 @pytest.mark.unit

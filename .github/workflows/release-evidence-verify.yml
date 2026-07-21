@@ -221,7 +221,8 @@ jobs:
             exit 0
           fi
           set +e
-          python scripts/check_database_authorization.py > db-authz-log.txt 2>&1
+          # Bounded stdout/stderr only (control ids/messages). Do not upload raw logs as artifacts.
+          python scripts/check_database_authorization.py
           code=$?
           if [ "$code" -eq 0 ]; then
             echo '{"status":"passed"}' > db-authz-output.json
@@ -243,7 +244,6 @@ jobs:
           if [ ! -f db-authz-output.json ]; then
             echo '{"status":"skipped","reason":"db_authz_not_run"}' > db-authz-output.json
           fi
-          touch db-authz-log.txt
 
       - name: Upload Artifacts
         if: always()
@@ -255,7 +255,6 @@ jobs:
             release-source/readiness-output.json
             release-source/docs-readiness.json
             release-source/db-authz-output.json
-            release-source/db-authz-log.txt
 
       - name: Assert All Gates Passed
         if: always()

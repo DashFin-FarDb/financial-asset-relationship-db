@@ -360,10 +360,12 @@ Staging promotion evidence files must include these markers (case-insensitive) f
 ```text
 hardening_ids: H-P0-01, H-P0-02, H-P0-03, H-P0-04, H-P0-06
 topology: jobs=asset_graph; locks=coordination
-db_authz: PASS
+db_authz: PASS|<opaque-workflow-run-or-artifact-id>
 ```
 
-`db_authz: PASS` may be followed by an opaque reference (for example `db_authz: PASS|run-123`). Do not embed
+`db_authz` **requires** `PASS|<opaque-ref>` (bare `PASS` is rejected). The opaque ref must identify a real
+authorization check run (for example a staging-promotion workflow run id). Staging promotion fails closed when
+database URL secrets are missing so H-P0-04 cannot be satisfied by a copied template alone. Do not embed
 connection strings, role inventories, or topology details from the authorization checker.
 
 Release-evidence dispatch: set `hardening_tier=P0` (default) so hosted readiness cannot SKIP under the Assert path.
