@@ -9,7 +9,7 @@ import math
 import socket
 import sys
 from collections.abc import Callable
-from typing import Any
+from typing import Any, TypeGuard
 from urllib.error import HTTPError, URLError
 from urllib.parse import ParseResult, urljoin, urlparse
 from urllib.request import HTTPRedirectHandler, Request, build_opener
@@ -128,9 +128,11 @@ def _validate_request_query(parsed: ParseResult, allowed_query: str | None) -> s
     """Return an error when the request query is absent from the allowlist."""
     if parsed.params or parsed.fragment:
         return "request URL must not include params or fragments"
-    if not parsed.query:
+    if allowed_query is None:
+        if parsed.query:
+            return "request URL query is not in the smoke-check allowlist"
         return None
-    if allowed_query is None or parsed.query != allowed_query:
+    if parsed.query != allowed_query:
         return "request URL query is not in the smoke-check allowlist"
     return None
 
@@ -449,6 +451,64 @@ def _has_more_value(payload: dict[str, Any]) -> Any:
     return payload.get("has_more")
 
 
+def _is_int(value: Any) -> TypeGuard[int]:
+    """Return whether value is an int that is not a bool subclass instance."""
+    return isinstance(value, int) and not isinstance(value, bool)
+
+
+def _is_non_negative_int(value: Any) -> TypeGuard[int]:
+    """Return whether value is a non-negative integer."""
+    return _is_int(value) and value >= 0
+
+
+def _is_positive_int(value: Any) -> TypeGuard[int]:
+    """Return whether value is a positive integer."""
+    return _is_int(value) and value >= 1
+
+
+def _record_assets_smoke_shape_failures(payload: dict[str, Any], failures: list[str]) -> None:
+    """Append assets smoke contract failures for response shape and emptiness."""
+    items = payload.get("items")
+    total = payload.get("total")
+    page = payload.get("page")
+    per_page = payload.get("per_page")
+    has_more = _has_more_value(payload)
+
+    if not isinstance(items, list):
+        failures.append("/api/assets items field is not a list")
+    if not _is_non_negative_int(total):
+        failures.append("/api/assets total field is not a non-negative integer")
+    if not _is_positive_int(page):
+        failures.append("/api/assets page field is not a positive integer")
+    if not _is_positive_int(per_page):
+        failures.append("/api/assets per_page field is not a positive integer")
+    if not isinstance(has_more, bool):
+        failures.append("/api/assets hasMore field is not a boolean")
+    if _is_non_negative_int(total) and total < 1:
+        failures.append("/api/assets total is less than 1")
+    if isinstance(items, list) and len(items) < 1:
+        failures.append("/api/assets items list is empty")
+
+
+def _collect_assets_smoke_observed(payload: dict[str, Any]) -> dict[str, Any]:
+    """Collect bounded observed fields from an assets smoke response."""
+    observed: dict[str, Any] = {}
+    items = payload.get("items")
+    total = payload.get("total")
+    per_page = payload.get("per_page")
+    has_more = _has_more_value(payload)
+
+    if _is_int(total):
+        observed["assets.total"] = total
+    if isinstance(items, list):
+        observed["assets.item_count"] = len(items)
+    if _is_int(per_page):
+        observed["assets.per_page"] = per_page
+    if isinstance(has_more, bool):
+        observed["assets.has_more"] = has_more
+    return observed
+
+
 def _build_assets_smoke_report(
     base_url: str,
     timeout: float,
@@ -462,39 +522,8 @@ def _build_assets_smoke_report(
         failures.append(f"/api/assets returned HTTP {status_code}")
         return failures, {}
 
-    items = payload.get("items")
-    total = payload.get("total")
-    page = payload.get("page")
-    per_page = payload.get("per_page")
-    has_more = _has_more_value(payload)
-
-    if not isinstance(items, list):
-        failures.append("/api/assets items field is not a list")
-    if not isinstance(total, int) or isinstance(total, bool) or total < 0:
-        failures.append("/api/assets total field is not a non-negative integer")
-    if not isinstance(page, int) or isinstance(page, bool) or page < 1:
-        failures.append("/api/assets page field is not a positive integer")
-    if not isinstance(per_page, int) or isinstance(per_page, bool) or per_page < 1:
-        failures.append("/api/assets per_page field is not a positive integer")
-    if not isinstance(has_more, bool):
-        failures.append("/api/assets hasMore field is not a boolean")
-
-    if isinstance(total, int) and not isinstance(total, bool) and total < 1:
-        failures.append("/api/assets total is less than 1")
-    if isinstance(items, list) and len(items) < 1:
-        failures.append("/api/assets items list is empty")
-
-    observed: dict[str, Any] = {}
-    if isinstance(total, int) and not isinstance(total, bool):
-        observed["assets.total"] = total
-    if isinstance(items, list):
-        observed["assets.item_count"] = len(items)
-    if isinstance(per_page, int) and not isinstance(per_page, bool):
-        observed["assets.per_page"] = per_page
-    if isinstance(has_more, bool):
-        observed["assets.has_more"] = has_more
-
-    return failures, observed
+    _record_assets_smoke_shape_failures(payload, failures)
+    return failures, _collect_assets_smoke_observed(payload)
 
 
 def check_assets_smoke(base_url: str, timeout: float) -> list[str]:
@@ -553,6 +582,90 @@ def _run_named_check_json(
         return [f"{label} check failed: unexpected error"], True
 
 
+def _safe_detailed_report(
+    base_url: str,
+    timeout: float,
+    require_persistence: bool,
+) -> tuple[list[str], dict[str, Any]]:
+    """Build a detailed readiness report, converting exceptions to failures."""
+    try:
+        return _build_detailed_readiness_report(base_url, timeout, require_persistence)
+    except RuntimeError as exc:
+        return [f"Detailed readiness check failed: {exc}"], {}
+    except Exception:
+        return ["Detailed readiness check failed: unexpected error"], {}
+
+
+def _safe_assets_smoke_report(
+    base_url: str,
+    timeout: float,
+) -> tuple[list[str], dict[str, Any]]:
+    """Build an assets smoke report, converting exceptions to failures."""
+    try:
+        return _build_assets_smoke_report(base_url, timeout)
+    except RuntimeError as exc:
+        return [f"Assets smoke check failed: {exc}"], {}
+    except Exception:
+        return ["Assets smoke check failed: unexpected error"], {}
+
+
+def _skipped_checks_after_liveness_failure(
+    assets_smoke: bool,
+) -> tuple[list[str], list[str], dict[str, Any]]:
+    """Return skipped follow-on check failures when liveness already failed."""
+    detailed_failures = ["Detailed readiness check not run because liveness check failed"]
+    assets_failures = ["Assets smoke check not run because liveness check failed"] if assets_smoke else []
+    return detailed_failures, assets_failures, {}
+
+
+def _run_checks_after_liveness(
+    base_url: str,
+    timeout: float,
+    require_persistence: bool,
+    assets_smoke: bool,
+) -> tuple[list[str], list[str], dict[str, Any]]:
+    """Run detailed readiness and optional assets smoke after liveness succeeds."""
+    detailed_failures, observed_fields = _safe_detailed_report(
+        base_url,
+        timeout,
+        require_persistence,
+    )
+    assets_failures: list[str] = []
+    if assets_smoke:
+        assets_failures, assets_observed = _safe_assets_smoke_report(base_url, timeout)
+        observed_fields.update(assets_observed)
+    return detailed_failures, assets_failures, observed_fields
+
+
+def _build_json_checks_payload(
+    *,
+    liveness_failures: list[str],
+    detailed_failures: list[str],
+    assets_failures: list[str],
+    assets_smoke: bool,
+    require_persistence: bool,
+    base_url_label: str,
+    observed_fields: dict[str, Any],
+) -> dict[str, Any]:
+    """Assemble the machine-readable hosted readiness JSON payload."""
+    checks: dict[str, Any] = {
+        "liveness": {"passed": not liveness_failures, "failures": liveness_failures},
+        "detailed_readiness": {"passed": not detailed_failures, "failures": detailed_failures},
+    }
+    if assets_smoke:
+        checks["assets_smoke"] = {"passed": not assets_failures, "failures": assets_failures}
+
+    all_failures = [*liveness_failures, *detailed_failures, *assets_failures]
+    return {
+        "status": "passed" if not all_failures else "failed",
+        "base_url_label": base_url_label,
+        "require_persistence": require_persistence,
+        "assets_smoke": assets_smoke,
+        "checks": checks,
+        "observed_fields": observed_fields,
+    }
+
+
 def _run_json_checks(
     base_url: str,
     timeout: float,
@@ -567,55 +680,27 @@ def _run_json_checks(
         timeout,
         check_liveness,
     )
-    detailed_failures: list[str]
-    assets_failures: list[str] = []
-    observed_fields: dict[str, Any]
-
     if liveness_had_runtime_error:
-        detailed_failures = ["Detailed readiness check not run because liveness check failed"]
-        if assets_smoke:
-            assets_failures = ["Assets smoke check not run because liveness check failed"]
-        observed_fields = {}
+        detailed_failures, assets_failures, observed_fields = _skipped_checks_after_liveness_failure(assets_smoke)
     else:
-        try:
-            detailed_failures, observed_fields = _build_detailed_readiness_report(
-                base_url,
-                timeout,
-                require_persistence,
-            )
-        except RuntimeError as exc:
-            detailed_failures = [f"Detailed readiness check failed: {exc}"]
-            observed_fields = {}
-        except Exception:
-            detailed_failures = ["Detailed readiness check failed: unexpected error"]
-            observed_fields = {}
+        detailed_failures, assets_failures, observed_fields = _run_checks_after_liveness(
+            base_url,
+            timeout,
+            require_persistence,
+            assets_smoke,
+        )
 
-        if assets_smoke:
-            try:
-                assets_failures, assets_observed = _build_assets_smoke_report(base_url, timeout)
-                observed_fields.update(assets_observed)
-            except RuntimeError as exc:
-                assets_failures = [f"Assets smoke check failed: {exc}"]
-            except Exception:
-                assets_failures = ["Assets smoke check failed: unexpected error"]
-
-    all_failures = [*liveness_failures, *detailed_failures, *assets_failures]
-    checks: dict[str, Any] = {
-        "liveness": {"passed": not liveness_failures, "failures": liveness_failures},
-        "detailed_readiness": {"passed": not detailed_failures, "failures": detailed_failures},
-    }
-    if assets_smoke:
-        checks["assets_smoke"] = {"passed": not assets_failures, "failures": assets_failures}
-
-    result = {
-        "status": "passed" if not all_failures else "failed",
-        "base_url_label": base_url_label,
-        "require_persistence": require_persistence,
-        "assets_smoke": assets_smoke,
-        "checks": checks,
-        "observed_fields": observed_fields,
-    }
-    return _report_json_result(result)
+    return _report_json_result(
+        _build_json_checks_payload(
+            liveness_failures=liveness_failures,
+            detailed_failures=detailed_failures,
+            assets_failures=assets_failures,
+            assets_smoke=assets_smoke,
+            require_persistence=require_persistence,
+            base_url_label=base_url_label,
+            observed_fields=observed_fields,
+        )
+    )
 
 
 def run_checks(

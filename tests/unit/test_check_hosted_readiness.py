@@ -8,6 +8,7 @@ from collections.abc import Callable
 from pathlib import Path
 from types import ModuleType
 from typing import Any
+from urllib.parse import urlparse
 
 import pytest
 
@@ -555,106 +556,63 @@ def test_detailed_readiness_with_require_persistence_success(monkeypatch: pytest
     assert script.check_detailed_readiness("https://example.com", 5.0, require_persistence=True) == []
 
 
-def test_detailed_readiness_with_require_persistence_failures(monkeypatch: pytest.MonkeyPatch) -> None:
-    """Detailed readiness check rejects non-persistent or misconfigured payloads when require_persistence is True."""
+def _mutate_persistence_payload(mutator: Callable[[dict[str, Any]], None]) -> dict[str, Any]:
+    """Return a persistence-ready payload after applying mutator."""
+    payload = _healthy_detailed_payload_with_persistence()
+    mutator(payload)
+    return payload
+
+
+@pytest.mark.parametrize(
+    ("mutator", "expected_fragment", "forbid_fragments"),
+    [
+        (
+            lambda p: p.__setitem__("graph_persistence_configured", False),
+            "graph_persistence_configured is not true",
+            (),
+        ),
+        (lambda p: p["graph"].__setitem__("persistence_enabled", False), "graph.persistence_enabled is not true", ()),
+        (lambda p: p["graph"].__setitem__("persistence_loaded", False), "graph.persistence_loaded is not true", ()),
+        (
+            lambda p: p["graph"].__setitem__("startup_source", "sample_data"),
+            'graph.startup_source is "sample_data", expected "persisted"',
+            (),
+        ),
+        (lambda p: p["graph"].__setitem__("startup_source", None), "graph.startup_source field is missing", ()),
+        (
+            lambda p: p["graph"].__setitem__("startup_source", "untrusted_input\nwith_control_chars"),
+            'graph.startup_source is "unknown", expected "persisted"',
+            (),
+        ),
+        (
+            lambda p: p.__setitem__("graph", "not_a_dict"),
+            "graph field is not an object",
+            ("skipped", "graph_persistence_configured", "persistence_enabled"),
+        ),
+        (
+            lambda p: p.pop("graph"),
+            "graph",
+            ("graph_persistence_configured", "persistence_enabled"),
+        ),
+    ],
+)
+def test_detailed_readiness_with_require_persistence_failures(
+    monkeypatch: pytest.MonkeyPatch,
+    mutator: Callable[[dict[str, Any]], None],
+    expected_fragment: str,
+    forbid_fragments: tuple[str, ...],
+) -> None:
+    """require_persistence rejects non-persistent or misconfigured payloads."""
     script = _load_script()
 
-    # Case 1: graph_persistence_configured is false
-    def fake_get_json_no_config(url: str, timeout: float) -> tuple[int, dict[str, Any]]:
-        """Mock JSON fetch returning unconfigured persistence payload."""
-        payload = _healthy_detailed_payload_with_persistence()
-        payload["graph_persistence_configured"] = False
-        return 200, payload
+    def fake_get_json(url: str, timeout: float) -> tuple[int, dict[str, Any]]:
+        return 200, _mutate_persistence_payload(mutator)
 
-    monkeypatch.setattr(script, "_get_json", fake_get_json_no_config)
+    monkeypatch.setattr(script, "_get_json", fake_get_json)
     failures = script.check_detailed_readiness("https://example.com", 5.0, require_persistence=True)
-    assert "/api/health/detailed graph_persistence_configured is not true" in failures
-
-    # Case 2: persistence_enabled is false
-    def fake_get_json_not_enabled(url: str, timeout: float) -> tuple[int, dict[str, Any]]:
-        """Mock JSON fetch returning disabled graph persistence payload."""
-        payload = _healthy_detailed_payload_with_persistence()
-        payload["graph"]["persistence_enabled"] = False
-        return 200, payload
-
-    monkeypatch.setattr(script, "_get_json", fake_get_json_not_enabled)
-    failures = script.check_detailed_readiness("https://example.com", 5.0, require_persistence=True)
-    assert "/api/health/detailed graph.persistence_enabled is not true" in failures
-
-    # Case 3: persistence_loaded is false
-    def fake_get_json_not_loaded(url: str, timeout: float) -> tuple[int, dict[str, Any]]:
-        """Mock JSON fetch returning unloaded graph persistence payload."""
-        payload = _healthy_detailed_payload_with_persistence()
-        payload["graph"]["persistence_loaded"] = False
-        return 200, payload
-
-    monkeypatch.setattr(script, "_get_json", fake_get_json_not_loaded)
-    failures = script.check_detailed_readiness("https://example.com", 5.0, require_persistence=True)
-    assert "/api/health/detailed graph.persistence_loaded is not true" in failures
-
-    # Case 4: startup_source is not persisted
-    def fake_get_json_wrong_source(url: str, timeout: float) -> tuple[int, dict[str, Any]]:
-        """Mock JSON fetch returning incorrect startup source payload."""
-        payload = _healthy_detailed_payload_with_persistence()
-        payload["graph"]["startup_source"] = "sample_data"
-        return 200, payload
-
-    monkeypatch.setattr(script, "_get_json", fake_get_json_wrong_source)
-    failures = script.check_detailed_readiness("https://example.com", 5.0, require_persistence=True)
-    assert '/api/health/detailed graph.startup_source is "sample_data", expected "persisted"' in failures
-
-    # Case 5: startup_source is None (missing field)
-    def fake_get_json_missing_source(url: str, timeout: float) -> tuple[int, dict[str, Any]]:
-        """Mock JSON fetch returning missing startup source payload."""
-        payload = _healthy_detailed_payload_with_persistence()
-        payload["graph"]["startup_source"] = None
-        return 200, payload
-
-    monkeypatch.setattr(script, "_get_json", fake_get_json_missing_source)
-    failures = script.check_detailed_readiness("https://example.com", 5.0, require_persistence=True)
-    assert "/api/health/detailed graph.startup_source field is missing" in failures
-
-    # Case 6: startup_source has unsafe values
-    def fake_get_json_unsafe_source(url: str, timeout: float) -> tuple[int, dict[str, Any]]:
-        """Mock JSON fetch returning unsafe startup source payload."""
-        payload = _healthy_detailed_payload_with_persistence()
-        payload["graph"]["startup_source"] = "untrusted_input\nwith_control_chars"
-        return 200, payload
-
-    monkeypatch.setattr(script, "_get_json", fake_get_json_unsafe_source)
-    failures = script.check_detailed_readiness("https://example.com", 5.0, require_persistence=True)
-    assert '/api/health/detailed graph.startup_source is "unknown", expected "persisted"' in failures
-
-    # Case 7: graph is not a dict (should not append redundant persistence-gate failure message)
-    def fake_get_json_non_dict_graph(url: str, timeout: float) -> tuple[int, dict[str, Any]]:
-        """Mock JSON fetch returning non-dictionary graph payload."""
-        payload = _healthy_detailed_payload_with_persistence()
-        payload["graph"] = "not_a_dict"
-        return 200, payload
-
-    monkeypatch.setattr(script, "_get_json", fake_get_json_non_dict_graph)
-    failures = script.check_detailed_readiness("https://example.com", 5.0, require_persistence=True)
-    # The shape check should catch it:
-    assert "/api/health/detailed graph field is not an object" in failures
-    # But there should NOT be a redundant generic verification error:
-    assert not any("skipped" in f for f in failures)
-    assert not any("graph_persistence_configured" in f for f in failures)
-    assert not any("persistence_enabled" in f for f in failures)
-
-    # Case 8: graph is missing entirely from payload keys (should not double-fail or crash)
-    def fake_get_json_missing_graph(url: str, timeout: float) -> tuple[int, dict[str, Any]]:
-        """Mock JSON fetch returning payload with missing graph key."""
-        payload = _healthy_detailed_payload_with_persistence()
-        payload.pop("graph")
-        return 200, payload
-
-    monkeypatch.setattr(script, "_get_json", fake_get_json_missing_graph)
-    failures = script.check_detailed_readiness("https://example.com", 5.0, require_persistence=True)
-    # Contract check should catch it:
-    assert any("graph" in f for f in failures)
-    # But no double failures or extra errors:
-    assert not any("graph_persistence_configured" in f for f in failures)
-    assert not any("persistence_enabled" in f for f in failures)
+    assert any(expected_fragment in failure for failure in failures)
+    for fragment in forbid_fragments:
+        assert not any(fragment in failure for failure in failures)
 
 
 def test_parse_args_handles_require_persistence() -> None:
@@ -693,13 +651,7 @@ def test_assets_smoke_success(monkeypatch: pytest.MonkeyPatch) -> None:
     """Assets smoke accepts a bounded page with at least one item."""
     script = _load_script()
 
-    def fake_get_json(
-        url: str,
-        timeout: float,
-        *,
-        allowed_query: str | None = None,
-    ) -> tuple[int, dict[str, Any]]:
-        """Return a fake successful assets JSON response."""
+    def fake_get_json(url: str, timeout: float, *, allowed_query: str | None = None) -> tuple[int, dict[str, Any]]:
         assert url.endswith("/api/assets?per_page=1")
         assert allowed_query == "per_page=1"
         return 200, _healthy_assets_payload()
@@ -712,25 +664,23 @@ def test_assets_smoke_rejects_empty_page(monkeypatch: pytest.MonkeyPatch) -> Non
     """Assets smoke rejects an empty items list or zero total."""
     script = _load_script()
 
-    def fake_get_json(
-        url: str,
-        timeout: float,
-        *,
-        allowed_query: str | None = None,
-    ) -> tuple[int, dict[str, Any]]:
-        """Return an empty assets page."""
-        return 200, {
-            "items": [],
-            "total": 0,
-            "page": 1,
-            "per_page": 1,
-            "hasMore": False,
-        }
+    def fake_get_json(url: str, timeout: float, *, allowed_query: str | None = None) -> tuple[int, dict[str, Any]]:
+        return 200, {"items": [], "total": 0, "page": 1, "per_page": 1, "hasMore": False}
 
     monkeypatch.setattr(script, "_get_json", fake_get_json)
     failures = script.check_assets_smoke("https://example.com", 5.0)
     assert "/api/assets total is less than 1" in failures
     assert "/api/assets items list is empty" in failures
+
+
+def test_validate_request_query_requires_allowlisted_query_when_configured() -> None:
+    """When allowed_query is set, an empty query must fail closed."""
+    script = _load_script()
+    assert (
+        script._validate_request_query(urlparse("https://example.com/api/assets"), "per_page=1")
+        == "request URL query is not in the smoke-check allowlist"
+    )
+    assert script._validate_request_query(urlparse("https://example.com/api/assets?per_page=1"), "per_page=1") is None
 
 
 def test_require_persistence_auto_enables_assets_smoke(
