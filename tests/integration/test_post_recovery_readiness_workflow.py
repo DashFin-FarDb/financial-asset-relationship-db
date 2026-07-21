@@ -147,6 +147,11 @@ def test_post_recovery_uploads_context_named_artifact(
     assert len(upload_steps) == 1
     assert upload_steps[0].get("if") == "always()"
     assert upload_steps[0]["with"]["name"] == "${{ inputs.recovery_context }}-readiness"
+    # Whole-file scan: catch regressions anywhere in the workflow text, not only
+    # the already-correct upload-step expression (which would be tautological).
+    assert "staging-readiness" not in post_recovery_raw
+    assert "production-readiness" not in post_recovery_raw
+    assert "release-evidence" not in post_recovery_raw
     assert FORBIDDEN_ARTIFACT_NAME_RE.search(post_recovery_raw) is None
     assert re.search(
         r"(?m)^\s*name:\s*\$\{\{\s*inputs\.recovery_context\s*\}\}-readiness\s*$",
