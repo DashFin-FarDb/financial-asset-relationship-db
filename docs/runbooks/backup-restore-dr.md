@@ -447,6 +447,14 @@ Where the hosted readiness checker is available, run:
 python scripts/check_hosted_readiness.py "$BASE_URL" --require-persistence
 ```
 
+For mandatory recovery evidence (H-P1-03), also dispatch
+`.github/workflows/post-recovery-readiness.yml` with
+`recovery_context=post-restore`, the restored `target_environment`, and
+`base_url` set to the scratch or restored target when it differs from the
+Environment secret. Attach the resulting `post-restore-readiness` artifact
+(includes `readiness-output.json` and `recovery-metadata.json`) to the restore
+rehearsal evidence record before treating the restore as verified.
+
 ### 3. Functional smoke test
 
 Trigger an existing graph-read path and verify a valid response. The canonical lightweight read endpoint is the paginated assets endpoint:

@@ -87,6 +87,8 @@ python scripts/check_hosted_readiness.py <base_url> --require-persistence
 ```
 
 **Post-restore readiness result (`--require-persistence`):**
+**H-P1-03 `post-recovery-readiness.yml` run URL:**
+**Attached `post-restore-readiness` artifact name / ID:**
 **Redacted `/api/health/detailed` evidence:**
 **Redacted `/api/assets?per_page=1` or approved sentinel evidence:**
 **`graph.persistence_enabled`:**
@@ -94,6 +96,8 @@ python scripts/check_hosted_readiness.py <base_url> --require-persistence
 **`graph.persistence_loaded`:**
 **`graph.startup_source`:**
 **Persisted graph counts or approved sentinel baseline:**
+
+- [ ] Dispatched `post-recovery-readiness.yml` with `recovery_context=post-restore` and attached the `post-restore-readiness` artifact (H-P1-03).
 
 ## RPO / RTO Metrics
 

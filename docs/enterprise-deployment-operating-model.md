@@ -215,6 +215,7 @@ After rollback:
 2. Verify backend reachability.
 3. Verify `GET /api/health/detailed` reports `status: "healthy"`.
 4. For staging and production, rerun the durable graph-persistence smoke procedure before closing the incident.
+5. Dispatch `.github/workflows/post-recovery-readiness.yml` with `recovery_context=post-rollback` and the affected `target_environment`, then attach the `post-rollback-readiness` artifact (H-P1-03) before closing the incident.
 
 ### Data Restore Boundary
 
