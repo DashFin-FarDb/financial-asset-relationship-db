@@ -22,6 +22,10 @@ HARDENING_MARKERS = (
     "db_authz: PASS|run-123\n"
 )
 DB_AUTHZ_REQUIRED_MSG = "db_authz: PASS|<opaque-ref> (bare PASS is not accepted)"
+DB_AUTHZ_OPAQUE_REF_ERROR = (
+    "db_authz opaque ref must match run-<digits>, artifact-<digits>, "
+    "<prefix>-run-<digits>, or a numeric workflow run id (>=6 digits)"
+)
 
 
 @pytest.mark.unit
@@ -230,13 +234,18 @@ def test_check_hardening_foundation_rejects_bare_db_authz_pass():
 @pytest.mark.parametrize(
     "db_authz_line",
     [
+        "db_authz: PASS|TBD\n",
+        "db_authz: PASS|TODO\n",
+        "db_authz: PASS|N/A\n",
+        "db_authz: PASS|pending\n",
         "db_authz: PASS|<replace-with-workflow-run-id>\n",
-        "db_authz: PASS|<workflow-run-or-opaque-ref>\n",
         "db_authz: PASS|REPLACE-WITH-WORKFLOW-RUN-ID\n",
+        "db_authz: PASS|run-12\n",  # too few digits
+        "db_authz: PASS|12345\n",  # bare numeric id too short
     ],
 )
-def test_check_hardening_foundation_rejects_placeholder_opaque_ref(db_authz_line):
-    """Test that template placeholder opaque refs are rejected."""
+def test_check_hardening_foundation_rejects_invalid_opaque_ref(db_authz_line):
+    """Test that placeholder and non-shaped opaque refs are rejected by allowlist."""
     missing = []
     _check_hardening_foundation(
         "hardening_ids: H-P0-01, H-P0-02, H-P0-03, H-P0-04, H-P0-06\n"
@@ -244,7 +253,24 @@ def test_check_hardening_foundation_rejects_placeholder_opaque_ref(db_authz_line
         f"{db_authz_line}",
         missing,
     )
-    assert "db_authz opaque ref must be a real workflow run/artifact id, not a template placeholder" in missing
+    assert DB_AUTHZ_OPAQUE_REF_ERROR in missing
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    "opaque_ref",
+    ["run-123", "artifact-456", "1506-run-123456", "1234567890"],
+)
+def test_check_hardening_foundation_accepts_shaped_opaque_refs(opaque_ref):
+    """Test that allowlisted run/artifact opaque refs are accepted."""
+    missing = []
+    _check_hardening_foundation(
+        "hardening_ids: H-P0-01, H-P0-02, H-P0-03, H-P0-04, H-P0-06\n"
+        "topology: jobs=asset_graph; locks=coordination\n"
+        f"db_authz: PASS|{opaque_ref}\n",
+        missing,
+    )
+    assert not missing
 
 
 @pytest.mark.unit

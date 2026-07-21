@@ -285,16 +285,23 @@ DB_AUTHZ_PASS_PATTERN = re.compile(
     r"^\s*db_authz\s*:\s*PASS\s*\|\s*(\S[^\n]*?)\s*$",
     re.IGNORECASE | re.MULTILINE,
 )
+# Allowlist: run/artifact-shaped refs with a numeric id (>=3 digits). Rejects
+# denylist-evading placeholders such as TBD/TODO/N/A and angle-bracket templates.
+DB_AUTHZ_OPAQUE_REF_PATTERN = re.compile(
+    r"^(?:"
+    r"\d{6,}"  # bare GitHub Actions run id
+    r"|run-\d{3,}"  # run-123
+    r"|artifact-\d{3,}"  # artifact-456
+    r"|[A-Za-z0-9][A-Za-z0-9._-]{0,64}-run-\d{3,}"  # 1506-run-123456
+    r")$",
+    re.IGNORECASE,
+)
+DB_AUTHZ_OPAQUE_REF_ERROR = (
+    "db_authz opaque ref must match run-<digits>, artifact-<digits>, "
+    "<prefix>-run-<digits>, or a numeric workflow run id (>=6 digits)"
+)
 HARDENING_IDS_LINE_PATTERN = re.compile(r"hardening_ids\s*:\s*([^\n]+)", re.IGNORECASE)
 HARDENING_ID_TOKEN_PATTERN = re.compile(r"^H-P0-\d{2}$")
-PLACEHOLDER_OPAQUE_REFS = frozenset(
-    {
-        "REPLACE-WITH-WORKFLOW-RUN-ID",
-        "REPLACE_WITH_WORKFLOW_RUN_ID",
-        "<WORKFLOW-RUN-OR-OPAQUE-REF>",
-        "<REPLACE-WITH-WORKFLOW-RUN-ID>",
-    }
-)
 
 
 def _hardening_id_tokens(ids_blob: str) -> set[str]:
@@ -328,8 +335,8 @@ def _check_hardening_foundation(content: str, missing: List[str]) -> None:
         missing.append("db_authz: PASS|<opaque-ref> (bare PASS is not accepted)")
     else:
         opaque_ref = authz_match.group(1).strip()
-        if opaque_ref.upper() in PLACEHOLDER_OPAQUE_REFS or opaque_ref.startswith("<"):
-            missing.append("db_authz opaque ref must be a real workflow run/artifact id, not a template placeholder")
+        if DB_AUTHZ_OPAQUE_REF_PATTERN.fullmatch(opaque_ref) is None:
+            missing.append(DB_AUTHZ_OPAQUE_REF_ERROR)
 
 
 def verify_staging_promotion(evidence_file: str) -> None:

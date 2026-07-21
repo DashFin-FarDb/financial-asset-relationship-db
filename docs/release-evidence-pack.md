@@ -363,10 +363,12 @@ topology: jobs=asset_graph; locks=coordination
 db_authz: PASS|<opaque-workflow-run-or-artifact-id>
 ```
 
-`db_authz` **requires** `PASS|<opaque-ref>` (bare `PASS` is rejected). The opaque ref must identify a real
-authorization check run (for example a staging-promotion workflow run id). Staging promotion fails closed when
-database URL secrets are missing so H-P0-04 cannot be satisfied by a copied template alone. Do not embed
-connection strings, role inventories, or topology details from the authorization checker.
+`db_authz` **requires** `PASS|<opaque-ref>` (bare `PASS` is rejected). The opaque ref must match an allowed
+run/artifact shape: `run-<digits>`, `artifact-<digits>`, `<prefix>-run-<digits>`, or a numeric workflow run id
+(at least 6 digits). Placeholders such as `TBD`, `TODO`, or angle-bracket templates are rejected. Staging
+promotion fails closed when database URL secrets are missing so H-P0-04 cannot be satisfied by a copied
+template alone. Do not embed connection strings, role inventories, or topology details from the authorization
+checker.
 
 Release-evidence dispatch: set `hardening_tier=P0` (default) so hosted readiness cannot SKIP under the Assert path.
 Use `hardening_tier=none` only for soft rehearsal runs that must not be treated as RC proof.
