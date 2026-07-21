@@ -108,6 +108,7 @@ def test_post_recovery_fails_closed_without_base_url(post_recovery_raw: str) -> 
 def test_post_recovery_validates_dispatch_inputs(post_recovery_raw: str) -> None:
     """Dispatch strings must be validated before they reach the readiness command."""
     assert "timeout must be a positive number" in post_recovery_raw
+    assert "timeout_value <= 0" in post_recovery_raw
     assert "base_url_label is invalid" in post_recovery_raw
     assert 'url.startswith("https://")' in post_recovery_raw
     assert "validated-url.txt" in post_recovery_raw
@@ -132,6 +133,8 @@ def test_post_recovery_writes_metadata_and_placeholders(post_recovery_raw: str) 
     assert "H-P1-03" in post_recovery_raw
     assert "[ ! -s readiness-output.json ]" in post_recovery_raw
     assert "[ ! -s recovery-metadata.json ]" in post_recovery_raw
+    assert "recovery_metadata_write_failed" in post_recovery_raw
+    assert "recovery_metadata_not_run" not in post_recovery_raw
 
 
 def test_post_recovery_uploads_context_named_artifact(

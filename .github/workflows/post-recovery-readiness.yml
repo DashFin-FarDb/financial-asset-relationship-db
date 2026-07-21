@@ -113,7 +113,15 @@ jobs:
           base_input = os.environ.get("BASE_URL_INPUT", "")
           secret_url = os.environ.get("HOSTED_READINESS_BASE_URL", "")
 
-          if not re.fullmatch(r"[0-9]+(?:\.[0-9]+)?", timeout):
+          # Reject 0 / 0.0; require a strictly positive finite timeout.
+          try:
+              timeout_value = float(timeout)
+          except ValueError:
+              timeout_value = 0.0
+          if (
+              not re.fullmatch(r"[0-9]+(?:\.[0-9]+)?", timeout)
+              or timeout_value <= 0
+          ):
               print("Error: timeout must be a positive number", file=sys.stderr)
               sys.exit(1)
           if not re.fullmatch(r"[A-Za-z0-9._:-]{1,64}", label):
@@ -245,7 +253,8 @@ jobs:
               > readiness-output.json
           fi
           if [ ! -s recovery-metadata.json ]; then
-            echo '{"status":"skipped","reason":"recovery_metadata_not_run"}' \
+            reason='recovery_metadata_write_failed'
+            echo "{\"status\":\"skipped\",\"reason\":\"$reason\"}" \
               > recovery-metadata.json
           fi
 
