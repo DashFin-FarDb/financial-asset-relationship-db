@@ -1,3 +1,5 @@
+---
+# yamllint disable rule:line-length
 name: Production Promotion
 
 on:
@@ -7,7 +9,9 @@ on:
         description: "Path to the release-candidate evidence file"
         required: true
       base_url:
-        description: "Optional exact match for HOSTED_READINESS_BASE_URL (must equal the production Environment secret when set)"
+        description: >-
+          Optional exact match for HOSTED_READINESS_BASE_URL
+          (must equal the production Environment secret when set)
         required: false
       tags:
         description: "Manual sign-off tags (e.g., [manual-stop] or [star])"
@@ -25,7 +29,8 @@ jobs:
           REF: ${{ github.ref }}
         run: |
           if [ "$REF" != "refs/heads/main" ]; then
-            echo "Error: production-promotion must be dispatched from refs/heads/main (got $REF)."
+            echo "Error: dispatch from refs/heads/main only."
+            echo "Got: $REF"
             exit 1
           fi
 
@@ -35,22 +40,30 @@ jobs:
       contents: read
     runs-on: ubuntu-latest
     environment:
-      name: ${{ (contains(inputs.tags, '[manual-stop]') || contains(inputs.tags, '[star]')) && 'production-manual-gate' || 'production' }}
+      name: >-
+        ${{
+          (contains(inputs.tags, '[manual-stop]')
+          || contains(inputs.tags, '[star]'))
+          && 'production-manual-gate'
+          || 'production'
+        }}
     timeout-minutes: 15
     steps:
       - name: Checkout
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        # v7.0.0
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
         with:
           ref: main
           persist-credentials: false
 
       - name: Setup Python
-        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
+        # v6.3.0
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
         with:
           python-version: "3.12"
 
-      # Gate scripts are stdlib-only except check_database_authorization (psycopg2).
-      # Install the minimal binary-only driver instead of the full requirements tree.
+      # Gate scripts are stdlib-only except check_database_authorization
+      # (psycopg2). Install the minimal binary-only driver.
       - name: Install Dependencies
         run: |
           python -m pip install \
@@ -65,38 +78,47 @@ jobs:
           ASSET_GRAPH_DATABASE_URL: ${{ secrets.ASSET_GRAPH_DATABASE_URL }}
           COORDINATION_DATABASE_URL: ${{ secrets.COORDINATION_DATABASE_URL }}
           POSTGRES_URL: ${{ secrets.POSTGRES_URL }}
-          FARDB_UNTRUSTED_DATABASE_ROLES: ${{ secrets.FARDB_UNTRUSTED_DATABASE_ROLES }}
+          FARDB_UNTRUSTED_DATABASE_ROLES: >-
+            ${{ secrets.FARDB_UNTRUSTED_DATABASE_ROLES }}
         run: |
           python scripts/verify_staging_promotion.py "$EVIDENCE_FILE"
 
-          # Fail closed on missing required boundaries before authz runs. The checker only
-          # validates URLs that are present, so an app-only secret set must not pass H-P0-04.
+          # Fail closed on missing required boundaries before authz runs.
+          # The checker only validates URLs that are present, so an app-only
+          # secret set must not pass H-P0-04.
           if [ -z "$ASSET_GRAPH_DATABASE_URL" ]; then
-            echo '{"status":"failed","reason":"missing_asset_graph_database_url"}' > db-authz-output.json
-            echo "H-P0-04 requires ASSET_GRAPH_DATABASE_URL on the production Environment."
+            reason='missing_asset_graph_database_url'
+            echo "{\"status\":\"failed\",\"reason\":\"$reason\"}" \
+              > db-authz-output.json
+            echo "H-P0-04 requires ASSET_GRAPH_DATABASE_URL on production."
             exit 1
           fi
           if [ -z "${DATABASE_URL}${POSTGRES_URL}" ]; then
-            echo '{"status":"failed","reason":"missing_auth_database_url"}' > db-authz-output.json
-            echo "H-P0-04 requires DATABASE_URL or POSTGRES_URL on the production Environment."
+            reason='missing_auth_database_url'
+            echo "{\"status\":\"failed\",\"reason\":\"$reason\"}" \
+              > db-authz-output.json
+            echo "H-P0-04 requires DATABASE_URL or POSTGRES_URL on production."
             exit 1
           fi
           # Production topology expects locks on the coordination boundary.
           if [ -z "$COORDINATION_DATABASE_URL" ]; then
-            echo '{"status":"failed","reason":"missing_coordination_database_url"}' > db-authz-output.json
-            echo "H-P0-04 requires COORDINATION_DATABASE_URL on the production Environment (locks=coordination)."
+            reason='missing_coordination_database_url'
+            echo "{\"status\":\"failed\",\"reason\":\"$reason\"}" \
+              > db-authz-output.json
+            echo "H-P0-04 requires COORDINATION_DATABASE_URL on production."
             exit 1
           fi
 
           set +e
-          # Bounded stdout/stderr only (control ids/messages). Do not upload raw logs as artifacts.
+          # Bounded stdout/stderr only. Do not upload raw authz logs.
           python scripts/check_database_authorization.py
           code=$?
           if [ "$code" -eq 0 ]; then
             echo '{"status":"passed"}' > db-authz-output.json
             exit 0
           fi
-          echo "{\"status\":\"failed\",\"exit_code\":$code}" > db-authz-output.json
+          echo "{\"status\":\"failed\",\"exit_code\":$code}" \
+            > db-authz-output.json
           echo "Database authorization gate failed (H-P0-04)."
           exit 1
 
@@ -107,19 +129,22 @@ jobs:
           BASE_URL_INPUT: ${{ github.event.inputs.base_url }}
         run: |
           if [ -z "$HOSTED_READINESS_BASE_URL" ]; then
-            echo "Error: HOSTED_READINESS_BASE_URL secret is required for production promotion"
+            echo "Error: HOSTED_READINESS_BASE_URL secret is required"
             exit 1
           fi
-          if [ -n "$BASE_URL_INPUT" ] && [ "$BASE_URL_INPUT" != "$HOSTED_READINESS_BASE_URL" ]; then
-            echo "Error: base_url input must exactly match HOSTED_READINESS_BASE_URL"
+          if [ -n "$BASE_URL_INPUT" ] \
+            && [ "$BASE_URL_INPUT" != "$HOSTED_READINESS_BASE_URL" ]; then
+            echo "Error: base_url must match HOSTED_READINESS_BASE_URL"
             exit 1
           fi
           URL="$HOSTED_READINESS_BASE_URL"
           echo "::add-mask::$URL"
 
-          # --require-persistence also enables --assets-smoke (H-P1-01 / H-P1-02).
-          # Write to a temp file first so a failed run does not leave an empty artifact.
-          if ! python scripts/check_hosted_readiness.py "$URL" --json --require-persistence > readiness-output.tmp; then
+          # --require-persistence also enables --assets-smoke.
+          # Temp file avoids empty artifacts on failed runs.
+          if ! python scripts/check_hosted_readiness.py \
+            "$URL" --json --require-persistence \
+            > readiness-output.tmp; then
             if [ -s readiness-output.tmp ]; then
               mv readiness-output.tmp readiness-output.json
             else
@@ -131,53 +156,65 @@ jobs:
 
       - name: Assert Persistence Loaded
         run: |
-          if [ "$(jq -r '.observed_fields."graph_persistence_configured"' readiness-output.json)" != "true" ]; then
-            echo "Error: graph_persistence_configured is not true in the readiness output."
+          cfg='.observed_fields."graph_persistence_configured"'
+          if [ "$(jq -r "$cfg" readiness-output.json)" != "true" ]; then
+            echo "Error: graph_persistence_configured is not true."
             exit 1
           fi
-          if [ "$(jq -r '.observed_fields."graph.persistence_enabled"' readiness-output.json)" != "true" ]; then
-            echo "Error: graph.persistence_enabled is not true in the readiness output."
+          en='.observed_fields."graph.persistence_enabled"'
+          if [ "$(jq -r "$en" readiness-output.json)" != "true" ]; then
+            echo "Error: graph.persistence_enabled is not true."
             exit 1
           fi
-          if [ "$(jq -r '.observed_fields."graph.persistence_loaded"' readiness-output.json)" != "true" ]; then
-            echo "Error: graph.persistence_loaded is not true in the readiness output."
+          ld='.observed_fields."graph.persistence_loaded"'
+          if [ "$(jq -r "$ld" readiness-output.json)" != "true" ]; then
+            echo "Error: graph.persistence_loaded is not true."
             exit 1
           fi
-          if [ "$(jq -r '.observed_fields."graph.startup_source"' readiness-output.json)" != "persisted" ]; then
-            echo "Error: startup_source is not \"persisted\" in the readiness output."
+          src='.observed_fields."graph.startup_source"'
+          if [ "$(jq -r "$src" readiness-output.json)" != "persisted" ]; then
+            echo "Error: startup_source is not persisted."
             exit 1
           fi
-          if [ "$(jq -r '.checks.assets_smoke.passed // false' readiness-output.json)" != "true" ]; then
-            echo "Error: assets_smoke check did not pass in the readiness output."
+          smoke='.checks.assets_smoke.passed // false'
+          if [ "$(jq -r "$smoke" readiness-output.json)" != "true" ]; then
+            echo "Error: assets_smoke check did not pass."
             exit 1
           fi
-          total="$(jq -r '.observed_fields."assets.total" // 0' readiness-output.json)"
+          total_q='.observed_fields."assets.total" // 0'
+          total="$(jq -r "$total_q" readiness-output.json)"
           if ! [ "$total" -gt 0 ] 2>/dev/null; then
-            echo "Error: assets.total is not a positive count in the readiness output."
+            echo "Error: assets.total is not a positive count."
             exit 1
           fi
-          echo "Assertion passed: graph is persistence loaded and assets smoke passed."
+          echo "Assertion passed: persistence loaded and assets smoke ok."
 
       - name: Audit Logging
         if: always()
         run: |
-          echo "Logging promotion decision for AI system transparency (Article 13)..."
-          echo "Production promotion run at $(date -u) — result: ${{ job.status }}" >> promotion_audit.log
+          echo "Logging promotion decision (Article 13)..."
+          {
+            echo -n "Production promotion run at $(date -u) — result: "
+            echo "${{ job.status }}"
+          } >> promotion_audit.log
 
       - name: Prepare Artifact Placeholders
         if: always()
         working-directory: ${{ github.workspace }}
         run: |
           if [ ! -s readiness-output.json ]; then
-            echo '{"status":"skipped","reason":"hosted_readiness_not_run"}' > readiness-output.json
+            echo '{"status":"skipped","reason":"hosted_readiness_not_run"}' \
+              > readiness-output.json
           fi
           if [ ! -s db-authz-output.json ]; then
-            echo '{"status":"skipped","reason":"db_authz_not_run"}' > db-authz-output.json
+            echo '{"status":"skipped","reason":"db_authz_not_run"}' \
+              > db-authz-output.json
           fi
 
       - name: Upload Artifacts
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        # v7.0.1
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: production-readiness
           path: |

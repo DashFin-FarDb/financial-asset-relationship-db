@@ -93,7 +93,7 @@ def test_production_promotion_binds_readiness_to_environment_secret(
 ) -> None:
     """Production readiness must use HOSTED_READINESS_BASE_URL, not an unchecked override."""
     ASSERTIONS.assertIn("HOSTED_READINESS_BASE_URL secret is required", production_promotion_raw)
-    ASSERTIONS.assertIn("base_url input must exactly match HOSTED_READINESS_BASE_URL", production_promotion_raw)
+    ASSERTIONS.assertIn("base_url must match HOSTED_READINESS_BASE_URL", production_promotion_raw)
     ASSERTIONS.assertIn('URL="$HOSTED_READINESS_BASE_URL"', production_promotion_raw)
     ASSERTIONS.assertNotIn("BASE_URL_INPUT:-$HOSTED_READINESS_BASE_URL", production_promotion_raw)
 
@@ -124,8 +124,8 @@ def test_production_promotion_requires_graph_and_coordination_db_secrets(
     ASSERTIONS.assertIn("missing_asset_graph_database_url", production_promotion_raw)
     ASSERTIONS.assertIn("missing_auth_database_url", production_promotion_raw)
     ASSERTIONS.assertIn("missing_coordination_database_url", production_promotion_raw)
-    ASSERTIONS.assertIn("ASSET_GRAPH_DATABASE_URL on the production Environment", production_promotion_raw)
-    ASSERTIONS.assertIn("COORDINATION_DATABASE_URL on the production Environment", production_promotion_raw)
+    ASSERTIONS.assertIn("ASSET_GRAPH_DATABASE_URL on production", production_promotion_raw)
+    ASSERTIONS.assertIn("COORDINATION_DATABASE_URL on production", production_promotion_raw)
     ASSERTIONS.assertNotIn("no_database_url_configured", production_promotion_raw)
 
 
