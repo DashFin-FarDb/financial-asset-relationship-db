@@ -191,6 +191,7 @@ jobs:
 
           PERSISTENCE_FLAG=""
           if [ "$REQUIRE_PERSISTENCE" == "true" ]; then
+            # Also auto-enables --assets-smoke in the script (H-P1-01).
             PERSISTENCE_FLAG="--require-persistence"
           fi
 

@@ -79,6 +79,7 @@ jobs:
           fi
           echo "::add-mask::$URL"
 
+          # --require-persistence also enables --assets-smoke (H-P1-01).
           python scripts/check_hosted_readiness.py "$URL" --json --require-persistence > readiness-output.json
 
       - name: Assert Persistence Loaded
@@ -99,7 +100,16 @@ jobs:
             echo "Error: startup_source is not \"persisted\" in the readiness output."
             exit 1
           fi
-          echo "Assertion passed: graph is persistence loaded."
+          if [ "$(jq -r '.checks.assets_smoke.passed // false' readiness-output.json)" != "true" ]; then
+            echo "Error: assets_smoke check did not pass in the readiness output."
+            exit 1
+          fi
+          total="$(jq -r '.observed_fields."assets.total" // 0' readiness-output.json)"
+          if [ "$total" = "0" ]; then
+            echo "Error: assets.total is not a positive count in the readiness output."
+            exit 1
+          fi
+          echo "Assertion passed: graph is persistence loaded and assets smoke passed."
 
       - name: Audit Logging
         if: always()

@@ -53,7 +53,8 @@ Do not reopen closed PR1–9 rows; track hardening here and in the evidence pack
 | H-P0-04           | Partially satisfied                         | DB authorization checker wired; redacted PASS attached for target env                           | Publishing live role/topology details  |
 | H-P0-05           | Satisfied - documented                      | ADR 0002 / `.env.example` match runtime Postgres + recommended SQLite URL forms                 | Hosted infra changes                   |
 | H-P0-06           | Satisfied - manual evidence required        | Fresh SHA-bound RC companion (RC1 not reused as CURRENT)                                        | Bundling unrelated product work        |
-| H-P1-01 … H-P1-06 | Partially satisfied / Satisfied - automated | See evidence pack                                                                               | Mixing P1 Docker work with P0 docs     |
+| H-P1-01           | Satisfied - automated                       | `--require-persistence` auto-enables `--assets-smoke` in hosted readiness                       | Empty persisted graphs fail promotion  |
+| H-P1-02 … H-P1-06 | Partially satisfied / Satisfied - automated | See evidence pack                                                                               | Mixing P1 Docker work with P0 docs     |
 | H-P2-01 … H-P2-05 | Partially satisfied                         | See evidence pack                                                                               | P0 gate wiring                         |
 | H-P3-01 … H-P3-05 | Partially satisfied                         | See evidence pack                                                                               | P0/P1 release gates                    |
 
