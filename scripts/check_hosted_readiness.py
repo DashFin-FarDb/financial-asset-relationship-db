@@ -124,6 +124,17 @@ def _validate_no_extra_components(parsed: ParseResult) -> str | None:
     return None
 
 
+def _validate_request_query(parsed: ParseResult, allowed_query: str | None) -> str | None:
+    """Return an error when the request query is absent from the allowlist."""
+    if parsed.params or parsed.fragment:
+        return "request URL must not include params or fragments"
+    if not parsed.query:
+        return None
+    if allowed_query is None or parsed.query != allowed_query:
+        return "request URL query is not in the smoke-check allowlist"
+    return None
+
+
 def _validate_port(parsed: ParseResult) -> str | None:
     """Return an error when the URL contains an invalid port value."""
     try:
@@ -171,15 +182,14 @@ def _is_timeout_exception(exc: BaseException) -> bool:
     return isinstance(exc, timeout_types) or (isinstance(exc, URLError) and isinstance(exc.reason, timeout_types))
 
 
-def _validate_request_target(url: str) -> str | None:
+def _validate_request_target(url: str, *, allowed_query: str | None = None) -> str | None:
     """Return a bounded validation error for a request URL target."""
     parsed = urlparse(url)
-    validators = (
+    validators: tuple[Callable[[ParseResult], str | None], ...] = (
         _validate_scheme_and_host,
         _validate_no_credentials,
         _validate_hostname_present,
         _validate_not_loopback_hostname,
-        _validate_no_extra_components,
         _validate_port,
         _validate_not_internal_address,
     )
@@ -189,7 +199,7 @@ def _validate_request_target(url: str) -> str | None:
         if validation_error is not None:
             return validation_error
 
-    return None
+    return _validate_request_query(parsed, allowed_query)
 
 
 def _response_failure_message(endpoint: str, exc: BaseException) -> str:
@@ -203,12 +213,17 @@ def _response_failure_message(endpoint: str, exc: BaseException) -> str:
     return f"{endpoint} request failed"
 
 
-def _read_response_body(url: str, timeout: float) -> tuple[int, str]:
+def _read_response_body(
+    url: str,
+    timeout: float,
+    *,
+    allowed_query: str | None = None,
+) -> tuple[int, str]:
     """Read an HTTP response while preserving bounded failure messages."""
     endpoint = _endpoint_path(url)
 
     # Revalidate request target to reduce DNS rebinding attack window
-    target_error = _validate_request_target(url)
+    target_error = _validate_request_target(url, allowed_query=allowed_query)
     if target_error is not None:
         raise RuntimeError(f"{endpoint} request target validation failed")
 
@@ -243,10 +258,15 @@ def _parse_json_object(endpoint: str, raw_body: str) -> dict[str, Any]:
     return payload
 
 
-def _get_json(url: str, timeout: float) -> tuple[int, dict[str, Any]]:
+def _get_json(
+    url: str,
+    timeout: float,
+    *,
+    allowed_query: str | None = None,
+) -> tuple[int, dict[str, Any]]:
     """Fetch a JSON object from a URL."""
     endpoint = _endpoint_path(url)
-    status_code, raw_body = _read_response_body(url, timeout)
+    status_code, raw_body = _read_response_body(url, timeout, allowed_query=allowed_query)
 
     if status_code != 200:
         return status_code, {}
@@ -419,6 +439,69 @@ def check_detailed_readiness(
     return _build_detailed_readiness_report(base_url, timeout, require_persistence)[0]
 
 
+ASSETS_SMOKE_QUERY = "per_page=1"
+
+
+def _has_more_value(payload: dict[str, Any]) -> Any:
+    """Return the pagination hasMore flag from camelCase or snake_case."""
+    if "hasMore" in payload:
+        return payload.get("hasMore")
+    return payload.get("has_more")
+
+
+def _build_assets_smoke_report(
+    base_url: str,
+    timeout: float,
+) -> tuple[list[str], dict[str, Any]]:
+    """Return assets smoke failures and bounded observed fields."""
+    failures: list[str] = []
+    url = f"{_build_url(base_url, '/api/assets')}?{ASSETS_SMOKE_QUERY}"
+    status_code, payload = _get_json(url, timeout, allowed_query=ASSETS_SMOKE_QUERY)
+
+    if status_code != 200:
+        failures.append(f"/api/assets returned HTTP {status_code}")
+        return failures, {}
+
+    items = payload.get("items")
+    total = payload.get("total")
+    page = payload.get("page")
+    per_page = payload.get("per_page")
+    has_more = _has_more_value(payload)
+
+    if not isinstance(items, list):
+        failures.append("/api/assets items field is not a list")
+    if not isinstance(total, int) or isinstance(total, bool) or total < 0:
+        failures.append("/api/assets total field is not a non-negative integer")
+    if not isinstance(page, int) or isinstance(page, bool) or page < 1:
+        failures.append("/api/assets page field is not a positive integer")
+    if not isinstance(per_page, int) or isinstance(per_page, bool) or per_page < 1:
+        failures.append("/api/assets per_page field is not a positive integer")
+    if not isinstance(has_more, bool):
+        failures.append("/api/assets hasMore field is not a boolean")
+
+    if isinstance(total, int) and not isinstance(total, bool) and total < 1:
+        failures.append("/api/assets total is less than 1")
+    if isinstance(items, list) and len(items) < 1:
+        failures.append("/api/assets items list is empty")
+
+    observed: dict[str, Any] = {}
+    if isinstance(total, int) and not isinstance(total, bool):
+        observed["assets.total"] = total
+    if isinstance(items, list):
+        observed["assets.item_count"] = len(items)
+    if isinstance(per_page, int) and not isinstance(per_page, bool):
+        observed["assets.per_page"] = per_page
+    if isinstance(has_more, bool):
+        observed["assets.has_more"] = has_more
+
+    return failures, observed
+
+
+def check_assets_smoke(base_url: str, timeout: float) -> list[str]:
+    """Return failures for the bounded /api/assets promotion smoke check."""
+    return _build_assets_smoke_report(base_url, timeout)[0]
+
+
 def _run_named_check(
     label: str,
     base_url: str,
@@ -474,6 +557,7 @@ def _run_json_checks(
     base_url: str,
     timeout: float,
     require_persistence: bool = False,
+    assets_smoke: bool = False,
     base_url_label: str = "redacted",
 ) -> int:
     """Run hosted readiness checks and emit JSON output."""
@@ -484,10 +568,13 @@ def _run_json_checks(
         check_liveness,
     )
     detailed_failures: list[str]
+    assets_failures: list[str] = []
     observed_fields: dict[str, Any]
 
     if liveness_had_runtime_error:
         detailed_failures = ["Detailed readiness check not run because liveness check failed"]
+        if assets_smoke:
+            assets_failures = ["Assets smoke check not run because liveness check failed"]
         observed_fields = {}
     else:
         try:
@@ -503,14 +590,29 @@ def _run_json_checks(
             detailed_failures = ["Detailed readiness check failed: unexpected error"]
             observed_fields = {}
 
+        if assets_smoke:
+            try:
+                assets_failures, assets_observed = _build_assets_smoke_report(base_url, timeout)
+                observed_fields.update(assets_observed)
+            except RuntimeError as exc:
+                assets_failures = [f"Assets smoke check failed: {exc}"]
+            except Exception:
+                assets_failures = ["Assets smoke check failed: unexpected error"]
+
+    all_failures = [*liveness_failures, *detailed_failures, *assets_failures]
+    checks: dict[str, Any] = {
+        "liveness": {"passed": not liveness_failures, "failures": liveness_failures},
+        "detailed_readiness": {"passed": not detailed_failures, "failures": detailed_failures},
+    }
+    if assets_smoke:
+        checks["assets_smoke"] = {"passed": not assets_failures, "failures": assets_failures}
+
     result = {
-        "status": "passed" if not (liveness_failures or detailed_failures) else "failed",
+        "status": "passed" if not all_failures else "failed",
         "base_url_label": base_url_label,
         "require_persistence": require_persistence,
-        "checks": {
-            "liveness": {"passed": not liveness_failures, "failures": liveness_failures},
-            "detailed_readiness": {"passed": not detailed_failures, "failures": detailed_failures},
-        },
+        "assets_smoke": assets_smoke,
+        "checks": checks,
         "observed_fields": observed_fields,
     }
     return _report_json_result(result)
@@ -520,13 +622,20 @@ def run_checks(
     base_url: str,
     timeout: float,
     require_persistence: bool = False,
+    assets_smoke: bool = False,
     *,
     json_output: bool = False,
     base_url_label: str = "redacted",
 ) -> int:
     """Run hosted readiness checks and return a process exit code."""
     if json_output:
-        return _run_json_checks(base_url, timeout, require_persistence, base_url_label)
+        return _run_json_checks(
+            base_url,
+            timeout,
+            require_persistence,
+            assets_smoke,
+            base_url_label,
+        )
 
     liveness_failures = _run_named_check("Liveness", base_url, timeout, check_liveness)
     if liveness_failures is None:
@@ -541,7 +650,14 @@ def run_checks(
     if readiness_failures is None:
         return CHECK_FAILED
 
-    return _report_failures([*liveness_failures, *readiness_failures])
+    assets_failures: list[str] = []
+    if assets_smoke:
+        named_assets = _run_named_check("Assets smoke", base_url, timeout, check_assets_smoke)
+        if named_assets is None:
+            return CHECK_FAILED
+        assets_failures = named_assets
+
+    return _report_failures([*liveness_failures, *readiness_failures, *assets_failures])
 
 
 def parse_args(argv: list[str]) -> argparse.Namespace:
@@ -560,6 +676,14 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
         action="store_true",
         help="Prove persisted graph load rather than fallback generation.",
     )
+    parser.add_argument(
+        "--assets-smoke",
+        action="store_true",
+        help=(
+            "Prove bounded GET /api/assets?per_page=1 returns at least one asset. "
+            "Enabled automatically when --require-persistence is set."
+        ),
+    )
     return parser.parse_args(argv)
 
 
@@ -576,10 +700,12 @@ def main(argv: list[str] | None = None) -> int:
         print(base_url_error, file=sys.stderr)
         return USAGE_ERROR
 
+    effective_assets_smoke = args.assets_smoke or args.require_persistence
     return run_checks(
         args.base_url,
         args.timeout,
         args.require_persistence,
+        effective_assets_smoke,
         json_output=args.json,
         base_url_label=args.base_url_label,
     )

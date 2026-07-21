@@ -53,6 +53,17 @@ def _healthy_detailed_payload_with_persistence() -> dict[str, Any]:
     }
 
 
+def _healthy_assets_payload() -> dict[str, Any]:
+    """Return a minimal healthy assets page payload for smoke tests."""
+    return {
+        "items": [{"id": "ASSET_1", "symbol": "AAA"}],
+        "total": 19,
+        "page": 1,
+        "per_page": 1,
+        "hasMore": True,
+    }
+
+
 def _url_with_credentials(path: str) -> str:
     """Build a credentialed URL without a hard-coded credential literal."""
     return "https://" + "user" + ":" + "secret" + f"@example.com{path}"
@@ -421,7 +432,7 @@ def test_read_response_body_revalidates_request_target(monkeypatch: pytest.Monke
     """Request target should be revalidated before each request to reduce DNS rebinding window."""
     script = _load_script()
 
-    def fake_validate_request_target(url: str) -> str | None:
+    def fake_validate_request_target(url: str, *, allowed_query: str | None = None) -> str | None:
         """Return a fake target validation failure."""
         return "target resolved to internal address"
 
@@ -657,6 +668,17 @@ def test_parse_args_handles_require_persistence() -> None:
     assert args_default.require_persistence is False
 
 
+def test_parse_args_handles_assets_smoke() -> None:
+    """CLI argument parser correctly extracts the assets-smoke flag."""
+    script = _load_script()
+
+    args = script.parse_args(["https://example.com", "--assets-smoke"])
+    assert args.assets_smoke is True
+
+    args_default = script.parse_args(["https://example.com"])
+    assert args_default.assets_smoke is False
+
+
 def test_parse_args_handles_json_mode_and_label() -> None:
     """CLI argument parser should accept JSON output mode and a safe base URL label."""
     script = _load_script()
@@ -665,6 +687,94 @@ def test_parse_args_handles_json_mode_and_label() -> None:
 
     assert args.json is True
     assert args.base_url_label == "staging-api"
+
+
+def test_assets_smoke_success(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Assets smoke accepts a bounded page with at least one item."""
+    script = _load_script()
+
+    def fake_get_json(
+        url: str,
+        timeout: float,
+        *,
+        allowed_query: str | None = None,
+    ) -> tuple[int, dict[str, Any]]:
+        """Return a fake successful assets JSON response."""
+        assert url.endswith("/api/assets?per_page=1")
+        assert allowed_query == "per_page=1"
+        return 200, _healthy_assets_payload()
+
+    monkeypatch.setattr(script, "_get_json", fake_get_json)
+    assert script.check_assets_smoke("https://example.com", 5.0) == []
+
+
+def test_assets_smoke_rejects_empty_page(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Assets smoke rejects an empty items list or zero total."""
+    script = _load_script()
+
+    def fake_get_json(
+        url: str,
+        timeout: float,
+        *,
+        allowed_query: str | None = None,
+    ) -> tuple[int, dict[str, Any]]:
+        """Return an empty assets page."""
+        return 200, {
+            "items": [],
+            "total": 0,
+            "page": 1,
+            "per_page": 1,
+            "hasMore": False,
+        }
+
+    monkeypatch.setattr(script, "_get_json", fake_get_json)
+    failures = script.check_assets_smoke("https://example.com", 5.0)
+    assert "/api/assets total is less than 1" in failures
+    assert "/api/assets items list is empty" in failures
+
+
+def test_require_persistence_auto_enables_assets_smoke(
+    capsys: pytest.CaptureFixture[str],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """--require-persistence should also run the assets smoke check."""
+    script = _load_script()
+
+    def fake_get_json(
+        url: str,
+        timeout: float,
+        *,
+        allowed_query: str | None = None,
+    ) -> tuple[int, dict[str, Any]]:
+        """Return healthy payloads for liveness, detailed readiness, and assets."""
+        if url.endswith("/api/health"):
+            return 200, {"status": "healthy", "graph_initialized": True}
+        if url.endswith("/api/health/detailed"):
+            return 200, _healthy_detailed_payload_with_persistence()
+        if url.endswith("/api/assets?per_page=1"):
+            assert allowed_query == "per_page=1"
+            return 200, _healthy_assets_payload()
+        raise AssertionError(f"unexpected URL: {url}")
+
+    monkeypatch.setattr(script, "_get_json", fake_get_json)
+    exit_code = script.main(
+        [
+            "https://example.com",
+            "--json",
+            "--require-persistence",
+            "--base-url-label",
+            "staging-api",
+        ]
+    )
+    captured = capsys.readouterr()
+    data = json.loads(captured.out)
+
+    assert exit_code == script.SUCCESS
+    assert data["require_persistence"] is True
+    assert data["assets_smoke"] is True
+    assert data["checks"]["assets_smoke"] == {"passed": True, "failures": []}
+    assert data["observed_fields"]["assets.total"] == 19
+    assert data["observed_fields"]["assets.item_count"] == 1
 
 
 def test_main_json_outputs_machine_readable_success(capsys: pytest.CaptureFixture[str]) -> None:
@@ -732,7 +842,12 @@ def test_main_json_outputs_machine_readable_failure(capsys: pytest.CaptureFixtur
     """JSON mode should emit valid bounded failure output with observed fields."""
     script = _load_script()
 
-    def fake_get_json(url: str, timeout: float) -> tuple[int, dict[str, Any]]:
+    def fake_get_json(
+        url: str,
+        timeout: float,
+        *,
+        allowed_query: str | None = None,
+    ) -> tuple[int, dict[str, Any]]:
         """Return a healthy liveness payload and a failing detailed-readiness payload."""
         if url.endswith("/api/health"):
             return 200, {"status": "healthy", "graph_initialized": True}
@@ -741,6 +856,8 @@ def test_main_json_outputs_machine_readable_failure(capsys: pytest.CaptureFixtur
             payload["graph"]["persistence_loaded"] = False
             payload["graph"]["startup_source"] = "sample_data"
             return 200, payload
+        if url.endswith("/api/assets?per_page=1"):
+            return 200, _healthy_assets_payload()
         raise AssertionError(f"unexpected URL: {url}")
 
     monkeypatch = pytest.MonkeyPatch()
@@ -766,11 +883,13 @@ def test_main_json_outputs_machine_readable_failure(capsys: pytest.CaptureFixtur
     assert data["status"] == "failed"
     assert data["base_url_label"] == "staging-api"
     assert data["require_persistence"] is True
+    assert data["assets_smoke"] is True
     assert data["checks"]["liveness"] == {"passed": True, "failures": []}
     assert data["checks"]["detailed_readiness"]["passed"] is False
     assert (
         "/api/health/detailed graph.persistence_loaded is not true" in data["checks"]["detailed_readiness"]["failures"]
     )
+    assert data["checks"]["assets_smoke"]["passed"] is True
     assert data["observed_fields"]["graph.persistence_loaded"] is False
     assert data["observed_fields"]["graph.startup_source"] == "sample_data"
     assert "example.com" not in captured.out

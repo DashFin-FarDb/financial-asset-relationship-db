@@ -49,6 +49,7 @@ jobs:
           printf '::add-mask::%s\n' "$mask_value"
           cmd=(python scripts/check_hosted_readiness.py "$HOSTED_READINESS_BASE_URL" --timeout "$HOSTED_READINESS_TIMEOUT")
           if [ "${HOSTED_READINESS_REQUIRE_PERSISTENCE}" = "true" ]; then
+            # Enables persisted-graph proof and auto-enables --assets-smoke (H-P1-01).
             cmd+=(--require-persistence)
           fi
           "${cmd[@]}"
