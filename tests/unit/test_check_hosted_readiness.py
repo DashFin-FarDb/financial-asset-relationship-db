@@ -760,7 +760,7 @@ def test_main_json_outputs_machine_readable_success(capsys: pytest.CaptureFixtur
     """JSON mode should emit valid bounded success output without the raw base URL."""
     script = _load_script()
 
-    def fake_get_json(url: str, timeout: float) -> tuple[int, dict[str, Any]]:
+    def fake_get_json(url: str, timeout: float, *, allowed_query: str | None = None) -> tuple[int, dict[str, Any]]:
         """Return fake JSON payloads for both smoke-check endpoints."""
         if url.endswith("/api/health"):
             return 200, {"status": "healthy", "graph_initialized": True}
@@ -783,10 +783,13 @@ def test_main_json_outputs_machine_readable_success(capsys: pytest.CaptureFixtur
     assert data["status"] == "passed"
     assert data["base_url_label"] == "staging-api"
     assert data["require_persistence"] is False
+    assert data["assets_smoke"] is False
+    assert "assets_smoke" not in data["checks"]
     assert data["checks"]["liveness"] == {"passed": True, "failures": []}
     assert data["checks"]["detailed_readiness"] == {"passed": True, "failures": []}
     assert data["observed_fields"]["graph.persistence_loaded"] is True
     assert data["observed_fields"]["graph.startup_source"] == "persisted"
+    assert not any(key.startswith("assets.") for key in data["observed_fields"])
     assert "example.com" not in captured.out
 
 
@@ -818,7 +821,7 @@ def test_main_json_uses_default_redacted_base_url_label(
 
 
 def test_main_json_outputs_machine_readable_failure(capsys: pytest.CaptureFixture[str]) -> None:
-    """JSON mode should emit valid bounded failure output with observed fields."""
+    """JSON mode aggregates concurrent detailed-readiness and assets-smoke failures."""
     script = _load_script()
 
     def fake_get_json(
@@ -827,7 +830,7 @@ def test_main_json_outputs_machine_readable_failure(capsys: pytest.CaptureFixtur
         *,
         allowed_query: str | None = None,
     ) -> tuple[int, dict[str, Any]]:
-        """Return a healthy liveness payload and a failing detailed-readiness payload."""
+        """Return failing persistence and empty assets payloads after healthy liveness."""
         if url.endswith("/api/health"):
             return 200, {"status": "healthy", "graph_initialized": True}
         if url.endswith("/api/health/detailed"):
@@ -836,7 +839,8 @@ def test_main_json_outputs_machine_readable_failure(capsys: pytest.CaptureFixtur
             payload["graph"]["startup_source"] = "sample_data"
             return 200, payload
         if url.endswith("/api/assets?per_page=1"):
-            return 200, _healthy_assets_payload()
+            assert allowed_query == "per_page=1"
+            return 200, {"items": [], "total": 0, "page": 1, "per_page": 1, "hasMore": False}
         raise AssertionError(f"unexpected URL: {url}")
 
     monkeypatch = pytest.MonkeyPatch()
@@ -868,7 +872,11 @@ def test_main_json_outputs_machine_readable_failure(capsys: pytest.CaptureFixtur
     assert (
         "/api/health/detailed graph.persistence_loaded is not true" in data["checks"]["detailed_readiness"]["failures"]
     )
-    assert data["checks"]["assets_smoke"]["passed"] is True
+    assert data["checks"]["assets_smoke"]["passed"] is False
+    assert "/api/assets total is less than 1" in data["checks"]["assets_smoke"]["failures"]
+    assert "/api/assets items list is empty" in data["checks"]["assets_smoke"]["failures"]
     assert data["observed_fields"]["graph.persistence_loaded"] is False
     assert data["observed_fields"]["graph.startup_source"] == "sample_data"
+    assert data["observed_fields"]["assets.total"] == 0
+    assert data["observed_fields"]["assets.item_count"] == 0
     assert "example.com" not in captured.out
