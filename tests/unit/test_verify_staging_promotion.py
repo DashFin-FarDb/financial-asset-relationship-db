@@ -236,7 +236,7 @@ def test_check_hardening_foundation_rejects_bare_db_authz_pass():
     "db_authz_line",
     [
         "db_authz: PASS|TBD\n",
-        "db_authz: PASS|TODO\n",
+        "db_authz: PASS|UNFILLED-REF\n",
         "db_authz: PASS|N/A\n",
         "db_authz: PASS|pending\n",
         "db_authz: PASS|<replace-with-workflow-run-id>\n",
@@ -262,6 +262,17 @@ def test_check_hardening_foundation_accepts_shaped_opaque_refs(opaque_ref):
     missing = []
     _check_hardening_foundation(
         _hardening_content(f"db_authz: PASS|{opaque_ref}\n"),
+        missing,
+    )
+    assert not missing
+
+
+@pytest.mark.unit
+def test_check_hardening_foundation_accepts_valid_ref_after_placeholder():
+    """Test that a later valid db_authz marker is accepted after a placeholder."""
+    missing = []
+    _check_hardening_foundation(
+        _hardening_content("db_authz: PASS|<replace-with-workflow-run-id>\ndb_authz: PASS|run-123\n"),
         missing,
     )
     assert not missing

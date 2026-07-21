@@ -385,7 +385,7 @@ jobs:
               out.write(
                   "- Canon: `docs/release-evidence-pack.md#hardening-backlog-p0p3` "
                   "(H-P0-01 … H-P3-05). Skipped DB authz still requires staging evidence "
-                  "`db_authz: PASS` before promotion.\n"
+                  "`db_authz: PASS|<opaque-ref>` before promotion (bare PASS is rejected).\n"
               )
 
           sys.exit(0)

@@ -287,7 +287,7 @@ DB_AUTHZ_PASS_PATTERN = re.compile(
     re.IGNORECASE | re.MULTILINE,
 )
 # Allowlist: run/artifact-shaped refs with a numeric id (>=3 digits). Rejects
-# denylist-evading placeholders such as TBD/TODO/N/A and angle-bracket templates.
+# common placeholder strings and angle-bracket templates.
 DB_AUTHZ_OPAQUE_REF_PATTERN = re.compile(
     r"^(?:"
     r"\d{6,}"  # bare GitHub Actions run id
@@ -337,13 +337,15 @@ def _check_hardening_topology(content: str, missing: List[str]) -> None:
 
 def _check_hardening_db_authz(content: str, missing: List[str]) -> None:
     """Require db_authz PASS with an allowlisted opaque run/artifact ref."""
-    authz_match = DB_AUTHZ_PASS_PATTERN.search(content)
-    if authz_match is None:
+    authz_matches = list(DB_AUTHZ_PASS_PATTERN.finditer(content))
+    if not authz_matches:
         missing.append("db_authz: PASS|<opaque-ref> (bare PASS is not accepted)")
         return
-    opaque_ref = authz_match.group(1).strip()
-    if DB_AUTHZ_OPAQUE_REF_PATTERN.fullmatch(opaque_ref) is None:
-        missing.append(DB_AUTHZ_OPAQUE_REF_ERROR)
+    for authz_match in authz_matches:
+        opaque_ref = authz_match.group(1).strip()
+        if DB_AUTHZ_OPAQUE_REF_PATTERN.fullmatch(opaque_ref) is not None:
+            return
+    missing.append(DB_AUTHZ_OPAQUE_REF_ERROR)
 
 
 def _check_hardening_foundation(content: str, missing: List[str]) -> None:
