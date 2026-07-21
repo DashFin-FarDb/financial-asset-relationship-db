@@ -1,8 +1,5 @@
 name: Production Promotion
 
-permissions:
-  contents: read
-
 on:
   workflow_dispatch:
     inputs:
@@ -19,6 +16,7 @@ on:
 
 jobs:
   require-main:
+    permissions: {}
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -33,6 +31,8 @@ jobs:
 
   promotion-gate:
     needs: require-main
+    permissions:
+      contents: read
     runs-on: ubuntu-latest
     environment:
       name: ${{ (contains(inputs.tags, '[manual-stop]') || contains(inputs.tags, '[star]')) && 'production-manual-gate' || 'production' }}

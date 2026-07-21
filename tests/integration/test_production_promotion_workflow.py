@@ -8,6 +8,7 @@ import yaml  # type: ignore[import-untyped]
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 WORKFLOW_PATH = REPO_ROOT / ".github/workflows/production-promotion.yml"
+EXTERNAL_REFERENCE_MARKERS = ("scripts/", ".github/")
 ASSERTIONS = TestCase()
 
 
@@ -35,6 +36,12 @@ def _environment_name(environment: object) -> str:
     return str(environment)
 
 
+def _step_references_external_path(step: dict) -> bool:
+    """Return whether a workflow step references repository scripts or local actions."""
+    step_refs = (str(step.get("run") or ""), str(step.get("uses") or ""))
+    return any(marker in step_ref for step_ref in step_refs for marker in EXTERNAL_REFERENCE_MARKERS)
+
+
 def test_production_promotion_workflow_exists() -> None:
     """H-P1-02 requires a production twin workflow file."""
     ASSERTIONS.assertTrue(WORKFLOW_PATH.is_file())
@@ -56,12 +63,19 @@ def test_production_promotion_requires_main_before_environment(
     jobs = production_promotion_workflow["jobs"]
     ASSERTIONS.assertIn("require-main", jobs)
     ASSERTIONS.assertNotIn("environment", jobs["require-main"])
+    ASSERTIONS.assertEqual({}, jobs["require-main"]["permissions"])
     needs = jobs["promotion-gate"]["needs"]
     if isinstance(needs, list):
         ASSERTIONS.assertIn("require-main", needs)
     else:
         ASSERTIONS.assertEqual("require-main", needs)
     ASSERTIONS.assertIn("refs/heads/main", WORKFLOW_PATH.read_text(encoding="utf-8"))
+
+
+def test_production_promotion_uses_job_level_permissions(production_promotion_workflow: dict) -> None:
+    """Production permissions must be scoped to the job that needs repository contents."""
+    ASSERTIONS.assertNotIn("permissions", production_promotion_workflow)
+    ASSERTIONS.assertEqual({"contents": "read"}, production_promotion_workflow["jobs"]["promotion-gate"]["permissions"])
 
 
 def test_production_promotion_targets_production_environments(
@@ -119,12 +133,11 @@ def test_production_promotion_limits_external_script_steps(
     production_promotion_workflow: dict,
 ) -> None:
     """Branch coherence: at most two steps may reference scripts/ or local .github paths."""
-    external_refs = 0
-    for step in production_promotion_workflow["jobs"]["promotion-gate"]["steps"]:
-        run_cmd = step.get("run", "") or ""
-        uses_cmd = step.get("uses", "") or ""
-        if "scripts/" in run_cmd or ".github/" in run_cmd or "scripts/" in uses_cmd or ".github/" in uses_cmd:
-            external_refs += 1
+    external_refs = sum(
+        1
+        for step in production_promotion_workflow["jobs"]["promotion-gate"]["steps"]
+        if _step_references_external_path(step)
+    )
     ASSERTIONS.assertLessEqual(external_refs, 2)
 
 
