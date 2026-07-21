@@ -1,0 +1,269 @@
+---
+# yamllint disable rule:line-length
+name: Post-Recovery Readiness
+
+on:
+  workflow_dispatch:
+    inputs:
+      recovery_context:
+        description: >-
+          Recovery event that requires mandatory re-smoke
+          (post-rollback or post-restore)
+        required: true
+        type: choice
+        options:
+          - post-rollback
+          - post-restore
+      target_environment:
+        description: >-
+          GitHub Environment that supplies the hosted readiness
+          base URL secret
+        required: true
+        type: choice
+        options:
+          - staging
+          - production
+      base_url:
+        description: >-
+          Optional override when verifying a scratch or restored
+          target (preferred for post-restore rehearsals)
+        required: false
+        type: string
+      timeout:
+        description: Request timeout in seconds
+        required: false
+        default: "10"
+        type: string
+      base_url_label:
+        description: Operator-safe label for JSON evidence
+        required: false
+        default: "redacted"
+        type: string
+
+concurrency:
+  group: >-
+    ${{ github.workflow }}-${{ inputs.recovery_context }}-${{
+    inputs.target_environment }}
+  cancel-in-progress: false
+
+jobs:
+  require-main:
+    if: ${{ inputs.target_environment == 'production' }}
+    permissions: {}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Require main branch
+        env:
+          REF: ${{ github.ref }}
+        run: |
+          if [ "$REF" != "refs/heads/main" ]; then
+            echo "Error: production recovery must dispatch from main."
+            echo "Got: $REF"
+            exit 1
+          fi
+
+  recovery-readiness:
+    needs: require-main
+    if: >-
+      always() &&
+      (needs.require-main.result == 'success' ||
+      needs.require-main.result == 'skipped')
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    environment:
+      name: ${{ inputs.target_environment }}
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        # v7.0.0
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+        with:
+          # Production evidence must use reviewed main scripts/workflow.
+          ref: >-
+            ${{ inputs.target_environment == 'production' && 'main' ||
+            github.ref }}
+          persist-credentials: false
+
+      - name: Setup Python
+        # v6.3.0
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
+        with:
+          python-version: "3.12"
+
+      - name: Check Hosted Readiness
+        id: readiness
+        env:
+          HOSTED_READINESS_BASE_URL: ${{ secrets.HOSTED_READINESS_BASE_URL }}
+          BASE_URL_INPUT: ${{ github.event.inputs.base_url }}
+          TIMEOUT: ${{ github.event.inputs.timeout }}
+          BASE_URL_LABEL: ${{ github.event.inputs.base_url_label }}
+        run: |
+          # Validate dispatch inputs in Python, then read the sanitized values
+          # from files (no eval/source) before invoking the readiness checker.
+          python - <<'PY'
+          import os
+          import re
+          import sys
+          from pathlib import Path
+
+          timeout = os.environ.get("TIMEOUT", "")
+          label = os.environ.get("BASE_URL_LABEL", "")
+          base_input = os.environ.get("BASE_URL_INPUT", "")
+          secret_url = os.environ.get("HOSTED_READINESS_BASE_URL", "")
+
+          # Reject 0 / 0.0; require a strictly positive finite timeout.
+          try:
+              timeout_value = float(timeout)
+          except ValueError:
+              timeout_value = 0.0
+          if (
+              not re.fullmatch(r"[0-9]+(?:\.[0-9]+)?", timeout)
+              or timeout_value <= 0 or timeout_value == float("inf")
+          ):
+              print("Error: timeout must be a positive number", file=sys.stderr)
+              sys.exit(1)
+          if not re.fullmatch(r"[A-Za-z0-9._:-]{1,64}", label):
+              print("Error: base_url_label is invalid", file=sys.stderr)
+              sys.exit(1)
+
+          url = base_input or secret_url
+          if not url:
+              print(
+                  "Error: hosted readiness base URL is required",
+                  file=sys.stderr,
+              )
+              sys.exit(1)
+          if not url.startswith("https://") or any(
+              ch in url for ch in "\r\n\0`$"
+          ):
+              print(
+                  "Error: hosted readiness base URL is invalid",
+                  file=sys.stderr,
+              )
+              sys.exit(1)
+
+          Path("validated-url.txt").write_text(url, encoding="utf-8")
+          Path("validated-timeout.txt").write_text(timeout, encoding="utf-8")
+          Path("validated-label.txt").write_text(label, encoding="utf-8")
+          PY
+
+          URL="$(cat validated-url.txt)"
+          TIMEOUT="$(cat validated-timeout.txt)"
+          BASE_URL_LABEL="$(cat validated-label.txt)"
+          echo "::add-mask::$URL"
+
+          # --require-persistence also enables --assets-smoke (H-P1-01).
+          # Temp file avoids empty artifacts on failed runs.
+          if ! python scripts/check_hosted_readiness.py \
+            "$URL" \
+            --timeout "$TIMEOUT" \
+            --json \
+            --require-persistence \
+            --base-url-label "$BASE_URL_LABEL" \
+            > readiness-output.tmp; then
+            if [ -s readiness-output.tmp ]; then
+              mv readiness-output.tmp readiness-output.json
+            else
+              rm -f readiness-output.tmp
+            fi
+            exit 1
+          fi
+          mv readiness-output.tmp readiness-output.json
+
+      - name: Assert Persistence Loaded
+        if: steps.readiness.outcome == 'success'
+        run: |
+          cfg='.observed_fields."graph_persistence_configured"'
+          if [ "$(jq -r "$cfg" readiness-output.json)" != "true" ]; then
+            echo "Error: graph_persistence_configured is not true."
+            exit 1
+          fi
+          en='.observed_fields."graph.persistence_enabled"'
+          if [ "$(jq -r "$en" readiness-output.json)" != "true" ]; then
+            echo "Error: graph.persistence_enabled is not true."
+            exit 1
+          fi
+          ld='.observed_fields."graph.persistence_loaded"'
+          if [ "$(jq -r "$ld" readiness-output.json)" != "true" ]; then
+            echo "Error: graph.persistence_loaded is not true."
+            exit 1
+          fi
+          src='.observed_fields."graph.startup_source"'
+          if [ "$(jq -r "$src" readiness-output.json)" != "persisted" ]; then
+            echo "Error: startup_source is not persisted."
+            exit 1
+          fi
+          smoke='.checks.assets_smoke.passed // false'
+          if [ "$(jq -r "$smoke" readiness-output.json)" != "true" ]; then
+            echo "Error: assets_smoke check did not pass."
+            exit 1
+          fi
+          total_q='.observed_fields."assets.total" // 0'
+          total="$(jq -r "$total_q" readiness-output.json)"
+          if ! [ "$total" -gt 0 ] 2>/dev/null; then
+            echo "Error: assets.total is not a positive count."
+            exit 1
+          fi
+          echo "Assertion passed: persistence loaded and assets smoke ok."
+
+      - name: Write Recovery Metadata
+        if: always()
+        env:
+          RECOVERY_CONTEXT: ${{ github.event.inputs.recovery_context }}
+          TARGET_ENVIRONMENT: ${{ github.event.inputs.target_environment }}
+          BASE_URL_LABEL: ${{ github.event.inputs.base_url_label }}
+          RUN_ID: ${{ github.run_id }}
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          import re
+          import sys
+          from datetime import datetime, timezone
+
+          label = os.environ.get("BASE_URL_LABEL", "")
+          if not re.fullmatch(r"[A-Za-z0-9._:-]{1,64}", label):
+              print("Error: base_url_label is invalid", file=sys.stderr)
+              sys.exit(1)
+
+          payload = {
+              "hardening_id": "H-P1-03",
+              "recovery_context": os.environ["RECOVERY_CONTEXT"],
+              "target_environment": os.environ["TARGET_ENVIRONMENT"],
+              "base_url_label": label,
+              "github_run_id": os.environ["RUN_ID"],
+              "captured_at_utc": datetime.now(timezone.utc)
+              .replace(microsecond=0)
+              .isoformat()
+              .replace("+00:00", "Z"),
+          }
+          with open("recovery-metadata.json", "w", encoding="utf-8") as handle:
+              json.dump(payload, handle, indent=2)
+              handle.write("\n")
+          PY
+
+      - name: Prepare Artifact Placeholders
+        if: always()
+        working-directory: ${{ github.workspace }}
+        run: |
+          if [ ! -s readiness-output.json ]; then
+            echo '{"status":"skipped","reason":"hosted_readiness_not_run"}' \
+              > readiness-output.json
+          fi
+          if [ ! -s recovery-metadata.json ]; then
+            reason='recovery_metadata_write_failed'
+            echo "{\"status\":\"skipped\",\"reason\":\"$reason\"}" \
+              > recovery-metadata.json
+          fi
+
+      - name: Upload Artifacts
+        if: always()
+        # v7.0.1
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: ${{ inputs.recovery_context }}-readiness
+          path: |
+            readiness-output.json
+            recovery-metadata.json

@@ -57,6 +57,24 @@ If JSON output is available and preferred for release evidence capture, use:
 python scripts/check_hosted_readiness.py <base_url> --require-persistence --json --base-url-label <operator-safe-label>
 ```
 
+## Post-Rollback / Post-Restore Re-Smoke (H-P1-03)
+
+After a staging or production rollback, or after a restore rehearsal, do **not** rely on the thin
+`hosted-readiness.yml` skip path. Dispatch `.github/workflows/post-recovery-readiness.yml` with:
+
+- `recovery_context`: `post-rollback` or `post-restore`
+- `target_environment`: `staging` or `production`
+- `base_url`: scratch/restored target when it differs from the Environment secret
+
+The workflow always runs `--json --require-persistence` (assets-smoke via H-P1-01), asserts durable
+graph fields, and uploads a context-named artifact:
+
+- `post-rollback-readiness`
+- `post-restore-readiness`
+
+Each artifact includes `readiness-output.json` and `recovery-metadata.json` (`hardening_id: H-P1-03`).
+Attach the workflow run and artifact to the incident or restore evidence record before closing.
+
 ## Required Field Paths
 
 When `/api/health/detailed` returns JSON, capture the exact nested graph persistence fields:

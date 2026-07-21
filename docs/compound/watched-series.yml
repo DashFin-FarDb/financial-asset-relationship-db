@@ -13,6 +13,7 @@ path_globs:
   - .github/workflows/release-evidence-verify.yml
   - .github/workflows/staging-promotion.yml
   - .github/workflows/production-promotion.yml
+  - .github/workflows/post-recovery-readiness.yml
   - .github/workflows/hosted-readiness.yml
   - .github/ISSUE_TEMPLATE/release_candidate_evidence.md
   - .github/ISSUE_TEMPLATE/restore_rehearsal_evidence.md

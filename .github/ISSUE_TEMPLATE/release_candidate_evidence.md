@@ -115,6 +115,7 @@ Record named owners for this release candidate:
 - [ ] `COORDINATION_DATABASE_URL` points to the restored coordination boundary when separated.
 - [ ] Scratch restore verification results attached.
 - [ ] Post-restore hosted readiness with `--require-persistence` evidence attached.
+- [ ] H-P1-03 `post-recovery-readiness.yml` run linked and `post-restore-readiness` artifact attached (when restore is in scope).
 - [ ] Redacted post-restore `/api/health/detailed` evidence attached or summarized.
 - [ ] Redacted post-restore `/api/assets?per_page=1` or approved sentinel evidence attached or summarized.
 - [ ] Persisted graph startup source confirmed after restore.
