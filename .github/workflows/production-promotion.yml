@@ -65,12 +65,26 @@ jobs:
           FARDB_UNTRUSTED_DATABASE_ROLES: ${{ secrets.FARDB_UNTRUSTED_DATABASE_ROLES }}
         run: |
           python scripts/verify_staging_promotion.py "$EVIDENCE_FILE"
-          if [ -z "${DATABASE_URL}${ASSET_GRAPH_DATABASE_URL}${COORDINATION_DATABASE_URL}${POSTGRES_URL}" ]; then
-            echo '{"status":"failed","reason":"no_database_url_configured"}' > db-authz-output.json
-            echo "H-P0-04 requires live database authorization secrets on the production Environment."
-            echo "Configure the auth/app, asset-graph, and optional coordination/postgres URL secrets."
+
+          # Fail closed on missing required boundaries before authz runs. The checker only
+          # validates URLs that are present, so an app-only secret set must not pass H-P0-04.
+          if [ -z "$ASSET_GRAPH_DATABASE_URL" ]; then
+            echo '{"status":"failed","reason":"missing_asset_graph_database_url"}' > db-authz-output.json
+            echo "H-P0-04 requires ASSET_GRAPH_DATABASE_URL on the production Environment."
             exit 1
           fi
+          if [ -z "${DATABASE_URL}${POSTGRES_URL}" ]; then
+            echo '{"status":"failed","reason":"missing_auth_database_url"}' > db-authz-output.json
+            echo "H-P0-04 requires DATABASE_URL or POSTGRES_URL on the production Environment."
+            exit 1
+          fi
+          # Production topology expects locks on the coordination boundary.
+          if [ -z "$COORDINATION_DATABASE_URL" ]; then
+            echo '{"status":"failed","reason":"missing_coordination_database_url"}' > db-authz-output.json
+            echo "H-P0-04 requires COORDINATION_DATABASE_URL on the production Environment (locks=coordination)."
+            exit 1
+          fi
+
           set +e
           # Bounded stdout/stderr only (control ids/messages). Do not upload raw logs as artifacts.
           python scripts/check_database_authorization.py

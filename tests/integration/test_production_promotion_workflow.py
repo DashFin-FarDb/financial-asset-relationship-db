@@ -95,6 +95,18 @@ def test_production_promotion_reuses_evidence_verifier(production_promotion_raw:
     assert "check_database_authorization.py" in production_promotion_raw
 
 
+def test_production_promotion_requires_graph_and_coordination_db_secrets(
+    production_promotion_raw: str,
+) -> None:
+    """Authz must not pass when only app/postgres URLs are configured."""
+    assert "missing_asset_graph_database_url" in production_promotion_raw
+    assert "missing_auth_database_url" in production_promotion_raw
+    assert "missing_coordination_database_url" in production_promotion_raw
+    assert "ASSET_GRAPH_DATABASE_URL on the production Environment" in production_promotion_raw
+    assert "COORDINATION_DATABASE_URL on the production Environment" in production_promotion_raw
+    assert "no_database_url_configured" not in production_promotion_raw
+
+
 def test_production_promotion_limits_external_script_steps(
     production_promotion_workflow: dict,
 ) -> None:
