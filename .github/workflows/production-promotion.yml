@@ -109,6 +109,13 @@ jobs:
             exit 1
           fi
 
+          # GitHub injects unset secrets as empty strings. An empty value makes
+          # the checker reject config instead of applying default roles, so
+          # drop it before invocation.
+          if [ -z "$FARDB_UNTRUSTED_DATABASE_ROLES" ]; then
+            unset FARDB_UNTRUSTED_DATABASE_ROLES
+          fi
+
           set +e
           # Bounded stdout/stderr only. Do not upload raw authz logs.
           python scripts/check_database_authorization.py
