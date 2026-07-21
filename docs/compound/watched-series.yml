@@ -1,4 +1,20 @@
 version: 1
 prs: []
-labels: []
-path_globs: []
+labels:
+  - hardening
+  - release-evidence
+  - disaster-recovery
+  - enterprise-readiness
+path_globs:
+  - docs/release-evidence-pack.md
+  - docs/roadmap/enterprise-readiness-pr-board.md
+  - docs/runbooks/backup-restore-dr.md
+  - docs/ci-required-checks-policy.md
+  - .github/workflows/release-evidence-verify.yml
+  - .github/workflows/staging-promotion.yml
+  - .github/workflows/hosted-readiness.yml
+  - .github/ISSUE_TEMPLATE/release_candidate_evidence.md
+  - .github/ISSUE_TEMPLATE/restore_rehearsal_evidence.md
+  - scripts/check_hosted_readiness.py
+  - scripts/check_database_authorization.py
+  - scripts/verify_staging_promotion.py

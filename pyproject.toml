@@ -126,6 +126,11 @@ extend-exclude = '''
 )/
 '''
 
+# Used by super-linter v7 PYTHON_PYINK (pyink --config pyproject.toml).
+[tool.pyink]
+line-length = 120
+target-version = ["py312"]
+
 [tool.isort]
 profile = "black"
 line_length = 120

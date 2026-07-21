@@ -37,10 +37,34 @@ jobs:
       - name: Install Dependencies
         run: pip install -r requirements.txt
 
-      - name: Verify Staging Baseline Checklist
+      - name: Verify Staging Baseline and Database Authorization
+        id: db_authz
         env:
           EVIDENCE_FILE: ${{ github.event.inputs.evidence_file }}
-        run: python scripts/verify_staging_promotion.py "$EVIDENCE_FILE"
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          ASSET_GRAPH_DATABASE_URL: ${{ secrets.ASSET_GRAPH_DATABASE_URL }}
+          COORDINATION_DATABASE_URL: ${{ secrets.COORDINATION_DATABASE_URL }}
+          POSTGRES_URL: ${{ secrets.POSTGRES_URL }}
+          FARDB_UNTRUSTED_DATABASE_ROLES: ${{ secrets.FARDB_UNTRUSTED_DATABASE_ROLES }}
+        run: |
+          python scripts/verify_staging_promotion.py "$EVIDENCE_FILE"
+          if [ -z "${DATABASE_URL}${ASSET_GRAPH_DATABASE_URL}${COORDINATION_DATABASE_URL}${POSTGRES_URL}" ]; then
+            echo '{"status":"failed","reason":"no_database_url_configured"}' > db-authz-output.json
+            echo "H-P0-04 requires live database authorization secrets on the staging Environment."
+            echo "Configure the auth/app, asset-graph, and optional coordination/postgres URL secrets."
+            exit 1
+          fi
+          set +e
+          # Bounded stdout/stderr only (control ids/messages). Do not upload raw logs as artifacts.
+          python scripts/check_database_authorization.py
+          code=$?
+          if [ "$code" -eq 0 ]; then
+            echo '{"status":"passed"}' > db-authz-output.json
+            exit 0
+          fi
+          echo "{\"status\":\"failed\",\"exit_code\":$code}" > db-authz-output.json
+          echo "Database authorization gate failed (H-P0-04)."
+          exit 1
 
       - name: Check Hosted Readiness
         id: readiness
@@ -83,6 +107,17 @@ jobs:
           echo "Logging promotion decision for AI system transparency (Article 13)..."
           echo "Promotion run at $(date -u) — result: ${{ job.status }}" >> promotion_audit.log
 
+      - name: Prepare Artifact Placeholders
+        if: always()
+        working-directory: ${{ github.workspace }}
+        run: |
+          if [ ! -f readiness-output.json ]; then
+            echo '{"status":"skipped","reason":"hosted_readiness_not_run"}' > readiness-output.json
+          fi
+          if [ ! -f db-authz-output.json ]; then
+            echo '{"status":"skipped","reason":"db_authz_not_run"}' > db-authz-output.json
+          fi
+
       - name: Upload Artifacts
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -90,4 +125,5 @@ jobs:
           name: staging-readiness
           path: |
             readiness-output.json
+            db-authz-output.json
             promotion_audit.log

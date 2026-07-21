@@ -23,9 +23,18 @@ FarDb uses a dual-database architecture:
 
 The two database boundaries may point to the same physical PostgreSQL instance or to separate logical databases. Operators must treat them as separate recovery concerns unless the deployment explicitly documents a shared database boundary.
 
-The rebuild coordination plane may also be isolated through `COORDINATION_DATABASE_URL`. When present, that URL is the authoritative location for coordination tables such as `rebuild_jobs` and `distributed_locks`; when absent, it falls back to `DATABASE_URL` and then provider fallback configuration. DR procedures must therefore resolve the actual deployed connection-string topology before backup or restore.
+The rebuild coordination plane may also be isolated through `COORDINATION_DATABASE_URL`.
+**Landed runtime placement** (`api/routers/graph_admin.py`): `distributed_locks` use the
+coordination session (`COORDINATION_DATABASE_URL`, falling back through `DATABASE_URL` then
+`POSTGRES_URL` in settings), while `rebuild_jobs` (heartbeats/checkpoints) use the domain /
+Asset Graph session (`ASSET_GRAPH_DATABASE_URL`). DR procedures must resolve the actual
+deployed connection-string topology and clean up **table-scoped** (locks vs jobs) before restart.
 
-Graph data and coordination/auth data have different recovery properties. Graph data can be rebuilt from source data through `RebuildExecutor` when source data remains available and fresh enough for the target environment. Coordination/auth data is less replaceable: user credentials, rebuild job history, lock state, and checkpoint metadata cannot be fully reconstructed from the graph source feed alone.
+Graph data and coordination/auth data have different recovery properties. Graph data can be
+rebuilt from source data through `RebuildExecutor` when source data remains available and fresh
+enough for the target environment. Coordination/auth data is less replaceable: user credentials,
+rebuild job history, lock state, and checkpoint metadata cannot be fully reconstructed from the
+graph source feed alone.
 
 The distributed rebuild control plane also introduces timing constraints. `distributed_locks` rows expire through TTL semantics, with the current default maximum operational assumption of 300 seconds. A restored lock row with a future `expires_at` can temporarily block new rebuild lock acquisition until it expires or is cleared by an operator.
 
@@ -35,10 +44,10 @@ FarDb adopts a documented disaster recovery strategy for staging and production 
 
 ### Recovery objectives
 
-| Data class | RPO target | RTO target | Notes |
-| --- | --- | --- | --- |
-| Graph data | Tied to approved source-data freshness | 2 hours for full service restoration, including verification | Graph truth is important but rebuildable through `RebuildExecutor` if source data remains available. |
-| Coordination/auth data | 1 hour | 2 hours for full service restoration, including verification | Includes auth/application state and rebuild coordination state that cannot be completely inferred from graph source data. |
+| Data class             | RPO target                             | RTO target                                                   | Notes                                                                                                                     |
+| ---------------------- | -------------------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------- |
+| Graph data             | Tied to approved source-data freshness | 2 hours for full service restoration, including verification | Graph truth is important but rebuildable through `RebuildExecutor` if source data remains available.                      |
+| Coordination/auth data | 1 hour                                 | 2 hours for full service restoration, including verification | Includes auth/application state and rebuild coordination state that cannot be completely inferred from graph source data. |
 
 The 2-hour RTO includes restore execution, schema verification, application restart/redeployment, health verification, lifecycle verification, and functional smoke testing.
 
@@ -52,19 +61,19 @@ Provider-managed point-in-time recovery (PITR) is the primary backup and restore
 
 Hosted staging and production should maintain:
 
-| Backup type | Retention |
-| --- | --- |
-| Daily backups | 7-day rolling retention |
-| Weekly snapshots | 30-day retention |
+| Backup type      | Retention               |
+| ---------------- | ----------------------- |
+| Daily backups    | 7-day rolling retention |
+| Weekly snapshots | 30-day retention        |
 
 Provider-managed PITR retention must meet or exceed the intended recovery window. If a provider tier cannot satisfy the retention policy, operators must supplement it with scheduled `pg_dump` snapshots retained outside the primary database service.
 
 ### Data classification
 
-| Classification | Tables / state | Recovery priority | Rationale |
-| --- | --- | --- | --- |
-| **Critical / Non-rebuildable** | `distributed_locks`, `rebuild_jobs` coordination state, user credentials if stored | Highest | These records control operator access, rebuild coordination, checkpoints, and lock ownership. They cannot be regenerated from graph source data alone. |
-| **Important / Rebuildable** | `assets`, `asset_relationships`, `regulatory_events`, `regulatory_event_assets` | High | These records represent graph truth. They should be restored when possible but can be rebuilt from source through `RebuildExecutor` if backup data is unavailable or stale. |
+| Classification                 | Tables / state                                                                     | Recovery priority | Rationale                                                                                                                                                                   |
+| ------------------------------ | ---------------------------------------------------------------------------------- | ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Critical / Non-rebuildable** | `distributed_locks`, `rebuild_jobs` coordination state, user credentials if stored | Highest           | These records control operator access, rebuild coordination, checkpoints, and lock ownership. They cannot be regenerated from graph source data alone.                      |
+| **Important / Rebuildable**    | `assets`, `asset_relationships`, `regulatory_events`, `regulatory_event_assets`    | High              | These records represent graph truth. They should be restored when possible but can be rebuilt from source through `RebuildExecutor` if backup data is unavailable or stale. |
 
 Graph data backup loss is recoverable when source data is available and an approved rebuild can be run. In that case, the graph RPO is bounded by source data freshness and rebuild acceptance criteria rather than by database backup age alone.
 

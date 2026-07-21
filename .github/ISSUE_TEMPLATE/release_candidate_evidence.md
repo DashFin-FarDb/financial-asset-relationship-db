@@ -89,13 +89,13 @@ Use this only when a drill is directly release-blocking or explicitly included i
 
 Record named owners for this release candidate:
 
-| Role | Named owner | Sign-off status | Notes |
-| --- | --- | --- | --- |
-| Deploy operator |  | Pending |  |
-| Promotion approver |  | Pending |  |
-| Rollback owner |  | Pending |  |
-| Restore operator |  | Pending |  |
-| Persistence verification owner |  | Pending |  |
+| Role                           | Named owner | Sign-off status | Notes |
+| ------------------------------ | ----------- | --------------- | ----- |
+| Deploy operator                |             | Pending         |       |
+| Promotion approver             |             | Pending         |       |
+| Rollback owner                 |             | Pending         |       |
+| Restore operator               |             | Pending         |       |
+| Persistence verification owner |             | Pending         |       |
 
 ## Disaster Recovery Rehearsal Evidence
 
@@ -128,21 +128,45 @@ Record named owners for this release candidate:
 - [ ] Restore rehearsal decision recorded: Passed / Failed / Blocked.
 - [ ] Follow-up issues are linked for unresolved ambiguity or failed steps.
 
+## Hardening backlog (machine-checkable markers)
+
+Copy these markers into the committed evidence file used by `staging-promotion.yml`.
+Reference: [Hardening evidence markers](https://github.com/DashFin-FarDb/financial-asset-relationship-db/blob/main/docs/release-evidence-pack.md#hardening-evidence-markers).
+
+```text
+hardening_ids: H-P0-01, H-P0-02, H-P0-03, H-P0-04, H-P0-06
+topology: jobs=asset_graph; locks=coordination
+db_authz: PASS|<replace-with-workflow-run-id>
+```
+
+Replace the `db_authz` placeholder with a real opaque ref from a workflow that ran
+`scripts/check_database_authorization.py` (for example `db_authz: PASS|1506-run-123456` or
+`db_authz: PASS|run-1234567890`). Allowed shapes: `run-<digits>`, `artifact-<digits>`,
+`<prefix>-run-<digits>`, or a numeric workflow run ID (>=6 digits). Bare `PASS` and placeholders
+such as `TBD` / angle-bracket templates are rejected.
+
+- [ ] H-P0-01 topology marker present (`jobs=asset_graph; locks=coordination`)
+- [ ] H-P0-02 table-scoped restore cleanup confirmed on job + lock boundaries
+- [ ] H-P0-03 `release-evidence-verify` run with `hardening_tier=P0` (strict; hosted must PASS)
+- [ ] H-P0-04 live DB authorization passed in staging-promotion (secrets required); evidence has `db_authz: PASS|<opaque-ref>`
+- [ ] H-P0-06 this packet is SHA-bound to the release commit above (RC1 not reused as CURRENT)
+- [ ] Release-evidence / staging-promotion workflow run URL attached:
+
 ## Gate Status Summary
 
 Use the status values from the release evidence pack.
 
-| Gate | Status | Evidence link or note | Release blocker? |
-| --- | --- | --- | --- |
-| Architecture |  |  |  |
-| Durable Persistence |  |  |  |
-| Restart / Reload |  |  |  |
-| Promotion |  |  |  |
-| API Contract |  |  |  |
-| Recovery / Rebuild |  |  |  |
-| Security |  |  |  |
-| Governance |  |  |  |
-| Disaster Recovery |  |  |  |
+| Gate                | Status | Evidence link or note | Release blocker? |
+| ------------------- | ------ | --------------------- | ---------------- |
+| Architecture        |        |                       |                  |
+| Durable Persistence |        |                       |                  |
+| Restart / Reload    |        |                       |                  |
+| Promotion           |        |                       |                  |
+| API Contract        |        |                       |                  |
+| Recovery / Rebuild  |        |                       |                  |
+| Security            |        |                       |                  |
+| Governance          |        |                       |                  |
+| Disaster Recovery   |        |                       |                  |
 
 ## Final Decision
 

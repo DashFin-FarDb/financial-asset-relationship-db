@@ -66,3 +66,8 @@ jobs:
           VALIDATE_PYTHON_ISORT: false
           VALIDATE_PYTHON_MYPY: false
           VALIDATE_PYTHON_PYLINT: false
+          # Keep Python formatting out of super-linter; black/ruff/pre-commit own it.
+          # Pyink defaults on in v7 and was removed in v8; do not point
+          # PYTHON_PYINK_CONFIG_FILE at repo-root pyproject.toml (resolved under
+          # LINTER_RULES_PATH and fatals when missing).
+          VALIDATE_PYTHON_PYINK: false

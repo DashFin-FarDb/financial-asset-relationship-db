@@ -17,9 +17,16 @@ on:
         type: boolean
         default: true
       strict_rc_gate:
-        description: "Strict RC promotion gate (fails if hosted readiness is skipped)"
+        description: "Strict RC promotion gate (fails if hosted readiness is skipped). Forced true when hardening_tier != none."
         type: boolean
         default: false
+      hardening_tier:
+        description: "Hardening backlog tier to enforce. Only none and P0 are implemented; P0 (default) forces strict hosted readiness. none = soft rehearsal."
+        type: choice
+        options:
+          - none
+          - P0
+        default: P0
       tags:
         description: "Manual sign-off tags (e.g., [manual-stop] or [star])"
         required: false
@@ -198,6 +205,46 @@ jobs:
             echo "{}" > readiness-output.json
           fi
 
+      - name: Check Database Authorization
+        id: gate_db_authz
+        continue-on-error: true
+        working-directory: release-source
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          ASSET_GRAPH_DATABASE_URL: ${{ secrets.ASSET_GRAPH_DATABASE_URL }}
+          COORDINATION_DATABASE_URL: ${{ secrets.COORDINATION_DATABASE_URL }}
+          POSTGRES_URL: ${{ secrets.POSTGRES_URL }}
+          FARDB_UNTRUSTED_DATABASE_ROLES: ${{ secrets.FARDB_UNTRUSTED_DATABASE_ROLES }}
+        run: |
+          if [ -z "${DATABASE_URL}${ASSET_GRAPH_DATABASE_URL}${COORDINATION_DATABASE_URL}${POSTGRES_URL}" ]; then
+            echo '{"status":"skipped","reason":"no_database_url_configured"}' > db-authz-output.json
+            exit 0
+          fi
+          set +e
+          # Bounded stdout/stderr only (control ids/messages). Do not upload raw logs as artifacts.
+          python scripts/check_database_authorization.py
+          code=$?
+          if [ "$code" -eq 0 ]; then
+            echo '{"status":"passed"}' > db-authz-output.json
+            exit 0
+          fi
+          echo "{\"status\":\"failed\",\"exit_code\":$code}" > db-authz-output.json
+          exit 1
+
+      - name: Prepare Artifact Placeholders
+        if: always()
+        working-directory: release-source
+        run: |
+          if [ ! -f readiness-output.json ]; then
+            echo '{"status":"skipped","reason":"hosted_readiness_not_run"}' > readiness-output.json
+          fi
+          if [ ! -f docs-readiness.json ]; then
+            echo '{"status":"skipped","reason":"docs_gate_not_run"}' > docs-readiness.json
+          fi
+          if [ ! -f db-authz-output.json ]; then
+            echo '{"status":"skipped","reason":"db_authz_not_run"}' > db-authz-output.json
+          fi
+
       - name: Upload Artifacts
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -207,15 +254,24 @@ jobs:
             release-source/results-*.xml
             release-source/readiness-output.json
             release-source/docs-readiness.json
+            release-source/db-authz-output.json
 
       - name: Assert All Gates Passed
         if: always()
         working-directory: release-source
         env:
           STRICT_RC_GATE: ${{ inputs.strict_rc_gate }}
+          HARDENING_TIER: ${{ inputs.hardening_tier }}
         run: |
           docs_status=$(jq -r '.status // "skipped"' docs-readiness.json 2>/dev/null || echo "skipped")
           readiness_status=$(jq -r '.status // "skipped"' readiness-output.json 2>/dev/null || echo "skipped")
+          db_authz_status=$(jq -r '.status // "skipped"' db-authz-output.json 2>/dev/null || echo "skipped")
+
+          EFFECTIVE_STRICT="$STRICT_RC_GATE"
+          if [ "$HARDENING_TIER" != "none" ]; then
+            EFFECTIVE_STRICT="true"
+            echo "hardening_tier=$HARDENING_TIER forces strict RC gate."
+          fi
 
           if [ "${{ steps.gate_persistence.outcome }}" != "success" ] || \
           [ "${{ steps.gate_restart.outcome }}" != "success" ] || \
@@ -228,9 +284,14 @@ jobs:
             exit 1
           fi
 
-          if [ "$STRICT_RC_GATE" == "true" ]; then
+          if [ "$db_authz_status" == "failed" ] || [ "${{ steps.gate_db_authz.outcome }}" == "failure" ]; then
+            echo "Database authorization gate failed (H-P0-04)."
+            exit 1
+          fi
+
+          if [ "$EFFECTIVE_STRICT" == "true" ]; then
             if [ "$readiness_status" != "passed" ] || [ "$docs_status" != "passed" ]; then
-              echo "Strict RC promotion requires hosted readiness and docs checks to pass."
+              echo "Strict RC promotion requires hosted readiness and docs checks to pass (hardening_tier=$HARDENING_TIER)."
               exit 1
             fi
           else
@@ -247,6 +308,8 @@ jobs:
       - name: Emit Gate Summary
         if: always()
         working-directory: release-source
+        env:
+          HARDENING_TIER: ${{ inputs.hardening_tier }}
         run: |
           python - <<'PY'
           import glob
@@ -300,6 +363,7 @@ jobs:
               ("Disaster Recovery", "MANUAL EVIDENCE REQUIRED", "docs/runbooks/backup-restore-dr.md; docs/adr/0005-backup-restore-dr-strategy.md"),
           ]
 
+          hardening_tier = os.environ.get("HARDENING_TIER", "P0")
           summary_path = os.environ["GITHUB_STEP_SUMMARY"]
           with open(summary_path, "a", encoding="utf-8") as out:
               out.write("## Release Evidence Gate Summary\n")
@@ -311,6 +375,17 @@ jobs:
               out.write("Supplementary checks (not part of the nine canonical gates):\n")
               out.write(
                   f"- AI System Documentation (Article 13/14): {json_status('docs-readiness.json')} (`docs-readiness.json`)\n"
+              )
+              out.write(
+                  f"- Database authorization (H-P0-04): {json_status('db-authz-output.json')} (`db-authz-output.json`)\n"
+              )
+              out.write("\n")
+              out.write("## Hardening backlog\n")
+              out.write(f"- hardening_tier input: `{hardening_tier}`\n")
+              out.write(
+                  "- Canon: `docs/release-evidence-pack.md#hardening-backlog-p0p3` "
+                  "(H-P0-01 … H-P3-05). Skipped DB authz still requires staging evidence "
+                  "`db_authz: PASS` before promotion.\n"
               )
 
           sys.exit(0)
