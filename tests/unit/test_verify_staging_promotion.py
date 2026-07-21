@@ -25,7 +25,7 @@ DB_AUTHZ_OPAQUE_REF_ERROR = (
     "<prefix>-run-<digits>, or a numeric workflow run id (>=6 digits)"
 )
 OPERATIONAL_EVIDENCE = (
-    "asset smoke evidence hosted readiness --require-persistence " "health json named owners scanner summary"
+    "asset smoke evidence hosted readiness --require-persistence health json named owners scanner summary"
 )
 
 
