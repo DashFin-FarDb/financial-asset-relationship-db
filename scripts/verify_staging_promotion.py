@@ -281,8 +281,9 @@ TOPOLOGY_MARKER_PATTERN = re.compile(
     re.IGNORECASE,
 )
 # Bare PASS is rejected; require an opaque run/artifact reference after '|'.
+# Capture a single non-space token (no reluctant quantifier / backtracking).
 DB_AUTHZ_PASS_PATTERN = re.compile(
-    r"^\s*db_authz\s*:\s*PASS\s*\|\s*(\S[^\n]*?)\s*$",
+    r"^\s*db_authz\s*:\s*PASS\s*\|\s*(\S+)\s*$",
     re.IGNORECASE | re.MULTILINE,
 )
 # Allowlist: run/artifact-shaped refs with a numeric id (>=3 digits). Rejects
@@ -316,27 +317,40 @@ def _hardening_id_tokens(ids_blob: str) -> set[str]:
     return tokens
 
 
-def _check_hardening_foundation(content: str, missing: List[str]) -> None:
-    """Check P0 hardening backlog markers required for staging promotion."""
+def _check_hardening_ids(content: str, missing: List[str]) -> None:
+    """Require the P0 hardening_ids marker with exact foundation IDs."""
     ids_match = HARDENING_IDS_LINE_PATTERN.search(content)
     if ids_match is None:
         missing.append("hardening_ids marker with P0 foundation IDs")
-    else:
-        ids_tokens = _hardening_id_tokens(ids_match.group(1))
-        missing_ids = [item_id for item_id in REQUIRED_HARDENING_IDS if item_id not in ids_tokens]
-        if missing_ids:
-            missing.append("hardening_ids missing required IDs: " + ", ".join(missing_ids))
+        return
+    ids_tokens = _hardening_id_tokens(ids_match.group(1))
+    missing_ids = [item_id for item_id in REQUIRED_HARDENING_IDS if item_id not in ids_tokens]
+    if missing_ids:
+        missing.append("hardening_ids missing required IDs: " + ", ".join(missing_ids))
 
+
+def _check_hardening_topology(content: str, missing: List[str]) -> None:
+    """Require the jobs/locks topology marker."""
     if TOPOLOGY_MARKER_PATTERN.search(content) is None:
         missing.append("topology: jobs=asset_graph; locks=coordination")
 
+
+def _check_hardening_db_authz(content: str, missing: List[str]) -> None:
+    """Require db_authz PASS with an allowlisted opaque run/artifact ref."""
     authz_match = DB_AUTHZ_PASS_PATTERN.search(content)
     if authz_match is None:
         missing.append("db_authz: PASS|<opaque-ref> (bare PASS is not accepted)")
-    else:
-        opaque_ref = authz_match.group(1).strip()
-        if DB_AUTHZ_OPAQUE_REF_PATTERN.fullmatch(opaque_ref) is None:
-            missing.append(DB_AUTHZ_OPAQUE_REF_ERROR)
+        return
+    opaque_ref = authz_match.group(1).strip()
+    if DB_AUTHZ_OPAQUE_REF_PATTERN.fullmatch(opaque_ref) is None:
+        missing.append(DB_AUTHZ_OPAQUE_REF_ERROR)
+
+
+def _check_hardening_foundation(content: str, missing: List[str]) -> None:
+    """Check P0 hardening backlog markers required for staging promotion."""
+    _check_hardening_ids(content, missing)
+    _check_hardening_topology(content, missing)
+    _check_hardening_db_authz(content, missing)
 
 
 def verify_staging_promotion(evidence_file: str) -> None:

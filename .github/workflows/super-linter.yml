@@ -66,3 +66,5 @@ jobs:
           VALIDATE_PYTHON_ISORT: false
           VALIDATE_PYTHON_MYPY: false
           VALIDATE_PYTHON_PYLINT: false
+          # Align pyink with repository black/ruff line length (pyproject.toml).
+          PYTHON_PYINK_LINE_LENGTH: 120

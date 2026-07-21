@@ -14,7 +14,7 @@ Use this runbook when:
 - recovering from data loss, accidental destructive writes, failed migrations, or database-provider incidents;
 - proving that restore procedures remain executable for enterprise release readiness.
 
-The intended audience is operators with database, hosting, and deployment authority. It is not an end-user support document.
+The intended audience is operators with database, hosting, and deployment authority. It is not an end user support document.
 
 This runbook distinguishes application rollback from data restore. Vercel rollback/promotion restores application code and configuration only; it does not restore database state.
 

@@ -16,16 +16,22 @@ from scripts.verify_staging_promotion import (
     verify_staging_promotion,
 )
 
-HARDENING_MARKERS = (
-    "hardening_ids: H-P0-01, H-P0-02, H-P0-03, H-P0-04, H-P0-06\n"
-    "topology: jobs=asset_graph; locks=coordination\n"
-    "db_authz: PASS|run-123\n"
-)
+HARDENING_IDS = "hardening_ids: H-P0-01, H-P0-02, H-P0-03, H-P0-04, H-P0-06"
+TOPOLOGY_MARKER = "topology: jobs=asset_graph; locks=coordination"
+HARDENING_MARKERS = f"{HARDENING_IDS}\n{TOPOLOGY_MARKER}\ndb_authz: PASS|run-123\n"
 DB_AUTHZ_REQUIRED_MSG = "db_authz: PASS|<opaque-ref> (bare PASS is not accepted)"
 DB_AUTHZ_OPAQUE_REF_ERROR = (
     "db_authz opaque ref must match run-<digits>, artifact-<digits>, "
     "<prefix>-run-<digits>, or a numeric workflow run id (>=6 digits)"
 )
+OPERATIONAL_EVIDENCE = (
+    "asset smoke evidence hosted readiness --require-persistence " "health json named owners scanner summary"
+)
+
+
+def _hardening_content(db_authz_line: str, hardening_ids: str = HARDENING_IDS) -> str:
+    """Build a minimal hardening marker block for foundation checks."""
+    return f"{hardening_ids}\n{TOPOLOGY_MARKER}\n{db_authz_line}"
 
 
 @pytest.mark.unit
@@ -88,12 +94,12 @@ def test_check_database_boundaries_accepts_nearby_distinct_boundary():
         """
         ```json
         {
-          "graph_persistence_configured": true,
-          "graph": {
-            "persistence_enabled": true,
-            "persistence_loaded": true,
-            "startup_source": "persisted"
-          }
+            "graph_persistence_configured": true,
+            "graph": {
+                "persistence_enabled": true,
+                "persistence_loaded": true,
+                "startup_source": "persisted"
+            }
         }
         ```
         durable preview
@@ -101,12 +107,12 @@ def test_check_database_boundaries_accepts_nearby_distinct_boundary():
         """
         ```json
         {
-          "observed_fields": {
-            "graph_persistence_configured": true,
-            "graph.persistence_enabled": true,
-            "graph.persistence_loaded": true,
-            "graph.startup_source": "persisted"
-          }
+            "observed_fields": {
+                "graph_persistence_configured": true,
+                "graph.persistence_enabled": true,
+                "graph.persistence_loaded": true,
+                "graph.startup_source": "persisted"
+            }
         }
         ```
         durable preview
@@ -136,12 +142,12 @@ def test_persistence_proof_invalid_data():
     missing = []
     false_json = """
     {
-      "graph_persistence_configured": false,
-      "graph": {
-        "persistence_enabled": false,
-        "persistence_loaded": false,
-        "startup_source": "sample"
-      }
+        "graph_persistence_configured": false,
+        "graph": {
+            "persistence_enabled": false,
+            "persistence_loaded": false,
+            "startup_source": "sample"
+        }
     }
     durable preview
     """
@@ -151,11 +157,11 @@ def test_persistence_proof_invalid_data():
     missing = []
     bare_json = """
     {
-      "graph_persistence_configured": true,
-      "persistence_enabled": true,
-      "persistence_loaded": true,
-      "startup_source": "persisted",
-      "graph": {}
+        "graph_persistence_configured": true,
+        "persistence_enabled": true,
+        "persistence_loaded": true,
+        "startup_source": "persisted",
+        "graph": {}
     }
     durable preview
     """
@@ -177,17 +183,17 @@ def test_persistence_proof_invalid_data():
     Here is the first block:
     ```json
     {
-      "graph_persistence_configured": true
+        "graph_persistence_configured": true
     }
     ```
     And the second block:
     ```json
     {
-      "graph": {
-        "persistence_enabled": true,
-        "persistence_loaded": true,
-        "startup_source": "persisted"
-      }
+        "graph": {
+            "persistence_enabled": true,
+            "persistence_loaded": true,
+            "startup_source": "persisted"
+        }
     }
     ```
     durable preview
@@ -221,12 +227,7 @@ def test_check_hardening_foundation_accepts_required_markers():
 def test_check_hardening_foundation_rejects_bare_db_authz_pass():
     """Test that bare db_authz: PASS is rejected without an opaque ref."""
     missing = []
-    _check_hardening_foundation(
-        "hardening_ids: H-P0-01, H-P0-02, H-P0-03, H-P0-04, H-P0-06\n"
-        "topology: jobs=asset_graph; locks=coordination\n"
-        "db_authz: PASS\n",
-        missing,
-    )
+    _check_hardening_foundation(_hardening_content("db_authz: PASS\n"), missing)
     assert DB_AUTHZ_REQUIRED_MSG in missing
 
 
@@ -247,12 +248,7 @@ def test_check_hardening_foundation_rejects_bare_db_authz_pass():
 def test_check_hardening_foundation_rejects_invalid_opaque_ref(db_authz_line):
     """Test that placeholder and non-shaped opaque refs are rejected by allowlist."""
     missing = []
-    _check_hardening_foundation(
-        "hardening_ids: H-P0-01, H-P0-02, H-P0-03, H-P0-04, H-P0-06\n"
-        "topology: jobs=asset_graph; locks=coordination\n"
-        f"{db_authz_line}",
-        missing,
-    )
+    _check_hardening_foundation(_hardening_content(db_authz_line), missing)
     assert DB_AUTHZ_OPAQUE_REF_ERROR in missing
 
 
@@ -265,9 +261,7 @@ def test_check_hardening_foundation_accepts_shaped_opaque_refs(opaque_ref):
     """Test that allowlisted run/artifact opaque refs are accepted."""
     missing = []
     _check_hardening_foundation(
-        "hardening_ids: H-P0-01, H-P0-02, H-P0-03, H-P0-04, H-P0-06\n"
-        "topology: jobs=asset_graph; locks=coordination\n"
-        f"db_authz: PASS|{opaque_ref}\n",
+        _hardening_content(f"db_authz: PASS|{opaque_ref}\n"),
         missing,
     )
     assert not missing
@@ -284,7 +278,10 @@ def test_check_hardening_foundation_requires_ids_topology_and_db_authz():
 
     missing = []
     _check_hardening_foundation(
-        "hardening_ids: H-P0-01, H-P0-02\ntopology: jobs=asset_graph; locks=coordination\ndb_authz: FAIL\n",
+        _hardening_content(
+            "db_authz: FAIL\n",
+            hardening_ids="hardening_ids: H-P0-01, H-P0-02",
+        ),
         missing,
     )
     assert any("hardening_ids missing required IDs" in item for item in missing)
@@ -294,17 +291,17 @@ def test_check_hardening_foundation_requires_ids_topology_and_db_authz():
 @pytest.mark.unit
 @pytest.mark.parametrize(
     "db_authz_line",
-    ["db_authz: PASSED\n", "db_authz: PASSWORD\n", "db_authz: PASSAGE\n", "db_authz: PASS\n"],
+    [
+        "db_authz: PASSED\n",
+        "db_authz: PASSWORD\n",
+        "db_authz: PASSAGE\n",
+        "db_authz: PASS\n",
+    ],
 )
 def test_check_hardening_foundation_rejects_non_exact_db_authz_pass(db_authz_line):
     """Test that db_authz only accepts PASS|<opaque-ref> markers."""
     missing = []
-    _check_hardening_foundation(
-        "hardening_ids: H-P0-01, H-P0-02, H-P0-03, H-P0-04, H-P0-06\n"
-        "topology: jobs=asset_graph; locks=coordination\n"
-        f"{db_authz_line}",
-        missing,
-    )
+    _check_hardening_foundation(_hardening_content(db_authz_line), missing)
     assert DB_AUTHZ_REQUIRED_MSG in missing
 
 
@@ -314,10 +311,10 @@ def test_check_hardening_foundation_requires_exact_hardening_ids(invalid_id):
     """Test that hardening IDs are validated as discrete identifiers."""
     missing = []
     _check_hardening_foundation(
-        "hardening_ids: H-P0-01, H-P0-02, H-P0-03, H-P0-04, "
-        f"{invalid_id}\n"
-        "topology: jobs=asset_graph; locks=coordination\n"
-        "db_authz: PASS|run-123\n",
+        _hardening_content(
+            "db_authz: PASS|run-123\n",
+            hardening_ids=("hardening_ids: H-P0-01, H-P0-02, H-P0-03, H-P0-04, " + invalid_id),
+        ),
         missing,
     )
     assert "hardening_ids missing required IDs: H-P0-06" in missing
@@ -328,9 +325,10 @@ def test_check_hardening_foundation_ignores_comment_text_after_comma_tokens():
     """Test that comma tokenization keeps only exact ID tokens."""
     missing = []
     _check_hardening_foundation(
-        "hardening_ids: H-P0-01, H-P0-02, H-P0-03, H-P0-04, H-P0-06 # H-P0-99 elsewhere\n"
-        "topology: jobs=asset_graph; locks=coordination\n"
-        "db_authz: PASS|run-123\n",
+        _hardening_content(
+            "db_authz: PASS|run-123\n",
+            hardening_ids=f"{HARDENING_IDS} # H-P0-99 elsewhere",
+        ),
         missing,
     )
     assert not missing
@@ -340,9 +338,7 @@ def test_check_hardening_foundation_ignores_comment_text_after_comma_tokens():
 def test_check_operational_evidence():
     """Test that operational evidence like smoke tests are correctly checked."""
     missing = []
-    _check_operational_evidence(
-        "asset smoke evidence hosted readiness --require-persistence health json named owners scanner summary", missing
-    )
+    _check_operational_evidence(OPERATIONAL_EVIDENCE, missing)
     assert not missing
 
     missing = []
@@ -353,23 +349,21 @@ def test_check_operational_evidence():
 
     missing = []
     _check_operational_evidence(
-        "asset smoke evidence hosted readiness --require-persistence health json named owners scanner summary secret: supersecretvalue",
+        f"{OPERATIONAL_EVIDENCE} secret: supersecretvalue",
         missing,
     )
     assert "Non-redacted evidence found (secrets/tokens must be redacted)" in missing
 
     missing = []
     _check_operational_evidence(
-        "asset smoke evidence hosted readiness --require-persistence health json named owners scanner summary "
-        "secret: benign-narrative-string",
+        f"{OPERATIONAL_EVIDENCE} secret: benign-narrative-string",
         missing,
     )
     assert "Non-redacted evidence found (secrets/tokens must be redacted)" in missing
 
     missing = []
     _check_operational_evidence(
-        "asset smoke evidence hosted readiness --require-persistence health json named owners scanner summary "
-        f"secret: {'a' * 10000}",
+        f"{OPERATIONAL_EVIDENCE} secret: {'a' * 10000}",
         missing,
     )
     assert "Non-redacted evidence found (secrets/tokens must be redacted)" in missing
@@ -380,18 +374,19 @@ def test_verify_staging_promotion_success(tmp_path):
     """Test successful staging promotion verification."""
     evidence_path = tmp_path / "evidence.md"
     evidence_path.write_text(
-        HARDENING_MARKERS
-        + "supabase vercel mapping database_url asset_graph_database_url distinct asset_graph_database_url shared-boundary statement "
+        HARDENING_MARKERS + "supabase vercel mapping database_url asset_graph_database_url "
+        "distinct asset_graph_database_url shared-boundary statement "
         "durable preview "
-        "https://github.com/org/repo/actions/runs/123 asset smoke evidence hosted readiness --require-persistence health json named owners scanner summary "
+        "https://github.com/org/repo/actions/runs/123 "
+        f"{OPERATIONAL_EVIDENCE} "
         "```json\n"
         "{\n"
-        '  "graph_persistence_configured": true,\n'
-        '  "graph": {\n'
-        '    "persistence_enabled": true,\n'
-        '    "persistence_loaded": true,\n'
-        '    "startup_source": "persisted"\n'
-        "  }\n"
+        '    "graph_persistence_configured": true,\n'
+        '    "graph": {\n'
+        '        "persistence_enabled": true,\n'
+        '        "persistence_loaded": true,\n'
+        '        "startup_source": "persisted"\n'
+        "    }\n"
         "}\n"
         "```",
         encoding="utf-8",

@@ -142,7 +142,7 @@ db_authz: PASS|<replace-with-workflow-run-id>
 Replace the `db_authz` placeholder with a real opaque ref from a workflow that ran
 `scripts/check_database_authorization.py` (for example `db_authz: PASS|1506-run-123456` or
 `db_authz: PASS|run-1234567890`). Allowed shapes: `run-<digits>`, `artifact-<digits>`,
-`<prefix>-run-<digits>`, or a numeric workflow run id (>=6 digits). Bare `PASS` and placeholders
+`<prefix>-run-<digits>`, or a numeric workflow run ID (>=6 digits). Bare `PASS` and placeholders
 such as `TBD` / angle-bracket templates are rejected.
 
 - [ ] H-P0-01 topology marker present (`jobs=asset_graph; locks=coordination`)

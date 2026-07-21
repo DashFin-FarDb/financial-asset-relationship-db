@@ -328,30 +328,30 @@ machine-checkable evidence markers listed under [Hardening evidence markers](#ha
 
 Board mirror: [Enterprise Readiness PR Board — Hardening backlog](roadmap/enterprise-readiness-pr-board.md#hardening-backlog-p0p3).
 
-| ID | Priority | Work | Mapped gate | Automation | Status |
-| --- | --- | --- | --- | --- | --- |
-| H-P0-01 | P0 | Align DR docs with code table placement: `rebuild_jobs` on Asset Graph (domain); `distributed_locks` on coordination | Disaster Recovery / Governance | Docs + staging verifier topology marker | Satisfied - documented |
-| H-P0-02 | P0 | Table-scoped post-restore cleanup (locks where locks live; jobs where jobs live) + `running=0` on job boundary | Disaster Recovery | Docs + restore template + verifier markers | Satisfied - documented |
-| H-P0-03 | P0 | RC path forces strict hosted readiness (`hardening_tier=P0` → fail on SKIPPED) | Promotion | `release-evidence-verify.yml` | Satisfied - automated |
-| H-P0-04 | P0 | Wire `scripts/check_database_authorization.py` into release-evidence + staging-promotion (redacted pass/fail) | Security (ADR 0007) | Dispatch workflows + verifier `db_authz:` marker | Partially satisfied |
-| H-P0-05 | P0 | Refresh ADR 0002 / `.env.example` to runtime truth (Postgres supported; recommended SQLite URL forms) | Architecture / Durable Persistence | Docs | Satisfied - documented |
-| H-P0-06 | P0 | Fresh RC companion record for current `main` SHA (do not reuse RC1 as CURRENT) | All manual gates | Issue template + evidence-records | Satisfied - manual evidence required |
-| H-P1-01 | P1 | `--assets-smoke` on hosted readiness when persistence required | Promotion | Script + workflows | Partially satisfied |
-| H-P1-02 | P1 | Production promotion twin of `staging-promotion.yml` | Promotion | New workflow | Partially satisfied |
-| H-P1-03 | P1 | Post-rollback / post-restore mandatory re-smoke artifact | DR / Promotion | Dispatch recipe + artifact | Partially satisfied |
-| H-P1-04 | P1 | Reconcile required check names (policy ↔ Mergify ↔ branch protection) | Governance / CI | Docs + Mergify | Partially satisfied |
-| H-P1-05 | P1 | Docker/Compose: Gradio non-prod in CI; production images smoke with persistence | Architecture | CI + compose | Partially satisfied |
-| H-P1-06 | P1 | RC / restore / drill templates require hardening ID checkboxes | All manual | Templates + verifier | Satisfied - automated |
-| H-P2-01 | P2 | Active executor from heartbeat+lock (stop always-false local bool) | Recovery | Code + ci-gate-spec / pytest | Partially satisfied |
-| H-P2-02 | P2 | Fencing token checked on graph/job writes | Recovery | Code + tests | Partially satisfied |
-| H-P2-03 | P2 | Partial unique index: ≤1 `RUNNING` rebuild job (Postgres) | Durable Persistence | Migration + integration test | Partially satisfied |
-| H-P2-04 | P2 | Unify startup vs periodic auto-recovery for stale-only orphans under lock | Recovery / Restart | Code + restart tests | Partially satisfied |
-| H-P2-05 | P2 | Cross-boundary restore skew check (Graph vs Coordination) | Disaster Recovery | Script / readiness extension | Partially satisfied |
-| H-P3-01 | P3 | Lock down or ACL metrics/SLO/OpenAPI in production | Security | Settings + tests | Partially satisfied |
-| H-P3-02 | P3 | Global rate limits + proxy-aware IP + shared store | Security | Code + tests | Partially satisfied |
-| H-P3-03 | P3 | Rebuild RBAC; stop silent admin upsert every boot | Security / Governance | Auth + audit tests | Partially satisfied |
-| H-P3-04 | P3 | Slim Vercel API deps; connection pooling | Durable Persistence | Deploy config + ADR Phase 4 | Partially satisfied |
-| H-P3-05 | P3 | SoD + evidence expiry enforcement on RC packets | Governance | Template + verifier | Partially satisfied |
+| ID      | Priority | Work                                                                                                                 | Mapped gate                        | Automation                                       | Status                               |
+| ------- | -------- | -------------------------------------------------------------------------------------------------------------------- | ---------------------------------- | ------------------------------------------------ | ------------------------------------ |
+| H-P0-01 | P0       | Align DR docs with code table placement: `rebuild_jobs` on Asset Graph (domain); `distributed_locks` on coordination | Disaster Recovery / Governance     | Docs + staging verifier topology marker          | Satisfied - documented               |
+| H-P0-02 | P0       | Table-scoped post-restore cleanup (locks where locks live; jobs where jobs live) + `running=0` on job boundary       | Disaster Recovery                  | Docs + restore template + verifier markers       | Satisfied - documented               |
+| H-P0-03 | P0       | RC path forces strict hosted readiness (`hardening_tier=P0` → fail on SKIPPED)                                       | Promotion                          | `release-evidence-verify.yml`                    | Satisfied - automated                |
+| H-P0-04 | P0       | Wire `scripts/check_database_authorization.py` into release-evidence + staging-promotion (redacted pass/fail)        | Security (ADR 0007)                | Dispatch workflows + verifier `db_authz:` marker | Partially satisfied                  |
+| H-P0-05 | P0       | Refresh ADR 0002 / `.env.example` to runtime truth (Postgres supported; recommended SQLite URL forms)                | Architecture / Durable Persistence | Docs                                             | Satisfied - documented               |
+| H-P0-06 | P0       | Fresh RC companion record for current `main` SHA (do not reuse RC1 as CURRENT)                                       | All manual gates                   | Issue template + evidence-records                | Satisfied - manual evidence required |
+| H-P1-01 | P1       | `--assets-smoke` on hosted readiness when persistence required                                                       | Promotion                          | Script + workflows                               | Partially satisfied                  |
+| H-P1-02 | P1       | Production promotion twin of `staging-promotion.yml`                                                                 | Promotion                          | New workflow                                     | Partially satisfied                  |
+| H-P1-03 | P1       | Post-rollback / post-restore mandatory re-smoke artifact                                                             | DR / Promotion                     | Dispatch recipe + artifact                       | Partially satisfied                  |
+| H-P1-04 | P1       | Reconcile required check names (policy ↔ Mergify ↔ branch protection)                                              | Governance / CI                    | Docs + Mergify                                   | Partially satisfied                  |
+| H-P1-05 | P1       | Docker/Compose: Gradio non-prod in CI; production images smoke with persistence                                      | Architecture                       | CI + compose                                     | Partially satisfied                  |
+| H-P1-06 | P1       | RC / restore / drill templates require hardening ID checkboxes                                                       | All manual                         | Templates + verifier                             | Satisfied - automated                |
+| H-P2-01 | P2       | Active executor from heartbeat+lock (stop always-false local bool)                                                   | Recovery                           | Code + ci-gate-spec / pytest                     | Partially satisfied                  |
+| H-P2-02 | P2       | Fencing token checked on graph/job writes                                                                            | Recovery                           | Code + tests                                     | Partially satisfied                  |
+| H-P2-03 | P2       | Partial unique index: ≤1 `RUNNING` rebuild job (Postgres)                                                            | Durable Persistence                | Migration + integration test                     | Partially satisfied                  |
+| H-P2-04 | P2       | Unify startup vs periodic auto-recovery for stale-only orphans under lock                                            | Recovery / Restart                 | Code + restart tests                             | Partially satisfied                  |
+| H-P2-05 | P2       | Cross-boundary restore skew check (Graph vs Coordination)                                                            | Disaster Recovery                  | Script / readiness extension                     | Partially satisfied                  |
+| H-P3-01 | P3       | Lock down or ACL metrics/SLO/OpenAPI in production                                                                   | Security                           | Settings + tests                                 | Partially satisfied                  |
+| H-P3-02 | P3       | Global rate limits + proxy-aware IP + shared store                                                                   | Security                           | Code + tests                                     | Partially satisfied                  |
+| H-P3-03 | P3       | Rebuild RBAC; stop silent admin upsert every boot                                                                    | Security / Governance              | Auth + audit tests                               | Partially satisfied                  |
+| H-P3-04 | P3       | Slim Vercel API deps; connection pooling                                                                             | Durable Persistence                | Deploy config + ADR Phase 4                      | Partially satisfied                  |
+| H-P3-05 | P3       | SoD + evidence expiry enforcement on RC packets                                                                      | Governance                         | Template + verifier                              | Partially satisfied                  |
 
 ### Hardening evidence markers
 
@@ -363,12 +363,12 @@ topology: jobs=asset_graph; locks=coordination
 db_authz: PASS|<opaque-workflow-run-or-artifact-id>
 ```
 
-`db_authz` **requires** `PASS|<opaque-ref>` (bare `PASS` is rejected). The opaque ref must match an allowed
-run/artifact shape: `run-<digits>`, `artifact-<digits>`, `<prefix>-run-<digits>`, or a numeric workflow run id
-(at least 6 digits). Placeholders such as `TBD`, `TODO`, or angle-bracket templates are rejected. Staging
-promotion fails closed when database URL secrets are missing so H-P0-04 cannot be satisfied by a copied
-template alone. Do not embed connection strings, role inventories, or topology details from the authorization
-checker.
+`db_authz` **requires** `PASS|<opaque-ref>` (bare `PASS` is rejected). The opaque ref must match an
+allowed run/artifact shape: `run-<digits>`, `artifact-<digits>`, `<prefix>-run-<digits>`, or a numeric
+workflow run ID (at least 6 digits). Placeholders such as `TBD`, `TODO`, or angle-bracket templates are
+rejected. Staging promotion fails closed when database URL secrets are missing so H-P0-04 cannot be
+satisfied by a copied template alone. Do not embed connection strings, role inventories, or topology
+details from the authorization checker.
 
 Release-evidence dispatch: set `hardening_tier=P0` (default) so hosted readiness cannot SKIP under the Assert path.
 Use `hardening_tier=none` only for soft rehearsal runs that must not be treated as RC proof.
