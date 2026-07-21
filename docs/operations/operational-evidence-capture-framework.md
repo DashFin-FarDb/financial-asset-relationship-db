@@ -27,13 +27,13 @@ It does not define runtime behavior, tests, CI workflows, alert rules, dashboard
 
 Evidence is tiered by the strength of the claim it can support.
 
-| Evidence tier | Proves | Does not prove |
-| --- | --- | --- |
-| Repository automated evidence | Code, model, or invariant behavior is tested in the repository. | A hosted target is configured correctly. |
-| Repository documented evidence | A runbook, decision record, or operating rule exists. | An operator rehearsed the procedure. |
-| Hosted target evidence | A named deployment produced the expected result. | Another environment is safe or equivalent. |
-| Operational rehearsal evidence | An operator executed the procedure in a controlled environment. | Future executions will always pass. |
-| Release sign-off evidence | A named owner accepted the residual risk and approved release. | Technical proof exists unless the attached artifacts show it. |
+| Evidence tier                  | Proves                                                          | Does not prove                                                |
+| ------------------------------ | --------------------------------------------------------------- | ------------------------------------------------------------- |
+| Repository automated evidence  | Code, model, or invariant behavior is tested in the repository. | A hosted target is configured correctly.                      |
+| Repository documented evidence | A runbook, decision record, or operating rule exists.           | An operator rehearsed the procedure.                          |
+| Hosted target evidence         | A named deployment produced the expected result.                | Another environment is safe or equivalent.                    |
+| Operational rehearsal evidence | An operator executed the procedure in a controlled environment. | Future executions will always pass.                           |
+| Release sign-off evidence      | A named owner accepted the residual risk and approved release.  | Technical proof exists unless the attached artifacts show it. |
 
 Decision rule: do not upgrade evidence tier without artifacts from that tier.
 
@@ -211,6 +211,7 @@ Release-grade restore rehearsal evidence must include:
 - post-restore and pre-restart coordination cleanup;
 - schema and data integrity checks;
 - post-restore hosted readiness with `--require-persistence`;
+- H-P1-03 `post-restore-readiness` artifact from `post-recovery-readiness.yml` (or linked workflow run);
 - redacted `/api/health/detailed`;
 - redacted `/api/assets?per_page=1` or approved sentinel evidence;
 - RPO and RTO targets plus observations;
