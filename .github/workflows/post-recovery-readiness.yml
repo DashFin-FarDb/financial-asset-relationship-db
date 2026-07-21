@@ -47,7 +47,28 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  require-main:
+    if: ${{ inputs.target_environment == 'production' }}
+    permissions: {}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Require main branch
+        env:
+          REF: ${{ github.ref }}
+        run: |
+          if [ "$REF" != "refs/heads/main" ]; then
+            echo "Error: production recovery must dispatch from main."
+            echo "Got: $REF"
+            exit 1
+          fi
+
   recovery-readiness:
+    needs: require-main
+    if: >-
+      always() &&
+      (needs.require-main.result == 'success' ||
+      needs.require-main.result == 'skipped')
     permissions:
       contents: read
     runs-on: ubuntu-latest
@@ -58,6 +79,12 @@ jobs:
       - name: Checkout
         # v7.0.0
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+        with:
+          # Production evidence must use reviewed main scripts/workflow.
+          ref: >-
+            ${{ inputs.target_environment == 'production' && 'main' ||
+            github.ref }}
+          persist-credentials: false
 
       - name: Setup Python
         # v6.3.0
@@ -73,15 +100,50 @@ jobs:
           TIMEOUT: ${{ github.event.inputs.timeout }}
           BASE_URL_LABEL: ${{ github.event.inputs.base_url_label }}
         run: |
-          if [ -n "$BASE_URL_INPUT" ]; then
-            URL="$BASE_URL_INPUT"
-          else
-            URL="$HOSTED_READINESS_BASE_URL"
-          fi
-          if [ -z "$URL" ]; then
-            echo "Error: hosted readiness base URL is required"
-            exit 1
-          fi
+          # Validate dispatch inputs in Python, then read the sanitized values
+          # from files (no eval/source) before invoking the readiness checker.
+          python - <<'PY'
+          import os
+          import re
+          import sys
+          from pathlib import Path
+
+          timeout = os.environ.get("TIMEOUT", "")
+          label = os.environ.get("BASE_URL_LABEL", "")
+          base_input = os.environ.get("BASE_URL_INPUT", "")
+          secret_url = os.environ.get("HOSTED_READINESS_BASE_URL", "")
+
+          if not re.fullmatch(r"[0-9]+(?:\.[0-9]+)?", timeout):
+              print("Error: timeout must be a positive number", file=sys.stderr)
+              sys.exit(1)
+          if not re.fullmatch(r"[A-Za-z0-9._:-]{1,64}", label):
+              print("Error: base_url_label is invalid", file=sys.stderr)
+              sys.exit(1)
+
+          url = base_input or secret_url
+          if not url:
+              print(
+                  "Error: hosted readiness base URL is required",
+                  file=sys.stderr,
+              )
+              sys.exit(1)
+          if not url.startswith("https://") or any(
+              ch in url for ch in "\r\n\0`$"
+          ):
+              print(
+                  "Error: hosted readiness base URL is invalid",
+                  file=sys.stderr,
+              )
+              sys.exit(1)
+
+          Path("validated-url.txt").write_text(url, encoding="utf-8")
+          Path("validated-timeout.txt").write_text(timeout, encoding="utf-8")
+          Path("validated-label.txt").write_text(label, encoding="utf-8")
+          PY
+
+          URL="$(cat validated-url.txt)"
+          TIMEOUT="$(cat validated-timeout.txt)"
+          BASE_URL_LABEL="$(cat validated-label.txt)"
           echo "::add-mask::$URL"
 
           # --require-persistence also enables --assets-smoke (H-P1-01).
@@ -149,13 +211,20 @@ jobs:
           python - <<'PY'
           import json
           import os
+          import re
+          import sys
           from datetime import datetime, timezone
+
+          label = os.environ.get("BASE_URL_LABEL", "")
+          if not re.fullmatch(r"[A-Za-z0-9._:-]{1,64}", label):
+              print("Error: base_url_label is invalid", file=sys.stderr)
+              sys.exit(1)
 
           payload = {
               "hardening_id": "H-P1-03",
               "recovery_context": os.environ["RECOVERY_CONTEXT"],
               "target_environment": os.environ["TARGET_ENVIRONMENT"],
-              "base_url_label": os.environ["BASE_URL_LABEL"],
+              "base_url_label": label,
               "github_run_id": os.environ["RUN_ID"],
               "captured_at_utc": datetime.now(timezone.utc)
               .replace(microsecond=0)

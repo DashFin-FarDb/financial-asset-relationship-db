@@ -1,5 +1,6 @@
 """Contract tests for post-recovery-readiness.yml (H-P1-03)."""
 
+import re
 from pathlib import Path
 
 import pytest
@@ -7,6 +8,9 @@ import yaml  # type: ignore[import-untyped]
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 WORKFLOW_PATH = REPO_ROOT / ".github/workflows/post-recovery-readiness.yml"
+FORBIDDEN_ARTIFACT_NAME_RE = re.compile(
+    r"(?m)^\s*name:\s*(?:staging-readiness|production-readiness|release-evidence)\s*$"
+)
 
 
 @pytest.fixture(name="post_recovery_workflow")
@@ -58,6 +62,27 @@ def test_post_recovery_target_environment_options(post_recovery_workflow: dict) 
     assert "target_environment" in str(env_name)
 
 
+def test_post_recovery_requires_main_for_production(post_recovery_workflow: dict) -> None:
+    """Production recovery must gate Environment access behind a main-ref check."""
+    jobs = post_recovery_workflow["jobs"]
+    assert "require-main" in jobs
+    assert "production" in str(jobs["require-main"].get("if", ""))
+    assert jobs["require-main"]["permissions"] == {}
+    assert "environment" not in jobs["require-main"]
+    needs = jobs["recovery-readiness"]["needs"]
+    if isinstance(needs, list):
+        assert "require-main" in needs
+    else:
+        assert needs == "require-main"
+    assert "refs/heads/main" in WORKFLOW_PATH.read_text(encoding="utf-8")
+    checkout = next(
+        step
+        for step in jobs["recovery-readiness"]["steps"]
+        if str(step.get("uses", "")).startswith("actions/checkout@")
+    )
+    assert "main" in str(checkout.get("with", {}).get("ref", ""))
+
+
 def test_post_recovery_uses_job_level_permissions(post_recovery_workflow: dict) -> None:
     """Permissions must stay minimal and job-scoped."""
     assert "permissions" not in post_recovery_workflow
@@ -80,6 +105,27 @@ def test_post_recovery_fails_closed_without_base_url(post_recovery_raw: str) -> 
     assert "Hosted readiness check skipped" not in post_recovery_raw
 
 
+def test_post_recovery_validates_dispatch_inputs(post_recovery_raw: str) -> None:
+    """Dispatch strings must be validated before they reach the readiness command."""
+    assert "timeout must be a positive number" in post_recovery_raw
+    assert "base_url_label is invalid" in post_recovery_raw
+    assert 'url.startswith("https://")' in post_recovery_raw
+    assert "validated-url.txt" in post_recovery_raw
+    assert "eval " not in post_recovery_raw.lower()
+
+
+def test_post_recovery_asserts_only_after_readiness_success(
+    post_recovery_workflow: dict,
+) -> None:
+    """jq assertions must not run when readiness failed to produce output."""
+    assert_step = next(
+        step
+        for step in post_recovery_workflow["jobs"]["recovery-readiness"]["steps"]
+        if step.get("name") == "Assert Persistence Loaded"
+    )
+    assert assert_step.get("if") == "steps.readiness.outcome == 'success'"
+
+
 def test_post_recovery_writes_metadata_and_placeholders(post_recovery_raw: str) -> None:
     """Artifact bundle must include recovery metadata and empty-file placeholders."""
     assert "recovery-metadata.json" in post_recovery_raw
@@ -90,6 +136,7 @@ def test_post_recovery_writes_metadata_and_placeholders(post_recovery_raw: str) 
 
 def test_post_recovery_uploads_context_named_artifact(
     post_recovery_workflow: dict,
+    post_recovery_raw: str,
 ) -> None:
     """Artifact name must encode recovery context, not promotion names."""
     upload_steps = [
@@ -100,11 +147,11 @@ def test_post_recovery_uploads_context_named_artifact(
     assert len(upload_steps) == 1
     assert upload_steps[0].get("if") == "always()"
     assert upload_steps[0]["with"]["name"] == "${{ inputs.recovery_context }}-readiness"
-    for step in upload_steps:
-        artifact_name = step.get("with", {}).get("name", "")
-        assert "staging-readiness" not in artifact_name
-        assert "production-readiness" not in artifact_name
-        assert "release-evidence" not in artifact_name
+    assert FORBIDDEN_ARTIFACT_NAME_RE.search(post_recovery_raw) is None
+    assert re.search(
+        r"(?m)^\s*name:\s*\$\{\{\s*inputs\.recovery_context\s*\}\}-readiness\s*$",
+        post_recovery_raw,
+    )
 
 
 def test_post_recovery_upload_paths_exclude_secrets(post_recovery_workflow: dict) -> None:
