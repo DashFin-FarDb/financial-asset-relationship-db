@@ -441,21 +441,28 @@ def _evaluate_snapshots(snapshots: Sequence[AuthorizationSnapshot]) -> list[Find
     return list(findings_by_control.values())
 
 
-def main(
-    argv: Sequence[str] | None = None,
+class GateConfiguration(NamedTuple):
+    """Resolved runtime inputs for one authorization-gate invocation."""
+
+    database_urls: tuple[TrustedDatabaseUrl, ...]
+    untrusted_roles: tuple[str, ...]
+    exposed_schemas: tuple[str, ...]
+    require_all_untrusted_roles: bool
+
+
+def _resolve_gate_configuration(
+    environ: Mapping[str, str],
     *,
-    connector: Callable[[TrustedDatabaseUrl], Any] | None = None,
-) -> int:
-    """Run the database authorization gate."""
-    args = _parse_args(argv)
-    if not SAFE_SCHEMA_PATTERN.fullmatch(args.exposed_schema):
+    cli_exposed_schema: str,
+) -> GateConfiguration | int:
+    """Resolve gate inputs, or return a usage/config exit code when invalid."""
+    if not SAFE_SCHEMA_PATTERN.fullmatch(cli_exposed_schema):
         print("database authorization check configuration is invalid", file=sys.stderr)
         return USAGE_ERROR
 
-    database_urls = _configured_database_urls(os.environ)
-    untrusted_roles = _configured_untrusted_roles(os.environ)
-    exposed_schemas = _configured_exposed_schemas(os.environ, args.exposed_schema)
-    require_all_untrusted_roles = UNTRUSTED_DATABASE_ROLES_ENV in os.environ
+    database_urls = _configured_database_urls(environ)
+    untrusted_roles = _configured_untrusted_roles(environ)
+    exposed_schemas = _configured_exposed_schemas(environ, cli_exposed_schema)
     if database_urls is None or untrusted_roles is None or exposed_schemas is None:
         print("database authorization check configuration is invalid", file=sys.stderr)
         return USAGE_ERROR
@@ -463,7 +470,23 @@ def main(
         print("database authorization check requires a configured database URL", file=sys.stderr)
         return USAGE_ERROR
 
-    connect = connector or _connect
+    return GateConfiguration(
+        database_urls=tuple(database_urls),
+        untrusted_roles=tuple(untrusted_roles),
+        exposed_schemas=tuple(exposed_schemas),
+        require_all_untrusted_roles=UNTRUSTED_DATABASE_ROLES_ENV in environ,
+    )
+
+
+def _collect_snapshots_for_schemas(
+    *,
+    database_urls: Sequence[TrustedDatabaseUrl],
+    exposed_schemas: Sequence[str],
+    untrusted_roles: Sequence[str],
+    require_all_untrusted_roles: bool,
+    connect: Callable[[TrustedDatabaseUrl], Any],
+) -> list[AuthorizationSnapshot] | None:
+    """Collect snapshots for every exposed schema, or None when any boundary fails."""
     snapshots: list[AuthorizationSnapshot] = []
     for schema in exposed_schemas:
         snapshot_collector = partial(
@@ -478,9 +501,35 @@ def main(
             connect,
         )
         if schema_snapshots is None:
-            print("database authorization check could not complete", file=sys.stderr)
-            return CHECK_FAILED
+            return None
         snapshots.extend(schema_snapshots)
+    return snapshots
+
+
+def main(
+    argv: Sequence[str] | None = None,
+    *,
+    connector: Callable[[TrustedDatabaseUrl], Any] | None = None,
+) -> int:
+    """Run the database authorization gate."""
+    args = _parse_args(argv)
+    configuration = _resolve_gate_configuration(
+        os.environ,
+        cli_exposed_schema=args.exposed_schema,
+    )
+    if isinstance(configuration, int):
+        return configuration
+
+    snapshots = _collect_snapshots_for_schemas(
+        database_urls=configuration.database_urls,
+        exposed_schemas=configuration.exposed_schemas,
+        untrusted_roles=configuration.untrusted_roles,
+        require_all_untrusted_roles=configuration.require_all_untrusted_roles,
+        connect=connector or _connect,
+    )
+    if snapshots is None:
+        print("database authorization check could not complete", file=sys.stderr)
+        return CHECK_FAILED
 
     findings = _evaluate_snapshots(snapshots)
     if findings:
