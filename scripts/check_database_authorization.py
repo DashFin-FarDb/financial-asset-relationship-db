@@ -404,7 +404,7 @@ def _parse_args(argv: Sequence[str] | None) -> argparse.Namespace:
     parser.add_argument(
         "--exposed-schema",
         default="public",
-        help=("Exposed schema to check when FARDB_EXPOSED_DATABASE_SCHEMAS is unset " "(default: public)."),
+        help="Exposed schema to check when FARDB_EXPOSED_DATABASE_SCHEMAS is unset (default: public).",
     )
     return parser.parse_args(argv)
 
