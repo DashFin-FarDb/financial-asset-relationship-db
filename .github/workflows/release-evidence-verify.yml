@@ -221,6 +221,12 @@ jobs:
             echo '{"status":"skipped","reason":"no_database_url_configured"}' > db-authz-output.json
             exit 0
           fi
+          # GitHub injects unset secrets as empty strings. An empty value makes
+          # the checker reject config instead of applying default roles, so
+          # drop it before invocation.
+          if [ -z "$FARDB_UNTRUSTED_DATABASE_ROLES" ]; then
+            unset FARDB_UNTRUSTED_DATABASE_ROLES
+          fi
           set +e
           # Bounded stdout/stderr only (control ids/messages). Do not upload raw logs as artifacts.
           python scripts/check_database_authorization.py
@@ -295,6 +301,13 @@ jobs:
               echo "Strict RC promotion requires hosted readiness and docs checks to pass (hardening_tier=$HARDENING_TIER)."
               exit 1
             fi
+            # H-P0-04: P0 Assert path fails closed when DB authz secrets are missing
+            # (same posture as staging-promotion). Soft rehearsal uses hardening_tier=none.
+            if [ "$db_authz_status" != "passed" ]; then
+              echo "Strict RC promotion requires database authorization to pass (H-P0-04; hardening_tier=$HARDENING_TIER)."
+              echo "Configure DATABASE_URL / ASSET_GRAPH_DATABASE_URL (and related) secrets, or use hardening_tier=none for soft rehearsal."
+              exit 1
+            fi
           else
             if [ "$readiness_status" != "passed" ] && [ "$readiness_status" != "skipped" ]; then
               echo "Hosted readiness must pass or be intentionally skipped."
@@ -302,6 +315,10 @@ jobs:
             fi
             if [ "$docs_status" != "passed" ] && [ "$docs_status" != "skipped" ]; then
               echo "Docs readiness must pass or be intentionally skipped."
+              exit 1
+            fi
+            if [ "$db_authz_status" != "passed" ] && [ "$db_authz_status" != "skipped" ]; then
+              echo "Database authorization must pass or be intentionally skipped (H-P0-04)."
               exit 1
             fi
           fi
@@ -385,8 +402,9 @@ jobs:
               out.write(f"- hardening_tier input: `{hardening_tier}`\n")
               out.write(
                   "- Canon: `docs/release-evidence-pack.md#hardening-backlog-p0p3` "
-                  "(H-P0-01 … H-P3-05). Skipped DB authz still requires staging evidence "
-                  "`db_authz: PASS` before promotion.\n"
+                  "(H-P0-01 … H-P3-05). With `hardening_tier=P0`, skipped DB authz "
+                  "fails the Assert path; staging/production promotion still require "
+                  "`db_authz: PASS|<opaque-ref>` in evidence before promotion.\n"
               )
 
           sys.exit(0)

@@ -50,7 +50,7 @@ Do not reopen closed PR1–9 rows; track hardening here and in the evidence pack
 | H-P0-01           | Satisfied - documented               | Runbook/ADR table placement matches code (`rebuild_jobs` on Asset Graph; locks on coordination)  | Runtime rebuild changes                  |
 | H-P0-02           | Satisfied - documented               | Post-restore cleanup is table-scoped; job-boundary `running=0` before restart                    | Schema migrations                        |
 | H-P0-03           | Satisfied - automated                | `release-evidence-verify` with `hardening_tier=P0` fails on SKIPPED hosted readiness             | Soft rehearsal (`hardening_tier=none`)   |
-| H-P0-04           | Partially satisfied                  | DB authorization checker wired; redacted PASS attached for target env                            | Publishing live role/topology details    |
+| H-P0-04           | Partially satisfied                  | Fail-closed wiring in release-evidence (P0) + staging/production; live redacted PASS still required | Publishing live role/topology details    |
 | H-P0-05           | Satisfied - documented               | ADR 0002 / `.env.example` match runtime Postgres + recommended SQLite URL forms                  | Hosted infra changes                     |
 | H-P0-06           | Satisfied - manual evidence required | Fresh SHA-bound RC companion (RC1 not reused as CURRENT)                                         | Bundling unrelated product work          |
 | H-P1-01           | Satisfied - automated                | `--require-persistence` auto-enables `--assets-smoke` in hosted readiness                        | Empty persisted graphs fail promotion    |
