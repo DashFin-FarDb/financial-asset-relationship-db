@@ -23,17 +23,23 @@ evidence publicly.
 
 Promotion and Assert-path authz steps fail closed unless **all** required boundaries are present:
 
-| Secret / variable                | Required for H-P0-04 authz gate                  | Notes                                                                                                            |
-| -------------------------------- | ------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------- |
-| `ASSET_GRAPH_DATABASE_URL`       | Yes                                              | Graph boundary                                                                                                   |
-| `DATABASE_URL` or `POSTGRES_URL` | Yes (at least one)                               | Auth/app boundary                                                                                                |
-| `COORDINATION_DATABASE_URL`      | Yes for authz gate                               | Point at the effective coordination boundary; required by workflows even if topology documents a shared fallback |
-| `FARDB_UNTRUSTED_DATABASE_ROLES` | Optional                                         | Defaults to provider roles `anon,authenticated` when unset; leave empty unset (workflows unset empty strings)    |
-| `FARDB_EXPOSED_DATABASE_SCHEMAS` | Required when non-`public` exposed schemas exist | Comma-separated schemas checked by the automated gate before PASS; unset defaults to `public` only               |
-| `HOSTED_READINESS_BASE_URL`      | For hosted readiness steps                       | Separate from authz checker                                                                                      |
+| Environment secret                                 | Required for H-P0-04 authz gate                  | Notes                                                                                                                       |
+| -------------------------------------------------- | ------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------- |
+| `ASSET_GRAPH_DATABASE_URL`                         | Yes                                              | Graph boundary                                                                                                              |
+| `DATABASE_URL` or `POSTGRES_URL`                   | Yes (at least one)                               | Auth/app boundary                                                                                                           |
+| `COORDINATION_DATABASE_URL`                        | Yes for authz gate                               | Point at the effective coordination boundary; required by workflows even if topology documents a shared fallback            |
+| `FARDB_UNTRUSTED_DATABASE_ROLES`                   | Optional                                         | Defaults to provider roles `anon,authenticated` when unset; leave empty unset (workflows unset empty strings)               |
+| `FARDB_EXPOSED_DATABASE_SCHEMAS`                   | Required when any non-`public` schema is exposed | Full inventoried list for boundaries without a per-URL override (include `public` when exposed); unset defaults to `public` |
+| `FARDB_EXPOSED_DATABASE_SCHEMAS_DATABASE`          | Optional per-boundary override                   | Schemas for `DATABASE_URL` only when that inventory differs                                                                 |
+| `FARDB_EXPOSED_DATABASE_SCHEMAS_ASSET_GRAPH`       | Optional per-boundary override                   | Schemas for `ASSET_GRAPH_DATABASE_URL` only when that inventory differs                                                     |
+| `FARDB_EXPOSED_DATABASE_SCHEMAS_COORDINATION`      | Optional per-boundary override                   | Schemas for `COORDINATION_DATABASE_URL` only when that inventory differs                                                    |
+| `FARDB_EXPOSED_DATABASE_SCHEMAS_POSTGRES`          | Optional per-boundary override                   | Schemas for `POSTGRES_URL` only when that inventory differs                                                                 |
+| `HOSTED_READINESS_BASE_URL`                        | For hosted readiness steps                       | Separate from authz checker                                                                                                 |
 
-Configure these on the GitHub Environments used by `staging-promotion.yml`, `production-promotion.yml`, and
-`release-evidence-verify.yml`. Record **presence only** in public evidence—never paste values.
+Configure these as GitHub Environment **secrets** (not Environment variables—workflows read `secrets.*` only) on
+**every** Environment the selected workflow can enter (`staging`, `staging-manual-gate`, `production`,
+`production-manual-gate`, `release-evidence` as applicable). Record **presence only** in public evidence—never paste
+values.
 
 See also [Staging Deployment Operating Baseline](../staging-deployment-operating-baseline.md).
 
@@ -48,15 +54,20 @@ With local env vars pointing at a **non-production** PostgreSQL boundary you con
 export DATABASE_URL='postgresql://…'
 export ASSET_GRAPH_DATABASE_URL='postgresql://…'
 export COORDINATION_DATABASE_URL='postgresql://…'
-# Prefer one gate invocation covering every inventoried exposed schema:
+# Full inventoried list for shared inventories (always include public when it is exposed):
 export FARDB_EXPOSED_DATABASE_SCHEMAS='public'
+# When a boundary exposes schemas the others do not, override that URL only, for example:
+# export FARDB_EXPOSED_DATABASE_SCHEMAS_ASSET_GRAPH='public,graph_api'
 python scripts/check_database_authorization.py
 ```
 
 Expect bounded pass/fail output only. Do not commit connection strings or catalog dumps. Promotion and
-release-evidence workflows pass `FARDB_EXPOSED_DATABASE_SCHEMAS` from the GitHub Environment when set; when
-unset they check `public` only. For ADR 0007 closure, set the Environment variable to the full inventoried
-exposed-schema list so a `db_authz: PASS|…` marker cannot omit a non-default schema.
+release-evidence workflows pass these names from GitHub Environment **secrets** when set; empty secrets are unset
+before the checker runs. When no schema secret is set, each boundary defaults to `public` only. For ADR 0007
+closure, set the Environment secret `FARDB_EXPOSED_DATABASE_SCHEMAS` to the **full** inventoried exposed-schema list
+(including `public` when exposed), and use `FARDB_EXPOSED_DATABASE_SCHEMAS_*` overrides when inventories differ by
+boundary so a `db_authz: PASS|…` marker cannot omit a non-default schema or project unique schemas onto other
+databases.
 
 ## Remediation sequence (ADR 0007)
 

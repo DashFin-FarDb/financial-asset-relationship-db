@@ -25,6 +25,9 @@ def test_adr0007_closure_runbook_exists() -> None:
     assert "ASSET_GRAPH_DATABASE_URL" in text
     assert "COORDINATION_DATABASE_URL" in text
     assert "FARDB_EXPOSED_DATABASE_SCHEMAS" in text
+    assert "FARDB_EXPOSED_DATABASE_SCHEMAS_ASSET_GRAPH" in text
+    assert "environment **secrets**" in text.lower() or "environment secrets" in text.lower()
+    assert "full" in text.lower() and "inventoried" in text.lower()
     assert "hardening_tier=P0" in text
     assert "repository root" in text.lower()
 
@@ -42,6 +45,8 @@ def test_adr0007_evidence_templates_exist() -> None:
     assert "workflow run commit sha" in public.lower()
     assert "FARDB_EXPOSED_DATABASE_SCHEMAS" in restricted
     assert "FARDB_EXPOSED_DATABASE_SCHEMAS" in public
+    assert "environment **secrets**" in restricted.lower() or "environment secrets" in restricted.lower()
+    assert "manual-gate" in restricted.lower()
     assert "privileged functions manual fixed-search-path review" in public.lower()
     assert "release authority" in restricted.lower()
 

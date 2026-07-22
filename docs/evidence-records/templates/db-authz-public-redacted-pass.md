@@ -38,7 +38,7 @@ Soft rehearsal (`release-evidence-verify` with `hardening_tier=none`) is **not**
 - [ ] Workflow run commit SHA equals Release commit SHA above
 - [ ] If workflow is `release-evidence-verify`: input `hardening_tier=P0` (not `none`)
 - [ ] `scripts/check_database_authorization.py` exited successfully in the linked workflow
-- [ ] Workflow used `FARDB_EXPOSED_DATABASE_SCHEMAS` covering every inventoried exposed schema (or confirmed `public`-only)
+- [ ] Workflow used Environment secret `FARDB_EXPOSED_DATABASE_SCHEMAS` (and per-boundary `FARDB_EXPOSED_DATABASE_SCHEMAS_*` when needed) covering every inventoried exposed schema on the correct URL (or confirmed `public`-only)
 - [ ] Redacted artifact `db-authz-output.json` shows `"status":"passed"` (no topology fields)
 - [ ] Shared-boundary decision documented at label level only (if applicable)
 - [ ] `FARDB_UNTRUSTED_DATABASE_ROLES` choice recorded as “default” or “custom (restricted record)” — no role list here

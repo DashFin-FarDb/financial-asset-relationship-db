@@ -24,6 +24,12 @@ SUPPORTED_DATABASE_URL_ENVS = (
 )
 UNTRUSTED_DATABASE_ROLES_ENV = "FARDB_UNTRUSTED_DATABASE_ROLES"
 EXPOSED_DATABASE_SCHEMAS_ENV = "FARDB_EXPOSED_DATABASE_SCHEMAS"
+EXPOSED_DATABASE_SCHEMAS_ENV_BY_URL_ENV = {
+    "DATABASE_URL": "FARDB_EXPOSED_DATABASE_SCHEMAS_DATABASE",
+    "ASSET_GRAPH_DATABASE_URL": "FARDB_EXPOSED_DATABASE_SCHEMAS_ASSET_GRAPH",
+    "COORDINATION_DATABASE_URL": "FARDB_EXPOSED_DATABASE_SCHEMAS_COORDINATION",
+    "POSTGRES_URL": "FARDB_EXPOSED_DATABASE_SCHEMAS_POSTGRES",
+}
 DEFAULT_UNTRUSTED_DATABASE_ROLES = ("anon", "authenticated")
 SAFE_SCHEMA_PATTERN = re.compile(r"^[a-z_][a-z0-9_]*$")
 SAFE_ROLE_PATTERN = re.compile(r"^[a-z_][a-z0-9_]*$")
@@ -167,6 +173,13 @@ class Finding(NamedTuple):
 
 class TrustedDatabaseUrl(str):
     """A PostgreSQL URL accepted from the fixed deployment configuration boundary."""
+
+
+class BoundaryAuthorizationTarget(NamedTuple):
+    """One configured database URL paired with its exposed-schema inventory."""
+
+    database_url: TrustedDatabaseUrl
+    exposed_schemas: tuple[str, ...]
 
 
 CONTROL_MESSAGES = {
@@ -362,27 +375,90 @@ def _configured_untrusted_roles(environment: Mapping[str, str]) -> tuple[str, ..
     return roles
 
 
+def _parse_exposed_schema_csv(raw_schemas: str) -> tuple[str, ...] | None:
+    """Parse a comma-separated schema inventory, failing closed on empty fields."""
+    schemas = tuple(dict.fromkeys(part.strip() for part in raw_schemas.split(",")))
+    if not schemas or any(not SAFE_SCHEMA_PATTERN.fullmatch(schema) for schema in schemas):
+        return None
+    return schemas
+
+
 def _configured_exposed_schemas(
     environment: Mapping[str, str],
     cli_schema: str,
 ) -> tuple[str, ...] | None:
-    """Resolve exposed schemas from env (comma-separated) or the CLI default.
+    """Resolve the global/default exposed-schema list from env or the CLI default.
 
-    When ``FARDB_EXPOSED_DATABASE_SCHEMAS`` is set, every listed schema is checked
-    so a promotion PASS cannot omit non-``public`` inventoried schemas. When unset,
-    the ``--exposed-schema`` value is used (default ``public``).
+    When ``FARDB_EXPOSED_DATABASE_SCHEMAS`` is set, every listed schema must be a
+    complete inventoried list (include ``public`` when it is exposed). Empty CSV
+    fields fail closed. When unset, the ``--exposed-schema`` value is used
+    (default ``public``). Boundary-specific overrides use
+    ``FARDB_EXPOSED_DATABASE_SCHEMAS_*`` (see ``_configured_authorization_boundaries``).
     """
     raw_schemas = environment.get(EXPOSED_DATABASE_SCHEMAS_ENV)
-    schemas: tuple[str, ...]
     if raw_schemas is None:
-        schemas = (cli_schema,)
-    else:
-        schemas = tuple(dict.fromkeys(part.strip() for part in raw_schemas.split(",") if part.strip()))
-        if not schemas:
+        if not SAFE_SCHEMA_PATTERN.fullmatch(cli_schema):
             return None
-    if any(not SAFE_SCHEMA_PATTERN.fullmatch(schema) for schema in schemas):
+        return (cli_schema,)
+    return _parse_exposed_schema_csv(raw_schemas)
+
+
+def _merge_exposed_schemas(
+    existing: Sequence[str],
+    addition: Sequence[str],
+) -> tuple[str, ...]:
+    """Union schema lists while preserving first-seen order."""
+    return tuple(dict.fromkeys((*existing, *addition)))
+
+
+def _configured_authorization_boundaries(
+    environment: Mapping[str, str],
+    cli_schema: str,
+) -> tuple[BoundaryAuthorizationTarget, ...] | None:
+    """Resolve each configured URL with its exposed-schema inventory.
+
+    Global ``FARDB_EXPOSED_DATABASE_SCHEMAS`` (or CLI default) applies unless a
+    boundary-specific ``FARDB_EXPOSED_DATABASE_SCHEMAS_*`` secret is set for that
+    URL env. Duplicate URLs merge their schema lists so unique schemas are not
+    projected onto unrelated databases.
+    """
+    default_schemas = _configured_exposed_schemas(environment, cli_schema)
+    if default_schemas is None:
         return None
-    return schemas
+
+    schemas_by_url: dict[TrustedDatabaseUrl, tuple[str, ...]] = {}
+    ordered_urls: list[TrustedDatabaseUrl] = []
+    for url_env in SUPPORTED_DATABASE_URL_ENVS:
+        raw_url = environment.get(url_env)
+        if not raw_url:
+            continue
+        database_url = _validate_database_url(raw_url)
+        if database_url is None:
+            return None
+
+        schema_env = EXPOSED_DATABASE_SCHEMAS_ENV_BY_URL_ENV[url_env]
+        raw_boundary_schemas = environment.get(schema_env)
+        if raw_boundary_schemas is None:
+            schemas: tuple[str, ...] = default_schemas
+        else:
+            parsed_schemas = _parse_exposed_schema_csv(raw_boundary_schemas)
+            if parsed_schemas is None:
+                return None
+            schemas = parsed_schemas
+
+        if database_url not in schemas_by_url:
+            ordered_urls.append(database_url)
+            schemas_by_url[database_url] = schemas
+        else:
+            schemas_by_url[database_url] = _merge_exposed_schemas(
+                schemas_by_url[database_url],
+                schemas,
+            )
+
+    return tuple(
+        BoundaryAuthorizationTarget(database_url=database_url, exposed_schemas=schemas_by_url[database_url])
+        for database_url in ordered_urls
+    )
 
 
 def _connect(database_url: TrustedDatabaseUrl) -> Any:
@@ -444,9 +520,8 @@ def _evaluate_snapshots(snapshots: Sequence[AuthorizationSnapshot]) -> list[Find
 class GateConfiguration(NamedTuple):
     """Resolved runtime inputs for one authorization-gate invocation."""
 
-    database_urls: tuple[TrustedDatabaseUrl, ...]
+    boundaries: tuple[BoundaryAuthorizationTarget, ...]
     untrusted_roles: tuple[str, ...]
-    exposed_schemas: tuple[str, ...]
     require_all_untrusted_roles: bool
 
 
@@ -465,23 +540,19 @@ def _resolve_gate_configuration(
     if not SAFE_SCHEMA_PATTERN.fullmatch(cli_exposed_schema):
         return _reject_invalid_configuration()
 
-    database_urls = _configured_database_urls(environ)
-    if database_urls is None:
+    boundaries = _configured_authorization_boundaries(environ, cli_exposed_schema)
+    if boundaries is None:
         return _reject_invalid_configuration()
     untrusted_roles = _configured_untrusted_roles(environ)
     if untrusted_roles is None:
         return _reject_invalid_configuration()
-    exposed_schemas = _configured_exposed_schemas(environ, cli_exposed_schema)
-    if exposed_schemas is None:
-        return _reject_invalid_configuration()
-    if not database_urls:
+    if not boundaries:
         print("database authorization check requires a configured database URL", file=sys.stderr)
         return USAGE_ERROR
 
     return GateConfiguration(
-        database_urls=database_urls,
+        boundaries=boundaries,
         untrusted_roles=untrusted_roles,
-        exposed_schemas=exposed_schemas,
         require_all_untrusted_roles=UNTRUSTED_DATABASE_ROLES_ENV in environ,
     )
 
@@ -490,23 +561,24 @@ def _collect_snapshots_for_schemas(
     configuration: GateConfiguration,
     connect: Callable[[TrustedDatabaseUrl], Any],
 ) -> list[AuthorizationSnapshot] | None:
-    """Collect snapshots for every exposed schema, or None when any boundary fails."""
+    """Collect per-boundary schema snapshots, or None when any boundary fails."""
     snapshots: list[AuthorizationSnapshot] = []
-    for schema in configuration.exposed_schemas:
-        snapshot_collector = partial(
-            collect_snapshot,
-            schema=schema,
-            untrusted_roles=configuration.untrusted_roles,
-            require_all_untrusted_roles=configuration.require_all_untrusted_roles,
-        )
-        schema_snapshots = _collect_configured_snapshots(
-            configuration.database_urls,
-            snapshot_collector,
-            connect,
-        )
-        if schema_snapshots is None:
-            return None
-        snapshots.extend(schema_snapshots)
+    for boundary in configuration.boundaries:
+        for schema in boundary.exposed_schemas:
+            snapshot_collector = partial(
+                collect_snapshot,
+                schema=schema,
+                untrusted_roles=configuration.untrusted_roles,
+                require_all_untrusted_roles=configuration.require_all_untrusted_roles,
+            )
+            schema_snapshots = _collect_configured_snapshots(
+                (boundary.database_url,),
+                snapshot_collector,
+                connect,
+            )
+            if schema_snapshots is None:
+                return None
+            snapshots.extend(schema_snapshots)
     return snapshots
 
 

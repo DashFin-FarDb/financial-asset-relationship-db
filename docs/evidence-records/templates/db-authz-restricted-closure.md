@@ -64,13 +64,19 @@ Copy this file to an approved private store for the target environment. Public e
 
 ## Step 7 — Advisers and bounded checker
 
-Set GitHub Environment `FARDB_EXPOSED_DATABASE_SCHEMAS` to the comma-separated inventoried exposed schemas so
-staging/production/release-evidence authz gates check every schema before emitting `db_authz: PASS|…`. When the
-variable is unset, the gate checks `public` only.
+Set GitHub Environment **secrets** (not Environment variables—workflows read `secrets.*` only) for exposed schemas so
+staging/production/release-evidence authz gates check every inventoried schema before emitting `db_authz: PASS|…`.
+`FARDB_EXPOSED_DATABASE_SCHEMAS` must be the **full** inventoried list for boundaries without a per-URL override
+(include `public` when exposed). When a boundary has unique exposed schemas, set the matching
+`FARDB_EXPOSED_DATABASE_SCHEMAS_*` secret for that URL. When unset, the gate checks `public` only. Place these secrets
+on **every** Environment the selected workflow can enter (`staging`, `staging-manual-gate`, `production`,
+`production-manual-gate`, `release-evidence` as applicable).
 
 - [ ] Provider advisers re-run; high-severity findings resolved or excepted
-- [ ] `FARDB_EXPOSED_DATABASE_SCHEMAS` set on the Environment to the full inventoried list (or confirmed `public`-only)
-- [ ] Automated gate passed with that schema list (`python scripts/check_database_authorization.py`)
+- [ ] Environment **secret** `FARDB_EXPOSED_DATABASE_SCHEMAS` set to the full inventoried list (or confirmed `public`-only)
+- [ ] Per-boundary `FARDB_EXPOSED_DATABASE_SCHEMAS_*` secrets set where inventories differ by URL
+- [ ] Schema secrets present on every Environment that workflow may select (including `*-manual-gate`)
+- [ ] Automated gate passed with that schema inventory (`python scripts/check_database_authorization.py`)
 - [ ] Schema list (names only) recorded here; do not paste grants or adviser dumps
 - [ ] Manual privileged-function review complete: schema, owner, fixed safe search path, and execution grants verified
 
