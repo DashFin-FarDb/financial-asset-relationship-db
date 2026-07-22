@@ -67,7 +67,9 @@ Primary authorities:
 - **Repository scope:** `docs/adr/0007-database-authorization-boundary.md`,
   `scripts/check_database_authorization.py`, provider configuration, restricted closure evidence, release record.
   Workflow wiring exists in `release-evidence-verify.yml`, `staging-promotion.yml`, and `production-promotion.yml`
-  (H-P0-04 Partially satisfied).
+  (H-P0-04 Partially satisfied). Assert-path `hardening_tier=P0` fails closed when DB authz is skipped; staging,
+  production, and release-evidence authz steps fail closed when any required boundary secret is missing
+  (asset-graph, auth/app or postgres fallback, and coordination).
 - **Dependencies or blockers:** Live inventory; least-privilege role and policy design; negative tests; application,
   recovery, and restore regression proof; provider advisers; credential review; operator approval; Environment secrets
   for staging/production promotion paths.
@@ -75,8 +77,9 @@ Primary authorities:
   explicitly says that it does not mutate the live database or close the gate without target-environment evidence.
 - **Next action and completion test:** Execute ADR 0007's remediation sequence against staging, preserve sensitive
   findings in a restricted record, and attach a redacted pass result showing every exit criterion is satisfied or a
-  named, time-bounded exception is approved.
-- **Last updated:** 2026-07-21
+  named, time-bounded exception is approved. Public evidence marker form:
+  `db_authz: PASS|<opaque-workflow-run-or-artifact-id>`.
+- **Last updated:** 2026-07-22
 
 ### FPC-2026-07-21-02 — Prove release repeatability for the exact artefact
 
@@ -377,10 +380,9 @@ Primary authorities:
 ### Next highest-value action
 
 Close FPC-2026-07-21-01: execute and evidence the ADR 0007 hosted database authorization contract in staging. This is
-the nearest release blocker and a prerequisite for credible sensitive-domain or enterprise positioning.
-
-Repository automation follow-through (merge #1510 / H-P1-03, then H-P1-04/H-P1-05 as scoped) supports
-FPC-2026-07-21-02 but does not substitute for live authorization closure.
+the nearest release blocker and a prerequisite for credible sensitive-domain or enterprise positioning. Repository
+Assert-path fail-closed wiring for skipped DB authz does not substitute for a live redacted
+`db_authz: PASS|<opaque-ref>`.
 
 ### Completion test
 
@@ -397,7 +399,7 @@ time-bounded exception.
 - Repository agent instructions and production-architecture declaration.
 - Enterprise-readiness index, audit, roadmap, PR board, validation-gap audit, release checklist, release evidence pack,
   hosted staging baseline, operational evidence framework, drill and scale-validation documents, and risk register.
-- ADRs and governance authorities referenced by those indexes, including ADRs 0001, 0002, 0005, 0006, and 0007.
+- ADRs and governance authorities referenced by those indices, including ADRs 0001, 0002, 0005, 0006, and 0007.
 - RC1 committed evidence record and its repository companion issue record.
 - Current-state strategy, claims taxonomy, and Big Read chronology.
 - Merged hardening PRs #1506, #1508, #1509 and open PR #1510.

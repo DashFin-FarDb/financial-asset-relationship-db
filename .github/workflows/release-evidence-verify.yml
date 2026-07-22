@@ -221,6 +221,36 @@ jobs:
             echo '{"status":"skipped","reason":"no_database_url_configured"}' > db-authz-output.json
             exit 0
           fi
+          # Fail closed on missing required boundaries before authz runs.
+          # The checker only validates URLs that are present, so a partial
+          # secret set must not pass H-P0-04 (parity with production-promotion).
+          if [ -z "$ASSET_GRAPH_DATABASE_URL" ]; then
+            reason='missing_asset_graph_database_url'
+            echo "{\"status\":\"failed\",\"reason\":\"$reason\"}" \
+              > db-authz-output.json
+            echo "H-P0-04 requires the asset-graph DB secret for authorization."
+            exit 1
+          fi
+          if [ -z "${DATABASE_URL}${POSTGRES_URL}" ]; then
+            reason='missing_auth_database_url'
+            echo "{\"status\":\"failed\",\"reason\":\"$reason\"}" \
+              > db-authz-output.json
+            echo "H-P0-04 requires the auth/app DB secret for authorization."
+            exit 1
+          fi
+          if [ -z "$COORDINATION_DATABASE_URL" ]; then
+            reason='missing_coordination_database_url'
+            echo "{\"status\":\"failed\",\"reason\":\"$reason\"}" \
+              > db-authz-output.json
+            echo "H-P0-04 requires the coordination DB secret for authorization."
+            exit 1
+          fi
+          # GitHub injects unset secrets as empty strings. An empty value makes
+          # the checker reject config instead of applying default roles, so
+          # drop it before invocation.
+          if [ -z "$FARDB_UNTRUSTED_DATABASE_ROLES" ]; then
+            unset FARDB_UNTRUSTED_DATABASE_ROLES
+          fi
           set +e
           # Bounded stdout/stderr only (control ids/messages). Do not upload raw logs as artifacts.
           python scripts/check_database_authorization.py
@@ -291,8 +321,21 @@ jobs:
           fi
 
           if [ "$EFFECTIVE_STRICT" == "true" ]; then
-            if [ "$readiness_status" != "passed" ] || [ "$docs_status" != "passed" ]; then
-              echo "Strict RC promotion requires hosted readiness and docs checks to pass (hardening_tier=$HARDENING_TIER)."
+            # Collect all strict-gate failures so operators see every blocker
+            # (readiness, docs, and H-P0-04) in one diagnostic exit.
+            FAILURES=""
+            if [ "$readiness_status" != "passed" ]; then
+              FAILURES="${FAILURES}hosted readiness, "
+            fi
+            if [ "$docs_status" != "passed" ]; then
+              FAILURES="${FAILURES}docs readiness, "
+            fi
+            if [ "$db_authz_status" != "passed" ]; then
+              FAILURES="${FAILURES}database authorization (H-P0-04), "
+            fi
+            if [ -n "$FAILURES" ]; then
+              echo "Strict RC promotion requires the following to pass: ${FAILURES%, } (hardening_tier=$HARDENING_TIER)."
+              echo "Configure the required Environment secrets (auth/app, asset-graph, and coordination DB URLs), or use hardening_tier=none for soft rehearsal."
               exit 1
             fi
           else
@@ -302,6 +345,10 @@ jobs:
             fi
             if [ "$docs_status" != "passed" ] && [ "$docs_status" != "skipped" ]; then
               echo "Docs readiness must pass or be intentionally skipped."
+              exit 1
+            fi
+            if [ "$db_authz_status" != "passed" ] && [ "$db_authz_status" != "skipped" ]; then
+              echo "Database authorization must pass or be intentionally skipped (H-P0-04)."
               exit 1
             fi
           fi
@@ -385,8 +432,9 @@ jobs:
               out.write(f"- hardening_tier input: `{hardening_tier}`\n")
               out.write(
                   "- Canon: `docs/release-evidence-pack.md#hardening-backlog-p0p3` "
-                  "(H-P0-01 … H-P3-05). Skipped DB authz still requires staging evidence "
-                  "`db_authz: PASS` before promotion.\n"
+                  "(H-P0-01 … H-P3-05). With `hardening_tier=P0`, skipped DB authz "
+                  "fails the Assert path; staging/production promotion still require "
+                  "`db_authz: PASS|<opaque-ref>` in evidence before promotion.\n"
               )
 
           sys.exit(0)
