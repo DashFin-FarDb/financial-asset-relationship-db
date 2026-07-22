@@ -349,14 +349,15 @@ async def _perform_startup_reconciliation(settings: GraphLifecycleSettings) -> N
                 message=f"Failed to load persisted graph during startup: {type(exc).__name__}",
                 metadata={
                     "error": type(exc).__name__,
-                    "error_message": str(exc),
                     "phase": "reconciliation",
                     "trace_id": _trace_or_unknown(get_trace_id()),
                     "span_id": _trace_or_unknown(get_span_id()),
                 },
             ),
         )
-        raise RuntimeError(f"Failed to load persisted graph during startup: {exc}") from exc
+        # Keep the public message and exception chain sanitized: do not embed
+        # str(exc) (may contain DB URLs/secrets). Type name is logged above.
+        raise RuntimeError("Failed to load persisted graph during startup") from None
 
 
 def _handle_reconciliation_blocked(exc: Any) -> None:
