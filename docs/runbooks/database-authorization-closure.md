@@ -107,7 +107,7 @@ From ADR 0007:
 - Views pass the automated access check; privileged functions pass automated execution checks **and** manual
   fixed-search-path review.
 - Application, recovery, and restore integration checks pass after enforcement.
-- No unresolved high-severity access-control finding remains without a named, time-bounded exception.
+- No unresolved high-severity access-control finding remains without a named, time-bounded exception approved by the release authority.
 - Credential review, rollback evidence, and redacted operator sign-off are complete.
 - Public marker `db_authz: PASS|<opaque-ref>` is attached for the exact artefact under promotion.
 
