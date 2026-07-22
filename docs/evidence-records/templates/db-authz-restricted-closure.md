@@ -66,7 +66,7 @@ Copy this file to an approved private store for the target environment. Public e
 
 - [ ] Provider advisers re-run; high-severity findings resolved or excepted
 - [ ] `python scripts/check_database_authorization.py` passed on every required boundary
-- [ ] Manual privileged-function fixed-search-path review complete
+- [ ] Manual privileged-function review complete: schema, owner, fixed safe search path, and execution grants verified
 
 ## Exceptions
 
