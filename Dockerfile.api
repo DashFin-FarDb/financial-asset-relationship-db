@@ -3,6 +3,7 @@ FROM python:3.12-slim
 WORKDIR /app
 
 COPY requirements-api.txt .
+# hadolint ignore=DL3008 -- base image package versions vary by Debian point release
 RUN apt-get update && apt-get install -y --no-install-recommends curl \
     && rm -rf /var/lib/apt/lists/* \
     && pip install --no-cache-dir -r requirements-api.txt \
@@ -13,6 +14,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends curl \
 
 COPY src/ ./src/
 COPY api/ ./api/
+# Required by src.data.database.init_db → apply_migrations on durable SQLite.
+COPY migrations/ ./migrations/
 
 ENV PYTHONPATH=/app
 ENV PORT=8000

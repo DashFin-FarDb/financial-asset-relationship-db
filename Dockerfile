@@ -1,6 +1,7 @@
 # Gradio demo / internal-testing image (NON-PRODUCTION).
 # Production architecture uses Dockerfile.api + Dockerfile.frontend.
-# See docs/adr/0001-production-architecture.md and production-container.yml.
+# See docs/adr/0001-production-architecture.md and
+# .github/workflows/production-container.yml.
 #
 # Use Python 3.12 slim image for smaller size
 # Note: Python 3.12 chosen for security and compatibility.
@@ -19,6 +20,7 @@ WORKDIR /app
 
 # Install system dependencies including curl for health checks
 # and apply latest security fixes available in base repositories.
+# hadolint ignore=DL3008 -- base image package versions vary by Debian point release
 RUN apt-get update && apt-get upgrade -y && apt-get install -y --no-install-recommends \
     curl \
     g++ \

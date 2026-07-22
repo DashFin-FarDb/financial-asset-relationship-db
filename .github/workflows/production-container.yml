@@ -160,8 +160,9 @@ jobs:
           ASSET_TOTAL="$(
             curl -fsS 'http://127.0.0.1:8000/api/assets?per_page=1' | jq -r '.total // 0'
           )"
-          if [ "$ASSET_TOTAL" = "0" ] || [ "$ASSET_TOTAL" = "null" ]; then
-            echo "Error: assets smoke expected total > 0 after persisted reload"
+          # Require a positive integer; reject 0, null coalesced to 0, and non-numeric values.
+          if ! [[ "$ASSET_TOTAL" =~ ^[1-9][0-9]*$ ]]; then
+            echo "Error: assets smoke expected total > 0 after persisted reload (got: ${ASSET_TOTAL})"
             cat detailed-health.json
             exit 1
           fi

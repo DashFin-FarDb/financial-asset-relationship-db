@@ -83,7 +83,7 @@ def test_persistence_fields_asserted_after_reload(production_container_raw: str)
 def test_evidence_boundary_excludes_hosted_promotion(production_container_raw: str) -> None:
     """Workflow header must not claim hosted promotion evidence."""
     assert "DOES NOT PROVE" in production_container_raw
-    assert "HOSTED_READINESS_BASE_URL" in production_container_raw or "hosted" in production_container_raw.lower()
+    assert "HOSTED_READINESS_BASE_URL" in production_container_raw
     assert "staging-promotion.yml" in production_container_raw
     assert "production-promotion.yml" in production_container_raw
 
@@ -105,9 +105,20 @@ def test_validates_production_compose_config(production_container_raw: str) -> N
 def test_production_compose_declares_persistence_defaults() -> None:
     """Production compose must default graph + auth DB URLs onto the data volume."""
     text = COMPOSE_PATH.read_text(encoding="utf-8")
-    assert "api-data:/data" in text or "api-data" in text
+    assert "api-data:/data" in text
     assert "ASSET_GRAPH_DATABASE_URL" in text
     assert "sqlite:////data/fardb.db" in text
+
+
+def test_api_dockerfile_copies_migrations() -> None:
+    """Production API image must ship SQL migrations for durable SQLite init."""
+    text = (REPO_ROOT / "Dockerfile.api").read_text(encoding="utf-8")
+    assert "COPY migrations/ ./migrations/" in text
+
+
+def test_assets_smoke_requires_positive_integer_total(production_container_raw: str) -> None:
+    """Assets persistence smoke must reject non-positive / non-numeric totals."""
+    assert "=~ ^[1-9][0-9]*$" in production_container_raw
 
 
 @pytest.mark.parametrize("workflow_path", GRADIO_WORKFLOWS, ids=lambda p: p.name)
@@ -125,3 +136,4 @@ def test_gradio_dockerfile_marked_non_production() -> None:
     text = (REPO_ROOT / "Dockerfile").read_text(encoding="utf-8")
     assert "NON-PRODUCTION" in text
     assert "Dockerfile.api" in text
+    assert ".github/workflows/production-container.yml" in text
