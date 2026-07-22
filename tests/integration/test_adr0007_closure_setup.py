@@ -28,8 +28,8 @@ def test_adr0007_evidence_templates_exist() -> None:
     restricted = RESTRICTED.read_text(encoding="utf-8")
     public = PUBLIC.read_text(encoding="utf-8")
     assert "do not commit filled copies" in restricted.lower()
-    assert "db_authz: PASS|" in public
-    assert "Privileged functions manual fixed-search-path review" in public
+    assert "db_authz: PASS|" in public.lower()
+    assert "privileged functions manual fixed-search-path review" in public.lower()
 
 
 def test_adr0007_issue_template_exists() -> None:
