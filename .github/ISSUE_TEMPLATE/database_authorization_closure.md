@@ -27,6 +27,7 @@ assignees: ""
 - [ ] `DATABASE_URL` or `POSTGRES_URL` present
 - [ ] `COORDINATION_DATABASE_URL` present
 - [ ] Empty `FARDB_UNTRUSTED_DATABASE_ROLES` left unset (or intentional custom value retained in restricted record)
+- [ ] `FARDB_EXPOSED_DATABASE_SCHEMAS` set to the full inventoried exposed-schema list (or confirmed `public`-only)
 
 ## Remediation sequence
 

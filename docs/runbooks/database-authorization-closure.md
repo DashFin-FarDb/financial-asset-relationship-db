@@ -23,13 +23,14 @@ evidence publicly.
 
 Promotion and Assert-path authz steps fail closed unless **all** required boundaries are present:
 
-| Secret / variable                | Required for H-P0-04 authz gate | Notes                                                                                                            |
-| -------------------------------- | ------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| `ASSET_GRAPH_DATABASE_URL`       | Yes                             | Graph boundary                                                                                                   |
-| `DATABASE_URL` or `POSTGRES_URL` | Yes (at least one)              | Auth/app boundary                                                                                                |
-| `COORDINATION_DATABASE_URL`      | Yes for authz gate              | Point at the effective coordination boundary; required by workflows even if topology documents a shared fallback |
-| `FARDB_UNTRUSTED_DATABASE_ROLES` | Optional                        | Defaults to provider roles `anon,authenticated` when unset; leave empty unset (workflows unset empty strings)    |
-| `HOSTED_READINESS_BASE_URL`      | For hosted readiness steps      | Separate from authz checker                                                                                      |
+| Secret / variable                | Required for H-P0-04 authz gate                  | Notes                                                                                                            |
+| -------------------------------- | ------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------- |
+| `ASSET_GRAPH_DATABASE_URL`       | Yes                                              | Graph boundary                                                                                                   |
+| `DATABASE_URL` or `POSTGRES_URL` | Yes (at least one)                               | Auth/app boundary                                                                                                |
+| `COORDINATION_DATABASE_URL`      | Yes for authz gate                               | Point at the effective coordination boundary; required by workflows even if topology documents a shared fallback |
+| `FARDB_UNTRUSTED_DATABASE_ROLES` | Optional                                         | Defaults to provider roles `anon,authenticated` when unset; leave empty unset (workflows unset empty strings)    |
+| `FARDB_EXPOSED_DATABASE_SCHEMAS` | Required when non-`public` exposed schemas exist | Comma-separated schemas checked by the automated gate before PASS; unset defaults to `public` only               |
+| `HOSTED_READINESS_BASE_URL`      | For hosted readiness steps                       | Separate from authz checker                                                                                      |
 
 Configure these on the GitHub Environments used by `staging-promotion.yml`, `production-promotion.yml`, and
 `release-evidence-verify.yml`. Record **presence only** in public evidence—never paste values.
@@ -47,13 +48,15 @@ With local env vars pointing at a **non-production** PostgreSQL boundary you con
 export DATABASE_URL='postgresql://…'
 export ASSET_GRAPH_DATABASE_URL='postgresql://…'
 export COORDINATION_DATABASE_URL='postgresql://…'
-# Default schema is public. Repeat per inventoried exposed schema:
-python scripts/check_database_authorization.py --exposed-schema public
+# Prefer one gate invocation covering every inventoried exposed schema:
+export FARDB_EXPOSED_DATABASE_SCHEMAS='public'
+python scripts/check_database_authorization.py
 ```
 
-Expect bounded pass/fail output only. Do not commit connection strings or catalog dumps. CI/promotion workflows
-check the default schema only; closure still requires a pass for every inventoried exposed schema (record in the
-restricted worksheet).
+Expect bounded pass/fail output only. Do not commit connection strings or catalog dumps. Promotion and
+release-evidence workflows pass `FARDB_EXPOSED_DATABASE_SCHEMAS` from the GitHub Environment when set; when
+unset they check `public` only. For ADR 0007 closure, set the Environment variable to the full inventoried
+exposed-schema list so a `db_authz: PASS|…` marker cannot omit a non-default schema.
 
 ## Remediation sequence (ADR 0007)
 
@@ -87,11 +90,11 @@ After Environment secrets are present and remediation is applied:
    `scripts/check_database_authorization.py` and uploads redacted `db-authz-output.json`.
 2. Alternatively dispatch **release-evidence-verify** with `hardening_tier=P0` (default). Soft rehearsal
    (`hardening_tier=none`) must not be treated as RC proof.
-3. On success, form the public marker from the run or artifact id, for example:
+3. On success, form the public marker from the run or artifact ID, for example:
    - `db_authz: PASS|run-<digits>`
    - `db_authz: PASS|artifact-<digits>`
    - `db_authz: PASS|<prefix>-run-<digits>`
-   - `db_authz: PASS|<numeric-run-id>` (≥6 digits)
+   - `db_authz: PASS|<numeric-run-ID>` (≥6 digits)
 
 Bare `PASS`, `TBD`, `TODO`, and angle-bracket templates are rejected by `scripts/verify_staging_promotion.py`.
 

@@ -385,12 +385,14 @@ Primary authorities:
 
 ### Next highest-value action
 
-Close **FPC-2026-07-21-01** (see that entry’s **Next action and completion test**). Repository Assert-path
-fail-closed wiring does not substitute for a live redacted `db_authz: PASS|<opaque-ref>`.
+Close **FPC-2026-07-21-01** using the
+[closure runbook](../runbooks/database-authorization-closure.md); see that entry’s **Next action and completion
+test**. Repository Assert-path fail-closed wiring does not substitute for a live redacted
+`db_authz: PASS|<opaque-ref>`.
 
 ### Completion test
 
-Same completion test as **FPC-2026-07-21-01**.
+Same completion test as **FPC-2026-07-21-01** (and the runbook exit criteria).
 
 ## Backfill coverage and gaps
 

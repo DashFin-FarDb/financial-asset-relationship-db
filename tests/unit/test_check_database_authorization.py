@@ -36,6 +36,7 @@ def _clear_database_url_environment(monkeypatch: pytest.MonkeyPatch) -> None:
     for variable_name in checker.SUPPORTED_DATABASE_URL_ENVS:
         monkeypatch.delenv(variable_name, raising=False)
     monkeypatch.delenv(checker.UNTRUSTED_DATABASE_ROLES_ENV, raising=False)
+    monkeypatch.delenv(checker.EXPOSED_DATABASE_SCHEMAS_ENV, raising=False)
 
 
 def _snapshot(**overrides: int) -> checker.AuthorizationSnapshot:
@@ -461,3 +462,54 @@ def test_main_fails_closed_when_exposed_schema_is_empty(
     assert result == checker.CHECK_FAILED
     assert captured.err == ""
     assert "exposed-schema-rls" in captured.out
+
+
+@pytest.mark.unit
+def test_main_checks_every_schema_from_exposed_schemas_env(
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """FARDB_EXPOSED_DATABASE_SCHEMAS must expand the gate beyond the CLI default."""
+    monkeypatch.setenv("DATABASE_URL", _database_url())
+    monkeypatch.setenv(checker.EXPOSED_DATABASE_SCHEMAS_ENV, "public,app")
+    schemas_seen: list[str] = []
+
+    class _TrackingConnection(_FakeConnection):
+        def cursor(self) -> _FakeCursor:
+            cursor = super().cursor()
+            original_execute = cursor.execute
+
+            def _execute(query: str, parameters: dict[str, object]) -> None:
+                schema = parameters.get("schema")
+                if isinstance(schema, str):
+                    schemas_seen.append(schema)
+                original_execute(query, parameters)
+
+            cursor.execute = _execute  # type: ignore[method-assign]
+            return cursor
+
+    result = checker.main([], connector=lambda _url: _TrackingConnection((4, 4, 0, 0, 0, 0, 0, 2)))
+
+    captured = capsys.readouterr()
+    assert result == checker.SUCCESS
+    assert schemas_seen == ["public", "app"]
+    assert "database authorization gate passed" in captured.out
+
+
+@pytest.mark.unit
+def test_main_rejects_empty_exposed_schemas_env(
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """An empty FARDB_EXPOSED_DATABASE_SCHEMAS value must fail closed."""
+    monkeypatch.setenv("DATABASE_URL", _database_url())
+    monkeypatch.setenv(checker.EXPOSED_DATABASE_SCHEMAS_ENV, " , ")
+
+    def unexpected_connect(_database_url: str) -> Any:
+        raise AssertionError("connector must not be called")
+
+    result = checker.main([], connector=unexpected_connect)
+
+    captured = capsys.readouterr()
+    assert result == checker.USAGE_ERROR
+    assert captured.err == "database authorization check configuration is invalid\n"

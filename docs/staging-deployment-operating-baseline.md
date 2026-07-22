@@ -104,7 +104,9 @@ unless these GitHub Environment secrets are all present—partial URL sets must 
   fallback—point the secret at the effective coordination boundary)
 
 `hardening_tier=none` on release-evidence is a soft rehearsal and is not H-P0-04 closure. Optional:
-`FARDB_UNTRUSTED_DATABASE_ROLES` (defaults apply when unset; leave empty values unset). Operator procedure:
+`FARDB_UNTRUSTED_DATABASE_ROLES` (defaults apply when unset; leave empty values unset). When inventory includes
+non-`public` exposed schemas, set `FARDB_EXPOSED_DATABASE_SCHEMAS` (comma-separated) so the authz gate checks every
+schema before PASS; unset defaults to `public` only. Operator procedure:
 [Database authorization closure runbook](runbooks/database-authorization-closure.md).
 
 Record only variable presence, provider labels, project labels, redacted URLs, and reviewer sign-off.

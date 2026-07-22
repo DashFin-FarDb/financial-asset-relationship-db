@@ -216,6 +216,7 @@ jobs:
           COORDINATION_DATABASE_URL: ${{ secrets.COORDINATION_DATABASE_URL }}
           POSTGRES_URL: ${{ secrets.POSTGRES_URL }}
           FARDB_UNTRUSTED_DATABASE_ROLES: ${{ secrets.FARDB_UNTRUSTED_DATABASE_ROLES }}
+          FARDB_EXPOSED_DATABASE_SCHEMAS: ${{ secrets.FARDB_EXPOSED_DATABASE_SCHEMAS }}
         run: |
           if [ -z "${DATABASE_URL}${ASSET_GRAPH_DATABASE_URL}${COORDINATION_DATABASE_URL}${POSTGRES_URL}" ]; then
             echo '{"status":"skipped","reason":"no_database_url_configured"}' > db-authz-output.json
@@ -246,13 +247,16 @@ jobs:
             exit 1
           fi
           # GitHub injects unset secrets as empty strings. An empty value makes
-          # the checker reject config instead of applying default roles, so
-          # drop it before invocation.
+          # the checker reject config instead of applying defaults, so drop it
+          # before invocation.
           if [ -z "$FARDB_UNTRUSTED_DATABASE_ROLES" ]; then
             unset FARDB_UNTRUSTED_DATABASE_ROLES
           fi
+          if [ -z "$FARDB_EXPOSED_DATABASE_SCHEMAS" ]; then
+            unset FARDB_EXPOSED_DATABASE_SCHEMAS
+          fi
           set +e
-          # Bounded stdout/stderr only (control ids/messages). Do not upload raw logs as artifacts.
+          # Bounded stdout/stderr only (control IDs/messages). Do not upload raw logs as artifacts.
           python scripts/check_database_authorization.py
           code=$?
           if [ "$code" -eq 0 ]; then

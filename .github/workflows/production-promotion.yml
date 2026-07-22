@@ -80,6 +80,8 @@ jobs:
           POSTGRES_URL: ${{ secrets.POSTGRES_URL }}
           FARDB_UNTRUSTED_DATABASE_ROLES: >-
             ${{ secrets.FARDB_UNTRUSTED_DATABASE_ROLES }}
+          FARDB_EXPOSED_DATABASE_SCHEMAS: >-
+            ${{ secrets.FARDB_EXPOSED_DATABASE_SCHEMAS }}
         run: |
           python scripts/verify_staging_promotion.py "$EVIDENCE_FILE"
 
@@ -110,10 +112,13 @@ jobs:
           fi
 
           # GitHub injects unset secrets as empty strings. An empty value makes
-          # the checker reject config instead of applying default roles, so
-          # drop it before invocation.
+          # the checker reject config instead of applying defaults, so drop it
+          # before invocation.
           if [ -z "$FARDB_UNTRUSTED_DATABASE_ROLES" ]; then
             unset FARDB_UNTRUSTED_DATABASE_ROLES
+          fi
+          if [ -z "$FARDB_EXPOSED_DATABASE_SCHEMAS" ]; then
+            unset FARDB_EXPOSED_DATABASE_SCHEMAS
           fi
 
           set +e

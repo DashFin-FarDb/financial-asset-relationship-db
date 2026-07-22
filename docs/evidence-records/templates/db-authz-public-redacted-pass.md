@@ -27,7 +27,7 @@ Copy the line below into the SHA-bound promotion evidence file. **Do not** repla
 file or commit a filled copy of the template.
 
 ```text
-db_authz: PASS|<opaque-workflow-run-or-artifact-id>
+db_authz: PASS|<opaque-workflow-run-or-artifact-ID>
 ```
 
 Soft rehearsal (`release-evidence-verify` with `hardening_tier=none`) is **not** valid closure evidence.
@@ -37,8 +37,8 @@ Soft rehearsal (`release-evidence-verify` with `hardening_tier=none`) is **not**
 - [ ] GitHub Environment secrets present for asset-graph, auth/app (or postgres fallback), and coordination URLs
 - [ ] Workflow run commit SHA equals Release commit SHA above
 - [ ] If workflow is `release-evidence-verify`: input `hardening_tier=P0` (not `none`)
-- [ ] `scripts/check_database_authorization.py` exited successfully in the linked workflow (default exposed schema)
-- [ ] Every inventoried exposed schema passed the checker (`--exposed-schema` per schema; names stay restricted)
+- [ ] `scripts/check_database_authorization.py` exited successfully in the linked workflow
+- [ ] Workflow used `FARDB_EXPOSED_DATABASE_SCHEMAS` covering every inventoried exposed schema (or confirmed `public`-only)
 - [ ] Redacted artifact `db-authz-output.json` shows `"status":"passed"` (no topology fields)
 - [ ] Shared-boundary decision documented at label level only (if applicable)
 - [ ] `FARDB_UNTRUSTED_DATABASE_ROLES` choice recorded as “default” or “custom (restricted record)” — no role list here

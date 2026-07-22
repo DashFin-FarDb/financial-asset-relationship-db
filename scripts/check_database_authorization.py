@@ -23,6 +23,7 @@ SUPPORTED_DATABASE_URL_ENVS = (
     "POSTGRES_URL",
 )
 UNTRUSTED_DATABASE_ROLES_ENV = "FARDB_UNTRUSTED_DATABASE_ROLES"
+EXPOSED_DATABASE_SCHEMAS_ENV = "FARDB_EXPOSED_DATABASE_SCHEMAS"
 DEFAULT_UNTRUSTED_DATABASE_ROLES = ("anon", "authenticated")
 SAFE_SCHEMA_PATTERN = re.compile(r"^[a-z_][a-z0-9_]*$")
 SAFE_ROLE_PATTERN = re.compile(r"^[a-z_][a-z0-9_]*$")
@@ -361,6 +362,29 @@ def _configured_untrusted_roles(environment: Mapping[str, str]) -> tuple[str, ..
     return roles
 
 
+def _configured_exposed_schemas(
+    environment: Mapping[str, str],
+    cli_schema: str,
+) -> tuple[str, ...] | None:
+    """Resolve exposed schemas from env (comma-separated) or the CLI default.
+
+    When ``FARDB_EXPOSED_DATABASE_SCHEMAS`` is set, every listed schema is checked
+    so a promotion PASS cannot omit non-``public`` inventoried schemas. When unset,
+    the ``--exposed-schema`` value is used (default ``public``).
+    """
+    raw_schemas = environment.get(EXPOSED_DATABASE_SCHEMAS_ENV)
+    schemas: tuple[str, ...]
+    if raw_schemas is None:
+        schemas = (cli_schema,)
+    else:
+        schemas = tuple(dict.fromkeys(part.strip() for part in raw_schemas.split(",") if part.strip()))
+        if not schemas:
+            return None
+    if any(not SAFE_SCHEMA_PATTERN.fullmatch(schema) for schema in schemas):
+        return None
+    return schemas
+
+
 def _connect(database_url: TrustedDatabaseUrl) -> Any:
     """Open a bounded PostgreSQL connection without importing the driver during unit tests."""
     import psycopg2
@@ -380,7 +404,7 @@ def _parse_args(argv: Sequence[str] | None) -> argparse.Namespace:
     parser.add_argument(
         "--exposed-schema",
         default="public",
-        help="Exposed schema to check (default: public).",
+        help=("Exposed schema to check when FARDB_EXPOSED_DATABASE_SCHEMAS is unset " "(default: public)."),
     )
     return parser.parse_args(argv)
 
@@ -430,8 +454,9 @@ def main(
 
     database_urls = _configured_database_urls(os.environ)
     untrusted_roles = _configured_untrusted_roles(os.environ)
+    exposed_schemas = _configured_exposed_schemas(os.environ, args.exposed_schema)
     require_all_untrusted_roles = UNTRUSTED_DATABASE_ROLES_ENV in os.environ
-    if database_urls is None or untrusted_roles is None:
+    if database_urls is None or untrusted_roles is None or exposed_schemas is None:
         print("database authorization check configuration is invalid", file=sys.stderr)
         return USAGE_ERROR
     if not database_urls:
@@ -439,20 +464,23 @@ def main(
         return USAGE_ERROR
 
     connect = connector or _connect
-    snapshot_collector = partial(
-        collect_snapshot,
-        schema=args.exposed_schema,
-        untrusted_roles=untrusted_roles,
-        require_all_untrusted_roles=require_all_untrusted_roles,
-    )
-    snapshots = _collect_configured_snapshots(
-        database_urls,
-        snapshot_collector,
-        connect,
-    )
-    if snapshots is None:
-        print("database authorization check could not complete", file=sys.stderr)
-        return CHECK_FAILED
+    snapshots: list[AuthorizationSnapshot] = []
+    for schema in exposed_schemas:
+        snapshot_collector = partial(
+            collect_snapshot,
+            schema=schema,
+            untrusted_roles=untrusted_roles,
+            require_all_untrusted_roles=require_all_untrusted_roles,
+        )
+        schema_snapshots = _collect_configured_snapshots(
+            database_urls,
+            snapshot_collector,
+            connect,
+        )
+        if schema_snapshots is None:
+            print("database authorization check could not complete", file=sys.stderr)
+            return CHECK_FAILED
+        snapshots.extend(schema_snapshots)
 
     findings = _evaluate_snapshots(snapshots)
     if findings:

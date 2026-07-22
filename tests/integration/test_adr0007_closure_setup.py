@@ -22,6 +22,7 @@ def test_adr0007_closure_runbook_exists() -> None:
     assert "db_authz: PASS|" in text
     assert "ASSET_GRAPH_DATABASE_URL" in text
     assert "COORDINATION_DATABASE_URL" in text
+    assert "FARDB_EXPOSED_DATABASE_SCHEMAS" in text
     assert "hardening_tier=P0" in text
     assert "repository root" in text.lower()
 
@@ -37,7 +38,8 @@ def test_adr0007_evidence_templates_exist() -> None:
     assert "do not" in public.lower() and "filled copy" in public.lower()
     assert "hardening_tier=p0" in public.lower()
     assert "workflow run commit sha" in public.lower()
-    assert "--exposed-schema" in restricted
+    assert "FARDB_EXPOSED_DATABASE_SCHEMAS" in restricted
+    assert "FARDB_EXPOSED_DATABASE_SCHEMAS" in public
     assert "privileged functions manual fixed-search-path review" in public.lower()
     assert "release authority" in restricted.lower()
 
@@ -55,9 +57,10 @@ def test_adr0007_issue_template_exists() -> None:
 
 
 def test_env_example_documents_untrusted_roles() -> None:
-    """`.env.example` must document FARDB_UNTRUSTED_DATABASE_ROLES for local dry-runs."""
+    """`.env.example` must document authz-gate env vars for local dry-runs."""
     text = ENV_EXAMPLE.read_text(encoding="utf-8")
     assert "FARDB_UNTRUSTED_DATABASE_ROLES" in text
+    assert "FARDB_EXPOSED_DATABASE_SCHEMAS" in text
     assert "check_database_authorization.py" in text
 
 

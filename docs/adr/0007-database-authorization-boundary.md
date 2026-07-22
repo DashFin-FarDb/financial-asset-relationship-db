@@ -89,9 +89,11 @@ defaults the current provider-role identities to `anon` and `authenticated`; ano
 `FARDB_UNTRUSTED_DATABASE_ROLES` to its comma-separated untrusted database role identities and retain that choice
 in restricted evidence. Missing default provider roles are treated as having no authority. When the role
 environment variable is explicitly set, every configured identity must resolve on every checked boundary or the
-gate fails closed. Connection establishment, statement execution and catalog lock waits are time-bounded. The
-checker produces bounded pass/fail output and does not replace provider advisers, application integration tests
-or recovery exercises.
+gate fails closed. Exposed schemas default to `public`; set `FARDB_EXPOSED_DATABASE_SCHEMAS` to a
+comma-separated inventoried list so the automated gate checks every exposed schema before a promotion PASS.
+Connection establishment, statement execution and catalog lock waits are time-bounded. The checker produces
+bounded pass/fail output and does not replace provider advisers, application integration tests or recovery
+exercises.
 
 The checker cannot infer which business functions are privileged solely from catalog shape. The restricted
 closure record must therefore inventory privileged and security-definer functions and verify their schema,
