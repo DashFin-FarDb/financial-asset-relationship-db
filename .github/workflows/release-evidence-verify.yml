@@ -305,7 +305,7 @@ jobs:
             # (same posture as staging-promotion). Soft rehearsal uses hardening_tier=none.
             if [ "$db_authz_status" != "passed" ]; then
               echo "Strict RC promotion requires database authorization to pass (H-P0-04; hardening_tier=$HARDENING_TIER)."
-              echo "Configure DATABASE_URL / ASSET_GRAPH_DATABASE_URL (and related) secrets, or use hardening_tier=none for soft rehearsal."
+              echo "Configure the required database URL Environment secrets, or use hardening_tier=none for soft rehearsal."
               exit 1
             fi
           else

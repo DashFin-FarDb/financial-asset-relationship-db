@@ -37,9 +37,7 @@ def test_release_evidence_invokes_database_authorization_checker(release_evidenc
 
 def test_release_evidence_p0_fails_closed_on_skipped_db_authz(release_evidence_raw: str) -> None:
     """hardening_tier=P0 must require db_authz status=passed (H-P0-04)."""
-    assert 'db_authz_status" != "passed"' in release_evidence_raw or (
-        '[ "$db_authz_status" != "passed" ]' in release_evidence_raw
-    )
+    assert '[ "$db_authz_status" != "passed" ]' in release_evidence_raw
     assert "Strict RC promotion requires database authorization to pass" in release_evidence_raw
     assert "hardening_tier=none" in release_evidence_raw
 
@@ -72,11 +70,8 @@ def test_production_promotion_still_enforces_db_authz() -> None:
     assert "Database authorization gate failed (H-P0-04)" in text
 
 
-def test_release_evidence_parses_as_workflow() -> None:
+def test_release_evidence_parses_as_workflow(release_evidence_raw: str) -> None:
     """release-evidence-verify.yml must remain valid YAML for Actions."""
-    with open(RELEASE_EVIDENCE_PATH, encoding="utf-8") as handle:
-        data = yaml.safe_load(handle)
+    data = yaml.safe_load(release_evidence_raw)
     assert isinstance(data, dict)
-    if True in data and "on" not in data:
-        data["on"] = data.pop(True)
     assert "jobs" in data
