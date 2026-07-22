@@ -93,7 +93,7 @@ Automatically squash-merged when **all** of the following are true:
 - Author is `dependabot[bot]`
 - PR has the `dependencies` label
 - No more than 5 files are changed
-- CI check `Test Python 3.12` is passing
+- Always-required CI checks are passing (see below)
 
 ### Snyk security fixes
 
@@ -101,10 +101,13 @@ Automatically squash-merged when **all** of the following are true:
 
 - Author is `snyk-bot`
 - PR has the `security` label
-- CI check `Test Python 3.12` is passing
+- Always-required CI checks are passing (see below)
 
-> **Safety note:** Both auto-merge rules require a passing CI run. A failing
-> `Test Python 3.12` job blocks the merge regardless of the author or labels.
+> **Safety note (H-P1-04):** Both auto-merge rules require the same always-required
+> check-success set as [CI Required Checks Policy](ci-required-checks-policy.md):
+> `Test Python 3.10`, `Test Python 3.11`, `Test Python 3.12`, `Security checks`, and
+> `build-and-smoke-test`. Path-filtered `frontend-ci` is intentionally not required
+> for auto-merge. A failing required check blocks the merge regardless of author or labels.
 
 ---
 

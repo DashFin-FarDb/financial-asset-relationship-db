@@ -125,12 +125,18 @@ pull_request_rules:
   # Auto-merge: trusted bots (require passing CI to prevent regressions)
   # ---------------------------------------------------------------------------
 
+  # Always-required check names must match docs/ci-required-checks-policy.md (H-P1-04).
+  # Do not require path-filtered frontend-ci here (absent on many PRs).
   - name: "Auto-merge Dependabot patch updates"
     conditions:
       - "author=dependabot[bot]"
       - "label=dependencies"
       - "#files <= 5"
+      - "check-success=Test Python 3.10"
+      - "check-success=Test Python 3.11"
       - "check-success=Test Python 3.12"
+      - "check-success=Security checks"
+      - "check-success=build-and-smoke-test"
     actions:
       merge:
         method: squash
@@ -139,7 +145,11 @@ pull_request_rules:
     conditions:
       - "author=snyk-bot"
       - "label=security"
+      - "check-success=Test Python 3.10"
+      - "check-success=Test Python 3.11"
       - "check-success=Test Python 3.12"
+      - "check-success=Security checks"
+      - "check-success=build-and-smoke-test"
     actions:
       merge:
         method: squash

@@ -105,10 +105,17 @@ class TestMergifyConfigIntegration:
 
     def test_ci_check_name_in_auto_merge_rules(self):
         """
-        Auto-merge rules must reference 'check-success=Test Python 3.12'.
+        Auto-merge rules must require the H-P1-04 always-required check-success set.
 
-        Matching the actual CI job name in .github/workflows/ci.yml.
+        Names must match docs/ci-required-checks-policy.md and active workflow jobs.
         """
+        required = (
+            "check-success=Test Python 3.10",
+            "check-success=Test Python 3.11",
+            "check-success=Test Python 3.12",
+            "check-success=Security checks",
+            "check-success=build-and-smoke-test",
+        )
         config = load_config()
         rules = config["pull_request_rules"]
 
@@ -116,10 +123,11 @@ class TestMergifyConfigIntegration:
         assert auto_merge_rules, "No auto-merge rules found"
 
         for rule in auto_merge_rules:
-            conditions = " ".join(str(c) for c in rule.get("conditions", []))
-            assert (
-                "check-success=Test Python 3.12" in conditions
-            ), f"Auto-merge rule '{rule['name']}' must reference 'check-success=Test Python 3.12'"
+            condition_list = [str(c) for c in rule.get("conditions", [])]
+            for expected in required:
+                assert expected in condition_list, f"Auto-merge rule '{rule['name']}' must reference '{expected}'"
+            assert "check-success=frontend-ci" not in condition_list
+            assert "check-success=build" not in condition_list
 
     def test_review_request_excludes_bots(self):
         """

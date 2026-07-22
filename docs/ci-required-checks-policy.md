@@ -2,26 +2,45 @@
 
 **Status:** Active
 **Scope:** Defines the required, advisory, scheduled, and release-only CI checks for the repository.
+**Hardening:** H-P1-04 — check-run names reconciled across this policy, Mergify auto-merge, and
+maintainer branch-protection guidance.
 
 ## Principle
 
 GitHub Actions is the canonical PR gate. We shift heavyweight scanners off the per-PR path to keep the feedback loop fast.
 
+GitHub reports **check run names** as each job's `name:` field, or the job id when `name:` is omitted.
+They are **not** `Workflow / job` strings (for example, `Frontend CI / build` is not a real check name).
+
 ## Categories
 
 ### 1. Required for Merge
 
-These checks run on every PR and push to `main`. They must pass before a PR can be merged.
+#### Always required (every PR targeting `main`)
 
-- **Frontend CI (`frontend-ci.yml`)**: Lint, test, and build for the Next.js frontend.
-- **Backend CI (`ci.yml`)**: Python lint, format, type-check, and unit/integration tests.
-- **Production Container Smoke (`production-container.yml`)**: Verifies that the FastAPI and Next.js Docker images build and start cleanly.
+These workflows have no path filters on `pull_request` and must pass before merge. Use these exact
+check-run names in branch protection and Mergify `check-success` conditions:
+
+| Check run name         | Workflow                              | Job id                 |
+| ---------------------- | ------------------------------------- | ---------------------- |
+| `Test Python 3.10`     | Python CI (`.github/workflows/ci.yml`) | `test` (matrix 3.10)  |
+| `Test Python 3.11`     | Python CI (`.github/workflows/ci.yml`) | `test` (matrix 3.11)  |
+| `Test Python 3.12`     | Python CI (`.github/workflows/ci.yml`) | `test` (matrix 3.12)  |
+| `Security checks`      | Python CI (`.github/workflows/ci.yml`) | `security`             |
+| `build-and-smoke-test` | Production Container (`production-container.yml`) | `build-and-smoke-test` |
+
+#### Path-filtered (pass when the workflow runs; not a hard branch-protection requirement)
+
+| Check run name | Workflow                                         | Notes                                                                 |
+| -------------- | ------------------------------------------------ | --------------------------------------------------------------------- |
+| `frontend-ci`  | Frontend CI (`.github/workflows/frontend-ci.yml`) | Runs only when frontend-related paths change. Do not hard-require in BP. |
 
 ### 2. Advisory
 
 These checks run on PRs but are not strictly required for merge (e.g., they might fail due to strictness, but give useful feedback).
 
-- Dependabot PRs (though patch/minor updates can auto-merge if tests pass).
+- Dependabot PRs (though patch/minor updates can auto-merge if required checks pass).
+- `Run eslint scanning` (ESLint workflow) — useful signal; not a merge gate.
 
 ### 3. Scheduled / Release-Only
 
@@ -53,11 +72,23 @@ Hardening backlog IDs: [Release Evidence Pack](release-evidence-pack.md#hardenin
 
 ## Follow-up Actions for Maintainers
 
-Update branch protection rules in GitHub settings to require:
+Update GitHub **Settings → Branches → Branch protection** required status checks to exactly these
+names (no slash forms):
 
-- `Frontend CI / build`
-- `CI / test`
-- `Production Container / build-and-smoke-test`
+- `Test Python 3.10`
+- `Test Python 3.11`
+- `Test Python 3.12`
+- `Security checks`
+- `build-and-smoke-test`
+
+Do **not** add `frontend-ci` as a hard required check: path filters mean the check is absent on
+many PRs and would block merge incorrectly.
+
+Do **not** use obsolete names such as `Frontend CI / build`, `CI / test`, or
+`Production Container / build-and-smoke-test`.
+
+Mergify auto-merge (`.mergify.yml`) must require the same always-required check-success set.
+Live branch-protection edits are outside the repository and must be applied by a maintainer.
 
 ## Local composite action guardrail (`ci-common`)
 
@@ -83,3 +114,4 @@ pytest tests/unit/test_ci_common_checkout.py -v
   - Ensure `.github/workflows/pyre.yml` still includes SARIF output and upload (`github/codeql-action/upload-sarif@...`).
 - Required check names changed after workflow refactors:
   - Reconcile GitHub branch protection required-check names with this document and the active workflow job names.
+  - Run `pytest tests/unit/test_ci_required_checks_policy.py -v` to verify policy ↔ workflow ↔ Mergify alignment.
