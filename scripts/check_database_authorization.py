@@ -348,21 +348,6 @@ def _validate_database_url(database_url: str) -> TrustedDatabaseUrl | None:
     return TrustedDatabaseUrl(database_url)
 
 
-def _configured_database_urls(environment: Mapping[str, str]) -> tuple[TrustedDatabaseUrl, ...] | None:
-    """Resolve and validate distinct URLs from the fixed deployment configuration allowlist."""
-    configured: list[TrustedDatabaseUrl] = []
-    for variable_name in SUPPORTED_DATABASE_URL_ENVS:
-        raw_url = environment.get(variable_name)
-        if not raw_url:
-            continue
-        database_url = _validate_database_url(raw_url)
-        if database_url is None:
-            return None
-        if database_url not in configured:
-            configured.append(database_url)
-    return tuple(configured)
-
-
 def _configured_untrusted_roles(environment: Mapping[str, str]) -> tuple[str, ...] | None:
     """Resolve untrusted provider-role identities without exposing them in output."""
     raw_roles = environment.get(UNTRUSTED_DATABASE_ROLES_ENV)

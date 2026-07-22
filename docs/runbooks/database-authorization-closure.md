@@ -23,18 +23,18 @@ evidence publicly.
 
 Promotion and Assert-path authz steps fail closed unless **all** required boundaries are present:
 
-| Environment secret                            | Required for H-P0-04 authz gate                  | Notes                                                                                                                       |
-| --------------------------------------------- | ------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------- |
-| `ASSET_GRAPH_DATABASE_URL`                    | Yes                                              | Graph boundary                                                                                                              |
-| `DATABASE_URL` or `POSTGRES_URL`              | Yes (at least one)                               | Auth/app boundary                                                                                                           |
-| `COORDINATION_DATABASE_URL`                   | Yes for authz gate                               | Point at the effective coordination boundary; required by workflows even if topology documents a shared fallback            |
-| `FARDB_UNTRUSTED_DATABASE_ROLES`              | Optional                                         | Defaults to provider roles `anon,authenticated` when unset; leave empty unset (workflows unset empty strings)               |
-| `FARDB_EXPOSED_DATABASE_SCHEMAS`              | Required when any non-`public` schema is exposed | Full inventoried list for boundaries without a per-URL override (include `public` when exposed); unset defaults to `public` |
-| `FARDB_EXPOSED_DATABASE_SCHEMAS_DATABASE`     | Optional per-boundary override                   | Schemas for `DATABASE_URL` only when that inventory differs                                                                 |
-| `FARDB_EXPOSED_DATABASE_SCHEMAS_ASSET_GRAPH`  | Optional per-boundary override                   | Schemas for `ASSET_GRAPH_DATABASE_URL` only when that inventory differs                                                     |
-| `FARDB_EXPOSED_DATABASE_SCHEMAS_COORDINATION` | Optional per-boundary override                   | Schemas for `COORDINATION_DATABASE_URL` only when that inventory differs                                                    |
-| `FARDB_EXPOSED_DATABASE_SCHEMAS_POSTGRES`     | Optional per-boundary override                   | Schemas for `POSTGRES_URL` only when that inventory differs                                                                 |
-| `HOSTED_READINESS_BASE_URL`                   | For hosted readiness steps                       | Separate from authz checker                                                                                                 |
+| Environment secret                            | Required for H-P0-04 authz gate                                                                  | Notes                                                                                                                                                                                   |
+| --------------------------------------------- | ------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ASSET_GRAPH_DATABASE_URL`                    | Yes                                                                                              | Graph boundary                                                                                                                                                                          |
+| `DATABASE_URL` or `POSTGRES_URL`              | Yes (at least one)                                                                               | Auth/app boundary                                                                                                                                                                       |
+| `COORDINATION_DATABASE_URL`                   | Yes for authz gate                                                                               | Point at the effective coordination boundary; required by workflows even if topology documents a shared fallback                                                                        |
+| `FARDB_UNTRUSTED_DATABASE_ROLES`              | Optional                                                                                         | Defaults to provider roles `anon,authenticated` when unset; leave empty unset (workflows unset empty strings)                                                                           |
+| `FARDB_EXPOSED_DATABASE_SCHEMAS`              | Required only when a boundary uses the global/default inventory and exposes non-`public` schemas | Full inventoried default for boundaries without a matching override (include `public` when exposed); unset defaults to `public`. Not required when every boundary sets its own override |
+| `FARDB_EXPOSED_DATABASE_SCHEMAS_DATABASE`     | Optional per-boundary override                                                                   | Replaces the global/default inventory for `DATABASE_URL` only                                                                                                                           |
+| `FARDB_EXPOSED_DATABASE_SCHEMAS_ASSET_GRAPH`  | Optional per-boundary override                                                                   | Replaces the global/default inventory for `ASSET_GRAPH_DATABASE_URL` only                                                                                                               |
+| `FARDB_EXPOSED_DATABASE_SCHEMAS_COORDINATION` | Optional per-boundary override                                                                   | Replaces the global/default inventory for `COORDINATION_DATABASE_URL` only                                                                                                              |
+| `FARDB_EXPOSED_DATABASE_SCHEMAS_POSTGRES`     | Optional per-boundary override                                                                   | Replaces the global/default inventory for `POSTGRES_URL` only                                                                                                                           |
+| `HOSTED_READINESS_BASE_URL`                   | For hosted readiness steps                                                                       | Separate from authz checker                                                                                                                                                             |
 
 Configure these as GitHub Environment **secrets** (not Environment variables—workflows read `secrets.*` only) on
 **every** Environment the selected workflow can enter (`staging`, `staging-manual-gate`, `production`,
@@ -63,10 +63,11 @@ python scripts/check_database_authorization.py
 
 Expect bounded pass/fail output only. Do not commit connection strings or catalog dumps. Promotion and
 release-evidence workflows pass these names from GitHub Environment **secrets** when set; empty secrets are unset
-before the checker runs. When no schema secret is set, each boundary defaults to `public` only. For ADR 0007
-closure, set the Environment secret `FARDB_EXPOSED_DATABASE_SCHEMAS` to the **full** inventoried exposed-schema list
-(including `public` when exposed), and use `FARDB_EXPOSED_DATABASE_SCHEMAS_*` overrides when inventories differ by
-boundary so a `db_authz: PASS|…` marker cannot omit a non-default schema or project unique schemas onto other
+before the checker runs. When no schema secret is set for a boundary, it defaults to `public` only. For ADR 0007
+closure, set `FARDB_EXPOSED_DATABASE_SCHEMAS` only when a boundary relies on that global/default inventory and needs
+a non-`public` list (include `public` when exposed). Otherwise set the fixed per-boundary overrides
+(`FARDB_EXPOSED_DATABASE_SCHEMAS_DATABASE`, `_ASSET_GRAPH`, `_COORDINATION`, `_POSTGRES`); each replaces the default
+for its URL so a `db_authz: PASS|…` marker cannot omit a non-default schema or project unique schemas onto other
 databases.
 
 ## Remediation sequence (ADR 0007)

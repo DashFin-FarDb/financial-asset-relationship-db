@@ -104,14 +104,15 @@ unless these GitHub Environment secrets are all present—partial URL sets must 
   fallback—point the secret at the effective coordination boundary)
 
 `hardening_tier=none` on release-evidence is a soft rehearsal and is not H-P0-04 closure. Optional:
-`FARDB_UNTRUSTED_DATABASE_ROLES` (defaults apply when unset; leave empty values unset). When any boundary exposes
-schemas beyond `public`, set the GitHub Environment **secret** `FARDB_EXPOSED_DATABASE_SCHEMAS` to the **full**
-inventoried exposed-schema list for that shared default (always include `public` when it is exposed; a list of only
-newly discovered non-`public` schemas skips `public` and can falsely PASS). When inventories differ by database URL,
-set the matching per-boundary secrets (`FARDB_EXPOSED_DATABASE_SCHEMAS_DATABASE`,
-`FARDB_EXPOSED_DATABASE_SCHEMAS_ASSET_GRAPH`, `FARDB_EXPOSED_DATABASE_SCHEMAS_COORDINATION`,
-`FARDB_EXPOSED_DATABASE_SCHEMAS_POSTGRES`) so unique schemas are not queried on unrelated boundaries. Unset defaults
-to `public` only. Configure these secrets on every Environment the selected workflow can enter (including
+`FARDB_UNTRUSTED_DATABASE_ROLES` (defaults apply when unset; leave empty values unset). When a boundary relies on the
+global/default inventory and exposes schemas beyond `public`, set the GitHub Environment **secret**
+`FARDB_EXPOSED_DATABASE_SCHEMAS` to the **full** inventoried list for that default (always include `public` when it is
+exposed; a list of only newly discovered non-`public` schemas skips `public` and can falsely PASS). When inventories
+differ by database URL—or every non-`public` inventory is per-URL—set the fixed per-boundary secrets
+(`FARDB_EXPOSED_DATABASE_SCHEMAS_DATABASE`, `FARDB_EXPOSED_DATABASE_SCHEMAS_ASSET_GRAPH`,
+`FARDB_EXPOSED_DATABASE_SCHEMAS_COORDINATION`, `FARDB_EXPOSED_DATABASE_SCHEMAS_POSTGRES`); each replaces the
+global/default for its URL. The global secret is not required when every boundary uses an override. Unset defaults to
+`public` only. Configure these secrets on every Environment the selected workflow can enter (including
 `*-manual-gate`). Operator procedure:
 [Database authorization closure runbook](runbooks/database-authorization-closure.md).
 

@@ -66,15 +66,24 @@ Copy this file to an approved private store for the target environment. Public e
 
 Set GitHub Environment **secrets** (not Environment variables—workflows read `secrets.*` only) for exposed schemas so
 staging/production/release-evidence authz gates check every inventoried schema before emitting `db_authz: PASS|…`.
-`FARDB_EXPOSED_DATABASE_SCHEMAS` must be the **full** inventoried list for boundaries without a per-URL override
-(include `public` when exposed). When a boundary has unique exposed schemas, set the matching
-`FARDB_EXPOSED_DATABASE_SCHEMAS_*` secret for that URL. When unset, the gate checks `public` only. Place these secrets
-on **every** Environment the selected workflow can enter (`staging`, `staging-manual-gate`, `production`,
-`production-manual-gate`, `release-evidence` as applicable).
+Each per-boundary override replaces the global/default inventory for its URL. The global secret
+`FARDB_EXPOSED_DATABASE_SCHEMAS` is required only when at least one boundary relies on that default and needs a
+non-`public` inventory (include `public` when exposed). When every configured URL has its own override, leave the
+global secret unset. When no schema secret is set for a boundary, the gate checks `public` only. Place applicable
+secrets on **every** Environment the selected workflow can enter (`staging`, `staging-manual-gate`, `production`,
+`production-manual-gate`, `release-evidence` as applicable). Fixed override names:
+
+- `FARDB_EXPOSED_DATABASE_SCHEMAS_DATABASE` → `DATABASE_URL`
+- `FARDB_EXPOSED_DATABASE_SCHEMAS_ASSET_GRAPH` → `ASSET_GRAPH_DATABASE_URL`
+- `FARDB_EXPOSED_DATABASE_SCHEMAS_COORDINATION` → `COORDINATION_DATABASE_URL`
+- `FARDB_EXPOSED_DATABASE_SCHEMAS_POSTGRES` → `POSTGRES_URL`
 
 - [ ] Provider advisers re-run; high-severity findings resolved or excepted
-- [ ] Environment **secret** `FARDB_EXPOSED_DATABASE_SCHEMAS` set to the full inventoried list (or confirmed `public`-only)
-- [ ] Per-boundary `FARDB_EXPOSED_DATABASE_SCHEMAS_*` secrets set where inventories differ by URL
+- [ ] If any boundary uses the global/default inventory: Environment **secret** `FARDB_EXPOSED_DATABASE_SCHEMAS` set
+      to the full inventoried list for that default (or confirmed `public`-only). Skip when every boundary uses an
+      override below
+- [ ] Per-boundary overrides set where needed (`FARDB_EXPOSED_DATABASE_SCHEMAS_DATABASE` /
+      `_ASSET_GRAPH` / `_COORDINATION` / `_POSTGRES`)
 - [ ] Schema secrets present on every Environment that workflow may select (including `*-manual-gate`)
 - [ ] Automated gate passed with that schema inventory (`python scripts/check_database_authorization.py`)
 - [ ] Schema list (names only) recorded here; do not paste grants or adviser dumps

@@ -248,18 +248,24 @@ def test_validate_database_url_accepts_external_authentication() -> None:
 
 
 @pytest.mark.unit
-def test_configured_database_urls_deduplicate_fixed_allowlist() -> None:
-    """Repeated configured boundaries should be checked once without accepting arbitrary keys."""
+def test_configured_authorization_boundaries_deduplicate_fixed_allowlist() -> None:
+    """Repeated URL envs should merge into one boundary without accepting arbitrary keys."""
     database_url = _database_url()
-    configured = checker._configured_database_urls(
+    boundaries = checker._configured_authorization_boundaries(
         {
             "DATABASE_URL": database_url,
             "ASSET_GRAPH_DATABASE_URL": database_url,
             "UNSUPPORTED_DATABASE_URL": _database_url("other.invalid"),
-        }
+        },
+        "public",
     )
 
-    assert configured == (checker.TrustedDatabaseUrl(database_url),)
+    assert boundaries == (
+        checker.BoundaryAuthorizationTarget(
+            database_url=checker.TrustedDatabaseUrl(database_url),
+            exposed_schemas=("public",),
+        ),
+    )
 
 
 @pytest.mark.unit

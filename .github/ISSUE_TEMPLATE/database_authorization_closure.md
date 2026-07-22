@@ -27,8 +27,8 @@ assignees: ""
 - [ ] `DATABASE_URL` or `POSTGRES_URL` present
 - [ ] `COORDINATION_DATABASE_URL` present
 - [ ] Empty `FARDB_UNTRUSTED_DATABASE_ROLES` left unset (or intentional custom value retained in restricted record)
-- [ ] Environment **secret** `FARDB_EXPOSED_DATABASE_SCHEMAS` set to the full inventoried exposed-schema list (include `public` when exposed; or confirmed `public`-only)
-- [ ] Per-boundary `FARDB_EXPOSED_DATABASE_SCHEMAS_*` secrets set where inventories differ by URL
+- [ ] If any boundary uses the global/default inventory: Environment **secret** `FARDB_EXPOSED_DATABASE_SCHEMAS` set to the full inventoried list (include `public` when exposed; or confirmed `public`-only). Skip when every boundary uses an override
+- [ ] Per-boundary overrides set where needed (`FARDB_EXPOSED_DATABASE_SCHEMAS_DATABASE` / `_ASSET_GRAPH` / `_COORDINATION` / `_POSTGRES`)
 - [ ] Schema secrets present on every Environment the selected workflow can enter (including `*-manual-gate`)
 
 ## Remediation sequence

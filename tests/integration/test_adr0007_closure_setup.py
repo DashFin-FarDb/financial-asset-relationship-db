@@ -46,6 +46,11 @@ def test_adr0007_evidence_templates_exist() -> None:
     assert "FARDB_EXPOSED_DATABASE_SCHEMAS" in restricted
     assert "FARDB_EXPOSED_DATABASE_SCHEMAS" in public
     assert "environment **secrets**" in restricted.lower() or "environment secrets" in restricted.lower()
+    assert "if any boundary uses the global/default inventory" in restricted.lower()
+    assert "FARDB_EXPOSED_DATABASE_SCHEMAS_DATABASE" in restricted
+    assert "FARDB_EXPOSED_DATABASE_SCHEMAS_ASSET_GRAPH" in restricted
+    assert "FARDB_EXPOSED_DATABASE_SCHEMAS_COORDINATION" in restricted
+    assert "FARDB_EXPOSED_DATABASE_SCHEMAS_POSTGRES" in restricted
     assert "manual-gate" in restricted.lower()
     assert "privileged functions manual fixed-search-path review" in public.lower()
     assert "release authority" in restricted.lower()
