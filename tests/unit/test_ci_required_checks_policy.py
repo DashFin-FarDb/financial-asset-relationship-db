@@ -2,7 +2,7 @@
 
 Guarantees:
 - Policy always-required names match real GitHub Actions check-run names
-- Mergify auto-merge check-success set equals the always-required policy set
+- Each Mergify auto-merge rule requires the full always-required check-success set
 - Policy does not document obsolete Workflow / job slash forms
 - Frontend CI uses a unique check-run name (frontend-ci), not ambiguous "build"
 """
@@ -44,12 +44,30 @@ OBSOLETE_SLASH_FORMS = (
     "Production Container / build-and-smoke-test",
 )
 
+_MATRIX_PYTHON_TOKEN = "${{ matrix.python-version }}"
+_CHECK_SUCCESS_PREFIX = "check-success="
+_SECTION_BOUNDARIES = ("\n#### ", "\n### ", "\n## ")
+
 
 def _load_yaml(path: Path) -> dict:
     """Load a YAML mapping from path."""
     data = yaml.safe_load(path.read_text(encoding="utf-8"))
     assert isinstance(data, dict), f"{path} must parse to a mapping"
     return data
+
+
+def _matrix_python_versions(job: dict) -> list[str]:
+    """Return python-version matrix entries, or an empty list when absent."""
+    strategy = job.get("strategy")
+    if not isinstance(strategy, dict):
+        return []
+    matrix = strategy.get("matrix")
+    if not isinstance(matrix, dict):
+        return []
+    versions = matrix.get("python-version")
+    if not isinstance(versions, list):
+        return []
+    return [str(version) for version in versions]
 
 
 def _expand_job_check_names(job_id: str, job: object) -> list[str]:
@@ -60,21 +78,13 @@ def _expand_job_check_names(job_id: str, job: object) -> list[str]:
     display = job.get("name")
     if not isinstance(display, str) or not display.strip():
         return [job_id]
-
-    matrix_token = "${{ matrix.python-version }}"
-    if matrix_token not in display:
+    if _MATRIX_PYTHON_TOKEN not in display:
         return [display]
 
-    strategy = job.get("strategy") or {}
-    if not isinstance(strategy, dict):
+    versions = _matrix_python_versions(job)
+    if not versions:
         return [display]
-    matrix = strategy.get("matrix") or {}
-    if not isinstance(matrix, dict):
-        return [display]
-    versions = matrix.get("python-version") or []
-    if not isinstance(versions, list):
-        return [display]
-    return [display.replace(matrix_token, str(version)) for version in versions]
+    return [display.replace(_MATRIX_PYTHON_TOKEN, version) for version in versions]
 
 
 def _workflow_check_names(workflow_path: Path) -> set[str]:
@@ -89,32 +99,56 @@ def _workflow_check_names(workflow_path: Path) -> set[str]:
     return names
 
 
+def _slice_markdown_section(text: str, heading_line: str) -> str:
+    """Return the body after heading_line until the next markdown section heading.
+
+    Uses str.find/slicing instead of re.DOTALL + .*? to avoid ReDoS patterns
+    flagged by the AI_AGENT_GUARDRAILS regex safety rule.
+    """
+    start = text.find(heading_line)
+    assert start != -1, f"Missing policy section heading: {heading_line!r}"
+    body_start = start + len(heading_line)
+    body = text[body_start:]
+    end = len(body)
+    for boundary in _SECTION_BOUNDARIES:
+        idx = body.find(boundary)
+        if idx != -1:
+            end = min(end, idx)
+    return body[:end]
+
+
 def _policy_backtick_names(section_heading: str) -> set[str]:
     """Extract backtick-quoted names from a policy markdown #### section."""
     text = POLICY_PATH.read_text(encoding="utf-8")
-    pattern = rf"#### {re.escape(section_heading)}\n(.*?)(?=\n#### |\n### |\n## |\Z)"
-    match = re.search(pattern, text, flags=re.DOTALL)
-    assert match is not None, f"Missing policy section: {section_heading}"
-    return set(re.findall(r"`([^`]+)`", match.group(1)))
+    section = _slice_markdown_section(text, f"#### {section_heading}\n")
+    return set(re.findall(r"`([^`]+)`", section))
 
 
-def _mergify_auto_merge_check_success() -> set[str]:
-    """Return the union of check-success names required by auto-merge rules."""
+def _check_success_names(conditions: object) -> set[str]:
+    """Return check-success values from one Mergify conditions list."""
+    if not isinstance(conditions, list):
+        return set()
+    names: set[str] = set()
+    for condition in conditions:
+        cond = str(condition)
+        if cond.startswith(_CHECK_SUCCESS_PREFIX):
+            names.add(cond[len(_CHECK_SUCCESS_PREFIX) :])
+    return names
+
+
+def _mergify_auto_merge_rules() -> list[dict]:
+    """Return Mergify pull_request_rules that define a merge action."""
     config = _load_yaml(MERGIFY_PATH)
     rules = config.get("pull_request_rules") or []
     assert isinstance(rules, list)
-    names: set[str] = set()
+    merge_rules: list[dict] = []
     for rule in rules:
         if not isinstance(rule, dict):
             continue
-        actions = rule.get("actions") or {}
-        if not isinstance(actions, dict) or "merge" not in actions:
-            continue
-        for condition in rule.get("conditions") or []:
-            cond = str(condition)
-            if cond.startswith("check-success="):
-                names.add(cond.split("=", 1)[1])
-    return names
+        actions = rule.get("actions")
+        if isinstance(actions, dict) and "merge" in actions:
+            merge_rules.append(rule)
+    return merge_rules
 
 
 def _pr_agent_checks(key: str) -> set[str]:
@@ -167,7 +201,7 @@ class TestPolicyDocumentAlignment:
         names = _policy_backtick_names(
             "Path-filtered (pass when the workflow runs; not a hard branch-protection requirement)"
         )
-        assert PATH_FILTERED_CHECKS <= names
+        assert names >= PATH_FILTERED_CHECKS
 
     def test_policy_has_no_obsolete_slash_forms(self):
         """Policy must not recommend Workflow / job slash check names."""
@@ -179,7 +213,9 @@ class TestPolicyDocumentAlignment:
     def test_maintainer_follow_up_lists_always_required_only(self):
         """Maintainer BP guidance must list always-required names as backticks."""
         text = POLICY_PATH.read_text(encoding="utf-8")
-        follow_up = text.split("## Follow-up Actions for Maintainers", 1)[1]
+        parts = text.split("## Follow-up Actions for Maintainers", 1)
+        assert len(parts) == 2, "Policy is missing '## Follow-up Actions for Maintainers' section"
+        follow_up = parts[1]
         for name in ALWAYS_REQUIRED_CHECKS:
             assert f"`{name}`" in follow_up, f"Maintainer section missing `{name}`"
         assert "`frontend-ci`" in follow_up
@@ -187,22 +223,30 @@ class TestPolicyDocumentAlignment:
 
 
 class TestMergifyAlignment:
-    """Mergify auto-merge must require exactly the always-required set."""
+    """Mergify auto-merge must require exactly the always-required set per rule."""
 
-    def test_auto_merge_check_success_equals_always_required(self):
-        """Auto-merge check-success names must equal ALWAYS_REQUIRED_CHECKS."""
-        names = _mergify_auto_merge_check_success()
-        assert names == ALWAYS_REQUIRED_CHECKS, (
-            f"Mergify check-success mismatch.\n"
-            f"  expected: {sorted(ALWAYS_REQUIRED_CHECKS)}\n"
-            f"  actual:   {sorted(names)}"
-        )
+    def test_each_auto_merge_rule_requires_always_required_checks(self):
+        """Every auto-merge rule must require the full ALWAYS_REQUIRED_CHECKS set.
+
+        Asserts per rule (not a union across rules) so a weaker third auto-merge
+        rule cannot hide behind other rules that still list the full set.
+        """
+        rules = _mergify_auto_merge_rules()
+        assert rules, "No Mergify auto-merge rules found"
+        for rule in rules:
+            names = _check_success_names(rule.get("conditions"))
+            assert names == ALWAYS_REQUIRED_CHECKS, (
+                f"Auto-merge rule {rule.get('name')!r} check-success mismatch.\n"
+                f"  expected: {sorted(ALWAYS_REQUIRED_CHECKS)}\n"
+                f"  actual:   {sorted(names)}"
+            )
 
     def test_auto_merge_does_not_require_frontend_ci(self):
         """Path-filtered frontend-ci must not block Mergify auto-merge."""
-        names = _mergify_auto_merge_check_success()
-        assert "frontend-ci" not in names
-        assert "build" not in names
+        for rule in _mergify_auto_merge_rules():
+            names = _check_success_names(rule.get("conditions"))
+            assert "frontend-ci" not in names
+            assert "build" not in names
 
 
 class TestFrontendCheckName:
