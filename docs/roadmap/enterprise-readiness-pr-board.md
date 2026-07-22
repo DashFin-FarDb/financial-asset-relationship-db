@@ -56,7 +56,7 @@ Do not reopen closed PR1–9 rows; track hardening here and in the evidence pack
 | H-P1-01           | Satisfied - automated                | `--require-persistence` auto-enables `--assets-smoke` in hosted readiness                           | Empty persisted graphs fail promotion    |
 | H-P1-02           | Satisfied - automated                | `production-promotion.yml` twin of staging (prod Environment + persistence/assets smoke)            | Mixing with Docker/compose P1 work       |
 | H-P1-03           | Satisfied - automated                | `post-recovery-readiness.yml` mandatory re-smoke + context-named artifacts                          | Reusing promotion artifact names         |
-| H-P1-04           | Satisfied - documented               | Policy ↔ Mergify ↔ workflow job names reconciled; maintainer must apply BP names in GitHub UI       | Hard-requiring path-filtered frontend-ci |
+| H-P1-04           | Satisfied - documented               | Policy ↔ Mergify ↔ workflow job names reconciled; maintainer must apply BP names in GitHub UI     | Hard-requiring path-filtered frontend-ci |
 | H-P1-05           | Satisfied - automated                | Gradio Docker CI labeled non-prod; production-container rebuild→restart persistence+assets smoke    | Mixing with hosted promotion evidence    |
 | H-P1-06           | Satisfied - automated                | See evidence pack                                                                                   | Mixing P1 Docker work with P0 docs       |
 | H-P2-01 … H-P2-05 | Partially satisfied                  | See evidence pack                                                                                   | P0 gate wiring                           |
