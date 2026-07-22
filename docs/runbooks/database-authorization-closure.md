@@ -38,7 +38,8 @@ See also [Staging Deployment Operating Baseline](../staging-deployment-operating
 
 ## Local dry-run (optional, non-CI)
 
-With local env vars pointing at a **non-production** PostgreSQL boundary you control:
+With local env vars pointing at a **non-production** PostgreSQL boundary you control. Run these commands from the
+**repository root** (not from `docs/runbooks/`), so `scripts/check_database_authorization.py` resolves:
 
 ```bash
 # Optional override when not using default anon,authenticated

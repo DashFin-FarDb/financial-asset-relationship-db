@@ -77,9 +77,12 @@ exposed schema before claiming closure.
 
 ## Exceptions
 
-| Finding | Severity | Named exception owner | Expiry | Approval |
-| ------- | -------- | --------------------- | ------ | -------- |
-|         |          |                       |        |          |
+High-severity access-control findings close the gate only with a named, time-bounded exception **approved by the
+release authority** (ADR 0007). Record that approval in the Approval column.
+
+| Finding | Severity | Named exception owner | Expiry | Approval (release authority) |
+| ------- | -------- | --------------------- | ------ | ---------------------------- |
+|         |          |                       |        |                              |
 
 ## Sign-off (restricted)
 

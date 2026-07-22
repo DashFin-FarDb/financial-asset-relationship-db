@@ -77,8 +77,9 @@ Primary authorities:
   recovery, and restore regression proof; provider advisers; credential review; operator approval; Environment secrets
   for staging/production promotion paths.
 - **Evidence and provenance:** ADR 0007 is accepted and the bounded checker was merged through PR #1482. Fail-closed
-  Assert-path wiring landed through PR #1506. The ADR explicitly says that it does not mutate the live database or
-  close the gate without target-environment evidence.
+  Assert-path wiring landed through PR #1506. The operator closure setup path (runbook, worksheets, issue template)
+  lands through PR #1520. The ADR explicitly says that it does not mutate the live database or close the gate without
+  target-environment evidence.
 - **Next action and completion test:** Open a `[DB AUTHZ]` closure issue from the template, complete the restricted
   worksheet offline, configure GitHub Environment secrets, execute ADR 0007's remediation sequence against staging,
   dispatch staging-promotion (or release-evidence with `hardening_tier=P0`), and attach a redacted

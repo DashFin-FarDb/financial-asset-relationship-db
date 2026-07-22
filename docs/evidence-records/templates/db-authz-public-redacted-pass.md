@@ -23,6 +23,9 @@ Keep detailed findings in the restricted worksheet.
 
 ## Public marker (copy into SHA-bound promotion evidence file)
 
+Copy the line below into the SHA-bound promotion evidence file. **Do not** replace the placeholder in this template
+file or commit a filled copy of the template.
+
 ```text
 db_authz: PASS|<opaque-workflow-run-or-artifact-id>
 ```
