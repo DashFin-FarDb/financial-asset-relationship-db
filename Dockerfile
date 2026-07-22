@@ -20,7 +20,7 @@ WORKDIR /app
 
 # Install system dependencies including curl for health checks
 # and apply latest security fixes available in base repositories.
-# hadolint ignore=DL3008 -- base image package versions vary by Debian point release
+# hadolint ignore=DL3008
 RUN apt-get update && apt-get upgrade -y && apt-get install -y --no-install-recommends \
     curl \
     g++ \
