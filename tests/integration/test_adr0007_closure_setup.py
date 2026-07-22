@@ -11,6 +11,8 @@ RC_EVIDENCE = REPO_ROOT / ".github" / "ISSUE_TEMPLATE" / "release_candidate_evid
 STAGING_BASELINE = REPO_ROOT / "docs" / "staging-deployment-operating-baseline.md"
 CONTINUITY = REPO_ROOT / "docs" / "strategy" / "fardb-project-continuity.md"
 ADR_0007 = REPO_ROOT / "docs" / "adr" / "0007-database-authorization-boundary.md"
+EVIDENCE_PACK = REPO_ROOT / "docs" / "release-evidence-pack.md"
+PR_BOARD = REPO_ROOT / "docs" / "roadmap" / "enterprise-readiness-pr-board.md"
 ENV_EXAMPLE = REPO_ROOT / ".env.example"
 
 
@@ -70,9 +72,16 @@ def test_adr0007_wired_into_existing_authorities() -> None:
     staging = STAGING_BASELINE.read_text(encoding="utf-8")
     continuity = CONTINUITY.read_text(encoding="utf-8")
     rc = RC_EVIDENCE.read_text(encoding="utf-8")
+    evidence_pack = EVIDENCE_PACK.read_text(encoding="utf-8")
+    pr_board = PR_BOARD.read_text(encoding="utf-8")
     assert "database-authorization-closure.md" in adr
     assert "database-authorization-closure.md" in staging
     assert "hardening_tier=P0" in staging or "hardening_tier=none" in staging
     assert "database-authorization-closure.md" in continuity
     assert "H-P0-04a" in rc
     assert "template=database_authorization_closure.md" in rc
+    assert "runbooks/database-authorization-closure.md" in evidence_pack
+    assert "db_authz: PASS|" in evidence_pack
+    assert "H-P0-04" in pr_board
+    assert "operator closure runbook" in pr_board.lower()
+    assert "live redacted" in pr_board.lower()
