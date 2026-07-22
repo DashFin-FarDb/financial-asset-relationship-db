@@ -15,7 +15,7 @@ evidence publicly.
 | ----------------------------------------- | -------------------------------------------------------- | -------------------------------------------- |
 | ADR + bounded checker                     | Yes (`scripts/check_database_authorization.py`)          | Run against live boundaries                  |
 | Fail-closed workflow wiring               | Yes (staging / production / release-evidence)            | Configure GitHub Environment secrets         |
-| Verifier marker grammar                   | Yes (`db_authz: PASS\|<opaque-ref>`)                     | Attach a real opaque ref after a passing run |
+| Verifier marker grammar                   | Yes (`db_authz: PASS` + opaque ref)                      | Attach a real opaque ref after a passing run |
 | Restricted / public worksheets            | Yes (templates under `docs/evidence-records/templates/`) | Complete them for the target env             |
 | Live inventory, roles, policies, advisers | No (must stay restricted)                                | Capture and remediate off-repo               |
 

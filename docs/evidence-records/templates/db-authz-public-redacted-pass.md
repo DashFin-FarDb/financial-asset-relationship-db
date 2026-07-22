@@ -19,7 +19,7 @@ Keep detailed findings in the restricted worksheet.
 | `hardening_tier` (if Assert) | `P0` required for RC-valid release-evidence; `none` is not closure |
 | Workflow run URL             |                                                                    |
 | Workflow run commit SHA      | must equal Release commit SHA                                      |
-| Opaque ref for verifier      | `run-…` / `artifact-…` / numeric run id                            |
+| Opaque ref for verifier      | `run-…` / `artifact-…` / numeric run ID                            |
 
 ## Public marker (copy into SHA-bound promotion evidence file)
 
