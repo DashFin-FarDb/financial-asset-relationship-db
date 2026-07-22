@@ -367,11 +367,13 @@ db_authz: PASS|<opaque-workflow-run-or-artifact-id>
 `db_authz` **requires** `PASS|<opaque-ref>` (bare `PASS` is rejected). The opaque ref must match an
 allowed run/artifact shape: `run-<digits>`, `artifact-<digits>`, `<prefix>-run-<digits>`, or a numeric
 workflow run ID (at least 6 digits). Placeholders such as `TBD`, `TODO`, or angle-bracket templates are
-rejected. Staging and production promotion fail closed when required database URL secrets are missing so
-H-P0-04 cannot be satisfied by a copied template alone. On the release-evidence Assert path,
-`hardening_tier=P0` (default) also fails closed when database authorization is skipped or failed; use
-`hardening_tier=none` only for soft rehearsal. Do not embed connection strings, role inventories, or
-topology details from the authorization checker.
+rejected. Staging and production promotion fail closed when any required boundary secret is missing
+(asset-graph, auth/app or postgres fallback, and coordination) so H-P0-04 cannot pass on a partial
+URL set or a copied template alone. On the release-evidence Assert path, `hardening_tier=P0`
+(default) also fails closed when database authorization is skipped or failed, and the authz step
+applies the same per-boundary prechecks before the checker runs; use `hardening_tier=none` only for
+soft rehearsal. Do not embed connection strings, role inventories, or topology details from the
+authorization checker.
 
 **H-P0-04 remaining for Satisfied:** attach a target-environment redacted `db_authz: PASS|<opaque-ref>`
 from a staging (or production) promotion / release-evidence run that executed

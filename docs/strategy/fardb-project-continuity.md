@@ -67,8 +67,9 @@ Primary authorities:
 - **Repository scope:** `docs/adr/0007-database-authorization-boundary.md`,
   `scripts/check_database_authorization.py`, provider configuration, restricted closure evidence, release record.
   Workflow wiring exists in `release-evidence-verify.yml`, `staging-promotion.yml`, and `production-promotion.yml`
-  (H-P0-04 Partially satisfied). Assert-path `hardening_tier=P0` fails closed when DB authz is skipped; staging and
-  production promotion fail closed when required DB URL secrets are missing.
+  (H-P0-04 Partially satisfied). Assert-path `hardening_tier=P0` fails closed when DB authz is skipped; staging,
+  production, and release-evidence authz steps fail closed when any required boundary secret is missing
+  (asset-graph, auth/app or postgres fallback, and coordination).
 - **Dependencies or blockers:** Live inventory; least-privilege role and policy design; negative tests; application,
   recovery, and restore regression proof; provider advisers; credential review; operator approval; Environment secrets
   for staging/production promotion paths.
@@ -398,7 +399,7 @@ time-bounded exception.
 - Repository agent instructions and production-architecture declaration.
 - Enterprise-readiness index, audit, roadmap, PR board, validation-gap audit, release checklist, release evidence pack,
   hosted staging baseline, operational evidence framework, drill and scale-validation documents, and risk register.
-- ADRs and governance authorities referenced by those indexes, including ADRs 0001, 0002, 0005, 0006, and 0007.
+- ADRs and governance authorities referenced by those indices, including ADRs 0001, 0002, 0005, 0006, and 0007.
 - RC1 committed evidence record and its repository companion issue record.
 - Current-state strategy, claims taxonomy, and Big Read chronology.
 - Merged hardening PRs #1506, #1508, #1509 and open PR #1510.

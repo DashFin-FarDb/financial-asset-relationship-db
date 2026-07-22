@@ -221,6 +221,30 @@ jobs:
             echo '{"status":"skipped","reason":"no_database_url_configured"}' > db-authz-output.json
             exit 0
           fi
+          # Fail closed on missing required boundaries before authz runs.
+          # The checker only validates URLs that are present, so a partial
+          # secret set must not pass H-P0-04 (parity with production-promotion).
+          if [ -z "$ASSET_GRAPH_DATABASE_URL" ]; then
+            reason='missing_asset_graph_database_url'
+            echo "{\"status\":\"failed\",\"reason\":\"$reason\"}" \
+              > db-authz-output.json
+            echo "H-P0-04 requires the asset-graph DB secret for authorization."
+            exit 1
+          fi
+          if [ -z "${DATABASE_URL}${POSTGRES_URL}" ]; then
+            reason='missing_auth_database_url'
+            echo "{\"status\":\"failed\",\"reason\":\"$reason\"}" \
+              > db-authz-output.json
+            echo "H-P0-04 requires the auth/app DB secret for authorization."
+            exit 1
+          fi
+          if [ -z "$COORDINATION_DATABASE_URL" ]; then
+            reason='missing_coordination_database_url'
+            echo "{\"status\":\"failed\",\"reason\":\"$reason\"}" \
+              > db-authz-output.json
+            echo "H-P0-04 requires the coordination DB secret for authorization."
+            exit 1
+          fi
           # GitHub injects unset secrets as empty strings. An empty value makes
           # the checker reject config instead of applying default roles, so
           # drop it before invocation.
@@ -297,15 +321,21 @@ jobs:
           fi
 
           if [ "$EFFECTIVE_STRICT" == "true" ]; then
-            if [ "$readiness_status" != "passed" ] || [ "$docs_status" != "passed" ]; then
-              echo "Strict RC promotion requires hosted readiness and docs checks to pass (hardening_tier=$HARDENING_TIER)."
-              exit 1
+            # Collect all strict-gate failures so operators see every blocker
+            # (readiness, docs, and H-P0-04) in one diagnostic exit.
+            FAILURES=""
+            if [ "$readiness_status" != "passed" ]; then
+              FAILURES="${FAILURES}hosted readiness, "
             fi
-            # H-P0-04: P0 Assert path fails closed when DB authz secrets are missing
-            # (same posture as staging-promotion). Soft rehearsal uses hardening_tier=none.
+            if [ "$docs_status" != "passed" ]; then
+              FAILURES="${FAILURES}docs readiness, "
+            fi
             if [ "$db_authz_status" != "passed" ]; then
-              echo "Strict RC promotion requires database authorization to pass (H-P0-04; hardening_tier=$HARDENING_TIER)."
-              echo "Configure the required database URL Environment secrets, or use hardening_tier=none for soft rehearsal."
+              FAILURES="${FAILURES}database authorization (H-P0-04), "
+            fi
+            if [ -n "$FAILURES" ]; then
+              echo "Strict RC promotion requires the following to pass: ${FAILURES%, } (hardening_tier=$HARDENING_TIER)."
+              echo "Configure the required Environment secrets (auth/app, asset-graph, and coordination DB URLs), or use hardening_tier=none for soft rehearsal."
               exit 1
             fi
           else

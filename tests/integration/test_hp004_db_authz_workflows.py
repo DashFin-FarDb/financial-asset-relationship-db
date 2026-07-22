@@ -38,8 +38,26 @@ def test_release_evidence_invokes_database_authorization_checker(release_evidenc
 def test_release_evidence_p0_fails_closed_on_skipped_db_authz(release_evidence_raw: str) -> None:
     """hardening_tier=P0 must require db_authz status=passed (H-P0-04)."""
     assert '[ "$db_authz_status" != "passed" ]' in release_evidence_raw
-    assert "Strict RC promotion requires database authorization to pass" in release_evidence_raw
+    assert "database authorization (H-P0-04)" in release_evidence_raw
     assert "hardening_tier=none" in release_evidence_raw
+
+
+def test_release_evidence_aggregates_strict_gate_failures(release_evidence_raw: str) -> None:
+    """Strict Assert path must report readiness, docs, and db_authz failures together."""
+    assert 'FAILURES=""' in release_evidence_raw
+    assert "hosted readiness" in release_evidence_raw
+    assert "docs readiness" in release_evidence_raw
+    assert "Strict RC promotion requires the following to pass:" in release_evidence_raw
+
+
+def test_release_evidence_requires_all_db_boundaries(release_evidence_raw: str) -> None:
+    """Partial URL secret sets must not produce db_authz passed (production parity)."""
+    assert "missing_asset_graph_database_url" in release_evidence_raw
+    assert "missing_auth_database_url" in release_evidence_raw
+    assert "missing_coordination_database_url" in release_evidence_raw
+    assert 'if [ -z "$ASSET_GRAPH_DATABASE_URL" ]' in release_evidence_raw
+    assert 'if [ -z "$COORDINATION_DATABASE_URL" ]' in release_evidence_raw
+    assert 'if [ -z "${DATABASE_URL}${POSTGRES_URL}" ]' in release_evidence_raw
 
 
 def test_release_evidence_unsets_empty_untrusted_roles(release_evidence_raw: str) -> None:
@@ -49,10 +67,11 @@ def test_release_evidence_unsets_empty_untrusted_roles(release_evidence_raw: str
 
 
 def test_staging_promotion_fails_closed_without_db_secrets(staging_promotion_raw: str) -> None:
-    """Staging promotion must not soft-skip H-P0-04 when secrets are missing."""
-    assert "no_database_url_configured" in staging_promotion_raw
-    assert '"status":"failed","reason":"no_database_url_configured"' in staging_promotion_raw
-    assert "H-P0-04 requires live database authorization secrets" in staging_promotion_raw
+    """Staging promotion must fail closed on missing required H-P0-04 boundaries."""
+    assert "missing_asset_graph_database_url" in staging_promotion_raw
+    assert "missing_auth_database_url" in staging_promotion_raw
+    assert "missing_coordination_database_url" in staging_promotion_raw
+    assert "no_database_url_configured" not in staging_promotion_raw
     assert "check_database_authorization.py" in staging_promotion_raw
 
 
