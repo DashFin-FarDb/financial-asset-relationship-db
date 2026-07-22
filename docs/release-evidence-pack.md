@@ -377,8 +377,10 @@ authorization checker.
 
 **H-P0-04 remaining for Satisfied:** attach a target-environment redacted `db_authz: PASS|<opaque-ref>`
 from a staging (or production) promotion / release-evidence run that executed
-`scripts/check_database_authorization.py` successfully. Repository wiring alone does not close the live
-authorization gate (ADR 0007 / FPC-2026-07-21-01).
+`scripts/check_database_authorization.py` successfully. Repository wiring and the operator setup path
+([closure runbook](runbooks/database-authorization-closure.md), restricted/public worksheets, issue template)
+do not close the live authorization gate without that target-environment evidence (ADR 0007 /
+FPC-2026-07-21-01).
 
 Release-evidence dispatch: set `hardening_tier=P0` (default) so hosted readiness cannot SKIP under the Assert path.
 Use `hardening_tier=none` only for soft rehearsal runs that must not be treated as RC proof.
