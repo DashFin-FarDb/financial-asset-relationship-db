@@ -93,15 +93,18 @@ Before staging promotion, the Secret/config maintainer must confirm:
 
 ### H-P0-04 / ADR 0007 GitHub Environment secrets
 
-The staging- and production-promotion authz steps fail closed unless **all** of the following are present on the
-GitHub Environment used by the workflow—partial URL sets must not produce a PASS. The release-evidence Assert path
-requires the same set when `hardening_tier=P0`; `hardening_tier=none` is a soft rehearsal:
+For durable staging **topology**, `COORDINATION_DATABASE_URL` remains conditional when coordination shares another
+boundary and that fallback is documented (see Required Variable Verification above). **Separately**, the authz gate
+in `staging-promotion.yml` / `production-promotion.yml` (and release-evidence when `hardening_tier=P0`) fails closed
+unless these GitHub Environment secrets are all present—partial URL sets must not produce a PASS:
 
 - `ASSET_GRAPH_DATABASE_URL`
 - `DATABASE_URL` or `POSTGRES_URL` (at least one)
-- `COORDINATION_DATABASE_URL`
+- `COORDINATION_DATABASE_URL` (required for the authz workflow step even when topology documents a shared-boundary
+  fallback—point the secret at the effective coordination boundary)
 
-Optional: `FARDB_UNTRUSTED_DATABASE_ROLES` (defaults apply when unset; leave empty values unset). Operator procedure:
+`hardening_tier=none` on release-evidence is a soft rehearsal and is not H-P0-04 closure. Optional:
+`FARDB_UNTRUSTED_DATABASE_ROLES` (defaults apply when unset; leave empty values unset). Operator procedure:
 [Database authorization closure runbook](runbooks/database-authorization-closure.md).
 
 Record only variable presence, provider labels, project labels, redacted URLs, and reviewer sign-off.
@@ -132,8 +135,9 @@ link the following evidence:
 - [ ] Confirmation that `ASSET_GRAPH_DATABASE_URL` is distinct from `DATABASE_URL`, or approved exception details.
 - [ ] Confirmation that `COORDINATION_DATABASE_URL` exists when coordination is separated, or documented fallback when
       absent.
-- [ ] H-P0-04 GitHub Environment secrets present for asset-graph, auth/app (or postgres fallback), and coordination
-      (see [closure runbook](runbooks/database-authorization-closure.md)).
+- [ ] H-P0-04 authz gate: GitHub Environment has asset-graph, auth/app (or postgres fallback), **and**
+      `COORDINATION_DATABASE_URL` pointing at the effective coordination boundary (required by the workflow even when
+      topology uses a documented shared-boundary fallback; see [closure runbook](runbooks/database-authorization-closure.md)).
 - [ ] Preview durability label for any preview evidence used.
 - [ ] Hosted readiness with durable persistence required:
 

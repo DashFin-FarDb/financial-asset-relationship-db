@@ -151,7 +151,7 @@ such as `TBD` / angle-bracket templates are rejected.
 - [ ] H-P0-02 table-scoped restore cleanup confirmed on job + lock boundaries
 - [ ] H-P0-03 `release-evidence-verify` run with `hardening_tier=P0` (strict; hosted must PASS)
 - [ ] H-P0-04 live DB authorization passed in staging-promotion or production-promotion (secrets required); evidence has `db_authz: PASS|<opaque-ref>`
-- [ ] H-P0-04 ADR 0007 remediation tracked via [Database authorization closure](https://github.com/DashFin-FarDb/financial-asset-relationship-db/issues/new?template=database_authorization_closure.md) issue (or equivalent) and public redacted pass template attached
+  - [ ] H-P0-04a ADR 0007 remediation tracked via [Database authorization closure](https://github.com/DashFin-FarDb/financial-asset-relationship-db/issues/new?template=database_authorization_closure.md) issue (or equivalent) and public redacted pass template attached
 - [ ] H-P0-06 this packet is SHA-bound to the release commit above (RC1 not reused as CURRENT)
 - [ ] Release-evidence / staging-promotion / production-promotion workflow run URL attached:
 

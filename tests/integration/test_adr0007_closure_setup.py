@@ -28,8 +28,11 @@ def test_adr0007_evidence_templates_exist() -> None:
     restricted = RESTRICTED.read_text(encoding="utf-8")
     public = PUBLIC.read_text(encoding="utf-8")
     assert "do not commit filled copies" in restricted.lower()
-    assert "db_authz: PASS|" in public.lower()
-    assert "privileged functions manual fixed-search-path review" in public.lower()
+    assert "db_authz: PASS|" in public
+    assert "hardening_tier=P0" in public or "hardening_tier" in public
+    assert "Workflow run commit SHA" in public
+    assert "--exposed-schema" in restricted
+    assert "Privileged functions manual fixed-search-path review" in public
 
 
 def test_adr0007_issue_template_exists() -> None:

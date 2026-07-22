@@ -384,19 +384,12 @@ Primary authorities:
 
 ### Next highest-value action
 
-Close FPC-2026-07-21-01 using the repository operator path
-([database-authorization-closure runbook](../runbooks/database-authorization-closure.md)): configure Environment
-secrets, complete the restricted worksheet offline, remediate staging, dispatch the fail-closed authz workflow, and
-attach a public redacted `db_authz: PASS|<opaque-ref>`. This remains the nearest release blocker. Repository
-Assert-path fail-closed wiring for skipped DB authz does not substitute for a live redacted
-`db_authz: PASS|<opaque-ref>`.
+Close **FPC-2026-07-21-01** (see that entry’s **Next action and completion test**). Repository Assert-path
+fail-closed wiring does not substitute for a live redacted `db_authz: PASS|<opaque-ref>`.
 
 ### Completion test
 
-The authorization checker passes every configured hosted boundary; manual privileged-function review, negative access
-tests, rollback, application/recovery/restore regression checks, provider advisers, credential review, and redacted
-operator sign-off are complete; and no unresolved high-severity access-control finding remains without a named,
-time-bounded exception.
+Same completion test as **FPC-2026-07-21-01**.
 
 ## Backfill coverage and gaps
 

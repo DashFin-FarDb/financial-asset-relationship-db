@@ -23,13 +23,13 @@ evidence publicly.
 
 Promotion and Assert-path authz steps fail closed unless **all** required boundaries are present:
 
-| Secret / variable                | Required for H-P0-04 authz gate | Notes                                                                                                         |
-| -------------------------------- | ------------------------------- | ------------------------------------------------------------------------------------------------------------- |
-| `ASSET_GRAPH_DATABASE_URL`       | Yes                             | Graph boundary                                                                                                |
-| `DATABASE_URL` or `POSTGRES_URL` | Yes (at least one)              | Auth/app boundary                                                                                             |
-| `COORDINATION_DATABASE_URL`      | Yes                             | Coordination boundary (workflows do not soft-skip)                                                            |
-| `FARDB_UNTRUSTED_DATABASE_ROLES` | Optional                        | Defaults to provider roles `anon,authenticated` when unset; leave empty unset (workflows unset empty strings) |
-| `HOSTED_READINESS_BASE_URL`      | For hosted readiness steps      | Separate from authz checker                                                                                   |
+| Secret / variable                | Required for H-P0-04 authz gate | Notes                                                                                                            |
+| -------------------------------- | ------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| `ASSET_GRAPH_DATABASE_URL`       | Yes                             | Graph boundary                                                                                                   |
+| `DATABASE_URL` or `POSTGRES_URL` | Yes (at least one)              | Auth/app boundary                                                                                                |
+| `COORDINATION_DATABASE_URL`      | Yes for authz gate              | Point at the effective coordination boundary; required by workflows even if topology documents a shared fallback |
+| `FARDB_UNTRUSTED_DATABASE_ROLES` | Optional                        | Defaults to provider roles `anon,authenticated` when unset; leave empty unset (workflows unset empty strings)    |
+| `HOSTED_READINESS_BASE_URL`      | For hosted readiness steps      | Separate from authz checker                                                                                      |
 
 Configure these on the GitHub Environments used by `staging-promotion.yml`, `production-promotion.yml`, and
 `release-evidence-verify.yml`. Record **presence only** in public evidence—never paste values.
@@ -46,10 +46,13 @@ With local env vars pointing at a **non-production** PostgreSQL boundary you con
 export DATABASE_URL='postgresql://…'
 export ASSET_GRAPH_DATABASE_URL='postgresql://…'
 export COORDINATION_DATABASE_URL='postgresql://…'
-python scripts/check_database_authorization.py
+# Default schema is public. Repeat per inventoried exposed schema:
+python scripts/check_database_authorization.py --exposed-schema public
 ```
 
-Expect bounded pass/fail output only. Do not commit connection strings or catalog dumps.
+Expect bounded pass/fail output only. Do not commit connection strings or catalog dumps. CI/promotion workflows
+check the default schema only; closure still requires a pass for every inventoried exposed schema (record in the
+restricted worksheet).
 
 ## Remediation sequence (ADR 0007)
 

@@ -9,15 +9,17 @@ Keep detailed findings in the restricted worksheet.
 
 ## Header
 
-| Field                   | Value                                                              |
-| ----------------------- | ------------------------------------------------------------------ |
-| Release commit SHA      |                                                                    |
-| Target environment      | staging / production                                               |
-| Evidence owner          |                                                                    |
-| Capture timestamp (UTC) |                                                                    |
-| Workflow                | staging-promotion / production-promotion / release-evidence-verify |
-| Workflow run URL        |                                                                    |
-| Opaque ref for verifier | `run-…` / `artifact-…` / numeric run id                            |
+| Field                        | Value                                                              |
+| ---------------------------- | ------------------------------------------------------------------ |
+| Release commit SHA           |                                                                    |
+| Target environment           | staging / production                                               |
+| Evidence owner               |                                                                    |
+| Capture timestamp (UTC)      |                                                                    |
+| Workflow                     | staging-promotion / production-promotion / release-evidence-verify |
+| `hardening_tier` (if Assert) | `P0` required for RC-valid release-evidence; `none` is not closure |
+| Workflow run URL             |                                                                    |
+| Workflow run commit SHA      | must equal Release commit SHA                                      |
+| Opaque ref for verifier      | `run-…` / `artifact-…` / numeric run id                            |
 
 ## Public marker (copy into SHA-bound promotion evidence file)
 
@@ -25,17 +27,22 @@ Keep detailed findings in the restricted worksheet.
 db_authz: PASS|<opaque-workflow-run-or-artifact-id>
 ```
 
+Soft rehearsal (`release-evidence-verify` with `hardening_tier=none`) is **not** valid closure evidence.
+
 ## Automated gate
 
 - [ ] GitHub Environment secrets present for asset-graph, auth/app (or postgres fallback), and coordination URLs
-- [ ] `scripts/check_database_authorization.py` exited successfully in the linked workflow
+- [ ] Workflow run commit SHA equals Release commit SHA above
+- [ ] If workflow is `release-evidence-verify`: input `hardening_tier=P0` (not `none`)
+- [ ] `scripts/check_database_authorization.py` exited successfully in the linked workflow (default exposed schema)
+- [ ] Every inventoried exposed schema passed the checker (`--exposed-schema` per schema; names stay restricted)
 - [ ] Redacted artifact `db-authz-output.json` shows `"status":"passed"` (no topology fields)
 - [ ] Shared-boundary decision documented at label level only (if applicable)
 - [ ] `FARDB_UNTRUSTED_DATABASE_ROLES` choice recorded as “default” or “custom (restricted record)” — no role list here
 
 ## Exit criteria (pass/fail only)
 
-- [ ] Exposed-schema RLS control: passed
+- [ ] Exposed-schema RLS control: passed (all inventoried exposed schemas)
 - [ ] Untrusted-role unintended authority: passed
 - [ ] Views automated access check: passed
 - [ ] Privileged functions automated execution check: passed

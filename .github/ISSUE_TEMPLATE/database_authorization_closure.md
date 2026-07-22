@@ -40,8 +40,14 @@ assignees: ""
 
 ## Automated gate run
 
-- [ ] Workflow dispatched: staging-promotion / production-promotion / release-evidence-verify (`hardening_tier=P0`)
+Select exactly one workflow:
+
+- [ ] `staging-promotion` dispatched
+- [ ] `production-promotion` dispatched
+- [ ] `release-evidence-verify` dispatched with `hardening_tier=P0` (not `none`)
+
 - [ ] Workflow run URL:
+- [ ] Workflow run commit SHA matches the Release commit SHA above
 - [ ] `db-authz-output.json` artifact status is `passed`
 - [ ] Public marker prepared: `db_authz: PASS|<opaque-ref>`
 

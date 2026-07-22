@@ -64,8 +64,15 @@ Copy this file to an approved private store for the target environment. Public e
 
 ## Step 7 — Advisers and bounded checker
 
+The checker defaults to `--exposed-schema public`. ADR 0007 requires every inventoried exposed schema.
+CI/promotion workflows invoke the default schema only; run (and record) an additional pass per non-default
+exposed schema before claiming closure.
+
 - [ ] Provider advisers re-run; high-severity findings resolved or excepted
-- [ ] `python scripts/check_database_authorization.py` passed on every required boundary
+- [ ] For each required boundary × each inventoried exposed schema:
+      `python scripts/check_database_authorization.py --exposed-schema <schema>` passed
+- [ ] Schema list (names only) recorded here; do not paste grants or adviser dumps
+- [ ] Workflow/CI opaque ref covers the default-schema automated gate; non-default schemas covered above
 - [ ] Manual privileged-function review complete: schema, owner, fixed safe search path, and execution grants verified
 
 ## Exceptions
