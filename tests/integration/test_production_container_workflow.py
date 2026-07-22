@@ -137,3 +137,15 @@ def test_gradio_dockerfile_marked_non_production() -> None:
     assert "NON-PRODUCTION" in text
     assert "Dockerfile.api" in text
     assert ".github/workflows/production-container.yml" in text
+
+
+def test_gradio_dockerfile_is_multistage_without_runtime_compilers() -> None:
+    """Gradio runtime stage must not ship gcc/g++/make (Snyk Container OS noise)."""
+    text = (REPO_ROOT / "Dockerfile").read_text(encoding="utf-8")
+    assert "AS builder" in text
+    assert "AS runtime" in text
+    runtime = text.split("AS runtime", 1)[1]
+    assert "gcc" not in runtime
+    assert "g++" not in runtime
+    assert "make" not in runtime
+    assert "curl" in runtime
