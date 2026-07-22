@@ -1,28 +1,34 @@
 name: Production Container
 
-# EVIDENCE BOUNDARY STATEMENT:
-# This workflow proves that the Dockerfiles for the API and frontend can build successfully,
-# and that the resulting containers can start and pass basic local liveness checks (smoke tests).
+# EVIDENCE BOUNDARY STATEMENT (H-P1-05):
+# This workflow proves that the production Dockerfiles (Dockerfile.api,
+# Dockerfile.frontend) build successfully, that containers start, and that the
+# API can rebuild a graph onto a durable SQLite volume and reload it after
+# container restart (local persistence + assets smoke).
 #
 # THIS WORKFLOW DOES NOT PROVE:
-# - Live hosted readiness
-# - Production promotion safety
-# - Hosted durable graph persistence
+# - Live hosted readiness (HOSTED_READINESS_BASE_URL)
+# - Staging or production promotion safety
+# - Hosted durable graph persistence on a remote environment
 #
-# Do not use a successful run of this workflow as evidence for the 'graph_persistence_configured',
-# 'graph.persistence_enabled', 'graph.persistence_loaded', or 'graph.startup_source == "persisted"'
-# release gates.
+# Do not use a successful run of this workflow as hosted promotion evidence.
+# Hosted gates remain staging-promotion.yml / production-promotion.yml /
+# post-recovery-readiness.yml.
+#
+# Gradio (root Dockerfile / docker-compose.yml) is non-production and is not
+# exercised here. See docker.yml / docker-image.yml / docker-publish.yml.
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
 
 permissions:
   contents: read
 
 jobs:
+  # Required check-run name must stay build-and-smoke-test (H-P1-04).
   build-and-smoke-test:
     runs-on: ubuntu-latest
     steps:
@@ -36,38 +42,135 @@ jobs:
       - name: Build Frontend Container
         run: docker build --build-arg NEXT_PUBLIC_API_URL=http://localhost:8000 -t fardb-frontend -f Dockerfile.frontend .
 
-      - name: Smoke Test API
+      - name: Validate production compose config
+        env:
+          SECRET_KEY: ${{ secrets.CI_SMOKE_TEST_SECRET_KEY || 'ci-smoke-test-key-not-a-real-secret' }}
+          ADMIN_USERNAME: ci-admin
+          ADMIN_PASSWORD: ci-admin-password
+          NEXT_PUBLIC_API_URL: http://localhost:8000
+        run: docker compose -f docker-compose.production.yml config >/dev/null
+
+      - name: Persistence smoke test API
         env:
           SECRET_KEY: ${{ secrets.CI_SMOKE_TEST_SECRET_KEY || 'ci-smoke-test-key-not-a-real-secret' }}
           ADMIN_USERNAME: ci-admin
           ADMIN_PASSWORD: ci-admin-password
         run: |
-          docker run -d --name api_test -p 8000:8000 \
-            -e ENV=production \
-            -e DATABASE_URL="sqlite:////tmp/fardb.db" \
-            -e SECRET_KEY="$SECRET_KEY" \
-            -e ADMIN_USERNAME="$ADMIN_USERNAME" \
-            -e ADMIN_PASSWORD="$ADMIN_PASSWORD" \
-            fardb-api
-          # Poll until healthy
-          timeout=30
-          count=0
-          while ! curl -fsS http://localhost:8000/api/health > /dev/null; do
-            count=$((count+1))
-            if [ $count -ge $timeout ]; then
-              echo "API failed to start within $timeout seconds"
-              docker logs api_test
-              exit 1
-            fi
-            sleep 1
-          done
+          set -euo pipefail
 
-          # Validate endpoints
-          curl -fsS http://localhost:8000/api/health
-          curl -fsS http://localhost:8000/api/health/detailed
+          VOLUME_NAME="fardb-ci-api-data"
+          DB_URL="sqlite:////data/fardb.db"
+          docker volume create "$VOLUME_NAME" >/dev/null
 
-          docker stop api_test
-          docker rm api_test
+          start_api() {
+            local name="$1"
+            docker run -d --name "$name" -p 8000:8000 \
+              -v "${VOLUME_NAME}:/data" \
+              -e ENV=production \
+              -e DATABASE_URL="$DB_URL" \
+              -e ASSET_GRAPH_DATABASE_URL="$DB_URL" \
+              -e SECRET_KEY="$SECRET_KEY" \
+              -e ADMIN_USERNAME="$ADMIN_USERNAME" \
+              -e ADMIN_PASSWORD="$ADMIN_PASSWORD" \
+              fardb-api
+          }
+
+          wait_healthy() {
+            local name="$1"
+            local timeout=60
+            local count=0
+            while ! curl -fsS http://127.0.0.1:8000/api/health >/dev/null; do
+              count=$((count + 1))
+              if [ "$count" -ge "$timeout" ]; then
+                echo "API failed to start within ${timeout}s"
+                docker logs "$name" || true
+                exit 1
+              fi
+              sleep 1
+            done
+          }
+
+          cleanup() {
+            docker rm -f api_persist_seed api_persist_reload >/dev/null 2>&1 || true
+            docker volume rm -f "$VOLUME_NAME" >/dev/null 2>&1 || true
+          }
+          trap cleanup EXIT
+
+          # Phase A: start, liveness, rebuild+persist onto the volume.
+          start_api api_persist_seed
+          wait_healthy api_persist_seed
+          curl -fsS http://127.0.0.1:8000/api/health >/dev/null
+          curl -fsS http://127.0.0.1:8000/api/health/detailed >/dev/null
+
+          TOKEN="$(
+            curl -fsS -X POST http://127.0.0.1:8000/token \
+              -H 'Content-Type: application/x-www-form-urlencoded' \
+              -d "username=${ADMIN_USERNAME}&password=${ADMIN_PASSWORD}" \
+              | jq -r '.access_token'
+          )"
+          if [ -z "$TOKEN" ] || [ "$TOKEN" = "null" ]; then
+            echo "Failed to obtain access token for rebuild"
+            docker logs api_persist_seed || true
+            exit 1
+          fi
+          echo "::add-mask::$TOKEN"
+
+          REBUILD_STATUS="$(
+            curl -fsS -X POST http://127.0.0.1:8000/api/graph/rebuild \
+              -H "Authorization: Bearer ${TOKEN}" \
+              | jq -r '.status'
+          )"
+          if [ "$REBUILD_STATUS" != "persisted" ]; then
+            echo "Rebuild did not report status=persisted (got: ${REBUILD_STATUS})"
+            docker logs api_persist_seed || true
+            exit 1
+          fi
+
+          docker stop api_persist_seed
+          docker rm api_persist_seed
+
+          # Phase B: restart from the same volume and prove persisted load.
+          # check_hosted_readiness.py rejects loopback URLs (SSRF guard), so
+          # assert the same persistence fields via curl + jq locally (H-P1-05).
+          start_api api_persist_reload
+          wait_healthy api_persist_reload
+
+          curl -fsS http://127.0.0.1:8000/api/health/detailed > detailed-health.json
+          if [ "$(jq -r '.graph_persistence_configured' detailed-health.json)" != "true" ]; then
+            echo "Error: graph_persistence_configured is not true"
+            cat detailed-health.json
+            exit 1
+          fi
+          if [ "$(jq -r '.graph.persistence_enabled' detailed-health.json)" != "true" ]; then
+            echo "Error: graph.persistence_enabled is not true"
+            cat detailed-health.json
+            exit 1
+          fi
+          if [ "$(jq -r '.graph.persistence_loaded' detailed-health.json)" != "true" ]; then
+            echo "Error: graph.persistence_loaded is not true"
+            cat detailed-health.json
+            exit 1
+          fi
+          if [ "$(jq -r '.graph.startup_source' detailed-health.json)" != "persisted" ]; then
+            echo "Error: graph.startup_source is not persisted"
+            cat detailed-health.json
+            exit 1
+          fi
+
+          ASSET_TOTAL="$(
+            curl -fsS 'http://127.0.0.1:8000/api/assets?per_page=1' | jq -r '.total // 0'
+          )"
+          # Require a positive integer; reject 0, null coalesced to 0, and non-numeric values.
+          if ! [[ "$ASSET_TOTAL" =~ ^[1-9][0-9]*$ ]]; then
+            echo "Error: assets smoke expected total > 0 after persisted reload (got: ${ASSET_TOTAL})"
+            cat detailed-health.json
+            exit 1
+          fi
+
+          docker stop api_persist_reload
+          docker rm api_persist_reload
+          trap - EXIT
+          docker volume rm -f "$VOLUME_NAME" >/dev/null 2>&1 || true
 
       - name: Smoke Test Frontend
         run: |

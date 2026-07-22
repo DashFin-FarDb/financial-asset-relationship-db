@@ -1,4 +1,13 @@
-name: Docker Build and Test
+name: Gradio Docker Build and Test (non-production)
+
+# EVIDENCE BOUNDARY STATEMENT (H-P1-05):
+# This workflow builds and smoke-tests the Gradio demo image (root Dockerfile /
+# docker-compose.yml). Gradio is non-production (demos and internal testing only).
+#
+# Production architecture proof uses Dockerfile.api + Dockerfile.frontend via
+# production-container.yml (required check build-and-smoke-test).
+#
+# Do not treat a successful run of this workflow as a production release artefact.
 
 "on":
   push:
