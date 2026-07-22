@@ -9,7 +9,7 @@ maintainer branch-protection guidance.
 
 GitHub Actions is the canonical PR gate. We shift heavyweight scanners off the per-PR path to keep the feedback loop fast.
 
-GitHub reports **check run names** as each job's `name:` field, or the job id when `name:` is omitted.
+GitHub reports **check run names** as each job's `name:` field, or the job ID when `name:` is omitted.
 They are **not** `Workflow / job` strings (for example, `Frontend CI / build` is not a real check name).
 
 ## Categories
@@ -21,18 +21,18 @@ They are **not** `Workflow / job` strings (for example, `Frontend CI / build` is
 These workflows have no path filters on `pull_request` and must pass before merge. Use these exact
 check-run names in branch protection and Mergify `check-success` conditions:
 
-| Check run name         | Workflow                              | Job id                 |
-| ---------------------- | ------------------------------------- | ---------------------- |
-| `Test Python 3.10`     | Python CI (`.github/workflows/ci.yml`) | `test` (matrix 3.10)  |
-| `Test Python 3.11`     | Python CI (`.github/workflows/ci.yml`) | `test` (matrix 3.11)  |
-| `Test Python 3.12`     | Python CI (`.github/workflows/ci.yml`) | `test` (matrix 3.12)  |
-| `Security checks`      | Python CI (`.github/workflows/ci.yml`) | `security`             |
+| Check run name         | Workflow                                          | Job ID                 |
+| ---------------------- | ------------------------------------------------- | ---------------------- |
+| `Test Python 3.10`     | Python CI (`.github/workflows/ci.yml`)            | `test` (matrix 3.10)   |
+| `Test Python 3.11`     | Python CI (`.github/workflows/ci.yml`)            | `test` (matrix 3.11)   |
+| `Test Python 3.12`     | Python CI (`.github/workflows/ci.yml`)            | `test` (matrix 3.12)   |
+| `Security checks`      | Python CI (`.github/workflows/ci.yml`)            | `security`             |
 | `build-and-smoke-test` | Production Container (`production-container.yml`) | `build-and-smoke-test` |
 
 #### Path-filtered (pass when the workflow runs; not a hard branch-protection requirement)
 
-| Check run name | Workflow                                         | Notes                                                                 |
-| -------------- | ------------------------------------------------ | --------------------------------------------------------------------- |
+| Check run name | Workflow                                          | Notes                                                                    |
+| -------------- | ------------------------------------------------- | ------------------------------------------------------------------------ |
 | `frontend-ci`  | Frontend CI (`.github/workflows/frontend-ci.yml`) | Runs only when frontend-related paths change. Do not hard-require in BP. |
 
 ### 2. Advisory

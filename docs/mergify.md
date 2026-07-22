@@ -33,7 +33,7 @@ grows or shrinks between tiers during review.
 | Label      | Condition             | Typical scope                          |
 | ---------- | --------------------- | -------------------------------------- |
 | `size/XS`  | `< 10` modified lines | Single-line fix, typo, comment         |
-| `size/S`   | `10 – 49` lines       | Small bug fix, minor feature tweak     |
+| `size/S`   | `10 – 49` lines       | Small bugfix, minor feature tweak      |
 | `size/M`   | `50 – 99` lines       | Medium feature or refactor             |
 | `size/L`   | `100 – 499` lines     | Large feature or multi-file change     |
 | `size/XL`  | `500 – 999` lines     | Major feature or significant refactor  |
