@@ -1,5 +1,10 @@
-name: Docker
+name: Gradio Docker Publish (non-production)
 
+# EVIDENCE BOUNDARY STATEMENT (H-P1-05):
+# Publishes the Gradio demo image (root Dockerfile) to GHCR.
+# Gradio is non-production. This publish path is not a production release artefact.
+# Production images are Dockerfile.api / Dockerfile.frontend (production-container.yml).
+#
 # This workflow uses actions that are not certified by GitHub.
 # They are provided by a third-party and are governed by
 # separate terms of service, privacy policy, and support

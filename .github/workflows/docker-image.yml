@@ -1,4 +1,8 @@
-name: Docker Image CI
+name: Gradio Docker Image CI (non-production)
+
+# EVIDENCE BOUNDARY STATEMENT (H-P1-05):
+# Builds the Gradio demo image from the root Dockerfile only.
+# Gradio is non-production. Production container proof is production-container.yml.
 
 permissions:
   contents: read

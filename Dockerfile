@@ -1,3 +1,7 @@
+# Gradio demo / internal-testing image (NON-PRODUCTION).
+# Production architecture uses Dockerfile.api + Dockerfile.frontend.
+# See docs/adr/0001-production-architecture.md and production-container.yml.
+#
 # Use Python 3.12 slim image for smaller size
 # Note: Python 3.12 chosen for security and compatibility.
 # Application supports Python 3.8-3.12 (see pyproject.toml).
