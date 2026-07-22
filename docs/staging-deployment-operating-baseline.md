@@ -93,8 +93,9 @@ Before staging promotion, the Secret/config maintainer must confirm:
 
 ### H-P0-04 / ADR 0007 GitHub Environment secrets
 
-The staging-promotion authz step (and the production / release-evidence twins) fail closed unless **all** of the
-following are present on the GitHub Environment used by the workflow—partial URL sets must not produce a PASS:
+The staging- and production-promotion authz steps fail closed unless **all** of the following are present on the
+GitHub Environment used by the workflow—partial URL sets must not produce a PASS. The release-evidence Assert path
+requires the same set when `hardening_tier=P0`; `hardening_tier=none` is a soft rehearsal:
 
 - `ASSET_GRAPH_DATABASE_URL`
 - `DATABASE_URL` or `POSTGRES_URL` (at least one)
