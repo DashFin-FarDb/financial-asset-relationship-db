@@ -6,6 +6,7 @@ Claims are labeled landed vs provisional. ADRs/policy are not rewritten.
 ## Seam movement by domain
 
 ### architecture
+- [provisional] **pr:1520**:         (--)
 - [landed] **sha:251302285ecb688d3eea501d0f74a1584c1b5441**: Merge/push to main 251302285ecb688d3eea501d0f74a1584c1b5441
 - [landed] **sha:d7516f7622f1806f49afbaf61febe88c828e6a91**: Merge/push to main d7516f7622f1806f49afbaf61febe88c828e6a91
 - [landed] **sha:5a654e4ea240c6d7af88ed576555a412ef3942c7**: Merge/push to main 5a654e4ea240c6d7af88ed576555a412ef3942c7
@@ -20,7 +21,6 @@ Claims are labeled landed vs provisional. ADRs/policy are not rewritten.
 - [landed] **sha:193f744e004cfd9eaa2cb0b84a5e3a476219d64a**: Merge/push to main 193f744e004cfd9eaa2cb0b84a5e3a476219d64a
 - [landed] **sha:cabb82223b021787d5b1032d332eb38fc6d2d9b4**: Merge/push to main cabb82223b021787d5b1032d332eb38fc6d2d9b4
 - [landed] **pr:1506**:       
-- [landed] **sha:af9985fe2a21b0743858a03043b21157b25604c2**: Merge/push to main af9985fe2a21b0743858a03043b21157b25604c2
 
 ### api
 - [provisional] **pr:1519**:     .. → .. ()
@@ -57,6 +57,7 @@ Claims are labeled landed vs provisional. ADRs/policy are not rewritten.
 - [provisional] **pr:1402**: fix: support Python 3.10 UTC timestamps
 
 ### ci-guardrails
+- [provisional] **pr:1520**:         (--)
 - [landed] **pr:1518**: x - --  z   -v 
 - [landed] **pr:1517**:      (--)
 - [landed] **pr:1515**: x      (--)
@@ -71,7 +72,6 @@ Claims are labeled landed vs provisional. ADRs/policy are not rewritten.
 - [landed] **pr:1488**:    w   v
 - [landed] **pr:1456**: ()   -    y w  
 - [landed] **pr:1470**: x v  y  xy 
-- [landed] **pr:1469**: x()  ww v 
 
 ### rebuild-reconciliation
 - [landed] **pr:1455**: x    y 
@@ -86,6 +86,7 @@ Claims are labeled landed vs provisional. ADRs/policy are not rewritten.
 - [provisional] **pr:1403**: fix(ci): resolve compound workflow failures
 
 ### deployment
+- [provisional] **pr:1520**:         (--)
 - [landed] **pr:1518**: x - --  z   -v 
 - [landed] **pr:1517**:      (--)
 - [landed] **pr:1515**: x      (--)
