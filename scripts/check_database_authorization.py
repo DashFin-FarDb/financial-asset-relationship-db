@@ -411,6 +411,34 @@ def _merge_exposed_schemas(
     return tuple(dict.fromkeys((*existing, *addition)))
 
 
+def _resolve_schemas_for_url_env(
+    environment: Mapping[str, str],
+    url_env: str,
+    default_schemas: tuple[str, ...],
+) -> tuple[str, ...] | None:
+    """Resolve schemas for one URL env, preferring a boundary-specific override."""
+    schema_env = EXPOSED_DATABASE_SCHEMAS_ENV_BY_URL_ENV[url_env]
+    raw_boundary_schemas = environment.get(schema_env)
+    if raw_boundary_schemas is None:
+        return default_schemas
+    return _parse_exposed_schema_csv(raw_boundary_schemas)
+
+
+def _store_boundary_schemas(
+    schemas_by_url: dict[TrustedDatabaseUrl, tuple[str, ...]],
+    ordered_urls: list[TrustedDatabaseUrl],
+    database_url: TrustedDatabaseUrl,
+    schemas: tuple[str, ...],
+) -> None:
+    """Record schemas for a URL, merging when the same URL appears twice."""
+    existing = schemas_by_url.get(database_url)
+    if existing is None:
+        ordered_urls.append(database_url)
+        schemas_by_url[database_url] = schemas
+        return
+    schemas_by_url[database_url] = _merge_exposed_schemas(existing, schemas)
+
+
 def _configured_authorization_boundaries(
     environment: Mapping[str, str],
     cli_schema: str,
@@ -435,25 +463,10 @@ def _configured_authorization_boundaries(
         database_url = _validate_database_url(raw_url)
         if database_url is None:
             return None
-
-        schema_env = EXPOSED_DATABASE_SCHEMAS_ENV_BY_URL_ENV[url_env]
-        raw_boundary_schemas = environment.get(schema_env)
-        if raw_boundary_schemas is None:
-            schemas: tuple[str, ...] = default_schemas
-        else:
-            parsed_schemas = _parse_exposed_schema_csv(raw_boundary_schemas)
-            if parsed_schemas is None:
-                return None
-            schemas = parsed_schemas
-
-        if database_url not in schemas_by_url:
-            ordered_urls.append(database_url)
-            schemas_by_url[database_url] = schemas
-        else:
-            schemas_by_url[database_url] = _merge_exposed_schemas(
-                schemas_by_url[database_url],
-                schemas,
-            )
+        schemas = _resolve_schemas_for_url_env(environment, url_env, default_schemas)
+        if schemas is None:
+            return None
+        _store_boundary_schemas(schemas_by_url, ordered_urls, database_url, schemas)
 
     return tuple(
         BoundaryAuthorizationTarget(database_url=database_url, exposed_schemas=schemas_by_url[database_url])
