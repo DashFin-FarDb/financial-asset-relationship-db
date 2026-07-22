@@ -140,7 +140,7 @@ def test_gradio_dockerfile_marked_non_production() -> None:
 
 
 def test_gradio_dockerfile_is_multistage_without_runtime_compilers() -> None:
-    """Gradio runtime stage must not ship gcc/g++/make (Snyk Container OS noise)."""
+    """Gradio runtime stage must not ship compilers or curl (Snyk Container OS noise)."""
     text = (REPO_ROOT / "Dockerfile").read_text(encoding="utf-8")
     assert "AS builder" in text
     assert "AS runtime" in text
@@ -148,4 +148,6 @@ def test_gradio_dockerfile_is_multistage_without_runtime_compilers() -> None:
     assert "gcc" not in runtime
     assert "g++" not in runtime
     assert "make" not in runtime
-    assert "curl" in runtime
+    assert "apt-get install" not in runtime
+    assert "apt-get update" not in runtime
+    assert "urllib.request" in runtime

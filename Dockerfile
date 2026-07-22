@@ -4,7 +4,7 @@
 # .github/workflows/production-container.yml.
 #
 # Multi-stage: compile native deps in the builder, keep the runtime image free of
-# gcc/g++/make/binutils (reduces Snyk Container OS-package noise).
+# gcc/g++/make/binutils and apt extras like curl (reduces Snyk Container noise).
 #
 # Use Python 3.12 slim image for smaller size
 # Note: Python 3.12 chosen for security and compatibility.
@@ -42,12 +42,8 @@ ENV PYTHONUNBUFFERED=1 \
 
 WORKDIR /app
 
-# Runtime needs curl for health checks only — no compilers in the final image.
-# hadolint ignore=DL3008
-RUN apt-get update && apt-get upgrade -y && apt-get install -y --no-install-recommends \
-    curl \
-    && rm -rf /var/lib/apt/lists/*
-
+# No apt packages in the runtime stage: compilers stay in the builder, and a
+# pure-Python HEALTHCHECK avoids curl (and its gnutls/krb5/openldap deps).
 COPY --from=builder /opt/venv /opt/venv
 COPY . .
 
@@ -57,7 +53,8 @@ USER appuser
 
 EXPOSE 7860
 
+# Pure-Python healthcheck avoids a curl apt dependency in the runtime image.
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD sh -c 'curl -f http://localhost:${GRADIO_SERVER_PORT}/ || exit 1'
+    CMD python -c "import os,urllib.request; urllib.request.urlopen('http://127.0.0.1:'+os.environ.get('GRADIO_SERVER_PORT','7860')+'/')" || exit 1
 
 CMD ["python", "app.py"]
