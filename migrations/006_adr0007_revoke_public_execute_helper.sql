@@ -1,42 +1,8 @@
--- ADR 0007 / H-P0-04 follow-up for environments that already applied earlier
--- 005/006 revisions before FOR ROLE postgres and schema-wide PUBLIC function
--- revokes landed in 005.
--- Idempotent: safe when current 005 already contains the same posture.
--- Fresh installs rely on 005; this file exists so already-migrated hosts converge.
+-- ADR 0007 / H-P0-04: version slot only.
+-- Idempotent backfill placeholder for hosts that already applied an earlier
+-- 006 revision. Current deny-by-default posture lives entirely in
+-- 005_adr0007_public_deny_untrusted_roles.sql; this file intentionally has
+-- no privilege statements so adjacent migrations do not duplicate security logic.
 
 BEGIN;
-
-DO $$
-DECLARE
-    target_schema constant text := 'public';
-    default_priv_prefix constant text :=
-        'ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA %I ';
-BEGIN
-    EXECUTE format(
-        'REVOKE ALL PRIVILEGES ON ALL FUNCTIONS IN SCHEMA %I FROM PUBLIC',
-        target_schema
-    );
-    EXECUTE format(
-        'REVOKE ALL PRIVILEGES ON ALL FUNCTIONS IN SCHEMA %I FROM anon, authenticated',
-        target_schema
-    );
-    EXECUTE format(
-        default_priv_prefix || 'REVOKE ALL PRIVILEGES ON TABLES FROM anon, authenticated',
-        target_schema
-    );
-    EXECUTE format(
-        default_priv_prefix || 'REVOKE ALL PRIVILEGES ON SEQUENCES FROM anon, authenticated',
-        target_schema
-    );
-    EXECUTE format(
-        default_priv_prefix || 'REVOKE ALL PRIVILEGES ON FUNCTIONS FROM PUBLIC',
-        target_schema
-    );
-    EXECUTE format(
-        default_priv_prefix || 'REVOKE ALL PRIVILEGES ON FUNCTIONS FROM anon, authenticated',
-        target_schema
-    );
-END
-$$;
-
 COMMIT;

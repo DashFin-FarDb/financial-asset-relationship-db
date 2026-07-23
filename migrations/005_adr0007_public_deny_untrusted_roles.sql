@@ -4,8 +4,9 @@
 -- Apply through governed migration authority against the target hosted database.
 -- Rollback: restore prior grants/policies from restricted backup only.
 --
--- Object owners in the hosted target are postgres; DEFAULT PRIVILEGES therefore
--- use FOR ROLE postgres so future objects keep the deny-by-default posture.
+-- Default privileges: revoke for postgres and supabase_admin (hosted grantors).
+-- Policy drop is intentional: Data API policies must not survive RLS enablement;
+-- FastAPI is the only product ingress (BYPASSRLS / custom policies out of scope).
 
 BEGIN;
 
@@ -13,7 +14,8 @@ DO $$
 DECLARE
     target_schema constant text := 'public';
     default_priv_prefix constant text :=
-        'ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA %I ';
+        'ALTER DEFAULT PRIVILEGES FOR ROLE %I IN SCHEMA %I ';
+    owner_role text;
     rel record;
     pol record;
     fn regprocedure;
@@ -82,23 +84,41 @@ BEGIN
         );
     END LOOP;
 
-    -- Deny-by-default for future objects created by the public-schema owner role.
-    EXECUTE format(
-        default_priv_prefix || 'REVOKE ALL PRIVILEGES ON TABLES FROM anon, authenticated',
-        target_schema
-    );
-    EXECUTE format(
-        default_priv_prefix || 'REVOKE ALL PRIVILEGES ON SEQUENCES FROM anon, authenticated',
-        target_schema
-    );
-    EXECUTE format(
-        default_priv_prefix || 'REVOKE ALL PRIVILEGES ON FUNCTIONS FROM PUBLIC',
-        target_schema
-    );
-    EXECUTE format(
-        default_priv_prefix || 'REVOKE ALL PRIVILEGES ON FUNCTIONS FROM anon, authenticated',
-        target_schema
-    );
+    -- Deny-by-default for future objects from known public-schema grantor roles.
+    -- Skip roles the migration runner cannot alter (e.g. hosted supabase_admin).
+    FOREACH owner_role IN ARRAY ARRAY['postgres', 'supabase_admin']
+    LOOP
+        IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = owner_role) THEN
+            CONTINUE;
+        END IF;
+        BEGIN
+            EXECUTE format(
+                default_priv_prefix || 'REVOKE ALL PRIVILEGES ON TABLES FROM anon, authenticated',
+                owner_role,
+                target_schema
+            );
+            EXECUTE format(
+                default_priv_prefix || 'REVOKE ALL PRIVILEGES ON SEQUENCES FROM anon, authenticated',
+                owner_role,
+                target_schema
+            );
+            EXECUTE format(
+                default_priv_prefix || 'REVOKE ALL PRIVILEGES ON FUNCTIONS FROM PUBLIC',
+                owner_role,
+                target_schema
+            );
+            EXECUTE format(
+                default_priv_prefix || 'REVOKE ALL PRIVILEGES ON FUNCTIONS FROM anon, authenticated',
+                owner_role,
+                target_schema
+            );
+        EXCEPTION
+            WHEN insufficient_privilege THEN
+                RAISE NOTICE
+                    'skip default privileges for role % (insufficient privilege)',
+                    owner_role;
+        END;
+    END LOOP;
 END
 $$;
 
