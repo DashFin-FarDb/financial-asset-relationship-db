@@ -21,11 +21,19 @@ assignees: ""
 - [Public redacted pass template](https://github.com/DashFin-FarDb/financial-asset-relationship-db/blob/main/docs/evidence-records/templates/db-authz-public-redacted-pass.md)
 - [Restricted worksheet template](https://github.com/DashFin-FarDb/financial-asset-relationship-db/blob/main/docs/evidence-records/templates/db-authz-restricted-closure.md)
 
+## GitHub Environment readiness
+
+- [ ] `staging` Environment exists (for `staging-promotion`)
+- [ ] `staging-manual-gate` Environment exists (for `staging-promotion` /
+      `release-evidence-verify` when tags include `[manual-stop]` or `[star]`)
+- [ ] `release-evidence` Environment exists (for `release-evidence-verify`)
+- [ ] `production` / `production-manual-gate` Environments exist when closing production
+
 ## Environment secret readiness (presence only)
 
-- [ ] `ASSET_GRAPH_DATABASE_URL` present on the GitHub Environment
-- [ ] `DATABASE_URL` or `POSTGRES_URL` present
-- [ ] `COORDINATION_DATABASE_URL` present
+- [ ] `ASSET_GRAPH_DATABASE_URL` present on every Environment the selected workflow can enter
+- [ ] `DATABASE_URL` or `POSTGRES_URL` present on those Environments
+- [ ] `COORDINATION_DATABASE_URL` present on those Environments
 - [ ] Empty `FARDB_UNTRUSTED_DATABASE_ROLES` left unset (or intentional custom value retained in restricted record)
 - [ ] If any boundary uses the global/default inventory: Environment **secret** `FARDB_EXPOSED_DATABASE_SCHEMAS` set to the full inventoried list (include `public` when exposed; or confirmed `public`-only). Skip when every boundary uses an override
 - [ ] Per-boundary overrides set where needed (`FARDB_EXPOSED_DATABASE_SCHEMAS_DATABASE` / `_ASSET_GRAPH` / `_COORDINATION` / `_POSTGRES`)
