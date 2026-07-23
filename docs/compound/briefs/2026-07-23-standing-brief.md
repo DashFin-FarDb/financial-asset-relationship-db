@@ -6,7 +6,7 @@ Claims are labeled landed vs provisional. ADRs/policy are not rewritten.
 ## Seam movement by domain
 
 ### architecture
-- [provisional] **pr:1520**:         (--)
+- [landed] **pr:1520**:         (--)
 - [landed] **sha:a239e524782bdc695296a9d702d67d1df8466289**: Merge/push to main a239e524782bdc695296a9d702d67d1df8466289
 - [landed] **sha:251302285ecb688d3eea501d0f74a1584c1b5441**: Merge/push to main 251302285ecb688d3eea501d0f74a1584c1b5441
 - [landed] **sha:d7516f7622f1806f49afbaf61febe88c828e6a91**: Merge/push to main d7516f7622f1806f49afbaf61febe88c828e6a91
@@ -57,7 +57,7 @@ Claims are labeled landed vs provisional. ADRs/policy are not rewritten.
 - [provisional] **pr:1402**: fix: support Python 3.10 UTC timestamps
 
 ### ci-guardrails
-- [provisional] **pr:1520**:         (--)
+- [landed] **pr:1520**:         (--)
 - [landed] **pr:1518**: x - --  z   -v 
 - [landed] **pr:1517**:      (--)
 - [landed] **pr:1515**: x      (--)
@@ -86,7 +86,7 @@ Claims are labeled landed vs provisional. ADRs/policy are not rewritten.
 - [provisional] **pr:1403**: fix(ci): resolve compound workflow failures
 
 ### deployment
-- [provisional] **pr:1520**:         (--)
+- [landed] **pr:1520**:         (--)
 - [landed] **pr:1518**: x - --  z   -v 
 - [landed] **pr:1517**:      (--)
 - [landed] **pr:1515**: x      (--)
