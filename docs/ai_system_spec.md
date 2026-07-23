@@ -1,8 +1,8 @@
 # AI System Specification
 
-**Status:** current baseline for release-evidence docs readiness  
-**Applies to:** Financial Asset Relationship Database (FarDB) production path  
-**Audience:** operators, reviewers, and release-evidence runs  
+**Status:** current baseline for release-evidence docs readiness
+**Applies to:** Financial Asset Relationship Database (FarDB) production path
+**Audience:** operators, reviewers, and release-evidence runs
 **Related:** [Claims and truth policy](strategy/claims-and-truth-policy.md),
 [ADR 0001](adr/0001-production-architecture.md),
 [Release Evidence Pack](release-evidence-pack.md)
