@@ -6,16 +6,39 @@
 
 BEGIN;
 
-REVOKE ALL PRIVILEGES ON ALL FUNCTIONS IN SCHEMA public FROM PUBLIC;
-REVOKE ALL PRIVILEGES ON ALL FUNCTIONS IN SCHEMA public FROM anon, authenticated;
-
-ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public
-    REVOKE ALL PRIVILEGES ON TABLES FROM anon, authenticated;
-ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public
-    REVOKE ALL PRIVILEGES ON SEQUENCES FROM anon, authenticated;
-ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public
-    REVOKE ALL PRIVILEGES ON FUNCTIONS FROM PUBLIC;
-ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public
-    REVOKE ALL PRIVILEGES ON FUNCTIONS FROM anon, authenticated;
+DO $$
+DECLARE
+    target_schema constant text := 'public';
+BEGIN
+    EXECUTE format(
+        'REVOKE ALL PRIVILEGES ON ALL FUNCTIONS IN SCHEMA %I FROM PUBLIC',
+        target_schema
+    );
+    EXECUTE format(
+        'REVOKE ALL PRIVILEGES ON ALL FUNCTIONS IN SCHEMA %I FROM anon, authenticated',
+        target_schema
+    );
+    EXECUTE format(
+        'ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA %I '
+        'REVOKE ALL PRIVILEGES ON TABLES FROM anon, authenticated',
+        target_schema
+    );
+    EXECUTE format(
+        'ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA %I '
+        'REVOKE ALL PRIVILEGES ON SEQUENCES FROM anon, authenticated',
+        target_schema
+    );
+    EXECUTE format(
+        'ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA %I '
+        'REVOKE ALL PRIVILEGES ON FUNCTIONS FROM PUBLIC',
+        target_schema
+    );
+    EXECUTE format(
+        'ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA %I '
+        'REVOKE ALL PRIVILEGES ON FUNCTIONS FROM anon, authenticated',
+        target_schema
+    );
+END
+$$;
 
 COMMIT;

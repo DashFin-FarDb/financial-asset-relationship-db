@@ -9,64 +9,69 @@
 
 BEGIN;
 
--- Enable RLS on every public base/partitioned table (idempotent).
 DO $$
 DECLARE
+    target_schema constant text := 'public';
     rel record;
+    pol record;
+    fn regprocedure;
 BEGIN
+    -- Enable RLS on every public base/partitioned table (idempotent).
     FOR rel IN
         SELECT c.relname AS table_name
         FROM pg_class AS c
         JOIN pg_namespace AS n ON n.oid = c.relnamespace
-        WHERE n.nspname = 'public'
+        WHERE n.nspname = target_schema
           AND c.relkind IN ('r', 'p')
           AND NOT c.relrowsecurity
     LOOP
         EXECUTE format(
-            'ALTER TABLE public.%I ENABLE ROW LEVEL SECURITY',
+            'ALTER TABLE %I.%I ENABLE ROW LEVEL SECURITY',
+            target_schema,
             rel.table_name
         );
     END LOOP;
-END
-$$;
 
--- Drop public-schema policies so enabling RLS does not revive Data API paths.
-DO $$
-DECLARE
-    pol record;
-BEGIN
+    -- Drop public-schema policies so enabling RLS does not revive Data API paths.
     FOR pol IN
         SELECT policyname, tablename
         FROM pg_policies
-        WHERE schemaname = 'public'
+        WHERE schemaname = target_schema
     LOOP
         EXECUTE format(
-            'DROP POLICY IF EXISTS %I ON public.%I',
+            'DROP POLICY IF EXISTS %I ON %I.%I',
             pol.policyname,
+            target_schema,
             pol.tablename
         );
     END LOOP;
-END
-$$;
 
--- Revoke direct privileges from provider untrusted roles.
--- Include PUBLIC on functions: Postgres defaults GRANT EXECUTE TO PUBLIC, and
--- REVOKE FROM anon/authenticated alone does not remove that grant path.
-REVOKE ALL PRIVILEGES ON ALL TABLES IN SCHEMA public FROM anon, authenticated;
-REVOKE ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public FROM anon, authenticated;
-REVOKE ALL PRIVILEGES ON ALL FUNCTIONS IN SCHEMA public FROM PUBLIC;
-REVOKE ALL PRIVILEGES ON ALL FUNCTIONS IN SCHEMA public FROM anon, authenticated;
+    -- Revoke direct privileges from provider untrusted roles.
+    -- Include PUBLIC on functions: Postgres defaults GRANT EXECUTE TO PUBLIC, and
+    -- REVOKE FROM anon/authenticated alone does not remove that grant path.
+    EXECUTE format(
+        'REVOKE ALL PRIVILEGES ON ALL TABLES IN SCHEMA %I FROM anon, authenticated',
+        target_schema
+    );
+    EXECUTE format(
+        'REVOKE ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA %I FROM anon, authenticated',
+        target_schema
+    );
+    EXECUTE format(
+        'REVOKE ALL PRIVILEGES ON ALL FUNCTIONS IN SCHEMA %I FROM PUBLIC',
+        target_schema
+    );
+    EXECUTE format(
+        'REVOKE ALL PRIVILEGES ON ALL FUNCTIONS IN SCHEMA %I FROM anon, authenticated',
+        target_schema
+    );
 
--- Guarded revoke for known privileged helper overloads (skip cleanly if absent).
-DO $$
-DECLARE
-    fn regprocedure;
-BEGIN
+    -- Guarded revoke for known privileged helper overloads (skip if absent).
     FOR fn IN
         SELECT p.oid::regprocedure
         FROM pg_proc AS p
         JOIN pg_namespace AS n ON n.oid = p.pronamespace
-        WHERE n.nspname = 'public'
+        WHERE n.nspname = target_schema
           AND p.proname = 'is_requester_admin'
     LOOP
         EXECUTE format(
@@ -74,17 +79,29 @@ BEGIN
             fn
         );
     END LOOP;
+
+    -- Deny-by-default for future objects created by the public-schema owner role.
+    EXECUTE format(
+        'ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA %I '
+        'REVOKE ALL PRIVILEGES ON TABLES FROM anon, authenticated',
+        target_schema
+    );
+    EXECUTE format(
+        'ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA %I '
+        'REVOKE ALL PRIVILEGES ON SEQUENCES FROM anon, authenticated',
+        target_schema
+    );
+    EXECUTE format(
+        'ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA %I '
+        'REVOKE ALL PRIVILEGES ON FUNCTIONS FROM PUBLIC',
+        target_schema
+    );
+    EXECUTE format(
+        'ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA %I '
+        'REVOKE ALL PRIVILEGES ON FUNCTIONS FROM anon, authenticated',
+        target_schema
+    );
 END
 $$;
-
--- Deny-by-default for future objects created by the public-schema owner role.
-ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public
-    REVOKE ALL PRIVILEGES ON TABLES FROM anon, authenticated;
-ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public
-    REVOKE ALL PRIVILEGES ON SEQUENCES FROM anon, authenticated;
-ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public
-    REVOKE ALL PRIVILEGES ON FUNCTIONS FROM PUBLIC;
-ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public
-    REVOKE ALL PRIVILEGES ON FUNCTIONS FROM anon, authenticated;
 
 COMMIT;
