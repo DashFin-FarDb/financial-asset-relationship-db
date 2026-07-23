@@ -70,6 +70,7 @@ def test_adr0007_issue_template_exists() -> None:
     assert "production-promotion" in text
     assert "release-evidence-verify" in text
     assert "`staging` Environment exists" in text
+    assert "`staging-manual-gate` Environment exists" in text
     assert "`release-evidence` Environment exists" in text
 
 

@@ -24,7 +24,8 @@ assignees: ""
 ## GitHub Environment readiness
 
 - [ ] `staging` Environment exists (for `staging-promotion`)
-- [ ] `staging-manual-gate` Environment exists (tagged dispatches)
+- [ ] `staging-manual-gate` Environment exists (for `staging-promotion` /
+      `release-evidence-verify` when tags include `[manual-stop]` or `[star]`)
 - [ ] `release-evidence` Environment exists (for `release-evidence-verify`)
 - [ ] `production` / `production-manual-gate` Environments exist when closing production
 
