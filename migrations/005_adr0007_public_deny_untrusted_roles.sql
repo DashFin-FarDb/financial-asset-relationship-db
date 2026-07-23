@@ -5,8 +5,8 @@
 -- Rollback: restore prior grants/policies from restricted backup only.
 --
 -- Default privileges: revoke for postgres and supabase_admin (hosted grantors).
--- Policy drop is intentional: Data API policies must not survive RLS enablement;
--- FastAPI is the only product ingress (BYPASSRLS / custom policies out of scope).
+-- Policy drop is selective: only policies that apply to anon, authenticated, or
+-- PUBLIC (Data API paths). Custom policies scoped to other roles are retained.
 
 BEGIN;
 
@@ -36,11 +36,12 @@ BEGIN
         );
     END LOOP;
 
-    -- Drop public-schema policies so enabling RLS does not revive Data API paths.
+    -- Drop only policies that grant a Data API / untrusted-role path.
     FOR pol IN
         SELECT policyname, tablename
         FROM pg_policies
         WHERE schemaname = target_schema
+          AND roles && ARRAY['anon', 'authenticated', 'public']::name[]
     LOOP
         EXECUTE format(
             'DROP POLICY IF EXISTS %I ON %I.%I',
