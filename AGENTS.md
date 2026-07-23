@@ -26,7 +26,7 @@ If branch/ref identity is unclear, stop and verify before proceeding.
 
 ## Quick orientation
 
-This repo contains a Python "asset relationship graph" core, exposed via two UIs:
+This repository contains a Python "asset relationship graph" core, exposed via two UIs:
 
 - **FastAPI + Next.js (PRODUCTION)**: FastAPI backend in `api/` (default `http://localhost:8000`) with Next.js frontend in `frontend/` (default `http://localhost:3000`).
 - **Gradio UI (NON-PRODUCTION)**: `app.py` (default `http://localhost:7860`) calls the graph/visualization code directly. For demos and testing only.
@@ -322,7 +322,10 @@ Configuration + persistence:
 - **Enterprise Readiness:** The system is transitioning to an enterprise-grade posture. Refer to `docs/enterprise-readiness-index.md` for the audit, roadmap, and PR plan. Ensure work aligns with these plans, particularly the rule that **durable persistence is the gating dependency** for restart, promotion, and DR. SQLite compatibility must be preserved.
 - **PR scope guardrails:** All PRs must include Primary Objective, In Scope, Out of Scope, Files Expected to Change, Validation Commands, and Merge Criteria.
 - **High-risk work:** Database, auth, deployment, CI, security scanner config, and persistence changes require low-autonomy contracts. See "High-risk change control" in `.github/AI_AGENT_GUARDRAILS.md`.
-- **Runtime configuration:** use `src/config/settings.py` and `load_settings()` or `get_settings()` for centralized settings. Auth settings (`SECRET_KEY`, `ADMIN_*`), CORS settings, and database URL resolution are centralized through the settings layer. Some legacy/runtime seams may still use direct `os.getenv()` access where migration has been intentionally deferred; do not assume full migration away from environment reads.
+- **Runtime configuration:** use `src/config/settings.py` and `load_settings()` or `get_settings()` for
+  centralized settings. Auth settings (`SECRET_KEY`, `ADMIN_*`), CORS settings, and database URL resolution are
+  centralized through the settings layer. Some legacy/runtime seams may still use direct `os.getenv()` access where
+  migration has been intentionally deferred; do not assume full migration away from environment reads.
 - **Pre-commit hooks:** Run `pre-commit run --files <files>` before committing. Key checks: black (120 char lines), flake8-docstrings (D101/D102/D103), ruff, mypy.
 - **Plotting/visualization:** Standardized on **Plotly** (see `AI_RULES.md`).
 - When changing relationship semantics or graph-derived metrics, expect to update:
@@ -346,13 +349,16 @@ GitHub Actions (`.github/workflows/`) include, among others:
 
 ## Cursor Cloud specific instructions
 
-Environment is Linux with Python 3.12 and Node 22 (Cursor Cloud images may update over time). In Cursor Cloud, dependencies (Python `.venv` + `frontend/node_modules`) are refreshed automatically by the platform-managed startup/update process, so you normally only need to start services and run checks. Standard commands live in the "Common commands" section above and in `run-dev.sh`; the notes below only cover non-obvious cloud gotchas.
+Environment is Linux with Python 3.12 and Node 22 (Cursor Cloud images may update over time). In Cursor Cloud,
+dependencies (Python `.venv` + `frontend/node_modules`) are refreshed automatically by the platform-managed
+startup/update process, so you normally only need to start services and run checks. Standard commands live in the
+"Common commands" section above and in `run-dev.sh`; the notes below only cover non-obvious cloud gotchas.
 
 - **`python` is not on PATH — only `python3`.** In Cursor Cloud, `run-dev.sh` and some docs invoke bare `python`, which fails unless your venv is activated (`source .venv/bin/activate` provides `python`). If `.venv` does not exist yet, create it first with `python3 -m venv .venv`; otherwise activate the venv or substitute `python3`.
-- **SQLite `DATABASE_URL` gotcha (backend won't start otherwise):** this repo uses a **custom URL-to-path resolver** in `api/database.py` (`_resolve_file_path`), _not_ SQLAlchemy URL handling.
+- **SQLite `DATABASE_URL` gotcha (backend won't start otherwise):** this repository uses a **custom URL-to-path resolver** in `api/database.py` (`_resolve_file_path`), _not_ SQLAlchemy URL handling.
   - **Problem:** SQLAlchemy-style `sqlite:///./dev.db` resolves to `/dev.db` under this resolver and is usually unwritable (`sqlite3.OperationalError: unable to open database file`).
   - **Known-bad examples:** `sqlite:///./dev.db`, `sqlite:///./asset_graph.db`.
-  - **Recommended values:** `sqlite:dev.db` (repo-relative), `sqlite:///:memory:`, or an explicit writable absolute path such as `sqlite:////absolute/path/dev.db`.
+  - **Recommended values:** `sqlite:dev.db` (repository-relative), `sqlite:///:memory:`, or an explicit writable absolute path such as `sqlite:////absolute/path/dev.db`.
 - **Backend startup env vars:** importing `api.main` needs `DATABASE_URL` and `SECRET_KEY`; if the auth DB is empty (typical for new SQLite files), also set `ADMIN_USERNAME` + `ADMIN_PASSWORD` to seed the first user (otherwise pre-populate the DB). Example working start:
   ```bash
   DATABASE_URL=sqlite:dev.db \
@@ -371,7 +377,13 @@ Environment is Linux with Python 3.12 and Node 22 (Cursor Cloud images may updat
   ```
   Avoid pasting generated secrets into shared logs/history; prefer a local uncommitted `.env`.
 - **Frontend → backend wiring:** start the frontend with `NEXT_PUBLIC_API_URL=http://localhost:8000` (defaults to that anyway). Public dashboard routes (visualization/metrics/assets) need no login; JWT is only needed for `/api/users/me` and rebuild-admin endpoints (use `/token` to obtain a JWT).
-- **Backend serves sample data by default**; no external DB or `USE_REAL_DATA_FETCHER` needed for local E2E.
+- **Backend serves sample data by default**; no external DB or `USE_REAL_DATA_FETCHER` needed for local end-to-end.
 - **Venv package note:** this image uses Python 3.12 and normally has venv support preinstalled. If that changes or setup is skipped, install the versioned package (`python3.12-venv`) manually (for example: `sudo apt-get install python3.12-venv`).
-- **Known pre-existing test failure (not an environment issue):** `tests/unit/test_workflow_yaml_files.py` fails on `codeql.yml` (via `pytest.fail`) because `.github/workflows/codeql.yml` does not exist in the repo.
-- **Frontend dependency baseline (do not bump past these majors without updating peers):** the frontend must stay on **TypeScript 5.9.x** and **ESLint 9.x**. `@typescript-eslint/*` / `typescript-eslint@8.x` (pulled in transitively by `eslint-config-next@16.x`) pin `typescript` to `>=4.8.4 <6.1.0`, so bumping `typescript` to 7.x (or `eslint`/`@eslint/js` to 10.x ahead of the ecosystem) breaks `npm ci`/`npm install` with an `ERESOLVE` peer-dependency conflict. If you regenerate `frontend/package-lock.json` via `npm install`, run `npm install` a second time before relying on `npm ci` — the first pass can leave the lockfile out of sync with the `overrides` block (`npm ci` then errors with `Missing: glob@... from lock file`).
+- **Known pre-existing test failure (not an environment issue):** `tests/unit/test_workflow_yaml_files.py` fails on `codeql.yml` (via `pytest.fail`) because `.github/workflows/codeql.yml` does not exist in the repository.
+- **Frontend dependency baseline (do not bump past these majors without updating peers):** the frontend must stay on
+  **TypeScript 5.9.x** and **ESLint 9.x**. `@typescript-eslint/*` / `typescript-eslint@8.x` (pulled in transitively by
+  `eslint-config-next@16.x`) pin `typescript` to `>=4.8.4 <6.1.0`, so bumping `typescript` to 7.x (or `eslint` /
+  `@eslint/js` to 10.x ahead of the ecosystem) breaks `npm ci`/`npm install` with an `ERESOLVE` peer-dependency
+  conflict. If you regenerate `frontend/package-lock.json` via `npm install`, run `npm install` a second time before
+  relying on `npm ci` — the first pass can leave the lockfile out of sync with the `overrides` block (`npm ci` then
+  errors with `Missing: glob@... from lock file`).
