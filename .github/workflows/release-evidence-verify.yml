@@ -201,7 +201,10 @@ jobs:
           fi
 
           if [ -n "$URL" ]; then
-            python scripts/check_hosted_readiness.py "$URL" --json "${LABEL_ARGS[@]}" $PERSISTENCE_FLAG > readiness-output.json
+            # 30s covers Vercel Python cold starts; script default (5s) is too tight.
+            python scripts/check_hosted_readiness.py \
+              "$URL" --json --timeout 30 "${LABEL_ARGS[@]}" $PERSISTENCE_FLAG \
+              > readiness-output.json
           else
             echo "{}" > readiness-output.json
           fi

@@ -169,9 +169,10 @@ jobs:
           echo "::add-mask::$URL"
 
           # --require-persistence also enables --assets-smoke.
+          # 30s covers Vercel Python cold starts; script default (5s) is too tight.
           # Temp file avoids empty artifacts on failed runs.
           if ! python scripts/check_hosted_readiness.py \
-            "$URL" --json --require-persistence \
+            "$URL" --json --timeout 30 --require-persistence \
             > readiness-output.tmp; then
             if [ -s readiness-output.tmp ]; then
               mv readiness-output.tmp readiness-output.json
