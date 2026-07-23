@@ -77,15 +77,17 @@ Primary authorities:
   recovery, and restore regression proof; provider advisers; credential review; operator approval; Environment secrets
   for staging/production promotion paths.
 - **Evidence and provenance:** ADR 0007 is accepted and the bounded checker was merged through PR #1482. Fail-closed
-  Assert-path wiring landed through PR #1506. The operator closure setup path (runbook, worksheets, issue template)
-  lands through PR #1520. The ADR explicitly says that it does not mutate the live database or close the gate without
-  target-environment evidence.
-- **Next action and completion test:** Open a `[DB AUTHZ]` closure issue from the template, complete the restricted
-  worksheet offline, configure GitHub Environment secrets, execute ADR 0007's remediation sequence against staging,
-  dispatch staging-promotion (or release-evidence with `hardening_tier=P0`), and attach a redacted
+  Assert-path wiring landed through PR #1506. The operator closure setup path (runbook, worksheets, issue template,
+  per-boundary schema secrets) landed through PR #1520 (`e121b54d` on `main`). The ADR explicitly says that it does
+  not mutate the live database or close the gate without target-environment evidence.
+- **Next action and completion test:** Confirm required GitHub Environments exist (`staging`, `staging-manual-gate`,
+  `release-evidence`, and for production paths `production` / `production-manual-gate`). Open a `[DB AUTHZ]` closure
+  issue from the template, complete the restricted worksheet offline, configure Environment **secrets** on every
+  Environment the selected workflow can enter, execute ADR 0007's remediation sequence against staging, dispatch
+  staging-promotion (or release-evidence with `hardening_tier=P0`), and attach a redacted
   `db_authz: PASS|<opaque-workflow-run-or-artifact-id>` showing every exit criterion is satisfied or a named,
-  time-bounded exception is approved.
-- **Last updated:** 2026-07-22
+  time-bounded exception is approved. Do not mark H-P0-04 Satisfied until that marker is attached.
+- **Last updated:** 2026-07-23
 
 ### FPC-2026-07-21-02 — Prove release repeatability for the exact artefact
 
@@ -386,8 +388,9 @@ Primary authorities:
 ### Next highest-value action
 
 Close **FPC-2026-07-21-01** using the
-[closure runbook](../runbooks/database-authorization-closure.md); see that entry’s **Next action and completion
-test**. Repository Assert-path fail-closed wiring does not substitute for a live redacted
+[closure runbook](../runbooks/database-authorization-closure.md) (operator setup landed in PR #1520); see that
+entry’s **Next action and completion test**. First confirm GitHub Environments exist, then attach secrets and
+remediate. Repository Assert-path fail-closed wiring does not substitute for a live redacted
 `db_authz: PASS|<opaque-ref>`.
 
 ### Completion test

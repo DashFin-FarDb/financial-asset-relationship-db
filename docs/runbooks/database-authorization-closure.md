@@ -19,6 +19,19 @@ evidence publicly.
 | Restricted / public worksheets            | Yes (templates under `docs/evidence-records/templates/`) | Complete them for the target env             |
 | Live inventory, roles, policies, advisers | No (must stay restricted)                                | Capture and remediate off-repo               |
 
+## Prerequisites (GitHub Environments)
+
+Workflows bind to named Environments. Create these under repository **Settings → Environments** before attaching
+secrets (GitHub may auto-create an Environment on first dispatch, but secrets are not present until configured):
+
+| Workflow                      | Default Environment | Manual-gate Environment (tags `[manual-stop]` / `[star]`) |
+| ----------------------------- | ------------------- | --------------------------------------------------------- |
+| `staging-promotion.yml`       | `staging`           | `staging-manual-gate`                                     |
+| `release-evidence-verify.yml` | `release-evidence`  | `staging-manual-gate`                                     |
+| `production-promotion.yml`    | `production`        | `production-manual-gate`                                  |
+
+Confirm each Environment the selected workflow can enter exists before treating secret readiness as complete.
+
 ## Prerequisites (GitHub Environment secrets)
 
 Promotion and Assert-path authz steps fail closed unless **all** required boundaries are present:

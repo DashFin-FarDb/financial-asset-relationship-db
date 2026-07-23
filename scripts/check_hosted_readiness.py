@@ -746,7 +746,12 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     """Parse command-line arguments."""
     parser = argparse.ArgumentParser(description="Smoke-check hosted API health/readiness endpoints.")
     parser.add_argument("base_url", help="Base URL of the hosted deployment, e.g. https://example.vercel.app")
-    parser.add_argument("--timeout", type=float, default=5.0, help="Request timeout in seconds.")
+    parser.add_argument(
+        "--timeout",
+        type=float,
+        default=30.0,
+        help="Request timeout in seconds (default: 30; covers hosted cold starts).",
+    )
     parser.add_argument("--json", action="store_true", help="Emit machine-readable JSON output.")
     parser.add_argument(
         "--base-url-label",
