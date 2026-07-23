@@ -76,6 +76,12 @@ def test_release_evidence_wires_exposed_schemas_env(release_evidence_raw: str) -
     assert 'unset "$schema_secret"' in release_evidence_raw
 
 
+def test_release_evidence_uses_hosted_readiness_cold_start_timeout(release_evidence_raw: str) -> None:
+    """Release-evidence readiness must pin --timeout 30 for Vercel Python cold starts."""
+    assert "check_hosted_readiness.py" in release_evidence_raw
+    assert "--timeout 30" in release_evidence_raw
+
+
 def test_staging_promotion_fails_closed_without_db_secrets(staging_promotion_raw: str) -> None:
     """Staging promotion must fail closed on missing required H-P0-04 boundaries."""
     assert "missing_asset_graph_database_url" in staging_promotion_raw
@@ -83,6 +89,13 @@ def test_staging_promotion_fails_closed_without_db_secrets(staging_promotion_raw
     assert "missing_coordination_database_url" in staging_promotion_raw
     assert "no_database_url_configured" not in staging_promotion_raw
     assert "check_database_authorization.py" in staging_promotion_raw
+
+
+def test_staging_promotion_uses_hosted_readiness_cold_start_timeout(staging_promotion_raw: str) -> None:
+    """Staging promotion readiness must pin --timeout 30 for Vercel Python cold starts."""
+    assert "check_hosted_readiness.py" in staging_promotion_raw
+    assert "--timeout 30" in staging_promotion_raw
+    assert "--require-persistence" in staging_promotion_raw
 
 
 def test_staging_promotion_unsets_empty_untrusted_roles(staging_promotion_raw: str) -> None:
