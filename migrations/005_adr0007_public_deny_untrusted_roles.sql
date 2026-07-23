@@ -12,6 +12,8 @@ BEGIN;
 DO $$
 DECLARE
     target_schema constant text := 'public';
+    default_priv_prefix constant text :=
+        'ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA %I ';
     rel record;
     pol record;
     fn regprocedure;
@@ -82,23 +84,19 @@ BEGIN
 
     -- Deny-by-default for future objects created by the public-schema owner role.
     EXECUTE format(
-        'ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA %I '
-        'REVOKE ALL PRIVILEGES ON TABLES FROM anon, authenticated',
+        default_priv_prefix || 'REVOKE ALL PRIVILEGES ON TABLES FROM anon, authenticated',
         target_schema
     );
     EXECUTE format(
-        'ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA %I '
-        'REVOKE ALL PRIVILEGES ON SEQUENCES FROM anon, authenticated',
+        default_priv_prefix || 'REVOKE ALL PRIVILEGES ON SEQUENCES FROM anon, authenticated',
         target_schema
     );
     EXECUTE format(
-        'ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA %I '
-        'REVOKE ALL PRIVILEGES ON FUNCTIONS FROM PUBLIC',
+        default_priv_prefix || 'REVOKE ALL PRIVILEGES ON FUNCTIONS FROM PUBLIC',
         target_schema
     );
     EXECUTE format(
-        'ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA %I '
-        'REVOKE ALL PRIVILEGES ON FUNCTIONS FROM anon, authenticated',
+        default_priv_prefix || 'REVOKE ALL PRIVILEGES ON FUNCTIONS FROM anon, authenticated',
         target_schema
     );
 END
