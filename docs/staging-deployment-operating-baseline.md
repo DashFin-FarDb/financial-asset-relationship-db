@@ -112,8 +112,9 @@ differ by database URL—or every non-`public` inventory is per-URL—set the fi
 (`FARDB_EXPOSED_DATABASE_SCHEMAS_DATABASE`, `FARDB_EXPOSED_DATABASE_SCHEMAS_ASSET_GRAPH`,
 `FARDB_EXPOSED_DATABASE_SCHEMAS_COORDINATION`, `FARDB_EXPOSED_DATABASE_SCHEMAS_POSTGRES`); each replaces the
 global/default for its URL. The global secret is not required when every boundary uses an override. Unset defaults to
-`public` only. Configure these secrets on every Environment the selected workflow can enter (including
-`*-manual-gate`). Operator procedure:
+`public` only. First confirm the named GitHub Environments exist (`staging`, `staging-manual-gate`,
+`release-evidence`, and production twins as applicable), then configure these secrets on every Environment the
+selected workflow can enter (including `*-manual-gate`). Operator procedure:
 [Database authorization closure runbook](runbooks/database-authorization-closure.md).
 
 Record only variable presence, provider labels, project labels, redacted URLs, and reviewer sign-off.

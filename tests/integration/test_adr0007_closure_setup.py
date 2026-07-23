@@ -27,6 +27,9 @@ def test_adr0007_closure_runbook_exists() -> None:
     assert "FARDB_EXPOSED_DATABASE_SCHEMAS" in text
     assert "FARDB_EXPOSED_DATABASE_SCHEMAS_ASSET_GRAPH" in text
     assert "environment **secrets**" in text.lower() or "environment secrets" in text.lower()
+    assert "staging-manual-gate" in text
+    assert "release-evidence" in text
+    assert "Settings → Environments" in text or "settings → environments" in text.lower()
     assert "full" in text.lower() and "inventoried" in text.lower()
     assert "hardening_tier=P0" in text
     assert "repository root" in text.lower()
@@ -66,6 +69,8 @@ def test_adr0007_issue_template_exists() -> None:
     assert "staging-promotion" in text
     assert "production-promotion" in text
     assert "release-evidence-verify" in text
+    assert "`staging` Environment exists" in text
+    assert "`release-evidence` Environment exists" in text
 
 
 def test_env_example_documents_untrusted_roles() -> None:
