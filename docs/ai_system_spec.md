@@ -14,12 +14,12 @@ claim, and where humans remain in control.
 
 ## 1. System identity
 
-| Item             | Description                                                                                           |
-| ---------------- | ----------------------------------------------------------------------------------------------------- |
-| Product          | Financial Asset Relationship Database (FarDB)                                                         |
-| Production stack | FastAPI backend (`api/`) + Next.js frontend (`frontend/`)                                             |
-| Non-production   | Gradio UI (`app.py`) for demos and internal testing only                                              |
-| Primary function | Persist and expose an asset relationship graph, metrics, and rebuild/recovery control-plane behaviour |
+| Item             | Description                                                                                                                                                      |
+| ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Product          | Financial Asset Relationship Database (FarDB)                                                                                                                    |
+| Production stack | FastAPI backend (`api/`) + Next.js frontend (`frontend/`)                                                                                                        |
+| Non-production   | Gradio UI (`app.py`) for demos/internal testing; MCP server (`mcp_server.py`) for LLM-agent graph tools/resources (CI-validated, not the hosted product ingress) |
+| Primary function | Persist and expose an asset relationship graph, metrics, and rebuild/recovery control-plane behaviour                                                            |
 
 FarDB is an enterprise data and operations system. It is **not** marketed as a
 general-purpose generative AI assistant or automated investment advisor.
