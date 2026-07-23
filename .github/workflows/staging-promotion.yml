@@ -122,7 +122,10 @@ jobs:
           echo "::add-mask::$URL"
 
           # --require-persistence also enables --assets-smoke (H-P1-01).
-          python scripts/check_hosted_readiness.py "$URL" --json --require-persistence > readiness-output.json
+          # 30s covers Vercel Python cold starts; script default (5s) is too tight.
+          python scripts/check_hosted_readiness.py \
+            "$URL" --json --timeout 30 --require-persistence \
+            > readiness-output.json
 
       - name: Assert Persistence Loaded
         run: |

@@ -218,12 +218,12 @@ Note: Docker configuration currently references Gradio. Aligning deployment arti
 Inputs/env:
 
 - `base_url` workflow input or `HOSTED_READINESS_BASE_URL` repository secret (the workflow skips when neither is set)
-- `timeout` workflow input (seconds; defaults to `10`)
+- `timeout` workflow input (seconds; defaults to `30`)
 
 Run locally:
 
 ```pwsh
-python scripts/check_hosted_readiness.py <base_url> --timeout 10
+python scripts/check_hosted_readiness.py <base_url> --timeout 30
 ```
 
 ## High-level architecture
@@ -349,7 +349,7 @@ GitHub Actions (`.github/workflows/`) include, among others:
 Environment is Linux with Python 3.12 and Node 22 (Cursor Cloud images may update over time). In Cursor Cloud, dependencies (Python `.venv` + `frontend/node_modules`) are refreshed automatically by the platform-managed startup/update process, so you normally only need to start services and run checks. Standard commands live in the "Common commands" section above and in `run-dev.sh`; the notes below only cover non-obvious cloud gotchas.
 
 - **`python` is not on PATH — only `python3`.** In Cursor Cloud, `run-dev.sh` and some docs invoke bare `python`, which fails unless your venv is activated (`source .venv/bin/activate` provides `python`). If `.venv` does not exist yet, create it first with `python3 -m venv .venv`; otherwise activate the venv or substitute `python3`.
-- **SQLite `DATABASE_URL` gotcha (backend won't start otherwise):** this repo uses a **custom URL-to-path resolver** in `api/database.py` (`_resolve_file_path`), *not* SQLAlchemy URL handling.
+- **SQLite `DATABASE_URL` gotcha (backend won't start otherwise):** this repo uses a **custom URL-to-path resolver** in `api/database.py` (`_resolve_file_path`), _not_ SQLAlchemy URL handling.
   - **Problem:** SQLAlchemy-style `sqlite:///./dev.db` resolves to `/dev.db` under this resolver and is usually unwritable (`sqlite3.OperationalError: unable to open database file`).
   - **Known-bad examples:** `sqlite:///./dev.db`, `sqlite:///./asset_graph.db`.
   - **Recommended values:** `sqlite:dev.db` (repo-relative), `sqlite:///:memory:`, or an explicit writable absolute path such as `sqlite:////absolute/path/dev.db`.
