@@ -36,6 +36,9 @@ def _clear_database_url_environment(monkeypatch: pytest.MonkeyPatch) -> None:
     for variable_name in checker.SUPPORTED_DATABASE_URL_ENVS:
         monkeypatch.delenv(variable_name, raising=False)
     monkeypatch.delenv(checker.UNTRUSTED_DATABASE_ROLES_ENV, raising=False)
+    monkeypatch.delenv(checker.EXPOSED_DATABASE_SCHEMAS_ENV, raising=False)
+    for schema_env in checker.EXPOSED_DATABASE_SCHEMAS_ENV_BY_URL_ENV.values():
+        monkeypatch.delenv(schema_env, raising=False)
 
 
 def _snapshot(**overrides: int) -> checker.AuthorizationSnapshot:
@@ -245,18 +248,24 @@ def test_validate_database_url_accepts_external_authentication() -> None:
 
 
 @pytest.mark.unit
-def test_configured_database_urls_deduplicate_fixed_allowlist() -> None:
-    """Repeated configured boundaries should be checked once without accepting arbitrary keys."""
+def test_configured_authorization_boundaries_deduplicate_fixed_allowlist() -> None:
+    """Repeated URL envs should merge into one boundary without accepting arbitrary keys."""
     database_url = _database_url()
-    configured = checker._configured_database_urls(
+    boundaries = checker._configured_authorization_boundaries(
         {
             "DATABASE_URL": database_url,
             "ASSET_GRAPH_DATABASE_URL": database_url,
             "UNSUPPORTED_DATABASE_URL": _database_url("other.invalid"),
-        }
+        },
+        "public",
     )
 
-    assert configured == (checker.TrustedDatabaseUrl(database_url),)
+    assert boundaries == (
+        checker.BoundaryAuthorizationTarget(
+            database_url=checker.TrustedDatabaseUrl(database_url),
+            exposed_schemas=("public",),
+        ),
+    )
 
 
 @pytest.mark.unit
@@ -461,3 +470,143 @@ def test_main_fails_closed_when_exposed_schema_is_empty(
     assert result == checker.CHECK_FAILED
     assert captured.err == ""
     assert "exposed-schema-rls" in captured.out
+
+
+@pytest.mark.unit
+def test_main_checks_every_schema_from_exposed_schemas_env(
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """FARDB_EXPOSED_DATABASE_SCHEMAS must expand the gate beyond the CLI default."""
+    monkeypatch.setenv("DATABASE_URL", _database_url())
+    monkeypatch.setenv(checker.EXPOSED_DATABASE_SCHEMAS_ENV, "public,app")
+    schemas_seen: list[str] = []
+
+    class _TrackingConnection(_FakeConnection):
+        def cursor(self) -> _FakeCursor:
+            cursor = super().cursor()
+            original_execute = cursor.execute
+
+            def _execute(query: str, parameters: dict[str, object]) -> None:
+                schema = parameters.get("schema")
+                if isinstance(schema, str):
+                    schemas_seen.append(schema)
+                original_execute(query, parameters)
+
+            cursor.execute = _execute  # type: ignore[method-assign]
+            return cursor
+
+    result = checker.main([], connector=lambda _url: _TrackingConnection((4, 4, 0, 0, 0, 0, 0, 2)))
+
+    captured = capsys.readouterr()
+    assert result == checker.SUCCESS
+    assert schemas_seen == ["public", "app"]
+    assert "database authorization gate passed" in captured.out
+
+
+@pytest.mark.unit
+def test_main_rejects_empty_exposed_schemas_env(
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """An empty FARDB_EXPOSED_DATABASE_SCHEMAS value must fail closed."""
+    monkeypatch.setenv("DATABASE_URL", _database_url())
+    monkeypatch.setenv(checker.EXPOSED_DATABASE_SCHEMAS_ENV, " , ")
+
+    def unexpected_connect(_database_url: str) -> Any:
+        raise AssertionError("connector must not be called")
+
+    result = checker.main([], connector=unexpected_connect)
+
+    captured = capsys.readouterr()
+    assert result == checker.USAGE_ERROR
+    assert captured.err == "database authorization check configuration is invalid\n"
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    "raw_schemas",
+    [
+        "public,",
+        "public,,app",
+        ",public",
+    ],
+)
+def test_configured_exposed_schemas_rejects_empty_csv_fields(raw_schemas: str) -> None:
+    """Malformed schema inventories must fail closed before a PASS can be emitted."""
+    configured = checker._configured_exposed_schemas(
+        {checker.EXPOSED_DATABASE_SCHEMAS_ENV: raw_schemas},
+        "public",
+    )
+    assert configured is None
+
+
+@pytest.mark.unit
+def test_configured_authorization_boundaries_use_per_url_schema_overrides() -> None:
+    """Boundary-unique schemas must not be projected onto unrelated database URLs."""
+    auth_url = _database_url("auth.invalid")
+    graph_url = _database_url("graph.invalid")
+    boundaries = checker._configured_authorization_boundaries(
+        {
+            "DATABASE_URL": auth_url,
+            "ASSET_GRAPH_DATABASE_URL": graph_url,
+            checker.EXPOSED_DATABASE_SCHEMAS_ENV: "public",
+            checker.EXPOSED_DATABASE_SCHEMAS_ENV_BY_URL_ENV["ASSET_GRAPH_DATABASE_URL"]: "public,graph_api",
+        },
+        "public",
+    )
+
+    assert boundaries == (
+        checker.BoundaryAuthorizationTarget(
+            database_url=checker.TrustedDatabaseUrl(auth_url),
+            exposed_schemas=("public",),
+        ),
+        checker.BoundaryAuthorizationTarget(
+            database_url=checker.TrustedDatabaseUrl(graph_url),
+            exposed_schemas=("public", "graph_api"),
+        ),
+    )
+
+
+@pytest.mark.unit
+def test_main_applies_boundary_schema_overrides_per_url(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Each configured URL must be checked only with its own exposed-schema inventory."""
+    auth_url = _database_url("auth.invalid")
+    graph_url = _database_url("graph.invalid")
+    monkeypatch.setenv("DATABASE_URL", auth_url)
+    monkeypatch.setenv("ASSET_GRAPH_DATABASE_URL", graph_url)
+    monkeypatch.setenv(checker.EXPOSED_DATABASE_SCHEMAS_ENV, "public")
+    monkeypatch.setenv(
+        checker.EXPOSED_DATABASE_SCHEMAS_ENV_BY_URL_ENV["ASSET_GRAPH_DATABASE_URL"],
+        "public,graph_api",
+    )
+    seen: list[tuple[str, str]] = []
+
+    class _TrackingConnection(_FakeConnection):
+        def __init__(self, database_url: str) -> None:
+            super().__init__((4, 4, 0, 0, 0, 0, 0, 2))
+            self.database_url = database_url
+
+        def cursor(self) -> _FakeCursor:
+            cursor = super().cursor()
+            original_execute = cursor.execute
+
+            def _execute(query: str, parameters: dict[str, object]) -> None:
+                schema = parameters.get("schema")
+                if isinstance(schema, str):
+                    seen.append((self.database_url, schema))
+                original_execute(query, parameters)
+
+            cursor.execute = _execute  # type: ignore[method-assign]
+            return cursor
+
+    result = checker.main([], connector=lambda url: _TrackingConnection(str(url)))
+
+    assert result == checker.SUCCESS
+    assert seen == [
+        (auth_url, "public"),
+        (graph_url, "public"),
+        (graph_url, "graph_api"),
+    ]

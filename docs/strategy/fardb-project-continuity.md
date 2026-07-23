@@ -69,16 +69,22 @@ Primary authorities:
   Workflow wiring exists in `release-evidence-verify.yml`, `staging-promotion.yml`, and `production-promotion.yml`
   (H-P0-04 Partially satisfied). Assert-path `hardening_tier=P0` fails closed when DB authz is skipped; staging,
   production, and release-evidence authz steps fail closed when any required boundary secret is missing
-  (asset-graph, auth/app or postgres fallback, and coordination).
+  (asset-graph, auth/app or postgres fallback, and coordination). Operator setup path:
+  `docs/runbooks/database-authorization-closure.md`,
+  `docs/evidence-records/templates/db-authz-*.md`,
+  `.github/ISSUE_TEMPLATE/database_authorization_closure.md`.
 - **Dependencies or blockers:** Live inventory; least-privilege role and policy design; negative tests; application,
   recovery, and restore regression proof; provider advisers; credential review; operator approval; Environment secrets
   for staging/production promotion paths.
-- **Evidence and provenance:** ADR 0007 is accepted and the bounded checker was merged through PR #1482. The ADR
-  explicitly says that it does not mutate the live database or close the gate without target-environment evidence.
-- **Next action and completion test:** Execute ADR 0007's remediation sequence against staging, preserve sensitive
-  findings in a restricted record, and attach a redacted pass result showing every exit criterion is satisfied or a
-  named, time-bounded exception is approved. Public evidence marker form:
-  `db_authz: PASS|<opaque-workflow-run-or-artifact-id>`.
+- **Evidence and provenance:** ADR 0007 is accepted and the bounded checker was merged through PR #1482. Fail-closed
+  Assert-path wiring landed through PR #1506. The operator closure setup path (runbook, worksheets, issue template)
+  lands through PR #1520. The ADR explicitly says that it does not mutate the live database or close the gate without
+  target-environment evidence.
+- **Next action and completion test:** Open a `[DB AUTHZ]` closure issue from the template, complete the restricted
+  worksheet offline, configure GitHub Environment secrets, execute ADR 0007's remediation sequence against staging,
+  dispatch staging-promotion (or release-evidence with `hardening_tier=P0`), and attach a redacted
+  `db_authz: PASS|<opaque-workflow-run-or-artifact-id>` showing every exit criterion is satisfied or a named,
+  time-bounded exception is approved.
 - **Last updated:** 2026-07-22
 
 ### FPC-2026-07-21-02 — Prove release repeatability for the exact artefact
@@ -379,17 +385,14 @@ Primary authorities:
 
 ### Next highest-value action
 
-Close FPC-2026-07-21-01: execute and evidence the ADR 0007 hosted database authorization contract in staging. This is
-the nearest release blocker and a prerequisite for credible sensitive-domain or enterprise positioning. Repository
-Assert-path fail-closed wiring for skipped DB authz does not substitute for a live redacted
+Close **FPC-2026-07-21-01** using the
+[closure runbook](../runbooks/database-authorization-closure.md); see that entry’s **Next action and completion
+test**. Repository Assert-path fail-closed wiring does not substitute for a live redacted
 `db_authz: PASS|<opaque-ref>`.
 
 ### Completion test
 
-The authorization checker passes every configured hosted boundary; manual privileged-function review, negative access
-tests, rollback, application/recovery/restore regression checks, provider advisers, credential review, and redacted
-operator sign-off are complete; and no unresolved high-severity access-control finding remains without a named,
-time-bounded exception.
+Same completion test as **FPC-2026-07-21-01** (and the runbook exit criteria).
 
 ## Backfill coverage and gaps
 

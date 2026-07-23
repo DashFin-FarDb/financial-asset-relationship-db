@@ -57,11 +57,11 @@ The selected deployment platform is Vercel. The repository is configured for a m
 
 Operators must record the following mapping for each release candidate:
 
-| Environment | Required mapping | Evidence location |
-| --- | --- | --- |
-| Preview | Preview deployment URL and durability label: `durable` or `non-durable`. | Release-candidate evidence issue. |
-| Staging | Vercel project name or deployment URL used for staging frontend and backend/API traffic. | Release-candidate evidence issue. |
-| Production | Production project/domain if already known; otherwise explicitly deferred. | Release-candidate evidence issue or production cutover record. |
+| Environment | Required mapping                                                                         | Evidence location                                              |
+| ----------- | ---------------------------------------------------------------------------------------- | -------------------------------------------------------------- |
+| Preview     | Preview deployment URL and durability label: `durable` or `non-durable`.                 | Release-candidate evidence issue.                              |
+| Staging     | Vercel project name or deployment URL used for staging frontend and backend/API traffic. | Release-candidate evidence issue.                              |
+| Production  | Production project/domain if already known; otherwise explicitly deferred.               | Release-candidate evidence issue or production cutover record. |
 
 Preview deployments must not be treated as staging or production durable proof unless they are explicitly labelled
 durable, use PostgreSQL-compatible durable boundaries, and are approved as promotion evidence.
@@ -70,11 +70,11 @@ durable, use PostgreSQL-compatible durable boundaries, and are approved as promo
 
 Staging must use Supabase PostgreSQL durable boundaries. SQLite is not accepted as staging durable persistence.
 
-| Boundary | Environment variable | Required staging behavior | Evidence required |
-| --- | --- | --- | --- |
-| App/auth database | `DATABASE_URL` | Exists and points to a Supabase PostgreSQL durable app/auth database. | Redacted Supabase project/database label and variable-presence confirmation. |
-| Asset graph database | `ASSET_GRAPH_DATABASE_URL` | Exists and points to the authoritative Supabase PostgreSQL durable graph database. Must be distinct from `DATABASE_URL` unless an exception is approved. | Redacted Supabase project/database label, distinctness confirmation, and hosted persistence smoke evidence. |
-| Coordination database | `COORDINATION_DATABASE_URL` | Exists when rebuild lock/job coordination is separated. If absent, coordination fallback boundary is documented. | Redacted Supabase project/database label or explicit shared-boundary statement. |
+| Boundary              | Environment variable        | Required staging behavior                                                                                                                                | Evidence required                                                                                           |
+| --------------------- | --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| App/auth database     | `DATABASE_URL`              | Exists and points to a Supabase PostgreSQL durable app/auth database.                                                                                    | Redacted Supabase project/database label and variable-presence confirmation.                                |
+| Asset graph database  | `ASSET_GRAPH_DATABASE_URL`  | Exists and points to the authoritative Supabase PostgreSQL durable graph database. Must be distinct from `DATABASE_URL` unless an exception is approved. | Redacted Supabase project/database label, distinctness confirmation, and hosted persistence smoke evidence. |
+| Coordination database | `COORDINATION_DATABASE_URL` | Exists when rebuild lock/job coordination is separated. If absent, coordination fallback boundary is documented.                                         | Redacted Supabase project/database label or explicit shared-boundary statement.                             |
 
 Shared boundaries are allowed only when intentional and documented. If coordination shares the app/auth database, the
 release evidence must say so explicitly.
@@ -90,6 +90,31 @@ Before staging promotion, the Secret/config maintainer must confirm:
 - If `COORDINATION_DATABASE_URL` is absent, the fallback boundary is documented.
 - `SECRET_KEY`, `ADMIN_USERNAME`, and `ADMIN_PASSWORD` are configured through Vercel environment variables.
 - No raw secret values are committed or pasted into issues, PRs, logs, or evidence records.
+
+### H-P0-04 / ADR 0007 GitHub Environment secrets
+
+For durable staging **topology**, `COORDINATION_DATABASE_URL` remains conditional when coordination shares another
+boundary and that fallback is documented (see Required Variable Verification above). **Separately**, the authz gate
+in `staging-promotion.yml` / `production-promotion.yml` (and release-evidence when `hardening_tier=P0`) fails closed
+unless these GitHub Environment secrets are all present—partial URL sets must not produce a PASS:
+
+- `ASSET_GRAPH_DATABASE_URL`
+- `DATABASE_URL` or `POSTGRES_URL` (at least one)
+- `COORDINATION_DATABASE_URL` (required for the authz workflow step even when topology documents a shared-boundary
+  fallback—point the secret at the effective coordination boundary)
+
+`hardening_tier=none` on release-evidence is a soft rehearsal and is not H-P0-04 closure. Optional:
+`FARDB_UNTRUSTED_DATABASE_ROLES` (defaults apply when unset; leave empty values unset). When a boundary relies on the
+global/default inventory and exposes schemas beyond `public`, set the GitHub Environment **secret**
+`FARDB_EXPOSED_DATABASE_SCHEMAS` to the **full** inventoried list for that default (always include `public` when it is
+exposed; a list of only newly discovered non-`public` schemas skips `public` and can falsely PASS). When inventories
+differ by database URL—or every non-`public` inventory is per-URL—set the fixed per-boundary secrets
+(`FARDB_EXPOSED_DATABASE_SCHEMAS_DATABASE`, `FARDB_EXPOSED_DATABASE_SCHEMAS_ASSET_GRAPH`,
+`FARDB_EXPOSED_DATABASE_SCHEMAS_COORDINATION`, `FARDB_EXPOSED_DATABASE_SCHEMAS_POSTGRES`); each replaces the
+global/default for its URL. The global secret is not required when every boundary uses an override. Unset defaults to
+`public` only. Configure these secrets on every Environment the selected workflow can enter (including
+`*-manual-gate`). Operator procedure:
+[Database authorization closure runbook](runbooks/database-authorization-closure.md).
 
 Record only variable presence, provider labels, project labels, redacted URLs, and reviewer sign-off.
 
@@ -119,6 +144,9 @@ link the following evidence:
 - [ ] Confirmation that `ASSET_GRAPH_DATABASE_URL` is distinct from `DATABASE_URL`, or approved exception details.
 - [ ] Confirmation that `COORDINATION_DATABASE_URL` exists when coordination is separated, or documented fallback when
       absent.
+- [ ] H-P0-04 authz gate: GitHub Environment has asset-graph, auth/app (or postgres fallback), **and**
+      `COORDINATION_DATABASE_URL` pointing at the effective coordination boundary (required by the workflow even when
+      topology uses a documented shared-boundary fallback; see [closure runbook](runbooks/database-authorization-closure.md)).
 - [ ] Preview durability label for any preview evidence used.
 - [ ] Hosted readiness with durable persistence required:
 
@@ -168,6 +196,7 @@ promotion record.
 ## Related Documents
 
 - [Hosted Readiness Evidence Guide](operations/hosted-readiness-evidence-guide.md)
+- [Database authorization closure runbook](runbooks/database-authorization-closure.md)
 - [Enterprise Deployment Operating Model](enterprise-deployment-operating-model.md)
 - [Release Evidence Pack](release-evidence-pack.md)
 - [Enterprise Release Checklist](release-checklist.md)

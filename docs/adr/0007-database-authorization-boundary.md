@@ -89,9 +89,21 @@ defaults the current provider-role identities to `anon` and `authenticated`; ano
 `FARDB_UNTRUSTED_DATABASE_ROLES` to its comma-separated untrusted database role identities and retain that choice
 in restricted evidence. Missing default provider roles are treated as having no authority. When the role
 environment variable is explicitly set, every configured identity must resolve on every checked boundary or the
-gate fails closed. Connection establishment, statement execution and catalog lock waits are time-bounded. The
-checker produces bounded pass/fail output and does not replace provider advisers, application integration tests
-or recovery exercises.
+gate fails closed. Exposed schemas default to `public`. Set the Environment secret
+`FARDB_EXPOSED_DATABASE_SCHEMAS` to the **full** comma-separated inventoried list (include `public` when exposed)
+when at least one boundary relies on that global/default inventory. When inventories differ by database boundary,
+set only these fixed per-URL Environment secrets (each replaces the global/default for that URL; other names are
+ignored):
+
+- `FARDB_EXPOSED_DATABASE_SCHEMAS_DATABASE` for `DATABASE_URL`
+- `FARDB_EXPOSED_DATABASE_SCHEMAS_ASSET_GRAPH` for `ASSET_GRAPH_DATABASE_URL`
+- `FARDB_EXPOSED_DATABASE_SCHEMAS_COORDINATION` for `COORDINATION_DATABASE_URL`
+- `FARDB_EXPOSED_DATABASE_SCHEMAS_POSTGRES` for `POSTGRES_URL`
+
+The automated gate then checks every exposed schema on the correct boundary before a promotion PASS.
+Connection establishment, statement execution and catalog lock waits are time-bounded. The checker produces
+bounded pass/fail output and does not replace provider advisers, application integration tests or recovery
+exercises.
 
 The checker cannot infer which business functions are privileged solely from catalog shape. The restricted
 closure record must therefore inventory privileged and security-definer functions and verify their schema,
@@ -154,6 +166,9 @@ The release-blocking authorization gate closes only when:
 - [ADR 0001: Production architecture](./0001-production-architecture.md)
 - [ADR 0002: Hosted deployment and persistence](./0002-hosted-deployment-and-persistence.md)
 - [State machine and operating authority](../governance/state-machine-and-operating-authority.md)
+- [Database authorization closure runbook](../runbooks/database-authorization-closure.md)
+- [Public redacted pass template](../evidence-records/templates/db-authz-public-redacted-pass.md)
+- [Restricted closure worksheet](../evidence-records/templates/db-authz-restricted-closure.md)
 - [Supabase: Securing the Data API](https://supabase.com/docs/guides/api/securing-your-api)
 - [Supabase: Row Level Security](https://supabase.com/docs/guides/database/postgres/row-level-security)
 - [PostgreSQL: Row security policies](https://www.postgresql.org/docs/current/ddl-rowsecurity.html)

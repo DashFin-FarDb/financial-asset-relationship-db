@@ -80,6 +80,16 @@ jobs:
           POSTGRES_URL: ${{ secrets.POSTGRES_URL }}
           FARDB_UNTRUSTED_DATABASE_ROLES: >-
             ${{ secrets.FARDB_UNTRUSTED_DATABASE_ROLES }}
+          FARDB_EXPOSED_DATABASE_SCHEMAS: >-
+            ${{ secrets.FARDB_EXPOSED_DATABASE_SCHEMAS }}
+          FARDB_EXPOSED_DATABASE_SCHEMAS_DATABASE: >-
+            ${{ secrets.FARDB_EXPOSED_DATABASE_SCHEMAS_DATABASE }}
+          FARDB_EXPOSED_DATABASE_SCHEMAS_ASSET_GRAPH: >-
+            ${{ secrets.FARDB_EXPOSED_DATABASE_SCHEMAS_ASSET_GRAPH }}
+          FARDB_EXPOSED_DATABASE_SCHEMAS_COORDINATION: >-
+            ${{ secrets.FARDB_EXPOSED_DATABASE_SCHEMAS_COORDINATION }}
+          FARDB_EXPOSED_DATABASE_SCHEMAS_POSTGRES: >-
+            ${{ secrets.FARDB_EXPOSED_DATABASE_SCHEMAS_POSTGRES }}
         run: |
           python scripts/verify_staging_promotion.py "$EVIDENCE_FILE"
 
@@ -110,11 +120,22 @@ jobs:
           fi
 
           # GitHub injects unset secrets as empty strings. An empty value makes
-          # the checker reject config instead of applying default roles, so
-          # drop it before invocation.
+          # the checker reject config instead of applying defaults, so drop it
+          # before invocation.
           if [ -z "$FARDB_UNTRUSTED_DATABASE_ROLES" ]; then
             unset FARDB_UNTRUSTED_DATABASE_ROLES
           fi
+          for schema_secret in \
+            FARDB_EXPOSED_DATABASE_SCHEMAS \
+            FARDB_EXPOSED_DATABASE_SCHEMAS_DATABASE \
+            FARDB_EXPOSED_DATABASE_SCHEMAS_ASSET_GRAPH \
+            FARDB_EXPOSED_DATABASE_SCHEMAS_COORDINATION \
+            FARDB_EXPOSED_DATABASE_SCHEMAS_POSTGRES
+          do
+            if [ -z "${!schema_secret}" ]; then
+              unset "$schema_secret"
+            fi
+          done
 
           set +e
           # Bounded stdout/stderr only. Do not upload raw authz logs.

@@ -66,6 +66,16 @@ def test_release_evidence_unsets_empty_untrusted_roles(release_evidence_raw: str
     assert 'if [ -z "$FARDB_UNTRUSTED_DATABASE_ROLES" ]' in release_evidence_raw
 
 
+def test_release_evidence_wires_exposed_schemas_env(release_evidence_raw: str) -> None:
+    """Release-evidence must pass global and per-boundary schema secrets into the checker."""
+    assert "FARDB_EXPOSED_DATABASE_SCHEMAS: ${{ secrets.FARDB_EXPOSED_DATABASE_SCHEMAS }}" in release_evidence_raw
+    assert "FARDB_EXPOSED_DATABASE_SCHEMAS_ASSET_GRAPH" in release_evidence_raw
+    assert "FARDB_EXPOSED_DATABASE_SCHEMAS_COORDINATION" in release_evidence_raw
+    assert "FARDB_EXPOSED_DATABASE_SCHEMAS_DATABASE" in release_evidence_raw
+    assert "FARDB_EXPOSED_DATABASE_SCHEMAS_POSTGRES" in release_evidence_raw
+    assert 'unset "$schema_secret"' in release_evidence_raw
+
+
 def test_staging_promotion_fails_closed_without_db_secrets(staging_promotion_raw: str) -> None:
     """Staging promotion must fail closed on missing required H-P0-04 boundaries."""
     assert "missing_asset_graph_database_url" in staging_promotion_raw
@@ -79,6 +89,8 @@ def test_staging_promotion_unsets_empty_untrusted_roles(staging_promotion_raw: s
     """Staging must match production unset behavior for empty untrusted-roles secret."""
     assert "unset FARDB_UNTRUSTED_DATABASE_ROLES" in staging_promotion_raw
     assert 'if [ -z "$FARDB_UNTRUSTED_DATABASE_ROLES" ]' in staging_promotion_raw
+    assert "FARDB_EXPOSED_DATABASE_SCHEMAS_ASSET_GRAPH" in staging_promotion_raw
+    assert 'unset "$schema_secret"' in staging_promotion_raw
 
 
 def test_production_promotion_still_enforces_db_authz() -> None:
@@ -86,6 +98,9 @@ def test_production_promotion_still_enforces_db_authz() -> None:
     text = PRODUCTION_PROMOTION_PATH.read_text(encoding="utf-8")
     assert "check_database_authorization.py" in text
     assert "unset FARDB_UNTRUSTED_DATABASE_ROLES" in text
+    assert "FARDB_EXPOSED_DATABASE_SCHEMAS" in text
+    assert "FARDB_EXPOSED_DATABASE_SCHEMAS_COORDINATION" in text
+    assert 'unset "$schema_secret"' in text
     assert "Database authorization gate failed (H-P0-04)" in text
 
 
