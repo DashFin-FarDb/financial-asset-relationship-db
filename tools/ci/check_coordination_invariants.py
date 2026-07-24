@@ -67,7 +67,7 @@ def scan_file(path: Path) -> list[str]:
     """Scan a Python file for coordination invariant violations."""
     try:
         content = path.read_text(encoding="utf-8")
-    except Exception as e:
+    except (OSError, UnicodeDecodeError) as e:
         return [f"ERROR reading {path}: {e}"]
 
     violations: list[str] = []

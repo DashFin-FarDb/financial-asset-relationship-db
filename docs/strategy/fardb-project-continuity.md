@@ -58,7 +58,7 @@ Primary authorities:
 ### FPC-2026-07-21-01 — Close the hosted database authorization gate
 
 - **Type:** Security / release blocker
-- **Status:** Blocked
+- **Status:** Partially satisfied — automated gate passed; restricted exit criteria + sign-off open
 - **Decision or objective:** Enforce and prove the deny-by-default hosted PostgreSQL authorization boundary defined
   by ADR 0007.
 - **Rationale and constraints:** Database reachability, durability, and application authentication do not prove
@@ -78,16 +78,15 @@ Primary authorities:
   for staging/production promotion paths.
 - **Evidence and provenance:** ADR 0007 is accepted and the bounded checker was merged through PR #1482. Fail-closed
   Assert-path wiring landed through PR #1506. The operator closure setup path (runbook, worksheets, issue template,
-  per-boundary schema secrets) landed through PR #1520 (`e121b54d` on `main`). The ADR explicitly says that it does
-  not mutate the live database or close the gate without target-environment evidence.
-- **Next action and completion test:** Confirm required GitHub Environments exist (`staging`, `staging-manual-gate`,
-  `release-evidence`, and for production paths `production` / `production-manual-gate`). Open a `[DB AUTHZ]` closure
-  issue from the template, complete the restricted worksheet offline, configure Environment **secrets** on every
-  Environment the selected workflow can enter, execute ADR 0007's remediation sequence against staging, dispatch
-  staging-promotion (or release-evidence with `hardening_tier=P0`), and attach a redacted
-  `db_authz: PASS|<opaque-workflow-run-or-artifact-id>` showing every exit criterion is satisfied or a named,
-  time-bounded exception is approved. Do not mark H-P0-04 Satisfied until that marker is attached.
-- **Last updated:** 2026-07-23
+  per-boundary schema secrets) landed through PR #1520 (`e121b54d` on `main`). Deny-by-default migrations landed
+  through PR #1526 (`8f95fad1` on `main`). Staging closure tracker [#1525](https://github.com/DashFin-FarDb/financial-asset-relationship-db/issues/1525)
+  captured a P0 `release-evidence-verify` pass at `29991d03` with public marker
+  `db_authz: PASS|run-30002002715` ([run 30002002715](https://github.com/DashFin-FarDb/financial-asset-relationship-db/actions/runs/30002002715));
+  committed redacted record in PR #1528 (`docs/evidence-records/hp004-db-authz-pass-29991d03.md`).
+- **Next action and completion test:** Merge PR #1528, complete restricted worksheet steps 1/2/4/5 and manual
+  fixed-search-path review, obtain named operator sign-off on the public record, then mark H-P0-04 / FPC-2026-07-21-01
+  Satisfied only when every ADR 0007 exit criterion is passed or a named, time-bounded exception is approved.
+- **Last updated:** 2026-07-24
 
 ### FPC-2026-07-21-02 — Prove release repeatability for the exact artefact
 
@@ -331,7 +330,8 @@ Primary authorities:
   - PR #1508 — H-P1-01 `--assets-smoke` with `--require-persistence` (`5c507f6c`)
   - PR #1509 — H-P1-02 `production-promotion.yml` twin (`74c5451a`)
 - **Evidence and provenance:** Merged history on `main`; evidence pack / board rows for H-P1-01 and H-P1-02 marked
-  Satisfied - automated. H-P0-04 remains Partially satisfied pending target-environment redacted PASS.
+  Satisfied - automated. H-P0-04 remains Partially satisfied: staging redacted PASS attached; restricted review and
+  named sign-off still open (#1525 / PR #1528).
 - **In flight:** PR #1510 — H-P1-03 post-recovery readiness re-smoke dispatch recipe + artifacts.
 - **Last updated:** 2026-07-21
 
@@ -350,9 +350,9 @@ Primary authorities:
 ## Open questions and conflicts
 
 1. **Database authorization closure:** The accepted ADR and checker establish the contract, and promotion/RC workflows
-   can invoke the checker, but public repository evidence does not establish that live remediation, negative tests,
-   rollback, credential review, and provider-adviser checks all passed. Treat the gate as blocked until target
-   evidence says otherwise (FPC-2026-07-21-01 / H-P0-04).
+   can invoke the checker. Staging public marker `db_authz: PASS|run-30002002715` is attached (PR #1528 / #1525);
+   remaining work is restricted worksheet steps 1/2/4/5, fixed-search-path review, and named operator sign-off—not
+   recollecting the staging PASS (FPC-2026-07-21-01 / H-P0-04).
 2. **Current-release identity:** RC1 is approved for its June 2026 SHA. No later SHA inherits that approval. Select the
    next immutable candidate before claiming a current enterprise release.
 3. **Documentation freshness:** The [Enterprise Readiness Index](../enterprise-readiness-index.md) dated 2026-07-15
@@ -389,9 +389,10 @@ Primary authorities:
 
 Close **FPC-2026-07-21-01** using the
 [closure runbook](../runbooks/database-authorization-closure.md) (operator setup landed in PR #1520); see that
-entry’s **Next action and completion test**. First confirm GitHub Environments exist, then attach secrets and
-remediate. Repository Assert-path fail-closed wiring does not substitute for a live redacted
-`db_authz: PASS|<opaque-ref>`.
+entry’s **Next action and completion test**. Staging redacted PASS is already attached
+(`db_authz: PASS|run-30002002715` / PR #1528)—do not recollect it. Remaining work is restricted review and named
+sign-off on #1525. Assert-path fail-closed wiring alone still does not satisfy H-P0-04 without that PASS marker
+plus restricted exit criteria.
 
 ### Completion test
 
