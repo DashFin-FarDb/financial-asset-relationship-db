@@ -33,8 +33,9 @@ jobs:
       - name: Install dependencies
         run: |
           pip install -r requirements.txt
-          # Keep Gate A on the same ruff major band as requirements-dev.txt (<0.16).
-          pip install 'ruff>=0.4.0,<0.16.0' mypy
+          # Keep Gate A on the same ruff band as requirements-dev.txt (<0.16).
+          # Pin exact wheels with --only-binary for Sonar githubactions:S8541/S8544.
+          pip install --only-binary ":all:" "ruff==0.15.22" "mypy==1.17.1"
 
       - name: Run type checking (mypy)
         run: |
