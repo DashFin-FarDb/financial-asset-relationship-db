@@ -17,7 +17,7 @@ rebuild/reconciliation, and deployment/readiness.
 | persistence | [domains/persistence.md](domains/persistence.md) | 1 | 16 |
 | ci-guardrails | [domains/ci-guardrails.md](domains/ci-guardrails.md) | 25 | 22 |
 | rebuild-reconciliation | [domains/rebuild-reconciliation.md](domains/rebuild-reconciliation.md) | 1 | 9 |
-| deployment | [domains/deployment.md](domains/deployment.md) | 11 | 1 |
+| deployment | [domains/deployment.md](domains/deployment.md) | 12 | 0 |
 
 ## Operator notes
 
