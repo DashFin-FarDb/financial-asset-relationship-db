@@ -331,9 +331,9 @@ Primary authorities:
   - PR #1509 — H-P1-02 `production-promotion.yml` twin (`74c5451a`)
 - **Evidence and provenance:** Merged history on `main`; evidence pack / board rows for H-P1-01 and H-P1-02 marked
   Satisfied - automated. H-P0-04 is Satisfied for staging: redacted PASS, restricted exit criteria, and named
-  sign-off recorded (#1525 / PR #1528; `db_authz: PASS|run-30002002715`).
+  sign-off recorded (#1525 / PR #1528 / PR #1529; `db_authz: PASS|run-30002002715`).
 - **In flight:** PR #1510 — H-P1-03 post-recovery readiness re-smoke dispatch recipe + artifacts.
-- **Last updated:** 2026-07-21
+- **Last updated:** 2026-07-24
 
 ## Deferred work
 
