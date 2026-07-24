@@ -23,6 +23,7 @@ Keep detailed findings in the restricted worksheet (private handle only).
 | Workflow run URL             | [run 30002002715](https://github.com/DashFin-FarDb/financial-asset-relationship-db/actions/runs/30002002715) |
 | Workflow run commit SHA      | `29991d0328bd84ada289794b0e5191da56272ce9` (equals Release commit SHA)                                       |
 | Opaque ref for verifier      | `run-30002002715`                                                                                            |
+| Closure completed (UTC)      | 2026-07-24T14:30:00Z                                                                                         |
 
 ## Public marker (SHA-bound)
 
@@ -51,29 +52,53 @@ db_authz: PASS|run-30002002715
 | `readiness-output.json` | passed |
 | `db-authz-output.json`  | passed |
 
+Same-run suite outcomes (redacted counts only): persistence, recovery, restart, API, and security JUnit
+artifacts reported zero failures / zero errors under the release-evidence verify job.
+
 ## Exit criteria (pass/fail only)
 
-- [x] Exposed-schema RLS control: passed (all inventoried exposed schemas)
-- [x] Untrusted-role unintended authority: passed
+- [x] Exposed-schema RLS control: passed (all inventoried exposed schemas; public-only inventory)
+- [x] Untrusted-role unintended authority: passed (bounded checker + live grant count review)
 - [x] Views automated access check: passed
 - [x] Privileged functions automated execution check: passed
-- [ ] Privileged functions manual fixed-search-path review: pending (details restricted)
-- [ ] Application / recovery / restore checks after enforcement: pending
-- [ ] High-severity access-control findings: pending (none unresolved, or named time-bounded exception approved)
-- [ ] Credential review and rollback evidence: pending (details restricted)
-- [ ] Redacted operator sign-off: pending
+- [x] Privileged functions manual fixed-search-path review: passed (fixed nonempty `search_path` without `$user`; not executable by untrusted roles)
+- [x] Application / recovery / restore checks after enforcement: passed — scoped evidence:
+  - Application / persistence / recovery / restart: same-run JUnit + `readiness-output.json` on
+    [run 30002002715](https://github.com/DashFin-FarDb/financial-asset-relationship-db/actions/runs/30002002715)
+    (0 failures / 0 errors; hosted readiness with `--require-persistence` and assets smoke)
+  - Restore **operator path** after enforcement: confirmed against deny-by-default via #1505 runbook
+    (`ck_rebuild_jobs_status` post-restore verification retained)
+  - Out of scope for this authz PASS run: a full DR restore rehearsal / post-restore hosted re-smoke
+    artefact (that remains the separate Disaster Recovery gate / H-P1-03 path; release-evidence-verify
+    itself labels Disaster Recovery as manual evidence required)
+- [x] High-severity access-control findings: passed (none unresolved; provider adviser INFO-only deny-by-default RLS notices are expected, not high severity)
+- [x] Credential review and rollback evidence: passed (no unbounded credential exposure requiring rotation; migration rollback retained in restricted store; app path verified post-enforcement)
+- [x] Redacted operator sign-off: passed
+
+## Remediation sequence (public status only)
+
+- [x] Step 1 — Restricted inventory captured (public-only exposed schema; details offline)
+- [x] Step 2 — Least-privilege design reviewed (#1526 deny-by-default)
+- [x] Step 3 — Negative access tests passed ([run 30002002715](https://github.com/DashFin-FarDb/financial-asset-relationship-db/actions/runs/30002002715))
+- [x] Step 4 — Rollback + app/persist/recovery verified (same-run suites + readiness); restore operator
+      path confirmed via #1505 (full DR restore rehearsal remains a separate DR-gate artefact)
+- [x] Step 5 — Credential / log review complete (no unexpected untrusted-role authority; details offline)
+- [x] Step 6 — Changes applied via governed migration authority (#1526)
+- [x] Step 7 — Provider advisers + bounded checker passed ([run 30002002715](https://github.com/DashFin-FarDb/financial-asset-relationship-db/actions/runs/30002002715))
 
 ## Operator sign-off (public)
 
 | Role                          | Named owner | Sign-off | Date (UTC) |
 | ----------------------------- | ----------- | -------- | ---------- |
-| Closure owner                 | mohavro     | Pending  |            |
-| Promotion / release authority |             | Pending  |            |
+| Closure owner                 | mohavro     | Approved | 2026-07-24 |
+| Promotion / release authority | mohavro     | Approved | 2026-07-24 |
 
 ## Notes
 
 - Deny-by-default migrations: PR #1526 on `main`.
 - Docs readiness file for P0 assert path: PR #1527 on `main`.
-- This record: PR #1528.
+- Public PASS attachment: PR #1528 on `main`.
 - Restricted worksheet remains offline; do not paste topology into this record or #1525.
-- Mark H-P0-04 / FPC-2026-07-21-01 Satisfied only after remaining exit criteria and named sign-off above.
+- H-P0-04 / FPC-2026-07-21-01 marked Satisfied after the exit criteria and named sign-off above.
+- Satisfied here means staging **database authorization** closure for this SHA, not completion of the
+  separate Disaster Recovery restore-rehearsal gate.

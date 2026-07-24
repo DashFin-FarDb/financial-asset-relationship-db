@@ -17,7 +17,7 @@
 | `docs/testing/operational-drill-and-scale-validation-pack.md` | Operational drill matrix and bounded scale-validation guidance for observability, SLO, dashboard, alert, and runbook proof |
 | `docs/governance/state-machine-and-operating-authority.md`    | Current operational authority for rebuild/recovery state machines, invariants, ownership, and exception paths              |
 | `docs/adr/0007-database-authorization-boundary.md`            | Accepted hosted database authorization boundary and bounded verification contract                                          |
-| `docs/runbooks/database-authorization-closure.md`             | Operator setup and remediation path for ADR 0007 / H-P0-04 (staging PASS attached; restricted sign-off open)               |
+| `docs/runbooks/database-authorization-closure.md`             | Operator setup and remediation path for ADR 0007 / H-P0-04 (staging Satisfied — `db_authz: PASS` + `run-30002002715`)      |
 | `docs/adr/0006-release-and-deployment-automation.md`          | Release and Deployment automation strategy, GitHub Actions constraints                                                     |
 | `docs/adr/0005-backup-restore-dr-strategy.md`                 | Backup, restore, DR strategy, data classification, RPO, and RTO                                                            |
 | `docs/runbooks/backup-restore-dr.md`                          | Operator procedures for backup verification, restore execution, and post-restore checks                                    |
