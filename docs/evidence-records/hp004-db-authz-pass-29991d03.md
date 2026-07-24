@@ -57,11 +57,11 @@ db_authz: PASS|run-30002002715
 - [x] Untrusted-role unintended authority: passed
 - [x] Views automated access check: passed
 - [x] Privileged functions automated execution check: passed
-- [ ] Privileged functions manual fixed-search-path review: passed (details restricted)
-- [ ] Application / recovery / restore checks after enforcement: passed
-- [ ] High-severity access-control findings: none unresolved (or named time-bounded exception approved)
-- [ ] Credential review and rollback evidence: complete (details restricted)
-- [ ] Redacted operator sign-off: complete
+- [ ] Privileged functions manual fixed-search-path review: pending (details restricted)
+- [ ] Application / recovery / restore checks after enforcement: pending
+- [ ] High-severity access-control findings: pending (none unresolved, or named time-bounded exception approved)
+- [ ] Credential review and rollback evidence: pending (details restricted)
+- [ ] Redacted operator sign-off: pending
 
 ## Operator sign-off (public)
 
