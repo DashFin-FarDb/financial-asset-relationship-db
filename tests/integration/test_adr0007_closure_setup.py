@@ -99,10 +99,17 @@ def test_adr0007_wired_into_existing_authorities() -> None:
     assert "runbooks/database-authorization-closure.md" in evidence_pack
     assert "db_authz: PASS|" in evidence_pack
     assert "H-P0-04" in pr_board
-    assert "operator closure runbook" in pr_board.lower()
-    assert "staging redacted pass attached" in pr_board.lower()
-    assert "restricted review" in pr_board.lower()
+    assert "operator closure runbook" in pr_board.lower() or "satisfied - manual evidence" in pr_board.lower()
+    assert "satisfied - manual evidence" in pr_board.lower()
+    assert "db_authz: PASS|run-30002002715" in evidence_pack or "run-30002002715" in evidence_pack
+    assert "Satisfied - manual evidence" in evidence_pack or "H-P0-04 Satisfied" in evidence_pack
     assert "live redacted pass is required" not in pr_board.lower()
-    assert "Partially satisfied — staging PASS attached" in evidence_pack or (
-        "staging PASS attached" in evidence_pack and "sign-off open" in evidence_pack
+    evidence_record = (REPO_ROOT / "docs" / "evidence-records" / "hp004-db-authz-pass-29991d03.md").read_text(
+        encoding="utf-8"
     )
+    assert "Redacted operator sign-off: passed" in evidence_record or (
+        "operator sign-off" in evidence_record.lower() and "approved" in evidence_record.lower()
+    )
+    assert "fixed-search-path review: passed" in evidence_record.lower()
+    assert "Partially satisfied — staging PASS attached" not in evidence_pack
+    assert "sign-off open" not in evidence_pack.lower() or "Satisfied" in evidence_pack

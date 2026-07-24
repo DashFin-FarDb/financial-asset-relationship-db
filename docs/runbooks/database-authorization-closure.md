@@ -1,6 +1,6 @@
 # Database Authorization Closure Runbook (ADR 0007 / H-P0-04)
 
-**Status:** Operator setup path (repository). Live target-environment closure remains release-blocking.
+**Status:** Staging closure Satisfied (`db_authz: PASS|run-30002002715` / #1525). Production twin still requires its own SHA-bound evidence when promoted.
 **Authorities:** [ADR 0007](../adr/0007-database-authorization-boundary.md),
 [Release Evidence Pack](../release-evidence-pack.md) (H-P0-04),
 [FPC-2026-07-21-01](../strategy/fardb-project-continuity.md).
@@ -143,7 +143,10 @@ From ADR 0007:
 - Credential review, rollback evidence, and redacted operator sign-off are complete.
 - Public marker `db_authz: PASS|<opaque-ref>` is attached for the exact artefact under promotion.
 
-Until then H-P0-04 / FPC-2026-07-21-01 remain **Partially satisfied / Blocked**.
+Until staging closure evidence and named sign-off are attached, H-P0-04 / FPC-2026-07-21-01 remain
+**Partially satisfied / Blocked**. Staging is Satisfied as of the SHA-bound record
+`docs/evidence-records/hp004-db-authz-pass-29991d03.md` (`db_authz: PASS|run-30002002715`). Production still
+requires its own SHA-bound marker when that target is under promotion.
 
 ## Related documents
 
