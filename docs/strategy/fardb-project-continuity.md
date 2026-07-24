@@ -330,7 +330,8 @@ Primary authorities:
   - PR #1508 — H-P1-01 `--assets-smoke` with `--require-persistence` (`5c507f6c`)
   - PR #1509 — H-P1-02 `production-promotion.yml` twin (`74c5451a`)
 - **Evidence and provenance:** Merged history on `main`; evidence pack / board rows for H-P1-01 and H-P1-02 marked
-  Satisfied - automated. H-P0-04 remains Partially satisfied pending target-environment redacted PASS.
+  Satisfied - automated. H-P0-04 remains Partially satisfied: staging redacted PASS attached; restricted review and
+  named sign-off still open (#1525 / PR #1528).
 - **In flight:** PR #1510 — H-P1-03 post-recovery readiness re-smoke dispatch recipe + artifacts.
 - **Last updated:** 2026-07-21
 
