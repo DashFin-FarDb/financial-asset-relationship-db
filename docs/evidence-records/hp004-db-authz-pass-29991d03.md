@@ -74,5 +74,6 @@ db_authz: PASS|run-30002002715
 
 - Deny-by-default migrations: PR #1526 on `main`.
 - Docs readiness file for P0 assert path: PR #1527 on `main`.
+- This record: PR #1528.
 - Restricted worksheet remains offline; do not paste topology into this record or #1525.
 - Mark H-P0-04 / FPC-2026-07-21-01 Satisfied only after remaining exit criteria and named sign-off above.

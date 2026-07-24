@@ -58,7 +58,7 @@ Primary authorities:
 ### FPC-2026-07-21-01 — Close the hosted database authorization gate
 
 - **Type:** Security / release blocker
-- **Status:** Blocked
+- **Status:** Partially satisfied — automated gate passed; restricted exit criteria + sign-off open
 - **Decision or objective:** Enforce and prove the deny-by-default hosted PostgreSQL authorization boundary defined
   by ADR 0007.
 - **Rationale and constraints:** Database reachability, durability, and application authentication do not prove
@@ -78,16 +78,15 @@ Primary authorities:
   for staging/production promotion paths.
 - **Evidence and provenance:** ADR 0007 is accepted and the bounded checker was merged through PR #1482. Fail-closed
   Assert-path wiring landed through PR #1506. The operator closure setup path (runbook, worksheets, issue template,
-  per-boundary schema secrets) landed through PR #1520 (`e121b54d` on `main`). The ADR explicitly says that it does
-  not mutate the live database or close the gate without target-environment evidence.
-- **Next action and completion test:** Confirm required GitHub Environments exist (`staging`, `staging-manual-gate`,
-  `release-evidence`, and for production paths `production` / `production-manual-gate`). Open a `[DB AUTHZ]` closure
-  issue from the template, complete the restricted worksheet offline, configure Environment **secrets** on every
-  Environment the selected workflow can enter, execute ADR 0007's remediation sequence against staging, dispatch
-  staging-promotion (or release-evidence with `hardening_tier=P0`), and attach a redacted
-  `db_authz: PASS|<opaque-workflow-run-or-artifact-id>` showing every exit criterion is satisfied or a named,
-  time-bounded exception is approved. Do not mark H-P0-04 Satisfied until that marker is attached.
-- **Last updated:** 2026-07-23
+  per-boundary schema secrets) landed through PR #1520 (`e121b54d` on `main`). Deny-by-default migrations landed
+  through PR #1526 (`8f95fad1` on `main`). Staging closure tracker [#1525](https://github.com/DashFin-FarDb/financial-asset-relationship-db/issues/1525)
+  captured a P0 `release-evidence-verify` pass at `29991d03` with public marker
+  `db_authz: PASS|run-30002002715` ([run 30002002715](https://github.com/DashFin-FarDb/financial-asset-relationship-db/actions/runs/30002002715));
+  committed redacted record in PR #1528 (`docs/evidence-records/hp004-db-authz-pass-29991d03.md`).
+- **Next action and completion test:** Merge PR #1528, complete restricted worksheet steps 1/2/4/5 and manual
+  fixed-search-path review, obtain named operator sign-off on the public record, then mark H-P0-04 / FPC-2026-07-21-01
+  Satisfied only when every ADR 0007 exit criterion is passed or a named, time-bounded exception is approved.
+- **Last updated:** 2026-07-24
 
 ### FPC-2026-07-21-02 — Prove release repeatability for the exact artefact
 

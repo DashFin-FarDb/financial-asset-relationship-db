@@ -334,7 +334,7 @@ Board mirror: [Enterprise Readiness PR Board — Hardening backlog](roadmap/ente
 | H-P0-01 | P0       | Align DR docs with code table placement: `rebuild_jobs` on Asset Graph (domain); `distributed_locks` on coordination | Disaster Recovery / Governance     | Docs + staging verifier topology marker          | Satisfied - documented               |
 | H-P0-02 | P0       | Table-scoped post-restore cleanup (locks where locks live; jobs where jobs live) + `running=0` on job boundary       | Disaster Recovery                  | Docs + restore template + verifier markers       | Satisfied - documented               |
 | H-P0-03 | P0       | RC path forces strict hosted readiness (`hardening_tier=P0` → fail on SKIPPED)                                       | Promotion                          | `release-evidence-verify.yml`                    | Satisfied - automated                |
-| H-P0-04 | P0       | Wire `scripts/check_database_authorization.py` into release-evidence + staging-promotion (redacted pass/fail)        | Security (ADR 0007)                | Dispatch workflows + verifier `db_authz:` marker | Partially satisfied                  |
+| H-P0-04 | P0       | Wire `scripts/check_database_authorization.py` into release-evidence + staging-promotion (redacted pass/fail)        | Security (ADR 0007)                | Dispatch workflows + verifier `db_authz:` marker | Partially satisfied — staging PASS attached; sign-off open |
 | H-P0-05 | P0       | Refresh ADR 0002 / `.env.example` to runtime truth (Postgres supported; recommended SQLite URL forms)                | Architecture / Durable Persistence | Docs                                             | Satisfied - documented               |
 | H-P0-06 | P0       | Fresh RC companion record for current `main` SHA (do not reuse RC1 as CURRENT)                                       | All manual gates                   | Issue template + evidence-records                | Satisfied - manual evidence required |
 | H-P1-01 | P1       | `--assets-smoke` on hosted readiness when persistence required                                                       | Promotion                          | Script + workflows                               | Satisfied - automated                |
@@ -375,12 +375,11 @@ applies the same per-boundary prechecks before the checker runs; use `hardening_
 soft rehearsal. Do not embed connection strings, role inventories, or topology details from the
 authorization checker.
 
-**H-P0-04 remaining for Satisfied:** attach a target-environment redacted `db_authz: PASS|<opaque-ref>`
-from a staging (or production) promotion / release-evidence run that executed
-`scripts/check_database_authorization.py` successfully. Repository wiring and the operator setup path
-([closure runbook](runbooks/database-authorization-closure.md), restricted/public worksheets, issue template)
-do not close the live authorization gate without that target-environment evidence (ADR 0007 /
-FPC-2026-07-21-01).
+**H-P0-04 remaining for Satisfied:** staging public marker `db_authz: PASS|run-30002002715` is recorded in
+[`docs/evidence-records/hp004-db-authz-pass-29991d03.md`](evidence-records/hp004-db-authz-pass-29991d03.md)
+(tracker [#1525](https://github.com/DashFin-FarDb/financial-asset-relationship-db/issues/1525), PR #1528). Complete
+restricted worksheet steps 1/2/4/5, manual fixed-search-path review, application/recovery/restore regression proof,
+credential review, and named operator sign-off before marking H-P0-04 Satisfied (ADR 0007 / FPC-2026-07-21-01).
 
 Release-evidence dispatch: set `hardening_tier=P0` (default) so hosted readiness cannot SKIP under the Assert path.
 Use `hardening_tier=none` only for soft rehearsal runs that must not be treated as RC proof.
