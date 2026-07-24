@@ -350,9 +350,9 @@ Primary authorities:
 ## Open questions and conflicts
 
 1. **Database authorization closure:** The accepted ADR and checker establish the contract, and promotion/RC workflows
-   can invoke the checker, but public repository evidence does not establish that live remediation, negative tests,
-   rollback, credential review, and provider-adviser checks all passed. Treat the gate as blocked until target
-   evidence says otherwise (FPC-2026-07-21-01 / H-P0-04).
+   can invoke the checker. Staging public marker `db_authz: PASS|run-30002002715` is attached (PR #1528 / #1525);
+   remaining work is restricted worksheet steps 1/2/4/5, fixed-search-path review, and named operator sign-off—not
+   recollecting the staging PASS (FPC-2026-07-21-01 / H-P0-04).
 2. **Current-release identity:** RC1 is approved for its June 2026 SHA. No later SHA inherits that approval. Select the
    next immutable candidate before claiming a current enterprise release.
 3. **Documentation freshness:** The [Enterprise Readiness Index](../enterprise-readiness-index.md) dated 2026-07-15
@@ -389,9 +389,10 @@ Primary authorities:
 
 Close **FPC-2026-07-21-01** using the
 [closure runbook](../runbooks/database-authorization-closure.md) (operator setup landed in PR #1520); see that
-entry’s **Next action and completion test**. First confirm GitHub Environments exist, then attach secrets and
-remediate. Repository Assert-path fail-closed wiring does not substitute for a live redacted
-`db_authz: PASS|<opaque-ref>`.
+entry’s **Next action and completion test**. Staging redacted PASS is already attached
+(`db_authz: PASS|run-30002002715` / PR #1528)—do not recollect it. Remaining work is restricted review and named
+sign-off on #1525. Assert-path fail-closed wiring alone still does not satisfy H-P0-04 without that PASS marker
+plus restricted exit criteria.
 
 ### Completion test
 
