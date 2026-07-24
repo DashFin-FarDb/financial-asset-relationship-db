@@ -377,9 +377,10 @@ authorization checker.
 
 **H-P0-04 remaining for Satisfied:** staging public marker `db_authz: PASS|run-30002002715` is recorded in
 [`docs/evidence-records/hp004-db-authz-pass-29991d03.md`](evidence-records/hp004-db-authz-pass-29991d03.md)
-(tracker [#1525](https://github.com/DashFin-FarDb/financial-asset-relationship-db/issues/1525), PR #1528). Complete
-restricted worksheet steps 1/2/4/5, manual fixed-search-path review, application/recovery/restore regression proof,
-credential review, and named operator sign-off before marking H-P0-04 Satisfied (ADR 0007 / FPC-2026-07-21-01).
+(tracker [#1525](https://github.com/DashFin-FarDb/financial-asset-relationship-db/issues/1525), PR #1528). Follow the
+[database authorization closure runbook](runbooks/database-authorization-closure.md) to complete restricted worksheet
+steps 1/2/4/5, manual fixed-search-path review, application/recovery/restore regression proof, credential review, and
+named operator sign-off before marking H-P0-04 Satisfied (ADR 0007 / FPC-2026-07-21-01).
 
 Release-evidence dispatch: set `hardening_tier=P0` (default) so hosted readiness cannot SKIP under the Assert path.
 Use `hardening_tier=none` only for soft rehearsal runs that must not be treated as RC proof.
