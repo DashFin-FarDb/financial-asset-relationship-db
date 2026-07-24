@@ -12,17 +12,17 @@ Keep detailed findings in the restricted worksheet (private handle only).
 
 ## Header
 
-| Field                        | Value                                                                                     |
-| ---------------------------- | ----------------------------------------------------------------------------------------- |
-| Release commit SHA           | `29991d0328bd84ada289794b0e5191da56272ce9`                                                |
-| Target environment           | staging                                                                                   |
-| Evidence owner               | mohavro                                                                                   |
-| Capture timestamp (UTC)      | 2026-07-23T11:08:31Z                                                                      |
-| Workflow                     | release-evidence-verify                                                                   |
-| `hardening_tier` (if Assert) | `P0`                                                                                      |
-| Workflow run URL             | https://github.com/DashFin-FarDb/financial-asset-relationship-db/actions/runs/30002002715 |
-| Workflow run commit SHA      | `29991d0328bd84ada289794b0e5191da56272ce9` (equals Release commit SHA)                    |
-| Opaque ref for verifier      | `run-30002002715`                                                                         |
+| Field                        | Value                                                                                                        |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| Release commit SHA           | `29991d0328bd84ada289794b0e5191da56272ce9`                                                                   |
+| Target environment           | staging                                                                                                      |
+| Evidence owner               | mohavro                                                                                                      |
+| Capture timestamp (UTC)      | 2026-07-23T11:08:31Z                                                                                         |
+| Workflow                     | release-evidence-verify                                                                                      |
+| `hardening_tier` (if Assert) | `P0`                                                                                                         |
+| Workflow run URL             | [run 30002002715](https://github.com/DashFin-FarDb/financial-asset-relationship-db/actions/runs/30002002715) |
+| Workflow run commit SHA      | `29991d0328bd84ada289794b0e5191da56272ce9` (equals Release commit SHA)                                       |
+| Opaque ref for verifier      | `run-30002002715`                                                                                            |
 
 ## Public marker (SHA-bound)
 
