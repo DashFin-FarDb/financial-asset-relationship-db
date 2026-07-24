@@ -100,4 +100,9 @@ def test_adr0007_wired_into_existing_authorities() -> None:
     assert "db_authz: PASS|" in evidence_pack
     assert "H-P0-04" in pr_board
     assert "operator closure runbook" in pr_board.lower()
-    assert "live redacted" in pr_board.lower()
+    assert "staging redacted pass attached" in pr_board.lower()
+    assert "restricted review" in pr_board.lower()
+    assert "live redacted pass is required" not in pr_board.lower()
+    assert "Partially satisfied — staging PASS attached" in evidence_pack or (
+        "staging PASS attached" in evidence_pack and "sign-off open" in evidence_pack
+    )
