@@ -46,6 +46,16 @@ FROM_STATE_CHECK = f"from_state IS NULL OR from_state IN ({LIFECYCLE_STATES})"
 TO_STATE_CHECK = f"to_state IN ({LIFECYCLE_STATES})"
 DIRECTION_CHECK = "direction IN ('subject_to_object', 'object_to_subject', 'bidirectional')"
 VISIBILITY_CHECK = "visibility IN ('public', 'internal', 'restricted', 'confidential')"
+# Portable lowercase hex / decimal-string CHECKs (SQLite + PostgreSQL).
+SHA256_HEX_CHECK = (
+    "length({column}) = 64 AND {column} = lower({column}) " "AND translate({column}, '0123456789abcdef', '') = ''"
+)
+STRENGTH_DECIMAL_CHECK = (
+    "length(strength) BETWEEN 1 AND 32 "
+    "AND translate(strength, '0123456789.', '') = '' "
+    "AND strength NOT LIKE '.%' AND strength NOT LIKE '%.' "
+    "AND strength NOT LIKE '%..%'"
+)
 
 
 class RelationshipEvidenceORM(Base):
@@ -55,8 +65,8 @@ class RelationshipEvidenceORM(Base):
     __table_args__ = (
         CheckConstraint(VISIBILITY_CHECK, name="ck_relationship_evidence_visibility"),
         CheckConstraint(
-            "length(content_sha256) = 64",
-            name="ck_relationship_evidence_sha256_length",
+            SHA256_HEX_CHECK.format(column="content_sha256"),
+            name="ck_relationship_evidence_sha256_hex",
         ),
         Index("ix_relationship_evidence_content_sha256", "content_sha256"),
         Index("ix_relationship_evidence_recorded_at", "recorded_at"),
@@ -175,12 +185,12 @@ class RelationshipProjectionRevisionORM(Base):
     __tablename__ = "relationship_projection_revisions"
     __table_args__ = (
         CheckConstraint(
-            "length(edge_set_hash) = 64",
-            name="ck_relationship_projection_revisions_edge_set_hash_len",
+            SHA256_HEX_CHECK.format(column="edge_set_hash"),
+            name="ck_relationship_projection_revisions_edge_set_hash_hex",
         ),
         CheckConstraint(
-            "length(projection_hash) = 64",
-            name="ck_relationship_projection_revisions_projection_hash_len",
+            SHA256_HEX_CHECK.format(column="projection_hash"),
+            name="ck_relationship_projection_revisions_projection_hash_hex",
         ),
         Index("ix_relationship_projection_revisions_purpose", "purpose"),
         Index("ix_relationship_projection_revisions_created_at", "created_at"),
@@ -208,6 +218,7 @@ class RelationshipProjectionEdgeORM(Base):
     __tablename__ = "relationship_projection_edges"
     __table_args__ = (
         CheckConstraint(DIRECTION_CHECK, name="ck_relationship_projection_edges_direction"),
+        CheckConstraint(STRENGTH_DECIMAL_CHECK, name="ck_relationship_projection_edges_strength"),
         Index("ix_relationship_projection_edges_revision_id", "revision_id"),
         Index("ix_relationship_projection_edges_assertion_id", "assertion_id"),
         Index(

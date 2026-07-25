@@ -37,7 +37,10 @@ LEGACY_TABLES = (
 )
 
 EXPECTED_CHECK_NAMES = {
-    "relationship_evidence": {"ck_relationship_evidence_visibility", "ck_relationship_evidence_sha256_length"},
+    "relationship_evidence": {
+        "ck_relationship_evidence_visibility",
+        "ck_relationship_evidence_sha256_hex",
+    },
     "relationship_assertions": {
         "ck_relationship_assertions_confidence_status",
         "ck_relationship_assertions_confidence_bp",
@@ -49,7 +52,14 @@ EXPECTED_CHECK_NAMES = {
         "ck_relationship_assertion_events_to_state",
         "ck_relationship_assertion_events_sequence",
     },
-    "relationship_projection_edges": {"ck_relationship_projection_edges_direction"},
+    "relationship_projection_revisions": {
+        "ck_relationship_projection_revisions_edge_set_hash_hex",
+        "ck_relationship_projection_revisions_projection_hash_hex",
+    },
+    "relationship_projection_edges": {
+        "ck_relationship_projection_edges_direction",
+        "ck_relationship_projection_edges_strength",
+    },
 }
 
 EXPECTED_INDEX_NAMES = {
@@ -291,9 +301,13 @@ class TestRelationshipAssertionImmutability:
         """Trigger naming helper stays aligned with installed guards."""
         init_db(schema_engine)
         for table in GRAC_TABLE_NAMES:
-            update_name, delete_name = list_immutability_trigger_names(table)
-            assert update_name.endswith("_update")
-            assert delete_name.endswith("_delete")
+            update_name, delete_name, truncate_name = list_immutability_trigger_names(table)
+            assert update_name.endswith("_u")
+            assert delete_name.endswith("_d")
+            assert truncate_name.endswith("_t")
+            assert len(update_name.encode("utf-8")) <= 63
+            assert len(delete_name.encode("utf-8")) <= 63
+            assert len(truncate_name.encode("utf-8")) <= 63
             assert table in update_name
 
 

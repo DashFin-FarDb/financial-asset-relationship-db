@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, event
 from sqlalchemy.engine import Engine, make_url
 from sqlalchemy.exc import ArgumentError
 from sqlalchemy.orm import Session, sessionmaker
@@ -18,6 +18,39 @@ from .repository import session_scope  # noqa: F401, E402
 
 DEFAULT_DATABASE_URL = "sqlite:///./asset_graph.db"
 ASSET_GRAPH_DATABASE_URL_ENV_VAR = "ASSET_GRAPH_DATABASE_URL"
+
+
+def _sqlite_translate(value: str | None, from_chars: str | None, to_chars: str | None) -> str | None:
+    """PostgreSQL-compatible ``translate`` for SQLite CHECK constraints."""
+    if value is None or from_chars is None or to_chars is None:
+        return None
+    mapped: dict[str, str | None] = {}
+    for index, char in enumerate(from_chars):
+        mapped[char] = to_chars[index] if index < len(to_chars) else None
+    pieces: list[str] = []
+    for char in value:
+        if char in mapped:
+            replacement = mapped[char]
+            if replacement is not None:
+                pieces.append(replacement)
+            continue
+        pieces.append(char)
+    return "".join(pieces)
+
+
+def _configure_sqlite_connection(dbapi_connection, _connection_record) -> None:
+    """Enable FK enforcement and Postgres-compatible helpers on SQLite connects."""
+    dbapi_connection.create_function("translate", 3, _sqlite_translate)
+    cursor = dbapi_connection.cursor()
+    cursor.execute("PRAGMA foreign_keys=ON")
+    cursor.close()
+
+
+def _configure_sqlite_engine(engine: Engine) -> Engine:
+    """Attach SQLite connection hooks required for GRAC FK integrity."""
+    if not event.contains(engine, "connect", _configure_sqlite_connection):
+        event.listen(engine, "connect", _configure_sqlite_connection)
+    return engine
 
 
 def create_engine_from_url(url: str | None = None) -> Engine:
@@ -49,7 +82,7 @@ def create_engine_from_url(url: str | None = None) -> Engine:
     except ArgumentError:
         if is_explicit_url:
             raise
-        return create_engine(DEFAULT_DATABASE_URL, future=True)
+        return _configure_sqlite_engine(create_engine(DEFAULT_DATABASE_URL, future=True))
 
     is_sqlite = parsed_url.get_backend_name() == "sqlite"
     database = parsed_url.database or ""
@@ -60,16 +93,20 @@ def create_engine_from_url(url: str | None = None) -> Engine:
     if is_sqlite:
         connect_args = {"check_same_thread": False}
         if is_sqlite_memory:
-            return create_engine(
+            return _configure_sqlite_engine(
+                create_engine(
+                    resolved_url,
+                    future=True,
+                    connect_args=connect_args,
+                    poolclass=StaticPool,
+                )
+            )
+        return _configure_sqlite_engine(
+            create_engine(
                 resolved_url,
                 future=True,
                 connect_args=connect_args,
-                poolclass=StaticPool,
             )
-        return create_engine(
-            resolved_url,
-            future=True,
-            connect_args=connect_args,
         )
 
     return create_engine(resolved_url, future=True)

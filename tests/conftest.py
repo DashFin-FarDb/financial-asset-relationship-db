@@ -10,7 +10,6 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 import pytest
-from sqlalchemy import event
 from sqlalchemy.engine import Engine
 
 # Make scripts/ importable for compound unit tests (shared bootstrap; avoid per-module sys.path).
@@ -37,6 +36,7 @@ os.environ["ADMIN_DISABLED"] = "false"
 
 from datetime import timezone  # noqa: E402
 
+from src.data.database import _configure_sqlite_engine  # noqa: E402
 from src.logic.asset_graph import AssetRelationshipGraph  # noqa: E402
 from src.models.financial_models import (  # noqa: E402
     AssetClass,
@@ -199,20 +199,13 @@ def _reset_graph():
     yield
 
 
-def _set_sqlite_pragma(dbapi_connection: Any, _connection_record: Any) -> None:
-    """Execute PRAGMA foreign_keys=ON for an SQLite connection."""
-    cursor = dbapi_connection.cursor()
-    cursor.execute("PRAGMA foreign_keys=ON")
-    cursor.close()
-
-
 def enable_sqlite_foreign_keys(engine: Engine) -> None:
-    """Ensure SQLite engines enforce foreign-key constraints in tests."""
+    """Ensure SQLite engines enforce FKs and GRAC CHECK helpers in tests."""
     if engine.url.get_backend_name() != "sqlite":
         return
 
-    if not event.contains(engine, "connect", _set_sqlite_pragma):
-        event.listen(engine, "connect", _set_sqlite_pragma)
+    # Match production create_engine_from_url hooks (FK pragma + translate UDF).
+    _configure_sqlite_engine(engine)
 
 
 def pytest_addoption(parser: Any) -> None:

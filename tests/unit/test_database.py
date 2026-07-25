@@ -304,12 +304,14 @@ class TestDatabaseInitialization:
             patch("src.data.database.Base.metadata.create_all") as create_all,
             patch("src.data.migrations.apply_migrations") as apply_sqlite_migrations,
             patch("src.data.migrations.apply_postgresql_heartbeat_migration") as apply_postgres_migration,
+            patch("src.data.relationship_assertion_schema.ensure_relationship_assertion_schema") as ensure_grac,
         ):
             init_db(engine)
 
         create_all.assert_called_once_with(engine)
         apply_postgres_migration.assert_called_once_with(engine)
         apply_sqlite_migrations.assert_not_called()
+        ensure_grac.assert_called_once_with(engine)
 
 
 # ---------------------------------------------------------------------------

@@ -5,7 +5,7 @@ from __future__ import annotations
 from datetime import datetime, timezone
 
 import pytest
-from sqlalchemy import create_engine, inspect
+from sqlalchemy import inspect
 from sqlalchemy.exc import IntegrityError
 
 from src.data.database import create_engine_from_url, create_session_factory, init_db
@@ -20,7 +20,6 @@ from src.data.relationship_assertion_db_models import (
     RelationshipProjectionPublicationORM,
     RelationshipProjectionRevisionORM,
 )
-from tests.conftest import enable_sqlite_foreign_keys
 
 UTC = timezone.utc
 
@@ -34,8 +33,7 @@ DIGEST_B = "b" * 64
 def db_session(tmp_path):
     """Create a temporary SQLite session with GRAC schema initialized."""
     db_path = tmp_path / "grac_models.db"
-    engine = create_engine(f"sqlite:///{db_path}")
-    enable_sqlite_foreign_keys(engine)
+    engine = create_engine_from_url(f"sqlite:///{db_path}")
     init_db(engine)
     factory = create_session_factory(engine)
     session = factory()
@@ -125,8 +123,9 @@ def test_confidence_shape_check_rejects_assessed_without_bp() -> None:
     engine.dispose()
 
 
-def test_evidence_digest_check_requires_valid_sha256() -> None:
-    """Evidence digests must satisfy the length CHECK constraint."""
+@pytest.mark.parametrize("bad_digest", ["NOT-A-DIGEST", "Z" * 64, "A" * 64])
+def test_evidence_digest_check_requires_lowercase_hex_sha256(bad_digest: str) -> None:
+    """Evidence digests must be 64-char lowercase hexadecimal."""
     engine = create_engine_from_url("sqlite:///:memory:")
     init_db(engine)
     now = datetime.now(timezone.utc)
@@ -136,7 +135,7 @@ def test_evidence_digest_check_requires_valid_sha256() -> None:
                 RelationshipEvidenceORM.__table__.insert().values(
                     id="22222222-2222-2222-2222-222222222222",
                     source_ref="sample://aapl-bond",
-                    content_sha256="NOT-A-DIGEST",
+                    content_sha256=bad_digest,
                     media_type="application/json",
                     observed_at=None,
                     issued_at=None,
@@ -150,6 +149,15 @@ def test_evidence_digest_check_requires_valid_sha256() -> None:
     engine.dispose()
 
 
+def test_sqlite_engine_enforces_foreign_keys_by_default() -> None:
+    """Production SQLite engines must enable PRAGMA foreign_keys."""
+    engine = create_engine_from_url("sqlite:///:memory:")
+    with engine.connect() as connection:
+        enabled = connection.exec_driver_sql("PRAGMA foreign_keys").scalar()
+    assert int(enabled or 0) == 1
+    engine.dispose()
+
+
 @pytest.mark.unit
 class TestRelationshipAssertionTableRegistration:
     """ORM table names and metadata registration."""
@@ -157,7 +165,7 @@ class TestRelationshipAssertionTableRegistration:
     @staticmethod
     def test_tables_created_by_init_db(tmp_path):
         """init_db creates all seven GRAC tables."""
-        engine = create_engine(f"sqlite:///{tmp_path / 'fresh.db'}")
+        engine = create_engine_from_url(f"sqlite:///{tmp_path / 'fresh.db'}")
         init_db(engine)
         names = set(inspect(engine).get_table_names())
         assert set(GRAC_TABLE_NAMES).issubset(names)
@@ -372,6 +380,40 @@ class TestRelationshipAssertionLinksAndEvents:
                 evidence_id="ev-1",
                 polarity="neutral",
                 recorded_at=_utcnow(),
+            )
+        )
+        with pytest.raises(IntegrityError):
+            db_session.commit()
+
+    @staticmethod
+    def test_invalid_strength_rejected(db_session):
+        """Edge strength must be a decimal-like numeric string."""
+        _add_assertion(db_session)
+        now = _utcnow()
+        db_session.add(
+            RelationshipProjectionRevisionORM(
+                id="rev-bad-str",
+                purpose="financial_graph_current_view",
+                effective_at=now,
+                known_at=now,
+                contract_version="grac.v1",
+                projector_version="projector.v1",
+                edge_set_hash=DIGEST_A,
+                projection_hash=DIGEST_B,
+                created_at=now,
+            )
+        )
+        db_session.flush()
+        db_session.add(
+            RelationshipProjectionEdgeORM(
+                id="edge-bad",
+                revision_id="rev-bad-str",
+                source_id="AAPL_BOND_2030",
+                target_id="AAPL",
+                edge_type="corporate_link",
+                strength="strong",
+                direction="subject_to_object",
+                assertion_id="as-1",
             )
         )
         with pytest.raises(IntegrityError):
