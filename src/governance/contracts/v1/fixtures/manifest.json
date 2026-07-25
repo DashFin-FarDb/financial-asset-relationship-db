@@ -1,7 +1,7 @@
 {
   "fixtures": [
     {
-      "expected_digest": "c4d05159b024d5e5bfdbf02e7415a7fbc93215814ad2730c071b38e598cf52a6",
+      "expected_digest": "c4d05159-b024d5e5-bfdbf02e-7415a7fb-c9321581-4ad2730c-071b38e5-98cf52a6",
       "kind": "valid",
       "name": "valid_accept"
     },

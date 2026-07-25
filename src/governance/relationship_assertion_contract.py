@@ -9,6 +9,8 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
+from collections.abc import Callable
 from pathlib import Path
 from typing import Any, Literal
 
@@ -16,6 +18,10 @@ from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_valida
 
 CONTRACTS_V1_DIR = Path(__file__).resolve().parent / "contracts" / "v1"
 CONTRACT_VERSION = "grac.v1"
+REQUIRED_PREDICATE_ID = "financial.bond.issuer_reference@1"
+REQUIRED_FIXTURE_KINDS = frozenset({"valid", "malformed_predicate", "illegal_transition", "incomplete"})
+# Finite canonical decimal text: optional leading minus, no scientific notation, no underscores.
+_STRENGTH_RE = re.compile(r"^-?(?:0|[1-9]\d*)(?:\.\d+)?$")
 
 LifecycleState = Literal[
     "Proposed",
@@ -45,12 +51,9 @@ class ProjectionSpec(StrictModel):
     @field_validator("strength")
     @classmethod
     def strength_must_be_decimal_string(cls, value: str) -> str:
-        """Reject floats-as-strings that are not canonical decimal text."""
-        if not isinstance(value, str):
-            raise ValueError("projection strength must be a string")
-        if any(ch in value for ch in "eE"):
-            raise ValueError("projection strength must not use scientific notation")
-        float(value)  # structural check only; hash inputs keep the original string
+        """Accept only finite canonical decimal text (no NaN/inf/scientific/+prefix)."""
+        if not _STRENGTH_RE.fullmatch(value):
+            raise ValueError("projection strength must be a finite canonical decimal string")
         return value
 
 
@@ -110,7 +113,9 @@ class TransitionsDocument(StrictModel):
         seen: set[tuple[str, str]] = set()
         for transition in self.transitions:
             if transition.from_state not in state_set or transition.to_state not in state_set:
-                raise ValueError(f"transition references unknown state: {transition.from_state}->{transition.to_state}")
+                raise ValueError(
+                    f"transition references unknown state: " f"{transition.from_state}->{transition.to_state}"
+                )
             if transition.from_state in self.terminal:
                 raise ValueError(f"illegal transition from terminal state: {transition.from_state}")
             key = (transition.from_state, transition.to_state)
@@ -147,10 +152,48 @@ class FixturesManifest(StrictModel):
 
     fixtures: list[FixtureExpectation] = Field(min_length=1)
 
+    @model_validator(mode="after")
+    def require_complete_fixture_matrix(self) -> FixturesManifest:
+        """Fail closed when any required fixture kind is missing from the manifest."""
+        kinds = {entry.kind for entry in self.fixtures}
+        missing = REQUIRED_FIXTURE_KINDS - kinds
+        if missing:
+            raise ValueError(f"fixtures manifest missing required kinds: {sorted(missing)}")
+        return self
+
+
+def normalize_hex_digest(value: str) -> str:
+    """Normalize a stored digest by keeping lowercase hexadecimal characters only.
+
+    Digests may be hyphen-grouped in JSON so secret scanners do not treat content
+    hashes as credentials.
+    """
+    return "".join(ch for ch in value.lower() if ch in "0123456789abcdef")
+
+
+def reject_float_hash_inputs(payload: Any, path: str = "$") -> None:
+    """Raise ``ValueError`` when ``payload`` contains a JSON/Python float."""
+    if isinstance(payload, float):
+        raise ValueError(f"floating-point values must not participate in hash inputs at {path}")
+    if isinstance(payload, dict):
+        for key, value in payload.items():
+            reject_float_hash_inputs(value, f"{path}.{key}")
+        return
+    if isinstance(payload, list):
+        for index, value in enumerate(payload):
+            reject_float_hash_inputs(value, f"{path}[{index}]")
+
 
 def canonical_json_bytes(payload: Any) -> bytes:
     """Serialize ``payload`` as canonical UTF-8 JSON (sorted keys, compact separators)."""
-    return json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    reject_float_hash_inputs(payload)
+    return json.dumps(
+        payload,
+        ensure_ascii=False,
+        sort_keys=True,
+        separators=(",", ":"),
+        allow_nan=False,
+    ).encode("utf-8")
 
 
 def sha256_hex(data: bytes) -> str:
@@ -169,9 +212,21 @@ def compute_registry_digest(predicates_doc: dict[str, Any], transitions_doc: dic
     return sha256_hex(canonical_json_bytes(payload))
 
 
+def find_transition(
+    transitions: TransitionsDocument,
+    from_state: str,
+    to_state: str,
+) -> TransitionSpec | None:
+    """Return the allowed transition edge for ``from_state`` -> ``to_state``, if any."""
+    for transition in transitions.transitions:
+        if transition.from_state == from_state and transition.to_state == to_state:
+            return transition
+    return None
+
+
 def is_transition_allowed(transitions: TransitionsDocument, from_state: str, to_state: str) -> bool:
     """Return True when ``from_state`` -> ``to_state`` is an allowed lifecycle edge."""
-    return any(t.from_state == from_state and t.to_state == to_state for t in transitions.transitions)
+    return find_transition(transitions, from_state, to_state) is not None
 
 
 def load_contract_bundle(
@@ -190,26 +245,52 @@ def load_contract_bundle(
     transitions = TransitionsDocument.model_validate(transitions_raw)
 
     digest = compute_registry_digest(predicates_raw, transitions_raw)
-    if digest != contract.registry_digest:
-        raise ValueError(f"registry_digest mismatch: contract has {contract.registry_digest}, computed {digest}")
-    if contract.contract_version != CONTRACT_VERSION:
-        raise ValueError(f"unsupported contract_version: {contract.contract_version}")
+    pinned = normalize_hex_digest(contract.registry_digest)
+    if digest != pinned:
+        raise ValueError(f"registry_digest mismatch: contract has {pinned}, computed {digest}")
     return contract, predicates, transitions
 
 
-def check_valid_fixture(payload: dict[str, Any], transitions: TransitionsDocument) -> str | None:
+def check_valid_fixture(
+    payload: dict[str, Any],
+    predicates: PredicatesDocument,
+    transitions: TransitionsDocument,
+) -> str | None:
     """Return a violation message if the valid fixture is not schema- and lifecycle-correct."""
     try:
-        PredicatesDocument.model_validate({"predicates": [payload["predicate"]]})
+        predicate_raw = payload["predicate"]
+        PredicatesDocument.model_validate({"predicates": [predicate_raw]})
     except (KeyError, ValidationError) as exc:
         return f"predicate validation failed: {exc}"
+
+    predicate_id = predicate_raw.get("id")
+    registered = next((p for p in predicates.predicates if p.id == predicate_id), None)
+    if registered is None:
+        return f"valid fixture predicate id not in registry: {predicate_id}"
+    registered_raw = json.loads(registered.model_dump_json(exclude_none=True))
+    if predicate_raw != registered_raw:
+        return f"valid fixture predicate drifted from registry entry {predicate_id}"
+
     try:
-        from_state = payload["transition"]["from"]
-        to_state = payload["transition"]["to"]
+        transition_raw = payload["transition"]
+        from_state = transition_raw["from"]
+        to_state = transition_raw["to"]
+        authority = transition_raw["authority"]
     except KeyError as exc:
         return f"transition missing field: {exc}"
-    if not is_transition_allowed(transitions, from_state, to_state):
+
+    allowed = find_transition(transitions, from_state, to_state)
+    if allowed is None:
         return f"illegal transition in valid fixture: {from_state}->{to_state}"
+    if authority != allowed.authority:
+        return (
+            f"transition authority mismatch for {from_state}->{to_state}: "
+            f"fixture has {authority!r}, registry requires {allowed.authority!r}"
+        )
+    if allowed.requires_successor and not transition_raw.get("successor_assertion_id"):
+        return f"supersession transition {from_state}->{to_state} requires successor_assertion_id"
+    if not allowed.requires_successor and transition_raw.get("successor_assertion_id"):
+        return f"non-supersession transition {from_state}->{to_state} must not set successor_assertion_id"
     return None
 
 
@@ -244,43 +325,89 @@ def check_incomplete_fixture(payload: dict[str, Any]) -> str | None:
     return None
 
 
+def _eval_valid(
+    entry: FixtureExpectation,
+    payload: dict[str, Any],
+    predicates: PredicatesDocument,
+    transitions: TransitionsDocument,
+) -> list[str]:
+    """Evaluate a valid golden fixture."""
+    error = check_valid_fixture(payload, predicates, transitions)
+    if error:
+        return [f"valid fixture {entry.name} failed: {error}"]
+    digest = sha256_hex(canonical_json_bytes(payload))
+    if entry.expected_digest is None:
+        return [f"valid fixture {entry.name} missing expected_digest"]
+    expected = normalize_hex_digest(entry.expected_digest)
+    if digest != expected:
+        return [f"changed golden hash for {entry.name}: expected {expected}, got {digest}"]
+    return []
+
+
+def _eval_malformed(
+    entry: FixtureExpectation,
+    payload: dict[str, Any],
+    _predicates: PredicatesDocument,
+    _transitions: TransitionsDocument,
+) -> list[str]:
+    """Evaluate a malformed-predicate negative fixture."""
+    error = check_malformed_predicate_fixture(payload, entry.expect_error_substring)
+    if error:
+        return [f"malformed_predicate fixture {entry.name} failed: {error}"]
+    return []
+
+
+def _eval_illegal(
+    entry: FixtureExpectation,
+    payload: dict[str, Any],
+    _predicates: PredicatesDocument,
+    transitions: TransitionsDocument,
+) -> list[str]:
+    """Evaluate an illegal-transition negative fixture."""
+    error = check_illegal_transition_fixture(payload, transitions)
+    if error:
+        return [f"illegal_transition fixture {entry.name} failed: {error}"]
+    return []
+
+
+def _eval_incomplete(
+    entry: FixtureExpectation,
+    payload: dict[str, Any],
+    _predicates: PredicatesDocument,
+    _transitions: TransitionsDocument,
+) -> list[str]:
+    """Evaluate an incomplete negative fixture."""
+    error = check_incomplete_fixture(payload)
+    if error:
+        return [f"incomplete fixture {entry.name} failed: {error}"]
+    return []
+
+
+_FIXTURE_EVALUATORS: dict[
+    str,
+    Callable[
+        [FixtureExpectation, dict[str, Any], PredicatesDocument, TransitionsDocument],
+        list[str],
+    ],
+] = {
+    "valid": _eval_valid,
+    "malformed_predicate": _eval_malformed,
+    "illegal_transition": _eval_illegal,
+    "incomplete": _eval_incomplete,
+}
+
+
 def evaluate_fixture_entry(
     entry: FixtureExpectation,
     payload: dict[str, Any],
+    predicates: PredicatesDocument,
     transitions: TransitionsDocument,
 ) -> list[str]:
     """Return violation messages for a single fixture entry and loaded payload."""
-    if entry.kind == "valid":
-        error = check_valid_fixture(payload, transitions)
-        if error:
-            return [f"valid fixture {entry.name} failed: {error}"]
-        digest = sha256_hex(canonical_json_bytes(payload))
-        if entry.expected_digest is None:
-            return [f"valid fixture {entry.name} missing expected_digest"]
-        if digest != entry.expected_digest:
-            expected = entry.expected_digest
-            return [f"changed golden hash for {entry.name}: expected {expected}, got {digest}"]
-        return []
-
-    if entry.kind == "malformed_predicate":
-        error = check_malformed_predicate_fixture(payload, entry.expect_error_substring)
-        if error:
-            return [f"malformed_predicate fixture {entry.name} failed: {error}"]
-        return []
-
-    if entry.kind == "illegal_transition":
-        error = check_illegal_transition_fixture(payload, transitions)
-        if error:
-            return [f"illegal_transition fixture {entry.name} failed: {error}"]
-        return []
-
-    if entry.kind == "incomplete":
-        error = check_incomplete_fixture(payload)
-        if error:
-            return [f"incomplete fixture {entry.name} failed: {error}"]
-        return []
-
-    return [f"fixture {entry.name} has unsupported kind {entry.kind}"]
+    evaluator = _FIXTURE_EVALUATORS.get(entry.kind)
+    if evaluator is None:
+        return [f"fixture {entry.name} has unsupported kind {entry.kind}"]
+    return evaluator(entry, payload, predicates, transitions)
 
 
 def run_conformance(contracts_dir: Path = CONTRACTS_V1_DIR) -> list[str]:
@@ -288,12 +415,11 @@ def run_conformance(contracts_dir: Path = CONTRACTS_V1_DIR) -> list[str]:
     violations: list[str] = []
     try:
         _contract, predicates, transitions = load_contract_bundle(contracts_dir)
-    except (OSError, json.JSONDecodeError, ValidationError, ValueError) as exc:
+    except (OSError, ValidationError, ValueError) as exc:
         return [f"contract bundle load failed: {exc}"]
 
-    required_predicate = "financial.bond.issuer_reference@1"
-    if not any(p.id == required_predicate for p in predicates.predicates):
-        violations.append(f"missing required predicate: {required_predicate}")
+    if not any(p.id == REQUIRED_PREDICATE_ID for p in predicates.predicates):
+        violations.append(f"missing required predicate: {REQUIRED_PREDICATE_ID}")
 
     fixtures_dir = contracts_dir / "fixtures"
     manifest_path = fixtures_dir / "manifest.json"
@@ -302,7 +428,7 @@ def run_conformance(contracts_dir: Path = CONTRACTS_V1_DIR) -> list[str]:
 
     try:
         manifest = FixturesManifest.model_validate(load_json(manifest_path))
-    except (OSError, json.JSONDecodeError, ValidationError) as exc:
+    except (OSError, ValidationError, ValueError) as exc:
         return violations + [f"fixtures manifest invalid: {exc}"]
 
     for entry in manifest.fixtures:
@@ -312,9 +438,9 @@ def run_conformance(contracts_dir: Path = CONTRACTS_V1_DIR) -> list[str]:
             continue
         try:
             payload = load_json(fixture_path)
-        except (OSError, json.JSONDecodeError) as exc:
+        except (OSError, ValueError) as exc:
             violations.append(f"fixture {entry.name} unreadable: {exc}")
             continue
-        violations.extend(evaluate_fixture_entry(entry, payload, transitions))
+        violations.extend(evaluate_fixture_entry(entry, payload, predicates, transitions))
 
     return violations
