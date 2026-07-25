@@ -1,0 +1,7 @@
+{
+  "transition": {
+    "authority": "acceptor",
+    "from": "Rejected",
+    "to": "Accepted"
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "fixtures": [
+    {
+      "expected_digest": "c4d05159b024d5e5bfdbf02e7415a7fbc93215814ad2730c071b38e598cf52a6",
+      "kind": "valid",
+      "name": "valid_accept"
+    },
+    {
+      "expect_error_substring": "projection.strength",
+      "kind": "malformed_predicate",
+      "name": "malformed_predicate"
+    },
+    {
+      "kind": "illegal_transition",
+      "name": "illegal_transition"
+    },
+    {
+      "kind": "incomplete",
+      "name": "incomplete"
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "baseline_sha": "5e45753705c10c2c4f50e0e9bc4d07b823d752ab",
+  "capability_claim_class": "NEXT",
+  "contract_version": "grac.v1",
+  "normative_doc": "docs/governance/governed-relationship-assertion-contract-v1.md",
+  "predicates_file": "predicates.json",
+  "registry_digest": "7ebf9342242e17cdce502bfdb3f5b7a170f27179856aa6405e616ef0098f3e54",
+  "status": "frozen",
+  "transitions_file": "transitions.json"
+}

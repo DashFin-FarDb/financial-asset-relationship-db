@@ -100,6 +100,9 @@ jobs:
             echo "===== Lint: Pylint ====="
             pylint src/ --fail-under=7.0
 
+            echo "===== GRAC v1 conformance ====="
+            python tools/ci/check_relationship_assertion_contract.py
+
             echo "===== Tests + Coverage ====="
             pip check
             pytest --cov=src --cov-report=xml --cov-report=term-missing -v
