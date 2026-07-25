@@ -11,6 +11,7 @@ import hashlib
 import json
 import re
 from collections.abc import Callable
+from decimal import Decimal
 from pathlib import Path
 from typing import Any, Literal
 
@@ -51,9 +52,12 @@ class ProjectionSpec(StrictModel):
     @field_validator("strength")
     @classmethod
     def strength_must_be_decimal_string(cls, value: str) -> str:
-        """Accept only finite canonical decimal text (no NaN/inf/scientific/+prefix)."""
+        """Accept only finite canonical decimal text in ``[0, 1]``."""
         if not _STRENGTH_RE.fullmatch(value):
             raise ValueError("projection strength must be a finite canonical decimal string")
+        amount = Decimal(value)
+        if amount < 0 or amount > 1:
+            raise ValueError("projection strength must be in [0, 1]")
         return value
 
 
@@ -287,10 +291,14 @@ def check_valid_fixture(
             f"transition authority mismatch for {from_state}->{to_state}: "
             f"fixture has {authority!r}, registry requires {allowed.authority!r}"
         )
-    if allowed.requires_successor and not transition_raw.get("successor_assertion_id"):
-        return f"supersession transition {from_state}->{to_state} requires successor_assertion_id"
-    if not allowed.requires_successor and transition_raw.get("successor_assertion_id"):
-        return f"non-supersession transition {from_state}->{to_state} must not set successor_assertion_id"
+    if allowed.requires_successor:
+        successor = transition_raw.get("successor_assertion_id")
+        if not isinstance(successor, str) or not successor.strip():
+            return (
+                f"supersession transition {from_state}->{to_state} " "requires non-empty string successor_assertion_id"
+            )
+    elif "successor_assertion_id" in transition_raw:
+        return f"non-supersession transition {from_state}->{to_state} " "must not set successor_assertion_id"
     return None
 
 

@@ -11,9 +11,11 @@ from pydantic import ValidationError
 
 from src.governance.relationship_assertion_contract import (
     CONTRACTS_V1_DIR,
+    FixturesManifest,
     PredicatesDocument,
     TransitionsDocument,
     canonical_json_bytes,
+    check_valid_fixture,
     compute_registry_digest,
     is_transition_allowed,
     load_contract_bundle,
@@ -22,6 +24,27 @@ from src.governance.relationship_assertion_contract import (
     run_conformance,
     sha256_hex,
 )
+
+_BASE_PREDICATE = {
+    "id": "financial.bond.issuer_reference@1",
+    "subject_type": "Bond",
+    "object_type": "Asset",
+    "method_ids": ["bond.issuer_id.resolution@1"],
+    "projection": {
+        "edge_type": "corporate_link",
+        "strength": "0.8",
+        "direction": "subject_to_object",
+        "purpose": "financial_graph_current_view",
+    },
+    "conflict_key": ["predicate_id", "subject_id"],
+}
+
+
+def _predicate_with_strength(strength: object) -> dict:
+    """Return a predicate payload with ``projection.strength`` overridden."""
+    predicate = json.loads(json.dumps(_BASE_PREDICATE))
+    predicate["projection"]["strength"] = strength
+    return predicate
 
 
 def test_load_contract_bundle_matches_pinned_digest() -> None:
@@ -41,53 +64,14 @@ def test_run_conformance_passes_on_clean_fixtures() -> None:
     assert run_conformance() == []
 
 
-def test_malformed_predicate_rejects_float_strength() -> None:
-    """Projection strength must be a decimal string, never a JSON float."""
+@pytest.mark.parametrize(
+    "bad_strength",
+    [0.8, "NaN", "inf", "-inf", "+0.8", "1e-1", "1_0", " 0.8", "1.1", "-0.1"],
+)
+def test_malformed_predicate_rejects_bad_strength(bad_strength: object) -> None:
+    """Float, non-canonical, or out-of-range strength values must fail closed."""
     with pytest.raises(ValidationError):
-        PredicatesDocument.model_validate(
-            {
-                "predicates": [
-                    {
-                        "id": "financial.bond.issuer_reference@1",
-                        "subject_type": "Bond",
-                        "object_type": "Asset",
-                        "method_ids": ["bond.issuer_id.resolution@1"],
-                        "projection": {
-                            "edge_type": "corporate_link",
-                            "strength": 0.8,
-                            "direction": "subject_to_object",
-                            "purpose": "financial_graph_current_view",
-                        },
-                        "conflict_key": ["predicate_id", "subject_id"],
-                    }
-                ]
-            }
-        )
-
-
-@pytest.mark.parametrize("bad_strength", ["NaN", "inf", "-inf", "+0.8", "1e-1", "1_0", " 0.8"])
-def test_malformed_predicate_rejects_noncanonical_strength(bad_strength: str) -> None:
-    """Non-finite or non-canonical strength strings must fail closed."""
-    with pytest.raises(ValidationError):
-        PredicatesDocument.model_validate(
-            {
-                "predicates": [
-                    {
-                        "id": "financial.bond.issuer_reference@1",
-                        "subject_type": "Bond",
-                        "object_type": "Asset",
-                        "method_ids": ["bond.issuer_id.resolution@1"],
-                        "projection": {
-                            "edge_type": "corporate_link",
-                            "strength": bad_strength,
-                            "direction": "subject_to_object",
-                            "purpose": "financial_graph_current_view",
-                        },
-                        "conflict_key": ["predicate_id", "subject_id"],
-                    }
-                ]
-            }
-        )
+        PredicatesDocument.model_validate({"predicates": [_predicate_with_strength(bad_strength)]})
 
 
 def test_illegal_transition_from_terminal_rejected() -> None:
@@ -105,20 +89,59 @@ def test_wrong_authority_fails_valid_fixture(tmp_path: Path) -> None:
     fixture_path = bundle / "fixtures" / "valid_accept.json"
     payload = load_json(fixture_path)
     payload["transition"]["authority"] = "proposer"
-    fixture_path.write_text(
-        json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":")),
-        encoding="utf-8",
-    )
-    manifest = load_json(bundle / "fixtures" / "manifest.json")
-    for entry in manifest["fixtures"]:
-        if entry["name"] == "valid_accept":
-            entry["expected_digest"] = sha256_hex(canonical_json_bytes(payload))
-    (bundle / "fixtures" / "manifest.json").write_text(
+    _write_valid_fixture(bundle, fixture_path, payload)
+    violations = run_conformance(bundle)
+    assert any("authority mismatch" in v for v in violations)
+
+
+def test_supersession_requires_string_successor_id() -> None:
+    """Supersession edges must carry a non-empty string successor_assertion_id."""
+    _, predicates, transitions = load_contract_bundle()
+    predicate = json.loads(json.dumps(_BASE_PREDICATE))
+    predicate["slice"] = {"object_id": "AAPL", "subject_id": "AAPL_BOND_2030"}
+    base = {
+        "predicate": predicate,
+        "transition": {"from": "Accepted", "to": "Superseded", "authority": "acceptor"},
+    }
+    missing = check_valid_fixture(base, predicates, transitions)
+    assert missing is not None and "successor_assertion_id" in missing
+
+    bad_successors: list[object] = [True, 1, [], {}, "", "   "]
+    for bad_successor in bad_successors:
+        payload = json.loads(json.dumps(base))
+        payload["transition"]["successor_assertion_id"] = bad_successor
+        error = check_valid_fixture(payload, predicates, transitions)
+        assert error is not None and "successor_assertion_id" in error
+
+    ok = json.loads(json.dumps(base))
+    ok["transition"]["successor_assertion_id"] = "assertion-successor-1"
+    assert check_valid_fixture(ok, predicates, transitions) is None
+
+
+def test_non_supersession_rejects_successor_key_presence() -> None:
+    """Non-supersession transitions must not include successor_assertion_id at all."""
+    _, predicates, transitions = load_contract_bundle()
+    payload = load_json(CONTRACTS_V1_DIR / "fixtures" / "valid_accept.json")
+    payload["transition"]["successor_assertion_id"] = None
+    error = check_valid_fixture(payload, predicates, transitions)
+    assert error is not None and "must not set successor_assertion_id" in error
+
+
+def test_manifest_missing_required_kind_fails_conformance(tmp_path: Path) -> None:
+    """Deleting a required kind from manifest.json must fail closed."""
+    bundle = tmp_path / "v1"
+    _copy_contract_tree(bundle)
+    manifest_path = bundle / "fixtures" / "manifest.json"
+    manifest = load_json(manifest_path)
+    manifest["fixtures"] = [entry for entry in manifest["fixtures"] if entry["kind"] != "incomplete"]
+    manifest_path.write_text(
         json.dumps(manifest, ensure_ascii=False, sort_keys=True, indent=2) + "\n",
         encoding="utf-8",
     )
+    with pytest.raises(ValidationError, match="missing required kinds"):
+        FixturesManifest.model_validate(manifest)
     violations = run_conformance(bundle)
-    assert any("authority mismatch" in v for v in violations)
+    assert any("missing required kinds" in v for v in violations)
 
 
 def test_changed_golden_hash_fails_conformance(tmp_path: Path) -> None:
@@ -127,7 +150,6 @@ def test_changed_golden_hash_fails_conformance(tmp_path: Path) -> None:
     _copy_contract_tree(bundle)
     fixture_path = bundle / "fixtures" / "valid_accept.json"
     payload = load_json(fixture_path)
-    payload["transition"]["authority"] = "acceptor"
     payload["note"] = "tampered"
     fixture_path.write_text(
         json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":")),
@@ -154,6 +176,22 @@ def test_canonical_json_rejects_floats_and_hashes_deterministically() -> None:
     assert encoded == b'{"a":{"y":true,"z":"0.8"},"b":1}'
     assert sha256_hex(encoded) == normalize_hex_digest(
         "1144582d-3890a53f-f5cb6e67-1e3ba856-31026acd-5df78300-23cc29cb-5df066dd"
+    )
+
+
+def _write_valid_fixture(bundle: Path, fixture_path: Path, payload: dict) -> None:
+    """Persist a mutated valid fixture and refresh its expected digest."""
+    fixture_path.write_text(
+        json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":")),
+        encoding="utf-8",
+    )
+    manifest = load_json(bundle / "fixtures" / "manifest.json")
+    for entry in manifest["fixtures"]:
+        if entry["name"] == "valid_accept":
+            entry["expected_digest"] = sha256_hex(canonical_json_bytes(payload))
+    (bundle / "fixtures" / "manifest.json").write_text(
+        json.dumps(manifest, ensure_ascii=False, sort_keys=True, indent=2) + "\n",
+        encoding="utf-8",
     )
 
 
