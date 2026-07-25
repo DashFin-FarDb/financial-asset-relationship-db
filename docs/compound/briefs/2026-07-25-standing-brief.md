@@ -6,8 +6,8 @@ Claims are labeled landed vs provisional. ADRs/policy are not rewritten.
 ## Seam movement by domain
 
 ### architecture
-- [provisional] **pr:1543**: ()   y-  w  
 - [provisional] **pr:1542**:   -    
+- [provisional] **pr:1543**: ()   y-  w  
 - [landed] **pr:1541**:  y v    v
 - [landed] **sha:cc3ac594ffaed645e578499f4cf7d7f19d1317d2**: Merge/push to main cc3ac594ffaed645e578499f4cf7d7f19d1317d2
 - [landed] **sha:5e45753705c10c2c4f50e0e9bc4d07b823d752ab**: Merge/push to main 5e45753705c10c2c4f50e0e9bc4d07b823d752ab
@@ -57,8 +57,8 @@ Claims are labeled landed vs provisional. ADRs/policy are not rewritten.
 - [provisional] **pr:1402**: fix: support Python 3.10 UTC timestamps
 
 ### ci-guardrails
-- [provisional] **pr:1545**: ()   -  w  
 - [provisional] **pr:1542**:   -    
+- [provisional] **pr:1545**: ()   -  w  
 - [landed] **pr:1528**:   - -- z  v
 - [landed] **pr:1526**:     y-y-  (--)
 - [landed] **pr:1524**: x        
