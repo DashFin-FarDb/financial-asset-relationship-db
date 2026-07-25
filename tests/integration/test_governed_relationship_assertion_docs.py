@@ -359,11 +359,9 @@ class TestGovernedRelationshipAssertionContractV1:
         supersession = _section_after(contract_content, "## 6. Supersession")
         assert "append-only" in supersession.lower() or "Append-only" in supersession
         assert "successor" in supersession.lower()
-        assert (
-            "sole authoritative" in supersession.lower()
-            or "do not store a supersession pointer" in supersession.lower()
-        )
-        assert "same atomic transaction" in supersession.lower()
+        normalized = re.sub(r"\s+", " ", supersession.lower())
+        assert "sole authoritative" in normalized or "do not store a supersession pointer" in normalized
+        assert "same atomic transaction" in normalized
 
     def test_projection_is_deterministic_and_fail_closed(self, contract_content: str) -> None:
         """Projector must be pure, hashed, and fail closed on conflicts."""
