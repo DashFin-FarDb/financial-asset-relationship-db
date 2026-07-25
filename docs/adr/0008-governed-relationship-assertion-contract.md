@@ -11,7 +11,7 @@ Accepted
 ## Context
 
 FarDB already persists financial assets, materializes relationship edges, and operates a rebuild and recovery
-control plane. Those foundations make a governed assertion lifecycle *plausible*, but they do not yet make it a
+control plane. Those foundations make a governed assertion lifecycle _plausible_, but they do not yet make it a
 current capability. Continuity commitment **FPC-2026-07-21-04** and strategy claims still classify the governed
 relationship-assertion model as `NEXT` / `RESEARCH`.
 
@@ -43,9 +43,9 @@ acceptance require an explicit contract-amendment ADR/PR — implementation PRs 
 
 ### Claim discipline
 
-| Artefact | Claim class after this ADR |
-| --- | --- |
-| ADR 0008 decision + contract v1 text | **Accepted** (decision ratified) |
+| Artefact                              | Claim class after this ADR                                                            |
+| ------------------------------------- | ------------------------------------------------------------------------------------- |
+| ADR 0008 decision + contract v1 text  | **Accepted** (decision ratified)                                                      |
 | Governed assertion runtime capability | Remains **NEXT** until exact-SHA staging proof (programme PR 10 / #1540); not CURRENT |
 
 Empty assertion store ⇒ zero behavioural change. No CURRENT capability claim is authorized by this ADR alone.
@@ -71,7 +71,7 @@ Empty assertion store ⇒ zero behavioural change. No CURRENT capability claim i
    the corresponding rebuild job is atomically marked `SUCCEEDED`.
 9. **Empty assertion store ⇒ zero behavioural change.** Existing graph/API output must remain unchanged until a
    governed scope is explicitly established.
-10. **Main FarDB repo only.** Narrow v1: no multi-domain model, graph-DB migration, generic AI inference, raw
+10. **Main FarDB repository only.** Narrow v1: no multi-domain model, graph-DB migration, generic AI inference, raw
     document custody, or broad RBAC redesign.
 
 ### Control-plane disposition
@@ -84,7 +84,7 @@ The earlier [`control-plane-platform`](https://github.com/DashFin-FarDb/control-
 - Must **not** have its implementation or workflows copied wholesale.
 
 **Disposition for GRAC v1:** keep all relationship truth and runtime governance in
-`financial-asset-relationship-db` only; reuse policy-registry and audit-event *concepts*; keep
+`financial-asset-relationship-db` only; reuse policy-registry and audit-event _concepts_; keep
 `control-plane-platform` private and **reference-only**. Archiving it is a separate, explicitly approved action
 after GRAC v1 is verified — not part of this ADR or delivery PRs 1–10.
 
@@ -141,7 +141,7 @@ FarDB’s stored issuer reference, not an externally verified legal issuance cla
 
 1. FastAPI + Next.js remains the production architecture (ADR 0001).
 2. ADR 0007 database authorization boundary is unchanged.
-3. Rebuild/recovery state-machine authority is unchanged; GRAC publishes *through* it.
+3. Rebuild/recovery state-machine authority is unchanged; GRAC publishes _through_ it.
 4. Orthogonal Depfu dependency PRs remain out of programme scope.
 
 ## Alternatives considered
@@ -154,7 +154,7 @@ them to truth would freeze an inadequate model.
 ### 2. Import `control-plane-platform` as a second runtime service
 
 **Rejected.** The prototype is incomplete (placeholder policy hashes, duplicated workflows). A second service would
-split relationship truth and violate “main FarDB repo only.”
+split relationship truth and violate “main FarDB repository only.”
 
 ### 3. Defer ratification until schema and projector land together
 

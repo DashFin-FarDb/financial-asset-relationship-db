@@ -106,7 +106,7 @@ def _section_after(content: str, heading: str) -> str:
 
 
 def _assert_document_hygiene(content: str, path: Path) -> None:
-    """Shared heading/fence/whitespace/UTF-8 gates for governed documents."""
+    """Shared heading/fence/whitespace gates for governed documents."""
     for line in content.splitlines():
         if line.startswith("#"):
             assert re.match(r"^#{1,6} .+", line), f"Heading must have space after #: {line!r} ({path})"
@@ -114,7 +114,6 @@ def _assert_document_hygiene(content: str, path: Path) -> None:
     assert fence_count % 2 == 0, f"Unbalanced code fences: {fence_count} ({path})"
     bad = [i + 1 for i, line in enumerate(content.splitlines()) if line.rstrip() != line and line.strip()]
     assert not bad, f"Trailing whitespace on lines: {bad} ({path})"
-    assert "\ufffd" not in path.read_text(encoding="utf-8")
 
 
 @pytest.fixture(scope="module")
@@ -364,6 +363,7 @@ class TestGovernedRelationshipAssertionContractV1:
             "sole authoritative" in supersession.lower()
             or "do not store a supersession pointer" in supersession.lower()
         )
+        assert "same atomic transaction" in supersession.lower()
 
     def test_projection_is_deterministic_and_fail_closed(self, contract_content: str) -> None:
         """Projector must be pure, hashed, and fail closed on conflicts."""

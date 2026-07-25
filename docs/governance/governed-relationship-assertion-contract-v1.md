@@ -53,29 +53,29 @@ FarDB stores consequential financial relationships. GRAC v1 makes those relation
 7. **Conflicts fail closed.** Never last-write-wins.
 8. **Publish only through the existing rebuild `SUCCEEDED` path.**
 9. **Empty assertion store ⇒ zero behavioural change.**
-10. **Main FarDB repo only.** `control-plane-platform` remains private reference-only during GRAC v1.
+10. **Main FarDB repository only.** `control-plane-platform` remains private reference-only during GRAC v1.
 
 ---
 
 ## 2. Vocabulary
 
-| Term | Meaning |
-| --- | --- |
-| **Proposition** | A typed claim that a subject relates to an object under a versioned predicate. |
-| **Evidence** | An immutable reference record (URI/path, SHA-256 digest, media type, visibility, licensing). No body bytes in v1. |
-| **Assertion** | An immutable acceptance-candidate record binding proposition, method, confidence characterization, and effective time. Supersession linkage lives only on append-only events. |
-| **Determination** | The lifecycle outcome applied to an assertion (accept, reject, withdraw, dispute, retract, supersede, reaffirm). |
-| **Event** | An append-only lifecycle/authority record for one assertion transition. |
-| **Projection** | A pure deterministic function from accepted assertions (+ events needed for eligibility) to candidate graph edges. |
-| **Revision** | An immutable candidate graph snapshot with content hashes. |
-| **Publication** | Append-only proof that a rebuild job marked `SUCCEEDED` published a revision into the read model. |
-| **Read model** | `asset_relationships` and the in-memory adjacency map. Not historical authority. |
-| **Predicate** | Versioned registry entry (for example `financial.bond.issuer_reference@1`) defining subject/object types, method IDs, and projection strength. |
-| **Confidence** | Optional integer basis points with declared type and method; never silently defaulted. |
-| **Projection strength** | Predicate-registry compatibility value for the edge type; independent of confidence. |
-| **Supersession** | Replacement of an assertion by a successor assertion without rewriting history. |
-| **Authority** | Named role or policy identity permitted to perform a transition under a policy version. |
-| **Purpose** | Declared use of a projected view (for example `financial_graph_current_view`). |
+| Term                    | Meaning                                                                                                                                                                       |
+| ----------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Proposition**         | A typed claim that a subject relates to an object under a versioned predicate.                                                                                                |
+| **Evidence**            | An immutable reference record (URI/path, SHA-256 digest, media type, visibility, licensing). No body bytes in v1.                                                             |
+| **Assertion**           | An immutable acceptance-candidate record binding proposition, method, confidence characterization, and effective time. Supersession linkage lives only on append-only events. |
+| **Determination**       | The lifecycle outcome applied to an assertion (accept, reject, withdraw, dispute, retract, supersede, reaffirm).                                                              |
+| **Event**               | An append-only lifecycle/authority record for one assertion transition.                                                                                                       |
+| **Projection**          | A pure deterministic function from accepted assertions (+ events needed for eligibility) to candidate graph edges.                                                            |
+| **Revision**            | An immutable candidate graph snapshot with content hashes.                                                                                                                    |
+| **Publication**         | Append-only proof that a rebuild job marked `SUCCEEDED` published a revision into the read model.                                                                             |
+| **Read model**          | `asset_relationships` and the in-memory adjacency map. Not historical authority.                                                                                              |
+| **Predicate**           | Versioned registry entry (for example `financial.bond.issuer_reference@1`) defining subject/object types, method IDs, and projection strength.                                |
+| **Confidence**          | Optional integer basis points with declared type and method; never silently defaulted.                                                                                        |
+| **Projection strength** | Predicate-registry compatibility value for the edge type; independent of confidence.                                                                                          |
+| **Supersession**        | Replacement of an assertion by a successor assertion without rewriting history.                                                                                               |
+| **Authority**           | Named role or policy identity permitted to perform a transition under a policy version.                                                                                       |
+| **Purpose**             | Declared use of a projected view (for example `financial_graph_current_view`).                                                                                                |
 
 ### Object boundaries
 
@@ -106,15 +106,15 @@ stateDiagram-v2
     Superseded --> [*]
 ```
 
-| State | Terminal | Meaning |
-| --- | --- | --- |
-| `Proposed` | No | Assertion exists; awaiting determination. |
-| `Accepted` | No | Eligible for projection when effective/known-at windows match. |
-| `Rejected` | Yes | Authority refused the proposition. |
-| `Withdrawn` | Yes | Proposer cancelled before acceptance. |
-| `Disputed` | No | Accepted assertion challenged; not eligible for new projection until reaffirmed, retracted, or superseded. |
-| `Retracted` | Yes | Prior acceptance withdrawn without replacement successor (or successor recorded separately). |
-| `Superseded` | Yes | Replaced by a successor assertion. |
+| State        | Terminal | Meaning                                                                                                    |
+| ------------ | -------- | ---------------------------------------------------------------------------------------------------------- |
+| `Proposed`   | No       | Assertion exists; awaiting determination.                                                                  |
+| `Accepted`   | No       | Eligible for projection when effective/known-at windows match.                                             |
+| `Rejected`   | Yes      | Authority refused the proposition.                                                                         |
+| `Withdrawn`  | Yes      | Proposer cancelled before acceptance.                                                                      |
+| `Disputed`   | No       | Accepted assertion challenged; not eligible for new projection until reaffirmed, retracted, or superseded. |
+| `Retracted`  | Yes      | Prior acceptance withdrawn without replacement successor (or successor recorded separately).               |
+| `Superseded` | Yes      | Replaced by a successor assertion.                                                                         |
 
 `Rejected`, `Withdrawn`, `Retracted`, and `Superseded` are terminal. Resubmission always creates a **new** assertion.
 
@@ -138,19 +138,19 @@ Illegal transitions must be rejected by the domain layer. Implementation PRs mus
 Authorities are logical roles. Mapping to JWT claims, operators, or service identities is an implementation concern
 that must preserve this matrix. Missing authority fails closed.
 
-| Transition | Required authority | Notes |
-| --- | --- | --- |
-| Propose (create → `Proposed`) | `proposer` | Creator becomes the assertion proposer of record. |
-| Accept (`Proposed` → `Accepted`) | `acceptor` | May not be the same principal as proposer for the vertical-slice staging proof (reviewer dependency). |
-| Reject (`Proposed` → `Rejected`) | `acceptor` | Rejection is an authority determination. |
-| Withdraw (`Proposed` → `Withdrawn`) | `proposer` | Only the proposer (or delegated withdrawer policy) may withdraw. |
-| Dispute (`Accepted` → `Disputed`) | `disputer` | Challenge does not rewrite history; it changes eligibility. |
-| Reaffirm (`Disputed` → `Accepted`) | `acceptor` | Restores projection eligibility. |
-| Retract (`Accepted`/`Disputed` → `Retracted`) | `retractor` | Terminal without mandatory successor. |
-| Supersede (`Accepted`/`Disputed` → `Superseded`) | `acceptor` | Requires successor assertion ID. |
-| Append evidence link on `Proposed`/`Accepted`/`Disputed` | `proposer` or `acceptor` | Evidence rows remain immutable; links are append-only. |
-| Build projection revision | `projector` (system) | Pure function; no human authority shortcut. |
-| Publish revision into read model | rebuild control plane on `SUCCEEDED` | No alternate publish path. |
+| Transition                                               | Required authority                   | Notes                                                                                                 |
+| -------------------------------------------------------- | ------------------------------------ | ----------------------------------------------------------------------------------------------------- |
+| Propose (create → `Proposed`)                            | `proposer`                           | Creator becomes the assertion proposer of record.                                                     |
+| Accept (`Proposed` → `Accepted`)                         | `acceptor`                           | May not be the same principal as proposer for the vertical-slice staging proof (reviewer dependency). |
+| Reject (`Proposed` → `Rejected`)                         | `acceptor`                           | Rejection is an authority determination.                                                              |
+| Withdraw (`Proposed` → `Withdrawn`)                      | `proposer`                           | Only the proposer (or delegated withdrawer policy) may withdraw.                                      |
+| Dispute (`Accepted` → `Disputed`)                        | `disputer`                           | Challenge does not rewrite history; it changes eligibility.                                           |
+| Reaffirm (`Disputed` → `Accepted`)                       | `acceptor`                           | Restores projection eligibility.                                                                      |
+| Retract (`Accepted`/`Disputed` → `Retracted`)            | `retractor`                          | Terminal without mandatory successor.                                                                 |
+| Supersede (`Accepted`/`Disputed` → `Superseded`)         | `acceptor`                           | Requires successor assertion ID.                                                                      |
+| Append evidence link on `Proposed`/`Accepted`/`Disputed` | `proposer` or `acceptor`             | Evidence rows remain immutable; links are append-only.                                                |
+| Build projection revision                                | `projector` (system)                 | Pure function; no human authority shortcut.                                                           |
+| Publish revision into read model                         | rebuild control plane on `SUCCEEDED` | No alternate publish path.                                                                            |
 
 Policy version strings are opaque bounded identifiers recorded on every event. Changing who may perform a
 transition requires a new policy version and an amendment path if the matrix itself changes.
@@ -179,19 +179,19 @@ Evidence body bytes, scraped HTML, PDFs, and other blobs are **out of v1**. No e
 `recorded_at` (set at insert; never client-authored). Historical `known_at` queries include a link only when
 `link.recorded_at <= known_at`.
 
-| Polarity | Meaning |
-| --- | --- |
-| `supporting` | Evidence tends to support the proposition. |
-| `opposing` | Evidence tends to oppose the proposition. |
+| Polarity     | Meaning                                                                    |
+| ------------ | -------------------------------------------------------------------------- |
+| `supporting` | Evidence tends to support the proposition.                                 |
+| `opposing`   | Evidence tends to oppose the proposition.                                  |
 | `contextual` | Evidence situates the proposition without asserting support or opposition. |
 
 ### Confidence vs projection strength
 
-| Field | Rule |
-| --- | --- |
-| `confidence_bp` | Optional integer basis points in `[0, 10000]`, or null when not assessed. |
-| `confidence_type` | Required when `confidence_bp` is set; forbidden to invent silent defaults. |
-| `confidence_method` | Required when `confidence_bp` is set; versioned method ID. |
+| Field               | Rule                                                                               |
+| ------------------- | ---------------------------------------------------------------------------------- |
+| `confidence_bp`     | Optional integer basis points in `[0, 10000]`, or null when not assessed.          |
+| `confidence_type`   | Required when `confidence_bp` is set; forbidden to invent silent defaults.         |
+| `confidence_method` | Required when `confidence_bp` is set; versioned method ID.                         |
 | `confidence_status` | One of `assessed` or `not_assessed`. `not_assessed` requires `confidence_bp` null. |
 
 Projection strength is **never** derived from confidence. Strength comes only from the predicate registry.
@@ -201,11 +201,11 @@ Confidence ≠ projection strength.
 
 ## 5. Bitemporal rules
 
-| Axis | Fields | Meaning |
-| --- | --- | --- |
-| World / valid time | `effective_from`, `effective_to` | When the proposition applies in the financial world. `effective_to` null means open-ended. |
+| Axis                   | Fields                                                  | Meaning                                                                                             |
+| ---------------------- | ------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| World / valid time     | `effective_from`, `effective_to`                        | When the proposition applies in the financial world. `effective_to` null means open-ended.          |
 | System / recorded time | `recorded_at` on assertions, evidence links, and events | When FarDB learned or recorded the fact. Server clock at write; never client-supplied as authority. |
-| Query known-at | `known_at` parameter | Reconstruct what FarDB knew as of that instant. Not a persisted column. |
+| Query known-at         | `known_at` parameter                                    | Reconstruct what FarDB knew as of that instant. Not a persisted column.                             |
 
 ### Query contract
 
@@ -225,12 +225,15 @@ Projection for purpose `financial_graph_current_view` uses the caller-supplied o
 1. Supersession creates a successor assertion; the predecessor transitions to `Superseded` via an append-only event.
 2. The supersession event’s successor assertion ID is the sole authoritative linkage. Assertion rows do not store a
    supersession pointer (no dual authority).
-3. Predecessor proposition rows are never rewritten; only append-only events change lifecycle eligibility.
-4. A superseded assertion remains queryable for historical reconstruction.
-5. Cycles are forbidden: an assertion must not appear in its own successor chain.
-6. At most one non-terminal accepted assertion may occupy a given conflict key (see projection) at a
+3. Inserting the successor assertion row and appending the predecessor’s `Superseded` event MUST commit in the **same
+   atomic transaction**. On failure neither write is visible — no orphan successor and no superseded predecessor
+   without a committed successor.
+4. Predecessor proposition rows are never rewritten; only append-only events change lifecycle eligibility.
+5. A superseded assertion remains queryable for historical reconstruction.
+6. Cycles are forbidden: an assertion must not appear in its own successor chain.
+7. At most one non-terminal accepted assertion may occupy a given conflict key (see projection) at a
    `(effective_at, known_at)` pair; violations fail closed at projection time.
-7. Retraction without successor is allowed; it removes projection eligibility without inventing replacement truth.
+8. Retraction without successor is allowed; it removes projection eligibility without inventing replacement truth.
 
 ---
 
@@ -289,15 +292,15 @@ No direct write from assertion APIs into `asset_relationships` bypassing this pa
 
 Seven additive tables; no existing table is removed or repurposed in v1:
 
-| Table | Responsibility |
-| --- | --- |
-| `relationship_evidence` | Immutable evidence reference, digest, custody and visibility metadata |
-| `relationship_assertions` | Immutable proposition, method, confidence, and effective time |
-| `relationship_assertion_evidence` | Supporting, opposing or contextual evidence links with `recorded_at` |
-| `relationship_assertion_events` | Ordered lifecycle and authority history |
-| `relationship_projection_revisions` | Deterministic candidate graph revisions and hashes |
-| `relationship_projection_edges` | Materialized governed edges for each revision |
-| `relationship_projection_publications` | Append-only proof that a succeeded rebuild published a revision |
+| Table                                  | Responsibility                                                        |
+| -------------------------------------- | --------------------------------------------------------------------- |
+| `relationship_evidence`                | Immutable evidence reference, digest, custody and visibility metadata |
+| `relationship_assertions`              | Immutable proposition, method, confidence, and effective time         |
+| `relationship_assertion_evidence`      | Supporting, opposing or contextual evidence links with `recorded_at`  |
+| `relationship_assertion_events`        | Ordered lifecycle and authority history                               |
+| `relationship_projection_revisions`    | Deterministic candidate graph revisions and hashes                    |
+| `relationship_projection_edges`        | Materialized governed edges for each revision                         |
+| `relationship_projection_publications` | Append-only proof that a succeeded rebuild published a revision       |
 
 Schema DDL lands in programme PR 3 (#1533). Migrations must preserve SQLite/PostgreSQL parity, must not use
 Alembic for this programme path unless a later ADR says otherwise, and must not mutate `asset_relationships`
@@ -307,19 +310,19 @@ row semantics as historical authority.
 
 ## 9. Financial vertical slice: `financial.bond.issuer_reference@1`
 
-| Field | Value |
-| --- | --- |
-| Predicate | `financial.bond.issuer_reference@1` |
-| Subject | `AAPL_BOND_2030` |
-| Object | `AAPL` |
-| Proposition | The bond’s `issuer_id` references the `AAPL` asset record |
-| Method | `bond.issuer_id.resolution@1` |
-| Evidence | Canonical digest of the committed sample record (reference only) |
-| Projection edge | `AAPL_BOND_2030` → `AAPL` |
-| Legacy-compatible type | `corporate_link` |
-| Registry strength | `0.8` (explicitly not confidence) |
-| Purpose | `financial_graph_current_view` |
-| Claim scope | FarDB’s stored issuer reference — **not** an externally verified legal issuance claim |
+| Field                  | Value                                                                                 |
+| ---------------------- | ------------------------------------------------------------------------------------- |
+| Predicate              | `financial.bond.issuer_reference@1`                                                   |
+| Subject                | `AAPL_BOND_2030`                                                                      |
+| Object                 | `AAPL`                                                                                |
+| Proposition            | The bond’s `issuer_id` references the `AAPL` asset record                             |
+| Method                 | `bond.issuer_id.resolution@1`                                                         |
+| Evidence               | Canonical digest of the committed sample record (reference only)                      |
+| Projection edge        | `AAPL_BOND_2030` → `AAPL`                                                             |
+| Legacy-compatible type | `corporate_link`                                                                      |
+| Registry strength      | `0.8` (explicitly not confidence)                                                     |
+| Purpose                | `financial_graph_current_view`                                                        |
+| Claim scope            | FarDB’s stored issuer reference — **not** an externally verified legal issuance claim |
 
 ### Slice proof obligations (programme completion)
 
@@ -337,18 +340,18 @@ The slice must eventually prove, after restart, for an exact deployed SHA:
 
 ## 10. Threat model (v1)
 
-| Threat | Mitigation |
-| --- | --- |
-| Silent rewrite of relationship history | Append-only tables; supersession via successors; no in-place proposition mutation. |
-| Last-write-wins ambiguity | Fail-closed projection on conflict keys. |
-| Confidence smuggled as edge strength | Separate fields; registry-owned strength; docs/tests forbid conflation. |
-| Clock-skewed / nondeterministic projection | Pure projector; no wall clock; stable ordering; cross-DB hash identity tests. |
-| Unauthorized acceptance | Authority matrix; acceptor ≠ proposer for staging proof; event audit. |
-| Bypass publish path | Publication only via rebuild `SUCCEEDED` + publication row. |
-| Evidence body exfiltration / custody creep | No evidence bodies in v1; digests and bounded references only. |
-| Second control-plane service drift | Main FarDB repo only; `control-plane-platform` reference-only. |
-| Premature CURRENT claims | Claim discipline: Accepted decision ≠ CURRENT capability until #1540. |
-| Empty-store behaviour change | Invariant: no assertions ⇒ existing graph/API output unchanged. |
+| Threat                                     | Mitigation                                                                         |
+| ------------------------------------------ | ---------------------------------------------------------------------------------- |
+| Silent rewrite of relationship history     | Append-only tables; supersession via successors; no in-place proposition mutation. |
+| Last-write-wins ambiguity                  | Fail-closed projection on conflict keys.                                           |
+| Confidence smuggled as edge strength       | Separate fields; registry-owned strength; docs/tests forbid conflation.            |
+| Clock-skewed / nondeterministic projection | Pure projector; no wall clock; stable ordering; cross-DB hash identity tests.      |
+| Unauthorized acceptance                    | Authority matrix; acceptor ≠ proposer for staging proof; event audit.              |
+| Bypass publish path                        | Publication only via rebuild `SUCCEEDED` + publication row.                        |
+| Evidence body exfiltration / custody creep | No evidence bodies in v1; digests and bounded references only.                     |
+| Second control-plane service drift         | Main FarDB repository only; `control-plane-platform` reference-only.               |
+| Premature CURRENT claims                   | Claim discipline: Accepted decision ≠ CURRENT capability until #1540.              |
+| Empty-store behaviour change               | Invariant: no assertions ⇒ existing graph/API output unchanged.                    |
 
 This threat model does not replace ADR 0007 database authorization, release evidence, or DR rehearsal gates.
 

@@ -66,10 +66,10 @@ landed; they do not authorize CURRENT capability claims before programme complet
 
 ## Programme documents (NEXT)
 
-| Document | Purpose |
-| --- | --- |
-| [ADR 0008: Governed Relationship Assertion Contract](../adr/0008-governed-relationship-assertion-contract.md) | Accepted decision to adopt GRAC v1; claim discipline and control-plane disposition. |
-| [Governed Relationship Assertion Contract v1](../governance/governed-relationship-assertion-contract-v1.md) | Frozen normative contract (lifecycle, evidence, bitemporal rules, projection, slice). |
+| Document                                                                                                      | Purpose                                                                               |
+| ------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| [ADR 0008: Governed Relationship Assertion Contract](../adr/0008-governed-relationship-assertion-contract.md) | Accepted decision to adopt GRAC v1; claim discipline and control-plane disposition.   |
+| [Governed Relationship Assertion Contract v1](../governance/governed-relationship-assertion-contract-v1.md)   | Frozen normative contract (lifecycle, evidence, bitemporal rules, projection, slice). |
 
 ## Planned corpus
 
