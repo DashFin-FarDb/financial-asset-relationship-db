@@ -2,8 +2,8 @@
 
 **Repository:** `DashFin-FarDb/financial-asset-relationship-db`
 **Established:** 2026-07-21
-**Repository evidence cutoff:** `main` at `74c5451acbb462b2a5923eaac1d600f780824e07`
-**Continuity status:** Initial ledger landed; reconciled to post–H-P1-02 `main`
+**Repository evidence cutoff:** `main` at `5e45753705c10c2c4f50e0e9bc4d07b823d752ab`
+**Continuity status:** Initial ledger landed; reconciled to post–H-P0-04 Satisfied `main` (PR #1529)
 
 This ledger preserves durable project decisions, plans, milestones, and handoffs across ChatGPT, Codex, and
 repository work. It is an index of authoritative evidence, not a replacement for detailed specifications, issues,
@@ -37,11 +37,13 @@ recovery evidence.
 
 At the evidence cutoff:
 
-- `main` resolves to `74c5451acbb462b2a5923eaac1d600f780824e07` (includes H-P0 foundation gates PR #1506,
-  H-P1-01 PR #1508, and H-P1-02 PR #1509).
+- `main` resolves to `5e45753705c10c2c4f50e0e9bc4d07b823d752ab` (includes H-P0 foundation gates, H-P1-01/02, staging
+  H-P0-04 Satisfied via PR #1529 / ADR 0007 Accepted).
 - Open PR #1510 lands H-P1-03 (`post-recovery-readiness.yml`); treat it as in-flight until merged.
-- Database authorization remains release-blocking until the target environment passes ADR 0007's automated and
-  manual exit criteria with restricted evidence and a public redacted result (H-P0-04 Partially satisfied).
+- Staging database authorization is Satisfied (`db_authz: PASS|run-30002002715`). Production still needs its own
+  SHA-bound authz PASS when that artefact is promoted.
+- Governed Relationship Assertion Contract v1 is the next programme (epic #1530 / children #1531–#1540); capability
+  remains `NEXT` until exact-SHA staging proof.
 - Production-scale capacity, repeated immutable promotion, and domain-neutral reuse remain unproven.
 
 Primary authorities:
@@ -51,6 +53,7 @@ Primary authorities:
 - [Claims and Truth Policy](claims-and-truth-policy.md)
 - [Release Evidence Pack](../release-evidence-pack.md)
 - [State Machine and Operating Authority](../governance/state-machine-and-operating-authority.md)
+- [Governed Relationship Assertion Contract v1](../governance/governed-relationship-assertion-contract-v1.md) (NEXT capability)
 - [The Big Read](the-big-read.md)
 
 ## Active commitments
@@ -130,20 +133,20 @@ Primary authorities:
 ### FPC-2026-07-21-04 — Ratify the governed relationship-assertion contract
 
 - **Type:** Product architecture
-- **Status:** Planned
+- **Status:** Agreed — contract decision ratified (ADR 0008 / contract v1); runtime capability remains `NEXT`
 - **Decision or objective:** Decide and document the lifecycle that distinguishes propositions, evidence, assertions,
   determinations, projections, corrections, supersession, authority, purpose, and time.
 - **Rationale and constraints:** This is the proposed differentiating semantic core. It must not be represented as a
   current capability merely because the existing graph and governance foundations make it plausible.
-- **Repository scope:** Strategy documents, future ADR or specification, canonical domain model, conformance tests and
-  later domain adapters.
-- **Dependencies or blockers:** Domain admission criteria; bitemporal and evidence-custody decisions; expert review;
-  database authorization and release proof.
-- **Evidence and provenance:** Classified as `NEXT` or `RESEARCH` by the accepted claims taxonomy and current-state
-  strategy; not implemented as a complete governed lifecycle.
-- **Next action and completion test:** Ratify a narrow contract through one decision-scoped ADR/specification and prove
-  it first in the financial domain with lifecycle and invariant tests.
-- **Last updated:** 2026-07-21
+- **Repository scope:** ADR 0008, frozen contract v1, continuity/strategy links, later conformance tests, schema,
+  projector, publication, APIs, UI, and staging proof through epic #1530 children #1532–#1540.
+- **Dependencies or blockers:** Executable conformance and vertical-slice delivery; staging proof before CURRENT.
+- **Evidence and provenance:** User decision 2026-07-25; baseline `5e457537`; ADR 0008 Accepted; contract v1 frozen;
+  tracker epic #1530. Runtime capability still classified `NEXT` until PR 10 exact-SHA proof.
+- **Next action and completion test:** Land executable conformance + vertical slice through #1532–#1540; complete only
+  when exact-SHA staging proof answers provenance, proposition, evidence, method, confidence, time, authority,
+  supersession, revision, and pre-correction graph after restart.
+- **Last updated:** 2026-07-25
 
 ### FPC-2026-07-21-05 — Prove domain generality without weakening the core
 
@@ -162,6 +165,27 @@ Primary authorities:
 - **Last updated:** 2026-07-21
 
 ## Decision and delivery record
+
+### FARDB-GRAC-V1 — Governed Relationship Assertion Contract v1
+
+- **Type:** Architecture and product milestone
+- **Status:** Agreed
+- **Decision:** Make append-only governed assertions the authoritative source
+  for relationship provenance, evidence, authority, time, confidence,
+  lifecycle and supersession; retain the graph as a deterministic projection.
+- **First proof:** `financial.bond.issuer_reference@1` complete financial
+  vertical slice.
+- **Constraints:** Main repository only; FastAPI + Next.js production path;
+  SQLite/PostgreSQL parity; existing rebuild control plane owns publication;
+  no raw evidence blobs, multi-domain expansion or graph-database migration.
+- **Evidence:** User decision dated 2026-07-25; repository baseline
+  `5e45753705c10c2c4f50e0e9bc4d07b823d752ab`; tracker epic #1530 / children #1531–#1540;
+  ADR 0008 Accepted; frozen contract
+  [governed-relationship-assertion-contract-v1.md](../governance/governed-relationship-assertion-contract-v1.md).
+- **Next action:** Land executable conformance + vertical slice through #1532–#1540.
+- **Completion test:** Exact-SHA staging proof of proposal, authorization,
+  publication, supersession, restart and historical reconstruction.
+- **Last updated:** 2026-07-25
 
 ### FPC-2025-10-26-01 — Financial relationship prototype becomes a versioned project
 
@@ -359,8 +383,8 @@ Primary authorities:
    when the next release record is prepared.
 4. **Tracker vs ledger:** Active commitments in this ledger may outlive or precede open GitHub issues/PRs. Empty or
    sparse trackers are not evidence that release gates are satisfied.
-5. **Product category decision:** The governed assertion model is a recommended next decision, not yet an accepted ADR
-   or current platform capability.
+5. **Product category decision:** ADR 0008 Accepted and contract v1 frozen (FARDB-GRAC-V1 Agreed). Runtime governed
+   assertion capability remains `NEXT` until exact-SHA staging proof (#1540); do not treat ratification as CURRENT.
 
 ## Agent-ready handoff
 
@@ -371,8 +395,10 @@ Primary authorities:
 - Durable graph load, startup provenance, promotion checking, recovery control plane, API contracts, governance, DR
   documentation, and release-evidence mechanisms exist in the repository.
 - RC1 has candidate-specific approved hosted and restore evidence.
-- `main` is `74c5451acbb462b2a5923eaac1d600f780824e07` at this cutoff (H-P0 foundation, H-P1-01, H-P1-02 merged).
+- `main` is `5e45753705c10c2c4f50e0e9bc4d07b823d752ab` at this cutoff (H-P0 foundation, H-P1-01, H-P1-02, staging
+  H-P0-04 Satisfied merged).
 - PR #1510 (H-P1-03 post-recovery re-smoke) is open at ledger update time.
+- GRAC v1 programme tracker: epic #1530 / children #1531–#1540; capability claim remains `NEXT`.
 
 ### Governing constraints
 
@@ -386,10 +412,10 @@ Primary authorities:
 
 ### Next highest-value action
 
-Close the next highest planned release control (**FPC-2026-07-21-02** release repeatability) or begin the Governed
-Relationship Assertion Contract programme only after confirming staging H-P0-04 remains Satisfied on `main`. Staging
-authz closure is complete (`db_authz: PASS|run-30002002715`); do not reopen it without new drift evidence. Production
-promotion still needs its own SHA-bound marker when that target is cut.
+Execute the Governed Relationship Assertion Contract programme in order (#1532–#1540) after PR 1 (#1531) lands ADR
+0008 and frozen contract v1. Staging H-P0-04 remains Satisfied on `main` (`db_authz: PASS|run-30002002715`); do not
+reopen it without new drift evidence. Production promotion still needs its own SHA-bound authz marker when that target
+is cut. Release repeatability (**FPC-2026-07-21-02**) remains an active parallel commitment.
 
 ### Completion test
 
