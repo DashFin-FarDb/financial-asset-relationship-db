@@ -40,6 +40,7 @@ Claims are labeled landed vs provisional. ADRs/policy are not rewritten.
 - [provisional] **pr:1498**:   .. → .. ()
 
 ### persistence
+- [provisional] **pr:1549**:   v   
 - [landed] **pr:1455**: x    y 
 - [provisional] **pr:1443**: x()    # vw 
 - [provisional] **pr:1439**: x() v   
@@ -54,9 +55,9 @@ Claims are labeled landed vs provisional. ADRs/policy are not rewritten.
 - [provisional] **pr:1414**: x() y    w
 - [provisional] **pr:1409**: x()    
 - [provisional] **pr:1403**: fix(ci): resolve compound workflow failures
-- [provisional] **pr:1402**: fix: support Python 3.10 UTC timestamps
 
 ### ci-guardrails
+- [provisional] **pr:1549**:   v   
 - [landed] **pr:1542**:   -    
 - [provisional] **pr:1545**: ()   -  w  
 - [landed] **pr:1528**:   - -- z  v
@@ -71,7 +72,6 @@ Claims are labeled landed vs provisional. ADRs/policy are not rewritten.
 - [landed] **pr:1509**:     w ww (--)
 - [landed] **pr:1508**:     w    (--)
 - [landed] **pr:1506**:       
-- [landed] **pr:1499**: ()   y    w-
 
 ### rebuild-reconciliation
 - [landed] **pr:1455**: x    y 
