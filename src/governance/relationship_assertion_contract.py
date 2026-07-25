@@ -117,9 +117,7 @@ class TransitionsDocument(StrictModel):
         seen: set[tuple[str, str]] = set()
         for transition in self.transitions:
             if transition.from_state not in state_set or transition.to_state not in state_set:
-                raise ValueError(
-                    f"transition references unknown state: " f"{transition.from_state}->{transition.to_state}"
-                )
+                raise ValueError(f"transition references unknown state: {transition.from_state}->{transition.to_state}")
             if transition.from_state in self.terminal:
                 raise ValueError(f"illegal transition from terminal state: {transition.from_state}")
             key = (transition.from_state, transition.to_state)
@@ -295,10 +293,11 @@ def check_valid_fixture(
         successor = transition_raw.get("successor_assertion_id")
         if not isinstance(successor, str) or not successor.strip():
             return (
-                f"supersession transition {from_state}->{to_state} " "requires non-empty string successor_assertion_id"
+                f"supersession transition {from_state}->{to_state} "
+                + "requires non-empty string successor_assertion_id"
             )
     elif "successor_assertion_id" in transition_raw:
-        return f"non-supersession transition {from_state}->{to_state} " "must not set successor_assertion_id"
+        return f"non-supersession transition {from_state}->{to_state} " + "must not set successor_assertion_id"
     return None
 
 

@@ -70,8 +70,9 @@ def test_run_conformance_passes_on_clean_fixtures() -> None:
 )
 def test_malformed_predicate_rejects_bad_strength(bad_strength: object) -> None:
     """Float, non-canonical, or out-of-range strength values must fail closed."""
+    payload = {"predicates": [_predicate_with_strength(bad_strength)]}
     with pytest.raises(ValidationError):
-        PredicatesDocument.model_validate({"predicates": [_predicate_with_strength(bad_strength)]})
+        PredicatesDocument.model_validate(payload)
 
 
 def test_illegal_transition_from_terminal_rejected() -> None:
