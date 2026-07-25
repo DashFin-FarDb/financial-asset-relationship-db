@@ -68,16 +68,8 @@ def _heading_line_matches(stripped: str, heading: str) -> bool:
     return rest[:1] in {"", " ", "\t", "—", "–", "-"}
 
 
-def _section_after(content: str, heading: str) -> str:
-    """Return text after a markdown heading until the next same-or-higher-level heading.
-
-    Matches ``heading`` only as a full heading line (or a heading line that starts with
-    ``heading``). Ignores heading-like lines inside fenced code blocks.
-    """
-    level = len(heading) - len(heading.lstrip("#"))
-    assert level >= 1, f"expected a markdown heading, got {heading!r}"
-    lines = content.splitlines(keepends=True)
-    start_idx: int | None = None
+def _find_heading_line_index(lines: list[str], heading: str) -> int:
+    """Return the index of ``heading`` outside fenced code blocks."""
     in_fence = False
     for idx, line in enumerate(lines):
         stripped = line.strip()
@@ -87,22 +79,38 @@ def _section_after(content: str, heading: str) -> str:
         if in_fence:
             continue
         if _heading_line_matches(stripped, heading):
-            start_idx = idx
-            break
-    assert start_idx is not None, f"missing heading {heading!r}"
+            return idx
+    raise AssertionError(f"missing heading {heading!r}")
 
+
+def _section_body_after(lines: list[str], start_idx: int, level: int) -> str:
+    """Collect section body lines until the next same-or-higher-level heading."""
     body: list[str] = []
     in_fence = False
+    next_heading = re.compile(rf"^#{{1,{level}}} ")
     for line in lines[start_idx + 1 :]:
         stripped = line.strip()
         if stripped.startswith("```"):
             in_fence = not in_fence
             body.append(line)
             continue
-        if not in_fence and re.match(rf"^#{{1,{level}}} ", stripped):
-            break
-        body.append(line)
+        if in_fence or not next_heading.match(stripped):
+            body.append(line)
+            continue
+        break
     return "".join(body)
+
+
+def _section_after(content: str, heading: str) -> str:
+    """Return text after a markdown heading until the next same-or-higher-level heading.
+
+    Matches ``heading`` only as a full heading line (or a heading line that starts with
+    ``heading``). Ignores heading-like lines inside fenced code blocks.
+    """
+    level = len(heading) - len(heading.lstrip("#"))
+    assert level >= 1, f"expected a markdown heading, got {heading!r}"
+    lines = content.splitlines(keepends=True)
+    return _section_body_after(lines, _find_heading_line_index(lines, heading), level)
 
 
 def _assert_document_hygiene(content: str, path: Path) -> None:
