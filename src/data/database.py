@@ -100,12 +100,16 @@ def init_db(engine: Engine) -> None:
     Create database tables for all ORM models declared on Base.metadata.
 
     Creates any missing tables in the database referenced by the provided SQLAlchemy Engine.
-    Also applies any pending SQL migrations to ensure schema is up-to-date.
+    Also applies any pending SQL migrations to ensure schema is up-to-date, then installs
+    GRAC v1 assertion immutability guards.
 
     Parameters:
         engine (Engine): SQLAlchemy Engine connected to the target database where tables will be created.
     """
+    # Register GRAC ORM tables on Base.metadata before create_all.
+    from . import relationship_assertion_db_models as _relationship_assertion_db_models  # noqa: F401
     from .migrations import apply_migrations, apply_postgresql_heartbeat_migration
+    from .relationship_assertion_schema import ensure_relationship_assertion_schema
 
     Base.metadata.create_all(engine)
 
@@ -120,3 +124,5 @@ def init_db(engine: Engine) -> None:
         apply_migrations(url.database)
     elif backend == "postgresql":
         apply_postgresql_heartbeat_migration(engine)
+
+    ensure_relationship_assertion_schema(engine)
