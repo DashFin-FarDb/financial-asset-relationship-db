@@ -37,9 +37,8 @@ recovery evidence.
 
 At the evidence cutoff:
 
-- `main` resolves to `5e45753705c10c2c4f50e0e9bc4d07b823d752ab` (includes H-P0 foundation gates, H-P1-01/02, staging
+- `main` resolves to `5e45753705c10c2c4f50e0e9bc4d07b823d752ab` (includes H-P0 foundation gates, H-P1-01/02/03, staging
   H-P0-04 Satisfied via PR #1529 / ADR 0007 Accepted).
-- Open PR #1510 lands H-P1-03 (`post-recovery-readiness.yml`); treat it as in-flight until merged.
 - Staging database authorization is Satisfied (`db_authz: PASS|run-30002002715`). Production still needs its own
   SHA-bound authz PASS when that artefact is promoted.
 - Governed Relationship Assertion Contract v1 is the next programme (epic #1530 / children #1531–#1540); capability
@@ -105,7 +104,7 @@ Primary authorities:
 - **Dependencies or blockers:** Selected release SHA; target environment; database authorization closure; named
   operators; fresh hosted and restore outputs.
 - **Evidence and provenance:** The current-state strategy and enterprise-readiness index both preserve fresh-evidence
-  requirements for later releases. Hardening automation through H-P1-02 is on `main`; H-P1-03 is open as PR #1510.
+  requirements for later releases. Hardening automation through H-P1-02 and H-P1-03 (PR #1510) is on `main`.
 - **Next action and completion test:** Promote the same immutable artefact through the governed path and obtain a
   complete evidence ledger with durable persisted startup, scanner review, operator sign-off, rollback, and restore
   proof.
@@ -353,11 +352,11 @@ Primary authorities:
   - PR #1506 — P0 foundation gates (`cabb8222` lineage on `main`)
   - PR #1508 — H-P1-01 `--assets-smoke` with `--require-persistence` (`5c507f6c`)
   - PR #1509 — H-P1-02 `production-promotion.yml` twin (`74c5451a`)
+  - PR #1510 — H-P1-03 post-recovery readiness re-smoke (`21f54a42`)
 - **Evidence and provenance:** Merged history on `main`; evidence pack / board rows for H-P1-01 and H-P1-02 marked
-  Satisfied - automated. H-P0-04 is Satisfied for staging: redacted PASS, restricted exit criteria, and named
-  sign-off recorded (#1525 / PR #1528 / PR #1529; `db_authz: PASS|run-30002002715`).
-- **In flight:** PR #1510 — H-P1-03 post-recovery readiness re-smoke dispatch recipe + artifacts.
-- **Last updated:** 2026-07-24
+  Satisfied - automated. H-P1-03 merged via PR #1510. H-P0-04 is Satisfied for staging: redacted PASS, restricted exit
+  criteria, and named sign-off recorded (#1525 / PR #1528 / PR #1529; `db_authz: PASS|run-30002002715`).
+- **Last updated:** 2026-07-25
 
 ## Deferred work
 
@@ -395,9 +394,8 @@ Primary authorities:
 - Durable graph load, startup provenance, promotion checking, recovery control plane, API contracts, governance, DR
   documentation, and release-evidence mechanisms exist in the repository.
 - RC1 has candidate-specific approved hosted and restore evidence.
-- `main` is `5e45753705c10c2c4f50e0e9bc4d07b823d752ab` at this cutoff (H-P0 foundation, H-P1-01, H-P1-02, staging
-  H-P0-04 Satisfied merged).
-- PR #1510 (H-P1-03 post-recovery re-smoke) is open at ledger update time.
+- `main` is `5e45753705c10c2c4f50e0e9bc4d07b823d752ab` at this cutoff (H-P0 foundation, H-P1-01, H-P1-02, H-P1-03,
+  staging H-P0-04 Satisfied merged).
 - GRAC v1 programme tracker: epic #1530 / children #1531–#1540; capability claim remains `NEXT`.
 
 ### Governing constraints
@@ -432,7 +430,7 @@ Same completion test as **FPC-2026-07-21-01** (and the runbook exit criteria).
 - ADRs and governance authorities referenced by those indices, including ADRs 0001, 0002, 0005, 0006, and 0007.
 - RC1 committed evidence record and its repository companion issue record.
 - Current-state strategy, claims taxonomy, and Big Read chronology.
-- Merged hardening PRs #1506, #1508, #1509 and open PR #1510.
+- Merged hardening PRs #1506, #1508, #1509, and #1510 (H-P1-03).
 - Available ChatGPT continuity context covering the enterprise-readiness program, PR #1096 onward, RC1 evidence work,
   hosted startup incidents, audit completion, and agreed future-work discussions.
 

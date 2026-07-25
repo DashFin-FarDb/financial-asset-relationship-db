@@ -43,6 +43,12 @@ SEVEN_TABLES = (
     "relationship_projection_edges",
     "relationship_projection_publications",
 )
+GOVERNED_DOCUMENTS = (
+    ("adr_0008", ADR_0008),
+    ("contract_v1", CONTRACT_V1),
+    ("continuity", CONTINUITY),
+    ("strategy_readme", STRATEGY_README),
+)
 
 
 def _load(path: Path) -> str:
@@ -50,16 +56,65 @@ def _load(path: Path) -> str:
     return path.read_text(encoding="utf-8")
 
 
+def _heading_line_matches(stripped: str, heading: str) -> bool:
+    """Return True when ``stripped`` is the target markdown heading line (exact or prefixed)."""
+    if not stripped.startswith("#"):
+        return False
+    if stripped == heading:
+        return True
+    if not stripped.startswith(heading):
+        return False
+    rest = stripped[len(heading) :]
+    return rest[:1] in {"", " ", "\t", "—", "–", "-"}
+
+
 def _section_after(content: str, heading: str) -> str:
-    """Return text following ``heading`` until the next same-or-higher-level heading."""
-    assert heading in content, f"missing heading {heading!r}"
-    after = content.split(heading, 1)[1]
-    # Stop at next markdown heading of level <= heading level
+    """Return text after a markdown heading until the next same-or-higher-level heading.
+
+    Matches ``heading`` only as a full heading line (or a heading line that starts with
+    ``heading``). Ignores heading-like lines inside fenced code blocks.
+    """
     level = len(heading) - len(heading.lstrip("#"))
-    next_heading = re.search(rf"\n#{{1,{level}}} ", after)
-    if next_heading:
-        return after[: next_heading.start()]
-    return after
+    assert level >= 1, f"expected a markdown heading, got {heading!r}"
+    lines = content.splitlines(keepends=True)
+    start_idx: int | None = None
+    in_fence = False
+    for idx, line in enumerate(lines):
+        stripped = line.strip()
+        if stripped.startswith("```"):
+            in_fence = not in_fence
+            continue
+        if in_fence:
+            continue
+        if _heading_line_matches(stripped, heading):
+            start_idx = idx
+            break
+    assert start_idx is not None, f"missing heading {heading!r}"
+
+    body: list[str] = []
+    in_fence = False
+    for line in lines[start_idx + 1 :]:
+        stripped = line.strip()
+        if stripped.startswith("```"):
+            in_fence = not in_fence
+            body.append(line)
+            continue
+        if not in_fence and re.match(rf"^#{{1,{level}}} ", stripped):
+            break
+        body.append(line)
+    return "".join(body)
+
+
+def _assert_document_hygiene(content: str, path: Path) -> None:
+    """Shared heading/fence/whitespace/UTF-8 gates for governed documents."""
+    for line in content.splitlines():
+        if line.startswith("#"):
+            assert re.match(r"^#{1,6} .+", line), f"Heading must have space after #: {line!r} ({path})"
+    fence_count = content.count("```")
+    assert fence_count % 2 == 0, f"Unbalanced code fences: {fence_count} ({path})"
+    bad = [i + 1 for i, line in enumerate(content.splitlines()) if line.rstrip() != line and line.strip()]
+    assert not bad, f"Trailing whitespace on lines: {bad} ({path})"
+    assert "\ufffd" not in path.read_text(encoding="utf-8")
 
 
 @pytest.fixture(scope="module")
@@ -84,6 +139,13 @@ def continuity_content() -> str:
 def strategy_readme_content() -> str:
     """Strategy README file contents."""
     return _load(STRATEGY_README)
+
+
+@pytest.mark.parametrize(("doc_id", "path"), GOVERNED_DOCUMENTS, ids=[doc_id for doc_id, _ in GOVERNED_DOCUMENTS])
+def test_governed_document_hygiene(doc_id: str, path: Path) -> None:
+    """Each governed document must pass shared markdown hygiene gates."""
+    assert path.is_file(), doc_id
+    _assert_document_hygiene(_load(path), path)
 
 
 class TestGovernedRelationshipAssertionADR:
@@ -151,10 +213,17 @@ class TestGovernedRelationshipAssertionADR:
         assert "governed-relationship-assertion-contract-v1.md" in adr_content
 
     def test_claim_discipline_keeps_capability_next(self, adr_content: str) -> None:
-        """Accepted decision must not authorize CURRENT capability."""
-        assert "NEXT" in adr_content
-        assert "CURRENT" in adr_content
-        assert "Remains **NEXT**" in adr_content or "capability remains **NEXT**" in adr_content
+        """Runtime capability claim-discipline row must remain NEXT and deny CURRENT."""
+        claim = _section_after(adr_content, "### Claim discipline")
+        rows = [
+            line
+            for line in claim.splitlines()
+            if "runtime capability" in line.lower() and line.lstrip().startswith("|")
+        ]
+        assert rows, "missing runtime capability claim-discipline row"
+        row = rows[0]
+        assert "Remains **NEXT**" in row
+        assert "not CURRENT" in row
 
     def test_states_empty_store_zero_behavioural_change(self, adr_content: str) -> None:
         """Empty assertion store must imply zero behavioural change."""
@@ -169,6 +238,14 @@ class TestGovernedRelationshipAssertionADR:
         assert "fail closed" in adr_content.lower()
         assert "SUCCEEDED" in adr_content
 
+    def test_bitemporal_recorded_at_vs_known_at(self, adr_content: str) -> None:
+        """ADR must distinguish stored recorded_at from query known_at."""
+        invariants = _section_after(adr_content, "### Non-negotiable invariants")
+        assert "recorded_at" in invariants
+        assert "known_at" in invariants
+        assert "query/as-of" in invariants.lower() or "query/as-of parameter" in invariants.lower()
+        assert "not a persisted" in invariants.lower() or "not a persisted column" in invariants.lower()
+
     def test_control_plane_reference_only(self, adr_content: str) -> None:
         """control-plane-platform must remain reference-only."""
         assert "control-plane-platform" in adr_content
@@ -182,27 +259,6 @@ class TestGovernedRelationshipAssertionADR:
     def test_references_baseline_sha(self, adr_content: str) -> None:
         """ADR context must cite the programme baseline SHA."""
         assert BASELINE_SHA in adr_content
-
-    def test_headings_have_space_after_hash(self, adr_content: str) -> None:
-        """Markdown headings must include a space after # markers."""
-        for line in adr_content.splitlines():
-            if line.startswith("#"):
-                assert re.match(r"^#{1,6} .+", line), f"Heading must have space after #: {line!r}"
-
-    def test_code_blocks_are_balanced(self, adr_content: str) -> None:
-        """Fenced code blocks must be balanced."""
-        count = adr_content.count("```")
-        assert count % 2 == 0, f"Unbalanced code fences: {count}"
-
-    def test_no_trailing_whitespace(self, adr_content: str) -> None:
-        """Non-empty lines must not have trailing whitespace."""
-        bad = [i + 1 for i, line in enumerate(adr_content.splitlines()) if line.rstrip() != line and line.strip()]
-        assert not bad, f"Trailing whitespace on lines: {bad}"
-
-    def test_utf8_encoding(self) -> None:
-        """File must decode as UTF-8 without replacement characters."""
-        text = ADR_0008.read_text(encoding="utf-8")
-        assert "\ufffd" not in text
 
 
 class TestGovernedRelationshipAssertionContractV1:
@@ -253,6 +309,7 @@ class TestGovernedRelationshipAssertionContractV1:
         vocab = _section_after(contract_content, "## 2. Vocabulary")
         for term in ("Proposition", "Evidence", "Assertion", "Projection", "Supersession", "Confidence"):
             assert term in vocab
+        assert "supersession pointer" not in vocab.lower()
 
     def test_lifecycle_states_and_terminal(self, contract_content: str) -> None:
         """Lifecycle must name Proposed/Accepted and terminal states."""
@@ -276,6 +333,8 @@ class TestGovernedRelationshipAssertionContractV1:
         lower = evidence.lower()
         assert "bodies" in lower or "no evidence body" in lower
         assert "no evidence bodies" in contract_content.lower() or "out of v1" in lower
+        assert "recorded_at" in evidence
+        assert "known_at" in evidence
 
     def test_confidence_not_projection_strength(self, contract_content: str) -> None:
         """Confidence must be separated from projection strength."""
@@ -293,12 +352,18 @@ class TestGovernedRelationshipAssertionContractV1:
         assert "recorded_at" in bitemporal
         assert "known_at" in bitemporal
         assert "effective_at" in bitemporal
+        assert "evidence links" in bitemporal.lower() or "evidence link" in bitemporal.lower()
+        assert "not a persisted column" in bitemporal.lower()
 
     def test_supersession_append_only(self, contract_content: str) -> None:
-        """Supersession must be append-only via successors."""
+        """Supersession must be append-only via successor events only."""
         supersession = _section_after(contract_content, "## 6. Supersession")
         assert "append-only" in supersession.lower() or "Append-only" in supersession
         assert "successor" in supersession.lower()
+        assert (
+            "sole authoritative" in supersession.lower()
+            or "do not store a supersession pointer" in supersession.lower()
+        )
 
     def test_projection_is_deterministic_and_fail_closed(self, contract_content: str) -> None:
         """Projector must be pure, hashed, and fail closed on conflicts."""
@@ -306,12 +371,17 @@ class TestGovernedRelationshipAssertionContractV1:
         assert "SHA-256" in projection
         assert "fail closed" in projection.lower() or "projection error" in projection.lower()
         assert "SUCCEEDED" in projection
+        assert "project(assertions," in projection
+        assert "accepted_assertions" not in projection
+        assert "same atomic transaction" in projection.lower()
+        assert "publication row is authoritative" in projection.lower()
 
     def test_seven_tables_named(self, contract_content: str) -> None:
         """Persistence model must name all seven additive tables."""
         persistence = _section_after(contract_content, "## 8. Additive persistence model (seven tables)")
         for table in SEVEN_TABLES:
             assert table in persistence
+        assert "supersession pointer" not in persistence.lower()
 
     def test_financial_slice_fields(self, contract_content: str) -> None:
         """Vertical slice must pin subject, object, method, and legacy edge type."""
@@ -333,9 +403,9 @@ class TestGovernedRelationshipAssertionContractV1:
         assert "fail-closed" in threats.lower() or "Fail-closed" in threats
 
     def test_control_plane_disposition(self, contract_content: str) -> None:
-        """Contract must keep control-plane-platform reference-only."""
+        """Contract must keep control-plane-platform reference-only in section 11."""
         disposition = _section_after(contract_content, "## 11. Control-plane disposition")
-        assert "control-plane-platform" in disposition or "control-plane-platform" in contract_content
+        assert "control-plane-platform" in disposition
         assert "reference" in disposition.lower()
 
     def test_amendment_rule_forbids_silent_rewrite(self, contract_content: str) -> None:
@@ -347,27 +417,6 @@ class TestGovernedRelationshipAssertionContractV1:
     def test_baseline_sha(self, contract_content: str) -> None:
         """Contract header must cite the programme baseline SHA."""
         assert BASELINE_SHA in contract_content
-
-    def test_headings_have_space_after_hash(self, contract_content: str) -> None:
-        """Markdown headings must include a space after # markers."""
-        for line in contract_content.splitlines():
-            if line.startswith("#"):
-                assert re.match(r"^#{1,6} .+", line), f"Heading must have space after #: {line!r}"
-
-    def test_code_blocks_are_balanced(self, contract_content: str) -> None:
-        """Fenced code blocks must be balanced."""
-        count = contract_content.count("```")
-        assert count % 2 == 0, f"Unbalanced code fences: {count}"
-
-    def test_no_trailing_whitespace(self, contract_content: str) -> None:
-        """Non-empty lines must not have trailing whitespace."""
-        bad = [i + 1 for i, line in enumerate(contract_content.splitlines()) if line.rstrip() != line and line.strip()]
-        assert not bad, f"Trailing whitespace on lines: {bad}"
-
-    def test_utf8_encoding(self) -> None:
-        """File must decode as UTF-8 without replacement characters."""
-        text = CONTRACT_V1.read_text(encoding="utf-8")
-        assert "\ufffd" not in text
 
 
 class TestGovernedRelationshipAssertionContinuityAndStrategy:
@@ -393,32 +442,30 @@ class TestGovernedRelationshipAssertionContinuityAndStrategy:
     def test_fpc_04_next_action_advanced(self, continuity_content: str) -> None:
         """FPC-2026-07-21-04 next-action must advance to conformance + vertical slice."""
         assert "### FPC-2026-07-21-04" in continuity_content
-        entry = continuity_content.split("### FPC-2026-07-21-04", 1)[1].split("### FPC-2026-07-21-05", 1)[0]
+        entry = _section_after(continuity_content, "### FPC-2026-07-21-04")
         assert "land executable conformance + vertical slice" in entry.lower()
         assert "Agreed" in entry
 
+    def test_cutoff_does_not_claim_pr_1510_open(self, continuity_content: str) -> None:
+        """H-P1-03 / PR #1510 must not be described as open after the refreshed cutoff."""
+        assert "Open PR #1510" not in continuity_content
+        assert "H-P1-03 is open as PR #1510" not in continuity_content
+        assert "PR #1510 (H-P1-03 post-recovery re-smoke) is open" not in continuity_content
+        assert "open PR #1510" not in continuity_content
+        assert "H-P1-03" in continuity_content
+
     def test_strategy_readme_links_grac_as_next(self, strategy_readme_content: str) -> None:
-        """Strategy README must link GRAC as NEXT/programme, not CURRENT capability."""
+        """Strategy README must present GRAC links as NEXT programme documents."""
         assert STRATEGY_README.is_file()
-        assert "0008-governed-relationship-assertion-contract.md" in strategy_readme_content
-        assert "governed-relationship-assertion-contract-v1.md" in strategy_readme_content
-        assert "NEXT" in strategy_readme_content
-        # Guard against promoting GRAC to CURRENT in the programme blurb
-        programme = strategy_readme_content
-        assert "GRAC v1 programme **NEXT**" in programme or "runtime capability remains **NEXT**" in programme
-        assert "MUST NOT be restated as CURRENT" in programme or "remains NEXT until" in programme
+        assert "## Programme documents (NEXT)" in strategy_readme_content
+        programme = _section_after(strategy_readme_content, "## Programme documents (NEXT)")
+        assert "0008-governed-relationship-assertion-contract.md" in programme
+        assert "governed-relationship-assertion-contract-v1.md" in programme
+        header = "\n".join(strategy_readme_content.splitlines()[:10])
+        assert "GRAC v1 programme **NEXT**" in header or "runtime capability remains **NEXT**" in header
+        publication = _section_after(strategy_readme_content, "## Publication rule")
+        assert "MUST NOT be restated as CURRENT" in publication
 
     def test_strategy_readme_has_programme_documents_section(self, strategy_readme_content: str) -> None:
         """README must expose a programme documents section for ADR 0008 and contract v1."""
         assert "## Programme documents (NEXT)" in strategy_readme_content
-
-    def test_continuity_headings_have_space_after_hash(self, continuity_content: str) -> None:
-        """Continuity markdown headings must include a space after # markers."""
-        for line in continuity_content.splitlines():
-            if line.startswith("#"):
-                assert re.match(r"^#{1,6} .+", line), f"Heading must have space after #: {line!r}"
-
-    def test_strategy_readme_code_blocks_balanced(self, strategy_readme_content: str) -> None:
-        """Strategy README fenced code blocks must be balanced."""
-        count = strategy_readme_content.count("```")
-        assert count % 2 == 0, f"Unbalanced code fences: {count}"

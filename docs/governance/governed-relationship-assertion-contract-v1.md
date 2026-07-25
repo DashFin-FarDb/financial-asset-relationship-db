@@ -63,7 +63,7 @@ FarDB stores consequential financial relationships. GRAC v1 makes those relation
 | --- | --- |
 | **Proposition** | A typed claim that a subject relates to an object under a versioned predicate. |
 | **Evidence** | An immutable reference record (URI/path, SHA-256 digest, media type, visibility, licensing). No body bytes in v1. |
-| **Assertion** | An immutable acceptance-candidate record binding proposition, method, confidence characterization, effective time, and optional supersession pointer. |
+| **Assertion** | An immutable acceptance-candidate record binding proposition, method, confidence characterization, and effective time. Supersession linkage lives only on append-only events. |
 | **Determination** | The lifecycle outcome applied to an assertion (accept, reject, withdraw, dispute, retract, supersede, reaffirm). |
 | **Event** | An append-only lifecycle/authority record for one assertion transition. |
 | **Projection** | A pure deterministic function from accepted assertions (+ events needed for eligibility) to candidate graph edges. |
@@ -175,7 +175,9 @@ Evidence body bytes, scraped HTML, PDFs, and other blobs are **out of v1**. No e
 
 ### Evidence polarity links
 
-`relationship_assertion_evidence` links are append-only and carry polarity:
+`relationship_assertion_evidence` links are append-only and carry polarity plus server-recorded UTC
+`recorded_at` (set at insert; never client-authored). Historical `known_at` queries include a link only when
+`link.recorded_at <= known_at`.
 
 | Polarity | Meaning |
 | --- | --- |
@@ -202,15 +204,15 @@ Confidence ≠ projection strength.
 | Axis | Fields | Meaning |
 | --- | --- | --- |
 | World / valid time | `effective_from`, `effective_to` | When the proposition applies in the financial world. `effective_to` null means open-ended. |
-| System / recorded time | `recorded_at` on assertions and events | When FarDB learned or recorded the fact. Server clock at write; never client-supplied as authority. |
-| Query known-at | `known_at` parameter | Reconstruct what FarDB knew as of that instant (events with `recorded_at <= known_at`). |
+| System / recorded time | `recorded_at` on assertions, evidence links, and events | When FarDB learned or recorded the fact. Server clock at write; never client-supplied as authority. |
+| Query known-at | `known_at` parameter | Reconstruct what FarDB knew as of that instant. Not a persisted column. |
 
 ### Query contract
 
 Historical and current queries that claim temporal correctness must accept:
 
 - `effective_at` — select assertions whose effective window covers the instant;
-- `known_at` — select only assertions/events recorded at or before that instant;
+- `known_at` — select only assertions, evidence links, and events with `recorded_at <= known_at`;
 - resulting lifecycle state as of `known_at`.
 
 Projection for purpose `financial_graph_current_view` uses the caller-supplied or rebuild-job-bounded
@@ -220,13 +222,15 @@ Projection for purpose `financial_graph_current_view` uses the caller-supplied o
 
 ## 6. Supersession
 
-1. Supersession creates a successor assertion; the predecessor transitions to `Superseded`.
-2. Predecessor rows are never updated except through append-only events that change lifecycle state.
-3. A superseded assertion remains queryable for historical reconstruction.
-4. Cycles are forbidden: an assertion must not appear in its own successor chain.
-5. At most one non-terminal accepted assertion may occupy a given conflict key (see projection) at a
+1. Supersession creates a successor assertion; the predecessor transitions to `Superseded` via an append-only event.
+2. The supersession event’s successor assertion ID is the sole authoritative linkage. Assertion rows do not store a
+   supersession pointer (no dual authority).
+3. Predecessor proposition rows are never rewritten; only append-only events change lifecycle eligibility.
+4. A superseded assertion remains queryable for historical reconstruction.
+5. Cycles are forbidden: an assertion must not appear in its own successor chain.
+6. At most one non-terminal accepted assertion may occupy a given conflict key (see projection) at a
    `(effective_at, known_at)` pair; violations fail closed at projection time.
-6. Retraction without successor is allowed; it removes projection eligibility without inventing replacement truth.
+7. Retraction without successor is allowed; it removes projection eligibility without inventing replacement truth.
 
 ---
 
@@ -235,9 +239,12 @@ Projection for purpose `financial_graph_current_view` uses the caller-supplied o
 Projection is a **pure** function:
 
 ```text
-project(accepted_assertions, events_as_of_known_at, predicate_registry, purpose, effective_at, known_at)
+project(assertions, events_as_of_known_at, predicate_registry, purpose, effective_at, known_at)
   -> ProjectionRevision | ProjectionError
 ```
+
+`assertions` is the complete assertion stream. Accepted eligibility is derived inside the projector from
+`events_as_of_known_at` (step 1); callers must not pre-filter to accepted-only.
 
 ### Determinism requirements
 
@@ -268,8 +275,11 @@ Disputed, rejected, withdrawn, retracted, and superseded assertions do not emit 
 A candidate revision becomes current read-model truth only when:
 
 1. A rebuild job owns execution under existing repository guards; and
-2. The job is atomically marked `SUCCEEDED`; and
-3. A `relationship_projection_publications` row records `(revision_id, rebuild_job_id, published_at)`.
+2. The job is marked `SUCCEEDED` and a `relationship_projection_publications` row
+   `(revision_id, rebuild_job_id, published_at)` is inserted in the **same atomic transaction**.
+
+If that transaction fails, neither write is visible. The publication row is authoritative for which revision was
+published for GRAC; a `SUCCEEDED` rebuild without a matching publication row did not publish a governed revision.
 
 No direct write from assertion APIs into `asset_relationships` bypassing this path is permitted in v1.
 
@@ -282,8 +292,8 @@ Seven additive tables; no existing table is removed or repurposed in v1:
 | Table | Responsibility |
 | --- | --- |
 | `relationship_evidence` | Immutable evidence reference, digest, custody and visibility metadata |
-| `relationship_assertions` | Immutable proposition, method, confidence, effective time and supersession pointer |
-| `relationship_assertion_evidence` | Supporting, opposing or contextual evidence links |
+| `relationship_assertions` | Immutable proposition, method, confidence, and effective time |
+| `relationship_assertion_evidence` | Supporting, opposing or contextual evidence links with `recorded_at` |
 | `relationship_assertion_events` | Ordered lifecycle and authority history |
 | `relationship_projection_revisions` | Deterministic candidate graph revisions and hashes |
 | `relationship_projection_edges` | Materialized governed edges for each revision |

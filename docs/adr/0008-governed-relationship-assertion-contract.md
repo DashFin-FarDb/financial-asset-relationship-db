@@ -56,8 +56,9 @@ Empty assertion store ⇒ zero behavioural change. No CURRENT capability claim i
    remain read models, not historical authority.
 2. **Append-only history; supersession via successors.** Corrections create successor assertions; they never rewrite
    history.
-3. **Bitemporal time.** `effective_from` / `effective_to` (world time) and `recorded_at` / `known_at` (system
-   knowledge). Historical queries accept both `effective_at` and `known_at`.
+3. **Bitemporal time.** `effective_from` / `effective_to` (world time); `recorded_at` is stored server system
+   time; `known_at` is a query/as-of parameter only (not a persisted column). Historical queries accept both
+   `effective_at` and `known_at`.
 4. **Confidence ≠ projection strength.** Confidence is optional integer basis points with declared type/method;
    projection strength is predicate-registry compatibility. `not_assessed` must be explicit — no silent defaults.
 5. **No evidence bodies in v1.** Store bounded source references, SHA-256 digests, media type, timestamps, visibility
