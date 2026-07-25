@@ -1,0 +1,15 @@
+{
+  "predicate": {
+    "conflict_key": ["predicate_id", "subject_id"],
+    "id": "financial.bond.issuer_reference@1",
+    "method_ids": ["bond.issuer_id.resolution@1"],
+    "object_type": "Asset",
+    "projection": {
+      "direction": "subject_to_object",
+      "edge_type": "corporate_link",
+      "purpose": "financial_graph_current_view",
+      "strength": 0.8
+    },
+    "subject_type": "Bond"
+  }
+}

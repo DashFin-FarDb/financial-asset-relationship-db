@@ -104,6 +104,9 @@ jobs:
             pip check
             pytest --cov=src --cov-report=xml --cov-report=term-missing -v
 
+      - name: GRAC v1 conformance
+        run: python tools/ci/check_relationship_assertion_contract.py
+
       - name: Upload coverage to Codecov
         if: matrix.python-version == '3.11'
         uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0

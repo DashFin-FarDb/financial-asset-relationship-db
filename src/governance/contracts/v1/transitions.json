@@ -1,0 +1,68 @@
+{
+  "states": [
+    "Proposed",
+    "Accepted",
+    "Rejected",
+    "Withdrawn",
+    "Disputed",
+    "Retracted",
+    "Superseded"
+  ],
+  "terminal": ["Rejected", "Withdrawn", "Retracted", "Superseded"],
+  "transitions": [
+    {
+      "authority": "acceptor",
+      "from": "Proposed",
+      "requires_successor": false,
+      "to": "Accepted"
+    },
+    {
+      "authority": "acceptor",
+      "from": "Proposed",
+      "requires_successor": false,
+      "to": "Rejected"
+    },
+    {
+      "authority": "proposer",
+      "from": "Proposed",
+      "requires_successor": false,
+      "to": "Withdrawn"
+    },
+    {
+      "authority": "disputer",
+      "from": "Accepted",
+      "requires_successor": false,
+      "to": "Disputed"
+    },
+    {
+      "authority": "retractor",
+      "from": "Accepted",
+      "requires_successor": false,
+      "to": "Retracted"
+    },
+    {
+      "authority": "acceptor",
+      "from": "Accepted",
+      "requires_successor": true,
+      "to": "Superseded"
+    },
+    {
+      "authority": "acceptor",
+      "from": "Disputed",
+      "requires_successor": false,
+      "to": "Accepted"
+    },
+    {
+      "authority": "retractor",
+      "from": "Disputed",
+      "requires_successor": false,
+      "to": "Retracted"
+    },
+    {
+      "authority": "acceptor",
+      "from": "Disputed",
+      "requires_successor": true,
+      "to": "Superseded"
+    }
+  ]
+}
