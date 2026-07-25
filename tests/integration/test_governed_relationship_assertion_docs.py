@@ -106,7 +106,7 @@ def _section_after(content: str, heading: str) -> str:
 
 
 def _assert_document_hygiene(content: str, path: Path) -> None:
-    """Shared heading/fence/whitespace gates for governed documents."""
+    """Shared heading/fence/whitespace/mojibake gates for governed documents."""
     for line in content.splitlines():
         if line.startswith("#"):
             assert re.match(r"^#{1,6} .+", line), f"Heading must have space after #: {line!r} ({path})"
@@ -114,6 +114,8 @@ def _assert_document_hygiene(content: str, path: Path) -> None:
     assert fence_count % 2 == 0, f"Unbalanced code fences: {fence_count} ({path})"
     bad = [i + 1 for i, line in enumerate(content.splitlines()) if line.rstrip() != line and line.strip()]
     assert not bad, f"Trailing whitespace on lines: {bad} ({path})"
+    # U+FFFD can appear in valid UTF-8 after a bad copy-paste; catch it without re-reading.
+    assert "\ufffd" not in content, f"UTF-8 replacement character (U+FFFD) found ({path})"
 
 
 @pytest.fixture(scope="module")
