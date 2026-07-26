@@ -87,16 +87,23 @@ def _sqlite_guards_present(connection: Connection) -> bool:
     """Return True when every GRAC table has UPDATE and DELETE triggers."""
     expected = _expected_sqlite_trigger_names()
     rows = connection.execute(
-        text("SELECT name FROM sqlite_master WHERE type = 'trigger' AND name IN :names").bindparams(
-            bindparam("names", expanding=True)
+        text("""
+            SELECT name
+            FROM sqlite_master
+            WHERE type = 'trigger'
+                AND name IN :names
+                AND tbl_name IN :tables
+            """).bindparams(
+            bindparam("names", expanding=True),
+            bindparam("tables", expanding=True),
         ),
-        {"names": list(expected)},
+        {"names": list(expected), "tables": list(GRAC_TABLE_NAMES)},
     ).fetchall()
     return {row[0] for row in rows} >= set(expected)
 
 
 def _postgresql_guards_present(connection: Connection) -> bool:
-    """Return True when the function and all table triggers exist."""
+    """Return True when the function and all current-schema GRAC triggers exist."""
     row = connection.execute(
         text("""
             SELECT 1
@@ -112,8 +119,20 @@ def _postgresql_guards_present(connection: Connection) -> bool:
         return False
     expected = _expected_postgresql_trigger_names()
     rows = connection.execute(
-        text("SELECT tgname FROM pg_trigger WHERE tgname IN :names").bindparams(bindparam("names", expanding=True)),
-        {"names": list(expected)},
+        text("""
+            SELECT t.tgname
+            FROM pg_trigger AS t
+            JOIN pg_class AS c ON c.oid = t.tgrelid
+            JOIN pg_namespace AS n ON n.oid = c.relnamespace
+            WHERE t.tgname IN :names
+                AND n.nspname = pg_catalog.current_schema()
+                AND c.relname IN :tables
+                AND NOT t.tgisinternal
+            """).bindparams(
+            bindparam("names", expanding=True),
+            bindparam("tables", expanding=True),
+        ),
+        {"names": list(expected), "tables": list(GRAC_TABLE_NAMES)},
     ).fetchall()
     return {row[0] for row in rows} >= set(expected)
 
@@ -172,8 +191,13 @@ def _immutability_function_has_untrusted_execute(
     connection: Connection,
     untrusted_roles: tuple[str, ...],
 ) -> bool:
-    """Return True if PUBLIC or configured untrusted roles still have EXECUTE."""
-    # aclexplode grantee 0 is PUBLIC; default ACL still grants PUBLIC EXECUTE.
+    """Return True if PUBLIC or configured untrusted roles still have EXECUTE.
+
+    PUBLIC is checked via ``aclexplode`` grantee 0 (direct ACL only). Untrusted
+    roles use inheritance-aware ``has_function_privilege``, matching
+    ``scripts/check_database_authorization.py``. Missing roles are skipped by
+    the ``pg_roles`` join.
+    """
     return bool(
         connection.execute(
             text("""
@@ -181,19 +205,25 @@ def _immutability_function_has_untrusted_execute(
                 SELECT 1
                 FROM pg_proc AS p
                 JOIN pg_namespace AS n ON n.oid = p.pronamespace
-                CROSS JOIN LATERAL aclexplode(
-                    COALESCE(p.proacl, acldefault('f', p.proowner))
-                ) AS acl(grantor, grantee, privilege_type, is_grantable)
                 WHERE p.proname = :name
                     AND p.pronargs = 0
                     AND n.nspname = pg_catalog.current_schema()
-                    AND acl.privilege_type = 'EXECUTE'
                     AND (
-                        acl.grantee = 0
-                        OR acl.grantee IN (
-                            SELECT oid
-                            FROM pg_roles
-                            WHERE rolname IN :roles
+                        EXISTS (
+                            SELECT 1
+                            FROM aclexplode(
+                                COALESCE(p.proacl, acldefault('f', p.proowner))
+                            ) AS acl(grantor, grantee, privilege_type, is_grantable)
+                            WHERE acl.privilege_type = 'EXECUTE'
+                                AND acl.grantee = 0
+                        )
+                        OR EXISTS (
+                            SELECT 1
+                            FROM pg_roles AS rol
+                            WHERE rol.rolname IN :roles
+                                AND has_function_privilege(
+                                    rol.oid, p.oid, 'EXECUTE'
+                                )
                         )
                     )
             )

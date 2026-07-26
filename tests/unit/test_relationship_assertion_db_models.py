@@ -23,7 +23,11 @@ from src.data.relationship_assertion_db_models import (
 )
 from src.data.relationship_assertion_schema import (
     _UNTRUSTED_DATABASE_ROLES_ENV,
+    _expected_postgresql_trigger_names,
+    _expected_sqlite_trigger_names,
+    _postgresql_guards_present,
     _revoke_immutability_function_execute,
+    _sqlite_guards_present,
     _untrusted_database_roles,
 )
 
@@ -510,10 +514,46 @@ def test_revoke_immutability_execute_scopes_acl_check_to_current_schema() -> Non
     assert "pg_namespace" in acl_sql
     assert "pronargs = 0" in acl_sql
     assert "acl.grantee = 0" in acl_sql
+    assert "has_function_privilege" in acl_sql
     assert "pg_roles" in acl_sql
     assert "rolname IN" in acl_sql
     assert "roles" in acl_sql
     assert acl_params["roles"] == ["anon", "authenticated"]
+
+
+def test_postgresql_guards_present_scopes_triggers_to_current_schema() -> None:
+    """Guard presence must ignore matching trigger names outside current-schema GRAC tables."""
+    connection = MagicMock()
+    connection.execute.return_value.first.return_value = (1,)
+    connection.execute.return_value.fetchall.return_value = []
+
+    assert _postgresql_guards_present(connection) is False
+
+    assert connection.execute.call_count == 2
+    trigger_sql = str(connection.execute.call_args_list[1].args[0])
+    trigger_params = connection.execute.call_args_list[1].args[1]
+    assert "pg_catalog.current_schema()" in trigger_sql
+    assert "pg_class" in trigger_sql
+    assert "pg_namespace" in trigger_sql
+    assert "c.relname IN" in trigger_sql
+    assert "NOT t.tgisinternal" in trigger_sql
+    assert trigger_params["tables"] == list(GRAC_TABLE_NAMES)
+    assert set(trigger_params["names"]) == set(_expected_postgresql_trigger_names())
+
+
+def test_sqlite_guards_present_scopes_triggers_to_grac_tables() -> None:
+    """SQLite guard presence must require triggers bound to GRAC table names."""
+    connection = MagicMock()
+    connection.execute.return_value.fetchall.return_value = []
+
+    assert _sqlite_guards_present(connection) is False
+
+    sql = str(connection.execute.call_args.args[0])
+    params = connection.execute.call_args.args[1]
+    assert "sqlite_master" in sql
+    assert "tbl_name IN" in sql
+    assert params["tables"] == list(GRAC_TABLE_NAMES)
+    assert set(params["names"]) == set(_expected_sqlite_trigger_names())
 
 
 def test_untrusted_database_roles_honor_fardb_env(monkeypatch: pytest.MonkeyPatch) -> None:
