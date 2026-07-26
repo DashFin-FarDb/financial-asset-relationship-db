@@ -1,0 +1,26 @@
+name: PR Refactoring Agent
+
+on:
+  issue_comment:
+    types: [created]
+
+jobs:
+  refactor:
+    # Only run trusted PR comments that contain /cs-agent
+    if: >-
+      github.event.issue.pull_request != null &&
+      contains(github.event.comment.body, '/cs-agent') &&
+      contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.comment.author_association)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+    steps:
+      - uses: codescene-oss/pr-refactoring-agent@bbc72fbfb8e514ed2dd0a1ba2dda2e0083abac73 # v1.0.8
+        with:
+          pr_number: ${{ github.event.issue.number }}
+          command: ${{ github.event.comment.body }}
+          model: 'openai/gpt-4-turbo'
+          codescene_token: ${{ secrets.CODESCENE_ACCESS_TOKEN }}
+          openai_api_key: ${{ secrets.OPENAI_API_KEY }}
