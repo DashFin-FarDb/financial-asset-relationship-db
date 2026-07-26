@@ -5,7 +5,7 @@ from __future__ import annotations
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass, replace
 from datetime import datetime, timezone
-from typing import cast
+from typing import NoReturn, cast
 from uuid import uuid4
 
 from sqlalchemy import func, select
@@ -95,6 +95,13 @@ class SupersedeAtomicRequest:
 
 def _utcnow() -> datetime:
     return datetime.now(tz=UTC)
+
+
+def _raise_validation(message: str, exc: IntegrityError | None) -> NoReturn:
+    """Raise ValidationError, optionally chaining a prior IntegrityError."""
+    if exc is None:
+        raise ValidationError(message)
+    raise ValidationError(message) from exc
 
 
 def _new_id() -> str:
@@ -386,6 +393,20 @@ class RelationshipAssertionRepository:
         """Register immutable evidence (digest-validated) and an append-only polarity link."""
         stamp = request.recorded_at or self._clock()
         normalized = validate_evidence_record(replace(request.evidence, recorded_at=stamp))
+        link = self._plan_evidence_link(request, normalized, stamp)
+        stored_evidence = self._upsert_evidence(normalized)
+        existing = self._find_evidence_link(request.assertion_id, normalized.evidence_id)
+        if existing is not None:
+            return self._reuse_evidence_link(existing, request.polarity)
+        self._insert_evidence_link(link)
+        return stored_evidence, link
+
+    def _plan_evidence_link(
+        self,
+        request: RegisterEvidenceRequest,
+        normalized: EvidenceRecord,
+        stamp: datetime,
+    ) -> EvidenceLink:
         link = EvidenceLink(
             link_id=request.link_id or _new_id(),
             assertion_id=request.assertion_id,
@@ -402,23 +423,35 @@ class RelationshipAssertionRepository:
                 evidence=normalized,
             )
         )
-        stored_evidence = self._upsert_evidence(normalized)
-        existing_link = self._session.execute(
+        return link
+
+    def _find_evidence_link(
+        self,
+        assertion_id: str,
+        evidence_id: str,
+    ) -> RelationshipAssertionEvidenceORM | None:
+        return self._session.execute(
             select(RelationshipAssertionEvidenceORM).where(
-                RelationshipAssertionEvidenceORM.assertion_id == request.assertion_id,
-                RelationshipAssertionEvidenceORM.evidence_id == normalized.evidence_id,
+                RelationshipAssertionEvidenceORM.assertion_id == assertion_id,
+                RelationshipAssertionEvidenceORM.evidence_id == evidence_id,
             )
         ).scalar_one_or_none()
-        if existing_link is not None:
-            if existing_link.polarity != request.polarity:
-                raise ValidationError(
-                    "evidence link already exists with a different polarity "
-                    f"({existing_link.polarity} != {request.polarity})"
-                )
-            evidence_row = self._session.get(RelationshipEvidenceORM, existing_link.evidence_id)
-            if evidence_row is None:
-                raise ValidationError(f"evidence {existing_link.evidence_id} missing for existing link")
-            return _evidence_from_orm(evidence_row), _link_from_orm(existing_link)
+
+    def _reuse_evidence_link(
+        self,
+        existing_link: RelationshipAssertionEvidenceORM,
+        polarity: EvidencePolarity,
+    ) -> tuple[EvidenceRecord, EvidenceLink]:
+        if existing_link.polarity != polarity:
+            raise ValidationError(
+                "evidence link already exists with a different polarity " f"({existing_link.polarity} != {polarity})"
+            )
+        evidence_row = self._session.get(RelationshipEvidenceORM, existing_link.evidence_id)
+        if evidence_row is None:
+            raise ValidationError(f"evidence {existing_link.evidence_id} missing for existing link")
+        return _evidence_from_orm(evidence_row), _link_from_orm(existing_link)
+
+    def _insert_evidence_link(self, link: EvidenceLink) -> None:
         self._session.add(
             RelationshipAssertionEvidenceORM(
                 id=link.link_id,
@@ -433,7 +466,6 @@ class RelationshipAssertionRepository:
         except IntegrityError as exc:
             self._session.rollback()
             raise ConcurrencyConflict("concurrent evidence link insert conflicted") from exc
-        return stored_evidence, link
 
     def supersede_atomic(
         self,
@@ -518,16 +550,16 @@ class RelationshipAssertionRepository:
     ) -> tuple[Assertion, AssertionEvent]:
         domain = _fix_assertion_mapping(row)
         if not proposals_equivalent(domain, proposal):
-            message = f"assertion {proposal.assertion_id} already exists with a different proposition"
-            if exc is None:
-                raise ValidationError(message)
-            raise ValidationError(message) from exc
+            _raise_validation(
+                f"assertion {proposal.assertion_id} already exists with a different proposition",
+                exc,
+            )
         events = self._load_events(proposal.assertion_id)
         if not events:
-            message = f"assertion {proposal.assertion_id} missing propose event{missing_event_suffix}"
-            if exc is None:
-                raise ValidationError(message)
-            raise ValidationError(message) from exc
+            _raise_validation(
+                f"assertion {proposal.assertion_id} missing propose event{missing_event_suffix}",
+                exc,
+            )
         return domain, events[0]
 
     def _insert_new_proposal(

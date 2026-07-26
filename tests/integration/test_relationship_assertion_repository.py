@@ -97,29 +97,25 @@ def _evidence(evidence_id: str = "ev-1") -> EvidenceRecord:
     )
 
 
-def _transition(
-    assertion_id: str,
-    to_state: str,
-    ctx: AuthorityContext,
-    *,
-    expected_sequence: int,
-    rationale: str,
-    **kwargs: object,
-) -> RepositoryTransitionRequest:
-    return RepositoryTransitionRequest(
-        assertion_id=assertion_id,
-        to_state=to_state,  # type: ignore[arg-type]
-        ctx=ctx,
-        expected_sequence=expected_sequence,
-        rationale=rationale,
-        **kwargs,  # type: ignore[arg-type]
-    )
+def _transition(fields: dict[str, object]) -> RepositoryTransitionRequest:
+    """Build a transition request from a single field mapping (keeps arg count low)."""
+    return RepositoryTransitionRequest(**fields)  # type: ignore[arg-type]
 
 
 def _propose_accepted(repo: RelationshipAssertionRepository, assertion_id: str = "as-1") -> None:
     """Helper: propose then accept an assertion."""
     repo.propose(_proposal(assertion_id), _ctx("proposer"))
-    repo.transition(_transition(assertion_id, "Accepted", _ctx("acceptor"), expected_sequence=1, rationale="accept"))
+    repo.transition(
+        _transition(
+            {
+                "assertion_id": assertion_id,
+                "to_state": "Accepted",
+                "ctx": _ctx("acceptor"),
+                "expected_sequence": 1,
+                "rationale": "accept",
+            }
+        )
+    )
 
 
 class TestProposeIdempotency:
@@ -167,9 +163,39 @@ class TestTransitionsAndIllegal:
     def test_full_happy_path_accept_dispute_reaffirm(self, repo, repo_session) -> None:
         """Accepted → Disputed → Accepted persists ordered events."""
         repo.propose(_proposal(), _ctx("proposer"))
-        repo.transition(_transition("as-1", "Accepted", _ctx("acceptor"), expected_sequence=1, rationale="a"))
-        repo.transition(_transition("as-1", "Disputed", _ctx("disputer"), expected_sequence=2, rationale="d"))
-        repo.transition(_transition("as-1", "Accepted", _ctx("acceptor"), expected_sequence=3, rationale="r"))
+        repo.transition(
+            _transition(
+                {
+                    "assertion_id": "as-1",
+                    "to_state": "Accepted",
+                    "ctx": _ctx("acceptor"),
+                    "expected_sequence": 1,
+                    "rationale": "a",
+                }
+            )
+        )
+        repo.transition(
+            _transition(
+                {
+                    "assertion_id": "as-1",
+                    "to_state": "Disputed",
+                    "ctx": _ctx("disputer"),
+                    "expected_sequence": 2,
+                    "rationale": "d",
+                }
+            )
+        )
+        repo.transition(
+            _transition(
+                {
+                    "assertion_id": "as-1",
+                    "to_state": "Accepted",
+                    "ctx": _ctx("acceptor"),
+                    "expected_sequence": 3,
+                    "rationale": "r",
+                }
+            )
+        )
         repo_session.commit()
         assert repo.current_state("as-1") == "Accepted"
         assert repo.max_sequence("as-1") == 4
@@ -178,14 +204,34 @@ class TestTransitionsAndIllegal:
         """Out-of-matrix transitions never append events."""
         repo.propose(_proposal(), _ctx("proposer"))
         with pytest.raises(IllegalTransition):
-            repo.transition(_transition("as-1", "Disputed", _ctx("disputer"), expected_sequence=1, rationale="illegal"))
+            repo.transition(
+                _transition(
+                    {
+                        "assertion_id": "as-1",
+                        "to_state": "Disputed",
+                        "ctx": _ctx("disputer"),
+                        "expected_sequence": 1,
+                        "rationale": "illegal",
+                    }
+                )
+            )
         assert repo.max_sequence("as-1") == 1
 
     def test_unauthorized_transition_rejected(self, repo) -> None:
         """Wrong authority does not mutate history."""
         repo.propose(_proposal(), _ctx("proposer"))
         with pytest.raises(UnauthorizedTransition):
-            repo.transition(_transition("as-1", "Accepted", _ctx("proposer"), expected_sequence=1, rationale="nope"))
+            repo.transition(
+                _transition(
+                    {
+                        "assertion_id": "as-1",
+                        "to_state": "Accepted",
+                        "ctx": _ctx("proposer"),
+                        "expected_sequence": 1,
+                        "rationale": "nope",
+                    }
+                )
+            )
         assert repo.current_state("as-1") == "Proposed"
 
     def test_assertion_rows_remain_immutable(self, repo, repo_session) -> None:
@@ -206,9 +252,29 @@ class TestConcurrency:
     def test_stale_expected_sequence_conflicts(self, repo) -> None:
         """Two writers with the same expected_sequence: second fails."""
         repo.propose(_proposal(), _ctx("proposer"))
-        repo.transition(_transition("as-1", "Accepted", _ctx("acceptor"), expected_sequence=1, rationale="a"))
+        repo.transition(
+            _transition(
+                {
+                    "assertion_id": "as-1",
+                    "to_state": "Accepted",
+                    "ctx": _ctx("acceptor"),
+                    "expected_sequence": 1,
+                    "rationale": "a",
+                }
+            )
+        )
         with pytest.raises(ConcurrencyConflict):
-            repo.transition(_transition("as-1", "Disputed", _ctx("disputer"), expected_sequence=1, rationale="stale"))
+            repo.transition(
+                _transition(
+                    {
+                        "assertion_id": "as-1",
+                        "to_state": "Disputed",
+                        "ctx": _ctx("disputer"),
+                        "expected_sequence": 1,
+                        "rationale": "stale",
+                    }
+                )
+            )
         assert repo.current_state("as-1") == "Accepted"
         assert repo.max_sequence("as-1") == 2
 
@@ -336,12 +402,14 @@ class TestGetAsOf:
         repo.propose(_proposal(), _ctx("proposer"), recorded_at=t0)
         repo.transition(
             _transition(
-                "as-1",
-                "Accepted",
-                _ctx("acceptor"),
-                expected_sequence=1,
-                rationale="accept",
-                recorded_at=t0 + timedelta(hours=2),
+                {
+                    "assertion_id": "as-1",
+                    "to_state": "Accepted",
+                    "ctx": _ctx("acceptor"),
+                    "expected_sequence": 1,
+                    "rationale": "accept",
+                    "recorded_at": t0 + timedelta(hours=2),
+                }
             )
         )
         early = repo.get_as_of("as-1", known_at=t0 + timedelta(hours=1))

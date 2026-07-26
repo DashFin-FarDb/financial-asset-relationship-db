@@ -294,32 +294,47 @@ class TestTransitionMatrix:
                 timing=_timing(rationale="nope", transitions=transitions),
             )
 
-    def test_supersession_requires_successor(self, transitions) -> None:
-        """Supersession without successor_assertion_id is illegal."""
-        with pytest.raises(ValidationError, match="successor_assertion_id"):
-            plan_transition(
+    @pytest.mark.parametrize(
+        ("plan", "exc_type", "match"),
+        [
+            (
                 TransitionPlan(
                     assertion_id="as-1",
                     current="Accepted",
                     to_state="Superseded",
                     ctx=_ctx("acceptor"),
-                    timing=_timing(rationale="missing successor", transitions=transitions),
-                )
-            )
-
-    def test_non_supersession_forbids_successor(self, transitions) -> None:
-        """Non-supersession edges must not carry a successor pointer."""
-        with pytest.raises(IllegalTransition, match="must not set successor"):
-            plan_transition(
+                    timing=_timing(rationale="missing successor"),
+                ),
+                ValidationError,
+                "successor_assertion_id",
+            ),
+            (
                 TransitionPlan(
                     assertion_id="as-1",
                     current="Proposed",
                     to_state="Accepted",
                     ctx=_ctx("acceptor"),
-                    timing=_timing(rationale="bad successor", transitions=transitions),
+                    timing=_timing(rationale="bad successor"),
                     successor_assertion_id="as-2",
-                )
-            )
+                ),
+                IllegalTransition,
+                "must not set successor",
+            ),
+        ],
+        ids=["supersession_requires_successor", "non_supersession_forbids_successor"],
+    )
+    def test_successor_pointer_rules(self, transitions, plan, exc_type, match) -> None:
+        """Successor pointer is required only on supersession edges."""
+        plan = TransitionPlan(
+            assertion_id=plan.assertion_id,
+            current=plan.current,
+            to_state=plan.to_state,
+            ctx=plan.ctx,
+            timing=_timing(rationale=plan.timing.rationale, transitions=transitions),
+            successor_assertion_id=plan.successor_assertion_id,
+        )
+        with pytest.raises(exc_type, match=match):
+            plan_transition(plan)
 
 
 class TestConcurrencyGuard:
@@ -420,41 +435,30 @@ class TestEvidencePlanning:
             is link
         )
 
-    def test_evidence_forbidden_in_rejected(self) -> None:
-        """Terminal Rejected state cannot gain evidence links."""
+    @pytest.mark.parametrize(
+        ("state", "role", "polarity", "exc_type"),
+        [
+            ("Rejected", "acceptor", "contextual", IllegalTransition),
+            ("Accepted", "disputer", "opposing", UnauthorizedTransition),
+        ],
+        ids=["forbidden_in_rejected", "requires_proposer_or_acceptor"],
+    )
+    def test_evidence_gate_failures(self, state, role, polarity, exc_type) -> None:
+        """Rejected state and insufficient authority both reject evidence links."""
         link = EvidenceLink(
             link_id="link-1",
             assertion_id="as-1",
             evidence_id="ev-1",
-            polarity="contextual",
+            polarity=polarity,
             recorded_at=NOW,
         )
-        with pytest.raises(IllegalTransition):
+        with pytest.raises(exc_type):
             plan_register_evidence(
                 EvidenceRegistrationPlan(
                     assertion_id="as-1",
-                    state="Rejected",
+                    state=state,
                     link=link,
-                    ctx=_ctx("acceptor"),
-                )
-            )
-
-    def test_evidence_requires_proposer_or_acceptor(self) -> None:
-        """Disputer alone cannot register evidence links."""
-        link = EvidenceLink(
-            link_id="link-1",
-            assertion_id="as-1",
-            evidence_id="ev-1",
-            polarity="opposing",
-            recorded_at=NOW,
-        )
-        with pytest.raises(UnauthorizedTransition):
-            plan_register_evidence(
-                EvidenceRegistrationPlan(
-                    assertion_id="as-1",
-                    state="Accepted",
-                    link=link,
-                    ctx=_ctx("disputer"),
+                    ctx=_ctx(role),
                 )
             )
 
