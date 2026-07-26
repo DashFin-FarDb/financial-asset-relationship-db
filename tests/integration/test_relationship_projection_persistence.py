@@ -47,7 +47,8 @@ def _sha256_hex(*chunks: str) -> str:
     return "".join(chunks)
 
 
-def _require_present(value: _T | None, label: str) -> _T:
+# PEP 695 type-parameter syntax is a SyntaxError on the Python 3.10/3.11 CI matrix.
+def _require_present(value: _T | None, label: str) -> _T:  # noqa: UP047
     if value is None:
         raise AssertionError(f"Expected {label} to be present")
     return value
