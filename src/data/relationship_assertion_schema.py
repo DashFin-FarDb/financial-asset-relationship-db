@@ -143,7 +143,8 @@ def _postgresql_guards_present(connection: Connection) -> bool:
         return False
     expected = _expected_postgresql_trigger_bindings()
     # tgtype bits: ROW=1, BEFORE=2, DELETE=8, UPDATE=16, TRUNCATE=32 (PostgreSQL trigger.h).
-    # tgenabled: O=origin, D=disabled, R=replica, A=always — disabled guards must force repair.
+    # tgenabled: O=origin, D=disabled, R=replica, A=always.
+    # Require O/A so replica-only (R) and disabled (D) guards force reinstall/repair.
     rows = connection.execute(
         text("""
             SELECT
@@ -167,11 +168,13 @@ def _postgresql_guards_present(connection: Connection) -> bool:
             JOIN pg_class AS c ON c.oid = t.tgrelid
             JOIN pg_namespace AS n ON n.oid = c.relnamespace
             JOIN pg_proc AS p ON p.oid = t.tgfoid
+            JOIN pg_namespace AS fn_ns ON fn_ns.oid = p.pronamespace
             WHERE t.tgname IN :names
                 AND n.nspname = pg_catalog.current_schema()
                 AND c.relname IN :tables
                 AND NOT t.tgisinternal
-                AND t.tgenabled <> 'D'
+                AND t.tgenabled IN ('O', 'A')
+                AND fn_ns.nspname = pg_catalog.current_schema()
                 AND p.proname = :fn
                 AND p.pronargs = 0
             """).bindparams(

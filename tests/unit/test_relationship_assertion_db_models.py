@@ -537,15 +537,45 @@ def test_postgresql_guards_present_scopes_triggers_to_current_schema() -> None:
     assert "pg_catalog.current_schema()" in trigger_sql
     assert "pg_class" in trigger_sql
     assert "pg_namespace" in trigger_sql
+    assert "fn_ns" in trigger_sql
     assert "c.relname IN" in trigger_sql
     assert "NOT t.tgisinternal" in trigger_sql
     assert "tgenabled" in trigger_sql
-    assert "'D'" in trigger_sql
+    assert "IN ('O', 'A')" in trigger_sql
+    assert "<> 'D'" not in trigger_sql
     assert "tgtype" in trigger_sql
     assert "tgfoid" in trigger_sql
+    assert "pronamespace" in trigger_sql
     assert trigger_params["tables"] == list(GRAC_TABLE_NAMES)
     assert trigger_params["fn"] == "grac_v1_reject_mutation"
     assert set(trigger_params["names"]) == set(_expected_postgresql_trigger_names())
+
+
+def test_postgresql_guards_present_requires_origin_or_always_enabled() -> None:
+    """Replica-only (R) and disabled (D) triggers must not satisfy guard presence."""
+    connection = MagicMock()
+    connection.execute.return_value.first.return_value = (1,)
+    connection.execute.return_value.fetchall.return_value = []
+
+    assert _postgresql_guards_present(connection) is False
+
+    trigger_sql = str(connection.execute.call_args_list[1].args[0])
+    assert "t.tgenabled IN ('O', 'A')" in trigger_sql
+
+
+def test_postgresql_guards_present_requires_function_in_current_schema() -> None:
+    """Trigger function must live in current schema, not only match proname/pronargs."""
+    connection = MagicMock()
+    connection.execute.return_value.first.return_value = (1,)
+    connection.execute.return_value.fetchall.return_value = []
+
+    assert _postgresql_guards_present(connection) is False
+
+    fn_sql = str(connection.execute.call_args_list[0].args[0])
+    trigger_sql = str(connection.execute.call_args_list[1].args[0])
+    assert "n.nspname = pg_catalog.current_schema()" in fn_sql
+    assert "fn_ns.nspname = pg_catalog.current_schema()" in trigger_sql
+    assert "p.pronamespace" in trigger_sql
 
 
 def test_postgresql_guards_present_requires_correct_table_and_event() -> None:
