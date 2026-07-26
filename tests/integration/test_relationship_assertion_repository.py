@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
+from unittest.mock import Mock
 
 import pytest
 from sqlalchemy import create_engine, select
@@ -12,6 +13,7 @@ from src.data.database import create_session_factory, init_db
 from src.data.relationship_assertion_db_models import (
     RelationshipAssertionEventORM,
     RelationshipAssertionORM,
+    RelationshipEvidenceORM,
 )
 from src.data.relationship_assertion_repository import (
     RegisterEvidenceRequest,
@@ -97,6 +99,19 @@ def _evidence(evidence_id: str = "ev-1") -> EvidenceRecord:
     )
 
 
+def _pending_evidence_row(evidence_id: str) -> RelationshipEvidenceORM:
+    """Build unrelated pending outer-transaction work for savepoint tests."""
+    return RelationshipEvidenceORM(
+        id=evidence_id,
+        source_ref=f"sample://{evidence_id}",
+        content_sha256=DIGEST,
+        media_type="application/json",
+        visibility="internal",
+        custody_id="collector-outer",
+        recorded_at=NOW,
+    )
+
+
 def _transition(fields: dict[str, object]) -> RepositoryTransitionRequest:
     """Build a transition request from a single field mapping (keeps arg count low)."""
     return RepositoryTransitionRequest(**fields)  # type: ignore[arg-type]
@@ -154,6 +169,27 @@ class TestProposeIdempotency:
         ctx = _ctx("proposer")
         with pytest.raises(ValidationError, match="different proposition"):
             repo.propose(proposal, ctx)
+
+    def test_propose_race_preserves_pending_outer_work(self, repo, repo_session, monkeypatch) -> None:
+        """A raced proposal insert rolls back only its savepoint."""
+        proposal = _proposal()
+        repo.propose(proposal, _ctx("proposer"))
+        repo_session.commit()
+        existing = repo_session.get(RelationshipAssertionORM, proposal.assertion_id)
+        assert existing is not None
+        repo_session.expunge(existing)
+        pending = _pending_evidence_row("ev-outer-propose")
+        repo_session.add(pending)
+        original_get = repo_session.get
+        get_mock = Mock(side_effect=(None, existing))
+        monkeypatch.setattr(repo_session, "get", get_mock)
+        assertion, _event = repo.propose(proposal, _ctx("proposer"))
+        monkeypatch.setattr(repo_session, "get", original_get)
+
+        assert assertion.assertion_id == proposal.assertion_id
+        assert get_mock.call_count == 2
+        assert repo_session.get(RelationshipEvidenceORM, pending.id) is not None
+        repo_session.commit()
 
 
 class TestTransitionsAndIllegal:
@@ -274,6 +310,37 @@ class TestConcurrency:
         assert repo.current_state("as-1") == "Accepted"
         assert repo.max_sequence("as-1") == 2
 
+    def test_event_insert_conflict_preserves_pending_outer_work(self, repo, repo_session) -> None:
+        """A failed guarded event insert does not roll back unrelated work."""
+        _propose_accepted(repo)
+        existing_event_id = (
+            repo_session.execute(
+                select(RelationshipAssertionEventORM.id).where(RelationshipAssertionEventORM.assertion_id == "as-1")
+            )
+            .scalars()
+            .first()
+        )
+        repo_session.commit()
+        pending = _pending_evidence_row("ev-outer-event")
+        repo_session.add(pending)
+        request = _transition(
+            {
+                "assertion_id": "as-1",
+                "to_state": "Disputed",
+                "ctx": _ctx("disputer"),
+                "expected_sequence": 2,
+                "rationale": "duplicate event id",
+                "event_id": existing_event_id,
+            }
+        )
+
+        with pytest.raises(ConcurrencyConflict):
+            repo.transition(request)
+
+        assert repo_session.get(RelationshipEvidenceORM, pending.id) is not None
+        assert repo.current_state("as-1") == "Accepted"
+        repo_session.commit()
+
 
 class TestEvidenceRegistration:
     """Digest-validated evidence + append-only links."""
@@ -360,6 +427,37 @@ class TestEvidenceRegistration:
         with pytest.raises(ValidationError, match="different metadata"):
             repo.register_evidence(request)
 
+    def test_link_insert_conflict_preserves_pending_outer_work(self, repo, repo_session) -> None:
+        """A failed guarded evidence-link insert does not roll back unrelated work."""
+        repo.propose(_proposal("as-1"), _ctx("proposer"))
+        repo.propose(_proposal("as-2"), _ctx("proposer"))
+        repo.register_evidence(
+            RegisterEvidenceRequest(
+                assertion_id="as-1",
+                evidence=_evidence("ev-1"),
+                polarity="supporting",
+                ctx=_ctx("proposer"),
+                link_id="link-shared",
+            )
+        )
+        repo_session.commit()
+        pending = _pending_evidence_row("ev-outer-link")
+        repo_session.add(pending)
+
+        with pytest.raises(ConcurrencyConflict):
+            repo.register_evidence(
+                RegisterEvidenceRequest(
+                    assertion_id="as-2",
+                    evidence=_evidence("ev-2"),
+                    polarity="supporting",
+                    ctx=_ctx("proposer"),
+                    link_id="link-shared",
+                )
+            )
+
+        assert repo_session.get(RelationshipEvidenceORM, pending.id) is not None
+        repo_session.commit()
+
 
 class TestSupersessionAtomics:
     """Atomic successor acceptance + predecessor supersession."""
@@ -398,9 +496,9 @@ class TestSupersessionAtomics:
         )
         with pytest.raises(ConcurrencyConflict):
             repo.supersede_atomic(request)
-        repo_session.rollback()
         assert repo_session.get(RelationshipAssertionORM, "as-succ") is None
         assert repo.current_state("as-pred") == "Accepted"
+        repo_session.rollback()
 
     def test_self_supersession_rejected(self, repo) -> None:
         """Self-supersession is forbidden at the repository boundary."""

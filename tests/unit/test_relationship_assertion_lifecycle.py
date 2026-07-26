@@ -103,6 +103,10 @@ class TestAuthorityAndBounds:
         grouped = "aaaa-aaaa-aaaa-aaaa-aaaa-aaaa-aaaa-aaaa-aaaa-aaaa-aaaa-aaaa-aaaa-aaaa-aaaa-aaaa"
         assert normalize_sha256_hex(grouped) == DIGEST
 
+    def test_plain_digest_normalization(self) -> None:
+        """Plain 64-character digests remain supported and normalize case."""
+        assert normalize_sha256_hex("A" * 64) == DIGEST
+
     def test_invalid_digest_rejected(self) -> None:
         """Short digests fail validation."""
         with pytest.raises(ValidationError, match="content_sha256"):
@@ -112,6 +116,21 @@ class TestAuthorityAndBounds:
         """Malformed digests fail closed instead of dropping bad characters."""
         with pytest.raises(ValidationError, match="content_sha256"):
             normalize_sha256_hex(f"{DIGEST}!bad")
+
+    @pytest.mark.parametrize(
+        "digest",
+        [
+            f"-{DIGEST}",
+            f"{DIGEST}-",
+            f"{DIGEST[:4]}--{DIGEST[4:]}",
+            f"{DIGEST[:8]}-{DIGEST[8:]}",
+        ],
+        ids=["leading", "trailing", "repeated", "arbitrary"],
+    )
+    def test_malformed_digest_hyphen_placement_rejected(self, digest: str) -> None:
+        """Only the canonical sixteen groups of four hex characters are accepted."""
+        with pytest.raises(ValidationError, match="content_sha256"):
+            normalize_sha256_hex(digest)
 
     def test_proposal_requires_zero_utc_offset(self) -> None:
         """Timezone-aware non-UTC timestamps are rejected."""
@@ -129,6 +148,21 @@ class TestAuthorityAndBounds:
         ctx = _ctx("proposer")
         with pytest.raises(ValidationError, match="effective_from"):
             plan_propose(shifted, ctx, recorded_at=NOW)
+
+    def test_proposal_rejects_malformed_datetime_type(self) -> None:
+        """Malformed runtime timestamp types produce a domain validation error."""
+        proposal = _proposal()
+        malformed = AssertionProposal(
+            assertion_id=proposal.assertion_id,
+            predicate_id=proposal.predicate_id,
+            subject_id=proposal.subject_id,
+            object_id=proposal.object_id,
+            method_id=proposal.method_id,
+            proposition=proposal.proposition,
+            effective_from="not-a-datetime",  # type: ignore[arg-type]
+        )
+        with pytest.raises(ValidationError, match="effective_from"):
+            plan_propose(malformed, _ctx("proposer"), recorded_at=NOW)
 
     def test_assessed_confidence_rejects_bool(self) -> None:
         """confidence_bp must be an integer value, not bool."""

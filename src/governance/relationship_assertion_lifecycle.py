@@ -58,6 +58,7 @@ from src.governance.relationship_assertion_contract import (
 )
 
 _SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
+_GROUPED_SHA256_RE = re.compile(r"^[0-9a-f]{4}(?:-[0-9a-f]{4}){15}$")
 _UTC_OFFSET = timedelta(0)
 
 
@@ -135,10 +136,35 @@ def _require_optional(value: str | None, field_name: str, max_len: int) -> str |
     return _require_non_empty(value, field_name, max_len)
 
 
-def _require_utc_datetime(value: datetime, field_name: str) -> None:
+def _require_utc_datetime(value: object, field_name: str) -> None:
     """Validate that a datetime is timezone-aware and has zero UTC offset."""
-    if value.tzinfo is None or value.utcoffset() != _UTC_OFFSET:
-        raise ValidationError(f"{field_name} must be timezone-aware UTC")
+    message = f"{field_name} must be timezone-aware UTC"
+    if not isinstance(value, datetime):
+        raise ValidationError(message)
+    if value.tzinfo is None:
+        raise ValidationError(message)
+    if value.utcoffset() != _UTC_OFFSET:
+        raise ValidationError(message)
+
+
+def _canonicalize_sha256_hex(value: str) -> str | None:
+    """Return the canonical digest for supported plain/grouped forms."""
+    normalized = value.lower()
+    if _SHA256_RE.fullmatch(normalized):
+        return normalized
+    if _GROUPED_SHA256_RE.fullmatch(normalized):
+        return normalized.replace("-", "")
+    return None
+
+
+def normalize_sha256_hex(value: str) -> str:
+    """Normalize and validate a SHA-256 digest to lowercase hex (64 chars)."""
+    if not isinstance(value, str) or not value.strip():
+        raise ValidationError("content_sha256 must be a non-empty string")
+    canonical = _canonicalize_sha256_hex(value)
+    if canonical is None:
+        raise ValidationError(f"content_sha256 must be {SHA256_HEX_LEN} lowercase hex characters")
+    return canonical
 
 
 def _require_non_bool_int(value: int, field_name: str) -> int:
@@ -146,16 +172,6 @@ def _require_non_bool_int(value: int, field_name: str) -> int:
     if not isinstance(value, int) or isinstance(value, bool):
         raise ValidationError(f"{field_name} must be an integer")
     return value
-
-
-def normalize_sha256_hex(value: str) -> str:
-    """Normalize and validate a SHA-256 digest to lowercase hex (64 chars)."""
-    if not isinstance(value, str) or not value.strip():
-        raise ValidationError("content_sha256 must be a non-empty string")
-    normalized = value.lower().replace("-", "")
-    if len(normalized) != SHA256_HEX_LEN or not _SHA256_RE.fullmatch(normalized):
-        raise ValidationError(f"content_sha256 must be {SHA256_HEX_LEN} lowercase hex characters")
-    return normalized
 
 
 def validate_authority(ctx: AuthorityContext, required: AuthorityRole | set[AuthorityRole]) -> None:

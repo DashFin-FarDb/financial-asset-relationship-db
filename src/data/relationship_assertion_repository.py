@@ -400,9 +400,10 @@ class RelationshipAssertionRepository:
         _validate_event_sequence(event, expected_sequence, self._max_sequence(assertion_id))
         if self._session.get(RelationshipAssertionORM, assertion_id) is None:
             raise ValidationError(f"unknown assertion_id: {assertion_id}")
-        self._insert_event_orm(event)
         try:
-            self._session.flush()
+            with self._session.begin_nested():
+                self._insert_event_orm(event)
+                self._session.flush()
         except IntegrityError as exc:
             error: Exception
             if _is_foreign_key_integrity_error(exc):
@@ -412,9 +413,6 @@ class RelationshipAssertionRepository:
                 )
             else:
                 error = ConcurrencyConflict(f"sequence conflict for assertion {assertion_id} at {event.sequence}")
-            # Nested savepoints (supersede_atomic) roll back on exit; avoid full-session wipe.
-            if not self._session.in_nested_transaction():
-                self._session.rollback()
             raise error from exc
         return event
 
@@ -425,6 +423,8 @@ class RelationshipAssertionRepository:
             self._lock_assertions(request.assertion_id, successor_id)
             self._require_accepted_successor(successor_id)
             assert_no_cycle(request.assertion_id, successor_id, self._successor_chain_lookup)
+        else:
+            self._lock_assertions(request.assertion_id)
         current = self._current_state(request.assertion_id)
         stamp = request.recorded_at or self._clock()
         event = _plan_repository_transition(request, current, stamp, self._successor_chain_lookup)
@@ -493,19 +493,19 @@ class RelationshipAssertionRepository:
         return _evidence_from_orm(evidence_row), _link_from_orm(existing_link)
 
     def _insert_evidence_link(self, link: EvidenceLink) -> None:
-        self._session.add(
-            RelationshipAssertionEvidenceORM(
-                id=link.link_id,
-                assertion_id=link.assertion_id,
-                evidence_id=link.evidence_id,
-                polarity=link.polarity,
-                recorded_at=link.recorded_at,
-            )
-        )
         try:
-            self._session.flush()
+            with self._session.begin_nested():
+                self._session.add(
+                    RelationshipAssertionEvidenceORM(
+                        id=link.link_id,
+                        assertion_id=link.assertion_id,
+                        evidence_id=link.evidence_id,
+                        polarity=link.polarity,
+                        recorded_at=link.recorded_at,
+                    )
+                )
+                self._session.flush()
         except IntegrityError as exc:
-            self._session.rollback()
             raise ConcurrencyConflict("concurrent evidence link insert conflicted") from exc
 
     def supersede_atomic(
@@ -612,13 +612,13 @@ class RelationshipAssertionRepository:
         event: AssertionEvent,
         proposal: AssertionProposal,
     ) -> tuple[Assertion, AssertionEvent]:
-        self._session.add(_assertion_orm(assertion))
         try:
-            self._session.flush()
-            self._insert_event_orm(event)
-            self._session.flush()
+            with self._session.begin_nested():
+                self._session.add(_assertion_orm(assertion))
+                self._session.flush()
+                self._insert_event_orm(event)
+                self._session.flush()
         except IntegrityError as exc:
-            self._session.rollback()
             raced = self._session.get(RelationshipAssertionORM, proposal.assertion_id)
             if raced is None:
                 raise ValidationError(f"propose failed for {proposal.assertion_id}: {exc}") from exc
@@ -647,7 +647,12 @@ class RelationshipAssertionRepository:
             raise ValidationError(f"successor assertion {request.successor_proposal.assertion_id} already exists")
 
     def _lock_assertions(self, *assertion_ids: str) -> None:
-        """Lock assertion rows in sorted id order to serialize supersession graph checks."""
+        """Lock rows in sorted order for transition and supersession checks.
+
+        PostgreSQL provides the required concurrency guarantees for ``SELECT FOR
+        UPDATE``. SQLite ignores the clause; it remains supported for compatible
+        local persistence and tests, without equivalent row-level serialization.
+        """
         for assertion_id in sorted({item for item in assertion_ids if item}):
             self._session.execute(
                 select(RelationshipAssertionORM.id).where(RelationshipAssertionORM.id == assertion_id).with_for_update()
