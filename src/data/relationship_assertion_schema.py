@@ -25,8 +25,9 @@ def ensure_relationship_assertion_schema(engine: Engine) -> None:
     Tables themselves are created by ``Base.metadata.create_all`` after the ORM
     models are imported. When all guards are already present this skips DDL so a
     least-privilege runtime role without CREATE rights can restart safely.
-    Privilege repair (REVOKE PUBLIC EXECUTE) still runs on PostgreSQL whenever
-    the immutability function exists, and raises if PUBLIC retains EXECUTE.
+    Privilege repair (REVOKE PUBLIC/untrusted EXECUTE) still runs on PostgreSQL
+    whenever the immutability function exists, and raises if PUBLIC or existing
+    untrusted roles retain EXECUTE.
     """
     backend = make_url(str(engine.url)).get_backend_name()
     with engine.begin() as connection:
@@ -37,7 +38,7 @@ def ensure_relationship_assertion_schema(engine: Engine) -> None:
             if not _postgresql_guards_present(connection):
                 _install_postgresql_immutability_guards(connection)
             else:
-                # Upgrade path: earlier installs may have left PUBLIC EXECUTE.
+                # Upgrade path: earlier installs may have left untrusted EXECUTE.
                 _revoke_immutability_function_execute(connection)
 
 
@@ -94,8 +95,8 @@ def _postgresql_guards_present(connection: Connection) -> bool:
             FROM pg_proc AS p
             JOIN pg_namespace AS n ON n.oid = p.pronamespace
             WHERE p.proname = :name
-              AND p.pronargs = 0
-              AND n.nspname = pg_catalog.current_schema()
+                AND p.pronargs = 0
+                AND n.nspname = pg_catalog.current_schema()
             """),
         {"name": _IMMUTABILITY_FUNCTION},
     ).first()
@@ -110,10 +111,13 @@ def _postgresql_guards_present(connection: Connection) -> bool:
 
 
 def _revoke_immutability_function_execute(connection: Connection) -> None:
-    """Revoke PUBLIC/untrusted EXECUTE on the current-schema raise function; fail if PUBLIC retains it.
+    """Revoke PUBLIC/untrusted EXECUTE on the current-schema raise function; fail if any retain it.
 
     Scoped to ``pg_catalog.current_schema()`` so a same-named function in another
     schema with PUBLIC EXECUTE cannot block startup or receive REVOKE.
+    After REVOKE, verify neither PUBLIC nor existing ``anon``/``authenticated``
+    roles retain EXECUTE (aligned with ``scripts/check_database_authorization.py``).
+    Missing untrusted roles stay non-fatal via ``undefined_object`` suppression.
     """
     # nosemgrep: python.sqlalchemy.security.audit.avoid-sqlalchemy-text.avoid-sqlalchemy-text
     connection.execute(text(f"""
@@ -145,8 +149,9 @@ def _revoke_immutability_function_execute(connection: Connection) -> None:
             $revoke$;
             """))
     # aclexplode grantee 0 is PUBLIC; default ACL still grants PUBLIC EXECUTE.
+    # Also reject explicit EXECUTE to anon/authenticated when those roles exist.
     # Limit to the zero-arg function in the active schema (trigger target), not every proname match.
-    public_execute = connection.execute(
+    untrusted_execute = connection.execute(
         text("""
             SELECT EXISTS (
                 SELECT 1
@@ -156,17 +161,24 @@ def _revoke_immutability_function_execute(connection: Connection) -> None:
                     COALESCE(p.proacl, acldefault('f', p.proowner))
                 ) AS acl(grantor, grantee, privilege_type, is_grantable)
                 WHERE p.proname = :name
-                  AND p.pronargs = 0
-                  AND n.nspname = pg_catalog.current_schema()
-                  AND acl.privilege_type = 'EXECUTE'
-                  AND acl.grantee = 0
+                    AND p.pronargs = 0
+                    AND n.nspname = pg_catalog.current_schema()
+                    AND acl.privilege_type = 'EXECUTE'
+                    AND (
+                        acl.grantee = 0
+                        OR acl.grantee IN (
+                            SELECT oid
+                            FROM pg_roles
+                            WHERE rolname IN ('anon', 'authenticated')
+                        )
+                    )
             )
             """),
         {"name": _IMMUTABILITY_FUNCTION},
     ).scalar()
-    if public_execute:
+    if untrusted_execute:
         raise PermissionError(
-            f"insufficient privilege to revoke PUBLIC EXECUTE on {_IMMUTABILITY_FUNCTION}(); "
+            f"insufficient privilege to revoke PUBLIC/untrusted EXECUTE on {_IMMUTABILITY_FUNCTION}(); "
             "restart as the function owner or a role that can REVOKE"
         )
 

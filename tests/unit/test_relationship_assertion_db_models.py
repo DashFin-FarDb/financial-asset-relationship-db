@@ -479,15 +479,15 @@ class TestRelationshipAssertionLinksAndEvents:
 
 
 def test_revoke_immutability_execute_raises_when_public_retains_privilege() -> None:
-    """Privilege repair must fail loud if PUBLIC EXECUTE cannot be revoked."""
+    """Privilege repair must fail loud if PUBLIC/untrusted EXECUTE cannot be revoked."""
     connection = MagicMock()
     connection.execute.return_value.scalar.return_value = True
-    with pytest.raises(PermissionError, match="PUBLIC EXECUTE"):
+    with pytest.raises(PermissionError, match="PUBLIC/untrusted EXECUTE"):
         _revoke_immutability_function_execute(connection)
 
 
 def test_revoke_immutability_execute_scopes_acl_check_to_current_schema() -> None:
-    """PUBLIC EXECUTE verification must not match same-named functions in other schemas."""
+    """EXECUTE verification must cover PUBLIC and untrusted roles in the current schema only."""
     connection = MagicMock()
     connection.execute.return_value.scalar.return_value = False
 
@@ -498,6 +498,11 @@ def test_revoke_immutability_execute_scopes_acl_check_to_current_schema() -> Non
     acl_sql = str(connection.execute.call_args_list[1].args[0])
     assert "pg_catalog.current_schema()" in revoke_sql
     assert "%I.%I()" in revoke_sql
+    assert "undefined_object" in revoke_sql
     assert "pg_catalog.current_schema()" in acl_sql
     assert "pg_namespace" in acl_sql
     assert "pronargs = 0" in acl_sql
+    assert "acl.grantee = 0" in acl_sql
+    assert "pg_roles" in acl_sql
+    assert "'anon'" in acl_sql
+    assert "'authenticated'" in acl_sql
