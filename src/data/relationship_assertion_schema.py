@@ -133,21 +133,11 @@ def _untrusted_database_roles(environment: Mapping[str, str] | None = None) -> t
     return roles
 
 
-def _revoke_immutability_function_execute(connection: Connection) -> None:
-    """Revoke PUBLIC/untrusted EXECUTE on the current-schema raise function; fail if any retain it.
-
-    Scoped to ``pg_catalog.current_schema()`` so a same-named function in another
-    schema with PUBLIC EXECUTE cannot block startup or receive REVOKE.
-    After REVOKE, verify neither PUBLIC nor configured untrusted roles
-    (``FARDB_UNTRUSTED_DATABASE_ROLES``, default ``anon``/``authenticated``)
-    retain EXECUTE — aligned with ``scripts/check_database_authorization.py``.
-    Missing untrusted roles stay non-fatal via ``undefined_object`` suppression.
-    """
-    untrusted_roles = _untrusted_database_roles()
+def _immutability_revoke_sql(untrusted_roles: tuple[str, ...]) -> str:
+    """Build schema-qualified REVOKE DO-block for PUBLIC and untrusted roles."""
     role_placeholders = ", ".join("%I" for _ in untrusted_roles)
     role_format_args = ",\n                        ".join(f"'{role}'" for role in untrusted_roles)
-    # nosemgrep: python.sqlalchemy.security.audit.avoid-sqlalchemy-text.avoid-sqlalchemy-text
-    connection.execute(text(f"""
+    return f"""
             DO $revoke$
             BEGIN
                 BEGIN
@@ -175,12 +165,18 @@ def _revoke_immutability_function_execute(connection: Connection) -> None:
                 END;
             END
             $revoke$;
-            """))
+            """
+
+
+def _immutability_function_has_untrusted_execute(
+    connection: Connection,
+    untrusted_roles: tuple[str, ...],
+) -> bool:
+    """Return True if PUBLIC or configured untrusted roles still have EXECUTE."""
     # aclexplode grantee 0 is PUBLIC; default ACL still grants PUBLIC EXECUTE.
-    # Also reject explicit EXECUTE to configured untrusted roles when they exist.
-    # Limit to the zero-arg function in the active schema (trigger target), not every proname match.
-    untrusted_execute = connection.execute(
-        text("""
+    return bool(
+        connection.execute(
+            text("""
             SELECT EXISTS (
                 SELECT 1
                 FROM pg_proc AS p
@@ -202,9 +198,25 @@ def _revoke_immutability_function_execute(connection: Connection) -> None:
                     )
             )
             """).bindparams(bindparam("roles", expanding=True)),
-        {"name": _IMMUTABILITY_FUNCTION, "roles": list(untrusted_roles)},
-    ).scalar()
-    if untrusted_execute:
+            {"name": _IMMUTABILITY_FUNCTION, "roles": list(untrusted_roles)},
+        ).scalar()
+    )
+
+
+def _revoke_immutability_function_execute(connection: Connection) -> None:
+    """Revoke PUBLIC/untrusted EXECUTE on the current-schema raise function; fail if any retain it.
+
+    Scoped to ``pg_catalog.current_schema()`` so a same-named function in another
+    schema with PUBLIC EXECUTE cannot block startup or receive REVOKE.
+    After REVOKE, verify neither PUBLIC nor configured untrusted roles
+    (``FARDB_UNTRUSTED_DATABASE_ROLES``, default ``anon``/``authenticated``)
+    retain EXECUTE — aligned with ``scripts/check_database_authorization.py``.
+    Missing untrusted roles stay non-fatal via ``undefined_object`` suppression.
+    """
+    untrusted_roles = _untrusted_database_roles()
+    # nosemgrep: python.sqlalchemy.security.audit.avoid-sqlalchemy-text.avoid-sqlalchemy-text
+    connection.execute(text(_immutability_revoke_sql(untrusted_roles)))
+    if _immutability_function_has_untrusted_execute(connection, untrusted_roles):
         raise PermissionError(
             f"insufficient privilege to revoke PUBLIC/untrusted EXECUTE on {_IMMUTABILITY_FUNCTION}(); "
             "restart as the function owner or a role that can REVOKE"
