@@ -21,6 +21,10 @@ from src.governance.relationship_assertion import (
 )
 from src.governance.relationship_assertion_contract import load_contract_bundle
 from src.governance.relationship_assertion_lifecycle import (
+    EvidenceRegistrationPlan,
+    SupersedePlan,
+    TransitionPlan,
+    TransitionTiming,
     assert_no_cycle,
     load_transitions,
     normalize_sha256_hex,
@@ -51,6 +55,12 @@ def _ctx(*roles: str) -> AuthorityContext:
     )
 
 
+def _timing(**overrides: object) -> TransitionTiming:
+    payload = {"expected_sequence": 1, "rationale": "matrix", "recorded_at": NOW}
+    payload.update(overrides)
+    return TransitionTiming(**payload)  # type: ignore[arg-type]
+
+
 def _proposal(assertion_id: str = "as-1") -> AssertionProposal:
     return AssertionProposal(
         assertion_id=assertion_id,
@@ -79,13 +89,13 @@ class TestAuthorityAndBounds:
         """Oversized rationale is rejected."""
         with pytest.raises(ValidationError, match="rationale"):
             plan_transition(
-                "as-1",
-                "Proposed",
-                "Accepted",
-                _ctx("acceptor"),
-                expected_sequence=1,
-                rationale="x" * (MAX_RATIONALE_LEN + 1),
-                recorded_at=NOW,
+                TransitionPlan(
+                    assertion_id="as-1",
+                    current="Proposed",
+                    to_state="Accepted",
+                    ctx=_ctx("acceptor"),
+                    timing=_timing(rationale="x" * (MAX_RATIONALE_LEN + 1)),
+                )
             )
 
     def test_digest_normalization(self) -> None:
@@ -163,9 +173,10 @@ class TestProposeAndResolve:
             "as-1",
             "Proposed",
             _ctx("acceptor"),
-            expected_sequence=1,
-            rationale="ok",
-            recorded_at=NOW + timedelta(seconds=1),
+            timing=_timing(
+                rationale="ok",
+                recorded_at=NOW + timedelta(seconds=1),
+            ),
         )
         assert resolve_state([e1, e2]) == "Accepted"
 
@@ -193,9 +204,10 @@ class TestProposeAndResolve:
             "as-1",
             "Accepted",
             _ctx("retractor"),
-            expected_sequence=1,
-            rationale="gap",
-            recorded_at=NOW + timedelta(seconds=1),
+            timing=_timing(
+                rationale="gap",
+                recorded_at=NOW + timedelta(seconds=1),
+            ),
         )
         with pytest.raises(ValidationError, match="continuity"):
             resolve_state([e1, e2])
@@ -231,15 +243,18 @@ class TestTransitionMatrix:
     )
     def test_allowed_matrix_edges(self, from_state, to_state, role, transitions) -> None:
         """Every registry edge plans successfully with the required authority."""
-        kwargs: dict = {
-            "expected_sequence": 1,
-            "rationale": "matrix",
-            "recorded_at": NOW,
-            "transitions": transitions,
-        }
-        if to_state == "Superseded":
-            kwargs["successor_assertion_id"] = "as-successor"
-        event = plan_transition("as-1", from_state, to_state, _ctx(role), **kwargs)
+        timing = _timing(transitions=transitions)
+        successor_assertion_id = "as-successor" if to_state == "Superseded" else None
+        event = plan_transition(
+            TransitionPlan(
+                assertion_id="as-1",
+                current=from_state,
+                to_state=to_state,
+                ctx=_ctx(role),
+                timing=timing,
+                successor_assertion_id=successor_assertion_id,
+            )
+        )
         assert event.to_state == to_state
         assert event.authority == role
         assert event.sequence == 2
@@ -260,14 +275,13 @@ class TestTransitionMatrix:
         """Out-of-matrix and terminal-exit edges raise IllegalTransition."""
         with pytest.raises(IllegalTransition):
             plan_transition(
-                "as-1",
-                from_state,
-                to_state,
-                _ctx("acceptor", "proposer", "disputer", "retractor"),
-                expected_sequence=1,
-                rationale="illegal",
-                recorded_at=NOW,
-                transitions=transitions,
+                TransitionPlan(
+                    assertion_id="as-1",
+                    current=from_state,
+                    to_state=to_state,
+                    ctx=_ctx("acceptor", "proposer", "disputer", "retractor"),
+                    timing=_timing(rationale="illegal", transitions=transitions),
+                )
             )
 
     def test_wrong_role_rejected(self, transitions) -> None:
@@ -277,39 +291,34 @@ class TestTransitionMatrix:
                 "as-1",
                 "Proposed",
                 _ctx("proposer"),
-                expected_sequence=1,
-                rationale="nope",
-                recorded_at=NOW,
-                transitions=transitions,
+                timing=_timing(rationale="nope", transitions=transitions),
             )
 
     def test_supersession_requires_successor(self, transitions) -> None:
         """Supersession without successor_assertion_id is illegal."""
         with pytest.raises(ValidationError, match="successor_assertion_id"):
             plan_transition(
-                "as-1",
-                "Accepted",
-                "Superseded",
-                _ctx("acceptor"),
-                expected_sequence=1,
-                rationale="missing successor",
-                recorded_at=NOW,
-                transitions=transitions,
+                TransitionPlan(
+                    assertion_id="as-1",
+                    current="Accepted",
+                    to_state="Superseded",
+                    ctx=_ctx("acceptor"),
+                    timing=_timing(rationale="missing successor", transitions=transitions),
+                )
             )
 
     def test_non_supersession_forbids_successor(self, transitions) -> None:
         """Non-supersession edges must not carry a successor pointer."""
         with pytest.raises(IllegalTransition, match="must not set successor"):
             plan_transition(
-                "as-1",
-                "Proposed",
-                "Accepted",
-                _ctx("acceptor"),
-                expected_sequence=1,
-                rationale="bad successor",
-                recorded_at=NOW,
-                successor_assertion_id="as-2",
-                transitions=transitions,
+                TransitionPlan(
+                    assertion_id="as-1",
+                    current="Proposed",
+                    to_state="Accepted",
+                    ctx=_ctx("acceptor"),
+                    timing=_timing(rationale="bad successor", transitions=transitions),
+                    successor_assertion_id="as-2",
+                )
             )
 
 
@@ -323,9 +332,7 @@ class TestConcurrencyGuard:
                 "as-1",
                 "Proposed",
                 _ctx("acceptor"),
-                expected_sequence=0,
-                rationale="bad",
-                recorded_at=NOW,
+                timing=_timing(expected_sequence=0, rationale="bad"),
             )
 
     def test_expected_sequence_rejects_bool(self) -> None:
@@ -335,9 +342,7 @@ class TestConcurrencyGuard:
                 "as-1",
                 "Proposed",
                 _ctx("acceptor"),
-                expected_sequence=True,
-                rationale="bad",
-                recorded_at=NOW,
+                timing=_timing(expected_sequence=True, rationale="bad"),  # type: ignore[arg-type]
             )
 
     def test_next_sequence_is_expected_plus_one(self) -> None:
@@ -346,9 +351,7 @@ class TestConcurrencyGuard:
             "as-1",
             "Proposed",
             _ctx("acceptor"),
-            expected_sequence=3,
-            rationale="reject",
-            recorded_at=NOW,
+            timing=_timing(expected_sequence=3, rationale="reject"),
         )
         assert event.sequence == 4
 
@@ -360,13 +363,16 @@ class TestSupersessionCycles:
         """An assertion cannot supersede itself."""
         with pytest.raises(SupersessionCycle):
             plan_supersede(
-                "as-1",
-                "Accepted",
-                _ctx("acceptor"),
-                expected_sequence=1,
-                rationale="self",
-                recorded_at=NOW,
-                successor_assertion_id="as-1",
+                SupersedePlan(
+                    transition=TransitionPlan(
+                        assertion_id="as-1",
+                        current="Accepted",
+                        to_state="Superseded",
+                        ctx=_ctx("acceptor"),
+                        timing=_timing(rationale="self"),
+                        successor_assertion_id="as-1",
+                    )
+                )
             )
 
     def test_cycle_via_lookup_forbidden(self) -> None:
@@ -401,7 +407,18 @@ class TestEvidencePlanning:
             custody_id="collector-1",
             recorded_at=NOW,
         )
-        assert plan_register_evidence("as-1", "Proposed", link, _ctx("proposer"), evidence=evidence) is link
+        assert (
+            plan_register_evidence(
+                EvidenceRegistrationPlan(
+                    assertion_id="as-1",
+                    state="Proposed",
+                    link=link,
+                    ctx=_ctx("proposer"),
+                    evidence=evidence,
+                )
+            )
+            is link
+        )
 
     def test_evidence_forbidden_in_rejected(self) -> None:
         """Terminal Rejected state cannot gain evidence links."""
@@ -413,7 +430,14 @@ class TestEvidencePlanning:
             recorded_at=NOW,
         )
         with pytest.raises(IllegalTransition):
-            plan_register_evidence("as-1", "Rejected", link, _ctx("acceptor"))
+            plan_register_evidence(
+                EvidenceRegistrationPlan(
+                    assertion_id="as-1",
+                    state="Rejected",
+                    link=link,
+                    ctx=_ctx("acceptor"),
+                )
+            )
 
     def test_evidence_requires_proposer_or_acceptor(self) -> None:
         """Disputer alone cannot register evidence links."""
@@ -425,7 +449,14 @@ class TestEvidencePlanning:
             recorded_at=NOW,
         )
         with pytest.raises(UnauthorizedTransition):
-            plan_register_evidence("as-1", "Accepted", link, _ctx("disputer"))
+            plan_register_evidence(
+                EvidenceRegistrationPlan(
+                    assertion_id="as-1",
+                    state="Accepted",
+                    link=link,
+                    ctx=_ctx("disputer"),
+                )
+            )
 
 
 class TestNamedPlanners:
@@ -437,25 +468,19 @@ class TestNamedPlanners:
             "as-1",
             "Proposed",
             _ctx("proposer"),
-            expected_sequence=1,
-            rationale="withdraw",
-            recorded_at=NOW,
+            timing=_timing(rationale="withdraw"),
         )
         disputed = plan_dispute(
             "as-1",
             "Accepted",
             _ctx("disputer"),
-            expected_sequence=2,
-            rationale="dispute",
-            recorded_at=NOW,
+            timing=_timing(expected_sequence=2, rationale="dispute"),
         )
         retracted = plan_retract(
             "as-1",
             "Accepted",
             _ctx("retractor"),
-            expected_sequence=2,
-            rationale="retract",
-            recorded_at=NOW,
+            timing=_timing(expected_sequence=2, rationale="retract"),
         )
         assert withdrawn.to_state == "Withdrawn"
         assert disputed.to_state == "Disputed"

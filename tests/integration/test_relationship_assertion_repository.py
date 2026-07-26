@@ -13,7 +13,12 @@ from src.data.relationship_assertion_db_models import (
     RelationshipAssertionEventORM,
     RelationshipAssertionORM,
 )
-from src.data.relationship_assertion_repository import RelationshipAssertionRepository
+from src.data.relationship_assertion_repository import (
+    RegisterEvidenceRequest,
+    RelationshipAssertionRepository,
+    RepositoryTransitionRequest,
+    SupersedeAtomicRequest,
+)
 from src.governance.relationship_assertion import (
     AssertionProposal,
     AuthorityContext,
@@ -92,16 +97,29 @@ def _evidence(evidence_id: str = "ev-1") -> EvidenceRecord:
     )
 
 
+def _transition(
+    assertion_id: str,
+    to_state: str,
+    ctx: AuthorityContext,
+    *,
+    expected_sequence: int,
+    rationale: str,
+    **kwargs: object,
+) -> RepositoryTransitionRequest:
+    return RepositoryTransitionRequest(
+        assertion_id=assertion_id,
+        to_state=to_state,  # type: ignore[arg-type]
+        ctx=ctx,
+        expected_sequence=expected_sequence,
+        rationale=rationale,
+        **kwargs,  # type: ignore[arg-type]
+    )
+
+
 def _propose_accepted(repo: RelationshipAssertionRepository, assertion_id: str = "as-1") -> None:
     """Helper: propose then accept an assertion."""
     repo.propose(_proposal(assertion_id), _ctx("proposer"))
-    repo.transition(
-        assertion_id,
-        "Accepted",
-        _ctx("acceptor"),
-        expected_sequence=1,
-        rationale="accept",
-    )
+    repo.transition(_transition(assertion_id, "Accepted", _ctx("acceptor"), expected_sequence=1, rationale="accept"))
 
 
 class TestProposeIdempotency:
@@ -149,9 +167,9 @@ class TestTransitionsAndIllegal:
     def test_full_happy_path_accept_dispute_reaffirm(self, repo, repo_session) -> None:
         """Accepted → Disputed → Accepted persists ordered events."""
         repo.propose(_proposal(), _ctx("proposer"))
-        repo.transition("as-1", "Accepted", _ctx("acceptor"), expected_sequence=1, rationale="a")
-        repo.transition("as-1", "Disputed", _ctx("disputer"), expected_sequence=2, rationale="d")
-        repo.transition("as-1", "Accepted", _ctx("acceptor"), expected_sequence=3, rationale="r")
+        repo.transition(_transition("as-1", "Accepted", _ctx("acceptor"), expected_sequence=1, rationale="a"))
+        repo.transition(_transition("as-1", "Disputed", _ctx("disputer"), expected_sequence=2, rationale="d"))
+        repo.transition(_transition("as-1", "Accepted", _ctx("acceptor"), expected_sequence=3, rationale="r"))
         repo_session.commit()
         assert repo.current_state("as-1") == "Accepted"
         assert repo.max_sequence("as-1") == 4
@@ -160,26 +178,14 @@ class TestTransitionsAndIllegal:
         """Out-of-matrix transitions never append events."""
         repo.propose(_proposal(), _ctx("proposer"))
         with pytest.raises(IllegalTransition):
-            repo.transition(
-                "as-1",
-                "Disputed",
-                _ctx("disputer"),
-                expected_sequence=1,
-                rationale="illegal",
-            )
+            repo.transition(_transition("as-1", "Disputed", _ctx("disputer"), expected_sequence=1, rationale="illegal"))
         assert repo.max_sequence("as-1") == 1
 
     def test_unauthorized_transition_rejected(self, repo) -> None:
         """Wrong authority does not mutate history."""
         repo.propose(_proposal(), _ctx("proposer"))
         with pytest.raises(UnauthorizedTransition):
-            repo.transition(
-                "as-1",
-                "Accepted",
-                _ctx("proposer"),
-                expected_sequence=1,
-                rationale="nope",
-            )
+            repo.transition(_transition("as-1", "Accepted", _ctx("proposer"), expected_sequence=1, rationale="nope"))
         assert repo.current_state("as-1") == "Proposed"
 
     def test_assertion_rows_remain_immutable(self, repo, repo_session) -> None:
@@ -200,15 +206,9 @@ class TestConcurrency:
     def test_stale_expected_sequence_conflicts(self, repo) -> None:
         """Two writers with the same expected_sequence: second fails."""
         repo.propose(_proposal(), _ctx("proposer"))
-        repo.transition("as-1", "Accepted", _ctx("acceptor"), expected_sequence=1, rationale="a")
+        repo.transition(_transition("as-1", "Accepted", _ctx("acceptor"), expected_sequence=1, rationale="a"))
         with pytest.raises(ConcurrencyConflict):
-            repo.transition(
-                "as-1",
-                "Disputed",
-                _ctx("disputer"),
-                expected_sequence=1,
-                rationale="stale",
-            )
+            repo.transition(_transition("as-1", "Disputed", _ctx("disputer"), expected_sequence=1, rationale="stale"))
         assert repo.current_state("as-1") == "Accepted"
         assert repo.max_sequence("as-1") == 2
 
@@ -220,10 +220,12 @@ class TestEvidenceRegistration:
         """Evidence digests are normalized and links are queryable as-of known_at."""
         repo.propose(_proposal(), _ctx("proposer"))
         evidence, link = repo.register_evidence(
-            "as-1",
-            _evidence(),
-            "supporting",
-            _ctx("proposer"),
+            RegisterEvidenceRequest(
+                assertion_id="as-1",
+                evidence=_evidence(),
+                polarity="supporting",
+                ctx=_ctx("proposer"),
+            )
         )
         repo_session.commit()
         assert evidence.content_sha256 == DIGEST
@@ -245,13 +247,26 @@ class TestEvidenceRegistration:
             recorded_at=NOW,
         )
         with pytest.raises(ValidationError, match="content_sha256"):
-            repo.register_evidence("as-1", bad, "supporting", _ctx("proposer"))
+            repo.register_evidence(
+                RegisterEvidenceRequest(
+                    assertion_id="as-1",
+                    evidence=bad,
+                    polarity="supporting",
+                    ctx=_ctx("proposer"),
+                )
+            )
 
     def test_evidence_link_idempotent(self, repo) -> None:
         """Duplicate assertion/evidence link returns the original polarity link."""
         repo.propose(_proposal(), _ctx("proposer"))
-        _, link_a = repo.register_evidence("as-1", _evidence(), "supporting", _ctx("proposer"))
-        _, link_b = repo.register_evidence("as-1", _evidence(), "supporting", _ctx("proposer"))
+        req = RegisterEvidenceRequest(
+            assertion_id="as-1",
+            evidence=_evidence(),
+            polarity="supporting",
+            ctx=_ctx("proposer"),
+        )
+        _, link_a = repo.register_evidence(req)
+        _, link_b = repo.register_evidence(req)
         assert link_a.link_id == link_b.link_id
 
 
@@ -262,11 +277,13 @@ class TestSupersessionAtomics:
         """Successor Accepted and predecessor Superseded land together."""
         _propose_accepted(repo, "as-pred")
         successor, propose_event, accept_event, supersede_event = repo.supersede_atomic(
-            "as-pred",
-            _proposal("as-succ"),
-            _ctx("proposer", "acceptor"),
-            expected_sequence=2,
-            rationale="refresh evidence",
+            SupersedeAtomicRequest(
+                predecessor_id="as-pred",
+                successor_proposal=_proposal("as-succ"),
+                ctx=_ctx("proposer", "acceptor"),
+                expected_sequence=2,
+                rationale="refresh evidence",
+            )
         )
         repo_session.commit()
         assert successor.assertion_id == "as-succ"
@@ -283,11 +300,13 @@ class TestSupersessionAtomics:
         repo_session.commit()
         with pytest.raises(ConcurrencyConflict):
             repo.supersede_atomic(
-                "as-pred",
-                _proposal("as-succ"),
-                _ctx("proposer", "acceptor"),
-                expected_sequence=1,  # stale — max is 2
-                rationale="stale supersede",
+                SupersedeAtomicRequest(
+                    predecessor_id="as-pred",
+                    successor_proposal=_proposal("as-succ"),
+                    ctx=_ctx("proposer", "acceptor"),
+                    expected_sequence=1,
+                    rationale="stale supersede",
+                )
             )
         repo_session.rollback()
         assert repo_session.get(RelationshipAssertionORM, "as-succ") is None
@@ -298,11 +317,13 @@ class TestSupersessionAtomics:
         _propose_accepted(repo, "as-1")
         with pytest.raises(SupersessionCycle):
             repo.supersede_atomic(
-                "as-1",
-                _proposal("as-1"),
-                _ctx("proposer", "acceptor"),
-                expected_sequence=2,
-                rationale="self",
+                SupersedeAtomicRequest(
+                    predecessor_id="as-1",
+                    successor_proposal=_proposal("as-1"),
+                    ctx=_ctx("proposer", "acceptor"),
+                    expected_sequence=2,
+                    rationale="self",
+                )
             )
 
 
@@ -314,12 +335,14 @@ class TestGetAsOf:
         t0 = NOW
         repo.propose(_proposal(), _ctx("proposer"), recorded_at=t0)
         repo.transition(
-            "as-1",
-            "Accepted",
-            _ctx("acceptor"),
-            expected_sequence=1,
-            rationale="accept",
-            recorded_at=t0 + timedelta(hours=2),
+            _transition(
+                "as-1",
+                "Accepted",
+                _ctx("acceptor"),
+                expected_sequence=1,
+                rationale="accept",
+                recorded_at=t0 + timedelta(hours=2),
+            )
         )
         early = repo.get_as_of("as-1", known_at=t0 + timedelta(hours=1))
         late = repo.get_as_of("as-1", known_at=t0 + timedelta(hours=3))

@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import re
 from collections.abc import Callable, Mapping, Sequence
+from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import cast
 from uuid import uuid4
@@ -51,12 +52,66 @@ from src.governance.relationship_assertion import (
 )
 from src.governance.relationship_assertion_contract import (
     TransitionsDocument,
+    TransitionSpec,
     find_transition,
     load_contract_bundle,
 )
 
 _SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 _UTC_OFFSET = timedelta(0)
+
+
+@dataclass(frozen=True)
+class TransitionTiming:
+    """Sequence, rationale, and timestamp inputs shared by transition planners."""
+
+    expected_sequence: int
+    rationale: str
+    recorded_at: datetime
+    event_id: str | None = None
+    transitions: TransitionsDocument | None = None
+
+
+@dataclass(frozen=True)
+class TransitionPlan:
+    """Fully specified lifecycle transition to plan as an append-only event."""
+
+    assertion_id: str
+    current: LifecycleState
+    to_state: LifecycleState
+    ctx: AuthorityContext
+    timing: TransitionTiming
+    successor_assertion_id: str | None = None
+
+
+@dataclass(frozen=True)
+class NamedTransitionPlan:
+    """Named matrix edge inputs folded into a single transition plan."""
+
+    to_state: LifecycleState
+    assertion_id: str
+    current: LifecycleState
+    ctx: AuthorityContext
+    timing: TransitionTiming
+
+
+@dataclass(frozen=True)
+class SupersedePlan:
+    """Supersession transition with optional successor-chain cycle detection."""
+
+    transition: TransitionPlan
+    successor_chain_lookup: Callable[[str], Sequence[str]] | Mapping[str, Sequence[str]] | None = None
+
+
+@dataclass(frozen=True)
+class EvidenceRegistrationPlan:
+    """Evidence link registration against a resolved lifecycle state."""
+
+    assertion_id: str
+    state: LifecycleState
+    link: EvidenceLink
+    ctx: AuthorityContext
+    evidence: EvidenceRecord | None = None
 
 
 def _new_id() -> str:
@@ -115,31 +170,39 @@ def validate_authority(ctx: AuthorityContext, required: AuthorityRole | set[Auth
         raise UnauthorizedTransition(f"missing required authority role(s) {sorted(needed)}; have {sorted(ctx.roles)}")
 
 
-def validate_proposal(proposal: AssertionProposal) -> None:
-    """Validate proposition shape, confidence pairing, and field bounds."""
+def _validate_proposal_identity(proposal: AssertionProposal) -> None:
+    """Validate proposition identity and bounded string fields."""
     _require_non_empty(proposal.assertion_id, "assertion_id", ENTITY_ID_LEN)
     _require_non_empty(proposal.predicate_id, "predicate_id", MAX_PREDICATE_ID_LEN)
     _require_non_empty(proposal.subject_id, "subject_id", MAX_SUBJECT_ID_LEN)
     _require_non_empty(proposal.object_id, "object_id", MAX_OBJECT_ID_LEN)
     _require_non_empty(proposal.method_id, "method_id", MAX_METHOD_ID_LEN)
     _require_non_empty(proposal.proposition, "proposition", MAX_PROPOSITION_LEN)
+
+
+def _validate_proposal_effective_window(proposal: AssertionProposal) -> None:
+    """Validate effective_from/to ordering and UTC constraints."""
     _require_utc_datetime(proposal.effective_from, "effective_from")
     if proposal.effective_to is not None:
         _require_utc_datetime(proposal.effective_to, "effective_to")
     if proposal.effective_to is not None and proposal.effective_to < proposal.effective_from:
         raise ValidationError("effective_to must be >= effective_from")
 
-    if proposal.confidence_status == "not_assessed":
-        if (
-            proposal.confidence_bp is not None
-            or proposal.confidence_type is not None
-            or proposal.confidence_method is not None
-        ):
-            raise ValidationError("not_assessed confidence forbids confidence_bp/type/method")
-        return
 
-    if proposal.confidence_status != "assessed":
-        raise ValidationError("confidence_status must be assessed or not_assessed")
+def _has_assessed_confidence_fields(proposal: AssertionProposal) -> bool:
+    """Return True when any assessed-only confidence field is populated."""
+    fields = (proposal.confidence_bp, proposal.confidence_type, proposal.confidence_method)
+    return any(value is not None for value in fields)
+
+
+def _validate_not_assessed_confidence(proposal: AssertionProposal) -> None:
+    """Validate confidence fields when status is not_assessed."""
+    if _has_assessed_confidence_fields(proposal):
+        raise ValidationError("not_assessed confidence forbids confidence_bp/type/method")
+
+
+def _validate_assessed_confidence(proposal: AssertionProposal) -> None:
+    """Validate confidence fields when status is assessed."""
     if proposal.confidence_bp is None:
         raise ValidationError("assessed confidence_bp must be an integer in [0, 10000]")
     confidence_bp = _require_non_bool_int(proposal.confidence_bp, "confidence_bp")
@@ -147,6 +210,18 @@ def validate_proposal(proposal: AssertionProposal) -> None:
         raise ValidationError("assessed confidence_bp must be an integer in [0, 10000]")
     _require_non_empty(proposal.confidence_type or "", "confidence_type", MAX_CONFIDENCE_TYPE_LEN)
     _require_non_empty(proposal.confidence_method or "", "confidence_method", MAX_CONFIDENCE_METHOD_LEN)
+
+
+def validate_proposal(proposal: AssertionProposal) -> None:
+    """Validate proposition shape, confidence pairing, and field bounds."""
+    _validate_proposal_identity(proposal)
+    _validate_proposal_effective_window(proposal)
+    if proposal.confidence_status == "not_assessed":
+        _validate_not_assessed_confidence(proposal)
+        return
+    if proposal.confidence_status != "assessed":
+        raise ValidationError("confidence_status must be assessed or not_assessed")
+    _validate_assessed_confidence(proposal)
 
 
 def validate_evidence_record(evidence: EvidenceRecord) -> EvidenceRecord:
@@ -188,6 +263,42 @@ def load_transitions() -> TransitionsDocument:
     return transitions
 
 
+def _validate_initial_event(event: AssertionEvent) -> None:
+    """Ensure the first event in a stream is a proper propose transition."""
+    if event.from_state is not None or event.to_state != "Proposed":
+        raise ValidationError("initial event must transition from None to Proposed")
+
+
+def _validate_event_continuity(event: AssertionEvent, previous_state: LifecycleState) -> None:
+    """Ensure a follow-on event continues from the prior lifecycle state."""
+    if event.from_state != previous_state:
+        raise ValidationError(
+            f"event state continuity gap: expected from_state {previous_state}, got {event.from_state}"
+        )
+
+
+def _validate_successor_pointer(allowed: TransitionSpec, event: AssertionEvent) -> None:
+    """Ensure successor_assertion_id presence matches the matrix edge."""
+    if allowed.requires_successor and event.successor_assertion_id is None:
+        raise ValidationError("supersession event requires successor_assertion_id")
+    if not allowed.requires_successor and event.successor_assertion_id is not None:
+        raise ValidationError("non-supersession event must not set successor_assertion_id")
+
+
+def _validate_follow_on_event(
+    event: AssertionEvent,
+    previous_state: LifecycleState,
+    transitions: TransitionsDocument,
+) -> None:
+    """Ensure a follow-on event aligns with matrix rules and continuity."""
+    _validate_event_continuity(event, previous_state)
+    from_state_value = cast(LifecycleState, event.from_state)
+    allowed = find_transition(transitions, from_state_value, event.to_state)
+    if allowed is None:
+        raise ValidationError(f"event transition outside matrix: {from_state_value}->{event.to_state}")
+    _validate_successor_pointer(allowed, event)
+
+
 def resolve_state(events: Sequence[AssertionEvent]) -> LifecycleState:
     """Fold ordered events into the current lifecycle state."""
     if not events:
@@ -202,22 +313,9 @@ def resolve_state(events: Sequence[AssertionEvent]) -> LifecycleState:
             raise ValidationError(f"event sequence gap: expected {expected}, got {event.sequence}")
         _require_utc_datetime(event.recorded_at, "recorded_at")
         if expected == 1:
-            if event.from_state is not None or event.to_state != "Proposed":
-                raise ValidationError("initial event must transition from None to Proposed")
+            _validate_initial_event(event)
         else:
-            from_state = event.from_state
-            if from_state != previous_state:
-                raise ValidationError(
-                    f"event state continuity gap: expected from_state {previous_state}, got {from_state}"
-                )
-            from_state_value = cast(LifecycleState, from_state)
-            allowed = find_transition(transitions, from_state_value, event.to_state)
-            if allowed is None:
-                raise ValidationError(f"event transition outside matrix: {from_state_value}->{event.to_state}")
-            if allowed.requires_successor and event.successor_assertion_id is None:
-                raise ValidationError("supersession event requires successor_assertion_id")
-            if not allowed.requires_successor and event.successor_assertion_id is not None:
-                raise ValidationError("non-supersession event must not set successor_assertion_id")
+            _validate_follow_on_event(event, cast(LifecycleState, previous_state), transitions)
         previous_state = event.to_state
         expected += 1
     return ordered[-1].to_state
@@ -265,63 +363,83 @@ def plan_propose(
     return assertion, event
 
 
-def plan_transition(
-    assertion_id: str,
-    current: LifecycleState,
-    to_state: LifecycleState,
-    ctx: AuthorityContext,
-    *,
-    expected_sequence: int,
-    rationale: str,
-    recorded_at: datetime,
-    successor_assertion_id: str | None = None,
-    event_id: str | None = None,
-    transitions: TransitionsDocument | None = None,
-) -> AssertionEvent:
-    """Plan a single matrix transition with authority and concurrency guards."""
-    _require_non_empty(assertion_id, "assertion_id", ENTITY_ID_LEN)
-    rationale_value = _require_non_empty(rationale, "rationale", MAX_RATIONALE_LEN)
-    expected_sequence_value = _require_non_bool_int(expected_sequence, "expected_sequence")
+def _validate_transition_plan(plan: TransitionPlan) -> tuple[TransitionsDocument, TransitionSpec]:
+    """Validate transition inputs and resolve the allowed matrix edge."""
+    _require_non_empty(plan.assertion_id, "assertion_id", ENTITY_ID_LEN)
+    _require_non_empty(plan.timing.rationale, "rationale", MAX_RATIONALE_LEN)
+    expected_sequence_value = _require_non_bool_int(plan.timing.expected_sequence, "expected_sequence")
     if expected_sequence_value < 1:
         raise ConcurrencyConflict("expected_sequence must be >= 1 (last applied sequence)")
-    _require_utc_datetime(recorded_at, "recorded_at")
+    _require_utc_datetime(plan.timing.recorded_at, "recorded_at")
 
-    matrix = transitions if transitions is not None else load_transitions()
-    allowed = find_transition(matrix, current, to_state)
+    matrix = plan.timing.transitions if plan.timing.transitions is not None else load_transitions()
+    allowed = find_transition(matrix, plan.current, plan.to_state)
     if allowed is None:
-        raise IllegalTransition(f"illegal transition: {current}->{to_state}")
+        raise IllegalTransition(f"illegal transition: {plan.current}->{plan.to_state}")
+    return matrix, allowed
 
-    required_role = cast(AuthorityRole, allowed.authority)
-    validate_authority(ctx, required_role)
 
+def _resolve_successor(plan: TransitionPlan, allowed: TransitionSpec) -> str | None:
+    """Resolve and validate successor_assertion_id for supersession edges."""
     if allowed.requires_successor:
         successor = _require_non_empty(
-            successor_assertion_id or "",
+            plan.successor_assertion_id or "",
             "successor_assertion_id",
             ENTITY_ID_LEN,
         )
-        if successor == assertion_id:
+        if successor == plan.assertion_id:
             raise SupersessionCycle("self-supersession is forbidden")
-    else:
-        if successor_assertion_id is not None:
-            raise IllegalTransition(
-                f"non-supersession transition {current}->{to_state} must not set successor_assertion_id"
-            )
-        successor = None
+        return successor
+    if plan.successor_assertion_id is not None:
+        raise IllegalTransition(
+            f"non-supersession transition {plan.current}->{plan.to_state} " "must not set successor_assertion_id"
+        )
+    return None
 
+
+def _build_transition_event(
+    plan: TransitionPlan,
+    allowed: TransitionSpec,
+    successor: str | None,
+) -> AssertionEvent:
+    """Materialize a planned transition as an append-only event DTO."""
+    required_role = cast(AuthorityRole, allowed.authority)
+    validate_authority(plan.ctx, required_role)
+    expected_sequence_value = _require_non_bool_int(plan.timing.expected_sequence, "expected_sequence")
+    rationale_value = _require_non_empty(plan.timing.rationale, "rationale", MAX_RATIONALE_LEN)
     return AssertionEvent(
-        event_id=event_id or _new_id(),
-        assertion_id=assertion_id,
+        event_id=plan.timing.event_id or _new_id(),
+        assertion_id=plan.assertion_id,
         sequence=expected_sequence_value + 1,
-        from_state=current,
-        to_state=to_state,
+        from_state=plan.current,
+        to_state=plan.to_state,
         authority=required_role,
-        actor_id=ctx.actor_id,
+        actor_id=plan.ctx.actor_id,
         rationale=rationale_value,
-        policy_version=ctx.policy_version,
-        recorded_at=recorded_at,
+        policy_version=plan.ctx.policy_version,
+        recorded_at=plan.timing.recorded_at,
         successor_assertion_id=successor,
-        correlation_id=ctx.correlation_id,
+        correlation_id=plan.ctx.correlation_id,
+    )
+
+
+def plan_transition(plan: TransitionPlan) -> AssertionEvent:
+    """Plan a single matrix transition with authority and concurrency guards."""
+    _matrix, allowed = _validate_transition_plan(plan)
+    successor = _resolve_successor(plan, allowed)
+    return _build_transition_event(plan, allowed, successor)
+
+
+def _plan_named_transition(plan: NamedTransitionPlan) -> AssertionEvent:
+    """Plan a named matrix edge via ``TransitionPlan``."""
+    return plan_transition(
+        TransitionPlan(
+            assertion_id=plan.assertion_id,
+            current=plan.current,
+            to_state=plan.to_state,
+            ctx=plan.ctx,
+            timing=plan.timing,
+        )
     )
 
 
@@ -330,24 +448,10 @@ def plan_accept(
     current: LifecycleState,
     ctx: AuthorityContext,
     *,
-    expected_sequence: int,
-    rationale: str,
-    recorded_at: datetime,
-    event_id: str | None = None,
-    transitions: TransitionsDocument | None = None,
+    timing: TransitionTiming,
 ) -> AssertionEvent:
     """Plan Proposed|Disputed → Accepted."""
-    return plan_transition(
-        assertion_id,
-        current,
-        "Accepted",
-        ctx,
-        expected_sequence=expected_sequence,
-        rationale=rationale,
-        recorded_at=recorded_at,
-        event_id=event_id,
-        transitions=transitions,
-    )
+    return _plan_named_transition(NamedTransitionPlan("Accepted", assertion_id, current, ctx, timing))
 
 
 def plan_reject(
@@ -355,24 +459,10 @@ def plan_reject(
     current: LifecycleState,
     ctx: AuthorityContext,
     *,
-    expected_sequence: int,
-    rationale: str,
-    recorded_at: datetime,
-    event_id: str | None = None,
-    transitions: TransitionsDocument | None = None,
+    timing: TransitionTiming,
 ) -> AssertionEvent:
     """Plan Proposed → Rejected."""
-    return plan_transition(
-        assertion_id,
-        current,
-        "Rejected",
-        ctx,
-        expected_sequence=expected_sequence,
-        rationale=rationale,
-        recorded_at=recorded_at,
-        event_id=event_id,
-        transitions=transitions,
-    )
+    return _plan_named_transition(NamedTransitionPlan("Rejected", assertion_id, current, ctx, timing))
 
 
 def plan_withdraw(
@@ -380,24 +470,10 @@ def plan_withdraw(
     current: LifecycleState,
     ctx: AuthorityContext,
     *,
-    expected_sequence: int,
-    rationale: str,
-    recorded_at: datetime,
-    event_id: str | None = None,
-    transitions: TransitionsDocument | None = None,
+    timing: TransitionTiming,
 ) -> AssertionEvent:
     """Plan Proposed → Withdrawn."""
-    return plan_transition(
-        assertion_id,
-        current,
-        "Withdrawn",
-        ctx,
-        expected_sequence=expected_sequence,
-        rationale=rationale,
-        recorded_at=recorded_at,
-        event_id=event_id,
-        transitions=transitions,
-    )
+    return _plan_named_transition(NamedTransitionPlan("Withdrawn", assertion_id, current, ctx, timing))
 
 
 def plan_dispute(
@@ -405,24 +481,10 @@ def plan_dispute(
     current: LifecycleState,
     ctx: AuthorityContext,
     *,
-    expected_sequence: int,
-    rationale: str,
-    recorded_at: datetime,
-    event_id: str | None = None,
-    transitions: TransitionsDocument | None = None,
+    timing: TransitionTiming,
 ) -> AssertionEvent:
     """Plan Accepted → Disputed."""
-    return plan_transition(
-        assertion_id,
-        current,
-        "Disputed",
-        ctx,
-        expected_sequence=expected_sequence,
-        rationale=rationale,
-        recorded_at=recorded_at,
-        event_id=event_id,
-        transitions=transitions,
-    )
+    return _plan_named_transition(NamedTransitionPlan("Disputed", assertion_id, current, ctx, timing))
 
 
 def plan_reaffirm(
@@ -430,24 +492,10 @@ def plan_reaffirm(
     current: LifecycleState,
     ctx: AuthorityContext,
     *,
-    expected_sequence: int,
-    rationale: str,
-    recorded_at: datetime,
-    event_id: str | None = None,
-    transitions: TransitionsDocument | None = None,
+    timing: TransitionTiming,
 ) -> AssertionEvent:
     """Plan Disputed → Accepted (reaffirm)."""
-    return plan_transition(
-        assertion_id,
-        current,
-        "Accepted",
-        ctx,
-        expected_sequence=expected_sequence,
-        rationale=rationale,
-        recorded_at=recorded_at,
-        event_id=event_id,
-        transitions=transitions,
-    )
+    return _plan_named_transition(NamedTransitionPlan("Accepted", assertion_id, current, ctx, timing))
 
 
 def plan_retract(
@@ -455,80 +503,66 @@ def plan_retract(
     current: LifecycleState,
     ctx: AuthorityContext,
     *,
-    expected_sequence: int,
-    rationale: str,
-    recorded_at: datetime,
-    event_id: str | None = None,
-    transitions: TransitionsDocument | None = None,
+    timing: TransitionTiming,
 ) -> AssertionEvent:
     """Plan Accepted|Disputed → Retracted."""
-    return plan_transition(
-        assertion_id,
-        current,
-        "Retracted",
-        ctx,
-        expected_sequence=expected_sequence,
-        rationale=rationale,
-        recorded_at=recorded_at,
-        event_id=event_id,
-        transitions=transitions,
-    )
+    return _plan_named_transition(NamedTransitionPlan("Retracted", assertion_id, current, ctx, timing))
 
 
-def plan_supersede(
-    assertion_id: str,
-    current: LifecycleState,
-    ctx: AuthorityContext,
-    *,
-    expected_sequence: int,
-    rationale: str,
-    recorded_at: datetime,
-    successor_assertion_id: str,
-    successor_chain_lookup: Callable[[str], Sequence[str]] | Mapping[str, Sequence[str]] | None = None,
-    event_id: str | None = None,
-    transitions: TransitionsDocument | None = None,
-) -> AssertionEvent:
+def plan_supersede(plan: SupersedePlan) -> AssertionEvent:
     """Plan Accepted|Disputed → Superseded with cycle prevention."""
-    assert_no_cycle(assertion_id, successor_assertion_id, successor_chain_lookup)
-    return plan_transition(
-        assertion_id,
-        current,
-        "Superseded",
-        ctx,
-        expected_sequence=expected_sequence,
-        rationale=rationale,
-        recorded_at=recorded_at,
-        successor_assertion_id=successor_assertion_id,
-        event_id=event_id,
-        transitions=transitions,
+    assert_no_cycle(
+        plan.transition.assertion_id,
+        plan.transition.successor_assertion_id or "",
+        plan.successor_chain_lookup,
     )
+    return plan_transition(plan.transition)
 
 
-def plan_register_evidence(
-    assertion_id: str,
-    state: LifecycleState,
-    link: EvidenceLink,
-    ctx: AuthorityContext,
-    *,
-    evidence: EvidenceRecord | None = None,
-) -> EvidenceLink:
-    """Validate authority/state gates for an append-only evidence link."""
-    _require_non_empty(assertion_id, "assertion_id", ENTITY_ID_LEN)
-    if assertion_id != link.assertion_id:
+def _validate_evidence_link_scope(plan: EvidenceRegistrationPlan) -> None:
+    """Validate assertion/state gates for evidence link registration."""
+    _require_non_empty(plan.assertion_id, "assertion_id", ENTITY_ID_LEN)
+    if plan.assertion_id != plan.link.assertion_id:
         raise ValidationError("evidence link assertion_id mismatch")
-    if state not in EVIDENCE_LINK_STATES:
-        raise IllegalTransition(f"evidence links forbidden in state {state}")
-    validate_authority(ctx, set(EVIDENCE_LINK_ROLES))
+    if plan.state not in EVIDENCE_LINK_STATES:
+        raise IllegalTransition(f"evidence links forbidden in state {plan.state}")
+    validate_authority(plan.ctx, set(EVIDENCE_LINK_ROLES))
+
+
+def _validate_evidence_link_fields(link: EvidenceLink) -> None:
+    """Validate polarity and link identity fields."""
     if link.polarity not in ("supporting", "opposing", "contextual"):
         raise ValidationError(f"invalid evidence polarity: {link.polarity!r}")
     _require_non_empty(link.link_id, "link_id", ENTITY_ID_LEN)
     _require_non_empty(link.evidence_id, "evidence_id", ENTITY_ID_LEN)
     _require_utc_datetime(link.recorded_at, "recorded_at")
-    if evidence is not None:
-        validate_evidence_record(evidence)
-        if evidence.evidence_id != link.evidence_id:
-            raise ValidationError("evidence record id mismatch with link")
-    return link
+
+
+def _validate_linked_evidence_record(link: EvidenceLink, evidence: EvidenceRecord | None) -> None:
+    """Validate optional evidence record consistency with the link."""
+    if evidence is None:
+        return
+    validated = validate_evidence_record(evidence)
+    if validated.evidence_id != link.evidence_id:
+        raise ValidationError("evidence record id mismatch with link")
+
+
+def plan_register_evidence(plan: EvidenceRegistrationPlan) -> EvidenceLink:
+    """Validate authority/state gates for an append-only evidence link."""
+    _validate_evidence_link_scope(plan)
+    _validate_evidence_link_fields(plan.link)
+    _validate_linked_evidence_record(plan.link, plan.evidence)
+    return plan.link
+
+
+def _lookup_successors(
+    node: str,
+    successor_chain_lookup: Callable[[str], Sequence[str]] | Mapping[str, Sequence[str]],
+) -> Sequence[str]:
+    """Resolve successor IDs for ``node`` from a callable or mapping lookup."""
+    if callable(successor_chain_lookup):
+        return successor_chain_lookup(node)
+    return successor_chain_lookup.get(node, ())
 
 
 def assert_no_cycle(
@@ -544,11 +578,6 @@ def assert_no_cycle(
     if successor_chain_lookup is None:
         return
 
-    def _next(node: str) -> Sequence[str]:
-        if callable(successor_chain_lookup):
-            return successor_chain_lookup(node)
-        return successor_chain_lookup.get(node, ())
-
     seen: set[str] = set()
     stack = [successor_id]
     while stack:
@@ -558,25 +587,48 @@ def assert_no_cycle(
         if current in seen:
             continue
         seen.add(current)
-        stack.extend(_next(current))
+        stack.extend(_lookup_successors(current, successor_chain_lookup))
+
+
+def _assertion_fields(assertion: Assertion) -> tuple[object, ...]:
+    """Return comparable assertion payload fields."""
+    return (
+        assertion.assertion_id,
+        assertion.predicate_id,
+        assertion.subject_id,
+        assertion.object_id,
+        assertion.method_id,
+        assertion.proposition,
+        assertion.confidence_status,
+        assertion.confidence_bp,
+        assertion.confidence_type,
+        assertion.confidence_method,
+        assertion.effective_from,
+        assertion.effective_to,
+    )
+
+
+def _proposal_fields(proposal: AssertionProposal) -> tuple[object, ...]:
+    """Return comparable proposal payload fields."""
+    return (
+        proposal.assertion_id,
+        proposal.predicate_id,
+        proposal.subject_id,
+        proposal.object_id,
+        proposal.method_id,
+        proposal.proposition,
+        proposal.confidence_status,
+        proposal.confidence_bp,
+        proposal.confidence_type,
+        proposal.confidence_method,
+        proposal.effective_from,
+        proposal.effective_to,
+    )
 
 
 def proposals_equivalent(existing: Assertion, proposal: AssertionProposal) -> bool:
     """Return True when an existing assertion matches a proposal for idempotent create."""
-    return (
-        existing.assertion_id == proposal.assertion_id
-        and existing.predicate_id == proposal.predicate_id
-        and existing.subject_id == proposal.subject_id
-        and existing.object_id == proposal.object_id
-        and existing.method_id == proposal.method_id
-        and existing.proposition == proposal.proposition
-        and existing.confidence_status == proposal.confidence_status
-        and existing.confidence_bp == proposal.confidence_bp
-        and existing.confidence_type == proposal.confidence_type
-        and existing.confidence_method == proposal.confidence_method
-        and existing.effective_from == proposal.effective_from
-        and existing.effective_to == proposal.effective_to
-    )
+    return _assertion_fields(existing) == _proposal_fields(proposal)
 
 
 def cast_polarity(value: str) -> EvidencePolarity:
