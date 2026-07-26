@@ -579,6 +579,29 @@ class TestSupersessionAtomics:
         with pytest.raises(SupersessionCycle):
             repo.supersede_atomic(request)
 
+    def test_multi_hop_supersession_cycle_rejected(self, repo) -> None:
+        """A successor cannot supersede back to an assertion in its chain."""
+        _propose_accepted(repo, "as-a")
+        repo.supersede_atomic(
+            SupersedeAtomicRequest(
+                predecessor_id="as-a",
+                successor_proposal=_proposal("as-b"),
+                ctx=_ctx("proposer", "acceptor"),
+                expected_sequence=2,
+                rationale="replace A with B",
+            )
+        )
+        cycle_request = SupersedeAtomicRequest(
+            predecessor_id="as-b",
+            successor_proposal=_proposal("as-a"),
+            ctx=_ctx("proposer", "acceptor"),
+            expected_sequence=2,
+            rationale="replace B with A",
+        )
+
+        with pytest.raises(SupersessionCycle):
+            repo.supersede_atomic(cycle_request)
+
     @pytest.mark.parametrize(
         ("successor_id", "seed_proposed", "match"),
         [
