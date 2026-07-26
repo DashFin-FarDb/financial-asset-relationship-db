@@ -5,7 +5,6 @@ from __future__ import annotations
 import os
 from collections.abc import Generator, Iterator
 from datetime import datetime, timedelta, timezone
-from typing import TypeVar
 from unittest import TestCase
 
 import pytest
@@ -40,14 +39,13 @@ KNOWN_AT = NOW + timedelta(days=1)
 PURPOSE = "financial_graph_current_view"
 PREDICATE_ID = "financial.bond.issuer_reference@1"
 DIGEST = "c" * 64
-T = TypeVar("T")
 
 
 def _sha256_hex(*chunks: str) -> str:
     return "".join(chunks)
 
 
-def _require_present(value: T | None, label: str) -> T:
+def _require_present[T](value: T | None, label: str) -> T:
     if value is None:
         raise AssertionError(f"Expected {label} to be present")
     return value
@@ -68,7 +66,7 @@ GOLDEN_PROJECTION_HASH = _sha256_hex(
 )
 ASSERT = TestCase()
 pytestmark = pytest.mark.integration
-_MUTATION_ERRORS = (DBAPIError, IntegrityError, OperationalError, ProgrammingError, Exception)
+_MUTATION_ERRORS = (DBAPIError, IntegrityError, OperationalError, ProgrammingError)
 
 
 def _postgres_url() -> str | None:
@@ -238,6 +236,9 @@ def test_persist_and_reload_projection_revision(repo: RelationshipAssertionRepos
     ASSERT.assertEqual(loaded.revision.edge_set_hash, revision.edge_set_hash)
     ASSERT.assertEqual(loaded.revision.projection_hash, revision.projection_hash)
     ASSERT.assertEqual(loaded.revision.edges, revision.edges)
+    ASSERT.assertEqual(loaded.revision.governed_scopes, revision.governed_scopes)
+    ASSERT.assertEqual(len(loaded.revision.governed_scopes), 1)
+    ASSERT.assertEqual(loaded.revision.governed_scopes[0].predicate_id, PREDICATE_ID)
     ASSERT.assertEqual(persisted.edge_ids, ("edge-1",))
 
 

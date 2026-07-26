@@ -52,7 +52,7 @@ from src.governance.relationship_assertion_lifecycle import (
     resolve_state,
     validate_evidence_record,
 )
-from src.logic.relationship_projection import ProjectionEdge, ProjectionRevision
+from src.logic.relationship_projection import GovernedScope, ProjectionEdge, ProjectionRevision
 
 UTC = timezone.utc
 
@@ -415,8 +415,13 @@ def _require_projection_timestamps(
 def _domain_revision_from_orm(
     row: RelationshipProjectionRevisionORM,
     edges: tuple[ProjectionEdge, ...],
+    governed_scopes: tuple[GovernedScope, ...],
 ) -> tuple[ProjectionRevision, datetime]:
-    """Map a stored revision row plus edges into domain types."""
+    """Map a stored revision row plus edges/scopes into domain types.
+
+    Scope rows are not a dedicated ORM column in v1 schema; callers reconstruct
+    ``governed_scopes`` from persisted edges + assertion predicate ids.
+    """
     effective_at, known_at, created_at = _require_projection_timestamps(row)
     revision = ProjectionRevision(
         purpose=row.purpose,
@@ -427,7 +432,7 @@ def _domain_revision_from_orm(
         edge_set_hash=row.edge_set_hash,
         projection_hash=row.projection_hash,
         edges=edges,
-        governed_scopes=(),
+        governed_scopes=governed_scopes,
     )
     return revision, created_at
 
@@ -464,6 +469,15 @@ def _require_accepted_successor_id(successor_assertion_id: str) -> str:
     if not successor_assertion_id.strip():
         raise ValidationError("supersession requires successor_assertion_id")
     return successor_assertion_id
+
+
+def _raise_projection_persist_integrity_error(revision_id: str, exc: IntegrityError) -> NoReturn:
+    """Translate projection insert IntegrityError into a domain exception."""
+    if _is_foreign_key_integrity_error(exc):
+        raise ValidationError(
+            f"projection revision foreign-key violation for {revision_id} " "(check assertion_id references on edges)"
+        ) from exc
+    raise ConcurrencyConflict(f"projection revision insert conflicted for {revision_id}") from exc
 
 
 class RelationshipAssertionRepository:
@@ -698,8 +712,11 @@ class RelationshipAssertionRepository:
         if created_at is None:
             raise ValidationError("created_at is required")
         edge_ids = _resolve_persist_edge_ids(request)
-        with self._session.begin_nested():
-            self._insert_projection_revision_rows(revision_id, revision, created_at, edge_ids)
+        try:
+            with self._session.begin_nested():
+                self._insert_projection_revision_rows(revision_id, revision, created_at, edge_ids)
+        except IntegrityError as exc:
+            _raise_projection_persist_integrity_error(revision_id, exc)
         return PersistedProjectionRevision(
             revision_id=revision_id,
             created_at=created_at,
@@ -714,12 +731,33 @@ class RelationshipAssertionRepository:
             return None
         edge_rows = self._load_projection_edge_rows(revision_id)
         edges = tuple(_projection_edge_from_orm(edge_row) for edge_row in edge_rows)
-        revision, created_at = _domain_revision_from_orm(row, edges)
+        governed_scopes = self._derive_governed_scopes(row.purpose, edges)
+        revision, created_at = _domain_revision_from_orm(row, edges, governed_scopes)
         return PersistedProjectionRevision(
             revision_id=row.id,
             created_at=created_at,
             revision=revision,
             edge_ids=tuple(edge_row.id for edge_row in edge_rows),
+        )
+
+    def _derive_governed_scopes(
+        self,
+        purpose: str,
+        edges: Sequence[ProjectionEdge],
+    ) -> tuple[GovernedScope, ...]:
+        """Rebuild governed scopes from edge assertion predicate ids.
+
+        v1 revision ORM has no dedicated scopes column; scopes are derived so
+        reloads preserve the same ``(purpose, predicate_id)`` set as ``project()``.
+        """
+        predicate_ids: set[str] = set()
+        for edge in edges:
+            assertion_row = self._session.get(RelationshipAssertionORM, edge.assertion_id)
+            if assertion_row is None:
+                raise ValidationError(f"projection edge references unknown assertion_id: {edge.assertion_id}")
+            predicate_ids.add(assertion_row.predicate_id)
+        return tuple(
+            GovernedScope(purpose=purpose, predicate_id=predicate_id) for predicate_id in sorted(predicate_ids)
         )
 
     def _insert_projection_revision_rows(

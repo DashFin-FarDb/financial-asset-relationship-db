@@ -180,8 +180,8 @@ def _effective_covers(assertion: Assertion, effective_at: datetime) -> bool:
 
 
 def _conflict_key(assertion: Assertion, predicate: PredicateSpec) -> tuple[str, ...]:
-    """Build the registry-defined conflict key for an assertion."""
-    parts: list[str] = []
+    """Build a conflict grouping key that always includes predicate identity."""
+    parts: list[str] = [predicate.id]
     for field_name in predicate.conflict_key:
         if field_name not in _CONFLICT_ATTRS:
             raise ProjectionError(f"unsupported conflict_key field: {field_name}")
@@ -217,6 +217,15 @@ def _is_purpose_candidate(assertion: Assertion, predicate: PredicateSpec, window
     return _effective_covers(assertion, window.effective_at)
 
 
+def _require_registered_method(assertion: Assertion, predicate: PredicateSpec) -> None:
+    """Fail closed when assertion method_id is absent from the predicate registry."""
+    if assertion.method_id not in predicate.method_ids:
+        raise ProjectionError(
+            f"assertion {assertion.assertion_id} method_id {assertion.method_id!r} "
+            f"not registered for predicate {predicate.id}"
+        )
+
+
 def _select_accepted_candidates(
     assertions: Sequence[Assertion],
     events_by_id: Mapping[str, Sequence[AssertionEvent]],
@@ -235,6 +244,7 @@ def _select_accepted_candidates(
         predicate = predicates.get(assertion.predicate_id)
         if predicate is None or not _is_purpose_candidate(assertion, predicate, window):
             continue
+        _require_registered_method(assertion, predicate)
         candidates.append(
             _Candidate(
                 assertion=assertion,
@@ -290,12 +300,42 @@ def _edge_sort_key(edge: ProjectionEdge) -> tuple[str, ...]:
     )
 
 
+def _evidence_index(evidence: Sequence[EvidenceRecord]) -> dict[str, EvidenceRecord]:
+    """Index evidence by id, failing closed on duplicate evidence_id values."""
+    index: dict[str, EvidenceRecord] = {}
+    for record in evidence:
+        if record.evidence_id in index:
+            raise ProjectionError(f"duplicate evidence id in projection inputs: {record.evidence_id}")
+        index[record.evidence_id] = record
+    return index
+
+
+def _resolve_as_of_evidence_row(
+    link: EvidenceLink,
+    evidence_by_id: Mapping[str, EvidenceRecord],
+    known_at: datetime,
+) -> dict[str, str]:
+    """Return one provenance evidence row visible at ``known_at``."""
+    record = evidence_by_id.get(link.evidence_id)
+    if record is None:
+        raise ProjectionError(f"missing evidence record for link {link.link_id}")
+    evidence_recorded = _require_utc(record.recorded_at, "evidence.recorded_at")
+    if evidence_recorded > known_at:
+        raise ProjectionError(f"evidence {record.evidence_id} recorded after known_at for link {link.link_id}")
+    return {
+        "assertion_id": link.assertion_id,
+        "content_sha256": record.content_sha256,
+        "evidence_id": link.evidence_id,
+        "polarity": link.polarity,
+    }
+
+
 def _evidence_payload_for_edges(
     edges: Sequence[ProjectionEdge],
     bundle: _EvidenceBundle,
 ) -> list[dict[str, str]]:
     """Build sorted provenance evidence rows for projected assertion IDs."""
-    evidence_by_id = {item.evidence_id: item for item in bundle.evidence}
+    evidence_by_id = _evidence_index(bundle.evidence)
     projected_ids = {edge.assertion_id for edge in edges}
     rows: list[dict[str, str]] = []
     for link in bundle.links:
@@ -304,17 +344,7 @@ def _evidence_payload_for_edges(
         recorded = _require_utc(link.recorded_at, "evidence_link.recorded_at")
         if recorded > bundle.known_at:
             continue
-        record = evidence_by_id.get(link.evidence_id)
-        if record is None:
-            raise ProjectionError(f"missing evidence record for link {link.link_id}")
-        rows.append(
-            {
-                "assertion_id": link.assertion_id,
-                "content_sha256": record.content_sha256,
-                "evidence_id": link.evidence_id,
-                "polarity": link.polarity,
-            }
-        )
+        rows.append(_resolve_as_of_evidence_row(link, evidence_by_id, bundle.known_at))
     rows.sort(key=lambda item: (item["assertion_id"], item["evidence_id"], item["polarity"]))
     return rows
 

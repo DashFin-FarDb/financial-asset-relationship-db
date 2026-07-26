@@ -471,8 +471,8 @@ def test_missing_evidence_record_for_link_fails_closed(predicates) -> None:
         )
 
 
-def test_hash_inputs_reject_floats_via_canonical_json(predicates) -> None:
-    """Sanity: empty projection hashes are lowercase hex and float-free."""
+def test_empty_projection_hashes_are_lowercase_hex(predicates) -> None:
+    """Empty projection content hashes are lowercase hexadecimal digests."""
     result = _project(predicates, [], [])
     assert all(ch in "0123456789abcdef" for ch in result.edge_set_hash)
     assert all(ch in "0123456789abcdef" for ch in result.projection_hash)
@@ -486,3 +486,63 @@ def test_same_object_conflict_still_fails_closed(predicates) -> None:
     events += _propose_accept_events("as-2", proposed_at=NOW, accepted_at=NOW + timedelta(minutes=2))
     with pytest.raises(ProjectionError, match="projection conflict"):
         _project(predicates, [left, right], events)
+
+
+def test_unregistered_method_id_fails_closed(predicates) -> None:
+    """Accepted assertions with unregistered method_id do not project."""
+    assertion = Assertion(
+        assertion_id="as-1",
+        predicate_id=PREDICATE_ID,
+        subject_id="AAPL_BOND_2030",
+        object_id="AAPL",
+        method_id="not.a.registered.method@1",
+        proposition="Bond issuer_id references issuer",
+        confidence_status="not_assessed",
+        confidence_bp=None,
+        confidence_type=None,
+        confidence_method=None,
+        effective_from=NOW,
+        effective_to=None,
+        recorded_at=NOW,
+    )
+    events = _propose_accept_events("as-1", proposed_at=NOW, accepted_at=NOW + timedelta(minutes=1))
+    with pytest.raises(ProjectionError, match="not registered for predicate"):
+        _project(predicates, [assertion], events)
+
+
+def test_duplicate_evidence_id_fails_closed(predicates) -> None:
+    """Duplicate evidence ids in projection inputs fail closed before hashing."""
+    assertion = _assertion()
+    events = _propose_accept_events("as-1", proposed_at=NOW, accepted_at=NOW + timedelta(minutes=1))
+    with pytest.raises(ProjectionError, match="duplicate evidence id"):
+        _project(
+            predicates,
+            [assertion],
+            events,
+            evidence=[_evidence("evd-1", DIGEST_A), _evidence("evd-1", "d" * 64)],
+            evidence_links=[_link("as-1")],
+        )
+
+
+def test_future_evidence_record_fails_closed_for_historical_known_at(predicates) -> None:
+    """Evidence recorded after known_at must not enter projection_hash."""
+    assertion = _assertion()
+    events = _propose_accept_events("as-1", proposed_at=NOW, accepted_at=NOW + timedelta(minutes=1))
+    future_evidence = EvidenceRecord(
+        evidence_id="evd-1",
+        source_ref="sample://evd-1",
+        content_sha256=DIGEST_A,
+        media_type="application/json",
+        visibility="internal",
+        custody_id="collector-1",
+        recorded_at=NOW + timedelta(days=2),
+    )
+    with pytest.raises(ProjectionError, match="recorded after known_at"):
+        _project(
+            predicates,
+            [assertion],
+            events,
+            known_at=NOW + timedelta(hours=1),
+            evidence=[future_evidence],
+            evidence_links=[_link("as-1", recorded_at=NOW + timedelta(minutes=2))],
+        )
