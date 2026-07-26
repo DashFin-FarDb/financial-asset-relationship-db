@@ -68,16 +68,16 @@ def _require_grac_table(table_name: str) -> None:
 
 def _expected_sqlite_trigger_names() -> tuple[str, ...]:
     """Return UPDATE/DELETE trigger names for all GRAC tables."""
-    return tuple(name for name, _table in _expected_sqlite_trigger_bindings())
+    return tuple(name for name, _table, _event in _expected_sqlite_trigger_bindings())
 
 
-def _expected_sqlite_trigger_bindings() -> frozenset[tuple[str, str]]:
-    """Return (trigger_name, table_name) pairs for SQLite UPDATE/DELETE guards."""
-    bindings: set[tuple[str, str]] = set()
+def _expected_sqlite_trigger_bindings() -> frozenset[tuple[str, str, str]]:
+    """Return (trigger_name, table_name, event) pairs for SQLite UPDATE/DELETE guards."""
+    bindings: set[tuple[str, str, str]] = set()
     for table_name in GRAC_TABLE_NAMES:
         update_name, delete_name, _truncate_name = list_immutability_trigger_names(table_name)
-        bindings.add((update_name, table_name))
-        bindings.add((delete_name, table_name))
+        bindings.add((update_name, table_name, "UPDATE"))
+        bindings.add((delete_name, table_name, "DELETE"))
     return frozenset(bindings)
 
 
@@ -102,7 +102,13 @@ def _sqlite_guards_present(connection: Connection) -> bool:
     expected = _expected_sqlite_trigger_bindings()
     rows = connection.execute(
         text("""
-            SELECT name, tbl_name
+            SELECT
+                name,
+                tbl_name,
+                CASE
+                    WHEN sql LIKE '%BEFORE UPDATE%' THEN 'UPDATE'
+                    WHEN sql LIKE '%BEFORE DELETE%' THEN 'DELETE'
+                END AS event
             FROM sqlite_master
             WHERE type = 'trigger'
                 AND name IN :names
@@ -112,11 +118,12 @@ def _sqlite_guards_present(connection: Connection) -> bool:
             bindparam("tables", expanding=True),
         ),
         {
-            "names": [name for name, _table in expected],
+            "names": [name for name, _table, _event in expected],
             "tables": list(GRAC_TABLE_NAMES),
         },
     ).fetchall()
-    return {(row[0], row[1]) for row in rows} >= set(expected)
+    actual = {(row[0], row[1], row[2]) for row in rows if row[2] is not None}
+    return actual >= set(expected)
 
 
 def _postgresql_guards_present(connection: Connection) -> bool:
@@ -136,6 +143,7 @@ def _postgresql_guards_present(connection: Connection) -> bool:
         return False
     expected = _expected_postgresql_trigger_bindings()
     # tgtype bits: ROW=1, BEFORE=2, DELETE=8, UPDATE=16, TRUNCATE=32 (PostgreSQL trigger.h).
+    # tgenabled: O=origin, D=disabled, R=replica, A=always — disabled guards must force repair.
     rows = connection.execute(
         text("""
             SELECT
@@ -163,6 +171,7 @@ def _postgresql_guards_present(connection: Connection) -> bool:
                 AND n.nspname = pg_catalog.current_schema()
                 AND c.relname IN :tables
                 AND NOT t.tgisinternal
+                AND t.tgenabled <> 'D'
                 AND p.proname = :fn
                 AND p.pronargs = 0
             """).bindparams(

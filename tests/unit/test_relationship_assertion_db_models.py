@@ -539,6 +539,8 @@ def test_postgresql_guards_present_scopes_triggers_to_current_schema() -> None:
     assert "pg_namespace" in trigger_sql
     assert "c.relname IN" in trigger_sql
     assert "NOT t.tgisinternal" in trigger_sql
+    assert "tgenabled" in trigger_sql
+    assert "'D'" in trigger_sql
     assert "tgtype" in trigger_sql
     assert "tgfoid" in trigger_sql
     assert trigger_params["tables"] == list(GRAC_TABLE_NAMES)
@@ -574,7 +576,8 @@ def test_sqlite_guards_present_scopes_triggers_to_grac_tables() -> None:
     params = connection.execute.call_args.args[1]
     assert "sqlite_master" in sql
     assert "tbl_name IN" in sql
-    assert "name, tbl_name" in sql.replace("\n", " ")
+    assert "BEFORE UPDATE" in sql
+    assert "BEFORE DELETE" in sql
     assert params["tables"] == list(GRAC_TABLE_NAMES)
     assert set(params["names"]) == set(_expected_sqlite_trigger_names())
 
@@ -583,10 +586,26 @@ def test_sqlite_guards_present_requires_name_table_pairing() -> None:
     """SQLite must not accept a correct trigger name attached to another GRAC table."""
     connection = MagicMock()
     expected = _expected_sqlite_trigger_bindings()
-    swap_name, swap_table = next(iter(expected))
+    swap_name, swap_table, swap_event = next(iter(expected))
     other = next(table for table in GRAC_TABLE_NAMES if table != swap_table)
-    wrong_rows: list[tuple[str, str]] = [
-        (swap_name, other) if name == swap_name else (name, table) for name, table in expected
+    wrong_rows: list[tuple[str, str, str]] = [
+        (swap_name, other, swap_event) if name == swap_name else (name, table, event) for name, table, event in expected
+    ]
+    connection.execute.return_value.fetchall.return_value = wrong_rows
+
+    assert _sqlite_guards_present(connection) is False
+
+
+def test_sqlite_guards_present_requires_correct_event() -> None:
+    """SQLite must not accept a correct name/table pair with the wrong mutation event."""
+    connection = MagicMock()
+    expected = _expected_sqlite_trigger_bindings()
+    swap_name, swap_table, _swap_event = next(
+        (name, table, event) for name, table, event in expected if event == "UPDATE"
+    )
+    wrong_rows: list[tuple[str, str, str]] = [
+        (swap_name, swap_table, "DELETE") if name == swap_name else (name, table, event)
+        for name, table, event in expected
     ]
     connection.execute.return_value.fetchall.return_value = wrong_rows
 
