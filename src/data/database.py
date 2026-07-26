@@ -23,12 +23,24 @@ SQLITE_MEMORY_DATABASE = ":memory:"
 
 def _sqlite_translate(value: str | None, from_chars: str | None, to_chars: str | None) -> str | None:
     """PostgreSQL-compatible ``translate`` for SQLite CHECK constraints."""
-    if value is None or from_chars is None or to_chars is None:
+    if value is None:
         return None
-    mapped = {char: (to_chars[index] if index < len(to_chars) else None) for index, char in enumerate(from_chars)}
+    if from_chars is None:
+        return None
+    if to_chars is None:
+        return None
+    mapped: dict[str, str | None] = {}
+    for index, char in enumerate(from_chars):
+        if index < len(to_chars):
+            mapped[char] = to_chars[index]
+        else:
+            mapped[char] = None
     pieces: list[str] = []
     for char in value:
-        replacement = mapped.get(char, char)
+        if char not in mapped:
+            pieces.append(char)
+            continue
+        replacement = mapped[char]
         if replacement is None:
             continue
         pieces.append(replacement)

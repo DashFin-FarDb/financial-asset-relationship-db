@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 from datetime import datetime, timezone
 from unittest.mock import MagicMock
 
@@ -73,15 +74,22 @@ def _add_evidence(session, evidence_id: str = "ev-1") -> RelationshipEvidenceORM
     return row
 
 
+@dataclass(frozen=True)
+class _AssertionConfidence:
+    """Optional confidence fields for assertion test helpers."""
+
+    status: str = "not_assessed"
+    bp: int | None = None
+    type: str | None = None
+    method: str | None = None
+
+
 def _add_assertion(
     session,
     assertion_id: str = "as-1",
-    *,
-    confidence_status: str = "not_assessed",
-    confidence_bp: int | None = None,
-    confidence_type: str | None = None,
-    confidence_method: str | None = None,
+    confidence: _AssertionConfidence | None = None,
 ) -> RelationshipAssertionORM:
+    conf = confidence or _AssertionConfidence()
     row = RelationshipAssertionORM(
         id=assertion_id,
         predicate_id="financial.bond.issuer_reference@1",
@@ -89,10 +97,10 @@ def _add_assertion(
         object_id="AAPL",
         method_id="bond.issuer_id.resolution@1",
         proposition="Bond issuer_id references AAPL",
-        confidence_bp=confidence_bp,
-        confidence_type=confidence_type,
-        confidence_method=confidence_method,
-        confidence_status=confidence_status,
+        confidence_bp=conf.bp,
+        confidence_type=conf.type,
+        confidence_method=conf.method,
+        confidence_status=conf.status,
         effective_from=_utcnow(),
         recorded_at=_utcnow(),
     )
@@ -257,10 +265,12 @@ class TestRelationshipAssertionORM:
         """assessed requires bp/type/method."""
         _add_assertion(
             db_session,
-            confidence_status="assessed",
-            confidence_bp=8000,
-            confidence_type="model",
-            confidence_method="issuer.confidence@1",
+            confidence=_AssertionConfidence(
+                status="assessed",
+                bp=8000,
+                type="model",
+                method="issuer.confidence@1",
+            ),
         )
         db_session.commit()
         loaded = db_session.get(RelationshipAssertionORM, "as-1")
