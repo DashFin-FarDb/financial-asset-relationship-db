@@ -8,6 +8,7 @@ import pytest
 
 from src.governance.relationship_assertion import (
     MAX_RATIONALE_LEN,
+    AssertionEvent,
     AssertionProposal,
     AuthorityContext,
     ConcurrencyConflict,
@@ -97,6 +98,46 @@ class TestAuthorityAndBounds:
         with pytest.raises(ValidationError, match="content_sha256"):
             normalize_sha256_hex("deadbeef")
 
+    def test_digest_with_non_hyphen_garbage_rejected(self) -> None:
+        """Malformed digests fail closed instead of dropping bad characters."""
+        with pytest.raises(ValidationError, match="content_sha256"):
+            normalize_sha256_hex(f"{DIGEST}!bad")
+
+    def test_proposal_requires_zero_utc_offset(self) -> None:
+        """Timezone-aware non-UTC timestamps are rejected."""
+        non_utc = timezone(timedelta(hours=2))
+        proposal = _proposal()
+        shifted = AssertionProposal(
+            assertion_id=proposal.assertion_id,
+            predicate_id=proposal.predicate_id,
+            subject_id=proposal.subject_id,
+            object_id=proposal.object_id,
+            method_id=proposal.method_id,
+            proposition=proposal.proposition,
+            effective_from=datetime(2026, 7, 25, 14, 0, 0, tzinfo=non_utc),
+        )
+        with pytest.raises(ValidationError, match="effective_from"):
+            plan_propose(shifted, _ctx("proposer"), recorded_at=NOW)
+
+    def test_assessed_confidence_rejects_bool(self) -> None:
+        """confidence_bp must be an integer value, not bool."""
+        proposal = _proposal()
+        assessed = AssertionProposal(
+            assertion_id=proposal.assertion_id,
+            predicate_id=proposal.predicate_id,
+            subject_id=proposal.subject_id,
+            object_id=proposal.object_id,
+            method_id=proposal.method_id,
+            proposition=proposal.proposition,
+            effective_from=proposal.effective_from,
+            confidence_status="assessed",
+            confidence_bp=True,
+            confidence_type="review",
+            confidence_method="manual",
+        )
+        with pytest.raises(ValidationError, match="confidence_bp"):
+            plan_propose(assessed, _ctx("proposer"), recorded_at=NOW)
+
 
 class TestProposeAndResolve:
     """Proposal planning and event folding."""
@@ -127,6 +168,37 @@ class TestProposeAndResolve:
             recorded_at=NOW + timedelta(seconds=1),
         )
         assert resolve_state([e1, e2]) == "Accepted"
+
+    def test_resolve_state_rejects_invalid_initial_event(self) -> None:
+        """Persisted streams must begin with a proper propose event."""
+        event = AssertionEvent(
+            event_id="event-1",
+            assertion_id="as-1",
+            sequence=1,
+            from_state="Proposed",
+            to_state="Accepted",
+            authority="acceptor",
+            actor_id="actor-1",
+            rationale="bad",
+            policy_version="grac.v1-policy",
+            recorded_at=NOW,
+        )
+        with pytest.raises(ValidationError, match="initial event"):
+            resolve_state([event])
+
+    def test_resolve_state_rejects_state_continuity_gap(self) -> None:
+        """Persisted streams must align each edge with the previous state."""
+        _, e1 = plan_propose(_proposal(), _ctx("proposer"), recorded_at=NOW)
+        e2 = plan_retract(
+            "as-1",
+            "Accepted",
+            _ctx("retractor"),
+            expected_sequence=1,
+            rationale="gap",
+            recorded_at=NOW + timedelta(seconds=1),
+        )
+        with pytest.raises(ValidationError, match="continuity"):
+            resolve_state([e1, e2])
 
 
 class TestTransitionMatrix:
@@ -252,6 +324,18 @@ class TestConcurrencyGuard:
                 "Proposed",
                 _ctx("acceptor"),
                 expected_sequence=0,
+                rationale="bad",
+                recorded_at=NOW,
+            )
+
+    def test_expected_sequence_rejects_bool(self) -> None:
+        """expected_sequence must be an integer sequence, not bool."""
+        with pytest.raises(ValidationError, match="expected_sequence"):
+            plan_accept(
+                "as-1",
+                "Proposed",
+                _ctx("acceptor"),
+                expected_sequence=True,
                 rationale="bad",
                 recorded_at=NOW,
             )

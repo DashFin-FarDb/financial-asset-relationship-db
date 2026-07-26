@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import re
 from collections.abc import Callable, Mapping, Sequence
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import cast
 from uuid import uuid4
 
@@ -56,7 +56,7 @@ from src.governance.relationship_assertion_contract import (
 )
 
 _SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
-_HEX_DIGEST_CHARS = frozenset("0123456789abcdef")
+_UTC_OFFSET = timedelta(0)
 
 
 def _new_id() -> str:
@@ -80,11 +80,24 @@ def _require_optional(value: str | None, field_name: str, max_len: int) -> str |
     return _require_non_empty(value, field_name, max_len)
 
 
+def _require_utc_datetime(value: datetime, field_name: str) -> None:
+    """Validate that a datetime is timezone-aware and has zero UTC offset."""
+    if value.tzinfo is None or value.utcoffset() != _UTC_OFFSET:
+        raise ValidationError(f"{field_name} must be timezone-aware UTC")
+
+
+def _require_non_bool_int(value: int, field_name: str) -> int:
+    """Reject bools/floats while preserving Python's integer contract."""
+    if not isinstance(value, int) or isinstance(value, bool):
+        raise ValidationError(f"{field_name} must be an integer")
+    return value
+
+
 def normalize_sha256_hex(value: str) -> str:
     """Normalize and validate a SHA-256 digest to lowercase hex (64 chars)."""
     if not isinstance(value, str) or not value.strip():
         raise ValidationError("content_sha256 must be a non-empty string")
-    normalized = "".join(ch for ch in value.lower() if ch in _HEX_DIGEST_CHARS)
+    normalized = value.lower().replace("-", "")
     if len(normalized) != SHA256_HEX_LEN or not _SHA256_RE.fullmatch(normalized):
         raise ValidationError(f"content_sha256 must be {SHA256_HEX_LEN} lowercase hex characters")
     return normalized
@@ -110,10 +123,9 @@ def validate_proposal(proposal: AssertionProposal) -> None:
     _require_non_empty(proposal.object_id, "object_id", MAX_OBJECT_ID_LEN)
     _require_non_empty(proposal.method_id, "method_id", MAX_METHOD_ID_LEN)
     _require_non_empty(proposal.proposition, "proposition", MAX_PROPOSITION_LEN)
-    if proposal.effective_from.tzinfo is None:
-        raise ValidationError("effective_from must be timezone-aware UTC")
-    if proposal.effective_to is not None and proposal.effective_to.tzinfo is None:
-        raise ValidationError("effective_to must be timezone-aware UTC")
+    _require_utc_datetime(proposal.effective_from, "effective_from")
+    if proposal.effective_to is not None:
+        _require_utc_datetime(proposal.effective_to, "effective_to")
     if proposal.effective_to is not None and proposal.effective_to < proposal.effective_from:
         raise ValidationError("effective_to must be >= effective_from")
 
@@ -128,7 +140,10 @@ def validate_proposal(proposal: AssertionProposal) -> None:
 
     if proposal.confidence_status != "assessed":
         raise ValidationError("confidence_status must be assessed or not_assessed")
-    if proposal.confidence_bp is None or not (0 <= proposal.confidence_bp <= 10000):
+    if proposal.confidence_bp is None:
+        raise ValidationError("assessed confidence_bp must be an integer in [0, 10000]")
+    confidence_bp = _require_non_bool_int(proposal.confidence_bp, "confidence_bp")
+    if not (0 <= confidence_bp <= 10000):
         raise ValidationError("assessed confidence_bp must be an integer in [0, 10000]")
     _require_non_empty(proposal.confidence_type or "", "confidence_type", MAX_CONFIDENCE_TYPE_LEN)
     _require_non_empty(proposal.confidence_method or "", "confidence_method", MAX_CONFIDENCE_METHOD_LEN)
@@ -145,8 +160,11 @@ def validate_evidence_record(evidence: EvidenceRecord) -> EvidenceRecord:
         raise ValidationError(f"invalid visibility: {evidence.visibility!r}")
     _require_optional(evidence.licensing, "licensing", MAX_LICENSING_LEN)
     _require_optional(evidence.reuse_policy, "reuse_policy", MAX_REUSE_POLICY_LEN)
-    if evidence.recorded_at.tzinfo is None:
-        raise ValidationError("recorded_at must be timezone-aware UTC")
+    _require_utc_datetime(evidence.recorded_at, "recorded_at")
+    if evidence.observed_at is not None:
+        _require_utc_datetime(evidence.observed_at, "observed_at")
+    if evidence.issued_at is not None:
+        _require_utc_datetime(evidence.issued_at, "issued_at")
     if digest == evidence.content_sha256:
         return evidence
     return EvidenceRecord(
@@ -176,9 +194,31 @@ def resolve_state(events: Sequence[AssertionEvent]) -> LifecycleState:
         raise ValidationError("cannot resolve state from empty event stream")
     ordered = sorted(events, key=lambda event: event.sequence)
     expected = 1
+    previous_state: LifecycleState | None = None
+    transitions = load_transitions()
     for event in ordered:
-        if event.sequence != expected:
+        sequence = _require_non_bool_int(event.sequence, "event sequence")
+        if sequence != expected:
             raise ValidationError(f"event sequence gap: expected {expected}, got {event.sequence}")
+        _require_utc_datetime(event.recorded_at, "recorded_at")
+        if expected == 1:
+            if event.from_state is not None or event.to_state != "Proposed":
+                raise ValidationError("initial event must transition from None to Proposed")
+        else:
+            from_state = event.from_state
+            if from_state != previous_state:
+                raise ValidationError(
+                    f"event state continuity gap: expected from_state {previous_state}, got {from_state}"
+                )
+            from_state_value = cast(LifecycleState, from_state)
+            allowed = find_transition(transitions, from_state_value, event.to_state)
+            if allowed is None:
+                raise ValidationError(f"event transition outside matrix: {from_state_value}->{event.to_state}")
+            if allowed.requires_successor and event.successor_assertion_id is None:
+                raise ValidationError("supersession event requires successor_assertion_id")
+            if not allowed.requires_successor and event.successor_assertion_id is not None:
+                raise ValidationError("non-supersession event must not set successor_assertion_id")
+        previous_state = event.to_state
         expected += 1
     return ordered[-1].to_state
 
@@ -193,8 +233,7 @@ def plan_propose(
     """Plan creation of an assertion in ``Proposed`` with sequence 1."""
     validate_proposal(proposal)
     validate_authority(ctx, "proposer")
-    if recorded_at.tzinfo is None:
-        raise ValidationError("recorded_at must be timezone-aware UTC")
+    _require_utc_datetime(recorded_at, "recorded_at")
     assertion = Assertion(
         assertion_id=proposal.assertion_id,
         predicate_id=proposal.predicate_id,
@@ -242,10 +281,10 @@ def plan_transition(
     """Plan a single matrix transition with authority and concurrency guards."""
     _require_non_empty(assertion_id, "assertion_id", ENTITY_ID_LEN)
     rationale_value = _require_non_empty(rationale, "rationale", MAX_RATIONALE_LEN)
-    if expected_sequence < 1:
+    expected_sequence_value = _require_non_bool_int(expected_sequence, "expected_sequence")
+    if expected_sequence_value < 1:
         raise ConcurrencyConflict("expected_sequence must be >= 1 (last applied sequence)")
-    if recorded_at.tzinfo is None:
-        raise ValidationError("recorded_at must be timezone-aware UTC")
+    _require_utc_datetime(recorded_at, "recorded_at")
 
     matrix = transitions if transitions is not None else load_transitions()
     allowed = find_transition(matrix, current, to_state)
@@ -273,7 +312,7 @@ def plan_transition(
     return AssertionEvent(
         event_id=event_id or _new_id(),
         assertion_id=assertion_id,
-        sequence=expected_sequence + 1,
+        sequence=expected_sequence_value + 1,
         from_state=current,
         to_state=to_state,
         authority=required_role,
@@ -484,8 +523,7 @@ def plan_register_evidence(
         raise ValidationError(f"invalid evidence polarity: {link.polarity!r}")
     _require_non_empty(link.link_id, "link_id", ENTITY_ID_LEN)
     _require_non_empty(link.evidence_id, "evidence_id", ENTITY_ID_LEN)
-    if link.recorded_at.tzinfo is None:
-        raise ValidationError("recorded_at must be timezone-aware UTC")
+    _require_utc_datetime(link.recorded_at, "recorded_at")
     if evidence is not None:
         validate_evidence_record(evidence)
         if evidence.evidence_id != link.evidence_id:
