@@ -17,6 +17,8 @@ from src.data.relationship_assertion_db_models import (
     RelationshipAssertionEvidenceORM,
     RelationshipAssertionORM,
     RelationshipEvidenceORM,
+    RelationshipProjectionEdgeORM,
+    RelationshipProjectionRevisionORM,
 )
 from src.governance.relationship_assertion import (
     Assertion,
@@ -50,6 +52,7 @@ from src.governance.relationship_assertion_lifecycle import (
     resolve_state,
     validate_evidence_record,
 )
+from src.logic.relationship_projection import ProjectionEdge, ProjectionRevision
 
 UTC = timezone.utc
 
@@ -91,6 +94,26 @@ class SupersedeAtomicRequest:
     rationale: str
     recorded_at: datetime | None = None
     accept_rationale: str = "accept successor"
+
+
+@dataclass(frozen=True)
+class PersistProjectionRequest:
+    """Inputs for INSERT-only persistence of a candidate projection revision."""
+
+    revision: ProjectionRevision
+    revision_id: str | None = None
+    created_at: datetime | None = None
+    edge_ids: Sequence[str] | None = None
+
+
+@dataclass(frozen=True)
+class PersistedProjectionRevision:
+    """Stored projection revision identity plus domain revision payload."""
+
+    revision_id: str
+    created_at: datetime
+    revision: ProjectionRevision
+    edge_ids: tuple[str, ...]
 
 
 def _utcnow() -> datetime:
@@ -318,6 +341,95 @@ def _event_orm(event: AssertionEvent) -> RelationshipAssertionEventORM:
         successor_assertion_id=event.successor_assertion_id,
         correlation_id=event.correlation_id,
     )
+
+
+def _projection_edge_orm(revision_id: str, edge_id: str, edge: ProjectionEdge) -> RelationshipProjectionEdgeORM:
+    return RelationshipProjectionEdgeORM(
+        id=edge_id,
+        revision_id=revision_id,
+        source_id=edge.source_id,
+        target_id=edge.target_id,
+        edge_type=edge.edge_type,
+        strength=edge.strength,
+        direction=edge.direction,
+        assertion_id=edge.assertion_id,
+    )
+
+
+def _projection_edge_from_orm(row: RelationshipProjectionEdgeORM) -> ProjectionEdge:
+    return ProjectionEdge(
+        source_id=row.source_id,
+        target_id=row.target_id,
+        edge_type=row.edge_type,
+        strength=row.strength,
+        direction=row.direction,
+        assertion_id=row.assertion_id,
+    )
+
+
+def _resolve_persist_edge_ids(request: PersistProjectionRequest) -> list[str]:
+    """Validate or generate edge IDs for a projection persist request."""
+    revision = request.revision
+    edge_ids = [_new_id() for _ in revision.edges] if request.edge_ids is None else list(request.edge_ids)
+    if len(edge_ids) != len(revision.edges):
+        raise ValidationError("edge_ids length must match revision.edges")
+    if len(set(edge_ids)) != len(edge_ids):
+        raise ValidationError("edge_ids must be unique")
+    return edge_ids
+
+
+def _projection_revision_orm(
+    revision_id: str,
+    revision: ProjectionRevision,
+    created_at: datetime,
+) -> RelationshipProjectionRevisionORM:
+    return RelationshipProjectionRevisionORM(
+        id=revision_id,
+        purpose=revision.purpose,
+        effective_at=revision.effective_at,
+        known_at=revision.known_at,
+        contract_version=revision.contract_version,
+        projector_version=revision.projector_version,
+        edge_set_hash=revision.edge_set_hash,
+        projection_hash=revision.projection_hash,
+        created_at=created_at,
+    )
+
+
+def _require_projection_timestamps(
+    row: RelationshipProjectionRevisionORM,
+) -> tuple[datetime, datetime, datetime]:
+    """Return UTC timestamps from a revision row or fail closed."""
+    effective_at = _as_utc(row.effective_at)
+    known_at = _as_utc(row.known_at)
+    created_at = _as_utc(row.created_at)
+    if effective_at is None:
+        raise ValidationError("projection revision effective_at missing")
+    if known_at is None:
+        raise ValidationError("projection revision known_at missing")
+    if created_at is None:
+        raise ValidationError("projection revision created_at missing")
+    return effective_at, known_at, created_at
+
+
+def _domain_revision_from_orm(
+    row: RelationshipProjectionRevisionORM,
+    edges: tuple[ProjectionEdge, ...],
+) -> tuple[ProjectionRevision, datetime]:
+    """Map a stored revision row plus edges into domain types."""
+    effective_at, known_at, created_at = _require_projection_timestamps(row)
+    revision = ProjectionRevision(
+        purpose=row.purpose,
+        effective_at=effective_at,
+        known_at=known_at,
+        contract_version=row.contract_version,
+        projector_version=row.projector_version,
+        edge_set_hash=row.edge_set_hash,
+        projection_hash=row.projection_hash,
+        edges=edges,
+        governed_scopes=(),
+    )
+    return revision, created_at
 
 
 def _plan_repository_transition(
@@ -576,6 +688,72 @@ class RelationshipAssertionRepository:
             evidence_links=links,
             effective_at=effective,
             known_at=known,
+        )
+
+    def persist_projection_revision(self, request: PersistProjectionRequest) -> PersistedProjectionRevision:
+        """INSERT a candidate projection revision and its edges (publication is separate)."""
+        revision = request.revision
+        revision_id = request.revision_id or _new_id()
+        created_at = _as_utc(request.created_at or self._clock())
+        if created_at is None:
+            raise ValidationError("created_at is required")
+        edge_ids = _resolve_persist_edge_ids(request)
+        with self._session.begin_nested():
+            self._insert_projection_revision_rows(revision_id, revision, created_at, edge_ids)
+        return PersistedProjectionRevision(
+            revision_id=revision_id,
+            created_at=created_at,
+            revision=revision,
+            edge_ids=tuple(edge_ids),
+        )
+
+    def get_projection_revision(self, revision_id: str) -> PersistedProjectionRevision | None:
+        """Load a persisted candidate revision and its ordered edges."""
+        row = self._session.get(RelationshipProjectionRevisionORM, revision_id)
+        if row is None:
+            return None
+        edge_rows = self._load_projection_edge_rows(revision_id)
+        edges = tuple(_projection_edge_from_orm(edge_row) for edge_row in edge_rows)
+        revision, created_at = _domain_revision_from_orm(row, edges)
+        return PersistedProjectionRevision(
+            revision_id=row.id,
+            created_at=created_at,
+            revision=revision,
+            edge_ids=tuple(edge_row.id for edge_row in edge_rows),
+        )
+
+    def _insert_projection_revision_rows(
+        self,
+        revision_id: str,
+        revision: ProjectionRevision,
+        created_at: datetime,
+        edge_ids: Sequence[str],
+    ) -> None:
+        """Persist revision header and edge rows inside the current savepoint."""
+        self._session.add(_projection_revision_orm(revision_id, revision, created_at))
+        self._session.flush()
+        for edge_id, edge in zip(edge_ids, revision.edges, strict=True):
+            self._session.add(_projection_edge_orm(revision_id, edge_id, edge))
+        self._session.flush()
+
+    def _load_projection_edge_rows(self, revision_id: str) -> list[RelationshipProjectionEdgeORM]:
+        """Return projection edges for ``revision_id`` in deterministic order."""
+        return list(
+            self._session.execute(
+                select(RelationshipProjectionEdgeORM)
+                .where(RelationshipProjectionEdgeORM.revision_id == revision_id)
+                .order_by(
+                    RelationshipProjectionEdgeORM.source_id,
+                    RelationshipProjectionEdgeORM.target_id,
+                    RelationshipProjectionEdgeORM.edge_type,
+                    RelationshipProjectionEdgeORM.strength,
+                    RelationshipProjectionEdgeORM.direction,
+                    RelationshipProjectionEdgeORM.assertion_id,
+                    RelationshipProjectionEdgeORM.id,
+                )
+            )
+            .scalars()
+            .all()
         )
 
     def current_state(self, assertion_id: str) -> LifecycleState:
