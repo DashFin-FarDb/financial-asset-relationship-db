@@ -80,7 +80,7 @@ class _AssertionConfidence:
 
     status: str = "not_assessed"
     bp: int | None = None
-    type: str | None = None
+    confidence_type: str | None = None
     method: str | None = None
 
 
@@ -98,7 +98,7 @@ def _add_assertion(
         method_id="bond.issuer_id.resolution@1",
         proposition="Bond issuer_id references AAPL",
         confidence_bp=conf.bp,
-        confidence_type=conf.type,
+        confidence_type=conf.confidence_type,
         confidence_method=conf.method,
         confidence_status=conf.status,
         effective_from=_utcnow(),
@@ -268,7 +268,7 @@ class TestRelationshipAssertionORM:
             confidence=_AssertionConfidence(
                 status="assessed",
                 bp=8000,
-                type="model",
+                confidence_type="model",
                 method="issuer.confidence@1",
             ),
         )
