@@ -68,27 +68,41 @@ def _require_grac_table(table_name: str) -> None:
 
 def _expected_sqlite_trigger_names() -> tuple[str, ...]:
     """Return UPDATE/DELETE trigger names for all GRAC tables."""
-    names: list[str] = []
+    return tuple(name for name, _table in _expected_sqlite_trigger_bindings())
+
+
+def _expected_sqlite_trigger_bindings() -> frozenset[tuple[str, str]]:
+    """Return (trigger_name, table_name) pairs for SQLite UPDATE/DELETE guards."""
+    bindings: set[tuple[str, str]] = set()
     for table_name in GRAC_TABLE_NAMES:
         update_name, delete_name, _truncate_name = list_immutability_trigger_names(table_name)
-        names.extend((update_name, delete_name))
-    return tuple(names)
+        bindings.add((update_name, table_name))
+        bindings.add((delete_name, table_name))
+    return frozenset(bindings)
 
 
 def _expected_postgresql_trigger_names() -> tuple[str, ...]:
     """Return UPDATE/DELETE/TRUNCATE trigger names for all GRAC tables."""
-    names: list[str] = []
+    return tuple(name for name, _table, _event in _expected_postgresql_trigger_bindings())
+
+
+def _expected_postgresql_trigger_bindings() -> frozenset[tuple[str, str, str]]:
+    """Return (trigger_name, table_name, event) bindings for PostgreSQL guards."""
+    bindings: set[tuple[str, str, str]] = set()
     for table_name in GRAC_TABLE_NAMES:
-        names.extend(list_immutability_trigger_names(table_name))
-    return tuple(names)
+        update_name, delete_name, truncate_name = list_immutability_trigger_names(table_name)
+        bindings.add((update_name, table_name, "UPDATE"))
+        bindings.add((delete_name, table_name, "DELETE"))
+        bindings.add((truncate_name, table_name, "TRUNCATE"))
+    return frozenset(bindings)
 
 
 def _sqlite_guards_present(connection: Connection) -> bool:
-    """Return True when every GRAC table has UPDATE and DELETE triggers."""
-    expected = _expected_sqlite_trigger_names()
+    """Return True when every GRAC table has its UPDATE and DELETE triggers bound correctly."""
+    expected = _expected_sqlite_trigger_bindings()
     rows = connection.execute(
         text("""
-            SELECT name
+            SELECT name, tbl_name
             FROM sqlite_master
             WHERE type = 'trigger'
                 AND name IN :names
@@ -97,13 +111,16 @@ def _sqlite_guards_present(connection: Connection) -> bool:
             bindparam("names", expanding=True),
             bindparam("tables", expanding=True),
         ),
-        {"names": list(expected), "tables": list(GRAC_TABLE_NAMES)},
+        {
+            "names": [name for name, _table in expected],
+            "tables": list(GRAC_TABLE_NAMES),
+        },
     ).fetchall()
-    return {row[0] for row in rows} >= set(expected)
+    return {(row[0], row[1]) for row in rows} >= set(expected)
 
 
 def _postgresql_guards_present(connection: Connection) -> bool:
-    """Return True when the function and all current-schema GRAC triggers exist."""
+    """Return True when the function and all current-schema GRAC trigger bindings exist."""
     row = connection.execute(
         text("""
             SELECT 1
@@ -117,24 +134,49 @@ def _postgresql_guards_present(connection: Connection) -> bool:
     ).first()
     if row is None:
         return False
-    expected = _expected_postgresql_trigger_names()
+    expected = _expected_postgresql_trigger_bindings()
+    # tgtype bits: ROW=1, BEFORE=2, DELETE=8, UPDATE=16, TRUNCATE=32 (PostgreSQL trigger.h).
     rows = connection.execute(
         text("""
-            SELECT t.tgname
+            SELECT
+                t.tgname,
+                c.relname,
+                CASE
+                    WHEN (t.tgtype & 16) <> 0
+                        AND (t.tgtype & 2) <> 0
+                        AND (t.tgtype & 1) <> 0
+                    THEN 'UPDATE'
+                    WHEN (t.tgtype & 8) <> 0
+                        AND (t.tgtype & 2) <> 0
+                        AND (t.tgtype & 1) <> 0
+                    THEN 'DELETE'
+                    WHEN (t.tgtype & 32) <> 0
+                        AND (t.tgtype & 2) <> 0
+                        AND (t.tgtype & 1) = 0
+                    THEN 'TRUNCATE'
+                END AS event
             FROM pg_trigger AS t
             JOIN pg_class AS c ON c.oid = t.tgrelid
             JOIN pg_namespace AS n ON n.oid = c.relnamespace
+            JOIN pg_proc AS p ON p.oid = t.tgfoid
             WHERE t.tgname IN :names
                 AND n.nspname = pg_catalog.current_schema()
                 AND c.relname IN :tables
                 AND NOT t.tgisinternal
+                AND p.proname = :fn
+                AND p.pronargs = 0
             """).bindparams(
             bindparam("names", expanding=True),
             bindparam("tables", expanding=True),
         ),
-        {"names": list(expected), "tables": list(GRAC_TABLE_NAMES)},
+        {
+            "names": [name for name, _table, _event in expected],
+            "tables": list(GRAC_TABLE_NAMES),
+            "fn": _IMMUTABILITY_FUNCTION,
+        },
     ).fetchall()
-    return {row[0] for row in rows} >= set(expected)
+    actual = {(row[0], row[1], row[2]) for row in rows if row[2] is not None}
+    return actual >= set(expected)
 
 
 def _untrusted_database_roles(environment: Mapping[str, str] | None = None) -> tuple[str, ...]:

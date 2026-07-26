@@ -23,7 +23,9 @@ from src.data.relationship_assertion_db_models import (
 )
 from src.data.relationship_assertion_schema import (
     _UNTRUSTED_DATABASE_ROLES_ENV,
+    _expected_postgresql_trigger_bindings,
     _expected_postgresql_trigger_names,
+    _expected_sqlite_trigger_bindings,
     _expected_sqlite_trigger_names,
     _postgresql_guards_present,
     _revoke_immutability_function_execute,
@@ -537,8 +539,28 @@ def test_postgresql_guards_present_scopes_triggers_to_current_schema() -> None:
     assert "pg_namespace" in trigger_sql
     assert "c.relname IN" in trigger_sql
     assert "NOT t.tgisinternal" in trigger_sql
+    assert "tgtype" in trigger_sql
+    assert "tgfoid" in trigger_sql
     assert trigger_params["tables"] == list(GRAC_TABLE_NAMES)
+    assert trigger_params["fn"] == "grac_v1_reject_mutation"
     assert set(trigger_params["names"]) == set(_expected_postgresql_trigger_names())
+
+
+def test_postgresql_guards_present_requires_correct_table_and_event() -> None:
+    """A matching trigger name on the wrong table/event must not count as installed."""
+    connection = MagicMock()
+    connection.execute.return_value.first.return_value = (1,)
+    expected = _expected_postgresql_trigger_bindings()
+    swap_name, swap_table, swap_event = next(
+        (name, table, event) for name, table, event in expected if event == "UPDATE"
+    )
+    other = next(table for table in GRAC_TABLE_NAMES if table != swap_table)
+    wrong_rows: list[tuple[str, str, str]] = [
+        (swap_name, other, swap_event) if name == swap_name else (name, table, event) for name, table, event in expected
+    ]
+    connection.execute.return_value.fetchall.return_value = wrong_rows
+
+    assert _postgresql_guards_present(connection) is False
 
 
 def test_sqlite_guards_present_scopes_triggers_to_grac_tables() -> None:
@@ -552,8 +574,23 @@ def test_sqlite_guards_present_scopes_triggers_to_grac_tables() -> None:
     params = connection.execute.call_args.args[1]
     assert "sqlite_master" in sql
     assert "tbl_name IN" in sql
+    assert "name, tbl_name" in sql.replace("\n", " ")
     assert params["tables"] == list(GRAC_TABLE_NAMES)
     assert set(params["names"]) == set(_expected_sqlite_trigger_names())
+
+
+def test_sqlite_guards_present_requires_name_table_pairing() -> None:
+    """SQLite must not accept a correct trigger name attached to another GRAC table."""
+    connection = MagicMock()
+    expected = _expected_sqlite_trigger_bindings()
+    swap_name, swap_table = next(iter(expected))
+    other = next(table for table in GRAC_TABLE_NAMES if table != swap_table)
+    wrong_rows: list[tuple[str, str]] = [
+        (swap_name, other) if name == swap_name else (name, table) for name, table in expected
+    ]
+    connection.execute.return_value.fetchall.return_value = wrong_rows
+
+    assert _sqlite_guards_present(connection) is False
 
 
 def test_untrusted_database_roles_honor_fardb_env(monkeypatch: pytest.MonkeyPatch) -> None:
