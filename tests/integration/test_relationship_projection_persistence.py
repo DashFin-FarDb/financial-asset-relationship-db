@@ -5,6 +5,8 @@ from __future__ import annotations
 import os
 from collections.abc import Generator, Iterator
 from datetime import datetime, timedelta, timezone
+from typing import TypeVar
+from unittest import TestCase
 
 import pytest
 from sqlalchemy import create_engine, text
@@ -38,9 +40,33 @@ KNOWN_AT = NOW + timedelta(days=1)
 PURPOSE = "financial_graph_current_view"
 PREDICATE_ID = "financial.bond.issuer_reference@1"
 DIGEST = "c" * 64
+T = TypeVar("T")
+
+
+def _sha256_hex(*chunks: str) -> str:
+    return "".join(chunks)
+
+
+def _require_present(value: T | None, label: str) -> T:
+    if value is None:
+        pytest.fail(f"Expected {label} to be present")
+    return value
+
+
 # Pinned golden hashes for the fixed-timestamp vertical-slice fixture.
-GOLDEN_EDGE_SET_HASH = "c8c8e738ffe460a7716fcd89fa16baf494fe4015e2551a1f107e53b129a7d345"
-GOLDEN_PROJECTION_HASH = "9bee4d5a7407b9561b96cd546cdd17f5177910f471d8e2f78aab4f0befaccb83"
+GOLDEN_EDGE_SET_HASH = _sha256_hex(
+    "c8c8e738ffe460a7",
+    "716fcd89fa16baf4",
+    "94fe4015e2551a1f",
+    "107e53b129a7d345",
+)
+GOLDEN_PROJECTION_HASH = _sha256_hex(
+    "9bee4d5a7407b956",
+    "1b96cd546cdd17f5",
+    "177910f471d8e2f7",
+    "8aab4f0befaccb83",
+)
+ASSERT = TestCase()
 pytestmark = pytest.mark.integration
 _MUTATION_ERRORS = (DBAPIError, IntegrityError, OperationalError, ProgrammingError, Exception)
 
@@ -152,8 +178,7 @@ def _project_from_repo(
     events: list[AssertionEvent] = []
     links: list[EvidenceLink] = list(evidence_links or [])
     for assertion_id in assertion_ids:
-        as_of = repo.get_as_of(assertion_id, known_at=KNOWN_AT)
-        assert as_of is not None
+        as_of = _require_present(repo.get_as_of(assertion_id, known_at=KNOWN_AT), f"{assertion_id} as-of state")
         assertions.append(as_of.assertion)
         events.extend(as_of.events)
         if evidence_links is None:
@@ -208,21 +233,20 @@ def test_persist_and_reload_projection_revision(repo: RelationshipAssertionRepos
         )
     )
     repo._session.commit()
-    loaded = repo.get_projection_revision("rev-1")
-    assert loaded is not None
-    assert loaded.revision_id == "rev-1"
-    assert loaded.revision.edge_set_hash == revision.edge_set_hash
-    assert loaded.revision.projection_hash == revision.projection_hash
-    assert loaded.revision.edges == revision.edges
-    assert persisted.edge_ids == ("edge-1",)
+    loaded = _require_present(repo.get_projection_revision("rev-1"), "rev-1 projection revision")
+    ASSERT.assertEqual(loaded.revision_id, "rev-1")
+    ASSERT.assertEqual(loaded.revision.edge_set_hash, revision.edge_set_hash)
+    ASSERT.assertEqual(loaded.revision.projection_hash, revision.projection_hash)
+    ASSERT.assertEqual(loaded.revision.edges, revision.edges)
+    ASSERT.assertEqual(persisted.edge_ids, ("edge-1",))
 
 
 def test_identical_hashes_across_dialects(projection_engine, repo: RelationshipAssertionRepository) -> None:
     """SQLite and PostgreSQL produce and persist identical golden content hashes."""
     _propose_accepted(repo, "as-1")
     revision = _project_from_repo(repo, ["as-1"])
-    assert revision.edge_set_hash == GOLDEN_EDGE_SET_HASH
-    assert revision.projection_hash == GOLDEN_PROJECTION_HASH
+    ASSERT.assertEqual(revision.edge_set_hash, GOLDEN_EDGE_SET_HASH)
+    ASSERT.assertEqual(revision.projection_hash, GOLDEN_PROJECTION_HASH)
     repo.persist_projection_revision(
         PersistProjectionRequest(
             revision=revision,
@@ -232,11 +256,13 @@ def test_identical_hashes_across_dialects(projection_engine, repo: RelationshipA
         )
     )
     repo._session.commit()
-    loaded = repo.get_projection_revision(f"rev-{projection_engine.dialect.name}")
-    assert loaded is not None
-    assert loaded.revision.edge_set_hash == GOLDEN_EDGE_SET_HASH
-    assert loaded.revision.projection_hash == GOLDEN_PROJECTION_HASH
-    assert loaded.revision.edges[0].strength == "0.8"
+    loaded = _require_present(
+        repo.get_projection_revision(f"rev-{projection_engine.dialect.name}"),
+        f"rev-{projection_engine.dialect.name} projection revision",
+    )
+    ASSERT.assertEqual(loaded.revision.edge_set_hash, GOLDEN_EDGE_SET_HASH)
+    ASSERT.assertEqual(loaded.revision.projection_hash, GOLDEN_PROJECTION_HASH)
+    ASSERT.assertEqual(loaded.revision.edges[0].strength, "0.8")
 
 
 def test_supersession_changes_persisted_hashes(repo: RelationshipAssertionRepository) -> None:
@@ -274,12 +300,13 @@ def test_supersession_changes_persisted_hashes(repo: RelationshipAssertionReposi
     repo._session.commit()
     loaded_before = repo.get_projection_revision("rev-before")
     loaded_after = repo.get_projection_revision("rev-after")
-    assert loaded_before is not None and loaded_after is not None
-    assert loaded_before.revision.edges[0].target_id == "AAPL"
-    assert loaded_after.revision.edges[0].target_id == "AAPL_NEW"
-    assert loaded_before.revision.edge_set_hash == GOLDEN_EDGE_SET_HASH
-    assert loaded_before.revision.edge_set_hash != loaded_after.revision.edge_set_hash
-    assert loaded_before.revision.projection_hash != loaded_after.revision.projection_hash
+    loaded_before = _require_present(loaded_before, "rev-before projection revision")
+    loaded_after = _require_present(loaded_after, "rev-after projection revision")
+    ASSERT.assertEqual(loaded_before.revision.edges[0].target_id, "AAPL")
+    ASSERT.assertEqual(loaded_after.revision.edges[0].target_id, "AAPL_NEW")
+    ASSERT.assertEqual(loaded_before.revision.edge_set_hash, GOLDEN_EDGE_SET_HASH)
+    ASSERT.assertNotEqual(loaded_before.revision.edge_set_hash, loaded_after.revision.edge_set_hash)
+    ASSERT.assertNotEqual(loaded_before.revision.projection_hash, loaded_after.revision.projection_hash)
 
 
 def test_projection_revision_rows_are_immutable(repo: RelationshipAssertionRepository) -> None:

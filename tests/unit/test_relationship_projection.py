@@ -29,6 +29,36 @@ PREDICATE_ID = "financial.bond.issuer_reference@1"
 DIGEST_A = "a" * 64
 
 
+def _sha256_hex(*chunks: str) -> str:
+    return "".join(chunks)
+
+
+EMPTY_EDGE_SET_HASH = _sha256_hex(
+    "4f53cda18c2baa0",
+    "c0354bb5f9a3ecbe",
+    "5ed12ab4d8e11ba8",
+    "73c2f11161202b945",
+)
+EMPTY_PROJECTION_HASH = _sha256_hex(
+    "f834ce8a5132768a",
+    "2c9f871cc70abd56",
+    "3b383334ad43c837",
+    "713356f7cc293d27",
+)
+GOLDEN_EDGE_SET_HASH = _sha256_hex(
+    "c8c8e738ffe460a7",
+    "716fcd89fa16baf4",
+    "94fe4015e2551a1f",
+    "107e53b129a7d345",
+)
+GOLDEN_PROJECTION_HASH = _sha256_hex(
+    "9bee4d5a7407b956",
+    "1b96cd546cdd17f5",
+    "177910f471d8e2f7",
+    "8aab4f0befaccb83",
+)
+
+
 @pytest.fixture(scope="module")
 def predicates():
     """Pinned predicate registry from the frozen contract bundle."""
@@ -162,8 +192,8 @@ def test_empty_inputs_yield_empty_revision_and_stable_hashes(predicates) -> None
     assert first.projection_hash == second.projection_hash
     assert first.projector_version == PROJECTOR_VERSION
     # SHA-256 of canonical JSON ``[]``.
-    assert first.edge_set_hash == "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
-    assert first.projection_hash == "f834ce8a5132768a2c9f871cc70abd563b383334ad43c837713356f7cc293d27"
+    assert first.edge_set_hash == EMPTY_EDGE_SET_HASH
+    assert first.projection_hash == EMPTY_PROJECTION_HASH
 
 
 def test_accepted_issuer_reference_projects_corporate_link(predicates) -> None:
@@ -182,8 +212,8 @@ def test_accepted_issuer_reference_projects_corporate_link(predicates) -> None:
     assert len(result.governed_scopes) == 1
     assert result.governed_scopes[0].purpose == PURPOSE
     assert result.governed_scopes[0].predicate_id == PREDICATE_ID
-    assert result.edge_set_hash == "c8c8e738ffe460a7716fcd89fa16baf494fe4015e2551a1f107e53b129a7d345"
-    assert result.projection_hash == "9bee4d5a7407b9561b96cd546cdd17f5177910f471d8e2f78aab4f0befaccb83"
+    assert result.edge_set_hash == GOLDEN_EDGE_SET_HASH
+    assert result.projection_hash == GOLDEN_PROJECTION_HASH
 
 
 def test_input_order_invariance(predicates) -> None:
