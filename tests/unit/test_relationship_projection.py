@@ -219,8 +219,7 @@ def test_accepted_issuer_reference_projects_corporate_link(predicates) -> None:
 def test_input_order_invariance(predicates) -> None:
     """Shuffled assertion/event inputs must not change hashes or edge order."""
     a1 = _assertion("as-1", object_id="AAPL")
-    a2 = _assertion("as-2", object_id="MSFT")
-    # Distinct subjects avoid conflict: second subject for as-2.
+    # Distinct subject avoids conflict with a1 under the issuer_reference key.
     a2 = Assertion(
         assertion_id="as-2",
         predicate_id=PREDICATE_ID,

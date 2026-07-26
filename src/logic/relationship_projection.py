@@ -190,7 +190,13 @@ def _conflict_key(assertion: Assertion, predicate: PredicateSpec) -> tuple[str, 
 
 
 def _expand_edge(assertion: Assertion, predicate: PredicateSpec) -> ProjectionEdge:
-    """Expand one assertion into a directed edge via the predicate registry."""
+    """Expand one assertion into a single materialized edge via the registry.
+
+    ``bidirectional`` is stored as one canonical subject→object edge with
+    ``direction="bidirectional"`` (matching the revision-edge CHECK constraint).
+    Consumers must treat that flag as undirected for reverse traversal; the
+    projector does not emit a second reverse row.
+    """
     projection = predicate.projection
     if projection.direction == "subject_to_object":
         source_id, target_id = assertion.subject_id, assertion.object_id
