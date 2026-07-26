@@ -36,7 +36,7 @@ os.environ["ADMIN_DISABLED"] = "false"
 
 from datetime import timezone  # noqa: E402
 
-from src.data.database import _configure_sqlite_engine  # noqa: E402
+from src.data.database import configure_sqlite_engine  # noqa: E402
 from src.logic.asset_graph import AssetRelationshipGraph  # noqa: E402
 from src.models.financial_models import (  # noqa: E402
     AssetClass,
@@ -204,8 +204,8 @@ def enable_sqlite_foreign_keys(engine: Engine) -> None:
     if engine.url.get_backend_name() != "sqlite":
         return
 
-    # Match production create_engine_from_url hooks (FK pragma + translate UDF).
-    _configure_sqlite_engine(engine)
+    # Match production create_engine_from_url / init_db hooks (FK pragma + translate UDF).
+    configure_sqlite_engine(engine)
 
 
 def pytest_addoption(parser: Any) -> None:

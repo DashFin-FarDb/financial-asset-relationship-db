@@ -54,7 +54,7 @@ STRENGTH_DECIMAL_CHECK = (
     "length(strength) BETWEEN 1 AND 32 "
     "AND translate(strength, '0123456789.', '') = '' "
     "AND strength NOT LIKE '.%' AND strength NOT LIKE '%.' "
-    "AND strength NOT LIKE '%..%'"
+    "AND strength NOT LIKE '%..%' AND strength NOT LIKE '%.%.%'"
 )
 
 

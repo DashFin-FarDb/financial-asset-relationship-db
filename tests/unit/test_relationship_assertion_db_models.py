@@ -5,7 +5,7 @@ from __future__ import annotations
 from datetime import datetime, timezone
 
 import pytest
-from sqlalchemy import inspect
+from sqlalchemy import create_engine, inspect
 from sqlalchemy.exc import IntegrityError
 
 from src.data.database import create_engine_from_url, create_session_factory, init_db
@@ -155,6 +155,30 @@ def test_sqlite_engine_enforces_foreign_keys_by_default() -> None:
     with engine.connect() as connection:
         enabled = connection.exec_driver_sql("PRAGMA foreign_keys").scalar()
     assert int(enabled or 0) == 1
+    engine.dispose()
+
+
+def test_init_db_attaches_sqlite_hooks_for_plain_engines() -> None:
+    """init_db must register translate/FK hooks even for plain create_engine."""
+    engine = create_engine("sqlite:///:memory:")
+    init_db(engine)
+    now = datetime.now(timezone.utc)
+    with engine.begin() as connection:
+        connection.execute(
+            RelationshipEvidenceORM.__table__.insert().values(
+                id="33333333-3333-3333-3333-333333333333",
+                source_ref="sample://plain-engine",
+                content_sha256=DIGEST_A,
+                media_type="application/json",
+                observed_at=None,
+                issued_at=None,
+                visibility="public",
+                licensing=None,
+                reuse_policy=None,
+                custody_id="collector-1",
+                recorded_at=now,
+            )
+        )
     engine.dispose()
 
 
@@ -412,6 +436,40 @@ class TestRelationshipAssertionLinksAndEvents:
                 target_id="AAPL",
                 edge_type="corporate_link",
                 strength="strong",
+                direction="subject_to_object",
+                assertion_id="as-1",
+            )
+        )
+        with pytest.raises(IntegrityError):
+            db_session.commit()
+
+    @staticmethod
+    def test_multi_dot_strength_rejected(db_session):
+        """Strength strings with more than one decimal point are rejected."""
+        _add_assertion(db_session)
+        now = _utcnow()
+        db_session.add(
+            RelationshipProjectionRevisionORM(
+                id="rev-multi-dot",
+                purpose="financial_graph_current_view",
+                effective_at=now,
+                known_at=now,
+                contract_version="grac.v1",
+                projector_version="projector.v1",
+                edge_set_hash=DIGEST_A,
+                projection_hash=DIGEST_B,
+                created_at=now,
+            )
+        )
+        db_session.flush()
+        db_session.add(
+            RelationshipProjectionEdgeORM(
+                id="edge-multi-dot",
+                revision_id="rev-multi-dot",
+                source_id="AAPL_BOND_2030",
+                target_id="AAPL",
+                edge_type="corporate_link",
+                strength="1.2.3",
                 direction="subject_to_object",
                 assertion_id="as-1",
             )

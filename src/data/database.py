@@ -24,17 +24,13 @@ def _sqlite_translate(value: str | None, from_chars: str | None, to_chars: str |
     """PostgreSQL-compatible ``translate`` for SQLite CHECK constraints."""
     if value is None or from_chars is None or to_chars is None:
         return None
-    mapped: dict[str, str | None] = {}
-    for index, char in enumerate(from_chars):
-        mapped[char] = to_chars[index] if index < len(to_chars) else None
+    mapped = {char: (to_chars[index] if index < len(to_chars) else None) for index, char in enumerate(from_chars)}
     pieces: list[str] = []
     for char in value:
-        if char in mapped:
-            replacement = mapped[char]
-            if replacement is not None:
-                pieces.append(replacement)
+        replacement = mapped.get(char, char)
+        if replacement is None:
             continue
-        pieces.append(char)
+        pieces.append(replacement)
     return "".join(pieces)
 
 
@@ -46,11 +42,22 @@ def _configure_sqlite_connection(dbapi_connection, _connection_record) -> None:
     cursor.close()
 
 
-def _configure_sqlite_engine(engine: Engine) -> Engine:
-    """Attach SQLite connection hooks required for GRAC FK integrity."""
-    if not event.contains(engine, "connect", _configure_sqlite_connection):
-        event.listen(engine, "connect", _configure_sqlite_connection)
+def configure_sqlite_engine(engine: Engine) -> Engine:
+    """Attach SQLite connection hooks required for GRAC FK + CHECK integrity.
+
+    Registers a Postgres-compatible ``translate`` UDF and enables
+    ``PRAGMA foreign_keys=ON`` on every new DB-API connection. Disposes any
+    pre-listener pooled connections so the next checkout picks up the hooks.
+    """
+    if event.contains(engine, "connect", _configure_sqlite_connection):
+        return engine
+    event.listen(engine, "connect", _configure_sqlite_connection)
+    engine.dispose()
     return engine
+
+
+# Backward-compatible private alias.
+_configure_sqlite_engine = configure_sqlite_engine
 
 
 def create_engine_from_url(url: str | None = None) -> Engine:
@@ -148,8 +155,6 @@ def init_db(engine: Engine) -> None:
     from .migrations import apply_migrations, apply_postgresql_heartbeat_migration
     from .relationship_assertion_schema import ensure_relationship_assertion_schema
 
-    Base.metadata.create_all(engine)
-
     # Apply SQL migrations (e.g., adding heartbeat columns to rebuild_jobs)
     # Extract database path from engine URL for SQLite databases
     # For non-SQLite or in-memory databases, skip migrations (they use create_all only)
@@ -157,6 +162,13 @@ def init_db(engine: Engine) -> None:
     backend = url.get_backend_name()
     query: dict = dict(url.query) if getattr(url, "query", None) else {}
     is_sqlite_memory = backend == "sqlite" and (url.database == ":memory:" or query.get("mode") == "memory")
+
+    # GRAC CHECKs use translate(); attach UDF + FK pragma before create_all.
+    if backend == "sqlite":
+        configure_sqlite_engine(engine)
+
+    Base.metadata.create_all(engine)
+
     if backend == "sqlite" and url.database and not is_sqlite_memory:
         apply_migrations(url.database)
     elif backend == "postgresql":

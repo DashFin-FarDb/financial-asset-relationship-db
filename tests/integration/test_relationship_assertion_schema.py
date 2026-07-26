@@ -154,7 +154,11 @@ def _fk_pairs(engine: Engine, table: str) -> set[tuple[str, str]]:
     pairs: set[tuple[str, str]] = set()
     for fk in inspect(engine).get_foreign_keys(table):
         referred = fk.get("referred_table")
-        for local_col, remote_col in zip(fk.get("constrained_columns") or [], fk.get("referred_columns") or []):
+        for local_col, remote_col in zip(
+            fk.get("constrained_columns") or [],
+            fk.get("referred_columns") or [],
+            strict=True,
+        ):
             pairs.add((f"{table}.{local_col}", f"{referred}.{remote_col}"))
     return pairs
 

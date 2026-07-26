@@ -23,20 +23,23 @@ def ensure_relationship_assertion_schema(engine: Engine) -> None:
     Ensure GRAC assertion tables have dialect-appropriate immutability guards.
 
     Tables themselves are created by ``Base.metadata.create_all`` after the ORM
-    models are imported. When guards are already present this is a no-op so a
-    least-privilege runtime role without DDL rights can restart safely.
+    models are imported. When all guards are already present this skips DDL so a
+    least-privilege runtime role without CREATE rights can restart safely.
+    Privilege repair (REVOKE PUBLIC EXECUTE) still runs on PostgreSQL whenever
+    the immutability function exists.
     """
     backend = make_url(str(engine.url)).get_backend_name()
     with engine.begin() as connection:
         if backend == "sqlite":
-            if _sqlite_guards_present(connection):
-                return
-            _install_sqlite_immutability_guards(connection)
+            if not _sqlite_guards_present(connection):
+                _install_sqlite_immutability_guards(connection)
             return
         if backend == "postgresql":
-            if _postgresql_guards_present(connection):
-                return
-            _install_postgresql_immutability_guards(connection)
+            if not _postgresql_guards_present(connection):
+                _install_postgresql_immutability_guards(connection)
+            else:
+                # Upgrade path: earlier installs may have left PUBLIC EXECUTE.
+                _revoke_immutability_function_execute(connection)
             return
 
 
@@ -57,22 +60,62 @@ def _require_grac_table(table_name: str) -> None:
 
 
 def _sqlite_guards_present(connection: Connection) -> bool:
-    """Return True when the first table's UPDATE trigger already exists."""
-    update_name, _, _ = list_immutability_trigger_names(GRAC_TABLE_NAMES[0])
-    row = connection.execute(
-        text("SELECT 1 FROM sqlite_master WHERE type = 'trigger' AND name = :name"),
-        {"name": update_name},
-    ).first()
-    return row is not None
+    """Return True when every GRAC table has UPDATE and DELETE triggers."""
+    for table_name in GRAC_TABLE_NAMES:
+        update_name, delete_name, _truncate_name = list_immutability_trigger_names(table_name)
+        for name in (update_name, delete_name):
+            row = connection.execute(
+                text("SELECT 1 FROM sqlite_master WHERE type = 'trigger' AND name = :name"),
+                {"name": name},
+            ).first()
+            if row is None:
+                return False
+    return True
 
 
 def _postgresql_guards_present(connection: Connection) -> bool:
-    """Return True when the shared immutability function already exists."""
+    """Return True when the function and all table triggers exist."""
     row = connection.execute(
         text("SELECT 1 FROM pg_proc WHERE proname = :name"),
         {"name": _IMMUTABILITY_FUNCTION},
     ).first()
-    return row is not None
+    if row is None:
+        return False
+    for table_name in GRAC_TABLE_NAMES:
+        for name in list_immutability_trigger_names(table_name):
+            trigger = connection.execute(
+                text("SELECT 1 FROM pg_trigger WHERE tgname = :name"),
+                {"name": name},
+            ).first()
+            if trigger is None:
+                return False
+    return True
+
+
+def _revoke_immutability_function_execute(connection: Connection) -> None:
+    """Best-effort revoke of PUBLIC/untrusted EXECUTE on the raise function."""
+    # nosemgrep: python.sqlalchemy.security.audit.avoid-sqlalchemy-text.avoid-sqlalchemy-text
+    connection.execute(text(f"""
+            DO $revoke$
+            BEGIN
+                BEGIN
+                    EXECUTE 'REVOKE ALL PRIVILEGES ON FUNCTION {_IMMUTABILITY_FUNCTION}() FROM PUBLIC';
+                EXCEPTION
+                    WHEN insufficient_privilege THEN
+                        NULL;
+                END;
+                BEGIN
+                    EXECUTE 'REVOKE ALL PRIVILEGES ON FUNCTION {_IMMUTABILITY_FUNCTION}() '
+                        'FROM anon, authenticated';
+                EXCEPTION
+                    WHEN undefined_object THEN
+                        NULL;
+                    WHEN insufficient_privilege THEN
+                        NULL;
+                END;
+            END
+            $revoke$;
+            """))
 
 
 def _install_sqlite_immutability_guards(connection: Connection) -> None:
@@ -80,6 +123,7 @@ def _install_sqlite_immutability_guards(connection: Connection) -> None:
     for table_name in GRAC_TABLE_NAMES:
         _require_grac_table(table_name)
         update_name, delete_name, _truncate_name = list_immutability_trigger_names(table_name)
+        # nosemgrep: python.sqlalchemy.security.audit.avoid-sqlalchemy-text.avoid-sqlalchemy-text
         connection.execute(text(f"DROP TRIGGER IF EXISTS {update_name}"))
         connection.execute(text(f"DROP TRIGGER IF EXISTS {delete_name}"))
         connection.execute(text(f"""
@@ -100,6 +144,7 @@ def _install_sqlite_immutability_guards(connection: Connection) -> None:
 
 def _install_postgresql_immutability_guards(connection: Connection) -> None:
     """Install a shared RAISE function and BEFORE UPDATE/DELETE/TRUNCATE triggers."""
+    # nosemgrep: python.sqlalchemy.security.audit.avoid-sqlalchemy-text.avoid-sqlalchemy-text
     connection.execute(text(f"""
             CREATE OR REPLACE FUNCTION {_IMMUTABILITY_FUNCTION}()
             RETURNS trigger
@@ -112,22 +157,7 @@ def _install_postgresql_immutability_guards(connection: Connection) -> None:
             END;
             $$
             """))
-    # Match ADR 0007 / migration 005: do not leave PUBLIC EXECUTE on new functions.
-    # anon/authenticated may be absent in local/ephemeral Postgres — ignore that case.
-    connection.execute(text(f"""
-            DO $revoke$
-            BEGIN
-                EXECUTE 'REVOKE ALL PRIVILEGES ON FUNCTION {_IMMUTABILITY_FUNCTION}() FROM PUBLIC';
-                BEGIN
-                    EXECUTE 'REVOKE ALL PRIVILEGES ON FUNCTION {_IMMUTABILITY_FUNCTION}() '
-                        'FROM anon, authenticated';
-                EXCEPTION
-                    WHEN undefined_object THEN
-                        NULL;
-                END;
-            END
-            $revoke$;
-            """))
+    _revoke_immutability_function_execute(connection)
 
     for table_name in GRAC_TABLE_NAMES:
         _require_grac_table(table_name)
