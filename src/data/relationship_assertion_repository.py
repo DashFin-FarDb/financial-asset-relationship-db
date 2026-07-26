@@ -18,6 +18,11 @@ from src.data.relationship_assertion_db_models import (
     RelationshipAssertionORM,
     RelationshipEvidenceORM,
 )
+from src.data.relationship_projection_persistence import (
+    PersistedProjectionRevision,
+    PersistProjectionRequest,
+    ProjectionRevisionStore,
+)
 from src.governance.relationship_assertion import (
     Assertion,
     AssertionAsOf,
@@ -52,6 +57,15 @@ from src.governance.relationship_assertion_lifecycle import (
 )
 
 UTC = timezone.utc
+
+__all__ = [
+    "PersistProjectionRequest",
+    "PersistedProjectionRevision",
+    "RegisterEvidenceRequest",
+    "RelationshipAssertionRepository",
+    "RepositoryTransitionRequest",
+    "SupersedeAtomicRequest",
+]
 
 
 @dataclass(frozen=True)
@@ -577,6 +591,14 @@ class RelationshipAssertionRepository:
             effective_at=effective,
             known_at=known,
         )
+
+    def persist_projection_revision(self, request: PersistProjectionRequest) -> PersistedProjectionRevision:
+        """INSERT a candidate projection revision and its edges (publication is separate)."""
+        return ProjectionRevisionStore(self._session, clock=self._clock).persist(request)
+
+    def get_projection_revision(self, revision_id: str) -> PersistedProjectionRevision | None:
+        """Load a persisted candidate revision and its ordered edges."""
+        return ProjectionRevisionStore(self._session, clock=self._clock).get(revision_id)
 
     def current_state(self, assertion_id: str) -> LifecycleState:
         """Return the latest lifecycle state for ``assertion_id``."""
