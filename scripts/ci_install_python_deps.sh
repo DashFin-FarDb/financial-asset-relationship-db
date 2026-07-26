@@ -3,6 +3,6 @@
 # Kept out of workflow YAML so githubactions:S8544 does not flag unlocked pip installs.
 set -euo pipefail
 
-python -m pip install --upgrade pip
-python -m pip install --only-binary ":all:" -r requirements.txt
-python -m pip install --only-binary ":all:" -r requirements-dev.txt
+python3 -m pip install --upgrade pip
+python3 -m pip install --only-binary ":all:" -r requirements.txt
+python3 -m pip install --only-binary ":all:" -r requirements-dev.txt
