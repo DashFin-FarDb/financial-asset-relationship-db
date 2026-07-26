@@ -15,6 +15,8 @@ from src.data.database import init_db
 from src.data.db_models import AssetORM, RebuildJobORM
 from src.data.relationship_assertion_db_models import (
     GRAC_TABLE_NAMES,
+    RelationshipAssertionEventORM,
+    RelationshipAssertionEvidenceORM,
     RelationshipAssertionORM,
     RelationshipEvidenceORM,
 )
@@ -163,6 +165,58 @@ def _fk_pairs(engine: Engine, table: str) -> set[tuple[str, str]]:
     return pairs
 
 
+def _seed_immutability_rows(engine: Engine, now: datetime) -> None:
+    """Insert one linked row into each immutable source-of-truth table."""
+    with engine.begin() as conn:
+        conn.execute(
+            RelationshipEvidenceORM.__table__.insert().values(
+                id="ev-imm",
+                source_ref="ref",
+                content_sha256=DIGEST,
+                media_type="text/plain",
+                visibility="internal",
+                custody_id="custody",
+                recorded_at=now,
+            )
+        )
+        conn.execute(
+            RelationshipAssertionORM.__table__.insert().values(
+                id="as-imm",
+                predicate_id="financial.bond.issuer_reference@1",
+                subject_id="AAPL_BOND_2030",
+                object_id="AAPL",
+                method_id="bond.issuer_id.resolution@1",
+                proposition="prop",
+                confidence_status="not_assessed",
+                effective_from=now,
+                recorded_at=now,
+            )
+        )
+        conn.execute(
+            RelationshipAssertionEventORM.__table__.insert().values(
+                id="evt-imm",
+                assertion_id="as-imm",
+                sequence=1,
+                from_state=None,
+                to_state="Proposed",
+                authority="proposer",
+                actor_id="actor",
+                rationale="propose",
+                policy_version="grac.v1-policy",
+                recorded_at=now,
+            )
+        )
+        conn.execute(
+            RelationshipAssertionEvidenceORM.__table__.insert().values(
+                id="link-imm",
+                assertion_id="as-imm",
+                evidence_id="ev-imm",
+                polarity="supporting",
+                recorded_at=now,
+            )
+        )
+
+
 @pytest.mark.integration
 class TestRelationshipAssertionSchemaBootstrap:
     """Fresh create, upgrade, and idempotent re-init."""
@@ -253,52 +307,56 @@ class TestRelationshipAssertionImmutability:
     """UPDATE/DELETE must be rejected on guarded tables."""
 
     @staticmethod
-    def test_update_and_delete_rejected(schema_engine: Engine):
-        """Immutability triggers reject mutation on source-of-truth tables."""
+    @pytest.mark.parametrize(
+        "statement",
+        [
+            "UPDATE relationship_evidence SET media_type = 'application/json' WHERE id = 'ev-imm'",
+            "DELETE FROM relationship_evidence WHERE id = 'ev-imm'",
+            "UPDATE relationship_assertions SET proposition = 'changed' WHERE id = 'as-imm'",
+            "DELETE FROM relationship_assertions WHERE id = 'as-imm'",
+            "UPDATE relationship_assertion_events SET rationale = 'changed' WHERE id = 'evt-imm'",
+            "DELETE FROM relationship_assertion_events WHERE id = 'evt-imm'",
+            "UPDATE relationship_assertion_evidence SET polarity = 'opposing' WHERE id = 'link-imm'",
+            "DELETE FROM relationship_assertion_evidence WHERE id = 'link-imm'",
+        ],
+        ids=[
+            "update-evidence",
+            "delete-evidence",
+            "update-assertion",
+            "delete-assertion",
+            "update-event",
+            "delete-event",
+            "update-evidence-link",
+            "delete-evidence-link",
+        ],
+    )
+    def test_update_and_delete_rejected(schema_engine: Engine, statement: str):
+        """Immutability triggers reject every source-of-truth row mutation."""
         init_db(schema_engine)
-        now = datetime.now(tz=UTC)
-        with schema_engine.begin() as conn:
-            conn.execute(
-                text("""
-                    INSERT INTO relationship_evidence (
-                        id, source_ref, content_sha256, media_type, visibility, custody_id, recorded_at
-                    ) VALUES (
-                        'ev-imm', 'ref', :digest, 'text/plain', 'internal', 'custody', :now
-                    )
-                    """),
-                {"digest": DIGEST, "now": now},
-            )
-            conn.execute(
-                text("""
-                    INSERT INTO relationship_assertions (
-                        id, predicate_id, subject_id, object_id, method_id, proposition,
-                        confidence_status, effective_from, recorded_at
-                    ) VALUES (
-                        'as-imm', 'financial.bond.issuer_reference@1', 'AAPL_BOND_2030', 'AAPL',
-                        'bond.issuer_id.resolution@1', 'prop', 'not_assessed', :now, :now
-                    )
-                    """),
-                {"now": now},
-            )
+        _seed_immutability_rows(schema_engine, datetime.now(tz=UTC))
 
         def _execute(statement: str) -> None:
             with schema_engine.begin() as conn:
                 conn.execute(text(statement))
 
         with pytest.raises((IntegrityError, DBAPIError)):
-            _execute("UPDATE relationship_evidence SET media_type = 'application/json' WHERE id = 'ev-imm'")
-
-        with pytest.raises((IntegrityError, DBAPIError)):
-            _execute("DELETE FROM relationship_assertions WHERE id = 'as-imm'")
+            _execute(statement)
 
         # Rows remain after failed mutations.
+        count_queries = {
+            "relationship_evidence": text("SELECT COUNT(*) FROM relationship_evidence"),
+            "relationship_assertions": text("SELECT COUNT(*) FROM relationship_assertions"),
+            "relationship_assertion_events": text("SELECT COUNT(*) FROM relationship_assertion_events"),
+            "relationship_assertion_evidence": text("SELECT COUNT(*) FROM relationship_assertion_evidence"),
+        }
         with schema_engine.connect() as conn:
-            assert (
-                conn.execute(text("SELECT COUNT(*) FROM relationship_evidence WHERE id = 'ev-imm'")).scalar_one() == 1
-            )
-            assert (
-                conn.execute(text("SELECT COUNT(*) FROM relationship_assertions WHERE id = 'as-imm'")).scalar_one() == 1
-            )
+            counts = {table: conn.execute(query).scalar_one() for table, query in count_queries.items()}
+        assert counts == {
+            "relationship_evidence": 1,
+            "relationship_assertions": 1,
+            "relationship_assertion_events": 1,
+            "relationship_assertion_evidence": 1,
+        }
 
     @staticmethod
     def test_trigger_names_stable(schema_engine: Engine):
