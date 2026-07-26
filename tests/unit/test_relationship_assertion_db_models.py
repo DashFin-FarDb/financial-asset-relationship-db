@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
+from unittest.mock import MagicMock
 
 import pytest
 from sqlalchemy import create_engine, inspect
@@ -20,6 +21,7 @@ from src.data.relationship_assertion_db_models import (
     RelationshipProjectionPublicationORM,
     RelationshipProjectionRevisionORM,
 )
+from src.data.relationship_assertion_schema import _revoke_immutability_function_execute
 
 UTC = timezone.utc
 
@@ -101,25 +103,24 @@ def test_confidence_shape_check_rejects_assessed_without_bp() -> None:
     engine = create_engine_from_url("sqlite:///:memory:")
     init_db(engine)
     now = datetime.now(timezone.utc)
+    insert_stmt = RelationshipAssertionORM.__table__.insert().values(
+        id="11111111-1111-1111-1111-111111111111",
+        predicate_id="financial.bond.issuer_reference@1",
+        subject_id="AAPL_BOND_2030",
+        object_id="AAPL",
+        method_id="bond.issuer_id.resolution@1",
+        proposition="issuer reference",
+        confidence_bp=None,
+        confidence_type=None,
+        confidence_method=None,
+        confidence_status="assessed",
+        effective_from=now,
+        effective_to=None,
+        recorded_at=now,
+    )
     with engine.begin() as connection:
         with pytest.raises(IntegrityError):
-            connection.execute(
-                RelationshipAssertionORM.__table__.insert().values(
-                    id="11111111-1111-1111-1111-111111111111",
-                    predicate_id="financial.bond.issuer_reference@1",
-                    subject_id="AAPL_BOND_2030",
-                    object_id="AAPL",
-                    method_id="bond.issuer_id.resolution@1",
-                    proposition="issuer reference",
-                    confidence_bp=None,
-                    confidence_type=None,
-                    confidence_method=None,
-                    confidence_status="assessed",
-                    effective_from=now,
-                    effective_to=None,
-                    recorded_at=now,
-                )
-            )
+            connection.execute(insert_stmt)
     engine.dispose()
 
 
@@ -129,23 +130,22 @@ def test_evidence_digest_check_requires_lowercase_hex_sha256(bad_digest: str) ->
     engine = create_engine_from_url("sqlite:///:memory:")
     init_db(engine)
     now = datetime.now(timezone.utc)
+    insert_stmt = RelationshipEvidenceORM.__table__.insert().values(
+        id="22222222-2222-2222-2222-222222222222",
+        source_ref="sample://aapl-bond",
+        content_sha256=bad_digest,
+        media_type="application/json",
+        observed_at=None,
+        issued_at=None,
+        visibility="public",
+        licensing=None,
+        reuse_policy=None,
+        custody_id="collector-1",
+        recorded_at=now,
+    )
     with engine.begin() as connection:
         with pytest.raises(IntegrityError):
-            connection.execute(
-                RelationshipEvidenceORM.__table__.insert().values(
-                    id="22222222-2222-2222-2222-222222222222",
-                    source_ref="sample://aapl-bond",
-                    content_sha256=bad_digest,
-                    media_type="application/json",
-                    observed_at=None,
-                    issued_at=None,
-                    visibility="public",
-                    licensing=None,
-                    reuse_policy=None,
-                    custody_id="collector-1",
-                    recorded_at=now,
-                )
-            )
+            connection.execute(insert_stmt)
     engine.dispose()
 
 
@@ -476,3 +476,11 @@ class TestRelationshipAssertionLinksAndEvents:
         )
         with pytest.raises(IntegrityError):
             db_session.commit()
+
+
+def test_revoke_immutability_execute_raises_when_public_retains_privilege() -> None:
+    """Privilege repair must fail loud if PUBLIC EXECUTE cannot be revoked."""
+    connection = MagicMock()
+    connection.execute.return_value.scalar.return_value = True
+    with pytest.raises(PermissionError, match="PUBLIC EXECUTE"):
+        _revoke_immutability_function_execute(connection)

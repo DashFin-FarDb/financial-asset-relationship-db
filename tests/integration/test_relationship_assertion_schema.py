@@ -281,15 +281,15 @@ class TestRelationshipAssertionImmutability:
                 {"now": now},
             )
 
-        with pytest.raises((IntegrityError, DBAPIError)):
+        def _execute(statement: str) -> None:
             with schema_engine.begin() as conn:
-                conn.execute(
-                    text("UPDATE relationship_evidence SET media_type = 'application/json' WHERE id = 'ev-imm'")
-                )
+                conn.execute(text(statement))
 
         with pytest.raises((IntegrityError, DBAPIError)):
-            with schema_engine.begin() as conn:
-                conn.execute(text("DELETE FROM relationship_assertions WHERE id = 'as-imm'"))
+            _execute("UPDATE relationship_evidence SET media_type = 'application/json' WHERE id = 'ev-imm'")
+
+        with pytest.raises((IntegrityError, DBAPIError)):
+            _execute("DELETE FROM relationship_assertions WHERE id = 'as-imm'")
 
         # Rows remain after failed mutations.
         with schema_engine.connect() as conn:

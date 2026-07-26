@@ -26,21 +26,19 @@ def ensure_relationship_assertion_schema(engine: Engine) -> None:
     models are imported. When all guards are already present this skips DDL so a
     least-privilege runtime role without CREATE rights can restart safely.
     Privilege repair (REVOKE PUBLIC EXECUTE) still runs on PostgreSQL whenever
-    the immutability function exists.
+    the immutability function exists, and raises if PUBLIC retains EXECUTE.
     """
     backend = make_url(str(engine.url)).get_backend_name()
     with engine.begin() as connection:
         if backend == "sqlite":
             if not _sqlite_guards_present(connection):
                 _install_sqlite_immutability_guards(connection)
-            return
-        if backend == "postgresql":
+        elif backend == "postgresql":
             if not _postgresql_guards_present(connection):
                 _install_postgresql_immutability_guards(connection)
             else:
                 # Upgrade path: earlier installs may have left PUBLIC EXECUTE.
                 _revoke_immutability_function_execute(connection)
-            return
 
 
 def list_immutability_trigger_names(table_name: str) -> tuple[str, str, str]:
@@ -80,7 +78,7 @@ def _sqlite_guards_present(connection: Connection) -> bool:
     """Return True when every GRAC table has UPDATE and DELETE triggers."""
     expected = _expected_sqlite_trigger_names()
     rows = connection.execute(
-        text("SELECT name FROM sqlite_master " "WHERE type = 'trigger' AND name IN :names").bindparams(
+        text("SELECT name FROM sqlite_master WHERE type = 'trigger' AND name IN :names").bindparams(
             bindparam("names", expanding=True)
         ),
         {"names": list(expected)},
@@ -105,7 +103,7 @@ def _postgresql_guards_present(connection: Connection) -> bool:
 
 
 def _revoke_immutability_function_execute(connection: Connection) -> None:
-    """Best-effort revoke of PUBLIC/untrusted EXECUTE on the raise function."""
+    """Revoke PUBLIC/untrusted EXECUTE on the raise function; fail if PUBLIC retains it."""
     # nosemgrep: python.sqlalchemy.security.audit.avoid-sqlalchemy-text.avoid-sqlalchemy-text
     connection.execute(text(f"""
             DO $revoke$
@@ -128,6 +126,27 @@ def _revoke_immutability_function_execute(connection: Connection) -> None:
             END
             $revoke$;
             """))
+    # aclexplode grantee 0 is PUBLIC; default ACL still grants PUBLIC EXECUTE.
+    public_execute = connection.execute(
+        text("""
+            SELECT EXISTS (
+                SELECT 1
+                FROM pg_proc AS p
+                CROSS JOIN LATERAL aclexplode(
+                    COALESCE(p.proacl, acldefault('f', p.proowner))
+                ) AS acl(grantor, grantee, privilege_type, is_grantable)
+                WHERE p.proname = :name
+                  AND acl.privilege_type = 'EXECUTE'
+                  AND acl.grantee = 0
+            )
+            """),
+        {"name": _IMMUTABILITY_FUNCTION},
+    ).scalar()
+    if public_execute:
+        raise PermissionError(
+            f"insufficient privilege to revoke PUBLIC EXECUTE on {_IMMUTABILITY_FUNCTION}(); "
+            "restart as the function owner or a role that can REVOKE"
+        )
 
 
 def _install_sqlite_immutability_guards(connection: Connection) -> None:

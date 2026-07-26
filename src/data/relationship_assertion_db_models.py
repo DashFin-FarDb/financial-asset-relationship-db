@@ -48,7 +48,7 @@ DIRECTION_CHECK = "direction IN ('subject_to_object', 'object_to_subject', 'bidi
 VISIBILITY_CHECK = "visibility IN ('public', 'internal', 'restricted', 'confidential')"
 # Portable lowercase hex / decimal-string CHECKs (SQLite + PostgreSQL).
 SHA256_HEX_CHECK = (
-    "length({column}) = 64 AND {column} = lower({column}) " "AND translate({column}, '0123456789abcdef', '') = ''"
+    "length({column}) = 64 AND {column} = lower({column}) AND translate({column}, '0123456789abcdef', '') = ''"
 )
 STRENGTH_DECIMAL_CHECK = (
     "length(strength) BETWEEN 1 AND 32 "

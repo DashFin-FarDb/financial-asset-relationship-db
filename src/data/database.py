@@ -18,6 +18,7 @@ from .repository import session_scope  # noqa: F401, E402
 
 DEFAULT_DATABASE_URL = "sqlite:///./asset_graph.db"
 ASSET_GRAPH_DATABASE_URL_ENV_VAR = "ASSET_GRAPH_DATABASE_URL"
+SQLITE_MEMORY_DATABASE = ":memory:"
 
 
 def _sqlite_translate(value: str | None, from_chars: str | None, to_chars: str | None) -> str | None:
@@ -58,7 +59,7 @@ def configure_sqlite_engine(engine: Engine) -> Engine:
     url = make_url(str(engine.url))
     database = url.database or ""
     query: dict = dict(url.query) if getattr(url, "query", None) else {}
-    is_memory = database == ":memory:" or query.get("mode") == "memory"
+    is_memory = database == SQLITE_MEMORY_DATABASE or query.get("mode") == "memory"
     if is_memory:
         with engine.connect() as connection:
             dbapi_connection = connection.connection.dbapi_connection
@@ -80,8 +81,8 @@ def create_engine_from_url(url: str | None = None) -> Engine:
     back to ``DEFAULT_DATABASE_URL`` when unset. An empty string forces the
     default file-based SQLite URL; otherwise the provided ``url`` is used.
 
-    For SQLite in-memory databases (``database == ":memory:"`` or query
-    ``mode=memory``), the engine uses ``check_same_thread=False`` and
+    For SQLite in-memory databases (``database == SQLITE_MEMORY_DATABASE`` or
+    query ``mode=memory``), the engine uses ``check_same_thread=False`` and
     ``StaticPool``.
 
     Parameters:
@@ -115,7 +116,7 @@ def create_engine_from_url(url: str | None = None) -> Engine:
     database = parsed_url.database or ""
     query: dict = dict(parsed_url.query) if getattr(parsed_url, "query", None) else {}
 
-    is_sqlite_memory = is_sqlite and (database == ":memory:" or query.get("mode") == "memory")
+    is_sqlite_memory = is_sqlite and (database == SQLITE_MEMORY_DATABASE or query.get("mode") == "memory")
 
     if is_sqlite:
         connect_args = {"check_same_thread": False}
@@ -182,7 +183,7 @@ def init_db(engine: Engine) -> None:
     url = make_url(engine.url)
     backend = url.get_backend_name()
     query: dict = dict(url.query) if getattr(url, "query", None) else {}
-    is_sqlite_memory = backend == "sqlite" and (url.database == ":memory:" or query.get("mode") == "memory")
+    is_sqlite_memory = backend == "sqlite" and (url.database == SQLITE_MEMORY_DATABASE or query.get("mode") == "memory")
 
     # GRAC CHECKs use translate(); attach UDF + FK pragma before create_all.
     if backend == "sqlite":

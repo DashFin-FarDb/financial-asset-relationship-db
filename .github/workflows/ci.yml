@@ -147,8 +147,9 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
-          pip install -r requirements-dev.txt
+          # Prefer wheels; pins live in requirements*.txt (parity with matrix test job).
+          pip install --only-binary=:all: -r requirements.txt  # NOSONAR
+          pip install --only-binary=:all: -r requirements-dev.txt  # NOSONAR
 
       - name: Run GRAC assertion schema tests against ephemeral Postgres
         env:
