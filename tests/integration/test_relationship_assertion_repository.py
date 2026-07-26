@@ -138,18 +138,18 @@ def _track_supersession_lock_order(repo, monkeypatch) -> list[str]:
     """Spy on graph locking and cycle validation without replacing behavior."""
     calls: list[str] = []
     original_lock = repo._lock_supersession_graph
-    original_cycle_check = repository_module.assert_no_cycle
+    original_lookup = repo._successor_chain_lookup
 
     def track_lock() -> None:
         calls.append("lock")
         original_lock()
 
-    def track_cycle_check(*args, **kwargs) -> None:
+    def track_chain_lookup(assertion_id: str):
         calls.append("cycle")
-        original_cycle_check(*args, **kwargs)
+        return original_lookup(assertion_id)
 
     monkeypatch.setattr(repo, "_lock_supersession_graph", track_lock)
-    monkeypatch.setattr(repository_module, "assert_no_cycle", track_cycle_check)
+    monkeypatch.setattr(repo, "_successor_chain_lookup", track_chain_lookup)
     return calls
 
 

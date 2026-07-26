@@ -343,16 +343,14 @@ class TestRelationshipAssertionImmutability:
             _execute(statement)
 
         # Rows remain after failed mutations.
+        count_queries = {
+            "relationship_evidence": text("SELECT COUNT(*) FROM relationship_evidence"),
+            "relationship_assertions": text("SELECT COUNT(*) FROM relationship_assertions"),
+            "relationship_assertion_events": text("SELECT COUNT(*) FROM relationship_assertion_events"),
+            "relationship_assertion_evidence": text("SELECT COUNT(*) FROM relationship_assertion_evidence"),
+        }
         with schema_engine.connect() as conn:
-            counts = {
-                table: conn.execute(text(f"SELECT COUNT(*) FROM {table}")).scalar_one()
-                for table in (
-                    "relationship_evidence",
-                    "relationship_assertions",
-                    "relationship_assertion_events",
-                    "relationship_assertion_evidence",
-                )
-            }
+            counts = {table: conn.execute(query).scalar_one() for table, query in count_queries.items()}
         assert counts == {
             "relationship_evidence": 1,
             "relationship_assertions": 1,
