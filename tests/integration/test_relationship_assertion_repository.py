@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
-from unittest.mock import Mock
+from unittest.mock import MagicMock, Mock
 
 import pytest
 from sqlalchemy import create_engine, select
@@ -655,6 +655,18 @@ class TestSupersessionAtomics:
         repo.transition(request)
 
         assert calls[:2] == ["lock", "cycle"]
+
+    def test_postgresql_supersession_graph_lock_serializes_new_successors(self) -> None:
+        """PostgreSQL serializes graph checks before locking visible assertion rows."""
+        session = MagicMock()
+        session.get_bind.return_value.dialect.name = "postgresql"
+        repo = RelationshipAssertionRepository(session)
+
+        repo._lock_supersession_graph()
+
+        statements = [call.args[0] for call in session.execute.call_args_list]
+        assert "pg_advisory_xact_lock" in str(statements[0])
+        assert "relationship_assertions" in str(statements[1])
 
 
 class TestGetAsOf:

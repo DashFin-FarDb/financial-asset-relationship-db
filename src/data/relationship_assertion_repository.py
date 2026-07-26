@@ -52,6 +52,8 @@ from src.governance.relationship_assertion_lifecycle import (
 )
 
 UTC = timezone.utc
+_SUPERSESSION_GRAPH_ADVISORY_NAMESPACE = 0x46415244  # "FARD"
+_SUPERSESSION_GRAPH_ADVISORY_RESOURCE = 0x47524143  # "GRAC"
 
 
 @dataclass(frozen=True)
@@ -663,11 +665,22 @@ class RelationshipAssertionRepository:
     def _lock_supersession_graph(self) -> None:
         """Serialize supersession graph checks against every existing assertion.
 
-        PostgreSQL locks the rows in deterministic id order until the transaction
-        ends. Fully consuming the result acquires every lock before chain planning.
-        SQLite ignores ``FOR UPDATE`` and therefore provides no equivalent
+        PostgreSQL takes a transaction-scoped advisory lock before row locks so
+        concurrent supersession transactions cannot insert new successor rows
+        outside the visible ``FOR UPDATE`` set. SQLite skips the advisory lock and
+        ignores ``FOR UPDATE``, so it remains compatible without equivalent
         graph-wide serialization.
         """
+        bind = self._session.get_bind()
+        if bind.dialect.name == "postgresql":
+            self._session.execute(
+                select(
+                    func.pg_advisory_xact_lock(
+                        _SUPERSESSION_GRAPH_ADVISORY_NAMESPACE,
+                        _SUPERSESSION_GRAPH_ADVISORY_RESOURCE,
+                    )
+                )
+            )
         self._session.execute(
             select(RelationshipAssertionORM.id).order_by(RelationshipAssertionORM.id).with_for_update()
         ).scalars().all()
