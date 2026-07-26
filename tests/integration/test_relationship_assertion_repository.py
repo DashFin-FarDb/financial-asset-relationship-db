@@ -9,6 +9,7 @@ import pytest
 from sqlalchemy import create_engine, select
 from sqlalchemy.exc import DBAPIError
 
+import src.data.relationship_assertion_repository as repository_module
 from src.data.database import create_session_factory, init_db
 from src.data.relationship_assertion_db_models import (
     RelationshipAssertionEventORM,
@@ -36,6 +37,7 @@ from tests.conftest import enable_sqlite_foreign_keys
 UTC = timezone.utc
 NOW = datetime(2026, 7, 25, 15, 0, 0, tzinfo=UTC)
 DIGEST = "b" * 64
+pytestmark = pytest.mark.integration
 
 
 @pytest.fixture
@@ -53,7 +55,7 @@ def repo_session(tmp_path):
 
 @pytest.fixture
 def repo(repo_session) -> RelationshipAssertionRepository:
-    """Repository bound to the test session with a frozen clock."""
+    """Repository bound to the test session with a deterministic advancing clock."""
     stamps = {"t": NOW}
 
     def clock() -> datetime:
@@ -131,6 +133,25 @@ def _propose_accepted(repo: RelationshipAssertionRepository, assertion_id: str =
             }
         )
     )
+
+
+def _track_supersession_lock_order(repo, monkeypatch) -> list[str]:
+    """Spy on graph locking and cycle validation without replacing behavior."""
+    calls: list[str] = []
+    original_lock = repo._lock_supersession_graph
+    original_cycle_check = repository_module.assert_no_cycle
+
+    def track_lock() -> None:
+        calls.append("lock")
+        original_lock()
+
+    def track_cycle_check(*args, **kwargs) -> None:
+        calls.append("cycle")
+        original_cycle_check(*args, **kwargs)
+
+    monkeypatch.setattr(repo, "_lock_supersession_graph", track_lock)
+    monkeypatch.setattr(repository_module, "assert_no_cycle", track_cycle_check)
+    return calls
 
 
 class TestProposeIdempotency:
@@ -348,10 +369,19 @@ class TestEvidenceRegistration:
     def test_register_evidence_with_digest(self, repo, repo_session) -> None:
         """Evidence digests are normalized and links are queryable as-of known_at."""
         repo.propose(_proposal(), _ctx("proposer"))
+        grouped_upper_digest = "-".join(["B" * 4] * 16)
         evidence, link = repo.register_evidence(
             RegisterEvidenceRequest(
                 assertion_id="as-1",
-                evidence=_evidence(),
+                evidence=EvidenceRecord(
+                    evidence_id="ev-1",
+                    source_ref="sample://AAPL_BOND_2030",
+                    content_sha256=grouped_upper_digest,
+                    media_type="application/json",
+                    visibility="internal",
+                    custody_id="collector-1",
+                    recorded_at=NOW,
+                ),
                 polarity="supporting",
                 ctx=_ctx("proposer"),
             )
@@ -396,6 +426,28 @@ class TestEvidenceRegistration:
         _, link_a = repo.register_evidence(req)
         _, link_b = repo.register_evidence(req)
         assert link_a.link_id == link_b.link_id
+
+    def test_evidence_link_re_registration_rejects_conflicting_polarity(self, repo) -> None:
+        """An existing assertion/evidence pair cannot change polarity."""
+        repo.propose(_proposal(), _ctx("proposer"))
+        evidence = _evidence()
+        ctx = _ctx("proposer")
+        supporting_request = RegisterEvidenceRequest(
+            assertion_id="as-1",
+            evidence=evidence,
+            polarity="supporting",
+            ctx=ctx,
+        )
+        opposing_request = RegisterEvidenceRequest(
+            assertion_id="as-1",
+            evidence=evidence,
+            polarity="opposing",
+            ctx=ctx,
+        )
+        repo.register_evidence(supporting_request)
+
+        with pytest.raises(ValidationError, match="different polarity"):
+            repo.register_evidence(opposing_request)
 
     def test_evidence_metadata_mismatch_rejected(self, repo) -> None:
         """Reusing an evidence id with different immutable metadata fails closed."""
@@ -482,6 +534,22 @@ class TestSupersessionAtomics:
         assert repo.current_state("as-pred") == "Superseded"
         assert repo.current_state("as-succ") == "Accepted"
 
+    def test_supersede_atomic_locks_graph_before_chain_validation(self, repo, monkeypatch) -> None:
+        """Atomic supersession takes the graph lock before validating its chain."""
+        _propose_accepted(repo, "as-pred")
+        calls = _track_supersession_lock_order(repo, monkeypatch)
+        repo.supersede_atomic(
+            SupersedeAtomicRequest(
+                predecessor_id="as-pred",
+                successor_proposal=_proposal("as-succ"),
+                ctx=_ctx("proposer", "acceptor"),
+                expected_sequence=2,
+                rationale="refresh evidence",
+            )
+        )
+
+        assert calls[:2] == ["lock", "cycle"]
+
     def test_supersede_atomic_rolls_back_on_concurrency(self, repo, repo_session) -> None:
         """Failed CAS leaves neither orphan successor nor superseded predecessor."""
         _propose_accepted(repo, "as-pred")
@@ -546,6 +614,25 @@ class TestSupersessionAtomics:
         assert repo.current_state("as-pred") == "Accepted"
         if seed_proposed:
             assert repo.current_state(successor_id) == "Proposed"
+
+    def test_transition_supersede_locks_graph_before_chain_validation(self, repo, monkeypatch) -> None:
+        """Direct supersession takes the graph lock before validating its chain."""
+        _propose_accepted(repo, "as-pred")
+        _propose_accepted(repo, "as-succ")
+        calls = _track_supersession_lock_order(repo, monkeypatch)
+        request = _transition(
+            {
+                "assertion_id": "as-pred",
+                "to_state": "Superseded",
+                "ctx": _ctx("acceptor"),
+                "expected_sequence": 2,
+                "rationale": "replace",
+                "successor_assertion_id": "as-succ",
+            }
+        )
+        repo.transition(request)
+
+        assert calls[:2] == ["lock", "cycle"]
 
 
 class TestGetAsOf:

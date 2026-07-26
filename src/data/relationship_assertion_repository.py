@@ -420,6 +420,7 @@ class RelationshipAssertionRepository:
         """Plan and append a matrix transition under the concurrency guard."""
         if request.to_state == "Superseded":
             successor_id = _require_accepted_successor_id(request.successor_assertion_id or "")
+            self._lock_supersession_graph()
             self._lock_assertions(request.assertion_id, successor_id)
             self._require_accepted_successor(successor_id)
             assert_no_cycle(request.assertion_id, successor_id, self._successor_chain_lookup)
@@ -516,6 +517,7 @@ class RelationshipAssertionRepository:
         stamp = request.recorded_at or self._clock()
         # Savepoint so a late predecessor CAS / planning failure cannot leave an orphan successor.
         with self._session.begin_nested():
+            self._lock_supersession_graph()
             self._lock_assertions(request.predecessor_id, request.successor_proposal.assertion_id)
             pred_state = self._current_state(request.predecessor_id)
             self._validate_supersede_preconditions(request, pred_state)
@@ -657,6 +659,18 @@ class RelationshipAssertionRepository:
             self._session.execute(
                 select(RelationshipAssertionORM.id).where(RelationshipAssertionORM.id == assertion_id).with_for_update()
             ).scalar_one_or_none()
+
+    def _lock_supersession_graph(self) -> None:
+        """Serialize supersession graph checks against every existing assertion.
+
+        PostgreSQL locks the rows in deterministic id order until the transaction
+        ends. Fully consuming the result acquires every lock before chain planning.
+        SQLite ignores ``FOR UPDATE`` and therefore provides no equivalent
+        graph-wide serialization.
+        """
+        self._session.execute(
+            select(RelationshipAssertionORM.id).order_by(RelationshipAssertionORM.id).with_for_update()
+        ).scalars().all()
 
     def _require_accepted_successor(self, successor_assertion_id: str) -> None:
         """Reject missing or non-Accepted successors for direct supersession."""
