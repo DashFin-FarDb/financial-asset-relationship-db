@@ -161,8 +161,9 @@ class TestAuthorityAndBounds:
             proposition=proposal.proposition,
             effective_from="not-a-datetime",  # type: ignore[arg-type]
         )
+        ctx = _ctx("proposer")
         with pytest.raises(ValidationError, match="effective_from"):
-            plan_propose(malformed, _ctx("proposer"), recorded_at=NOW)
+            plan_propose(malformed, ctx, recorded_at=NOW)
 
     def test_assessed_confidence_rejects_bool(self) -> None:
         """confidence_bp must be an integer value, not bool."""

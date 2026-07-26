@@ -443,17 +443,16 @@ class TestEvidenceRegistration:
         repo_session.commit()
         pending = _pending_evidence_row("ev-outer-link")
         repo_session.add(pending)
+        request = RegisterEvidenceRequest(
+            assertion_id="as-2",
+            evidence=_evidence("ev-2"),
+            polarity="supporting",
+            ctx=_ctx("proposer"),
+            link_id="link-shared",
+        )
 
         with pytest.raises(ConcurrencyConflict):
-            repo.register_evidence(
-                RegisterEvidenceRequest(
-                    assertion_id="as-2",
-                    evidence=_evidence("ev-2"),
-                    polarity="supporting",
-                    ctx=_ctx("proposer"),
-                    link_id="link-shared",
-                )
-            )
+            repo.register_evidence(request)
 
         assert repo_session.get(RelationshipEvidenceORM, pending.id) is not None
         repo_session.commit()
