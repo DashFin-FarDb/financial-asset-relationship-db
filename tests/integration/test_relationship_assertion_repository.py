@@ -335,6 +335,37 @@ class TestEvidenceRegistration:
         _, link_b = repo.register_evidence(req)
         assert link_a.link_id == link_b.link_id
 
+    def test_evidence_metadata_mismatch_rejected(self, repo) -> None:
+        """Reusing an evidence id with different immutable metadata fails closed."""
+        repo.propose(_proposal(), _ctx("proposer"))
+        repo.register_evidence(
+            RegisterEvidenceRequest(
+                assertion_id="as-1",
+                evidence=_evidence(),
+                polarity="supporting",
+                ctx=_ctx("proposer"),
+            )
+        )
+        changed = EvidenceRecord(
+            evidence_id="ev-1",
+            source_ref="sample://AAPL_BOND_2030",
+            content_sha256=DIGEST,
+            media_type="application/json",
+            visibility="internal",
+            custody_id="collector-1",
+            recorded_at=NOW,
+            licensing="CC-BY-4.0",
+        )
+        with pytest.raises(ValidationError, match="different metadata"):
+            repo.register_evidence(
+                RegisterEvidenceRequest(
+                    assertion_id="as-1",
+                    evidence=changed,
+                    polarity="supporting",
+                    ctx=_ctx("proposer"),
+                )
+            )
+
 
 class TestSupersessionAtomics:
     """Atomic successor acceptance + predecessor supersession."""
@@ -391,6 +422,42 @@ class TestSupersessionAtomics:
                     rationale="self",
                 )
             )
+
+    @pytest.mark.parametrize(
+        ("successor_id", "seed_proposed", "match"),
+        [
+            ("as-missing", False, "unknown successor"),
+            ("as-succ", True, "must be Accepted"),
+        ],
+        ids=["unknown_successor", "inactive_successor"],
+    )
+    def test_transition_supersede_requires_accepted_successor(
+        self,
+        repo,
+        successor_id: str,
+        seed_proposed: bool,
+        match: str,
+    ) -> None:
+        """Direct supersession requires an existing Accepted successor."""
+        _propose_accepted(repo, "as-pred")
+        if seed_proposed:
+            repo.propose(_proposal(successor_id), _ctx("proposer"))
+        with pytest.raises(ValidationError, match=match):
+            repo.transition(
+                _transition(
+                    {
+                        "assertion_id": "as-pred",
+                        "to_state": "Superseded",
+                        "ctx": _ctx("acceptor"),
+                        "expected_sequence": 2,
+                        "rationale": "invalid successor",
+                        "successor_assertion_id": successor_id,
+                    }
+                )
+            )
+        assert repo.current_state("as-pred") == "Accepted"
+        if seed_proposed:
+            assert repo.current_state(successor_id) == "Proposed"
 
 
 class TestGetAsOf:

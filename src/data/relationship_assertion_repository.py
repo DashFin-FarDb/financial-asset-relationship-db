@@ -194,13 +194,24 @@ def _fix_assertion_mapping(row: RelationshipAssertionORM) -> Assertion:
 
 
 def _evidence_identity_tuple(evidence: EvidenceRecord) -> tuple[object, ...]:
+    """Return comparable immutable evidence metadata for all persisted fields."""
     return (
         evidence.source_ref,
         evidence.content_sha256,
         evidence.media_type,
         evidence.visibility,
         evidence.custody_id,
+        evidence.observed_at,
+        evidence.issued_at,
+        evidence.licensing,
+        evidence.reuse_policy,
     )
+
+
+def _is_foreign_key_integrity_error(exc: IntegrityError) -> bool:
+    """Return True when ``exc`` looks like a foreign-key violation."""
+    detail = str(getattr(exc, "orig", None) or exc).lower()
+    return "foreign key" in detail or "foreignkeyviolation" in detail
 
 
 def _parse_known_at(known_at: datetime, assertion: Assertion) -> datetime | None:
@@ -332,6 +343,13 @@ def _plan_repository_transition(
     return plan_transition(plan)
 
 
+def _require_accepted_successor_id(successor_assertion_id: str) -> str:
+    """Normalize a required successor id for supersession persistence checks."""
+    if not successor_assertion_id.strip():
+        raise ValidationError("supersession requires successor_assertion_id")
+    return successor_assertion_id
+
+
 class RelationshipAssertionRepository:
     """INSERT-only persistence for governed assertions, events, and evidence."""
 
@@ -362,14 +380,18 @@ class RelationshipAssertionRepository:
         assertion, event = plan_propose(proposal, ctx, recorded_at=stamp, event_id=event_id)
         return self._insert_new_proposal(assertion, event, proposal)
 
-    def append_event(
+    def _append_event(
         self,
         assertion_id: str,
         event: AssertionEvent,
         *,
         expected_sequence: int,
     ) -> AssertionEvent:
-        """INSERT a planned event only when ``expected_sequence`` matches current max."""
+        """INSERT a planner-produced event when ``expected_sequence`` matches current max.
+
+        Private on purpose: callers must go through ``transition`` / ``supersede_atomic``
+        so matrix authority and successor checks cannot be bypassed with a fabricated event.
+        """
         _validate_event_identity(assertion_id, event)
         _validate_event_sequence(assertion_id, event, expected_sequence, self._max_sequence(assertion_id))
         if self._session.get(RelationshipAssertionORM, assertion_id) is None:
@@ -378,16 +400,31 @@ class RelationshipAssertionRepository:
         try:
             self._session.flush()
         except IntegrityError as exc:
-            self._session.rollback()
-            raise ConcurrencyConflict(f"sequence conflict for assertion {assertion_id} at {event.sequence}") from exc
+            error: Exception
+            if _is_foreign_key_integrity_error(exc):
+                error = ValidationError(
+                    f"event foreign-key violation for assertion {assertion_id} "
+                    f"(check successor_assertion_id and related rows)"
+                )
+            else:
+                error = ConcurrencyConflict(f"sequence conflict for assertion {assertion_id} at {event.sequence}")
+            # Nested savepoints (supersede_atomic) roll back on exit; avoid full-session wipe.
+            if not self._session.in_nested_transaction():
+                self._session.rollback()
+            raise error from exc
         return event
 
     def transition(self, request: RepositoryTransitionRequest) -> AssertionEvent:
         """Plan and append a matrix transition under the concurrency guard."""
+        if request.to_state == "Superseded":
+            successor_id = _require_accepted_successor_id(request.successor_assertion_id or "")
+            self._lock_assertions(request.assertion_id, successor_id)
+            self._require_accepted_successor(successor_id)
+            assert_no_cycle(request.assertion_id, successor_id, self._successor_chain_lookup)
         current = self._current_state(request.assertion_id)
         stamp = request.recorded_at or self._clock()
         event = _plan_repository_transition(request, current, stamp, self._successor_chain_lookup)
-        return self.append_event(request.assertion_id, event, expected_sequence=request.expected_sequence)
+        return self._append_event(request.assertion_id, event, expected_sequence=request.expected_sequence)
 
     def register_evidence(self, request: RegisterEvidenceRequest) -> tuple[EvidenceRecord, EvidenceLink]:
         """Register immutable evidence (digest-validated) and an append-only polarity link."""
@@ -473,28 +510,31 @@ class RelationshipAssertionRepository:
     ) -> tuple[Assertion, AssertionEvent, AssertionEvent, AssertionEvent]:
         """Atomically accept a successor and supersede the predecessor."""
         stamp = request.recorded_at or self._clock()
-        pred_state = self._current_state(request.predecessor_id)
-        self._validate_supersede_preconditions(request, pred_state)
-        successor, propose_event = self.propose(request.successor_proposal, request.ctx, recorded_at=stamp)
-        accept_timing = TransitionTiming(1, request.accept_rationale, stamp)
-        accept_event = plan_accept(successor.assertion_id, "Proposed", request.ctx, timing=accept_timing)
-        self.append_event(successor.assertion_id, accept_event, expected_sequence=1)
-        supersede_event = _plan_repository_transition(
-            RepositoryTransitionRequest(
-                assertion_id=request.predecessor_id,
-                to_state="Superseded",
-                ctx=request.ctx,
-                expected_sequence=request.expected_sequence,
-                rationale=request.rationale,
-                successor_assertion_id=successor.assertion_id,
-                recorded_at=stamp,
-            ),
-            pred_state,
-            stamp,
-            self._successor_chain_lookup,
-        )
-        self.append_event(request.predecessor_id, supersede_event, expected_sequence=request.expected_sequence)
-        self._session.flush()
+        # Savepoint so a late predecessor CAS / planning failure cannot leave an orphan successor.
+        with self._session.begin_nested():
+            self._lock_assertions(request.predecessor_id, request.successor_proposal.assertion_id)
+            pred_state = self._current_state(request.predecessor_id)
+            self._validate_supersede_preconditions(request, pred_state)
+            successor, propose_event = self.propose(request.successor_proposal, request.ctx, recorded_at=stamp)
+            accept_timing = TransitionTiming(1, request.accept_rationale, stamp)
+            accept_event = plan_accept(successor.assertion_id, "Proposed", request.ctx, timing=accept_timing)
+            self._append_event(successor.assertion_id, accept_event, expected_sequence=1)
+            supersede_event = _plan_repository_transition(
+                RepositoryTransitionRequest(
+                    assertion_id=request.predecessor_id,
+                    to_state="Superseded",
+                    ctx=request.ctx,
+                    expected_sequence=request.expected_sequence,
+                    rationale=request.rationale,
+                    successor_assertion_id=successor.assertion_id,
+                    recorded_at=stamp,
+                ),
+                pred_state,
+                stamp,
+                self._successor_chain_lookup,
+            )
+            self._append_event(request.predecessor_id, supersede_event, expected_sequence=request.expected_sequence)
+            self._session.flush()
         return successor, propose_event, accept_event, supersede_event
 
     def get_as_of(
@@ -601,6 +641,23 @@ class RelationshipAssertionRepository:
         _validate_supersede_sequence(request, self._max_sequence(request.predecessor_id))
         if self._session.get(RelationshipAssertionORM, request.successor_proposal.assertion_id) is not None:
             raise ValidationError(f"successor assertion {request.successor_proposal.assertion_id} already exists")
+
+    def _lock_assertions(self, *assertion_ids: str) -> None:
+        """Lock assertion rows in sorted id order to serialize supersession graph checks."""
+        for assertion_id in sorted({item for item in assertion_ids if item}):
+            self._session.execute(
+                select(RelationshipAssertionORM.id).where(RelationshipAssertionORM.id == assertion_id).with_for_update()
+            ).scalar_one_or_none()
+
+    def _require_accepted_successor(self, successor_assertion_id: str) -> None:
+        """Reject missing or non-Accepted successors for direct supersession."""
+        if self._session.get(RelationshipAssertionORM, successor_assertion_id) is None:
+            raise ValidationError(f"unknown successor_assertion_id: {successor_assertion_id}")
+        state = self._current_state(successor_assertion_id)
+        if state != "Accepted":
+            raise ValidationError(
+                f"successor {successor_assertion_id} must be Accepted to supersede " f"(current={state})"
+            )
 
     def _current_state(self, assertion_id: str) -> LifecycleState:
         events = self._load_events(assertion_id)
