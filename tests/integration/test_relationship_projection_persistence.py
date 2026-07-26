@@ -49,7 +49,7 @@ def _sha256_hex(*chunks: str) -> str:
 
 def _require_present(value: T | None, label: str) -> T:
     if value is None:
-        pytest.fail(f"Expected {label} to be present")
+        raise AssertionError(f"Expected {label} to be present")
     return value
 
 
