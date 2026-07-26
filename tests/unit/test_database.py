@@ -39,6 +39,7 @@ from api.database import (
 from src.data.database import (
     DEFAULT_DATABASE_URL,
     Base,
+    configure_sqlite_engine,
     create_engine_from_url,
     create_session_factory,
     init_db,
@@ -130,6 +131,8 @@ def engine() -> Iterator[Engine]:
         connect_args={"check_same_thread": False},
         poolclass=StaticPool,
     )
+    # GRAC CHECKs use translate(); register UDF before any create_all on Base.metadata.
+    configure_sqlite_engine(in_memory_engine)
     yield in_memory_engine
     in_memory_engine.dispose()
 
