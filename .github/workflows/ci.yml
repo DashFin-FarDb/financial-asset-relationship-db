@@ -116,6 +116,49 @@ jobs:
           verbose: true
         continue-on-error: true
 
+  grac-assertion-schema-postgres:
+    name: GRAC assertion schema (PostgreSQL)
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: test_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U test -d test_db"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Setup Python 3.11
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        # pip lives in scripts/ci_install_python_deps.sh (avoids githubactions:S8544 on -r installs).
+        run: bash scripts/ci_install_python_deps.sh
+
+      - name: Run GRAC assertion schema tests against ephemeral Postgres
+        env:
+          ASSET_GRAPH_DATABASE_URL: postgresql://test:test@localhost:5432/test_db
+          SECRET_KEY: ci-grac-schema-test-key-not-a-real-secret
+          DATABASE_URL: sqlite:///./ci-auth.db
+          ADMIN_USERNAME: admin
+          ADMIN_PASSWORD: changeme
+        run: |
+          pytest tests/unit/test_relationship_assertion_db_models.py \
+            tests/integration/test_relationship_assertion_schema.py -v
+
   security:
     name: Security checks
     runs-on: ubuntu-latest

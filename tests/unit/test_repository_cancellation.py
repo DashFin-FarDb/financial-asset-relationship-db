@@ -10,6 +10,7 @@ from sqlalchemy.orm import sessionmaker
 
 from src.data.db_models import Base, RebuildJobStatus
 from src.data.repository import AssetGraphRepository, RebuildCancellationRequestedError, RebuildFailureDetails
+from tests.conftest import enable_sqlite_foreign_keys
 
 pytestmark = pytest.mark.unit
 
@@ -19,6 +20,9 @@ def repo(tmp_path: Path) -> Generator[AssetGraphRepository, None, None]:
     """Fixture providing an AssetGraphRepository with an initialized SQLite database."""
     db_path = tmp_path / "test.db"
     engine = create_engine(f"sqlite:///{db_path}")
+    # GRAC CHECKs use translate(); register UDF before create_all (metadata may
+    # already include assertion tables once another test called init_db).
+    enable_sqlite_foreign_keys(engine)
     Base.metadata.create_all(engine)
     session_factory = sessionmaker(bind=engine)
     session = session_factory()
