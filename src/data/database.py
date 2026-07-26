@@ -46,13 +46,25 @@ def configure_sqlite_engine(engine: Engine) -> Engine:
     """Attach SQLite connection hooks required for GRAC FK + CHECK integrity.
 
     Registers a Postgres-compatible ``translate`` UDF and enables
-    ``PRAGMA foreign_keys=ON`` on every new DB-API connection. Disposes any
-    pre-listener pooled connections so the next checkout picks up the hooks.
+    ``PRAGMA foreign_keys=ON`` on every new DB-API connection. File-backed
+    engines dispose pooled connections so the next checkout picks up the hooks;
+    in-memory engines configure the live connection in place so StaticPool
+    state is preserved.
     """
     if event.contains(engine, "connect", _configure_sqlite_connection):
         return engine
     event.listen(engine, "connect", _configure_sqlite_connection)
-    engine.dispose()
+
+    url = make_url(str(engine.url))
+    database = url.database or ""
+    query: dict = dict(url.query) if getattr(url, "query", None) else {}
+    is_memory = database == ":memory:" or query.get("mode") == "memory"
+    if is_memory:
+        with engine.connect() as connection:
+            dbapi_connection = connection.connection.dbapi_connection
+            _configure_sqlite_connection(dbapi_connection, None)
+    else:
+        engine.dispose()
     return engine
 
 
