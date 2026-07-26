@@ -74,18 +74,26 @@ _configure_sqlite_engine = configure_sqlite_engine
 
 def create_engine_from_url(url: str | None = None) -> Engine:
     """
-    Resolve a database URL and create a SQLAlchemy Engine configured for the asset relationship store.
+    Resolve a database URL and create a SQLAlchemy Engine for the asset store.
 
-    If `url` is None the function reads `settings.asset_graph_database_url` and falls back to DEFAULT_DATABASE_URL when unset; if `url` is an empty string it uses DEFAULT_DATABASE_URL; otherwise the provided `url` is used. For an SQLite in-memory database (database == ":memory:" or query param `mode=memory`) the returned engine is configured with `connect_args={"check_same_thread": False}` and `poolclass=StaticPool` to support in-memory usage.
+    If ``url`` is None, reads ``settings.asset_graph_database_url`` and falls
+    back to ``DEFAULT_DATABASE_URL`` when unset. An empty string forces the
+    default file-based SQLite URL; otherwise the provided ``url`` is used.
+
+    For SQLite in-memory databases (``database == ":memory:"`` or query
+    ``mode=memory``), the engine uses ``check_same_thread=False`` and
+    ``StaticPool``.
 
     Parameters:
-        url (str | None): Optional database URL to use; None selects the value from settings, empty string forces the default file-based SQLite URL.
+        url: Optional database URL. None uses settings; empty string uses the
+            default file-based SQLite URL.
 
     Returns:
-        Engine: A SQLAlchemy Engine for the resolved URL. For SQLite in-memory URLs the engine is returned with connection arguments and a static pool suitable for in-memory operation.
+        Engine configured for the resolved URL, including SQLite in-memory
+        connection arguments and a static pool when applicable.
 
     Raises:
-        ArgumentError: If `url` is provided explicitly but cannot be parsed as a valid SQLAlchemy URL.
+        ArgumentError: If an explicit ``url`` cannot be parsed as a SQLAlchemy URL.
     """
     is_explicit_url = url is not None and url != ""
     if url is None:
@@ -135,13 +143,14 @@ def create_session_factory(engine: Engine) -> sessionmaker[Session]:
     """
     Create a SQLAlchemy session factory bound to the provided engine.
 
-    The factory produces Session objects with autocommit disabled, autoflush disabled, and SQLAlchemy 2.0 `future` behavior enabled.
+    Produced sessions use autocommit disabled, autoflush disabled, and
+    SQLAlchemy 2.0 ``future`` behavior.
 
     Parameters:
-        engine (Engine): Engine to bind produced Session instances to.
+        engine: Engine to bind produced Session instances to.
 
     Returns:
-        session_factory (sessionmaker[Session]): A configured sessionmaker that produces Session objects bound to `engine`.
+        A sessionmaker that produces Session objects bound to ``engine``.
     """
     return sessionmaker(
         bind=engine,

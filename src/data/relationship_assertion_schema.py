@@ -7,7 +7,7 @@ reject UPDATE/DELETE (and PostgreSQL TRUNCATE) on all seven append-only tables.
 
 from __future__ import annotations
 
-from sqlalchemy import text
+from sqlalchemy import bindparam, text
 from sqlalchemy.engine import Connection, Engine, make_url
 
 from src.data.relationship_assertion_db_models import GRAC_TABLE_NAMES
@@ -59,18 +59,33 @@ def _require_grac_table(table_name: str) -> None:
         raise ValueError(f"unknown GRAC table for immutability guards: {table_name}")
 
 
-def _sqlite_guards_present(connection: Connection) -> bool:
-    """Return True when every GRAC table has UPDATE and DELETE triggers."""
+def _expected_sqlite_trigger_names() -> tuple[str, ...]:
+    """Return UPDATE/DELETE trigger names for all GRAC tables."""
+    names: list[str] = []
     for table_name in GRAC_TABLE_NAMES:
         update_name, delete_name, _truncate_name = list_immutability_trigger_names(table_name)
-        for name in (update_name, delete_name):
-            row = connection.execute(
-                text("SELECT 1 FROM sqlite_master WHERE type = 'trigger' AND name = :name"),
-                {"name": name},
-            ).first()
-            if row is None:
-                return False
-    return True
+        names.extend((update_name, delete_name))
+    return tuple(names)
+
+
+def _expected_postgresql_trigger_names() -> tuple[str, ...]:
+    """Return UPDATE/DELETE/TRUNCATE trigger names for all GRAC tables."""
+    names: list[str] = []
+    for table_name in GRAC_TABLE_NAMES:
+        names.extend(list_immutability_trigger_names(table_name))
+    return tuple(names)
+
+
+def _sqlite_guards_present(connection: Connection) -> bool:
+    """Return True when every GRAC table has UPDATE and DELETE triggers."""
+    expected = _expected_sqlite_trigger_names()
+    rows = connection.execute(
+        text("SELECT name FROM sqlite_master " "WHERE type = 'trigger' AND name IN :names").bindparams(
+            bindparam("names", expanding=True)
+        ),
+        {"names": list(expected)},
+    ).fetchall()
+    return {row[0] for row in rows} >= set(expected)
 
 
 def _postgresql_guards_present(connection: Connection) -> bool:
@@ -81,15 +96,12 @@ def _postgresql_guards_present(connection: Connection) -> bool:
     ).first()
     if row is None:
         return False
-    for table_name in GRAC_TABLE_NAMES:
-        for name in list_immutability_trigger_names(table_name):
-            trigger = connection.execute(
-                text("SELECT 1 FROM pg_trigger WHERE tgname = :name"),
-                {"name": name},
-            ).first()
-            if trigger is None:
-                return False
-    return True
+    expected = _expected_postgresql_trigger_names()
+    rows = connection.execute(
+        text("SELECT tgname FROM pg_trigger WHERE tgname IN :names").bindparams(bindparam("names", expanding=True)),
+        {"names": list(expected)},
+    ).fetchall()
+    return {row[0] for row in rows} >= set(expected)
 
 
 def _revoke_immutability_function_execute(connection: Connection) -> None:
