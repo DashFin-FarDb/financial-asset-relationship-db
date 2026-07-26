@@ -78,8 +78,9 @@ class TestAuthorityAndBounds:
 
     def test_validate_authority_requires_role(self) -> None:
         """Missing required role fails closed."""
+        ctx = _ctx("proposer")
         with pytest.raises(UnauthorizedTransition):
-            validate_authority(_ctx("proposer"), "acceptor")
+            validate_authority(ctx, "acceptor")
 
     def test_validate_authority_accepts_any_of_set(self) -> None:
         """Evidence-style any-of role sets succeed when one role matches."""
@@ -87,16 +88,15 @@ class TestAuthorityAndBounds:
 
     def test_rationale_bound(self) -> None:
         """Oversized rationale is rejected."""
+        plan = TransitionPlan(
+            assertion_id="as-1",
+            current="Proposed",
+            to_state="Accepted",
+            ctx=_ctx("acceptor"),
+            timing=_timing(rationale="x" * (MAX_RATIONALE_LEN + 1)),
+        )
         with pytest.raises(ValidationError, match="rationale"):
-            plan_transition(
-                TransitionPlan(
-                    assertion_id="as-1",
-                    current="Proposed",
-                    to_state="Accepted",
-                    ctx=_ctx("acceptor"),
-                    timing=_timing(rationale="x" * (MAX_RATIONALE_LEN + 1)),
-                )
-            )
+            plan_transition(plan)
 
     def test_digest_normalization(self) -> None:
         """Hyphenated digests normalize to 64 lowercase hex chars."""
@@ -126,8 +126,9 @@ class TestAuthorityAndBounds:
             proposition=proposal.proposition,
             effective_from=datetime(2026, 7, 25, 14, 0, 0, tzinfo=non_utc),
         )
+        ctx = _ctx("proposer")
         with pytest.raises(ValidationError, match="effective_from"):
-            plan_propose(shifted, _ctx("proposer"), recorded_at=NOW)
+            plan_propose(shifted, ctx, recorded_at=NOW)
 
     def test_assessed_confidence_rejects_bool(self) -> None:
         """confidence_bp must be an integer value, not bool."""
@@ -145,8 +146,9 @@ class TestAuthorityAndBounds:
             confidence_type="review",
             confidence_method="manual",
         )
+        ctx = _ctx("proposer")
         with pytest.raises(ValidationError, match="confidence_bp"):
-            plan_propose(assessed, _ctx("proposer"), recorded_at=NOW)
+            plan_propose(assessed, ctx, recorded_at=NOW)
 
 
 class TestProposeAndResolve:
@@ -163,8 +165,10 @@ class TestProposeAndResolve:
 
     def test_propose_requires_proposer(self) -> None:
         """Non-proposer cannot create assertions."""
+        proposal = _proposal()
+        ctx = _ctx("acceptor")
         with pytest.raises(UnauthorizedTransition):
-            plan_propose(_proposal(), _ctx("acceptor"), recorded_at=NOW)
+            plan_propose(proposal, ctx, recorded_at=NOW)
 
     def test_resolve_state_folds_sequence(self) -> None:
         """State resolution follows the highest sequence event."""
@@ -273,26 +277,22 @@ class TestTransitionMatrix:
     )
     def test_illegal_edges_rejected(self, from_state, to_state, transitions) -> None:
         """Out-of-matrix and terminal-exit edges raise IllegalTransition."""
+        plan = TransitionPlan(
+            assertion_id="as-1",
+            current=from_state,
+            to_state=to_state,
+            ctx=_ctx("acceptor", "proposer", "disputer", "retractor"),
+            timing=_timing(rationale="illegal", transitions=transitions),
+        )
         with pytest.raises(IllegalTransition):
-            plan_transition(
-                TransitionPlan(
-                    assertion_id="as-1",
-                    current=from_state,
-                    to_state=to_state,
-                    ctx=_ctx("acceptor", "proposer", "disputer", "retractor"),
-                    timing=_timing(rationale="illegal", transitions=transitions),
-                )
-            )
+            plan_transition(plan)
 
     def test_wrong_role_rejected(self, transitions) -> None:
         """Correct edge with wrong authority fails closed."""
+        ctx = _ctx("proposer")
+        timing = _timing(rationale="nope", transitions=transitions)
         with pytest.raises(UnauthorizedTransition):
-            plan_accept(
-                "as-1",
-                "Proposed",
-                _ctx("proposer"),
-                timing=_timing(rationale="nope", transitions=transitions),
-            )
+            plan_accept("as-1", "Proposed", ctx, timing=timing)
 
     @pytest.mark.parametrize(
         ("plan", "exc_type", "match"),
@@ -342,23 +342,17 @@ class TestConcurrencyGuard:
 
     def test_expected_sequence_must_be_positive(self) -> None:
         """expected_sequence < 1 is a concurrency conflict."""
+        ctx = _ctx("acceptor")
+        timing = _timing(expected_sequence=0, rationale="bad")
         with pytest.raises(ConcurrencyConflict):
-            plan_accept(
-                "as-1",
-                "Proposed",
-                _ctx("acceptor"),
-                timing=_timing(expected_sequence=0, rationale="bad"),
-            )
+            plan_accept("as-1", "Proposed", ctx, timing=timing)
 
     def test_expected_sequence_rejects_bool(self) -> None:
         """expected_sequence must be an integer sequence, not bool."""
+        ctx = _ctx("acceptor")
+        timing = _timing(expected_sequence=True, rationale="bad")  # type: ignore[arg-type]
         with pytest.raises(ValidationError, match="expected_sequence"):
-            plan_accept(
-                "as-1",
-                "Proposed",
-                _ctx("acceptor"),
-                timing=_timing(expected_sequence=True, rationale="bad"),  # type: ignore[arg-type]
-            )
+            plan_accept("as-1", "Proposed", ctx, timing=timing)
 
     def test_next_sequence_is_expected_plus_one(self) -> None:
         """Planned event sequence is always expected_sequence + 1."""
@@ -376,19 +370,18 @@ class TestSupersessionCycles:
 
     def test_self_supersession_forbidden(self) -> None:
         """An assertion cannot supersede itself."""
-        with pytest.raises(SupersessionCycle):
-            plan_supersede(
-                SupersedePlan(
-                    transition=TransitionPlan(
-                        assertion_id="as-1",
-                        current="Accepted",
-                        to_state="Superseded",
-                        ctx=_ctx("acceptor"),
-                        timing=_timing(rationale="self"),
-                        successor_assertion_id="as-1",
-                    )
-                )
+        plan = SupersedePlan(
+            transition=TransitionPlan(
+                assertion_id="as-1",
+                current="Accepted",
+                to_state="Superseded",
+                ctx=_ctx("acceptor"),
+                timing=_timing(rationale="self"),
+                successor_assertion_id="as-1",
             )
+        )
+        with pytest.raises(SupersessionCycle):
+            plan_supersede(plan)
 
     def test_cycle_via_lookup_forbidden(self) -> None:
         """Successor chains that reach the predecessor are rejected."""
@@ -452,15 +445,14 @@ class TestEvidencePlanning:
             polarity=polarity,
             recorded_at=NOW,
         )
+        plan = EvidenceRegistrationPlan(
+            assertion_id="as-1",
+            state=state,
+            link=link,
+            ctx=_ctx(role),
+        )
         with pytest.raises(exc_type):
-            plan_register_evidence(
-                EvidenceRegistrationPlan(
-                    assertion_id="as-1",
-                    state=state,
-                    link=link,
-                    ctx=_ctx(role),
-                )
-            )
+            plan_register_evidence(plan)
 
 
 class TestNamedPlanners:

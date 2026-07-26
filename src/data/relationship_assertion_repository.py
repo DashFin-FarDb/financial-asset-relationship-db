@@ -208,6 +208,11 @@ def _evidence_identity_tuple(evidence: EvidenceRecord) -> tuple[object, ...]:
     )
 
 
+def _with_recorded_at(evidence: EvidenceRecord, recorded_at: datetime) -> EvidenceRecord:
+    """Return typed evidence with its repository-assigned recording timestamp."""
+    return cast(EvidenceRecord, replace(evidence, recorded_at=recorded_at))
+
+
 def _is_foreign_key_integrity_error(exc: IntegrityError) -> bool:
     """Return True when ``exc`` looks like a foreign-key violation."""
     detail = str(getattr(exc, "orig", None) or exc).lower()
@@ -253,7 +258,6 @@ def _validate_event_identity(assertion_id: str, event: AssertionEvent) -> None:
 
 
 def _validate_event_sequence(
-    assertion_id: str,
     event: AssertionEvent,
     expected_sequence: int,
     current_max: int,
@@ -267,7 +271,7 @@ def _validate_event_sequence(
 def _validate_supersede_state(predecessor_id: str, pred_state: LifecycleState) -> None:
     if pred_state not in ("Accepted", "Disputed"):
         raise ValidationError(
-            f"predecessor {predecessor_id} must be Accepted or Disputed to supersede " f"(current={pred_state})"
+            f"predecessor {predecessor_id} must be Accepted or Disputed to supersede (current={pred_state})"
         )
 
 
@@ -393,7 +397,7 @@ class RelationshipAssertionRepository:
         so matrix authority and successor checks cannot be bypassed with a fabricated event.
         """
         _validate_event_identity(assertion_id, event)
-        _validate_event_sequence(assertion_id, event, expected_sequence, self._max_sequence(assertion_id))
+        _validate_event_sequence(event, expected_sequence, self._max_sequence(assertion_id))
         if self._session.get(RelationshipAssertionORM, assertion_id) is None:
             raise ValidationError(f"unknown assertion_id: {assertion_id}")
         self._insert_event_orm(event)
@@ -429,7 +433,7 @@ class RelationshipAssertionRepository:
     def register_evidence(self, request: RegisterEvidenceRequest) -> tuple[EvidenceRecord, EvidenceLink]:
         """Register immutable evidence (digest-validated) and an append-only polarity link."""
         stamp = request.recorded_at or self._clock()
-        normalized = validate_evidence_record(replace(request.evidence, recorded_at=stamp))
+        normalized = validate_evidence_record(_with_recorded_at(request.evidence, stamp))
         link = self._plan_evidence_link(request, normalized, stamp)
         stored_evidence = self._upsert_evidence(normalized)
         existing = self._find_evidence_link(request.assertion_id, normalized.evidence_id)
@@ -655,9 +659,7 @@ class RelationshipAssertionRepository:
             raise ValidationError(f"unknown successor_assertion_id: {successor_assertion_id}")
         state = self._current_state(successor_assertion_id)
         if state != "Accepted":
-            raise ValidationError(
-                f"successor {successor_assertion_id} must be Accepted to supersede " f"(current={state})"
-            )
+            raise ValidationError(f"successor {successor_assertion_id} must be Accepted to supersede (current={state})")
 
     def _current_state(self, assertion_id: str) -> LifecycleState:
         events = self._load_events(assertion_id)

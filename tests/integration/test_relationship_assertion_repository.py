@@ -150,11 +150,10 @@ class TestProposeIdempotency:
     def test_propose_conflict_on_different_payload(self, repo) -> None:
         """Same id with a different proposition fails closed."""
         repo.propose(_proposal(), _ctx("proposer"))
+        proposal = _proposal(proposition="Different proposition text")
+        ctx = _ctx("proposer")
         with pytest.raises(ValidationError, match="different proposition"):
-            repo.propose(
-                _proposal(proposition="Different proposition text"),
-                _ctx("proposer"),
-            )
+            repo.propose(proposal, ctx)
 
 
 class TestTransitionsAndIllegal:
@@ -203,35 +202,33 @@ class TestTransitionsAndIllegal:
     def test_illegal_transition_rejected(self, repo) -> None:
         """Out-of-matrix transitions never append events."""
         repo.propose(_proposal(), _ctx("proposer"))
+        request = _transition(
+            {
+                "assertion_id": "as-1",
+                "to_state": "Disputed",
+                "ctx": _ctx("disputer"),
+                "expected_sequence": 1,
+                "rationale": "illegal",
+            }
+        )
         with pytest.raises(IllegalTransition):
-            repo.transition(
-                _transition(
-                    {
-                        "assertion_id": "as-1",
-                        "to_state": "Disputed",
-                        "ctx": _ctx("disputer"),
-                        "expected_sequence": 1,
-                        "rationale": "illegal",
-                    }
-                )
-            )
+            repo.transition(request)
         assert repo.max_sequence("as-1") == 1
 
     def test_unauthorized_transition_rejected(self, repo) -> None:
         """Wrong authority does not mutate history."""
         repo.propose(_proposal(), _ctx("proposer"))
+        request = _transition(
+            {
+                "assertion_id": "as-1",
+                "to_state": "Accepted",
+                "ctx": _ctx("proposer"),
+                "expected_sequence": 1,
+                "rationale": "nope",
+            }
+        )
         with pytest.raises(UnauthorizedTransition):
-            repo.transition(
-                _transition(
-                    {
-                        "assertion_id": "as-1",
-                        "to_state": "Accepted",
-                        "ctx": _ctx("proposer"),
-                        "expected_sequence": 1,
-                        "rationale": "nope",
-                    }
-                )
-            )
+            repo.transition(request)
         assert repo.current_state("as-1") == "Proposed"
 
     def test_assertion_rows_remain_immutable(self, repo, repo_session) -> None:
@@ -263,18 +260,17 @@ class TestConcurrency:
                 }
             )
         )
+        request = _transition(
+            {
+                "assertion_id": "as-1",
+                "to_state": "Disputed",
+                "ctx": _ctx("disputer"),
+                "expected_sequence": 1,
+                "rationale": "stale",
+            }
+        )
         with pytest.raises(ConcurrencyConflict):
-            repo.transition(
-                _transition(
-                    {
-                        "assertion_id": "as-1",
-                        "to_state": "Disputed",
-                        "ctx": _ctx("disputer"),
-                        "expected_sequence": 1,
-                        "rationale": "stale",
-                    }
-                )
-            )
+            repo.transition(request)
         assert repo.current_state("as-1") == "Accepted"
         assert repo.max_sequence("as-1") == 2
 
@@ -312,15 +308,14 @@ class TestEvidenceRegistration:
             custody_id="c1",
             recorded_at=NOW,
         )
+        request = RegisterEvidenceRequest(
+            assertion_id="as-1",
+            evidence=bad,
+            polarity="supporting",
+            ctx=_ctx("proposer"),
+        )
         with pytest.raises(ValidationError, match="content_sha256"):
-            repo.register_evidence(
-                RegisterEvidenceRequest(
-                    assertion_id="as-1",
-                    evidence=bad,
-                    polarity="supporting",
-                    ctx=_ctx("proposer"),
-                )
-            )
+            repo.register_evidence(request)
 
     def test_evidence_link_idempotent(self, repo) -> None:
         """Duplicate assertion/evidence link returns the original polarity link."""
@@ -356,15 +351,14 @@ class TestEvidenceRegistration:
             recorded_at=NOW,
             licensing="CC-BY-4.0",
         )
+        request = RegisterEvidenceRequest(
+            assertion_id="as-1",
+            evidence=changed,
+            polarity="supporting",
+            ctx=_ctx("proposer"),
+        )
         with pytest.raises(ValidationError, match="different metadata"):
-            repo.register_evidence(
-                RegisterEvidenceRequest(
-                    assertion_id="as-1",
-                    evidence=changed,
-                    polarity="supporting",
-                    ctx=_ctx("proposer"),
-                )
-            )
+            repo.register_evidence(request)
 
 
 class TestSupersessionAtomics:
@@ -395,16 +389,15 @@ class TestSupersessionAtomics:
         """Failed CAS leaves neither orphan successor nor superseded predecessor."""
         _propose_accepted(repo, "as-pred")
         repo_session.commit()
+        request = SupersedeAtomicRequest(
+            predecessor_id="as-pred",
+            successor_proposal=_proposal("as-succ"),
+            ctx=_ctx("proposer", "acceptor"),
+            expected_sequence=1,
+            rationale="stale supersede",
+        )
         with pytest.raises(ConcurrencyConflict):
-            repo.supersede_atomic(
-                SupersedeAtomicRequest(
-                    predecessor_id="as-pred",
-                    successor_proposal=_proposal("as-succ"),
-                    ctx=_ctx("proposer", "acceptor"),
-                    expected_sequence=1,
-                    rationale="stale supersede",
-                )
-            )
+            repo.supersede_atomic(request)
         repo_session.rollback()
         assert repo_session.get(RelationshipAssertionORM, "as-succ") is None
         assert repo.current_state("as-pred") == "Accepted"
@@ -412,16 +405,15 @@ class TestSupersessionAtomics:
     def test_self_supersession_rejected(self, repo) -> None:
         """Self-supersession is forbidden at the repository boundary."""
         _propose_accepted(repo, "as-1")
+        request = SupersedeAtomicRequest(
+            predecessor_id="as-1",
+            successor_proposal=_proposal("as-1"),
+            ctx=_ctx("proposer", "acceptor"),
+            expected_sequence=2,
+            rationale="self",
+        )
         with pytest.raises(SupersessionCycle):
-            repo.supersede_atomic(
-                SupersedeAtomicRequest(
-                    predecessor_id="as-1",
-                    successor_proposal=_proposal("as-1"),
-                    ctx=_ctx("proposer", "acceptor"),
-                    expected_sequence=2,
-                    rationale="self",
-                )
-            )
+            repo.supersede_atomic(request)
 
     @pytest.mark.parametrize(
         ("successor_id", "seed_proposed", "match"),
@@ -442,19 +434,18 @@ class TestSupersessionAtomics:
         _propose_accepted(repo, "as-pred")
         if seed_proposed:
             repo.propose(_proposal(successor_id), _ctx("proposer"))
+        request = _transition(
+            {
+                "assertion_id": "as-pred",
+                "to_state": "Superseded",
+                "ctx": _ctx("acceptor"),
+                "expected_sequence": 2,
+                "rationale": "invalid successor",
+                "successor_assertion_id": successor_id,
+            }
+        )
         with pytest.raises(ValidationError, match=match):
-            repo.transition(
-                _transition(
-                    {
-                        "assertion_id": "as-pred",
-                        "to_state": "Superseded",
-                        "ctx": _ctx("acceptor"),
-                        "expected_sequence": 2,
-                        "rationale": "invalid successor",
-                        "successor_assertion_id": successor_id,
-                    }
-                )
-            )
+            repo.transition(request)
         assert repo.current_state("as-pred") == "Accepted"
         if seed_proposed:
             assert repo.current_state(successor_id) == "Proposed"
