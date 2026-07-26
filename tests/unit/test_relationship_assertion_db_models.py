@@ -21,7 +21,11 @@ from src.data.relationship_assertion_db_models import (
     RelationshipProjectionPublicationORM,
     RelationshipProjectionRevisionORM,
 )
-from src.data.relationship_assertion_schema import _revoke_immutability_function_execute
+from src.data.relationship_assertion_schema import (
+    _UNTRUSTED_DATABASE_ROLES_ENV,
+    _revoke_immutability_function_execute,
+    _untrusted_database_roles,
+)
 
 UTC = timezone.utc
 
@@ -496,13 +500,40 @@ def test_revoke_immutability_execute_scopes_acl_check_to_current_schema() -> Non
     assert connection.execute.call_count == 2
     revoke_sql = str(connection.execute.call_args_list[0].args[0])
     acl_sql = str(connection.execute.call_args_list[1].args[0])
+    acl_params = connection.execute.call_args_list[1].args[1]
     assert "pg_catalog.current_schema()" in revoke_sql
     assert "%I.%I()" in revoke_sql
     assert "undefined_object" in revoke_sql
+    assert "'anon'" in revoke_sql
+    assert "'authenticated'" in revoke_sql
     assert "pg_catalog.current_schema()" in acl_sql
     assert "pg_namespace" in acl_sql
     assert "pronargs = 0" in acl_sql
     assert "acl.grantee = 0" in acl_sql
     assert "pg_roles" in acl_sql
-    assert "'anon'" in acl_sql
-    assert "'authenticated'" in acl_sql
+    assert "rolname IN" in acl_sql
+    assert "roles" in acl_sql
+    assert acl_params["roles"] == ["anon", "authenticated"]
+
+
+def test_untrusted_database_roles_honor_fardb_env(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Schema privilege repair must use FARDB_UNTRUSTED_DATABASE_ROLES when set."""
+    monkeypatch.setenv(_UNTRUSTED_DATABASE_ROLES_ENV, "public_reader, api_user")
+    assert _untrusted_database_roles() == ("public_reader", "api_user")
+
+    connection = MagicMock()
+    connection.execute.return_value.scalar.return_value = False
+    _revoke_immutability_function_execute(connection)
+
+    revoke_sql = str(connection.execute.call_args_list[0].args[0])
+    acl_params = connection.execute.call_args_list[1].args[1]
+    assert "'public_reader'" in revoke_sql
+    assert "'api_user'" in revoke_sql
+    assert "'anon'" not in revoke_sql
+    assert acl_params["roles"] == ["public_reader", "api_user"]
+
+
+def test_untrusted_database_roles_reject_unsafe_identity() -> None:
+    """Invalid FARDB_UNTRUSTED_DATABASE_ROLES must fail closed."""
+    with pytest.raises(ValueError, match=_UNTRUSTED_DATABASE_ROLES_ENV):
+        _untrusted_database_roles({_UNTRUSTED_DATABASE_ROLES_ENV: "anon,role;select"})

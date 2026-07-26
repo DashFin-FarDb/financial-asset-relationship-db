@@ -7,6 +7,10 @@ reject UPDATE/DELETE (and PostgreSQL TRUNCATE) on all seven append-only tables.
 
 from __future__ import annotations
 
+import os
+import re
+from collections.abc import Mapping
+
 from sqlalchemy import bindparam, text
 from sqlalchemy.engine import Connection, Engine, make_url
 
@@ -16,6 +20,10 @@ from src.data.relationship_assertion_db_models import GRAC_TABLE_NAMES
 _IMMUTABILITY_FUNCTION = "grac_v1_reject_mutation"
 _TRIGGER_PREFIX = "grac_imm"
 _GRAC_TABLE_NAME_SET = frozenset(GRAC_TABLE_NAMES)
+# Match scripts/check_database_authorization.py untrusted-role resolution.
+_UNTRUSTED_DATABASE_ROLES_ENV = "FARDB_UNTRUSTED_DATABASE_ROLES"
+_DEFAULT_UNTRUSTED_DATABASE_ROLES = ("anon", "authenticated")
+_SAFE_ROLE_PATTERN = re.compile(r"^[a-z_][a-z0-9_]*$")
 
 
 def ensure_relationship_assertion_schema(engine: Engine) -> None:
@@ -110,15 +118,34 @@ def _postgresql_guards_present(connection: Connection) -> bool:
     return {row[0] for row in rows} >= set(expected)
 
 
+def _untrusted_database_roles(environment: Mapping[str, str] | None = None) -> tuple[str, ...]:
+    """Resolve untrusted DB roles; same contract as check_database_authorization."""
+    env = os.environ if environment is None else environment
+    raw_roles = env.get(_UNTRUSTED_DATABASE_ROLES_ENV)
+    if raw_roles is None:
+        return _DEFAULT_UNTRUSTED_DATABASE_ROLES
+    roles = tuple(dict.fromkeys(role.strip() for role in raw_roles.split(",")))
+    if not roles or any(not _SAFE_ROLE_PATTERN.fullmatch(role) for role in roles):
+        raise ValueError(
+            f"invalid {_UNTRUSTED_DATABASE_ROLES_ENV}; expected comma-separated "
+            "role identifiers matching ^[a-z_][a-z0-9_]*$"
+        )
+    return roles
+
+
 def _revoke_immutability_function_execute(connection: Connection) -> None:
     """Revoke PUBLIC/untrusted EXECUTE on the current-schema raise function; fail if any retain it.
 
     Scoped to ``pg_catalog.current_schema()`` so a same-named function in another
     schema with PUBLIC EXECUTE cannot block startup or receive REVOKE.
-    After REVOKE, verify neither PUBLIC nor existing ``anon``/``authenticated``
-    roles retain EXECUTE (aligned with ``scripts/check_database_authorization.py``).
+    After REVOKE, verify neither PUBLIC nor configured untrusted roles
+    (``FARDB_UNTRUSTED_DATABASE_ROLES``, default ``anon``/``authenticated``)
+    retain EXECUTE — aligned with ``scripts/check_database_authorization.py``.
     Missing untrusted roles stay non-fatal via ``undefined_object`` suppression.
     """
+    untrusted_roles = _untrusted_database_roles()
+    role_placeholders = ", ".join("%I" for _ in untrusted_roles)
+    role_format_args = ",\n                        ".join(f"'{role}'" for role in untrusted_roles)
     # nosemgrep: python.sqlalchemy.security.audit.avoid-sqlalchemy-text.avoid-sqlalchemy-text
     connection.execute(text(f"""
             DO $revoke$
@@ -135,9 +162,10 @@ def _revoke_immutability_function_execute(connection: Connection) -> None:
                 END;
                 BEGIN
                     EXECUTE format(
-                        'REVOKE ALL PRIVILEGES ON FUNCTION %I.%I() FROM anon, authenticated',
+                        'REVOKE ALL PRIVILEGES ON FUNCTION %I.%I() FROM {role_placeholders}',
                         pg_catalog.current_schema(),
-                        '{_IMMUTABILITY_FUNCTION}'
+                        '{_IMMUTABILITY_FUNCTION}',
+                        {role_format_args}
                     );
                 EXCEPTION
                     WHEN undefined_object THEN
@@ -149,7 +177,7 @@ def _revoke_immutability_function_execute(connection: Connection) -> None:
             $revoke$;
             """))
     # aclexplode grantee 0 is PUBLIC; default ACL still grants PUBLIC EXECUTE.
-    # Also reject explicit EXECUTE to anon/authenticated when those roles exist.
+    # Also reject explicit EXECUTE to configured untrusted roles when they exist.
     # Limit to the zero-arg function in the active schema (trigger target), not every proname match.
     untrusted_execute = connection.execute(
         text("""
@@ -169,12 +197,12 @@ def _revoke_immutability_function_execute(connection: Connection) -> None:
                         OR acl.grantee IN (
                             SELECT oid
                             FROM pg_roles
-                            WHERE rolname IN ('anon', 'authenticated')
+                            WHERE rolname IN :roles
                         )
                     )
             )
-            """),
-        {"name": _IMMUTABILITY_FUNCTION},
+            """).bindparams(bindparam("roles", expanding=True)),
+        {"name": _IMMUTABILITY_FUNCTION, "roles": list(untrusted_roles)},
     ).scalar()
     if untrusted_execute:
         raise PermissionError(
