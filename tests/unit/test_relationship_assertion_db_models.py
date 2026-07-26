@@ -484,3 +484,20 @@ def test_revoke_immutability_execute_raises_when_public_retains_privilege() -> N
     connection.execute.return_value.scalar.return_value = True
     with pytest.raises(PermissionError, match="PUBLIC EXECUTE"):
         _revoke_immutability_function_execute(connection)
+
+
+def test_revoke_immutability_execute_scopes_acl_check_to_current_schema() -> None:
+    """PUBLIC EXECUTE verification must not match same-named functions in other schemas."""
+    connection = MagicMock()
+    connection.execute.return_value.scalar.return_value = False
+
+    _revoke_immutability_function_execute(connection)
+
+    assert connection.execute.call_count == 2
+    revoke_sql = str(connection.execute.call_args_list[0].args[0])
+    acl_sql = str(connection.execute.call_args_list[1].args[0])
+    assert "pg_catalog.current_schema()" in revoke_sql
+    assert "%I.%I()" in revoke_sql
+    assert "pg_catalog.current_schema()" in acl_sql
+    assert "pg_namespace" in acl_sql
+    assert "pronargs = 0" in acl_sql

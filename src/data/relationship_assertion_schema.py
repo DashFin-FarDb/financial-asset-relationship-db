@@ -89,7 +89,14 @@ def _sqlite_guards_present(connection: Connection) -> bool:
 def _postgresql_guards_present(connection: Connection) -> bool:
     """Return True when the function and all table triggers exist."""
     row = connection.execute(
-        text("SELECT 1 FROM pg_proc WHERE proname = :name"),
+        text("""
+            SELECT 1
+            FROM pg_proc AS p
+            JOIN pg_namespace AS n ON n.oid = p.pronamespace
+            WHERE p.proname = :name
+              AND p.pronargs = 0
+              AND n.nspname = pg_catalog.current_schema()
+            """),
         {"name": _IMMUTABILITY_FUNCTION},
     ).first()
     if row is None:
@@ -103,20 +110,31 @@ def _postgresql_guards_present(connection: Connection) -> bool:
 
 
 def _revoke_immutability_function_execute(connection: Connection) -> None:
-    """Revoke PUBLIC/untrusted EXECUTE on the raise function; fail if PUBLIC retains it."""
+    """Revoke PUBLIC/untrusted EXECUTE on the current-schema raise function; fail if PUBLIC retains it.
+
+    Scoped to ``pg_catalog.current_schema()`` so a same-named function in another
+    schema with PUBLIC EXECUTE cannot block startup or receive REVOKE.
+    """
     # nosemgrep: python.sqlalchemy.security.audit.avoid-sqlalchemy-text.avoid-sqlalchemy-text
     connection.execute(text(f"""
             DO $revoke$
             BEGIN
                 BEGIN
-                    EXECUTE 'REVOKE ALL PRIVILEGES ON FUNCTION {_IMMUTABILITY_FUNCTION}() FROM PUBLIC';
+                    EXECUTE format(
+                        'REVOKE ALL PRIVILEGES ON FUNCTION %I.%I() FROM PUBLIC',
+                        pg_catalog.current_schema(),
+                        '{_IMMUTABILITY_FUNCTION}'
+                    );
                 EXCEPTION
                     WHEN insufficient_privilege THEN
                         NULL;
                 END;
                 BEGIN
-                    EXECUTE 'REVOKE ALL PRIVILEGES ON FUNCTION {_IMMUTABILITY_FUNCTION}() '
-                        'FROM anon, authenticated';
+                    EXECUTE format(
+                        'REVOKE ALL PRIVILEGES ON FUNCTION %I.%I() FROM anon, authenticated',
+                        pg_catalog.current_schema(),
+                        '{_IMMUTABILITY_FUNCTION}'
+                    );
                 EXCEPTION
                     WHEN undefined_object THEN
                         NULL;
@@ -127,17 +145,21 @@ def _revoke_immutability_function_execute(connection: Connection) -> None:
             $revoke$;
             """))
     # aclexplode grantee 0 is PUBLIC; default ACL still grants PUBLIC EXECUTE.
+    # Limit to the zero-arg function in the active schema (trigger target), not every proname match.
     public_execute = connection.execute(
         text("""
             SELECT EXISTS (
                 SELECT 1
                 FROM pg_proc AS p
+                JOIN pg_namespace AS n ON n.oid = p.pronamespace
                 CROSS JOIN LATERAL aclexplode(
                     COALESCE(p.proacl, acldefault('f', p.proowner))
                 ) AS acl(grantor, grantee, privilege_type, is_grantable)
                 WHERE p.proname = :name
-                AND acl.privilege_type = 'EXECUTE'
-                AND acl.grantee = 0
+                  AND p.pronargs = 0
+                  AND n.nspname = pg_catalog.current_schema()
+                  AND acl.privilege_type = 'EXECUTE'
+                  AND acl.grantee = 0
             )
             """),
         {"name": _IMMUTABILITY_FUNCTION},
