@@ -5,6 +5,7 @@ from __future__ import annotations
 import os
 from collections.abc import Generator, Iterator
 from datetime import datetime, timedelta, timezone
+from typing import TypeVar
 from unittest import TestCase
 
 import pytest
@@ -39,13 +40,14 @@ KNOWN_AT = NOW + timedelta(days=1)
 PURPOSE = "financial_graph_current_view"
 PREDICATE_ID = "financial.bond.issuer_reference@1"
 DIGEST = "c" * 64
+_T = TypeVar("_T")
 
 
 def _sha256_hex(*chunks: str) -> str:
     return "".join(chunks)
 
 
-def _require_present[T](value: T | None, label: str) -> T:
+def _require_present(value: _T | None, label: str) -> _T:
     if value is None:
         raise AssertionError(f"Expected {label} to be present")
     return value
