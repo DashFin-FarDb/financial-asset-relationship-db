@@ -224,7 +224,7 @@ class ProjectionRevisionStore:
                 RelationshipAssertionORM.id.in_(assertion_ids)
             )
         ).all()
-        predicate_by_assertion = {assertion_id: predicate_id for assertion_id, predicate_id in rows}
+        predicate_by_assertion = dict(rows)
         for assertion_id in assertion_ids:
             if assertion_id not in predicate_by_assertion:
                 raise ValidationError(f"projection edge references unknown assertion_id: {assertion_id}")

@@ -355,8 +355,9 @@ def test_fail_closed_on_cardinality_conflict(predicates) -> None:
     right = _assertion(_AssertionSpec(assertion_id="as-2", object_id="MSFT"))
     events = _propose_accept_events("as-1", proposed_at=NOW, accepted_at=NOW + timedelta(minutes=1))
     events += _propose_accept_events("as-2", proposed_at=NOW, accepted_at=NOW + timedelta(minutes=2))
+    spec = _ProjectSpec(assertions=[left, right], events=events)
     with pytest.raises(ProjectionError, match="projection conflict"):
-        _project(predicates, _ProjectSpec(assertions=[left, right], events=events))
+        _project(predicates, spec)
 
 
 def test_supersession_selection_changes_projection(predicates) -> None:
@@ -501,19 +502,18 @@ def test_naive_datetime_rejected(predicates) -> None:
     """Projector requires timezone-aware UTC instants."""
     assertion = _assertion()
     events = _propose_accept_events("as-1", proposed_at=NOW, accepted_at=NOW + timedelta(minutes=1))
+    request = ProjectRequest(
+        assertions=[assertion],
+        events=events,
+        evidence=[],
+        evidence_links=[],
+        predicate_registry=predicates,
+        purpose=PURPOSE,
+        effective_at=datetime(2026, 7, 25, 15, 0, 0),
+        known_at=NOW,
+    )
     with pytest.raises(ValidationError, match="timezone-aware UTC"):
-        project(
-            ProjectRequest(
-                assertions=[assertion],
-                events=events,
-                evidence=[],
-                evidence_links=[],
-                predicate_registry=predicates,
-                purpose=PURPOSE,
-                effective_at=datetime(2026, 7, 25, 15, 0, 0),
-                known_at=NOW,
-            )
-        )
+        project(request)
 
 
 def test_purpose_filter_excludes_other_purposes(predicates) -> None:
@@ -532,15 +532,13 @@ def test_missing_evidence_record_for_link_fails_closed(predicates) -> None:
     """Projection fails closed when a link references missing evidence."""
     assertion = _assertion()
     events = _propose_accept_events("as-1", proposed_at=NOW, accepted_at=NOW + timedelta(minutes=1))
+    spec = _ProjectSpec(
+        assertions=[assertion],
+        events=events,
+        evidence_links=[_link("as-1")],
+    )
     with pytest.raises(ProjectionError, match="missing evidence record"):
-        _project(
-            predicates,
-            _ProjectSpec(
-                assertions=[assertion],
-                events=events,
-                evidence_links=[_link("as-1")],
-            ),
-        )
+        _project(predicates, spec)
 
 
 def test_empty_projection_hashes_are_lowercase_hex(predicates) -> None:
@@ -556,8 +554,9 @@ def test_same_object_conflict_still_fails_closed(predicates) -> None:
     right = _assertion(_AssertionSpec(assertion_id="as-2", object_id="AAPL"))
     events = _propose_accept_events("as-1", proposed_at=NOW, accepted_at=NOW + timedelta(minutes=1))
     events += _propose_accept_events("as-2", proposed_at=NOW, accepted_at=NOW + timedelta(minutes=2))
+    spec = _ProjectSpec(assertions=[left, right], events=events)
     with pytest.raises(ProjectionError, match="projection conflict"):
-        _project(predicates, _ProjectSpec(assertions=[left, right], events=events))
+        _project(predicates, spec)
 
 
 def test_unregistered_method_id_fails_closed(predicates) -> None:
@@ -578,24 +577,25 @@ def test_unregistered_method_id_fails_closed(predicates) -> None:
         recorded_at=NOW,
     )
     events = _propose_accept_events("as-1", proposed_at=NOW, accepted_at=NOW + timedelta(minutes=1))
+    spec = _ProjectSpec(assertions=[assertion], events=events)
     with pytest.raises(ProjectionError, match="not registered for predicate"):
-        _project(predicates, _ProjectSpec(assertions=[assertion], events=events))
+        _project(predicates, spec)
 
 
 def test_duplicate_evidence_id_fails_closed(predicates) -> None:
     """Duplicate evidence ids in projection inputs fail closed before hashing."""
     assertion = _assertion()
     events = _propose_accept_events("as-1", proposed_at=NOW, accepted_at=NOW + timedelta(minutes=1))
+    evidence = [_evidence("evd-1", DIGEST_A), _evidence("evd-1", "d" * 64)]
+    evidence_links = [_link("as-1")]
+    spec = _ProjectSpec(
+        assertions=[assertion],
+        events=events,
+        evidence=evidence,
+        evidence_links=evidence_links,
+    )
     with pytest.raises(ProjectionError, match="duplicate evidence id"):
-        _project(
-            predicates,
-            _ProjectSpec(
-                assertions=[assertion],
-                events=events,
-                evidence=[_evidence("evd-1", DIGEST_A), _evidence("evd-1", "d" * 64)],
-                evidence_links=[_link("as-1")],
-            ),
-        )
+        _project(predicates, spec)
 
 
 def test_future_evidence_record_fails_closed_for_historical_known_at(predicates) -> None:
@@ -611,14 +611,13 @@ def test_future_evidence_record_fails_closed_for_historical_known_at(predicates)
         custody_id="collector-1",
         recorded_at=NOW + timedelta(days=2),
     )
+    evidence_links = [_link("as-1", recorded_at=NOW + timedelta(minutes=2))]
+    spec = _ProjectSpec(
+        assertions=[assertion],
+        events=events,
+        known_at=NOW + timedelta(hours=1),
+        evidence=[future_evidence],
+        evidence_links=evidence_links,
+    )
     with pytest.raises(ProjectionError, match="recorded after known_at"):
-        _project(
-            predicates,
-            _ProjectSpec(
-                assertions=[assertion],
-                events=events,
-                known_at=NOW + timedelta(hours=1),
-                evidence=[future_evidence],
-                evidence_links=[_link("as-1", recorded_at=NOW + timedelta(minutes=2))],
-            ),
-        )
+        _project(predicates, spec)

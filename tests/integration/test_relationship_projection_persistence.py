@@ -336,11 +336,14 @@ def test_projection_revision_rows_are_immutable(repo: RelationshipAssertionRepos
         )
     )
     repo._session.commit()
-    with pytest.raises(_MUTATION_ERRORS):
-        repo._session.execute(text("UPDATE relationship_projection_revisions SET purpose = 'x' WHERE id = 'rev-empty'"))
+
+    def _mutate(statement: str) -> None:
+        repo._session.execute(text(statement))
         repo._session.commit()
+
+    with pytest.raises(_MUTATION_ERRORS):
+        _mutate("UPDATE relationship_projection_revisions SET purpose = 'x' WHERE id = 'rev-empty'")
     repo._session.rollback()
     with pytest.raises(_MUTATION_ERRORS):
-        repo._session.execute(text("DELETE FROM relationship_projection_revisions WHERE id = 'rev-empty'"))
-        repo._session.commit()
+        _mutate("DELETE FROM relationship_projection_revisions WHERE id = 'rev-empty'")
     repo._session.rollback()
