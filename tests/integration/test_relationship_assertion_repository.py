@@ -9,7 +9,6 @@ import pytest
 from sqlalchemy import create_engine, select
 from sqlalchemy.exc import DBAPIError
 
-import src.data.relationship_assertion_repository as repository_module
 from src.data.database import create_session_factory, init_db
 from src.data.relationship_assertion_db_models import (
     RelationshipAssertionEventORM,
