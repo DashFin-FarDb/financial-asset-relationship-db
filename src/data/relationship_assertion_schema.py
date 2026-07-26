@@ -136,8 +136,8 @@ def _revoke_immutability_function_execute(connection: Connection) -> None:
                     COALESCE(p.proacl, acldefault('f', p.proowner))
                 ) AS acl(grantor, grantee, privilege_type, is_grantable)
                 WHERE p.proname = :name
-                  AND acl.privilege_type = 'EXECUTE'
-                  AND acl.grantee = 0
+                AND acl.privilege_type = 'EXECUTE'
+                AND acl.grantee = 0
             )
             """),
         {"name": _IMMUTABILITY_FUNCTION},
