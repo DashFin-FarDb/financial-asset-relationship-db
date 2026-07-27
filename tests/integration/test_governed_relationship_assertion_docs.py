@@ -432,8 +432,13 @@ class TestGovernedRelationshipAssertionContractV1:
             in projection_normalized
         )
         assert "any `projectionerror` aborts the whole projection" in projection_normalized
-        assert "including revisions where" in normalized
+        assert (
+            "once established, a scope is carried into every later candidate for the same purpose, including "
+            "revisions where dispute, retraction, supersession, effective-time filtering, or an empty assertion "
+            "result produces no edge for that predicate"
+        ) in normalized
         assert "no implicit or runtime retirement operation" in normalized
+        assert "predicate-registry omission, restart, or failed/orphaned candidates cannot retire a scope" in normalized
         assert "legacy edges inside an established scope must not reappear" in normalized
 
     def test_publication_cardinality_and_execution_identity(self, contract_content: str) -> None:
