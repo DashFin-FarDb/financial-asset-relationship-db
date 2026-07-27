@@ -41,6 +41,21 @@ The frozen normative text lives at
 This ADR records the architecture decision; the contract file is the binding specification. Semantic changes after
 acceptance require an explicit contract-amendment ADR/PR — implementation PRs must not silently rewrite v1.
 
+### Pre-publication amendment (2026-07-26)
+
+Implementation through the deterministic projector exposed four semantic gaps before any GRAC data, API, or
+publication path existed. This amendment resolves them before programme issue #1536:
+
+1. A governed scope is identified by `(purpose, predicate_id)`. It is established only by a successful publication,
+   stored durably on the revision independently of emitted edges, and carried forward across empty-edge revisions
+   and restart. GRAC v1 has no implicit or runtime scope-retirement path.
+2. A GRAC-aware rebuild publishes exactly one candidate revision. The publication record is unique by rebuild job
+   and carries a non-null `execution_id` matching the execution that owns the `RUNNING -> SUCCEEDED` transition.
+3. Proposal and determination authority contexts are separately supplied and recorded. Reviewer determinations
+   cannot reuse the proposer principal; withdrawal remains bound to the proposer of record.
+4. These rules preserve the existing rebuild/recovery state machine. They narrow the GRAC publication contract;
+   they do not add a second success path or weaken lock, cancellation, or execution-ownership guards.
+
 ### Claim discipline
 
 | Artefact                              | Claim class after this ADR                                                            |
@@ -68,11 +83,15 @@ Empty assertion store ⇒ zero behavioural change. No CURRENT capability claim i
 7. **Conflicts fail closed.** Two simultaneously accepted issuer references for one bond produce a projection error —
    never last-write-wins.
 8. **Publish only through the existing rebuild `SUCCEEDED` path.** A projection candidate becomes current only when
-   the corresponding rebuild job is atomically marked `SUCCEEDED`.
+   the corresponding rebuild job is atomically marked `SUCCEEDED`. A GRAC-aware rebuild publishes exactly one
+   revision under the same non-null, owner-matching `execution_id`.
 9. **Empty assertion store ⇒ zero behavioural change.** Existing graph/API output must remain unchanged until a
-   governed scope is explicitly established.
+   governed scope is explicitly established by successful publication. Once established, a scope remains governed
+   across empty-edge revisions and restart; absence of edges does not retire it.
 10. **Main FarDB repository only.** Narrow v1: no multi-domain model, graph-DB migration, generic AI inference, raw
     document custody, or broad RBAC redesign.
+11. **Proposal and determination authority are separate.** Proposal and reviewer determination contexts are
+    independently supplied and audited; reviewer determinations must not reuse the proposer principal.
 
 ### Control-plane disposition
 
@@ -130,6 +149,8 @@ FarDB’s stored issuer reference, not an externally verified legal issuance cla
 2. Claim discipline separates Accepted decision from NEXT capability until staging proof.
 3. Publication stays bound to the existing rebuild control plane rather than inventing a second authority path.
 4. Empty-store compatibility preserves current graph behaviour until a governed scope is established.
+5. Durable governed scopes prevent a retracted, disputed, expired, or otherwise empty-edge revision from allowing a
+   legacy edge to reappear after restart.
 
 ### Negative
 
@@ -163,23 +184,24 @@ conformance gates and file-bounded implementation PRs.
 
 ## Implementation plan
 
-Immediate (this PR / programme PR 1):
+Landed foundation (in order):
 
-1. Accept this ADR and land the frozen contract v1 document.
-2. Record **FARDB-GRAC-V1** as Agreed in the continuity ledger; advance FPC-2026-07-21-04 next-action.
-3. Add structural documentation tests that lock ADR status, claim discipline, and contract anchors.
+1. #1541 / #1531 — ADR and frozen contract
+2. #1542 / #1532 — machine-readable conformance gate
+3. #1549 / #1533 — additive seven-table schema
+4. #1550 / #1534 — lifecycle/authority domain + repository
+5. #1552 / #1535 — deterministic projector and candidate persistence
 
-Deferred programme sequence (merge strictly in order; rebase each branch on the preceding merge):
+Revised pre-publication sequence (merge strictly in order):
 
-1. #1532 — machine-readable conformance gate
-2. #1533 — additive seven-table schema (SQLite/PostgreSQL; no Alembic; no `asset_relationships` mutation)
-3. #1534 — lifecycle/authority domain + repository
-4. #1535 — deterministic projector + identical hashes across DBs
-5. #1536 — publication through rebuild control plane
-6. #1537 — command/explanation APIs + reviewer dependency
-7. #1538 — explanation UI panel
-8. #1539 — staging proof workflow
-9. #1540 — exact-SHA evidence; only then CURRENT for proved staging scope
+1. Amend GRAC v1 scope, publication-cardinality, execution-identity, and actor-separation invariants (this
+   corrective PR).
+2. Enforce lifecycle, actor, temporal, and transaction-serialization invariants.
+3. Harden the hosted schema, persist governed scopes, and prove full PostgreSQL parity.
+4. Only then resume #1536 through #1540 in their original order.
+
+The corrective sequence expands the programme from ten to thirteen PRs. No publication branch may open until all
+three corrective PRs merge.
 
 ## Non-goals
 

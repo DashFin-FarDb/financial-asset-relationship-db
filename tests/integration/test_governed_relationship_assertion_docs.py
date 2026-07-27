@@ -18,7 +18,8 @@ CONTRACT_V1 = REPO_ROOT / "docs" / "governance" / "governed-relationship-asserti
 CONTINUITY = REPO_ROOT / "docs" / "strategy" / "fardb-project-continuity.md"
 STRATEGY_README = REPO_ROOT / "docs" / "strategy" / "README.md"
 
-BASELINE_SHA = "5e45753705c10c2c4f50e0e9bc4d07b823d752ab"
+CONTRACT_BASELINE_SHA = "5e45753705c10c2c4f50e0e9bc4d07b823d752ab"
+EVIDENCE_CUTOFF_SHA = "0a72dfee67aae4ef7cc44041347474a6a6e234cd"
 REQUIRED_CONTRACT_SECTIONS = (
     "## 1. Purpose and boundaries",
     "## 2. Vocabulary",
@@ -247,6 +248,17 @@ class TestGovernedRelationshipAssertionADR:
         assert "fail closed" in adr_content.lower()
         assert "SUCCEEDED" in adr_content
 
+    def test_prepublication_amendment_closes_scope_and_publication_gaps(self, adr_content: str) -> None:
+        """ADR amendment must pin scope, cardinality, execution, and actor separation."""
+        amendment = _section_after(adr_content, "### Pre-publication amendment")
+        normalized = " ".join(amendment.lower().split())
+        assert "(purpose, predicate_id)" in amendment
+        assert "stored durably" in normalized
+        assert "no implicit or runtime scope-retirement path" in normalized
+        assert "exactly one candidate revision" in normalized
+        assert "non-null `execution_id`" in amendment
+        assert "proposal and determination authority contexts are separately supplied" in normalized
+
     def test_bitemporal_recorded_at_vs_known_at(self, adr_content: str) -> None:
         """ADR must distinguish stored recorded_at from query known_at."""
         invariants = _section_after(adr_content, "### Non-negotiable invariants")
@@ -267,7 +279,7 @@ class TestGovernedRelationshipAssertionADR:
 
     def test_references_baseline_sha(self, adr_content: str) -> None:
         """ADR context must cite the programme baseline SHA."""
-        assert BASELINE_SHA in adr_content
+        assert CONTRACT_BASELINE_SHA in adr_content
 
 
 class TestGovernedRelationshipAssertionContractV1:
@@ -334,6 +346,24 @@ class TestGovernedRelationshipAssertionContractV1:
         assert "Accept" in lifecycle
         assert "acceptor" in lifecycle
 
+    def test_actor_ownership_and_separation_are_normative(self, contract_content: str) -> None:
+        """Proposal, determination, withdrawal, and supersession must be actor-bound."""
+        lifecycle = _section_after(contract_content, "## 3. Lifecycle and authority matrix")
+        normalized = " ".join(lifecycle.lower().split())
+        assert "proposer of record" in normalized
+        assert "determining actor must be a different principal" in normalized
+        assert "generic `proposer` role without actor ownership is insufficient" in normalized
+        assert "proposal context for the successor" in normalized
+        assert "separate determining-authority context" in normalized
+
+    def test_unestablished_empty_store_preserves_legacy_behavior(self, contract_content: str) -> None:
+        """An empty store with no published scope must preserve legacy behavior."""
+        invariants = _section_after(contract_content, "### Non-negotiable invariants")
+        normalized = " ".join(invariants.lower().split())
+        assert "unestablished empty store" in normalized
+        assert "no previously published governed scopes" in normalized
+        assert "legacy graph and api output unchanged" in normalized
+
     def test_evidence_forbids_bodies(self, contract_content: str) -> None:
         """Evidence model must forbid storing evidence bodies."""
         evidence = _section_after(contract_content, "## 4. Evidence and confidence")
@@ -384,6 +414,30 @@ class TestGovernedRelationshipAssertionContractV1:
         assert "same atomic transaction" in projection.lower()
         assert "publication row is authoritative" in projection.lower()
 
+    def test_governed_scope_lifecycle_is_durable_and_fail_closed(self, contract_content: str) -> None:
+        """Published scopes must survive empty edges/restart and cannot retire implicitly."""
+        projection = _section_after(contract_content, "## 7. Deterministic projection algorithm")
+        scopes = _section_after(projection, "### Governed-scope lifecycle")
+        normalized = " ".join(scopes.lower().split())
+        assert "(purpose, predicate_id)" in scopes
+        assert "successfully published" in normalized
+        assert "independently of its edge rows" in normalized
+        assert "must never reconstruct scope from persisted edges" in normalized
+        assert "including revisions where" in normalized
+        assert "no implicit or runtime retirement operation" in normalized
+        assert "legacy edges inside an established scope must not reappear" in normalized
+
+    def test_publication_cardinality_and_execution_identity(self, contract_content: str) -> None:
+        """One rebuild must publish one revision under its owning execution."""
+        projection = _section_after(contract_content, "## 7. Deterministic projection algorithm")
+        publication = _section_after(projection, "### Publication")
+        normalized = " ".join(publication.lower().split())
+        assert "exactly one candidate revision" in normalized
+        assert "`rebuild_job_id` is unique" in publication
+        assert "publication `execution_id` is non-null" in publication
+        assert "stored job execution identity" in normalized
+        assert "running -> succeeded" in normalized
+
     def test_seven_tables_named(self, contract_content: str) -> None:
         """Persistence model must name all seven additive tables."""
         persistence = _section_after(contract_content, "## 8. Additive persistence model (seven tables)")
@@ -424,7 +478,7 @@ class TestGovernedRelationshipAssertionContractV1:
 
     def test_baseline_sha(self, contract_content: str) -> None:
         """Contract header must cite the programme baseline SHA."""
-        assert BASELINE_SHA in contract_content
+        assert CONTRACT_BASELINE_SHA in contract_content
 
 
 class TestGovernedRelationshipAssertionContinuityAndStrategy:
@@ -434,10 +488,11 @@ class TestGovernedRelationshipAssertionContinuityAndStrategy:
         """Continuity ledger must exist."""
         assert CONTINUITY.is_file()
 
-    def test_evidence_cutoff_is_baseline_sha(self, continuity_content: str) -> None:
-        """Continuity evidence cutoff must be the GRAC baseline SHA."""
+    def test_evidence_cutoff_is_reviewed_implementation_sha(self, continuity_content: str) -> None:
+        """Continuity cutoff must advance through the reviewed implementation SHA."""
         header = "\n".join(continuity_content.splitlines()[:8])
-        assert BASELINE_SHA in header
+        assert EVIDENCE_CUTOFF_SHA in header
+        assert CONTRACT_BASELINE_SHA not in header
 
     def test_fardb_grac_v1_ledger_entry(self, continuity_content: str) -> None:
         """FARDB-GRAC-V1 must be recorded as Agreed."""
@@ -445,14 +500,24 @@ class TestGovernedRelationshipAssertionContinuityAndStrategy:
         entry = _section_after(continuity_content, "### FARDB-GRAC-V1")
         assert "**Status:** Agreed" in entry
         assert "financial.bond.issuer_reference@1" in entry
-        assert BASELINE_SHA in entry
+        assert CONTRACT_BASELINE_SHA in entry
+        assert EVIDENCE_CUTOFF_SHA in entry
+        for pr_number in ("#1541", "#1542", "#1549", "#1550", "#1552"):
+            assert pr_number in entry
 
-    def test_fpc_04_next_action_advanced(self, continuity_content: str) -> None:
-        """FPC-2026-07-21-04 next-action must advance to conformance + vertical slice."""
+    def test_fpc_04_foundation_through_candidate_projection_recorded(self, continuity_content: str) -> None:
+        """FPC-2026-07-21-04 must record the landed foundation without claiming publication."""
         assert "### FPC-2026-07-21-04" in continuity_content
         entry = _section_after(continuity_content, "### FPC-2026-07-21-04")
-        assert "land executable conformance + vertical slice" in entry.lower()
+        assert "implemented through candidate" in entry.lower()
+        assert "publication remains paused" in entry.lower()
         assert "Agreed" in entry
+
+    def test_fpc_04_pauses_publication_for_corrective_sequence(self, continuity_content: str) -> None:
+        """FPC-2026-07-21-04 must record the pre-publication corrective sequence."""
+        entry = _section_after(continuity_content, "### FPC-2026-07-21-04")
+        assert "three pre-publication corrective prs" in entry.lower()
+        assert "then resume #1536" in entry.lower()
 
     def test_cutoff_does_not_claim_pr_1510_open(self, continuity_content: str) -> None:
         """H-P1-03 / PR #1510 must not be described as open after the refreshed cutoff."""

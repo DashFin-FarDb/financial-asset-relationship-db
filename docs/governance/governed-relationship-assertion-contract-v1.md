@@ -51,9 +51,15 @@ FarDB stores consequential financial relationships. GRAC v1 makes those relation
 5. **No evidence bodies in v1.**
 6. **Pure deterministic projection.** No implicit clock, unordered DB results, random IDs, or environment-dependent logic.
 7. **Conflicts fail closed.** Never last-write-wins.
-8. **Publish only through the existing rebuild `SUCCEEDED` path.**
-9. **Empty assertion store ⇒ zero behavioural change.**
-10. **Main FarDB repository only.** `control-plane-platform` remains private reference-only during GRAC v1.
+8. **Publish only through the existing rebuild `SUCCEEDED` path.** A GRAC-aware rebuild publishes exactly one
+   revision under its non-null, owner-matching `execution_id`.
+9. **Governed scope is durable.** A successfully published `(purpose, predicate_id)` scope remains governed across
+   empty-edge revisions and restart; absence of edges never retires it.
+10. **Unestablished empty store ⇒ zero behavioural change.** An empty assertion store with no previously published
+    governed scopes leaves the legacy graph and API output unchanged.
+11. **Main FarDB repository only.** `control-plane-platform` remains private reference-only during GRAC v1.
+12. **Proposal and determination authority are separate.** Reviewer determinations must not reuse the proposer
+    principal.
 
 ---
 
@@ -76,6 +82,7 @@ FarDB stores consequential financial relationships. GRAC v1 makes those relation
 | **Supersession**        | Replacement of an assertion by a successor assertion without rewriting history.                                                                                               |
 | **Authority**           | Named role or policy identity permitted to perform a transition under a policy version.                                                                                       |
 | **Purpose**             | Declared use of a projected view (for example `financial_graph_current_view`).                                                                                                |
+| **Governed scope**      | Durable `(purpose, predicate_id)` ownership of a read-model slice. The scope is revision metadata, not an inference from currently emitted edges.                             |
 
 ### Object boundaries
 
@@ -141,19 +148,33 @@ that must preserve this matrix. Missing authority fails closed.
 | Transition                                               | Required authority                   | Notes                                                                                                 |
 | -------------------------------------------------------- | ------------------------------------ | ----------------------------------------------------------------------------------------------------- |
 | Propose (create → `Proposed`)                            | `proposer`                           | Creator becomes the assertion proposer of record.                                                     |
-| Accept (`Proposed` → `Accepted`)                         | `acceptor`                           | May not be the same principal as proposer for the vertical-slice staging proof (reviewer dependency). |
+| Accept (`Proposed` → `Accepted`)                         | `acceptor`                           | Determining principal must differ from the proposer of record.                                       |
 | Reject (`Proposed` → `Rejected`)                         | `acceptor`                           | Rejection is an authority determination.                                                              |
-| Withdraw (`Proposed` → `Withdrawn`)                      | `proposer`                           | Only the proposer (or delegated withdrawer policy) may withdraw.                                      |
+| Withdraw (`Proposed` → `Withdrawn`)                      | `proposer`                           | Actor must be the assertion's proposer of record; possessing the role alone is insufficient.          |
 | Dispute (`Accepted` → `Disputed`)                        | `disputer`                           | Challenge does not rewrite history; it changes eligibility.                                           |
-| Reaffirm (`Disputed` → `Accepted`)                       | `acceptor`                           | Restores projection eligibility.                                                                      |
+| Reaffirm (`Disputed` → `Accepted`)                       | `acceptor`                           | Restores eligibility; determining principal must differ from the proposer of record.                  |
 | Retract (`Accepted`/`Disputed` → `Retracted`)            | `retractor`                          | Terminal without mandatory successor.                                                                 |
-| Supersede (`Accepted`/`Disputed` → `Superseded`)         | `acceptor`                           | Requires successor assertion ID.                                                                      |
+| Supersede (`Accepted`/`Disputed` → `Superseded`)         | `acceptor`                           | Requires successor assertion ID and a determining principal distinct from its proposer.               |
 | Append evidence link on `Proposed`/`Accepted`/`Disputed` | `proposer` or `acceptor`             | Evidence rows remain immutable; links are append-only.                                                |
 | Build projection revision                                | `projector` (system)                 | Pure function; no human authority shortcut.                                                           |
 | Publish revision into read model                         | rebuild control plane on `SUCCEEDED` | No alternate publish path.                                                                            |
 
 Policy version strings are opaque bounded identifiers recorded on every event. Changing who may perform a
 transition requires a new policy version and an amendment path if the matrix itself changes.
+
+### Actor ownership and separation
+
+- Proposal records the authenticated actor as the immutable **proposer of record**. An idempotency hit may return an
+  existing assertion only after validating the current caller's authority and actor identity against that record.
+- Each determination receives its own authority context and records its own actor. Implementations must not infer,
+  clone, or reuse proposal authority as determination authority.
+- Accept, reject, reaffirm, and supersede are reviewer determinations. Their determining actor must be a different
+  principal from the assertion's proposer of record.
+- Withdrawal is the inverse ownership case: the authenticated actor must match the proposer of record. A generic
+  `proposer` role without actor ownership is insufficient.
+- Atomic supersession receives a proposal context for the successor and a separate determining-authority context
+  for successor acceptance and predecessor supersession. The contexts and principals must be distinct and both are
+  recorded in their respective append-only events.
 
 ---
 
@@ -225,9 +246,10 @@ Projection for purpose `financial_graph_current_view` uses the caller-supplied o
 1. Supersession creates a successor assertion; the predecessor transitions to `Superseded` via an append-only event.
 2. The supersession event’s successor assertion ID is the sole authoritative linkage. Assertion rows do not store a
    supersession pointer (no dual authority).
-3. Inserting the successor assertion row and appending the predecessor’s `Superseded` event MUST commit in the **same
-   atomic transaction**. On failure neither write is visible — no orphan successor and no superseded predecessor
-   without a committed successor.
+3. Inserting and accepting the successor assertion and appending the predecessor’s `Superseded` event MUST commit in
+   the **same atomic transaction**. The request carries a successor proposal context and a distinct
+   determining-authority context. On failure none of the writes is visible — no orphan successor and no superseded
+   predecessor without a committed, accepted successor.
 4. Predecessor proposition rows are never rewritten; only append-only events change lifecycle eligibility.
 5. A superseded assertion remains queryable for historical reconstruction.
 6. Cycles are forbidden: an assertion must not appear in its own successor chain.
@@ -242,12 +264,20 @@ Projection for purpose `financial_graph_current_view` uses the caller-supplied o
 Projection is a **pure** function:
 
 ```text
-project(assertions, events_as_of_known_at, predicate_registry, purpose, effective_at, known_at)
+project(assertions,
+  events_as_of_known_at,
+  predicate_registry,
+  previously_published_scopes,
+  purpose,
+  effective_at,
+  known_at
+)
   -> ProjectionRevision | ProjectionError
 ```
 
 `assertions` is the complete assertion stream. Accepted eligibility is derived inside the projector from
 `events_as_of_known_at` (step 1); callers must not pre-filter to accepted-only.
+`previously_published_scopes` is loaded from the latest successful publication, not reconstructed from its edges.
 
 ### Determinism requirements
 
@@ -255,6 +285,7 @@ project(assertions, events_as_of_known_at, predicate_registry, purpose, effectiv
 - Input assertion/event streams must be sorted by stable keys before folding (assertion ID, event sequence).
 - Floating-point values must not participate in hash inputs; use decimal strings or integers from the registry.
 - Identical inputs MUST produce identical revision content hashes on SQLite and PostgreSQL.
+- The canonical governed-scope set participates in `projection_hash` but not `edge_set_hash`.
 
 ### Steps
 
@@ -266,23 +297,55 @@ project(assertions, events_as_of_known_at, predicate_registry, purpose, effectiv
    `(predicate_id, subject_id)` — one accepted issuer reference per bond.
 6. **Fail closed** if any conflict group contains more than one distinct object or incompatible edge — emit a
    projection error, never last-write-wins.
-7. **Materialize** ordered `relationship_projection_edges` for the revision.
-8. **Hash** canonical UTF-8 JSON of the ordered edge set (sorted keys, no insignificant whitespace variance)
-   with SHA-256 into the revision content hash.
-9. **Persist** revision + edges as a candidate. Publication is a separate step.
+7. **Resolve governed scopes** as the union of `previously_published_scopes` for the purpose and the
+   `(purpose, predicate_id)` scopes represented by successful candidates. Never subtract a scope because it emits
+   zero edges.
+8. **Materialize** ordered `relationship_projection_edges` for the revision.
+9. **Hash** canonical UTF-8 JSON (sorted keys, no insignificant whitespace variance) with SHA-256. `edge_set_hash`
+   covers the ordered edge set; `projection_hash` also binds provenance, projection inputs, and the ordered
+   governed-scope set.
+10. **Persist** revision + edges + governed scopes as a candidate. Publication is a separate step.
 
 Disputed, rejected, withdrawn, retracted, and superseded assertions do not emit edges at that `known_at`.
+
+### Governed-scope lifecycle
+
+1. **Identity:** A governed scope is exactly `(purpose, predicate_id)`.
+2. **Candidate declaration:** A candidate revision declares its complete, canonically sorted scope set independently
+   of its edge rows.
+3. **Establishment:** A previously ungoverned scope becomes established only when a candidate declaring it is
+   successfully published through the rebuild `SUCCEEDED` path. Candidate persistence alone does not establish it.
+4. **Persistence and restart:** Every revision stores its governed-scope set durably. Reload reads the scope set from
+   revision metadata; it must never reconstruct scope from persisted edges.
+5. **Empty-edge continuity:** Once established, a scope is carried into every later candidate for the same purpose,
+   including revisions where dispute, retraction, supersession, effective-time filtering, or an empty assertion
+   result produces no edge for that predicate.
+6. **Retirement:** GRAC v1 has no implicit or runtime retirement operation. Missing assertions, missing edges,
+   predicate-registry omission, restart, or failed/orphaned candidates cannot retire a scope. Retirement requires a
+   future explicit contract amendment with authority, history, compatibility, and migration rules.
+7. **Legacy overlay:** Legacy edges inside an established scope must not reappear merely because the governed
+   revision emits zero edges. Scopes from failed, orphaned, or merely persisted candidates have no overlay authority.
 
 ### Publication
 
 A candidate revision becomes current read-model truth only when:
 
-1. A rebuild job owns execution under existing repository guards; and
+1. A rebuild job is `RUNNING` and owns execution under existing repository guards with a non-null `execution_id`;
+   and
 2. The job is marked `SUCCEEDED` and a `relationship_projection_publications` row
-   `(revision_id, rebuild_job_id, published_at)` is inserted in the **same atomic transaction**.
+   `(revision_id, rebuild_job_id, execution_id, published_at)` is inserted in the **same atomic transaction**.
+
+For any rebuild that participates in GRAC publication:
+
+- exactly one candidate revision is selected and exactly one publication row is committed;
+- `rebuild_job_id` is unique in `relationship_projection_publications`, enforcing at most one revision per rebuild;
+- publication `execution_id` is non-null and equals both the stored job execution identity and the identity supplied
+  to the guarded `RUNNING -> SUCCEEDED` transition; and
+- retries that need a new execution create a new rebuild job rather than attaching another revision to the prior job.
 
 If that transaction fails, neither write is visible. The publication row is authoritative for which revision was
 published for GRAC; a `SUCCEEDED` rebuild without a matching publication row did not publish a governed revision.
+Legacy jobs that predate or do not enter the GRAC publication path establish and retire no governed scope.
 
 No direct write from assertion APIs into `asset_relationships` bypassing this path is permitted in v1.
 
@@ -298,9 +361,9 @@ Seven additive tables; no existing table is removed or repurposed in v1:
 | `relationship_assertions`              | Immutable proposition, method, confidence, and effective time         |
 | `relationship_assertion_evidence`      | Supporting, opposing or contextual evidence links with `recorded_at`  |
 | `relationship_assertion_events`        | Ordered lifecycle and authority history                               |
-| `relationship_projection_revisions`    | Deterministic candidate graph revisions and hashes                    |
+| `relationship_projection_revisions`    | Deterministic candidate revisions, hashes, and durable governed scopes |
 | `relationship_projection_edges`        | Materialized governed edges for each revision                         |
-| `relationship_projection_publications` | Append-only proof that a succeeded rebuild published a revision       |
+| `relationship_projection_publications` | One-per-rebuild proof binding a revision to its succeeded execution    |
 
 Schema DDL lands in programme PR 3 (#1533). Migrations must preserve SQLite/PostgreSQL parity, must not use
 Alembic for this programme path unless a later ADR says otherwise, and must not mutate `asset_relationships`
@@ -328,7 +391,7 @@ row semantics as historical authority.
 
 The slice must eventually prove, after restart, for an exact deployed SHA:
 
-1. Proposal and acceptance under the authority matrix.
+1. Proposal and acceptance by distinct recorded principals under the authority matrix.
 2. Projection and publication through rebuild `SUCCEEDED`.
 3. Evidence explanation with polarity.
 4. Supersession by refreshed evidence / successor assertion.
@@ -346,8 +409,10 @@ The slice must eventually prove, after restart, for an exact deployed SHA:
 | Last-write-wins ambiguity                  | Fail-closed projection on conflict keys.                                           |
 | Confidence smuggled as edge strength       | Separate fields; registry-owned strength; docs/tests forbid conflation.            |
 | Clock-skewed / nondeterministic projection | Pure projector; no wall clock; stable ordering; cross-DB hash identity tests.      |
-| Unauthorized acceptance                    | Authority matrix; acceptor ≠ proposer for staging proof; event audit.              |
+| Unauthorized acceptance                    | Actor-bound authority; determining principal differs from proposer; event audit.   |
 | Bypass publish path                        | Publication only via rebuild `SUCCEEDED` + publication row.                        |
+| Multiple revisions published by one job    | Unique publication `rebuild_job_id`; non-null owner-matching `execution_id`.       |
+| Empty-edge legacy reappearance              | Durable scopes carried across empty revisions; no implicit v1 retirement.          |
 | Evidence body exfiltration / custody creep | No evidence bodies in v1; digests and bounded references only.                     |
 | Second control-plane service drift         | Main FarDB repository only; `control-plane-platform` reference-only.               |
 | Premature CURRENT claims                   | Claim discipline: Accepted decision ≠ CURRENT capability until #1540.              |
@@ -402,6 +467,14 @@ If implementation exposes a semantic flaw in this contract:
 3. Only then resume implementation against the amended contract.
 
 Do not silently rewrite v1 inside schema, projector, API, UI, or staging PRs.
+
+### Amendment record
+
+- **2026-07-26 pre-publication amendment:** Against reviewed `main` at
+  `0a72dfee67aae4ef7cc44041347474a6a6e234cd`, defined governed-scope establishment, durable carry-forward, and
+  no-retirement behavior; pinned one-revision-per-rebuild publication with non-null execution identity; and made
+  proposal/determination actor separation normative. Runtime capability remains `NEXT`, and issue #1536 stays
+  paused until the corrective lifecycle and hosted-schema proofs land.
 
 ---
 
