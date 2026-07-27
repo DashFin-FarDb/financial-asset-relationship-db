@@ -2,8 +2,8 @@
 
 **Repository:** `DashFin-FarDb/financial-asset-relationship-db`
 **Established:** 2026-07-21
-**Repository evidence cutoff:** `main` at `5e45753705c10c2c4f50e0e9bc4d07b823d752ab`
-**Continuity status:** Initial ledger landed; reconciled to post–H-P0-04 Satisfied `main` (PR #1529)
+**Repository evidence cutoff:** `main` at `0a72dfee67aae4ef7cc44041347474a6a6e234cd`
+**Continuity status:** Reconciled through the first five GRAC foundation PRs; publication paused for three corrective PRs
 
 This ledger preserves durable project decisions, plans, milestones, and handoffs across ChatGPT, Codex, and
 repository work. It is an index of authoritative evidence, not a replacement for detailed specifications, issues,
@@ -37,12 +37,13 @@ recovery evidence.
 
 At the evidence cutoff:
 
-- `main` resolves to `5e45753705c10c2c4f50e0e9bc4d07b823d752ab` (includes H-P0 foundation gates, H-P1-01/02/03, staging
-  H-P0-04 Satisfied via PR #1529 / ADR 0007 Accepted).
-- Staging database authorization is Satisfied (`db_authz: PASS|run-30002002715`). Production still needs its own
-  SHA-bound authz PASS when that artefact is promoted.
-- Governed Relationship Assertion Contract v1 is the next programme (epic #1530 / children #1531–#1540); capability
-  remains `NEXT` until exact-SHA staging proof.
+- `main` resolves to `0a72dfee67aae4ef7cc44041347474a6a6e234cd`. GRAC PRs #1541, #1542, #1549, #1550, and #1552 landed in
+  order, providing the contract, conformance gate, additive schema, lifecycle repository, and deterministic
+  candidate projector.
+- The earlier staging database-authorization PASS remains valid for its recorded SHA, but it is not transferable to
+  the expanded schema at this cutoff. Exact-SHA authorization proof must be rerun after hosted-schema correction.
+- GRAC runtime capability remains `NEXT`. Publication issue #1536 is paused until contract, lifecycle, and
+  hosted-schema/PostgreSQL corrective PRs land in order.
 - Production-scale capacity, repeated immutable promotion, and domain-neutral reuse remain unproven.
 
 Primary authorities:
@@ -137,15 +138,18 @@ Primary authorities:
   determinations, projections, corrections, supersession, authority, purpose, and time.
 - **Rationale and constraints:** This is the proposed differentiating semantic core. It must not be represented as a
   current capability merely because the existing graph and governance foundations make it plausible.
-- **Repository scope:** ADR 0008, frozen contract v1, continuity/strategy links, later conformance tests, schema,
-  projector, publication, APIs, UI, and staging proof through epic #1530 children #1532–#1540.
-- **Dependencies or blockers:** Executable conformance and vertical-slice delivery; staging proof before CURRENT.
-- **Evidence and provenance:** User decision 2026-07-25; baseline `5e457537`; ADR 0008 Accepted; contract v1 frozen;
-  tracker epic #1530. Runtime capability still classified `NEXT` until PR 10 exact-SHA proof.
-- **Next action and completion test:** Land executable conformance + vertical slice through #1532–#1540; complete only
+- **Repository scope:** ADR 0008, frozen contract v1, continuity/strategy links; conformance, schema, lifecycle, and
+  candidate projection landed through #1532–#1535; publication, APIs, UI, and staging proof remain #1536–#1540.
+- **Dependencies or blockers:** Three pre-publication corrective PRs: contract amendment; lifecycle/temporal/
+  serialization enforcement; hosted schema plus full PostgreSQL proof. Staging proof remains required before CURRENT.
+- **Evidence and provenance:** User decision 2026-07-25; original contract baseline `5e457537`; reviewed implementation
+  baseline `0a72dfee`; ADR 0008 Accepted; PRs #1541, #1542, #1549, #1550, and #1552 merged in order. Runtime
+  capability remains `NEXT`. Executable conformance and the vertical slice are implemented through candidate
+  projection; publication remains paused.
+- **Next action and completion test:** Land the three corrective PRs in order, then resume #1536–#1540. Complete only
   when exact-SHA staging proof answers provenance, proposition, evidence, method, confidence, time, authority,
-  supersession, revision, and pre-correction graph after restart.
-- **Last updated:** 2026-07-25
+  supersession, revision, governed-scope continuity, and the pre-correction graph after restart.
+- **Last updated:** 2026-07-26
 
 ### FPC-2026-07-21-05 — Prove domain generality without weakening the core
 
@@ -177,14 +181,15 @@ Primary authorities:
 - **Constraints:** Main repository only; FastAPI + Next.js production path;
   SQLite/PostgreSQL parity; existing rebuild control plane owns publication;
   no raw evidence blobs, multi-domain expansion or graph-database migration.
-- **Evidence:** User decision dated 2026-07-25; repository baseline
-  `5e45753705c10c2c4f50e0e9bc4d07b823d752ab`; tracker epic #1530 / children #1531–#1540;
-  ADR 0008 Accepted; frozen contract
+- **Evidence:** User decision dated 2026-07-25; original contract baseline
+  `5e45753705c10c2c4f50e0e9bc4d07b823d752ab`; reviewed implementation baseline
+  `0a72dfee67aae4ef7cc44041347474a6a6e234cd`; tracker epic #1530 / children #1531–#1540; merged foundation
+  PRs #1541, #1542, #1549, #1550, and #1552; ADR 0008 Accepted; frozen contract
   [governed-relationship-assertion-contract-v1.md](../governance/governed-relationship-assertion-contract-v1.md).
-- **Next action:** Land executable conformance + vertical slice through #1532–#1540.
+- **Next action:** Land the three pre-publication corrective PRs, then resume #1536–#1540.
 - **Completion test:** Exact-SHA staging proof of proposal, authorization,
   publication, supersession, restart and historical reconstruction.
-- **Last updated:** 2026-07-25
+- **Last updated:** 2026-07-26
 
 ### FPC-2025-10-26-01 — Financial relationship prototype becomes a versioned project
 
@@ -394,9 +399,10 @@ Primary authorities:
 - Durable graph load, startup provenance, promotion checking, recovery control plane, API contracts, governance, DR
   documentation, and release-evidence mechanisms exist in the repository.
 - RC1 has candidate-specific approved hosted and restore evidence.
-- `main` is `5e45753705c10c2c4f50e0e9bc4d07b823d752ab` at this cutoff (H-P0 foundation, H-P1-01, H-P1-02, H-P1-03,
-  staging H-P0-04 Satisfied merged).
-- GRAC v1 programme tracker: epic #1530 / children #1531–#1540; capability claim remains `NEXT`.
+- `main` is `0a72dfee67aae4ef7cc44041347474a6a6e234cd` at this cutoff. GRAC foundation PRs #1541, #1542, #1549,
+  #1550, and #1552 are merged.
+- GRAC v1 programme tracker: epic #1530 / children #1531–#1540; publication #1536 is paused for three corrective
+  PRs; capability claim remains `NEXT`.
 
 ### Governing constraints
 
@@ -410,20 +416,22 @@ Primary authorities:
 
 ### Next highest-value action
 
-Execute the Governed Relationship Assertion Contract programme in order (#1532–#1540) after PR 1 (#1531) lands ADR
-0008 and frozen contract v1. Staging H-P0-04 remains Satisfied on `main` (`db_authz: PASS|run-30002002715`); do not
-reopen it without new drift evidence. Production promotion still needs its own SHA-bound authz marker when that target
-is cut. Release repeatability (**FPC-2026-07-21-02**) remains an active parallel commitment.
+Keep #1536 paused. Land, in order: (1) the GRAC scope/publication contract amendment, (2) lifecycle, actor, temporal,
+and supersession-serialization enforcement, and (3) hosted-schema hardening with durable governed scopes and full
+PostgreSQL projection/lifecycle CI. Then rerun exact-SHA database authorization proof and resume #1536–#1540.
+Release repeatability (**FPC-2026-07-21-02**) remains an active parallel commitment.
 
 ### Completion test
 
-Same completion test as **FPC-2026-07-21-01** (and the runbook exit criteria).
+The three corrective PRs merge in order; exact-SHA database authorization passes for the corrected schema; and the
+resumed #1536–#1540 sequence proves distinct proposal/determination actors, publication, governed-scope continuity,
+supersession, restart, and historical reconstruction without promoting capability before the staging evidence exists.
 
 ## Backfill coverage and gaps
 
 ### Sources reviewed
 
-- Repository `main` through `74c5451acbb462b2a5923eaac1d600f780824e07` on 2026-07-21.
+- Repository `main` through `0a72dfee67aae4ef7cc44041347474a6a6e234cd` on 2026-07-26.
 - Repository agent instructions and production-architecture declaration.
 - Enterprise-readiness index, audit, roadmap, PR board, validation-gap audit, release checklist, release evidence pack,
   hosted staging baseline, operational evidence framework, drill and scale-validation documents, and risk register.
@@ -431,6 +439,7 @@ Same completion test as **FPC-2026-07-21-01** (and the runbook exit criteria).
 - RC1 committed evidence record and its repository companion issue record.
 - Current-state strategy, claims taxonomy, and Big Read chronology.
 - Merged hardening PRs #1506, #1508, #1509, and #1510 (H-P1-03).
+- Merged GRAC foundation PRs #1541, #1542, #1549, #1550, and #1552.
 - Available ChatGPT continuity context covering the enterprise-readiness program, PR #1096 onward, RC1 evidence work,
   hosted startup incidents, audit completion, and agreed future-work discussions.
 
