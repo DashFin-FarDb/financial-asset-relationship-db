@@ -154,7 +154,7 @@ that must preserve this matrix. Missing authority fails closed.
 | Dispute (`Accepted` → `Disputed`)                        | `disputer`                           | Challenge does not rewrite history; it changes eligibility.                                           |
 | Reaffirm (`Disputed` → `Accepted`)                       | `acceptor`                           | Restores eligibility; determining principal must differ from the proposer of record.                  |
 | Retract (`Accepted`/`Disputed` → `Retracted`)            | `retractor`                          | Terminal without mandatory successor.                                                                 |
-| Supersede (`Accepted`/`Disputed` → `Superseded`)         | `acceptor`                           | Requires successor assertion ID and a determining principal distinct from its proposer.               |
+| Supersede (`Accepted`/`Disputed` → `Superseded`)         | `acceptor`                           | Requires successor assertion ID; determining principal differs from predecessor's proposer of record. |
 | Append evidence link on `Proposed`/`Accepted`/`Disputed` | `proposer` or `acceptor`             | Evidence rows remain immutable; links are append-only.                                                |
 | Build projection revision                                | `projector` (system)                 | Pure function; no human authority shortcut.                                                           |
 | Publish revision into read model                         | rebuild control plane on `SUCCEEDED` | No alternate publish path.                                                                            |
