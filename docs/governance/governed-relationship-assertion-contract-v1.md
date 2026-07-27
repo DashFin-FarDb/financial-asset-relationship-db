@@ -148,7 +148,7 @@ that must preserve this matrix. Missing authority fails closed.
 | Transition                                               | Required authority                   | Notes                                                                                                 |
 | -------------------------------------------------------- | ------------------------------------ | ----------------------------------------------------------------------------------------------------- |
 | Propose (create → `Proposed`)                            | `proposer`                           | Creator becomes the assertion proposer of record.                                                     |
-| Accept (`Proposed` → `Accepted`)                         | `acceptor`                           | Determining principal must differ from the proposer of record.                                       |
+| Accept (`Proposed` → `Accepted`)                         | `acceptor`                           | Determining principal must differ from the proposer of record.                                        |
 | Reject (`Proposed` → `Rejected`)                         | `acceptor`                           | Rejection is an authority determination.                                                              |
 | Withdraw (`Proposed` → `Withdrawn`)                      | `proposer`                           | Actor must be the assertion's proposer of record; possessing the role alone is insufficient.          |
 | Dispute (`Accepted` → `Disputed`)                        | `disputer`                           | Challenge does not rewrite history; it changes eligibility.                                           |
@@ -277,7 +277,9 @@ project(assertions,
 
 `assertions` is the complete assertion stream. Accepted eligibility is derived inside the projector from
 `events_as_of_known_at` (step 1); callers must not pre-filter to accepted-only.
-`previously_published_scopes` is loaded from the latest successful publication, not reconstructed from its edges.
+`previously_published_scopes` is loaded from the revision metadata of the latest successful publication for the
+requested `purpose`, selected by `published_at DESC, rebuild_job_id DESC`; that metadata supplies the revision's
+complete canonical governed-scope set. It is not reconstructed from edge rows.
 
 ### Determinism requirements
 
@@ -298,8 +300,9 @@ project(assertions,
 6. **Fail closed** if any conflict group contains more than one distinct object or incompatible edge — emit a
    projection error, never last-write-wins.
 7. **Resolve governed scopes** as the union of `previously_published_scopes` for the purpose and the
-   `(purpose, predicate_id)` scopes represented by successful candidates. Never subtract a scope because it emits
-   zero edges.
+   `(purpose, predicate_id)` scopes represented by successful candidates. A successful candidate is one whose edge
+   expansion and conflict validation completed without error; any `ProjectionError` aborts the whole projection, so
+   no candidate from it establishes a scope. Never subtract a scope because it emits zero edges.
 8. **Materialize** ordered `relationship_projection_edges` for the revision.
 9. **Hash** canonical UTF-8 JSON (sorted keys, no insignificant whitespace variance) with SHA-256. `edge_set_hash`
    covers the ordered edge set; `projection_hash` also binds provenance, projection inputs, and the ordered
@@ -355,14 +358,14 @@ No direct write from assertion APIs into `asset_relationships` bypassing this pa
 
 Seven additive tables; no existing table is removed or repurposed in v1:
 
-| Table                                  | Responsibility                                                        |
-| -------------------------------------- | --------------------------------------------------------------------- |
-| `relationship_evidence`                | Immutable evidence reference, digest, custody and visibility metadata |
-| `relationship_assertions`              | Immutable proposition, method, confidence, and effective time         |
-| `relationship_assertion_evidence`      | Supporting, opposing or contextual evidence links with `recorded_at`  |
-| `relationship_assertion_events`        | Ordered lifecycle and authority history                               |
+| Table                                  | Responsibility                                                         |
+| -------------------------------------- | ---------------------------------------------------------------------- |
+| `relationship_evidence`                | Immutable evidence reference, digest, custody and visibility metadata  |
+| `relationship_assertions`              | Immutable proposition, method, confidence, and effective time          |
+| `relationship_assertion_evidence`      | Supporting, opposing or contextual evidence links with `recorded_at`   |
+| `relationship_assertion_events`        | Ordered lifecycle and authority history                                |
 | `relationship_projection_revisions`    | Deterministic candidate revisions, hashes, and durable governed scopes |
-| `relationship_projection_edges`        | Materialized governed edges for each revision                         |
+| `relationship_projection_edges`        | Materialized governed edges for each revision                          |
 | `relationship_projection_publications` | One-per-rebuild proof binding a revision to its succeeded execution    |
 
 Schema DDL lands in programme PR 3 (#1533). Migrations must preserve SQLite/PostgreSQL parity, must not use
@@ -412,7 +415,7 @@ The slice must eventually prove, after restart, for an exact deployed SHA:
 | Unauthorized acceptance                    | Actor-bound authority; determining principal differs from proposer; event audit.   |
 | Bypass publish path                        | Publication only via rebuild `SUCCEEDED` + publication row.                        |
 | Multiple revisions published by one job    | Unique publication `rebuild_job_id`; non-null owner-matching `execution_id`.       |
-| Empty-edge legacy reappearance              | Durable scopes carried across empty revisions; no implicit v1 retirement.          |
+| Empty-edge legacy reappearance             | Durable scopes carried across empty revisions; no implicit v1 retirement.          |
 | Evidence body exfiltration / custody creep | No evidence bodies in v1; digests and bounded references only.                     |
 | Second control-plane service drift         | Main FarDB repository only; `control-plane-platform` reference-only.               |
 | Premature CURRENT claims                   | Claim discipline: Accepted decision ≠ CURRENT capability until #1540.              |

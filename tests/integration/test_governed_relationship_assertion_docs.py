@@ -417,12 +417,21 @@ class TestGovernedRelationshipAssertionContractV1:
     def test_governed_scope_lifecycle_is_durable_and_fail_closed(self, contract_content: str) -> None:
         """Published scopes must survive empty edges/restart and cannot retire implicitly."""
         projection = _section_after(contract_content, "## 7. Deterministic projection algorithm")
+        projection_normalized = " ".join(projection.lower().split())
         scopes = _section_after(projection, "### Governed-scope lifecycle")
         normalized = " ".join(scopes.lower().split())
         assert "(purpose, predicate_id)" in scopes
         assert "successfully published" in normalized
         assert "independently of its edge rows" in normalized
         assert "must never reconstruct scope from persisted edges" in normalized
+        assert "latest successful publication for the requested `purpose`" in projection_normalized
+        assert "`published_at desc, rebuild_job_id desc`" in projection_normalized
+        assert "metadata supplies the revision's complete canonical governed-scope set" in projection_normalized
+        assert (
+            "successful candidate is one whose edge expansion and conflict validation completed without error"
+            in projection_normalized
+        )
+        assert "any `projectionerror` aborts the whole projection" in projection_normalized
         assert "including revisions where" in normalized
         assert "no implicit or runtime retirement operation" in normalized
         assert "legacy edges inside an established scope must not reappear" in normalized
@@ -435,8 +444,10 @@ class TestGovernedRelationshipAssertionContractV1:
         assert "exactly one candidate revision" in normalized
         assert "`rebuild_job_id` is unique" in publication
         assert "publication `execution_id` is non-null" in publication
-        assert "stored job execution identity" in normalized
-        assert "running -> succeeded" in normalized
+        assert (
+            "equals both the stored job execution identity and the identity supplied to the guarded "
+            "`running -> succeeded` transition"
+        ) in normalized
 
     def test_seven_tables_named(self, contract_content: str) -> None:
         """Persistence model must name all seven additive tables."""
