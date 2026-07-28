@@ -51,6 +51,9 @@ curl -fsS "<base_url>/api/health/detailed"
 curl -fsS "<base_url>/api/assets?per_page=1"
 ```
 
+Use `--timeout 30` (or higher) when the target is a Vercel Python deployment that may cold-start.
+The script default is 30 seconds; promotion workflows also pass `--timeout 30` explicitly.
+
 If JSON output is available and preferred for release evidence capture, use:
 
 ```bash

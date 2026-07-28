@@ -39,6 +39,7 @@ from api.database import (
 from src.data.database import (
     DEFAULT_DATABASE_URL,
     Base,
+    configure_sqlite_engine,
     create_engine_from_url,
     create_session_factory,
     init_db,
@@ -130,6 +131,8 @@ def engine() -> Iterator[Engine]:
         connect_args={"check_same_thread": False},
         poolclass=StaticPool,
     )
+    # GRAC CHECKs use translate(); register UDF before any create_all on Base.metadata.
+    configure_sqlite_engine(in_memory_engine)
     yield in_memory_engine
     in_memory_engine.dispose()
 
@@ -304,12 +307,14 @@ class TestDatabaseInitialization:
             patch("src.data.database.Base.metadata.create_all") as create_all,
             patch("src.data.migrations.apply_migrations") as apply_sqlite_migrations,
             patch("src.data.migrations.apply_postgresql_heartbeat_migration") as apply_postgres_migration,
+            patch("src.data.relationship_assertion_schema.ensure_relationship_assertion_schema") as ensure_grac,
         ):
             init_db(engine)
 
         create_all.assert_called_once_with(engine)
         apply_postgres_migration.assert_called_once_with(engine)
         apply_sqlite_migrations.assert_not_called()
+        ensure_grac.assert_called_once_with(engine)
 
 
 # ---------------------------------------------------------------------------

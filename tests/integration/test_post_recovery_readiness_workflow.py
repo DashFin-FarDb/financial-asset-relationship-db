@@ -43,6 +43,7 @@ def test_post_recovery_is_manual_dispatch_only(post_recovery_workflow: dict) -> 
     assert "target_environment" in inputs
     assert "base_url" in inputs
     assert "timeout" in inputs
+    assert inputs["timeout"]["default"] == "30"
     assert "base_url_label" in inputs
 
 
@@ -94,6 +95,7 @@ def test_post_recovery_enforces_persistence_and_assets_smoke(post_recovery_raw: 
     assert "check_hosted_readiness.py" in post_recovery_raw
     assert "--json" in post_recovery_raw
     assert "--require-persistence" in post_recovery_raw
+    assert '--timeout "$TIMEOUT"' in post_recovery_raw
     assert "checks.assets_smoke.passed" in post_recovery_raw
     assert "assets.total" in post_recovery_raw
     assert '[ "$total" -gt 0 ]' in post_recovery_raw or '"$total" -gt 0' in post_recovery_raw

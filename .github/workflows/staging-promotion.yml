@@ -46,16 +46,58 @@ jobs:
           COORDINATION_DATABASE_URL: ${{ secrets.COORDINATION_DATABASE_URL }}
           POSTGRES_URL: ${{ secrets.POSTGRES_URL }}
           FARDB_UNTRUSTED_DATABASE_ROLES: ${{ secrets.FARDB_UNTRUSTED_DATABASE_ROLES }}
+          FARDB_EXPOSED_DATABASE_SCHEMAS: ${{ secrets.FARDB_EXPOSED_DATABASE_SCHEMAS }}
+          FARDB_EXPOSED_DATABASE_SCHEMAS_DATABASE: ${{ secrets.FARDB_EXPOSED_DATABASE_SCHEMAS_DATABASE }}
+          FARDB_EXPOSED_DATABASE_SCHEMAS_ASSET_GRAPH: ${{ secrets.FARDB_EXPOSED_DATABASE_SCHEMAS_ASSET_GRAPH }}
+          FARDB_EXPOSED_DATABASE_SCHEMAS_COORDINATION: ${{ secrets.FARDB_EXPOSED_DATABASE_SCHEMAS_COORDINATION }}
+          FARDB_EXPOSED_DATABASE_SCHEMAS_POSTGRES: ${{ secrets.FARDB_EXPOSED_DATABASE_SCHEMAS_POSTGRES }}
         run: |
           python scripts/verify_staging_promotion.py "$EVIDENCE_FILE"
-          if [ -z "${DATABASE_URL}${ASSET_GRAPH_DATABASE_URL}${COORDINATION_DATABASE_URL}${POSTGRES_URL}" ]; then
-            echo '{"status":"failed","reason":"no_database_url_configured"}' > db-authz-output.json
-            echo "H-P0-04 requires live database authorization secrets on the staging Environment."
-            echo "Configure the auth/app, asset-graph, and optional coordination/postgres URL secrets."
+
+          # Fail closed on missing required boundaries before authz runs.
+          # The checker only validates URLs that are present, so a partial
+          # secret set must not pass H-P0-04 (parity with production-promotion).
+          if [ -z "$ASSET_GRAPH_DATABASE_URL" ]; then
+            reason='missing_asset_graph_database_url'
+            echo "{\"status\":\"failed\",\"reason\":\"$reason\"}" \
+              > db-authz-output.json
+            echo "H-P0-04 requires the asset-graph DB secret on staging."
             exit 1
           fi
+          if [ -z "${DATABASE_URL}${POSTGRES_URL}" ]; then
+            reason='missing_auth_database_url'
+            echo "{\"status\":\"failed\",\"reason\":\"$reason\"}" \
+              > db-authz-output.json
+            echo "H-P0-04 requires the auth/app DB secret on staging."
+            exit 1
+          fi
+          if [ -z "$COORDINATION_DATABASE_URL" ]; then
+            reason='missing_coordination_database_url'
+            echo "{\"status\":\"failed\",\"reason\":\"$reason\"}" \
+              > db-authz-output.json
+            echo "H-P0-04 requires the coordination DB secret on staging."
+            exit 1
+          fi
+
+          # GitHub injects unset secrets as empty strings. An empty value makes
+          # the checker reject config instead of applying defaults, so drop it
+          # before invocation.
+          if [ -z "$FARDB_UNTRUSTED_DATABASE_ROLES" ]; then
+            unset FARDB_UNTRUSTED_DATABASE_ROLES
+          fi
+          for schema_secret in \
+            FARDB_EXPOSED_DATABASE_SCHEMAS \
+            FARDB_EXPOSED_DATABASE_SCHEMAS_DATABASE \
+            FARDB_EXPOSED_DATABASE_SCHEMAS_ASSET_GRAPH \
+            FARDB_EXPOSED_DATABASE_SCHEMAS_COORDINATION \
+            FARDB_EXPOSED_DATABASE_SCHEMAS_POSTGRES
+          do
+            if [ -z "${!schema_secret}" ]; then
+              unset "$schema_secret"
+            fi
+          done
           set +e
-          # Bounded stdout/stderr only (control ids/messages). Do not upload raw logs as artifacts.
+          # Bounded stdout/stderr only (control IDs/messages). Do not upload raw logs as artifacts.
           python scripts/check_database_authorization.py
           code=$?
           if [ "$code" -eq 0 ]; then
@@ -80,7 +122,10 @@ jobs:
           echo "::add-mask::$URL"
 
           # --require-persistence also enables --assets-smoke (H-P1-01).
-          python scripts/check_hosted_readiness.py "$URL" --json --require-persistence > readiness-output.json
+          # 30s covers Vercel Python cold starts; script default (5s) is too tight.
+          python scripts/check_hosted_readiness.py \
+            "$URL" --json --timeout 30 --require-persistence \
+            > readiness-output.json
 
       - name: Assert Persistence Loaded
         run: |

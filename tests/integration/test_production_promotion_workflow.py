@@ -102,6 +102,7 @@ def test_production_promotion_enforces_persistence_and_assets_smoke(
     """Live readiness must use --require-persistence (assets-smoke auto-enabled)."""
     assert "check_hosted_readiness.py" in production_promotion_raw
     assert "--require-persistence" in production_promotion_raw
+    assert "--timeout 30" in production_promotion_raw
     assert "checks.assets_smoke.passed" in production_promotion_raw
     assert "assets.total" in production_promotion_raw
     assert '[ "$total" -gt 0 ]' in production_promotion_raw or '"$total" -gt 0' in production_promotion_raw

@@ -2,8 +2,8 @@
 
 **Repository:** `DashFin-FarDb/financial-asset-relationship-db`
 **Established:** 2026-07-21
-**Repository evidence cutoff:** `main` at `74c5451acbb462b2a5923eaac1d600f780824e07`
-**Continuity status:** Initial ledger landed; reconciled to post–H-P1-02 `main`
+**Repository evidence cutoff:** `main` at `0a72dfee67aae4ef7cc44041347474a6a6e234cd`
+**Continuity status:** Reconciled through the first five GRAC foundation PRs; publication paused for three corrective PRs
 
 This ledger preserves durable project decisions, plans, milestones, and handoffs across ChatGPT, Codex, and
 repository work. It is an index of authoritative evidence, not a replacement for detailed specifications, issues,
@@ -37,11 +37,13 @@ recovery evidence.
 
 At the evidence cutoff:
 
-- `main` resolves to `74c5451acbb462b2a5923eaac1d600f780824e07` (includes H-P0 foundation gates PR #1506,
-  H-P1-01 PR #1508, and H-P1-02 PR #1509).
-- Open PR #1510 lands H-P1-03 (`post-recovery-readiness.yml`); treat it as in-flight until merged.
-- Database authorization remains release-blocking until the target environment passes ADR 0007's automated and
-  manual exit criteria with restricted evidence and a public redacted result (H-P0-04 Partially satisfied).
+- `main` resolves to `0a72dfee67aae4ef7cc44041347474a6a6e234cd`. GRAC PRs #1541, #1542, #1549, #1550, and #1552 landed in
+  order, providing the contract, conformance gate, additive schema, lifecycle repository, and deterministic
+  candidate projector.
+- The earlier staging database-authorization PASS remains valid for its recorded SHA, but it is not transferable to
+  the expanded schema at this cutoff. Exact-SHA authorization proof must be rerun after hosted-schema correction.
+- GRAC runtime capability remains `NEXT`. Publication issue #1536 is paused until contract, lifecycle, and
+  hosted-schema/PostgreSQL corrective PRs land in order.
 - Production-scale capacity, repeated immutable promotion, and domain-neutral reuse remain unproven.
 
 Primary authorities:
@@ -51,6 +53,7 @@ Primary authorities:
 - [Claims and Truth Policy](claims-and-truth-policy.md)
 - [Release Evidence Pack](../release-evidence-pack.md)
 - [State Machine and Operating Authority](../governance/state-machine-and-operating-authority.md)
+- [Governed Relationship Assertion Contract v1](../governance/governed-relationship-assertion-contract-v1.md) (NEXT capability)
 - [The Big Read](the-big-read.md)
 
 ## Active commitments
@@ -58,7 +61,7 @@ Primary authorities:
 ### FPC-2026-07-21-01 — Close the hosted database authorization gate
 
 - **Type:** Security / release blocker
-- **Status:** Blocked
+- **Status:** Satisfied — staging (`db_authz: PASS|run-30002002715`; #1525 / #1528)
 - **Decision or objective:** Enforce and prove the deny-by-default hosted PostgreSQL authorization boundary defined
   by ADR 0007.
 - **Rationale and constraints:** Database reachability, durability, and application authentication do not prove
@@ -67,16 +70,26 @@ Primary authorities:
 - **Repository scope:** `docs/adr/0007-database-authorization-boundary.md`,
   `scripts/check_database_authorization.py`, provider configuration, restricted closure evidence, release record.
   Workflow wiring exists in `release-evidence-verify.yml`, `staging-promotion.yml`, and `production-promotion.yml`
-  (H-P0-04 Partially satisfied).
-- **Dependencies or blockers:** Live inventory; least-privilege role and policy design; negative tests; application,
-  recovery, and restore regression proof; provider advisers; credential review; operator approval; Environment secrets
-  for staging/production promotion paths.
-- **Evidence and provenance:** ADR 0007 is accepted and the bounded checker was merged through PR #1482. The ADR
-  explicitly says that it does not mutate the live database or close the gate without target-environment evidence.
-- **Next action and completion test:** Execute ADR 0007's remediation sequence against staging, preserve sensitive
-  findings in a restricted record, and attach a redacted pass result showing every exit criterion is satisfied or a
-  named, time-bounded exception is approved.
-- **Last updated:** 2026-07-21
+  (H-P0-04 Satisfied for staging). Assert-path `hardening_tier=P0` fails closed when DB authz is skipped; staging,
+  production, and release-evidence authz steps fail closed when any required boundary secret is missing
+  (asset-graph, auth/app or postgres fallback, and coordination). Operator setup path:
+  `docs/runbooks/database-authorization-closure.md`,
+  `docs/evidence-records/templates/db-authz-*.md`,
+  `.github/ISSUE_TEMPLATE/database_authorization_closure.md`.
+- **Dependencies or blockers:** Production twin still needs its own SHA-bound authz PASS when that artefact is
+  promoted. Restricted worksheet remains offline.
+- **Evidence and provenance:** ADR 0007 is accepted and the bounded checker was merged through PR #1482. Fail-closed
+  Assert-path wiring landed through PR #1506. The operator closure setup path (runbook, worksheets, issue template,
+  per-boundary schema secrets) landed through PR #1520 (`e121b54d` on `main`). Deny-by-default migrations landed
+  through PR #1526 (`8f95fad1` on `main`). Staging closure tracker [#1525](https://github.com/DashFin-FarDb/financial-asset-relationship-db/issues/1525)
+  captured a P0 `release-evidence-verify` pass at `29991d03` with public marker
+  `db_authz: PASS|run-30002002715` ([run 30002002715](https://github.com/DashFin-FarDb/financial-asset-relationship-db/actions/runs/30002002715));
+  committed redacted record in PR #1528 (`docs/evidence-records/hp004-db-authz-pass-29991d03.md`). Restricted exit
+  criteria, fixed-search-path review, credential/rollback review, and named sign-off completed 2026-07-24.
+- **Next action and completion test:** Treat staging H-P0-04 / FPC-2026-07-21-01 as Satisfied. For production, repeat
+  the SHA-bound `db_authz: PASS|<opaque-ref>` attachment against the production Environment before claiming that
+  target closed.
+- **Last updated:** 2026-07-24
 
 ### FPC-2026-07-21-02 — Prove release repeatability for the exact artefact
 
@@ -92,7 +105,7 @@ Primary authorities:
 - **Dependencies or blockers:** Selected release SHA; target environment; database authorization closure; named
   operators; fresh hosted and restore outputs.
 - **Evidence and provenance:** The current-state strategy and enterprise-readiness index both preserve fresh-evidence
-  requirements for later releases. Hardening automation through H-P1-02 is on `main`; H-P1-03 is open as PR #1510.
+  requirements for later releases. Hardening automation through H-P1-02 and H-P1-03 (PR #1510) is on `main`.
 - **Next action and completion test:** Promote the same immutable artefact through the governed path and obtain a
   complete evidence ledger with durable persisted startup, scanner review, operator sign-off, rollback, and restore
   proof.
@@ -120,20 +133,23 @@ Primary authorities:
 ### FPC-2026-07-21-04 — Ratify the governed relationship-assertion contract
 
 - **Type:** Product architecture
-- **Status:** Planned
+- **Status:** Agreed — contract decision ratified (ADR 0008 / contract v1); runtime capability remains `NEXT`
 - **Decision or objective:** Decide and document the lifecycle that distinguishes propositions, evidence, assertions,
   determinations, projections, corrections, supersession, authority, purpose, and time.
 - **Rationale and constraints:** This is the proposed differentiating semantic core. It must not be represented as a
   current capability merely because the existing graph and governance foundations make it plausible.
-- **Repository scope:** Strategy documents, future ADR or specification, canonical domain model, conformance tests and
-  later domain adapters.
-- **Dependencies or blockers:** Domain admission criteria; bitemporal and evidence-custody decisions; expert review;
-  database authorization and release proof.
-- **Evidence and provenance:** Classified as `NEXT` or `RESEARCH` by the accepted claims taxonomy and current-state
-  strategy; not implemented as a complete governed lifecycle.
-- **Next action and completion test:** Ratify a narrow contract through one decision-scoped ADR/specification and prove
-  it first in the financial domain with lifecycle and invariant tests.
-- **Last updated:** 2026-07-21
+- **Repository scope:** ADR 0008, frozen contract v1, continuity/strategy links; conformance, schema, lifecycle, and
+  candidate projection landed through #1532–#1535; publication, APIs, UI, and staging proof remain #1536–#1540.
+- **Dependencies or blockers:** Three pre-publication corrective PRs: contract amendment; lifecycle/temporal/
+  serialization enforcement; hosted schema plus full PostgreSQL proof. Staging proof remains required before CURRENT.
+- **Evidence and provenance:** User decision 2026-07-25; original contract baseline `5e457537`; reviewed implementation
+  baseline `0a72dfee`; ADR 0008 Accepted; PRs #1541, #1542, #1549, #1550, and #1552 merged in order. Runtime
+  capability remains `NEXT`. Executable conformance and the vertical slice are implemented through candidate
+  projection; publication remains paused.
+- **Next action and completion test:** Land the three corrective PRs in order, then resume #1536–#1540. Complete only
+  when exact-SHA staging proof answers provenance, proposition, evidence, method, confidence, time, authority,
+  supersession, revision, governed-scope continuity, and the pre-correction graph after restart.
+- **Last updated:** 2026-07-26
 
 ### FPC-2026-07-21-05 — Prove domain generality without weakening the core
 
@@ -152,6 +168,28 @@ Primary authorities:
 - **Last updated:** 2026-07-21
 
 ## Decision and delivery record
+
+### FARDB-GRAC-V1 — Governed Relationship Assertion Contract v1
+
+- **Type:** Architecture and product milestone
+- **Status:** Agreed
+- **Decision:** Make append-only governed assertions the authoritative source
+  for relationship provenance, evidence, authority, time, confidence,
+  lifecycle and supersession; retain the graph as a deterministic projection.
+- **First proof:** `financial.bond.issuer_reference@1` complete financial
+  vertical slice.
+- **Constraints:** Main repository only; FastAPI + Next.js production path;
+  SQLite/PostgreSQL parity; existing rebuild control plane owns publication;
+  no raw evidence blobs, multi-domain expansion or graph-database migration.
+- **Evidence:** User decision dated 2026-07-25; original contract baseline
+  `5e45753705c10c2c4f50e0e9bc4d07b823d752ab`; reviewed implementation baseline
+  `0a72dfee67aae4ef7cc44041347474a6a6e234cd`; tracker epic #1530 / children #1531–#1540; merged foundation
+  PRs #1541, #1542, #1549, #1550, and #1552; ADR 0008 Accepted; frozen contract
+  [governed-relationship-assertion-contract-v1.md](../governance/governed-relationship-assertion-contract-v1.md).
+- **Next action:** Land the three pre-publication corrective PRs, then resume #1536–#1540.
+- **Completion test:** Exact-SHA staging proof of proposal, authorization,
+  publication, supersession, restart and historical reconstruction.
+- **Last updated:** 2026-07-26
 
 ### FPC-2025-10-26-01 — Financial relationship prototype becomes a versioned project
 
@@ -319,10 +357,11 @@ Primary authorities:
   - PR #1506 — P0 foundation gates (`cabb8222` lineage on `main`)
   - PR #1508 — H-P1-01 `--assets-smoke` with `--require-persistence` (`5c507f6c`)
   - PR #1509 — H-P1-02 `production-promotion.yml` twin (`74c5451a`)
+  - PR #1510 — H-P1-03 post-recovery readiness re-smoke (`21f54a42`)
 - **Evidence and provenance:** Merged history on `main`; evidence pack / board rows for H-P1-01 and H-P1-02 marked
-  Satisfied - automated. H-P0-04 remains Partially satisfied pending target-environment redacted PASS.
-- **In flight:** PR #1510 — H-P1-03 post-recovery readiness re-smoke dispatch recipe + artifacts.
-- **Last updated:** 2026-07-21
+  Satisfied - automated. H-P1-03 merged via PR #1510. H-P0-04 is Satisfied for staging: redacted PASS, restricted exit
+  criteria, and named sign-off recorded (#1525 / PR #1528 / PR #1529; `db_authz: PASS|run-30002002715`).
+- **Last updated:** 2026-07-25
 
 ## Deferred work
 
@@ -338,10 +377,9 @@ Primary authorities:
 
 ## Open questions and conflicts
 
-1. **Database authorization closure:** The accepted ADR and checker establish the contract, and promotion/RC workflows
-   can invoke the checker, but public repository evidence does not establish that live remediation, negative tests,
-   rollback, credential review, and provider-adviser checks all passed. Treat the gate as blocked until target
-   evidence says otherwise (FPC-2026-07-21-01 / H-P0-04).
+1. **Database authorization closure:** Staging H-P0-04 / FPC-2026-07-21-01 is Satisfied
+   (`db_authz: PASS|run-30002002715` / #1525 / #1528). Production still needs its own SHA-bound authz PASS when that
+   artefact is under promotion.
 2. **Current-release identity:** RC1 is approved for its June 2026 SHA. No later SHA inherits that approval. Select the
    next immutable candidate before claiming a current enterprise release.
 3. **Documentation freshness:** The [Enterprise Readiness Index](../enterprise-readiness-index.md) dated 2026-07-15
@@ -349,8 +387,8 @@ Primary authorities:
    when the next release record is prepared.
 4. **Tracker vs ledger:** Active commitments in this ledger may outlive or precede open GitHub issues/PRs. Empty or
    sparse trackers are not evidence that release gates are satisfied.
-5. **Product category decision:** The governed assertion model is a recommended next decision, not yet an accepted ADR
-   or current platform capability.
+5. **Product category decision:** ADR 0008 Accepted and contract v1 frozen (FARDB-GRAC-V1 Agreed). Runtime governed
+   assertion capability remains `NEXT` until exact-SHA staging proof (#1540); do not treat ratification as CURRENT.
 
 ## Agent-ready handoff
 
@@ -361,8 +399,10 @@ Primary authorities:
 - Durable graph load, startup provenance, promotion checking, recovery control plane, API contracts, governance, DR
   documentation, and release-evidence mechanisms exist in the repository.
 - RC1 has candidate-specific approved hosted and restore evidence.
-- `main` is `74c5451acbb462b2a5923eaac1d600f780824e07` at this cutoff (H-P0 foundation, H-P1-01, H-P1-02 merged).
-- PR #1510 (H-P1-03 post-recovery re-smoke) is open at ledger update time.
+- `main` is `0a72dfee67aae4ef7cc44041347474a6a6e234cd` at this cutoff. GRAC foundation PRs #1541, #1542, #1549,
+  #1550, and #1552 are merged.
+- GRAC v1 programme tracker: epic #1530 / children #1531–#1540; publication #1536 is paused for three corrective
+  PRs; capability claim remains `NEXT`.
 
 ### Governing constraints
 
@@ -376,31 +416,30 @@ Primary authorities:
 
 ### Next highest-value action
 
-Close FPC-2026-07-21-01: execute and evidence the ADR 0007 hosted database authorization contract in staging. This is
-the nearest release blocker and a prerequisite for credible sensitive-domain or enterprise positioning.
-
-Repository automation follow-through (merge #1510 / H-P1-03, then H-P1-04/H-P1-05 as scoped) supports
-FPC-2026-07-21-02 but does not substitute for live authorization closure.
+Keep #1536 paused. Land, in order: (1) the GRAC scope/publication contract amendment, (2) lifecycle, actor, temporal,
+and supersession-serialization enforcement, and (3) hosted-schema hardening with durable governed scopes and full
+PostgreSQL projection/lifecycle CI. Then rerun exact-SHA database authorization proof and resume #1536–#1540.
+Release repeatability (**FPC-2026-07-21-02**) remains an active parallel commitment.
 
 ### Completion test
 
-The authorization checker passes every configured hosted boundary; manual privileged-function review, negative access
-tests, rollback, application/recovery/restore regression checks, provider advisers, credential review, and redacted
-operator sign-off are complete; and no unresolved high-severity access-control finding remains without a named,
-time-bounded exception.
+The three corrective PRs merge in order; exact-SHA database authorization passes for the corrected schema; and the
+resumed #1536–#1540 sequence proves distinct proposal/determination actors, publication, governed-scope continuity,
+supersession, restart, and historical reconstruction without promoting capability before the staging evidence exists.
 
 ## Backfill coverage and gaps
 
 ### Sources reviewed
 
-- Repository `main` through `74c5451acbb462b2a5923eaac1d600f780824e07` on 2026-07-21.
+- Repository `main` through `0a72dfee67aae4ef7cc44041347474a6a6e234cd` on 2026-07-26.
 - Repository agent instructions and production-architecture declaration.
 - Enterprise-readiness index, audit, roadmap, PR board, validation-gap audit, release checklist, release evidence pack,
   hosted staging baseline, operational evidence framework, drill and scale-validation documents, and risk register.
-- ADRs and governance authorities referenced by those indexes, including ADRs 0001, 0002, 0005, 0006, and 0007.
+- ADRs and governance authorities referenced by those indices, including ADRs 0001, 0002, 0005, 0006, and 0007.
 - RC1 committed evidence record and its repository companion issue record.
 - Current-state strategy, claims taxonomy, and Big Read chronology.
-- Merged hardening PRs #1506, #1508, #1509 and open PR #1510.
+- Merged hardening PRs #1506, #1508, #1509, and #1510 (H-P1-03).
+- Merged GRAC foundation PRs #1541, #1542, #1549, #1550, and #1552.
 - Available ChatGPT continuity context covering the enterprise-readiness program, PR #1096 onward, RC1 evidence work,
   hosted startup incidents, audit completion, and agreed future-work discussions.
 

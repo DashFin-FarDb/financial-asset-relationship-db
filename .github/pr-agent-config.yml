@@ -109,15 +109,18 @@ ci:
   retry_failed_checks: true
   max_check_retries: 2
 
+  # Always-required names from docs/ci-required-checks-policy.md (H-P1-04).
+  # frontend-ci is path-filtered — list under optional so absence does not block the agent.
   required_checks:
     - "Test Python 3.10"
     - "Test Python 3.11"
     - "Test Python 3.12"
     - "Security checks"
-    - "Run eslint scanning"
-    - "build"
+    - "build-and-smoke-test"
 
   optional_checks:
+    - "frontend-ci"
+    - "Run eslint scanning"
     - "netlify"
     - "vercel"
     - "CodeRabbit"

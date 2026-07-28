@@ -542,6 +542,15 @@ class TestSnykContainerWorkflow:
         assert len(docker_steps) == 1
         assert docker_steps[0]["with"]["sarif"] is True
 
+    def test_docker_scan_excludes_base_image_vulns(self, container_job):
+        """PR scans must exclude upstream base-image CVEs from 'new alerts'."""
+        steps = container_job["steps"]
+        docker_steps = [s for s in steps if "uses" in s and "snyk/actions/docker@" in s["uses"]]
+        assert len(docker_steps) == 1
+        args = docker_steps[0]["with"]["args"]
+        assert "--file=Dockerfile" in args
+        assert "--exclude-base-image-vulns" in args
+
     def test_job_fails_when_sarif_missing(self, container_job):
         """Workflow must fail when Snyk does not produce the expected SARIF artifact."""
         steps = container_job["steps"]

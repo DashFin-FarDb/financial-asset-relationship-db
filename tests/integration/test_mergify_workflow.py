@@ -49,7 +49,9 @@ class TestMergifyConfigIntegration:
         """
         Verify t-shirt size tiers cover modified-line ranges without gaps.
 
-        Parses "#modified-lines >= N" and "#modified-lines < N" from t-shirt rules in the loaded Mergify config, treating a missing lower bound as 0 and a missing upper bound as infinity, and asserts each tier's upper bound equals the next tier's lower bound. Raises AssertionError with a descriptive message if a gap is found.
+        Parses "#modified-lines >= N" and "#modified-lines < N" from t-shirt rules in the loaded Mergify config,
+        treating a missing lower bound as 0 and a missing upper bound as infinity, and asserts each tier's upper bound
+        equals the next tier's lower bound. Raises AssertionError with a descriptive message if a gap is found.
         """
         config = load_config()
         rules = config["pull_request_rules"]
@@ -89,7 +91,8 @@ class TestMergifyConfigIntegration:
         """
         Verify that label toggles are unique across all pull request rules.
 
-        Asserts that no label appears in more than one rule's `actions.label.toggle` list; reports duplicate labels if found.
+        Asserts that no label appears in more than one rule's `actions.label.toggle` list; reports duplicate labels if
+        found.
         """
         config = load_config()
         rules = config["pull_request_rules"]
@@ -105,10 +108,17 @@ class TestMergifyConfigIntegration:
 
     def test_ci_check_name_in_auto_merge_rules(self):
         """
-        Auto-merge rules must reference 'check-success=Test Python 3.12'.
+        Auto-merge rules must require the H-P1-04 always-required check-success set.
 
-        Matching the actual CI job name in .github/workflows/ci.yml.
+        Names must match docs/ci-required-checks-policy.md and active workflow jobs.
         """
+        required = (
+            "check-success=Test Python 3.10",
+            "check-success=Test Python 3.11",
+            "check-success=Test Python 3.12",
+            "check-success=Security checks",
+            "check-success=build-and-smoke-test",
+        )
         config = load_config()
         rules = config["pull_request_rules"]
 
@@ -116,10 +126,11 @@ class TestMergifyConfigIntegration:
         assert auto_merge_rules, "No auto-merge rules found"
 
         for rule in auto_merge_rules:
-            conditions = " ".join(str(c) for c in rule.get("conditions", []))
-            assert (
-                "check-success=Test Python 3.12" in conditions
-            ), f"Auto-merge rule '{rule['name']}' must reference 'check-success=Test Python 3.12'"
+            condition_list = [str(c) for c in rule.get("conditions", [])]
+            for expected in required:
+                assert expected in condition_list, f"Auto-merge rule '{rule['name']}' must reference '{expected}'"
+            assert "check-success=frontend-ci" not in condition_list
+            assert "check-success=build" not in condition_list
 
     def test_review_request_excludes_bots(self):
         """
@@ -169,7 +180,8 @@ class TestMergifyComplexScenarios:
         """
         Ensure auto-merge rules for Dependabot and Snyk require passing CI.
 
-        Asserts there are auto-merge rules for both Dependabot and snyk-bot and that each such rule's conditions include a `check-success` requirement.
+        Asserts there are auto-merge rules for both Dependabot and snyk-bot and that each such rule's conditions include
+        a `check-success` requirement.
         """
         config = load_config()
         rules = config["pull_request_rules"]
@@ -214,7 +226,8 @@ class TestMergifyComplexScenarios:
         """
         Ensure content-label rules add labels so multiple content labels can be applied simultaneously.
 
-        Asserts there are at least four content-label rules (security, ci, documentation, dependencies) and that each rule uses the `add` label action rather than `toggle`.
+        Asserts there are at least four content-label rules (security, ci, documentation, dependencies) and that each
+        rule uses the `add` label action rather than `toggle`.
         """
         config = load_config()
         rules = config["pull_request_rules"]
@@ -239,7 +252,8 @@ class TestMergifyComplexScenarios:
         """
         Verify review-request rules exclude common bot authors so human reviewers are not requested for automated PRs.
 
-        For each rule with a `request_reviews` action, assert the rule's conditions include `-author=dependabot[bot]` and `-author=snyk-bot`.
+        For each rule with a `request_reviews` action, assert the rule's conditions include `-author=dependabot[bot]`
+        and `-author=snyk-bot`.
         """
         config = load_config()
         rules = config["pull_request_rules"]
@@ -257,9 +271,11 @@ class TestMergifyComplexScenarios:
 
     def test_stale_workflow_prevents_premature_closure(self):
         """
-        Ensure stale-label removal rules require the stale label and a recent update condition to prevent premature closure of active PRs.
+        Ensure stale-label removal rules require the stale label and a recent update condition to prevent premature
+        closure of active PRs.
 
-        Verifies at least one rule removes the "stale" label and that each such rule's conditions include a check for the stale label (e.g., `label=stale`) and an `updated-at >=` criterion indicating recent activity.
+        Verifies at least one rule removes the "stale" label and that each such rule's conditions include a check for
+        the stale label (e.g., `label=stale`) and an `updated-at >=` criterion indicating recent activity.
         """
         config = load_config()
         rules = config["pull_request_rules"]
@@ -282,7 +298,10 @@ class TestMergifyComplexScenarios:
         """
         Ensure size and dependency labels can both apply to the same pull request.
 
-        Loads the Mergify configuration and asserts there is at least one size-labeling rule and at least one dependency-labeling rule. For each size rule, verifies the rule's conditions do not explicitly exclude dependency file changes (e.g., requirements files), ensuring a PR that modifies requirements.txt could receive both labels.
+        Loads the Mergify configuration and asserts there is at least one size-labeling rule and at least one
+        dependency-labeling rule. For each size rule, verifies the rule's conditions do not explicitly exclude
+        dependency file changes (e.g., requirements files), ensuring a PR that modifies requirements.txt could receive
+        both labels.
         """
         config = load_config()
         rules = config["pull_request_rules"]
@@ -310,7 +329,8 @@ class TestMergifySecurityAndSafety:
         """
         Ensure every auto-merge rule requires a passing CI check.
 
-        Finds rules with a "merge" action, asserts at least one auto-merge rule exists, and asserts each such rule's conditions include "check-success" to require passing CI before merging.
+        Finds rules with a "merge" action, asserts at least one auto-merge rule exists, and asserts each such rule's
+        conditions include "check-success" to require passing CI before merging.
         """
         config = load_config()
         rules = config["pull_request_rules"]
@@ -326,7 +346,8 @@ class TestMergifySecurityAndSafety:
         """
         Verify that Dependabot's auto-merge rule limits large changes by requiring a '#files <= 5' condition.
 
-        Asserts a Dependabot auto-merge rule exists and that its conditions include '#files <= 5' to prevent merging large dependency updates without review.
+        Asserts a Dependabot auto-merge rule exists and that its conditions include '#files <= 5' to prevent merging
+        large dependency updates without review.
         """
         config = load_config()
         rules = config["pull_request_rules"]
@@ -369,7 +390,8 @@ class TestMergifySecurityAndSafety:
         """
         Ensure rules that dismiss reviews only trigger on new commits ('synchronize').
 
-        Asserts at least one rule contains a `dismiss_reviews` action and that each such action has its `when` field equal to "synchronize".
+        Asserts at least one rule contains a `dismiss_reviews` action and that each such action has its `when` field
+        equal to "synchronize".
         """
         config = load_config()
         rules = config["pull_request_rules"]

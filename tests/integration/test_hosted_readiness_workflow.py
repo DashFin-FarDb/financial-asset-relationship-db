@@ -206,6 +206,7 @@ class TestHostedReadinessWorkflowInputs:
         timeout_input = inputs["timeout"]
         assert "default" in timeout_input, "timeout input must have a 'default' value"
         assert isinstance(timeout_input["default"], str), "timeout input default must be a string"
+        assert timeout_input["default"] == "30", "timeout default must cover Vercel Python cold starts"
 
     def test_require_persistence_input_configuration(self, hosted_readiness_workflow):
         """require_persistence input must exist and be a boolean default false."""

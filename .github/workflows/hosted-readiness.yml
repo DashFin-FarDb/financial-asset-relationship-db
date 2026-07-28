@@ -10,7 +10,7 @@ name: Hosted readiness smoke check
       timeout:
         description: "Request timeout in seconds."
         required: false
-        default: "10"
+        default: "30"
         type: string
       require_persistence:
         description: "Prove persisted graph load rather than fallback generation."

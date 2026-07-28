@@ -624,6 +624,7 @@ def test_parse_args_handles_require_persistence() -> None:
 
     args_default = script.parse_args(["https://example.com"])
     assert args_default.require_persistence is False
+    assert args_default.timeout == 30.0
 
 
 def test_parse_args_handles_assets_smoke() -> None:

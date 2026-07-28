@@ -23,6 +23,13 @@ SUPPORTED_DATABASE_URL_ENVS = (
     "POSTGRES_URL",
 )
 UNTRUSTED_DATABASE_ROLES_ENV = "FARDB_UNTRUSTED_DATABASE_ROLES"
+EXPOSED_DATABASE_SCHEMAS_ENV = "FARDB_EXPOSED_DATABASE_SCHEMAS"
+EXPOSED_DATABASE_SCHEMAS_ENV_BY_URL_ENV = {
+    "DATABASE_URL": "FARDB_EXPOSED_DATABASE_SCHEMAS_DATABASE",
+    "ASSET_GRAPH_DATABASE_URL": "FARDB_EXPOSED_DATABASE_SCHEMAS_ASSET_GRAPH",
+    "COORDINATION_DATABASE_URL": "FARDB_EXPOSED_DATABASE_SCHEMAS_COORDINATION",
+    "POSTGRES_URL": "FARDB_EXPOSED_DATABASE_SCHEMAS_POSTGRES",
+}
 DEFAULT_UNTRUSTED_DATABASE_ROLES = ("anon", "authenticated")
 SAFE_SCHEMA_PATTERN = re.compile(r"^[a-z_][a-z0-9_]*$")
 SAFE_ROLE_PATTERN = re.compile(r"^[a-z_][a-z0-9_]*$")
@@ -166,6 +173,13 @@ class Finding(NamedTuple):
 
 class TrustedDatabaseUrl(str):
     """A PostgreSQL URL accepted from the fixed deployment configuration boundary."""
+
+
+class BoundaryAuthorizationTarget(NamedTuple):
+    """One configured database URL paired with its exposed-schema inventory."""
+
+    database_url: TrustedDatabaseUrl
+    exposed_schemas: tuple[str, ...]
 
 
 CONTROL_MESSAGES = {
@@ -334,21 +348,6 @@ def _validate_database_url(database_url: str) -> TrustedDatabaseUrl | None:
     return TrustedDatabaseUrl(database_url)
 
 
-def _configured_database_urls(environment: Mapping[str, str]) -> tuple[TrustedDatabaseUrl, ...] | None:
-    """Resolve and validate distinct URLs from the fixed deployment configuration allowlist."""
-    configured: list[TrustedDatabaseUrl] = []
-    for variable_name in SUPPORTED_DATABASE_URL_ENVS:
-        raw_url = environment.get(variable_name)
-        if not raw_url:
-            continue
-        database_url = _validate_database_url(raw_url)
-        if database_url is None:
-            return None
-        if database_url not in configured:
-            configured.append(database_url)
-    return tuple(configured)
-
-
 def _configured_untrusted_roles(environment: Mapping[str, str]) -> tuple[str, ...] | None:
     """Resolve untrusted provider-role identities without exposing them in output."""
     raw_roles = environment.get(UNTRUSTED_DATABASE_ROLES_ENV)
@@ -359,6 +358,105 @@ def _configured_untrusted_roles(environment: Mapping[str, str]) -> tuple[str, ..
     if not roles or any(not SAFE_ROLE_PATTERN.fullmatch(role) for role in roles):
         return None
     return roles
+
+
+def _parse_exposed_schema_csv(raw_schemas: str) -> tuple[str, ...] | None:
+    """Parse a comma-separated schema inventory, failing closed on empty fields."""
+    schemas = tuple(dict.fromkeys(part.strip() for part in raw_schemas.split(",")))
+    if not schemas or any(not SAFE_SCHEMA_PATTERN.fullmatch(schema) for schema in schemas):
+        return None
+    return schemas
+
+
+def _configured_exposed_schemas(
+    environment: Mapping[str, str],
+    cli_schema: str,
+) -> tuple[str, ...] | None:
+    """Resolve the global/default exposed-schema list from env or the CLI default.
+
+    When ``FARDB_EXPOSED_DATABASE_SCHEMAS`` is set, every listed schema must be a
+    complete inventoried list (include ``public`` when it is exposed). Empty CSV
+    fields fail closed. When unset, the ``--exposed-schema`` value is used
+    (default ``public``). Boundary-specific overrides use
+    ``FARDB_EXPOSED_DATABASE_SCHEMAS_*`` (see ``_configured_authorization_boundaries``).
+    """
+    raw_schemas = environment.get(EXPOSED_DATABASE_SCHEMAS_ENV)
+    if raw_schemas is None:
+        if not SAFE_SCHEMA_PATTERN.fullmatch(cli_schema):
+            return None
+        return (cli_schema,)
+    return _parse_exposed_schema_csv(raw_schemas)
+
+
+def _merge_exposed_schemas(
+    existing: Sequence[str],
+    addition: Sequence[str],
+) -> tuple[str, ...]:
+    """Union schema lists while preserving first-seen order."""
+    return tuple(dict.fromkeys((*existing, *addition)))
+
+
+def _resolve_schemas_for_url_env(
+    environment: Mapping[str, str],
+    url_env: str,
+    default_schemas: tuple[str, ...],
+) -> tuple[str, ...] | None:
+    """Resolve schemas for one URL env, preferring a boundary-specific override."""
+    schema_env = EXPOSED_DATABASE_SCHEMAS_ENV_BY_URL_ENV[url_env]
+    raw_boundary_schemas = environment.get(schema_env)
+    if raw_boundary_schemas is None:
+        return default_schemas
+    return _parse_exposed_schema_csv(raw_boundary_schemas)
+
+
+def _store_boundary_schemas(
+    schemas_by_url: dict[TrustedDatabaseUrl, tuple[str, ...]],
+    ordered_urls: list[TrustedDatabaseUrl],
+    database_url: TrustedDatabaseUrl,
+    schemas: tuple[str, ...],
+) -> None:
+    """Record schemas for a URL, merging when the same URL appears twice."""
+    existing = schemas_by_url.get(database_url)
+    if existing is None:
+        ordered_urls.append(database_url)
+        schemas_by_url[database_url] = schemas
+        return
+    schemas_by_url[database_url] = _merge_exposed_schemas(existing, schemas)
+
+
+def _configured_authorization_boundaries(
+    environment: Mapping[str, str],
+    cli_schema: str,
+) -> tuple[BoundaryAuthorizationTarget, ...] | None:
+    """Resolve each configured URL with its exposed-schema inventory.
+
+    Global ``FARDB_EXPOSED_DATABASE_SCHEMAS`` (or CLI default) applies unless a
+    boundary-specific ``FARDB_EXPOSED_DATABASE_SCHEMAS_*`` secret is set for that
+    URL env. Duplicate URLs merge their schema lists so unique schemas are not
+    projected onto unrelated databases.
+    """
+    default_schemas = _configured_exposed_schemas(environment, cli_schema)
+    if default_schemas is None:
+        return None
+
+    schemas_by_url: dict[TrustedDatabaseUrl, tuple[str, ...]] = {}
+    ordered_urls: list[TrustedDatabaseUrl] = []
+    for url_env in SUPPORTED_DATABASE_URL_ENVS:
+        raw_url = environment.get(url_env)
+        if not raw_url:
+            continue
+        database_url = _validate_database_url(raw_url)
+        if database_url is None:
+            return None
+        schemas = _resolve_schemas_for_url_env(environment, url_env, default_schemas)
+        if schemas is None:
+            return None
+        _store_boundary_schemas(schemas_by_url, ordered_urls, database_url, schemas)
+
+    return tuple(
+        BoundaryAuthorizationTarget(database_url=database_url, exposed_schemas=schemas_by_url[database_url])
+        for database_url in ordered_urls
+    )
 
 
 def _connect(database_url: TrustedDatabaseUrl) -> Any:
@@ -380,7 +478,7 @@ def _parse_args(argv: Sequence[str] | None) -> argparse.Namespace:
     parser.add_argument(
         "--exposed-schema",
         default="public",
-        help="Exposed schema to check (default: public).",
+        help="Exposed schema to check when FARDB_EXPOSED_DATABASE_SCHEMAS is unset (default: public).",
     )
     return parser.parse_args(argv)
 
@@ -417,6 +515,71 @@ def _evaluate_snapshots(snapshots: Sequence[AuthorizationSnapshot]) -> list[Find
     return list(findings_by_control.values())
 
 
+class GateConfiguration(NamedTuple):
+    """Resolved runtime inputs for one authorization-gate invocation."""
+
+    boundaries: tuple[BoundaryAuthorizationTarget, ...]
+    untrusted_roles: tuple[str, ...]
+    require_all_untrusted_roles: bool
+
+
+def _reject_invalid_configuration() -> int:
+    """Emit the bounded invalid-configuration message and return the usage exit code."""
+    print("database authorization check configuration is invalid", file=sys.stderr)
+    return USAGE_ERROR
+
+
+def _resolve_gate_configuration(
+    environ: Mapping[str, str],
+    *,
+    cli_exposed_schema: str,
+) -> GateConfiguration | int:
+    """Resolve gate inputs, or return a usage/config exit code when invalid."""
+    if not SAFE_SCHEMA_PATTERN.fullmatch(cli_exposed_schema):
+        return _reject_invalid_configuration()
+
+    boundaries = _configured_authorization_boundaries(environ, cli_exposed_schema)
+    if boundaries is None:
+        return _reject_invalid_configuration()
+    untrusted_roles = _configured_untrusted_roles(environ)
+    if untrusted_roles is None:
+        return _reject_invalid_configuration()
+    if not boundaries:
+        print("database authorization check requires a configured database URL", file=sys.stderr)
+        return USAGE_ERROR
+
+    return GateConfiguration(
+        boundaries=boundaries,
+        untrusted_roles=untrusted_roles,
+        require_all_untrusted_roles=UNTRUSTED_DATABASE_ROLES_ENV in environ,
+    )
+
+
+def _collect_snapshots_for_schemas(
+    configuration: GateConfiguration,
+    connect: Callable[[TrustedDatabaseUrl], Any],
+) -> list[AuthorizationSnapshot] | None:
+    """Collect per-boundary schema snapshots, or None when any boundary fails."""
+    snapshots: list[AuthorizationSnapshot] = []
+    for boundary in configuration.boundaries:
+        for schema in boundary.exposed_schemas:
+            snapshot_collector = partial(
+                collect_snapshot,
+                schema=schema,
+                untrusted_roles=configuration.untrusted_roles,
+                require_all_untrusted_roles=configuration.require_all_untrusted_roles,
+            )
+            schema_snapshots = _collect_configured_snapshots(
+                (boundary.database_url,),
+                snapshot_collector,
+                connect,
+            )
+            if schema_snapshots is None:
+                return None
+            snapshots.extend(schema_snapshots)
+    return snapshots
+
+
 def main(
     argv: Sequence[str] | None = None,
     *,
@@ -424,32 +587,14 @@ def main(
 ) -> int:
     """Run the database authorization gate."""
     args = _parse_args(argv)
-    if not SAFE_SCHEMA_PATTERN.fullmatch(args.exposed_schema):
-        print("database authorization check configuration is invalid", file=sys.stderr)
-        return USAGE_ERROR
-
-    database_urls = _configured_database_urls(os.environ)
-    untrusted_roles = _configured_untrusted_roles(os.environ)
-    require_all_untrusted_roles = UNTRUSTED_DATABASE_ROLES_ENV in os.environ
-    if database_urls is None or untrusted_roles is None:
-        print("database authorization check configuration is invalid", file=sys.stderr)
-        return USAGE_ERROR
-    if not database_urls:
-        print("database authorization check requires a configured database URL", file=sys.stderr)
-        return USAGE_ERROR
-
-    connect = connector or _connect
-    snapshot_collector = partial(
-        collect_snapshot,
-        schema=args.exposed_schema,
-        untrusted_roles=untrusted_roles,
-        require_all_untrusted_roles=require_all_untrusted_roles,
+    configuration = _resolve_gate_configuration(
+        os.environ,
+        cli_exposed_schema=args.exposed_schema,
     )
-    snapshots = _collect_configured_snapshots(
-        database_urls,
-        snapshot_collector,
-        connect,
-    )
+    if isinstance(configuration, int):
+        return configuration
+
+    snapshots = _collect_snapshots_for_schemas(configuration, connector or _connect)
     if snapshots is None:
         print("database authorization check could not complete", file=sys.stderr)
         return CHECK_FAILED

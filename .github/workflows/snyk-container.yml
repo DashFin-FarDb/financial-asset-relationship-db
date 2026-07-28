@@ -65,7 +65,10 @@ jobs:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
           image: your/image-to-test
-          args: --file=Dockerfile
+          # Report only vulns introduced by our Dockerfile layers (e.g. apt packages
+          # we install). Upstream python:*-slim base CVEs are tracked via scheduled
+          # scans / image upgrades, not as PR "new alerts" on every Dockerfile edit.
+          args: --file=Dockerfile --exclude-base-image-vulns
           sarif: true
       - name: Verify Snyk SARIF output
         run: |

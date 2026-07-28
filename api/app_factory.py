@@ -355,6 +355,8 @@ async def _perform_startup_reconciliation(settings: GraphLifecycleSettings) -> N
                 },
             ),
         )
+        # Keep the public message and exception chain sanitized: do not embed
+        # str(exc) (may contain DB URLs/secrets). Type name is logged above.
         raise RuntimeError("Failed to load persisted graph during startup") from None
 
 
