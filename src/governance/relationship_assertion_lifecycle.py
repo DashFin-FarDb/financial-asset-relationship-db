@@ -60,6 +60,7 @@ from src.governance.relationship_assertion_contract import (
 _SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 _GROUPED_SHA256_RE = re.compile(r"^[0-9a-f]{4}(?:-[0-9a-f]{4}){15}$")
 _UTC_OFFSET = timedelta(0)
+_DETERMINATION_STATES: frozenset[LifecycleState] = frozenset({"Accepted", "Rejected", "Superseded"})
 
 
 @dataclass(frozen=True)
@@ -83,6 +84,7 @@ class TransitionPlan:
     ctx: AuthorityContext
     timing: TransitionTiming
     successor_assertion_id: str | None = None
+    proposer_actor_id: str | None = None
 
 
 @dataclass(frozen=True)
@@ -94,6 +96,7 @@ class NamedTransitionPlan:
     current: LifecycleState
     ctx: AuthorityContext
     timing: TransitionTiming
+    proposer_actor_id: str | None = None
 
 
 @dataclass(frozen=True)
@@ -283,6 +286,9 @@ def _validate_initial_event(event: AssertionEvent) -> None:
     """Ensure the first event in a stream is a proper propose transition."""
     if event.from_state is not None or event.to_state != "Proposed":
         raise ValidationError("initial event must transition from None to Proposed")
+    if event.authority != "proposer":
+        raise ValidationError("initial event must use proposer authority")
+    _require_non_empty(event.actor_id, "actor_id", MAX_ACTOR_ID_LEN)
 
 
 def _validate_event_continuity(event: AssertionEvent, previous_state: LifecycleState) -> None:
@@ -305,6 +311,7 @@ def _validate_follow_on_event(
     event: AssertionEvent,
     previous_state: LifecycleState,
     transitions: TransitionsDocument,
+    proposer_actor_id: str,
 ) -> None:
     """Ensure a follow-on event aligns with matrix rules and continuity."""
     _validate_event_continuity(event, previous_state)
@@ -312,7 +319,28 @@ def _validate_follow_on_event(
     allowed = find_transition(transitions, from_state_value, event.to_state)
     if allowed is None:
         raise ValidationError(f"event transition outside matrix: {from_state_value}->{event.to_state}")
+    if event.authority != allowed.authority:
+        raise ValidationError(
+            f"event authority {event.authority!r} does not match required authority {allowed.authority!r}"
+        )
     _validate_successor_pointer(allowed, event)
+    _validate_actor_relationship(event.to_state, event.actor_id, proposer_actor_id)
+
+
+def _validate_actor_relationship(
+    to_state: LifecycleState,
+    actor_id: str,
+    proposer_actor_id: str | None,
+) -> None:
+    """Enforce proposer ownership and reviewer separation for sensitive transitions."""
+    actor = _require_non_empty(actor_id, "actor_id", MAX_ACTOR_ID_LEN)
+    if to_state not in _DETERMINATION_STATES and to_state != "Withdrawn":
+        return
+    proposer = _require_non_empty(proposer_actor_id or "", "proposer_actor_id", MAX_ACTOR_ID_LEN)
+    if to_state == "Withdrawn" and actor != proposer:
+        raise UnauthorizedTransition("withdrawal actor must match the assertion proposer of record")
+    if to_state in _DETERMINATION_STATES and actor == proposer:
+        raise UnauthorizedTransition("determining actor must differ from the assertion proposer of record")
 
 
 def resolve_state(events: Sequence[AssertionEvent]) -> LifecycleState:
@@ -322,17 +350,28 @@ def resolve_state(events: Sequence[AssertionEvent]) -> LifecycleState:
     ordered = sorted(events, key=lambda event: event.sequence)
     expected = 1
     previous_state: LifecycleState | None = None
+    previous_recorded_at: datetime | None = None
+    proposer_actor_id: str | None = None
     transitions = load_transitions()
     for event in ordered:
         sequence = _require_non_bool_int(event.sequence, "event sequence")
         if sequence != expected:
             raise ValidationError(f"event sequence gap: expected {expected}, got {event.sequence}")
         _require_utc_datetime(event.recorded_at, "recorded_at")
+        if previous_recorded_at is not None and event.recorded_at <= previous_recorded_at:
+            raise ValidationError("event recorded_at must be strictly increasing within an assertion stream")
         if expected == 1:
             _validate_initial_event(event)
+            proposer_actor_id = event.actor_id
         else:
-            _validate_follow_on_event(event, cast(LifecycleState, previous_state), transitions)
+            _validate_follow_on_event(
+                event,
+                cast(LifecycleState, previous_state),
+                transitions,
+                cast(str, proposer_actor_id),
+            )
         previous_state = event.to_state
+        previous_recorded_at = event.recorded_at
         expected += 1
     return ordered[-1].to_state
 
@@ -421,6 +460,7 @@ def _build_transition_event(
     """Materialize a planned transition as an append-only event DTO."""
     required_role = cast(AuthorityRole, allowed.authority)
     validate_authority(plan.ctx, required_role)
+    _validate_actor_relationship(plan.to_state, plan.ctx.actor_id, plan.proposer_actor_id)
     expected_sequence_value = _require_non_bool_int(plan.timing.expected_sequence, "expected_sequence")
     rationale_value = _require_non_empty(plan.timing.rationale, "rationale", MAX_RATIONALE_LEN)
     return AssertionEvent(
@@ -439,11 +479,18 @@ def _build_transition_event(
     )
 
 
-def plan_transition(plan: TransitionPlan) -> AssertionEvent:
-    """Plan a single matrix transition with authority and concurrency guards."""
+def _plan_transition(plan: TransitionPlan) -> AssertionEvent:
+    """Plan a matrix transition after its public entry point has been selected."""
     _matrix, allowed = _validate_transition_plan(plan)
     successor = _resolve_successor(plan, allowed)
     return _build_transition_event(plan, allowed, successor)
+
+
+def plan_transition(plan: TransitionPlan) -> AssertionEvent:
+    """Plan a non-supersession matrix transition with authority guards."""
+    if plan.to_state == "Superseded":
+        raise IllegalTransition("Superseded is available only through plan_supersede")
+    return _plan_transition(plan)
 
 
 def _plan_named_transition(plan: NamedTransitionPlan) -> AssertionEvent:
@@ -455,6 +502,7 @@ def _plan_named_transition(plan: NamedTransitionPlan) -> AssertionEvent:
             to_state=plan.to_state,
             ctx=plan.ctx,
             timing=plan.timing,
+            proposer_actor_id=plan.proposer_actor_id,
         )
     )
 
@@ -465,9 +513,12 @@ def plan_accept(
     ctx: AuthorityContext,
     *,
     timing: TransitionTiming,
+    proposer_actor_id: str,
 ) -> AssertionEvent:
     """Plan Proposed|Disputed → Accepted."""
-    return _plan_named_transition(NamedTransitionPlan("Accepted", assertion_id, current, ctx, timing))
+    return _plan_named_transition(
+        NamedTransitionPlan("Accepted", assertion_id, current, ctx, timing, proposer_actor_id)
+    )
 
 
 def plan_reject(
@@ -476,9 +527,12 @@ def plan_reject(
     ctx: AuthorityContext,
     *,
     timing: TransitionTiming,
+    proposer_actor_id: str,
 ) -> AssertionEvent:
     """Plan Proposed → Rejected."""
-    return _plan_named_transition(NamedTransitionPlan("Rejected", assertion_id, current, ctx, timing))
+    return _plan_named_transition(
+        NamedTransitionPlan("Rejected", assertion_id, current, ctx, timing, proposer_actor_id)
+    )
 
 
 def plan_withdraw(
@@ -487,9 +541,12 @@ def plan_withdraw(
     ctx: AuthorityContext,
     *,
     timing: TransitionTiming,
+    proposer_actor_id: str,
 ) -> AssertionEvent:
     """Plan Proposed → Withdrawn."""
-    return _plan_named_transition(NamedTransitionPlan("Withdrawn", assertion_id, current, ctx, timing))
+    return _plan_named_transition(
+        NamedTransitionPlan("Withdrawn", assertion_id, current, ctx, timing, proposer_actor_id)
+    )
 
 
 def plan_dispute(
@@ -509,9 +566,12 @@ def plan_reaffirm(
     ctx: AuthorityContext,
     *,
     timing: TransitionTiming,
+    proposer_actor_id: str,
 ) -> AssertionEvent:
     """Plan Disputed → Accepted (reaffirm)."""
-    return _plan_named_transition(NamedTransitionPlan("Accepted", assertion_id, current, ctx, timing))
+    return _plan_named_transition(
+        NamedTransitionPlan("Accepted", assertion_id, current, ctx, timing, proposer_actor_id)
+    )
 
 
 def plan_retract(
@@ -532,7 +592,7 @@ def plan_supersede(plan: SupersedePlan) -> AssertionEvent:
         plan.transition.successor_assertion_id or "",
         plan.successor_chain_lookup,
     )
-    return plan_transition(plan.transition)
+    return _plan_transition(plan.transition)
 
 
 def _validate_evidence_link_scope(plan: EvidenceRegistrationPlan) -> None:
