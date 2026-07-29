@@ -692,8 +692,43 @@ class TestSupersessionAtomics:
         assert accept_event.actor_id == "supersession-determiner"
         assert supersede_event.actor_id == "supersession-determiner"
         assert propose_event.recorded_at < accept_event.recorded_at
+        assert accept_event.recorded_at < supersede_event.recorded_at
         assert repo.current_state("as-pred") == "Superseded"
         assert repo.current_state("as-succ") == "Accepted"
+
+    def test_supersede_atomic_preserves_cross_stream_temporal_order(self, repo_session) -> None:
+        """A backward clock cannot supersede a predecessor before accepting its successor."""
+        clock_values = iter(
+            (
+                NOW,
+                NOW + timedelta(milliseconds=1),
+                NOW + timedelta(hours=1),
+                NOW + timedelta(hours=1, milliseconds=1),
+                NOW,
+            )
+        )
+
+        def clock() -> datetime:
+            return next(clock_values, NOW)
+
+        repository = RelationshipAssertionRepository(repo_session, clock=clock)
+        _propose_accepted(repository, "as-pred")
+        _successor, _proposed, accepted, superseded = repository.supersede_atomic(
+            SupersedeAtomicRequest(
+                predecessor_id="as-pred",
+                successor_proposal=_proposal("as-succ"),
+                proposal_ctx=_ctx("proposer", actor_id="successor-proposer"),
+                determination_ctx=_ctx("acceptor", actor_id="supersession-determiner"),
+                expected_sequence=2,
+                rationale="refresh evidence",
+            )
+        )
+
+        predecessor_as_of_acceptance = repository.get_as_of("as-pred", known_at=accepted.recorded_at)
+        successor_as_of_acceptance = repository.get_as_of("as-succ", known_at=accepted.recorded_at)
+        assert accepted.recorded_at < superseded.recorded_at
+        assert predecessor_as_of_acceptance is not None and predecessor_as_of_acceptance.state == "Accepted"
+        assert successor_as_of_acceptance is not None and successor_as_of_acceptance.state == "Accepted"
 
     def test_supersede_atomic_locks_graph_before_chain_validation(self, repo, monkeypatch) -> None:
         """Atomic supersession takes the graph lock before validating its chain."""
@@ -904,23 +939,23 @@ class TestPostgresSupersessionSerialization:
                             row = monitor.execute(
                                 text("""
                                     SELECT
-                                      EXISTS (
-                                        SELECT 1 FROM pg_locks
-                                        WHERE pid = :first_pid
-                                          AND locktype = 'advisory'
-                                          AND granted
-                                          AND classid::bigint = :namespace
-                                          AND objid::bigint = :resource
-                                      ),
-                                      EXISTS (
-                                        SELECT 1 FROM pg_locks
-                                        WHERE pid = :second_pid
-                                          AND locktype = 'advisory'
-                                          AND NOT granted
-                                          AND classid::bigint = :namespace
-                                          AND objid::bigint = :resource
-                                      ),
-                                      :first_pid = ANY(pg_blocking_pids(:second_pid))
+                                        EXISTS (
+                                            SELECT 1 FROM pg_locks
+                                            WHERE pid = :first_pid
+                                                AND locktype = 'advisory'
+                                                AND granted
+                                                AND classid::bigint = :namespace
+                                                AND objid::bigint = :resource
+                                        ),
+                                        EXISTS (
+                                            SELECT 1 FROM pg_locks
+                                            WHERE pid = :second_pid
+                                                AND locktype = 'advisory'
+                                                AND NOT granted
+                                                AND classid::bigint = :namespace
+                                                AND objid::bigint = :resource
+                                        ),
+                                        :first_pid = ANY(pg_blocking_pids(:second_pid))
                                     """),
                                 {
                                     "first_pid": first_pid,

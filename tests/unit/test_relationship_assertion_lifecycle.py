@@ -574,6 +574,22 @@ class TestSupersessionCycles:
         with pytest.raises(SupersessionCycle):
             plan_supersede(plan)
 
+    def test_dedicated_supersession_rejects_other_target_state(self) -> None:
+        """The dedicated planner cannot be reused for an ordinary matrix edge."""
+        plan = SupersedePlan(
+            transition=TransitionPlan(
+                assertion_id="as-1",
+                current="Proposed",
+                to_state="Accepted",
+                ctx=_ctx("acceptor"),
+                timing=_timing(rationale="accept"),
+                successor_assertion_id="as-2",
+                proposer_actor_id=PROPOSER_ACTOR_ID,
+            )
+        )
+        with pytest.raises(IllegalTransition, match="requires a Superseded transition"):
+            plan_supersede(plan)
+
     def test_cycle_via_lookup_forbidden(self) -> None:
         """Successor chains that reach the predecessor are rejected."""
         chain = {"as-2": ("as-3",), "as-3": ("as-1",)}

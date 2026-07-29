@@ -406,14 +406,19 @@ class RelationshipAssertionRepository:
         ).scalar_one_or_none()
         return _as_utc(value)
 
-    def _next_event_time(self, assertion_id: str) -> datetime:
-        """Allocate a server-owned timestamp strictly after the stream tail."""
+    def _next_event_time(self, assertion_id: str, *, after: datetime | None = None) -> datetime:
+        """Allocate a server-owned timestamp after the stream tail and optional floor."""
         candidate = self._server_time()
         latest = self._latest_event_recorded_at(assertion_id)
-        if latest is None or candidate > latest:
+        floor = latest
+        if after is not None:
+            normalized_after = _server_utc(after)
+            if floor is None or normalized_after > floor:
+                floor = normalized_after
+        if floor is None or candidate > floor:
             return candidate
         try:
-            return latest + timedelta(microseconds=1)
+            return floor + timedelta(microseconds=1)
         except OverflowError as exc:
             raise ValidationError("assertion event time cannot advance beyond datetime.max") from exc
 
@@ -489,8 +494,7 @@ class RelationshipAssertionRepository:
         if request.to_state == "Superseded":
             raise IllegalTransition("Superseded is available only through supersede_atomic")
         self._lock_assertions(request.assertion_id)
-        current = self._current_state(request.assertion_id)
-        proposer_actor_id = self._proposer_actor_id(request.assertion_id)
+        current, proposer_actor_id = self._state_and_proposer_actor_id(request.assertion_id)
         stamp = self._next_event_time(request.assertion_id)
         event = _plan_repository_transition(
             request,
@@ -588,7 +592,7 @@ class RelationshipAssertionRepository:
         # Savepoint so a late predecessor CAS / planning failure cannot leave an orphan successor.
         with self._session.begin_nested():
             self._lock_assertions(request.predecessor_id, request.successor_proposal.assertion_id)
-            pred_state = self._current_state(request.predecessor_id)
+            pred_state, pred_proposer_actor_id = self._state_and_proposer_actor_id(request.predecessor_id)
             self._validate_supersede_preconditions(request, pred_state)
             successor, propose_event = self._propose_new(request.successor_proposal, request.proposal_ctx)
             accept_timing = TransitionTiming(
@@ -604,7 +608,10 @@ class RelationshipAssertionRepository:
                 proposer_actor_id=request.proposal_ctx.actor_id,
             )
             self._append_event(successor.assertion_id, accept_event, expected_sequence=1)
-            supersede_stamp = self._next_event_time(request.predecessor_id)
+            supersede_stamp = self._next_event_time(
+                request.predecessor_id,
+                after=accept_event.recorded_at,
+            )
             supersede_event = _plan_repository_transition(
                 RepositoryTransitionRequest(
                     assertion_id=request.predecessor_id,
@@ -616,7 +623,7 @@ class RelationshipAssertionRepository:
                 ),
                 pred_state,
                 supersede_stamp,
-                self._proposer_actor_id(request.predecessor_id),
+                pred_proposer_actor_id,
                 self._successor_chain_lookup,
             )
             self._append_event(request.predecessor_id, supersede_event, expected_sequence=request.expected_sequence)
@@ -780,19 +787,15 @@ class RelationshipAssertionRepository:
             select(RelationshipAssertionORM.id).order_by(RelationshipAssertionORM.id).with_for_update()
         ).scalars().all()
 
-    def _current_state(self, assertion_id: str) -> LifecycleState:
+    def _state_and_proposer_actor_id(self, assertion_id: str) -> tuple[LifecycleState, str]:
+        """Resolve one event stream and return its state and proposer of record."""
         events = self._load_events(assertion_id)
         if not events:
             raise ValidationError(f"unknown or eventless assertion_id: {assertion_id}")
-        return resolve_state(events)
+        return resolve_state(events), events[0].actor_id
 
-    def _proposer_actor_id(self, assertion_id: str) -> str:
-        """Return the validated proposer-of-record identity for one stream."""
-        events = self._load_events(assertion_id)
-        if not events:
-            raise ValidationError(f"unknown or eventless assertion_id: {assertion_id}")
-        resolve_state(events)
-        return events[0].actor_id
+    def _current_state(self, assertion_id: str) -> LifecycleState:
+        return self._state_and_proposer_actor_id(assertion_id)[0]
 
     def _max_sequence(self, assertion_id: str) -> int:
         value = self._session.execute(

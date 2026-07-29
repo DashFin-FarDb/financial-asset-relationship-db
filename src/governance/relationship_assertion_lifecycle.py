@@ -587,6 +587,8 @@ def plan_retract(
 
 def plan_supersede(plan: SupersedePlan) -> AssertionEvent:
     """Plan Accepted|Disputed → Superseded with cycle prevention."""
+    if plan.transition.to_state != "Superseded":
+        raise IllegalTransition("plan_supersede requires a Superseded transition")
     assert_no_cycle(
         plan.transition.assertion_id,
         plan.transition.successor_assertion_id or "",
