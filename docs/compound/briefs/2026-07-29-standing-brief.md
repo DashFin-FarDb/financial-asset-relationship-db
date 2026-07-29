@@ -6,6 +6,7 @@ Claims are labeled landed vs provisional. ADRs/policy are not rewritten.
 ## Seam movement by domain
 
 ### architecture
+- [provisional] **pr:1563**: x   y   v
 - [provisional] **pr:1559**: -. - 
 - [landed] **sha:be37f00b1f44904746205719b7ce92d4b8b7b600**: Merge/push to main be37f00b1f44904746205719b7ce92d4b8b7b600
 - [landed] **pr:1554**:    v    v
@@ -20,7 +21,6 @@ Claims are labeled landed vs provisional. ADRs/policy are not rewritten.
 - [provisional] **pr:1543**: ()   y-  w  
 - [landed] **pr:1541**:  y v    v
 - [landed] **sha:cc3ac594ffaed645e578499f4cf7d7f19d1317d2**: Merge/push to main cc3ac594ffaed645e578499f4cf7d7f19d1317d2
-- [landed] **sha:5e45753705c10c2c4f50e0e9bc4d07b823d752ab**: Merge/push to main 5e45753705c10c2c4f50e0e9bc4d07b823d752ab
 
 ### api
 - [provisional] **pr:1562**:   .. → .. ()
@@ -40,6 +40,7 @@ Claims are labeled landed vs provisional. ADRs/policy are not rewritten.
 - [provisional] **pr:1514**:   .. → .. ()
 
 ### persistence
+- [provisional] **pr:1563**: x   y   v
 - [landed] **pr:1552**:      v
 - [landed] **pr:1550**:   -y  y  y
 - [landed] **pr:1549**:   v   
@@ -54,7 +55,6 @@ Claims are labeled landed vs provisional. ADRs/policy are not rewritten.
 - [provisional] **pr:1424**: fix(ci): clear compound workflow quality gates
 - [provisional] **pr:1422**: fix(ci): repair autofix branch failures
 - [provisional] **pr:1421**: x()  ww v   
-- [provisional] **pr:1414**: x() y    w
 
 ### ci-guardrails
 - [landed] **pr:1551**:       ww
