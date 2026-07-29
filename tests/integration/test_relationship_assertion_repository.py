@@ -187,9 +187,9 @@ def _track_supersession_lock_order(repo, monkeypatch) -> list[str]:
     original_lock = repo._lock_supersession_graph
     original_lookup = repo._successor_chain_lookup
 
-    def track_lock(predecessor_id: str, successor_id: str) -> None:
+    def track_lock() -> None:
         calls.append("lock")
-        original_lock(predecessor_id, successor_id)
+        original_lock()
 
     def track_chain_lookup(assertion_id: str):
         calls.append("cycle")

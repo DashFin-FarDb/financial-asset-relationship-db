@@ -584,7 +584,7 @@ class RelationshipAssertionRepository:
         request: SupersedeAtomicRequest,
     ) -> tuple[Assertion, AssertionEvent, AssertionEvent, AssertionEvent]:
         """Atomically accept a successor and supersede the predecessor."""
-        self._lock_supersession_graph(request.predecessor_id, request.successor_proposal.assertion_id)
+        self._lock_supersession_graph()
         # Savepoint so a late predecessor CAS / planning failure cannot leave an orphan successor.
         with self._session.begin_nested():
             self._lock_assertions(request.predecessor_id, request.successor_proposal.assertion_id)
@@ -764,56 +764,21 @@ class RelationshipAssertionRepository:
                 select(RelationshipAssertionORM.id).where(RelationshipAssertionORM.id == assertion_id).with_for_update()
             ).scalar_one_or_none()
 
-    def _gather_supersession_graph_ids(self, predecessor_id: str, successor_id: str) -> list[str]:
-        """Gather all assertion IDs in the supersession graph reachable from predecessor and successor.
-
-        Returns a deterministic set of IDs including:
-        - The predecessor and successor themselves
-        - All forward successors reachable from either (for cycle detection)
-        - All backward predecessors reachable from either (for complete graph coverage)
-        """
-        visited: set[str] = set()
-        to_visit = [predecessor_id, successor_id]
-
-        while to_visit:
-            current_id = to_visit.pop()
-            if current_id in visited:
-                continue
-            visited.add(current_id)
-
-            # Find forward successors (assertions this one supersedes to)
-            successors = self._successor_chain_lookup(current_id)
-            for succ_id in successors:
-                if succ_id not in visited:
-                    to_visit.append(succ_id)
-
-            # Find backward predecessors (assertions that supersede to this one)
-            predecessors = self._predecessor_chain_lookup(current_id)
-            for pred_id in predecessors:
-                if pred_id not in visited:
-                    to_visit.append(pred_id)
-
-        return sorted(visited)
-
-    def _lock_supersession_graph(self, predecessor_id: str, successor_id: str) -> None:
+    def _lock_supersession_graph(self) -> None:
         """Serialize supersession graph checks for the enclosing transaction.
 
         PostgreSQL first takes a stable transaction-scoped advisory lock, then
-        locks rows in deterministic id order for the predecessor, successor, and
-        all reachable assertions in their supersession chains. SQLite skips the
-        advisory lock and retains its compatible, single-writer test behavior.
+        locks rows in deterministic id order. SQLite skips the advisory lock and
+        retains its compatible, single-writer test behavior.
         """
         bind = self._session.get_bind()
         if bind.dialect.name == "postgresql":
             self._session.connection().execute(
                 select(func.pg_advisory_xact_lock(_SUPERSESSION_LOCK_NAMESPACE, _SUPERSESSION_LOCK_RESOURCE))
             ).scalar_one()
-
-        # Gather all assertions in the supersession graph reachable from predecessor and successor
-        assertions_to_lock = self._gather_supersession_graph_ids(predecessor_id, successor_id)
-
-        # Lock the gathered assertions using existing helper
-        self._lock_assertions(*assertions_to_lock)
+        self._session.execute(
+            select(RelationshipAssertionORM.id).order_by(RelationshipAssertionORM.id).with_for_update()
+        ).scalars().all()
 
     def _current_state(self, assertion_id: str) -> LifecycleState:
         events = self._load_events(assertion_id)
@@ -882,13 +847,3 @@ class RelationshipAssertionRepository:
             )
         ).scalars()
         return [successor for successor in rows if successor is not None]
-
-    def _predecessor_chain_lookup(self, assertion_id: str) -> Sequence[str]:
-        """Find all assertions that have a Superseded event pointing to this assertion."""
-        rows = self._session.execute(
-            select(RelationshipAssertionEventORM.assertion_id).where(
-                RelationshipAssertionEventORM.successor_assertion_id == assertion_id,
-                RelationshipAssertionEventORM.to_state == "Superseded",
-            )
-        ).scalars()
-        return list(rows)
