@@ -141,7 +141,7 @@ def _backfill_projection_revision_scopes(connection: Connection, backend: str) -
 
 
 def _allow_projection_revision_backfill(connection: Connection, backend: str) -> None:
-    """Temporarily disable only the revision UPDATE guard inside an owner migration transaction."""
+    """Temporarily disable revision guards inside an owner migration transaction."""
     if backend == "postgresql":
         connection.execute(text("ALTER TABLE relationship_projection_revisions DISABLE TRIGGER USER"))
         return

@@ -19,6 +19,8 @@ from src.data.relationship_assertion_db_models import (
     RelationshipAssertionEvidenceORM,
     RelationshipAssertionORM,
     RelationshipEvidenceORM,
+    RelationshipProjectionEdgeORM,
+    RelationshipProjectionRevisionORM,
 )
 from src.data.relationship_assertion_schema import (
     ensure_relationship_assertion_schema,
@@ -264,6 +266,87 @@ class TestRelationshipAssertionSchemaBootstrap:
         init_db(schema_engine)
         ensure_relationship_assertion_schema(schema_engine)
         assert set(GRAC_TABLE_NAMES).issubset(_table_names(schema_engine))
+
+    @staticmethod
+    def test_upgrade_backfills_legacy_projection_scopes(schema_engine: Engine):
+        """Adding governed_scopes preserves canonical metadata and restores guards."""
+        now = datetime.now(tz=UTC)
+        Base.metadata.create_all(schema_engine)
+        with schema_engine.begin() as conn:
+            conn.execute(
+                RelationshipAssertionORM.__table__.insert().values(
+                    id="as-legacy",
+                    predicate_id="financial.bond.issuer_reference@1",
+                    subject_id="bond-1",
+                    object_id="issuer-1",
+                    method_id="method-1",
+                    proposition="legacy assertion",
+                    confidence_bp=None,
+                    confidence_type=None,
+                    confidence_method=None,
+                    confidence_status="not_assessed",
+                    effective_from=now,
+                    effective_to=None,
+                    recorded_at=now,
+                )
+            )
+            conn.execute(
+                RelationshipProjectionRevisionORM.__table__.insert(),
+                [
+                    {
+                        "id": "rev-with-edge",
+                        "purpose": "current_view",
+                        "effective_at": now,
+                        "known_at": now,
+                        "contract_version": "grac.v1",
+                        "projector_version": "projector.v2",
+                        "edge_set_hash": DIGEST,
+                        "projection_hash": DIGEST,
+                        "created_at": now,
+                    },
+                    {
+                        "id": "rev-empty",
+                        "purpose": "current_view",
+                        "effective_at": now,
+                        "known_at": now,
+                        "contract_version": "grac.v1",
+                        "projector_version": "projector.v2",
+                        "edge_set_hash": DIGEST,
+                        "projection_hash": DIGEST,
+                        "created_at": now,
+                    },
+                ],
+            )
+            conn.execute(
+                RelationshipProjectionEdgeORM.__table__.insert().values(
+                    id="edge-legacy",
+                    revision_id="rev-with-edge",
+                    source_id="bond-1",
+                    target_id="issuer-1",
+                    edge_type="issuer_reference",
+                    strength="0.8",
+                    direction="subject_to_object",
+                    assertion_id="as-legacy",
+                )
+            )
+            conn.execute(text("ALTER TABLE relationship_projection_revisions DROP COLUMN governed_scopes"))
+
+        ensure_relationship_assertion_schema(schema_engine)
+
+        with schema_engine.connect() as conn:
+            scopes = conn.execute(
+                text("SELECT id, governed_scopes FROM relationship_projection_revisions ORDER BY id")
+            ).all()
+        assert scopes == [
+            ("rev-empty", "[]"),
+            (
+                "rev-with-edge",
+                '[{"predicate_id":"financial.bond.issuer_reference@1","purpose":"current_view"}]',
+            ),
+        ]
+        with pytest.raises((DBAPIError, IntegrityError)):
+            with schema_engine.begin() as conn:
+                conn.execute(text("UPDATE relationship_projection_revisions SET purpose = 'changed'"))
 
 
 @pytest.mark.integration
