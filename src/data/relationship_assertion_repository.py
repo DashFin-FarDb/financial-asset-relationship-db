@@ -21,6 +21,8 @@ from src.data.relationship_assertion_db_models import (
 from src.data.relationship_projection_persistence import (
     PersistedProjectionRevision,
     PersistProjectionRequest,
+    PublishProjectionRequest,
+    PublishedProjectionRevision,
     ProjectionRevisionStore,
 )
 from src.governance.relationship_assertion import (
@@ -67,6 +69,8 @@ __all__ = [
     "PersistProjectionRequest",
     "PersistedProjectionRevision",
     "RegisterEvidenceRequest",
+    "PublishProjectionRequest",
+    "PublishedProjectionRevision",
     "RelationshipAssertionRepository",
     "RepositoryTransitionRequest",
     "SupersedeAtomicRequest",
@@ -686,6 +690,15 @@ class RelationshipAssertionRepository:
         return ProjectionRevisionStore(self._session, clock=self._clock).get(revision_id)
 
     def current_state(self, assertion_id: str) -> LifecycleState:
+    def publish_projection_revision(self, request: PublishProjectionRequest) -> PublishedProjectionRevision:
+        """Publish a projection revision through a succeeded rebuild with owner-matched execution_id."""
+        return ProjectionRevisionStore(self._session, clock=self._clock).publish_revision(request)
+
+    def latest_published_scopes(self, purpose: str) -> tuple[GovernedScope, ...]:
+        """Load governed scopes from the latest successful publication for the purpose."""
+        from src.logic.relationship_projection import GovernedScope
+        return ProjectionRevisionStore(self._session, clock=self._clock).latest_published_scopes(purpose)
+
         """Return the latest lifecycle state for ``assertion_id``."""
         return self._current_state(assertion_id)
 

@@ -9,11 +9,12 @@ from datetime import datetime, timezone
 from typing import NoReturn
 from uuid import uuid4
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from src.data.db_models import RebuildJobORM
+from src.data.distributed_lock import DistributedLockConflict
 from src.data.relationship_assertion_db_models import (
     RelationshipProjectionEdgeORM,
     RelationshipProjectionPublicationORM,
@@ -69,6 +70,17 @@ class PersistProjectionRequest:
 
 
 @dataclass(frozen=True)
+class PublishProjectionRequest:
+    """Inputs for publishing a projection revision through a rebuild."""
+
+    revision_id: str
+    rebuild_job_id: str
+    execution_id: str | None
+    published_at: datetime | None = None
+    publication_id: str | None = None
+
+
+@dataclass(frozen=True)
 class PersistedProjectionRevision:
     """Stored projection revision identity plus domain revision payload."""
 
@@ -76,6 +88,17 @@ class PersistedProjectionRevision:
     created_at: datetime
     revision: ProjectionRevision
     edge_ids: tuple[str, ...]
+
+
+@dataclass(frozen=True)
+class PublishedProjectionRevision:
+    """Publication proof for a succeeded rebuild."""
+
+    publication_id: str
+    revision_id: str
+    rebuild_job_id: str
+    execution_id: str | None
+    published_at: datetime
 
 
 def _new_id() -> str:
@@ -263,6 +286,81 @@ class ProjectionRevisionStore:
         if row is None:
             return ()
         return _deserialize_governed_scopes(row.governed_scopes, purpose)
+
+    def publish_revision(self, request: PublishProjectionRequest) -> PublishedProjectionRevision:
+        """Publish a projection revision through a succeeded rebuild with owner-matched execution_id.
+
+        This method enforces:
+        1. Exactly one publication per rebuild_job_id (via unique constraint)
+        2. Revision must exist
+        3. Rebuild job must exist and have status="succeeded"
+        4. Owner-matched execution_id when non-null
+        5. Atomic transaction boundary
+
+        Raises:
+            ValidationError: If preconditions fail (missing revision/job, wrong job status, execution_id mismatch)
+            ConcurrencyConflict: If rebuild already published or concurrent publication
+        """
+        publication_id = request.publication_id or _new_id()
+        published_at = _as_utc(request.published_at or self._clock())
+        if published_at is None:
+            raise ValidationError("published_at is required")
+
+        # Verify revision exists
+        revision_row = self._session.get(RelationshipProjectionRevisionORM, request.revision_id)
+        if revision_row is None:
+            raise ValidationError(f"projection revision {request.revision_id} not found")
+
+        # Verify rebuild job exists and is succeeded
+        job_row = self._session.get(RebuildJobORM, request.rebuild_job_id)
+        if job_row is None:
+            raise ValidationError(f"rebuild job {request.rebuild_job_id} not found")
+        if job_row.status != "succeeded":
+            raise ValidationError(
+                f"rebuild job {request.rebuild_job_id} must be succeeded to publish (current={job_row.status})"
+            )
+
+        # Owner-matched execution_id check (Stage-5C safeguard)
+        if request.execution_id is not None and job_row.execution_id != request.execution_id:
+            raise ValidationError(
+                f"publication execution_id {request.execution_id} does not match "
+                f"rebuild job owner {job_row.execution_id}"
+            )
+
+        # Check for existing publication (enforce one-per-rebuild atomically)
+        existing = self._session.execute(
+            select(RelationshipProjectionPublicationORM)
+            .where(RelationshipProjectionPublicationORM.rebuild_job_id == request.rebuild_job_id)
+            .with_for_update()
+        ).scalar_one_or_none()
+        if existing is not None:
+            raise ConcurrencyConflict(
+                f"rebuild job {request.rebuild_job_id} already published revision {existing.revision_id}"
+            )
+
+        # Insert publication row
+        try:
+            with self._session.begin_nested():
+                self._session.add(
+                    RelationshipProjectionPublicationORM(
+                        id=publication_id,
+                        revision_id=request.revision_id,
+                        rebuild_job_id=request.rebuild_job_id,
+                        execution_id=request.execution_id,
+                        published_at=published_at,
+                    )
+                )
+                self._session.flush()
+        except IntegrityError as exc:
+            raise ConcurrencyConflict(f"publication insert conflicted for rebuild {request.rebuild_job_id}") from exc
+
+        return PublishedProjectionRevision(
+            publication_id=publication_id,
+            revision_id=request.revision_id,
+            rebuild_job_id=request.rebuild_job_id,
+            execution_id=request.execution_id,
+            published_at=published_at,
+        )
 
     def _insert_rows(
         self,
