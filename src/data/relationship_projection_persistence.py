@@ -9,7 +9,7 @@ from datetime import datetime, timezone
 from typing import NoReturn
 from uuid import uuid4
 
-from sqlalchemy import func, select
+from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
