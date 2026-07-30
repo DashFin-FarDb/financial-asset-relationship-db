@@ -28,6 +28,7 @@ from src.data.relationship_assertion_schema import (
     _expected_postgresql_trigger_names,
     _expected_sqlite_trigger_bindings,
     _expected_sqlite_trigger_names,
+    _harden_postgresql_grac_access,
     _postgresql_guards_present,
     _revoke_immutability_function_execute,
     _sqlite_guards_present,
@@ -554,6 +555,18 @@ def test_revoke_immutability_execute_scopes_acl_check_to_current_schema() -> Non
     assert "rolname IN" in acl_sql
     assert "roles" in acl_sql
     assert acl_params["roles"] == ["anon", "authenticated"]
+
+
+def test_table_grant_hardening_does_not_suppress_insufficient_privilege() -> None:
+    """Table grant revocation fails closed when the schema role lacks privilege."""
+    connection = MagicMock()
+    connection.execute.return_value.scalars.return_value.all.return_value = []
+
+    _harden_postgresql_grac_access(connection)
+
+    statements = "\n".join(str(call.args[0]) for call in connection.execute.call_args_list)
+    assert "undefined_object" in statements
+    assert "insufficient_privilege" not in statements
 
 
 def test_postgresql_guards_present_scopes_triggers_to_current_schema() -> None:

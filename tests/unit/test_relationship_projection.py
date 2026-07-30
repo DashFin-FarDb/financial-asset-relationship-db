@@ -21,6 +21,7 @@ from src.logic.relationship_projection import (
     ProjectionError,
     ProjectionRevision,
     ProjectRequest,
+    canonicalize_governed_scopes,
     project,
 )
 
@@ -246,6 +247,15 @@ def test_empty_edge_revision_preserves_previously_published_scope(predicates) ->
     assert result.governed_scopes == (GovernedScope(PURPOSE, PREDICATE_ID),)
     assert result.edge_set_hash == EMPTY_EDGE_SET_HASH
     assert result.projection_hash != EMPTY_PROJECTION_HASH
+
+
+def test_governed_scope_canonicalization_deduplicates_and_sorts() -> None:
+    """The shared canonicalizer yields one stable scope set for projection and persistence."""
+    scopes = canonicalize_governed_scopes(
+        (GovernedScope(PURPOSE, "z"), GovernedScope(PURPOSE, "a"), GovernedScope(PURPOSE, "z")),
+        PURPOSE,
+    )
+    assert scopes == (GovernedScope(PURPOSE, "a"), GovernedScope(PURPOSE, "z"))
 
 
 def test_accepted_issuer_reference_projects_corporate_link(predicates) -> None:

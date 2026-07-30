@@ -97,8 +97,7 @@ def _harden_postgresql_grac_access(connection: Connection) -> None:
                     f"DO $revoke$ BEGIN EXECUTE format("
                     f"'REVOKE ALL PRIVILEGES ON TABLE %I.%I FROM %I', "
                     f"pg_catalog.current_schema(), '{table_name}', '{role}'); "
-                    f"EXCEPTION WHEN undefined_object THEN NULL; "
-                    f"WHEN insufficient_privilege THEN NULL; END $revoke$"
+                    f"EXCEPTION WHEN undefined_object THEN NULL; END $revoke$"
                 )
             )
     insecure = (

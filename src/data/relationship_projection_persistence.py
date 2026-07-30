@@ -20,24 +20,19 @@ from src.data.relationship_assertion_db_models import (
     RelationshipProjectionRevisionORM,
 )
 from src.governance.relationship_assertion import ConcurrencyConflict, ValidationError
-from src.logic.relationship_projection import GovernedScope, ProjectionEdge, ProjectionRevision
+from src.logic.relationship_projection import (
+    GovernedScope,
+    ProjectionEdge,
+    ProjectionRevision,
+    canonicalize_governed_scopes,
+)
 
 UTC = timezone.utc
 
 
-def _canonical_governed_scopes(scopes: Sequence[GovernedScope], purpose: str) -> tuple[GovernedScope, ...]:
-    """Validate and canonically order one revision's durable scope set."""
-    pairs = {(scope.purpose, scope.predicate_id) for scope in scopes}
-    if any(scope_purpose != purpose or not predicate_id for scope_purpose, predicate_id in pairs):
-        raise ValidationError("governed scopes must be non-empty predicates for the revision purpose")
-    return tuple(
-        GovernedScope(purpose=item_purpose, predicate_id=predicate_id) for item_purpose, predicate_id in sorted(pairs)
-    )
-
-
 def _serialize_governed_scopes(scopes: Sequence[GovernedScope], purpose: str) -> str:
     """Encode the canonical scope metadata stored independently of edge rows."""
-    canonical = _canonical_governed_scopes(scopes, purpose)
+    canonical = canonicalize_governed_scopes(scopes, purpose)
     return json.dumps(
         [{"predicate_id": scope.predicate_id, "purpose": scope.purpose} for scope in canonical],
         separators=(",", ":"),
@@ -57,7 +52,7 @@ def _deserialize_governed_scopes(raw: str, purpose: str) -> tuple[GovernedScope,
         scopes = tuple(GovernedScope(purpose=value["purpose"], predicate_id=value["predicate_id"]) for value in values)
     except (KeyError, TypeError) as exc:
         raise ValidationError("projection revision governed_scopes has invalid entries") from exc
-    canonical = _canonical_governed_scopes(scopes, purpose)
+    canonical = canonicalize_governed_scopes(scopes, purpose)
     if raw != _serialize_governed_scopes(canonical, purpose):
         raise ValidationError("projection revision governed_scopes is not canonical")
     return canonical

@@ -378,23 +378,31 @@ def _compute_hashes(edges: Sequence[ProjectionEdge], inputs: _HashInputs) -> tup
     return edge_set_hash, projection_hash
 
 
+def canonicalize_governed_scopes(
+    scopes: Sequence[GovernedScope],
+    purpose: str,
+) -> tuple[GovernedScope, ...]:
+    """Validate, deduplicate, and sort governed scopes for one purpose."""
+    pairs = {(scope.purpose, scope.predicate_id) for scope in scopes}
+    if any(scope_purpose != purpose or not predicate_id for scope_purpose, predicate_id in pairs):
+        raise ValidationError("governed scopes must be non-empty predicates for the projection purpose")
+    return tuple(
+        GovernedScope(purpose=item_purpose, predicate_id=predicate_id) for item_purpose, predicate_id in sorted(pairs)
+    )
+
+
 def _governed_scopes(
     candidates: Sequence[_Candidate],
     purpose: str,
     previously_published_scopes: Sequence[GovernedScope],
 ) -> tuple[GovernedScope, ...]:
     """Carry published scopes forward and add scopes from successful candidates."""
-    scopes = set()
-    for scope in previously_published_scopes:
-        if scope.purpose != purpose:
-            raise ProjectionError("previously published scope purpose does not match projection purpose")
-        scopes.add((scope.purpose, scope.predicate_id))
-    if any(not predicate_id for _scope_purpose, predicate_id in scopes):
-        raise ProjectionError("previously published scope predicate must be non-empty")
-    scopes.update((purpose, candidate.predicate.id) for candidate in candidates)
-    return tuple(
-        GovernedScope(purpose=item_purpose, predicate_id=predicate_id) for item_purpose, predicate_id in sorted(scopes)
-    )
+    scopes = [*previously_published_scopes]
+    scopes.extend(GovernedScope(purpose, candidate.predicate.id) for candidate in candidates)
+    try:
+        return canonicalize_governed_scopes(scopes, purpose)
+    except ValidationError as exc:
+        raise ProjectionError(str(exc)) from exc
 
 
 def project(request: ProjectRequest) -> ProjectionRevision:
