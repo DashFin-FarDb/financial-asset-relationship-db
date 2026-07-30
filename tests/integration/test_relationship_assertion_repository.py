@@ -232,18 +232,22 @@ class TestProposeIdempotency:
     def test_propose_idempotent_reuse_revalidates_proposer_role(self, repo) -> None:
         """An idempotency hit does not bypass current proposer authority."""
         repo.propose(_proposal(), _ctx("proposer", actor_id="owner"))
+        proposal = _proposal()
+        ctx = _ctx("acceptor", actor_id="owner")
 
         with pytest.raises(UnauthorizedTransition):
-            repo.propose(_proposal(), _ctx("acceptor", actor_id="owner"))
+            repo.propose(proposal, ctx)
 
         assert repo.max_sequence("as-1") == 1
 
     def test_propose_idempotent_reuse_requires_proposer_of_record(self, repo) -> None:
         """A foreign proposer cannot reuse another actor's assertion id."""
         repo.propose(_proposal(), _ctx("proposer", actor_id="owner"))
+        proposal = _proposal()
+        ctx = _ctx("proposer", actor_id="foreign-proposer")
 
         with pytest.raises(UnauthorizedTransition, match="proposer of record"):
-            repo.propose(_proposal(), _ctx("proposer", actor_id="foreign-proposer"))
+            repo.propose(proposal, ctx)
 
         assert repo.max_sequence("as-1") == 1
 
@@ -397,18 +401,17 @@ class TestTransitionsAndIllegal:
             )
         )
 
+        request = _transition(
+            {
+                "assertion_id": "as-1",
+                "to_state": "Accepted",
+                "ctx": _ctx("acceptor", actor_id="owner"),
+                "expected_sequence": 3,
+                "rationale": "self reaffirm",
+            }
+        )
         with pytest.raises(UnauthorizedTransition, match="must differ"):
-            repo.transition(
-                _transition(
-                    {
-                        "assertion_id": "as-1",
-                        "to_state": "Accepted",
-                        "ctx": _ctx("acceptor", actor_id="owner"),
-                        "expected_sequence": 3,
-                        "rationale": "self reaffirm",
-                    }
-                )
-            )
+            repo.transition(request)
 
         assert repo.current_state("as-1") == "Disputed"
 
@@ -697,13 +700,13 @@ class TestSupersessionAtomics:
         assert repo.current_state("as-succ") == "Accepted"
 
     def test_supersede_atomic_preserves_cross_stream_temporal_order(self, repo_session) -> None:
-        """A backward clock cannot supersede a predecessor before accepting its successor."""
+        """A backward clock cannot backdate any successor or supersession event."""
         clock_values = iter(
             (
-                NOW,
-                NOW + timedelta(milliseconds=1),
                 NOW + timedelta(hours=1),
                 NOW + timedelta(hours=1, milliseconds=1),
+                NOW,
+                NOW,
                 NOW,
             )
         )
@@ -712,8 +715,22 @@ class TestSupersessionAtomics:
             return next(clock_values, NOW)
 
         repository = RelationshipAssertionRepository(repo_session, clock=clock)
-        _propose_accepted(repository, "as-pred")
-        _successor, _proposed, accepted, superseded = repository.supersede_atomic(
+        repository.propose(
+            _proposal("as-pred"),
+            _ctx("proposer", actor_id="proposer-1"),
+        )
+        predecessor_accepted = repository.transition(
+            _transition(
+                {
+                    "assertion_id": "as-pred",
+                    "to_state": "Accepted",
+                    "ctx": _ctx("acceptor", actor_id="reviewer-1"),
+                    "expected_sequence": 1,
+                    "rationale": "accept",
+                }
+            )
+        )
+        _successor, proposed, accepted, superseded = repository.supersede_atomic(
             SupersedeAtomicRequest(
                 predecessor_id="as-pred",
                 successor_proposal=_proposal("as-succ"),
@@ -724,9 +741,18 @@ class TestSupersessionAtomics:
             )
         )
 
+        successor_at_predecessor_acceptance = repository.get_as_of(
+            "as-succ",
+            known_at=predecessor_accepted.recorded_at,
+        )
+        predecessor_as_of_proposal = repository.get_as_of("as-pred", known_at=proposed.recorded_at)
+        successor_as_of_proposal = repository.get_as_of("as-succ", known_at=proposed.recorded_at)
         predecessor_as_of_acceptance = repository.get_as_of("as-pred", known_at=accepted.recorded_at)
         successor_as_of_acceptance = repository.get_as_of("as-succ", known_at=accepted.recorded_at)
-        assert accepted.recorded_at < superseded.recorded_at
+        assert predecessor_accepted.recorded_at < proposed.recorded_at < accepted.recorded_at < superseded.recorded_at
+        assert successor_at_predecessor_acceptance is None
+        assert predecessor_as_of_proposal is not None and predecessor_as_of_proposal.state == "Accepted"
+        assert successor_as_of_proposal is not None and successor_as_of_proposal.state == "Proposed"
         assert predecessor_as_of_acceptance is not None and predecessor_as_of_acceptance.state == "Accepted"
         assert successor_as_of_acceptance is not None and successor_as_of_acceptance.state == "Accepted"
 
@@ -1012,11 +1038,13 @@ class TestPostgresSupersessionSerialization:
                 self,
                 pending_proposal: AssertionProposal,
                 ctx: AuthorityContext,
+                *,
+                after: datetime,
             ) -> tuple[Assertion, AssertionEvent]:
                 reached_strict_insert.set()
                 if not release_strict_insert.wait(timeout=5):
                     raise AssertionError("timed out waiting for the concurrent proposal")
-                return super()._propose_new(pending_proposal, ctx)
+                return super()._propose_new(pending_proposal, ctx, after=after)
 
         atomic_request = SupersedeAtomicRequest(
             predecessor_id=predecessor_id,

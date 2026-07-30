@@ -443,10 +443,12 @@ class RelationshipAssertionRepository:
         self,
         proposal: AssertionProposal,
         ctx: AuthorityContext,
+        *,
+        after: datetime,
     ) -> tuple[Assertion, AssertionEvent]:
         """Insert a new proposal without adopting an idempotent race winner."""
         validate_authority(ctx, "proposer")
-        stamp = self._next_event_time(proposal.assertion_id)
+        stamp = self._next_event_time(proposal.assertion_id, after=after)
         assertion, event = plan_propose(proposal, ctx, recorded_at=stamp)
         return self._insert_new_proposal(
             assertion,
@@ -494,7 +496,7 @@ class RelationshipAssertionRepository:
         if request.to_state == "Superseded":
             raise IllegalTransition("Superseded is available only through supersede_atomic")
         self._lock_assertions(request.assertion_id)
-        current, proposer_actor_id = self._state_and_proposer_actor_id(request.assertion_id)
+        current, proposer_actor_id, _tail = self._stream_summary(request.assertion_id)
         stamp = self._next_event_time(request.assertion_id)
         event = _plan_repository_transition(
             request,
@@ -592,9 +594,13 @@ class RelationshipAssertionRepository:
         # Savepoint so a late predecessor CAS / planning failure cannot leave an orphan successor.
         with self._session.begin_nested():
             self._lock_assertions(request.predecessor_id, request.successor_proposal.assertion_id)
-            pred_state, pred_proposer_actor_id = self._state_and_proposer_actor_id(request.predecessor_id)
+            pred_state, pred_proposer_actor_id, pred_tail = self._stream_summary(request.predecessor_id)
             self._validate_supersede_preconditions(request, pred_state)
-            successor, propose_event = self._propose_new(request.successor_proposal, request.proposal_ctx)
+            successor, propose_event = self._propose_new(
+                request.successor_proposal,
+                request.proposal_ctx,
+                after=pred_tail,
+            )
             accept_timing = TransitionTiming(
                 1,
                 request.accept_rationale,
@@ -787,15 +793,15 @@ class RelationshipAssertionRepository:
             select(RelationshipAssertionORM.id).order_by(RelationshipAssertionORM.id).with_for_update()
         ).scalars().all()
 
-    def _state_and_proposer_actor_id(self, assertion_id: str) -> tuple[LifecycleState, str]:
-        """Resolve one event stream and return its state and proposer of record."""
+    def _stream_summary(self, assertion_id: str) -> tuple[LifecycleState, str, datetime]:
+        """Resolve one stream into state, proposer of record, and tail time."""
         events = self._load_events(assertion_id)
         if not events:
             raise ValidationError(f"unknown or eventless assertion_id: {assertion_id}")
-        return resolve_state(events), events[0].actor_id
+        return resolve_state(events), events[0].actor_id, events[-1].recorded_at
 
     def _current_state(self, assertion_id: str) -> LifecycleState:
-        return self._state_and_proposer_actor_id(assertion_id)[0]
+        return self._stream_summary(assertion_id)[0]
 
     def _max_sequence(self, assertion_id: str) -> int:
         value = self._session.execute(

@@ -265,9 +265,10 @@ class TestProposeAndResolve:
             timing=_timing(recorded_at=NOW + timedelta(seconds=1)),
             proposer_actor_id=PROPOSER_ACTOR_ID,
         )
+        invalid_authority = replace(e2, authority="proposer")
 
         with pytest.raises(ValidationError, match="event authority"):
-            resolve_state([e1, replace(e2, authority="proposer")])
+            resolve_state([e1, invalid_authority])
 
     def test_resolve_state_rejects_same_actor_determination(self) -> None:
         """Replay preserves proposer and determiner separation."""
@@ -283,9 +284,10 @@ class TestProposeAndResolve:
             timing=_timing(recorded_at=NOW + timedelta(seconds=1)),
             proposer_actor_id=PROPOSER_ACTOR_ID,
         )
+        self_determined = replace(e2, actor_id=PROPOSER_ACTOR_ID)
 
         with pytest.raises(UnauthorizedTransition, match="must differ"):
-            resolve_state([e1, replace(e2, actor_id=PROPOSER_ACTOR_ID)])
+            resolve_state([e1, self_determined])
 
     def test_resolve_state_rejects_invalid_initial_event(self) -> None:
         """Persisted streams must begin with a proper propose event."""
@@ -433,8 +435,9 @@ class TestTransitionMatrix:
             timing=_timing(rationale="missing successor", transitions=transitions),
             proposer_actor_id=PROPOSER_ACTOR_ID,
         )
+        supersede_plan = SupersedePlan(transition=plan)
         with pytest.raises(ValidationError, match="successor"):
-            plan_supersede(SupersedePlan(transition=plan))
+            plan_supersede(supersede_plan)
 
     def test_non_supersession_forbids_successor(self, transitions) -> None:
         """A non-supersession transition cannot carry a successor pointer."""
@@ -457,12 +460,13 @@ class TestActorOwnership:
     def test_accept_rejects_proposer_as_determiner(self) -> None:
         """An assertion proposer cannot accept the same assertion."""
         ctx = _ctx("acceptor", actor_id=PROPOSER_ACTOR_ID)
+        timing = _timing(rationale="self-accept")
         with pytest.raises(UnauthorizedTransition, match="must differ"):
             plan_accept(
                 "as-1",
                 "Proposed",
                 ctx,
-                timing=_timing(rationale="self-accept"),
+                timing=timing,
                 proposer_actor_id=PROPOSER_ACTOR_ID,
             )
 
@@ -484,12 +488,14 @@ class TestActorOwnership:
 
     def test_withdraw_rejects_foreign_proposer(self) -> None:
         """A proposer role does not confer ownership of another proposal."""
+        ctx = _ctx("proposer")
+        timing = _timing(rationale="foreign withdrawal")
         with pytest.raises(UnauthorizedTransition, match="must match"):
             plan_withdraw(
                 "as-1",
                 "Proposed",
-                _ctx("proposer"),
-                timing=_timing(rationale="foreign withdrawal"),
+                ctx,
+                timing=timing,
                 proposer_actor_id=PROPOSER_ACTOR_ID,
             )
 
