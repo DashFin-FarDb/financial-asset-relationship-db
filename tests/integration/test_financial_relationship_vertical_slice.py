@@ -95,9 +95,7 @@ class TestPublicationBaseline:
         )
 
         # Persist and publish
-        persisted = repo.persist_projection_revision(
-            PersistProjectionRequest(revision=revision)
-        )
+        persisted = repo.persist_projection_revision(PersistProjectionRequest(revision=revision))
         published = repo.publish_projection_revision(
             PublishProjectionRequest(
                 revision_id=persisted.revision_id,
@@ -130,9 +128,7 @@ class TestPublicationBaseline:
                 known_at=now_utc(),
             )
         )
-        persisted1 = repo.persist_projection_revision(
-            PersistProjectionRequest(revision=revision1)
-        )
+        persisted1 = repo.persist_projection_revision(PersistProjectionRequest(revision=revision1))
         repo.publish_projection_revision(
             PublishProjectionRequest(
                 revision_id=persisted1.revision_id,
@@ -154,9 +150,7 @@ class TestPublicationBaseline:
                 known_at=now_utc(),
             )
         )
-        persisted2 = repo.persist_projection_revision(
-            PersistProjectionRequest(revision=revision2)
-        )
+        persisted2 = repo.persist_projection_revision(PersistProjectionRequest(revision=revision2))
 
         from src.governance.relationship_assertion import ConcurrencyConflict
 
@@ -188,9 +182,7 @@ class TestPublicationBaseline:
                 known_at=now_utc(),
             )
         )
-        persisted = repo.persist_projection_revision(
-            PersistProjectionRequest(revision=revision)
-        )
+        persisted = repo.persist_projection_revision(PersistProjectionRequest(revision=revision))
 
         with pytest.raises(ValidationError, match="execution_id.*does not match"):
             repo.publish_projection_revision(
@@ -228,9 +220,7 @@ class TestPublicationSafety:
                 known_at=now_utc(),
             )
         )
-        persisted = grac_repo.persist_projection_revision(
-            PersistProjectionRequest(revision=revision)
-        )
+        persisted = grac_repo.persist_projection_revision(PersistProjectionRequest(revision=revision))
 
         with pytest.raises(ValidationError, match="must be succeeded"):
             grac_repo.publish_projection_revision(
@@ -273,9 +263,7 @@ class TestPublicationSafety:
                 known_at=now_utc(),
             )
         )
-        persisted = repo.persist_projection_revision(
-            PersistProjectionRequest(revision=revision)
-        )
+        persisted = repo.persist_projection_revision(PersistProjectionRequest(revision=revision))
 
         with pytest.raises(ValidationError, match="rebuild job.*not found"):
             repo.publish_projection_revision(
