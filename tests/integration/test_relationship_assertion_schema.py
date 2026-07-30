@@ -19,6 +19,9 @@ from src.data.relationship_assertion_db_models import (
     RelationshipAssertionEvidenceORM,
     RelationshipAssertionORM,
     RelationshipEvidenceORM,
+    RelationshipProjectionEdgeORM,
+    RelationshipProjectionPublicationORM,
+    RelationshipProjectionRevisionORM,
 )
 from src.data.relationship_assertion_schema import (
     ensure_relationship_assertion_schema,
@@ -47,6 +50,7 @@ EXPECTED_CHECK_NAMES = {
         "ck_relationship_assertions_confidence_status",
         "ck_relationship_assertions_confidence_bp",
         "ck_relationship_assertions_confidence_assessed",
+        "ck_relationship_assertions_effective_window",
     },
     "relationship_assertion_evidence": {"ck_relationship_assertion_evidence_polarity"},
     "relationship_assertion_events": {
@@ -84,6 +88,7 @@ EXPECTED_INDEX_NAMES = {
         "ix_relationship_assertion_events_assertion_id",
         "ix_relationship_assertion_events_recorded_at",
         "uq_relationship_assertion_events_sequence",
+        "ix_relationship_assertion_events_successor_assertion_id",
     },
     "relationship_projection_revisions": {
         "ix_relationship_projection_revisions_purpose",
@@ -263,6 +268,123 @@ class TestRelationshipAssertionSchemaBootstrap:
         ensure_relationship_assertion_schema(schema_engine)
         assert set(GRAC_TABLE_NAMES).issubset(_table_names(schema_engine))
 
+    @staticmethod
+    def test_upgrade_backfills_legacy_projection_scopes(schema_engine: Engine):
+        """Adding governed_scopes preserves canonical metadata and restores guards."""
+        now = datetime.now(tz=UTC)
+        Base.metadata.create_all(schema_engine)
+        with schema_engine.begin() as conn:
+            conn.execute(
+                RelationshipAssertionORM.__table__.insert().values(
+                    id="as-legacy",
+                    predicate_id="financial.bond.issuer_reference@1",
+                    subject_id="bond-1",
+                    object_id="issuer-1",
+                    method_id="method-1",
+                    proposition="legacy assertion",
+                    confidence_bp=None,
+                    confidence_type=None,
+                    confidence_method=None,
+                    confidence_status="not_assessed",
+                    effective_from=now,
+                    effective_to=None,
+                    recorded_at=now,
+                )
+            )
+            conn.execute(
+                RelationshipProjectionRevisionORM.__table__.insert(),
+                [
+                    {
+                        "id": "rev-with-edge",
+                        "purpose": "current_view",
+                        "effective_at": now,
+                        "known_at": now,
+                        "contract_version": "grac.v1",
+                        "projector_version": "projector.v2",
+                        "edge_set_hash": DIGEST,
+                        "projection_hash": DIGEST,
+                        "created_at": now,
+                    },
+                    {
+                        "id": "rev-empty",
+                        "purpose": "current_view",
+                        "effective_at": now,
+                        "known_at": now,
+                        "contract_version": "grac.v1",
+                        "projector_version": "projector.v2",
+                        "edge_set_hash": DIGEST,
+                        "projection_hash": DIGEST,
+                        "created_at": now,
+                    },
+                ],
+            )
+            conn.execute(
+                RelationshipProjectionEdgeORM.__table__.insert().values(
+                    id="edge-legacy",
+                    revision_id="rev-with-edge",
+                    source_id="bond-1",
+                    target_id="issuer-1",
+                    edge_type="issuer_reference",
+                    strength="0.8",
+                    direction="subject_to_object",
+                    assertion_id="as-legacy",
+                )
+            )
+            conn.execute(
+                RebuildJobORM.__table__.insert(),
+                [
+                    {
+                        "job_id": "job-a",
+                        "requested_by": "tester",
+                        "status": "succeeded",
+                        "created_at": now,
+                        "updated_at": now,
+                    },
+                    {
+                        "job_id": "job-z",
+                        "requested_by": "tester",
+                        "status": "succeeded",
+                        "created_at": now,
+                        "updated_at": now,
+                    },
+                ],
+            )
+            conn.execute(
+                RelationshipProjectionPublicationORM.__table__.insert(),
+                [
+                    {
+                        "id": "pub-source",
+                        "revision_id": "rev-with-edge",
+                        "rebuild_job_id": "job-a",
+                        "published_at": now,
+                    },
+                    {
+                        "id": "pub-empty",
+                        "revision_id": "rev-empty",
+                        "rebuild_job_id": "job-z",
+                        "published_at": now,
+                    },
+                ],
+            )
+            conn.execute(text("ALTER TABLE relationship_projection_revisions DROP COLUMN governed_scopes"))
+
+        ensure_relationship_assertion_schema(schema_engine)
+
+        with schema_engine.connect() as conn:
+            scopes = conn.execute(
+                text("SELECT id, governed_scopes FROM relationship_projection_revisions ORDER BY id")
+            ).all()
+        assert scopes == [
+            ("rev-empty", '[{"predicate_id":"financial.bond.issuer_reference@1","purpose":"current_view"}]'),
+            (
+                "rev-with-edge",
+                '[{"predicate_id":"financial.bond.issuer_reference@1","purpose":"current_view"}]',
+            ),
+        ]
+        with pytest.raises((DBAPIError, IntegrityError)):
+            with schema_engine.begin() as conn:
+                conn.execute(text("UPDATE relationship_projection_revisions SET purpose = 'changed'"))
+
 
 @pytest.mark.integration
 class TestRelationshipAssertionSchemaParity:
@@ -300,6 +422,34 @@ class TestRelationshipAssertionSchemaParity:
             actual |= _fk_pairs(schema_engine, table)
         missing = expected - actual
         assert not missing, f"missing FKs: {missing}"
+
+    @staticmethod
+    def test_postgresql_access_hardening(schema_engine: Engine):
+        """PostgreSQL GRAC tables are RLS-protected with no public policies or grants."""
+        if schema_engine.dialect.name != "postgresql":
+            pytest.skip("PostgreSQL-only RLS catalog assertion")
+        init_db(schema_engine)
+        with schema_engine.connect() as conn:
+            rows = conn.execute(
+                text(
+                    "SELECT c.relname, c.relrowsecurity, count(p.oid), bool_or(acl.grantee = 0) "
+                    "FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace "
+                    "LEFT JOIN pg_policy p ON p.polrelid = c.oid "
+                    "LEFT JOIN LATERAL aclexplode(COALESCE(c.relacl, acldefault('r', c.relowner))) acl ON true "
+                    "WHERE n.nspname = current_schema() AND c.relname = ANY(:tables) "
+                    "GROUP BY c.relname, c.relrowsecurity"
+                ),
+                {"tables": list(GRAC_TABLE_NAMES)},
+            ).all()
+            function_config = conn.execute(
+                text(
+                    "SELECT proconfig FROM pg_proc WHERE proname = 'grac_v1_reject_mutation' "
+                    "AND pronamespace = current_schema()::regnamespace"
+                )
+            ).scalar_one()
+        assert {row[0] for row in rows} == set(GRAC_TABLE_NAMES)
+        assert all(row[1] and row[2] == 0 and not row[3] for row in rows)
+        assert "search_path=pg_catalog" in (function_config or [])
 
 
 @pytest.mark.integration

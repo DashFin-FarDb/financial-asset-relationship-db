@@ -17,9 +17,11 @@ from src.governance.relationship_assertion import (
 from src.governance.relationship_assertion_contract import load_contract_bundle
 from src.logic.relationship_projection import (
     PROJECTOR_VERSION,
+    GovernedScope,
     ProjectionError,
     ProjectionRevision,
     ProjectRequest,
+    canonicalize_governed_scopes,
     project,
 )
 
@@ -41,10 +43,10 @@ EMPTY_EDGE_SET_HASH = _sha256_hex(
     "73c2f11161202b945",
 )
 EMPTY_PROJECTION_HASH = _sha256_hex(
-    "f834ce8a5132768a",
-    "2c9f871cc70abd56",
-    "3b383334ad43c837",
-    "713356f7cc293d27",
+    "f5492976c265fce3",
+    "fefeec8fb143fb97",
+    "d008d22402a4abdd",
+    "74b0a056b4575e56",
 )
 GOLDEN_EDGE_SET_HASH = _sha256_hex(
     "c8c8e738ffe460a7",
@@ -53,10 +55,16 @@ GOLDEN_EDGE_SET_HASH = _sha256_hex(
     "107e53b129a7d345",
 )
 GOLDEN_PROJECTION_HASH = _sha256_hex(
-    "9bee4d5a7407b956",
-    "1b96cd546cdd17f5",
-    "177910f471d8e2f7",
-    "8aab4f0befaccb83",
+    "d8a4b70b62f827bc",
+    "292ff922874c99de",
+    "63a30ea0292253f1",
+    "32808f1e9720dbd4",
+)
+RETAINED_SCOPE_PROJECTION_HASH = _sha256_hex(
+    "38ff587db19700cb",
+    "58202e67577b47e7",
+    "185b610ca99c0a90",
+    "2c1e97c943008d5c",
 )
 
 
@@ -104,6 +112,7 @@ class _ProjectSpec:
     evidence: list[EvidenceRecord] | None = None
     evidence_links: list[EvidenceLink] | None = None
     purpose: str = PURPOSE
+    previously_published_scopes: tuple[GovernedScope, ...] = ()
 
 
 def _assertion(spec: _AssertionSpec | None = None) -> Assertion:
@@ -210,6 +219,7 @@ def _project(predicates, spec: _ProjectSpec) -> ProjectionRevision:
             purpose=spec.purpose,
             effective_at=spec.effective_at,
             known_at=spec.known_at,
+            previously_published_scopes=spec.previously_published_scopes,
         )
     )
 
@@ -226,6 +236,37 @@ def test_empty_inputs_yield_empty_revision_and_stable_hashes(predicates) -> None
     # SHA-256 of canonical JSON ``[]``.
     assert first.edge_set_hash == EMPTY_EDGE_SET_HASH
     assert first.projection_hash == EMPTY_PROJECTION_HASH
+
+
+def test_empty_edge_revision_preserves_previously_published_scope(predicates) -> None:
+    """A later empty revision retains its durable governed scope."""
+    result = _project(
+        predicates,
+        _ProjectSpec(
+            assertions=[],
+            events=[],
+            known_at=NOW,
+            previously_published_scopes=(GovernedScope(PURPOSE, PREDICATE_ID),),
+        ),
+    )
+    assert result.edges == ()
+    assert result.governed_scopes == (GovernedScope(PURPOSE, PREDICATE_ID),)
+    assert result.edge_set_hash == EMPTY_EDGE_SET_HASH
+    assert result.projection_hash == RETAINED_SCOPE_PROJECTION_HASH
+    repeated = _project(
+        predicates,
+        _ProjectSpec(assertions=[], events=[], known_at=NOW, previously_published_scopes=result.governed_scopes),
+    )
+    assert repeated.projection_hash == RETAINED_SCOPE_PROJECTION_HASH
+
+
+def test_governed_scope_canonicalization_deduplicates_and_sorts() -> None:
+    """The shared canonicalizer yields one stable scope set for projection and persistence."""
+    scopes = canonicalize_governed_scopes(
+        (GovernedScope(PURPOSE, "z"), GovernedScope(PURPOSE, "a"), GovernedScope(PURPOSE, "z")),
+        PURPOSE,
+    )
+    assert scopes == (GovernedScope(PURPOSE, "a"), GovernedScope(PURPOSE, "z"))
 
 
 def test_accepted_issuer_reference_projects_corporate_link(predicates) -> None:

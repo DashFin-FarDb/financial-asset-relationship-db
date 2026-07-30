@@ -14,6 +14,8 @@ from sqlalchemy.engine import Engine
 from sqlalchemy.exc import DBAPIError, IntegrityError, OperationalError, ProgrammingError
 
 from src.data.database import Base, create_session_factory, init_db
+from src.data.db_models import RebuildJobORM
+from src.data.relationship_assertion_db_models import RelationshipProjectionPublicationORM
 from src.data.relationship_assertion_repository import (
     PersistProjectionRequest,
     RegisterEvidenceRequest,
@@ -21,6 +23,7 @@ from src.data.relationship_assertion_repository import (
     RepositoryTransitionRequest,
     SupersedeAtomicRequest,
 )
+from src.data.relationship_projection_persistence import ProjectionRevisionStore
 from src.governance.relationship_assertion import (
     Assertion,
     AssertionEvent,
@@ -30,7 +33,7 @@ from src.governance.relationship_assertion import (
     EvidenceRecord,
 )
 from src.governance.relationship_assertion_contract import load_contract_bundle
-from src.logic.relationship_projection import ProjectRequest, project
+from src.logic.relationship_projection import GovernedScope, ProjectRequest, project
 from tests.conftest import enable_sqlite_foreign_keys
 
 UTC = timezone.utc
@@ -61,10 +64,10 @@ GOLDEN_EDGE_SET_HASH = _sha256_hex(
     "107e53b129a7d345",
 )
 GOLDEN_PROJECTION_HASH = _sha256_hex(
-    "9bee4d5a7407b956",
-    "1b96cd546cdd17f5",
-    "177910f471d8e2f7",
-    "8aab4f0befaccb83",
+    "d8a4b70b62f827bc",
+    "292ff922874c99de",
+    "63a30ea0292253f1",
+    "32808f1e9720dbd4",
 )
 ASSERT = TestCase()
 pytestmark = pytest.mark.integration
@@ -268,6 +271,81 @@ def test_identical_hashes_across_dialects(projection_engine, repo: RelationshipA
     ASSERT.assertEqual(loaded.revision.edge_set_hash, GOLDEN_EDGE_SET_HASH)
     ASSERT.assertEqual(loaded.revision.projection_hash, GOLDEN_PROJECTION_HASH)
     ASSERT.assertEqual(loaded.revision.edges[0].strength, "0.8")
+
+
+def test_latest_published_scopes_are_durable_and_deterministic(repo: RelationshipAssertionRepository) -> None:
+    """Latest successful publication carries canonical scopes through an empty-edge revision."""
+    _propose_accepted(repo, "as-1")
+    source = _project_from_repo(repo, ["as-1"])
+    repo.persist_projection_revision(
+        PersistProjectionRequest(source, revision_id="rev-source", created_at=NOW, edge_ids=["edge-source"])
+    )
+    repo._session.add(
+        RebuildJobORM(
+            job_id="job-a",
+            requested_by="tester",
+            status="succeeded",
+            created_at=NOW,
+            updated_at=NOW,
+        )
+    )
+    repo._session.flush()
+    repo._session.add(
+        RelationshipProjectionPublicationORM(
+            id="pub-a",
+            revision_id="rev-source",
+            rebuild_job_id="job-a",
+            published_at=KNOWN_AT,
+            execution_id="exec-a",
+        )
+    )
+    repo._session.flush()
+    store = ProjectionRevisionStore(repo._session, clock=lambda: NOW)
+    retained_scopes = store.latest_published_scopes(PURPOSE)
+    assert retained_scopes == (GovernedScope(PURPOSE, PREDICATE_ID),)
+    empty = project(
+        ProjectRequest(
+            assertions=[],
+            events=[],
+            evidence=[],
+            evidence_links=[],
+            predicate_registry=load_contract_bundle()[1],
+            purpose=PURPOSE,
+            effective_at=NOW,
+            known_at=KNOWN_AT,
+            previously_published_scopes=retained_scopes,
+        )
+    )
+    repo.persist_projection_revision(PersistProjectionRequest(empty, revision_id="rev-empty", created_at=KNOWN_AT))
+    for job_id in ("job-z",):
+        repo._session.add(
+            RebuildJobORM(
+                job_id=job_id,
+                requested_by="tester",
+                status="succeeded",
+                created_at=NOW,
+                updated_at=NOW,
+            )
+        )
+    repo._session.flush()
+    repo._session.add_all(
+        [
+            RelationshipProjectionPublicationORM(
+                id="pub-z",
+                revision_id="rev-empty",
+                rebuild_job_id="job-z",
+                published_at=KNOWN_AT,
+                execution_id="exec-z",
+            ),
+        ]
+    )
+    repo._session.commit()
+    store = ProjectionRevisionStore(repo._session, clock=lambda: NOW)
+    assert store.latest_published_scopes(PURPOSE) == retained_scopes
+    loaded = store.get("rev-empty")
+    assert loaded is not None
+    assert loaded.revision.edges == ()
+    assert loaded.revision.governed_scopes == retained_scopes
 
 
 def test_supersession_changes_persisted_hashes(repo: RelationshipAssertionRepository) -> None:

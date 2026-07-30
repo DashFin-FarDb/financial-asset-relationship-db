@@ -156,8 +156,9 @@ jobs:
           ADMIN_USERNAME: admin
           ADMIN_PASSWORD: changeme
         run: |
-          pytest tests/unit/test_relationship_assertion_db_models.py \
-            tests/integration/test_relationship_assertion_schema.py -v
+          pytest tests/integration/test_relationship_assertion_schema.py \
+            tests/integration/test_relationship_assertion_repository.py \
+            tests/integration/test_relationship_projection_persistence.py -v
 
   security:
     name: Security checks

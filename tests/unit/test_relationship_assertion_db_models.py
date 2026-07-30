@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from unittest.mock import MagicMock
 
 import pytest
@@ -28,6 +28,7 @@ from src.data.relationship_assertion_schema import (
     _expected_postgresql_trigger_names,
     _expected_sqlite_trigger_bindings,
     _expected_sqlite_trigger_names,
+    _harden_postgresql_grac_access,
     _postgresql_guards_present,
     _revoke_immutability_function_execute,
     _sqlite_guards_present,
@@ -139,6 +140,29 @@ def test_confidence_shape_check_rejects_assessed_without_bp() -> None:
     with engine.begin() as connection:
         with pytest.raises(IntegrityError):
             connection.execute(insert_stmt)
+    engine.dispose()
+
+
+def test_effective_window_rejects_end_before_start() -> None:
+    """Assertions cannot end before their effective start."""
+    engine = create_engine_from_url("sqlite:///:memory:")
+    init_db(engine)
+    now = datetime.now(timezone.utc)
+    values = {
+        "id": "12121212-1212-1212-1212-121212121212",
+        "predicate_id": "financial.bond.issuer_reference@1",
+        "subject_id": "AAPL_BOND_2030",
+        "object_id": "AAPL",
+        "method_id": "bond.issuer_id.resolution@1",
+        "proposition": "issuer reference",
+        "confidence_status": "not_assessed",
+        "effective_from": now,
+        "effective_to": now - timedelta(seconds=1),
+        "recorded_at": now,
+    }
+    with engine.begin() as connection:
+        with pytest.raises(IntegrityError):
+            connection.execute(RelationshipAssertionORM.__table__.insert().values(**values))
     engine.dispose()
 
 
@@ -431,7 +455,7 @@ class TestRelationshipAssertionLinksAndEvents:
 
     @staticmethod
     def test_invalid_strength_rejected(db_session):
-        """Edge strength must be a decimal-like numeric string."""
+        """Edge strength must be within the closed zero-to-one interval."""
         _add_assertion(db_session)
         now = _utcnow()
         db_session.add(
@@ -455,7 +479,7 @@ class TestRelationshipAssertionLinksAndEvents:
                 source_id="AAPL_BOND_2030",
                 target_id="AAPL",
                 edge_type="corporate_link",
-                strength="strong",
+                strength="1.1",
                 direction="subject_to_object",
                 assertion_id="as-1",
             )
@@ -531,6 +555,18 @@ def test_revoke_immutability_execute_scopes_acl_check_to_current_schema() -> Non
     assert "rolname IN" in acl_sql
     assert "roles" in acl_sql
     assert acl_params["roles"] == ["anon", "authenticated"]
+
+
+def test_table_grant_hardening_does_not_suppress_insufficient_privilege() -> None:
+    """Table grant revocation fails closed when the schema role lacks privilege."""
+    connection = MagicMock()
+    connection.execute.return_value.scalars.return_value.all.return_value = []
+
+    _harden_postgresql_grac_access(connection)
+
+    statements = "\n".join(str(call.args[0]) for call in connection.execute.call_args_list)
+    assert "undefined_object" in statements
+    assert "insufficient_privilege" not in statements
 
 
 def test_postgresql_guards_present_scopes_triggers_to_current_schema() -> None:
