@@ -8,7 +8,7 @@ from datetime import datetime, timedelta, timezone
 from typing import NoReturn, cast
 from uuid import uuid4
 
-from sqlalchemy import func, select
+from sqlalchemy import func, select, union_all
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
@@ -396,20 +396,25 @@ class RelationshipAssertionRepository:
         """Read and normalize the trusted repository clock."""
         return _server_utc(self._clock())
 
-    def _latest_event_recorded_at(self, assertion_id: str) -> datetime | None:
-        """Return the latest recorded time in one assertion stream."""
+    def _latest_assertion_recorded_at(self, assertion_id: str) -> datetime | None:
+        """Return the latest event or evidence-link time for one assertion."""
+        timeline = union_all(
+            select(RelationshipAssertionEventORM.recorded_at.label("recorded_at")).where(
+                RelationshipAssertionEventORM.assertion_id == assertion_id
+            ),
+            select(RelationshipAssertionEvidenceORM.recorded_at.label("recorded_at")).where(
+                RelationshipAssertionEvidenceORM.assertion_id == assertion_id
+            ),
+        ).subquery()
         value = self._session.execute(
-            select(RelationshipAssertionEventORM.recorded_at)
-            .where(RelationshipAssertionEventORM.assertion_id == assertion_id)
-            .order_by(RelationshipAssertionEventORM.sequence.desc())
-            .limit(1)
+            select(timeline.c.recorded_at).order_by(timeline.c.recorded_at.desc()).limit(1)
         ).scalar_one_or_none()
         return _as_utc(value)
 
-    def _next_event_time(self, assertion_id: str, *, after: datetime | None = None) -> datetime:
-        """Allocate a server-owned timestamp after the stream tail and optional floor."""
+    def _next_assertion_time(self, assertion_id: str, *, after: datetime | None = None) -> datetime:
+        """Allocate a timestamp after the assertion's event/evidence timeline."""
         candidate = self._server_time()
-        latest = self._latest_event_recorded_at(assertion_id)
+        latest = self._latest_assertion_recorded_at(assertion_id)
         floor = latest
         if after is not None:
             normalized_after = _server_utc(after)
@@ -435,7 +440,7 @@ class RelationshipAssertionRepository:
         if existing is not None:
             return self._existing_proposal(existing, proposal, ctx)
 
-        stamp = self._next_event_time(proposal.assertion_id)
+        stamp = self._next_assertion_time(proposal.assertion_id)
         assertion, event = plan_propose(proposal, ctx, recorded_at=stamp, event_id=event_id)
         return self._insert_new_proposal(assertion, event, proposal, ctx)
 
@@ -448,7 +453,7 @@ class RelationshipAssertionRepository:
     ) -> tuple[Assertion, AssertionEvent]:
         """Insert a new proposal without adopting an idempotent race winner."""
         validate_authority(ctx, "proposer")
-        stamp = self._next_event_time(proposal.assertion_id, after=after)
+        stamp = self._next_assertion_time(proposal.assertion_id, after=after)
         assertion, event = plan_propose(proposal, ctx, recorded_at=stamp)
         return self._insert_new_proposal(
             assertion,
@@ -472,7 +477,7 @@ class RelationshipAssertionRepository:
         """
         _validate_event_identity(assertion_id, event)
         _validate_event_sequence(event, expected_sequence, self._max_sequence(assertion_id))
-        _validate_event_recorded_at(event, self._latest_event_recorded_at(assertion_id))
+        _validate_event_recorded_at(event, self._latest_assertion_recorded_at(assertion_id))
         if self._session.get(RelationshipAssertionORM, assertion_id) is None:
             raise ValidationError(f"unknown assertion_id: {assertion_id}")
         try:
@@ -497,7 +502,7 @@ class RelationshipAssertionRepository:
             raise IllegalTransition("Superseded is available only through supersede_atomic")
         self._lock_assertions(request.assertion_id)
         current, proposer_actor_id, _tail = self._stream_summary(request.assertion_id)
-        stamp = self._next_event_time(request.assertion_id)
+        stamp = self._next_assertion_time(request.assertion_id)
         event = _plan_repository_transition(
             request,
             current,
@@ -509,7 +514,8 @@ class RelationshipAssertionRepository:
 
     def register_evidence(self, request: RegisterEvidenceRequest) -> tuple[EvidenceRecord, EvidenceLink]:
         """Register immutable evidence (digest-validated) and an append-only polarity link."""
-        stamp = self._server_time()
+        self._lock_assertions(request.assertion_id)
+        stamp = self._next_assertion_time(request.assertion_id)
         normalized = validate_evidence_record(_with_recorded_at(request.evidence, stamp))
         link = self._plan_evidence_link(request, normalized, stamp)
         stored_evidence = self._upsert_evidence(normalized)
@@ -604,7 +610,7 @@ class RelationshipAssertionRepository:
             accept_timing = TransitionTiming(
                 1,
                 request.accept_rationale,
-                self._next_event_time(successor.assertion_id),
+                self._next_assertion_time(successor.assertion_id),
             )
             accept_event = plan_accept(
                 successor.assertion_id,
@@ -614,7 +620,7 @@ class RelationshipAssertionRepository:
                 proposer_actor_id=request.proposal_ctx.actor_id,
             )
             self._append_event(successor.assertion_id, accept_event, expected_sequence=1)
-            supersede_stamp = self._next_event_time(
+            supersede_stamp = self._next_assertion_time(
                 request.predecessor_id,
                 after=accept_event.recorded_at,
             )

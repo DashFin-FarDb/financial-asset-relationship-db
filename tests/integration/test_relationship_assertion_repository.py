@@ -1217,6 +1217,66 @@ class TestServerRecordedAt:
         assert accepted.recorded_at > proposed.recorded_at
         assert rows[1].recorded_at > rows[0].recorded_at
 
+    def test_evidence_and_events_share_a_monotonic_assertion_clock(self, repo_session) -> None:
+        """Clock regression cannot make a lifecycle event predate known evidence."""
+        clock_values = (
+            NOW,
+            NOW + timedelta(hours=2),
+            NOW + timedelta(hours=1),
+            NOW,
+        )
+        values = iter(clock_values)
+
+        def clock() -> datetime:
+            return next(values, clock_values[-1])
+
+        repository = RelationshipAssertionRepository(repo_session, clock=clock)
+        _assertion, proposed = repository.propose(
+            _proposal(),
+            _ctx("proposer", actor_id="owner"),
+        )
+        _evidence_record, first_link = repository.register_evidence(
+            RegisterEvidenceRequest(
+                assertion_id="as-1",
+                evidence=_evidence("ev-1"),
+                polarity="supporting",
+                ctx=_ctx("proposer", actor_id="owner"),
+            )
+        )
+        accepted = repository.transition(
+            _transition(
+                {
+                    "assertion_id": "as-1",
+                    "to_state": "Accepted",
+                    "ctx": _ctx("acceptor", actor_id="reviewer"),
+                    "expected_sequence": 1,
+                    "rationale": "accept",
+                }
+            )
+        )
+        _evidence_record, second_link = repository.register_evidence(
+            RegisterEvidenceRequest(
+                assertion_id="as-1",
+                evidence=_evidence("ev-2"),
+                polarity="supporting",
+                ctx=_ctx("acceptor", actor_id="reviewer"),
+            )
+        )
+
+        assert proposed.recorded_at < first_link.recorded_at < accepted.recorded_at < second_link.recorded_at
+        at_first_link = repository.get_as_of("as-1", known_at=first_link.recorded_at)
+        at_acceptance = repository.get_as_of("as-1", known_at=accepted.recorded_at)
+        at_second_link = repository.get_as_of("as-1", known_at=second_link.recorded_at)
+        assert at_first_link is not None
+        assert at_first_link.state == "Proposed"
+        assert len(at_first_link.evidence_links) == 1
+        assert at_acceptance is not None
+        assert at_acceptance.state == "Accepted"
+        assert len(at_acceptance.evidence_links) == 1
+        assert at_second_link is not None
+        assert at_second_link.state == "Accepted"
+        assert len(at_second_link.evidence_links) == 2
+
 
 class TestGetAsOf:
     """Bitemporal reconstruction."""
