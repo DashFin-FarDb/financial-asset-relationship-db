@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from dataclasses import replace
 from datetime import datetime, timedelta, timezone
 
 import pytest
@@ -44,11 +45,13 @@ from src.governance.relationship_assertion_lifecycle import (
 UTC = timezone.utc
 NOW = datetime(2026, 7, 25, 12, 0, 0, tzinfo=UTC)
 DIGEST = "a" * 64
+DEFAULT_ACTOR_ID = "actor-1"
+PROPOSER_ACTOR_ID = "proposer-1"
 
 
-def _ctx(*roles: str) -> AuthorityContext:
+def _ctx(*roles: str, actor_id: str = DEFAULT_ACTOR_ID) -> AuthorityContext:
     return AuthorityContext(
-        actor_id="actor-1",
+        actor_id=actor_id,
         roles=frozenset(roles),  # type: ignore[arg-type]
         policy_version="grac.v1-policy",
         correlation_id="corr-1",
@@ -94,6 +97,7 @@ class TestAuthorityAndBounds:
             to_state="Accepted",
             ctx=_ctx("acceptor"),
             timing=_timing(rationale="x" * (MAX_RATIONALE_LEN + 1)),
+            proposer_actor_id=PROPOSER_ACTOR_ID,
         )
         with pytest.raises(ValidationError, match="rationale"):
             plan_transition(plan)
@@ -207,7 +211,11 @@ class TestProposeAndResolve:
 
     def test_resolve_state_folds_sequence(self) -> None:
         """State resolution follows the highest sequence event."""
-        _, e1 = plan_propose(_proposal(), _ctx("proposer"), recorded_at=NOW)
+        _, e1 = plan_propose(
+            _proposal(),
+            _ctx("proposer", actor_id=PROPOSER_ACTOR_ID),
+            recorded_at=NOW,
+        )
         e2 = plan_accept(
             "as-1",
             "Proposed",
@@ -216,8 +224,70 @@ class TestProposeAndResolve:
                 rationale="ok",
                 recorded_at=NOW + timedelta(seconds=1),
             ),
+            proposer_actor_id=PROPOSER_ACTOR_ID,
         )
         assert resolve_state([e1, e2]) == "Accepted"
+
+    @pytest.mark.parametrize(
+        "recorded_at",
+        [NOW, NOW - timedelta(microseconds=1)],
+        ids=["equal", "backdated"],
+    )
+    def test_resolve_state_rejects_non_monotonic_recorded_at(self, recorded_at: datetime) -> None:
+        """Replay rejects equal or backdated event timestamps."""
+        _, e1 = plan_propose(
+            _proposal(),
+            _ctx("proposer", actor_id=PROPOSER_ACTOR_ID),
+            recorded_at=NOW,
+        )
+        e2 = plan_accept(
+            "as-1",
+            "Proposed",
+            _ctx("acceptor"),
+            timing=_timing(rationale="accept", recorded_at=recorded_at),
+            proposer_actor_id=PROPOSER_ACTOR_ID,
+        )
+
+        with pytest.raises(ValidationError, match="strictly increasing"):
+            resolve_state([e1, e2])
+
+    def test_resolve_state_rejects_wrong_event_authority(self) -> None:
+        """Replay verifies persisted event authority against the matrix."""
+        _, e1 = plan_propose(
+            _proposal(),
+            _ctx("proposer", actor_id=PROPOSER_ACTOR_ID),
+            recorded_at=NOW,
+        )
+        e2 = plan_accept(
+            "as-1",
+            "Proposed",
+            _ctx("acceptor"),
+            timing=_timing(recorded_at=NOW + timedelta(seconds=1)),
+            proposer_actor_id=PROPOSER_ACTOR_ID,
+        )
+        invalid_authority = replace(e2, authority="proposer")
+
+        with pytest.raises(ValidationError, match="event authority"):
+            resolve_state([e1, invalid_authority])
+
+    def test_resolve_state_rejects_same_actor_determination(self) -> None:
+        """Replay preserves proposer and determiner separation."""
+        _, e1 = plan_propose(
+            _proposal(),
+            _ctx("proposer", actor_id=PROPOSER_ACTOR_ID),
+            recorded_at=NOW,
+        )
+        e2 = plan_accept(
+            "as-1",
+            "Proposed",
+            _ctx("acceptor"),
+            timing=_timing(recorded_at=NOW + timedelta(seconds=1)),
+            proposer_actor_id=PROPOSER_ACTOR_ID,
+        )
+        self_determined = replace(e2, actor_id=PROPOSER_ACTOR_ID)
+
+        with pytest.raises(UnauthorizedTransition, match="must differ"):
+            resolve_state([e1, self_determined])
 
     def test_resolve_state_rejects_invalid_initial_event(self) -> None:
         """Persisted streams must begin with a proper propose event."""
@@ -267,23 +337,27 @@ class TestTransitionMatrix:
         assert len(transitions.transitions) >= 9
 
     @pytest.mark.parametrize(
-        ("from_state", "to_state", "role"),
+        ("from_state", "to_state", "role", "proposer_actor_id"),
         [
-            ("Proposed", "Accepted", "acceptor"),
-            ("Proposed", "Rejected", "acceptor"),
-            ("Proposed", "Withdrawn", "proposer"),
-            ("Accepted", "Disputed", "disputer"),
-            ("Accepted", "Retracted", "retractor"),
-            ("Accepted", "Superseded", "acceptor"),
-            ("Disputed", "Accepted", "acceptor"),
-            ("Disputed", "Retracted", "retractor"),
-            ("Disputed", "Superseded", "acceptor"),
+            ("Proposed", "Accepted", "acceptor", PROPOSER_ACTOR_ID),
+            ("Proposed", "Rejected", "acceptor", PROPOSER_ACTOR_ID),
+            ("Proposed", "Withdrawn", "proposer", DEFAULT_ACTOR_ID),
+            ("Accepted", "Disputed", "disputer", None),
+            ("Accepted", "Retracted", "retractor", None),
+            ("Disputed", "Accepted", "acceptor", PROPOSER_ACTOR_ID),
+            ("Disputed", "Retracted", "retractor", None),
         ],
     )
-    def test_allowed_matrix_edges(self, from_state, to_state, role, transitions) -> None:
-        """Every registry edge plans successfully with the required authority."""
+    def test_allowed_non_supersession_edges(
+        self,
+        from_state,
+        to_state,
+        role,
+        proposer_actor_id,
+        transitions,
+    ) -> None:
+        """Every non-supersession registry edge plans with its required authority."""
         timing = _timing(transitions=transitions)
-        successor_assertion_id = "as-successor" if to_state == "Superseded" else None
         event = plan_transition(
             TransitionPlan(
                 assertion_id="as-1",
@@ -291,12 +365,28 @@ class TestTransitionMatrix:
                 to_state=to_state,
                 ctx=_ctx(role),
                 timing=timing,
-                successor_assertion_id=successor_assertion_id,
+                proposer_actor_id=proposer_actor_id,
             )
         )
         assert event.to_state == to_state
         assert event.authority == role
         assert event.sequence == 2
+
+    @pytest.mark.parametrize("current", ["Accepted", "Disputed"])
+    def test_generic_supersession_rejected(self, current, transitions) -> None:
+        """Supersession is unavailable through the generic planner."""
+        plan = TransitionPlan(
+            assertion_id="as-1",
+            current=current,
+            to_state="Superseded",
+            ctx=_ctx("acceptor"),
+            timing=_timing(rationale="replace", transitions=transitions),
+            successor_assertion_id="as-2",
+            proposer_actor_id=PROPOSER_ACTOR_ID,
+        )
+
+        with pytest.raises(IllegalTransition, match="only through plan_supersede"):
+            plan_transition(plan)
 
     @pytest.mark.parametrize(
         ("from_state", "to_state"),
@@ -327,49 +417,87 @@ class TestTransitionMatrix:
         ctx = _ctx("proposer")
         timing = _timing(rationale="nope", transitions=transitions)
         with pytest.raises(UnauthorizedTransition):
-            plan_accept("as-1", "Proposed", ctx, timing=timing)
+            plan_accept(
+                "as-1",
+                "Proposed",
+                ctx,
+                timing=timing,
+                proposer_actor_id=PROPOSER_ACTOR_ID,
+            )
 
-    @pytest.mark.parametrize(
-        ("plan", "exc_type", "match"),
-        [
-            (
-                TransitionPlan(
-                    assertion_id="as-1",
-                    current="Accepted",
-                    to_state="Superseded",
-                    ctx=_ctx("acceptor"),
-                    timing=_timing(rationale="missing successor"),
-                ),
-                ValidationError,
-                "successor_assertion_id",
-            ),
-            (
-                TransitionPlan(
-                    assertion_id="as-1",
-                    current="Proposed",
-                    to_state="Accepted",
-                    ctx=_ctx("acceptor"),
-                    timing=_timing(rationale="bad successor"),
-                    successor_assertion_id="as-2",
-                ),
-                IllegalTransition,
-                "must not set successor",
-            ),
-        ],
-        ids=["supersession_requires_successor", "non_supersession_forbids_successor"],
-    )
-    def test_successor_pointer_rules(self, transitions, plan, exc_type, match) -> None:
-        """Successor pointer is required only on supersession edges."""
+    def test_supersession_requires_successor(self, transitions) -> None:
+        """The dedicated supersession planner requires a successor pointer."""
         plan = TransitionPlan(
-            assertion_id=plan.assertion_id,
-            current=plan.current,
-            to_state=plan.to_state,
-            ctx=plan.ctx,
-            timing=_timing(rationale=plan.timing.rationale, transitions=transitions),
-            successor_assertion_id=plan.successor_assertion_id,
+            assertion_id="as-1",
+            current="Accepted",
+            to_state="Superseded",
+            ctx=_ctx("acceptor"),
+            timing=_timing(rationale="missing successor", transitions=transitions),
+            proposer_actor_id=PROPOSER_ACTOR_ID,
         )
-        with pytest.raises(exc_type, match=match):
+        supersede_plan = SupersedePlan(transition=plan)
+        with pytest.raises(ValidationError, match="successor"):
+            plan_supersede(supersede_plan)
+
+    def test_non_supersession_forbids_successor(self, transitions) -> None:
+        """A non-supersession transition cannot carry a successor pointer."""
+        plan = TransitionPlan(
+            assertion_id="as-1",
+            current="Proposed",
+            to_state="Accepted",
+            ctx=_ctx("acceptor"),
+            timing=_timing(rationale="bad successor", transitions=transitions),
+            successor_assertion_id="as-2",
+            proposer_actor_id=PROPOSER_ACTOR_ID,
+        )
+        with pytest.raises(IllegalTransition, match="must not set successor"):
             plan_transition(plan)
+
+
+class TestActorOwnership:
+    """Actor ownership and proposer/determiner separation."""
+
+    def test_accept_rejects_proposer_as_determiner(self) -> None:
+        """An assertion proposer cannot accept the same assertion."""
+        ctx = _ctx("acceptor", actor_id=PROPOSER_ACTOR_ID)
+        timing = _timing(rationale="self-accept")
+        with pytest.raises(UnauthorizedTransition, match="must differ"):
+            plan_accept(
+                "as-1",
+                "Proposed",
+                ctx,
+                timing=timing,
+                proposer_actor_id=PROPOSER_ACTOR_ID,
+            )
+
+    def test_supersede_rejects_predecessor_proposer_as_determiner(self) -> None:
+        """A predecessor proposer cannot determine its supersession."""
+        plan = SupersedePlan(
+            transition=TransitionPlan(
+                assertion_id="as-1",
+                current="Accepted",
+                to_state="Superseded",
+                ctx=_ctx("acceptor", actor_id=PROPOSER_ACTOR_ID),
+                timing=_timing(rationale="self-supersede"),
+                successor_assertion_id="as-2",
+                proposer_actor_id=PROPOSER_ACTOR_ID,
+            )
+        )
+        with pytest.raises(UnauthorizedTransition, match="must differ"):
+            plan_supersede(plan)
+
+    def test_withdraw_rejects_foreign_proposer(self) -> None:
+        """A proposer role does not confer ownership of another proposal."""
+        ctx = _ctx("proposer")
+        timing = _timing(rationale="foreign withdrawal")
+        with pytest.raises(UnauthorizedTransition, match="must match"):
+            plan_withdraw(
+                "as-1",
+                "Proposed",
+                ctx,
+                timing=timing,
+                proposer_actor_id=PROPOSER_ACTOR_ID,
+            )
 
 
 class TestConcurrencyGuard:
@@ -380,14 +508,26 @@ class TestConcurrencyGuard:
         ctx = _ctx("acceptor")
         timing = _timing(expected_sequence=0, rationale="bad")
         with pytest.raises(ConcurrencyConflict):
-            plan_accept("as-1", "Proposed", ctx, timing=timing)
+            plan_accept(
+                "as-1",
+                "Proposed",
+                ctx,
+                timing=timing,
+                proposer_actor_id=PROPOSER_ACTOR_ID,
+            )
 
     def test_expected_sequence_rejects_bool(self) -> None:
         """expected_sequence must be an integer sequence, not bool."""
         ctx = _ctx("acceptor")
         timing = _timing(expected_sequence=True, rationale="bad")  # type: ignore[arg-type]
         with pytest.raises(ValidationError, match="expected_sequence"):
-            plan_accept("as-1", "Proposed", ctx, timing=timing)
+            plan_accept(
+                "as-1",
+                "Proposed",
+                ctx,
+                timing=timing,
+                proposer_actor_id=PROPOSER_ACTOR_ID,
+            )
 
     def test_next_sequence_is_expected_plus_one(self) -> None:
         """Planned event sequence is always expected_sequence + 1."""
@@ -396,12 +536,33 @@ class TestConcurrencyGuard:
             "Proposed",
             _ctx("acceptor"),
             timing=_timing(expected_sequence=3, rationale="reject"),
+            proposer_actor_id=PROPOSER_ACTOR_ID,
         )
         assert event.sequence == 4
 
 
 class TestSupersessionCycles:
     """Cycle and self-supersession prevention."""
+
+    @pytest.mark.parametrize("current", ["Accepted", "Disputed"])
+    def test_dedicated_supersession_allowed(self, current) -> None:
+        """The dedicated planner handles both valid supersession source states."""
+        event = plan_supersede(
+            SupersedePlan(
+                transition=TransitionPlan(
+                    assertion_id="as-1",
+                    current=current,
+                    to_state="Superseded",
+                    ctx=_ctx("acceptor"),
+                    timing=_timing(rationale="replace"),
+                    successor_assertion_id="as-2",
+                    proposer_actor_id=PROPOSER_ACTOR_ID,
+                )
+            )
+        )
+
+        assert event.to_state == "Superseded"
+        assert event.successor_assertion_id == "as-2"
 
     def test_self_supersession_forbidden(self) -> None:
         """An assertion cannot supersede itself."""
@@ -413,9 +574,26 @@ class TestSupersessionCycles:
                 ctx=_ctx("acceptor"),
                 timing=_timing(rationale="self"),
                 successor_assertion_id="as-1",
+                proposer_actor_id=PROPOSER_ACTOR_ID,
             )
         )
         with pytest.raises(SupersessionCycle):
+            plan_supersede(plan)
+
+    def test_dedicated_supersession_rejects_other_target_state(self) -> None:
+        """The dedicated planner cannot be reused for an ordinary matrix edge."""
+        plan = SupersedePlan(
+            transition=TransitionPlan(
+                assertion_id="as-1",
+                current="Proposed",
+                to_state="Accepted",
+                ctx=_ctx("acceptor"),
+                timing=_timing(rationale="accept"),
+                successor_assertion_id="as-2",
+                proposer_actor_id=PROPOSER_ACTOR_ID,
+            )
+        )
+        with pytest.raises(IllegalTransition, match="requires a Superseded transition"):
             plan_supersede(plan)
 
     def test_cycle_via_lookup_forbidden(self) -> None:
@@ -500,6 +678,7 @@ class TestNamedPlanners:
             "Proposed",
             _ctx("proposer"),
             timing=_timing(rationale="withdraw"),
+            proposer_actor_id=DEFAULT_ACTOR_ID,
         )
         disputed = plan_dispute(
             "as-1",

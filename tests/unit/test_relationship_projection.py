@@ -89,6 +89,7 @@ class _EventSpec:
     recorded_at: datetime
     event_id: str | None = None
     authority: str = "acceptor"
+    actor_id: str = "determiner-1"
     successor_assertion_id: str | None = None
 
 
@@ -132,7 +133,7 @@ def _event(spec: _EventSpec) -> AssertionEvent:
         from_state=spec.from_state,  # type: ignore[arg-type]
         to_state=spec.to_state,  # type: ignore[arg-type]
         authority=spec.authority,  # type: ignore[arg-type]
-        actor_id="actor-1",
+        actor_id=spec.actor_id,
         rationale="test",
         policy_version="grac.v1-policy",
         recorded_at=spec.recorded_at,
@@ -155,6 +156,7 @@ def _propose_accept_events(
                 from_state=None,
                 recorded_at=proposed_at,
                 authority="proposer",
+                actor_id="proposer-1",
             )
         ),
         _event(
@@ -462,7 +464,8 @@ def _terminal_state_events(to_state: str) -> list[AssertionEvent]:
                 )
             )
         ]
-    authority = "proposer"
+    authority = "acceptor" if to_state == "Rejected" else "proposer"
+    actor_id = "determiner-1" if to_state == "Rejected" else "proposer-1"
     return [
         _event(
             _EventSpec(
@@ -471,7 +474,8 @@ def _terminal_state_events(to_state: str) -> list[AssertionEvent]:
                 "Proposed",
                 from_state=None,
                 recorded_at=NOW,
-                authority=authority,
+                authority="proposer",
+                actor_id="proposer-1",
             )
         ),
         _event(
@@ -482,6 +486,7 @@ def _terminal_state_events(to_state: str) -> list[AssertionEvent]:
                 from_state="Proposed",
                 recorded_at=NOW + timedelta(minutes=1),
                 authority=authority,
+                actor_id=actor_id,
             )
         ),
     ]

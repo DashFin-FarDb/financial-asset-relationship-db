@@ -35,7 +35,6 @@ from tests.conftest import enable_sqlite_foreign_keys
 
 UTC = timezone.utc
 NOW = datetime(2026, 7, 25, 15, 0, 0, tzinfo=UTC)
-ACCEPTED_AT = NOW + timedelta(minutes=1)
 KNOWN_AT = NOW + timedelta(days=1)
 PURPOSE = "financial_graph_current_view"
 PREDICATE_ID = "financial.bond.issuer_reference@1"
@@ -121,9 +120,9 @@ def repo(projection_engine) -> Iterator[RelationshipAssertionRepository]:
     session.close()
 
 
-def _ctx(*roles: str) -> AuthorityContext:
+def _ctx(actor_id: str, *roles: str) -> AuthorityContext:
     return AuthorityContext(
-        actor_id="actor-1",
+        actor_id=actor_id,
         roles=frozenset(roles),  # type: ignore[arg-type]
         policy_version="grac.v1-policy",
         correlation_id="corr-projection",
@@ -150,16 +149,19 @@ def _transition(fields: dict[str, object]) -> RepositoryTransitionRequest:
 
 def _propose_accepted(repo: RelationshipAssertionRepository, assertion_id: str = "as-1") -> None:
     """Propose and accept with fixed timestamps so hashes are dialect-stable."""
-    repo.propose(_proposal(assertion_id), _ctx("proposer"), recorded_at=NOW, event_id=f"ev-{assertion_id}-1")
+    repo.propose(
+        _proposal(assertion_id),
+        _ctx(f"proposer-{assertion_id}", "proposer"),
+        event_id=f"ev-{assertion_id}-1",
+    )
     repo.transition(
         _transition(
             {
                 "assertion_id": assertion_id,
                 "to_state": "Accepted",
-                "ctx": _ctx("acceptor"),
+                "ctx": _ctx(f"determiner-{assertion_id}", "acceptor"),
                 "expected_sequence": 1,
                 "rationale": "accept",
-                "recorded_at": ACCEPTED_AT,
                 "event_id": f"ev-{assertion_id}-2",
             }
         )
@@ -214,8 +216,7 @@ def test_persist_and_reload_projection_revision(repo: RelationshipAssertionRepos
                 recorded_at=NOW,
             ),
             polarity="supporting",
-            ctx=_ctx("proposer"),
-            recorded_at=ACCEPTED_AT + timedelta(minutes=1),
+            ctx=_ctx("proposer-as-1", "proposer"),
             link_id="link-1",
         )
     )
@@ -286,10 +287,10 @@ def test_supersession_changes_persisted_hashes(repo: RelationshipAssertionReposi
         SupersedeAtomicRequest(
             predecessor_id="as-1",
             successor_proposal=_proposal("as-2", object_id="AAPL_NEW"),
-            ctx=_ctx("acceptor", "proposer"),
+            proposal_ctx=_ctx("proposer-as-2", "proposer"),
+            determination_ctx=_ctx("supersession-determiner", "acceptor"),
             expected_sequence=2,
             rationale="refresh issuer",
-            recorded_at=supersede_at,
         )
     )
     after = _project_from_repo(repo, ["as-1", "as-2"])
