@@ -114,6 +114,25 @@ def _backfill_projection_revision_scopes(connection: Connection, backend: str) -
             raise RuntimeError(f"inconsistent purpose while backfilling revision {revision_id}")
         if predicate_id is not None:
             predicates.add(predicate_id)
+    published_rows = connection.execute(
+        text(
+            "SELECT revision.id, revision.purpose "
+            "FROM relationship_projection_revisions AS revision "
+            "JOIN relationship_projection_publications AS publication "
+            "ON publication.revision_id = revision.id "
+            "JOIN rebuild_jobs AS job ON job.job_id = publication.rebuild_job_id "
+            "WHERE job.status = 'succeeded' "
+            "ORDER BY revision.purpose, publication.published_at, "
+            "publication.rebuild_job_id, publication.id"
+        )
+    ).all()
+    published_scopes: dict[str, set[str]] = {}
+    for revision_id, purpose in published_rows:
+        _revision_purpose, predicates = scope_pairs[revision_id]
+        if predicates:
+            published_scopes[purpose] = predicates
+        elif prior := published_scopes.get(purpose):
+            scope_pairs[revision_id] = (purpose, set(prior))
     payloads = [
         {
             "revision_id": revision_id,

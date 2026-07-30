@@ -20,6 +20,7 @@ from src.data.relationship_assertion_db_models import (
     RelationshipAssertionORM,
     RelationshipEvidenceORM,
     RelationshipProjectionEdgeORM,
+    RelationshipProjectionPublicationORM,
     RelationshipProjectionRevisionORM,
 )
 from src.data.relationship_assertion_schema import (
@@ -329,6 +330,42 @@ class TestRelationshipAssertionSchemaBootstrap:
                     assertion_id="as-legacy",
                 )
             )
+            conn.execute(
+                RebuildJobORM.__table__.insert(),
+                [
+                    {
+                        "job_id": "job-a",
+                        "requested_by": "tester",
+                        "status": "succeeded",
+                        "created_at": now,
+                        "updated_at": now,
+                    },
+                    {
+                        "job_id": "job-z",
+                        "requested_by": "tester",
+                        "status": "succeeded",
+                        "created_at": now,
+                        "updated_at": now,
+                    },
+                ],
+            )
+            conn.execute(
+                RelationshipProjectionPublicationORM.__table__.insert(),
+                [
+                    {
+                        "id": "pub-source",
+                        "revision_id": "rev-with-edge",
+                        "rebuild_job_id": "job-a",
+                        "published_at": now,
+                    },
+                    {
+                        "id": "pub-empty",
+                        "revision_id": "rev-empty",
+                        "rebuild_job_id": "job-z",
+                        "published_at": now,
+                    },
+                ],
+            )
             conn.execute(text("ALTER TABLE relationship_projection_revisions DROP COLUMN governed_scopes"))
 
         ensure_relationship_assertion_schema(schema_engine)
@@ -338,7 +375,7 @@ class TestRelationshipAssertionSchemaBootstrap:
                 text("SELECT id, governed_scopes FROM relationship_projection_revisions ORDER BY id")
             ).all()
         assert scopes == [
-            ("rev-empty", "[]"),
+            ("rev-empty", '[{"predicate_id":"financial.bond.issuer_reference@1","purpose":"current_view"}]'),
             (
                 "rev-with-edge",
                 '[{"predicate_id":"financial.bond.issuer_reference@1","purpose":"current_view"}]',
