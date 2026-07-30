@@ -43,10 +43,10 @@ EMPTY_EDGE_SET_HASH = _sha256_hex(
     "73c2f11161202b945",
 )
 EMPTY_PROJECTION_HASH = _sha256_hex(
-    "924520d579a2fb60",
-    "47d770f7997bae36",
-    "efad3e48b62e1867",
-    "12ce9990236b2cc5",
+    "f5492976c265fce3",
+    "fefeec8fb143fb97",
+    "d008d22402a4abdd",
+    "74b0a056b4575e56",
 )
 GOLDEN_EDGE_SET_HASH = _sha256_hex(
     "c8c8e738ffe460a7",
@@ -55,10 +55,16 @@ GOLDEN_EDGE_SET_HASH = _sha256_hex(
     "107e53b129a7d345",
 )
 GOLDEN_PROJECTION_HASH = _sha256_hex(
-    "9f061549b5713b51",
-    "78153dfd886c7a6e",
-    "f7bcd81027d53dac",
-    "d9222c480bea3ff6",
+    "d8a4b70b62f827bc",
+    "292ff922874c99de",
+    "63a30ea0292253f1",
+    "32808f1e9720dbd4",
+)
+RETAINED_SCOPE_PROJECTION_HASH = _sha256_hex(
+    "38ff587db19700cb",
+    "58202e67577b47e7",
+    "185b610ca99c0a90",
+    "2c1e97c943008d5c",
 )
 
 
@@ -246,7 +252,12 @@ def test_empty_edge_revision_preserves_previously_published_scope(predicates) ->
     assert result.edges == ()
     assert result.governed_scopes == (GovernedScope(PURPOSE, PREDICATE_ID),)
     assert result.edge_set_hash == EMPTY_EDGE_SET_HASH
-    assert result.projection_hash != EMPTY_PROJECTION_HASH
+    assert result.projection_hash == RETAINED_SCOPE_PROJECTION_HASH
+    repeated = _project(
+        predicates,
+        _ProjectSpec(assertions=[], events=[], known_at=NOW, previously_published_scopes=result.governed_scopes),
+    )
+    assert repeated.projection_hash == RETAINED_SCOPE_PROJECTION_HASH
 
 
 def test_governed_scope_canonicalization_deduplicates_and_sorts() -> None:

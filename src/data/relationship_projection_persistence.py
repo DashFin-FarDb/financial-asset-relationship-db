@@ -256,6 +256,7 @@ class ProjectionRevisionStore:
             .order_by(
                 RelationshipProjectionPublicationORM.published_at.desc(),
                 RelationshipProjectionPublicationORM.rebuild_job_id.desc(),
+                RelationshipProjectionPublicationORM.id.desc(),
             )
             .limit(1)
         ).scalar_one_or_none()

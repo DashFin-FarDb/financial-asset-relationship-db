@@ -33,7 +33,7 @@ from src.governance.relationship_assertion_lifecycle import resolve_state
 
 UTC = timezone.utc
 _UTC_OFFSET = timedelta(0)
-PROJECTOR_VERSION = "projector.v1"
+PROJECTOR_VERSION = "projector.v2"
 _ACCEPTED: LifecycleState = "Accepted"
 _CONFLICT_ATTRS = frozenset({"predicate_id", "subject_id", "object_id", "method_id"})
 
@@ -384,7 +384,13 @@ def canonicalize_governed_scopes(
 ) -> tuple[GovernedScope, ...]:
     """Validate, deduplicate, and sort governed scopes for one purpose."""
     pairs = {(scope.purpose, scope.predicate_id) for scope in scopes}
-    if any(scope_purpose != purpose or not predicate_id for scope_purpose, predicate_id in pairs):
+    if any(
+        not isinstance(scope_purpose, str)
+        or not isinstance(predicate_id, str)
+        or scope_purpose != purpose
+        or not predicate_id
+        for scope_purpose, predicate_id in pairs
+    ):
         raise ValidationError("governed scopes must be non-empty predicates for the projection purpose")
     return tuple(
         GovernedScope(purpose=item_purpose, predicate_id=predicate_id) for item_purpose, predicate_id in sorted(pairs)

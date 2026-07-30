@@ -64,10 +64,10 @@ GOLDEN_EDGE_SET_HASH = _sha256_hex(
     "107e53b129a7d345",
 )
 GOLDEN_PROJECTION_HASH = _sha256_hex(
-    "9f061549b5713b51",
-    "78153dfd886c7a6e",
-    "f7bcd81027d53dac",
-    "d9222c480bea3ff6",
+    "d8a4b70b62f827bc",
+    "292ff922874c99de",
+    "63a30ea0292253f1",
+    "32808f1e9720dbd4",
 )
 ASSERT = TestCase()
 pytestmark = pytest.mark.integration
@@ -280,7 +280,29 @@ def test_latest_published_scopes_are_durable_and_deterministic(repo: Relationshi
     repo.persist_projection_revision(
         PersistProjectionRequest(source, revision_id="rev-source", created_at=NOW, edge_ids=["edge-source"])
     )
-    retained_scope = GovernedScope(PURPOSE, "financial.bond.issuer_reference@retained")
+    repo._session.add(
+        RebuildJobORM(
+            job_id="job-a",
+            requested_by="tester",
+            status="succeeded",
+            created_at=NOW,
+            updated_at=NOW,
+        )
+    )
+    repo._session.flush()
+    repo._session.add(
+        RelationshipProjectionPublicationORM(
+            id="pub-a",
+            revision_id="rev-source",
+            rebuild_job_id="job-a",
+            published_at=KNOWN_AT,
+            execution_id="exec-a",
+        )
+    )
+    repo._session.flush()
+    store = ProjectionRevisionStore(repo._session, clock=lambda: NOW)
+    retained_scopes = store.latest_published_scopes(PURPOSE)
+    assert retained_scopes == (GovernedScope(PURPOSE, PREDICATE_ID),)
     empty = project(
         ProjectRequest(
             assertions=[],
@@ -291,11 +313,11 @@ def test_latest_published_scopes_are_durable_and_deterministic(repo: Relationshi
             purpose=PURPOSE,
             effective_at=NOW,
             known_at=KNOWN_AT,
-            previously_published_scopes=(retained_scope,),
+            previously_published_scopes=retained_scopes,
         )
     )
     repo.persist_projection_revision(PersistProjectionRequest(empty, revision_id="rev-empty", created_at=KNOWN_AT))
-    for job_id in ("job-a", "job-z"):
+    for job_id in ("job-z",):
         repo._session.add(
             RebuildJobORM(
                 job_id=job_id,
@@ -309,13 +331,6 @@ def test_latest_published_scopes_are_durable_and_deterministic(repo: Relationshi
     repo._session.add_all(
         [
             RelationshipProjectionPublicationORM(
-                id="pub-a",
-                revision_id="rev-source",
-                rebuild_job_id="job-a",
-                published_at=KNOWN_AT,
-                execution_id="exec-a",
-            ),
-            RelationshipProjectionPublicationORM(
                 id="pub-z",
                 revision_id="rev-empty",
                 rebuild_job_id="job-z",
@@ -326,11 +341,11 @@ def test_latest_published_scopes_are_durable_and_deterministic(repo: Relationshi
     )
     repo._session.commit()
     store = ProjectionRevisionStore(repo._session, clock=lambda: NOW)
-    assert store.latest_published_scopes(PURPOSE) == (retained_scope,)
+    assert store.latest_published_scopes(PURPOSE) == retained_scopes
     loaded = store.get("rev-empty")
     assert loaded is not None
     assert loaded.revision.edges == ()
-    assert loaded.revision.governed_scopes == (retained_scope,)
+    assert loaded.revision.governed_scopes == retained_scopes
 
 
 def test_supersession_changes_persisted_hashes(repo: RelationshipAssertionRepository) -> None:

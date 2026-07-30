@@ -7,6 +7,7 @@ reject UPDATE/DELETE (and PostgreSQL TRUNCATE) on all seven append-only tables.
 
 from __future__ import annotations
 
+import json
 import os
 import re
 from collections.abc import Mapping
@@ -14,7 +15,11 @@ from collections.abc import Mapping
 from sqlalchemy import bindparam, text
 from sqlalchemy.engine import Connection, Engine, make_url
 
-from src.data.relationship_assertion_db_models import GRAC_TABLE_NAMES
+from src.data.relationship_assertion_db_models import (
+    EFFECTIVE_WINDOW_CHECK,
+    GRAC_TABLE_NAMES,
+    STRENGTH_DECIMAL_CHECK,
+)
 
 # Keep names well under PostgreSQL's 63-byte identifier limit for every table.
 _IMMUTABILITY_FUNCTION = "grac_v1_reject_mutation"
@@ -41,19 +46,23 @@ def ensure_relationship_assertion_schema(engine: Engine) -> None:
     with engine.begin() as connection:
         _ensure_projection_revision_scope_metadata(connection, backend)
         if backend == "sqlite":
+            _require_sqlite_grac_constraints(connection)
             if not _sqlite_guards_present(connection):
                 _install_sqlite_immutability_guards(connection)
         elif backend == "postgresql":
+            _ensure_postgresql_grac_constraints(connection)
             if not _postgresql_guards_present(connection):
                 _install_postgresql_immutability_guards(connection)
             else:
                 # Upgrade path: earlier installs may have left untrusted EXECUTE.
                 _revoke_immutability_function_execute(connection)
-            _harden_postgresql_grac_access(connection)
+            if not _postgresql_grac_access_hardened(connection):
+                _harden_postgresql_grac_access(connection)
 
 
 def _ensure_projection_revision_scope_metadata(connection: Connection, backend: str) -> None:
     """Add durable scope metadata and the successor FK index on upgrade."""
+    requires_backfill = False
     if backend == "sqlite":
         rows = connection.execute(text("PRAGMA table_info(relationship_projection_revisions)")).fetchall()
         column_names = {row[1] for row in rows}
@@ -71,6 +80,7 @@ def _ensure_projection_revision_scope_metadata(connection: Connection, backend: 
     else:
         return
     if "governed_scopes" not in column_names:
+        requires_backfill = True
         connection.execute(
             text(
                 "ALTER TABLE relationship_projection_revisions " "ADD COLUMN governed_scopes TEXT NOT NULL DEFAULT '[]'"
@@ -82,6 +92,118 @@ def _ensure_projection_revision_scope_metadata(connection: Connection, backend: 
             "ON relationship_assertion_events (successor_assertion_id)"
         )
     )
+    if requires_backfill:
+        _backfill_projection_revision_scopes(connection, backend)
+
+
+def _backfill_projection_revision_scopes(connection: Connection, backend: str) -> None:
+    """Derive canonical metadata for revisions created before governed_scopes existed."""
+    rows = connection.execute(
+        text(
+            "SELECT revision.id, revision.purpose, assertion.predicate_id "
+            "FROM relationship_projection_revisions AS revision "
+            "LEFT JOIN relationship_projection_edges AS edge ON edge.revision_id = revision.id "
+            "LEFT JOIN relationship_assertions AS assertion ON assertion.id = edge.assertion_id "
+            "ORDER BY revision.id, assertion.predicate_id"
+        )
+    ).all()
+    scope_pairs: dict[str, tuple[str, set[str]]] = {}
+    for revision_id, purpose, predicate_id in rows:
+        existing_purpose, predicates = scope_pairs.setdefault(revision_id, (purpose, set()))
+        if existing_purpose != purpose:
+            raise RuntimeError(f"inconsistent purpose while backfilling revision {revision_id}")
+        if predicate_id is not None:
+            predicates.add(predicate_id)
+    payloads = [
+        {
+            "revision_id": revision_id,
+            "governed_scopes": json.dumps(
+                [{"predicate_id": predicate_id, "purpose": purpose} for predicate_id in sorted(predicates)],
+                separators=(",", ":"),
+                sort_keys=True,
+            ),
+        }
+        for revision_id, (purpose, predicates) in scope_pairs.items()
+    ]
+    if not payloads:
+        return
+    _allow_projection_revision_backfill(connection, backend)
+    try:
+        connection.execute(
+            text(
+                "UPDATE relationship_projection_revisions "
+                "SET governed_scopes = :governed_scopes WHERE id = :revision_id"
+            ),
+            payloads,
+        )
+    finally:
+        _restore_projection_revision_immutability(connection, backend)
+
+
+def _allow_projection_revision_backfill(connection: Connection, backend: str) -> None:
+    """Temporarily disable only the revision UPDATE guard inside an owner migration transaction."""
+    if backend == "postgresql":
+        connection.execute(text("ALTER TABLE relationship_projection_revisions DISABLE TRIGGER USER"))
+        return
+    update_name, _delete_name, _truncate_name = list_immutability_trigger_names("relationship_projection_revisions")
+    connection.execute(text(f"DROP TRIGGER IF EXISTS {update_name}"))
+
+
+def _restore_projection_revision_immutability(connection: Connection, backend: str) -> None:
+    """Restore the revision immutability guard after controlled metadata backfill."""
+    if backend == "postgresql":
+        connection.execute(text("ALTER TABLE relationship_projection_revisions ENABLE TRIGGER USER"))
+        return
+    _install_sqlite_immutability_guards(connection)
+
+
+def _require_sqlite_grac_constraints(connection: Connection) -> None:
+    """Fail closed when a legacy SQLite database lacks non-additive GRAC CHECKs."""
+    expected = {
+        "relationship_assertions": "ck_relationship_assertions_effective_window",
+        "relationship_projection_edges": "ck_relationship_projection_edges_strength",
+    }
+    rows = connection.execute(
+        text("SELECT name, sql FROM sqlite_master WHERE type = 'table' AND name IN :tables").bindparams(
+            bindparam("tables", expanding=True)
+        ),
+        {"tables": list(expected)},
+    ).all()
+    actual = {name: sql or "" for name, sql in rows}
+    missing = [table for table, constraint in expected.items() if constraint not in actual.get(table, "")]
+    if missing:
+        raise RuntimeError(
+            "legacy SQLite GRAC CHECK migration required for "
+            + ", ".join(sorted(missing))
+            + "; automatic table rebuild is intentionally not performed at application startup"
+        )
+
+
+def _ensure_postgresql_grac_constraints(connection: Connection) -> None:
+    """Install and validate new GRAC CHECKs; validation fails closed on invalid history."""
+    constraints = (
+        ("relationship_assertions", "ck_relationship_assertions_effective_window", EFFECTIVE_WINDOW_CHECK),
+        ("relationship_projection_edges", "ck_relationship_projection_edges_strength", STRENGTH_DECIMAL_CHECK),
+    )
+    rows = connection.execute(
+        text(
+            "SELECT rel.relname, con.conname, pg_get_constraintdef(con.oid), con.convalidated "
+            "FROM pg_constraint AS con "
+            "JOIN pg_class AS rel ON rel.oid = con.conrelid "
+            "JOIN pg_namespace AS namespace ON namespace.oid = rel.relnamespace "
+            "WHERE namespace.nspname = current_schema() AND con.conname IN :names"
+        ).bindparams(bindparam("names", expanding=True)),
+        {"names": [name for _table, name, _check in constraints]},
+    ).all()
+    existing = {(table, name): (definition, validated) for table, name, definition, validated in rows}
+    for table, name, check in constraints:
+        current = existing.get((table, name))
+        if current is not None and (name.endswith("strength") and "replace" not in current[0]):
+            connection.execute(text(f"ALTER TABLE {table} DROP CONSTRAINT {name}"))
+            current = None
+        if current is None:
+            connection.execute(text(f"ALTER TABLE {table} ADD CONSTRAINT {name} CHECK ({check}) NOT VALID"))
+        connection.execute(text(f"ALTER TABLE {table} VALIDATE CONSTRAINT {name}"))
 
 
 def _harden_postgresql_grac_access(connection: Connection) -> None:
@@ -100,7 +222,19 @@ def _harden_postgresql_grac_access(connection: Connection) -> None:
                     f"EXCEPTION WHEN undefined_object THEN NULL; END $revoke$"
                 )
             )
-    insecure = (
+    insecure = _postgresql_grac_access_gaps(connection, roles)
+    if insecure:
+        raise PermissionError(f"GRAC RLS/grant hardening failed for tables: {sorted(insecure)}")
+
+
+def _postgresql_grac_access_hardened(connection: Connection) -> bool:
+    """Return whether GRAC RLS and untrusted-role grants already meet the contract."""
+    return not _postgresql_grac_access_gaps(connection, _untrusted_database_roles())
+
+
+def _postgresql_grac_access_gaps(connection: Connection, roles: tuple[str, ...]) -> list[str]:
+    """Return GRAC tables without RLS hardening or reachable by an untrusted role."""
+    return list(
         connection.execute(
             text(
                 "SELECT c.relname FROM pg_class AS c "
@@ -111,15 +245,20 @@ def _harden_postgresql_grac_access(connection: Connection) -> None:
                 "SELECT 1 FROM pg_policy AS p WHERE p.polrelid = c.oid) OR EXISTS ("
                 "SELECT 1 FROM aclexplode(COALESCE(c.relacl, acldefault('r', c.relowner))) "
                 "AS acl(grantor, grantee, privilege_type, is_grantable) "
-                "WHERE acl.grantee = 0))"
-            ).bindparams(bindparam("tables", expanding=True)),
-            {"tables": list(GRAC_TABLE_NAMES)},
+                "WHERE acl.grantee = 0) OR EXISTS (SELECT 1 FROM pg_roles AS rol "
+                "WHERE rol.rolname IN :roles AND (has_table_privilege(rol.oid, c.oid, "
+                "'SELECT, INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER') "
+                "OR has_any_column_privilege(rol.oid, c.oid, "
+                "'SELECT, INSERT, UPDATE, REFERENCES'))))"
+            ).bindparams(
+                bindparam("tables", expanding=True),
+                bindparam("roles", expanding=True),
+            ),
+            {"tables": list(GRAC_TABLE_NAMES), "roles": list(roles)},
         )
         .scalars()
         .all()
     )
-    if insecure:
-        raise PermissionError(f"GRAC RLS/grant hardening failed for tables: {sorted(insecure)}")
 
 
 def list_immutability_trigger_names(table_name: str) -> tuple[str, str, str]:
