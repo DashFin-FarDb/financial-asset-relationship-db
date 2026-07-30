@@ -54,8 +54,12 @@ STRENGTH_DECIMAL_CHECK = (
     "length(strength) BETWEEN 1 AND 32 "
     "AND translate(strength, '0123456789.', '') = '' "
     "AND strength NOT LIKE '.%' AND strength NOT LIKE '%.' "
-    "AND strength NOT LIKE '%..%' AND strength NOT LIKE '%.%.%'"
+    "AND strength NOT LIKE '%..%' AND strength NOT LIKE '%.%.%' "
+    "AND (strength = '0' OR strength = '1' OR strength LIKE '0.%' "
+    "OR (strength LIKE '1.%' AND replace(substr(strength, 3), '0', '') = ''))"
 )
+
+EFFECTIVE_WINDOW_CHECK = "effective_to IS NULL OR effective_to >= effective_from"
 
 
 class RelationshipEvidenceORM(Base):
@@ -94,6 +98,7 @@ class RelationshipAssertionORM(Base):
         CheckConstraint(CONFIDENCE_BP_RANGE_CHECK, name="ck_relationship_assertions_confidence_bp"),
         CheckConstraint(CONFIDENCE_ASSESSED_CHECK, name="ck_relationship_assertions_confidence_assessed"),
         Index("ix_relationship_assertions_predicate_subject", "predicate_id", "subject_id"),
+        CheckConstraint(EFFECTIVE_WINDOW_CHECK, name="ck_relationship_assertions_effective_window"),
         Index("ix_relationship_assertions_recorded_at", "recorded_at"),
         Index("ix_relationship_assertions_effective_from", "effective_from"),
     )
@@ -157,6 +162,7 @@ class RelationshipAssertionEventORM(Base):
         ),
         Index("ix_relationship_assertion_events_assertion_id", "assertion_id"),
         Index("ix_relationship_assertion_events_recorded_at", "recorded_at"),
+        Index("ix_relationship_assertion_events_successor_assertion_id", "successor_assertion_id"),
     )
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True)
@@ -209,6 +215,7 @@ class RelationshipProjectionRevisionORM(Base):
     projector_version: Mapped[str] = mapped_column(String(64), nullable=False)
     edge_set_hash: Mapped[str] = mapped_column(String(64), nullable=False)
     projection_hash: Mapped[str] = mapped_column(String(64), nullable=False)
+    governed_scopes: Mapped[str] = mapped_column(Text, nullable=False, server_default="[]")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
 
 

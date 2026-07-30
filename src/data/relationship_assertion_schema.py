@@ -39,6 +39,7 @@ def ensure_relationship_assertion_schema(engine: Engine) -> None:
     """
     backend = make_url(str(engine.url)).get_backend_name()
     with engine.begin() as connection:
+        _ensure_projection_revision_scope_metadata(connection, backend)
         if backend == "sqlite":
             if not _sqlite_guards_present(connection):
                 _install_sqlite_immutability_guards(connection)
@@ -48,6 +49,78 @@ def ensure_relationship_assertion_schema(engine: Engine) -> None:
             else:
                 # Upgrade path: earlier installs may have left untrusted EXECUTE.
                 _revoke_immutability_function_execute(connection)
+            _harden_postgresql_grac_access(connection)
+
+
+def _ensure_projection_revision_scope_metadata(connection: Connection, backend: str) -> None:
+    """Add durable scope metadata and the successor FK index on upgrade."""
+    if backend == "sqlite":
+        rows = connection.execute(text("PRAGMA table_info(relationship_projection_revisions)")).fetchall()
+        column_names = {row[1] for row in rows}
+    elif backend == "postgresql":
+        column_names = {
+            row[0]
+            for row in connection.execute(
+                text(
+                    "SELECT column_name FROM information_schema.columns "
+                    "WHERE table_schema = current_schema() "
+                    "AND table_name = 'relationship_projection_revisions'"
+                )
+            )
+        }
+    else:
+        return
+    if "governed_scopes" not in column_names:
+        connection.execute(
+            text(
+                "ALTER TABLE relationship_projection_revisions " "ADD COLUMN governed_scopes TEXT NOT NULL DEFAULT '[]'"
+            )
+        )
+    connection.execute(
+        text(
+            "CREATE INDEX IF NOT EXISTS ix_relationship_assertion_events_successor_assertion_id "
+            "ON relationship_assertion_events (successor_assertion_id)"
+        )
+    )
+
+
+def _harden_postgresql_grac_access(connection: Connection) -> None:
+    """Enable RLS and revoke public/untrusted table grants without adding policies."""
+    roles = _untrusted_database_roles()
+    for table_name in GRAC_TABLE_NAMES:
+        _require_grac_table(table_name)
+        connection.execute(text(f"ALTER TABLE {table_name} ENABLE ROW LEVEL SECURITY"))
+        connection.execute(text(f"REVOKE ALL PRIVILEGES ON TABLE {table_name} FROM PUBLIC"))
+        for role in roles:
+            connection.execute(
+                text(
+                    f"DO $revoke$ BEGIN EXECUTE format("
+                    f"'REVOKE ALL PRIVILEGES ON TABLE %I.%I FROM %I', "
+                    f"pg_catalog.current_schema(), '{table_name}', '{role}'); "
+                    f"EXCEPTION WHEN undefined_object THEN NULL; "
+                    f"WHEN insufficient_privilege THEN NULL; END $revoke$"
+                )
+            )
+    insecure = (
+        connection.execute(
+            text(
+                "SELECT c.relname FROM pg_class AS c "
+                "JOIN pg_namespace AS n ON n.oid = c.relnamespace "
+                "WHERE n.nspname = pg_catalog.current_schema() "
+                "AND c.relname IN :tables "
+                "AND (NOT c.relrowsecurity OR EXISTS ("
+                "SELECT 1 FROM pg_policy AS p WHERE p.polrelid = c.oid) OR EXISTS ("
+                "SELECT 1 FROM aclexplode(COALESCE(c.relacl, acldefault('r', c.relowner))) "
+                "AS acl(grantor, grantee, privilege_type, is_grantable) "
+                "WHERE acl.grantee = 0))"
+            ).bindparams(bindparam("tables", expanding=True)),
+            {"tables": list(GRAC_TABLE_NAMES)},
+        )
+        .scalars()
+        .all()
+    )
+    if insecure:
+        raise PermissionError(f"GRAC RLS/grant hardening failed for tables: {sorted(insecure)}")
 
 
 def list_immutability_trigger_names(table_name: str) -> tuple[str, str, str]:
@@ -136,6 +209,7 @@ def _postgresql_guards_present(connection: Connection) -> bool:
             WHERE p.proname = :name
                 AND p.pronargs = 0
                 AND n.nspname = pg_catalog.current_schema()
+                AND COALESCE(p.proconfig, ARRAY[]::text[]) @> ARRAY['search_path=pg_catalog']
             """),
         {"name": _IMMUTABILITY_FUNCTION},
     ).first()
@@ -338,6 +412,7 @@ def _install_postgresql_immutability_guards(connection: Connection) -> None:
             CREATE OR REPLACE FUNCTION {_IMMUTABILITY_FUNCTION}()
             RETURNS trigger
             LANGUAGE plpgsql
+            SET search_path TO pg_catalog
             AS $$
             BEGIN
                 RAISE EXCEPTION 'GRAC v1 immutability: % forbidden on %',

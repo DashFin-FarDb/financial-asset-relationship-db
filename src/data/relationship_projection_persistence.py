@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from datetime import datetime, timezone
@@ -12,15 +13,54 @@ from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
+from src.data.db_models import RebuildJobORM
 from src.data.relationship_assertion_db_models import (
-    RelationshipAssertionORM,
     RelationshipProjectionEdgeORM,
+    RelationshipProjectionPublicationORM,
     RelationshipProjectionRevisionORM,
 )
 from src.governance.relationship_assertion import ConcurrencyConflict, ValidationError
 from src.logic.relationship_projection import GovernedScope, ProjectionEdge, ProjectionRevision
 
 UTC = timezone.utc
+
+
+def _canonical_governed_scopes(scopes: Sequence[GovernedScope], purpose: str) -> tuple[GovernedScope, ...]:
+    """Validate and canonically order one revision's durable scope set."""
+    pairs = {(scope.purpose, scope.predicate_id) for scope in scopes}
+    if any(scope_purpose != purpose or not predicate_id for scope_purpose, predicate_id in pairs):
+        raise ValidationError("governed scopes must be non-empty predicates for the revision purpose")
+    return tuple(
+        GovernedScope(purpose=item_purpose, predicate_id=predicate_id) for item_purpose, predicate_id in sorted(pairs)
+    )
+
+
+def _serialize_governed_scopes(scopes: Sequence[GovernedScope], purpose: str) -> str:
+    """Encode the canonical scope metadata stored independently of edge rows."""
+    canonical = _canonical_governed_scopes(scopes, purpose)
+    return json.dumps(
+        [{"predicate_id": scope.predicate_id, "purpose": scope.purpose} for scope in canonical],
+        separators=(",", ":"),
+        sort_keys=True,
+    )
+
+
+def _deserialize_governed_scopes(raw: str, purpose: str) -> tuple[GovernedScope, ...]:
+    """Decode stored scope metadata and reject malformed or non-canonical values."""
+    try:
+        values = json.loads(raw)
+    except (TypeError, json.JSONDecodeError) as exc:
+        raise ValidationError("projection revision governed_scopes is not valid JSON") from exc
+    if not isinstance(values, list):
+        raise ValidationError("projection revision governed_scopes must be a JSON array")
+    try:
+        scopes = tuple(GovernedScope(purpose=value["purpose"], predicate_id=value["predicate_id"]) for value in values)
+    except (KeyError, TypeError) as exc:
+        raise ValidationError("projection revision governed_scopes has invalid entries") from exc
+    canonical = _canonical_governed_scopes(scopes, purpose)
+    if raw != _serialize_governed_scopes(canonical, purpose):
+        raise ValidationError("projection revision governed_scopes is not canonical")
+    return canonical
 
 
 @dataclass(frozen=True)
@@ -117,6 +157,7 @@ def _projection_revision_orm(
         contract_version=revision.contract_version,
         projector_version=revision.projector_version,
         edge_set_hash=revision.edge_set_hash,
+        governed_scopes=_serialize_governed_scopes(revision.governed_scopes, revision.purpose),
         projection_hash=revision.projection_hash,
         created_at=created_at,
     )
@@ -194,7 +235,7 @@ class ProjectionRevisionStore:
             return None
         edge_rows = self._load_edge_rows(revision_id)
         edges = tuple(_projection_edge_from_orm(edge_row) for edge_row in edge_rows)
-        governed_scopes = self._derive_governed_scopes(row.purpose, edges)
+        governed_scopes = _deserialize_governed_scopes(row.governed_scopes, row.purpose)
         revision, created_at = _domain_revision_from_orm(row, edges, governed_scopes)
         return PersistedProjectionRevision(
             revision_id=row.id,
@@ -203,34 +244,29 @@ class ProjectionRevisionStore:
             edge_ids=tuple(edge_row.id for edge_row in edge_rows),
         )
 
-    def _derive_governed_scopes(
-        self,
-        purpose: str,
-        edges: Sequence[ProjectionEdge],
-    ) -> tuple[GovernedScope, ...]:
-        """Rebuild governed scopes via one batched assertion lookup."""
-        assertion_ids = sorted({edge.assertion_id for edge in edges})
-        if not assertion_ids:
-            return ()
-        predicate_ids = self._predicate_ids_for_assertions(assertion_ids)
-        return tuple(
-            GovernedScope(purpose=purpose, predicate_id=predicate_id) for predicate_id in sorted(predicate_ids)
-        )
-
-    def _predicate_ids_for_assertions(self, assertion_ids: Sequence[str]) -> set[str]:
-        """Map assertion ids to predicate ids, failing closed on missing rows."""
-        rows = self._session.execute(
-            select(RelationshipAssertionORM.id, RelationshipAssertionORM.predicate_id).where(
-                RelationshipAssertionORM.id.in_(assertion_ids)
+    def latest_published_scopes(self, purpose: str) -> tuple[GovernedScope, ...]:
+        """Load metadata from the latest successful publication for the purpose."""
+        row = self._session.execute(
+            select(RelationshipProjectionRevisionORM)
+            .join(
+                RelationshipProjectionPublicationORM,
+                RelationshipProjectionPublicationORM.revision_id == RelationshipProjectionRevisionORM.id,
             )
-        ).all()
-        predicate_by_assertion: dict[str, str] = {}
-        for assertion_id, predicate_id in rows:
-            predicate_by_assertion[assertion_id] = predicate_id
-        for assertion_id in assertion_ids:
-            if assertion_id not in predicate_by_assertion:
-                raise ValidationError(f"projection edge references unknown assertion_id: {assertion_id}")
-        return {predicate_by_assertion[assertion_id] for assertion_id in assertion_ids}
+            .where(RelationshipProjectionRevisionORM.purpose == purpose)
+            .join(
+                RebuildJobORM,
+                RebuildJobORM.job_id == RelationshipProjectionPublicationORM.rebuild_job_id,
+            )
+            .where(RebuildJobORM.status == "succeeded")
+            .order_by(
+                RelationshipProjectionPublicationORM.published_at.desc(),
+                RelationshipProjectionPublicationORM.rebuild_job_id.desc(),
+            )
+            .limit(1)
+        ).scalar_one_or_none()
+        if row is None:
+            return ()
+        return _deserialize_governed_scopes(row.governed_scopes, purpose)
 
     def _insert_rows(
         self,

@@ -17,6 +17,7 @@ from src.governance.relationship_assertion import (
 from src.governance.relationship_assertion_contract import load_contract_bundle
 from src.logic.relationship_projection import (
     PROJECTOR_VERSION,
+    GovernedScope,
     ProjectionError,
     ProjectionRevision,
     ProjectRequest,
@@ -41,10 +42,10 @@ EMPTY_EDGE_SET_HASH = _sha256_hex(
     "73c2f11161202b945",
 )
 EMPTY_PROJECTION_HASH = _sha256_hex(
-    "f834ce8a5132768a",
-    "2c9f871cc70abd56",
-    "3b383334ad43c837",
-    "713356f7cc293d27",
+    "924520d579a2fb60",
+    "47d770f7997bae36",
+    "efad3e48b62e1867",
+    "12ce9990236b2cc5",
 )
 GOLDEN_EDGE_SET_HASH = _sha256_hex(
     "c8c8e738ffe460a7",
@@ -53,10 +54,10 @@ GOLDEN_EDGE_SET_HASH = _sha256_hex(
     "107e53b129a7d345",
 )
 GOLDEN_PROJECTION_HASH = _sha256_hex(
-    "9bee4d5a7407b956",
-    "1b96cd546cdd17f5",
-    "177910f471d8e2f7",
-    "8aab4f0befaccb83",
+    "9f061549b5713b51",
+    "78153dfd886c7a6e",
+    "f7bcd81027d53dac",
+    "d9222c480bea3ff6",
 )
 
 
@@ -104,6 +105,7 @@ class _ProjectSpec:
     evidence: list[EvidenceRecord] | None = None
     evidence_links: list[EvidenceLink] | None = None
     purpose: str = PURPOSE
+    previously_published_scopes: tuple[GovernedScope, ...] = ()
 
 
 def _assertion(spec: _AssertionSpec | None = None) -> Assertion:
@@ -210,6 +212,7 @@ def _project(predicates, spec: _ProjectSpec) -> ProjectionRevision:
             purpose=spec.purpose,
             effective_at=spec.effective_at,
             known_at=spec.known_at,
+            previously_published_scopes=spec.previously_published_scopes,
         )
     )
 
@@ -226,6 +229,23 @@ def test_empty_inputs_yield_empty_revision_and_stable_hashes(predicates) -> None
     # SHA-256 of canonical JSON ``[]``.
     assert first.edge_set_hash == EMPTY_EDGE_SET_HASH
     assert first.projection_hash == EMPTY_PROJECTION_HASH
+
+
+def test_empty_edge_revision_preserves_previously_published_scope(predicates) -> None:
+    """A later empty revision retains its durable governed scope."""
+    result = _project(
+        predicates,
+        _ProjectSpec(
+            assertions=[],
+            events=[],
+            known_at=NOW,
+            previously_published_scopes=(GovernedScope(PURPOSE, PREDICATE_ID),),
+        ),
+    )
+    assert result.edges == ()
+    assert result.governed_scopes == (GovernedScope(PURPOSE, PREDICATE_ID),)
+    assert result.edge_set_hash == EMPTY_EDGE_SET_HASH
+    assert result.projection_hash != EMPTY_PROJECTION_HASH
 
 
 def test_accepted_issuer_reference_projects_corporate_link(predicates) -> None:

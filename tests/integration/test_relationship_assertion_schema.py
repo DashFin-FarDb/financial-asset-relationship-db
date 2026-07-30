@@ -47,6 +47,7 @@ EXPECTED_CHECK_NAMES = {
         "ck_relationship_assertions_confidence_status",
         "ck_relationship_assertions_confidence_bp",
         "ck_relationship_assertions_confidence_assessed",
+        "ck_relationship_assertions_effective_window",
     },
     "relationship_assertion_evidence": {"ck_relationship_assertion_evidence_polarity"},
     "relationship_assertion_events": {
@@ -84,6 +85,7 @@ EXPECTED_INDEX_NAMES = {
         "ix_relationship_assertion_events_assertion_id",
         "ix_relationship_assertion_events_recorded_at",
         "uq_relationship_assertion_events_sequence",
+        "ix_relationship_assertion_events_successor_assertion_id",
     },
     "relationship_projection_revisions": {
         "ix_relationship_projection_revisions_purpose",
@@ -300,6 +302,34 @@ class TestRelationshipAssertionSchemaParity:
             actual |= _fk_pairs(schema_engine, table)
         missing = expected - actual
         assert not missing, f"missing FKs: {missing}"
+
+    @staticmethod
+    def test_postgresql_access_hardening(schema_engine: Engine):
+        """PostgreSQL GRAC tables are RLS-protected with no public policies or grants."""
+        if schema_engine.dialect.name != "postgresql":
+            pytest.skip("PostgreSQL-only RLS catalog assertion")
+        init_db(schema_engine)
+        with schema_engine.connect() as conn:
+            rows = conn.execute(
+                text(
+                    "SELECT c.relname, c.relrowsecurity, count(p.oid), bool_or(acl.grantee = 0) "
+                    "FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace "
+                    "LEFT JOIN pg_policy p ON p.polrelid = c.oid "
+                    "LEFT JOIN LATERAL aclexplode(COALESCE(c.relacl, acldefault('r', c.relowner))) acl ON true "
+                    "WHERE n.nspname = current_schema() AND c.relname = ANY(:tables) "
+                    "GROUP BY c.relname, c.relrowsecurity"
+                ),
+                {"tables": list(GRAC_TABLE_NAMES)},
+            ).all()
+            function_config = conn.execute(
+                text(
+                    "SELECT proconfig FROM pg_proc WHERE proname = 'grac_v1_reject_mutation' "
+                    "AND pronamespace = current_schema()::regnamespace"
+                )
+            ).scalar_one()
+        assert {row[0] for row in rows} == set(GRAC_TABLE_NAMES)
+        assert all(row[1] and row[2] == 0 and not row[3] for row in rows)
+        assert "search_path=pg_catalog" in (function_config or [])
 
 
 @pytest.mark.integration

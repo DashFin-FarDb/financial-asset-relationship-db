@@ -90,6 +90,7 @@ class ProjectRequest:
     effective_at: datetime
     known_at: datetime
     contract_version: str = CONTRACT_VERSION
+    previously_published_scopes: Sequence[GovernedScope] = ()
     projector_version: str = PROJECTOR_VERSION
 
 
@@ -121,6 +122,8 @@ class _HashInputs:
     contract_version: str
     projector_version: str
     evidence_rows: tuple[Mapping[str, str], ...]
+
+    governed_scopes: tuple[GovernedScope, ...]
 
 
 @dataclass(frozen=True, slots=True)
@@ -363,6 +366,9 @@ def _compute_hashes(edges: Sequence[ProjectionEdge], inputs: _HashInputs) -> tup
         "contract_version": inputs.contract_version,
         "edges": [_provenance_edge_payload(edge) for edge in ordered],
         "effective_at": _canonical_instant(inputs.effective_at),
+        "governed_scopes": [
+            {"predicate_id": scope.predicate_id, "purpose": scope.purpose} for scope in inputs.governed_scopes
+        ],
         "evidence": list(inputs.evidence_rows),
         "known_at": _canonical_instant(inputs.known_at),
         "projector_version": inputs.projector_version,
@@ -372,9 +378,20 @@ def _compute_hashes(edges: Sequence[ProjectionEdge], inputs: _HashInputs) -> tup
     return edge_set_hash, projection_hash
 
 
-def _governed_scopes(candidates: Sequence[_Candidate], purpose: str) -> tuple[GovernedScope, ...]:
-    """Return sorted unique governed scopes from successful candidates."""
-    scopes = {(purpose, candidate.predicate.id) for candidate in candidates}
+def _governed_scopes(
+    candidates: Sequence[_Candidate],
+    purpose: str,
+    previously_published_scopes: Sequence[GovernedScope],
+) -> tuple[GovernedScope, ...]:
+    """Carry published scopes forward and add scopes from successful candidates."""
+    scopes = set()
+    for scope in previously_published_scopes:
+        if scope.purpose != purpose:
+            raise ProjectionError("previously published scope purpose does not match projection purpose")
+        scopes.add((scope.purpose, scope.predicate_id))
+    if any(not predicate_id for _scope_purpose, predicate_id in scopes):
+        raise ProjectionError("previously published scope predicate must be non-empty")
+    scopes.update((purpose, candidate.predicate.id) for candidate in candidates)
     return tuple(
         GovernedScope(purpose=item_purpose, predicate_id=predicate_id) for item_purpose, predicate_id in sorted(scopes)
     )
@@ -397,6 +414,7 @@ def project(request: ProjectRequest) -> ProjectionRevision:
     candidates = _select_accepted_candidates(request.assertions, events_by_id, predicates, window)
     _fail_closed_on_conflicts(candidates)
     edges = tuple(sorted((candidate.edge for candidate in candidates), key=_edge_sort_key))
+    governed_scopes = _governed_scopes(candidates, request.purpose, request.previously_published_scopes)
     evidence_rows = _evidence_payload_for_edges(
         edges,
         _EvidenceBundle(evidence=request.evidence, links=request.evidence_links, known_at=known),
@@ -410,6 +428,7 @@ def project(request: ProjectRequest) -> ProjectionRevision:
             contract_version=request.contract_version,
             projector_version=request.projector_version,
             evidence_rows=tuple(evidence_rows),
+            governed_scopes=governed_scopes,
         ),
     )
     return ProjectionRevision(
@@ -421,5 +440,5 @@ def project(request: ProjectRequest) -> ProjectionRevision:
         edge_set_hash=edge_set_hash,
         projection_hash=projection_hash,
         edges=edges,
-        governed_scopes=_governed_scopes(candidates, request.purpose),
+        governed_scopes=governed_scopes,
     )
