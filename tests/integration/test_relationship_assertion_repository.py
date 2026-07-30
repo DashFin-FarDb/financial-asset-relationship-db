@@ -897,6 +897,76 @@ class TestSupersessionAtomics:
 class TestPostgresSupersessionSerialization:
     """Transaction-scoped serialization on two independent PostgreSQL sessions."""
 
+    def test_failed_supersession_releases_advisory_lock(self, postgres_engine) -> None:
+        """A failed atomic operation releases its lock while preserving outer work."""
+        factory = create_session_factory(postgres_engine)
+        token = uuid4().hex[:8]
+        predecessor_a = f"{token}-pred-a"
+        predecessor_b = f"{token}-pred-b"
+        successor_a = f"{token}-succ-a"
+        successor_b = f"{token}-succ-b"
+        pending_id = f"{token}-outer"
+
+        setup_session = factory()
+        try:
+            setup_repo = RelationshipAssertionRepository(setup_session)
+            _propose_accepted(setup_repo, predecessor_a)
+            _propose_accepted(setup_repo, predecessor_b)
+            setup_session.commit()
+        finally:
+            setup_session.close()
+
+        first_session = factory()
+        second_session = factory()
+        try:
+            first_repo = RelationshipAssertionRepository(first_session)
+            first_session.add(_pending_evidence_row(pending_id))
+            failed_request = SupersedeAtomicRequest(
+                predecessor_id=predecessor_a,
+                successor_proposal=_proposal(successor_a),
+                proposal_ctx=_ctx("proposer", actor_id="successor-proposer-a"),
+                determination_ctx=_ctx("disputer", actor_id="unauthorized-determiner"),
+                expected_sequence=2,
+                rationale="failed serialized supersession",
+            )
+
+            with pytest.raises(UnauthorizedTransition):
+                first_repo.supersede_atomic(failed_request)
+
+            assert first_repo.current_state(predecessor_a) == "Accepted"
+            assert first_session.get(RelationshipAssertionORM, successor_a) is None
+            assert first_session.get(RelationshipEvidenceORM, pending_id) is not None
+            assert first_session.in_transaction()
+
+            lock_available = second_session.execute(
+                text("SELECT pg_try_advisory_xact_lock(:namespace, :resource)"),
+                {
+                    "namespace": SUPERSESSION_LOCK_NAMESPACE,
+                    "resource": SUPERSESSION_LOCK_RESOURCE,
+                },
+            ).scalar_one()
+            assert lock_available is True
+
+            second_repo = RelationshipAssertionRepository(second_session)
+            successor, _propose, _accept, _supersede = second_repo.supersede_atomic(
+                SupersedeAtomicRequest(
+                    predecessor_id=predecessor_b,
+                    successor_proposal=_proposal(successor_b),
+                    proposal_ctx=_ctx("proposer", actor_id="successor-proposer-b"),
+                    determination_ctx=_ctx("acceptor", actor_id="supersession-determiner-b"),
+                    expected_sequence=2,
+                    rationale="successful serialized supersession",
+                )
+            )
+            assert successor.assertion_id == successor_b
+            second_session.commit()
+            first_session.commit()
+        finally:
+            second_session.rollback()
+            second_session.close()
+            first_session.rollback()
+            first_session.close()
+
     def test_atomic_supersessions_share_advisory_transaction_lock(self, postgres_engine) -> None:
         """A second atomic supersession waits until the first transaction releases its lock."""
         factory = create_session_factory(postgres_engine)

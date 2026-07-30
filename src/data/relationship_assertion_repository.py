@@ -590,9 +590,9 @@ class RelationshipAssertionRepository:
         request: SupersedeAtomicRequest,
     ) -> tuple[Assertion, AssertionEvent, AssertionEvent, AssertionEvent]:
         """Atomically accept a successor and supersede the predecessor."""
-        self._lock_supersession_graph()
-        # Savepoint so a late predecessor CAS / planning failure cannot leave an orphan successor.
+        # Savepoint so a late failure releases graph locks without losing unrelated outer work.
         with self._session.begin_nested():
+            self._lock_supersession_graph()
             self._lock_assertions(request.predecessor_id, request.successor_proposal.assertion_id)
             pred_state, pred_proposer_actor_id, pred_tail = self._stream_summary(request.predecessor_id)
             self._validate_supersede_preconditions(request, pred_state)
@@ -778,11 +778,13 @@ class RelationshipAssertionRepository:
             ).scalar_one_or_none()
 
     def _lock_supersession_graph(self) -> None:
-        """Serialize supersession graph checks for the enclosing transaction.
+        """Serialize supersession graph checks for the atomic savepoint.
 
         PostgreSQL first takes a stable transaction-scoped advisory lock, then
-        locks rows in deterministic id order. SQLite skips the advisory lock and
-        retains its compatible, single-writer test behavior.
+        locks rows in deterministic id order. Successful savepoint release keeps
+        the locks through the enclosing transaction; rollback releases them.
+        SQLite skips the advisory lock and retains its compatible, single-writer
+        test behavior.
         """
         bind = self._session.get_bind()
         if bind.dialect.name == "postgresql":
