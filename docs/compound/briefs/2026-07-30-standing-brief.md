@@ -40,6 +40,7 @@ Claims are labeled landed vs provisional. ADRs/policy are not rewritten.
 - [provisional] **pr:1514**:   .. → .. ()
 
 ### persistence
+- [provisional] **pr:1565**:   v     
 - [landed] **pr:1564**: x       
 - [landed] **pr:1563**: x   y   v
 - [landed] **pr:1552**:      v
@@ -54,7 +55,6 @@ Claims are labeled landed vs provisional. ADRs/policy are not rewritten.
 - [provisional] **pr:1435**: x()  x  w -
 - [provisional] **pr:1427**: x()    
 - [provisional] **pr:1424**: fix(ci): clear compound workflow quality gates
-- [provisional] **pr:1422**: fix(ci): repair autofix branch failures
 
 ### ci-guardrails
 - [landed] **pr:1564**: x       
