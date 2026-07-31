@@ -16,7 +16,6 @@ from src.data.relationship_projection_persistence import PersistProjectionReques
 from src.data.repository import AssetGraphRepository
 from src.governance.relationship_assertion import ValidationError
 from src.governance.relationship_assertion_contract import (
-    CONTRACT_VERSION,
     PredicateProjection,
     PredicatesDocument,
     PredicateSpec,
