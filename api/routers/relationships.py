@@ -58,8 +58,6 @@ def _governed_relationship_index() -> dict[tuple[str, str, str], dict[str, objec
             return index
     except (GraphPersistenceNotConfiguredError, GraphPersistenceNonDurableError):
         return {}
-    except Exception:
-        return {}
     finally:
         if engine is not None:
             engine.dispose()

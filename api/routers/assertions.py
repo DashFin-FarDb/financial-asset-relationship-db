@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Iterator
 from contextlib import contextmanager
 from datetime import datetime, timezone
 from typing import Annotated
@@ -105,7 +106,7 @@ def _raise_domain_error(exc: Exception) -> None:
 
 
 @contextmanager
-def _assertion_repository_session() -> Session:
+def _assertion_repository_session() -> Iterator[Session]:
     settings = get_graph_lifecycle_settings()
     engine = None
     try:
@@ -133,8 +134,10 @@ def _assertion_evidence(
     as_of: AssertionAsOf,
     repo: RelationshipAssertionRepository,
 ) -> list[AssertionEvidenceMetadataResponse]:
-    snapshot = repo.load_projection_source_snapshot()
-    evidence_by_id = {item.evidence_id: item for item in snapshot.evidence}
+    evidence_by_id = {
+        item.evidence_id: item
+        for item in repo.load_evidence_by_ids([link.evidence_id for link in as_of.evidence_links])
+    }
     rows: list[AssertionEvidenceMetadataResponse] = []
     for link in as_of.evidence_links:
         evidence = evidence_by_id.get(link.evidence_id)

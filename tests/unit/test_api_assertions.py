@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
+from types import SimpleNamespace
+from typing import Any
 from uuid import uuid4
 
 import pytest
@@ -10,6 +12,8 @@ from fastapi.testclient import TestClient
 
 from api.auth import UserRepository, create_access_token, get_password_hash
 from api.main import app
+from api.routers import relationships as relationships_router
+from api.routers import visualization as visualization_router
 from api.routers.assertions import _assertion_repository_session
 from src.data.relationship_assertion_repository import RegisterEvidenceRequest, RelationshipAssertionRepository
 from src.governance.relationship_assertion import AuthorityContext, EvidenceRecord
@@ -230,6 +234,103 @@ def test_history_is_monotonic_and_redacted_reads_hide_non_public_evidence(client
     assert len(evidence_rows) == 1
     assert evidence_rows[0]["redacted"] is True
     assert evidence_rows[0].get("source_ref") is None
+
+
+@pytest.mark.unit
+def test_explanation_loads_only_linked_evidence(client: TestClient, monkeypatch: pytest.MonkeyPatch) -> None:
+    assertion_id = str(uuid4())
+    evidence_id = str(uuid4())
+    owner_headers = _headers(_token("proposer_a"))
+    create = client.post("/api/assertions", json=_proposal_payload(assertion_id), headers=owner_headers)
+    assert create.status_code == 200
+
+    with _assertion_repository_session() as session:
+        repository = RelationshipAssertionRepository(session)
+        repository.register_evidence(
+            RegisterEvidenceRequest(
+                assertion_id=assertion_id,
+                polarity="supporting",
+                ctx=AuthorityContext(
+                    actor_id="proposer_a",
+                    roles=frozenset({"proposer"}),
+                    policy_version="grac.v1",
+                ),
+                evidence=EvidenceRecord(
+                    evidence_id=evidence_id,
+                    source_ref="https://example.test/public-proof.json",
+                    content_sha256="b" * 64,
+                    media_type="application/json",
+                    visibility="public",
+                    custody_id="custody-test",
+                    recorded_at=datetime.now(tz=UTC),
+                ),
+            )
+        )
+        session.commit()
+
+    requested_ids: list[tuple[str, ...]] = []
+    original = RelationshipAssertionRepository.load_evidence_by_ids
+
+    def recording_load(
+        repository: RelationshipAssertionRepository,
+        evidence_ids: list[str],
+    ) -> tuple[EvidenceRecord, ...]:
+        requested_ids.append(tuple(evidence_ids))
+        return original(repository, evidence_ids)
+
+    monkeypatch.setattr(RelationshipAssertionRepository, "load_evidence_by_ids", recording_load)
+    monkeypatch.setattr(
+        RelationshipAssertionRepository,
+        "load_projection_source_snapshot",
+        lambda _repository: pytest.fail("explanation must not load the full projection snapshot"),
+    )
+
+    read = client.get(f"/api/assertions/{assertion_id}")
+
+    assert read.status_code == 200
+    assert requested_ids == [(evidence_id,)]
+    assert [row["evidence_id"] for row in read.json()["evidence"]] == [evidence_id]
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    ("route_module", "index_name", "path"),
+    [
+        (relationships_router, "_governed_relationship_index", "/api/relationships"),
+        (visualization_router, "_governed_edge_index", "/api/visualization"),
+    ],
+)
+def test_governance_contract_failure_reaches_route_error_handler(
+    client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+    route_module: Any,
+    index_name: str,
+    path: str,
+) -> None:
+    published = SimpleNamespace(
+        revision=SimpleNamespace(governed_scopes=(), edges=()),
+        revision_id="revision-test",
+    )
+    monkeypatch.setattr(route_module, "get_graph_lifecycle_settings", lambda: SimpleNamespace(database_url="unused"))
+    monkeypatch.setattr(route_module, "resolve_hosted_graph_database_url", lambda _settings: None)
+    monkeypatch.setattr(route_module, "resolve_durable_graph_persistence_url", lambda _url: "sqlite:///:memory:")
+    monkeypatch.setattr(
+        route_module.RelationshipAssertionRepository,
+        "latest_published_projection",
+        lambda _repository, _purpose: published,
+    )
+
+    def fail_contract_load() -> None:
+        raise RuntimeError("contract load failed")
+
+    monkeypatch.setattr(route_module, "load_contract_bundle", fail_contract_load)
+
+    with pytest.raises(RuntimeError, match="contract load failed"):
+        getattr(route_module, index_name)()
+
+    response = client.get(path)
+    assert response.status_code == 500
+    assert response.json() == {"detail": "An internal error occurred. Please try again later."}
 
 
 @pytest.mark.unit
