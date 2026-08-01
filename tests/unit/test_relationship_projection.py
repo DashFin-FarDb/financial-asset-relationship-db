@@ -117,6 +117,23 @@ def test_overlay_adds_bidirectional_governed_edge_deterministically(predicates) 
     }
 
 
+def test_bidirectional_overlay_replaces_legacy_reverse_and_retains_other_edges(predicates) -> None:
+    """A governed reverse edge replaces only its owned legacy edge type."""
+    relationships = {
+        "BOND": [("ISSUER", "corporate_link", 0.9)],
+        "ISSUER": [("BOND", "corporate_link", 0.9), ("PEER", "same_sector", 0.7)],
+    }
+    revision = _overlay_revision(
+        edges=(ProjectionEdge("BOND", "ISSUER", "corporate_link", "0.8", "bidirectional", "assertion-1"),),
+        scopes=(GovernedScope(PURPOSE, PREDICATE_ID),),
+    )
+
+    assert overlay_governed_relationships(relationships, revision, predicates) == {
+        "BOND": [("ISSUER", "corporate_link", 0.8)],
+        "ISSUER": [("BOND", "corporate_link", 0.8), ("PEER", "same_sector", 0.7)],
+    }
+
+
 @pytest.mark.parametrize("strength", ["NaN", "Infinity", "-0.1", "1.1"])
 def test_overlay_rejects_non_finite_or_out_of_range_strengths(predicates, strength: str) -> None:
     """Governed edge strengths must remain finite and within the graph range."""

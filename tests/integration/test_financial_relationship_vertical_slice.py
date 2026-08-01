@@ -211,6 +211,9 @@ def test_dangling_assertion_endpoints_are_deferred_without_blocking_publication(
         latest = RelationshipAssertionRepository(session).latest_published_projection(PURPOSE)
         assert job is not None and job.status == RebuildJobStatus.SUCCEEDED
         assert latest is not None and latest.revision.edges == ()
+        assert latest.revision.governed_scopes == ()
+        restarted = AssetGraphRepository(session).load_graph()
+        assert ("AAPL", "corporate_link", 0.9) in restarted.relationships["AAPL_BOND_2030"]
         assert _publication_count(session) == 1
 
 
@@ -295,10 +298,12 @@ class _TripGate:
 
 
 @pytest.mark.parametrize(
-    ("event_name", "expected_error"),
+    ("event_name", "expected_error", "target_stage"),
     [
-        ("lock_lost", graph_admin._DistributedLockLostError),  # pylint: disable=protected-access
-        ("cancel_event", RebuildCancelledError),
+        ("lock_lost", graph_admin._DistributedLockLostError, "publication-pre-commit"),
+        ("cancel_event", RebuildCancelledError, "publication-pre-commit"),
+        ("lock_lost", graph_admin._DistributedLockLostError, "publication-domain-commit"),
+        ("cancel_event", RebuildCancelledError, "publication-domain-commit"),
     ],
 )
 def test_final_safety_gate_rolls_back_graph_candidate_success_and_publication(
@@ -306,6 +311,7 @@ def test_final_safety_gate_rolls_back_graph_candidate_success_and_publication(
     monkeypatch: pytest.MonkeyPatch,
     event_name: str,
     expected_error: type[Exception],
+    target_stage: str,
 ) -> None:
     """Lock loss or cancellation at the named final gate leaves no visible candidate."""
     initial_graph = create_sample_database()
@@ -316,7 +322,7 @@ def test_final_safety_gate_rolls_back_graph_candidate_success_and_publication(
         "_verify_execution_state",
         _TripGate(
             graph_admin._verify_execution_state,  # pylint: disable=protected-access
-            target_stage="publication-pre-commit",
+            target_stage=target_stage,
             event_name=event_name,
             error_type=expected_error,
         ),

@@ -1626,6 +1626,7 @@ def _publication_transactions(
     coordination_session_factory: Callable[[], Session] | None,
     *,
     coordination_is_domain: bool,
+    pre_domain_commit: Callable[[], None] | None = None,
 ) -> Generator[tuple[Session, Session], None, None]:
     """Hold the coordination predicate until the domain publication commits."""
     domain_session = domain_session_factory()
@@ -1643,6 +1644,8 @@ def _publication_transactions(
         if domain_session.get_bind().dialect.name == "postgresql":
             domain_session.connection(execution_options={"isolation_level": "REPEATABLE READ"})
         yield domain_session, coordination_session
+        if pre_domain_commit is not None:
+            pre_domain_commit()
         domain_session.commit()
         _commit_coordination_after_domain(domain_session, coordination_session)
     except Exception:
@@ -1746,6 +1749,12 @@ def _finalize_rebuild_success(
         session_factory,
         coordination_session_factory,
         coordination_is_domain=coordination_is_domain,
+        pre_domain_commit=partial(
+            _verify_execution_state,
+            lock_lost,
+            cancel_event,
+            "publication-domain-commit",
+        ),
     ) as (session, coordination_session):
         _guard_publication_lock(
             coordination_session,
@@ -1787,8 +1796,6 @@ def _finalize_rebuild_success(
             pre_success_check=pre_success_check,
             pre_commit_check=pre_commit_check,
         )
-        _verify_execution_state(lock_lost, cancel_event, "publication-outer-commit")
-
     graph.relationships = publication_graph.relationships
     return response
 
