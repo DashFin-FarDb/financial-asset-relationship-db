@@ -25,7 +25,7 @@ from src.data.relationship_projection_persistence import (
     PublishedProjectionRevision,
     ProjectionRevisionStore,
 )
-from src.governance.relationship_assertion import (
+from src.logic.relationship_projection import GovernedScope
     Assertion,
     AssertionAsOf,
     AssertionEvent,
