@@ -162,6 +162,10 @@ def test_cache_primed_read_is_refreshed_after_admin_publication(
     assert first.json()[0]["assertion_id"] == "assertion-v1"
     assert first.json()[0]["revision_id"] == "revision-v1"
 
+    first_visualization = client.get("/api/visualization")
+    assert first_visualization.status_code == 200
+    assert first_visualization.json()["edges"][0]["assertion_id"] == "assertion-v1"
+    assert first_visualization.json()["edges"][0]["revision_id"] == "revision-v1"
     state["assertion_id"] = "assertion-v2"
     state["revision_id"] = "revision-v2"
 
