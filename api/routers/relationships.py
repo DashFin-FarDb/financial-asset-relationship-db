@@ -44,6 +44,12 @@ GovernedRelationshipIndex: TypeAlias = dict[tuple[str, str, str], GovernanceMeta
 GraphRelationship: TypeAlias = tuple[str, str, float]
 
 
+def _dispose_engine(engine: Engine | None) -> None:
+    """Dispose an optional governance persistence engine after each bounded read."""
+    if engine is not None:
+        engine.dispose()
+
+
 def _scope_refs_by_edge_type(
     published: PersistedProjectionRevision,
     predicates: PredicatesDocument,
@@ -114,8 +120,7 @@ def load_governed_relationship_index() -> GovernedRelationshipIndex:
     except (GraphPersistenceNotConfiguredError, GraphPersistenceNonDurableError):
         return {}
     finally:
-        if engine is not None:
-            engine.dispose()
+        _dispose_engine(engine)
 
 
 def _relationship_response(
