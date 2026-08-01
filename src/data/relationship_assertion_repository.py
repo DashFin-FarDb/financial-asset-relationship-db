@@ -21,11 +21,12 @@ from src.data.relationship_assertion_db_models import (
 from src.data.relationship_projection_persistence import (
     PersistedProjectionRevision,
     PersistProjectionRequest,
-    PublishProjectionRequest,
-    PublishedProjectionRevision,
     ProjectionRevisionStore,
+    PublishedProjectionRevision,
+    PublishProjectionRequest,
 )
 from src.logic.relationship_projection import GovernedScope
+
     Assertion,
     AssertionAsOf,
     AssertionEvent,
@@ -77,7 +78,7 @@ __all__ = [
 ]
 
 
-@dataclass(frozen=True)
+@ dataclass(frozen=True)
 class RepositoryTransitionRequest:
     """Inputs for planning and appending a repository lifecycle transition."""
 
@@ -90,7 +91,7 @@ class RepositoryTransitionRequest:
     event_id: str | None = None
 
 
-@dataclass(frozen=True)
+@ dataclass(frozen=True)
 class RegisterEvidenceRequest:
     """Inputs for immutable evidence registration and linking."""
 
@@ -101,7 +102,7 @@ class RegisterEvidenceRequest:
     link_id: str | None = None
 
 
-@dataclass(frozen=True)
+@ dataclass(frozen=True)
 class SupersedeAtomicRequest:
     """Inputs for atomic successor acceptance and predecessor supersession."""
 
@@ -149,18 +150,18 @@ def _event_from_orm(row: RelationshipAssertionEventORM) -> AssertionEvent:
     if recorded_at is None:
         raise ValidationError("event recorded_at missing")
     return AssertionEvent(
-        event_id=row.id,
-        assertion_id=row.assertion_id,
-        sequence=row.sequence,
-        from_state=cast(LifecycleState | None, row.from_state),
-        to_state=cast(LifecycleState, row.to_state),
-        authority=cast(AuthorityRole, row.authority),
-        actor_id=row.actor_id,
-        rationale=row.rationale,
-        policy_version=row.policy_version,
-        recorded_at=recorded_at,
-        successor_assertion_id=row.successor_assertion_id,
-        correlation_id=row.correlation_id,
+        event_id = row.id,
+        assertion_id = row.assertion_id,
+        sequence = row.sequence,
+        from_state = cast(LifecycleState | None, row.from_state),
+        to_state = cast(LifecycleState, row.to_state),
+        authority = cast(AuthorityRole, row.authority),
+        actor_id = row.actor_id,
+        rationale = row.rationale,
+        policy_version = row.policy_version,
+        recorded_at = recorded_at,
+        successor_assertion_id = row.successor_assertion_id,
+        correlation_id = row.correlation_id,
     )
 
 
