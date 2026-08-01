@@ -23,15 +23,9 @@ from src.logic.asset_graph import AssetRelationshipGraph
 from .api_assertion_test_support import (
     _assert_error_response,
 )
-from .api_assertion_test_support import (
-    client as client,
-)
-from .api_assertion_test_support import (
-    configure_graph_persistence as configure_graph_persistence,
-)
-from .api_assertion_test_support import (
-    initialize_assertion_store as initialize_assertion_store,
-)
+from .api_assertion_test_support import client as client
+from .api_assertion_test_support import configure_graph_persistence as configure_graph_persistence
+from .api_assertion_test_support import initialize_assertion_store as initialize_assertion_store
 
 
 @dataclass(frozen=True)
