@@ -220,6 +220,11 @@ def test_cache_primed_read_is_refreshed_after_admin_publication(
     assert second.json()[0]["assertion_id"] == "assertion-v2"
     assert second.json()[0]["revision_id"] == "revision-v2"
 
+    second_visualization = client.get("/api/visualization")
+    assert second_visualization.status_code == 200
+    assert second_visualization.json()["edges"][0]["assertion_id"] == "assertion-v2"
+    assert second_visualization.json()["edges"][0]["revision_id"] == "revisi
+
 
 @pytest.mark.unit
 @pytest.mark.parametrize(
