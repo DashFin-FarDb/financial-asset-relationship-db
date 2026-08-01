@@ -14,6 +14,7 @@ from concurrent.futures import ThreadPoolExecutor
 from contextlib import contextmanager
 from copy import copy
 from datetime import datetime, timezone
+from functools import partial
 from time import perf_counter
 from typing import Annotated, Any, NoReturn, cast
 
@@ -1190,6 +1191,43 @@ def _acquire_rebuild_lock(
     return dist_lock
 
 
+def _release_rebuild_lock_safe(dist_lock: DistributedLock | None, lock_acquired: bool) -> None:
+    """Release an acquired rebuild lock without masking the rebuild outcome."""
+    if dist_lock is None or not lock_acquired or dist_lock.state == LockLifecycleState.LOST:
+        return
+    try:
+        dist_lock.release()
+    except Exception as release_exc:
+        log_event(
+            logger,
+            logging.ERROR,
+            ObservabilityEvent(
+                event="rebuild_lock_release_failed",
+                message=f"Failed to release distributed rebuild lock: {type(release_exc).__name__}",
+                metadata={"error": type(release_exc).__name__},
+            ),
+        )
+
+
+def _dispose_rebuild_engine_safe(engine: Engine | None, *, event: str, message: str) -> None:
+    """Dispose a rebuild engine without masking the rebuild outcome."""
+    if engine is None:
+        return
+    try:
+        engine.dispose()
+    except Exception as dispose_exc:
+        error_name = type(dispose_exc).__name__
+        log_event(
+            logger,
+            logging.ERROR,
+            ObservabilityEvent(
+                event=event,
+                message=f"{message}: {error_name}",
+                metadata={"error": error_name},
+            ),
+        )
+
+
 def _perform_rebuild_and_persist_sync(
     settings: GraphLifecycleSettings,
     *,
@@ -1260,47 +1298,17 @@ def _perform_rebuild_and_persist_sync(
             )
 
     finally:
-        if dist_lock is not None and lock_acquired and dist_lock.state != LockLifecycleState.LOST:
-            try:
-                dist_lock.release()
-            except Exception as release_exc:
-                log_event(
-                    logger,
-                    logging.ERROR,
-                    ObservabilityEvent(
-                        event="rebuild_lock_release_failed",
-                        message=f"Failed to release distributed rebuild lock: {type(release_exc).__name__}",
-                        metadata={"error": type(release_exc).__name__},
-                    ),
-                )
-
-        if coordination_engine is not None:
-            try:
-                coordination_engine.dispose()
-            except Exception as dispose_exc:
-                log_event(
-                    logger,
-                    logging.ERROR,
-                    ObservabilityEvent(
-                        event="rebuild_coordination_engine_dispose_failed",
-                        message=f"Failed to dispose coordination database engine: {type(dispose_exc).__name__}",
-                        metadata={"error": type(dispose_exc).__name__},
-                    ),
-                )
-
-        if domain_engine is not None:
-            try:
-                domain_engine.dispose()
-            except Exception as dispose_exc:
-                log_event(
-                    logger,
-                    logging.ERROR,
-                    ObservabilityEvent(
-                        event="rebuild_domain_engine_dispose_failed",
-                        message=f"Failed to dispose domain database engine: {type(dispose_exc).__name__}",
-                        metadata={"error": type(dispose_exc).__name__},
-                    ),
-                )
+        _release_rebuild_lock_safe(dist_lock, lock_acquired)
+        _dispose_rebuild_engine_safe(
+            coordination_engine,
+            event="rebuild_coordination_engine_dispose_failed",
+            message="Failed to dispose coordination database engine",
+        )
+        _dispose_rebuild_engine_safe(
+            domain_engine,
+            event="rebuild_domain_engine_dispose_failed",
+            message="Failed to dispose domain database engine",
+        )
 
 
 def _validate_coordination_database_primary(session_factory: Callable[[], Session]) -> None:
@@ -1628,12 +1636,11 @@ def _publication_transactions(
     """Hold the coordination predicate until the domain publication commits."""
     domain_session = domain_session_factory()
     try:
-        if coordination_is_domain:
-            coordination_session = domain_session
-        else:
-            if coordination_session_factory is None:
-                raise RuntimeError("Separate coordination persistence requires a session factory")
-            coordination_session = coordination_session_factory()
+        coordination_session = _open_coordination_session(
+            domain_session,
+            coordination_session_factory,
+            coordination_is_domain=coordination_is_domain,
+        )
     except Exception:
         domain_session.close()
         raise
@@ -1643,25 +1650,54 @@ def _publication_transactions(
             domain_session.connection(execution_options={"isolation_level": "REPEATABLE READ"})
         yield domain_session, coordination_session
         domain_session.commit()
-        if coordination_session is not domain_session:
-            try:
-                coordination_session.commit()
-            except Exception as exc:  # pylint: disable=broad-exception-caught
-                # Domain publication is already durable and was guarded at its commit point.
-                coordination_session.rollback()
-                logger.error(
-                    "Coordination lease renewal failed after durable publication commit: %s",
-                    type(exc).__name__,
-                )
+        _commit_coordination_after_domain(domain_session, coordination_session)
     except Exception:
-        domain_session.rollback()
-        if coordination_session is not domain_session:
-            coordination_session.rollback()
+        _rollback_publication_sessions(domain_session, coordination_session)
         raise
     finally:
-        if coordination_session is not domain_session:
-            coordination_session.close()
-        domain_session.close()
+        _close_publication_sessions(domain_session, coordination_session)
+
+
+def _open_coordination_session(
+    domain_session: Session,
+    coordination_session_factory: Callable[[], Session] | None,
+    *,
+    coordination_is_domain: bool,
+) -> Session:
+    """Open or reuse the coordination session for publication."""
+    if coordination_is_domain:
+        return domain_session
+    if coordination_session_factory is None:
+        raise RuntimeError("Separate coordination persistence requires a session factory")
+    return coordination_session_factory()
+
+
+def _commit_coordination_after_domain(domain_session: Session, coordination_session: Session) -> None:
+    """Commit a separate coordination renewal after the guarded domain commit."""
+    if coordination_session is domain_session:
+        return
+    try:
+        coordination_session.commit()
+    except Exception as exc:  # pylint: disable=broad-exception-caught
+        coordination_session.rollback()
+        logger.error(
+            "Coordination lease renewal failed after durable publication commit: %s",
+            type(exc).__name__,
+        )
+
+
+def _rollback_publication_sessions(domain_session: Session, coordination_session: Session) -> None:
+    """Roll back publication sessions that have not committed successfully."""
+    domain_session.rollback()
+    if coordination_session is not domain_session:
+        coordination_session.rollback()
+
+
+def _close_publication_sessions(domain_session: Session, coordination_session: Session) -> None:
+    """Close publication sessions without double-closing a shared session."""
+    if coordination_session is not domain_session:
+        coordination_session.close()
+    domain_session.close()
 
 
 def _renew_publication_lock(
@@ -1678,6 +1714,20 @@ def _renew_publication_lock(
         ttl_seconds=ttl_seconds,
     ):
         raise _DistributedLockLostError(f"Lost distributed lock at stage={stage}")
+
+
+def _guard_publication_lock(
+    session: Session,
+    holder_id: str | None,
+    ttl_seconds: int | None,
+    stage: str,
+) -> None:
+    """Validate optional lock inputs and renew the owned publication lease."""
+    if (holder_id is None) != (ttl_seconds is None):
+        raise RuntimeError("Publication lock guard requires both holder identity and TTL")
+    if holder_id is None or ttl_seconds is None:
+        return
+    _renew_publication_lock(session, holder_id=holder_id, ttl_seconds=ttl_seconds, stage=stage)
 
 
 def _finalize_rebuild_success(
@@ -1703,15 +1753,12 @@ def _finalize_rebuild_success(
         coordination_session_factory,
         coordination_is_domain=coordination_is_domain,
     ) as (session, coordination_session):
-        if (lock_holder_id is None) != (lock_ttl_seconds is None):
-            raise RuntimeError("Publication lock guard requires both holder identity and TTL")
-        if lock_holder_id is not None and lock_ttl_seconds is not None:
-            _renew_publication_lock(
-                coordination_session,
-                holder_id=lock_holder_id,
-                ttl_seconds=lock_ttl_seconds,
-                stage="publication-transaction-start",
-            )
+        _guard_publication_lock(
+            coordination_session,
+            lock_holder_id,
+            lock_ttl_seconds,
+            "publication-transaction-start",
+        )
 
         assertion_repo = RelationshipAssertionRepository(session)
         publication_time = assertion_repo.next_publication_time(_GRAC_CURRENT_PURPOSE)
@@ -1724,14 +1771,10 @@ def _finalize_rebuild_success(
         )
         stage_graph_snapshot(session, publication_graph)
 
-        if lock_holder_id is not None and lock_ttl_seconds is not None:
-            _renew_publication_lock(
-                coordination_session,
-                holder_id=lock_holder_id,
-                ttl_seconds=lock_ttl_seconds,
-                stage="publication-pre-success",
-            )
+        _guard_publication_lock(coordination_session, lock_holder_id, lock_ttl_seconds, "publication-pre-success")
 
+        pre_success_check = partial(_verify_execution_state, lock_lost, cancel_event, "publication-pre-success")
+        pre_commit_check = partial(_verify_execution_state, lock_lost, cancel_event, "publication-pre-commit")
         assertion_repo.finalize_projection_publication(
             FinalizeProjectionPublicationRequest(
                 projection=PersistProjectionRequest(revision=revision, created_at=publication_time),
@@ -1742,16 +1785,8 @@ def _finalize_rebuild_success(
                 duration_ms=_duration_ms(job_started_at),
                 published_at=publication_time,
             ),
-            pre_success_check=lambda: _verify_execution_state(
-                lock_lost,
-                cancel_event,
-                "publication-pre-success",
-            ),
-            pre_commit_check=lambda: _verify_execution_state(
-                lock_lost,
-                cancel_event,
-                "publication-pre-commit",
-            ),
+            pre_success_check=pre_success_check,
+            pre_commit_check=pre_commit_check,
         )
         _verify_execution_state(lock_lost, cancel_event, "publication-outer-commit")
 

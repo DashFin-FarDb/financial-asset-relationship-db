@@ -183,6 +183,12 @@ def _server_utc(value: object) -> datetime:
     return value.astimezone(UTC)
 
 
+def _check_rebuild_cancelled(cancel_check: Callable[[], bool] | None) -> None:
+    """Raise the rebuild cancellation signal when requested."""
+    if cancel_check is not None and cancel_check():
+        raise RebuildCancelledError("Rebuild cancelled while loading projection source snapshot")
+
+
 def _event_from_orm(row: RelationshipAssertionEventORM) -> AssertionEvent:
     recorded_at = _as_utc(row.recorded_at)
     if recorded_at is None:
@@ -738,17 +744,13 @@ class RelationshipAssertionRepository:
         if bind.dialect.name == "postgresql" and not self._session.in_transaction():
             self._session.connection(execution_options={"isolation_level": "REPEATABLE READ"})
 
-        def check_cancelled() -> None:
-            if cancel_check is not None and cancel_check():
-                raise RebuildCancelledError("Rebuild cancelled while loading projection source snapshot")
-
-        check_cancelled()
+        _check_rebuild_cancelled(cancel_check)
         assertion_rows = self._session.execute(
             select(RelationshipAssertionORM).order_by(RelationshipAssertionORM.id)
         ).scalars()
         assertions = []
         for row in assertion_rows:
-            check_cancelled()
+            _check_rebuild_cancelled(cancel_check)
             assertions.append(_fix_assertion_mapping(row))
 
         event_rows = self._session.execute(
@@ -760,7 +762,7 @@ class RelationshipAssertionRepository:
         ).scalars()
         events = []
         for row in event_rows:
-            check_cancelled()
+            _check_rebuild_cancelled(cancel_check)
             events.append(_event_from_orm(row))
 
         evidence_rows = self._session.execute(
@@ -768,7 +770,7 @@ class RelationshipAssertionRepository:
         ).scalars()
         evidence = []
         for row in evidence_rows:
-            check_cancelled()
+            _check_rebuild_cancelled(cancel_check)
             evidence.append(_evidence_from_orm(row))
 
         link_rows = self._session.execute(
@@ -780,9 +782,9 @@ class RelationshipAssertionRepository:
         ).scalars()
         evidence_links = []
         for row in link_rows:
-            check_cancelled()
+            _check_rebuild_cancelled(cancel_check)
             evidence_links.append(_link_from_orm(row))
-        check_cancelled()
+        _check_rebuild_cancelled(cancel_check)
         return ProjectionSourceSnapshot(
             assertions=tuple(assertions),
             events=tuple(events),
