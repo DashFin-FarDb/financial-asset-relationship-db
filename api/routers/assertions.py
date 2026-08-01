@@ -5,13 +5,16 @@ from __future__ import annotations
 from collections.abc import Iterator
 from contextlib import contextmanager
 from datetime import datetime, timezone
-from typing import Annotated
+from typing import Annotated, NoReturn
+from uuid import uuid4
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from src.config.settings import get_settings
-from src.data.database import create_engine_from_url, create_session_factory, init_db
+from src.data.database import create_engine_from_url, create_session_factory
+from src.data.relationship_assertion_db_models import RelationshipEvidenceORM
 from src.data.relationship_assertion_repository import (
     RelationshipAssertionRepository,
     RepositoryTransitionRequest,
@@ -23,8 +26,10 @@ from src.governance.relationship_assertion import (
     AssertionEvent,
     AssertionProposal,
     AuthorityContext,
+    AuthorityRole,
     ConcurrencyConflict,
     IllegalTransition,
+    SupersessionCycle,
     UnauthorizedTransition,
     ValidationError,
 )
@@ -50,6 +55,7 @@ from ..auth import (
     get_user,
 )
 from ..graph_lifecycle_providers import (
+    GraphPersistenceInvalidUrlError,
     GraphPersistenceNonDurableError,
     GraphPersistenceNotConfiguredError,
     get_graph_lifecycle_settings,
@@ -61,17 +67,19 @@ router = APIRouter()
 _UTC = timezone.utc
 
 
-def _authority_context(actor_id: str, role: str, request: Request) -> AuthorityContext:
+def _authority_context(actor_id: str, role: AuthorityRole, request: Request) -> AuthorityContext:
+    """Build the domain authority context recorded for one API command."""
     correlation = request.headers.get("x-correlation-id")
     return AuthorityContext(
         actor_id=actor_id,
-        roles=frozenset({role}),  # type: ignore[arg-type]
+        roles=frozenset({role}),
         policy_version=CONTRACT_VERSION,
         correlation_id=correlation,
     )
 
 
 def _event_response(event: AssertionEvent) -> AssertionEventResponse:
+    """Convert a domain lifecycle event into its API response model."""
     return AssertionEventResponse(
         event_id=event.event_id,
         assertion_id=event.assertion_id,
@@ -88,39 +96,60 @@ def _event_response(event: AssertionEvent) -> AssertionEventResponse:
     )
 
 
-def _raise_domain_error(exc: Exception) -> None:
+def _unauthorized_status(detail: str) -> int:
+    """Map an authorization-domain detail to its contracted HTTP status."""
+    actor_conflict = "proposer of record" in detail or "must differ from the assertion proposer" in detail
+    return status.HTTP_409_CONFLICT if actor_conflict else status.HTTP_403_FORBIDDEN
+
+
+def _validation_status(detail: str) -> int:
+    """Map validation details for missing assertions without exposing internals."""
+    missing = "unknown assertion_id" in detail or "unknown or eventless assertion_id" in detail
+    return status.HTTP_404_NOT_FOUND if missing else status.HTTP_422_UNPROCESSABLE_ENTITY
+
+
+def _raise_domain_error(exc: Exception) -> NoReturn:
+    """Raise the bounded HTTP error corresponding to a repository command failure."""
     if isinstance(exc, ConcurrencyConflict):
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc)) from exc
+    if isinstance(exc, SupersessionCycle):
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc)) from exc
     if isinstance(exc, UnauthorizedTransition):
         detail = str(exc)
-        if "proposer of record" in detail or "must differ from the assertion proposer" in detail:
-            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=detail) from exc
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=detail) from exc
+        raise HTTPException(status_code=_unauthorized_status(detail), detail=detail) from exc
     if isinstance(exc, ValidationError):
         detail = str(exc)
-        if "unknown assertion_id" in detail or "unknown or eventless assertion_id" in detail:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=detail) from exc
-        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=detail) from exc
+        raise HTTPException(status_code=_validation_status(detail), detail=detail) from exc
     if isinstance(exc, IllegalTransition):
         raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(exc)) from exc
+    raise HTTPException(
+        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        detail="An internal error occurred. Please try again later.",
+    ) from exc
 
 
 @contextmanager
 def _assertion_repository_session() -> Iterator[Session]:
+    """Yield a repository session bound only to durable graph persistence."""
     settings = get_graph_lifecycle_settings()
     engine = None
     try:
         hosted_url = resolve_hosted_graph_database_url(settings)
-        fallback_url = getattr(settings, "database_url", None)
-        persistence_url = resolve_durable_graph_persistence_url(hosted_url or fallback_url)
+        legacy_url = (
+            getattr(settings, "database_url", None) if not hasattr(settings, "asset_graph_database_url") else None
+        )
+        persistence_url = resolve_durable_graph_persistence_url(hosted_url or legacy_url)
         engine = create_engine_from_url(persistence_url)
-        init_db(engine)
         session_factory = create_session_factory(engine)
         with session_scope(session_factory) as session:
             yield session
     except HTTPException:
         raise
-    except (GraphPersistenceNotConfiguredError, GraphPersistenceNonDurableError) as exc:
+    except (
+        GraphPersistenceInvalidUrlError,
+        GraphPersistenceNotConfiguredError,
+        GraphPersistenceNonDurableError,
+    ) as exc:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="Graph persistence database not configured",
@@ -132,12 +161,16 @@ def _assertion_repository_session() -> Iterator[Session]:
 
 def _assertion_evidence(
     as_of: AssertionAsOf,
-    repo: RelationshipAssertionRepository,
+    session: Session,
 ) -> list[AssertionEvidenceMetadataResponse]:
-    evidence_by_id = {
-        item.evidence_id: item
-        for item in repo.load_evidence_by_ids([link.evidence_id for link in as_of.evidence_links])
-    }
+    """Load and redact only evidence linked to the requested assertion view."""
+    evidence_ids = sorted({link.evidence_id for link in as_of.evidence_links})
+    evidence_by_id: dict[str, RelationshipEvidenceORM] = {}
+    if evidence_ids:
+        evidence_rows = session.execute(
+            select(RelationshipEvidenceORM).where(RelationshipEvidenceORM.id.in_(evidence_ids))
+        ).scalars()
+        evidence_by_id = {item.id: item for item in evidence_rows}
     rows: list[AssertionEvidenceMetadataResponse] = []
     for link in as_of.evidence_links:
         evidence = evidence_by_id.get(link.evidence_id)
@@ -154,7 +187,7 @@ def _assertion_evidence(
         is_public = evidence.visibility == "public"
         rows.append(
             AssertionEvidenceMetadataResponse(
-                evidence_id=evidence.evidence_id,
+                evidence_id=evidence.id,
                 polarity=link.polarity,
                 visibility=evidence.visibility,
                 redacted=not is_public,
@@ -173,8 +206,9 @@ def _assertion_evidence(
 
 def _assertion_read_response(
     as_of: AssertionAsOf,
-    repo: RelationshipAssertionRepository,
+    session: Session,
 ) -> AssertionReadResponse:
+    """Build a public explanation from ``get_as_of``'s non-empty event view."""
     return AssertionReadResponse(
         assertion_id=as_of.assertion.assertion_id,
         predicate_id=as_of.assertion.predicate_id,
@@ -194,11 +228,12 @@ def _assertion_read_response(
         effective_at=as_of.effective_at,
         sequence=as_of.events[-1].sequence,
         proposer_actor_id=as_of.events[0].actor_id,
-        evidence=_assertion_evidence(as_of, repo),
+        evidence=_assertion_evidence(as_of, session),
     )
 
 
 def _resolve_proposer_user_from_token(token: str, request: Request) -> User:
+    """Resolve and validate the separately authenticated supersession proposer."""
     username = _decode_username_from_token(
         token=token,
         credentials_exception=_build_credentials_exception(),
@@ -240,17 +275,16 @@ async def create_assertion(
     with _assertion_repository_session() as session:
         repo = RelationshipAssertionRepository(session)
         try:
-            existed = repo.max_sequence(payload.assertion_id) > 0
-            _assertion, event = repo.propose(proposal, ctx)
+            proposed_event_id = str(uuid4())
+            _assertion, event = repo.propose(proposal, ctx, event_id=proposed_event_id)
             return AssertionCommandResponse(
                 assertion_id=payload.assertion_id,
                 event=_event_response(event),
                 state=repo.current_state(payload.assertion_id),
-                idempotent_reuse=existed,
+                idempotent_reuse=event.event_id != proposed_event_id,
             )
         except Exception as exc:  # pragma: no cover - defensive mapping
             _raise_domain_error(exc)
-            raise
 
 
 @router.post("/api/assertions/{assertion_id}/decisions", response_model=AssertionCommandResponse)
@@ -267,8 +301,9 @@ async def decide_assertion(
         reviewer = get_current_rebuild_operator_user(  # type: ignore[arg-type]
             current_user=current_user,
             settings=get_settings(),
+            request=request,
         )
-        role_by_state = {
+        role_by_state: dict[str, AuthorityRole] = {
             "Accepted": "acceptor",
             "Rejected": "acceptor",
             "Disputed": "disputer",
@@ -294,7 +329,6 @@ async def decide_assertion(
             )
         except Exception as exc:  # pragma: no cover - defensive mapping
             _raise_domain_error(exc)
-            raise
 
 
 @router.post("/api/assertions/{assertion_id}/supersessions", response_model=AssertionCommandResponse)
@@ -308,6 +342,7 @@ async def supersede_assertion(
     reviewer = get_current_rebuild_operator_user(  # type: ignore[arg-type]
         current_user=current_user,
         settings=get_settings(),
+        request=request,
     )
     proposer_user = _resolve_proposer_user_from_token(payload.proposal_bearer_token, request)
     proposal_ctx = _authority_context(proposer_user.username, "proposer", request)
@@ -346,7 +381,6 @@ async def supersede_assertion(
             )
         except Exception as exc:  # pragma: no cover - defensive mapping
             _raise_domain_error(exc)
-            raise
 
 
 @router.get("/api/assertions/{assertion_id}", response_model=AssertionReadResponse)
@@ -365,7 +399,7 @@ async def get_assertion(
         )
         if as_of is None:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"unknown assertion_id: {assertion_id}")
-        return _assertion_read_response(as_of, repo)
+        return _assertion_read_response(as_of, session)
 
 
 @router.get("/api/assertions/{assertion_id}/history", response_model=AssertionHistoryResponse)
