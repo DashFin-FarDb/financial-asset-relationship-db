@@ -1,0 +1,19 @@
+.github/workflows/frontend-ci.yml
+  s_ebae7f3448d420::t_6f94efdfb12ba5 5-6,8-9,11-12,14-15,24,26,28-46
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "5baa95ebd651479fbb66cd0758aec5cccbae7fbd",
+  "prompts": {},
+  "sessions": {
+    "s_ebae7f3448d420": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f3760-85c1-7991-b0f7-7ffd254a3193",
+        "model": "gpt-5.4-mini"
+      },
+      "human_author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}

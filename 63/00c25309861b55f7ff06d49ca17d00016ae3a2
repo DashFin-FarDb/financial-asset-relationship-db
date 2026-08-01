@@ -1,0 +1,21 @@
+api/graph_lifecycle_providers.py
+  s_a2375cdf388c42::t_d4865b1530bfe2 6,94-101
+tests/unit/test_graph_lifecycle_providers.py
+  s_a2375cdf388c42::t_db2ed4dd2a20df 81-92
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.3",
+  "base_commit_sha": "6300c25309861b55f7ff06d49ca17d00016ae3a2",
+  "prompts": {},
+  "sessions": {
+    "s_a2375cdf388c42": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019ef40a-d392-79a0-94fb-198575f20fb1",
+        "model": "gpt-5.4-mini"
+      },
+      "human_author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}

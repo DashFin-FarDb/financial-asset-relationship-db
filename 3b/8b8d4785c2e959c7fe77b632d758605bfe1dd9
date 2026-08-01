@@ -1,0 +1,25 @@
+Dockerfile.api
+  s_ebae7f3448d420::t_a7e4bec710928b 6
+scripts/verify_staging_promotion.py
+  s_ebae7f3448d420::t_475a2c3a32c6bb 9,14-20,62,80,84,86,95,134-137,139,141-143,145-150,152,197
+  s_ebae7f3448d420::t_a7e4bec710928b 5,11-13,54-55,57-58,63-79,81-83,85,87-90,98-100,104-133,144,151,153-192
+  s_ebae7f3448d420::t_839948b7137cf8 10,91-92,193-196,198-199
+docker-compose.production.yml
+  s_ebae7f3448d420::t_a7e4bec710928b 32
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "3b8b8d4785c2e959c7fe77b632d758605bfe1dd9",
+  "prompts": {},
+  "sessions": {
+    "s_ebae7f3448d420": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f3760-85c1-7991-b0f7-7ffd254a3193",
+        "model": "gpt-5.4-mini"
+      },
+      "human_author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}

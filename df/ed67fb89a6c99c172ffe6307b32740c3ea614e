@@ -1,0 +1,31 @@
+api/middleware/__init__.py
+  s_a9079a96cd0b29::t_6ae4772348e806 1
+test_supabase.py
+  s_a9079a96cd0b29::t_81be7dca6f950b 81-82
+  s_a9079a96cd0b29::t_0872a8daf29aab 53
+run_tests.py
+  s_a9079a96cd0b29::t_4a049f393c7d29 1,10,23
+scripts/validate_manifest.py
+  s_a9079a96cd0b29::t_87a580084e2f90 120
+src/analysis/__init__.py
+  s_a9079a96cd0b29::t_36a28e3c8c87fd 1
+mcp_server.py
+  s_a9079a96cd0b29::t_9b82673546dd20 45
+  s_a9079a96cd0b29::t_b5c53b067ae04c 34,63
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "dfed67fb89a6c99c172ffe6307b32740c3ea614e",
+  "prompts": {},
+  "sessions": {
+    "s_a9079a96cd0b29": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f3bef-eab7-7292-8e06-0aa00e3538ed",
+        "model": "gpt-5.4-mini"
+      },
+      "human_author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}

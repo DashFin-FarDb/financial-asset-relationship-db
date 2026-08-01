@@ -1,0 +1,46 @@
+scripts/__init__.py
+  s_8d43d0750b87ca::t_8934e4dc506da0 1
+docker-compose.production.yml
+  s_8d43d0750b87ca::t_f400adb8787afb 29,38-41
+Dockerfile.api
+  s_8d43d0750b87ca::t_f400adb8787afb 15
+scripts/verify_staging_promotion.py
+  s_8d43d0750b87ca::t_cfaaefce1652fe 52-60,75,95,99,105-126
+  s_8d43d0750b87ca::t_366dc50965f56a 5,65-66,70-74,96,100,199,205-213,215-220,222-223,226-229,231-243
+  s_8d43d0750b87ca::t_736a99e6c8b8dd 127-128
+tests/unit/test_verify_staging_promotion.py
+  s_8d43d0750b87ca::t_a53d3d86c072f2 195-202
+  s_8d43d0750b87ca::t_42a2b2308a3ea6 46-78,80
+frontend/app/lib/api.ts
+  s_8d43d0750b87ca::t_f400adb8787afb 12
+scripts/api_entrypoint.sh
+  s_8d43d0750b87ca::t_f400adb8787afb 10
+src/config/settings.py
+  s_8d43d0750b87ca::t_f400adb8787afb 16,154-171
+  s_8d43d0750b87ca::t_020c6bc5c3ef9a 172
+frontend/next.config.js
+  s_8d43d0750b87ca::t_366dc50965f56a 8
+Dockerfile.frontend
+  s_8d43d0750b87ca::t_f400adb8787afb 11
+  s_8d43d0750b87ca::t_cfaaefce1652fe 25-27,29-30
+tests/unit/test_settings.py
+  s_8d43d0750b87ca::t_a53d3d86c072f2 198-206,208-223,294-309
+  s_8d43d0750b87ca::t_24669c3d1cbc46 207
+  s_8d43d0750b87ca::t_c2ceec084e80a0 310
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.3",
+  "base_commit_sha": "94e7aeab20ae83f921d59f6a0ee29952e5d6e045",
+  "prompts": {},
+  "sessions": {
+    "s_8d43d0750b87ca": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f32c2-fafe-7da1-b16e-6cbcc1cdb886",
+        "model": "gpt-5.5"
+      },
+      "human_author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}

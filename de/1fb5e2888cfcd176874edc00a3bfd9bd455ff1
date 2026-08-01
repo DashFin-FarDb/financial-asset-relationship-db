@@ -1,0 +1,24 @@
+tests/unit/test_check_hosted_readiness.py
+  s_8d43d0750b87ca::t_e255f3a4fce19f 369
+api/auth.py
+  s_8d43d0750b87ca::t_e255f3a4fce19f 128
+tests/conftest.py
+  s_8d43d0750b87ca::t_59648b9f895cfb 317
+  s_8d43d0750b87ca::t_e255f3a4fce19f 336,357
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "de1fb5e2888cfcd176874edc00a3bfd9bd455ff1",
+  "prompts": {},
+  "sessions": {
+    "s_8d43d0750b87ca": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f32c2-fafe-7da1-b16e-6cbcc1cdb886",
+        "model": "gpt-5.4-mini"
+      },
+      "human_author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}

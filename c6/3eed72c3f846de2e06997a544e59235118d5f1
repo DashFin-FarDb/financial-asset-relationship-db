@@ -1,0 +1,22 @@
+scripts/verify_staging_promotion.py
+  s_8d43d0750b87ca::t_3746b7e5ee3dc1 232,234-238,242,250
+tests/unit/test_verify_staging_promotion.py
+  s_8d43d0750b87ca::t_ae09c098034960 282-291
+  s_8d43d0750b87ca::t_53271e4f1e8e78 281
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "c63eed72c3f846de2e06997a544e59235118d5f1",
+  "prompts": {},
+  "sessions": {
+    "s_8d43d0750b87ca": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f32c2-fafe-7da1-b16e-6cbcc1cdb886",
+        "model": "gpt-5.5"
+      },
+      "human_author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}

@@ -1,0 +1,21 @@
+tests/integration/test_mergify_workflow.py
+  s_a9079a96cd0b29::t_c4f36e3a0a9407 102-104,120-122,139-141,143-145,206-211,253-255,274-279,301-303,345-347,364-366,383-385
+tests/unit/test_mergify_config.py
+  s_a9079a96cd0b29::t_1e4653e3680255 79-81,97-99,257-259,300-302,625-627,830-832,961-963,1020-1022,1033-1035,1075-1077
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "b8b27f63daa4ff8197436a678f560b7d5694fefb",
+  "prompts": {},
+  "sessions": {
+    "s_a9079a96cd0b29": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f3bef-eab7-7292-8e06-0aa00e3538ed",
+        "model": "gpt-5.4-mini"
+      },
+      "human_author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}

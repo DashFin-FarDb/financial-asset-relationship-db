@@ -1,0 +1,19 @@
+tests/integration/test_workflow_changes_validation.py
+  s_a9079a96cd0b29::t_ec9ef665fb80ed 256-258,306-308
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "0f7e2f80062811b25938b2e870669b50e7fa54ea",
+  "prompts": {},
+  "sessions": {
+    "s_a9079a96cd0b29": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f3bef-eab7-7292-8e06-0aa00e3538ed",
+        "model": "gpt-5.4-mini"
+      },
+      "human_author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}

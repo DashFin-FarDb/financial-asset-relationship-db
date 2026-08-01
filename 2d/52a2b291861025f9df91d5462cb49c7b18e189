@@ -1,0 +1,24 @@
+.github/workflows/docker.yml
+  s_8d43d0750b87ca::t_f517caa41a31a1 117-119,121-126
+Dockerfile.api
+  s_8d43d0750b87ca::t_5116fd6f439aec 11
+  s_8d43d0750b87ca::t_0d37262873efa7 9-10
+.github/workflows/trivy.yml
+  s_8d43d0750b87ca::t_f517caa41a31a1 36-38,40-45
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "2d52a2b291861025f9df91d5462cb49c7b18e189",
+  "prompts": {},
+  "sessions": {
+    "s_8d43d0750b87ca": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f32c2-fafe-7da1-b16e-6cbcc1cdb886",
+        "model": "gpt-5.4-mini"
+      },
+      "human_author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}

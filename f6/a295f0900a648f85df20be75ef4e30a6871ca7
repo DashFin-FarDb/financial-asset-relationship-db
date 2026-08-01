@@ -1,0 +1,19 @@
+tests/integration/test_github_workflows.py
+  s_07988e54548e4c::t_cecd13d71e80df 601
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "f6a295f0900a648f85df20be75ef4e30a6871ca7",
+  "prompts": {},
+  "sessions": {
+    "s_07988e54548e4c": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f40b3-6869-7bf2-85af-d257a6f063bb",
+        "model": "gpt-5.4-mini"
+      },
+      "human_author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}
