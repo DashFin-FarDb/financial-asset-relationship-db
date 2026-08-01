@@ -15,6 +15,7 @@ import api.routers.graph_admin as graph_admin
 from src.data.database import create_engine_from_url, create_session_factory, init_db
 from src.data.db_models import RebuildJobORM, RebuildJobStatus
 from src.data.distributed_lock import DistributedLock
+from src.data.relationship_assertion_repository import RelationshipAssertionRepository
 from src.data.repository import AssetGraphRepository, session_scope
 from src.logic.recovery_gate import ExecutionBlockedError, RecoveryGate
 from tests.helpers.graph_scale_factory import build_scale_graph
@@ -219,11 +220,11 @@ def test_rebuild_failure_after_persist_does_not_corrupt_durable_graph_truth(
             lambda *_args, **_kwargs: (replacement, "sample"),
         )
 
-        def fail_success(*_args, **_kwargs):
-            """Simulate a failure while marking the job as succeeded."""
+        def fail_publication(*_args, **_kwargs):
+            """Simulate a failure inside the atomic publication boundary."""
             raise RuntimeError("synthetic success metadata failure")
 
-        monkeypatch.setattr(graph_admin, "_mark_job_succeeded_safe", fail_success)  # pylint: disable=protected-access
+        monkeypatch.setattr(RelationshipAssertionRepository, "finalize_projection_publication", fail_publication)
 
         with pytest.raises(graph_admin._RebuildExecutionError):  # pylint: disable=protected-access
             graph_admin._run_rebuild_pipeline(  # pylint: disable=protected-access

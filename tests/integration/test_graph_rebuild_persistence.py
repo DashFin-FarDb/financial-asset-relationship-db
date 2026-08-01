@@ -263,41 +263,38 @@ async def test_rebuild_pipeline_execution_with_ttl(session_factory_provider, mon
     _, db_url = session_factory_provider
     _configure_persistence(monkeypatch, db_url)
 
-    mock_lock = MagicMock()
-    mock_lock.acquire.return_value = True
-
-    mock_repo = MagicMock(spec=AssetGraphRepository)
-    job_id = "job_test_pipe"
-    mock_repo.create_rebuild_job.return_value = job_id
-
     monkeypatch.setattr(
         "api.routers.graph_admin.build_rebuild_graph", MagicMock(return_value=(AssetRelationshipGraph(), "sample"))
     )
-    monkeypatch.setattr("api.routers.graph_admin.save_graph_to_persistence", MagicMock())
 
-    with patch("api.routers.graph_admin.AssetGraphRepository", return_value=mock_repo):
-        settings = get_settings()
-        engine_for_test = create_engine_from_url(db_url)
-        try:
-            session_factory = create_session_factory(engine_for_test)
-            job_started_at = time.time()
-            lock_lost_event = threading.Event()
-            execution_id = "test-exec-pipe"
+    settings = get_settings()
+    engine_for_test = create_engine_from_url(db_url)
+    try:
+        session_factory = create_session_factory(engine_for_test)
+        execution_id = "test-exec-pipe"
+        with session_factory() as session:
+            repo = AssetGraphRepository(session)
+            job_id = repo.create_rebuild_job(requested_by="test_user")
+            repo.mark_rebuild_job_running(job_id, execution_id)
+            session.commit()
 
-            graph_admin._run_rebuild_pipeline(
-                session_factory,
-                settings,
-                db_url,
-                job_id,
-                execution_id,
-                job_started_at,
-                lock_lost_event,
-                threading.Event(),
-            )
-        finally:
-            engine_for_test.dispose()
+        graph_admin._run_rebuild_pipeline(
+            session_factory,
+            settings,
+            db_url,
+            job_id,
+            execution_id,
+            time.time(),
+            threading.Event(),
+            threading.Event(),
+        )
 
-        mock_repo.mark_rebuild_job_succeeded.assert_called_once()
+        with session_factory() as session:
+            job = AssetGraphRepository(session).get_rebuild_job(job_id)
+            assert job is not None
+            assert job.status == "succeeded"
+    finally:
+        engine_for_test.dispose()
 
 
 @pytest.mark.asyncio

@@ -67,7 +67,6 @@ from ..graph_lifecycle_providers import (
     get_graph_lifecycle_settings,
     resolve_durable_graph_persistence_url,
     resolve_hosted_graph_database_url,
-    save_graph_to_persistence,
     stage_graph_snapshot,
 )
 from ..metrics import (
@@ -839,43 +838,6 @@ def _heartbeat_keeper(
             return
 
 
-def _load_persisted_graph_snapshot(
-    session_factory: Callable[[], Session],
-) -> AssetRelationshipGraph:
-    """Load the currently persisted graph snapshot for rollback safety."""
-    with session_scope(session_factory) as session:
-        return AssetGraphRepository(session).load_graph()
-
-
-def _restore_persisted_graph_snapshot(
-    persistence_url: str,
-    snapshot: AssetRelationshipGraph,
-) -> None:
-    """Attempt to restore the provided graph snapshot to persistence.
-
-    On failure, emit an observability event and continue.
-
-    Parameters:
-        persistence_url (str): Resolved durable persistence URL where the snapshot should be saved.
-        snapshot (AssetRelationshipGraph): In-memory graph snapshot to be restored.
-
-    """
-    try:
-        save_graph_to_persistence(persistence_url, snapshot)
-    except Exception as restore_exc:
-        log_event(
-            logger,
-            logging.ERROR,
-            ObservabilityEvent(
-                event="graph_rebuild_snapshot_restore_failed",
-                message=(
-                    f"Failed to restore persisted graph snapshot after rebuild failure: {type(restore_exc).__name__}"
-                ),
-                metadata={"error": type(restore_exc).__name__},
-            ),
-        )
-
-
 def _handle_rebuild_failure(
     session_factory: Callable[[], Session],
     job_id: str,
@@ -883,16 +845,10 @@ def _handle_rebuild_failure(
     exc: Exception | asyncio.CancelledError,
     job_started_at: float,
     success_persisted: bool,
-    graph_saved: bool,
-    graph_snapshot: AssetRelationshipGraph | None,
-    resolved_url: str,
     source: GraphRebuildSource | None,
 ) -> NoReturn:
-    """Handle a rebuild failure and restore prior snapshot if appropriate."""
+    """Mark a rebuild failed after the publication transaction rolls back."""
     if not success_persisted:
-        if graph_saved and graph_snapshot is not None:
-            _restore_persisted_graph_snapshot(resolved_url, graph_snapshot)
-
         if isinstance(exc, RebuildCancelledError):
             _finalize_cancellation_safe(session_factory, job_id, execution_id)
         else:
@@ -1033,7 +989,7 @@ def _orchestrate_heartbeat(
 def _run_rebuild_pipeline(
     session_factory: Callable[[], Session],
     settings: GraphLifecycleSettings,
-    resolved_url: str,
+    _resolved_url: str,
     job_id: str,
     execution_id: str,
     job_started_at: float,
@@ -1043,9 +999,6 @@ def _run_rebuild_pipeline(
     """Run a single rebuild of the asset relationship graph."""
     source: GraphRebuildSource | None = None
     success_persisted = False
-    graph_snapshot: AssetRelationshipGraph | None = None
-    graph_saved = False
-
     try:
         _verify_execution_state(lock_lost, cancel_event, "initialization")
 
@@ -1080,13 +1033,10 @@ def _run_rebuild_pipeline(
             lock_lost=lock_lost,
             cancel_event=cancel_event,
         )
-        graph_saved = True
         success_persisted = True
         synchronize_runtime_graph(graph, job_id=job_id)
         return response
     except Exception as exc:
-        if lock_lost.is_set() or isinstance(exc, _DistributedLockLostError):
-            graph_saved = False
         _handle_rebuild_failure(
             session_factory=session_factory,
             job_id=job_id,
@@ -1094,9 +1044,6 @@ def _run_rebuild_pipeline(
             exc=exc,
             job_started_at=job_started_at,
             success_persisted=success_persisted,
-            graph_saved=graph_saved,
-            graph_snapshot=graph_snapshot,
-            resolved_url=resolved_url,
             source=source,
         )
 

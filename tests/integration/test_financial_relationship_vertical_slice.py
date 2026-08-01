@@ -127,6 +127,9 @@ def test_empty_unestablished_store_preserves_legacy_graph_and_publishes_once(
         assert job.status == RebuildJobStatus.SUCCEEDED
         assert _publication_count(session) == 1
         assert _revision_count(session) == 1
+        publication = session.execute(select(RelationshipProjectionPublicationORM)).scalar_one()
+        assert publication.execution_id == "exec-publication"
+        assert publication.rebuild_job_id == job_id
         latest = RelationshipAssertionRepository(session).latest_published_projection(PURPOSE)
         assert latest is not None
         assert latest.revision.edges == ()
