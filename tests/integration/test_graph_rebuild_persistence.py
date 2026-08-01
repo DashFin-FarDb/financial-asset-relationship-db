@@ -447,6 +447,7 @@ async def test_lock_ttl_behavioral_contract(test_client: httpx.AsyncClient, sess
         patch("api.routers.graph_admin.DistributedLock", return_value=mock_lock),
         patch("api.routers.graph_admin._orchestrate_heartbeat", side_effect=mock_orchestrate_ctx) as mock_heartbeat,
         patch("api.routers.graph_admin.build_rebuild_graph", return_value=(AssetRelationshipGraph(), "sample")),
+        patch("api.routers.graph_admin.CoordinationLockRepository.renew_owned_lock", return_value=True) as mock_renew,
     ):
         response = await test_client.post("/api/graph/rebuild")
         assert response.status_code == 200
@@ -458,6 +459,8 @@ async def test_lock_ttl_behavioral_contract(test_client: httpx.AsyncClient, sess
         # Signature: session_factory, dist_lock, job_id, execution_id, lock_ttl
         passed_lock_ttl = args[4]
         assert passed_lock_ttl == 30
+        assert mock_renew.call_count == 2
+        mock_renew.assert_called_with(lock_name="graph_rebuild", holder_id="test_worker", ttl_seconds=30)
 
 
 # --- Resilience Guardrail Enforcements ---

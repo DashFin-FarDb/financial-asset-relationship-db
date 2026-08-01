@@ -7,7 +7,7 @@ from collections.abc import Iterator
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from time import perf_counter
-from typing import cast
+from typing import Any
 
 import pytest
 from sqlalchemy import func, select
@@ -24,7 +24,7 @@ from src.data.relationship_assertion_repository import (
     RelationshipAssertionRepository,
     RepositoryTransitionRequest,
 )
-from src.data.repository import AssetGraphRepository, session_scope
+from src.data.repository import AssetGraphRepository, CoordinationLockRepository, session_scope
 from src.data.sample_data import create_sample_database
 from src.governance.relationship_assertion import AssertionProposal, AuthorityContext, ValidationError
 from src.logic.reconciliation_engine import RebuildCancelledError
@@ -75,22 +75,22 @@ def _create_running_job(
 def _finalize(
     factory: sessionmaker,
     job_id: str,
-    *,
-    execution_id: str = "exec-publication",
-    graph=None,
-    lock_lost=None,
-    cancel_event=None,
+    **overrides: Any,
 ):
     """Invoke the production atomic publication boundary."""
+    arguments: dict[str, Any] = {
+        "session_factory": factory,
+        "job_id": job_id,
+        "execution_id": "exec-publication",
+        "graph": create_sample_database(),
+        "source": "sample",
+        "job_started_at": perf_counter(),
+        "lock_lost": threading.Event(),
+        "cancel_event": threading.Event(),
+    }
+    arguments.update(overrides)
     return graph_admin._finalize_rebuild_success(  # pylint: disable=protected-access
-        session_factory=factory,
-        job_id=job_id,
-        execution_id=execution_id,
-        graph=graph or create_sample_database(),
-        source="sample",
-        job_started_at=perf_counter(),
-        lock_lost=lock_lost or threading.Event(),
-        cancel_event=cancel_event or threading.Event(),
+        **arguments,
     )
 
 
@@ -128,7 +128,8 @@ def test_empty_unestablished_store_preserves_legacy_graph_and_publishes_once(
         assert _publication_count(session) == 1
         assert _revision_count(session) == 1
         publication = session.execute(select(RelationshipProjectionPublicationORM)).scalar_one()
-        assert publication.execution_id == "exec-publication"
+        assert publication.execution_id is not None
+        assert publication.execution_id == job.execution_id
         assert publication.rebuild_job_id == job_id
         latest = RelationshipAssertionRepository(session).latest_published_projection(PURPOSE)
         assert latest is not None
@@ -149,13 +150,13 @@ def test_empty_unestablished_store_preserves_legacy_graph_and_publishes_once(
     ("execution_id", "expected_error"),
     [
         ("stale-owner", ValueError),
-        (cast(str, None), ValidationError),
+        (None, ValidationError),
         ("", ValidationError),
     ],
 )
 def test_invalid_publication_identity_rolls_back_everything(
     publication_session_factory: sessionmaker,
-    execution_id: str,
+    execution_id: str | None,
     expected_error: type[Exception],
 ) -> None:
     """Null, empty, and mismatched identities cannot expose a candidate."""
@@ -172,16 +173,125 @@ def test_invalid_publication_identity_rolls_back_everything(
         assert _revision_count(session) == 0
 
 
-class _TripEvent:
-    """Event-like test double that trips on a selected safety check."""
+def test_dangling_assertion_endpoints_are_deferred_without_blocking_publication(
+    publication_session_factory: sessionmaker,
+) -> None:
+    """Assertions outside the rebuilt asset universe stay dormant instead of violating graph FKs."""
+    with session_scope(publication_session_factory) as session:
+        repo = RelationshipAssertionRepository(session)
+        repo.propose(
+            AssertionProposal(
+                assertion_id="assertion-missing-bond",
+                predicate_id=PREDICATE_ID,
+                subject_id="MISSING_BOND",
+                object_id="AAPL",
+                method_id="bond.issuer_id.resolution@1",
+                proposition="AAPL is the issuer of a currently absent bond",
+                effective_from=datetime.now(tz=UTC) - timedelta(days=1),
+            ),
+            _authority("actor-proposer", "proposer"),
+            event_id="event-missing-proposed",
+        )
+        repo.transition(
+            RepositoryTransitionRequest(
+                assertion_id="assertion-missing-bond",
+                to_state="Accepted",
+                ctx=_authority("actor-determiner", "acceptor"),
+                expected_sequence=1,
+                rationale="independent determination",
+                event_id="event-missing-accepted",
+            )
+        )
 
-    def __init__(self, trip_on: int) -> None:
-        self._trip_on = trip_on
-        self._checks = 0
+    job_id = _create_running_job(publication_session_factory)
+    _finalize(publication_session_factory, job_id)
 
-    def is_set(self) -> bool:
-        self._checks += 1
-        return self._checks >= self._trip_on
+    with session_scope(publication_session_factory) as session:
+        job = session.get(RebuildJobORM, job_id)
+        latest = RelationshipAssertionRepository(session).latest_published_projection(PURPOSE)
+        assert job is not None and job.status == RebuildJobStatus.SUCCEEDED
+        assert latest is not None and latest.revision.edges == ()
+        assert _publication_count(session) == 1
+
+
+def test_publication_time_is_monotonic_when_a_prior_worker_clock_is_ahead(
+    publication_session_factory: sessionmaker,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Database ordering keeps a later commit latest despite skewed prior publication time."""
+    future_time = datetime.now(tz=UTC) + timedelta(days=1)
+    original_next_time = RelationshipAssertionRepository.next_publication_time
+    monkeypatch.setattr(
+        RelationshipAssertionRepository,
+        "next_publication_time",
+        lambda _repo, _purpose: future_time,
+    )
+    first_job_id = _create_running_job(publication_session_factory)
+    _finalize(publication_session_factory, first_job_id)
+    monkeypatch.setattr(RelationshipAssertionRepository, "next_publication_time", original_next_time)
+
+    second_job_id = _create_running_job(publication_session_factory, persist_graph=False)
+    _finalize(publication_session_factory, second_job_id)
+
+    with session_scope(publication_session_factory) as session:
+        second = session.execute(
+            select(RelationshipProjectionPublicationORM).where(
+                RelationshipProjectionPublicationORM.rebuild_job_id == second_job_id
+            )
+        ).scalar_one()
+        latest = RelationshipAssertionRepository(session).latest_published_projection(PURPOSE)
+        assert second.published_at.replace(tzinfo=UTC) > future_time
+        assert latest is not None and latest.revision_id == second.revision_id
+
+
+def test_publication_guard_supports_a_separate_coordination_database(
+    publication_session_factory: sessionmaker,
+    tmp_path: Path,
+) -> None:
+    """A held coordination predicate can safely guard a separate domain commit."""
+    coordination_engine = create_engine_from_url(f"sqlite:///{tmp_path / 'grac-coordination.db'}")
+    init_db(coordination_engine)
+    coordination_factory = create_session_factory(coordination_engine)
+    try:
+        with session_scope(coordination_factory) as session:
+            result = CoordinationLockRepository(session).acquire_lock(
+                lock_name="graph_rebuild",
+                holder_id="split-worker",
+                ttl_seconds=30,
+            )
+            assert result.success is True
+
+        job_id = _create_running_job(publication_session_factory)
+        _finalize(
+            publication_session_factory,
+            job_id,
+            lock_holder_id="split-worker",
+            lock_ttl_seconds=30,
+            coordination_session_factory=coordination_factory,
+            coordination_is_domain=False,
+        )
+
+        with session_scope(publication_session_factory) as session:
+            job = session.get(RebuildJobORM, job_id)
+            assert job is not None and job.status == RebuildJobStatus.SUCCEEDED
+            assert _publication_count(session) == 1
+    finally:
+        coordination_engine.dispose()
+
+
+class _TripGate:
+    """Safety verifier that fails only at one named execution stage."""
+
+    def __init__(self, verifier, *, target_stage: str, event_name: str, error_type: type[Exception]) -> None:
+        self._verifier = verifier
+        self._target_stage = target_stage
+        self._event_name = event_name
+        self._error_type = error_type
+
+    def __call__(self, lock_lost, cancel_event, stage: str) -> None:
+        if stage == self._target_stage:
+            raise self._error_type(f"{self._event_name} at stage={stage}")
+        self._verifier(lock_lost, cancel_event, stage)
 
 
 @pytest.mark.parametrize(
@@ -193,23 +303,29 @@ class _TripEvent:
 )
 def test_final_safety_gate_rolls_back_graph_candidate_success_and_publication(
     publication_session_factory: sessionmaker,
+    monkeypatch: pytest.MonkeyPatch,
     event_name: str,
     expected_error: type[Exception],
 ) -> None:
-    """Lock loss or cancellation at the final gate leaves no visible candidate."""
+    """Lock loss or cancellation at the named final gate leaves no visible candidate."""
     initial_graph = create_sample_database()
     initial_relationships = {source: list(entries) for source, entries in initial_graph.relationships.items()}
     job_id = _create_running_job(publication_session_factory)
-    lock_lost = _TripEvent(3) if event_name == "lock_lost" else threading.Event()
-    cancel_event = _TripEvent(3) if event_name == "cancel_event" else threading.Event()
+    monkeypatch.setattr(
+        graph_admin,
+        "_verify_execution_state",
+        _TripGate(
+            graph_admin._verify_execution_state,  # pylint: disable=protected-access
+            target_stage="publication-pre-commit",
+            event_name=event_name,
+            error_type=expected_error,
+        ),
+    )
 
     with pytest.raises(expected_error):
-        _finalize(
-            publication_session_factory,
-            job_id,
-            lock_lost=lock_lost,
-            cancel_event=cancel_event,
-        )
+        _finalize(publication_session_factory, job_id, graph=initial_graph)
+
+    assert _canonical_relationships(initial_graph.relationships) == _canonical_relationships(initial_relationships)
 
     with session_scope(publication_session_factory) as session:
         job = session.get(RebuildJobORM, job_id)
@@ -222,15 +338,8 @@ def test_final_safety_gate_rolls_back_graph_candidate_success_and_publication(
         )
 
 
-def test_governed_issuer_slice_survives_restart_and_empty_successor(
-    publication_session_factory: sessionmaker,
-) -> None:
-    """Publish, reload, then retain governed scope after the edge is retracted."""
-    proposer = _authority("actor-proposer", "proposer")
-    determiner = _authority("actor-determiner", "acceptor")
-    retractor = _authority("actor-retractor", "retractor")
-    effective_from = datetime.now(tz=UTC) - timedelta(days=1)
-
+def _accept_issuer_assertion(publication_session_factory: sessionmaker) -> None:
+    """Create and independently accept the canonical issuer assertion."""
     with session_scope(publication_session_factory) as session:
         repo = RelationshipAssertionRepository(session)
         repo.propose(
@@ -241,25 +350,25 @@ def test_governed_issuer_slice_survives_restart_and_empty_successor(
                 object_id="AAPL",
                 method_id="bond.issuer_id.resolution@1",
                 proposition="AAPL is the issuer of AAPL_BOND_2030",
-                effective_from=effective_from,
+                effective_from=datetime.now(tz=UTC) - timedelta(days=1),
             ),
-            proposer,
+            _authority("actor-proposer", "proposer"),
             event_id="event-proposed",
         )
         repo.transition(
             RepositoryTransitionRequest(
                 assertion_id="assertion-issuer",
                 to_state="Accepted",
-                ctx=determiner,
+                ctx=_authority("actor-determiner", "acceptor"),
                 expected_sequence=1,
                 rationale="independent determination",
                 event_id="event-accepted",
             )
         )
 
-    first_job_id = _create_running_job(publication_session_factory)
-    _finalize(publication_session_factory, first_job_id)
 
+def _verify_first_publication_and_retract(publication_session_factory: sessionmaker) -> None:
+    """Verify restart state and retract the accepted issuer assertion."""
     with session_scope(publication_session_factory) as session:
         repo = RelationshipAssertionRepository(session)
         first = repo.latest_published_projection(PURPOSE)
@@ -270,21 +379,27 @@ def test_governed_issuer_slice_survives_restart_and_empty_successor(
         assert ("AAPL", "corporate_link", 0.8) in restarted.relationships["AAPL_BOND_2030"]
         history = repo.get_as_of("assertion-issuer", known_at=datetime.now(tz=UTC))
         assert history is not None
-        assert history.events[0].actor_id == "actor-proposer"
-        assert history.events[1].actor_id == "actor-determiner"
-        assert history.events[0].actor_id != history.events[1].actor_id
-
+        assert [event.actor_id for event in history.events] == ["actor-proposer", "actor-determiner"]
         repo.transition(
             RepositoryTransitionRequest(
                 assertion_id="assertion-issuer",
                 to_state="Retracted",
-                ctx=retractor,
+                ctx=_authority("actor-retractor", "retractor"),
                 expected_sequence=2,
                 rationale="issuer relationship withdrawn",
                 event_id="event-retracted",
             )
         )
 
+
+def test_governed_issuer_slice_survives_restart_and_empty_successor(
+    publication_session_factory: sessionmaker,
+) -> None:
+    """Publish, reload, then retain governed scope after the edge is retracted."""
+    _accept_issuer_assertion(publication_session_factory)
+    first_job_id = _create_running_job(publication_session_factory)
+    _finalize(publication_session_factory, first_job_id)
+    _verify_first_publication_and_retract(publication_session_factory)
     second_job_id = _create_running_job(publication_session_factory, persist_graph=False)
     _finalize(publication_session_factory, second_job_id)
 

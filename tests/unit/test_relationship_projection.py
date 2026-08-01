@@ -117,6 +117,18 @@ def test_overlay_adds_bidirectional_governed_edge_deterministically(predicates) 
     }
 
 
+@pytest.mark.parametrize("strength", ["NaN", "Infinity", "-0.1", "1.1"])
+def test_overlay_rejects_non_finite_or_out_of_range_strengths(predicates, strength: str) -> None:
+    """Governed edge strengths must remain finite and within the graph range."""
+    revision = _overlay_revision(
+        edges=(ProjectionEdge("BOND", "ISSUER", "corporate_link", strength, "subject_to_object", "assertion-1"),),
+        scopes=(GovernedScope(PURPOSE, PREDICATE_ID),),
+    )
+
+    with pytest.raises(ProjectionError, match="strength is out of range"):
+        overlay_governed_relationships({}, revision, predicates)
+
+
 @dataclass(frozen=True)
 class _AssertionSpec:
     """Fixture knobs for issuer-reference assertions."""

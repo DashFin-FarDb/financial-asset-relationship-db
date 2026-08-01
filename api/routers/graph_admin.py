@@ -12,6 +12,7 @@ import time
 from collections.abc import Callable, Generator
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import contextmanager
+from copy import copy
 from datetime import datetime, timezone
 from time import perf_counter
 from typing import Annotated, Any, NoReturn, cast
@@ -32,6 +33,7 @@ from src.data.relationship_assertion_repository import (
 from src.data.relationship_projection_persistence import PersistProjectionRequest
 from src.data.repository import (
     AssetGraphRepository,
+    CoordinationLockRepository,
     RebuildCancellationRequestedError,
     RebuildFailureDetails,
     session_scope,
@@ -40,7 +42,12 @@ from src.governance.relationship_assertion_contract import load_contract_bundle
 from src.logic.asset_graph import AssetRelationshipGraph
 from src.logic.reconciliation_engine import RebuildCancelledError
 from src.logic.recovery_gate import ExecutionBlockedError, RecoveryGate
-from src.logic.relationship_projection import ProjectRequest, overlay_governed_relationships, project
+from src.logic.relationship_projection import (
+    ProjectionRevision,
+    ProjectRequest,
+    overlay_governed_relationships,
+    project,
+)
 from src.observability.facade import ObservabilityEvent, log_event
 
 from ..api_models import (
@@ -995,6 +1002,10 @@ def _run_rebuild_pipeline(
     job_started_at: float,
     lock_lost: threading.Event,
     cancel_event: threading.Event,
+    lock_holder_id: str | None = None,
+    lock_ttl_seconds: int | None = None,
+    coordination_session_factory: Callable[[], Session] | None = None,
+    coordination_is_domain: bool = True,
 ) -> GraphRebuildResponse:
     """Run a single rebuild of the asset relationship graph."""
     source: GraphRebuildSource | None = None
@@ -1032,8 +1043,14 @@ def _run_rebuild_pipeline(
             job_started_at=job_started_at,
             lock_lost=lock_lost,
             cancel_event=cancel_event,
+            lock_holder_id=lock_holder_id,
+            lock_ttl_seconds=lock_ttl_seconds,
+            coordination_session_factory=coordination_session_factory,
+            coordination_is_domain=coordination_is_domain,
         )
         success_persisted = True
+        update_rebuild_state_metric("succeeded")
+        record_rebuild_state_transition("running", "succeeded")
         synchronize_runtime_graph(graph, job_id=job_id)
         return response
     except Exception as exc:
@@ -1198,7 +1215,7 @@ def _perform_rebuild_and_persist_sync(
     lock_acquired = False
 
     try:
-        lock_ttl = settings.rebuild_lock_ttl_seconds
+        lock_ttl = min(settings.rebuild_lock_ttl_seconds, 300)
         dist_lock = _acquire_rebuild_lock(coordination_session_factory, lock_ttl)
         lock_acquired = True
 
@@ -1236,6 +1253,10 @@ def _perform_rebuild_and_persist_sync(
                 job_started_at,
                 lock_lost,
                 cancel_event,
+                lock_holder_id=dist_lock.holder_id,
+                lock_ttl_seconds=lock_ttl,
+                coordination_session_factory=coordination_session_factory,
+                coordination_is_domain=coordination_engine is None,
             )
 
     finally:
@@ -1555,6 +1576,110 @@ def _sanitize_failure_message(exc: Exception | asyncio.CancelledError) -> str:
     return sanitized
 
 
+def _prepare_projection_publication(
+    assertion_repo: RelationshipAssertionRepository,
+    graph: AssetRelationshipGraph,
+    source: GraphRebuildSource,
+    publication_time: datetime,
+    cancel_event: threading.Event,
+) -> tuple[ProjectionRevision, AssetRelationshipGraph, GraphRebuildResponse]:
+    """Construct the governed projection, staged graph copy, and response."""
+    _contract, predicates, _transitions = load_contract_bundle()
+    snapshot = assertion_repo.load_projection_source_snapshot(cancel_check=cancel_event.is_set)
+    asset_ids = frozenset(graph.assets)
+    eligible_assertions = tuple(
+        assertion
+        for assertion in snapshot.assertions
+        if assertion.subject_id in asset_ids and assertion.object_id in asset_ids
+    )
+    revision = project(
+        ProjectRequest(
+            assertions=eligible_assertions,
+            events=snapshot.events,
+            evidence=snapshot.evidence,
+            evidence_links=snapshot.evidence_links,
+            predicate_registry=predicates,
+            purpose=_GRAC_CURRENT_PURPOSE,
+            effective_at=publication_time,
+            known_at=publication_time,
+            previously_published_scopes=assertion_repo.latest_published_scopes(_GRAC_CURRENT_PURPOSE),
+        )
+    )
+    publication_graph = copy(graph)
+    publication_graph.relationships = overlay_governed_relationships(graph.relationships, revision, predicates)
+    regulatory_events = getattr(publication_graph, "regulatory_events", []) or []
+    response = GraphRebuildResponse(
+        status="persisted",
+        source=source,
+        asset_count=len(publication_graph.assets),
+        relationship_count=sum(len(items) for items in publication_graph.relationships.values()),
+        regulatory_event_count=len(regulatory_events),
+    )
+    return revision, publication_graph, response
+
+
+@contextmanager
+def _publication_transactions(
+    domain_session_factory: Callable[[], Session],
+    coordination_session_factory: Callable[[], Session] | None,
+    *,
+    coordination_is_domain: bool,
+) -> Generator[tuple[Session, Session], None, None]:
+    """Hold the coordination predicate until the domain publication commits."""
+    domain_session = domain_session_factory()
+    try:
+        if coordination_is_domain:
+            coordination_session = domain_session
+        else:
+            if coordination_session_factory is None:
+                raise RuntimeError("Separate coordination persistence requires a session factory")
+            coordination_session = coordination_session_factory()
+    except Exception:
+        domain_session.close()
+        raise
+
+    try:
+        if domain_session.get_bind().dialect.name == "postgresql":
+            domain_session.connection(execution_options={"isolation_level": "REPEATABLE READ"})
+        yield domain_session, coordination_session
+        domain_session.commit()
+        if coordination_session is not domain_session:
+            try:
+                coordination_session.commit()
+            except Exception as exc:  # pylint: disable=broad-exception-caught
+                # Domain publication is already durable and was guarded at its commit point.
+                coordination_session.rollback()
+                logger.error(
+                    "Coordination lease renewal failed after durable publication commit: %s",
+                    type(exc).__name__,
+                )
+    except Exception:
+        domain_session.rollback()
+        if coordination_session is not domain_session:
+            coordination_session.rollback()
+        raise
+    finally:
+        if coordination_session is not domain_session:
+            coordination_session.close()
+        domain_session.close()
+
+
+def _renew_publication_lock(
+    session: Session,
+    *,
+    holder_id: str,
+    ttl_seconds: int,
+    stage: str,
+) -> None:
+    """Renew and transactionally hold the owner-validated publication lock."""
+    if not CoordinationLockRepository(session).renew_owned_lock(
+        lock_name="graph_rebuild",
+        holder_id=holder_id,
+        ttl_seconds=ttl_seconds,
+    ):
+        raise _DistributedLockLostError(f"Lost distributed lock at stage={stage}")
+
+
 def _finalize_rebuild_success(
     *,
     session_factory: Callable[[], Session],
@@ -1565,47 +1690,47 @@ def _finalize_rebuild_success(
     job_started_at: float,
     lock_lost: threading.Event,
     cancel_event: threading.Event,
+    lock_holder_id: str | None = None,
+    lock_ttl_seconds: int | None = None,
+    coordination_session_factory: Callable[[], Session] | None = None,
+    coordination_is_domain: bool = True,
 ) -> GraphRebuildResponse:
     """Atomically persist the graph, candidate, success transition, and publication."""
     _verify_execution_state(lock_lost, cancel_event, "publication-transaction-start")
-    publication_time = datetime.now(timezone.utc)  # noqa: UP017
-    _contract, predicates, _transitions = load_contract_bundle()
 
-    with session_scope(session_factory) as session:
-        assertion_repo = RelationshipAssertionRepository(session)
-        snapshot = assertion_repo.load_projection_source_snapshot()
-        revision = project(
-            ProjectRequest(
-                assertions=snapshot.assertions,
-                events=snapshot.events,
-                evidence=snapshot.evidence,
-                evidence_links=snapshot.evidence_links,
-                predicate_registry=predicates,
-                purpose=_GRAC_CURRENT_PURPOSE,
-                effective_at=publication_time,
-                known_at=publication_time,
-                previously_published_scopes=assertion_repo.latest_published_scopes(_GRAC_CURRENT_PURPOSE),
+    with _publication_transactions(
+        session_factory,
+        coordination_session_factory,
+        coordination_is_domain=coordination_is_domain,
+    ) as (session, coordination_session):
+        if (lock_holder_id is None) != (lock_ttl_seconds is None):
+            raise RuntimeError("Publication lock guard requires both holder identity and TTL")
+        if lock_holder_id is not None and lock_ttl_seconds is not None:
+            _renew_publication_lock(
+                coordination_session,
+                holder_id=lock_holder_id,
+                ttl_seconds=lock_ttl_seconds,
+                stage="publication-transaction-start",
             )
+
+        assertion_repo = RelationshipAssertionRepository(session)
+        publication_time = assertion_repo.next_publication_time(_GRAC_CURRENT_PURPOSE)
+        revision, publication_graph, response = _prepare_projection_publication(
+            assertion_repo,
+            graph,
+            source,
+            publication_time,
+            cancel_event,
         )
-        graph.relationships = overlay_governed_relationships(graph.relationships, revision, predicates)
+        stage_graph_snapshot(session, publication_graph)
 
-        regulatory_events = getattr(graph, "regulatory_events", []) or []
-        response = GraphRebuildResponse(
-            status="persisted",
-            source=source,
-            asset_count=len(graph.assets),
-            relationship_count=sum(len(items) for items in graph.relationships.values()),
-            regulatory_event_count=len(regulatory_events),
-        )
-        stage_graph_snapshot(session, graph)
-
-        pre_commit_stage = "publication-pre-success"
-
-        def _publication_gate() -> None:
-            """Recheck lock and cancellation immediately around finalization."""
-            nonlocal pre_commit_stage
-            _verify_execution_state(lock_lost, cancel_event, pre_commit_stage)
-            pre_commit_stage = "publication-pre-commit"
+        if lock_holder_id is not None and lock_ttl_seconds is not None:
+            _renew_publication_lock(
+                coordination_session,
+                holder_id=lock_holder_id,
+                ttl_seconds=lock_ttl_seconds,
+                stage="publication-pre-success",
+            )
 
         assertion_repo.finalize_projection_publication(
             FinalizeProjectionPublicationRequest(
@@ -1617,11 +1742,20 @@ def _finalize_rebuild_success(
                 duration_ms=_duration_ms(job_started_at),
                 published_at=publication_time,
             ),
-            pre_commit_check=_publication_gate,
+            pre_success_check=lambda: _verify_execution_state(
+                lock_lost,
+                cancel_event,
+                "publication-pre-success",
+            ),
+            pre_commit_check=lambda: _verify_execution_state(
+                lock_lost,
+                cancel_event,
+                "publication-pre-commit",
+            ),
         )
+        _verify_execution_state(lock_lost, cancel_event, "publication-outer-commit")
 
-    update_rebuild_state_metric("succeeded")
-    record_rebuild_state_transition("running", "succeeded")
+    graph.relationships = publication_graph.relationships
     return response
 
 

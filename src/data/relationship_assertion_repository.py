@@ -61,6 +61,7 @@ from src.governance.relationship_assertion_lifecycle import (
     validate_authority,
     validate_evidence_record,
 )
+from src.logic.reconciliation_engine import RebuildCancelledError
 from src.logic.relationship_projection import GovernedScope
 
 UTC = timezone.utc
@@ -727,11 +728,29 @@ class RelationshipAssertionRepository:
         """Load a persisted candidate revision and its ordered edges."""
         return ProjectionRevisionStore(self._session, clock=self._clock).get(revision_id)
 
-    def load_projection_source_snapshot(self) -> ProjectionSourceSnapshot:
-        """Load all append-only projector inputs in deterministic order."""
+    def load_projection_source_snapshot(
+        self,
+        *,
+        cancel_check: Callable[[], bool] | None = None,
+    ) -> ProjectionSourceSnapshot:
+        """Load all append-only projector inputs from one deterministic snapshot."""
+        bind = self._session.get_bind()
+        if bind.dialect.name == "postgresql" and not self._session.in_transaction():
+            self._session.connection(execution_options={"isolation_level": "REPEATABLE READ"})
+
+        def check_cancelled() -> None:
+            if cancel_check is not None and cancel_check():
+                raise RebuildCancelledError("Rebuild cancelled while loading projection source snapshot")
+
+        check_cancelled()
         assertion_rows = self._session.execute(
             select(RelationshipAssertionORM).order_by(RelationshipAssertionORM.id)
         ).scalars()
+        assertions = []
+        for row in assertion_rows:
+            check_cancelled()
+            assertions.append(_fix_assertion_mapping(row))
+
         event_rows = self._session.execute(
             select(RelationshipAssertionEventORM).order_by(
                 RelationshipAssertionEventORM.assertion_id,
@@ -739,9 +758,19 @@ class RelationshipAssertionRepository:
                 RelationshipAssertionEventORM.id,
             )
         ).scalars()
+        events = []
+        for row in event_rows:
+            check_cancelled()
+            events.append(_event_from_orm(row))
+
         evidence_rows = self._session.execute(
             select(RelationshipEvidenceORM).order_by(RelationshipEvidenceORM.id)
         ).scalars()
+        evidence = []
+        for row in evidence_rows:
+            check_cancelled()
+            evidence.append(_evidence_from_orm(row))
+
         link_rows = self._session.execute(
             select(RelationshipAssertionEvidenceORM).order_by(
                 RelationshipAssertionEvidenceORM.assertion_id,
@@ -749,11 +778,16 @@ class RelationshipAssertionRepository:
                 RelationshipAssertionEvidenceORM.id,
             )
         ).scalars()
+        evidence_links = []
+        for row in link_rows:
+            check_cancelled()
+            evidence_links.append(_link_from_orm(row))
+        check_cancelled()
         return ProjectionSourceSnapshot(
-            assertions=tuple(_fix_assertion_mapping(row) for row in assertion_rows),
-            events=tuple(_event_from_orm(row) for row in event_rows),
-            evidence=tuple(_evidence_from_orm(row) for row in evidence_rows),
-            evidence_links=tuple(_link_from_orm(row) for row in link_rows),
+            assertions=tuple(assertions),
+            events=tuple(events),
+            evidence=tuple(evidence),
+            evidence_links=tuple(evidence_links),
         )
 
     def latest_published_scopes(self, purpose: str) -> tuple[GovernedScope, ...]:
@@ -783,10 +817,40 @@ class RelationshipAssertionRepository:
         ).scalar_one_or_none()
         return None if revision_id is None else self.get_projection_revision(revision_id)
 
+    def next_publication_time(self, purpose: str) -> datetime:
+        """Return a database-derived timestamp ordered after prior successful publications."""
+        database_now: datetime | None
+        if self._session.get_bind().dialect.name == "sqlite":
+            raw_database_now = self._session.execute(select(func.strftime("%Y-%m-%d %H:%M:%f", "now"))).scalar_one()
+            database_now = datetime.fromisoformat(raw_database_now).replace(tzinfo=UTC)
+        else:
+            database_now = _as_utc(self._session.execute(select(func.current_timestamp())).scalar_one())
+        if database_now is None:
+            raise ValidationError("database current timestamp is required for publication")
+        latest = _as_utc(
+            self._session.execute(
+                select(func.max(RelationshipProjectionPublicationORM.published_at))
+                .join(
+                    RelationshipProjectionRevisionORM,
+                    RelationshipProjectionRevisionORM.id == RelationshipProjectionPublicationORM.revision_id,
+                )
+                .join(
+                    RebuildJobORM,
+                    RebuildJobORM.job_id == RelationshipProjectionPublicationORM.rebuild_job_id,
+                )
+                .where(RelationshipProjectionRevisionORM.purpose == purpose)
+                .where(RebuildJobORM.status == "succeeded")
+            ).scalar_one()
+        )
+        if latest is not None and latest >= database_now:
+            return latest + timedelta(microseconds=1)
+        return database_now
+
     def finalize_projection_publication(
         self,
         request: FinalizeProjectionPublicationRequest,
         *,
+        pre_success_check: Callable[[], None],
         pre_commit_check: Callable[[], None],
     ) -> PublishedProjectionRevision:
         """Atomically persist one candidate, succeed its owner job, and publish it.
@@ -799,8 +863,7 @@ class RelationshipAssertionRepository:
         if not isinstance(execution_id, str) or not execution_id.strip():
             raise ValidationError("publication execution_id must be non-null and non-empty")
 
-        persisted = self.persist_projection_revision(request.projection)
-        pre_commit_check()
+        pre_success_check()
 
         from src.data.repository import AssetGraphRepository  # pylint: disable=import-outside-toplevel
 
@@ -811,6 +874,7 @@ class RelationshipAssertionRepository:
             edge_count=request.edge_count,
             duration_ms=request.duration_ms,
         )
+        persisted = self.persist_projection_revision(request.projection)
 
         publication_id = request.publication_id or str(uuid4())
         published_at = self._server_time() if request.published_at is None else _server_utc(request.published_at)

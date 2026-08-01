@@ -462,6 +462,36 @@ def project(request: ProjectRequest) -> ProjectionRevision:
     )
 
 
+def _governed_edge_types(
+    revision: ProjectionRevision,
+    predicate_registry: PredicatesDocument | Sequence[PredicateSpec],
+) -> set[str]:
+    """Validate governed scopes and return the edge types they own."""
+    predicates = _predicate_index(predicate_registry)
+    edge_types: set[str] = set()
+    for scope in revision.governed_scopes:
+        if scope.purpose != revision.purpose:
+            raise ProjectionError("governed scope purpose does not match revision purpose")
+        predicate = predicates.get(scope.predicate_id)
+        if predicate is None:
+            raise ProjectionError(f"governed scope predicate is not registered: {scope.predicate_id}")
+        if predicate.projection.purpose != revision.purpose:
+            raise ProjectionError(f"governed scope predicate has wrong purpose: {scope.predicate_id}")
+        edge_types.add(predicate.projection.edge_type)
+    return edge_types
+
+
+def _edge_strength(edge: ProjectionEdge) -> float:
+    """Convert and range-check a governed edge strength."""
+    try:
+        strength = float(Decimal(edge.strength))
+    except (InvalidOperation, ValueError) as exc:
+        raise ProjectionError(f"projection edge has invalid strength: {edge.strength}") from exc
+    if not 0.0 <= strength <= 1.0:
+        raise ProjectionError(f"projection edge strength is out of range: {edge.strength}")
+    return strength
+
+
 def overlay_governed_relationships(
     relationships: Mapping[str, Sequence[GraphRelationship]],
     revision: ProjectionRevision,
@@ -473,17 +503,7 @@ def overlay_governed_relationships(
     emits no edges. This prevents an empty governed revision from allowing a
     legacy edge to reappear.
     """
-    predicates = _predicate_index(predicate_registry)
-    governed_edge_types: set[str] = set()
-    for scope in revision.governed_scopes:
-        if scope.purpose != revision.purpose:
-            raise ProjectionError("governed scope purpose does not match revision purpose")
-        predicate = predicates.get(scope.predicate_id)
-        if predicate is None:
-            raise ProjectionError(f"governed scope predicate is not registered: {scope.predicate_id}")
-        if predicate.projection.purpose != revision.purpose:
-            raise ProjectionError(f"governed scope predicate has wrong purpose: {scope.predicate_id}")
-        governed_edge_types.add(predicate.projection.edge_type)
+    governed_edge_types = _governed_edge_types(revision, predicate_registry)
 
     overlaid: dict[str, list[GraphRelationship]] = {}
     for source_id, entries in relationships.items():
@@ -494,12 +514,7 @@ def overlay_governed_relationships(
     for edge in revision.edges:
         if edge.edge_type not in governed_edge_types:
             raise ProjectionError(f"projection edge is outside governed scope: {edge.edge_type}")
-        try:
-            strength = float(Decimal(edge.strength))
-        except (InvalidOperation, ValueError) as exc:
-            raise ProjectionError(f"projection edge has invalid strength: {edge.strength}") from exc
-        if not 0.0 <= strength <= 1.0:
-            raise ProjectionError(f"projection edge strength is out of range: {edge.strength}")
+        strength = _edge_strength(edge)
         overlaid.setdefault(edge.source_id, []).append((edge.target_id, edge.edge_type, strength))
         if edge.direction == "bidirectional":
             overlaid.setdefault(edge.target_id, []).append((edge.source_id, edge.edge_type, strength))
