@@ -136,6 +136,7 @@ def test_cache_primed_read_is_refreshed_after_admin_publication(
     graph = AssetRelationshipGraph()
     graph.relationships = {"BOND": [("ISSUER", "issuer_link", 0.9)]}
     monkeypatch.setattr(relationships_router, "get_graph", lambda: graph)
+    monkeypatch.setattr(visualization_router, "get_graph", lambda: graph)
 
     state = {"assertion_id": "assertion-v1", "revision_id": "revision-v1"}
 
@@ -223,8 +224,7 @@ def test_cache_primed_read_is_refreshed_after_admin_publication(
     second_visualization = client.get("/api/visualization")
     assert second_visualization.status_code == 200
     assert second_visualization.json()["edges"][0]["assertion_id"] == "assertion-v2"
-    assert second_visualization.json()["edges"][0]["revision_id"] == "revisi
-
+    assert second_visualization.json()["edges"][0]["revision_id"] == "revision-v2"
 
 @pytest.mark.unit
 @pytest.mark.parametrize(
