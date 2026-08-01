@@ -459,7 +459,7 @@ async def test_lock_ttl_behavioral_contract(test_client: httpx.AsyncClient, sess
         # Signature: session_factory, dist_lock, job_id, execution_id, lock_ttl
         passed_lock_ttl = args[4]
         assert passed_lock_ttl == 30
-        assert mock_renew.call_count == 2
+        assert mock_renew.call_count == 3
         mock_renew.assert_called_with(lock_name="graph_rebuild", holder_id="test_worker", ttl_seconds=30)
 
 

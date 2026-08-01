@@ -1234,13 +1234,7 @@ def _perform_rebuild_and_persist_sync(
     user_ref: str,
     execution_id: str,
 ) -> GraphRebuildResponse:
-    """
-    Rebuild the asset graph, persist the result, and publish the new graph to runtime state.
-
-    Returns:
-        GraphRebuildResponse: Final rebuild response containing persisted status, source information,
-        and asset/relationship/regulatory counts.
-    """
+    """Rebuild, persist, and publish the asset relationship graph."""
     (
         domain_session_factory,
         coordination_session_factory,
@@ -1774,7 +1768,12 @@ def _finalize_rebuild_success(
         _guard_publication_lock(coordination_session, lock_holder_id, lock_ttl_seconds, "publication-pre-success")
 
         pre_success_check = partial(_verify_execution_state, lock_lost, cancel_event, "publication-pre-success")
-        pre_commit_check = partial(_verify_execution_state, lock_lost, cancel_event, "publication-pre-commit")
+
+        def pre_commit_check() -> None:
+            """Renew the held lease and verify events immediately before publication commit."""
+            _guard_publication_lock(coordination_session, lock_holder_id, lock_ttl_seconds, "publication-pre-commit")
+            _verify_execution_state(lock_lost, cancel_event, "publication-pre-commit")
+
         assertion_repo.finalize_projection_publication(
             FinalizeProjectionPublicationRequest(
                 projection=PersistProjectionRequest(revision=revision, created_at=publication_time),
