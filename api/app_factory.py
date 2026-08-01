@@ -40,6 +40,7 @@ from .graph_lifecycle_providers import (
 from .middleware.correlation import CorrelationMiddleware
 from .middleware.request_metrics import RequestMetricsMiddleware
 from .rate_limit import limiter
+from .routers.assertions import router as assertions_router
 from .routers.assets import router as assets_router
 from .routers.auth import router as auth_router
 from .routers.graph_admin import init_rebuild_executor
@@ -604,6 +605,7 @@ def create_app() -> FastAPI:
     app.add_middleware(CorrelationMiddleware)
 
     app.include_router(auth_router)
+    app.include_router(assertions_router)
     app.include_router(system_router)
     app.include_router(graph_admin_router)
     app.include_router(assets_router)

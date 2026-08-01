@@ -1,14 +1,27 @@
 """Visualization API routes."""
 
+from __future__ import annotations
+
 import logging
 import math
 
 from fastapi import APIRouter, HTTPException
 
+from src.data.database import create_engine_from_url, create_session_factory
+from src.data.relationship_assertion_repository import RelationshipAssertionRepository
+from src.data.repository import session_scope
+from src.governance.relationship_assertion_contract import load_contract_bundle
 from src.logic.asset_graph import AssetRelationshipGraph, calculate_graph_density
 from src.observability.facade import ObservabilityEvent, log_event
 
 from ..api_models import VisualizationDataResponse, VisualizationEdge, VisualizationNode
+from ..graph_lifecycle_providers import (
+    GraphPersistenceNonDurableError,
+    GraphPersistenceNotConfiguredError,
+    get_graph_lifecycle_settings,
+    resolve_durable_graph_persistence_url,
+    resolve_hosted_graph_database_url,
+)
 from ..router_helpers import (
     _ASSET_CLASS_COLORS,
     _DEFAULT_COLOR,
@@ -17,6 +30,46 @@ from ..router_helpers import (
 )
 
 router = APIRouter()
+_GRAC_CURRENT_PURPOSE = "financial_graph_current_view"
+
+
+def _governed_edge_index() -> dict[tuple[str, str, str], dict[str, object]]:
+    settings = get_graph_lifecycle_settings()
+    engine = None
+    try:
+        hosted_url = resolve_hosted_graph_database_url(settings)
+        fallback_url = getattr(settings, "database_url", None)
+        persistence_url = resolve_durable_graph_persistence_url(hosted_url or fallback_url)
+        engine = create_engine_from_url(persistence_url)
+        session_factory = create_session_factory(engine)
+        with session_scope(session_factory) as session:
+            repository = RelationshipAssertionRepository(session)
+            published = repository.latest_published_projection(_GRAC_CURRENT_PURPOSE)
+            if published is None:
+                return {}
+            _contract, predicates, _transitions = load_contract_bundle()
+            edge_type_scopes: dict[str, list[str]] = {}
+            for scope in published.revision.governed_scopes:
+                predicate = next((item for item in predicates.predicates if item.id == scope.predicate_id), None)
+                if predicate is None:
+                    continue
+                edge_type_scopes.setdefault(predicate.projection.edge_type, []).append(scope.predicate_id)
+            index: dict[tuple[str, str, str], dict[str, object]] = {}
+            for edge in published.revision.edges:
+                index[(edge.source_id, edge.target_id, edge.edge_type)] = {
+                    "assertion_id": edge.assertion_id,
+                    "governance_status": "governed",
+                    "revision_id": published.revision_id,
+                    "scope_refs": sorted(set(edge_type_scopes.get(edge.edge_type, []))),
+                }
+            return index
+    except (GraphPersistenceNotConfiguredError, GraphPersistenceNonDurableError):
+        return {}
+    except Exception:
+        return {}
+    finally:
+        if engine is not None:
+            engine.dispose()
 
 
 def _calculate_node_degrees(g: AssetRelationshipGraph) -> dict[str, int]:
@@ -69,20 +122,27 @@ def _build_visualization_nodes(
     return nodes
 
 
-def _build_visualization_edges(g: AssetRelationshipGraph) -> list[VisualizationEdge]:
+def _build_visualization_edges(
+    g: AssetRelationshipGraph,
+    governed_index: dict[tuple[str, str, str], dict[str, object]],
+) -> list[VisualizationEdge]:
     return [
         VisualizationEdge(
             source=source_id,
             target=target_id,
             relationship_type=rel_type,
             strength=strength,
+            assertion_id=(governed_index.get((source_id, target_id, rel_type)) or {}).get("assertion_id"),  # type: ignore[arg-type]
+            governance_status=(governed_index.get((source_id, target_id, rel_type)) or {}).get("governance_status"),  # type: ignore[arg-type]
+            revision_id=(governed_index.get((source_id, target_id, rel_type)) or {}).get("revision_id"),  # type: ignore[arg-type]
+            scope_refs=(governed_index.get((source_id, target_id, rel_type)) or {}).get("scope_refs"),  # type: ignore[arg-type]
         )
         for source_id, rels in g.relationships.items()
         for target_id, rel_type, strength in rels
     ]
 
 
-@router.get("/api/visualization", response_model=VisualizationDataResponse)
+@router.get("/api/visualization", response_model=VisualizationDataResponse, response_model_exclude_none=True)
 async def get_visualization_data() -> VisualizationDataResponse:
     """
     Produce visualization nodes and edges for the current asset relationship graph.
@@ -98,7 +158,7 @@ async def get_visualization_data() -> VisualizationDataResponse:
         g = get_graph()
         asset_ids = list(g.assets.keys())
         nodes = _build_visualization_nodes(g, asset_ids)
-        edges = _build_visualization_edges(g)
+        edges = _build_visualization_edges(g, _governed_edge_index())
         effective_assets_count = len(asset_ids)
         network_density = calculate_graph_density(effective_assets_count, len(edges))
         return VisualizationDataResponse(nodes=nodes, edges=edges, network_density=network_density)
