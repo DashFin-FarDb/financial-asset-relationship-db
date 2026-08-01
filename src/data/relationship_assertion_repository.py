@@ -25,8 +25,7 @@ from src.data.relationship_projection_persistence import (
     PublishedProjectionRevision,
     PublishProjectionRequest,
 )
-from src.logic.relationship_projection import GovernedScope
-
+from src.governance.relationship_assertion import (
     Assertion,
     AssertionAsOf,
     AssertionEvent,
@@ -61,6 +60,7 @@ from src.governance.relationship_assertion_lifecycle import (
     validate_authority,
     validate_evidence_record,
 )
+from src.logic.relationship_projection import GovernedScope
 
 UTC = timezone.utc
 _SUPERSESSION_LOCK_NAMESPACE = 0x46415244
@@ -691,17 +691,16 @@ class RelationshipAssertionRepository:
         return ProjectionRevisionStore(self._session, clock=self._clock).get(revision_id)
 
     def current_state(self, assertion_id: str) -> LifecycleState:
+        """Return the latest lifecycle state for ``assertion_id``."""
+        return self._current_state(assertion_id)
+
     def publish_projection_revision(self, request: PublishProjectionRequest) -> PublishedProjectionRevision:
         """Publish a projection revision through a succeeded rebuild with owner-matched execution_id."""
         return ProjectionRevisionStore(self._session, clock=self._clock).publish_revision(request)
 
     def latest_published_scopes(self, purpose: str) -> tuple[GovernedScope, ...]:
         """Load governed scopes from the latest successful publication for the purpose."""
-        from src.logic.relationship_projection import GovernedScope
         return ProjectionRevisionStore(self._session, clock=self._clock).latest_published_scopes(purpose)
-
-        """Return the latest lifecycle state for ``assertion_id``."""
-        return self._current_state(assertion_id)
 
     def max_sequence(self, assertion_id: str) -> int:
         """Return the highest event sequence for ``assertion_id`` (0 if none)."""

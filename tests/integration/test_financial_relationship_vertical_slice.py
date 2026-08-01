@@ -2,12 +2,15 @@
 
 from __future__ import annotations
 
+from collections.abc import Generator
 from datetime import datetime, timezone
 from uuid import uuid4
 
 import pytest
+from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 
+from src.data.database import create_session_factory, init_db
 from src.data.relationship_assertion_repository import (
     PublishProjectionRequest,
     RelationshipAssertionRepository,
@@ -16,11 +19,12 @@ from src.data.relationship_projection_persistence import PersistProjectionReques
 from src.data.repository import AssetGraphRepository
 from src.governance.relationship_assertion import ValidationError
 from src.governance.relationship_assertion_contract import (
-    PredicateProjection,
     PredicatesDocument,
     PredicateSpec,
+    ProjectionSpec,
 )
 from src.logic.relationship_projection import ProjectRequest, project
+from tests.conftest import enable_sqlite_foreign_keys
 
 UTC = timezone.utc
 
@@ -41,9 +45,11 @@ def sample_predicate_registry() -> PredicatesDocument:
         predicates=[
             PredicateSpec(
                 id="test_predicate",
+                subject_type="test_subject",
+                object_type="test_object",
                 conflict_key=["predicate_id", "subject_id"],
                 method_ids=["test_method"],
-                projection=PredicateProjection(
+                projection=ProjectionSpec(
                     purpose="test_purpose",
                     edge_type="TEST_EDGE",
                     strength="1.0",
@@ -287,6 +293,13 @@ class TestGovernedScopeContinuity:
 
 
 @pytest.fixture
-def session(postgresql_session: Session) -> Session:
-    """Provide PostgreSQL session for tests."""
-    return postgresql_session
+def session(tmp_path: pytest.TempPathFactory) -> Generator[Session, None, None]:
+    """Provide a self-contained SQLite session with the full GRAC schema."""
+    engine = create_engine(f"sqlite:///{tmp_path / 'vertical_slice.db'}")
+    enable_sqlite_foreign_keys(engine)
+    init_db(engine)
+    factory = create_session_factory(engine)
+    db_session = factory()
+    yield db_session
+    db_session.close()
+    engine.dispose()

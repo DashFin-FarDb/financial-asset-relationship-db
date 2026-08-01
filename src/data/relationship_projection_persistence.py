@@ -14,7 +14,6 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from src.data.db_models import RebuildJobORM
-from src.data.distributed_lock import DistributedLockConflict
 from src.data.relationship_assertion_db_models import (
     RelationshipProjectionEdgeORM,
     RelationshipProjectionPublicationORM,
@@ -321,7 +320,7 @@ class ProjectionRevisionStore:
             )
 
         # Owner-matched execution_id check (Stage-5C safeguard)
-        if request.execution_id is not None and job_row.execution_id != request.execution_id:
+        if request.execution_id != job_row.execution_id:
             raise ValidationError(
                 f"publication execution_id {request.execution_id} does not match "
                 f"rebuild job owner {job_row.execution_id}"
