@@ -617,7 +617,7 @@ class RelationshipAssertionRepository:
     ) -> tuple[EvidenceRecord, EvidenceLink]:
         if existing_link.polarity != polarity:
             raise ValidationError(
-                f"evidence link already exists with a different polarity ({existing_link.polarity} != {polarity})"
+                "evidence link already exists with a different polarity " f"({existing_link.polarity} != {polarity})"
             )
         evidence_row = self._session.get(RelationshipEvidenceORM, existing_link.evidence_id)
         if evidence_row is None:
@@ -725,18 +725,6 @@ class RelationshipAssertionRepository:
             effective_at=effective,
             known_at=known,
         )
-
-    def load_evidence_by_ids(self, evidence_ids: Sequence[str]) -> tuple[EvidenceRecord, ...]:
-        """Load only the evidence metadata identified by ``evidence_ids``."""
-        requested_ids = tuple(sorted(set(evidence_ids)))
-        if not requested_ids:
-            return ()
-        rows = self._session.execute(
-            select(RelationshipEvidenceORM)
-            .where(RelationshipEvidenceORM.id.in_(requested_ids))
-            .order_by(RelationshipEvidenceORM.id)
-        ).scalars()
-        return tuple(_evidence_from_orm(row) for row in rows)
 
     def persist_projection_revision(self, request: PersistProjectionRequest) -> PersistedProjectionRevision:
         """INSERT a candidate projection revision and its edges (publication is separate)."""

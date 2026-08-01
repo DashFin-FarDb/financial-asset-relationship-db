@@ -8,8 +8,10 @@ from fastapi import APIRouter, HTTPException
 
 from src.data.database import create_engine_from_url, create_session_factory
 from src.data.relationship_assertion_repository import RelationshipAssertionRepository
+from src.data.relationship_projection_persistence import PersistedProjectionRevision
 from src.data.repository import session_scope
-from src.governance.relationship_assertion_contract import load_contract_bundle
+from src.governance.relationship_assertion_contract import PredicatesDocument, load_contract_bundle
+from src.logic.relationship_projection import ProjectionEdge
 from src.observability.facade import ObservabilityEvent, log_event
 
 from ..api_models import RelationshipResponse
@@ -24,15 +26,63 @@ from ..router_helpers import get_graph, logger, raise_asset_not_found
 
 router = APIRouter()
 _GRAC_CURRENT_PURPOSE = "financial_graph_current_view"
+GovernanceMetadata = dict[str, object]
+GovernedRelationshipIndex = dict[tuple[str, str, str], GovernanceMetadata]
 
 
-def _governed_relationship_index() -> dict[tuple[str, str, str], dict[str, object]]:
+def _scope_refs_by_edge_type(
+    published: PersistedProjectionRevision,
+    predicates: PredicatesDocument,
+) -> dict[str, list[str]]:
+    """Index the published governed predicate scopes by projected edge type."""
+    predicates_by_id = {predicate.id: predicate for predicate in predicates.predicates}
+    edge_type_scopes: dict[str, list[str]] = {}
+    for scope in published.revision.governed_scopes:
+        predicate = predicates_by_id.get(scope.predicate_id)
+        if predicate is not None:
+            edge_type_scopes.setdefault(predicate.projection.edge_type, []).append(scope.predicate_id)
+    return edge_type_scopes
+
+
+def _add_governed_edge(
+    index: GovernedRelationshipIndex,
+    edge: ProjectionEdge,
+    metadata: GovernanceMetadata,
+) -> None:
+    """Add forward and, when governed as bidirectional, reverse index entries."""
+    index[(edge.source_id, edge.target_id, edge.edge_type)] = metadata
+    if edge.direction == "bidirectional":
+        index[(edge.target_id, edge.source_id, edge.edge_type)] = metadata
+
+
+def _published_relationship_index(
+    published: PersistedProjectionRevision,
+    predicates: PredicatesDocument,
+) -> GovernedRelationshipIndex:
+    """Build governance response metadata for one published projection revision."""
+    edge_type_scopes = _scope_refs_by_edge_type(published, predicates)
+    index: GovernedRelationshipIndex = {}
+    for edge in published.revision.edges:
+        metadata: GovernanceMetadata = {
+            "assertion_id": edge.assertion_id,
+            "governance_status": "governed",
+            "revision_id": published.revision_id,
+            "scope_refs": sorted(set(edge_type_scopes.get(edge.edge_type, []))),
+        }
+        _add_governed_edge(index, edge, metadata)
+    return index
+
+
+def load_governed_relationship_index() -> GovernedRelationshipIndex:
+    """Load metadata for the latest published governed relationship projection."""
     settings = get_graph_lifecycle_settings()
     engine = None
     try:
         hosted_url = resolve_hosted_graph_database_url(settings)
-        fallback_url = getattr(settings, "database_url", None)
-        persistence_url = resolve_durable_graph_persistence_url(hosted_url or fallback_url)
+        legacy_url = (
+            getattr(settings, "database_url", None) if not hasattr(settings, "asset_graph_database_url") else None
+        )
+        persistence_url = resolve_durable_graph_persistence_url(hosted_url or legacy_url)
         engine = create_engine_from_url(persistence_url)
         session_factory = create_session_factory(engine)
         with session_scope(session_factory) as session:
@@ -41,26 +91,32 @@ def _governed_relationship_index() -> dict[tuple[str, str, str], dict[str, objec
             if published is None:
                 return {}
             _contract, predicates, _transitions = load_contract_bundle()
-            edge_type_scopes: dict[str, list[str]] = {}
-            for scope in published.revision.governed_scopes:
-                predicate = next((item for item in predicates.predicates if item.id == scope.predicate_id), None)
-                if predicate is None:
-                    continue
-                edge_type_scopes.setdefault(predicate.projection.edge_type, []).append(scope.predicate_id)
-            index: dict[tuple[str, str, str], dict[str, object]] = {}
-            for edge in published.revision.edges:
-                index[(edge.source_id, edge.target_id, edge.edge_type)] = {
-                    "assertion_id": edge.assertion_id,
-                    "governance_status": "governed",
-                    "revision_id": published.revision_id,
-                    "scope_refs": sorted(set(edge_type_scopes.get(edge.edge_type, []))),
-                }
-            return index
+            return _published_relationship_index(published, predicates)
     except (GraphPersistenceNotConfiguredError, GraphPersistenceNonDurableError):
         return {}
     finally:
         if engine is not None:
             engine.dispose()
+
+
+def _relationship_response(
+    source_id: str,
+    target_id: str,
+    relationship_type: str,
+    strength: float,
+    governed_index: GovernedRelationshipIndex,
+) -> RelationshipResponse:
+    """Build one relationship response with at most one governance-index lookup."""
+    metadata = governed_index.get((source_id, target_id, relationship_type), {})
+    return RelationshipResponse.model_validate(
+        {
+            "source_id": source_id,
+            "target_id": target_id,
+            "relationship_type": relationship_type,
+            "strength": strength,
+            **metadata,
+        }
+    )
 
 
 @router.get("/api/assets/{asset_id}/relationships", response_model_exclude_none=True)
@@ -79,18 +135,9 @@ async def get_asset_relationships(asset_id: str) -> list[RelationshipResponse]:
         g = get_graph()
         if asset_id not in g.assets:
             raise_asset_not_found(asset_id)
-        governed_index = _governed_relationship_index()
+        governed_index = load_governed_relationship_index()
         return [
-            RelationshipResponse(
-                source_id=asset_id,
-                target_id=target_id,
-                relationship_type=rel_type,
-                strength=strength,
-                assertion_id=(governed_index.get((asset_id, target_id, rel_type)) or {}).get("assertion_id"),  # type: ignore[arg-type]
-                governance_status=(governed_index.get((asset_id, target_id, rel_type)) or {}).get("governance_status"),  # type: ignore[arg-type]
-                revision_id=(governed_index.get((asset_id, target_id, rel_type)) or {}).get("revision_id"),  # type: ignore[arg-type]
-                scope_refs=(governed_index.get((asset_id, target_id, rel_type)) or {}).get("scope_refs"),  # type: ignore[arg-type]
-            )
+            _relationship_response(asset_id, target_id, rel_type, strength, governed_index)
             for target_id, rel_type, strength in g.relationships.get(asset_id, [])
         ]
     except HTTPException:
@@ -128,18 +175,9 @@ async def get_all_relationships() -> list[RelationshipResponse]:
     """
     try:
         g = get_graph()
-        governed_index = _governed_relationship_index()
+        governed_index = load_governed_relationship_index()
         return [
-            RelationshipResponse(
-                source_id=source_id,
-                target_id=target_id,
-                relationship_type=rel_type,
-                strength=strength,
-                assertion_id=(governed_index.get((source_id, target_id, rel_type)) or {}).get("assertion_id"),  # type: ignore[arg-type]
-                governance_status=(governed_index.get((source_id, target_id, rel_type)) or {}).get("governance_status"),  # type: ignore[arg-type]
-                revision_id=(governed_index.get((source_id, target_id, rel_type)) or {}).get("revision_id"),  # type: ignore[arg-type]
-                scope_refs=(governed_index.get((source_id, target_id, rel_type)) or {}).get("scope_refs"),  # type: ignore[arg-type]
-            )
+            _relationship_response(source_id, target_id, rel_type, strength, governed_index)
             for source_id, rels in g.relationships.items()
             for target_id, rel_type, strength in rels
         ]
