@@ -5,7 +5,7 @@ from __future__ import annotations
 import os
 from dataclasses import dataclass
 from datetime import datetime, timezone
-from types import SimpleNamespace
+from types import ModuleType, SimpleNamespace
 from typing import cast
 from uuid import uuid4
 
@@ -22,7 +22,7 @@ from api.routers.assertions import _assertion_repository_session
 from src.data.database import create_engine_from_url, init_db
 from src.data.relationship_assertion_repository import RegisterEvidenceRequest, RelationshipAssertionRepository
 from src.data.relationship_projection_persistence import PersistedProjectionRevision
-from src.governance.relationship_assertion import AuthorityContext, EvidenceRecord
+from src.governance.relationship_assertion import AssertionAsOf, AuthorityContext, EvidenceRecord
 from src.governance.relationship_assertion_contract import PredicatesDocument
 
 UTC = timezone.utc
@@ -42,7 +42,7 @@ class _DecisionAuthorizationCase:
 class _GovernanceRouteCase:
     """One public route that consumes governed relationship metadata."""
 
-    route_module: object
+    route_module: ModuleType
     path: str
 
 
@@ -103,7 +103,7 @@ def configure_graph_persistence(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(relationships_router, "get_graph_lifecycle_settings", lambda: settings)
 
 
-@pytest.fixture()
+@pytest.fixture
 def client() -> TestClient:
     """FastAPI test client."""
     return TestClient(app)
@@ -127,6 +127,22 @@ def test_assertion_proposal_requires_authentication(client: TestClient) -> None:
     assertion_id = str(uuid4())
     response = client.post("/api/assertions", json=_proposal_payload(assertion_id))
     assert response.status_code == 401
+
+
+@pytest.mark.unit
+def test_proposal_propagates_correlation_id(client: TestClient) -> None:
+    """Authenticated command responses preserve the request correlation identifier."""
+    headers = _headers(_token("proposer_a"))
+    headers["X-Correlation-ID"] = "corr-assertion-api"
+
+    response = client.post(
+        "/api/assertions",
+        json=_proposal_payload(str(uuid4())),
+        headers=headers,
+    )
+
+    assert response.status_code == 200
+    assert response.json()["event"]["correlation_id"] == "corr-assertion-api"
 
 
 @pytest.mark.unit
@@ -270,6 +286,48 @@ def test_unexpected_command_failure_is_sanitized(
 
 
 @pytest.mark.unit
+def test_unknown_decision_and_supersession_return_not_found(client: TestClient) -> None:
+    """Commands targeting an absent predecessor return the contracted 404."""
+    assertion_id = str(uuid4())
+    reviewer_headers = _headers(_token("admin"))
+
+    decision = client.post(
+        f"/api/assertions/{assertion_id}/decisions",
+        json=_decision_payload("Accepted", 1, "accept"),
+        headers=reviewer_headers,
+    )
+    supersession = client.post(
+        f"/api/assertions/{assertion_id}/supersessions",
+        json={
+            "expected_sequence": 1,
+            "rationale": "supersede predecessor",
+            "accept_rationale": "accept successor",
+            "proposal_bearer_token": _token("proposer_b"),
+            "successor_proposal": _proposal_payload(str(uuid4())),
+        },
+        headers=reviewer_headers,
+    )
+
+    assert decision.status_code == 404
+    assert supersession.status_code == 404
+
+
+@pytest.mark.unit
+def test_invalid_proposal_contract_returns_unprocessable_entity(client: TestClient) -> None:
+    """Request validation rejects values outside the frozen confidence vocabulary."""
+    payload = _proposal_payload(str(uuid4()))
+    payload["confidence_status"] = "unsupported"
+
+    response = client.post(
+        "/api/assertions",
+        json=payload,
+        headers=_headers(_token("proposer_a")),
+    )
+
+    assert response.status_code == 422
+
+
+@pytest.mark.unit
 def test_assertion_store_does_not_fall_back_to_application_database(
     client: TestClient,
     monkeypatch: pytest.MonkeyPatch,
@@ -323,7 +381,6 @@ def test_decision_operator_audit_receives_request(
 
     def allow_operator(*, current_user: User, settings: object, request: Request) -> User:
         """Capture the request supplied to the operator authorization boundary."""
-        del settings
         audited_paths.append(request.url.path)
         return current_user
 
@@ -390,10 +447,14 @@ def test_history_is_monotonic_and_redacted_reads_hide_non_public_evidence(client
     events = history.json()["events"]
     assert [row["sequence"] for row in events] == [1, 2, 3]
     assert [row["recorded_at"] for row in events] == sorted(row["recorded_at"] for row in events)
+    sensitive_event_fields = {"actor_id", "rationale", "policy_version", "correlation_id"}
+    assert all(sensitive_event_fields.isdisjoint(row) for row in events)
 
     read = client.get(f"/api/assertions/{assertion_id}")
     assert read.status_code == 200
-    evidence_rows = read.json()["evidence"]
+    read_payload = read.json()
+    assert "proposer_actor_id" not in read_payload
+    evidence_rows = read_payload["evidence"]
     assert len(evidence_rows) == 1
     assert evidence_rows[0]["redacted"] is True
     assert evidence_rows[0].get("source_ref") is None
@@ -442,6 +503,32 @@ def test_explanation_loads_only_linked_evidence(client: TestClient, monkeypatch:
 
     assert read.status_code == 200
     assert [row["evidence_id"] for row in read.json()["evidence"]] == [evidence_id]
+
+
+@pytest.mark.unit
+def test_empty_repository_event_view_fails_closed(
+    client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """An invalid eventless repository view produces a bounded internal error."""
+    empty_view = cast(AssertionAsOf, SimpleNamespace(events=()))
+
+    def get_empty_view(
+        _repository: RelationshipAssertionRepository,
+        _assertion_id: str,
+        *,
+        known_at: datetime,
+        effective_at: datetime | None = None,
+    ) -> AssertionAsOf:
+        """Return an invalid view to exercise the API boundary guard."""
+        return empty_view
+
+    monkeypatch.setattr(RelationshipAssertionRepository, "get_as_of", get_empty_view)
+
+    response = client.get(f"/api/assertions/{uuid4()}")
+
+    assert response.status_code == 500
+    assert response.json() == {"detail": "An internal error occurred. Please try again later."}
 
 
 @pytest.mark.unit
@@ -500,6 +587,23 @@ def test_governance_failure_reaches_route_error_handler(
     response = client.get(case.path)
     assert response.status_code == 500
     assert response.json() == {"detail": "An internal error occurred. Please try again later."}
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize("path", ["/api/relationships", "/api/visualization"])
+def test_invalid_governance_url_returns_service_unavailable(
+    client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+    path: str,
+) -> None:
+    """Malformed configured governance persistence fails closed with a 503."""
+    settings = SimpleNamespace(asset_graph_database_url="not a database url", database_url=None)
+    monkeypatch.setattr(relationships_router, "get_graph_lifecycle_settings", lambda: settings)
+
+    response = client.get(path)
+
+    assert response.status_code == 503
+    assert response.json() == {"detail": "Graph persistence database is misconfigured"}
 
 
 @pytest.mark.unit

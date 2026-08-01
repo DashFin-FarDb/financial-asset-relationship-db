@@ -3,8 +3,10 @@
 from __future__ import annotations
 
 import logging
+from typing import Literal, TypeAlias, TypedDict
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, status
+from sqlalchemy.engine import Engine
 
 from src.data.database import create_engine_from_url, create_session_factory
 from src.data.relationship_assertion_repository import RelationshipAssertionRepository
@@ -16,6 +18,7 @@ from src.observability.facade import ObservabilityEvent, log_event
 
 from ..api_models import RelationshipResponse
 from ..graph_lifecycle_providers import (
+    GraphPersistenceInvalidUrlError,
     GraphPersistenceNonDurableError,
     GraphPersistenceNotConfiguredError,
     get_graph_lifecycle_settings,
@@ -26,8 +29,19 @@ from ..router_helpers import get_graph, logger, raise_asset_not_found
 
 router = APIRouter()
 _GRAC_CURRENT_PURPOSE = "financial_graph_current_view"
-GovernanceMetadata = dict[str, object]
-GovernedRelationshipIndex = dict[tuple[str, str, str], GovernanceMetadata]
+
+
+class GovernanceMetadata(TypedDict):
+    """Strict governance fields attached to one published relationship edge."""
+
+    assertion_id: str
+    governance_status: Literal["governed"]
+    revision_id: str
+    scope_refs: list[str]
+
+
+GovernedRelationshipIndex: TypeAlias = dict[tuple[str, str, str], GovernanceMetadata]
+GraphRelationship: TypeAlias = tuple[str, str, float]
 
 
 def _scope_refs_by_edge_type(
@@ -76,7 +90,7 @@ def _published_relationship_index(
 def load_governed_relationship_index() -> GovernedRelationshipIndex:
     """Load metadata for the latest published governed relationship projection."""
     settings = get_graph_lifecycle_settings()
-    engine = None
+    engine: Engine | None = None
     try:
         hosted_url = resolve_hosted_graph_database_url(settings)
         legacy_url = (
@@ -92,6 +106,11 @@ def load_governed_relationship_index() -> GovernedRelationshipIndex:
                 return {}
             _contract, predicates, _transitions = load_contract_bundle()
             return _published_relationship_index(published, predicates)
+    except GraphPersistenceInvalidUrlError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Graph persistence database is misconfigured",
+        ) from exc
     except (GraphPersistenceNotConfiguredError, GraphPersistenceNonDurableError):
         return {}
     finally:
@@ -101,22 +120,21 @@ def load_governed_relationship_index() -> GovernedRelationshipIndex:
 
 def _relationship_response(
     source_id: str,
-    target_id: str,
-    relationship_type: str,
-    strength: float,
+    relationship: GraphRelationship,
     governed_index: GovernedRelationshipIndex,
 ) -> RelationshipResponse:
     """Build one relationship response with at most one governance-index lookup."""
-    metadata = governed_index.get((source_id, target_id, relationship_type), {})
-    return RelationshipResponse.model_validate(
-        {
-            "source_id": source_id,
-            "target_id": target_id,
-            "relationship_type": relationship_type,
-            "strength": strength,
-            **metadata,
-        }
-    )
+    target_id, relationship_type, strength = relationship
+    payload: dict[str, object] = {
+        "source_id": source_id,
+        "target_id": target_id,
+        "relationship_type": relationship_type,
+        "strength": strength,
+    }
+    metadata = governed_index.get((source_id, target_id, relationship_type))
+    if metadata is not None:
+        payload.update(metadata)
+    return RelationshipResponse.model_validate(payload)
 
 
 @router.get("/api/assets/{asset_id}/relationships", response_model_exclude_none=True)
@@ -137,8 +155,8 @@ async def get_asset_relationships(asset_id: str) -> list[RelationshipResponse]:
             raise_asset_not_found(asset_id)
         governed_index = load_governed_relationship_index()
         return [
-            _relationship_response(asset_id, target_id, rel_type, strength, governed_index)
-            for target_id, rel_type, strength in g.relationships.get(asset_id, [])
+            _relationship_response(asset_id, relationship, governed_index)
+            for relationship in g.relationships.get(asset_id, [])
         ]
     except HTTPException:
         raise
@@ -177,10 +195,12 @@ async def get_all_relationships() -> list[RelationshipResponse]:
         g = get_graph()
         governed_index = load_governed_relationship_index()
         return [
-            _relationship_response(source_id, target_id, rel_type, strength, governed_index)
+            _relationship_response(source_id, relationship, governed_index)
             for source_id, rels in g.relationships.items()
-            for target_id, rel_type, strength in rels
+            for relationship in rels
         ]
+    except HTTPException:
+        raise
     except Exception as e:
         log_event(
             logger,
