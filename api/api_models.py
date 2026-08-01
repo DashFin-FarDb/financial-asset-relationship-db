@@ -59,6 +59,10 @@ class RelationshipResponse(BaseModel):
     target_id: str
     relationship_type: str
     strength: float
+    assertion_id: str | None = None
+    governance_status: str | None = None
+    revision_id: str | None = None
+    scope_refs: list[str] | None = None
 
 
 class MetricsResponse(BaseModel):
@@ -97,6 +101,10 @@ class VisualizationEdge(BaseModel):
     target: str
     relationship_type: str
     strength: float
+    assertion_id: str | None = None
+    governance_status: str | None = None
+    revision_id: str | None = None
+    scope_refs: list[str] | None = None
 
 
 class VisualizationDataResponse(BaseModel):
