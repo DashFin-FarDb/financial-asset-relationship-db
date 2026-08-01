@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
+import re
 from collections.abc import Iterator, Mapping
 from contextlib import contextmanager
+from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Annotated, NoReturn, cast
 from uuid import uuid4
@@ -70,6 +72,7 @@ router = APIRouter()
 _UTC = timezone.utc
 _INTERNAL_ERROR_DETAIL = "An internal error occurred. Please try again later."
 _PROPOSAL_AUTHORIZATION_HEADER = "X-Proposal-Authorization"
+_PROPOSAL_BEARER_PATTERN = re.compile(r"Bearer (?P<token>\S+)", flags=re.IGNORECASE)
 _DOMAIN_ERROR_STATUSES: dict[type[Exception], int] = {
     ConcurrencyConflict: status.HTTP_409_CONFLICT,
     SupersessionCycle: status.HTTP_409_CONFLICT,
@@ -77,6 +80,14 @@ _DOMAIN_ERROR_STATUSES: dict[type[Exception], int] = {
     ValidationError: status.HTTP_422_UNPROCESSABLE_ENTITY,
     IllegalTransition: status.HTTP_422_UNPROCESSABLE_ENTITY,
 }
+
+
+@dataclass(frozen=True)
+class SupersessionAuthorityContexts:
+    """Separately authenticated proposal and determination authority contexts."""
+
+    proposal: AuthorityContext
+    determination: AuthorityContext
 
 
 def _authority_context(actor_id: str, role: AuthorityRole, request: Request) -> AuthorityContext:
@@ -139,29 +150,21 @@ def _proposal_bearer_token(
     ] = None,
 ) -> str:
     """Extract a strict bearer token from the secondary proposal authorization header."""
-    scheme, separator, token = (proposal_authorization or "").partition(" ")
-    if scheme.lower() != "bearer" or not separator or not token or token != token.strip() or " " in token:
+    match = _PROPOSAL_BEARER_PATTERN.fullmatch(proposal_authorization or "")
+    if match is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Could not validate proposal credentials",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    return token
+    return match.group("token")
 
 
-@contextmanager
-def _assertion_repository_session() -> Iterator[Session]:
-    """Yield a repository session bound only to durable graph persistence."""
+def _resolve_assertion_persistence_url() -> str:
+    """Return the explicit durable assertion-store URL with bounded configuration errors."""
     settings = get_graph_lifecycle_settings()
-    engine: Engine | None = None
     try:
-        persistence_url = resolve_durable_graph_persistence_url(settings.asset_graph_database_url)
-        engine = create_engine_from_url(persistence_url)
-        session_factory = create_session_factory(engine)
-        with session_scope(session_factory) as session:
-            yield session
-    except HTTPException:
-        raise
+        return resolve_durable_graph_persistence_url(settings.asset_graph_database_url)
     except GraphPersistenceInvalidUrlError as exc:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
@@ -172,6 +175,20 @@ def _assertion_repository_session() -> Iterator[Session]:
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="Graph persistence database not configured",
         ) from exc
+
+
+@contextmanager
+def _assertion_repository_session() -> Iterator[Session]:
+    """Yield a repository session bound only to durable graph persistence."""
+    engine: Engine | None = None
+    try:
+        persistence_url = _resolve_assertion_persistence_url()
+        engine = create_engine_from_url(persistence_url)
+        session_factory = create_session_factory(engine)
+        with session_scope(session_factory) as session:
+            yield session
+    except HTTPException:
+        raise
     except Exception as exc:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -295,6 +312,24 @@ def _resolve_proposer_user_from_token(token: str, request: Request) -> User:
     return user
 
 
+def _supersession_authority_contexts(
+    request: Request,
+    current_user: Annotated[User, Depends(get_current_active_user)],
+    proposal_bearer_token: Annotated[str, Depends(_proposal_bearer_token)],
+) -> SupersessionAuthorityContexts:
+    """Authenticate and build the two authority contexts required by supersession."""
+    reviewer = get_current_rebuild_operator_user(
+        current_user=current_user,
+        settings=get_settings(),
+        request=request,
+    )
+    proposer_user = _resolve_proposer_user_from_token(proposal_bearer_token, request)
+    return SupersessionAuthorityContexts(
+        proposal=_authority_context(proposer_user.username, "proposer", request),
+        determination=_authority_context(reviewer.username, "acceptor", request),
+    )
+
+
 @router.post("/api/assertions")
 async def create_assertion(
     payload: AssertionProposalRequest,
@@ -381,19 +416,9 @@ async def decide_assertion(
 async def supersede_assertion(
     assertion_id: str,
     payload: AssertionSupersessionRequest,
-    request: Request,
-    current_user: Annotated[User, Depends(get_current_active_user)],
-    proposal_bearer_token: Annotated[str, Depends(_proposal_bearer_token)],
+    authority: Annotated[SupersessionAuthorityContexts, Depends(_supersession_authority_contexts)],
 ) -> AssertionCommandResponse:
     """Atomically create a successor assertion and supersede the predecessor."""
-    reviewer = get_current_rebuild_operator_user(
-        current_user=current_user,
-        settings=get_settings(),
-        request=request,
-    )
-    proposer_user = _resolve_proposer_user_from_token(proposal_bearer_token, request)
-    proposal_ctx = _authority_context(proposer_user.username, "proposer", request)
-    determination_ctx = _authority_context(reviewer.username, "acceptor", request)
     successor = AssertionProposal(
         assertion_id=payload.successor_proposal.assertion_id,
         predicate_id=payload.successor_proposal.predicate_id,
@@ -411,8 +436,8 @@ async def supersede_assertion(
     command = SupersedeAtomicRequest(
         predecessor_id=assertion_id,
         successor_proposal=successor,
-        proposal_ctx=proposal_ctx,
-        determination_ctx=determination_ctx,
+        proposal_ctx=authority.proposal,
+        determination_ctx=authority.determination,
         expected_sequence=payload.expected_sequence,
         rationale=payload.rationale,
         accept_rationale=payload.accept_rationale,
