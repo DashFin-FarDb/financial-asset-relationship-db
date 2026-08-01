@@ -23,18 +23,10 @@ from .api_assertion_test_support import (
     _supersession_headers,
     _token,
 )
-from .api_assertion_test_support import (
-    client as client,
-)
-from .api_assertion_test_support import (
-    configure_graph_persistence as configure_graph_persistence,
-)
-from .api_assertion_test_support import (
-    initialize_assertion_store as initialize_assertion_store,
-)
-from .api_assertion_test_support import (
-    seed_users as seed_users,
-)
+from .api_assertion_test_support import client as client
+from .api_assertion_test_support import configure_graph_persistence as configure_graph_persistence
+from .api_assertion_test_support import initialize_assertion_store as initialize_assertion_store
+from .api_assertion_test_support import seed_users as seed_users
 
 
 @dataclass(frozen=True)
