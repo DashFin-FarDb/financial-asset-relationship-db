@@ -2,19 +2,20 @@
 
 from __future__ import annotations
 
-from collections.abc import Iterator
+from collections.abc import Iterator, Mapping
 from contextlib import contextmanager
 from datetime import datetime, timezone
-from typing import Annotated, NoReturn
+from typing import Annotated, NoReturn, cast
 from uuid import uuid4
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from sqlalchemy import select
+from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session
 
 from src.config.settings import get_settings
 from src.data.database import create_engine_from_url, create_session_factory
-from src.data.relationship_assertion_db_models import RelationshipEvidenceORM
+from src.data.relationship_assertion_db_models import RelationshipAssertionORM, RelationshipEvidenceORM
 from src.data.relationship_assertion_repository import (
     RelationshipAssertionRepository,
     RepositoryTransitionRequest,
@@ -28,10 +29,12 @@ from src.governance.relationship_assertion import (
     AuthorityContext,
     AuthorityRole,
     ConcurrencyConflict,
+    EvidenceLink,
     IllegalTransition,
     SupersessionCycle,
     UnauthorizedTransition,
     ValidationError,
+    Visibility,
 )
 from src.governance.relationship_assertion_contract import CONTRACT_VERSION
 
@@ -42,6 +45,7 @@ from ..assertion_models import (
     AssertionEvidenceMetadataResponse,
     AssertionHistoryResponse,
     AssertionProposalRequest,
+    AssertionPublicEventResponse,
     AssertionReadResponse,
     AssertionSupersessionRequest,
 )
@@ -65,6 +69,14 @@ from ..graph_lifecycle_providers import (
 
 router = APIRouter()
 _UTC = timezone.utc
+_INTERNAL_ERROR_DETAIL = "An internal error occurred. Please try again later."
+_DOMAIN_ERROR_STATUSES: dict[type[Exception], int] = {
+    ConcurrencyConflict: status.HTTP_409_CONFLICT,
+    SupersessionCycle: status.HTTP_409_CONFLICT,
+    UnauthorizedTransition: status.HTTP_409_CONFLICT,
+    ValidationError: status.HTTP_422_UNPROCESSABLE_ENTITY,
+    IllegalTransition: status.HTTP_422_UNPROCESSABLE_ENTITY,
+}
 
 
 def _authority_context(actor_id: str, role: AuthorityRole, request: Request) -> AuthorityContext:
@@ -96,35 +108,27 @@ def _event_response(event: AssertionEvent) -> AssertionEventResponse:
     )
 
 
-def _unauthorized_status(detail: str) -> int:
-    """Map an authorization-domain detail to its contracted HTTP status."""
-    actor_conflict = "proposer of record" in detail or "must differ from the assertion proposer" in detail
-    return status.HTTP_409_CONFLICT if actor_conflict else status.HTTP_403_FORBIDDEN
-
-
-def _validation_status(detail: str) -> int:
-    """Map validation details for missing assertions without exposing internals."""
-    missing = "unknown assertion_id" in detail or "unknown or eventless assertion_id" in detail
-    return status.HTTP_404_NOT_FOUND if missing else status.HTTP_422_UNPROCESSABLE_ENTITY
+def _public_event_response(event: AssertionEvent) -> AssertionPublicEventResponse:
+    """Convert a lifecycle event into its identity-redacted public view."""
+    return AssertionPublicEventResponse(
+        event_id=event.event_id,
+        assertion_id=event.assertion_id,
+        sequence=event.sequence,
+        from_state=event.from_state,
+        to_state=event.to_state,
+        authority=event.authority,
+        recorded_at=event.recorded_at,
+        successor_assertion_id=event.successor_assertion_id,
+    )
 
 
 def _raise_domain_error(exc: Exception) -> NoReturn:
     """Raise the bounded HTTP error corresponding to a repository command failure."""
-    if isinstance(exc, ConcurrencyConflict):
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc)) from exc
-    if isinstance(exc, SupersessionCycle):
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc)) from exc
-    if isinstance(exc, UnauthorizedTransition):
-        detail = str(exc)
-        raise HTTPException(status_code=_unauthorized_status(detail), detail=detail) from exc
-    if isinstance(exc, ValidationError):
-        detail = str(exc)
-        raise HTTPException(status_code=_validation_status(detail), detail=detail) from exc
-    if isinstance(exc, IllegalTransition):
-        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(exc)) from exc
+    status_code = _DOMAIN_ERROR_STATUSES.get(type(exc), status.HTTP_500_INTERNAL_SERVER_ERROR)
+    detail = _INTERNAL_ERROR_DETAIL if status_code == status.HTTP_500_INTERNAL_SERVER_ERROR else str(exc)
     raise HTTPException(
-        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-        detail="An internal error occurred. Please try again later.",
+        status_code=status_code,
+        detail=detail,
     ) from exc
 
 
@@ -132,7 +136,7 @@ def _raise_domain_error(exc: Exception) -> NoReturn:
 def _assertion_repository_session() -> Iterator[Session]:
     """Yield a repository session bound only to durable graph persistence."""
     settings = get_graph_lifecycle_settings()
-    engine = None
+    engine: Engine | None = None
     try:
         hosted_url = resolve_hosted_graph_database_url(settings)
         legacy_url = (
@@ -159,56 +163,79 @@ def _assertion_repository_session() -> Iterator[Session]:
             engine.dispose()
 
 
+def _load_evidence_by_id(
+    evidence_ids: set[str],
+    session: Session,
+) -> dict[str, RelationshipEvidenceORM]:
+    """Load the bounded evidence subset linked to one assertion view."""
+    if not evidence_ids:
+        return {}
+    evidence_rows = session.execute(
+        select(RelationshipEvidenceORM).where(RelationshipEvidenceORM.id.in_(sorted(evidence_ids)))
+    ).scalars()
+    return {item.id: item for item in evidence_rows}
+
+
+def _evidence_response(
+    link: EvidenceLink,
+    evidence_by_id: Mapping[str, RelationshipEvidenceORM],
+) -> AssertionEvidenceMetadataResponse:
+    """Return one public evidence row, redacting missing or non-public metadata."""
+    evidence = evidence_by_id.get(link.evidence_id)
+    if evidence is None:
+        return AssertionEvidenceMetadataResponse(
+            evidence_id=link.evidence_id,
+            polarity=link.polarity,
+            visibility="restricted",
+            redacted=True,
+        )
+    visibility = cast(Visibility, evidence.visibility)
+    is_public = visibility == "public"
+    return AssertionEvidenceMetadataResponse(
+        evidence_id=evidence.id,
+        polarity=link.polarity,
+        visibility=visibility,
+        redacted=not is_public,
+        source_ref=evidence.source_ref if is_public else None,
+        media_type=evidence.media_type if is_public else None,
+        content_sha256=evidence.content_sha256 if is_public else None,
+        observed_at=evidence.observed_at if is_public else None,
+        issued_at=evidence.issued_at if is_public else None,
+        licensing=evidence.licensing if is_public else None,
+        reuse_policy=evidence.reuse_policy if is_public else None,
+        recorded_at=evidence.recorded_at if is_public else None,
+    )
+
+
 def _assertion_evidence(
     as_of: AssertionAsOf,
     session: Session,
 ) -> list[AssertionEvidenceMetadataResponse]:
     """Load and redact only evidence linked to the requested assertion view."""
-    evidence_ids = sorted({link.evidence_id for link in as_of.evidence_links})
-    evidence_by_id: dict[str, RelationshipEvidenceORM] = {}
-    if evidence_ids:
-        evidence_rows = session.execute(
-            select(RelationshipEvidenceORM).where(RelationshipEvidenceORM.id.in_(evidence_ids))
-        ).scalars()
-        evidence_by_id = {item.id: item for item in evidence_rows}
-    rows: list[AssertionEvidenceMetadataResponse] = []
-    for link in as_of.evidence_links:
-        evidence = evidence_by_id.get(link.evidence_id)
-        if evidence is None:
-            rows.append(
-                AssertionEvidenceMetadataResponse(
-                    evidence_id=link.evidence_id,
-                    polarity=link.polarity,
-                    visibility="restricted",
-                    redacted=True,
-                )
-            )
-            continue
-        is_public = evidence.visibility == "public"
-        rows.append(
-            AssertionEvidenceMetadataResponse(
-                evidence_id=evidence.id,
-                polarity=link.polarity,
-                visibility=evidence.visibility,
-                redacted=not is_public,
-                source_ref=evidence.source_ref if is_public else None,
-                media_type=evidence.media_type if is_public else None,
-                content_sha256=evidence.content_sha256 if is_public else None,
-                observed_at=evidence.observed_at if is_public else None,
-                issued_at=evidence.issued_at if is_public else None,
-                licensing=evidence.licensing if is_public else None,
-                reuse_policy=evidence.reuse_policy if is_public else None,
-                recorded_at=evidence.recorded_at if is_public else None,
-            )
-        )
-    return rows
+    evidence_ids = {link.evidence_id for link in as_of.evidence_links}
+    evidence_by_id = _load_evidence_by_id(evidence_ids, session)
+    return [_evidence_response(link, evidence_by_id) for link in as_of.evidence_links]
+
+
+def _require_assertion_events(as_of: AssertionAsOf) -> tuple[AssertionEvent, ...]:
+    """Return the reconstructed event stream or fail closed on an invalid repository view."""
+    if not as_of.events:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=_INTERNAL_ERROR_DETAIL)
+    return as_of.events
+
+
+def _require_assertion_exists(session: Session, assertion_id: str) -> None:
+    """Raise the public not-found response before executing a repository command."""
+    if session.get(RelationshipAssertionORM, assertion_id) is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"unknown assertion_id: {assertion_id}")
 
 
 def _assertion_read_response(
     as_of: AssertionAsOf,
     session: Session,
 ) -> AssertionReadResponse:
-    """Build a public explanation from ``get_as_of``'s non-empty event view."""
+    """Build a public explanation from a validated non-empty event view."""
+    events = _require_assertion_events(as_of)
     return AssertionReadResponse(
         assertion_id=as_of.assertion.assertion_id,
         predicate_id=as_of.assertion.predicate_id,
@@ -226,8 +253,7 @@ def _assertion_read_response(
         state=as_of.state,
         known_at=as_of.known_at,
         effective_at=as_of.effective_at,
-        sequence=as_of.events[-1].sequence,
-        proposer_actor_id=as_of.events[0].actor_id,
+        sequence=events[-1].sequence,
         evidence=_assertion_evidence(as_of, session),
     )
 
@@ -250,7 +276,7 @@ def _resolve_proposer_user_from_token(token: str, request: Request) -> User:
     return user
 
 
-@router.post("/api/assertions", response_model=AssertionCommandResponse)
+@router.post("/api/assertions")
 async def create_assertion(
     payload: AssertionProposalRequest,
     request: Request,
@@ -287,7 +313,7 @@ async def create_assertion(
             _raise_domain_error(exc)
 
 
-@router.post("/api/assertions/{assertion_id}/decisions", response_model=AssertionCommandResponse)
+@router.post("/api/assertions/{assertion_id}/decisions")
 async def decide_assertion(
     assertion_id: str,
     payload: AssertionDecisionRequest,
@@ -298,7 +324,7 @@ async def decide_assertion(
     if payload.to_state == "Withdrawn":
         ctx = _authority_context(current_user.username, "proposer", request)
     else:
-        reviewer = get_current_rebuild_operator_user(  # type: ignore[arg-type]
+        reviewer = get_current_rebuild_operator_user(
             current_user=current_user,
             settings=get_settings(),
             request=request,
@@ -319,6 +345,7 @@ async def decide_assertion(
         rationale=payload.rationale,
     )
     with _assertion_repository_session() as session:
+        _require_assertion_exists(session, assertion_id)
         repo = RelationshipAssertionRepository(session)
         try:
             event = repo.transition(transition)
@@ -331,7 +358,7 @@ async def decide_assertion(
             _raise_domain_error(exc)
 
 
-@router.post("/api/assertions/{assertion_id}/supersessions", response_model=AssertionCommandResponse)
+@router.post("/api/assertions/{assertion_id}/supersessions")
 async def supersede_assertion(
     assertion_id: str,
     payload: AssertionSupersessionRequest,
@@ -339,7 +366,7 @@ async def supersede_assertion(
     current_user: Annotated[User, Depends(get_current_active_user)],
 ) -> AssertionCommandResponse:
     """Atomically create a successor assertion and supersede the predecessor."""
-    reviewer = get_current_rebuild_operator_user(  # type: ignore[arg-type]
+    reviewer = get_current_rebuild_operator_user(
         current_user=current_user,
         settings=get_settings(),
         request=request,
@@ -371,6 +398,7 @@ async def supersede_assertion(
         accept_rationale=payload.accept_rationale,
     )
     with _assertion_repository_session() as session:
+        _require_assertion_exists(session, assertion_id)
         repo = RelationshipAssertionRepository(session)
         try:
             _succ, _propose, _accept, supersede = repo.supersede_atomic(command)
@@ -383,7 +411,7 @@ async def supersede_assertion(
             _raise_domain_error(exc)
 
 
-@router.get("/api/assertions/{assertion_id}", response_model=AssertionReadResponse)
+@router.get("/api/assertions/{assertion_id}")
 async def get_assertion(
     assertion_id: str,
     known_at: Annotated[datetime | None, Query()] = None,
@@ -402,7 +430,7 @@ async def get_assertion(
         return _assertion_read_response(as_of, session)
 
 
-@router.get("/api/assertions/{assertion_id}/history", response_model=AssertionHistoryResponse)
+@router.get("/api/assertions/{assertion_id}/history")
 async def get_assertion_history(
     assertion_id: str,
     known_at: Annotated[datetime | None, Query()] = None,
@@ -418,7 +446,7 @@ async def get_assertion_history(
         )
         if as_of is None:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"unknown assertion_id: {assertion_id}")
-        events = [_event_response(event) for event in as_of.events]
+        events = [_public_event_response(event) for event in _require_assertion_events(as_of)]
         return AssertionHistoryResponse(
             assertion_id=assertion_id,
             effective_from=as_of.assertion.effective_from,

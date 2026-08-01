@@ -7,6 +7,14 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from src.governance.relationship_assertion import (
+    AuthorityRole,
+    ConfidenceStatus,
+    EvidencePolarity,
+    LifecycleState,
+    Visibility,
+)
+
 
 class AssertionProposalRequest(BaseModel):
     """Request body for authenticated assertion proposal creation."""
@@ -57,9 +65,9 @@ class AssertionEventResponse(BaseModel):
     event_id: str
     assertion_id: str
     sequence: int
-    from_state: str | None
-    to_state: str
-    authority: str
+    from_state: LifecycleState | None
+    to_state: LifecycleState
+    authority: AuthorityRole
     actor_id: str
     rationale: str
     policy_version: str
@@ -74,8 +82,8 @@ class AssertionEvidenceMetadataResponse(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     evidence_id: str
-    polarity: Literal["supporting", "opposing", "contextual"]
-    visibility: Literal["public", "internal", "restricted", "confidential"] | str
+    polarity: EvidencePolarity
+    visibility: Visibility
     redacted: bool
     source_ref: str | None = None
     media_type: str | None = None
@@ -98,19 +106,33 @@ class AssertionReadResponse(BaseModel):
     object_id: str
     method_id: str
     proposition: str
-    confidence_status: Literal["assessed", "not_assessed"] | str
+    confidence_status: ConfidenceStatus
     confidence_bp: int | None
     confidence_type: str | None
     confidence_method: str | None
     effective_from: datetime
     effective_to: datetime | None
     recorded_at: datetime
-    state: str
+    state: LifecycleState
     known_at: datetime | None
     effective_at: datetime | None
     sequence: int = Field(ge=1)
-    proposer_actor_id: str
     evidence: list[AssertionEvidenceMetadataResponse]
+
+
+class AssertionPublicEventResponse(BaseModel):
+    """Public lifecycle event view with sensitive audit fields removed."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    event_id: str
+    assertion_id: str
+    sequence: int
+    from_state: LifecycleState | None
+    to_state: LifecycleState
+    authority: AuthorityRole
+    recorded_at: datetime
+    successor_assertion_id: str | None = None
 
 
 class AssertionHistoryResponse(BaseModel):
@@ -122,10 +144,10 @@ class AssertionHistoryResponse(BaseModel):
     effective_from: datetime
     effective_to: datetime | None
     recorded_at: datetime
-    state: str
+    state: LifecycleState
     known_at: datetime | None
     effective_at: datetime | None
-    events: list[AssertionEventResponse]
+    events: list[AssertionPublicEventResponse]
 
 
 class AssertionCommandResponse(BaseModel):
@@ -135,5 +157,5 @@ class AssertionCommandResponse(BaseModel):
 
     assertion_id: str
     event: AssertionEventResponse
-    state: str
+    state: LifecycleState
     idempotent_reuse: bool = False

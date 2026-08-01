@@ -17,7 +17,7 @@ from ..router_helpers import (
     get_graph,
     logger,
 )
-from .relationships import GovernedRelationshipIndex, load_governed_relationship_index
+from .relationships import GovernanceMetadata, GovernedRelationshipIndex, load_governed_relationship_index
 
 router = APIRouter()
 
@@ -83,22 +83,20 @@ def _build_visualization_edges(
     edges: list[VisualizationEdge] = []
     for source_id, rels in g.relationships.items():
         for target_id, rel_type, strength in rels:
-            metadata = governed_index.get((source_id, target_id, rel_type), {})
-            edges.append(
-                VisualizationEdge.model_validate(
-                    {
-                        "source": source_id,
-                        "target": target_id,
-                        "relationship_type": rel_type,
-                        "strength": strength,
-                        **metadata,
-                    }
-                )
-            )
+            payload: dict[str, object] = {
+                "source": source_id,
+                "target": target_id,
+                "relationship_type": rel_type,
+                "strength": strength,
+            }
+            metadata: GovernanceMetadata | None = governed_index.get((source_id, target_id, rel_type))
+            if metadata is not None:
+                payload.update(metadata)
+            edges.append(VisualizationEdge.model_validate(payload))
     return edges
 
 
-@router.get("/api/visualization", response_model=VisualizationDataResponse, response_model_exclude_none=True)
+@router.get("/api/visualization", response_model_exclude_none=True)
 async def get_visualization_data() -> VisualizationDataResponse:
     """
     Produce visualization nodes and edges for the current asset relationship graph.
@@ -118,6 +116,8 @@ async def get_visualization_data() -> VisualizationDataResponse:
         effective_assets_count = len(asset_ids)
         network_density = calculate_graph_density(effective_assets_count, len(edges))
         return VisualizationDataResponse(nodes=nodes, edges=edges, network_density=network_density)
+    except HTTPException:
+        raise
     except Exception as e:
         log_event(
             logger,

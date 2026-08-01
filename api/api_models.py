@@ -35,12 +35,12 @@ class AssetPageResponse(BaseModel):
     Pagination contract:
     - ``page`` is 1-indexed (first page = 1).
     - ``per_page`` defaults to 50; maximum accepted value is 1,000
-      (enforced by ``Query(ge=1, le=1000)`` on the route).
+        (enforced by ``Query(ge=1, le=1000)`` on the route).
     - ``total`` is the exact count of assets matching the current query
-      filters (not an estimate).
+        filters (not an estimate).
     - An out-of-range ``page`` returns an empty ``items`` list, not an error.
     - Results are deterministically ordered by ``asset.id ASC`` to ensure
-      stable pagination across requests.
+        stable pagination across requests.
     """
 
     model_config = ConfigDict(populate_by_name=True)
@@ -60,7 +60,7 @@ class RelationshipResponse(BaseModel):
     relationship_type: str
     strength: float
     assertion_id: str | None = None
-    governance_status: str | None = None
+    governance_status: Literal["governed"] | None = None
     revision_id: str | None = None
     scope_refs: list[str] | None = None
 
@@ -102,7 +102,7 @@ class VisualizationEdge(BaseModel):
     relationship_type: str
     strength: float
     assertion_id: str | None = None
-    governance_status: str | None = None
+    governance_status: Literal["governed"] | None = None
     revision_id: str | None = None
     scope_refs: list[str] | None = None
 
