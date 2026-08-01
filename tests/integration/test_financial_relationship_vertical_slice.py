@@ -298,7 +298,7 @@ class _TripGate:
 
 
 @pytest.mark.parametrize(
-    ("event_name", "expected_error", "target_stage"),
+    "gate_case",
     [
         ("lock_lost", graph_admin._DistributedLockLostError, "publication-pre-commit"),
         ("cancel_event", RebuildCancelledError, "publication-pre-commit"),
@@ -309,11 +309,10 @@ class _TripGate:
 def test_final_safety_gate_rolls_back_graph_candidate_success_and_publication(
     publication_session_factory: sessionmaker,
     monkeypatch: pytest.MonkeyPatch,
-    event_name: str,
-    expected_error: type[Exception],
-    target_stage: str,
+    gate_case: tuple[str, type[Exception], str],
 ) -> None:
     """Lock loss or cancellation at the named final gate leaves no visible candidate."""
+    event_name, expected_error, target_stage = gate_case
     initial_graph = create_sample_database()
     initial_relationships = {source: list(entries) for source, entries in initial_graph.relationships.items()}
     job_id = _create_running_job(publication_session_factory)
