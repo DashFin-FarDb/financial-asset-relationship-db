@@ -78,7 +78,7 @@ __all__ = [
 ]
 
 
-@ dataclass(frozen=True)
+@dataclass(frozen=True)
 class RepositoryTransitionRequest:
     """Inputs for planning and appending a repository lifecycle transition."""
 
@@ -91,7 +91,7 @@ class RepositoryTransitionRequest:
     event_id: str | None = None
 
 
-@ dataclass(frozen=True)
+@dataclass(frozen=True)
 class RegisterEvidenceRequest:
     """Inputs for immutable evidence registration and linking."""
 
@@ -102,7 +102,7 @@ class RegisterEvidenceRequest:
     link_id: str | None = None
 
 
-@ dataclass(frozen=True)
+@dataclass(frozen=True)
 class SupersedeAtomicRequest:
     """Inputs for atomic successor acceptance and predecessor supersession."""
 
@@ -150,18 +150,18 @@ def _event_from_orm(row: RelationshipAssertionEventORM) -> AssertionEvent:
     if recorded_at is None:
         raise ValidationError("event recorded_at missing")
     return AssertionEvent(
-        event_id = row.id,
-        assertion_id = row.assertion_id,
-        sequence = row.sequence,
-        from_state = cast(LifecycleState | None, row.from_state),
-        to_state = cast(LifecycleState, row.to_state),
-        authority = cast(AuthorityRole, row.authority),
-        actor_id = row.actor_id,
-        rationale = row.rationale,
-        policy_version = row.policy_version,
-        recorded_at = recorded_at,
-        successor_assertion_id = row.successor_assertion_id,
-        correlation_id = row.correlation_id,
+        event_id=row.id,
+        assertion_id=row.assertion_id,
+        sequence=row.sequence,
+        from_state=cast(LifecycleState | None, row.from_state),
+        to_state=cast(LifecycleState, row.to_state),
+        authority=cast(AuthorityRole, row.authority),
+        actor_id=row.actor_id,
+        rationale=row.rationale,
+        policy_version=row.policy_version,
+        recorded_at=recorded_at,
+        successor_assertion_id=row.successor_assertion_id,
+        correlation_id=row.correlation_id,
     )
 
 
@@ -573,7 +573,7 @@ class RelationshipAssertionRepository:
     ) -> tuple[EvidenceRecord, EvidenceLink]:
         if existing_link.polarity != polarity:
             raise ValidationError(
-                "evidence link already exists with a different polarity " f"({existing_link.polarity} != {polarity})"
+                f"evidence link already exists with a different polarity ({existing_link.polarity} != {polarity})"
             )
         evidence_row = self._session.get(RelationshipEvidenceORM, existing_link.evidence_id)
         if evidence_row is None:
