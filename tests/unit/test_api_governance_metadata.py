@@ -2,15 +2,20 @@
 
 from __future__ import annotations
 
+import threading
+from contextlib import contextmanager
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from types import ModuleType, SimpleNamespace
 from typing import cast
 
 import pytest
 from fastapi.testclient import TestClient
 
+from api.routers import graph_admin
 from api.routers import relationships as relationships_router
 from api.routers import visualization as visualization_router
+from api.services import relationship_index as relationship_index_service
 from src.data.relationship_assertion_repository import RelationshipAssertionRepository
 from src.data.relationship_projection_persistence import PersistedProjectionRevision
 from src.governance.relationship_assertion_contract import (
@@ -23,9 +28,8 @@ from src.logic.asset_graph import AssetRelationshipGraph
 from .api_assertion_test_support import (
     _assert_error_response,
 )
-from .api_assertion_test_support import client as client
-from .api_assertion_test_support import configure_graph_persistence as configure_graph_persistence
-from .api_assertion_test_support import initialize_assertion_store as initialize_assertion_store
+
+pytest_plugins = ("tests.unit.api_assertion_test_support",)
 
 
 @dataclass(frozen=True)
@@ -47,15 +51,15 @@ def test_governance_contract_failure_propagates_from_loader(monkeypatch: pytest.
         ),
     )
     legacy_settings = SimpleNamespace(database_url="unused")
-    monkeypatch.setattr(relationships_router, "get_graph_lifecycle_settings", lambda: legacy_settings)
-    monkeypatch.setattr(relationships_router, "resolve_hosted_graph_database_url", lambda _settings: None)
+    monkeypatch.setattr(relationship_index_service, "get_graph_lifecycle_settings", lambda: legacy_settings)
+    monkeypatch.setattr(relationship_index_service, "resolve_hosted_graph_database_url", lambda _settings: None)
     monkeypatch.setattr(
-        relationships_router,
+        relationship_index_service,
         "resolve_durable_graph_persistence_url",
         lambda _url: "sqlite:///:memory:",
     )
     monkeypatch.setattr(
-        relationships_router.RelationshipAssertionRepository,
+        relationship_index_service.RelationshipAssertionRepository,
         "latest_published_projection",
         lambda _repository, _purpose: published,
     )
@@ -64,10 +68,10 @@ def test_governance_contract_failure_propagates_from_loader(monkeypatch: pytest.
         """Simulate an unexpected governed-contract failure."""
         raise RuntimeError("contract load failed")
 
-    monkeypatch.setattr(relationships_router, "load_contract_bundle", fail_contract_load)
+    monkeypatch.setattr(relationship_index_service, "load_contract_bundle", fail_contract_load)
 
     with pytest.raises(RuntimeError, match="contract load failed"):
-        relationships_router.load_governed_relationship_index(AssetRelationshipGraph())
+        relationship_index_service.load_governed_relationship_index(AssetRelationshipGraph())
 
 
 @pytest.mark.unit
@@ -83,13 +87,13 @@ def test_runtime_graph_replacement_invalidates_index_while_contract_stays_cached
         ),
     )
     settings = SimpleNamespace(asset_graph_database_url="unused", database_url=None)
-    monkeypatch.setattr(relationships_router, "get_graph_lifecycle_settings", lambda: settings)
+    monkeypatch.setattr(relationship_index_service, "get_graph_lifecycle_settings", lambda: settings)
     monkeypatch.setattr(
-        relationships_router,
+        relationship_index_service,
         "resolve_durable_graph_persistence_url",
         lambda _url: "sqlite:///:memory:",
     )
-    bundle = relationships_router.load_contract_bundle()
+    bundle = relationship_index_service.load_contract_bundle()
     contract_loads = 0
     projection_loads = 0
 
@@ -108,20 +112,109 @@ def test_runtime_graph_replacement_invalidates_index_while_contract_stays_cached
         projection_loads += 1
         return published
 
-    monkeypatch.setattr(relationships_router, "load_contract_bundle", recording_load)
+    monkeypatch.setattr(relationship_index_service, "load_contract_bundle", recording_load)
     monkeypatch.setattr(
-        relationships_router.RelationshipAssertionRepository,
+        relationship_index_service.RelationshipAssertionRepository,
         "latest_published_projection",
         load_projection,
     )
     first_graph = AssetRelationshipGraph()
     replacement_graph = AssetRelationshipGraph()
 
-    assert relationships_router.load_governed_relationship_index(first_graph) == {}
-    assert relationships_router.load_governed_relationship_index(first_graph) == {}
-    assert relationships_router.load_governed_relationship_index(replacement_graph) == {}
+    assert relationship_index_service.load_governed_relationship_index(first_graph) == {}
+    assert relationship_index_service.load_governed_relationship_index(first_graph) == {}
+    assert relationship_index_service.load_governed_relationship_index(replacement_graph) == {}
     assert projection_loads == 2
     assert contract_loads == 1
+
+
+@pytest.mark.unit
+def test_cache_primed_read_is_refreshed_after_admin_publication(
+    monkeypatch: pytest.MonkeyPatch, client: TestClient
+) -> None:
+    """A cached metadata read is invalidated by successful admin publication."""
+    graph = AssetRelationshipGraph()
+    graph.relationships = {"BOND": [("ISSUER", "issuer_link", 0.9)]}
+    monkeypatch.setattr(relationships_router, "get_graph", lambda: graph)
+
+    state = {"assertion_id": "assertion-v1", "revision_id": "revision-v1"}
+
+    def load_published_index() -> relationship_index_service.GovernedRelationshipIndex:
+        """Return the currently published relationship metadata for cache behavior checks."""
+        return {
+            ("BOND", "ISSUER", "issuer_link"): {
+                "assertion_id": state["assertion_id"],
+                "governance_status": "governed",
+                "revision_id": state["revision_id"],
+                "scope_refs": ["financial.bond.issuer_reference@1"],
+            }
+        }
+
+    monkeypatch.setattr(
+        relationship_index_service,
+        "_load_governed_relationship_index_from_persistence",
+        load_published_index,
+    )
+    relationship_index_service.invalidate_governed_relationship_index_cache()
+
+    first = client.get("/api/relationships")
+    assert first.status_code == 200
+    assert first.json()[0]["assertion_id"] == "assertion-v1"
+    assert first.json()[0]["revision_id"] == "revision-v1"
+
+    state["assertion_id"] = "assertion-v2"
+    state["revision_id"] = "revision-v2"
+
+    @contextmanager
+    def fake_publication_transactions(*_args: object, **_kwargs: object):
+        """Return a bounded publication context with no database dependency."""
+        yield object(), None
+
+    class _FakeAssertionRepository:
+        """Minimal publication repository double for finalize flow tests."""
+
+        def __init__(self, _session: object) -> None:
+            pass
+
+        def next_publication_time(self, _purpose: str) -> datetime:
+            return datetime.now(tz=timezone.utc)
+
+        def finalize_projection_publication(self, *_args: object, **_kwargs: object) -> None:
+            return None
+
+    publication_graph = AssetRelationshipGraph()
+    publication_graph.relationships = graph.relationships
+
+    monkeypatch.setattr(graph_admin, "_verify_execution_state", lambda *_args, **_kwargs: None)
+    monkeypatch.setattr(graph_admin, "_publication_transactions", fake_publication_transactions)
+    monkeypatch.setattr(graph_admin, "_guard_publication_lock", lambda *_args, **_kwargs: None)
+    monkeypatch.setattr(graph_admin, "RelationshipAssertionRepository", _FakeAssertionRepository)
+    monkeypatch.setattr(graph_admin, "stage_graph_snapshot", lambda *_args, **_kwargs: None)
+    monkeypatch.setattr(
+        graph_admin,
+        "_prepare_projection_publication",
+        lambda *_args, **_kwargs: (
+            SimpleNamespace(),
+            publication_graph,
+            SimpleNamespace(asset_count=1, relationship_count=1),
+        ),
+    )
+
+    graph_admin._finalize_rebuild_success(
+        session_factory=lambda: None,
+        job_id="job-test",
+        execution_id="exec-test",
+        graph=graph,
+        source="sample",
+        job_started_at=0.0,
+        lock_lost=threading.Event(),
+        cancel_event=threading.Event(),
+    )
+
+    second = client.get("/api/relationships")
+    assert second.status_code == 200
+    assert second.json()[0]["assertion_id"] == "assertion-v2"
+    assert second.json()[0]["revision_id"] == "revision-v2"
 
 
 @pytest.mark.unit
@@ -159,7 +252,7 @@ def test_invalid_governance_url_returns_service_unavailable(
 ) -> None:
     """Malformed configured governance persistence fails closed with a 503."""
     settings = SimpleNamespace(asset_graph_database_url="not a database url", database_url=None)
-    monkeypatch.setattr(relationships_router, "get_graph_lifecycle_settings", lambda: settings)
+    monkeypatch.setattr(relationship_index_service, "get_graph_lifecycle_settings", lambda: settings)
 
     response = client.get(path)
 
@@ -192,7 +285,7 @@ def test_bidirectional_governed_edge_indexes_both_runtime_directions() -> None:
         )
     )
 
-    index = relationships_router._published_relationship_index(
+    index = relationship_index_service._published_relationship_index(
         cast(PersistedProjectionRevision, published),
         cast(PredicatesDocument, predicates),
     )
