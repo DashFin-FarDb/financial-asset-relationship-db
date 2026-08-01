@@ -27,6 +27,7 @@ from api.graph_lifecycle import reset_graph
 from src.config.settings import get_settings
 from src.data.database import create_engine_from_url, create_session_factory, init_db
 from src.data.distributed_lock import LockState
+from src.data.relationship_assertion_repository import RelationshipAssertionRepository
 from src.data.repository import AssetGraphRepository
 from src.logic.asset_graph import AssetRelationshipGraph
 
@@ -168,7 +169,7 @@ async def test_persistence_save_failure_returns_sanitized_500(
         raise ValueError(f"Failed to persist graph at {raw_url}")
 
     monkeypatch.setattr("api.routers.graph_admin.build_rebuild_graph", MagicMock(return_value=AssetRelationshipGraph()))
-    monkeypatch.setattr("api.routers.graph_admin.save_graph_to_persistence", fail_save)
+    monkeypatch.setattr(RelationshipAssertionRepository, "finalize_projection_publication", fail_save)
 
     with caplog.at_level(logging.ERROR):
         response = await test_client.post("/api/graph/rebuild")
@@ -446,7 +447,6 @@ async def test_lock_ttl_behavioral_contract(test_client: httpx.AsyncClient, sess
         patch("api.routers.graph_admin.DistributedLock", return_value=mock_lock),
         patch("api.routers.graph_admin._orchestrate_heartbeat", side_effect=mock_orchestrate_ctx) as mock_heartbeat,
         patch("api.routers.graph_admin.build_rebuild_graph", return_value=(AssetRelationshipGraph(), "sample")),
-        patch("api.routers.graph_admin.save_graph_to_persistence"),
     ):
         response = await test_client.post("/api/graph/rebuild")
         assert response.status_code == 200
