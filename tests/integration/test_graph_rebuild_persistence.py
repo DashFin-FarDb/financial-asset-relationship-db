@@ -130,7 +130,7 @@ async def test_unexpected_rebuild_failure_returns_sanitized_500(
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     """Unexpected rebuild failures must hide private environment contexts from responses."""
-    raw_detail = "sensitive rebuild detail with secret: abc123def456"
+    raw_detail = "sensitive rebuild detail with secret: abc123def456"  # gitleaks:allow
     database_url = _sqlite_url(tmp_path)
     _init_empty_db(database_url)
     _configure_persistence(monkeypatch, database_url)
