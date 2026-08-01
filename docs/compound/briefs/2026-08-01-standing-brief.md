@@ -40,8 +40,8 @@ Claims are labeled landed vs provisional. ADRs/policy are not rewritten.
 - [landed] **pr:1516**: (-v)    ..  ..  /
 
 ### persistence
-- [provisional] **pr:1567**:    w    x y
 - [provisional] **pr:1565**:   v     
+- [provisional] **pr:1567**:    w    x y
 - [landed] **pr:1564**: x       
 - [landed] **pr:1563**: x   y   v
 - [landed] **pr:1552**:      v
