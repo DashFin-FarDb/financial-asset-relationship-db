@@ -46,7 +46,7 @@ class AssertionDecisionRequest(BaseModel):
 
 
 class AssertionSupersessionRequest(BaseModel):
-    """Request body for atomic supersession."""
+    """Credential-free request body for atomic supersession."""
 
     model_config = ConfigDict(extra="forbid")
 
@@ -54,7 +54,6 @@ class AssertionSupersessionRequest(BaseModel):
     rationale: str = Field(min_length=1, max_length=4096)
     accept_rationale: str = Field(min_length=1, max_length=4096)
     successor_proposal: AssertionProposalRequest
-    proposal_bearer_token: str = Field(min_length=1)
 
 
 class AssertionEventResponse(BaseModel):

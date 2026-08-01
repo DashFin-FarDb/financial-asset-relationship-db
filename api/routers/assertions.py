@@ -8,7 +8,7 @@ from datetime import datetime, timezone
 from typing import Annotated, NoReturn, cast
 from uuid import uuid4
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
+from fastapi import APIRouter, Depends, Header, HTTPException, Query, Request, status
 from sqlalchemy import select
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session
@@ -64,12 +64,12 @@ from ..graph_lifecycle_providers import (
     GraphPersistenceNotConfiguredError,
     get_graph_lifecycle_settings,
     resolve_durable_graph_persistence_url,
-    resolve_hosted_graph_database_url,
 )
 
 router = APIRouter()
 _UTC = timezone.utc
 _INTERNAL_ERROR_DETAIL = "An internal error occurred. Please try again later."
+_PROPOSAL_AUTHORIZATION_HEADER = "X-Proposal-Authorization"
 _DOMAIN_ERROR_STATUSES: dict[type[Exception], int] = {
     ConcurrencyConflict: status.HTTP_409_CONFLICT,
     SupersessionCycle: status.HTTP_409_CONFLICT,
@@ -132,31 +132,50 @@ def _raise_domain_error(exc: Exception) -> NoReturn:
     ) from exc
 
 
+def _proposal_bearer_token(
+    proposal_authorization: Annotated[
+        str | None,
+        Header(alias=_PROPOSAL_AUTHORIZATION_HEADER),
+    ] = None,
+) -> str:
+    """Extract a strict bearer token from the secondary proposal authorization header."""
+    scheme, separator, token = (proposal_authorization or "").partition(" ")
+    if scheme.lower() != "bearer" or not separator or not token or token != token.strip() or " " in token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Could not validate proposal credentials",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    return token
+
+
 @contextmanager
 def _assertion_repository_session() -> Iterator[Session]:
     """Yield a repository session bound only to durable graph persistence."""
     settings = get_graph_lifecycle_settings()
     engine: Engine | None = None
     try:
-        hosted_url = resolve_hosted_graph_database_url(settings)
-        legacy_url = (
-            getattr(settings, "database_url", None) if not hasattr(settings, "asset_graph_database_url") else None
-        )
-        persistence_url = resolve_durable_graph_persistence_url(hosted_url or legacy_url)
+        persistence_url = resolve_durable_graph_persistence_url(settings.asset_graph_database_url)
         engine = create_engine_from_url(persistence_url)
         session_factory = create_session_factory(engine)
         with session_scope(session_factory) as session:
             yield session
     except HTTPException:
         raise
-    except (
-        GraphPersistenceInvalidUrlError,
-        GraphPersistenceNotConfiguredError,
-        GraphPersistenceNonDurableError,
-    ) as exc:
+    except GraphPersistenceInvalidUrlError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Graph persistence database is misconfigured",
+        ) from exc
+    except (GraphPersistenceNotConfiguredError, GraphPersistenceNonDurableError) as exc:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="Graph persistence database not configured",
+        ) from exc
+    except Exception as exc:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=_INTERNAL_ERROR_DETAIL,
         ) from exc
     finally:
         if engine is not None:
@@ -364,6 +383,7 @@ async def supersede_assertion(
     payload: AssertionSupersessionRequest,
     request: Request,
     current_user: Annotated[User, Depends(get_current_active_user)],
+    proposal_bearer_token: Annotated[str, Depends(_proposal_bearer_token)],
 ) -> AssertionCommandResponse:
     """Atomically create a successor assertion and supersede the predecessor."""
     reviewer = get_current_rebuild_operator_user(
@@ -371,7 +391,7 @@ async def supersede_assertion(
         settings=get_settings(),
         request=request,
     )
-    proposer_user = _resolve_proposer_user_from_token(payload.proposal_bearer_token, request)
+    proposer_user = _resolve_proposer_user_from_token(proposal_bearer_token, request)
     proposal_ctx = _authority_context(proposer_user.username, "proposer", request)
     determination_ctx = _authority_context(reviewer.username, "acceptor", request)
     successor = AssertionProposal(
