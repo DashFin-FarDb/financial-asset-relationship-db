@@ -617,7 +617,7 @@ class RelationshipAssertionRepository:
     ) -> tuple[EvidenceRecord, EvidenceLink]:
         if existing_link.polarity != polarity:
             raise ValidationError(
-                "evidence link already exists with a different polarity " f"({existing_link.polarity} != {polarity})"
+                f"evidence link already exists with a different polarity ({existing_link.polarity} != {polarity})"
             )
         evidence_row = self._session.get(RelationshipEvidenceORM, existing_link.evidence_id)
         if evidence_row is None:
