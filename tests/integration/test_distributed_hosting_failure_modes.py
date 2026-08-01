@@ -15,6 +15,7 @@ import api.routers.graph_admin as graph_admin
 from src.data.database import create_engine_from_url, create_session_factory, init_db
 from src.data.db_models import RebuildJobORM, RebuildJobStatus
 from src.data.distributed_lock import DistributedLock
+from src.data.relationship_assertion_repository import RelationshipAssertionRepository
 from src.data.repository import AssetGraphRepository, session_scope
 from src.logic.recovery_gate import ExecutionBlockedError, RecoveryGate
 from tests.helpers.graph_scale_factory import build_scale_graph
@@ -219,11 +220,11 @@ def test_rebuild_failure_after_persist_does_not_corrupt_durable_graph_truth(
             lambda *_args, **_kwargs: (replacement, "sample"),
         )
 
-        def fail_success(*_args, **_kwargs):
-            """Simulate a failure while marking the job as succeeded."""
+        def fail_publication(*_args, **_kwargs):
+            """Simulate a failure inside the atomic publication boundary."""
             raise RuntimeError("synthetic success metadata failure")
 
-        monkeypatch.setattr(graph_admin, "_mark_job_succeeded_safe", fail_success)  # pylint: disable=protected-access
+        monkeypatch.setattr(RelationshipAssertionRepository, "finalize_projection_publication", fail_publication)
 
         with pytest.raises(graph_admin._RebuildExecutionError):  # pylint: disable=protected-access
             graph_admin._run_rebuild_pipeline(  # pylint: disable=protected-access
@@ -267,8 +268,6 @@ def test_lock_lost_during_rebuild_aborts_before_success_marking(
 
         lock_lost = threading.Event()
         graph_built = False
-        save_called = False
-        success_called = False
         built_graph = build_scale_graph(asset_count=5, relationship_count=10, prefix="LOST")
 
         def build_then_lose_lock(*_args, **_kwargs):
@@ -278,19 +277,7 @@ def test_lock_lost_during_rebuild_aborts_before_success_marking(
             lock_lost.set()
             return built_graph, "sample"
 
-        def track_save(*_args, **_kwargs):
-            """Track if the graph save function was called."""
-            nonlocal save_called
-            save_called = True
-
-        def track_success(*_args, **_kwargs):
-            """Track if the job success function was called."""
-            nonlocal success_called
-            success_called = True
-
         monkeypatch.setattr(graph_admin, "build_rebuild_graph", build_then_lose_lock)
-        monkeypatch.setattr(graph_admin, "save_graph_to_persistence", track_save)
-        monkeypatch.setattr(graph_admin, "_mark_job_succeeded_safe", track_success)  # pylint: disable=protected-access
 
         with pytest.raises(graph_admin._RebuildExecutionError) as exc_info:  # pylint: disable=protected-access
             graph_admin._run_rebuild_pipeline(  # pylint: disable=protected-access
@@ -313,7 +300,6 @@ def test_lock_lost_during_rebuild_aborts_before_success_marking(
             job = AssetGraphRepository(session).get_rebuild_job(job_id)
             assert job is not None
             assert job.status == RebuildJobStatus.FAILED
-        assert save_called is False
-        assert success_called is False
+            assert len(AssetGraphRepository(session).load_graph().assets) == 0
     finally:
         engine.dispose()

@@ -18,10 +18,12 @@ from src.governance.relationship_assertion_contract import load_contract_bundle
 from src.logic.relationship_projection import (
     PROJECTOR_VERSION,
     GovernedScope,
+    ProjectionEdge,
     ProjectionError,
     ProjectionRevision,
     ProjectRequest,
     canonicalize_governed_scopes,
+    overlay_governed_relationships,
     project,
 )
 
@@ -73,6 +75,75 @@ def predicates():
     """Pinned predicate registry from the frozen contract bundle."""
     _contract, predicates_doc, _transitions = load_contract_bundle()
     return predicates_doc
+
+
+def _overlay_revision(*, edges=(), scopes=()) -> ProjectionRevision:
+    """Build a minimal revision for governed graph-overlay unit tests."""
+    return ProjectionRevision(
+        purpose=PURPOSE,
+        effective_at=NOW,
+        known_at=NOW,
+        contract_version="grac.v1",
+        projector_version=PROJECTOR_VERSION,
+        edge_set_hash=EMPTY_EDGE_SET_HASH,
+        projection_hash=EMPTY_PROJECTION_HASH,
+        edges=tuple(edges),
+        governed_scopes=tuple(scopes),
+    )
+
+
+def test_overlay_empty_established_scope_suppresses_legacy_edge_type(predicates) -> None:
+    """An established empty scope owns and removes its registered legacy edge type."""
+    relationships = {
+        "BOND": [("ISSUER", "corporate_link", 0.9), ("PEER", "same_sector", 0.7)],
+    }
+    revision = _overlay_revision(scopes=(GovernedScope(PURPOSE, PREDICATE_ID),))
+
+    assert overlay_governed_relationships(relationships, revision, predicates) == {
+        "BOND": [("PEER", "same_sector", 0.7)]
+    }
+
+
+def test_overlay_adds_bidirectional_governed_edge_deterministically(predicates) -> None:
+    """A governed bidirectional edge replaces legacy ownership in both directions."""
+    revision = _overlay_revision(
+        edges=(ProjectionEdge("BOND", "ISSUER", "corporate_link", "0.8", "bidirectional", "assertion-1"),),
+        scopes=(GovernedScope(PURPOSE, PREDICATE_ID),),
+    )
+
+    assert overlay_governed_relationships({}, revision, predicates) == {
+        "BOND": [("ISSUER", "corporate_link", 0.8)],
+        "ISSUER": [("BOND", "corporate_link", 0.8)],
+    }
+
+
+def test_bidirectional_overlay_replaces_legacy_reverse_and_retains_other_edges(predicates) -> None:
+    """A governed reverse edge replaces only its owned legacy edge type."""
+    relationships = {
+        "BOND": [("ISSUER", "corporate_link", 0.9)],
+        "ISSUER": [("BOND", "corporate_link", 0.9), ("PEER", "same_sector", 0.7)],
+    }
+    revision = _overlay_revision(
+        edges=(ProjectionEdge("BOND", "ISSUER", "corporate_link", "0.8", "bidirectional", "assertion-1"),),
+        scopes=(GovernedScope(PURPOSE, PREDICATE_ID),),
+    )
+
+    assert overlay_governed_relationships(relationships, revision, predicates) == {
+        "BOND": [("ISSUER", "corporate_link", 0.8)],
+        "ISSUER": [("BOND", "corporate_link", 0.8), ("PEER", "same_sector", 0.7)],
+    }
+
+
+@pytest.mark.parametrize("strength", ["NaN", "Infinity", "-0.1", "1.1"])
+def test_overlay_rejects_non_finite_or_out_of_range_strengths(predicates, strength: str) -> None:
+    """Governed edge strengths must remain finite and within the graph range."""
+    revision = _overlay_revision(
+        edges=(ProjectionEdge("BOND", "ISSUER", "corporate_link", strength, "subject_to_object", "assertion-1"),),
+        scopes=(GovernedScope(PURPOSE, PREDICATE_ID),),
+    )
+
+    with pytest.raises(ProjectionError, match="strength is out of range"):
+        overlay_governed_relationships({}, revision, predicates)
 
 
 @dataclass(frozen=True)

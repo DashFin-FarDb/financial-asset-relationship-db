@@ -209,6 +209,22 @@ class CoordinationLockRepository:
             ttl_seconds=ttl_seconds,
         )
 
+    def renew_owned_lock(self, *, lock_name: str, holder_id: str, ttl_seconds: int) -> bool:
+        """Renew an unexpired lease owned by ``holder_id`` in the current transaction."""
+        if ttl_seconds <= 0:
+            raise ValueError("ttl_seconds must be greater than 0")
+        now = datetime.now(timezone.utc)  # noqa: UP017
+        result = self.session.execute(
+            update(DistributedLockORM)
+            .where(
+                DistributedLockORM.lock_name == lock_name,
+                DistributedLockORM.holder_id == holder_id,
+                DistributedLockORM.expires_at > now,
+            )
+            .values(expires_at=now + timedelta(seconds=ttl_seconds), updated_at=now)
+        )
+        return bool(result.rowcount and result.rowcount > 0)  # type: ignore[attr-defined]
+
     def release_lock(self, *, lock_name: str, holder_id: str) -> bool:
         """Release a distributed lock if held by the specified holder."""
         result = self.session.execute(

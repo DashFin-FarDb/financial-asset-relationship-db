@@ -12,6 +12,7 @@ from collections import defaultdict
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
+from decimal import Decimal, InvalidOperation
 from typing import Any
 
 from src.governance.relationship_assertion import (
@@ -92,6 +93,9 @@ class ProjectRequest:
     contract_version: str = CONTRACT_VERSION
     previously_published_scopes: Sequence[GovernedScope] = ()
     projector_version: str = PROJECTOR_VERSION
+
+
+GraphRelationship = tuple[str, str, float]
 
 
 @dataclass(frozen=True, slots=True)
@@ -456,3 +460,97 @@ def project(request: ProjectRequest) -> ProjectionRevision:
         edges=edges,
         governed_scopes=governed_scopes,
     )
+
+
+def _governed_edge_types(
+    revision: ProjectionRevision,
+    predicate_registry: PredicatesDocument | Sequence[PredicateSpec],
+) -> set[str]:
+    """Validate governed scopes and return the edge types they own."""
+    predicates = _predicate_index(predicate_registry)
+    edge_types: set[str] = set()
+    for scope in revision.governed_scopes:
+        edge_types.add(_governed_edge_type(scope, revision, predicates))
+    return edge_types
+
+
+def _governed_edge_type(
+    scope: GovernedScope,
+    revision: ProjectionRevision,
+    predicates: Mapping[str, PredicateSpec],
+) -> str:
+    """Validate one governed scope and return its registered edge type."""
+    if scope.purpose != revision.purpose:
+        raise ProjectionError("governed scope purpose does not match revision purpose")
+    predicate = predicates.get(scope.predicate_id)
+    if predicate is None:
+        raise ProjectionError(f"governed scope predicate is not registered: {scope.predicate_id}")
+    if predicate.projection.purpose != revision.purpose:
+        raise ProjectionError(f"governed scope predicate has wrong purpose: {scope.predicate_id}")
+    return predicate.projection.edge_type
+
+
+def _edge_strength(edge: ProjectionEdge) -> float:
+    """Convert and range-check a governed edge strength."""
+    strength = _parse_edge_strength(edge.strength)
+    if not 0.0 <= strength <= 1.0:
+        raise ProjectionError(f"projection edge strength is out of range: {edge.strength}")
+    return strength
+
+
+def _parse_edge_strength(value: str) -> float:
+    """Convert a governed edge strength from its canonical decimal form."""
+    try:
+        return float(Decimal(value))
+    except (InvalidOperation, ValueError) as exc:
+        raise ProjectionError(f"projection edge has invalid strength: {value}") from exc
+
+
+def _retained_relationships(
+    relationships: Mapping[str, Sequence[GraphRelationship]],
+    governed_edge_types: set[str],
+) -> dict[str, list[GraphRelationship]]:
+    """Remove legacy entries owned by governed edge scopes."""
+    retained_relationships: dict[str, list[GraphRelationship]] = {}
+    for source_id, entries in relationships.items():
+        retained = [entry for entry in entries if entry[1] not in governed_edge_types]
+        if retained:
+            retained_relationships[source_id] = retained
+    return retained_relationships
+
+
+def _append_projection_edge(
+    relationships: dict[str, list[GraphRelationship]],
+    edge: ProjectionEdge,
+    governed_edge_types: set[str],
+) -> None:
+    """Validate and append one projected edge to the governed overlay."""
+    if edge.edge_type not in governed_edge_types:
+        raise ProjectionError(f"projection edge is outside governed scope: {edge.edge_type}")
+    strength = _edge_strength(edge)
+    relationships.setdefault(edge.source_id, []).append((edge.target_id, edge.edge_type, strength))
+    if edge.direction == "bidirectional":
+        relationships.setdefault(edge.target_id, []).append((edge.source_id, edge.edge_type, strength))
+
+
+def overlay_governed_relationships(
+    relationships: Mapping[str, Sequence[GraphRelationship]],
+    revision: ProjectionRevision,
+    predicate_registry: PredicatesDocument | Sequence[PredicateSpec],
+) -> dict[str, list[GraphRelationship]]:
+    """Overlay one governed revision on legacy relationships deterministically.
+
+    Established scopes own their registered edge types even when the revision
+    emits no edges. This prevents an empty governed revision from allowing a
+    legacy edge to reappear.
+    """
+    governed_edge_types = _governed_edge_types(revision, predicate_registry)
+    overlaid = _retained_relationships(relationships, governed_edge_types)
+
+    for edge in revision.edges:
+        _append_projection_edge(overlaid, edge, governed_edge_types)
+
+    return {
+        source_id: sorted(entries, key=lambda entry: (entry[0], entry[1], entry[2]))
+        for source_id, entries in sorted(overlaid.items())
+    }

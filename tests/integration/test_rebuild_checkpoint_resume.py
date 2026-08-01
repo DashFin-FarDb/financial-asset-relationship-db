@@ -194,10 +194,7 @@ async def test_checkpoint_resume_integration(session_factory_provider, raw_engin
             session.commit()
 
         # Run pipeline
-        with (
-            patch("api.routers.graph_admin.save_graph_to_persistence", MagicMock()),
-            pytest.raises(RuntimeError, match="Simulated crash"),
-        ):
+        with pytest.raises(RuntimeError, match="Simulated crash"):
             graph_admin._run_rebuild_pipeline(
                 raw_factory,
                 get_settings(),

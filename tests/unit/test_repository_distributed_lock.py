@@ -134,6 +134,23 @@ class TestDistributedLockRepository:
         expected_min_expiry = datetime.now(UTC) + timedelta(seconds=60)
         assert _ensure_utc(snapshot.expires_at) > expected_min_expiry
 
+    def test_renew_owned_lock_rejects_expired_lease(self, lock_repository_factory):
+        """Strict publication renewal cannot revive an expired lease."""
+        repo = lock_repository_factory()
+        now = datetime.now(UTC)
+        repo.session.add(
+            DistributedLockORM(
+                lock_name="test_lock",
+                holder_id="holder1",
+                expires_at=now - timedelta(seconds=1),
+                created_at=now - timedelta(seconds=60),
+                updated_at=now - timedelta(seconds=60),
+            )
+        )
+        repo.session.commit()
+
+        assert repo.renew_owned_lock(lock_name="test_lock", holder_id="holder1", ttl_seconds=60) is False
+
     def test_acquire_lock_takeover_expired(self, lock_repository_factory):
         """Test taking over an expired lock."""
         repo = lock_repository_factory()

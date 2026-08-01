@@ -27,6 +27,7 @@ from api.graph_lifecycle import reset_graph
 from src.config.settings import get_settings
 from src.data.database import create_engine_from_url, create_session_factory, init_db
 from src.data.distributed_lock import LockState
+from src.data.relationship_assertion_repository import RelationshipAssertionRepository
 from src.data.repository import AssetGraphRepository
 from src.logic.asset_graph import AssetRelationshipGraph
 
@@ -129,7 +130,7 @@ async def test_unexpected_rebuild_failure_returns_sanitized_500(
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     """Unexpected rebuild failures must hide private environment contexts from responses."""
-    raw_detail = "sensitive rebuild detail with secret: abc123def456"
+    raw_detail = "sensitive rebuild detail with secret: abc123def456"  # gitleaks:allow
     database_url = _sqlite_url(tmp_path)
     _init_empty_db(database_url)
     _configure_persistence(monkeypatch, database_url)
@@ -163,12 +164,12 @@ async def test_persistence_save_failure_returns_sanitized_500(
     _init_empty_db(database_url)
     _configure_persistence(monkeypatch, database_url)
 
-    def fail_save(*args, **kwargs):
-        """Simulate a persistence save failure."""
-        raise ValueError(f"Failed to persist graph at {raw_url}")
-
-    monkeypatch.setattr("api.routers.graph_admin.build_rebuild_graph", MagicMock(return_value=AssetRelationshipGraph()))
-    monkeypatch.setattr("api.routers.graph_admin.save_graph_to_persistence", fail_save)
+    fail_save = MagicMock(side_effect=ValueError(f"Failed to persist graph at {raw_url}"))
+    monkeypatch.setattr(
+        "api.routers.graph_admin.build_rebuild_graph",
+        MagicMock(return_value=(AssetRelationshipGraph(), "sample")),
+    )
+    monkeypatch.setattr(RelationshipAssertionRepository, "finalize_projection_publication", fail_save)
 
     with caplog.at_level(logging.ERROR):
         response = await test_client.post("/api/graph/rebuild")
@@ -181,6 +182,7 @@ async def test_persistence_save_failure_returns_sanitized_500(
     assert "secret" not in response_text
     assert raw_url not in log_output
     assert "secret" not in log_output
+    fail_save.assert_called_once()
 
 
 # --- Core Rebuild Distributed Lock TTL Flow Integrations ---
@@ -263,41 +265,38 @@ async def test_rebuild_pipeline_execution_with_ttl(session_factory_provider, mon
     _, db_url = session_factory_provider
     _configure_persistence(monkeypatch, db_url)
 
-    mock_lock = MagicMock()
-    mock_lock.acquire.return_value = True
-
-    mock_repo = MagicMock(spec=AssetGraphRepository)
-    job_id = "job_test_pipe"
-    mock_repo.create_rebuild_job.return_value = job_id
-
     monkeypatch.setattr(
         "api.routers.graph_admin.build_rebuild_graph", MagicMock(return_value=(AssetRelationshipGraph(), "sample"))
     )
-    monkeypatch.setattr("api.routers.graph_admin.save_graph_to_persistence", MagicMock())
 
-    with patch("api.routers.graph_admin.AssetGraphRepository", return_value=mock_repo):
-        settings = get_settings()
-        engine_for_test = create_engine_from_url(db_url)
-        try:
-            session_factory = create_session_factory(engine_for_test)
-            job_started_at = time.time()
-            lock_lost_event = threading.Event()
-            execution_id = "test-exec-pipe"
+    settings = get_settings()
+    engine_for_test = create_engine_from_url(db_url)
+    try:
+        session_factory = create_session_factory(engine_for_test)
+        execution_id = "test-exec-pipe"
+        with session_factory() as session:
+            repo = AssetGraphRepository(session)
+            job_id = repo.create_rebuild_job(requested_by="test_user")
+            repo.mark_rebuild_job_running(job_id, execution_id)
+            session.commit()
 
-            graph_admin._run_rebuild_pipeline(
-                session_factory,
-                settings,
-                db_url,
-                job_id,
-                execution_id,
-                job_started_at,
-                lock_lost_event,
-                threading.Event(),
-            )
-        finally:
-            engine_for_test.dispose()
+        graph_admin._run_rebuild_pipeline(
+            session_factory,
+            settings,
+            db_url,
+            job_id,
+            execution_id,
+            time.time(),
+            threading.Event(),
+            threading.Event(),
+        )
 
-        mock_repo.mark_rebuild_job_succeeded.assert_called_once()
+        with session_factory() as session:
+            job = AssetGraphRepository(session).get_rebuild_job(job_id)
+            assert job is not None
+            assert job.status == "succeeded"
+    finally:
+        engine_for_test.dispose()
 
 
 @pytest.mark.asyncio
@@ -449,7 +448,7 @@ async def test_lock_ttl_behavioral_contract(test_client: httpx.AsyncClient, sess
         patch("api.routers.graph_admin.DistributedLock", return_value=mock_lock),
         patch("api.routers.graph_admin._orchestrate_heartbeat", side_effect=mock_orchestrate_ctx) as mock_heartbeat,
         patch("api.routers.graph_admin.build_rebuild_graph", return_value=(AssetRelationshipGraph(), "sample")),
-        patch("api.routers.graph_admin.save_graph_to_persistence"),
+        patch("api.routers.graph_admin.CoordinationLockRepository.renew_owned_lock", return_value=True) as mock_renew,
     ):
         response = await test_client.post("/api/graph/rebuild")
         assert response.status_code == 200
@@ -461,6 +460,8 @@ async def test_lock_ttl_behavioral_contract(test_client: httpx.AsyncClient, sess
         # Signature: session_factory, dist_lock, job_id, execution_id, lock_ttl
         passed_lock_ttl = args[4]
         assert passed_lock_ttl == 30
+        assert mock_renew.call_count == 3
+        mock_renew.assert_called_with(lock_name="graph_rebuild", holder_id="test_worker", ttl_seconds=30)
 
 
 # --- Resilience Guardrail Enforcements ---
