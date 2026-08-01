@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+from functools import lru_cache
 from typing import Literal, TypeAlias, TypedDict
 
 from fastapi import APIRouter, HTTPException, status
@@ -13,6 +14,7 @@ from src.data.relationship_assertion_repository import RelationshipAssertionRepo
 from src.data.relationship_projection_persistence import PersistedProjectionRevision
 from src.data.repository import session_scope
 from src.governance.relationship_assertion_contract import PredicatesDocument, load_contract_bundle
+from src.logic.asset_graph import AssetRelationshipGraph
 from src.logic.relationship_projection import ProjectionEdge
 from src.observability.facade import ObservabilityEvent, log_event
 
@@ -42,6 +44,13 @@ class GovernanceMetadata(TypedDict):
 
 GovernedRelationshipIndex: TypeAlias = dict[tuple[str, str, str], GovernanceMetadata]
 GraphRelationship: TypeAlias = tuple[str, str, float]
+
+
+@lru_cache(maxsize=1)
+def _load_contract_predicates() -> PredicatesDocument:
+    """Load validated predicates once from the immutable pinned contract bundle."""
+    _contract, predicates, _transitions = load_contract_bundle()
+    return predicates
 
 
 def _dispose_engine(engine: Engine | None) -> None:
@@ -93,8 +102,9 @@ def _published_relationship_index(
     return index
 
 
-def load_governed_relationship_index() -> GovernedRelationshipIndex:
-    """Load metadata for the latest published governed relationship projection."""
+@lru_cache(maxsize=1)
+def load_governed_relationship_index(_graph: AssetRelationshipGraph) -> GovernedRelationshipIndex:
+    """Load governed metadata once for the active immutable runtime graph instance."""
     settings = get_graph_lifecycle_settings()
     engine: Engine | None = None
     try:
@@ -110,7 +120,7 @@ def load_governed_relationship_index() -> GovernedRelationshipIndex:
             published = repository.latest_published_projection(_GRAC_CURRENT_PURPOSE)
             if published is None:
                 return {}
-            _contract, predicates, _transitions = load_contract_bundle()
+            predicates = _load_contract_predicates()
             return _published_relationship_index(published, predicates)
     except GraphPersistenceInvalidUrlError as exc:
         raise HTTPException(
@@ -158,7 +168,7 @@ async def get_asset_relationships(asset_id: str) -> list[RelationshipResponse]:
         g = get_graph()
         if asset_id not in g.assets:
             raise_asset_not_found(asset_id)
-        governed_index = load_governed_relationship_index()
+        governed_index = load_governed_relationship_index(g)
         return [
             _relationship_response(asset_id, relationship, governed_index)
             for relationship in g.relationships.get(asset_id, [])
@@ -198,7 +208,7 @@ async def get_all_relationships() -> list[RelationshipResponse]:
     """
     try:
         g = get_graph()
-        governed_index = load_governed_relationship_index()
+        governed_index = load_governed_relationship_index(g)
         return [
             _relationship_response(source_id, relationship, governed_index)
             for source_id, rels in g.relationships.items()

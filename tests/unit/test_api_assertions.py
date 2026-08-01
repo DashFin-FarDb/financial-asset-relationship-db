@@ -23,7 +23,12 @@ from src.data.database import create_engine_from_url, init_db
 from src.data.relationship_assertion_repository import RegisterEvidenceRequest, RelationshipAssertionRepository
 from src.data.relationship_projection_persistence import PersistedProjectionRevision
 from src.governance.relationship_assertion import AssertionAsOf, AuthorityContext, EvidenceRecord
-from src.governance.relationship_assertion_contract import PredicatesDocument
+from src.governance.relationship_assertion_contract import (
+    ContractDocument,
+    PredicatesDocument,
+    TransitionsDocument,
+)
+from src.logic.asset_graph import AssetRelationshipGraph
 
 UTC = timezone.utc
 
@@ -61,6 +66,13 @@ def _headers(token: str) -> dict[str, str]:
     return {"Authorization": f"Bearer {token}"}
 
 
+def _supersession_headers(reviewer_token: str, proposer_token: str) -> dict[str, str]:
+    """Build reviewer and distinct proposer authorization headers."""
+    headers = _headers(reviewer_token)
+    headers["X-Proposal-Authorization"] = f"Bearer {proposer_token}"
+    return headers
+
+
 def _proposal_payload(assertion_id: str) -> dict[str, object]:
     """Build a valid governed assertion proposal payload."""
     return {
@@ -92,6 +104,8 @@ def initialize_assertion_store() -> None:
 @pytest.fixture(autouse=True)
 def configure_graph_persistence(monkeypatch: pytest.MonkeyPatch) -> None:
     """Bind focused API tests to the durable test graph database."""
+    relationships_router._load_contract_predicates.cache_clear()
+    relationships_router.load_governed_relationship_index.cache_clear()
     database_url = os.environ["DATABASE_URL"]
     settings = SimpleNamespace(
         asset_graph_database_url=database_url,
@@ -197,7 +211,8 @@ def test_supersession_conflict_rolls_back_successor_write(client: TestClient) ->
     predecessor_id = str(uuid4())
     successor_id = str(uuid4())
     owner_headers = _headers(_token("proposer_a"))
-    reviewer_headers = _headers(_token("admin"))
+    reviewer_token = _token("admin")
+    reviewer_headers = _headers(reviewer_token)
 
     create = client.post("/api/assertions", json=_proposal_payload(predecessor_id), headers=owner_headers)
     assert create.status_code == 200
@@ -214,10 +229,9 @@ def test_supersession_conflict_rolls_back_successor_write(client: TestClient) ->
             "expected_sequence": 1,
             "rationale": "supersede predecessor",
             "accept_rationale": "accept successor",
-            "proposal_bearer_token": _token("proposer_b"),
             "successor_proposal": _proposal_payload(successor_id),
         },
-        headers=reviewer_headers,
+        headers=_supersession_headers(reviewer_token, _token("proposer_b")),
     )
     assert supersede.status_code == 409
 
@@ -234,7 +248,8 @@ def test_self_supersession_maps_to_conflict(client: TestClient) -> None:
     """Self-supersession is a bounded 409 rather than an unhandled domain error."""
     assertion_id = str(uuid4())
     owner_headers = _headers(_token("proposer_a"))
-    reviewer_headers = _headers(_token("admin"))
+    reviewer_token = _token("admin")
+    reviewer_headers = _headers(reviewer_token)
     assert (
         client.post("/api/assertions", json=_proposal_payload(assertion_id), headers=owner_headers).status_code == 200
     )
@@ -253,10 +268,9 @@ def test_self_supersession_maps_to_conflict(client: TestClient) -> None:
             "expected_sequence": 2,
             "rationale": "invalid self-supersession",
             "accept_rationale": "accept successor",
-            "proposal_bearer_token": _token("proposer_b"),
             "successor_proposal": _proposal_payload(assertion_id),
         },
-        headers=reviewer_headers,
+        headers=_supersession_headers(reviewer_token, _token("proposer_b")),
     )
 
     assert response.status_code == 409
@@ -289,7 +303,8 @@ def test_unexpected_command_failure_is_sanitized(
 def test_unknown_decision_and_supersession_return_not_found(client: TestClient) -> None:
     """Commands targeting an absent predecessor return the contracted 404."""
     assertion_id = str(uuid4())
-    reviewer_headers = _headers(_token("admin"))
+    reviewer_token = _token("admin")
+    reviewer_headers = _headers(reviewer_token)
 
     decision = client.post(
         f"/api/assertions/{assertion_id}/decisions",
@@ -302,14 +317,53 @@ def test_unknown_decision_and_supersession_return_not_found(client: TestClient) 
             "expected_sequence": 1,
             "rationale": "supersede predecessor",
             "accept_rationale": "accept successor",
-            "proposal_bearer_token": _token("proposer_b"),
             "successor_proposal": _proposal_payload(str(uuid4())),
         },
-        headers=reviewer_headers,
+        headers=_supersession_headers(reviewer_token, _token("proposer_b")),
     )
 
     assert decision.status_code == 404
     assert supersession.status_code == 404
+
+
+@pytest.mark.unit
+def test_supersession_requires_header_proposal_credential(client: TestClient) -> None:
+    """Supersession rejects missing, malformed, and body-carried proposer credentials."""
+    predecessor_id = str(uuid4())
+    reviewer_token = _token("admin")
+    proposer_token = _token("proposer_b")
+    payload = {
+        "expected_sequence": 1,
+        "rationale": "supersede predecessor",
+        "accept_rationale": "accept successor",
+        "successor_proposal": _proposal_payload(str(uuid4())),
+    }
+
+    missing = client.post(
+        f"/api/assertions/{predecessor_id}/supersessions",
+        json=payload,
+        headers=_headers(reviewer_token),
+    )
+    malformed_headers = _headers(reviewer_token)
+    malformed_headers["X-Proposal-Authorization"] = proposer_token
+    malformed = client.post(
+        f"/api/assertions/{predecessor_id}/supersessions",
+        json=payload,
+        headers=malformed_headers,
+    )
+    legacy_payload = dict(payload)
+    legacy_payload["proposal_bearer_token"] = proposer_token
+    body_credential = client.post(
+        f"/api/assertions/{predecessor_id}/supersessions",
+        json=legacy_payload,
+        headers=_supersession_headers(reviewer_token, proposer_token),
+    )
+
+    assert missing.status_code == 401
+    assert malformed.status_code == 401
+    assert missing.headers["WWW-Authenticate"] == "Bearer"
+    assert malformed.headers["WWW-Authenticate"] == "Bearer"
+    assert body_credential.status_code == 422
 
 
 @pytest.mark.unit
@@ -328,16 +382,18 @@ def test_invalid_proposal_contract_returns_unprocessable_entity(client: TestClie
 
 
 @pytest.mark.unit
+@pytest.mark.parametrize("deployment_env", ["development", "preview", "staging"])
 def test_assertion_store_does_not_fall_back_to_application_database(
     client: TestClient,
     monkeypatch: pytest.MonkeyPatch,
+    deployment_env: str,
 ) -> None:
-    """Modern settings never write governed assertions to the auth database fallback."""
+    """Governed assertions never use the auth database fallback in any deployment mode."""
     settings = SimpleNamespace(
         asset_graph_database_url=None,
         database_url=os.environ["DATABASE_URL"],
-        env="development",
-        vercel_env=None,
+        env=deployment_env,
+        vercel_env=deployment_env,
     )
     monkeypatch.setattr(assertions_router, "get_graph_lifecycle_settings", lambda: settings)
 
@@ -359,7 +415,28 @@ def test_invalid_assertion_persistence_url_maps_to_service_unavailable(
     response = client.get(f"/api/assertions/{uuid4()}")
 
     assert response.status_code == 503
-    assert response.json() == {"detail": "Graph persistence database not configured"}
+    assert response.json() == {"detail": "Graph persistence database is misconfigured"}
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize("path_suffix", ["", "/history"], ids=["explanation", "history"])
+def test_unexpected_public_read_failure_is_sanitized(
+    client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+    path_suffix: str,
+) -> None:
+    """Unexpected explanation persistence failures become generic JSON 500 responses."""
+
+    def fail_read(*_args: object, **_kwargs: object) -> None:
+        """Simulate an unexpected persistence failure containing private detail."""
+        raise RuntimeError("private persistence detail")
+
+    monkeypatch.setattr(RelationshipAssertionRepository, "get_as_of", fail_read)
+
+    response = client.get(f"/api/assertions/{uuid4()}{path_suffix}")
+
+    assert response.status_code == 500
+    assert response.json() == {"detail": "An internal error occurred. Please try again later."}
 
 
 @pytest.mark.unit
@@ -534,9 +611,12 @@ def test_empty_repository_event_view_fails_closed(
 @pytest.mark.unit
 def test_governance_contract_failure_propagates_from_loader(monkeypatch: pytest.MonkeyPatch) -> None:
     """Unexpected contract failures propagate instead of producing legacy metadata."""
-    published = SimpleNamespace(
-        revision=SimpleNamespace(governed_scopes=(), edges=()),
-        revision_id="revision-test",
+    published = cast(
+        PersistedProjectionRevision,
+        SimpleNamespace(
+            revision=SimpleNamespace(governed_scopes=(), edges=()),
+            revision_id="revision-test",
+        ),
     )
     legacy_settings = SimpleNamespace(database_url="unused")
     monkeypatch.setattr(relationships_router, "get_graph_lifecycle_settings", lambda: legacy_settings)
@@ -559,7 +639,59 @@ def test_governance_contract_failure_propagates_from_loader(monkeypatch: pytest.
     monkeypatch.setattr(relationships_router, "load_contract_bundle", fail_contract_load)
 
     with pytest.raises(RuntimeError, match="contract load failed"):
-        relationships_router.load_governed_relationship_index()
+        relationships_router.load_governed_relationship_index(cast(AssetRelationshipGraph, object()))
+
+
+@pytest.mark.unit
+def test_governance_index_and_contract_bundle_are_cached(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Runtime-graph reads reuse their index and the validated immutable contract bundle."""
+    published = cast(
+        PersistedProjectionRevision,
+        SimpleNamespace(
+            revision=SimpleNamespace(governed_scopes=(), edges=()),
+            revision_id="revision-test",
+        ),
+    )
+    settings = SimpleNamespace(asset_graph_database_url="unused", database_url=None)
+    monkeypatch.setattr(relationships_router, "get_graph_lifecycle_settings", lambda: settings)
+    monkeypatch.setattr(
+        relationships_router,
+        "resolve_durable_graph_persistence_url",
+        lambda _url: "sqlite:///:memory:",
+    )
+    bundle = relationships_router.load_contract_bundle()
+    contract_loads = 0
+    projection_loads = 0
+
+    def recording_load() -> tuple[ContractDocument, PredicatesDocument, TransitionsDocument]:
+        """Count contract loads while returning the validated test bundle."""
+        nonlocal contract_loads
+        contract_loads += 1
+        return bundle
+
+    def load_projection(
+        _repository: RelationshipAssertionRepository,
+        _purpose: str,
+    ) -> PersistedProjectionRevision:
+        """Count published projection loads while returning the bounded test revision."""
+        nonlocal projection_loads
+        projection_loads += 1
+        return published
+
+    monkeypatch.setattr(relationships_router, "load_contract_bundle", recording_load)
+    monkeypatch.setattr(
+        relationships_router.RelationshipAssertionRepository,
+        "latest_published_projection",
+        load_projection,
+    )
+    first_graph = cast(AssetRelationshipGraph, object())
+    second_graph = cast(AssetRelationshipGraph, object())
+
+    assert relationships_router.load_governed_relationship_index(first_graph) == {}
+    assert relationships_router.load_governed_relationship_index(first_graph) == {}
+    assert relationships_router.load_governed_relationship_index(second_graph) == {}
+    assert projection_loads == 2
+    assert contract_loads == 1
 
 
 @pytest.mark.unit
@@ -578,7 +710,7 @@ def test_governance_failure_reaches_route_error_handler(
 ) -> None:
     """Public graph routes convert governance-loader failures to bounded 500s."""
 
-    def fail_governance_load() -> None:
+    def fail_governance_load(_graph: AssetRelationshipGraph) -> None:
         """Simulate a governance persistence or contract outage."""
         raise RuntimeError("governance load failed")
 
