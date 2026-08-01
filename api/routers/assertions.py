@@ -386,8 +386,8 @@ async def supersede_assertion(
 @router.get("/api/assertions/{assertion_id}", response_model=AssertionReadResponse)
 async def get_assertion(
     assertion_id: str,
-    known_at: datetime | None = Query(default=None),
-    effective_at: datetime | None = Query(default=None),
+    known_at: Annotated[datetime | None, Query()] = None,
+    effective_at: Annotated[datetime | None, Query()] = None,
 ) -> AssertionReadResponse:
     """Return a redacted assertion explanation as-of the requested bitemporal bounds."""
     with _assertion_repository_session() as session:
@@ -405,8 +405,8 @@ async def get_assertion(
 @router.get("/api/assertions/{assertion_id}/history", response_model=AssertionHistoryResponse)
 async def get_assertion_history(
     assertion_id: str,
-    known_at: datetime | None = Query(default=None),
-    effective_at: datetime | None = Query(default=None),
+    known_at: Annotated[datetime | None, Query()] = None,
+    effective_at: Annotated[datetime | None, Query()] = None,
 ) -> AssertionHistoryResponse:
     """Return immutable ordered lifecycle events with bitemporal bounds."""
     with _assertion_repository_session() as session:
