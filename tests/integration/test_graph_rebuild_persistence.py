@@ -164,11 +164,11 @@ async def test_persistence_save_failure_returns_sanitized_500(
     _init_empty_db(database_url)
     _configure_persistence(monkeypatch, database_url)
 
-    def fail_save(*args, **kwargs):
-        """Simulate a persistence save failure."""
-        raise ValueError(f"Failed to persist graph at {raw_url}")
-
-    monkeypatch.setattr("api.routers.graph_admin.build_rebuild_graph", MagicMock(return_value=AssetRelationshipGraph()))
+    fail_save = MagicMock(side_effect=ValueError(f"Failed to persist graph at {raw_url}"))
+    monkeypatch.setattr(
+        "api.routers.graph_admin.build_rebuild_graph",
+        MagicMock(return_value=(AssetRelationshipGraph(), "sample")),
+    )
     monkeypatch.setattr(RelationshipAssertionRepository, "finalize_projection_publication", fail_save)
 
     with caplog.at_level(logging.ERROR):
@@ -182,6 +182,7 @@ async def test_persistence_save_failure_returns_sanitized_500(
     assert "secret" not in response_text
     assert raw_url not in log_output
     assert "secret" not in log_output
+    fail_save.assert_called_once()
 
 
 # --- Core Rebuild Distributed Lock TTL Flow Integrations ---
