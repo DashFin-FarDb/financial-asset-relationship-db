@@ -25,15 +25,22 @@ from sqlalchemy.orm import Session
 from src.data.database import create_engine_from_url, create_session_factory
 from src.data.db_models import RebuildJobORM, RebuildJobStatus
 from src.data.distributed_lock import DistributedLock, LockAcquisitionTimeout, LockLifecycleState, LockState
+from src.data.relationship_assertion_repository import (
+    FinalizeProjectionPublicationRequest,
+    RelationshipAssertionRepository,
+)
+from src.data.relationship_projection_persistence import PersistProjectionRequest
 from src.data.repository import (
     AssetGraphRepository,
     RebuildCancellationRequestedError,
     RebuildFailureDetails,
     session_scope,
 )
+from src.governance.relationship_assertion_contract import load_contract_bundle
 from src.logic.asset_graph import AssetRelationshipGraph
 from src.logic.reconciliation_engine import RebuildCancelledError
 from src.logic.recovery_gate import ExecutionBlockedError, RecoveryGate
+from src.logic.relationship_projection import ProjectRequest, overlay_governed_relationships, project
 from src.observability.facade import ObservabilityEvent, log_event
 
 from ..api_models import (
@@ -61,6 +68,7 @@ from ..graph_lifecycle_providers import (
     resolve_durable_graph_persistence_url,
     resolve_hosted_graph_database_url,
     save_graph_to_persistence,
+    stage_graph_snapshot,
 )
 from ..metrics import (
     HEARTBEAT_LAST_SUCCESS_TIMESTAMP,
@@ -104,6 +112,7 @@ _REBUILD_PATH = "/api/graph/rebuild"
 _MAX_REBUILD_JOB_LIST_RESULTS = 100
 _MAX_AUDIT_USER_REF_LENGTH = 64
 _MAX_FAILURE_MESSAGE_LENGTH = 512
+_GRAC_CURRENT_PURPOSE = "financial_graph_current_view"
 
 # Regex to match URLs, DSNs, and user:pass@host credential sequences for redaction.
 # Intent: Redact connection strings, credentials, and full URL segments containing sensitive details.
@@ -1059,17 +1068,6 @@ def _run_rebuild_pipeline(
         _verify_execution_state(lock_lost, cancel_event, "pre-persistence")
         _update_job_source_safe(session_factory, job_id, execution_id, str(source))
 
-        graph_snapshot = _load_persisted_graph_snapshot(session_factory)
-
-        def _pre_commit_gate() -> None:
-            """Verify execution validity immediately before database commit."""
-            _verify_execution_state(lock_lost, cancel_event, "graph-commit")
-
-        save_graph_to_persistence(resolved_url, graph, pre_commit_check=_pre_commit_gate)
-        graph_saved = True
-
-        if lock_lost.is_set():
-            graph_saved = False
         _verify_execution_state(lock_lost, cancel_event, "pre-success-write")
 
         response = _finalize_rebuild_success(
@@ -1079,7 +1077,10 @@ def _run_rebuild_pipeline(
             graph=graph,
             source=source,
             job_started_at=job_started_at,
+            lock_lost=lock_lost,
+            cancel_event=cancel_event,
         )
+        graph_saved = True
         success_persisted = True
         synchronize_runtime_graph(graph, job_id=job_id)
         return response
@@ -1615,24 +1616,63 @@ def _finalize_rebuild_success(
     graph: AssetRelationshipGraph,
     source: GraphRebuildSource,
     job_started_at: float,
+    lock_lost: threading.Event,
+    cancel_event: threading.Event,
 ) -> GraphRebuildResponse:
-    """Build the rebuild response payload and persist success job state."""
-    regulatory_events = getattr(graph, "regulatory_events", []) or []
-    response = GraphRebuildResponse(
-        status="persisted",
-        source=source,
-        asset_count=len(graph.assets),
-        relationship_count=sum(len(items) for items in graph.relationships.values()),
-        regulatory_event_count=len(regulatory_events),
-    )
-    _mark_job_succeeded_safe(
-        session_factory,
-        job_id,
-        execution_id,
-        node_count=response.asset_count,
-        edge_count=response.relationship_count,
-        duration_ms=_duration_ms(job_started_at),
-    )
+    """Atomically persist the graph, candidate, success transition, and publication."""
+    _verify_execution_state(lock_lost, cancel_event, "publication-transaction-start")
+    publication_time = datetime.now(timezone.utc)  # noqa: UP017
+    _contract, predicates, _transitions = load_contract_bundle()
+
+    with session_scope(session_factory) as session:
+        assertion_repo = RelationshipAssertionRepository(session)
+        snapshot = assertion_repo.load_projection_source_snapshot()
+        revision = project(
+            ProjectRequest(
+                assertions=snapshot.assertions,
+                events=snapshot.events,
+                evidence=snapshot.evidence,
+                evidence_links=snapshot.evidence_links,
+                predicate_registry=predicates,
+                purpose=_GRAC_CURRENT_PURPOSE,
+                effective_at=publication_time,
+                known_at=publication_time,
+                previously_published_scopes=assertion_repo.latest_published_scopes(_GRAC_CURRENT_PURPOSE),
+            )
+        )
+        graph.relationships = overlay_governed_relationships(graph.relationships, revision, predicates)
+
+        regulatory_events = getattr(graph, "regulatory_events", []) or []
+        response = GraphRebuildResponse(
+            status="persisted",
+            source=source,
+            asset_count=len(graph.assets),
+            relationship_count=sum(len(items) for items in graph.relationships.values()),
+            regulatory_event_count=len(regulatory_events),
+        )
+        stage_graph_snapshot(session, graph)
+
+        pre_commit_stage = "publication-pre-success"
+
+        def _publication_gate() -> None:
+            """Recheck lock and cancellation immediately around finalization."""
+            nonlocal pre_commit_stage
+            _verify_execution_state(lock_lost, cancel_event, pre_commit_stage)
+            pre_commit_stage = "publication-pre-commit"
+
+        assertion_repo.finalize_projection_publication(
+            FinalizeProjectionPublicationRequest(
+                projection=PersistProjectionRequest(revision=revision, created_at=publication_time),
+                rebuild_job_id=job_id,
+                execution_id=execution_id,
+                node_count=response.asset_count,
+                edge_count=response.relationship_count,
+                duration_ms=_duration_ms(job_started_at),
+                published_at=publication_time,
+            ),
+            pre_commit_check=_publication_gate,
+        )
+
     update_rebuild_state_metric("succeeded")
     record_rebuild_state_transition("running", "succeeded")
     return response

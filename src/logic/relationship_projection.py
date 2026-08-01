@@ -12,6 +12,7 @@ from collections import defaultdict
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
+from decimal import Decimal, InvalidOperation
 from typing import Any
 
 from src.governance.relationship_assertion import (
@@ -92,6 +93,9 @@ class ProjectRequest:
     contract_version: str = CONTRACT_VERSION
     previously_published_scopes: Sequence[GovernedScope] = ()
     projector_version: str = PROJECTOR_VERSION
+
+
+GraphRelationship = tuple[str, str, float]
 
 
 @dataclass(frozen=True, slots=True)
@@ -456,3 +460,51 @@ def project(request: ProjectRequest) -> ProjectionRevision:
         edges=edges,
         governed_scopes=governed_scopes,
     )
+
+
+def overlay_governed_relationships(
+    relationships: Mapping[str, Sequence[GraphRelationship]],
+    revision: ProjectionRevision,
+    predicate_registry: PredicatesDocument | Sequence[PredicateSpec],
+) -> dict[str, list[GraphRelationship]]:
+    """Overlay one governed revision on legacy relationships deterministically.
+
+    Established scopes own their registered edge types even when the revision
+    emits no edges. This prevents an empty governed revision from allowing a
+    legacy edge to reappear.
+    """
+    predicates = _predicate_index(predicate_registry)
+    governed_edge_types: set[str] = set()
+    for scope in revision.governed_scopes:
+        if scope.purpose != revision.purpose:
+            raise ProjectionError("governed scope purpose does not match revision purpose")
+        predicate = predicates.get(scope.predicate_id)
+        if predicate is None:
+            raise ProjectionError(f"governed scope predicate is not registered: {scope.predicate_id}")
+        if predicate.projection.purpose != revision.purpose:
+            raise ProjectionError(f"governed scope predicate has wrong purpose: {scope.predicate_id}")
+        governed_edge_types.add(predicate.projection.edge_type)
+
+    overlaid: dict[str, list[GraphRelationship]] = {}
+    for source_id, entries in relationships.items():
+        retained = [entry for entry in entries if entry[1] not in governed_edge_types]
+        if retained:
+            overlaid[source_id] = retained
+
+    for edge in revision.edges:
+        if edge.edge_type not in governed_edge_types:
+            raise ProjectionError(f"projection edge is outside governed scope: {edge.edge_type}")
+        try:
+            strength = float(Decimal(edge.strength))
+        except (InvalidOperation, ValueError) as exc:
+            raise ProjectionError(f"projection edge has invalid strength: {edge.strength}") from exc
+        if not 0.0 <= strength <= 1.0:
+            raise ProjectionError(f"projection edge strength is out of range: {edge.strength}")
+        overlaid.setdefault(edge.source_id, []).append((edge.target_id, edge.edge_type, strength))
+        if edge.direction == "bidirectional":
+            overlaid.setdefault(edge.target_id, []).append((edge.source_id, edge.edge_type, strength))
+
+    return {
+        source_id: sorted(entries, key=lambda entry: (entry[0], entry[1], entry[2]))
+        for source_id, entries in sorted(overlaid.items())
+    }

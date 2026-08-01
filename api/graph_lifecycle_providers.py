@@ -351,6 +351,27 @@ def save_graph_to_persistence(
         engine.dispose()
 
 
+def stage_graph_snapshot(session: Session, graph: AssetRelationshipGraph) -> None:
+    """Stage a graph snapshot in the caller-owned transaction without committing.
+
+    GRAC publication uses this boundary so the read-model snapshot, candidate
+    revision, rebuild success transition, and publication row commit together.
+    """
+    try:
+        AssetGraphRepository(session).save_graph(graph)
+    except Exception as exc:
+        log_event(
+            logger,
+            logging.ERROR,
+            ObservabilityEvent(
+                event="graph_persistence_stage_failed",
+                message=f"Failed to stage rebuilt graph: {exc.__class__.__name__}",
+                metadata={"error": exc.__class__.__name__},
+            ),
+        )
+        raise GraphPersistenceSaveError(_GRAPH_PERSISTENCE_SAVE_ERROR_MESSAGE) from None
+
+
 def _create_graph_persistence_engine(database_url: str) -> Engine:
     """
     Create a SQLAlchemy engine for graph persistence.

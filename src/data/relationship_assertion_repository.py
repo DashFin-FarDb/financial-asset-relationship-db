@@ -12,11 +12,14 @@ from sqlalchemy import func, select, union_all
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
+from src.data.db_models import RebuildJobORM
 from src.data.relationship_assertion_db_models import (
     RelationshipAssertionEventORM,
     RelationshipAssertionEvidenceORM,
     RelationshipAssertionORM,
     RelationshipEvidenceORM,
+    RelationshipProjectionPublicationORM,
+    RelationshipProjectionRevisionORM,
 )
 from src.data.relationship_projection_persistence import (
     PersistedProjectionRevision,
@@ -58,14 +61,18 @@ from src.governance.relationship_assertion_lifecycle import (
     validate_authority,
     validate_evidence_record,
 )
+from src.logic.relationship_projection import GovernedScope
 
 UTC = timezone.utc
 _SUPERSESSION_LOCK_NAMESPACE = 0x46415244
 _SUPERSESSION_LOCK_RESOURCE = 0x47524143
 
 __all__ = [
+    "FinalizeProjectionPublicationRequest",
     "PersistProjectionRequest",
     "PersistedProjectionRevision",
+    "ProjectionSourceSnapshot",
+    "PublishedProjectionRevision",
     "RegisterEvidenceRequest",
     "RelationshipAssertionRepository",
     "RepositoryTransitionRequest",
@@ -108,6 +115,41 @@ class SupersedeAtomicRequest:
     expected_sequence: int
     rationale: str
     accept_rationale: str = "accept successor"
+
+
+@dataclass(frozen=True)
+class ProjectionSourceSnapshot:
+    """Deterministically ordered assertion data consumed by the projector."""
+
+    assertions: tuple[Assertion, ...]
+    events: tuple[AssertionEvent, ...]
+    evidence: tuple[EvidenceRecord, ...]
+    evidence_links: tuple[EvidenceLink, ...]
+
+
+@dataclass(frozen=True)
+class FinalizeProjectionPublicationRequest:
+    """Inputs for the sole atomic rebuild-success publication path."""
+
+    projection: PersistProjectionRequest
+    rebuild_job_id: str
+    execution_id: str
+    node_count: int
+    edge_count: int
+    duration_ms: int
+    publication_id: str | None = None
+    published_at: datetime | None = None
+
+
+@dataclass(frozen=True)
+class PublishedProjectionRevision:
+    """Projection revision and publication committed by one rebuild."""
+
+    persisted: PersistedProjectionRevision
+    publication_id: str
+    rebuild_job_id: str
+    execution_id: str
+    published_at: datetime
 
 
 def _utcnow() -> datetime:
@@ -684,6 +726,117 @@ class RelationshipAssertionRepository:
     def get_projection_revision(self, revision_id: str) -> PersistedProjectionRevision | None:
         """Load a persisted candidate revision and its ordered edges."""
         return ProjectionRevisionStore(self._session, clock=self._clock).get(revision_id)
+
+    def load_projection_source_snapshot(self) -> ProjectionSourceSnapshot:
+        """Load all append-only projector inputs in deterministic order."""
+        assertion_rows = self._session.execute(
+            select(RelationshipAssertionORM).order_by(RelationshipAssertionORM.id)
+        ).scalars()
+        event_rows = self._session.execute(
+            select(RelationshipAssertionEventORM).order_by(
+                RelationshipAssertionEventORM.assertion_id,
+                RelationshipAssertionEventORM.sequence,
+                RelationshipAssertionEventORM.id,
+            )
+        ).scalars()
+        evidence_rows = self._session.execute(
+            select(RelationshipEvidenceORM).order_by(RelationshipEvidenceORM.id)
+        ).scalars()
+        link_rows = self._session.execute(
+            select(RelationshipAssertionEvidenceORM).order_by(
+                RelationshipAssertionEvidenceORM.assertion_id,
+                RelationshipAssertionEvidenceORM.evidence_id,
+                RelationshipAssertionEvidenceORM.id,
+            )
+        ).scalars()
+        return ProjectionSourceSnapshot(
+            assertions=tuple(_fix_assertion_mapping(row) for row in assertion_rows),
+            events=tuple(_event_from_orm(row) for row in event_rows),
+            evidence=tuple(_evidence_from_orm(row) for row in evidence_rows),
+            evidence_links=tuple(_link_from_orm(row) for row in link_rows),
+        )
+
+    def latest_published_scopes(self, purpose: str) -> tuple[GovernedScope, ...]:
+        """Load scopes from the latest successfully published revision."""
+        return ProjectionRevisionStore(self._session, clock=self._clock).latest_published_scopes(purpose)
+
+    def latest_published_projection(self, purpose: str) -> PersistedProjectionRevision | None:
+        """Load the latest successful projection publication for ``purpose``."""
+        revision_id = self._session.execute(
+            select(RelationshipProjectionPublicationORM.revision_id)
+            .join(
+                RelationshipProjectionRevisionORM,
+                RelationshipProjectionRevisionORM.id == RelationshipProjectionPublicationORM.revision_id,
+            )
+            .join(
+                RebuildJobORM,
+                RebuildJobORM.job_id == RelationshipProjectionPublicationORM.rebuild_job_id,
+            )
+            .where(RelationshipProjectionRevisionORM.purpose == purpose)
+            .where(RebuildJobORM.status == "succeeded")
+            .order_by(
+                RelationshipProjectionPublicationORM.published_at.desc(),
+                RelationshipProjectionPublicationORM.rebuild_job_id.desc(),
+                RelationshipProjectionPublicationORM.id.desc(),
+            )
+            .limit(1)
+        ).scalar_one_or_none()
+        return None if revision_id is None else self.get_projection_revision(revision_id)
+
+    def finalize_projection_publication(
+        self,
+        request: FinalizeProjectionPublicationRequest,
+        *,
+        pre_commit_check: Callable[[], None],
+    ) -> PublishedProjectionRevision:
+        """Atomically persist one candidate, succeed its owner job, and publish it.
+
+        The existing owner-guarded ``RUNNING -> SUCCEEDED`` update serializes
+        concurrent first publishers for the rebuild job. Any failure rolls the
+        candidate, success transition, and publication back together.
+        """
+        execution_id = request.execution_id
+        if not isinstance(execution_id, str) or not execution_id.strip():
+            raise ValidationError("publication execution_id must be non-null and non-empty")
+
+        persisted = self.persist_projection_revision(request.projection)
+        pre_commit_check()
+
+        from src.data.repository import AssetGraphRepository  # pylint: disable=import-outside-toplevel
+
+        AssetGraphRepository(self._session).mark_rebuild_job_succeeded(
+            request.rebuild_job_id,
+            execution_id=execution_id,
+            node_count=request.node_count,
+            edge_count=request.edge_count,
+            duration_ms=request.duration_ms,
+        )
+
+        publication_id = request.publication_id or str(uuid4())
+        published_at = self._server_time() if request.published_at is None else _server_utc(request.published_at)
+        try:
+            with self._session.begin_nested():
+                self._session.add(
+                    RelationshipProjectionPublicationORM(
+                        id=publication_id,
+                        revision_id=persisted.revision_id,
+                        rebuild_job_id=request.rebuild_job_id,
+                        execution_id=execution_id,
+                        published_at=published_at,
+                    )
+                )
+                self._session.flush()
+        except IntegrityError as exc:
+            raise ConcurrencyConflict(f"publication insert conflicted for rebuild {request.rebuild_job_id}") from exc
+
+        pre_commit_check()
+        return PublishedProjectionRevision(
+            persisted=persisted,
+            publication_id=publication_id,
+            rebuild_job_id=request.rebuild_job_id,
+            execution_id=execution_id,
+            published_at=published_at,
+        )
 
     def current_state(self, assertion_id: str) -> LifecycleState:
         """Return the latest lifecycle state for ``assertion_id``."""
