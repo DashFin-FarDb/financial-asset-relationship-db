@@ -192,6 +192,36 @@ class TestPublicationBaseline:
                 )
             )
 
+    def test_execution_id_none_rejected_when_job_has_owner(self, session: Session) -> None:
+        """Test that null execution_id cannot bypass a non-null rebuild owner."""
+        repo = RelationshipAssertionRepository(session)
+        predicates = sample_predicate_registry()
+        execution_id = new_execution_id()
+        job_id = create_test_rebuild_job(session, execution_id)
+
+        revision = project(
+            ProjectRequest(
+                assertions=[],
+                events=[],
+                evidence=[],
+                evidence_links=[],
+                predicate_registry=predicates,
+                purpose="test_purpose",
+                effective_at=now_utc(),
+                known_at=now_utc(),
+            )
+        )
+        persisted = repo.persist_projection_revision(PersistProjectionRequest(revision=revision))
+
+        with pytest.raises(ValidationError, match="execution_id.*does not match"):
+            repo.publish_projection_revision(
+                PublishProjectionRequest(
+                    revision_id=persisted.revision_id,
+                    rebuild_job_id=job_id,
+                    execution_id=None,
+                )
+            )
+
 
 class TestPublicationSafety:
     """Test publication safety constraints."""

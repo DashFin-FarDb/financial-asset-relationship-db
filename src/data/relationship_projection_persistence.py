@@ -294,7 +294,7 @@ class ProjectionRevisionStore:
         1. Exactly one publication per rebuild_job_id (via unique constraint)
         2. Revision must exist
         3. Rebuild job must exist and have status="succeeded"
-        4. Owner-matched execution_id when non-null
+        4. Owner-matched execution_id (exact identity match, including nullability)
         5. Atomic transaction boundary
 
         Raises:
@@ -321,7 +321,7 @@ class ProjectionRevisionStore:
             )
 
         # Owner-matched execution_id check (Stage-5C safeguard)
-        if request.execution_id is not None and job_row.execution_id != request.execution_id:
+        if job_row.execution_id != request.execution_id:
             raise ValidationError(
                 f"publication execution_id {request.execution_id} does not match "
                 f"rebuild job owner {job_row.execution_id}"
