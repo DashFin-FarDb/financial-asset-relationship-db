@@ -1,0 +1,19 @@
+tests/integration/test_graph_rebuild_persistence.py
+  s_8630f737cf5bfc::t_22a68071fb8282 167-171,185
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.19",
+  "base_commit_sha": "6f4a7a33bd45c0a95ac8d3c02eef579487e24488",
+  "prompts": {},
+  "sessions": {
+    "s_8630f737cf5bfc": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fbc00-9ecc-7473-b6de-74c7d06b262a",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}
