@@ -17,7 +17,11 @@ from ..router_helpers import (
     get_graph,
     logger,
 )
-from .relationships import GovernanceMetadata, GovernedRelationshipIndex, load_governed_relationship_index
+from ..services.relationship_index import (
+    GovernanceMetadata,
+    GovernedRelationshipIndex,
+    load_governed_relationship_index,
+)
 
 router = APIRouter()
 

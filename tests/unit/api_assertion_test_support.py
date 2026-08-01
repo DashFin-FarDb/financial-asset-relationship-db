@@ -13,7 +13,7 @@ from httpx import Response
 from api.auth import UserRepository, create_access_token, get_password_hash
 from api.main import app
 from api.routers import assertions as assertions_router
-from api.routers import relationships as relationships_router
+from api.services import relationship_index as relationship_index_service
 from src.data.database import create_engine_from_url, init_db
 
 UTC = timezone.utc
@@ -78,8 +78,8 @@ def initialize_assertion_store() -> None:
 @pytest.fixture(autouse=True)
 def configure_graph_persistence(monkeypatch: pytest.MonkeyPatch) -> None:
     """Bind focused API tests to the durable test graph database."""
-    relationships_router._load_contract_predicates.cache_clear()
-    relationships_router.load_governed_relationship_index.cache_clear()
+    relationship_index_service._load_contract_predicates.cache_clear()
+    relationship_index_service.invalidate_governed_relationship_index_cache()
     database_url = os.environ["DATABASE_URL"]
     settings = SimpleNamespace(
         asset_graph_database_url=database_url,
@@ -88,7 +88,7 @@ def configure_graph_persistence(monkeypatch: pytest.MonkeyPatch) -> None:
         vercel_env=None,
     )
     monkeypatch.setattr(assertions_router, "get_graph_lifecycle_settings", lambda: settings)
-    monkeypatch.setattr(relationships_router, "get_graph_lifecycle_settings", lambda: settings)
+    monkeypatch.setattr(relationship_index_service, "get_graph_lifecycle_settings", lambda: settings)
 
 
 @pytest.fixture

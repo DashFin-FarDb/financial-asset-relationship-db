@@ -94,6 +94,7 @@ from ..metrics import (
     update_graph_metrics,
     update_rebuild_state_metric,
 )
+from ..services.relationship_index import invalidate_governed_relationship_index_cache
 
 # Re-export only the minimal public API used by intra-package routing.
 # Private helpers (prefixed with _) remain module-internal and should be accessed
@@ -1796,6 +1797,7 @@ def _finalize_rebuild_success(
             pre_success_check=pre_success_check,
             pre_commit_check=pre_commit_check,
         )
+    invalidate_governed_relationship_index_cache()
     graph.relationships = publication_graph.relationships
     return response
 
