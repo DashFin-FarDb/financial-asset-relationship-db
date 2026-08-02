@@ -10,8 +10,8 @@ import pytest
 
 from src.governance.relationship_assertion import Assertion, AssertionEvent
 from src.governance.relationship_assertion_contract import (
-    PredicateSpec,
     PredicatesDocument,
+    PredicateSpec,
     ProjectionSpec,
 )
 from src.logic.relationship_projection import ProjectionError, ProjectionRevision, ProjectRequest, project

@@ -302,9 +302,7 @@ def _fail_closed_on_runtime_relationship_collisions(candidates: Sequence[_Candid
         if len(group) <= 1:
             continue
         owners = sorted((candidate.assertion.assertion_id, candidate.predicate.id) for candidate in group)
-        raise ProjectionError(
-            f"ambiguous projected runtime relationship for key {key}: " f"owners={owners}; fail closed"
-        )
+        raise ProjectionError(f"ambiguous projected runtime relationship for key {key}: owners={owners}; fail closed")
 
 
 def _semantic_edge_payload(edge: ProjectionEdge) -> dict[str, str]:
