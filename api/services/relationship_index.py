@@ -5,6 +5,7 @@ from __future__ import annotations
 from collections.abc import Mapping
 from functools import lru_cache
 from threading import Lock
+from time import monotonic
 from typing import Literal, TypeAlias, TypedDict
 
 from fastapi import HTTPException, status
@@ -23,7 +24,7 @@ from src.data.relationship_assertion_repository import RelationshipAssertionRepo
 from src.data.relationship_projection_persistence import PersistedProjectionRevision
 from src.data.repository import session_scope
 from src.governance.relationship_assertion import ValidationError
-from src.governance.relationship_assertion_contract import PredicatesDocument, load_contract_bundle
+from src.governance.relationship_assertion_contract import PredicateSpec, PredicatesDocument, load_contract_bundle
 from src.logic.asset_graph import AssetRelationshipGraph
 from src.logic.relationship_projection import ProjectionEdge
 
@@ -37,6 +38,8 @@ from ..graph_lifecycle_providers import (
 )
 
 _GRAC_CURRENT_PURPOSE = "financial_graph_current_view"
+_IN_CLAUSE_CHUNK_SIZE = 400
+_PUBLISHED_REVISION_PROBE_TTL_SECONDS = 1.0
 _cache_generation_lock = Lock()
 _persistence_runtime_lock = Lock()
 
@@ -127,6 +130,7 @@ def _reset_governance_persistence_runtime() -> None:
         _persistence_runtime.session_factory = None
         if engine is not None:
             engine.dispose()
+    _latest_published_revision_id_for_bucket.cache_clear()
 
 
 def _assertion_predicates_for_edges(
@@ -138,37 +142,54 @@ def _assertion_predicates_for_edges(
     if not assertion_ids:
         return {}
 
-    rows = session.execute(
-        select(RelationshipAssertionORM.id, RelationshipAssertionORM.predicate_id)
-        .where(RelationshipAssertionORM.id.in_(assertion_ids))
-        .order_by(RelationshipAssertionORM.id)
-    ).all()
-    assertion_predicates = dict(rows)
+    assertion_predicates: dict[str, str] = {}
+    for start in range(0, len(assertion_ids), _IN_CLAUSE_CHUNK_SIZE):
+        assertion_id_chunk = assertion_ids[start : start + _IN_CLAUSE_CHUNK_SIZE]
+        rows = (
+            session.execute(
+                select(RelationshipAssertionORM.id, RelationshipAssertionORM.predicate_id)
+                .where(RelationshipAssertionORM.id.in_(assertion_id_chunk))
+                .order_by(RelationshipAssertionORM.id)
+            )
+            .tuples()
+            .all()
+        )
+        for assertion_id, predicate_id in rows:
+            assertion_predicates[assertion_id] = predicate_id
+
     missing = sorted(set(assertion_ids) - assertion_predicates.keys())
     if missing:
         raise ValidationError(f"published projection references missing assertions: {missing}")
     return assertion_predicates
 
 
-def _scope_ref_for_edge(
+def _predicate_id_for_edge(
     edge: ProjectionEdge,
-    predicates: PredicatesDocument,
     assertion_predicates: Mapping[str, str],
     governed_scope_ids: set[str],
 ) -> str:
-    """Resolve and validate the one governed predicate scope owned by an edge."""
+    """Resolve the governed predicate identifier owned by one published edge."""
     predicate_id = assertion_predicates.get(edge.assertion_id)
     if predicate_id is None:
         raise ValidationError(f"published edge references unknown assertion: {edge.assertion_id}")
-
-    predicates_by_id = {predicate.id: predicate for predicate in predicates.predicates}
-    predicate = predicates_by_id.get(predicate_id)
-    if predicate is None:
-        raise ValidationError(f"published edge assertion uses unregistered predicate: {predicate_id}")
     if predicate_id not in governed_scope_ids:
         raise ValidationError(
             f"published edge assertion {edge.assertion_id} predicate {predicate_id} is outside governed scopes"
         )
+    return predicate_id
+
+
+def _scope_ref_for_edge(
+    edge: ProjectionEdge,
+    predicates_by_id: Mapping[str, PredicateSpec],
+    assertion_predicates: Mapping[str, str],
+    governed_scope_ids: set[str],
+) -> str:
+    """Resolve and validate the one governed predicate scope owned by an edge."""
+    predicate_id = _predicate_id_for_edge(edge, assertion_predicates, governed_scope_ids)
+    predicate = predicates_by_id.get(predicate_id)
+    if predicate is None:
+        raise ValidationError(f"published edge assertion uses unregistered predicate: {predicate_id}")
     if predicate.projection.edge_type != edge.edge_type:
         raise ValidationError(f"published edge type {edge.edge_type} does not match assertion predicate {predicate_id}")
     return predicate_id
@@ -192,11 +213,12 @@ def _published_relationship_index(
 ) -> GovernedRelationshipIndex:
     """Build exact assertion-owned governance metadata for a published revision."""
     governed_scope_ids = {scope.predicate_id for scope in published.revision.governed_scopes}
+    predicates_by_id = {predicate.id: predicate for predicate in predicates.predicates}
     index: GovernedRelationshipIndex = {}
     for edge in published.revision.edges:
         predicate_id = _scope_ref_for_edge(
             edge,
-            predicates,
+            predicates_by_id,
             assertion_predicates,
             governed_scope_ids,
         )
@@ -210,8 +232,9 @@ def _published_relationship_index(
     return index
 
 
-def _latest_published_revision_id_from_persistence() -> str | None:
-    """Read the shared latest successful publication revision used as a cache version."""
+@lru_cache(maxsize=1)
+def _latest_published_revision_id_for_bucket(_probe_bucket: int) -> str | None:
+    """Read the latest successful publication once per short freshness bucket."""
     try:
         with session_scope(_governance_session_factory()) as session:
             return session.execute(
@@ -240,6 +263,12 @@ def _latest_published_revision_id_from_persistence() -> str | None:
         ) from exc
     except (GraphPersistenceNotConfiguredError, GraphPersistenceNonDurableError):
         return None
+
+
+def _latest_published_revision_id_from_persistence() -> str | None:
+    """Return the shared revision identifier with a bounded freshness probe."""
+    probe_bucket = int(monotonic() / _PUBLISHED_REVISION_PROBE_TTL_SECONDS)
+    return _latest_published_revision_id_for_bucket(probe_bucket)
 
 
 def _load_governed_relationship_index_from_persistence() -> GovernedRelationshipIndex:
@@ -291,3 +320,4 @@ def invalidate_governed_relationship_index_cache() -> None:
     with _cache_generation_lock:
         _cache_generation.value += 1
         _load_governed_relationship_index.cache_clear()
+        _latest_published_revision_id_for_bucket.cache_clear()

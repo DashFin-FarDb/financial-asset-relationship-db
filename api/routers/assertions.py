@@ -66,6 +66,7 @@ from ..graph_lifecycle_providers import (
     GraphPersistenceNotConfiguredError,
     get_graph_lifecycle_settings,
     resolve_durable_graph_persistence_url,
+    resolve_hosted_graph_database_url,
 )
 
 router = APIRouter()
@@ -161,10 +162,11 @@ def _proposal_bearer_token(
 
 
 def _resolve_assertion_persistence_url() -> str:
-    """Return the explicit durable assertion-store URL with bounded configuration errors."""
+    """Return the hosted durable assertion-store URL with bounded configuration errors."""
     settings = get_graph_lifecycle_settings()
     try:
-        return resolve_durable_graph_persistence_url(settings.asset_graph_database_url)
+        hosted_url = resolve_hosted_graph_database_url(settings)
+        return resolve_durable_graph_persistence_url(hosted_url)
     except GraphPersistenceInvalidUrlError as exc:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,

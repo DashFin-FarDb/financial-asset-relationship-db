@@ -283,13 +283,32 @@ def test_invalid_proposal_contract_returns_unprocessable_entity(client: TestClie
 
 
 @pytest.mark.unit
-@pytest.mark.parametrize("deployment_env", ["development", "preview", "staging"])
-def test_assertion_store_does_not_fall_back_to_application_database(
+def test_assertion_store_does_not_fall_back_in_development(
+    client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Development keeps requiring an explicit durable graph database URL."""
+    settings = SimpleNamespace(
+        asset_graph_database_url=None,
+        database_url=os.environ["DATABASE_URL"],
+        env="development",
+        vercel_env="development",
+    )
+    monkeypatch.setattr(assertions_router, "get_graph_lifecycle_settings", lambda: settings)
+
+    response = client.get(f"/api/assertions/{uuid4()}")
+
+    _assert_error_response(response, 503, "Graph persistence database not configured")
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize("deployment_env", ["preview", "staging"])
+def test_assertion_store_uses_hosted_database_fallback(
     client: TestClient,
     monkeypatch: pytest.MonkeyPatch,
     deployment_env: str,
 ) -> None:
-    """Governed assertions never use the auth database fallback in any deployment mode."""
+    """Preview and staging use the supported durable application database fallback."""
     settings = SimpleNamespace(
         asset_graph_database_url=None,
         database_url=os.environ["DATABASE_URL"],
@@ -300,7 +319,7 @@ def test_assertion_store_does_not_fall_back_to_application_database(
 
     response = client.get(f"/api/assertions/{uuid4()}")
 
-    _assert_error_response(response, 503, "Graph persistence database not configured")
+    assert response.status_code == 404
 
 
 @pytest.mark.unit
