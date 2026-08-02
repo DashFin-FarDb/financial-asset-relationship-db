@@ -108,8 +108,8 @@ def serialize_asset(
             if value is not None:
                 asset_dict["additional_fields"][field] = value
 
-    if include_issuer and hasattr(asset, "issuer_id"):
-        issuer_id = getattr(asset, "issuer_id")
+    if include_issuer:
+        issuer_id = getattr(asset, "issuer_id", None)
         if issuer_id is not None:
             asset_dict["additional_fields"]["issuer_id"] = issuer_id
 
