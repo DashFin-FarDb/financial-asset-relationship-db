@@ -12,6 +12,7 @@ from typing import cast
 import pytest
 from fastapi.testclient import TestClient
 
+from api.main import app
 from api.routers import graph_admin
 from api.routers import relationships as relationships_router
 from api.routers import visualization as visualization_router
@@ -25,11 +26,24 @@ from src.governance.relationship_assertion_contract import (
 )
 from src.logic.asset_graph import AssetRelationshipGraph
 
+# Autouse fixtures are imported directly (rather than via `pytest_plugins`) so
+# their autouse behavior stays scoped to this module instead of leaking into
+# every test in the session (`pytest_plugins` registers fixtures
+# session-wide even when declared in a test module). The `client` fixture is
+# redeclared locally instead of imported, since importing it would collide
+# with the `client` parameter name used throughout this module's tests.
 from .api_assertion_test_support import (
     _assert_error_response,
+    configure_graph_persistence,  # noqa: F401
+    initialize_assertion_store,  # noqa: F401
+    seed_users,  # noqa: F401
 )
 
-pytest_plugins = ("tests.unit.api_assertion_test_support",)
+
+@pytest.fixture
+def client() -> TestClient:
+    """Return a FastAPI test client."""
+    return TestClient(app)
 
 
 @dataclass(frozen=True)
