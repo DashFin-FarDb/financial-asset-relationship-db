@@ -418,8 +418,24 @@ def load_governed_relationship_index(graph: AssetRelationshipGraph) -> GovernedR
     if not managed:
         return _load_governed_relationship_index(graph, generation)
 
+    if rebuild_job_id is None:
+        # A managed startup graph with no governed publication binding has nothing to
+        # synchronize against, so skip the (expensive) publication lookup. Still
+        # surface a genuinely misconfigured persistence URL as a 503 rather than
+        # silently omitting optional governance metadata.
+        try:
+            _resolve_governance_persistence_url()
+        except GraphPersistenceInvalidUrlError as exc:
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="Graph persistence database is misconfigured",
+            ) from exc
+        except (GraphPersistenceNotConfiguredError, GraphPersistenceNonDurableError):
+            pass
+        return {}
+
     latest_binding = _latest_published_projection_binding_from_persistence()
-    if rebuild_job_id is None or latest_binding is None:
+    if latest_binding is None:
         return {}
     latest_job_id, revision_id = latest_binding
     if rebuild_job_id != latest_job_id:

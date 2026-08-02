@@ -259,7 +259,7 @@ class TestCORSValidation:
 class TestAssetsEndpoint:
     """Test assets listing endpoint."""
 
-    @patch("api.main.graph")
+    @patch("api.graph_lifecycle.graph_state.graph")
     def test_get_all_assets(self, mock_graph_instance, client, mock_graph, apply_mock_graph):
         """Test retrieving all assets without filters."""
         apply_mock_graph(mock_graph_instance, mock_graph)
@@ -279,7 +279,7 @@ class TestAssetsEndpoint:
         assert "price" in asset
         assert "currency" in asset
 
-    @patch("api.main.graph")
+    @patch("api.graph_lifecycle.graph_state.graph")
     def test_filter_by_asset_class(self, mock_graph_instance, client, mock_graph, apply_mock_graph):
         """Test filtering assets by asset class."""
         apply_mock_graph(mock_graph_instance, mock_graph)
@@ -291,7 +291,7 @@ class TestAssetsEndpoint:
         assert data[0]["asset_class"] == "Equity"
         assert data[0]["symbol"] == "AAPL"
 
-    @patch("api.main.graph")
+    @patch("api.graph_lifecycle.graph_state.graph")
     def test_filter_by_sector(self, mock_graph_instance, client, mock_graph, apply_mock_graph):
         """Test filtering assets by sector."""
         apply_mock_graph(mock_graph_instance, mock_graph)
@@ -302,7 +302,7 @@ class TestAssetsEndpoint:
         assert len(data) == 1
         assert data[0]["sector"] == "Technology"
 
-    @patch("api.main.graph")
+    @patch("api.graph_lifecycle.graph_state.graph")
     def test_filter_combined(self, mock_graph_instance, client, mock_graph, apply_mock_graph):
         """Test filtering with multiple parameters."""
         apply_mock_graph(mock_graph_instance, mock_graph)
@@ -314,7 +314,7 @@ class TestAssetsEndpoint:
         assert data[0]["asset_class"] == "Equity"
         assert data[0]["sector"] == "Technology"
 
-    @patch("api.main.graph")
+    @patch("api.graph_lifecycle.graph_state.graph")
     def test_assets_additional_fields(self, mock_graph_instance, client, mock_graph, apply_mock_graph):
         """Test that additional fields are included for assets."""
         apply_mock_graph(mock_graph_instance, mock_graph)
@@ -328,7 +328,7 @@ class TestAssetsEndpoint:
         assert "pe_ratio" in equity["additional_fields"]
         assert abs(equity["additional_fields"]["pe_ratio"] - 25.5) < 1e-9
 
-    @patch("api.main.graph")
+    @patch("api.graph_lifecycle.graph_state.graph")
     def test_assets_error_handling(self, mock_graph_instance, client, apply_mock_graph):
         """Test error handling in assets endpoint."""
         # Make graph.assets raise an exception when accessed
@@ -344,7 +344,7 @@ class TestAssetsEndpoint:
 class TestAssetDetailEndpoint:
     """Test individual asset detail endpoint."""
 
-    @patch("api.main.graph")
+    @patch("api.graph_lifecycle.graph_state.graph")
     def test_get_asset_detail_success(self, mock_graph_instance, client, mock_graph, apply_mock_graph):
         """Test retrieving details for a specific asset."""
         apply_mock_graph(mock_graph_instance, mock_graph)
@@ -358,7 +358,7 @@ class TestAssetDetailEndpoint:
         assert data["asset_class"] == "Equity"
         assert abs(data["price"] - 150.00) < 1e-9
 
-    @patch("api.main.graph")
+    @patch("api.graph_lifecycle.graph_state.graph")
     def test_get_asset_detail_not_found(self, mock_graph_instance, client, mock_graph, apply_mock_graph):
         """Test 404 response for non-existent asset."""
         apply_mock_graph(mock_graph_instance, mock_graph)
@@ -367,7 +367,7 @@ class TestAssetDetailEndpoint:
         assert response.status_code == 404
         assert "not found" in response.json()["detail"].lower()
 
-    @patch("api.main.graph")
+    @patch("api.graph_lifecycle.graph_state.graph")
     def test_get_bond_detail_with_issuer(self, mock_graph_instance, client, mock_graph, apply_mock_graph):
         """Test bond details include issuer_id."""
         apply_mock_graph(mock_graph_instance, mock_graph)
@@ -384,7 +384,7 @@ class TestAssetDetailEndpoint:
 class TestRelationshipsEndpoint:
     """Test relationship endpoints."""
 
-    @patch("api.main.graph")
+    @patch("api.graph_lifecycle.graph_state.graph")
     def test_get_asset_relationships(self, mock_graph_instance, client, mock_graph, apply_mock_graph):
         """Test retrieving relationships for a specific asset."""
         apply_mock_graph(mock_graph_instance, mock_graph)
@@ -402,7 +402,7 @@ class TestRelationshipsEndpoint:
             assert "relationship_type" in rel
             assert "strength" in rel
 
-    @patch("api.main.graph")
+    @patch("api.graph_lifecycle.graph_state.graph")
     def test_get_asset_relationships_not_found(self, mock_graph_instance, client, mock_graph, apply_mock_graph):
         """Test 404 for relationships of non-existent asset."""
         apply_mock_graph(mock_graph_instance, mock_graph)
@@ -410,7 +410,7 @@ class TestRelationshipsEndpoint:
         response = client.get("/api/assets/NONEXISTENT/relationships")
         assert response.status_code == 404
 
-    @patch("api.main.graph")
+    @patch("api.graph_lifecycle.graph_state.graph")
     def test_get_all_relationships(self, mock_graph_instance, client, mock_graph, apply_mock_graph):
         """Test retrieving all relationships in the graph."""
         apply_mock_graph(mock_graph_instance, mock_graph)
@@ -433,7 +433,7 @@ class TestRelationshipsEndpoint:
 class TestVisualizationEndpoint:
     """Test 3D visualization data endpoint."""
 
-    @patch("api.main.graph")
+    @patch("api.graph_lifecycle.graph_state.graph")
     def test_get_visualization_data(self, mock_graph_instance, client, mock_graph, apply_mock_graph):
         """Test retrieving visualization data."""
         apply_mock_graph(mock_graph_instance, mock_graph)
@@ -448,7 +448,7 @@ class TestVisualizationEndpoint:
         assert isinstance(data["edges"], list)
         assert len(data["nodes"]) == 4
 
-    @patch("api.main.graph")
+    @patch("api.graph_lifecycle.graph_state.graph")
     def test_visualization_node_structure(self, mock_graph_instance, client, mock_graph, apply_mock_graph):
         """Test visualization node data structure."""
         apply_mock_graph(mock_graph_instance, mock_graph)
@@ -472,7 +472,7 @@ class TestVisualizationEndpoint:
         assert isinstance(node["y"], float)
         assert isinstance(node["z"], float)
 
-    @patch("api.main.graph")
+    @patch("api.graph_lifecycle.graph_state.graph")
     def test_visualization_edge_structure(self, mock_graph_instance, client, mock_graph, apply_mock_graph):
         """Test visualization edge data structure."""
         apply_mock_graph(mock_graph_instance, mock_graph)
@@ -508,7 +508,7 @@ class TestMetadataEndpoints:
         assert "Currency" in data["asset_classes"]
 
     @staticmethod
-    @patch("api.main.graph")
+    @patch("api.graph_lifecycle.graph_state.graph")
     def test_get_sectors(mock_graph_instance, client, mock_graph, apply_mock_graph):
         """Test retrieving available sectors."""
         apply_mock_graph(mock_graph_instance, mock_graph)
@@ -529,7 +529,7 @@ class TestMetadataEndpoints:
 class TestEdgeCases:
     """Test edge cases and error conditions."""
 
-    @patch("api.main.graph")
+    @patch("api.graph_lifecycle.graph_state.graph")
     def test_empty_graph(self, mock_graph_instance, client):
         """Assets endpoint remains available for empty graphs."""
         empty_graph = AssetRelationshipGraph()
@@ -542,7 +542,7 @@ class TestEdgeCases:
         assert response.status_code == 200
         assert len(asset_items(response.json())) == 0
 
-    @patch("api.main.graph")
+    @patch("api.graph_lifecycle.graph_state.graph")
     def test_special_characters_in_asset_id(self, mock_graph_instance, client, mock_graph, apply_mock_graph):
         """Test handling of special characters in asset IDs."""
         apply_mock_graph(mock_graph_instance, mock_graph)
@@ -551,7 +551,7 @@ class TestEdgeCases:
         response = client.get("/api/assets/TEST%20SPACE")
         assert response.status_code == 404
 
-    @patch("api.main.graph")
+    @patch("api.graph_lifecycle.graph_state.graph")
     def test_filter_no_matches(self, mock_graph_instance, client, mock_graph, apply_mock_graph):
         """Test filter that returns no results."""
         apply_mock_graph(mock_graph_instance, mock_graph)
@@ -565,7 +565,7 @@ class TestEdgeCases:
 class TestConcurrency:
     """Test concurrent request handling."""
 
-    @patch("api.main.graph")
+    @patch("api.graph_lifecycle.graph_state.graph")
     def test_multiple_concurrent_requests(self, mock_graph_instance, client, mock_graph, apply_mock_graph):
         """Test handling multiple concurrent requests."""
         apply_mock_graph(mock_graph_instance, mock_graph)
@@ -586,7 +586,7 @@ class TestConcurrency:
 class TestResponseValidation:
     """Test response data validation."""
 
-    @patch("api.main.graph")
+    @patch("api.graph_lifecycle.graph_state.graph")
     def test_asset_response_schema(self, mock_graph_instance, client, mock_graph, apply_mock_graph):
         """
         Validate that each asset returned by GET /api/assets conforms to the expected response schema.
@@ -614,7 +614,7 @@ class TestResponseValidation:
             if asset["market_cap"] is not None:
                 assert isinstance(asset["market_cap"], (int, float))
 
-    @patch("api.main.graph")
+    @patch("api.graph_lifecycle.graph_state.graph")
     def test_relationship_response_schema(self, mock_graph_instance, client, mock_graph, apply_mock_graph):
         """Test relationship response matches schema."""
         apply_mock_graph(mock_graph_instance, mock_graph)
@@ -877,7 +877,7 @@ class TestAPISecurityRegression:
         assert validate_origin("") is False
 
     @staticmethod
-    @patch("api.main.graph")
+    @patch("api.graph_lifecycle.graph_state.graph")
     def test_api_sanitizes_asset_id_input(mock_graph_instance, client, mock_graph):
         """Regression: API should handle asset IDs with potential injection characters."""
         # Configure patched graph
@@ -902,7 +902,7 @@ class TestAPIBoundaryConditions:
     """Boundary condition tests for API endpoints."""
 
     @staticmethod
-    @patch("api.main.graph")
+    @patch("api.graph_lifecycle.graph_state.graph")
     def test_api_handles_extremely_large_graph(mock_graph_instance, client):
         """Boundary: API should handle graphs with many assets."""
         large_graph = AssetRelationshipGraph()
@@ -934,7 +934,7 @@ class TestAPIBoundaryConditions:
         assert len(data["items"]) == 50
 
     @staticmethod
-    @patch("api.main.graph")
+    @patch("api.graph_lifecycle.graph_state.graph")
     def test_api_handles_asset_with_none_values(mock_graph_instance, client):
         """Boundary: API should handle assets with None optional fields."""
         graph = AssetRelationshipGraph()
