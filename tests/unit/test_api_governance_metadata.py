@@ -179,12 +179,14 @@ def test_cache_primed_read_is_refreshed_after_admin_publication(
         """Minimal publication repository double for finalize flow tests."""
 
         def __init__(self, _session: object) -> None:
-            pass
+            """Accept the session dependency used by the production repository."""
 
         def next_publication_time(self, _purpose: str) -> datetime:
+            """Return the publication timestamp for this test double."""
             return datetime.now(tz=timezone.utc)
 
         def finalize_projection_publication(self, *_args: object, **_kwargs: object) -> None:
+            """Simulate successful projection publication."""
             return None
 
     publication_graph = AssetRelationshipGraph()
