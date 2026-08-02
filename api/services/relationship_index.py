@@ -81,9 +81,7 @@ def _resolve_governance_persistence_url() -> str:
     """Resolve the durable graph database used by governed relationship reads."""
     settings = get_graph_lifecycle_settings()
     hosted_url = resolve_hosted_graph_database_url(settings)
-    legacy_url = (
-        getattr(settings, "database_url", None) if not hasattr(settings, "asset_graph_database_url") else None
-    )
+    legacy_url = getattr(settings, "database_url", None) if not hasattr(settings, "asset_graph_database_url") else None
     return resolve_durable_graph_persistence_url(hosted_url or legacy_url)
 
 
