@@ -20,13 +20,22 @@ PURPOSE = "financial_graph_current_view"
 
 
 @pytest.mark.unit
-def test_shared_publication_revision_advances_warm_reader_cache(
+def test_governance_stays_consistent_with_graph_snapshot_across_publications(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """A peer publication changes the cache key without process-local invalidation."""
-    graph = AssetRelationshipGraph()
+    """Peer publication does not advance governance until the graph object is replaced.
+
+    A warm peer that detects a newer published revision ID from persistence must not
+    serve governance metadata from that newer publication while still returning edges
+    from the pre-sync graph snapshot.  Governance is only refreshed when the
+    in-memory graph object is replaced (i.e. after ``sync_with_latest_rebuild``
+    completes and ``synchronize_runtime_graph`` installs a new instance) or when the
+    local generation advances via explicit invalidation.  This guarantees that
+    ``assertion_id`` and ``revision_id`` on returned edges always correspond to the
+    publication the current graph was built from.
+    """
+    graph_v1 = AssetRelationshipGraph()
     current_revision_id = "revision-v1"
-    revision_checks = 0
     persistence_loads = 0
 
     indexes: dict[str, relationship_index_service.GovernedRelationshipIndex] = {
@@ -48,23 +57,12 @@ def test_shared_publication_revision_advances_warm_reader_cache(
         },
     }
 
-    def latest_revision_id() -> str:
-        """Return the publication version visible through shared persistence."""
-        nonlocal revision_checks
-        revision_checks += 1
-        return current_revision_id
-
     def load_index() -> relationship_index_service.GovernedRelationshipIndex:
-        """Load the index associated with the currently published revision."""
+        """Load the index for the current revision from persistence."""
         nonlocal persistence_loads
         persistence_loads += 1
         return indexes[current_revision_id]
 
-    monkeypatch.setattr(
-        relationship_index_service,
-        "_latest_published_revision_id_from_persistence",
-        latest_revision_id,
-    )
     monkeypatch.setattr(
         relationship_index_service,
         "_load_governed_relationship_index_from_persistence",
@@ -73,18 +71,30 @@ def test_shared_publication_revision_advances_warm_reader_cache(
     relationship_index_service.invalidate_governed_relationship_index_cache()
 
     try:
-        assert relationship_index_service.load_governed_relationship_index(graph) == indexes["revision-v1"]
-        assert relationship_index_service.load_governed_relationship_index(graph) == indexes["revision-v1"]
+        # Initial warm-up: governance from revision-v1 is loaded and cached.
+        assert relationship_index_service.load_governed_relationship_index(graph_v1) == indexes["revision-v1"]
+        assert relationship_index_service.load_governed_relationship_index(graph_v1) == indexes["revision-v1"]
         assert persistence_loads == 1
 
-        # Simulate another backend process committing a new publication. This
-        # process receives no local invalidation signal and retains its warm LRU.
+        # Simulate another backend process committing a new publication (revision-v2).
+        # This process receives no local invalidation signal and retains its warm cache.
+        # Governance must NOT advance to revision-v2 while graph_v1 is still in use,
+        # even if persistence now reports revision-v2 as the latest.
         current_revision_id = "revision-v2"
 
-        assert relationship_index_service.load_governed_relationship_index(graph) == indexes["revision-v2"]
-        assert relationship_index_service.load_governed_relationship_index(graph) == indexes["revision-v2"]
+        assert relationship_index_service.load_governed_relationship_index(graph_v1) == indexes["revision-v1"]
+        assert relationship_index_service.load_governed_relationship_index(graph_v1) == indexes["revision-v1"]
+        assert persistence_loads == 1, (
+            "governance must not refresh from a new publication while the graph object is unchanged"
+        )
+
+        # Simulate sync_with_latest_rebuild completing: a new graph object is installed.
+        # Governance now refreshes against the new graph, picking up revision-v2.
+        graph_v2 = AssetRelationshipGraph()
+
+        assert relationship_index_service.load_governed_relationship_index(graph_v2) == indexes["revision-v2"]
+        assert relationship_index_service.load_governed_relationship_index(graph_v2) == indexes["revision-v2"]
         assert persistence_loads == 2
-        assert revision_checks == 4
     finally:
         relationship_index_service.invalidate_governed_relationship_index_cache()
 

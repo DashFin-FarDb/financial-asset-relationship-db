@@ -298,19 +298,33 @@ def _load_governed_relationship_index_from_persistence() -> GovernedRelationship
 @lru_cache(maxsize=1)
 def _load_governed_relationship_index(
     _graph: AssetRelationshipGraph,
-    _published_revision_id: str | None,
     _generation: int,
 ) -> GovernedRelationshipIndex:
-    """Load governed metadata for one graph, shared publication, and local generation."""
+    """Load governed metadata for one graph snapshot and local generation.
+
+    The cache is keyed by graph object identity and generation so that governance
+    metadata is only refreshed when the in-memory graph is replaced (e.g. after a
+    peer sync creates a new object) or explicitly invalidated.  Keying on the
+    latest published revision ID from persistence is intentionally avoided: doing so
+    would cause a warm peer to serve governance from a newer publication while still
+    returning edges from an older graph snapshot, misattributing
+    ``assertion_id``/``revision_id`` to edges that were not part of that publication.
+    """
     return _load_governed_relationship_index_from_persistence()
 
 
 def load_governed_relationship_index(graph: AssetRelationshipGraph) -> GovernedRelationshipIndex:
-    """Return metadata cached against the shared latest publication revision."""
-    published_revision_id = _latest_published_revision_id_from_persistence()
+    """Return governance metadata consistent with the current graph snapshot.
+
+    Governance is refreshed only when the graph object changes (cross-process sync
+    creates a new instance) or when the local generation advances (explicit
+    invalidation after publication).  This guarantees that ``assertion_id`` and
+    ``revision_id`` on returned edges always correspond to the publication that the
+    in-memory graph was built from, preventing attribution drift during the window
+    between a remote publication event and this process completing its graph sync.
+    """
     return _load_governed_relationship_index(
         graph,
-        published_revision_id,
         _current_cache_generation(),
     )
 
