@@ -104,15 +104,30 @@ def test_stale_in_flight_graph_remains_bound_to_its_original_job(
     graph = AssetRelationshipGraph()
     bindings = iter(((True, "job-old"), (True, "job-old")))
     publications = iter((("job-old", "revision-old"), ("job-new", "revision-new")))
+
+    def runtime_binding(_graph: AssetRelationshipGraph) -> tuple[bool, str | None]:
+        """Return the next runtime binding and fail clearly if the test is exhausted."""
+        try:
+            return next(bindings)
+        except StopIteration as exc:
+            raise AssertionError("unexpected runtime binding lookup") from exc
+
+    def latest_publication() -> tuple[str, str] | None:
+        """Return the next publication binding and fail clearly if the test is exhausted."""
+        try:
+            return next(publications)
+        except StopIteration as exc:
+            raise AssertionError("unexpected publication binding lookup") from exc
+
     monkeypatch.setattr(
         relationship_index,
         "_runtime_graph_publication_binding",
-        lambda _graph: next(bindings),
+        runtime_binding,
     )
     monkeypatch.setattr(
         relationship_index,
         "_latest_published_projection_binding_from_persistence",
-        lambda: next(publications),
+        latest_publication,
     )
     monkeypatch.setattr(
         relationship_index,
