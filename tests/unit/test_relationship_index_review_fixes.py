@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from collections.abc import Iterator
+from contextlib import contextmanager
 from types import SimpleNamespace
 from typing import cast
 from unittest.mock import Mock
@@ -49,6 +51,12 @@ def test_relationship_index_persistence_sqlalchemy_errors_are_bounded(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """Persistence outages fail closed with a bounded 503 instead of leaking ORM details."""
+    session = Mock(spec=Session)
+
+    @contextmanager
+    def fake_session_scope(_session_factory: object) -> Iterator[Session]:
+        """Yield the test session without opening a persistence connection."""
+        yield session
 
     class FailingRepository:
         def __init__(self, _session: Session) -> None:
@@ -58,6 +66,7 @@ def test_relationship_index_persistence_sqlalchemy_errors_are_bounded(
             raise SQLAlchemyError("connection refused with internal host details")
 
     monkeypatch.setattr(relationship_index, "RelationshipAssertionRepository", FailingRepository)
+    monkeypatch.setattr(relationship_index, "session_scope", fake_session_scope)
     monkeypatch.setattr(relationship_index, "_governance_session_factory", object)
 
     with pytest.raises(HTTPException) as exc_info:
