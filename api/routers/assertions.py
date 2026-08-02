@@ -8,12 +8,13 @@ from contextlib import contextmanager
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Annotated, NoReturn, cast
+from threading import Lock
 from uuid import uuid4
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Query, Request, status
 from sqlalchemy import select
 from sqlalchemy.engine import Engine
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, sessionmaker
 
 from src.config.settings import get_settings
 from src.data.database import create_engine_from_url, create_session_factory
@@ -81,6 +82,19 @@ _DOMAIN_ERROR_STATUSES: dict[type[Exception], int] = {
     ValidationError: status.HTTP_422_UNPROCESSABLE_ENTITY,
     IllegalTransition: status.HTTP_422_UNPROCESSABLE_ENTITY,
 }
+_assertion_persistence_lock = Lock()
+
+
+class _AssertionPersistenceRuntime:
+    """Reusable URL-scoped engine and session factory for assertion writes."""
+
+    def __init__(self) -> None:
+        self.url: str | None = None
+        self.engine: Engine | None = None
+        self.session_factory: sessionmaker[Session] | None = None
+
+
+_assertion_persistence_runtime = _AssertionPersistenceRuntime()
 
 
 @dataclass(frozen=True)
@@ -136,7 +150,11 @@ def _public_event_response(event: AssertionEvent) -> AssertionPublicEventRespons
 
 def _raise_domain_error(exc: Exception) -> NoReturn:
     """Raise the bounded HTTP error corresponding to a repository command failure."""
-    status_code = _DOMAIN_ERROR_STATUSES.get(type(exc), status.HTTP_500_INTERNAL_SERVER_ERROR)
+    status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+    for exc_type, code in _DOMAIN_ERROR_STATUSES.items():
+        if isinstance(exc, exc_type):
+            status_code = code
+            break
     detail = _INTERNAL_ERROR_DETAIL if status_code == status.HTTP_500_INTERNAL_SERVER_ERROR else str(exc)
     raise HTTPException(
         status_code=status_code,
@@ -179,14 +197,34 @@ def _resolve_assertion_persistence_url() -> str:
         ) from exc
 
 
+def _assertion_session_factory_for_url(persistence_url: str) -> sessionmaker[Session]:
+    """Reuse one engine/session factory until the configured URL changes."""
+    with _assertion_persistence_lock:
+        if (
+            _assertion_persistence_runtime.url == persistence_url
+            and _assertion_persistence_runtime.session_factory is not None
+        ):
+            return _assertion_persistence_runtime.session_factory
+
+        engine = create_engine_from_url(persistence_url)
+        session_factory = create_session_factory(engine)
+        previous_engine = _assertion_persistence_runtime.engine
+
+        _assertion_persistence_runtime.url = persistence_url
+        _assertion_persistence_runtime.engine = engine
+        _assertion_persistence_runtime.session_factory = session_factory
+
+        if previous_engine is not None:
+            previous_engine.dispose()
+        return session_factory
+
+
 @contextmanager
 def _assertion_repository_session() -> Iterator[Session]:
     """Yield a repository session bound only to durable graph persistence."""
-    engine: Engine | None = None
     try:
         persistence_url = _resolve_assertion_persistence_url()
-        engine = create_engine_from_url(persistence_url)
-        session_factory = create_session_factory(engine)
+        session_factory = _assertion_session_factory_for_url(persistence_url)
         with session_scope(session_factory) as session:
             yield session
     except HTTPException:
@@ -196,9 +234,6 @@ def _assertion_repository_session() -> Iterator[Session]:
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=_INTERNAL_ERROR_DETAIL,
         ) from exc
-    finally:
-        if engine is not None:
-            engine.dispose()
 
 
 def _load_evidence_by_id(
