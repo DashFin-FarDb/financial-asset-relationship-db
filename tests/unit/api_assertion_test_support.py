@@ -98,6 +98,11 @@ def configure_graph_persistence(monkeypatch: pytest.MonkeyPatch) -> None:
         "get_graph_lifecycle_settings",
         lambda: settings,
     )
+    monkeypatch.setattr(
+        relationship_index_service,
+        "_latest_published_revision_id_from_persistence",
+        lambda: None,
+    )
 
 
 @pytest.fixture
