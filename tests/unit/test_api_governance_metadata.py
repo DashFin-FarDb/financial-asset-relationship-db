@@ -300,6 +300,7 @@ def test_bidirectional_governed_edge_indexes_both_runtime_directions() -> None:
     index = relationship_index_service._published_relationship_index(
         cast(PersistedProjectionRevision, published),
         cast(PredicatesDocument, predicates),
+        {"assertion-test": "predicate-test"},
     )
 
     assert index[("BOND", "ISSUER", "issuer_link")] == index[("ISSUER", "BOND", "issuer_link")]

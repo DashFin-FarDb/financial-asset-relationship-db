@@ -143,7 +143,7 @@ def _assertion_predicates_for_edges(
         .where(RelationshipAssertionORM.id.in_(assertion_ids))
         .order_by(RelationshipAssertionORM.id)
     ).all()
-    assertion_predicates = {assertion_id: predicate_id for assertion_id, predicate_id in rows}
+    assertion_predicates = dict(rows)
     missing = sorted(set(assertion_ids) - assertion_predicates.keys())
     if missing:
         raise ValidationError(f"published projection references missing assertions: {missing}")
