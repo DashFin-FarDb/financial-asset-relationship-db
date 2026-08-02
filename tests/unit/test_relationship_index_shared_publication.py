@@ -10,11 +10,7 @@ from sqlalchemy.engine import Engine
 
 from api.services import relationship_index as relationship_index_service
 from src.data.relationship_projection_persistence import PersistedProjectionRevision
-from src.governance.relationship_assertion_contract import (
-    PredicatesDocument,
-    PredicateSpec,
-    ProjectionSpec,
-)
+from src.governance import relationship_assertion_contract as contract_models
 from src.logic.asset_graph import AssetRelationshipGraph
 from src.logic.relationship_projection import GovernedScope, ProjectionEdge, ProjectionRevision
 
@@ -136,14 +132,14 @@ def test_persistence_runtime_reuses_engine_and_disposes_on_url_change(
     engines[1].dispose.assert_called_once_with()
 
 
-def _predicate(predicate_id: str) -> PredicateSpec:
+def _predicate(predicate_id: str) -> contract_models.PredicateSpec:
     """Build one governed predicate sharing a runtime edge type with its peer."""
-    return PredicateSpec(
+    return contract_models.PredicateSpec(
         id=predicate_id,
         subject_type="Asset",
         object_type="Asset",
         method_ids=["test.relationship.resolution@1"],
-        projection=ProjectionSpec(
+        projection=contract_models.ProjectionSpec(
             edge_type="corporate_link",
             strength="0.8",
             direction="subject_to_object",
@@ -156,7 +152,7 @@ def _predicate(predicate_id: str) -> PredicateSpec:
 @pytest.mark.unit
 def test_scope_refs_follow_each_edge_assertion_predicate() -> None:
     """Shared edge types do not merge unrelated governed predicate scopes."""
-    predicates = PredicatesDocument(
+    predicates = contract_models.PredicatesDocument(
         predicates=[
             _predicate("predicate-a"),
             _predicate("predicate-b"),
