@@ -19,18 +19,25 @@ _ASSET_CLASS_COLORS: dict[str, str] = {
 
 
 def get_graph():
-    """Return the active graph instance."""
+    """Return the active graph instance and retain its publication binding."""
+    graph = None
     try:
         import api.main as api_main  # local import to avoid import cycle at module import time
 
         if hasattr(api_main, "graph") and api_main.graph is not None:
-            return api_main.graph
+            graph = api_main.graph
     except Exception:
         pass
 
-    from .graph_lifecycle import get_graph as _get_graph
+    if graph is None:
+        from .graph_lifecycle import get_graph as _get_graph
 
-    return _get_graph()
+        graph = _get_graph()
+
+    from .services.relationship_index import register_runtime_graph_publication_binding
+
+    register_runtime_graph_publication_binding(graph)
+    return graph
 
 
 def raise_asset_not_found(
@@ -91,19 +98,26 @@ def serialize_asset(
         "maturity_date",
         "credit_rating",
         "contract_size",
-        "delivery_date",
+        "expiry_date",
+        "underlying_asset",
+        "strike_price",
         "volatility",
-        "exchange_rate",
         "country",
-        "central_bank_rate",
+        "exchange",
+        "ceo",
+        "employees",
+        "founded_year",
     ]
 
-    if include_issuer:
-        optional_fields.append("issuer_id")
-
     for field in optional_fields:
-        value = getattr(asset, field, None)
-        if value is not None:
-            asset_dict["additional_fields"][field] = value
+        if hasattr(asset, field):
+            value = getattr(asset, field)
+            if value is not None:
+                asset_dict["additional_fields"][field] = value
+
+    if include_issuer and hasattr(asset, "issuer_id"):
+        issuer_id = getattr(asset, "issuer_id")
+        if issuer_id is not None:
+            asset_dict["issuer_id"] = issuer_id
 
     return asset_dict
