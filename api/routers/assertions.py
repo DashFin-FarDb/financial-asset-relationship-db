@@ -7,8 +7,8 @@ from collections.abc import Iterator, Mapping
 from contextlib import contextmanager
 from dataclasses import dataclass
 from datetime import datetime, timezone
-from typing import Annotated, NoReturn, cast
 from threading import Lock
+from typing import Annotated, NoReturn, cast
 from uuid import uuid4
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Query, Request, status
