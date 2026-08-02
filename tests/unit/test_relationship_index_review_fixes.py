@@ -2,13 +2,13 @@
 
 from __future__ import annotations
 
-from collections.abc import Iterator
-from contextlib import contextmanager
 from types import SimpleNamespace
 from typing import cast
 from unittest.mock import Mock
 
 import pytest
+from fastapi import HTTPException
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from api.services import relationship_index
@@ -45,30 +45,23 @@ def test_assertion_predicate_lookup_chunks_large_revisions() -> None:
 
 
 @pytest.mark.unit
-def test_latest_revision_probe_is_cached_for_short_ttl(monkeypatch: pytest.MonkeyPatch) -> None:
-    """Repeated hot-path reads reuse one revision probe until its TTL expires."""
-    current_time = 10.0
-    session = Mock(spec=Session)
-    execution = Mock()
-    execution.scalar_one_or_none.return_value = "revision-test"
-    session.execute.return_value = execution
+def test_relationship_index_persistence_sqlalchemy_errors_are_bounded(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Persistence outages fail closed with a bounded 503 instead of leaking ORM details."""
 
-    @contextmanager
-    def fake_session_scope(_session_factory: object) -> Iterator[Session]:
-        """Yield the test session without opening a persistence connection."""
-        yield session
+    class FailingRepository:
+        def __init__(self, _session: Session) -> None:
+            pass
 
-    monkeypatch.setattr(relationship_index, "session_scope", fake_session_scope)
+        def latest_published_projection(self, _purpose: str) -> PersistedProjectionRevision | None:
+            raise SQLAlchemyError("connection refused with internal host details")
+
+    monkeypatch.setattr(relationship_index, "RelationshipAssertionRepository", FailingRepository)
     monkeypatch.setattr(relationship_index, "_governance_session_factory", object)
-    monkeypatch.setattr(relationship_index, "monotonic", lambda: current_time)
-    relationship_index._latest_published_revision_id_for_bucket.cache_clear()
 
-    assert relationship_index._latest_published_revision_id_from_persistence() == "revision-test"
-    assert relationship_index._latest_published_revision_id_from_persistence() == "revision-test"
-    assert session.execute.call_count == 1
+    with pytest.raises(HTTPException) as exc_info:
+        relationship_index._load_governed_relationship_index_from_persistence()
 
-    current_time += relationship_index._PUBLISHED_REVISION_PROBE_TTL_SECONDS
-    assert relationship_index._latest_published_revision_id_from_persistence() == "revision-test"
-    assert session.execute.call_count == 2
-
-    relationship_index._latest_published_revision_id_for_bucket.cache_clear()
+    assert exc_info.value.status_code == 503
+    assert exc_info.value.detail == "Graph persistence database is unavailable"
