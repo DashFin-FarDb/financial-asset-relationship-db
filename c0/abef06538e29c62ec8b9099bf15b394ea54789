@@ -1,0 +1,19 @@
+tests/unit/test_relationship_index_shared_publication.py
+  s_8261ab6b23b8c3::t_90bc3e69ea31f9 87-88
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.20",
+  "base_commit_sha": "c0abef06538e29c62ec8b9099bf15b394ea54789",
+  "prompts": {},
+  "sessions": {
+    "s_8261ab6b23b8c3": {
+      "agent_id": {
+        "tool": "github-copilot-cli",
+        "id": "29a58a66-9d88-42e0-ac4d-b45dca75feed",
+        "model": "claude-sonnet-4.6"
+      },
+      "human_author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}
