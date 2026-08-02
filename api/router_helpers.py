@@ -7,7 +7,6 @@ from fastapi import HTTPException
 
 logger = logging.getLogger(__name__)
 
-# Color mapping for each AssetClass.value string used by the visualization router.
 _DEFAULT_COLOR = "#7f7f7f"
 _ASSET_CLASS_COLORS: dict[str, str] = {
     "Equity": "#1f77b4",
@@ -19,24 +18,17 @@ _ASSET_CLASS_COLORS: dict[str, str] = {
 
 
 def get_graph():
-    """Return the active graph instance and retain its publication binding."""
-    graph = None
-    try:
-        import api.main as api_main  # local import to avoid import cycle at module import time
-
-        if hasattr(api_main, "graph") and api_main.graph is not None:
-            graph = api_main.graph
-    except Exception:
-        pass
-
-    if graph is None:
-        from .graph_lifecycle import get_graph as _get_graph
-
-        graph = _get_graph()
-
+    """Return the active graph and retain its publication binding."""
+    from . import graph_lifecycle
     from .services.relationship_index import register_runtime_graph_publication_binding
 
-    register_runtime_graph_publication_binding(graph)
+    graph = graph_lifecycle.get_graph()
+    with graph_lifecycle.graph_lock:
+        if graph_lifecycle.graph_state.graph is graph:
+            rebuild_job_id = graph_lifecycle.graph_state.last_synced_job_id
+        else:
+            rebuild_job_id = None
+    register_runtime_graph_publication_binding(graph, rebuild_job_id)
     return graph
 
 
@@ -73,8 +65,7 @@ def serialize_asset(
             (useful for detail views). Defaults to ``False``.
 
     Returns:
-        Dict[str, Any]: Dictionary containing core asset fields plus any
-        non-``None`` asset-specific attributes under ``additional_fields``.
+        Dict[str, Any]: Dictionary containing core fields and optional attributes.
     """
     asset_dict: dict[str, Any] = {
         "id": asset.id,
