@@ -80,15 +80,24 @@ def configure_graph_persistence(monkeypatch: pytest.MonkeyPatch) -> None:
     """Bind focused API tests to the durable test graph database."""
     relationship_index_service._load_contract_predicates.cache_clear()
     relationship_index_service.invalidate_governed_relationship_index_cache()
+
     database_url = os.environ["DATABASE_URL"]
     settings = SimpleNamespace(
         asset_graph_database_url=database_url,
-        database_url=database_url,
-        env="development",
+        database_url=None,
         vercel_env=None,
     )
-    monkeypatch.setattr(assertions_router, "get_graph_lifecycle_settings", lambda: settings)
-    monkeypatch.setattr(relationship_index_service, "get_graph_lifecycle_settings", lambda: settings)
+
+    monkeypatch.setattr(
+        assertions_router,
+        "get_graph_lifecycle_settings",
+        lambda: settings,
+    )
+    monkeypatch.setattr(
+        relationship_index_service,
+        "get_graph_lifecycle_settings",
+        lambda: settings,
+    )
 
 
 @pytest.fixture
