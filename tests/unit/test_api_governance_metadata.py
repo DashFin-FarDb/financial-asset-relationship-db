@@ -353,13 +353,10 @@ def test_in_flight_load_from_prior_generation_cannot_restore_stale_cache(
     }
 
     persistence_loads = 0
-    worker_results: list[
-        relationship_index_service.GovernedRelationshipIndex
-    ] = []
+    worker_results: list[relationship_index_service.GovernedRelationshipIndex] = []
     worker_errors: list[Exception] = []
 
-    def load_from_persistence(
-    ) -> relationship_index_service.GovernedRelationshipIndex:
+    def load_from_persistence() -> relationship_index_service.GovernedRelationshipIndex:
         """Block the first persistence read and return fresh data thereafter."""
         nonlocal persistence_loads
         persistence_loads += 1
@@ -375,11 +372,7 @@ def test_in_flight_load_from_prior_generation_cannot_restore_stale_cache(
     def run_in_flight_load() -> None:
         """Capture the result or exception from the pre-invalidation load."""
         try:
-            worker_results.append(
-                relationship_index_service.load_governed_relationship_index(
-                    graph
-                )
-            )
+            worker_results.append(relationship_index_service.load_governed_relationship_index(graph))
         except Exception as exc:  # pragma: no cover - asserted below
             worker_errors.append(exc)
 
@@ -396,9 +389,7 @@ def test_in_flight_load_from_prior_generation_cannot_restore_stale_cache(
     loader.start()
 
     try:
-        assert load_started.wait(timeout=5), (
-            "The pre-invalidation persistence load did not start"
-        )
+        assert load_started.wait(timeout=5), "The pre-invalidation persistence load did not start"
 
         # Advance the generation while the old-generation load is still blocked.
         relationship_index_service.invalidate_governed_relationship_index_cache()
@@ -414,20 +405,13 @@ def test_in_flight_load_from_prior_generation_cannot_restore_stale_cache(
 
         # The stale result may complete for its original caller, but it must not
         # satisfy a read made against the new cache generation.
-        assert (
-            relationship_index_service.load_governed_relationship_index(graph)
-            == fresh_index
-        )
+        assert relationship_index_service.load_governed_relationship_index(graph) == fresh_index
         assert persistence_loads == 2
 
         # Confirm that the fresh result, rather than the stale result, is cached.
-        assert (
-            relationship_index_service.load_governed_relationship_index(graph)
-            == fresh_index
-        )
+        assert relationship_index_service.load_governed_relationship_index(graph) == fresh_index
         assert persistence_loads == 2
     finally:
         release_stale_load.set()
         loader.join(timeout=5)
         relationship_index_service.invalidate_governed_relationship_index_cache()
-
