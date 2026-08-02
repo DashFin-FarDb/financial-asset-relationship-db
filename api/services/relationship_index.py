@@ -211,17 +211,13 @@ def _add_governed_edge(
     forward_key = (edge.source_id, edge.target_id, edge.edge_type)
     existing = index.get(forward_key)
     if existing is not None and existing["assertion_id"] != metadata["assertion_id"]:
-        raise ValidationError(
-            f"duplicate governance key {forward_key!r} with conflicting assertion provenance"
-        )
+        raise ValidationError(f"duplicate governance key {forward_key!r} with conflicting assertion provenance")
     index[forward_key] = metadata
     if edge.direction == "bidirectional":
         reverse_key = (edge.target_id, edge.source_id, edge.edge_type)
         existing = index.get(reverse_key)
         if existing is not None and existing["assertion_id"] != metadata["assertion_id"]:
-            raise ValidationError(
-                f"duplicate governance key {reverse_key!r} with conflicting assertion provenance"
-            )
+            raise ValidationError(f"duplicate governance key {reverse_key!r} with conflicting assertion provenance")
         index[reverse_key] = metadata
 
 
