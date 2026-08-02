@@ -208,9 +208,21 @@ def _add_governed_edge(
     metadata: GovernanceMetadata,
 ) -> None:
     """Add forward and, when governed as bidirectional, reverse index entries."""
-    index[(edge.source_id, edge.target_id, edge.edge_type)] = metadata
+    forward_key = (edge.source_id, edge.target_id, edge.edge_type)
+    existing = index.get(forward_key)
+    if existing is not None and existing["assertion_id"] != metadata["assertion_id"]:
+        raise ValidationError(
+            f"duplicate governance key {forward_key!r} with conflicting assertion provenance"
+        )
+    index[forward_key] = metadata
     if edge.direction == "bidirectional":
-        index[(edge.target_id, edge.source_id, edge.edge_type)] = metadata
+        reverse_key = (edge.target_id, edge.source_id, edge.edge_type)
+        existing = index.get(reverse_key)
+        if existing is not None and existing["assertion_id"] != metadata["assertion_id"]:
+            raise ValidationError(
+                f"duplicate governance key {reverse_key!r} with conflicting assertion provenance"
+            )
+        index[reverse_key] = metadata
 
 
 def _published_relationship_index(
@@ -373,7 +385,7 @@ def register_runtime_graph_publication_binding(
 
 @lru_cache(maxsize=4)
 def _load_governed_relationship_index(
-    _graph: AssetRelationshipGraph,
+    _graph_id: int,
     _generation: int,
 ) -> GovernedRelationshipIndex:
     """Load latest governed metadata for one unmanaged graph and generation."""
@@ -382,7 +394,7 @@ def _load_governed_relationship_index(
 
 @lru_cache(maxsize=8)
 def _load_bound_governed_relationship_index(
-    _graph: AssetRelationshipGraph,
+    _graph_id: int,
     _rebuild_job_id: str,
     revision_id: str,
     _generation: int,
@@ -405,7 +417,7 @@ def load_governed_relationship_index(graph: AssetRelationshipGraph) -> GovernedR
     managed, rebuild_job_id = _runtime_graph_publication_binding(graph)
     generation = _current_cache_generation()
     if not managed:
-        return _load_governed_relationship_index(graph, generation)
+        return _load_governed_relationship_index(id(graph), generation)
     if rebuild_job_id is None:
         return {}
 
@@ -419,7 +431,7 @@ def load_governed_relationship_index(graph: AssetRelationshipGraph) -> GovernedR
             detail="Graph publication synchronization is pending",
         )
     return _load_bound_governed_relationship_index(
-        graph,
+        id(graph),
         latest_job_id,
         revision_id,
         generation,

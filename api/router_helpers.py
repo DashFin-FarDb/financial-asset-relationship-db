@@ -22,12 +22,14 @@ def get_graph():
     from . import graph_lifecycle
     from .services.relationship_index import register_runtime_graph_publication_binding
 
-    graph = graph_lifecycle.get_graph()
     with graph_lifecycle.graph_lock:
-        if graph_lifecycle.graph_state.graph is graph:
-            rebuild_job_id = graph_lifecycle.graph_state.last_synced_job_id
-        else:
-            rebuild_job_id = None
+        graph = graph_lifecycle.graph_state.graph
+        rebuild_job_id = graph_lifecycle.graph_state.last_synced_job_id
+
+    if graph is None:
+        graph = graph_lifecycle.get_graph()
+        rebuild_job_id = None
+
     register_runtime_graph_publication_binding(graph, rebuild_job_id)
     return graph
 
@@ -109,6 +111,6 @@ def serialize_asset(
     if include_issuer and hasattr(asset, "issuer_id"):
         issuer_id = getattr(asset, "issuer_id")
         if issuer_id is not None:
-            asset_dict["issuer_id"] = issuer_id
+            asset_dict["additional_fields"]["issuer_id"] = issuer_id
 
     return asset_dict
