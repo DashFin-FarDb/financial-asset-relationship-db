@@ -46,6 +46,30 @@ def test_managed_graph_fails_closed_until_latest_publication_is_synchronized(
     assert exc_info.value.detail == "Graph publication synchronization is pending"
 
 
+def test_unbound_managed_startup_graph_omits_optional_governance(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Startup graphs not derived from a governed publication remain readable."""
+    graph = AssetRelationshipGraph()
+    monkeypatch.setattr(
+        relationship_index,
+        "_runtime_graph_publication_binding",
+        lambda _graph: (True, None),
+    )
+
+    def unexpected_publication_lookup() -> tuple[str, str]:
+        """Fail if an unbound startup graph probes governed publication state."""
+        raise AssertionError("unexpected publication lookup")
+
+    monkeypatch.setattr(
+        relationship_index,
+        "_latest_published_projection_binding_from_persistence",
+        unexpected_publication_lookup,
+    )
+
+    assert relationship_index.load_governed_relationship_index(graph) == {}
+
+
 def test_managed_graph_checks_shared_version_on_every_read_but_caches_revision(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
