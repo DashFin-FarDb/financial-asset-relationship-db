@@ -301,13 +301,9 @@ def _fail_closed_on_runtime_relationship_collisions(candidates: Sequence[_Candid
     for key, group in sorted(groups.items(), key=lambda item: item[0]):
         if len(group) <= 1:
             continue
-        owners = sorted(
-            (candidate.assertion.assertion_id, candidate.predicate.id)
-            for candidate in group
-        )
+        owners = sorted((candidate.assertion.assertion_id, candidate.predicate.id) for candidate in group)
         raise ProjectionError(
-            f"ambiguous projected runtime relationship for key {key}: "
-            f"owners={owners}; fail closed"
+            f"ambiguous projected runtime relationship for key {key}: " f"owners={owners}; fail closed"
         )
 
 
