@@ -94,10 +94,7 @@ def _resolve_governance_persistence_url() -> str:
 def _session_factory_for_url(persistence_url: str) -> sessionmaker[Session]:
     """Reuse one engine/session factory until the configured URL changes."""
     with _persistence_runtime_lock:
-        if (
-            _persistence_runtime.url == persistence_url
-            and _persistence_runtime.session_factory is not None
-        ):
+        if _persistence_runtime.url == persistence_url and _persistence_runtime.session_factory is not None:
             return _persistence_runtime.session_factory
 
         engine = create_engine_from_url(persistence_url)
