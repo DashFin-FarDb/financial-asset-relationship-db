@@ -69,9 +69,10 @@ def test_governance_contract_failure_propagates_from_loader(monkeypatch: pytest.
         raise RuntimeError("contract load failed")
 
     monkeypatch.setattr(relationship_index_service, "load_contract_bundle", fail_contract_load)
+    graph = AssetRelationshipGraph()
 
     with pytest.raises(RuntimeError, match="contract load failed"):
-        relationship_index_service.load_governed_relationship_index(AssetRelationshipGraph())
+        relationship_index_service.load_governed_relationship_index(graph)
 
 
 @pytest.mark.unit
