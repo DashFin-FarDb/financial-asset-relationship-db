@@ -362,6 +362,11 @@ def _runtime_graph_publication_binding(graph: AssetRelationshipGraph) -> tuple[b
     return False, None
 
 
+def register_runtime_graph_publication_binding(graph: AssetRelationshipGraph) -> None:
+    """Retain the lifecycle publication binding when an API request captures a graph."""
+    _runtime_graph_publication_binding(graph)
+
+
 @lru_cache(maxsize=4)
 def _load_governed_relationship_index(
     _graph: AssetRelationshipGraph,
@@ -389,12 +394,16 @@ def load_governed_relationship_index(graph: AssetRelationshipGraph) -> GovernedR
     Every read checks the shared latest publication version before consulting the
     expensive metadata cache. If this process has not synchronized that publication,
     the read fails closed instead of returning stale or misattributed provenance.
-    Unmanaged graph objects retain the legacy path used by isolated tests and tools.
+    Managed startup graphs with no governed publication binding omit optional
+    governance metadata. Unmanaged graph objects retain the legacy path used by
+    isolated tests and tools.
     """
     managed, rebuild_job_id = _runtime_graph_publication_binding(graph)
     generation = _current_cache_generation()
     if not managed:
         return _load_governed_relationship_index(graph, generation)
+    if rebuild_job_id is None:
+        return {}
 
     latest_binding = _latest_published_projection_binding_from_persistence()
     if latest_binding is None:
