@@ -24,7 +24,7 @@ from src.data.relationship_assertion_repository import RelationshipAssertionRepo
 from src.data.relationship_projection_persistence import PersistedProjectionRevision
 from src.data.repository import session_scope
 from src.governance.relationship_assertion import ValidationError
-from src.governance.relationship_assertion_contract import PredicateSpec, PredicatesDocument, load_contract_bundle
+from src.governance.relationship_assertion_contract import PredicatesDocument, PredicateSpec, load_contract_bundle
 from src.logic.asset_graph import AssetRelationshipGraph
 from src.logic.relationship_projection import ProjectionEdge
 
