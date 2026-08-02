@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from functools import lru_cache
+from threading import Lock
 from typing import Literal, TypeAlias, TypedDict
 
 from fastapi import HTTPException, status
@@ -26,6 +27,8 @@ from ..graph_lifecycle_providers import (
 )
 
 _GRAC_CURRENT_PURPOSE = "financial_graph_current_view"
+_cache_generation = 0
+_cache_generation_lock = Lock()
 
 
 class GovernanceMetadata(TypedDict):
@@ -38,6 +41,12 @@ class GovernanceMetadata(TypedDict):
 
 
 GovernedRelationshipIndex: TypeAlias = dict[tuple[str, str, str], GovernanceMetadata]
+
+
+def _current_cache_generation() -> int:
+    """Return the current governed relationship index cache generation."""
+    with _cache_generation_lock:
+        return _cache_generation
 
 
 @lru_cache(maxsize=1)
@@ -127,16 +136,23 @@ def _load_governed_relationship_index_from_persistence() -> GovernedRelationship
 
 
 @lru_cache(maxsize=1)
-def _load_governed_relationship_index(_graph: AssetRelationshipGraph) -> GovernedRelationshipIndex:
-    """Load governed metadata once for the active immutable runtime graph instance."""
+def _load_governed_relationship_index(
+    _graph: AssetRelationshipGraph,
+    _generation: int,
+) -> GovernedRelationshipIndex:
+    """Load governed metadata for one runtime graph and cache generation."""
     return _load_governed_relationship_index_from_persistence()
 
 
 def load_governed_relationship_index(graph: AssetRelationshipGraph) -> GovernedRelationshipIndex:
     """Return governed relationship metadata for API response enrichment."""
-    return _load_governed_relationship_index(graph)
+    return _load_governed_relationship_index(graph, _current_cache_generation())
 
 
 def invalidate_governed_relationship_index_cache() -> None:
-    """Clear governed relationship index cache after successful publication writes."""
-    _load_governed_relationship_index.cache_clear()
+    """Advance the cache generation and clear entries after publication writes."""
+    global _cache_generation
+
+    with _cache_generation_lock:
+        _cache_generation += 1
+        _load_governed_relationship_index.cache_clear()
