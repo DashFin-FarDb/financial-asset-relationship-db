@@ -170,9 +170,7 @@ def _scope_ref_for_edge(
             f"published edge assertion {edge.assertion_id} predicate {predicate_id} is outside governed scopes"
         )
     if predicate.projection.edge_type != edge.edge_type:
-        raise ValidationError(
-            f"published edge type {edge.edge_type} does not match assertion predicate {predicate_id}"
-        )
+        raise ValidationError(f"published edge type {edge.edge_type} does not match assertion predicate {predicate_id}")
     return predicate_id
 
 
