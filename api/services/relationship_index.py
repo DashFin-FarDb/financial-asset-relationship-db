@@ -293,8 +293,11 @@ def _latest_published_projection_binding_from_persistence() -> PublicationBindin
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="Graph persistence database is misconfigured",
         ) from exc
-    except (GraphPersistenceNotConfiguredError, GraphPersistenceNonDurableError):
-        return None
+    except (GraphPersistenceNotConfiguredError, GraphPersistenceNonDurableError) as exc:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Graph persistence database is not configured",
+        ) from exc
     except SQLAlchemyError as exc:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
@@ -381,7 +384,7 @@ def register_runtime_graph_publication_binding(
 
 @lru_cache(maxsize=4)
 def _load_governed_relationship_index(
-    _graph_id: int,
+    _graph: AssetRelationshipGraph,
     _generation: int,
 ) -> GovernedRelationshipIndex:
     """Load latest governed metadata for one unmanaged graph and generation."""
@@ -390,7 +393,7 @@ def _load_governed_relationship_index(
 
 @lru_cache(maxsize=8)
 def _load_bound_governed_relationship_index(
-    _graph_id: int,
+    _graph: AssetRelationshipGraph,
     _rebuild_job_id: str,
     revision_id: str,
     _generation: int,
@@ -413,12 +416,10 @@ def load_governed_relationship_index(graph: AssetRelationshipGraph) -> GovernedR
     managed, rebuild_job_id = _runtime_graph_publication_binding(graph)
     generation = _current_cache_generation()
     if not managed:
-        return _load_governed_relationship_index(id(graph), generation)
-    if rebuild_job_id is None:
-        return {}
+        return _load_governed_relationship_index(graph, generation)
 
     latest_binding = _latest_published_projection_binding_from_persistence()
-    if latest_binding is None:
+    if rebuild_job_id is None or latest_binding is None:
         return {}
     latest_job_id, revision_id = latest_binding
     if rebuild_job_id != latest_job_id:
@@ -427,7 +428,7 @@ def load_governed_relationship_index(graph: AssetRelationshipGraph) -> GovernedR
             detail="Graph publication synchronization is pending",
         )
     return _load_bound_governed_relationship_index(
-        id(graph),
+        graph,
         latest_job_id,
         revision_id,
         generation,
