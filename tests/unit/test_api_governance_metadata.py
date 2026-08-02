@@ -324,3 +324,110 @@ def test_legacy_relationship_and_visualization_payloads_omit_new_optional_fields
         assert "governance_status" not in edge
         assert "revision_id" not in edge
         assert "scope_refs" not in edge
+
+
+@pytest.mark.unit
+def test_in_flight_load_from_prior_generation_cannot_restore_stale_cache(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """An in-flight pre-invalidation load cannot satisfy later-generation reads."""
+    graph = AssetRelationshipGraph()
+    load_started = threading.Event()
+    release_stale_load = threading.Event()
+
+    stale_index: relationship_index_service.GovernedRelationshipIndex = {
+        ("BOND", "ISSUER", "issuer_link"): {
+            "assertion_id": "assertion-v1",
+            "governance_status": "governed",
+            "revision_id": "revision-v1",
+            "scope_refs": ["financial.bond.issuer_reference@1"],
+        }
+    }
+    fresh_index: relationship_index_service.GovernedRelationshipIndex = {
+        ("BOND", "ISSUER", "issuer_link"): {
+            "assertion_id": "assertion-v2",
+            "governance_status": "governed",
+            "revision_id": "revision-v2",
+            "scope_refs": ["financial.bond.issuer_reference@1"],
+        }
+    }
+
+    persistence_loads = 0
+    worker_results: list[
+        relationship_index_service.GovernedRelationshipIndex
+    ] = []
+    worker_errors: list[Exception] = []
+
+    def load_from_persistence(
+    ) -> relationship_index_service.GovernedRelationshipIndex:
+        """Block the first persistence read and return fresh data thereafter."""
+        nonlocal persistence_loads
+        persistence_loads += 1
+
+        if persistence_loads == 1:
+            load_started.set()
+            if not release_stale_load.wait(timeout=5):
+                raise TimeoutError("Timed out waiting to release stale load")
+            return stale_index
+
+        return fresh_index
+
+    def run_in_flight_load() -> None:
+        """Capture the result or exception from the pre-invalidation load."""
+        try:
+            worker_results.append(
+                relationship_index_service.load_governed_relationship_index(
+                    graph
+                )
+            )
+        except Exception as exc:  # pragma: no cover - asserted below
+            worker_errors.append(exc)
+
+    monkeypatch.setattr(
+        relationship_index_service,
+        "_load_governed_relationship_index_from_persistence",
+        load_from_persistence,
+    )
+
+    # Begin from an empty cache and a known current generation.
+    relationship_index_service.invalidate_governed_relationship_index_cache()
+
+    loader = threading.Thread(target=run_in_flight_load, daemon=True)
+    loader.start()
+
+    try:
+        assert load_started.wait(timeout=5), (
+            "The pre-invalidation persistence load did not start"
+        )
+
+        # Advance the generation while the old-generation load is still blocked.
+        relationship_index_service.invalidate_governed_relationship_index_cache()
+
+        # Allow the stale load to finish after invalidation.
+        release_stale_load.set()
+        loader.join(timeout=5)
+
+        assert not loader.is_alive(), "The in-flight loader did not terminate"
+        assert worker_errors == []
+        assert worker_results == [stale_index]
+        assert persistence_loads == 1
+
+        # The stale result may complete for its original caller, but it must not
+        # satisfy a read made against the new cache generation.
+        assert (
+            relationship_index_service.load_governed_relationship_index(graph)
+            == fresh_index
+        )
+        assert persistence_loads == 2
+
+        # Confirm that the fresh result, rather than the stale result, is cached.
+        assert (
+            relationship_index_service.load_governed_relationship_index(graph)
+            == fresh_index
+        )
+        assert persistence_loads == 2
+    finally:
+        release_stale_load.set()
+        loader.join(timeout=5)
+        relationship_index_service.invalidate_governed_relationship_index_cache()
+
