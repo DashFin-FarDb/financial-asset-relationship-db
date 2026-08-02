@@ -2,7 +2,10 @@
 
 from __future__ import annotations
 
+from unittest.mock import Mock
+
 import pytest
+from sqlalchemy.engine import Engine
 
 from api.services import relationship_index as relationship_index_service
 from src.logic.asset_graph import AssetRelationshipGraph
@@ -76,3 +79,46 @@ def test_shared_publication_revision_advances_warm_reader_cache(
         assert revision_checks == 4
     finally:
         relationship_index_service.invalidate_governed_relationship_index_cache()
+
+
+@pytest.mark.unit
+def test_persistence_runtime_reuses_engine_and_disposes_on_url_change(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Hot-path version probes reuse pooling while runtime URL changes stay bounded."""
+    engines = [Mock(spec=Engine), Mock(spec=Engine)]
+    factories = [Mock(name="factory-one"), Mock(name="factory-two")]
+    created_urls: list[str] = []
+
+    def create_engine(persistence_url: str) -> Engine:
+        """Return a distinct fake engine for each configured URL."""
+        created_urls.append(persistence_url)
+        return engines[len(created_urls) - 1]
+
+    def create_factory(engine: Engine) -> Mock:
+        """Return the factory associated with the supplied fake engine."""
+        return factories[engines.index(engine)]
+
+    relationship_index_service._reset_governance_persistence_runtime()
+    monkeypatch.setattr(relationship_index_service, "create_engine_from_url", create_engine)
+    monkeypatch.setattr(relationship_index_service, "create_session_factory", create_factory)
+
+    try:
+        first = relationship_index_service._session_factory_for_url("postgresql://graph-one")
+        repeated = relationship_index_service._session_factory_for_url("postgresql://graph-one")
+
+        assert first is factories[0]
+        assert repeated is first
+        assert created_urls == ["postgresql://graph-one"]
+        engines[0].dispose.assert_not_called()
+
+        second = relationship_index_service._session_factory_for_url("postgresql://graph-two")
+
+        assert second is factories[1]
+        assert created_urls == ["postgresql://graph-one", "postgresql://graph-two"]
+        engines[0].dispose.assert_called_once_with()
+        engines[1].dispose.assert_not_called()
+    finally:
+        relationship_index_service._reset_governance_persistence_runtime()
+
+    engines[1].dispose.assert_called_once_with()
