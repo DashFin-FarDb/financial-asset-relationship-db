@@ -362,9 +362,13 @@ def _runtime_graph_publication_binding(graph: AssetRelationshipGraph) -> tuple[b
     return False, None
 
 
-def register_runtime_graph_publication_binding(graph: AssetRelationshipGraph) -> None:
-    """Retain the lifecycle publication binding when an API request captures a graph."""
-    _runtime_graph_publication_binding(graph)
+def register_runtime_graph_publication_binding(
+    graph: AssetRelationshipGraph,
+    rebuild_job_id: str | None,
+) -> None:
+    """Retain the publication binding captured with a lifecycle-managed graph."""
+    with _runtime_graph_bindings_lock:
+        _runtime_graph_bindings[graph] = rebuild_job_id
 
 
 @lru_cache(maxsize=4)
