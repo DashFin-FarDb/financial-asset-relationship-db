@@ -22,9 +22,6 @@ from src.data.relationship_assertion_repository import RelationshipAssertionRepo
 # session-wide even when declared in a test module). The `client` fixture is
 # redeclared locally instead of imported, since importing it would collide
 # with the `client` parameter name used throughout this module's tests.
-from .api_assertion_test_support import configure_graph_persistence  # noqa: F401
-from .api_assertion_test_support import initialize_assertion_store  # noqa: F401
-from .api_assertion_test_support import seed_users  # noqa: F401
 from .api_assertion_test_support import (
     _assert_error_response,
     _decision_payload,
@@ -32,7 +29,16 @@ from .api_assertion_test_support import (
     _proposal_payload,
     _supersession_headers,
     _token,
+    configure_graph_persistence,
+    initialize_assertion_store,
+    seed_users,
 )
+
+# `configure_graph_persistence`, `initialize_assertion_store`, and `seed_users` are
+# pytest autouse fixtures used implicitly by every test in this module. Reference
+# them here (rather than a per-import noqa comment) so the import stays a single,
+# lint-stable block instead of flip-flopping between merged/split import styles.
+_ = (configure_graph_persistence, initialize_assertion_store, seed_users)
 
 
 @pytest.fixture
