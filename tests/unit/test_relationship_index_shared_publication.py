@@ -94,6 +94,11 @@ def test_governance_stays_consistent_with_graph_snapshot_across_publications(
         assert relationship_index_service.load_governed_relationship_index(graph_v2) == indexes["revision-v2"]
         assert relationship_index_service.load_governed_relationship_index(graph_v2) == indexes["revision-v2"]
         assert persistence_loads == 2
+
+        # An in-flight request that still holds graph_v1 must retain revision-v1
+        # governance even after graph_v2 has been loaded into the cache.
+        assert relationship_index_service.load_governed_relationship_index(graph_v1) == indexes["revision-v1"]
+        assert persistence_loads == 2
     finally:
         relationship_index_service.invalidate_governed_relationship_index_cache()
 
