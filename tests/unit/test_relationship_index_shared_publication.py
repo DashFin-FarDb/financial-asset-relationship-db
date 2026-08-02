@@ -11,8 +11,8 @@ from sqlalchemy.engine import Engine
 from api.services import relationship_index as relationship_index_service
 from src.data.relationship_projection_persistence import PersistedProjectionRevision
 from src.governance.relationship_assertion_contract import (
-    PredicatesDocument,
     PredicateSpec,
+    PredicatesDocument,
     ProjectionSpec,
 )
 from src.logic.asset_graph import AssetRelationshipGraph
