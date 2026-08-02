@@ -84,9 +84,9 @@ def test_governance_stays_consistent_with_graph_snapshot_across_publications(
 
         assert relationship_index_service.load_governed_relationship_index(graph_v1) == indexes["revision-v1"]
         assert relationship_index_service.load_governed_relationship_index(graph_v1) == indexes["revision-v1"]
-        assert persistence_loads == 1, (
-            "governance must not refresh from a new publication while the graph object is unchanged"
-        )
+        assert (
+            persistence_loads == 1
+        ), "governance must not refresh from a new publication while the graph object is unchanged"
 
         # Simulate sync_with_latest_rebuild completing: a new graph object is installed.
         # Governance now refreshes against the new graph, picking up revision-v2.
