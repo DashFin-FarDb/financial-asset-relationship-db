@@ -26,9 +26,6 @@ name = "black"
 name = "autopep8"
 
 [[code_formatters]]
-name = "isort"
-
-[[code_formatters]]
 name = "standardjs"
 
 [[code_formatters]]
