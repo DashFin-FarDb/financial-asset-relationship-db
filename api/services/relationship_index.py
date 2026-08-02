@@ -261,8 +261,7 @@ def _latest_published_projection_binding_from_persistence() -> PublicationBindin
                     )
                     .join(
                         RelationshipProjectionRevisionORM,
-                        RelationshipProjectionRevisionORM.id
-                        == RelationshipProjectionPublicationORM.revision_id,
+                        RelationshipProjectionRevisionORM.id == RelationshipProjectionPublicationORM.revision_id,
                     )
                     .join(
                         RebuildJobORM,
