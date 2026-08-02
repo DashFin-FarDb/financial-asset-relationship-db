@@ -59,10 +59,10 @@ def test_relationship_index_persistence_sqlalchemy_errors_are_bounded(
         yield session
 
     class FailingRepository:
-        def __init__(self, _session: Session) -> None:
-            pass
+        """Repository double that raises a low-level persistence failure."""
 
         def latest_published_projection(self, _purpose: str) -> PersistedProjectionRevision | None:
+            """Raise the simulated SQLAlchemy outage under test."""
             raise SQLAlchemyError("connection refused with internal host details")
 
     monkeypatch.setattr(relationship_index, "RelationshipAssertionRepository", FailingRepository)
