@@ -40,7 +40,7 @@ def test_assertion_predicate_lookup_chunks_large_revisions() -> None:
 
     assertion_predicates = relationship_index._assertion_predicates_for_edges(session, published)
 
-    assert assertion_predicates == {assertion_id: "predicate-test" for assertion_id in assertion_ids}
+    assert assertion_predicates == dict.fromkeys(assertion_ids, "predicate-test")
     assert session.execute.call_count == 3
 
 
