@@ -57,7 +57,6 @@ Claims are labeled landed vs provisional. ADRs/policy are not rewritten.
 - [provisional] **pr:1435**: x()  x  w -
 
 ### ci-guardrails
-- [provisional] **pr:1570**:  x v    x 
 - [provisional] **pr:1573**: ()   -    y w  
 - [landed] **pr:1564**: x       
 - [landed] **pr:1551**:       ww
@@ -72,6 +71,7 @@ Claims are labeled landed vs provisional. ADRs/policy are not rewritten.
 - [landed] **pr:1518**: x - --  z   -v 
 - [landed] **pr:1517**:      (--)
 - [landed] **pr:1515**: x      (--)
+- [landed] **pr:1510**:   -vy  - ww (--)
 
 ### rebuild-reconciliation
 - [landed] **pr:1455**: x    y 
