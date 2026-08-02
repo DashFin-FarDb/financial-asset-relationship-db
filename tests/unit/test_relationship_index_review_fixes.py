@@ -55,10 +55,11 @@ def test_latest_revision_probe_is_cached_for_short_ttl(monkeypatch: pytest.Monke
 
     @contextmanager
     def fake_session_scope(_session_factory: object) -> Iterator[Session]:
+        """Yield the test session without opening a persistence connection."""
         yield session
 
     monkeypatch.setattr(relationship_index, "session_scope", fake_session_scope)
-    monkeypatch.setattr(relationship_index, "_governance_session_factory", lambda: object())
+    monkeypatch.setattr(relationship_index, "_governance_session_factory", object)
     monkeypatch.setattr(relationship_index, "monotonic", lambda: current_time)
     relationship_index._latest_published_revision_id_for_bucket.cache_clear()
 
