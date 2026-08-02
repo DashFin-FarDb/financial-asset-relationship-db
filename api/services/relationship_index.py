@@ -9,6 +9,7 @@ from typing import Literal, TypeAlias, TypedDict
 from fastapi import HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.engine import Engine
+from sqlalchemy.orm import Session, sessionmaker
 
 from src.data.database import create_engine_from_url, create_session_factory
 from src.data.db_models import RebuildJobORM
@@ -34,6 +35,7 @@ from ..graph_lifecycle_providers import (
 
 _GRAC_CURRENT_PURPOSE = "financial_graph_current_view"
 _cache_generation_lock = Lock()
+_persistence_runtime_lock = Lock()
 
 
 class _CacheGeneration:
@@ -43,7 +45,17 @@ class _CacheGeneration:
         self.value = 0
 
 
+class _PersistenceRuntime:
+    """Reusable URL-scoped engine and session factory for governance reads."""
+
+    def __init__(self) -> None:
+        self.url: str | None = None
+        self.engine: Engine | None = None
+        self.session_factory: sessionmaker[Session] | None = None
+
+
 _cache_generation = _CacheGeneration()
+_persistence_runtime = _PersistenceRuntime()
 
 
 class GovernanceMetadata(TypedDict):
@@ -71,18 +83,50 @@ def _load_contract_predicates() -> PredicatesDocument:
     return predicates
 
 
-def _dispose_engine(engine: Engine | None) -> None:
-    """Dispose an optional governance persistence engine after each bounded read."""
-    if engine is not None:
-        engine.dispose()
-
-
 def _resolve_governance_persistence_url() -> str:
     """Resolve the durable graph database used by governed relationship reads."""
     settings = get_graph_lifecycle_settings()
     hosted_url = resolve_hosted_graph_database_url(settings)
     legacy_url = getattr(settings, "database_url", None) if not hasattr(settings, "asset_graph_database_url") else None
     return resolve_durable_graph_persistence_url(hosted_url or legacy_url)
+
+
+def _session_factory_for_url(persistence_url: str) -> sessionmaker[Session]:
+    """Reuse one engine/session factory until the configured URL changes."""
+    with _persistence_runtime_lock:
+        if (
+            _persistence_runtime.url == persistence_url
+            and _persistence_runtime.session_factory is not None
+        ):
+            return _persistence_runtime.session_factory
+
+        engine = create_engine_from_url(persistence_url)
+        session_factory = create_session_factory(engine)
+        previous_engine = _persistence_runtime.engine
+
+        _persistence_runtime.url = persistence_url
+        _persistence_runtime.engine = engine
+        _persistence_runtime.session_factory = session_factory
+
+        if previous_engine is not None:
+            previous_engine.dispose()
+        return session_factory
+
+
+def _governance_session_factory() -> sessionmaker[Session]:
+    """Return the shared session factory for the current graph persistence URL."""
+    return _session_factory_for_url(_resolve_governance_persistence_url())
+
+
+def _reset_governance_persistence_runtime() -> None:
+    """Dispose and clear the reusable persistence runtime for tests or reconfiguration."""
+    with _persistence_runtime_lock:
+        engine = _persistence_runtime.engine
+        _persistence_runtime.url = None
+        _persistence_runtime.engine = None
+        _persistence_runtime.session_factory = None
+        if engine is not None:
+            engine.dispose()
 
 
 def _scope_refs_by_edge_type(
@@ -130,11 +174,8 @@ def _published_relationship_index(
 
 def _latest_published_revision_id_from_persistence() -> str | None:
     """Read the shared latest successful publication revision used as a cache version."""
-    engine: Engine | None = None
     try:
-        engine = create_engine_from_url(_resolve_governance_persistence_url())
-        session_factory = create_session_factory(engine)
-        with session_scope(session_factory) as session:
+        with session_scope(_governance_session_factory()) as session:
             return session.execute(
                 select(RelationshipProjectionPublicationORM.revision_id)
                 .join(
@@ -161,17 +202,12 @@ def _latest_published_revision_id_from_persistence() -> str | None:
         ) from exc
     except (GraphPersistenceNotConfiguredError, GraphPersistenceNonDurableError):
         return None
-    finally:
-        _dispose_engine(engine)
 
 
 def _load_governed_relationship_index_from_persistence() -> GovernedRelationshipIndex:
     """Load governed metadata from durable assertion projection persistence."""
-    engine: Engine | None = None
     try:
-        engine = create_engine_from_url(_resolve_governance_persistence_url())
-        session_factory = create_session_factory(engine)
-        with session_scope(session_factory) as session:
+        with session_scope(_governance_session_factory()) as session:
             repository = RelationshipAssertionRepository(session)
             published = repository.latest_published_projection(_GRAC_CURRENT_PURPOSE)
             if published is None:
@@ -185,8 +221,6 @@ def _load_governed_relationship_index_from_persistence() -> GovernedRelationship
         ) from exc
     except (GraphPersistenceNotConfiguredError, GraphPersistenceNonDurableError):
         return {}
-    finally:
-        _dispose_engine(engine)
 
 
 @lru_cache(maxsize=1)
