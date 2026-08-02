@@ -91,22 +91,17 @@ def serialize_asset(
         "maturity_date",
         "credit_rating",
         "contract_size",
-        "expiry_date",
-        "underlying_asset",
-        "strike_price",
+        "delivery_date",
         "volatility",
+        "exchange_rate",
         "country",
-        "exchange",
-        "ceo",
-        "employees",
-        "founded_year",
+        "central_bank_rate",
     ]
 
     for field in optional_fields:
-        if hasattr(asset, field):
-            value = getattr(asset, field)
-            if value is not None:
-                asset_dict["additional_fields"][field] = value
+        value = getattr(asset, field, None)
+        if value is not None:
+            asset_dict["additional_fields"][field] = value
 
     if include_issuer:
         issuer_id = getattr(asset, "issuer_id", None)
