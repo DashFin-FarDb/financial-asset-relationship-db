@@ -57,7 +57,7 @@ class AssertionSupersessionRequest(BaseModel):
 
 
 class AssertionEventResponse(BaseModel):
-    """Public immutable lifecycle event view."""
+    """Authenticated command lifecycle event view with audit fields."""
 
     model_config = ConfigDict(extra="forbid")
 
