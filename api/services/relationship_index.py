@@ -27,8 +27,17 @@ from ..graph_lifecycle_providers import (
 )
 
 _GRAC_CURRENT_PURPOSE = "financial_graph_current_view"
-_cache_generation = 0
 _cache_generation_lock = Lock()
+
+
+class _CacheGeneration:
+    """Mutable cache-generation state guarded by the cache-generation lock."""
+
+    def __init__(self) -> None:
+        self.value = 0
+
+
+_cache_generation = _CacheGeneration()
 
 
 class GovernanceMetadata(TypedDict):
@@ -46,7 +55,7 @@ GovernedRelationshipIndex: TypeAlias = dict[tuple[str, str, str], GovernanceMeta
 def _current_cache_generation() -> int:
     """Return the current governed relationship index cache generation."""
     with _cache_generation_lock:
-        return _cache_generation
+        return _cache_generation.value
 
 
 @lru_cache(maxsize=1)
@@ -151,8 +160,6 @@ def load_governed_relationship_index(graph: AssetRelationshipGraph) -> GovernedR
 
 def invalidate_governed_relationship_index_cache() -> None:
     """Advance the cache generation and clear entries after publication writes."""
-    global _cache_generation
-
     with _cache_generation_lock:
-        _cache_generation += 1
+        _cache_generation.value += 1
         _load_governed_relationship_index.cache_clear()
