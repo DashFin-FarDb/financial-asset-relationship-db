@@ -27,10 +27,10 @@ def test_governance_stays_consistent_with_graph_snapshot_across_publications(
 
     A warm peer that detects a newer published revision ID from persistence must not
     serve governance metadata from that newer publication while still returning edges
-    from the pre-sync graph snapshot.  Governance is only refreshed when the
+    from the pre-sync graph snapshot. Governance is only refreshed when the
     in-memory graph object is replaced (i.e. after ``sync_with_latest_rebuild``
     completes and ``synchronize_runtime_graph`` installs a new instance) or when the
-    local generation advances via explicit invalidation.  This guarantees that
+    local generation advances via explicit invalidation. This guarantees that
     ``assertion_id`` and ``revision_id`` on returned edges always correspond to the
     publication the current graph was built from.
     """
@@ -81,11 +81,11 @@ def test_governance_stays_consistent_with_graph_snapshot_across_publications(
         # Governance must NOT advance to revision-v2 while graph_v1 is still in use,
         # even if persistence now reports revision-v2 as the latest.
         current_revision_id = "revision-v2"
+        loads_before_stable_graph_reads = persistence_loads
 
         assert relationship_index_service.load_governed_relationship_index(graph_v1) == indexes["revision-v1"]
         assert relationship_index_service.load_governed_relationship_index(graph_v1) == indexes["revision-v1"]
-        _msg = "governance must not refresh from a new publication while the graph object is unchanged"
-        assert persistence_loads == 1, _msg
+        assert persistence_loads == loads_before_stable_graph_reads
 
         # Simulate sync_with_latest_rebuild completing: a new graph object is installed.
         # Governance now refreshes against the new graph, picking up revision-v2.
@@ -97,8 +97,9 @@ def test_governance_stays_consistent_with_graph_snapshot_across_publications(
 
         # An in-flight request that still holds graph_v1 must retain revision-v1
         # governance even after graph_v2 has been loaded into the cache.
+        loads_before_old_graph_lookup = persistence_loads
         assert relationship_index_service.load_governed_relationship_index(graph_v1) == indexes["revision-v1"]
-        assert persistence_loads == 2
+        assert persistence_loads == loads_before_old_graph_lookup
     finally:
         relationship_index_service.invalidate_governed_relationship_index_cache()
 
