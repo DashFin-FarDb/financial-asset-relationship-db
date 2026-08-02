@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from functools import lru_cache
 from threading import Lock
 from typing import Literal, TypeAlias, TypedDict
@@ -14,12 +15,14 @@ from sqlalchemy.orm import Session, sessionmaker
 from src.data.database import create_engine_from_url, create_session_factory
 from src.data.db_models import RebuildJobORM
 from src.data.relationship_assertion_db_models import (
+    RelationshipAssertionORM,
     RelationshipProjectionPublicationORM,
     RelationshipProjectionRevisionORM,
 )
 from src.data.relationship_assertion_repository import RelationshipAssertionRepository
 from src.data.relationship_projection_persistence import PersistedProjectionRevision
 from src.data.repository import session_scope
+from src.governance.relationship_assertion import ValidationError
 from src.governance.relationship_assertion_contract import PredicatesDocument, load_contract_bundle
 from src.logic.asset_graph import AssetRelationshipGraph
 from src.logic.relationship_projection import ProjectionEdge
@@ -126,18 +129,51 @@ def _reset_governance_persistence_runtime() -> None:
             engine.dispose()
 
 
-def _scope_refs_by_edge_type(
+def _assertion_predicates_for_edges(
+    session: Session,
     published: PersistedProjectionRevision,
+) -> dict[str, str]:
+    """Load the exact predicate owner for every assertion referenced by the revision."""
+    assertion_ids = sorted({edge.assertion_id for edge in published.revision.edges})
+    if not assertion_ids:
+        return {}
+
+    rows = session.execute(
+        select(RelationshipAssertionORM.id, RelationshipAssertionORM.predicate_id)
+        .where(RelationshipAssertionORM.id.in_(assertion_ids))
+        .order_by(RelationshipAssertionORM.id)
+    ).all()
+    assertion_predicates = {assertion_id: predicate_id for assertion_id, predicate_id in rows}
+    missing = sorted(set(assertion_ids) - assertion_predicates.keys())
+    if missing:
+        raise ValidationError(f"published projection references missing assertions: {missing}")
+    return assertion_predicates
+
+
+def _scope_ref_for_edge(
+    edge: ProjectionEdge,
     predicates: PredicatesDocument,
-) -> dict[str, list[str]]:
-    """Index the published governed predicate scopes by projected edge type."""
+    assertion_predicates: Mapping[str, str],
+    governed_scope_ids: set[str],
+) -> str:
+    """Resolve and validate the one governed predicate scope owned by an edge."""
+    predicate_id = assertion_predicates.get(edge.assertion_id)
+    if predicate_id is None:
+        raise ValidationError(f"published edge references unknown assertion: {edge.assertion_id}")
+
     predicates_by_id = {predicate.id: predicate for predicate in predicates.predicates}
-    edge_type_scopes: dict[str, list[str]] = {}
-    for scope in published.revision.governed_scopes:
-        predicate = predicates_by_id.get(scope.predicate_id)
-        if predicate is not None:
-            edge_type_scopes.setdefault(predicate.projection.edge_type, []).append(scope.predicate_id)
-    return edge_type_scopes
+    predicate = predicates_by_id.get(predicate_id)
+    if predicate is None:
+        raise ValidationError(f"published edge assertion uses unregistered predicate: {predicate_id}")
+    if predicate_id not in governed_scope_ids:
+        raise ValidationError(
+            f"published edge assertion {edge.assertion_id} predicate {predicate_id} is outside governed scopes"
+        )
+    if predicate.projection.edge_type != edge.edge_type:
+        raise ValidationError(
+            f"published edge type {edge.edge_type} does not match assertion predicate {predicate_id}"
+        )
+    return predicate_id
 
 
 def _add_governed_edge(
@@ -154,16 +190,23 @@ def _add_governed_edge(
 def _published_relationship_index(
     published: PersistedProjectionRevision,
     predicates: PredicatesDocument,
+    assertion_predicates: Mapping[str, str],
 ) -> GovernedRelationshipIndex:
-    """Build governance response metadata for one published projection revision."""
-    edge_type_scopes = _scope_refs_by_edge_type(published, predicates)
+    """Build exact assertion-owned governance metadata for a published revision."""
+    governed_scope_ids = {scope.predicate_id for scope in published.revision.governed_scopes}
     index: GovernedRelationshipIndex = {}
     for edge in published.revision.edges:
+        predicate_id = _scope_ref_for_edge(
+            edge,
+            predicates,
+            assertion_predicates,
+            governed_scope_ids,
+        )
         metadata: GovernanceMetadata = {
             "assertion_id": edge.assertion_id,
             "governance_status": "governed",
             "revision_id": published.revision_id,
-            "scope_refs": sorted(set(edge_type_scopes.get(edge.edge_type, []))),
+            "scope_refs": [predicate_id],
         }
         _add_governed_edge(index, edge, metadata)
     return index
@@ -210,7 +253,12 @@ def _load_governed_relationship_index_from_persistence() -> GovernedRelationship
             if published is None:
                 return {}
             predicates = _load_contract_predicates()
-            return _published_relationship_index(published, predicates)
+            assertion_predicates = _assertion_predicates_for_edges(session, published)
+            return _published_relationship_index(
+                published,
+                predicates,
+                assertion_predicates,
+            )
     except GraphPersistenceInvalidUrlError as exc:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
