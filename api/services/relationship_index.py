@@ -6,6 +6,7 @@ from collections.abc import Mapping
 from functools import lru_cache
 from threading import Lock
 from typing import Literal, TypeAlias, TypedDict
+from weakref import WeakKeyDictionary
 
 from fastapi import HTTPException, status
 from sqlalchemy import select
@@ -14,7 +15,12 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session, sessionmaker
 
 from src.data.database import create_engine_from_url, create_session_factory
-from src.data.relationship_assertion_db_models import RelationshipAssertionORM
+from src.data.db_models import RebuildJobORM
+from src.data.relationship_assertion_db_models import (
+    RelationshipAssertionORM,
+    RelationshipProjectionPublicationORM,
+    RelationshipProjectionRevisionORM,
+)
 from src.data.relationship_assertion_repository import RelationshipAssertionRepository
 from src.data.relationship_projection_persistence import PersistedProjectionRevision
 from src.data.repository import session_scope
@@ -36,6 +42,7 @@ _GRAC_CURRENT_PURPOSE = "financial_graph_current_view"
 _IN_CLAUSE_CHUNK_SIZE = 400
 _cache_generation_lock = Lock()
 _persistence_runtime_lock = Lock()
+_runtime_graph_bindings_lock = Lock()
 
 
 class _CacheGeneration:
@@ -56,6 +63,7 @@ class _PersistenceRuntime:
 
 _cache_generation = _CacheGeneration()
 _persistence_runtime = _PersistenceRuntime()
+_runtime_graph_bindings: WeakKeyDictionary[AssetRelationshipGraph, str | None] = WeakKeyDictionary()
 
 
 class GovernanceMetadata(TypedDict):
@@ -68,6 +76,7 @@ class GovernanceMetadata(TypedDict):
 
 
 GovernedRelationshipIndex: TypeAlias = dict[tuple[str, str, str], GovernanceMetadata]
+PublicationBinding: TypeAlias = tuple[str, str]
 
 
 def _current_cache_generation() -> int:
@@ -104,6 +113,7 @@ def _session_factory_for_url(persistence_url: str) -> sessionmaker[Session]:
         _persistence_runtime.engine = engine
         _persistence_runtime.session_factory = session_factory
         _load_governed_relationship_index.cache_clear()
+        _load_bound_governed_relationship_index.cache_clear()
 
         if previous_engine is not None:
             previous_engine.dispose()
@@ -124,7 +134,10 @@ def _reset_governance_persistence_runtime() -> None:
         _persistence_runtime.session_factory = None
         if engine is not None:
             engine.dispose()
+    with _runtime_graph_bindings_lock:
+        _runtime_graph_bindings.clear()
     _load_governed_relationship_index.cache_clear()
+    _load_bound_governed_relationship_index.cache_clear()
 
 
 def _assertion_predicates_for_edges(
@@ -226,21 +239,74 @@ def _published_relationship_index(
     return index
 
 
-def _load_governed_relationship_index_from_persistence() -> GovernedRelationshipIndex:
-    """Load governed metadata from durable assertion projection persistence."""
+def _build_published_relationship_index(
+    session: Session,
+    published: PersistedProjectionRevision,
+) -> GovernedRelationshipIndex:
+    """Build governed metadata for an immutable persisted projection revision."""
+    predicates = _load_contract_predicates()
+    assertion_predicates = _assertion_predicates_for_edges(session, published)
+    return _published_relationship_index(published, predicates, assertion_predicates)
+
+
+def _latest_published_projection_binding_from_persistence() -> PublicationBinding | None:
+    """Return the shared latest ``(rebuild_job_id, revision_id)`` publication version."""
+    try:
+        with session_scope(_governance_session_factory()) as session:
+            row = (
+                session.execute(
+                    select(
+                        RelationshipProjectionPublicationORM.rebuild_job_id,
+                        RelationshipProjectionPublicationORM.revision_id,
+                    )
+                    .join(
+                        RelationshipProjectionRevisionORM,
+                        RelationshipProjectionRevisionORM.id
+                        == RelationshipProjectionPublicationORM.revision_id,
+                    )
+                    .join(
+                        RebuildJobORM,
+                        RebuildJobORM.job_id == RelationshipProjectionPublicationORM.rebuild_job_id,
+                    )
+                    .where(RelationshipProjectionRevisionORM.purpose == _GRAC_CURRENT_PURPOSE)
+                    .where(RebuildJobORM.status == "succeeded")
+                    .order_by(
+                        RelationshipProjectionPublicationORM.published_at.desc(),
+                        RelationshipProjectionPublicationORM.rebuild_job_id.desc(),
+                        RelationshipProjectionPublicationORM.id.desc(),
+                    )
+                    .limit(1)
+                )
+                .tuples()
+                .one_or_none()
+            )
+            return None if row is None else (row[0], row[1])
+    except GraphPersistenceInvalidUrlError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Graph persistence database is misconfigured",
+        ) from exc
+    except (GraphPersistenceNotConfiguredError, GraphPersistenceNonDurableError):
+        return None
+    except SQLAlchemyError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Graph persistence database is unavailable",
+        ) from exc
+
+
+def _load_governed_relationship_index_for_revision(revision_id: str) -> GovernedRelationshipIndex:
+    """Load governed metadata for one exact immutable projection revision."""
     try:
         with session_scope(_governance_session_factory()) as session:
             repository = RelationshipAssertionRepository(session)
-            published = repository.latest_published_projection(_GRAC_CURRENT_PURPOSE)
+            published = repository.get_projection_revision(revision_id)
             if published is None:
-                return {}
-            predicates = _load_contract_predicates()
-            assertion_predicates = _assertion_predicates_for_edges(session, published)
-            return _published_relationship_index(
-                published,
-                predicates,
-                assertion_predicates,
-            )
+                raise HTTPException(
+                    status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                    detail="Graph publication metadata is inconsistent",
+                )
+            return _build_published_relationship_index(session, published)
     except GraphPersistenceInvalidUrlError as exc:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
@@ -255,39 +321,96 @@ def _load_governed_relationship_index_from_persistence() -> GovernedRelationship
         ) from exc
 
 
+def _load_governed_relationship_index_from_persistence() -> GovernedRelationshipIndex:
+    """Load latest governed metadata for unmanaged/test graph instances."""
+    try:
+        with session_scope(_governance_session_factory()) as session:
+            repository = RelationshipAssertionRepository(session)
+            published = repository.latest_published_projection(_GRAC_CURRENT_PURPOSE)
+            if published is None:
+                return {}
+            return _build_published_relationship_index(session, published)
+    except GraphPersistenceInvalidUrlError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Graph persistence database is misconfigured",
+        ) from exc
+    except (GraphPersistenceNotConfiguredError, GraphPersistenceNonDurableError):
+        return {}
+    except SQLAlchemyError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Graph persistence database is unavailable",
+        ) from exc
+
+
+def _runtime_graph_publication_binding(graph: AssetRelationshipGraph) -> tuple[bool, str | None]:
+    """Return whether a graph is lifecycle-managed and its bound rebuild job."""
+    from .. import graph_lifecycle  # pylint: disable=import-outside-toplevel
+
+    with graph_lifecycle.graph_lock:
+        is_current = graph_lifecycle.graph_state.graph is graph
+        current_job_id = graph_lifecycle.graph_state.last_synced_job_id if is_current else None
+
+    if is_current:
+        with _runtime_graph_bindings_lock:
+            _runtime_graph_bindings[graph] = current_job_id
+        return True, current_job_id
+
+    with _runtime_graph_bindings_lock:
+        if graph in _runtime_graph_bindings:
+            return True, _runtime_graph_bindings[graph]
+    return False, None
+
+
 @lru_cache(maxsize=4)
 def _load_governed_relationship_index(
     _graph: AssetRelationshipGraph,
     _generation: int,
 ) -> GovernedRelationshipIndex:
-    """Load governed metadata for one graph snapshot and local generation.
-
-    The cache is keyed by graph object identity and generation so that governance
-    metadata is only refreshed when the in-memory graph is replaced (e.g. after a
-    peer sync creates a new object) or explicitly invalidated.  Keying on the
-    latest published revision ID from persistence is intentionally avoided: doing so
-    would cause a warm peer to serve governance from a newer publication while still
-    returning edges from an older graph snapshot, misattributing
-    ``assertion_id``/``revision_id`` to edges that were not part of that publication.
-    A small multi-entry cache preserves in-flight readers that still hold the prior
-    graph snapshot during a graph replacement.
-    """
+    """Load latest governed metadata for one unmanaged graph and generation."""
     return _load_governed_relationship_index_from_persistence()
 
 
-def load_governed_relationship_index(graph: AssetRelationshipGraph) -> GovernedRelationshipIndex:
-    """Return governance metadata consistent with the current graph snapshot.
+@lru_cache(maxsize=8)
+def _load_bound_governed_relationship_index(
+    _graph: AssetRelationshipGraph,
+    _rebuild_job_id: str,
+    revision_id: str,
+    _generation: int,
+) -> GovernedRelationshipIndex:
+    """Load metadata for the exact publication bound to a runtime graph."""
+    return _load_governed_relationship_index_for_revision(revision_id)
 
-    Governance is refreshed only when the graph object changes (cross-process sync
-    creates a new instance) or when the local generation advances (explicit
-    invalidation after publication).  This guarantees that ``assertion_id`` and
-    ``revision_id`` on returned edges always correspond to the publication that the
-    in-memory graph was built from, preventing attribution drift during the window
-    between a remote publication event and this process completing its graph sync.
+
+def load_governed_relationship_index(graph: AssetRelationshipGraph) -> GovernedRelationshipIndex:
+    """Return governance metadata consistent with the supplied graph snapshot.
+
+    Lifecycle-managed graphs are bound to the rebuild job that produced them.
+    Every read checks the shared latest publication version before consulting the
+    expensive metadata cache. If this process has not synchronized that publication,
+    the read fails closed instead of returning stale or misattributed provenance.
+    Unmanaged graph objects retain the legacy path used by isolated tests and tools.
     """
-    return _load_governed_relationship_index(
+    managed, rebuild_job_id = _runtime_graph_publication_binding(graph)
+    generation = _current_cache_generation()
+    if not managed:
+        return _load_governed_relationship_index(graph, generation)
+
+    latest_binding = _latest_published_projection_binding_from_persistence()
+    if latest_binding is None:
+        return {}
+    latest_job_id, revision_id = latest_binding
+    if rebuild_job_id != latest_job_id:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Graph publication synchronization is pending",
+        )
+    return _load_bound_governed_relationship_index(
         graph,
-        _current_cache_generation(),
+        latest_job_id,
+        revision_id,
+        generation,
     )
 
 
@@ -296,3 +419,4 @@ def invalidate_governed_relationship_index_cache() -> None:
     with _cache_generation_lock:
         _cache_generation.value += 1
         _load_governed_relationship_index.cache_clear()
+        _load_bound_governed_relationship_index.cache_clear()
