@@ -369,7 +369,9 @@ function resolveSelectedEdge(
   validEdges: readonly PreparedEdge[],
   selectedKey: string | null,
 ): PreparedEdge["edge"] | null {
-  return validEdges.find((prepared) => prepared.key === selectedKey)?.edge ?? null;
+  return (
+    validEdges.find((prepared) => prepared.key === selectedKey)?.edge ?? null
+  );
 }
 
 type StatusMessageProps = Readonly<{
