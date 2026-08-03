@@ -1,0 +1,20 @@
+api/services/relationship_index.py
+  s_c7d30c1af3d543::t_75e9a037aea66b 386-390
+  s_c7d30c1af3d543::t_d67a57d1fea53b 417
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.20",
+  "base_commit_sha": "83fedbc3f99b76b54a8ee9376867e373cdd6e08d",
+  "prompts": {},
+  "sessions": {
+    "s_c7d30c1af3d543": {
+      "agent_id": {
+        "tool": "github-copilot-cli",
+        "id": "12131665-f27d-4ae1-8191-d6b00d9907cd",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}
