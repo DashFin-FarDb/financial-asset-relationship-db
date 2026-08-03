@@ -2,7 +2,11 @@
 
 import { useCallback, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
-import type { VisualizationData, VisualizationEdge, VisualizationNode } from "../types/api";
+import type {
+  VisualizationData,
+  VisualizationEdge,
+  VisualizationNode,
+} from "../types/api";
 import RelationshipExplanationPanel from "./RelationshipExplanationPanel";
 
 // Dynamically import Plotly to avoid SSR issues
@@ -236,7 +240,11 @@ type RelationshipListProps = Readonly<{
  * in the plot. Provides a first-class selection route independent of clicking
  * a line in the 3D plot.
  */
-function RelationshipList({ validEdges, selectedKey, onSelect }: RelationshipListProps) {
+function RelationshipList({
+  validEdges,
+  selectedKey,
+  onSelect,
+}: RelationshipListProps) {
   return (
     <div
       role="group"
@@ -266,7 +274,12 @@ type RelationshipListItemProps = Readonly<{
 }>;
 
 /** A single selectable relationship row within the keyboard-accessible list. */
-function RelationshipListItem({ edgeKey: key, edge, isSelected, onSelect }: RelationshipListItemProps) {
+function RelationshipListItem({
+  edgeKey: key,
+  edge,
+  isSelected,
+  onSelect,
+}: RelationshipListItemProps) {
   const isGoverned = edge.governance_status === "governed";
   return (
     <li>
@@ -275,14 +288,20 @@ function RelationshipListItem({ edgeKey: key, edge, isSelected, onSelect }: Rela
         aria-pressed={isSelected}
         onClick={() => onSelect(key)}
         className={`w-full text-left text-sm px-2 py-1 rounded ${
-          isSelected ? "bg-blue-100 text-blue-900" : "hover:bg-gray-100 text-gray-700"
+          isSelected
+            ? "bg-blue-100 text-blue-900"
+            : "hover:bg-gray-100 text-gray-700"
         }`}
       >
         {edge.source} {"\u2192"} {edge.target}{" "}
-        <span className="text-xs text-gray-500">({edge.relationship_type})</span>{" "}
+        <span className="text-xs text-gray-500">
+          ({edge.relationship_type})
+        </span>{" "}
         <span
           className={`text-xs px-1.5 py-0.5 rounded ${
-            isGoverned ? "bg-blue-50 text-blue-700" : "bg-gray-100 text-gray-500"
+            isGoverned
+              ? "bg-blue-50 text-blue-700"
+              : "bg-gray-100 text-gray-500"
           }`}
         >
           {isGoverned ? "Governed" : "Legacy"}
@@ -308,7 +327,8 @@ export default function NetworkVisualization({
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
 
   const validEdges = useMemo<PreparedEdge[]>(() => {
-    if (!data || !Array.isArray(data.nodes) || !Array.isArray(data.edges)) return [];
+    if (!data || !Array.isArray(data.nodes) || !Array.isArray(data.edges))
+      return [];
     return buildValidEdges(data.nodes, data.edges);
   }, [data]);
 
@@ -340,7 +360,8 @@ export default function NetworkVisualization({
   // dataset changes such that the key no longer exists, this naturally
   // becomes `null` instead of silently resolving to an unrelated edge.
   const selectedEdge = useMemo(
-    () => validEdges.find((prepared) => prepared.key === selectedKey)?.edge ?? null,
+    () =>
+      validEdges.find((prepared) => prepared.key === selectedKey)?.edge ?? null,
     [validEdges, selectedKey],
   );
 
@@ -367,9 +388,21 @@ export default function NetworkVisualization({
             title: "3D Asset Relationship Network",
             showlegend: false,
             scene: {
-              xaxis: { showgrid: false, zeroline: false, showticklabels: false },
-              yaxis: { showgrid: false, zeroline: false, showticklabels: false },
-              zaxis: { showgrid: false, zeroline: false, showticklabels: false },
+              xaxis: {
+                showgrid: false,
+                zeroline: false,
+                showticklabels: false,
+              },
+              yaxis: {
+                showgrid: false,
+                zeroline: false,
+                showticklabels: false,
+              },
+              zaxis: {
+                showgrid: false,
+                zeroline: false,
+                showticklabels: false,
+              },
               camera: {
                 eye: { x: 1.5, y: 1.5, z: 1.5 },
               },

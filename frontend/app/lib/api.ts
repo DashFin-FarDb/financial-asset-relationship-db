@@ -128,7 +128,12 @@ export const api = {
     params?: AssertionAsOfParams,
     signal?: AbortSignal,
   ): Promise<AssertionExplanation> => {
-    return getAssertionResource<AssertionExplanation>(assertionId, "", params, signal);
+    return getAssertionResource<AssertionExplanation>(
+      assertionId,
+      "",
+      params,
+      signal,
+    );
   },
 
   getAssertionHistory: (
@@ -136,6 +141,11 @@ export const api = {
     params?: AssertionAsOfParams,
     signal?: AbortSignal,
   ): Promise<AssertionHistory> => {
-    return getAssertionResource<AssertionHistory>(assertionId, "/history", params, signal);
+    return getAssertionResource<AssertionHistory>(
+      assertionId,
+      "/history",
+      params,
+      signal,
+    );
   },
 };

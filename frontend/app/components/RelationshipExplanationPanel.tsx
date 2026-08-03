@@ -43,7 +43,6 @@ type PanelResult =
       history: AssertionHistory;
     }>;
 
-
 const AUTHORITY_LABELS: Record<string, string> = {
   proposer: "Proposer of record",
   acceptor: "Determining authority (acceptor)",
@@ -69,9 +68,11 @@ function deriveAuthoritySummary(events: readonly AssertionPublicEvent[]): {
   proposer: AssertionPublicEvent | null;
   determiner: AssertionPublicEvent | null;
 } {
-  const proposer = events.find((event) => event.authority === "proposer") ?? null;
+  const proposer =
+    events.find((event) => event.authority === "proposer") ?? null;
   const determiner =
-    [...events].reverse().find((event) => event.authority !== "proposer") ?? null;
+    [...events].reverse().find((event) => event.authority !== "proposer") ??
+    null;
   return { proposer, determiner };
 }
 
@@ -83,7 +84,9 @@ function findSupersessionEvent(
   events: readonly AssertionPublicEvent[],
 ): AssertionPublicEvent | null {
   return (
-    [...events].reverse().find((event) => Boolean(event.successor_assertion_id)) ?? null
+    [...events]
+      .reverse()
+      .find((event) => Boolean(event.successor_assertion_id)) ?? null
   );
 }
 
@@ -101,7 +104,10 @@ function PanelShell({
   children: React.ReactNode;
 }>) {
   return (
-    <section aria-label="Relationship explanation" className={`p-4 border rounded-lg ${toneClassName}`}>
+    <section
+      aria-label="Relationship explanation"
+      className={`p-4 border rounded-lg ${toneClassName}`}
+    >
       <h3 className="font-semibold text-gray-900">{heading}</h3>
       {children}
     </section>
@@ -123,8 +129,8 @@ function LegacyView({ heading }: Readonly<{ heading: string }>) {
         <span className="inline-block px-2 py-0.5 mr-2 text-xs font-medium rounded bg-gray-200 text-gray-700">
           Legacy
         </span>
-        This relationship is outside any governed scope. No assertion, evidence, or
-        lifecycle history is available for it.
+        This relationship is outside any governed scope. No assertion, evidence,
+        or lifecycle history is available for it.
       </p>
     </PanelShell>
   );
@@ -144,7 +150,11 @@ function PendingMetadataView({ heading }: Readonly<{ heading: string }>) {
 function LoadingView({ heading }: Readonly<{ heading: string }>) {
   return (
     <PanelShell heading={heading} toneClassName="border-gray-200">
-      <p className="mt-2 text-sm text-gray-500" role="status" aria-live="polite">
+      <p
+        className="mt-2 text-sm text-gray-500"
+        role="status"
+        aria-live="polite"
+      >
         Loading governed explanation...
       </p>
     </PanelShell>
@@ -155,8 +165,8 @@ function NotFoundView({ heading }: Readonly<{ heading: string }>) {
   return (
     <PanelShell heading={heading} toneClassName="border-amber-200 bg-amber-50">
       <p className="mt-2 text-sm text-amber-800" role="alert">
-        The governed assertion behind this relationship could not be found. It may
-        be synchronizing with the latest publication.
+        The governed assertion behind this relationship could not be found. It
+        may be synchronizing with the latest publication.
       </p>
     </PanelShell>
   );
@@ -166,8 +176,8 @@ function UnavailableView({ heading }: Readonly<{ heading: string }>) {
   return (
     <PanelShell heading={heading} toneClassName="border-red-200 bg-red-50">
       <p className="mt-2 text-sm text-red-800" role="alert">
-        Governance explanation is temporarily unavailable. The graph remains usable;
-        please try again shortly.
+        Governance explanation is temporarily unavailable. The graph remains
+        usable; please try again shortly.
       </p>
     </PanelShell>
   );
@@ -193,29 +203,40 @@ function ConfidenceAndTimeSummary({
         <dt className="font-medium text-gray-500">Projection strength</dt>
         <dd className="text-gray-800">
           {strength.toFixed(2)}{" "}
-          <span className="text-xs text-gray-500">(distinct from confidence above)</span>
+          <span className="text-xs text-gray-500">
+            (distinct from confidence above)
+          </span>
         </dd>
       </div>
       <div>
         <dt className="font-medium text-gray-500">Effective time</dt>
         <dd className="text-gray-800">
           {formatTimestamp(explanation.effective_from)}
-          {explanation.effective_to ? ` \u2013 ${formatTimestamp(explanation.effective_to)}` : " (ongoing)"}
+          {explanation.effective_to
+            ? ` \u2013 ${formatTimestamp(explanation.effective_to)}`
+            : " (ongoing)"}
         </dd>
       </div>
       <div>
         <dt className="font-medium text-gray-500">Recorded / known at</dt>
         <dd className="text-gray-800">
           {formatTimestamp(explanation.recorded_at)}
-          {explanation.known_at ? ` (known: ${formatTimestamp(explanation.known_at)})` : ""}
+          {explanation.known_at
+            ? ` (known: ${formatTimestamp(explanation.known_at)})`
+            : ""}
         </dd>
       </div>
     </dl>
   );
 }
 
-function AuthoritySummary({ history }: Readonly<{ history: AssertionHistory }>) {
-  const summary = useMemo(() => deriveAuthoritySummary(history.events), [history]);
+function AuthoritySummary({
+  history,
+}: Readonly<{ history: AssertionHistory }>) {
+  const summary = useMemo(
+    () => deriveAuthoritySummary(history.events),
+    [history],
+  );
   if (!summary.proposer && !summary.determiner) return null;
 
   return (
@@ -224,13 +245,15 @@ function AuthoritySummary({ history }: Readonly<{ history: AssertionHistory }>) 
       <ul className="mt-1 space-y-1">
         {summary.proposer && (
           <li>
-            {AUTHORITY_LABELS.proposer} {"\u2014"} {formatTimestamp(summary.proposer.recorded_at)}
+            {AUTHORITY_LABELS.proposer} {"\u2014"}{" "}
+            {formatTimestamp(summary.proposer.recorded_at)}
           </li>
         )}
         {summary.determiner && (
           <li>
-            {AUTHORITY_LABELS[summary.determiner.authority] ?? "Determining authority"} {"\u2014"}{" "}
-            {formatTimestamp(summary.determiner.recorded_at)}
+            {AUTHORITY_LABELS[summary.determiner.authority] ??
+              "Determining authority"}{" "}
+            {"\u2014"} {formatTimestamp(summary.determiner.recorded_at)}
           </li>
         )}
       </ul>
@@ -238,7 +261,9 @@ function AuthoritySummary({ history }: Readonly<{ history: AssertionHistory }>) 
   );
 }
 
-function EvidenceSummary({ explanation }: Readonly<{ explanation: AssertionExplanation }>) {
+function EvidenceSummary({
+  explanation,
+}: Readonly<{ explanation: AssertionExplanation }>) {
   return (
     <div className="text-sm">
       <h4 className="font-medium text-gray-500">Evidence</h4>
@@ -247,7 +272,10 @@ function EvidenceSummary({ explanation }: Readonly<{ explanation: AssertionExpla
       ) : (
         <ul className="mt-1 space-y-2">
           {explanation.evidence.map((item) => (
-            <li key={item.evidence_id} className="border border-gray-100 rounded p-2">
+            <li
+              key={item.evidence_id}
+              className="border border-gray-100 rounded p-2"
+            >
               <span className="font-medium">{item.polarity}</span>{" "}
               <span className="text-xs text-gray-500">({item.visibility})</span>
               {item.redacted ? (
@@ -268,15 +296,21 @@ function EvidenceSummary({ explanation }: Readonly<{ explanation: AssertionExpla
   );
 }
 
-function LifecycleHistory({ history }: Readonly<{ history: AssertionHistory }>) {
-  const supersessionEvent = useMemo(() => findSupersessionEvent(history.events), [history]);
+function LifecycleHistory({
+  history,
+}: Readonly<{ history: AssertionHistory }>) {
+  const supersessionEvent = useMemo(
+    () => findSupersessionEvent(history.events),
+    [history],
+  );
   return (
     <div className="text-sm">
       <h4 className="font-medium text-gray-500">Lifecycle history</h4>
       <ul className="mt-1 space-y-1">
         {history.events.map((event) => (
           <li key={event.event_id}>
-            #{event.sequence} {event.from_state ?? "(none)"} {"\u2192"} {event.to_state}{" "}
+            #{event.sequence} {event.from_state ?? "(none)"} {"\u2192"}{" "}
+            {event.to_state}{" "}
             <span className="text-xs text-gray-500">
               ({AUTHORITY_LABELS[event.authority] ?? event.authority},{" "}
               {formatTimestamp(event.recorded_at)})
@@ -284,7 +318,8 @@ function LifecycleHistory({ history }: Readonly<{ history: AssertionHistory }>) 
             {event.successor_assertion_id && (
               <span className="text-xs text-gray-500">
                 {" "}
-                {"\u2014"} superseded by assertion {event.successor_assertion_id}
+                {"\u2014"} superseded by assertion{" "}
+                {event.successor_assertion_id}
               </span>
             )}
           </li>
@@ -293,16 +328,19 @@ function LifecycleHistory({ history }: Readonly<{ history: AssertionHistory }>) 
       {supersessionEvent?.successor_assertion_id && (
         <p className="mt-1 text-xs text-amber-700" role="status">
           This assertion has been superseded by assertion{" "}
-          {supersessionEvent.successor_assertion_id}. The public API does not expose a
-          backward predecessor reference, so if you are viewing that successor
-          assertion instead, its own predecessor cannot be looked up from here.
+          {supersessionEvent.successor_assertion_id}. The public API does not
+          expose a backward predecessor reference, so if you are viewing that
+          successor assertion instead, its own predecessor cannot be looked up
+          from here.
         </p>
       )}
     </div>
   );
 }
 
-function PublicationFooter({ relationship }: Readonly<{ relationship: ExplainableRelationship }>) {
+function PublicationFooter({
+  relationship,
+}: Readonly<{ relationship: ExplainableRelationship }>) {
   return (
     <div className="text-xs text-gray-500 border-t border-gray-100 pt-2">
       <p>
@@ -339,7 +377,10 @@ function ReadyView({
         </span>
       </header>
 
-      <ConfidenceAndTimeSummary explanation={explanation} strength={relationship.strength} />
+      <ConfidenceAndTimeSummary
+        explanation={explanation}
+        strength={relationship.strength}
+      />
       <AuthoritySummary history={history} />
       <EvidenceSummary explanation={explanation} />
       <LifecycleHistory history={history} />
@@ -359,7 +400,7 @@ export default function RelationshipExplanationPanel({
   relationship,
 }: RelationshipExplanationPanelProps) {
   const isGoverned = relationship?.governance_status === "governed";
-  const assertionId = isGoverned ? relationship?.assertion_id ?? null : null;
+  const assertionId = isGoverned ? (relationship?.assertion_id ?? null) : null;
   const requestKey = assertionId;
 
   const [result, setResult] = useState<PanelResult | null>(null);
