@@ -56,6 +56,22 @@ function getAssertionResource<T>(
   );
 }
 
+/**
+ * Build a single-purpose fetcher bound to one governed-assertion resource
+ * path (the explanation itself, or its history). Generating both
+ * `getAssertion`/`getAssertionHistory` from this one factory -- rather than
+ * hand-writing two structurally identical wrapper functions -- keeps there
+ * from being two near-duplicate function bodies to maintain in parallel.
+ */
+function makeAssertionFetcher<T>(resourcePath: "" | "/history") {
+  return (
+    assertionId: string,
+    params?: AssertionAsOfParams,
+    signal?: AbortSignal,
+  ): Promise<T> =>
+    getAssertionResource<T>(assertionId, resourcePath, params, signal);
+}
+
 export const api = {
   // Health check
   healthCheck: () => {
@@ -123,29 +139,7 @@ export const api = {
   // it to both calls below, so the explanation and history are resolved
   // against the same as-of snapshot rather than two independent server
   // "now" defaults.
-  getAssertion: (
-    assertionId: string,
-    params?: AssertionAsOfParams,
-    signal?: AbortSignal,
-  ): Promise<AssertionExplanation> => {
-    return getAssertionResource<AssertionExplanation>(
-      assertionId,
-      "",
-      params,
-      signal,
-    );
-  },
+  getAssertion: makeAssertionFetcher<AssertionExplanation>(""),
 
-  getAssertionHistory: (
-    assertionId: string,
-    params?: AssertionAsOfParams,
-    signal?: AbortSignal,
-  ): Promise<AssertionHistory> => {
-    return getAssertionResource<AssertionHistory>(
-      assertionId,
-      "/history",
-      params,
-      signal,
-    );
-  },
+  getAssertionHistory: makeAssertionFetcher<AssertionHistory>("/history"),
 };

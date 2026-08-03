@@ -320,61 +320,109 @@ function RelationshipListItem({
  *   Edges are objects with at least: `source`, `target`, `relationship_type`, `strength`.
  * @returns A JSX element rendering the 3D network plot when data is valid, or a centred status message when data is missing, invalid or too large.
  */
+/**
+ * Resolve the edges valid for a (possibly absent) visualization payload.
+ * Extracted so `NetworkVisualization` itself does not branch on the shape of
+ * `data` directly.
+ */
+function resolveValidEdges(data: VisualizationData | null | undefined) {
+  if (!data || !Array.isArray(data.nodes) || !Array.isArray(data.edges)) {
+    return [];
+  }
+  return buildValidEdges(data.nodes, data.edges);
+}
+
+/**
+ * Resolve the plot-ready `VisualizationPreparation` for a (possibly absent)
+ * visualization payload.
+ */
+function resolvePreparation(
+  data: VisualizationData | null | undefined,
+  validEdges: readonly PreparedEdge[],
+): VisualizationPreparation {
+  if (!data) {
+    return {
+      status: "empty",
+      message: "No visualization data available.",
+      plotData: [],
+    };
+  }
+  return prepareVisualizationData(data, validEdges);
+}
+
+/** Extract the clicked edge's stable key from a Plotly click event, if any. */
+function resolveClickedKey(event: {
+  points?: ReadonlyArray<{ customdata?: unknown }>;
+}): string | null {
+  const customdata = event?.points?.[0]?.customdata;
+  return typeof customdata === "string" ? customdata : null;
+}
+
+/**
+ * Resolve the currently selected edge from `validEdges`. Always re-resolved
+ * from the current `validEdges`, so a stale key can never point at a
+ * relationship other than the one the user selected: if the dataset changes
+ * such that the key no longer exists, this naturally becomes `null` instead
+ * of silently resolving to an unrelated edge.
+ */
+function resolveSelectedEdge(
+  validEdges: readonly PreparedEdge[],
+  selectedKey: string | null,
+): PreparedEdge["edge"] | null {
+  return validEdges.find((prepared) => prepared.key === selectedKey)?.edge ?? null;
+}
+
+type StatusMessageProps = Readonly<{
+  status: Exclude<VisualizationPreparation["status"], "ready">;
+  message: string;
+}>;
+
+/** Centred status message shown in place of the plot when data isn't ready. */
+function StatusMessage({ status, message }: StatusMessageProps) {
+  const isUrgent = status === "tooLarge";
+  return (
+    <div
+      className="text-center p-8 text-gray-600"
+      role={isUrgent ? "alert" : "status"}
+      aria-live={isUrgent ? "assertive" : "polite"}
+    >
+      {message}
+    </div>
+  );
+}
+
 export default function NetworkVisualization({
   data,
 }: NetworkVisualizationProps) {
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
 
-  const validEdges = useMemo<PreparedEdge[]>(() => {
-    if (!data || !Array.isArray(data.nodes) || !Array.isArray(data.edges))
-      return [];
-    return buildValidEdges(data.nodes, data.edges);
-  }, [data]);
+  const validEdges = useMemo<PreparedEdge[]>(
+    () => resolveValidEdges(data),
+    [data],
+  );
 
-  const preparation = useMemo<VisualizationPreparation>(() => {
-    if (!data) {
-      return {
-        status: "empty",
-        message: "No visualization data available.",
-        plotData: [],
-      };
-    }
-    return prepareVisualizationData(data, validEdges);
-  }, [data, validEdges]);
+  const preparation = useMemo<VisualizationPreparation>(
+    () => resolvePreparation(data, validEdges),
+    [data, validEdges],
+  );
 
   const { plotData, status, message } = preparation;
 
   const handlePlotClick = useCallback(
     (event: { points?: ReadonlyArray<{ customdata?: unknown }> }) => {
-      const point = event?.points?.[0];
-      if (typeof point?.customdata === "string") {
-        setSelectedKey(point.customdata);
-      }
+      const key = resolveClickedKey(event);
+      if (key) setSelectedKey(key);
     },
     [],
   );
 
-  // Always re-resolved from the current `validEdges`, so a stale key can never
-  // point at a relationship other than the one the user selected: if the
-  // dataset changes such that the key no longer exists, this naturally
-  // becomes `null` instead of silently resolving to an unrelated edge.
   const selectedEdge = useMemo(
-    () =>
-      validEdges.find((prepared) => prepared.key === selectedKey)?.edge ?? null,
+    () => resolveSelectedEdge(validEdges, selectedKey),
     [validEdges, selectedKey],
   );
 
   if (status !== "ready") {
-    const isUrgent = status === "tooLarge";
-    return (
-      <div
-        className="text-center p-8 text-gray-600"
-        role={isUrgent ? "alert" : "status"}
-        aria-live={isUrgent ? "assertive" : "polite"}
-      >
-        {message}
-      </div>
-    );
+    return <StatusMessage status={status} message={message} />;
   }
 
   return (

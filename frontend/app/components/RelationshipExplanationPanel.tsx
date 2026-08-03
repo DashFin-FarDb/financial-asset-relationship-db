@@ -386,6 +386,119 @@ function ReadyView({
 }
 
 /**
+ * Fetch the explanation and history for a governed assertion, resolving to a
+ * settled `PanelResult` (or `null` if the request was aborted). Kept as its
+ * own top-level function (rather than inline in an effect) so the fetch,
+ * abort-handling, and error-classification logic contributes to its own
+ * cyclomatic complexity budget, not the rendering component's.
+ */
+async function fetchAssertionResult(
+  requestKey: string,
+  signal: AbortSignal,
+): Promise<PanelResult | null> {
+  // Capture a single as-of snapshot and pass it to both calls so the
+  // explanation and history are resolved consistently with each other.
+  // NOTE: this does not yet guarantee consistency with the displayed
+  // graph's own publication snapshot -- see the `known_at`/`effective_at`
+  // limitation documented in `types/api.ts`.
+  const asOf = { known_at: new Date().toISOString() };
+
+  try {
+    const [explanation, history] = await Promise.all([
+      api.getAssertion(requestKey, asOf, signal),
+      api.getAssertionHistory(requestKey, asOf, signal),
+    ]);
+    return signal.aborted
+      ? null
+      : { status: "ready", requestKey, explanation, history };
+  } catch (err) {
+    if (signal.aborted) return null;
+    const httpStatus = (err as { response?: { status?: number } })?.response
+      ?.status;
+    return {
+      status: httpStatus === 404 ? "not-found" : "unavailable",
+      requestKey,
+    };
+  }
+}
+
+/**
+ * Fetch and hold the settled result for a governed assertion's explanation
+ * and history, keyed by `requestKey`, or `null` while not applicable/pending.
+ * Aborts the in-flight request on unmount or when `requestKey` changes.
+ */
+function useAssertionResult(requestKey: string | null): PanelResult | null {
+  const [result, setResult] = useState<PanelResult | null>(null);
+
+  useEffect(() => {
+    if (!requestKey) {
+      return;
+    }
+
+    const controller = new AbortController();
+    fetchAssertionResult(requestKey, controller.signal).then((settled) => {
+      if (settled) setResult(settled);
+    });
+
+    return () => controller.abort();
+  }, [requestKey]);
+
+  return result;
+}
+
+/** Discriminated description of what the panel should render next. */
+type ViewState =
+  | Readonly<{ kind: "empty" }>
+  | Readonly<{ kind: "legacy"; heading: string }>
+  | Readonly<{ kind: "pending"; heading: string }>
+  | Readonly<{ kind: "loading"; heading: string }>
+  | Readonly<{ kind: "not-found"; heading: string }>
+  | Readonly<{ kind: "unavailable"; heading: string }>
+  | Readonly<{
+      kind: "ready";
+      heading: string;
+      relationship: ExplainableRelationship;
+      explanation: AssertionExplanation;
+      history: AssertionHistory;
+    }>;
+
+/**
+ * Pure derivation of the panel's view state from its inputs. Extracted so
+ * `RelationshipExplanationPanel` itself only has to switch on the result,
+ * rather than repeat this branching inline.
+ */
+function resolveViewState(
+  relationship: ExplainableRelationship | null,
+  result: PanelResult | null,
+): ViewState {
+  if (!relationship) return { kind: "empty" };
+
+  const heading = relationshipHeading(relationship);
+  const isGoverned = relationship.governance_status === "governed";
+  if (!isGoverned) return { kind: "legacy", heading };
+
+  const assertionId = relationship.assertion_id ?? null;
+  if (!assertionId) return { kind: "pending", heading };
+
+  // "Loading" is derived, not stored: if there is no settled result yet, or
+  // the settled result belongs to a superseded request key, treat it as
+  // loading rather than briefly flashing stale content.
+  if (result?.requestKey !== assertionId) return { kind: "loading", heading };
+
+  if (result.status === "ready") {
+    return {
+      kind: "ready",
+      heading,
+      relationship,
+      explanation: result.explanation,
+      history: result.history,
+    };
+  }
+
+  return { kind: result.status, heading };
+}
+
+/**
  * Renders the governed explanation (evidence, authority, time, confidence,
  * supersession, and publication scope) for a selected relationship edge, or a
  * bounded legacy/unavailable/loading state when governance facts cannot be
@@ -397,77 +510,29 @@ export default function RelationshipExplanationPanel({
 }: RelationshipExplanationPanelProps) {
   const isGoverned = relationship?.governance_status === "governed";
   const assertionId = isGoverned ? (relationship?.assertion_id ?? null) : null;
-  const requestKey = assertionId;
+  const result = useAssertionResult(assertionId);
+  const view = resolveViewState(relationship, result);
 
-  const [result, setResult] = useState<PanelResult | null>(null);
-
-  useEffect(() => {
-    if (!requestKey) {
-      return;
-    }
-
-    const controller = new AbortController();
-
-    // Capture a single as-of snapshot and pass it to both calls so the
-    // explanation and history are resolved consistently with each other.
-    // NOTE: this does not yet guarantee consistency with the displayed
-    // graph's own publication snapshot -- see the `known_at`/`effective_at`
-    // limitation documented in `types/api.ts`.
-    const asOf = { known_at: new Date().toISOString() };
-
-    Promise.all([
-      api.getAssertion(requestKey, asOf, controller.signal),
-      api.getAssertionHistory(requestKey, asOf, controller.signal),
-    ])
-      .then(([explanation, history]) => {
-        if (controller.signal.aborted) return;
-        setResult({ status: "ready", requestKey, explanation, history });
-      })
-      .catch((err) => {
-        if (controller.signal.aborted) return;
-        const httpStatus = err?.response?.status;
-        setResult({
-          status: httpStatus === 404 ? "not-found" : "unavailable",
-          requestKey,
-        });
-      });
-
-    return () => controller.abort();
-  }, [requestKey]);
-
-  if (!relationship) {
-    return <EmptySelectionView />;
-  }
-
-  const heading = relationshipHeading(relationship);
-
-  if (!isGoverned) {
-    return <LegacyView heading={heading} />;
-  }
-
-  if (!assertionId) {
-    return <PendingMetadataView heading={heading} />;
-  }
-
-  // "Loading" is derived, not stored: if there is no settled result yet, or
-  // the settled result belongs to a superseded request key, render the
-  // loading view rather than briefly flashing stale content.
-  if (result?.requestKey !== assertionId) {
-    return <LoadingView heading={heading} />;
-  }
-
-  switch (result.status) {
+  switch (view.kind) {
+    case "empty":
+      return <EmptySelectionView />;
+    case "legacy":
+      return <LegacyView heading={view.heading} />;
+    case "pending":
+      return <PendingMetadataView heading={view.heading} />;
+    case "loading":
+      return <LoadingView heading={view.heading} />;
     case "not-found":
-      return <NotFoundView heading={heading} />;
+      return <NotFoundView heading={view.heading} />;
     case "unavailable":
-      return <UnavailableView heading={heading} />;
+      return <UnavailableView heading={view.heading} />;
     case "ready":
       return (
         <ReadyView
-          heading={heading}
-          relationship={relationship}
-          explanation={result.explanation}
-          history={result.history}
+          heading={view.heading}
+          relationship={view.relationship}
+          explanation={view.explanation}
+          history={view.history}
         />
       );
   }
