@@ -116,22 +116,22 @@ function PanelShell({
 
 function EmptySelectionView() {
   return (
-    <div className="p-4 text-sm text-gray-500" role="status">
+    <output className="block p-4 text-sm text-gray-500">
       Select a relationship to see how it was determined.
-    </div>
+    </output>
   );
 }
 
 function LegacyView({ heading }: Readonly<{ heading: string }>) {
   return (
     <PanelShell heading={heading} toneClassName="border-gray-200 bg-gray-50">
-      <p className="mt-2 text-sm text-gray-600" role="status">
+      <output className="block mt-2 text-sm text-gray-600">
         <span className="inline-block px-2 py-0.5 mr-2 text-xs font-medium rounded bg-gray-200 text-gray-700">
           Legacy
-        </span>
+        </span>{" "}
         This relationship is outside any governed scope. No assertion, evidence,
         or lifecycle history is available for it.
-      </p>
+      </output>
     </PanelShell>
   );
 }
@@ -139,10 +139,10 @@ function LegacyView({ heading }: Readonly<{ heading: string }>) {
 function PendingMetadataView({ heading }: Readonly<{ heading: string }>) {
   return (
     <PanelShell heading={heading} toneClassName="border-amber-200 bg-amber-50">
-      <p className="mt-2 text-sm text-amber-800" role="status">
+      <output className="block mt-2 text-sm text-amber-800">
         This relationship is governed, but its assertion metadata is not yet
         available. It may still be synchronizing.
-      </p>
+      </output>
     </PanelShell>
   );
 }
@@ -150,13 +150,9 @@ function PendingMetadataView({ heading }: Readonly<{ heading: string }>) {
 function LoadingView({ heading }: Readonly<{ heading: string }>) {
   return (
     <PanelShell heading={heading} toneClassName="border-gray-200">
-      <p
-        className="mt-2 text-sm text-gray-500"
-        role="status"
-        aria-live="polite"
-      >
+      <output className="block mt-2 text-sm text-gray-500" aria-live="polite">
         Loading governed explanation...
-      </p>
+      </output>
     </PanelShell>
   );
 }
@@ -326,13 +322,13 @@ function LifecycleHistory({
         ))}
       </ul>
       {supersessionEvent?.successor_assertion_id && (
-        <p className="mt-1 text-xs text-amber-700" role="status">
+        <output className="block mt-1 text-xs text-amber-700">
           This assertion has been superseded by assertion{" "}
           {supersessionEvent.successor_assertion_id}. The public API does not
           expose a backward predecessor reference, so if you are viewing that
           successor assertion instead, its own predecessor cannot be looked up
           from here.
-        </p>
+        </output>
       )}
     </div>
   );
@@ -345,7 +341,7 @@ function PublicationFooter({
     <div className="text-xs text-gray-500 border-t border-gray-100 pt-2">
       <p>
         Revision: {relationship.revision_id ?? "unknown"} | Scope:{" "}
-        {relationship.scope_refs && relationship.scope_refs.length > 0
+        {relationship.scope_refs?.length
           ? relationship.scope_refs.join(", ")
           : "unknown"}
       </p>

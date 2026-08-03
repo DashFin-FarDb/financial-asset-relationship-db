@@ -246,11 +246,10 @@ function RelationshipList({
   onSelect,
 }: RelationshipListProps) {
   return (
-    <div
-      role="group"
-      aria-label="Relationships (keyboard-accessible list)"
-      className="max-h-64 overflow-y-auto border border-gray-200 rounded-lg p-2"
-    >
+    <fieldset className="max-h-64 overflow-y-auto border border-gray-200 rounded-lg p-2">
+      <legend className="sr-only">
+        Relationships (keyboard-accessible list)
+      </legend>
       <ul className="space-y-1">
         {validEdges.map(({ key, edge }) => (
           <RelationshipListItem
@@ -262,7 +261,7 @@ function RelationshipList({
           />
         ))}
       </ul>
-    </div>
+    </fieldset>
   );
 }
 
