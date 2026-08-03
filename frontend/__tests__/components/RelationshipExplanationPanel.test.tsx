@@ -9,7 +9,10 @@ import RelationshipExplanationPanel, {
   type ExplainableRelationship,
 } from "../../app/components/RelationshipExplanationPanel";
 import { api } from "../../app/lib/api";
-import type { AssertionExplanation, AssertionHistory } from "../../app/types/api";
+import type {
+  AssertionExplanation,
+  AssertionHistory,
+} from "../../app/types/api";
 
 jest.mock("../../app/lib/api");
 const mockedApi = api as jest.Mocked<typeof api>;
@@ -119,16 +122,20 @@ describe("RelationshipExplanationPanel", () => {
   it("labels an ungoverned relationship as legacy without fetching", () => {
     render(<RelationshipExplanationPanel relationship={legacyRelationship} />);
     expect(screen.getByText("Legacy")).toBeInTheDocument();
-    expect(
-      screen.getByText(/outside any governed scope/),
-    ).toBeInTheDocument();
+    expect(screen.getByText(/outside any governed scope/)).toBeInTheDocument();
     expect(mockedApi.getAssertion).not.toHaveBeenCalled();
   });
 
   it("shows a bounded unavailable state for a governed edge with no assertion id", () => {
-    render(<RelationshipExplanationPanel relationship={governedWithoutAssertionId} />);
+    render(
+      <RelationshipExplanationPanel
+        relationship={governedWithoutAssertionId}
+      />,
+    );
     expect(
-      screen.getByText(/governed, but its assertion metadata is not yet available/),
+      screen.getByText(
+        /governed, but its assertion metadata is not yet available/,
+      ),
     ).toBeInTheDocument();
     expect(mockedApi.getAssertion).not.toHaveBeenCalled();
   });
@@ -137,9 +144,13 @@ describe("RelationshipExplanationPanel", () => {
     mockedApi.getAssertion.mockResolvedValue(baseExplanation);
     mockedApi.getAssertionHistory.mockResolvedValue(baseHistory);
 
-    render(<RelationshipExplanationPanel relationship={governedRelationship} />);
+    render(
+      <RelationshipExplanationPanel relationship={governedRelationship} />,
+    );
 
-    expect(screen.getByText("Loading governed explanation...")).toBeInTheDocument();
+    expect(
+      screen.getByText("Loading governed explanation..."),
+    ).toBeInTheDocument();
 
     await waitFor(() => {
       expect(
@@ -166,32 +177,39 @@ describe("RelationshipExplanationPanel", () => {
 
   it("shows a not-found state without fabricating governance facts on a 404", async () => {
     mockedApi.getAssertion.mockRejectedValue({ response: { status: 404 } });
-    mockedApi.getAssertionHistory.mockRejectedValue({ response: { status: 404 } });
+    mockedApi.getAssertionHistory.mockRejectedValue({
+      response: { status: 404 },
+    });
 
-    render(<RelationshipExplanationPanel relationship={governedRelationship} />);
+    render(
+      <RelationshipExplanationPanel relationship={governedRelationship} />,
+    );
 
     await waitFor(() => {
-      expect(
-        screen.getByText(/could not be found/),
-      ).toBeInTheDocument();
+      expect(screen.getByText(/could not be found/)).toBeInTheDocument();
     });
   });
 
   it("shows a bounded unavailable state on a non-404 failure", async () => {
     mockedApi.getAssertion.mockRejectedValue({ response: { status: 503 } });
-    mockedApi.getAssertionHistory.mockRejectedValue({ response: { status: 503 } });
+    mockedApi.getAssertionHistory.mockRejectedValue({
+      response: { status: 503 },
+    });
 
-    render(<RelationshipExplanationPanel relationship={governedRelationship} />);
+    render(
+      <RelationshipExplanationPanel relationship={governedRelationship} />,
+    );
 
     await waitFor(() => {
-      expect(
-        screen.getByText(/temporarily unavailable/),
-      ).toBeInTheDocument();
+      expect(screen.getByText(/temporarily unavailable/)).toBeInTheDocument();
     });
   });
 
   it("shows superseded chain information when a successor is recorded", async () => {
-    mockedApi.getAssertion.mockResolvedValue({ ...baseExplanation, state: "Superseded" });
+    mockedApi.getAssertion.mockResolvedValue({
+      ...baseExplanation,
+      state: "Superseded",
+    });
     mockedApi.getAssertionHistory.mockResolvedValue({
       ...baseHistory,
       state: "Superseded",
@@ -210,7 +228,9 @@ describe("RelationshipExplanationPanel", () => {
       ],
     });
 
-    render(<RelationshipExplanationPanel relationship={governedRelationship} />);
+    render(
+      <RelationshipExplanationPanel relationship={governedRelationship} />,
+    );
 
     await waitFor(() => {
       expect(
@@ -242,7 +262,9 @@ describe("RelationshipExplanationPanel", () => {
       );
     });
 
-    rerender(<RelationshipExplanationPanel relationship={legacyRelationship} />);
+    rerender(
+      <RelationshipExplanationPanel relationship={legacyRelationship} />,
+    );
 
     expect(screen.getByText("Legacy")).toBeInTheDocument();
   });

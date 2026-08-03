@@ -207,7 +207,9 @@ function prepareVisualizationData(
 export default function NetworkVisualization({
   data,
 }: NetworkVisualizationProps) {
-  const [selectedEdgeIndex, setSelectedEdgeIndex] = useState<number | null>(null);
+  const [selectedEdgeIndex, setSelectedEdgeIndex] = useState<number | null>(
+    null,
+  );
 
   const edges = useMemo<VisualizationEdge[]>(
     () => (data && Array.isArray(data.edges) ? data.edges : []),
@@ -230,7 +232,8 @@ export default function NetworkVisualization({
   const handlePlotClick = useCallback(
     (event: { points?: ReadonlyArray<{ customdata?: unknown }> }) => {
       const point = event?.points?.[0];
-      const index = typeof point?.customdata === "number" ? point.customdata : null;
+      const index =
+        typeof point?.customdata === "number" ? point.customdata : null;
       if (index !== null && edges[index]) {
         setSelectedEdgeIndex(index);
       }
@@ -238,7 +241,8 @@ export default function NetworkVisualization({
     [edges],
   );
 
-  const selectedEdge = selectedEdgeIndex !== null ? edges[selectedEdgeIndex] ?? null : null;
+  const selectedEdge =
+    selectedEdgeIndex !== null ? (edges[selectedEdgeIndex] ?? null) : null;
 
   if (status !== "ready") {
     const isUrgent = status === "tooLarge";
@@ -263,9 +267,21 @@ export default function NetworkVisualization({
             title: "3D Asset Relationship Network",
             showlegend: false,
             scene: {
-              xaxis: { showgrid: false, zeroline: false, showticklabels: false },
-              yaxis: { showgrid: false, zeroline: false, showticklabels: false },
-              zaxis: { showgrid: false, zeroline: false, showticklabels: false },
+              xaxis: {
+                showgrid: false,
+                zeroline: false,
+                showticklabels: false,
+              },
+              yaxis: {
+                showgrid: false,
+                zeroline: false,
+                showticklabels: false,
+              },
+              zaxis: {
+                showgrid: false,
+                zeroline: false,
+                showticklabels: false,
+              },
               camera: {
                 eye: { x: 1.5, y: 1.5, z: 1.5 },
               },
@@ -297,7 +313,9 @@ export default function NetworkVisualization({
               const isSelected = index === selectedEdgeIndex;
               const isGoverned = edge.governance_status === "governed";
               return (
-                <li key={`${edge.source}-${edge.target}-${edge.relationship_type}-${index}`}>
+                <li
+                  key={`${edge.source}-${edge.target}-${edge.relationship_type}-${index}`}
+                >
                   <button
                     type="button"
                     aria-pressed={isSelected}
@@ -309,10 +327,14 @@ export default function NetworkVisualization({
                     }`}
                   >
                     {edge.source} {"\u2192"} {edge.target}{" "}
-                    <span className="text-xs text-gray-500">({edge.relationship_type})</span>{" "}
+                    <span className="text-xs text-gray-500">
+                      ({edge.relationship_type})
+                    </span>{" "}
                     <span
                       className={`text-xs px-1.5 py-0.5 rounded ${
-                        isGoverned ? "bg-blue-50 text-blue-700" : "bg-gray-100 text-gray-500"
+                        isGoverned
+                          ? "bg-blue-50 text-blue-700"
+                          : "bg-gray-100 text-gray-500"
                       }`}
                     >
                       {isGoverned ? "Governed" : "Legacy"}

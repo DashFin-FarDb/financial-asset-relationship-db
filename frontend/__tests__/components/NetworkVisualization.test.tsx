@@ -156,7 +156,9 @@ describe("NetworkVisualization Component", () => {
       render(<NetworkVisualization data={governedData} />);
 
       expect(
-        screen.getByRole("group", { name: "Relationships (keyboard-accessible list)" }),
+        screen.getByRole("group", {
+          name: "Relationships (keyboard-accessible list)",
+        }),
       ).toBeInTheDocument();
       expect(screen.getByText("Legacy")).toBeInTheDocument();
       expect(screen.getByText("Governed")).toBeInTheDocument();

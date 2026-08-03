@@ -32,7 +32,11 @@ type PanelState = Readonly<{
   history: AssertionHistory | null;
 }>;
 
-const IDLE_STATE: PanelState = { status: "idle", explanation: null, history: null };
+const IDLE_STATE: PanelState = {
+  status: "idle",
+  explanation: null,
+  history: null,
+};
 
 const AUTHORITY_LABELS: Record<string, string> = {
   proposer: "Proposer of record",
@@ -61,9 +65,11 @@ function deriveAuthoritySummary(events: readonly AssertionPublicEvent[]): {
   proposer: AssertionPublicEvent | null;
   determiner: AssertionPublicEvent | null;
 } {
-  const proposer = events.find((event) => event.authority === "proposer") ?? null;
+  const proposer =
+    events.find((event) => event.authority === "proposer") ?? null;
   const determiner =
-    [...events].reverse().find((event) => event.authority !== "proposer") ?? null;
+    [...events].reverse().find((event) => event.authority !== "proposer") ??
+    null;
   return { proposer, determiner };
 }
 
@@ -75,7 +81,9 @@ function findSupersessionEvent(
   events: readonly AssertionPublicEvent[],
 ): AssertionPublicEvent | null {
   return (
-    [...events].reverse().find((event) => Boolean(event.successor_assertion_id)) ?? null
+    [...events]
+      .reverse()
+      .find((event) => Boolean(event.successor_assertion_id)) ?? null
   );
 }
 
@@ -92,16 +100,22 @@ export default function RelationshipExplanationPanel({
   const [state, setState] = useState<PanelState>(IDLE_STATE);
 
   const isGoverned = relationship?.governance_status === "governed";
-  const assertionId = isGoverned ? relationship?.assertion_id ?? null : null;
+  const assertionId = isGoverned ? (relationship?.assertion_id ?? null) : null;
 
   // Track which assertionId the current `state` reflects so a change in the
   // selected relationship resets state synchronously during render, rather
   // than via a setState call inside the effect body (see React docs on
   // "adjusting state when a prop changes").
-  const [trackedAssertionId, setTrackedAssertionId] = useState<string | null>(null);
+  const [trackedAssertionId, setTrackedAssertionId] = useState<string | null>(
+    null,
+  );
   if (assertionId !== trackedAssertionId) {
     setTrackedAssertionId(assertionId);
-    setState(assertionId ? { status: "loading", explanation: null, history: null } : IDLE_STATE);
+    setState(
+      assertionId
+        ? { status: "loading", explanation: null, history: null }
+        : IDLE_STATE,
+    );
   }
 
   useEffect(() => {
@@ -163,8 +177,8 @@ export default function RelationshipExplanationPanel({
           <span className="inline-block px-2 py-0.5 mr-2 text-xs font-medium rounded bg-gray-200 text-gray-700">
             Legacy
           </span>
-          This relationship is outside any governed scope. No assertion, evidence, or
-          lifecycle history is available for it.
+          This relationship is outside any governed scope. No assertion,
+          evidence, or lifecycle history is available for it.
         </p>
       </section>
     );
@@ -192,7 +206,11 @@ export default function RelationshipExplanationPanel({
         className="p-4 border border-gray-200 rounded-lg"
       >
         <h3 className="font-semibold text-gray-900">{heading}</h3>
-        <p className="mt-2 text-sm text-gray-500" role="status" aria-live="polite">
+        <p
+          className="mt-2 text-sm text-gray-500"
+          role="status"
+          aria-live="polite"
+        >
           Loading governed explanation...
         </p>
       </section>
@@ -207,8 +225,8 @@ export default function RelationshipExplanationPanel({
       >
         <h3 className="font-semibold text-gray-900">{heading}</h3>
         <p className="mt-2 text-sm text-amber-800" role="alert">
-          The governed assertion behind this relationship could not be found. It may
-          be synchronizing with the latest publication.
+          The governed assertion behind this relationship could not be found. It
+          may be synchronizing with the latest publication.
         </p>
       </section>
     );
@@ -222,8 +240,8 @@ export default function RelationshipExplanationPanel({
       >
         <h3 className="font-semibold text-gray-900">{heading}</h3>
         <p className="mt-2 text-sm text-red-800" role="alert">
-          Governance explanation is temporarily unavailable. The graph remains usable;
-          please try again shortly.
+          Governance explanation is temporarily unavailable. The graph remains
+          usable; please try again shortly.
         </p>
       </section>
     );
@@ -259,45 +277,53 @@ export default function RelationshipExplanationPanel({
           <dt className="font-medium text-gray-500">Projection strength</dt>
           <dd className="text-gray-800">
             {relationship.strength.toFixed(2)}{" "}
-            <span className="text-xs text-gray-500">(distinct from confidence above)</span>
+            <span className="text-xs text-gray-500">
+              (distinct from confidence above)
+            </span>
           </dd>
         </div>
         <div>
           <dt className="font-medium text-gray-500">Effective time</dt>
           <dd className="text-gray-800">
             {formatTimestamp(explanation.effective_from)}
-            {explanation.effective_to ? ` \u2013 ${formatTimestamp(explanation.effective_to)}` : " (ongoing)"}
+            {explanation.effective_to
+              ? ` \u2013 ${formatTimestamp(explanation.effective_to)}`
+              : " (ongoing)"}
           </dd>
         </div>
         <div>
           <dt className="font-medium text-gray-500">Recorded / known at</dt>
           <dd className="text-gray-800">
             {formatTimestamp(explanation.recorded_at)}
-            {explanation.known_at ? ` (known: ${formatTimestamp(explanation.known_at)})` : ""}
+            {explanation.known_at
+              ? ` (known: ${formatTimestamp(explanation.known_at)})`
+              : ""}
           </dd>
         </div>
       </div>
 
-      {authoritySummary && (authoritySummary.proposer || authoritySummary.determiner) && (
-        <div className="text-sm">
-          <h4 className="font-medium text-gray-500">Authority</h4>
-          <ul className="mt-1 space-y-1">
-            {authoritySummary.proposer && (
-              <li>
-                {AUTHORITY_LABELS.proposer} {"\u2014"}{" "}
-                {formatTimestamp(authoritySummary.proposer.recorded_at)}
-              </li>
-            )}
-            {authoritySummary.determiner && (
-              <li>
-                {AUTHORITY_LABELS[authoritySummary.determiner.authority] ??
-                  "Determining authority"}{" "}
-                {"\u2014"} {formatTimestamp(authoritySummary.determiner.recorded_at)}
-              </li>
-            )}
-          </ul>
-        </div>
-      )}
+      {authoritySummary &&
+        (authoritySummary.proposer || authoritySummary.determiner) && (
+          <div className="text-sm">
+            <h4 className="font-medium text-gray-500">Authority</h4>
+            <ul className="mt-1 space-y-1">
+              {authoritySummary.proposer && (
+                <li>
+                  {AUTHORITY_LABELS.proposer} {"\u2014"}{" "}
+                  {formatTimestamp(authoritySummary.proposer.recorded_at)}
+                </li>
+              )}
+              {authoritySummary.determiner && (
+                <li>
+                  {AUTHORITY_LABELS[authoritySummary.determiner.authority] ??
+                    "Determining authority"}{" "}
+                  {"\u2014"}{" "}
+                  {formatTimestamp(authoritySummary.determiner.recorded_at)}
+                </li>
+              )}
+            </ul>
+          </div>
+        )}
 
       <div className="text-sm">
         <h4 className="font-medium text-gray-500">Evidence</h4>
@@ -306,9 +332,14 @@ export default function RelationshipExplanationPanel({
         ) : (
           <ul className="mt-1 space-y-2">
             {explanation.evidence.map((item) => (
-              <li key={item.evidence_id} className="border border-gray-100 rounded p-2">
+              <li
+                key={item.evidence_id}
+                className="border border-gray-100 rounded p-2"
+              >
                 <span className="font-medium">{item.polarity}</span>{" "}
-                <span className="text-xs text-gray-500">({item.visibility})</span>
+                <span className="text-xs text-gray-500">
+                  ({item.visibility})
+                </span>
                 {item.redacted ? (
                   <p className="text-xs text-gray-500 italic">
                     Evidence body and restricted references are not shown.
@@ -316,7 +347,9 @@ export default function RelationshipExplanationPanel({
                 ) : (
                   <div className="text-xs text-gray-600 space-y-0.5">
                     {item.source_ref && <p>Reference: {item.source_ref}</p>}
-                    {item.content_sha256 && <p>SHA-256: {item.content_sha256}</p>}
+                    {item.content_sha256 && (
+                      <p>SHA-256: {item.content_sha256}</p>
+                    )}
                   </div>
                 )}
               </li>
@@ -330,7 +363,8 @@ export default function RelationshipExplanationPanel({
         <ul className="mt-1 space-y-1">
           {history.events.map((event) => (
             <li key={event.event_id}>
-              #{event.sequence} {event.from_state ?? "(none)"} {"\u2192"} {event.to_state}{" "}
+              #{event.sequence} {event.from_state ?? "(none)"} {"\u2192"}{" "}
+              {event.to_state}{" "}
               <span className="text-xs text-gray-500">
                 ({AUTHORITY_LABELS[event.authority] ?? event.authority},{" "}
                 {formatTimestamp(event.recorded_at)})
@@ -338,7 +372,8 @@ export default function RelationshipExplanationPanel({
               {event.successor_assertion_id && (
                 <span className="text-xs text-gray-500">
                   {" "}
-                  {"\u2014"} superseded by assertion {event.successor_assertion_id}
+                  {"\u2014"} superseded by assertion{" "}
+                  {event.successor_assertion_id}
                 </span>
               )}
             </li>
@@ -347,8 +382,9 @@ export default function RelationshipExplanationPanel({
         {supersessionEvent?.successor_assertion_id && (
           <p className="mt-1 text-xs text-amber-700" role="status">
             This assertion has been superseded by assertion{" "}
-            {supersessionEvent.successor_assertion_id}. Predecessor information is only
-            available from that successor&apos;s own governed scope, if published.
+            {supersessionEvent.successor_assertion_id}. Predecessor information
+            is only available from that successor&apos;s own governed scope, if
+            published.
           </p>
         )}
       </div>

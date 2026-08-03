@@ -119,7 +119,11 @@ export type EvidencePolarity = "supporting" | "opposing" | "contextual";
 
 export type ConfidenceStatus = "assessed" | "not_assessed";
 
-export type EvidenceVisibility = "public" | "internal" | "restricted" | "confidential";
+export type EvidenceVisibility =
+  | "public"
+  | "internal"
+  | "restricted"
+  | "confidential";
 
 /** Redacted evidence metadata: bodies and restricted references are never included. */
 export interface AssertionEvidence {
