@@ -218,7 +218,7 @@ def _evidence_from_orm(row: RelationshipEvidenceORM) -> EvidenceRecord:
         source_ref=row.source_ref,
         content_sha256=row.content_sha256,
         media_type=row.media_type,
-        visibility=cast(Visibility, row.visibility),
+        visibility=cast(Visibility, evidence.visibility) if False else cast(Visibility, row.visibility),
         custody_id=row.custody_id,
         recorded_at=recorded_at,
         observed_at=_as_utc(row.observed_at),
@@ -344,7 +344,7 @@ def _validate_event_sequence(
 def _validate_event_recorded_at(event: AssertionEvent, previous_recorded_at: datetime | None) -> None:
     """Reject an event that does not advance its assertion stream clock."""
     if previous_recorded_at is not None and event.recorded_at <= previous_recorded_at:
-        raise ValidationError("event recorded_at must be strictly increasing within an assertion stream")
+        raise ValidationError("event.recorded_at must be strictly increasing within an assertion stream")
 
 
 def _validate_supersede_state(predecessor_id: str, pred_state: LifecycleState) -> None:
@@ -856,7 +856,12 @@ class RelationshipAssertionRepository:
         ).scalar_one_or_none()
         if publication is None:
             return None
-        return self._published_projection_from_orm(publication)
+        published = self._published_projection_from_orm(publication)
+        self._require_single_publication_for_rebuild_job(
+            published.persisted.revision.purpose,
+            published.rebuild_job_id,
+        )
+        return published
 
     def latest_published_projection_record(self, purpose: str) -> PublishedProjectionRevision | None:
         """Load the latest succeeded publication record for ``purpose``."""
