@@ -1,8 +1,9 @@
 "use client";
 
-import { useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
-import type { VisualizationData } from "../types/api";
+import type { VisualizationData, VisualizationEdge } from "../types/api";
+import RelationshipExplanationPanel from "./RelationshipExplanationPanel";
 
 // Dynamically import Plotly to avoid SSR issues
 const Plot = dynamic(() => import("react-plotly.js"), {
@@ -28,6 +29,8 @@ type EdgeTrace = {
   };
   hoverinfo: "none";
   showlegend: false;
+  /** Index into the original `edges` array, repeated for each of the two line points. */
+  customdata: [number, number];
 };
 
 type NodeTrace = {
@@ -115,7 +118,7 @@ function buildEdgeTraces(
   edges: VisualizationData["edges"],
 ): EdgeTrace[] {
   const nodeMap = new Map(nodes.map((node) => [node.id, node]));
-  return edges.reduce<EdgeTrace[]>((acc, edge) => {
+  return edges.reduce<EdgeTrace[]>((acc, edge, edgeIndex) => {
     const sourceNode = nodeMap.get(edge.source);
     const targetNode = nodeMap.get(edge.target);
 
@@ -140,6 +143,7 @@ function buildEdgeTraces(
       },
       hoverinfo: "none",
       showlegend: false,
+      customdata: [edgeIndex, edgeIndex],
     });
 
     return acc;
@@ -203,6 +207,13 @@ function prepareVisualizationData(
 export default function NetworkVisualization({
   data,
 }: NetworkVisualizationProps) {
+  const [selectedEdgeIndex, setSelectedEdgeIndex] = useState<number | null>(null);
+
+  const edges = useMemo<VisualizationEdge[]>(
+    () => (data && Array.isArray(data.edges) ? data.edges : []),
+    [data],
+  );
+
   const preparation = useMemo<VisualizationPreparation>(() => {
     if (!data) {
       return {
@@ -215,6 +226,19 @@ export default function NetworkVisualization({
   }, [data]);
 
   const { plotData, status, message } = preparation;
+
+  const handlePlotClick = useCallback(
+    (event: { points?: ReadonlyArray<{ customdata?: unknown }> }) => {
+      const point = event?.points?.[0];
+      const index = typeof point?.customdata === "number" ? point.customdata : null;
+      if (index !== null && edges[index]) {
+        setSelectedEdgeIndex(index);
+      }
+    },
+    [edges],
+  );
+
+  const selectedEdge = selectedEdgeIndex !== null ? edges[selectedEdgeIndex] ?? null : null;
 
   if (status !== "ready") {
     const isUrgent = status === "tooLarge";
@@ -230,33 +254,78 @@ export default function NetworkVisualization({
   }
 
   return (
-    <div className="w-full h-[800px]">
-      <Plot
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        data={plotData as any}
-        layout={{
-          title: "3D Asset Relationship Network",
-          showlegend: false,
-          scene: {
-            xaxis: { showgrid: false, zeroline: false, showticklabels: false },
-            yaxis: { showgrid: false, zeroline: false, showticklabels: false },
-            zaxis: { showgrid: false, zeroline: false, showticklabels: false },
-            camera: {
-              eye: { x: 1.5, y: 1.5, z: 1.5 },
+    <div className="w-full space-y-4">
+      <div className="w-full h-[800px]">
+        <Plot
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          data={plotData as any}
+          layout={{
+            title: "3D Asset Relationship Network",
+            showlegend: false,
+            scene: {
+              xaxis: { showgrid: false, zeroline: false, showticklabels: false },
+              yaxis: { showgrid: false, zeroline: false, showticklabels: false },
+              zaxis: { showgrid: false, zeroline: false, showticklabels: false },
+              camera: {
+                eye: { x: 1.5, y: 1.5, z: 1.5 },
+              },
             },
-          },
-          hovermode: "closest",
-          margin: { l: 0, r: 0, b: 0, t: 40 },
-          paper_bgcolor: "rgba(0,0,0,0)",
-          plot_bgcolor: "rgba(0,0,0,0)",
-        }}
-        config={{
-          displayModeBar: true,
-          displaylogo: false,
-          responsive: true,
-        }}
-        style={{ width: "100%", height: "100%" }}
-      />
+            hovermode: "closest",
+            margin: { l: 0, r: 0, b: 0, t: 40 },
+            paper_bgcolor: "rgba(0,0,0,0)",
+            plot_bgcolor: "rgba(0,0,0,0)",
+          }}
+          config={{
+            displayModeBar: true,
+            displaylogo: false,
+            responsive: true,
+          }}
+          style={{ width: "100%", height: "100%" }}
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          onClick={handlePlotClick as any}
+        />
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div
+          role="group"
+          aria-label="Relationships (keyboard-accessible list)"
+          className="max-h-64 overflow-y-auto border border-gray-200 rounded-lg p-2"
+        >
+          <ul className="space-y-1">
+            {edges.map((edge, index) => {
+              const isSelected = index === selectedEdgeIndex;
+              const isGoverned = edge.governance_status === "governed";
+              return (
+                <li key={`${edge.source}-${edge.target}-${edge.relationship_type}-${index}`}>
+                  <button
+                    type="button"
+                    aria-pressed={isSelected}
+                    onClick={() => setSelectedEdgeIndex(index)}
+                    className={`w-full text-left text-sm px-2 py-1 rounded ${
+                      isSelected
+                        ? "bg-blue-100 text-blue-900"
+                        : "hover:bg-gray-100 text-gray-700"
+                    }`}
+                  >
+                    {edge.source} {"\u2192"} {edge.target}{" "}
+                    <span className="text-xs text-gray-500">({edge.relationship_type})</span>{" "}
+                    <span
+                      className={`text-xs px-1.5 py-0.5 rounded ${
+                        isGoverned ? "bg-blue-50 text-blue-700" : "bg-gray-100 text-gray-500"
+                      }`}
+                    >
+                      {isGoverned ? "Governed" : "Legacy"}
+                    </span>
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+
+        <RelationshipExplanationPanel relationship={selectedEdge} />
+      </div>
     </div>
   );
 }

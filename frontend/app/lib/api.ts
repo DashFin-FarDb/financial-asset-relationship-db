@@ -3,6 +3,8 @@ import type { AxiosRequestConfig } from "axios";
 import type {
   Asset,
   AssetPageResponse,
+  AssertionExplanation,
+  AssertionHistory,
   Relationship,
   Metrics,
   VisualizationData,
@@ -95,5 +97,28 @@ export const api = {
 
   getSectors: (): Promise<{ sectors: string[] }> => {
     return getData<{ sectors: string[] }>("/api/sectors");
+  },
+
+  // Governed assertion explanation (GRAC v1)
+  getAssertion: (
+    assertionId: string,
+    params?: { known_at?: string; effective_at?: string },
+    signal?: AbortSignal,
+  ): Promise<AssertionExplanation> => {
+    return getData<AssertionExplanation>(
+      `/api/assertions/${encodeURIComponent(assertionId)}`,
+      { params, signal },
+    );
+  },
+
+  getAssertionHistory: (
+    assertionId: string,
+    params?: { known_at?: string; effective_at?: string },
+    signal?: AbortSignal,
+  ): Promise<AssertionHistory> => {
+    return getData<AssertionHistory>(
+      `/api/assertions/${encodeURIComponent(assertionId)}/history`,
+      { params, signal },
+    );
   },
 };
