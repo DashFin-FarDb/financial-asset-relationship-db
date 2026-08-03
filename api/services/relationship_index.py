@@ -383,22 +383,17 @@ def register_runtime_graph_publication_binding(
 
 
 @lru_cache(maxsize=4)
-def _load_governed_relationship_index(
-    _graph: AssetRelationshipGraph,
-    _generation: int,
-) -> GovernedRelationshipIndex:
-    """Load latest governed metadata for one unmanaged graph and generation."""
+def _load_governed_relationship_index(_generation: int) -> GovernedRelationshipIndex:
+    """Load latest governed metadata for the current cache generation."""
     return _load_governed_relationship_index_from_persistence()
 
 
 @lru_cache(maxsize=8)
 def _load_bound_governed_relationship_index(
-    _graph: AssetRelationshipGraph,
-    _rebuild_job_id: str,
     revision_id: str,
     _generation: int,
 ) -> GovernedRelationshipIndex:
-    """Load metadata for the exact publication bound to a runtime graph."""
+    """Load metadata for one immutable publication revision and generation."""
     return _load_governed_relationship_index_for_revision(revision_id)
 
 
@@ -416,7 +411,7 @@ def load_governed_relationship_index(graph: AssetRelationshipGraph) -> GovernedR
     managed, rebuild_job_id = _runtime_graph_publication_binding(graph)
     generation = _current_cache_generation()
     if not managed:
-        return _load_governed_relationship_index(graph, generation)
+        return _load_governed_relationship_index(generation)
 
     if rebuild_job_id is None:
         # A managed startup graph with no governed publication binding has nothing to
@@ -446,8 +441,6 @@ def load_governed_relationship_index(graph: AssetRelationshipGraph) -> GovernedR
             detail="Graph publication synchronization is pending",
         )
     return _load_bound_governed_relationship_index(
-        graph,
-        latest_job_id,
         revision_id,
         generation,
     )
