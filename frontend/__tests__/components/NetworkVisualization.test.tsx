@@ -4,10 +4,15 @@
 
 import React from "react";
 import { render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import "@testing-library/jest-dom";
 import NetworkVisualization from "../../app/components/NetworkVisualization";
 import type { VisualizationData } from "../../app/types/api";
 import { mockVisualizationData } from "../test-utils";
+import { api } from "../../app/lib/api";
+
+jest.mock("../../app/lib/api");
+const mockedApi = api as jest.Mocked<typeof api>;
 
 jest.mock("react-plotly.js", () => {
   return function MockPlot({ data }: { data: unknown }) {
@@ -117,5 +122,126 @@ describe("NetworkVisualization Component", () => {
         /Visualization is unavailable because the dataset is too large/,
       ),
     ).toBeInTheDocument();
+  });
+
+  describe("keyboard-accessible relationship selection", () => {
+    const governedData: VisualizationData = {
+      nodes: mockVisualizationData.nodes,
+      edges: [
+        {
+          source: "ASSET_1",
+          target: "ASSET_2",
+          relationship_type: "SAME_SECTOR",
+          strength: 0.7,
+        },
+        {
+          source: "ASSET_2",
+          target: "ASSET_1",
+          relationship_type: "CORPORATE_LINK",
+          strength: 0.9,
+          assertion_id: "assertion-1",
+          governance_status: "governed",
+          revision_id: "rev-1",
+          scope_refs: ["predicate-issuer"],
+        },
+      ],
+      network_density: 0.5,
+    };
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it("lists every relationship with a governed/legacy badge", () => {
+      render(<NetworkVisualization data={governedData} />);
+
+      expect(
+        screen.getByRole("group", {
+          name: "Relationships (keyboard-accessible list)",
+        }),
+      ).toBeInTheDocument();
+      expect(screen.getByText("Legacy")).toBeInTheDocument();
+      expect(screen.getByText("Governed")).toBeInTheDocument();
+    });
+
+    it("selects a relationship via keyboard/click on the list, not only line-clicking", async () => {
+      mockedApi.getAssertion.mockResolvedValue({
+        assertion_id: "assertion-1",
+        predicate_id: "predicate-issuer",
+        subject_id: "ASSET_2",
+        object_id: "ASSET_1",
+        method_id: "method-1",
+        proposition: "ASSET_2 is the issuer of ASSET_1",
+        confidence_status: "not_assessed",
+        confidence_bp: null,
+        confidence_type: null,
+        confidence_method: null,
+        effective_from: "2024-01-01T00:00:00Z",
+        effective_to: null,
+        recorded_at: "2024-01-01T00:00:00Z",
+        state: "Accepted",
+        known_at: "2024-01-01T00:00:00Z",
+        effective_at: "2024-01-01T00:00:00Z",
+        sequence: 1,
+        evidence: [],
+      });
+      mockedApi.getAssertionHistory.mockResolvedValue({
+        assertion_id: "assertion-1",
+        effective_from: "2024-01-01T00:00:00Z",
+        effective_to: null,
+        recorded_at: "2024-01-01T00:00:00Z",
+        state: "Accepted",
+        known_at: "2024-01-01T00:00:00Z",
+        effective_at: "2024-01-01T00:00:00Z",
+        events: [
+          {
+            event_id: "event-1",
+            assertion_id: "assertion-1",
+            sequence: 1,
+            from_state: null,
+            to_state: "Proposed",
+            authority: "proposer",
+            recorded_at: "2024-01-01T00:00:00Z",
+          },
+        ],
+      });
+
+      const user = userEvent.setup();
+      render(<NetworkVisualization data={governedData} />);
+
+      const governedButton = screen.getByRole("button", {
+        name: /ASSET_2.*ASSET_1.*CORPORATE_LINK.*Governed/,
+      });
+
+      // Exercise a genuine tab sequence (rather than calling `.focus()`
+      // directly) so this test actually proves the button is reachable via
+      // keyboard navigation, not merely programmatically focusable.
+      const MAX_TAB_STOPS = 25;
+      let reachedButton = false;
+      for (let tabStop = 0; tabStop < MAX_TAB_STOPS; tabStop += 1) {
+        await user.tab();
+        if (document.activeElement === governedButton) {
+          reachedButton = true;
+          break;
+        }
+      }
+      expect(reachedButton).toBe(true);
+
+      await user.keyboard("{Enter}");
+
+      expect(governedButton).toHaveAttribute("aria-pressed", "true");
+      await waitFor(() => {
+        expect(mockedApi.getAssertion).toHaveBeenCalledWith(
+          "assertion-1",
+          expect.objectContaining({ known_at: expect.any(String) }),
+          expect.anything(),
+        );
+      });
+      await waitFor(() => {
+        expect(
+          screen.getByText("ASSET_2 is the issuer of ASSET_1"),
+        ).toBeInTheDocument();
+      });
+    });
   });
 });
