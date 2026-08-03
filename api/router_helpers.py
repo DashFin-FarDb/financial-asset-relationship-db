@@ -7,7 +7,6 @@ from fastapi import HTTPException
 
 logger = logging.getLogger(__name__)
 
-# Color mapping for each AssetClass.value string used by the visualization router.
 _DEFAULT_COLOR = "#7f7f7f"
 _ASSET_CLASS_COLORS: dict[str, str] = {
     "Equity": "#1f77b4",
@@ -19,18 +18,20 @@ _ASSET_CLASS_COLORS: dict[str, str] = {
 
 
 def get_graph():
-    """Return the active graph instance."""
-    try:
-        import api.main as api_main  # local import to avoid import cycle at module import time
+    """Return the active graph and retain its publication binding."""
+    from . import graph_lifecycle
+    from .services.relationship_index import register_runtime_graph_publication_binding
 
-        if hasattr(api_main, "graph") and api_main.graph is not None:
-            return api_main.graph
-    except Exception:
-        pass
+    with graph_lifecycle.graph_lock:
+        graph = graph_lifecycle.graph_state.graph
+        rebuild_job_id = graph_lifecycle.graph_state.last_synced_job_id
 
-    from .graph_lifecycle import get_graph as _get_graph
+    if graph is None:
+        graph = graph_lifecycle.get_graph()
+        rebuild_job_id = None
 
-    return _get_graph()
+    register_runtime_graph_publication_binding(graph, rebuild_job_id)
+    return graph
 
 
 def raise_asset_not_found(
@@ -66,8 +67,7 @@ def serialize_asset(
             (useful for detail views). Defaults to ``False``.
 
     Returns:
-        Dict[str, Any]: Dictionary containing core asset fields plus any
-        non-``None`` asset-specific attributes under ``additional_fields``.
+        Dict[str, Any]: Dictionary containing core fields and optional attributes.
     """
     asset_dict: dict[str, Any] = {
         "id": asset.id,
@@ -98,12 +98,14 @@ def serialize_asset(
         "central_bank_rate",
     ]
 
-    if include_issuer:
-        optional_fields.append("issuer_id")
-
     for field in optional_fields:
         value = getattr(asset, field, None)
         if value is not None:
             asset_dict["additional_fields"][field] = value
+
+    if include_issuer:
+        issuer_id = getattr(asset, "issuer_id", None)
+        if issuer_id is not None:
+            asset_dict["additional_fields"]["issuer_id"] = issuer_id
 
     return asset_dict

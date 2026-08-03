@@ -174,7 +174,16 @@ class TestConnectionManagement:
 
     def test_memory_connection_is_reused(self):
         """Test that in-memory connection is reused."""
-        with patch("api.database.DATABASE_PATH", ":memory:"):
+        from api.database import _close_memory_connection_cache, _DatabaseConnectionManager
+
+        mem_manager = _DatabaseConnectionManager(":memory:")
+        with (
+            patch("api.database.DATABASE_PATH", ":memory:"),
+            patch("api.database._db_manager", mem_manager),
+            patch("api.database._MEMORY_CONNECTION", None),
+            patch("api.database._MEMORY_CONNECTION_MANAGER", None),
+        ):
+            _close_memory_connection_cache()
             with get_connection() as conn1:
                 conn1_id = id(conn1)
 
@@ -183,6 +192,7 @@ class TestConnectionManagement:
 
             # Should be same connection for memory DB
             assert conn1_id == conn2_id
+            _close_memory_connection_cache()
 
     def test_file_connection_is_new_each_time(self, tmp_path):
         """Test that file-based connections are new each time."""

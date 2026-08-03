@@ -1,5 +1,7 @@
 """Visualization API routes."""
 
+from __future__ import annotations
+
 import logging
 import math
 
@@ -15,11 +17,17 @@ from ..router_helpers import (
     get_graph,
     logger,
 )
+from ..services.relationship_index import (
+    GovernanceMetadata,
+    GovernedRelationshipIndex,
+    load_governed_relationship_index,
+)
 
 router = APIRouter()
 
 
 def _calculate_node_degrees(g: AssetRelationshipGraph) -> dict[str, int]:
+    """Return outgoing relationship counts for every graph asset."""
     degree: dict[str, int] = dict.fromkeys(g.assets.keys(), 0)
     for source_id, rels in g.relationships.items():
         degree[source_id] = degree.get(source_id, 0) + len(rels)
@@ -31,6 +39,7 @@ def _compute_fibonacci_position(
     total_nodes: int,
     golden_ratio: float,
 ) -> tuple[float, float, float]:
+    """Return a deterministic Fibonacci-sphere position for one node."""
     if total_nodes <= 1:
         return 0.0, 0.0, 0.0
     theta = math.acos(1 - 2 * (idx + 0.5) / total_nodes)
@@ -45,6 +54,7 @@ def _build_visualization_nodes(
     g: AssetRelationshipGraph,
     asset_ids: list[str],
 ) -> list[VisualizationNode]:
+    """Build visualization nodes with deterministic positions and degree sizes."""
     degree = _calculate_node_degrees(g)
     total_nodes = len(asset_ids)
     golden_ratio = (1 + math.sqrt(5)) / 2
@@ -69,20 +79,28 @@ def _build_visualization_nodes(
     return nodes
 
 
-def _build_visualization_edges(g: AssetRelationshipGraph) -> list[VisualizationEdge]:
-    return [
-        VisualizationEdge(
-            source=source_id,
-            target=target_id,
-            relationship_type=rel_type,
-            strength=strength,
-        )
-        for source_id, rels in g.relationships.items()
-        for target_id, rel_type, strength in rels
-    ]
+def _build_visualization_edges(
+    g: AssetRelationshipGraph,
+    governed_index: GovernedRelationshipIndex,
+) -> list[VisualizationEdge]:
+    """Build visualization edges with optional published governance metadata."""
+    edges: list[VisualizationEdge] = []
+    for source_id, rels in g.relationships.items():
+        for target_id, rel_type, strength in rels:
+            payload: dict[str, object] = {
+                "source": source_id,
+                "target": target_id,
+                "relationship_type": rel_type,
+                "strength": strength,
+            }
+            metadata: GovernanceMetadata | None = governed_index.get((source_id, target_id, rel_type))
+            if metadata is not None:
+                payload.update(metadata)
+            edges.append(VisualizationEdge.model_validate(payload))
+    return edges
 
 
-@router.get("/api/visualization", response_model=VisualizationDataResponse)
+@router.get("/api/visualization", response_model_exclude_none=True)
 async def get_visualization_data() -> VisualizationDataResponse:
     """
     Produce visualization nodes and edges for the current asset relationship graph.
@@ -98,10 +116,12 @@ async def get_visualization_data() -> VisualizationDataResponse:
         g = get_graph()
         asset_ids = list(g.assets.keys())
         nodes = _build_visualization_nodes(g, asset_ids)
-        edges = _build_visualization_edges(g)
+        edges = _build_visualization_edges(g, load_governed_relationship_index(g))
         effective_assets_count = len(asset_ids)
         network_density = calculate_graph_density(effective_assets_count, len(edges))
         return VisualizationDataResponse(nodes=nodes, edges=edges, network_density=network_density)
+    except HTTPException:
+        raise
     except Exception as e:
         log_event(
             logger,
