@@ -5,8 +5,8 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from api.graph_lifecycle import GraphStartupSource
 from api.assertion_models import PublishedProjectionContextResponse
+from api.graph_lifecycle import GraphStartupSource
 from src.data.db_models import RebuildJobStatus
 
 GraphRebuildSource = Literal[

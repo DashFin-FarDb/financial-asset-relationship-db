@@ -359,7 +359,9 @@ def _assertion_history_response(as_of: AssertionAsOf) -> AssertionHistoryRespons
     )
 
 
-def _published_projection_context_response(published: PublishedProjectionRevision) -> PublishedProjectionContextResponse:
+def _published_projection_context_response(
+    published: PublishedProjectionRevision,
+) -> PublishedProjectionContextResponse:
     """Build the strict public publication envelope from one persisted publication record."""
     revision = published.persisted.revision
     return PublishedProjectionContextResponse(

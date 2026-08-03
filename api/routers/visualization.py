@@ -12,8 +12,8 @@ from fastapi import APIRouter, HTTPException
 from src.logic.asset_graph import AssetRelationshipGraph, calculate_graph_density
 from src.observability.facade import ObservabilityEvent, log_event
 
-from ..assertion_models import GovernedScopeResponse, PublishedProjectionContextResponse
 from ..api_models import VisualizationDataResponse, VisualizationEdge, VisualizationNode
+from ..assertion_models import GovernedScopeResponse, PublishedProjectionContextResponse
 from ..router_helpers import (
     _ASSET_CLASS_COLORS,
     _DEFAULT_COLOR,
