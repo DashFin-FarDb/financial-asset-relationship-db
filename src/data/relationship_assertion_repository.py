@@ -218,7 +218,7 @@ def _evidence_from_orm(row: RelationshipEvidenceORM) -> EvidenceRecord:
         source_ref=row.source_ref,
         content_sha256=row.content_sha256,
         media_type=row.media_type,
-        visibility=cast(Visibility, evidence.visibility) if False else cast(Visibility, row.visibility),
+        visibility=cast(Visibility, row.visibility),
         custody_id=row.custody_id,
         recorded_at=recorded_at,
         observed_at=_as_utc(row.observed_at),
@@ -344,7 +344,7 @@ def _validate_event_sequence(
 def _validate_event_recorded_at(event: AssertionEvent, previous_recorded_at: datetime | None) -> None:
     """Reject an event that does not advance its assertion stream clock."""
     if previous_recorded_at is not None and event.recorded_at <= previous_recorded_at:
-        raise ValidationError("event.recorded_at must be strictly increasing within an assertion stream")
+        raise ValidationError("event recorded_at must be strictly increasing within an assertion stream")
 
 
 def _validate_supersede_state(predecessor_id: str, pred_state: LifecycleState) -> None:
