@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Generator
 from typing import cast
 
 import pytest
@@ -12,7 +13,7 @@ from src.logic.asset_graph import AssetRelationshipGraph
 
 
 @pytest.fixture(autouse=True)
-def _reset_relationship_index_caches() -> None:
+def _reset_relationship_index_caches() -> Generator[None, None, None]:
     """Keep cache and weak graph bindings isolated between tests."""
     relationship_index.invalidate_governed_relationship_index_cache()
     with relationship_index._runtime_graph_bindings_lock:  # pylint: disable=protected-access
