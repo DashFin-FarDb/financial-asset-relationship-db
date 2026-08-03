@@ -32,11 +32,11 @@ from src.logic.asset_graph import AssetRelationshipGraph
 # session-wide even when declared in a test module). The `client` fixture is
 # redeclared locally instead of imported, since importing it would collide
 # with the `client` parameter name used throughout this module's tests.
+from .api_assertion_test_support import configure_graph_persistence  # noqa: F401
+from .api_assertion_test_support import initialize_assertion_store  # noqa: F401
+from .api_assertion_test_support import seed_users  # noqa: F401
 from .api_assertion_test_support import (
     _assert_error_response,
-    configure_graph_persistence,  # noqa: F401
-    initialize_assertion_store,  # noqa: F401
-    seed_users,  # noqa: F401
 )
 
 
