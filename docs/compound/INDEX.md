@@ -13,8 +13,8 @@ rebuild/reconciliation, and deployment/readiness.
 | Domain | Doc | Landed | Provisional |
 |--------|-----|--------|-------------|
 | architecture | [domains/architecture.md](domains/architecture.md) | 98 | 28 |
-| api | [domains/api.md](domains/api.md) | 14 | 38 |
-| persistence | [domains/persistence.md](domains/persistence.md) | 7 | 18 |
+| api | [domains/api.md](domains/api.md) | 14 | 39 |
+| persistence | [domains/persistence.md](domains/persistence.md) | 7 | 19 |
 | ci-guardrails | [domains/ci-guardrails.md](domains/ci-guardrails.md) | 30 | 25 |
 | rebuild-reconciliation | [domains/rebuild-reconciliation.md](domains/rebuild-reconciliation.md) | 1 | 9 |
 | deployment | [domains/deployment.md](domains/deployment.md) | 12 | 0 |
