@@ -3,6 +3,7 @@ import type { AxiosRequestConfig } from "axios";
 import type {
   Asset,
   AssetPageResponse,
+  AssertionAsOfParams,
   AssertionExplanation,
   AssertionHistory,
   Relationship,
@@ -36,6 +37,23 @@ async function getData<T>(
     ? await apiClient.get<T>(path, config)
     : await apiClient.get<T>(path);
   return response.data;
+}
+
+/**
+ * Fetch a governed assertion read model (explanation or history) at the given
+ * bitemporal path, forwarding identical `known_at`/`effective_at` bounds so
+ * that callers can request both endpoints against the same as-of snapshot.
+ */
+function getAssertionResource<T>(
+  assertionId: string,
+  resourcePath: "" | "/history",
+  params?: AssertionAsOfParams,
+  signal?: AbortSignal,
+): Promise<T> {
+  return getData<T>(
+    `/api/assertions/${encodeURIComponent(assertionId)}${resourcePath}`,
+    { params, signal },
+  );
 }
 
 export const api = {
@@ -100,25 +118,24 @@ export const api = {
   },
 
   // Governed assertion explanation (GRAC v1)
+  //
+  // Callers should capture a single `known_at`/`effective_at` pair and pass
+  // it to both calls below, so the explanation and history are resolved
+  // against the same as-of snapshot rather than two independent server
+  // "now" defaults.
   getAssertion: (
     assertionId: string,
-    params?: { known_at?: string; effective_at?: string },
+    params?: AssertionAsOfParams,
     signal?: AbortSignal,
   ): Promise<AssertionExplanation> => {
-    return getData<AssertionExplanation>(
-      `/api/assertions/${encodeURIComponent(assertionId)}`,
-      { params, signal },
-    );
+    return getAssertionResource<AssertionExplanation>(assertionId, "", params, signal);
   },
 
   getAssertionHistory: (
     assertionId: string,
-    params?: { known_at?: string; effective_at?: string },
+    params?: AssertionAsOfParams,
     signal?: AbortSignal,
   ): Promise<AssertionHistory> => {
-    return getData<AssertionHistory>(
-      `/api/assertions/${encodeURIComponent(assertionId)}/history`,
-      { params, signal },
-    );
+    return getAssertionResource<AssertionHistory>(assertionId, "/history", params, signal);
   },
 };

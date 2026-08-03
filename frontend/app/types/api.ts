@@ -12,19 +12,32 @@ export interface Asset {
   additional_fields: Record<string, unknown>;
 }
 
-export interface Relationship {
-  source_id: string;
-  target_id: string;
-  relationship_type: string;
-  strength: number;
+/**
+ * Governed-edge metadata shared by `Relationship` and `VisualizationEdge`.
+ * Kept as a single interface so the two response shapes cannot drift from
+ * each other as the underlying API evolves.
+ *
+ * Note: despite the name, `scope_refs` currently contains only the governed
+ * `predicate_id` for the edge (see `api/services/relationship_index.py`,
+ * `"scope_refs": [predicate_id]`) -- it does NOT include the governed
+ * `purpose`, which is not exposed at the edge/visualization level today.
+ */
+export interface GovernedEdgeMetadata {
   /** Present only when this edge is backed by a governed assertion. */
   assertion_id?: string | null;
   /** `"governed"` when backed by a published assertion; absent/`null` means legacy. */
   governance_status?: "governed" | null;
   /** Publication revision this governance metadata was resolved from. */
   revision_id?: string | null;
-  /** Governed `(purpose, predicate_id)` scope references for this edge. */
+  /** Governed predicate-id scope reference(s) for this edge (see note above: no purpose is included). */
   scope_refs?: string[] | null;
+}
+
+export interface Relationship extends GovernedEdgeMetadata {
+  source_id: string;
+  target_id: string;
+  relationship_type: string;
+  strength: number;
 }
 
 export interface Metrics {
@@ -57,20 +70,12 @@ export interface VisualizationNode {
 }
 
 /** An edge in the 3-D visualisation graph. `strength` is normalised 0.0–1.0. */
-export interface VisualizationEdge {
+export interface VisualizationEdge extends GovernedEdgeMetadata {
   source: string;
   target: string;
   relationship_type: string;
   /** Relationship strength, normalised to the range 0.0–1.0. */
   strength: number;
-  /** Present only when this edge is backed by a governed assertion. */
-  assertion_id?: string | null;
-  /** `"governed"` when backed by a published assertion; absent/`null` means legacy. */
-  governance_status?: "governed" | null;
-  /** Publication revision this governance metadata was resolved from. */
-  revision_id?: string | null;
-  /** Governed `(purpose, predicate_id)` scope references for this edge. */
-  scope_refs?: string[] | null;
 }
 
 export interface VisualizationData {
@@ -103,6 +108,15 @@ export interface AssetPageResponse {
 // `GET /api/assertions/{assertion_id}` and `GET /api/assertions/{assertion_id}/history`
 // (see `api/assertion_models.py`). Actor identity is never exposed on these public
 // reads; only the authenticated command APIs (out of scope for this UI) carry actor_id.
+//
+// KNOWN LIMITATION (tracked for a follow-up backend change, out of scope here):
+// both endpoints default `known_at`/`effective_at` to "now" server-side when the
+// caller omits them. Neither response currently carries the graph publication's
+// own `known_at`/`effective_at`/`published_at`, so a panel driven purely by
+// `assertion_id` cannot guarantee its explanation matches the lifecycle state
+// that was true when the displayed graph edge was published. Until the
+// visualization/relationship API exposes that publication envelope, callers
+// should treat this explanation as "as of now", not "as of the displayed graph".
 
 export type LifecycleState =
   | "Proposed"
@@ -141,9 +155,23 @@ export interface AssertionEvidence {
   recorded_at?: string | null;
 }
 
-/** Public redacted explanation of one assertion as-of the requested bitemporal bounds. */
-export interface AssertionExplanation {
+/**
+ * Bitemporal lifecycle fields shared by the explanation and history read
+ * models. Kept as a single interface so the two public response contracts
+ * cannot diverge as the underlying API evolves.
+ */
+export interface AssertionLifecycleMetadata {
   assertion_id: string;
+  effective_from: string;
+  effective_to: string | null;
+  recorded_at: string;
+  state: LifecycleState;
+  known_at: string | null;
+  effective_at: string | null;
+}
+
+/** Public redacted explanation of one assertion as-of the requested bitemporal bounds. */
+export interface AssertionExplanation extends AssertionLifecycleMetadata {
   predicate_id: string;
   subject_id: string;
   object_id: string;
@@ -153,12 +181,6 @@ export interface AssertionExplanation {
   confidence_bp: number | null;
   confidence_type: string | null;
   confidence_method: string | null;
-  effective_from: string;
-  effective_to: string | null;
-  recorded_at: string;
-  state: LifecycleState;
-  known_at: string | null;
-  effective_at: string | null;
   sequence: number;
   evidence: AssertionEvidence[];
 }
@@ -176,13 +198,12 @@ export interface AssertionPublicEvent {
 }
 
 /** Public immutable assertion lifecycle history. */
-export interface AssertionHistory {
-  assertion_id: string;
-  effective_from: string;
-  effective_to: string | null;
-  recorded_at: string;
-  state: LifecycleState;
-  known_at: string | null;
-  effective_at: string | null;
+export interface AssertionHistory extends AssertionLifecycleMetadata {
   events: AssertionPublicEvent[];
+}
+
+/** Optional bitemporal bounds accepted by the assertion read endpoints. */
+export interface AssertionAsOfParams {
+  known_at?: string;
+  effective_at?: string;
 }

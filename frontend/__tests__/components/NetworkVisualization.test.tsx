@@ -212,16 +212,28 @@ describe("NetworkVisualization Component", () => {
       const governedButton = screen.getByRole("button", {
         name: /ASSET_2.*ASSET_1.*CORPORATE_LINK.*Governed/,
       });
-      await user.tab();
-      // Tab until the target button is focused, then activate with the keyboard.
-      governedButton.focus();
+
+      // Exercise a genuine tab sequence (rather than calling `.focus()`
+      // directly) so this test actually proves the button is reachable via
+      // keyboard navigation, not merely programmatically focusable.
+      const MAX_TAB_STOPS = 25;
+      let reachedButton = false;
+      for (let tabStop = 0; tabStop < MAX_TAB_STOPS; tabStop += 1) {
+        await user.tab();
+        if (document.activeElement === governedButton) {
+          reachedButton = true;
+          break;
+        }
+      }
+      expect(reachedButton).toBe(true);
+
       await user.keyboard("{Enter}");
 
       expect(governedButton).toHaveAttribute("aria-pressed", "true");
       await waitFor(() => {
         expect(mockedApi.getAssertion).toHaveBeenCalledWith(
           "assertion-1",
-          undefined,
+          expect.objectContaining({ known_at: expect.any(String) }),
           expect.anything(),
         );
       });
