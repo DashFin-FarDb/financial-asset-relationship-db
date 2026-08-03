@@ -40,6 +40,7 @@ from ..graph_lifecycle_providers import (
 _GRAC_CURRENT_PURPOSE = "financial_graph_current_view"
 _GRAPH_PERSISTENCE_MISCONFIGURED_DETAIL = "Graph persistence database is misconfigured"
 _GRAPH_PERSISTENCE_UNAVAILABLE_DETAIL = "Graph persistence database is unavailable"
+_GRAPH_PUBLICATION_INCONSISTENT_DETAIL = "Graph publication metadata is inconsistent"
 _IN_CLAUSE_CHUNK_SIZE = 400
 _cache_generation_lock = Lock()
 _persistence_runtime_lock = Lock()
@@ -371,6 +372,11 @@ def _latest_published_projection_binding_from_persistence() -> PublicationBindin
         # treat a missing publication binding as "omit optional governance metadata",
         # so surface the same signal here instead of failing closed with a 503.
         return None
+    except ValidationError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=_GRAPH_PUBLICATION_INCONSISTENT_DETAIL,
+        ) from exc
     except SQLAlchemyError as exc:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
@@ -390,12 +396,12 @@ def _load_governed_relationship_snapshot_for_publication(
             if published is None:
                 raise HTTPException(
                     status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-                    detail="Graph publication metadata is inconsistent",
+                    detail=_GRAPH_PUBLICATION_INCONSISTENT_DETAIL,
                 )
             if published.persisted.revision_id != revision_id:
                 raise HTTPException(
                     status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-                    detail="Graph publication metadata is inconsistent",
+                    detail=_GRAPH_PUBLICATION_INCONSISTENT_DETAIL,
                 )
             publication = _published_projection_context(published)
             return _build_published_relationship_index(session, published.persisted, publication)
@@ -406,6 +412,11 @@ def _load_governed_relationship_snapshot_for_publication(
         ) from exc
     except (GraphPersistenceNotConfiguredError, GraphPersistenceNonDurableError):
         return PublishedRelationshipSnapshot(publication=None, governance_index={}, projection_bindings={})
+    except ValidationError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=_GRAPH_PUBLICATION_INCONSISTENT_DETAIL,
+        ) from exc
     except SQLAlchemyError as exc:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
@@ -430,6 +441,11 @@ def _load_governed_relationship_snapshot_from_persistence() -> PublishedRelation
         ) from exc
     except (GraphPersistenceNotConfiguredError, GraphPersistenceNonDurableError):
         return PublishedRelationshipSnapshot(publication=None, governance_index={}, projection_bindings={})
+    except ValidationError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=_GRAPH_PUBLICATION_INCONSISTENT_DETAIL,
+        ) from exc
     except SQLAlchemyError as exc:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
