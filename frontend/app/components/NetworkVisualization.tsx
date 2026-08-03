@@ -326,10 +326,12 @@ function RelationshipListItem({
  * `data` directly.
  */
 function resolveValidEdges(data: VisualizationData | null | undefined) {
-  if (!data || !Array.isArray(data.nodes) || !Array.isArray(data.edges)) {
+  const nodes = data?.nodes;
+  const edges = data?.edges;
+  if (!Array.isArray(nodes) || !Array.isArray(edges)) {
     return [];
   }
-  return buildValidEdges(data.nodes, data.edges);
+  return buildValidEdges(nodes, edges);
 }
 
 /**

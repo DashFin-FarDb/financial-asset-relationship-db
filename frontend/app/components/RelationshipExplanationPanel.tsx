@@ -462,6 +462,14 @@ type ViewState =
       history: AssertionHistory;
     }>;
 
+/** Resolve the governed assertion id (if any) that a relationship refers to. */
+function resolveAssertionId(
+  relationship: ExplainableRelationship | null,
+): string | null {
+  if (relationship?.governance_status !== "governed") return null;
+  return relationship.assertion_id ?? null;
+}
+
 /**
  * Pure derivation of the panel's view state from its inputs. Extracted so
  * `RelationshipExplanationPanel` itself only has to switch on the result,
@@ -474,10 +482,10 @@ function resolveViewState(
   if (!relationship) return { kind: "empty" };
 
   const heading = relationshipHeading(relationship);
-  const isGoverned = relationship.governance_status === "governed";
-  if (!isGoverned) return { kind: "legacy", heading };
-
-  const assertionId = relationship.assertion_id ?? null;
+  const assertionId = resolveAssertionId(relationship);
+  if (relationship.governance_status !== "governed") {
+    return { kind: "legacy", heading };
+  }
   if (!assertionId) return { kind: "pending", heading };
 
   // "Loading" is derived, not stored: if there is no settled result yet, or
@@ -499,20 +507,11 @@ function resolveViewState(
 }
 
 /**
- * Renders the governed explanation (evidence, authority, time, confidence,
- * supersession, and publication scope) for a selected relationship edge, or a
- * bounded legacy/unavailable/loading state when governance facts cannot be
- * shown. Never displays evidence bodies, restricted references, or invented
- * `CURRENT`/production-proof claims.
+ * Render the subcomponent matching a resolved `ViewState`. Kept as its own
+ * function so the switch's branches contribute to this function's
+ * complexity budget, not `RelationshipExplanationPanel`'s.
  */
-export default function RelationshipExplanationPanel({
-  relationship,
-}: RelationshipExplanationPanelProps) {
-  const isGoverned = relationship?.governance_status === "governed";
-  const assertionId = isGoverned ? (relationship?.assertion_id ?? null) : null;
-  const result = useAssertionResult(assertionId);
-  const view = resolveViewState(relationship, result);
-
+function renderView(view: ViewState) {
   switch (view.kind) {
     case "empty":
       return <EmptySelectionView />;
@@ -536,4 +535,20 @@ export default function RelationshipExplanationPanel({
         />
       );
   }
+}
+
+/**
+ * Renders the governed explanation (evidence, authority, time, confidence,
+ * supersession, and publication scope) for a selected relationship edge, or a
+ * bounded legacy/unavailable/loading state when governance facts cannot be
+ * shown. Never displays evidence bodies, restricted references, or invented
+ * `CURRENT`/production-proof claims.
+ */
+export default function RelationshipExplanationPanel({
+  relationship,
+}: RelationshipExplanationPanelProps) {
+  const assertionId = resolveAssertionId(relationship);
+  const result = useAssertionResult(assertionId);
+  const view = resolveViewState(relationship, result);
+  return renderView(view);
 }
