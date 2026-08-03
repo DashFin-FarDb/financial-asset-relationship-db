@@ -3,9 +3,9 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Literal
+from typing import Literal, Self
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from src.governance.relationship_assertion import (
     AuthorityRole,
@@ -33,6 +33,20 @@ class AssertionProposalRequest(BaseModel):
     confidence_type: str | None = None
     confidence_method: str | None = None
     effective_to: datetime | None = None
+
+    @model_validator(mode="after")
+    def validate_effective_interval(self) -> Self:
+        """Reject mixed-awareness and inverted effective intervals."""
+        if self.effective_to is None:
+            return self
+
+        from_is_aware = self.effective_from.utcoffset() is not None
+        to_is_aware = self.effective_to.utcoffset() is not None
+        if from_is_aware != to_is_aware:
+            raise ValueError("effective_from and effective_to must use matching timezone awareness")
+        if self.effective_to < self.effective_from:
+            raise ValueError("effective_to must not precede effective_from")
+        return self
 
 
 class AssertionDecisionRequest(BaseModel):
@@ -120,7 +134,7 @@ class AssertionReadResponse(BaseModel):
 
 
 class AssertionPublicEventResponse(BaseModel):
-    """Public lifecycle event view with sensitive audit fields removed."""
+    """Identity-redacted lifecycle event safe for public history responses."""
 
     model_config = ConfigDict(extra="forbid")
 
@@ -135,7 +149,7 @@ class AssertionPublicEventResponse(BaseModel):
 
 
 class AssertionHistoryResponse(BaseModel):
-    """Immutable ordered assertion lifecycle history."""
+    """Public immutable assertion history response."""
 
     model_config = ConfigDict(extra="forbid")
 
@@ -150,7 +164,7 @@ class AssertionHistoryResponse(BaseModel):
 
 
 class AssertionCommandResponse(BaseModel):
-    """Command endpoint result payload."""
+    """Response for proposal, decision, and supersession commands."""
 
     model_config = ConfigDict(extra="forbid")
 
