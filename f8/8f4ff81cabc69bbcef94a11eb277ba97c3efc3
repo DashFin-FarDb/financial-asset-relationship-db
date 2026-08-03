@@ -1,0 +1,23 @@
+tests/unit/test_relationship_index_publication_binding.py
+  s_c7d30c1af3d543::t_888493bb2069d1 180-217
+api/services/relationship_index.py
+  s_c7d30c1af3d543::t_4be4481081edbe 296-300
+tests/unit/conftest.py
+  s_c7d30c1af3d543::t_5b3c7cf457702e 10
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.20",
+  "base_commit_sha": "f88f4ff81cabc69bbcef94a11eb277ba97c3efc3",
+  "prompts": {},
+  "sessions": {
+    "s_c7d30c1af3d543": {
+      "agent_id": {
+        "tool": "github-copilot-cli",
+        "id": "12131665-f27d-4ae1-8191-d6b00d9907cd",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}
