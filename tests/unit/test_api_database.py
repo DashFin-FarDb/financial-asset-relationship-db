@@ -192,6 +192,7 @@ class TestConnectionManagement:
 
             # Should be same connection for memory DB
             assert conn1_id == conn2_id
+            _close_memory_connection_cache()
 
     def test_file_connection_is_new_each_time(self, tmp_path):
         """Test that file-based connections are new each time."""
