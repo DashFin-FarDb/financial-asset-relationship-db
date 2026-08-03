@@ -431,6 +431,8 @@ def load_governed_relationship_index(graph: AssetRelationshipGraph) -> GovernedR
                 detail="Graph persistence database is misconfigured",
             ) from exc
         except (GraphPersistenceNotConfiguredError, GraphPersistenceNonDurableError):
+            # Expected for managed startup graphs without durable governance persistence:
+            # optional governance metadata is omitted in this path.
             pass
         return {}
 
