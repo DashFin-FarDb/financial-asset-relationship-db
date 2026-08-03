@@ -63,12 +63,31 @@ class _GovernanceRouteCase:
 @pytest.mark.unit
 def test_governance_contract_failure_propagates_from_loader(monkeypatch: pytest.MonkeyPatch) -> None:
     """Unexpected contract failures propagate instead of producing legacy metadata."""
-    published = cast(
+    now = datetime.now(tz=timezone.utc)
+    persisted = cast(
         PersistedProjectionRevision,
         SimpleNamespace(
-            revision=SimpleNamespace(governed_scopes=(), edges=()),
             revision_id="revision-test",
+            edge_ids=(),
+            revision=SimpleNamespace(
+                purpose="financial_graph_current_view",
+                effective_at=now,
+                known_at=now,
+                contract_version="contract.v1",
+                projector_version="projector.v1",
+                edge_set_hash="0" * 64,
+                projection_hash="1" * 64,
+                governed_scopes=(),
+                edges=(),
+            ),
         ),
+    )
+    published = SimpleNamespace(
+        persisted=persisted,
+        publication_id="publication-test",
+        rebuild_job_id="job-test",
+        execution_id="exec-test",
+        published_at=now,
     )
     legacy_settings = SimpleNamespace(database_url="unused")
     monkeypatch.setattr(relationship_index_service, "get_graph_lifecycle_settings", lambda: legacy_settings)
@@ -80,7 +99,7 @@ def test_governance_contract_failure_propagates_from_loader(monkeypatch: pytest.
     )
     monkeypatch.setattr(
         relationship_index_service.RelationshipAssertionRepository,
-        "latest_published_projection",
+        "latest_published_projection_record",
         lambda _repository, _purpose: published,
     )
 
@@ -100,11 +119,23 @@ def test_runtime_graph_replacement_invalidates_index_while_contract_stays_cached
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """A fresh runtime graph reloads governance while reusing the immutable contract bundle."""
-    published = cast(
+    now = datetime.now(tz=timezone.utc)
+    persisted = cast(
         PersistedProjectionRevision,
         SimpleNamespace(
-            revision=SimpleNamespace(governed_scopes=(), edges=()),
             revision_id="revision-test",
+            edge_ids=(),
+            revision=SimpleNamespace(
+                purpose="financial_graph_current_view",
+                effective_at=now,
+                known_at=now,
+                contract_version="contract.v1",
+                projector_version="projector.v1",
+                edge_set_hash="0" * 64,
+                projection_hash="1" * 64,
+                governed_scopes=(),
+                edges=(),
+            ),
         ),
     )
     settings = SimpleNamespace(asset_graph_database_url="unused", database_url=None)
@@ -113,6 +144,18 @@ def test_runtime_graph_replacement_invalidates_index_while_contract_stays_cached
         relationship_index_service,
         "resolve_durable_graph_persistence_url",
         lambda _url: "sqlite:///:memory:",
+    )
+    published = SimpleNamespace(
+        persisted=persisted,
+        publication_id="publication-test",
+        rebuild_job_id="job-test",
+        execution_id="exec-test",
+        published_at=now,
+    )
+    monkeypatch.setattr(
+        relationship_index_service.RelationshipAssertionRepository,
+        "latest_published_projection_record",
+        lambda _repository, _purpose: published,
     )
     bundle = relationship_index_service.load_contract_bundle()
     contract_loads = 0
@@ -124,10 +167,10 @@ def test_runtime_graph_replacement_invalidates_index_while_contract_stays_cached
         contract_loads += 1
         return bundle
 
-    def load_projection(
+    def load_projection_record(
         _repository: RelationshipAssertionRepository,
         _purpose: str,
-    ) -> PersistedProjectionRevision:
+    ) -> SimpleNamespace:
         """Count published projection loads while returning the bounded test revision."""
         nonlocal projection_loads
         projection_loads += 1
@@ -136,8 +179,8 @@ def test_runtime_graph_replacement_invalidates_index_while_contract_stays_cached
     monkeypatch.setattr(relationship_index_service, "load_contract_bundle", recording_load)
     monkeypatch.setattr(
         relationship_index_service.RelationshipAssertionRepository,
-        "latest_published_projection",
-        load_projection,
+        "latest_published_projection_record",
+        load_projection_record,
     )
     first_graph = AssetRelationshipGraph()
     replacement_graph = AssetRelationshipGraph()
@@ -160,10 +203,11 @@ def test_cache_primed_read_is_refreshed_after_admin_publication(
     monkeypatch.setattr(visualization_router, "get_graph", lambda: graph)
 
     state = {"assertion_id": "assertion-v1", "revision_id": "revision-v1"}
+    now = datetime.now(tz=timezone.utc)
 
-    def load_published_index() -> relationship_index_service.GovernedRelationshipIndex:
-        """Return the currently published relationship metadata for cache behavior checks."""
-        return {
+    def load_published_snapshot() -> relationship_index_service.PublishedRelationshipSnapshot:
+        """Return currently published relationship metadata for cache behavior checks."""
+        index = {
             ("BOND", "ISSUER", "issuer_link"): {
                 "assertion_id": state["assertion_id"],
                 "governance_status": "governed",
@@ -171,11 +215,38 @@ def test_cache_primed_read_is_refreshed_after_admin_publication(
                 "scope_refs": ["financial.bond.issuer_reference@1"],
             }
         }
+        publication = relationship_index_service.PublishedProjectionContext(
+            publication_id="publication-test",
+            revision_id=state["revision_id"],
+            rebuild_job_id="job-test",
+            execution_id="exec-test",
+            published_at=now,
+            purpose="financial_graph_current_view",
+            effective_at=now,
+            known_at=now,
+            contract_version="contract.v1",
+            projector_version="projector.v1",
+            edge_set_hash="0" * 64,
+            projection_hash="1" * 64,
+            governed_scopes=(),
+        )
+        bindings = {
+            ("BOND", "ISSUER", "issuer_link"): relationship_index_service.ProjectionEdgeBinding(
+                projection_edge_id="projection-edge-test",
+                orientation="canonical",
+                metadata=index[("BOND", "ISSUER", "issuer_link")],
+            )
+        }
+        return relationship_index_service.PublishedRelationshipSnapshot(
+            publication=publication,
+            governance_index=index,
+            projection_bindings=bindings,
+        )
 
     monkeypatch.setattr(
         relationship_index_service,
-        "_load_governed_relationship_index_from_persistence",
-        load_published_index,
+        "_load_governed_relationship_snapshot_from_persistence",
+        load_published_snapshot,
     )
     relationship_index_service.invalidate_governed_relationship_index_cache()
 
@@ -270,7 +341,12 @@ def test_governance_failure_reaches_route_error_handler(
         """Simulate a governance persistence or contract outage."""
         raise RuntimeError("governance load failed")
 
-    monkeypatch.setattr(case.route_module, "load_governed_relationship_index", fail_governance_load)
+    attribute_name = (
+        "load_governed_relationship_snapshot"
+        if case.route_module is visualization_router
+        else "load_governed_relationship_index"
+    )
+    monkeypatch.setattr(case.route_module, attribute_name, fail_governance_load)
 
     response = client.get(case.path)
     _assert_error_response(response, 500, "An internal error occurred. Please try again later.")
@@ -302,11 +378,23 @@ def test_bidirectional_governed_edge_indexes_both_runtime_directions() -> None:
         direction="bidirectional",
         assertion_id="assertion-test",
     )
-    published = SimpleNamespace(
-        revision_id="revision-test",
-        revision=SimpleNamespace(
-            edges=(edge,),
-            governed_scopes=(SimpleNamespace(predicate_id="predicate-test"),),
+    now = datetime.now(tz=timezone.utc)
+    persisted = cast(
+        PersistedProjectionRevision,
+        SimpleNamespace(
+            revision_id="revision-test",
+            edge_ids=("projection-edge-id",),
+            revision=SimpleNamespace(
+                purpose="financial_graph_current_view",
+                effective_at=now,
+                known_at=now,
+                contract_version="contract.v1",
+                projector_version="projector.v1",
+                edge_set_hash="0" * 64,
+                projection_hash="1" * 64,
+                edges=(edge,),
+                governed_scopes=(SimpleNamespace(predicate_id="predicate-test"),),
+            ),
         ),
     )
     predicates = SimpleNamespace(
@@ -317,12 +405,29 @@ def test_bidirectional_governed_edge_indexes_both_runtime_directions() -> None:
             ),
         )
     )
+    publication = relationship_index_service.PublishedProjectionContext(
+        publication_id="publication-test",
+        revision_id="revision-test",
+        rebuild_job_id="job-test",
+        execution_id="exec-test",
+        published_at=now,
+        purpose="financial_graph_current_view",
+        effective_at=now,
+        known_at=now,
+        contract_version="contract.v1",
+        projector_version="projector.v1",
+        edge_set_hash="0" * 64,
+        projection_hash="1" * 64,
+        governed_scopes=(),
+    )
 
-    index = relationship_index_service._published_relationship_index(
-        cast(PersistedProjectionRevision, published),
+    snapshot = relationship_index_service._published_relationship_snapshot(
+        persisted,
+        publication,
         cast(PredicatesDocument, predicates),
         {"assertion-test": "predicate-test"},
     )
+    index = snapshot.governance_index
 
     assert index[("BOND", "ISSUER", "issuer_link")] == index[("ISSUER", "BOND", "issuer_link")]
     assert index[("ISSUER", "BOND", "issuer_link")]["assertion_id"] == "assertion-test"
@@ -380,8 +485,8 @@ def test_in_flight_load_from_prior_generation_cannot_restore_stale_cache(
     worker_results: list[relationship_index_service.GovernedRelationshipIndex] = []
     worker_errors: list[Exception] = []
 
-    def load_from_persistence() -> relationship_index_service.GovernedRelationshipIndex:
-        """Block the first persistence read and return fresh data thereafter."""
+    def load_from_persistence() -> relationship_index_service.PublishedRelationshipSnapshot:
+        """Block first persistence read and return fresh governed snapshots thereafter."""
         nonlocal persistence_loads
         persistence_loads += 1
 
@@ -389,9 +494,17 @@ def test_in_flight_load_from_prior_generation_cannot_restore_stale_cache(
             load_started.set()
             if not release_stale_load.wait(timeout=5):
                 raise TimeoutError("Timed out waiting to release stale load")
-            return stale_index
+            return relationship_index_service.PublishedRelationshipSnapshot(
+                publication=None,
+                governance_index=stale_index,
+                projection_bindings={},
+            )
 
-        return fresh_index
+        return relationship_index_service.PublishedRelationshipSnapshot(
+            publication=None,
+            governance_index=fresh_index,
+            projection_bindings={},
+        )
 
     def run_in_flight_load() -> None:
         """Capture the result or exception from the pre-invalidation load."""
@@ -402,7 +515,7 @@ def test_in_flight_load_from_prior_generation_cannot_restore_stale_cache(
 
     monkeypatch.setattr(
         relationship_index_service,
-        "_load_governed_relationship_index_from_persistence",
+        "_load_governed_relationship_snapshot_from_persistence",
         load_from_persistence,
     )
 

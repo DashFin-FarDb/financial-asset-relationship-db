@@ -796,10 +796,72 @@ class RelationshipAssertionRepository:
         """Load scopes from the latest successfully published revision."""
         return ProjectionRevisionStore(self._session, clock=self._clock).latest_published_scopes(purpose)
 
-    def latest_published_projection(self, purpose: str) -> PersistedProjectionRevision | None:
-        """Load the latest successful projection publication for ``purpose``."""
-        revision_id = self._session.execute(
-            select(RelationshipProjectionPublicationORM.revision_id)
+    def _require_publication_execution_id(self, execution_id: str | None) -> str:
+        """Return a persisted publication execution id or fail closed."""
+        if not isinstance(execution_id, str) or not execution_id.strip():
+            raise ValidationError("published projection execution_id must be non-null and non-empty")
+        return execution_id
+
+    def _published_projection_from_orm(
+        self,
+        publication: RelationshipProjectionPublicationORM,
+    ) -> PublishedProjectionRevision:
+        """Map one succeeded publication ORM row into the read model contract."""
+        persisted = self.get_projection_revision(publication.revision_id)
+        if persisted is None:
+            raise ValidationError("published projection references missing revision")
+        published_at = _as_utc(publication.published_at)
+        if published_at is None:
+            raise ValidationError("published projection published_at is required")
+        return PublishedProjectionRevision(
+            persisted=persisted,
+            publication_id=publication.id,
+            rebuild_job_id=publication.rebuild_job_id,
+            execution_id=self._require_publication_execution_id(publication.execution_id),
+            published_at=published_at,
+        )
+
+    def _require_single_publication_for_rebuild_job(self, purpose: str, rebuild_job_id: str) -> None:
+        """Fail closed when one succeeded rebuild owns multiple publication rows."""
+        count = self._session.execute(
+            select(func.count())
+            .select_from(RelationshipProjectionPublicationORM)
+            .join(
+                RelationshipProjectionRevisionORM,
+                RelationshipProjectionRevisionORM.id == RelationshipProjectionPublicationORM.revision_id,
+            )
+            .join(
+                RebuildJobORM,
+                RebuildJobORM.job_id == RelationshipProjectionPublicationORM.rebuild_job_id,
+            )
+            .where(RelationshipProjectionRevisionORM.purpose == purpose)
+            .where(RebuildJobORM.status == "succeeded")
+            .where(RelationshipProjectionPublicationORM.rebuild_job_id == rebuild_job_id)
+        ).scalar_one()
+        if count > 1:
+            raise ValidationError(
+                f"published projection has impossible cardinality for rebuild job {rebuild_job_id}: {count}"
+            )
+
+    def get_published_projection(self, publication_id: str) -> PublishedProjectionRevision | None:
+        """Load one succeeded publication by publication id."""
+        publication = self._session.execute(
+            select(RelationshipProjectionPublicationORM)
+            .join(
+                RebuildJobORM,
+                RebuildJobORM.job_id == RelationshipProjectionPublicationORM.rebuild_job_id,
+            )
+            .where(RelationshipProjectionPublicationORM.id == publication_id)
+            .where(RebuildJobORM.status == "succeeded")
+        ).scalar_one_or_none()
+        if publication is None:
+            return None
+        return self._published_projection_from_orm(publication)
+
+    def latest_published_projection_record(self, purpose: str) -> PublishedProjectionRevision | None:
+        """Load the latest succeeded publication record for ``purpose``."""
+        publication = self._session.execute(
+            select(RelationshipProjectionPublicationORM)
             .join(
                 RelationshipProjectionRevisionORM,
                 RelationshipProjectionRevisionORM.id == RelationshipProjectionPublicationORM.revision_id,
@@ -817,7 +879,15 @@ class RelationshipAssertionRepository:
             )
             .limit(1)
         ).scalar_one_or_none()
-        return None if revision_id is None else self.get_projection_revision(revision_id)
+        if publication is None:
+            return None
+        self._require_single_publication_for_rebuild_job(purpose, publication.rebuild_job_id)
+        return self._published_projection_from_orm(publication)
+
+    def latest_published_projection(self, purpose: str) -> PersistedProjectionRevision | None:
+        """Load the latest successful projection publication for ``purpose``."""
+        published = self.latest_published_projection_record(purpose)
+        return None if published is None else published.persisted
 
     def next_publication_time(self, purpose: str) -> datetime:
         """Return a database-derived timestamp ordered after prior successful publications."""
