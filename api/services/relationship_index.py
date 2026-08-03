@@ -39,6 +39,8 @@ from ..graph_lifecycle_providers import (
 )
 
 _GRAC_CURRENT_PURPOSE = "financial_graph_current_view"
+_GRAPH_PERSISTENCE_MISCONFIGURED_DETAIL = "Graph persistence database is misconfigured"
+_GRAPH_PERSISTENCE_UNAVAILABLE_DETAIL = "Graph persistence database is unavailable"
 _IN_CLAUSE_CHUNK_SIZE = 400
 _cache_generation_lock = Lock()
 _persistence_runtime_lock = Lock()
@@ -291,7 +293,7 @@ def _latest_published_projection_binding_from_persistence() -> PublicationBindin
     except GraphPersistenceInvalidUrlError as exc:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="Graph persistence database is misconfigured",
+            detail=_GRAPH_PERSISTENCE_MISCONFIGURED_DETAIL,
         ) from exc
     except (GraphPersistenceNotConfiguredError, GraphPersistenceNonDurableError):
         # Optional governance persistence with no durable backing: callers already
@@ -301,7 +303,7 @@ def _latest_published_projection_binding_from_persistence() -> PublicationBindin
     except SQLAlchemyError as exc:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="Graph persistence database is unavailable",
+            detail=_GRAPH_PERSISTENCE_UNAVAILABLE_DETAIL,
         ) from exc
 
 
@@ -320,14 +322,14 @@ def _load_governed_relationship_index_for_revision(revision_id: str) -> Governed
     except GraphPersistenceInvalidUrlError as exc:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="Graph persistence database is misconfigured",
+            detail=_GRAPH_PERSISTENCE_MISCONFIGURED_DETAIL,
         ) from exc
     except (GraphPersistenceNotConfiguredError, GraphPersistenceNonDurableError):
         return {}
     except SQLAlchemyError as exc:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="Graph persistence database is unavailable",
+            detail=_GRAPH_PERSISTENCE_UNAVAILABLE_DETAIL,
         ) from exc
 
 
@@ -343,14 +345,14 @@ def _load_governed_relationship_index_from_persistence() -> GovernedRelationship
     except GraphPersistenceInvalidUrlError as exc:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="Graph persistence database is misconfigured",
+            detail=_GRAPH_PERSISTENCE_MISCONFIGURED_DETAIL,
         ) from exc
     except (GraphPersistenceNotConfiguredError, GraphPersistenceNonDurableError):
         return {}
     except SQLAlchemyError as exc:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="Graph persistence database is unavailable",
+            detail=_GRAPH_PERSISTENCE_UNAVAILABLE_DETAIL,
         ) from exc
 
 
@@ -426,7 +428,7 @@ def load_governed_relationship_index(graph: AssetRelationshipGraph) -> GovernedR
         except GraphPersistenceInvalidUrlError as exc:
             raise HTTPException(
                 status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-                detail="Graph persistence database is misconfigured",
+                detail=_GRAPH_PERSISTENCE_MISCONFIGURED_DETAIL,
             ) from exc
         except (GraphPersistenceNotConfiguredError, GraphPersistenceNonDurableError):
             # Expected for managed startup graphs without durable governance persistence:
