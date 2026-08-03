@@ -337,6 +337,15 @@ def _assertion_read_response(
     )
 
 
+def _as_utc(value: datetime | None) -> datetime | None:
+    """Normalize a client-supplied bitemporal bound to UTC."""
+    if value is None:
+        return None
+    if value.utcoffset() is None:
+        return value.replace(tzinfo=_UTC)
+    return value.astimezone(_UTC)
+
+
 def _resolve_proposer_user_from_token(token: str, request: Request) -> User:
     """Resolve and validate the separately authenticated supersession proposer."""
     username = _decode_username_from_token(
@@ -374,7 +383,7 @@ def _supersession_authority_contexts(
 
 
 @router.post("/api/assertions")
-async def create_assertion(
+def create_assertion(
     payload: AssertionProposalRequest,
     request: Request,
     current_user: Annotated[User, Depends(get_current_active_user)],
@@ -411,7 +420,7 @@ async def create_assertion(
 
 
 @router.post("/api/assertions/{assertion_id}/decisions")
-async def decide_assertion(
+def decide_assertion(
     assertion_id: str,
     payload: AssertionDecisionRequest,
     request: Request,
@@ -456,7 +465,7 @@ async def decide_assertion(
 
 
 @router.post("/api/assertions/{assertion_id}/supersessions")
-async def supersede_assertion(
+def supersede_assertion(
     assertion_id: str,
     payload: AssertionSupersessionRequest,
     authority: Annotated[SupersessionAuthorityContexts, Depends(_supersession_authority_contexts)],
@@ -500,7 +509,7 @@ async def supersede_assertion(
 
 
 @router.get("/api/assertions/{assertion_id}")
-async def get_assertion(
+def get_assertion(
     assertion_id: str,
     known_at: Annotated[datetime | None, Query()] = None,
     effective_at: Annotated[datetime | None, Query()] = None,
@@ -510,8 +519,8 @@ async def get_assertion(
         repo = RelationshipAssertionRepository(session)
         as_of = repo.get_as_of(
             assertion_id,
-            known_at=(known_at or datetime.now(tz=_UTC)),
-            effective_at=effective_at,
+            known_at=(_as_utc(known_at) or datetime.now(tz=_UTC)),
+            effective_at=_as_utc(effective_at),
         )
         if as_of is None:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"unknown assertion_id: {assertion_id}")
@@ -519,7 +528,7 @@ async def get_assertion(
 
 
 @router.get("/api/assertions/{assertion_id}/history")
-async def get_assertion_history(
+def get_assertion_history(
     assertion_id: str,
     known_at: Annotated[datetime | None, Query()] = None,
     effective_at: Annotated[datetime | None, Query()] = None,
@@ -529,8 +538,8 @@ async def get_assertion_history(
         repo = RelationshipAssertionRepository(session)
         as_of = repo.get_as_of(
             assertion_id,
-            known_at=(known_at or datetime.now(tz=_UTC)),
-            effective_at=effective_at,
+            known_at=(_as_utc(known_at) or datetime.now(tz=_UTC)),
+            effective_at=_as_utc(effective_at),
         )
         if as_of is None:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"unknown assertion_id: {assertion_id}")
