@@ -293,11 +293,11 @@ def _latest_published_projection_binding_from_persistence() -> PublicationBindin
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="Graph persistence database is misconfigured",
         ) from exc
-    except (GraphPersistenceNotConfiguredError, GraphPersistenceNonDurableError) as exc:
-        raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="Graph persistence database is not configured",
-        ) from exc
+    except (GraphPersistenceNotConfiguredError, GraphPersistenceNonDurableError):
+        # Optional governance persistence with no durable backing: callers already
+        # treat a missing publication binding as "omit optional governance metadata",
+        # so surface the same signal here instead of failing closed with a 503.
+        return None
     except SQLAlchemyError as exc:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,

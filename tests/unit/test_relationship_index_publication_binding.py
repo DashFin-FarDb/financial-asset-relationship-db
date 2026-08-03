@@ -177,6 +177,44 @@ def test_stale_in_flight_graph_remains_bound_to_its_original_job(
         relationship_index.load_governed_relationship_index(graph)
 
 
+@pytest.mark.parametrize(
+    "error",
+    [
+        relationship_index.GraphPersistenceNotConfiguredError("not configured"),
+        relationship_index.GraphPersistenceNonDurableError("non-durable"),
+    ],
+)
+def test_latest_publication_binding_omits_optional_governance_without_durable_persistence(
+    monkeypatch: pytest.MonkeyPatch,
+    error: Exception,
+) -> None:
+    """Optional, unconfigured, or non-durable governance persistence yields no binding."""
+
+    def raise_error() -> None:
+        raise error
+
+    monkeypatch.setattr(relationship_index, "_governance_session_factory", raise_error)
+
+    assert relationship_index._latest_published_projection_binding_from_persistence() is None
+
+
+def test_latest_publication_binding_still_fails_closed_for_invalid_url(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A genuinely misconfigured persistence URL remains a 503, not a silent omission."""
+
+    def raise_error() -> None:
+        raise relationship_index.GraphPersistenceInvalidUrlError("invalid url")
+
+    monkeypatch.setattr(relationship_index, "_governance_session_factory", raise_error)
+
+    with pytest.raises(HTTPException) as exc_info:
+        relationship_index._latest_published_projection_binding_from_persistence()
+
+    assert exc_info.value.status_code == status.HTTP_503_SERVICE_UNAVAILABLE
+    assert exc_info.value.detail == "Graph persistence database is misconfigured"
+
+
 def test_unmanaged_graph_retains_isolated_loader_path(monkeypatch: pytest.MonkeyPatch) -> None:
     """Test and tool graphs without lifecycle ownership keep the bounded legacy path."""
     graph = AssetRelationshipGraph()

@@ -7,6 +7,7 @@ from collections.abc import Iterator
 import pytest
 
 _DATABASE_RELOAD_TEST_MODULES = {
+    "test_api_database.py",
     "test_database_memory.py",
     "test_postgres_support.py",
 }
