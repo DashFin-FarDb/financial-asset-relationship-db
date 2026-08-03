@@ -452,7 +452,7 @@ export default function RelationshipExplanationPanel({
   // "Loading" is derived, not stored: if there is no settled result yet, or
   // the settled result belongs to a superseded request key, render the
   // loading view rather than briefly flashing stale content.
-  if (!result || result.requestKey !== assertionId) {
+  if (result?.requestKey !== assertionId) {
     return <LoadingView heading={heading} />;
   }
 
