@@ -471,7 +471,7 @@ class RelationshipAssertionRepository:
         ).scalar_one()
         return _as_utc(value)
 
- def _next_assertion_time(
+    def _next_assertion_time(
         self,
         assertion_id: str,
         *,
