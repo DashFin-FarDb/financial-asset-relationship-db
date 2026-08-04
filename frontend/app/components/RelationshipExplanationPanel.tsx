@@ -177,9 +177,7 @@ function UnavailableView({ heading }: Readonly<{ heading: string }>) {
   );
 }
 
-function normalizeIdentifier(
-  value: string | null | undefined,
-): string | null {
+function normalizeIdentifier(value: string | null | undefined): string | null {
   if (typeof value !== "string") return null;
   const normalized = value.trim();
   return normalized.length > 0 ? normalized : null;
@@ -360,8 +358,7 @@ function LifecycleHistory({
             {event.successor_assertion_id && (
               <span className="text-xs text-gray-500">
                 {" "}
-                {"—"} superseded by assertion{" "}
-                {event.successor_assertion_id}
+                {"—"} superseded by assertion {event.successor_assertion_id}
               </span>
             )}
           </li>
