@@ -231,7 +231,7 @@ jobs:
         working-directory: proof-source
         run: |
           DEPLOYED_SHA_VAR="${{ inputs.deployed_sha }}"
-          
+
           if [ -f staging-proof-result.json ]; then
             # Add run metadata to the result
             python3 - <<EOF
@@ -277,7 +277,7 @@ jobs:
             echo "## ✗ Staging Proof Failed" >> $GITHUB_STEP_SUMMARY
             echo "Result file was not generated" >> $GITHUB_STEP_SUMMARY
             exit 1
-          
+
           # Set deployed SHA in environment for safe use in Python
           export DEPLOYED_SHA_SAFE="${{ inputs.deployed_sha }}"
           fi
