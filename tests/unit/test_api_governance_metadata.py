@@ -563,6 +563,14 @@ def test_validation_error_in_governance_persistence_returns_503(
     """A ValidationError during governance load fails closed with a 503."""
     from src.governance.relationship_assertion import ValidationError
 
+    settings = SimpleNamespace(asset_graph_database_url="sqlite:///durable_test.db", database_url=None)
+    monkeypatch.setattr(relationship_index_service, "get_graph_lifecycle_settings", lambda: settings)
+    monkeypatch.setattr(
+        relationship_index_service,
+        "_runtime_graph_publication_binding",
+        lambda graph: (False, None),
+    )
+
     def mock_latest_published_projection_record(*args: object, **kwargs: object) -> None:
         raise ValidationError("inconsistent publication data")
 
@@ -590,6 +598,14 @@ def test_pydantic_validation_error_in_governance_persistence_returns_503(
     """A Pydantic ValidationError during governance load fails closed with a 503."""
     from pydantic import BaseModel
     from pydantic import ValidationError as PydanticValidationError
+
+    settings = SimpleNamespace(asset_graph_database_url="sqlite:///durable_test.db", database_url=None)
+    monkeypatch.setattr(relationship_index_service, "get_graph_lifecycle_settings", lambda: settings)
+    monkeypatch.setattr(
+        relationship_index_service,
+        "_runtime_graph_publication_binding",
+        lambda graph: (False, None),
+    )
 
     class Dummy(BaseModel):
         x: int

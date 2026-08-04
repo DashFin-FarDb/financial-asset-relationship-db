@@ -451,15 +451,19 @@ function useAssertionResult(
   publicationId: string | null | undefined,
 ): PanelResult | null {
   const [result, setResult] = useState<PanelResult | null>(null);
+  const [prevRequestKey, setPrevRequestKey] = useState<string | null>(null);
+
+  const requestKey = (publicationId && projectionEdgeId)
+    ? `pub:${publicationId}:edge:${projectionEdgeId}`
+    : assertionId;
+
+  if (requestKey !== prevRequestKey) {
+    setResult(null);
+    setPrevRequestKey(requestKey);
+  }
 
   useEffect(() => {
-    const requestKey =
-      publicationId && projectionEdgeId
-        ? `pub:${publicationId}:edge:${projectionEdgeId}`
-        : assertionId;
-
     if (!requestKey) {
-      setResult(null);
       return;
     }
 
@@ -474,7 +478,7 @@ function useAssertionResult(
     });
 
     return () => controller.abort();
-  }, [assertionId, projectionEdgeId, publicationId]);
+  }, [assertionId, projectionEdgeId, publicationId, requestKey]);
 
   return result;
 }
