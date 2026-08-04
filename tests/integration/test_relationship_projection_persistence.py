@@ -46,11 +46,13 @@ _T = TypeVar("_T")
 
 
 def _sha256_hex(*chunks: str) -> str:
+    """Compute concatenated sha256 hex string."""
     return "".join(chunks)
 
 
 # PEP 695 type-parameter syntax is a SyntaxError on the Python 3.10/3.11 CI matrix.
 def _require_present(value: _T | None, label: str) -> _T:  # noqa: UP047
+    """Assert that a value is non-None and return it."""
     if value is None:
         raise AssertionError(f"Expected {label} to be present")
     return value
@@ -114,6 +116,7 @@ def repo(projection_engine) -> Iterator[RelationshipAssertionRepository]:
     stamps = {"t": NOW}
 
     def clock() -> datetime:
+        """Return incrementing test timestamps."""
         current = stamps["t"]
         stamps["t"] = current + timedelta(milliseconds=1)
         return current
@@ -124,6 +127,7 @@ def repo(projection_engine) -> Iterator[RelationshipAssertionRepository]:
 
 
 def _ctx(actor_id: str, *roles: str) -> AuthorityContext:
+    """Build an AuthorityContext fixture."""
     return AuthorityContext(
         actor_id=actor_id,
         roles=frozenset(roles),  # type: ignore[arg-type]
@@ -133,6 +137,7 @@ def _ctx(actor_id: str, *roles: str) -> AuthorityContext:
 
 
 def _proposal(assertion_id: str = "as-1", **overrides: object) -> AssertionProposal:
+    """Build an AssertionProposal fixture with default overrides."""
     payload = {
         "assertion_id": assertion_id,
         "predicate_id": PREDICATE_ID,
@@ -147,6 +152,7 @@ def _proposal(assertion_id: str = "as-1", **overrides: object) -> AssertionPropo
 
 
 def _transition(fields: dict[str, object]) -> RepositoryTransitionRequest:
+    """Build a RepositoryTransitionRequest from a dictionary."""
     return RepositoryTransitionRequest(**fields)  # type: ignore[arg-type]
 
 
@@ -418,6 +424,7 @@ def test_projection_revision_rows_are_immutable(repo: RelationshipAssertionRepos
     repo._session.commit()
 
     def _mutate(statement: str) -> None:
+        """Execute a raw SQL mutation statement."""
         repo._session.execute(text(statement))
         repo._session.commit()
 
