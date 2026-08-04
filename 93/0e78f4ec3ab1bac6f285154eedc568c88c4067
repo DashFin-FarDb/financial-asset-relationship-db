@@ -1,0 +1,14 @@
+tests/integration/test_relationship_projection_persistence.py
+  h_f327e6ff3ec3c1 49,55,119,130,140,155,427
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.20",
+  "base_commit_sha": "930e78f4ec3ab1bac6f285154eedc568c88c4067",
+  "prompts": {},
+  "humans": {
+    "h_f327e6ff3ec3c1": {
+      "author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}
