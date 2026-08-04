@@ -229,6 +229,7 @@ def test_published_projection_binding_for_rebuild_job_validation_error_maps_to_5
     """Validation errors during binding resolution map to 503 inconsistent detail."""
 
     def raise_error() -> None:
+        """Raise validation error to simulate inconsistent metadata."""
         raise relationship_index.ValidationError("inconsistent data")
 
     monkeypatch.setattr(relationship_index, "_governance_session_factory", raise_error)
@@ -246,6 +247,7 @@ def test_published_projection_binding_for_rebuild_job_sqlalchemy_error_maps_to_5
     """Database query errors map to 503 unavailable detail."""
 
     def raise_error() -> None:
+        """Raise database error to simulate persistence outage."""
         raise relationship_index.SQLAlchemyError("db down")
 
     monkeypatch.setattr(relationship_index, "_governance_session_factory", raise_error)
@@ -263,25 +265,34 @@ def test_published_projection_binding_for_rebuild_job_success(
     """Successful repository binding returns revision_id and publication_id."""
 
     class FakeRepository:
+        """Fake repository double for publication lookup."""
+
         def __init__(self, _session: object) -> None:
-            pass
+            """Initialize fake repository with session."""
 
         def published_projection_binding_for_rebuild_job(self, rebuild_job_id: str) -> tuple[str, str] | None:
+            """Return publication binding double for rebuild job."""
             if rebuild_job_id == "job-1":
                 return ("rev-1", "pub-1")
             return None
 
     class FakeSession:
+        """Fake session double with transactional lifecycle methods."""
+
         def commit(self) -> None:
-            pass
+            """Simulate session commit."""
 
         def rollback(self) -> None:
-            pass
+            """Simulate session rollback."""
 
         def close(self) -> None:
-            pass
+            """Simulate session close."""
 
-    monkeypatch.setattr(relationship_index, "_governance_session_factory", lambda: (lambda: FakeSession()))
+    def create_fake_session() -> FakeSession:
+        """Return a new fake session double."""
+        return FakeSession()
+
+    monkeypatch.setattr(relationship_index, "_governance_session_factory", lambda: create_fake_session)
     monkeypatch.setattr(relationship_index, "RelationshipAssertionRepository", FakeRepository)
 
     result = relationship_index._published_projection_binding_for_rebuild_job_from_persistence("job-1")
