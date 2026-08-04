@@ -1,0 +1,18 @@
+api/routers/visualization.py
+  h_f327e6ff3ec3c1 87-119,128
+tests/integration/test_relationship_projection_persistence.py
+  h_f327e6ff3ec3c1 430-484
+tests/unit/test_relationship_index_publication_binding.py
+  h_f327e6ff3ec3c1 226-290
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.20",
+  "base_commit_sha": "917be1b29c0ae9c299d9b04f34118aba232ae411",
+  "prompts": {},
+  "humans": {
+    "h_f327e6ff3ec3c1": {
+      "author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}
