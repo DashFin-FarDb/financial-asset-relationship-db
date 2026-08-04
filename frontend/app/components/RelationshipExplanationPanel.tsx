@@ -345,7 +345,8 @@ function PublicationFooter({
         {relationship.scope_refs?.length
           ? relationship.scope_refs.join(", ")
           : "unknown"}
-        {relationship.projection_edge_id && ` | Edge ID: ${relationship.projection_edge_id}`}
+        {relationship.projection_edge_id &&
+          ` | Edge ID: ${relationship.projection_edge_id}`}
       </p>
     </div>
   );
@@ -400,9 +401,10 @@ async function fetchAssertionResult(
   publicationId: string | null | undefined,
   signal: AbortSignal,
 ): Promise<PanelResult | null> {
-  const requestKey = (publicationId && projectionEdgeId)
-    ? `pub:${publicationId}:edge:${projectionEdgeId}`
-    : assertionId;
+  const requestKey =
+    publicationId && projectionEdgeId
+      ? `pub:${publicationId}:edge:${projectionEdgeId}`
+      : assertionId;
 
   if (!requestKey) return null;
 
@@ -411,7 +413,7 @@ async function fetchAssertionResult(
       const response = await api.getPublishedEdgeExplanation(
         publicationId,
         projectionEdgeId,
-        signal
+        signal,
       );
       return signal.aborted
         ? null
@@ -451,9 +453,10 @@ function useAssertionResult(
   const [result, setResult] = useState<PanelResult | null>(null);
 
   useEffect(() => {
-    const requestKey = (publicationId && projectionEdgeId)
-      ? `pub:${publicationId}:edge:${projectionEdgeId}`
-      : assertionId;
+    const requestKey =
+      publicationId && projectionEdgeId
+        ? `pub:${publicationId}:edge:${projectionEdgeId}`
+        : assertionId;
 
     if (!requestKey) {
       setResult(null);
@@ -465,7 +468,7 @@ function useAssertionResult(
       assertionId,
       projectionEdgeId,
       publicationId,
-      controller.signal
+      controller.signal,
     ).then((settled) => {
       if (settled) setResult(settled);
     });
@@ -519,9 +522,10 @@ function resolveViewState(
   }
   if (!assertionId) return { kind: "pending", heading };
 
-  const requestKey = (publicationId && relationship.projection_edge_id)
-    ? `pub:${publicationId}:edge:${relationship.projection_edge_id}`
-    : assertionId;
+  const requestKey =
+    publicationId && relationship.projection_edge_id
+      ? `pub:${publicationId}:edge:${relationship.projection_edge_id}`
+      : assertionId;
 
   // "Loading" is derived, not stored: if there is no settled result yet, or
   // the settled result belongs to a superseded request key, treat it as
@@ -584,7 +588,11 @@ export default function RelationshipExplanationPanel({
   publicationId,
 }: RelationshipExplanationPanelProps) {
   const assertionId = resolveAssertionId(relationship);
-  const result = useAssertionResult(assertionId, relationship?.projection_edge_id, publicationId);
+  const result = useAssertionResult(
+    assertionId,
+    relationship?.projection_edge_id,
+    publicationId,
+  );
   const view = resolveViewState(relationship, result, publicationId);
   return renderView(view);
 }

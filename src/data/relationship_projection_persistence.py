@@ -99,7 +99,7 @@ def _raise_projection_persist_integrity_error(revision_id: str, exc: IntegrityEr
     """Translate projection insert IntegrityError into a domain exception."""
     if _is_foreign_key_integrity_error(exc):
         raise ValidationError(
-            f"projection revision foreign-key violation for {revision_id} " "(check assertion_id references on edges)"
+            f"projection revision foreign-key violation for {revision_id} (check assertion_id references on edges)"
         ) from exc
     raise ConcurrencyConflict(f"projection revision insert conflicted for {revision_id}") from exc
 
