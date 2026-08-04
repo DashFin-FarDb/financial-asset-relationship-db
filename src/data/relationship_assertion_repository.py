@@ -472,32 +472,32 @@ class RelationshipAssertionRepository:
         ).scalar_one()
         return _as_utc(value)
 
-    def _next_assertion_time(
-        self,
-        assertion_id: str,
-        *,
-        after: datetime | None = None,
-    ) -> datetime:
-        """Allocate a timestamp after the assertion's timeline and latest publication."""
-        candidate = self._server_time()
-        floor = self._latest_assertion_recorded_at(assertion_id)
-
-        publication_floor = self._latest_successful_publication_time()
-        if publication_floor is not None and (floor is None or publication_floor > floor):
-            floor = publication_floor
-
-        if after is not None:
-            normalized_after = _server_utc(after)
-            if floor is None or normalized_after > floor:
-                floor = normalized_after
-
-        if floor is None or candidate > floor:
-            return candidate
-
-        try:
-            return floor + timedelta(microseconds=1)
-        except OverflowError as exc:
-            raise ValidationError("assertion event time cannot advance beyond datetime.max") from exc
+        def _next_assertion_time(
+            self,
+            assertion_id: str,
+            *,
+            after: datetime | None = None,
+        ) -> datetime:
+            """Allocate a timestamp after the assertion's timeline and latest publication."""
+            candidate = self._server_time()
+            floor = self._latest_assertion_recorded_at(assertion_id)
+    
+            publication_floor = self._latest_successful_publication_time()
+            if publication_floor is not None and (floor is None or publication_floor > floor):
+                floor = publication_floor
+    
+            if after is not None:
+                normalized_after = _server_utc(after)
+                if floor is None or normalized_after > floor:
+                    floor = normalized_after
+    
+            if floor is None or candidate > floor:
+                return candidate
+    
+            try:
+                return floor + timedelta(microseconds=1)
+            except OverflowError as exc:
+                raise ValidationError("assertion event time cannot advance beyond datetime.max") from exc
 
     def propose(
         self,
