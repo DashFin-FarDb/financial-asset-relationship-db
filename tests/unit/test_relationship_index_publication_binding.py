@@ -37,7 +37,7 @@ def test_managed_graph_fails_closed_until_latest_publication_is_synchronized(
     monkeypatch.setattr(
         relationship_index,
         "_latest_published_projection_binding_from_persistence",
-        lambda: ("job-new", "revision-new"),
+        lambda: ("job-new", "revision-new", "publication-new"),
     )
 
     with pytest.raises(HTTPException) as exc_info:
@@ -93,17 +93,21 @@ def test_managed_graph_checks_shared_version_on_every_read_but_caches_revision(
         lambda _graph: (True, "job-1"),
     )
 
-    def latest_binding() -> tuple[str, str]:
+    def latest_binding() -> tuple[str, str, str]:
         """Count the shared publication-version checks."""
         nonlocal version_checks
         version_checks += 1
-        return "job-1", "revision-1"
+        return "job-1", "revision-1", "publication-1"
 
-    def load_revision(_revision_id: str) -> relationship_index.GovernedRelationshipIndex:
+    def load_snapshot(revision_id: str, publication_id: str) -> relationship_index.PublishedRelationshipSnapshot:
         """Count full metadata index loads for the immutable revision."""
         nonlocal revision_loads
         revision_loads += 1
-        return cast(relationship_index.GovernedRelationshipIndex, expected)
+        return relationship_index.PublishedRelationshipSnapshot(
+            publication=None,
+            governance_index=cast(relationship_index.GovernedRelationshipIndex, expected),
+            projection_bindings={},
+        )
 
     monkeypatch.setattr(
         relationship_index,
@@ -112,8 +116,8 @@ def test_managed_graph_checks_shared_version_on_every_read_but_caches_revision(
     )
     monkeypatch.setattr(
         relationship_index,
-        "_load_governed_relationship_index_for_revision",
-        load_revision,
+        "_load_governed_relationship_snapshot_for_publication",
+        load_snapshot,
     )
 
     assert relationship_index.load_governed_relationship_index(graph) == expected
@@ -128,7 +132,7 @@ def test_stale_in_flight_graph_remains_bound_to_its_original_job(
     """An old graph object fails closed after the lifecycle advances to a new job."""
     graph = AssetRelationshipGraph()
     bindings = iter(((True, "job-old"), (True, "job-old")))
-    publications = iter((("job-old", "revision-old"), ("job-new", "revision-new")))
+    publications = iter((("job-old", "revision-old", "pub-old"), ("job-new", "revision-new", "pub-new")))
 
     def runtime_binding(_graph: AssetRelationshipGraph) -> tuple[bool, str | None]:
         """Return the next runtime binding and fail clearly if the test is exhausted."""
@@ -137,7 +141,7 @@ def test_stale_in_flight_graph_remains_bound_to_its_original_job(
         except StopIteration as exc:
             raise AssertionError("unexpected runtime binding lookup") from exc
 
-    def latest_publication() -> tuple[str, str] | None:
+    def latest_publication() -> tuple[str, str, str] | None:
         """Return the next publication binding and fail clearly if the test is exhausted."""
         try:
             return next(publications)
@@ -156,17 +160,21 @@ def test_stale_in_flight_graph_remains_bound_to_its_original_job(
     )
     monkeypatch.setattr(
         relationship_index,
-        "_load_governed_relationship_index_for_revision",
-        lambda revision_id: cast(
-            relationship_index.GovernedRelationshipIndex,
-            {
-                ("BOND", "ISSUER", "corporate_link"): {
-                    "assertion_id": "assertion-old",
-                    "governance_status": "governed",
-                    "revision_id": revision_id,
-                    "scope_refs": ["financial.bond.issuer_reference@1"],
-                }
-            },
+        "_load_governed_relationship_snapshot_for_publication",
+        lambda revision_id, publication_id: relationship_index.PublishedRelationshipSnapshot(
+            publication=None,
+            governance_index=cast(
+                relationship_index.GovernedRelationshipIndex,
+                {
+                    ("BOND", "ISSUER", "corporate_link"): {
+                        "assertion_id": "assertion-old",
+                        "governance_status": "governed",
+                        "revision_id": revision_id,
+                        "scope_refs": ["financial.bond.issuer_reference@1"],
+                    }
+                },
+            ),
+            projection_bindings={},
         ),
     )
 
@@ -226,15 +234,17 @@ def test_unmanaged_graph_retains_isolated_loader_path(monkeypatch: pytest.Monkey
         lambda _graph: (False, None),
     )
 
-    def load_unmanaged() -> relationship_index.GovernedRelationshipIndex:
+    def load_unmanaged() -> relationship_index.PublishedRelationshipSnapshot:
         """Count loads through the unmanaged compatibility path."""
         nonlocal calls
         calls += 1
-        return {}
+        return relationship_index.PublishedRelationshipSnapshot(
+            publication=None, governance_index={}, projection_bindings={}
+        )
 
     monkeypatch.setattr(
         relationship_index,
-        "_load_governed_relationship_index_from_persistence",
+        "_load_governed_relationship_snapshot_from_persistence",
         load_unmanaged,
     )
 

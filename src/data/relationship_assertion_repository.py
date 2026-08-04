@@ -62,7 +62,7 @@ from src.governance.relationship_assertion_lifecycle import (
     validate_evidence_record,
 )
 from src.logic.reconciliation_engine import RebuildCancelledError
-from src.logic.relationship_projection import GovernedScope
+from src.logic.relationship_projection import GovernedScope, ProjectionEdge
 
 UTC = timezone.utc
 _SUPERSESSION_LOCK_NAMESPACE = 0x46415244
@@ -862,6 +862,50 @@ class RelationshipAssertionRepository:
             published.rebuild_job_id,
         )
         return published
+
+    def get_published_edge(
+        self,
+        publication_id: str,
+        projection_edge_id: str,
+    ) -> tuple[PublishedProjectionRevision, ProjectionEdge] | None:
+        """Load one succeeded publication and a single projection edge without loading all other edges."""
+        publication = self._session.execute(
+            select(RelationshipProjectionPublicationORM)
+            .join(
+                RebuildJobORM,
+                RebuildJobORM.job_id == RelationshipProjectionPublicationORM.rebuild_job_id,
+            )
+            .where(RelationshipProjectionPublicationORM.id == publication_id)
+            .where(RebuildJobORM.status == "succeeded")
+        ).scalar_one_or_none()
+        if publication is None:
+            return None
+
+        persisted = ProjectionRevisionStore(self._session, clock=self._clock).get_with_single_edge(
+            publication.revision_id,
+            projection_edge_id,
+        )
+        if persisted is None:
+            return None
+
+        published_at = _as_utc(publication.published_at)
+        if published_at is None:
+            raise ValidationError("published projection published_at is required")
+
+        published = PublishedProjectionRevision(
+            persisted=persisted,
+            publication_id=publication.id,
+            rebuild_job_id=publication.rebuild_job_id,
+            execution_id=self._require_publication_execution_id(publication.execution_id),
+            published_at=published_at,
+        )
+
+        self._require_single_publication_for_rebuild_job(
+            published.persisted.revision.purpose,
+            published.rebuild_job_id,
+        )
+
+        return published, persisted.revision.edges[0]
 
     def latest_published_projection_record(self, purpose: str) -> PublishedProjectionRevision | None:
         """Load the latest succeeded publication record for ``purpose``."""

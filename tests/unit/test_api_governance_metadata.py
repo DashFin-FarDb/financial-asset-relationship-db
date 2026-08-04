@@ -207,14 +207,13 @@ def test_cache_primed_read_is_refreshed_after_admin_publication(
 
     def load_published_snapshot() -> relationship_index_service.PublishedRelationshipSnapshot:
         """Return currently published relationship metadata for cache behavior checks."""
-        index = {
-            ("BOND", "ISSUER", "issuer_link"): {
-                "assertion_id": state["assertion_id"],
-                "governance_status": "governed",
-                "revision_id": state["revision_id"],
-                "scope_refs": ["financial.bond.issuer_reference@1"],
-            }
+        meta: relationship_index_service.GovernanceMetadata = {
+            "assertion_id": state["assertion_id"],
+            "governance_status": "governed",
+            "revision_id": state["revision_id"],
+            "scope_refs": ["financial.bond.issuer_reference@1"],
         }
+        index: relationship_index_service.GovernedRelationshipIndex = {("BOND", "ISSUER", "issuer_link"): meta}
         publication = relationship_index_service.PublishedProjectionContext(
             publication_id="publication-test",
             revision_id=state["revision_id"],
@@ -551,4 +550,67 @@ def test_in_flight_load_from_prior_generation_cannot_restore_stale_cache(
     finally:
         release_stale_load.set()
         loader.join(timeout=5)
+        relationship_index_service.invalidate_governed_relationship_index_cache()
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize("path", ["/api/relationships", "/api/visualization"])
+def test_validation_error_in_governance_persistence_returns_503(
+    client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+    path: str,
+) -> None:
+    """A ValidationError during governance load fails closed with a 503."""
+    from src.governance.relationship_assertion import ValidationError
+
+    def mock_latest_published_projection_record(*args: object, **kwargs: object) -> None:
+        raise ValidationError("inconsistent publication data")
+
+    monkeypatch.setattr(
+        RelationshipAssertionRepository,
+        "latest_published_projection_record",
+        mock_latest_published_projection_record,
+    )
+    relationship_index_service.invalidate_governed_relationship_index_cache()
+
+    try:
+        response = client.get(path)
+        _assert_error_response(response, 503, "Graph publication metadata is inconsistent")
+    finally:
+        relationship_index_service.invalidate_governed_relationship_index_cache()
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize("path", ["/api/relationships", "/api/visualization"])
+def test_pydantic_validation_error_in_governance_persistence_returns_503(
+    client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+    path: str,
+) -> None:
+    """A Pydantic ValidationError during governance load fails closed with a 503."""
+    from pydantic import BaseModel
+    from pydantic import ValidationError as PydanticValidationError
+
+    class Dummy(BaseModel):
+        x: int
+
+    try:
+        Dummy(x="not-an-int")
+    except PydanticValidationError as err:
+        pydantic_err = err
+
+    def mock_latest_published_projection_record(*args: object, **kwargs: object) -> None:
+        raise pydantic_err
+
+    monkeypatch.setattr(
+        RelationshipAssertionRepository,
+        "latest_published_projection_record",
+        mock_latest_published_projection_record,
+    )
+    relationship_index_service.invalidate_governed_relationship_index_cache()
+
+    try:
+        response = client.get(path)
+        _assert_error_response(response, 503, "Graph publication metadata is inconsistent")
+    finally:
         relationship_index_service.invalidate_governed_relationship_index_cache()

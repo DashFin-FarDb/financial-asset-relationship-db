@@ -12,6 +12,7 @@ from typing import Annotated, NoReturn, cast
 from uuid import uuid4
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Query, Request, status
+from pydantic import ValidationError as PydanticValidationError
 from sqlalchemy import select
 from sqlalchemy.engine import Engine
 from sqlalchemy.exc import SQLAlchemyError
@@ -21,7 +22,6 @@ from src.config.settings import get_settings
 from src.data.database import create_engine_from_url, create_session_factory
 from src.data.relationship_assertion_db_models import RelationshipAssertionORM, RelationshipEvidenceORM
 from src.data.relationship_assertion_repository import (
-    PublishedProjectionRevision,
     RelationshipAssertionRepository,
     RepositoryTransitionRequest,
     SupersedeAtomicRequest,
@@ -53,7 +53,6 @@ from ..assertion_models import (
     AssertionPublicEventResponse,
     AssertionReadResponse,
     AssertionSupersessionRequest,
-    GovernedScopeResponse,
     PublishedAssertionBundleResponse,
     PublishedEdgeExplanationResponse,
     PublishedProjectionContextResponse,
@@ -359,31 +358,6 @@ def _assertion_history_response(as_of: AssertionAsOf) -> AssertionHistoryRespons
     )
 
 
-def _published_projection_context_response(
-    published: PublishedProjectionRevision,
-) -> PublishedProjectionContextResponse:
-    """Build the strict public publication envelope from one persisted publication record."""
-    revision = published.persisted.revision
-    return PublishedProjectionContextResponse(
-        publication_id=published.publication_id,
-        revision_id=published.persisted.revision_id,
-        rebuild_job_id=published.rebuild_job_id,
-        execution_id=published.execution_id,
-        published_at=published.published_at,
-        purpose=revision.purpose,
-        effective_at=revision.effective_at,
-        known_at=revision.known_at,
-        contract_version=revision.contract_version,
-        projector_version=revision.projector_version,
-        edge_set_hash=revision.edge_set_hash,
-        projection_hash=revision.projection_hash,
-        governed_scopes=[
-            GovernedScopeResponse(purpose=scope.purpose, predicate_id=scope.predicate_id)
-            for scope in revision.governed_scopes
-        ],
-    )
-
-
 def _as_utc(value: datetime | None) -> datetime | None:
     """Normalize a client-supplied bitemporal bound to UTC."""
     if value is None:
@@ -602,23 +576,16 @@ def get_published_edge_explanation(
     with _assertion_repository_session() as session:
         repo = RelationshipAssertionRepository(session)
         try:
-            published = repo.get_published_projection(publication_id)
-            if published is None:
+            result = repo.get_published_edge(publication_id, projection_edge_id)
+            if result is None:
                 raise HTTPException(
                     status_code=status.HTTP_404_NOT_FOUND,
                     detail=_PUBLICATION_EDGE_NOT_FOUND_DETAIL,
                 )
+            published, published_edge = result
 
-            published_edge = None
-            for edge_id, edge in zip(published.persisted.edge_ids, published.persisted.revision.edges, strict=True):
-                if edge_id == projection_edge_id:
-                    published_edge = edge
-                    break
-            if published_edge is None:
-                raise HTTPException(
-                    status_code=status.HTTP_404_NOT_FOUND,
-                    detail=_PUBLICATION_EDGE_NOT_FOUND_DETAIL,
-                )
+            if len(published.persisted.edge_ids) != len(published.persisted.revision.edges):
+                raise ValidationError("edge_ids length must match revision.edges")
 
             as_of = repo.get_as_of(
                 published_edge.assertion_id,
@@ -632,7 +599,7 @@ def get_published_edge_explanation(
                 )
 
             return PublishedEdgeExplanationResponse(
-                publication=_published_projection_context_response(published),
+                publication=PublishedProjectionContextResponse.from_source(published),
                 edge=PublishedProjectionEdgeResponse(
                     projection_edge_id=projection_edge_id,
                     source=published_edge.source_id,
@@ -649,7 +616,7 @@ def get_published_edge_explanation(
             )
         except HTTPException:
             raise
-        except ValidationError as exc:
+        except (ValidationError, PydanticValidationError, ValueError) as exc:
             raise HTTPException(
                 status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
                 detail=_PUBLICATION_INCONSISTENT_DETAIL,

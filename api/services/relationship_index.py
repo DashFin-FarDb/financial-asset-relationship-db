@@ -11,6 +11,7 @@ from typing import Literal, TypeAlias, TypedDict
 from weakref import WeakKeyDictionary
 
 from fastapi import HTTPException, status
+from pydantic import ValidationError as PydanticValidationError
 from sqlalchemy import select
 from sqlalchemy.engine import Engine
 from sqlalchemy.exc import SQLAlchemyError
@@ -298,20 +299,25 @@ def _published_relationship_snapshot(
     predicates_by_id = {predicate.id: predicate for predicate in predicates.predicates}
     index: GovernedRelationshipIndex = {}
     projection_bindings: dict[RelationshipKey, ProjectionEdgeBinding] = {}
-    for projection_edge_id, edge in zip(published.edge_ids, published.revision.edges, strict=True):
-        predicate_id = _scope_ref_for_edge(
-            edge,
-            predicates_by_id,
-            assertion_predicates,
-            governed_scope_ids,
-        )
-        metadata: GovernanceMetadata = {
-            "assertion_id": edge.assertion_id,
-            "governance_status": "governed",
-            "revision_id": published.revision_id,
-            "scope_refs": [predicate_id],
-        }
-        _add_governed_edge(index, projection_bindings, projection_edge_id, edge, metadata)
+    if len(published.edge_ids) != len(published.revision.edges):
+        raise ValidationError("edge_ids length must match revision.edges")
+    try:
+        for projection_edge_id, edge in zip(published.edge_ids, published.revision.edges, strict=True):
+            predicate_id = _scope_ref_for_edge(
+                edge,
+                predicates_by_id,
+                assertion_predicates,
+                governed_scope_ids,
+            )
+            metadata: GovernanceMetadata = {
+                "assertion_id": edge.assertion_id,
+                "governance_status": "governed",
+                "revision_id": published.revision_id,
+                "scope_refs": [predicate_id],
+            }
+            _add_governed_edge(index, projection_bindings, projection_edge_id, edge, metadata)
+    except ValueError as exc:
+        raise ValidationError("edge_ids length must match revision.edges") from exc
     return PublishedRelationshipSnapshot(
         publication=publication,
         governance_index=index,
@@ -372,7 +378,7 @@ def _latest_published_projection_binding_from_persistence() -> PublicationBindin
         # treat a missing publication binding as "omit optional governance metadata",
         # so surface the same signal here instead of failing closed with a 503.
         return None
-    except ValidationError as exc:
+    except (ValidationError, PydanticValidationError) as exc:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail=_GRAPH_PUBLICATION_INCONSISTENT_DETAIL,
@@ -412,7 +418,7 @@ def _load_governed_relationship_snapshot_for_publication(
         ) from exc
     except (GraphPersistenceNotConfiguredError, GraphPersistenceNonDurableError):
         return PublishedRelationshipSnapshot(publication=None, governance_index={}, projection_bindings={})
-    except ValidationError as exc:
+    except (ValidationError, PydanticValidationError) as exc:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail=_GRAPH_PUBLICATION_INCONSISTENT_DETAIL,
@@ -441,7 +447,7 @@ def _load_governed_relationship_snapshot_from_persistence() -> PublishedRelation
         ) from exc
     except (GraphPersistenceNotConfiguredError, GraphPersistenceNonDurableError):
         return PublishedRelationshipSnapshot(publication=None, governance_index={}, projection_bindings={})
-    except ValidationError as exc:
+    except (ValidationError, PydanticValidationError) as exc:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail=_GRAPH_PUBLICATION_INCONSISTENT_DETAIL,

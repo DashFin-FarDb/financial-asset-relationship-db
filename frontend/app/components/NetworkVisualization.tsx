@@ -480,7 +480,10 @@ export default function NetworkVisualization({
           selectedKey={selectedKey}
           onSelect={setSelectedKey}
         />
-        <RelationshipExplanationPanel relationship={selectedEdge} />
+        <RelationshipExplanationPanel
+          relationship={selectedEdge}
+          publicationId={data?.publication?.publication_id}
+        />
       </div>
     </div>
   );
