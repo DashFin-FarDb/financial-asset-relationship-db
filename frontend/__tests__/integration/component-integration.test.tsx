@@ -392,8 +392,28 @@ describe("Component Integration Tests", () => {
 
     const dataA = {
       nodes: [
-        { id: "A1", name: "Asset 1", symbol: "A1", asset_class: "EQUITY", x: 1, y: 1, z: 1, color: "red", size: 1 },
-        { id: "A2", name: "Asset 2", symbol: "A2", asset_class: "EQUITY", x: 2, y: 2, z: 2, color: "blue", size: 1 },
+        {
+          id: "A1",
+          name: "Asset 1",
+          symbol: "A1",
+          asset_class: "EQUITY",
+          x: 1,
+          y: 1,
+          z: 1,
+          color: "red",
+          size: 1,
+        },
+        {
+          id: "A2",
+          name: "Asset 2",
+          symbol: "A2",
+          asset_class: "EQUITY",
+          x: 2,
+          y: 2,
+          z: 2,
+          color: "blue",
+          size: 1,
+        },
       ],
       edges: [
         {
@@ -415,8 +435,28 @@ describe("Component Integration Tests", () => {
 
     const dataB = {
       nodes: [
-        { id: "A1", name: "Asset 1", symbol: "A1", asset_class: "EQUITY", x: 1, y: 1, z: 1, color: "red", size: 1 },
-        { id: "A2", name: "Asset 2", symbol: "A2", asset_class: "EQUITY", x: 2, y: 2, z: 2, color: "blue", size: 1 },
+        {
+          id: "A1",
+          name: "Asset 1",
+          symbol: "A1",
+          asset_class: "EQUITY",
+          x: 1,
+          y: 1,
+          z: 1,
+          color: "red",
+          size: 1,
+        },
+        {
+          id: "A2",
+          name: "Asset 2",
+          symbol: "A2",
+          asset_class: "EQUITY",
+          x: 2,
+          y: 2,
+          z: 2,
+          color: "blue",
+          size: 1,
+        },
       ],
       edges: [
         {
@@ -561,7 +601,9 @@ describe("Component Integration Tests", () => {
       });
 
       // 6. Verifies no replacement edge is silently selected
-      expect(screen.getByText("Select a relationship to see how it was determined.")).toBeInTheDocument();
+      expect(
+        screen.getByText("Select a relationship to see how it was determined."),
+      ).toBeInTheDocument();
 
       // 7. Selects publication-B’s edge and confirms the request and displayed provenance use publication B
       const edgeBButton = screen.getByRole("button", {
