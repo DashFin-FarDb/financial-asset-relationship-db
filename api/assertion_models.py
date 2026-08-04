@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Literal
+from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 from typing_extensions import Self
@@ -162,6 +162,112 @@ class AssertionHistoryResponse(BaseModel):
     known_at: datetime | None
     effective_at: datetime | None
     events: list[AssertionPublicEventResponse]
+
+
+class GovernedScopeResponse(BaseModel):
+    """Public governed scope identity pair."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    purpose: str
+    predicate_id: str
+
+
+class PublishedProjectionContextResponse(BaseModel):
+    """Publication and revision context for one governed read projection."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    publication_id: str
+    revision_id: str
+    rebuild_job_id: str
+    execution_id: str
+    published_at: datetime
+    purpose: str
+    effective_at: datetime
+    known_at: datetime
+    contract_version: str
+    projector_version: str
+    edge_set_hash: str
+    projection_hash: str
+    governed_scopes: list[GovernedScopeResponse]
+
+    @classmethod
+    def from_source(cls, source: Any) -> PublishedProjectionContextResponse:
+        """Create a response model from a PublishedProjectionContext or PublishedProjectionRevision."""
+        if hasattr(source, "persisted"):
+            revision = source.persisted.revision
+            revision_id = source.persisted.revision_id
+            governed_scopes = revision.governed_scopes
+            purpose = revision.purpose
+            effective_at = revision.effective_at
+            known_at = revision.known_at
+            contract_version = revision.contract_version
+            projector_version = revision.projector_version
+            edge_set_hash = revision.edge_set_hash
+            projection_hash = revision.projection_hash
+        else:
+            revision_id = source.revision_id
+            governed_scopes = source.governed_scopes
+            purpose = source.purpose
+            effective_at = source.effective_at
+            known_at = source.known_at
+            contract_version = source.contract_version
+            projector_version = source.projector_version
+            edge_set_hash = source.edge_set_hash
+            projection_hash = source.projection_hash
+
+        return cls(
+            publication_id=source.publication_id,
+            revision_id=revision_id,
+            rebuild_job_id=source.rebuild_job_id,
+            execution_id=source.execution_id,
+            published_at=source.published_at,
+            purpose=purpose,
+            effective_at=effective_at,
+            known_at=known_at,
+            contract_version=contract_version,
+            projector_version=projector_version,
+            edge_set_hash=edge_set_hash,
+            projection_hash=projection_hash,
+            governed_scopes=[
+                GovernedScopeResponse(purpose=scope.purpose, predicate_id=scope.predicate_id)
+                for scope in governed_scopes
+            ],
+        )
+
+
+class PublishedProjectionEdgeResponse(BaseModel):
+    """Canonical published projection edge identity and provenance."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    projection_edge_id: str
+    source: str
+    target: str
+    relationship_type: str
+    strength: str
+    direction: str
+    assertion_id: str
+
+
+class PublishedAssertionBundleResponse(BaseModel):
+    """Publication-bound assertion explanation and history."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    explanation: AssertionReadResponse
+    history: AssertionHistoryResponse
+
+
+class PublishedEdgeExplanationResponse(BaseModel):
+    """Publication-owned edge explanation response contract."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    publication: PublishedProjectionContextResponse
+    edge: PublishedProjectionEdgeResponse
+    assertion: PublishedAssertionBundleResponse
 
 
 class AssertionCommandResponse(BaseModel):

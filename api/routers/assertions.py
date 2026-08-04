@@ -12,6 +12,7 @@ from typing import Annotated, NoReturn, cast
 from uuid import uuid4
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Query, Request, status
+from pydantic import ValidationError as PydanticValidationError
 from sqlalchemy import select
 from sqlalchemy.engine import Engine
 from sqlalchemy.exc import SQLAlchemyError
@@ -52,6 +53,10 @@ from ..assertion_models import (
     AssertionPublicEventResponse,
     AssertionReadResponse,
     AssertionSupersessionRequest,
+    PublishedAssertionBundleResponse,
+    PublishedEdgeExplanationResponse,
+    PublishedProjectionContextResponse,
+    PublishedProjectionEdgeResponse,
 )
 from ..auth import (
     User,
@@ -74,6 +79,8 @@ from ..graph_lifecycle_providers import (
 router = APIRouter()
 _UTC = timezone.utc
 _INTERNAL_ERROR_DETAIL = "An internal error occurred. Please try again later."
+_PUBLICATION_EDGE_NOT_FOUND_DETAIL = "unknown publication_id or projection_edge_id"
+_PUBLICATION_INCONSISTENT_DETAIL = "Graph publication metadata is inconsistent"
 _PROPOSAL_AUTHORIZATION_HEADER = "X-Proposal-Authorization"
 _PROPOSAL_BEARER_PATTERN = re.compile(r"Bearer (?P<token>\S+)", flags=re.IGNORECASE)
 _DOMAIN_ERROR_STATUSES: dict[type[Exception], int] = {
@@ -337,6 +344,20 @@ def _assertion_read_response(
     )
 
 
+def _assertion_history_response(as_of: AssertionAsOf) -> AssertionHistoryResponse:
+    """Build immutable ordered lifecycle history from one reconstructed assertion view."""
+    return AssertionHistoryResponse(
+        assertion_id=as_of.assertion.assertion_id,
+        effective_from=as_of.assertion.effective_from,
+        effective_to=as_of.assertion.effective_to,
+        recorded_at=as_of.assertion.recorded_at,
+        state=as_of.state,
+        known_at=as_of.known_at,
+        effective_at=as_of.effective_at,
+        events=[_public_event_response(event) for event in _require_assertion_events(as_of)],
+    )
+
+
 def _as_utc(value: datetime | None) -> datetime | None:
     """Normalize a client-supplied bitemporal bound to UTC."""
     if value is None:
@@ -543,14 +564,60 @@ def get_assertion_history(
         )
         if as_of is None:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"unknown assertion_id: {assertion_id}")
-        events = [_public_event_response(event) for event in _require_assertion_events(as_of)]
-        return AssertionHistoryResponse(
-            assertion_id=assertion_id,
-            effective_from=as_of.assertion.effective_from,
-            effective_to=as_of.assertion.effective_to,
-            recorded_at=as_of.assertion.recorded_at,
-            state=as_of.state,
-            known_at=as_of.known_at,
-            effective_at=as_of.effective_at,
-            events=events,
-        )
+        return _assertion_history_response(as_of)
+
+
+@router.get("/api/publications/{publication_id}/edges/{projection_edge_id}/explanation")
+def get_published_edge_explanation(
+    publication_id: str,
+    projection_edge_id: str,
+) -> PublishedEdgeExplanationResponse:
+    """Return the public redacted explanation/history for one publication-owned projection edge."""
+    with _assertion_repository_session() as session:
+        repo = RelationshipAssertionRepository(session)
+        try:
+            result = repo.get_published_edge(publication_id, projection_edge_id)
+            if result is None:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail=_PUBLICATION_EDGE_NOT_FOUND_DETAIL,
+                )
+            published, published_edge = result
+
+            if len(published.persisted.edge_ids) != len(published.persisted.revision.edges):
+                raise ValidationError("edge_ids length must match revision.edges")
+
+            as_of = repo.get_as_of(
+                published_edge.assertion_id,
+                known_at=published.persisted.revision.known_at,
+                effective_at=published.persisted.revision.effective_at,
+            )
+            if as_of is None:
+                raise HTTPException(
+                    status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                    detail=_PUBLICATION_INCONSISTENT_DETAIL,
+                )
+
+            return PublishedEdgeExplanationResponse(
+                publication=PublishedProjectionContextResponse.from_source(published),
+                edge=PublishedProjectionEdgeResponse(
+                    projection_edge_id=projection_edge_id,
+                    source=published_edge.source_id,
+                    target=published_edge.target_id,
+                    relationship_type=published_edge.edge_type,
+                    strength=published_edge.strength,
+                    direction=published_edge.direction,
+                    assertion_id=published_edge.assertion_id,
+                ),
+                assertion=PublishedAssertionBundleResponse(
+                    explanation=_assertion_read_response(as_of, session),
+                    history=_assertion_history_response(as_of),
+                ),
+            )
+        except HTTPException:
+            raise
+        except (ValidationError, PydanticValidationError, ValueError) as exc:
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail=_PUBLICATION_INCONSISTENT_DETAIL,
+            ) from exc

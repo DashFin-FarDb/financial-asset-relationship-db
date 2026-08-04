@@ -36,8 +36,8 @@ def test_managed_graph_fails_closed_until_latest_publication_is_synchronized(
     )
     monkeypatch.setattr(
         relationship_index,
-        "_latest_published_projection_binding_from_persistence",
-        lambda: ("job-new", "revision-new"),
+        "_published_projection_binding_for_rebuild_job_from_persistence",
+        lambda _job_id: None,
     )
 
     with pytest.raises(HTTPException) as exc_info:
@@ -58,13 +58,13 @@ def test_unbound_managed_startup_graph_omits_optional_governance(
         lambda _graph: (True, None),
     )
 
-    def unexpected_publication_lookup() -> tuple[str, str]:
+    def unexpected_publication_lookup(_job_id: str) -> tuple[str, str]:
         """Fail if an unbound startup graph probes governed publication state."""
         raise AssertionError("unexpected publication lookup")
 
     monkeypatch.setattr(
         relationship_index,
-        "_latest_published_projection_binding_from_persistence",
+        "_published_projection_binding_for_rebuild_job_from_persistence",
         unexpected_publication_lookup,
     )
 
@@ -93,27 +93,31 @@ def test_managed_graph_checks_shared_version_on_every_read_but_caches_revision(
         lambda _graph: (True, "job-1"),
     )
 
-    def latest_binding() -> tuple[str, str]:
+    def job_binding(_job_id: str) -> tuple[str, str]:
         """Count the shared publication-version checks."""
         nonlocal version_checks
         version_checks += 1
-        return "job-1", "revision-1"
+        return "revision-1", "publication-1"
 
-    def load_revision(_revision_id: str) -> relationship_index.GovernedRelationshipIndex:
+    def load_snapshot(revision_id: str, publication_id: str) -> relationship_index.PublishedRelationshipSnapshot:
         """Count full metadata index loads for the immutable revision."""
         nonlocal revision_loads
         revision_loads += 1
-        return cast(relationship_index.GovernedRelationshipIndex, expected)
+        return relationship_index.PublishedRelationshipSnapshot(
+            publication=None,
+            governance_index=cast(relationship_index.GovernedRelationshipIndex, expected),
+            projection_bindings={},
+        )
 
     monkeypatch.setattr(
         relationship_index,
-        "_latest_published_projection_binding_from_persistence",
-        latest_binding,
+        "_published_projection_binding_for_rebuild_job_from_persistence",
+        job_binding,
     )
     monkeypatch.setattr(
         relationship_index,
-        "_load_governed_relationship_index_for_revision",
-        load_revision,
+        "_load_governed_relationship_snapshot_for_publication",
+        load_snapshot,
     )
 
     assert relationship_index.load_governed_relationship_index(graph) == expected
@@ -128,7 +132,7 @@ def test_stale_in_flight_graph_remains_bound_to_its_original_job(
     """An old graph object fails closed after the lifecycle advances to a new job."""
     graph = AssetRelationshipGraph()
     bindings = iter(((True, "job-old"), (True, "job-old")))
-    publications = iter((("job-old", "revision-old"), ("job-new", "revision-new")))
+    publications = iter((("revision-old", "pub-old"), None))
 
     def runtime_binding(_graph: AssetRelationshipGraph) -> tuple[bool, str | None]:
         """Return the next runtime binding and fail clearly if the test is exhausted."""
@@ -137,8 +141,8 @@ def test_stale_in_flight_graph_remains_bound_to_its_original_job(
         except StopIteration as exc:
             raise AssertionError("unexpected runtime binding lookup") from exc
 
-    def latest_publication() -> tuple[str, str] | None:
-        """Return the next publication binding and fail clearly if the test is exhausted."""
+    def job_publication(_job_id: str) -> tuple[str, str] | None:
+        """Return the next publication binding for the job."""
         try:
             return next(publications)
         except StopIteration as exc:
@@ -151,22 +155,26 @@ def test_stale_in_flight_graph_remains_bound_to_its_original_job(
     )
     monkeypatch.setattr(
         relationship_index,
-        "_latest_published_projection_binding_from_persistence",
-        latest_publication,
+        "_published_projection_binding_for_rebuild_job_from_persistence",
+        job_publication,
     )
     monkeypatch.setattr(
         relationship_index,
-        "_load_governed_relationship_index_for_revision",
-        lambda revision_id: cast(
-            relationship_index.GovernedRelationshipIndex,
-            {
-                ("BOND", "ISSUER", "corporate_link"): {
-                    "assertion_id": "assertion-old",
-                    "governance_status": "governed",
-                    "revision_id": revision_id,
-                    "scope_refs": ["financial.bond.issuer_reference@1"],
-                }
-            },
+        "_load_governed_relationship_snapshot_for_publication",
+        lambda revision_id, publication_id: relationship_index.PublishedRelationshipSnapshot(
+            publication=None,
+            governance_index=cast(
+                relationship_index.GovernedRelationshipIndex,
+                {
+                    ("BOND", "ISSUER", "corporate_link"): {
+                        "assertion_id": "assertion-old",
+                        "governance_status": "governed",
+                        "revision_id": revision_id,
+                        "scope_refs": ["financial.bond.issuer_reference@1"],
+                    }
+                },
+            ),
+            projection_bindings={},
         ),
     )
 
@@ -184,7 +192,7 @@ def test_stale_in_flight_graph_remains_bound_to_its_original_job(
         relationship_index.GraphPersistenceNonDurableError("non-durable"),
     ],
 )
-def test_latest_publication_binding_omits_optional_governance_without_durable_persistence(
+def test_published_projection_binding_for_rebuild_job_omits_optional_governance_without_durable_persistence(
     monkeypatch: pytest.MonkeyPatch,
     error: Exception,
 ) -> None:
@@ -195,10 +203,10 @@ def test_latest_publication_binding_omits_optional_governance_without_durable_pe
 
     monkeypatch.setattr(relationship_index, "_governance_session_factory", raise_error)
 
-    assert relationship_index._latest_published_projection_binding_from_persistence() is None
+    assert relationship_index._published_projection_binding_for_rebuild_job_from_persistence("job-1") is None
 
 
-def test_latest_publication_binding_still_fails_closed_for_invalid_url(
+def test_published_projection_binding_for_rebuild_job_still_fails_closed_for_invalid_url(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """A genuinely misconfigured persistence URL remains a 503, not a silent omission."""
@@ -209,10 +217,86 @@ def test_latest_publication_binding_still_fails_closed_for_invalid_url(
     monkeypatch.setattr(relationship_index, "_governance_session_factory", raise_error)
 
     with pytest.raises(HTTPException) as exc_info:
-        relationship_index._latest_published_projection_binding_from_persistence()
+        relationship_index._published_projection_binding_for_rebuild_job_from_persistence("job-1")
 
     assert exc_info.value.status_code == status.HTTP_503_SERVICE_UNAVAILABLE
     assert exc_info.value.detail == "Graph persistence database is misconfigured"
+
+
+def test_published_projection_binding_for_rebuild_job_validation_error_maps_to_503(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Validation errors during binding resolution map to 503 inconsistent detail."""
+
+    def raise_error() -> None:
+        """Raise validation error to simulate inconsistent metadata."""
+        raise relationship_index.ValidationError("inconsistent data")
+
+    monkeypatch.setattr(relationship_index, "_governance_session_factory", raise_error)
+
+    with pytest.raises(HTTPException) as exc_info:
+        relationship_index._published_projection_binding_for_rebuild_job_from_persistence("job-1")
+
+    assert exc_info.value.status_code == status.HTTP_503_SERVICE_UNAVAILABLE
+    assert exc_info.value.detail == "Graph publication metadata is inconsistent"
+
+
+def test_published_projection_binding_for_rebuild_job_sqlalchemy_error_maps_to_503(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Database query errors map to 503 unavailable detail."""
+
+    def raise_error() -> None:
+        """Raise database error to simulate persistence outage."""
+        raise relationship_index.SQLAlchemyError("db down")
+
+    monkeypatch.setattr(relationship_index, "_governance_session_factory", raise_error)
+
+    with pytest.raises(HTTPException) as exc_info:
+        relationship_index._published_projection_binding_for_rebuild_job_from_persistence("job-1")
+
+    assert exc_info.value.status_code == status.HTTP_503_SERVICE_UNAVAILABLE
+    assert exc_info.value.detail == "Graph persistence database is unavailable"
+
+
+def test_published_projection_binding_for_rebuild_job_success(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Successful repository binding returns revision_id and publication_id."""
+
+    class FakeRepository:
+        """Fake repository double for publication lookup."""
+
+        def __init__(self, _session: object) -> None:
+            """Initialize fake repository with session."""
+
+        def published_projection_binding_for_rebuild_job(self, rebuild_job_id: str) -> tuple[str, str] | None:
+            """Return publication binding double for rebuild job."""
+            if rebuild_job_id == "job-1":
+                return ("rev-1", "pub-1")
+            return None
+
+    class FakeSession:
+        """Fake session double with transactional lifecycle methods."""
+
+        def commit(self) -> None:
+            """Simulate session commit."""
+
+        def rollback(self) -> None:
+            """Simulate session rollback."""
+
+        def close(self) -> None:
+            """Simulate session close."""
+
+    def create_fake_session() -> FakeSession:
+        """Return a new fake session double."""
+        return FakeSession()
+
+    monkeypatch.setattr(relationship_index, "_governance_session_factory", lambda: create_fake_session)
+    monkeypatch.setattr(relationship_index, "RelationshipAssertionRepository", FakeRepository)
+
+    result = relationship_index._published_projection_binding_for_rebuild_job_from_persistence("job-1")
+    assert result == ("rev-1", "pub-1")
 
 
 def test_unmanaged_graph_retains_isolated_loader_path(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -226,15 +310,17 @@ def test_unmanaged_graph_retains_isolated_loader_path(monkeypatch: pytest.Monkey
         lambda _graph: (False, None),
     )
 
-    def load_unmanaged() -> relationship_index.GovernedRelationshipIndex:
+    def load_unmanaged() -> relationship_index.PublishedRelationshipSnapshot:
         """Count loads through the unmanaged compatibility path."""
         nonlocal calls
         calls += 1
-        return {}
+        return relationship_index.PublishedRelationshipSnapshot(
+            publication=None, governance_index={}, projection_bindings={}
+        )
 
     monkeypatch.setattr(
         relationship_index,
-        "_load_governed_relationship_index_from_persistence",
+        "_load_governed_relationship_snapshot_from_persistence",
         load_unmanaged,
     )
 

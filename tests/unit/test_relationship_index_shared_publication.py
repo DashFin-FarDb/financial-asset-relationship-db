@@ -57,16 +57,20 @@ def test_governance_stays_consistent_with_graph_snapshot_across_publications(
         },
     }
 
-    def load_index() -> relationship_index_service.GovernedRelationshipIndex:
-        """Load the index for the current revision from persistence."""
+    def load_snapshot() -> relationship_index_service.PublishedRelationshipSnapshot:
+        """Load the snapshot for the current revision from persistence."""
         nonlocal persistence_loads
         persistence_loads += 1
-        return indexes[current_revision_id]
+        return relationship_index_service.PublishedRelationshipSnapshot(
+            publication=None,
+            governance_index=indexes[current_revision_id],
+            projection_bindings={},
+        )
 
     monkeypatch.setattr(
         relationship_index_service,
-        "_load_governed_relationship_index_from_persistence",
-        load_index,
+        "_load_governed_relationship_snapshot_from_persistence",
+        load_snapshot,
     )
     relationship_index_service.invalidate_governed_relationship_index_cache()
 
@@ -211,14 +215,31 @@ def test_scope_refs_follow_each_edge_assertion_predicate() -> None:
         edge_ids=("edge-a", "edge-b"),
     )
 
-    index = relationship_index_service._published_relationship_index(
+    publication = relationship_index_service.PublishedProjectionContext(
+        publication_id="pub-v1",
+        revision_id="revision-v1",
+        rebuild_job_id="job-v1",
+        execution_id="exec-v1",
+        published_at=NOW,
+        purpose=PURPOSE,
+        effective_at=NOW,
+        known_at=NOW,
+        contract_version="1",
+        projector_version="1",
+        edge_set_hash="0" * 64,
+        projection_hash="1" * 64,
+        governed_scopes=(),
+    )
+    snapshot = relationship_index_service._published_relationship_snapshot(
         published,
+        publication,
         predicates,
         {
             "assertion-a": "predicate-a",
             "assertion-b": "predicate-b",
         },
     )
+    index = snapshot.governance_index
 
     assert index[("BOND-1", "ISSUER-1", "corporate_link")]["scope_refs"] == ["predicate-a"]
     assert index[("BOND-2", "ISSUER-2", "corporate_link")]["scope_refs"] == ["predicate-b"]

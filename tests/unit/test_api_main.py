@@ -300,6 +300,7 @@ class TestPydanticModels:
                 {  # type: ignore[list-item]
                     "source": "AAPL",
                     "target": "MSFT",
+                    "edge_id": "AAPL-MSFT",
                     "relationship_type": "same_sector",
                     "strength": 0.7,
                 }
@@ -946,7 +947,7 @@ class TestAPIEndpoints:
         assert response.status_code == 200
         viz_data = response.json()
         node_keys = {"id", "symbol", "name", "asset_class", "x", "y", "z", "color", "size"}
-        edge_keys = {"source", "target", "relationship_type", "strength"}
+        required_edge_keys = {"source", "target", "edge_id", "relationship_type", "strength"}
 
         assert "nodes" in viz_data
         assert "edges" in viz_data
@@ -958,8 +959,8 @@ class TestAPIEndpoints:
         assert len(viz_data["edges"]) > 0
         # BOUNDARY: All nodes must have exact key set
         assert all(set(node.keys()) == node_keys for node in viz_data["nodes"])
-        # BOUNDARY: All edges must have exact key set
-        assert all(set(edge.keys()) == edge_keys for edge in viz_data["edges"])
+        # BOUNDARY: All edges must contain required key set
+        assert all(required_edge_keys.issubset(edge.keys()) for edge in viz_data["edges"])
         # BOUNDARY: All node coordinates must be numeric (floats or ints)
         for node in viz_data["nodes"]:
             assert isinstance(node["x"], Number), f"Node {node.get('id', '<unknown>')} x coordinate is not numeric"

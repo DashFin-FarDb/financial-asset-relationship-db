@@ -2,15 +2,20 @@
 
 from __future__ import annotations
 
+import hashlib
+import json
 import logging
 import math
 
 from fastapi import APIRouter, HTTPException
+from pydantic import ValidationError as PydanticValidationError
 
+from src.governance.relationship_assertion import ValidationError
 from src.logic.asset_graph import AssetRelationshipGraph, calculate_graph_density
 from src.observability.facade import ObservabilityEvent, log_event
 
 from ..api_models import VisualizationDataResponse, VisualizationEdge, VisualizationNode
+from ..assertion_models import PublishedProjectionContextResponse
 from ..router_helpers import (
     _ASSET_CLASS_COLORS,
     _DEFAULT_COLOR,
@@ -18,9 +23,9 @@ from ..router_helpers import (
     logger,
 )
 from ..services.relationship_index import (
-    GovernanceMetadata,
-    GovernedRelationshipIndex,
-    load_governed_relationship_index,
+    PublishedProjectionContext,
+    PublishedRelationshipSnapshot,
+    load_governed_relationship_snapshot,
 )
 
 router = APIRouter()
@@ -79,28 +84,71 @@ def _build_visualization_nodes(
     return nodes
 
 
+def _build_visualization_edge(
+    source_id: str,
+    target_id: str,
+    rel_type: str,
+    strength: float,
+    snapshot: PublishedRelationshipSnapshot,
+) -> VisualizationEdge:
+    """Build a single visualization edge with optional published governance metadata."""
+    relationship_key = (source_id, target_id, rel_type)
+    payload: dict[str, object] = {
+        "source": source_id,
+        "target": target_id,
+        "relationship_type": rel_type,
+        "strength": strength,
+    }
+    metadata = snapshot.governance_index.get(relationship_key)
+    if metadata is not None:
+        binding = snapshot.projection_bindings.get(relationship_key)
+        if snapshot.publication is None or binding is None:
+            raise HTTPException(
+                status_code=503,
+                detail="Graph publication metadata is inconsistent",
+            )
+        payload.update(metadata)
+        payload["projection_edge_id"] = binding.projection_edge_id
+        payload["edge_id"] = (
+            f"published:{snapshot.publication.publication_id}:edge:{binding.projection_edge_id}:{binding.orientation}"
+        )
+    else:
+        payload["edge_id"] = _legacy_edge_id(source_id, target_id, rel_type)
+    return VisualizationEdge.model_validate(payload)
+
+
 def _build_visualization_edges(
     g: AssetRelationshipGraph,
-    governed_index: GovernedRelationshipIndex,
+    snapshot: PublishedRelationshipSnapshot,
 ) -> list[VisualizationEdge]:
     """Build visualization edges with optional published governance metadata."""
     edges: list[VisualizationEdge] = []
     for source_id, rels in g.relationships.items():
         for target_id, rel_type, strength in rels:
-            payload: dict[str, object] = {
-                "source": source_id,
-                "target": target_id,
-                "relationship_type": rel_type,
-                "strength": strength,
-            }
-            metadata: GovernanceMetadata | None = governed_index.get((source_id, target_id, rel_type))
-            if metadata is not None:
-                payload.update(metadata)
-            edges.append(VisualizationEdge.model_validate(payload))
+            edges.append(_build_visualization_edge(source_id, target_id, rel_type, strength, snapshot))
     return edges
 
 
-@router.get("/api/visualization", response_model_exclude_none=True)
+def _legacy_edge_id(source_id: str, target_id: str, relationship_type: str) -> str:
+    """Return a deterministic, direction-sensitive legacy edge identifier."""
+    payload = json.dumps([source_id, target_id, relationship_type], separators=(",", ":"), ensure_ascii=False)
+    return f"legacy:{hashlib.sha256(payload.encode('utf-8')).hexdigest().lower()}"
+
+
+def _publication_response(
+    publication: PublishedProjectionContext | None,
+) -> PublishedProjectionContextResponse | None:
+    """Convert publication snapshot context into API response shape."""
+    if publication is None:
+        return None
+    return PublishedProjectionContextResponse.from_source(publication)
+
+
+@router.get(
+    "/api/visualization",
+    response_model_exclude_none=True,
+    responses={503: {"description": "Graph publication metadata is inconsistent or database is unavailable"}},
+)
 async def get_visualization_data() -> VisualizationDataResponse:
     """
     Produce visualization nodes and edges for the current asset relationship graph.
@@ -116,12 +164,23 @@ async def get_visualization_data() -> VisualizationDataResponse:
         g = get_graph()
         asset_ids = list(g.assets.keys())
         nodes = _build_visualization_nodes(g, asset_ids)
-        edges = _build_visualization_edges(g, load_governed_relationship_index(g))
+        snapshot = load_governed_relationship_snapshot(g)
+        edges = _build_visualization_edges(g, snapshot)
         effective_assets_count = len(asset_ids)
         network_density = calculate_graph_density(effective_assets_count, len(edges))
-        return VisualizationDataResponse(nodes=nodes, edges=edges, network_density=network_density)
+        return VisualizationDataResponse(
+            nodes=nodes,
+            edges=edges,
+            network_density=network_density,
+            publication=_publication_response(snapshot.publication),
+        )
     except HTTPException:
         raise
+    except (ValidationError, PydanticValidationError, ValueError) as e:
+        raise HTTPException(
+            status_code=503,
+            detail="Graph publication metadata is inconsistent",
+        ) from e
     except Exception as e:
         log_event(
             logger,

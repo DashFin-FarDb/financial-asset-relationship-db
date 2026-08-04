@@ -65,7 +65,7 @@ def test_relationship_index_persistence_sqlalchemy_errors_are_bounded(
             """Retain the supplied session so the double matches production construction."""
             self.session = repository_session
 
-        def latest_published_projection(self, _purpose: str) -> PersistedProjectionRevision | None:
+        def latest_published_projection_record(self, _purpose: str) -> PersistedProjectionRevision | None:
             """Raise the simulated SQLAlchemy outage under test."""
             raise SQLAlchemyError("connection refused with internal host details")
 

@@ -9,6 +9,7 @@ import type {
   Relationship,
   Metrics,
   VisualizationData,
+  PublishedEdgeExplanationResponse,
 } from "../types/api";
 
 const envUrl = process.env.NEXT_PUBLIC_API_URL;
@@ -142,4 +143,15 @@ export const api = {
   getAssertion: makeAssertionFetcher<AssertionExplanation>(""),
 
   getAssertionHistory: makeAssertionFetcher<AssertionHistory>("/history"),
+
+  getPublishedEdgeExplanation: (
+    publicationId: string,
+    projectionEdgeId: string,
+    signal?: AbortSignal,
+  ): Promise<PublishedEdgeExplanationResponse> => {
+    return getData<PublishedEdgeExplanationResponse>(
+      `/api/publications/${encodeURIComponent(publicationId)}/edges/${encodeURIComponent(projectionEdgeId)}/explanation`,
+      { signal },
+    );
+  },
 };
