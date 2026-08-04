@@ -147,7 +147,6 @@ class ProofValidator:
 
         return len(self.errors) == 0
 
-    def load_authz_evidence(self, path: str, expected_sha: str) -> dict[str, Any]:
     def _validate_safe_path(self, path: str) -> str:
         """Validate file path to prevent path traversal attacks (CWE-22)."""
         try:
@@ -161,10 +160,11 @@ class ProofValidator:
             raise ValueError(f"Invalid file path (potential path traversal): {path}") from e
 
     def load_authz_evidence(self, path: str, expected_sha: str) -> dict[str, Any]:
+        """Load and validate authorization evidence."""
         try:
-            with open(path, encoding="utf-8") as f:
             safe_path = self._validate_safe_path(path)
             with open(safe_path, encoding="utf-8") as f:
+                data = json.load(f)
 
             if data.get("status") != "passed":
                 self.add_error(f"Authz status: {data.get('status')} (need passed)")
