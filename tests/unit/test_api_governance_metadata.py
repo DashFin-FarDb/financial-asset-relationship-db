@@ -613,30 +613,27 @@ def test_pydantic_validation_error_in_governance_persistence_returns_503(
 
     x: int
 
-
-    # Capture the ValidationError into a separate variable to prevent Python 
+    # Capture the ValidationError into a separate variable to prevent Python
     # from deleting the variable when exiting the except block
     captured_err: ValidationError | None = None
     try:
         Dummy(x="invalid")  # type: ignore[arg-type]
     except ValidationError as err:
         captured_err = err
-    
+
     assert captured_err is not None
-    
-    
+
     def mock_latest_published_projection_record(*args: object, **kwargs: object) -> None:
         """Raise the captured Pydantic ValidationError to exercise 503 mapping."""
         raise captured_err
-    
-    
+
     monkeypatch.setattr(
         RelationshipAssertionRepository,
         "latest_published_projection_record",
         mock_latest_published_projection_record,
     )
     relationship_index_service.invalidate_governed_relationship_index_cache()
-    
+
     try:
         response = client.get(path)
         _assert_error_response(response, 503, "Graph publication metadata is inconsistent")
