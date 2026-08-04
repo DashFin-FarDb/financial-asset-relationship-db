@@ -1,4 +1,9 @@
-"""INSERT-only persistence helpers for GRAC v1 projection revisions."""
+"""INSERT-only persistence helpers for GRAC v1 projection revisions.
+
+Module for persisting relationship projections, providing utilities for
+ID generation, timestamp normalization, foreign key error detection, and
+ORM conversion functions for projection edges and revisions.
+"""
 
 from __future__ import annotations
 
@@ -53,17 +58,9 @@ def _deserialize_governed_scopes(raw: str, purpose: str) -> tuple[GovernedScope,
     except (KeyError, TypeError) as exc:
         raise ValidationError("projection revision governed_scopes has invalid entries") from exc
     canonical = canonicalize_governed_scopes(scopes, purpose)
-
-
-"""
-Module for persisting relationship projections, providing utilities for
-ID generation, timestamp normalization, foreign key error detection, and
-ORM conversion functions for projection edges and revisions.
-"""
-
-if raw != _serialize_governed_scopes(canonical, purpose):
-    raise ValidationError("projection revision governed_scopes is not canonical")
-return canonical
+    if raw != _serialize_governed_scopes(canonical, purpose):
+        raise ValidationError("projection revision governed_scopes is not canonical")
+    return canonical
 
 
 @dataclass(frozen=True)
