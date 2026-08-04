@@ -133,6 +133,7 @@ export const mockVisualizationData: VisualizationData = {
   ],
   edges: [
     {
+      edge_id: "edge-1",
       source: "ASSET_1",
       target: "ASSET_2",
       relationship_type: "TEST",
@@ -169,6 +170,7 @@ export const mockVizData: VisualizationData = {
   ],
   edges: [
     {
+      edge_id: "edge-viz-1",
       source: "ASSET_1",
       target: "ASSET_2",
       relationship_type: "COMMODITY_EXPOSURE",
@@ -176,4 +178,93 @@ export const mockVizData: VisualizationData = {
     },
   ],
   network_density: 0.42,
+};
+
+export const mockPublishedProjectionContext = {
+  publication_id: "pub-1",
+  revision_id: "rev-1",
+  rebuild_job_id: "job-1",
+  execution_id: "exec-1",
+  published_at: "2024-01-01T00:00:00Z",
+  purpose: "financial-relationship-graph",
+  effective_at: "2024-01-01T00:00:00Z",
+  known_at: "2024-01-01T00:00:00Z",
+  contract_version: "grac-v1",
+  projector_version: "v1.0.0",
+  edge_set_hash: "sha256-edges-123",
+  projection_hash: "sha256-proj-456",
+  governed_scopes: [
+    {
+      purpose: "financial-relationship-graph",
+      predicate_id: "predicate-issuer",
+    },
+  ],
+};
+
+export const mockPublishedProjectionEdge = {
+  projection_edge_id: "pedge-1",
+  source: "ASSET_2",
+  target: "ASSET_1",
+  relationship_type: "CORPORATE_LINK",
+  strength: "0.90",
+  direction: "directional",
+  assertion_id: "assertion-1",
+};
+
+export const mockPublishedAssertionBundle = {
+  explanation: {
+    assertion_id: "assertion-1",
+    predicate_id: "predicate-issuer",
+    subject_id: "ASSET_2",
+    object_id: "ASSET_1",
+    method_id: "method-1",
+    proposition: "ASSET_2 is the issuer of ASSET_1",
+    confidence_status: "assessed" as const,
+    confidence_bp: 9500,
+    confidence_type: "statistical",
+    confidence_method: "historical_filings",
+    effective_from: "2024-01-01T00:00:00Z",
+    effective_to: null,
+    recorded_at: "2024-01-01T00:00:00Z",
+    state: "Accepted" as const,
+    known_at: "2024-01-01T00:00:00Z",
+    effective_at: "2024-01-01T00:00:00Z",
+    sequence: 1,
+    evidence: [],
+  },
+  history: {
+    assertion_id: "assertion-1",
+    effective_from: "2024-01-01T00:00:00Z",
+    effective_to: null,
+    recorded_at: "2024-01-01T00:00:00Z",
+    state: "Accepted" as const,
+    known_at: "2024-01-01T00:00:00Z",
+    effective_at: "2024-01-01T00:00:00Z",
+    events: [
+      {
+        event_id: "event-1",
+        assertion_id: "assertion-1",
+        sequence: 1,
+        from_state: null,
+        to_state: "Proposed" as const,
+        authority: "proposer" as const,
+        recorded_at: "2024-01-01T00:00:00Z",
+      },
+      {
+        event_id: "event-2",
+        assertion_id: "assertion-1",
+        sequence: 2,
+        from_state: "Proposed" as const,
+        to_state: "Accepted" as const,
+        authority: "acceptor" as const,
+        recorded_at: "2024-01-01T00:00:00Z",
+      },
+    ],
+  },
+};
+
+export const mockPublishedEdgeExplanation = {
+  publication: mockPublishedProjectionContext,
+  edge: mockPublishedProjectionEdge,
+  assertion: mockPublishedAssertionBundle,
 };

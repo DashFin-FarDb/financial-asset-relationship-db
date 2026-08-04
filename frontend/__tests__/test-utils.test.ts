@@ -505,6 +505,7 @@ describe("test-utils Mock Data Validation", () => {
 
     it("should have valid edge structure", () => {
       mockVizData.edges.forEach((edge) => {
+        expect(typeof edge.edge_id).toBe("string");
         expect(typeof edge.source).toBe("string");
         expect(typeof edge.target).toBe("string");
         expect(typeof edge.relationship_type).toBe("string");

@@ -84,20 +84,10 @@ const MAX_NODES = Number(process.env.NEXT_PUBLIC_MAX_NODES) || 500;
 const MAX_EDGES = Number(process.env.NEXT_PUBLIC_MAX_EDGES) || 2000;
 
 /**
- * Derive a stable selection key for an edge. Governed edges are keyed by their
- * assertion ID (stable across data refreshes); legacy edges fall back to their
- * endpoint/type triple, which is stable as long as the relationship itself
- * does not change.
- */
-function edgeKey(edge: VisualizationEdge): string {
-  if (edge.assertion_id) return `assertion:${edge.assertion_id}`;
-  return `edge:${edge.source}|${edge.target}|${edge.relationship_type}`;
-}
-
-/**
  * Resolve edges against their endpoint nodes, skipping any edge whose source
- * or target node is missing. This is the single source of truth for "valid"
- * edges consumed by both the Plotly traces and the keyboard-accessible list.
+ * or target node is missing or whose edge_id is missing/empty. This is the single
+ * source of truth for "valid" edges consumed by both Plotly traces and the
+ * keyboard-accessible list.
  */
 function buildValidEdges(
   nodes: VisualizationData["nodes"],
@@ -107,17 +97,24 @@ function buildValidEdges(
   return edges.reduce<PreparedEdge[]>((acc, edge) => {
     const sourceNode = nodeMap.get(edge.source);
     const targetNode = nodeMap.get(edge.target);
+    const edgeId = edge.edge_id;
 
-    if (!sourceNode || !targetNode) {
+    if (
+      !sourceNode ||
+      !targetNode ||
+      !edgeId ||
+      typeof edgeId !== "string" ||
+      edgeId.trim() === ""
+    ) {
       if (process.env.NODE_ENV === "development") {
         console.debug(
-          `[Development Only] Skipping invalid edge: source ${edge.source} or target ${edge.target} not found.`,
+          `[Development Only] Skipping invalid edge: source ${edge.source}, target ${edge.target}, edge_id ${edgeId}.`,
         );
       }
       return acc;
     }
 
-    acc.push({ key: edgeKey(edge), edge, sourceNode, targetNode });
+    acc.push({ key: edgeId, edge, sourceNode, targetNode });
     return acc;
   }, []);
 }
@@ -482,6 +479,7 @@ export default function NetworkVisualization({
         />
         <RelationshipExplanationPanel
           relationship={selectedEdge}
+          publication={data?.publication ?? null}
           publicationId={data?.publication?.publication_id}
         />
       </div>
