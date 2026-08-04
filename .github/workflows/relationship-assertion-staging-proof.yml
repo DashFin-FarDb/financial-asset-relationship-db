@@ -230,7 +230,7 @@ jobs:
           python3 - <<EOF
           import json
           import sys
-  
+
           try:
               with open('staging-proof-result.json', 'r') as f:
                   result = json.load(f)
