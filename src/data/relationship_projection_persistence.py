@@ -53,6 +53,8 @@ def _deserialize_governed_scopes(raw: str, purpose: str) -> tuple[GovernedScope,
     except (KeyError, TypeError) as exc:
         raise ValidationError("projection revision governed_scopes has invalid entries") from exc
     canonical = canonicalize_governed_scopes(scopes, purpose)
+
+
 """
 Module for persisting relationship projections, providing utilities for
 ID generation, timestamp normalization, foreign key error detection, and

@@ -596,6 +596,7 @@ This module contains unit tests for the API governance metadata endpoints,
 ensuring proper error handling and data integrity when invalid data is encountered.
 """
 
+
 def test_pydantic_validation_error_in_governance_persistence_returns_503(
     client: TestClient,
     monkeypatch: pytest.MonkeyPatch,
