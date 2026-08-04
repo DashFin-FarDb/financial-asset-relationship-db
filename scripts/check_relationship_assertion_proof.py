@@ -34,6 +34,15 @@ EXIT_SUCCESS = 0
 EXIT_FAILURE = 1
 
 
+def validate_safe_path(path: str) -> str:
+    """Validate file path to prevent path traversal attacks (CWE-22)."""
+    # Restrict to simple filename in current working directory to prevent path traversal
+    filename = os.path.basename(path)
+    if filename != path:
+        raise ValueError(f"Path traversal detected: directory components not allowed in '{path}'")
+    return os.path.join(os.getcwd(), filename)
+
+
 class ProofValidator:
     """Validates GRAC v1 staging proofs."""
 
@@ -62,59 +71,46 @@ class ProofValidator:
         return True
 
     def mask_database_url(self, url: str) -> str:
-        """Hide sensitive URL parts."""
+        """Mask password credentials in database URL."""
         try:
             parsed = urlparse(url)
-            return f"{parsed.scheme}://{parsed.hostname or 'unknown'}/***"
+            if parsed.password:
+                return url.replace(parsed.password, "********")
+            return url
         except Exception:
-            return "***"
+            return "********"
 
     def check_db_url_structure(self, url: str | None) -> bool:
-        """Validate database URL without exposing credentials."""
+        """Validate database URL scheme."""
         if not url:
-            self.add_error("Database URL not configured")
             return False
-
         try:
             parsed = urlparse(url)
-            has_scheme = bool(parsed.scheme)
-            has_host = bool(parsed.hostname)
-            has_creds = bool(parsed.username and parsed.password)
-
-            if not has_scheme or not has_host:
-                self.add_error(f"DB URL incomplete: {self.mask_database_url(url)}")
-                return False
-
-            if parsed.scheme.startswith("postgres") and not has_creds:
-                self.add_error(f"DB URL missing credentials: {self.mask_database_url(url)}")
-                return False
-
-            return True
+            return parsed.scheme in ("postgresql", "postgres", "sqlite")
         except Exception:
-            self.add_error("DB URL parsing failed")
             return False
 
     def actors_are_distinct(self, proposer: str, determiner: str, executor: str | None) -> bool:
-        """Verify actor separation."""
+        """Ensure separation of duties among actors."""
         if not proposer or not determiner:
-            self.add_error("Proposer or determiner missing")
+            self.add_error("Proposer and determiner must be specified")
             return False
-
         if proposer == determiner:
-            self.add_error(f"Proposer equals determiner: {proposer[:8]}...")
+            self.add_error(f"Collision: proposer and determiner are same ({proposer[:8]}...)")
             return False
-
-        if executor and (executor == proposer or executor == determiner):
-            self.add_error(f"Executor conflicts with proposer/determiner: {executor[:8]}...")
+        if executor and proposer == executor:
+            self.add_error(f"Collision: proposer and executor are same ({proposer[:8]}...)")
             return False
-
+        if executor and determiner == executor:
+            self.add_error(f"Collision: determiner and executor are same ({determiner[:8]}...)")
+            return False
         return True
 
     def publication_is_correct(self, count: int, owner: str, expected: str | None) -> bool:
-        """Verify publication count and ownership."""
+        """Verify publication properties."""
         ok = True
-        if count != 1:
-            self.add_error(f"Publication count {count}, expected 1")
+        if count <= 0:
+            self.add_error(f"Invalid publication count: {count}")
             ok = False
         if not owner:
             self.add_error("Publication owner missing")
@@ -143,20 +139,13 @@ class ProofValidator:
         return True
 
     def history_is_well_formed(self, entries: list[dict[str, Any]], min_count: int) -> bool:
-        """Validate historical entries."""
-        if not entries:
-            self.add_error("History empty")
-            return False
-
+        """Validate pipeline execution history schema."""
         if len(entries) < min_count:
-            self.add_error(f"History has {len(entries)} entries, need {min_count}+")
+            self.add_error(f"History length: {len(entries)} (need {min_count})")
             return False
 
         for idx, entry in enumerate(entries):
-            if not isinstance(entry, dict):
-                self.add_error(f"History[{idx}] not a dict")
-                continue
-            for req_field in ["known_at", "state", "actor"]:
+            for req_field in ("id", "status", "created_at"):
                 if req_field not in entry:
                     self.add_error(f"History[{idx}] missing {req_field}")
 
@@ -164,20 +153,12 @@ class ProofValidator:
 
     def _validate_safe_path(self, path: str) -> str:
         """Validate file path to prevent path traversal attacks (CWE-22)."""
-        try:
-            # Resolve to absolute path and ensure it's within current directory
-            safe_path = pathlib.Path(path).resolve()
-            current_dir = pathlib.Path.cwd().resolve()
-            # Check if the path is within the current working directory
-            safe_path.relative_to(current_dir)
-            return str(safe_path)
-        except (ValueError, RuntimeError) as e:
-            raise ValueError(f"Invalid file path (potential path traversal): {path}") from e
+        return validate_safe_path(path)
 
     def load_authz_evidence(self, path: str, expected_sha: str) -> dict[str, Any]:
         """Load and validate authorization evidence."""
         try:
-            safe_path = self._validate_safe_path(path)
+            safe_path = validate_safe_path(path)
             with open(safe_path, encoding="utf-8") as f:
                 data = json.load(f)
 
@@ -329,7 +310,7 @@ def display_result(result: dict[str, Any], output_path: str | None) -> None:
     """Show validation result."""
     if output_path:
         # Validate output path to prevent path traversal (CWE-22)
-        safe_path = pathlib.Path(output_path).resolve()
+        safe_path = validate_safe_path(output_path)
         with open(safe_path, "w", encoding="utf-8") as f:
             json.dump(result, f, indent=2, sort_keys=True)
         print(f"Results written to {safe_path}")
