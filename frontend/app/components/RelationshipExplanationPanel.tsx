@@ -453,9 +453,10 @@ function useAssertionResult(
   const [result, setResult] = useState<PanelResult | null>(null);
   const [prevRequestKey, setPrevRequestKey] = useState<string | null>(null);
 
-  const requestKey = (publicationId && projectionEdgeId)
-    ? `pub:${publicationId}:edge:${projectionEdgeId}`
-    : assertionId;
+  const requestKey =
+    publicationId && projectionEdgeId
+      ? `pub:${publicationId}:edge:${projectionEdgeId}`
+      : assertionId;
 
   if (requestKey !== prevRequestKey) {
     setResult(null);
