@@ -4,6 +4,10 @@ import type {
   Relationship,
   Metrics,
   VisualizationData,
+  PublishedProjectionContextResponse,
+  PublishedProjectionEdgeResponse,
+  PublishedAssertionBundleResponse,
+  PublishedEdgeExplanationResponse,
 } from "../../app/types/api";
 
 export const mockAssets: Asset[] = [
@@ -180,7 +184,7 @@ export const mockVizData: VisualizationData = {
   network_density: 0.42,
 };
 
-export const mockPublishedProjectionContext = {
+export const mockPublishedProjectionContext: PublishedProjectionContextResponse = {
   publication_id: "pub-1",
   revision_id: "rev-1",
   rebuild_job_id: "job-1",
@@ -201,7 +205,7 @@ export const mockPublishedProjectionContext = {
   ],
 };
 
-export const mockPublishedProjectionEdge = {
+export const mockPublishedProjectionEdge: PublishedProjectionEdgeResponse = {
   projection_edge_id: "pedge-1",
   source: "ASSET_2",
   target: "ASSET_1",
@@ -211,7 +215,7 @@ export const mockPublishedProjectionEdge = {
   assertion_id: "assertion-1",
 };
 
-export const mockPublishedAssertionBundle = {
+export const mockPublishedAssertionBundle: PublishedAssertionBundleResponse = {
   explanation: {
     assertion_id: "assertion-1",
     predicate_id: "predicate-issuer",
@@ -219,14 +223,14 @@ export const mockPublishedAssertionBundle = {
     object_id: "ASSET_1",
     method_id: "method-1",
     proposition: "ASSET_2 is the issuer of ASSET_1",
-    confidence_status: "assessed" as const,
+    confidence_status: "assessed",
     confidence_bp: 9500,
     confidence_type: "statistical",
     confidence_method: "historical_filings",
     effective_from: "2024-01-01T00:00:00Z",
     effective_to: null,
     recorded_at: "2024-01-01T00:00:00Z",
-    state: "Accepted" as const,
+    state: "Accepted",
     known_at: "2024-01-01T00:00:00Z",
     effective_at: "2024-01-01T00:00:00Z",
     sequence: 1,
@@ -237,7 +241,7 @@ export const mockPublishedAssertionBundle = {
     effective_from: "2024-01-01T00:00:00Z",
     effective_to: null,
     recorded_at: "2024-01-01T00:00:00Z",
-    state: "Accepted" as const,
+    state: "Accepted",
     known_at: "2024-01-01T00:00:00Z",
     effective_at: "2024-01-01T00:00:00Z",
     events: [
@@ -246,24 +250,24 @@ export const mockPublishedAssertionBundle = {
         assertion_id: "assertion-1",
         sequence: 1,
         from_state: null,
-        to_state: "Proposed" as const,
-        authority: "proposer" as const,
+        to_state: "Proposed",
+        authority: "proposer",
         recorded_at: "2024-01-01T00:00:00Z",
       },
       {
         event_id: "event-2",
         assertion_id: "assertion-1",
         sequence: 2,
-        from_state: "Proposed" as const,
-        to_state: "Accepted" as const,
-        authority: "acceptor" as const,
+        from_state: "Proposed",
+        to_state: "Accepted",
+        authority: "acceptor",
         recorded_at: "2024-01-01T00:00:00Z",
       },
     ],
   },
 };
 
-export const mockPublishedEdgeExplanation = {
+export const mockPublishedEdgeExplanation: PublishedEdgeExplanationResponse = {
   publication: mockPublishedProjectionContext,
   edge: mockPublishedProjectionEdge,
   assertion: mockPublishedAssertionBundle,

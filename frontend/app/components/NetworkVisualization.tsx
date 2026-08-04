@@ -94,6 +94,8 @@ function buildValidEdges(
   edges: VisualizationData["edges"],
 ): PreparedEdge[] {
   const nodeMap = new Map(nodes.map((node) => [node.id, node]));
+  const seenEdgeIds = new Set<string>();
+
   return edges.reduce<PreparedEdge[]>((acc, edge) => {
     const sourceNode = nodeMap.get(edge.source);
     const targetNode = nodeMap.get(edge.target);
@@ -104,7 +106,8 @@ function buildValidEdges(
       !targetNode ||
       !edgeId ||
       typeof edgeId !== "string" ||
-      edgeId.trim() === ""
+      edgeId.trim() === "" ||
+      seenEdgeIds.has(edgeId)
     ) {
       if (process.env.NODE_ENV === "development") {
         console.debug(
@@ -114,6 +117,7 @@ function buildValidEdges(
       return acc;
     }
 
+    seenEdgeIds.add(edgeId);
     acc.push({ key: edgeId, edge, sourceNode, targetNode });
     return acc;
   }, []);

@@ -177,6 +177,27 @@ function UnavailableView({ heading }: Readonly<{ heading: string }>) {
   );
 }
 
+function buildRequestKey(
+  publicationId: string | null | undefined,
+  projectionEdgeId: string | null | undefined,
+  revisionId?: string | null | undefined,
+  assertionId?: string | null | undefined,
+): string | null {
+  if (!publicationId || !projectionEdgeId || !revisionId || !assertionId) {
+    return null;
+  }
+  return `pub:${publicationId}:edge:${projectionEdgeId}:rev:${revisionId}:assert:${assertionId}`;
+}
+
+function formatStrength(persistedStrength?: string | null, strength?: number): string {
+  if (persistedStrength !== undefined && persistedStrength !== null) {
+    const parsed = Number(persistedStrength);
+    if (!Number.isNaN(parsed)) return parsed.toFixed(2);
+    return persistedStrength;
+  }
+  return (strength ?? 0).toFixed(2);
+}
+
 function ConfidenceAndTimeSummary({
   explanation,
   strength,
@@ -201,7 +222,7 @@ function ConfidenceAndTimeSummary({
       <div>
         <dt className="font-medium text-gray-500">Projection strength</dt>
         <dd className="text-gray-800">
-          {persistedStrength ?? strength.toFixed(2)}{" "}
+          {formatStrength(persistedStrength, strength)}{" "}
           <span className="text-xs text-gray-500">
             (distinct from confidence above)
           </span>
@@ -282,11 +303,10 @@ function EvidenceSummary({
                   Evidence body and restricted references are not shown.
                 </p>
               ) : (
-                item.source_ref && (
-                  <p className="text-xs text-gray-700 mt-1">
-                    Source ref: {item.source_ref}
-                  </p>
-                )
+                <div className="text-xs text-gray-700 mt-1 space-y-0.5">
+                  {item.source_ref && <p>Source ref: {item.source_ref}</p>}
+                  {item.content_sha256 && <p>SHA-256: {item.content_sha256}</p>}
+                </div>
               )}
             </li>
           ))}
@@ -340,106 +360,89 @@ function LifecycleHistory({
 
 function PublicationFooter({
   payload,
-  relationship,
 }: Readonly<{
-  payload?: PublishedEdgeExplanationResponse | null;
-  relationship: ExplainableRelationship;
+  payload: PublishedEdgeExplanationResponse;
 }>) {
-  const publication = payload?.publication;
-  const edge = payload?.edge;
+  const publication = payload.publication;
+  const edge = payload.edge;
 
   return (
     <div className="text-xs text-gray-500 border-t border-gray-100 pt-2 space-y-1">
       <p className="font-medium text-gray-700">Publication Provenance</p>
-      {publication ? (
-        <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 text-xs">
-          <div>
-            <dt className="inline font-medium">Publication ID: </dt>
-            <dd className="inline font-mono">{publication.publication_id}</dd>
-          </div>
-          <div>
-            <dt className="inline font-medium">Revision ID: </dt>
-            <dd className="inline font-mono">{publication.revision_id}</dd>
-          </div>
-          <div>
-            <dt className="inline font-medium">Rebuild Job ID: </dt>
-            <dd className="inline font-mono">{publication.rebuild_job_id}</dd>
-          </div>
-          <div>
-            <dt className="inline font-medium">Execution ID: </dt>
-            <dd className="inline font-mono">{publication.execution_id}</dd>
-          </div>
-          <div>
-            <dt className="inline font-medium">Published At: </dt>
-            <dd className="inline">
-              {formatTimestamp(publication.published_at)}
-            </dd>
-          </div>
-          <div>
-            <dt className="inline font-medium">Purpose: </dt>
-            <dd className="inline">{publication.purpose}</dd>
-          </div>
-          <div>
-            <dt className="inline font-medium">Contract Version: </dt>
-            <dd className="inline">{publication.contract_version}</dd>
-          </div>
-          <div>
-            <dt className="inline font-medium">Projector Version: </dt>
-            <dd className="inline">{publication.projector_version}</dd>
-          </div>
-          <div className="col-span-1 sm:col-span-2">
-            <dt className="inline font-medium">Edge-set Hash: </dt>
-            <dd className="inline font-mono text-[10px] break-all">
-              {publication.edge_set_hash}
-            </dd>
-          </div>
-          <div className="col-span-1 sm:col-span-2">
-            <dt className="inline font-medium">Projection Hash: </dt>
-            <dd className="inline font-mono text-[10px] break-all">
-              {publication.projection_hash}
-            </dd>
-          </div>
-          {edge && (
-            <>
-              <div>
-                <dt className="inline font-medium">Projection Edge ID: </dt>
-                <dd className="inline font-mono">{edge.projection_edge_id}</dd>
-              </div>
-              <div>
-                <dt className="inline font-medium">Direction: </dt>
-                <dd className="inline">{edge.direction}</dd>
-              </div>
-              <div>
-                <dt className="inline font-medium">Persisted Strength: </dt>
-                <dd className="inline">{edge.strength}</dd>
-              </div>
-              <div>
-                <dt className="inline font-medium">Assertion ID: </dt>
-                <dd className="inline font-mono">{edge.assertion_id}</dd>
-              </div>
-            </>
-          )}
-          <div className="col-span-1 sm:col-span-2">
-            <dt className="inline font-medium">Governed Scopes: </dt>
-            <dd className="inline">
-              {publication.governed_scopes?.length
-                ? publication.governed_scopes
-                    .map((s) => `(${s.purpose}, ${s.predicate_id})`)
-                    .join(", ")
-                : "none"}
-            </dd>
-          </div>
-        </dl>
-      ) : (
-        <p>
-          Revision: {relationship.revision_id ?? "unknown"} | Scope:{" "}
-          {relationship.scope_refs?.length
-            ? relationship.scope_refs.join(", ")
-            : "unknown"}
-          {relationship.projection_edge_id &&
-            ` | Edge ID: ${relationship.projection_edge_id}`}
-        </p>
-      )}
+      <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 text-xs">
+        <div>
+          <dt className="inline font-medium">Publication ID: </dt>
+          <dd className="inline font-mono">{publication.publication_id}</dd>
+        </div>
+        <div>
+          <dt className="inline font-medium">Revision ID: </dt>
+          <dd className="inline font-mono">{publication.revision_id}</dd>
+        </div>
+        <div>
+          <dt className="inline font-medium">Rebuild Job ID: </dt>
+          <dd className="inline font-mono">{publication.rebuild_job_id}</dd>
+        </div>
+        <div>
+          <dt className="inline font-medium">Execution ID: </dt>
+          <dd className="inline font-mono">{publication.execution_id}</dd>
+        </div>
+        <div>
+          <dt className="inline font-medium">Published At: </dt>
+          <dd className="inline">
+            {formatTimestamp(publication.published_at)}
+          </dd>
+        </div>
+        <div>
+          <dt className="inline font-medium">Purpose: </dt>
+          <dd className="inline">{publication.purpose}</dd>
+        </div>
+        <div>
+          <dt className="inline font-medium">Contract Version: </dt>
+          <dd className="inline">{publication.contract_version}</dd>
+        </div>
+        <div>
+          <dt className="inline font-medium">Projector Version: </dt>
+          <dd className="inline">{publication.projector_version}</dd>
+        </div>
+        <div className="col-span-1 sm:col-span-2">
+          <dt className="inline font-medium">Edge-set Hash: </dt>
+          <dd className="inline font-mono text-[10px] break-all">
+            {publication.edge_set_hash}
+          </dd>
+        </div>
+        <div className="col-span-1 sm:col-span-2">
+          <dt className="inline font-medium">Projection Hash: </dt>
+          <dd className="inline font-mono text-[10px] break-all">
+            {publication.projection_hash}
+          </dd>
+        </div>
+        <div>
+          <dt className="inline font-medium">Projection Edge ID: </dt>
+          <dd className="inline font-mono">{edge.projection_edge_id}</dd>
+        </div>
+        <div>
+          <dt className="inline font-medium">Direction: </dt>
+          <dd className="inline">{edge.direction}</dd>
+        </div>
+        <div>
+          <dt className="inline font-medium">Persisted Strength: </dt>
+          <dd className="inline">{edge.strength}</dd>
+        </div>
+        <div>
+          <dt className="inline font-medium">Assertion ID: </dt>
+          <dd className="inline font-mono">{edge.assertion_id}</dd>
+        </div>
+        <div className="col-span-1 sm:col-span-2">
+          <dt className="inline font-medium">Governed Scopes: </dt>
+          <dd className="inline">
+            {publication.governed_scopes.length
+              ? publication.governed_scopes
+                  .map((s) => `(${s.purpose}, ${s.predicate_id})`)
+                  .join(", ")
+              : "none"}
+          </dd>
+        </div>
+      </dl>
     </div>
   );
 }
@@ -475,7 +478,7 @@ function ReadyView({
       <AuthoritySummary history={history} />
       <EvidenceSummary explanation={explanation} />
       <LifecycleHistory history={history} />
-      <PublicationFooter payload={payload} relationship={relationship} />
+      <PublicationFooter payload={payload} />
     </section>
   );
 }
@@ -496,17 +499,19 @@ async function fetchPublishedEdgeExplanation(
   if (signal.aborted) return null;
 
   // Defensive response-identity validation
-  if (
-    response.publication.publication_id !== publicationId ||
-    (expectedRevisionId &&
-      response.publication.revision_id !== expectedRevisionId) ||
-    response.edge.projection_edge_id !== projectionEdgeId ||
-    (expectedAssertionId &&
-      response.edge.assertion_id !== expectedAssertionId) ||
-    response.assertion.explanation.assertion_id !==
-      response.edge.assertion_id ||
-    response.assertion.history.assertion_id !== response.edge.assertion_id
-  ) {
+  const isPubValid =
+    response.publication.publication_id === publicationId &&
+    (!expectedRevisionId || response.publication.revision_id === expectedRevisionId);
+
+  const isEdgeValid =
+    response.edge.projection_edge_id === projectionEdgeId &&
+    (!expectedAssertionId || response.edge.assertion_id === expectedAssertionId);
+
+  const isAssertionValid =
+    response.assertion.explanation.assertion_id === response.edge.assertion_id &&
+    response.assertion.history.assertion_id === response.edge.assertion_id;
+
+  if (!isPubValid || !isEdgeValid || !isAssertionValid) {
     return { status: "unavailable", requestKey };
   }
 
@@ -517,18 +522,31 @@ async function fetchPublishedEdgeExplanation(
   };
 }
 
+interface FetchAssertionResultOptions {
+  projectionEdgeId: string | null | undefined;
+  publicationId: string | null | undefined;
+  expectedRevisionId: string | null | undefined;
+  expectedAssertionId: string | null | undefined;
+  signal: AbortSignal;
+}
+
 /**
  * Fetch the explanation for a published governed edge, resolving to a settled `PanelResult`.
  */
-async function fetchAssertionResult(
-  projectionEdgeId: string | null | undefined,
-  publicationId: string | null | undefined,
-  expectedRevisionId: string | null | undefined,
-  expectedAssertionId: string | null | undefined,
-  signal: AbortSignal,
-): Promise<PanelResult | null> {
-  if (!publicationId || !projectionEdgeId) return null;
-  const requestKey = `pub:${publicationId}:edge:${projectionEdgeId}`;
+async function fetchAssertionResult({
+  projectionEdgeId,
+  publicationId,
+  expectedRevisionId,
+  expectedAssertionId,
+  signal,
+}: FetchAssertionResultOptions): Promise<PanelResult | null> {
+  const requestKey = buildRequestKey(
+    publicationId,
+    projectionEdgeId,
+    expectedRevisionId,
+    expectedAssertionId,
+  );
+  if (!requestKey || !publicationId || !projectionEdgeId) return null;
 
   try {
     return await fetchPublishedEdgeExplanation(
@@ -558,24 +576,26 @@ function useAssertionResult(
 ): PanelResult | null {
   const [result, setResult] = useState<PanelResult | null>(null);
 
-  const requestKey =
-    publicationId && projectionEdgeId
-      ? `pub:${publicationId}:edge:${projectionEdgeId}`
-      : null;
+  const requestKey = buildRequestKey(
+    publicationId,
+    projectionEdgeId,
+    expectedRevisionId,
+    expectedAssertionId,
+  );
 
   useEffect(() => {
-    if (!requestKey || !publicationId || !projectionEdgeId) {
+    if (!requestKey) {
       return;
     }
 
     const controller = new AbortController();
-    fetchAssertionResult(
+    fetchAssertionResult({
       projectionEdgeId,
       publicationId,
       expectedRevisionId,
       expectedAssertionId,
-      controller.signal,
-    ).then((settled) => {
+      signal: controller.signal,
+    }).then((settled) => {
       if (settled) setResult(settled);
     });
 
@@ -622,16 +642,16 @@ function resolveViewState(
   }
 
   const projectionEdgeId = relationship.projection_edge_id;
-  if (
-    !publicationId ||
-    !projectionEdgeId ||
-    !relationship.assertion_id ||
-    !relationship.revision_id
-  ) {
+  const requestKey = buildRequestKey(
+    publicationId,
+    projectionEdgeId,
+    relationship.revision_id,
+    relationship.assertion_id,
+  );
+
+  if (!requestKey) {
     return { kind: "pending", heading };
   }
-
-  const requestKey = `pub:${publicationId}:edge:${projectionEdgeId}`;
 
   // "Loading" is derived, not stored
   if (result?.requestKey !== requestKey) return { kind: "loading", heading };

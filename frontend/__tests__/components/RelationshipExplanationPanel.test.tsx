@@ -37,6 +37,16 @@ const governedWithoutProjectionEdgeId: ExplainableRelationship = {
   projection_edge_id: null,
 };
 
+const governedWithoutAssertionId: ExplainableRelationship = {
+  ...governedRelationship,
+  assertion_id: null,
+};
+
+const governedWithoutRevisionId: ExplainableRelationship = {
+  ...governedRelationship,
+  revision_id: null,
+};
+
 const mockPublication: PublishedProjectionContextResponse = {
   publication_id: "pub-1",
   revision_id: "rev-1",
@@ -158,10 +168,14 @@ describe("RelationshipExplanationPanel", () => {
     expect(mockedApi.getAssertion).not.toHaveBeenCalled();
   });
 
-  it("shows a pending metadata view for a governed edge with incomplete projection edge metadata", () => {
+  it.each([
+    ["projection_edge_id", governedWithoutProjectionEdgeId],
+    ["assertion_id", governedWithoutAssertionId],
+    ["revision_id", governedWithoutRevisionId],
+  ])("shows a pending metadata view for a governed edge with incomplete %s", (_, relationshipFixture) => {
     render(
       <RelationshipExplanationPanel
-        relationship={governedWithoutProjectionEdgeId}
+        relationship={relationshipFixture}
         publicationId="pub-1"
       />,
     );
@@ -366,5 +380,41 @@ describe("RelationshipExplanationPanel", () => {
     );
 
     expect(screen.getByText("Legacy")).toBeInTheDocument();
+
+    // Rerender with governedRelationship and a different publicationId ("pub-2") after legacy transition
+    const pub2ExplanationResponse = {
+      ...baseExplanationResponse,
+      publication: {
+        ...baseExplanationResponse.publication,
+        publication_id: "pub-2",
+      },
+    };
+
+    let resolvePub2: (value: PublishedEdgeExplanationResponse) => void = () => {};
+    const pub2Promise = new Promise<PublishedEdgeExplanationResponse>((resolve) => {
+      resolvePub2 = resolve;
+    });
+    mockedApi.getPublishedEdgeExplanation.mockReturnValue(pub2Promise);
+
+    rerender(
+      <RelationshipExplanationPanel
+        relationship={governedRelationship}
+        publicationId="pub-2"
+      />,
+    );
+
+    // Stale-state suppression: should show the loading view because requestKey has changed
+    expect(screen.getByText("Loading governed explanation...")).toBeInTheDocument();
+
+    // Resolve the second fetch
+    resolvePub2(pub2ExplanationResponse);
+
+    await waitFor(() => {
+      expect(mockedApi.getPublishedEdgeExplanation).toHaveBeenLastCalledWith(
+        "pub-2",
+        "pedge-1",
+        expect.anything(),
+      );
+    });
   });
 });
