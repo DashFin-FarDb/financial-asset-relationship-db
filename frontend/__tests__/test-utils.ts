@@ -184,26 +184,27 @@ export const mockVizData: VisualizationData = {
   network_density: 0.42,
 };
 
-export const mockPublishedProjectionContext: PublishedProjectionContextResponse = {
-  publication_id: "pub-1",
-  revision_id: "rev-1",
-  rebuild_job_id: "job-1",
-  execution_id: "exec-1",
-  published_at: "2024-01-01T00:00:00Z",
-  purpose: "financial-relationship-graph",
-  effective_at: "2024-01-01T00:00:00Z",
-  known_at: "2024-01-01T00:00:00Z",
-  contract_version: "grac-v1",
-  projector_version: "v1.0.0",
-  edge_set_hash: "sha256-edges-123",
-  projection_hash: "sha256-proj-456",
-  governed_scopes: [
-    {
-      purpose: "financial-relationship-graph",
-      predicate_id: "predicate-issuer",
-    },
-  ],
-};
+export const mockPublishedProjectionContext: PublishedProjectionContextResponse =
+  {
+    publication_id: "pub-1",
+    revision_id: "rev-1",
+    rebuild_job_id: "job-1",
+    execution_id: "exec-1",
+    published_at: "2024-01-01T00:00:00Z",
+    purpose: "financial-relationship-graph",
+    effective_at: "2024-01-01T00:00:00Z",
+    known_at: "2024-01-01T00:00:00Z",
+    contract_version: "grac-v1",
+    projector_version: "v1.0.0",
+    edge_set_hash: "sha256-edges-123",
+    projection_hash: "sha256-proj-456",
+    governed_scopes: [
+      {
+        purpose: "financial-relationship-graph",
+        predicate_id: "predicate-issuer",
+      },
+    ],
+  };
 
 export const mockPublishedProjectionEdge: PublishedProjectionEdgeResponse = {
   projection_edge_id: "pedge-1",

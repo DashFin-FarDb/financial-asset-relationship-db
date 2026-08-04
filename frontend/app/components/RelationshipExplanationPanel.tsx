@@ -189,7 +189,10 @@ function buildRequestKey(
   return `pub:${publicationId}:edge:${projectionEdgeId}:rev:${revisionId}:assert:${assertionId}`;
 }
 
-function formatStrength(persistedStrength?: string | null, strength?: number): string {
+function formatStrength(
+  persistedStrength?: string | null,
+  strength?: number,
+): string {
   if (persistedStrength !== undefined && persistedStrength !== null) {
     const parsed = Number(persistedStrength);
     if (!Number.isNaN(parsed)) return parsed.toFixed(2);
@@ -501,14 +504,17 @@ async function fetchPublishedEdgeExplanation(
   // Defensive response-identity validation
   const isPubValid =
     response.publication.publication_id === publicationId &&
-    (!expectedRevisionId || response.publication.revision_id === expectedRevisionId);
+    (!expectedRevisionId ||
+      response.publication.revision_id === expectedRevisionId);
 
   const isEdgeValid =
     response.edge.projection_edge_id === projectionEdgeId &&
-    (!expectedAssertionId || response.edge.assertion_id === expectedAssertionId);
+    (!expectedAssertionId ||
+      response.edge.assertion_id === expectedAssertionId);
 
   const isAssertionValid =
-    response.assertion.explanation.assertion_id === response.edge.assertion_id &&
+    response.assertion.explanation.assertion_id ===
+      response.edge.assertion_id &&
     response.assertion.history.assertion_id === response.edge.assertion_id;
 
   if (!isPubValid || !isEdgeValid || !isAssertionValid) {

@@ -172,20 +172,23 @@ describe("RelationshipExplanationPanel", () => {
     ["projection_edge_id", governedWithoutProjectionEdgeId],
     ["assertion_id", governedWithoutAssertionId],
     ["revision_id", governedWithoutRevisionId],
-  ])("shows a pending metadata view for a governed edge with incomplete %s", (_, relationshipFixture) => {
-    render(
-      <RelationshipExplanationPanel
-        relationship={relationshipFixture}
-        publicationId="pub-1"
-      />,
-    );
-    expect(
-      screen.getByText(
-        /governed, but its publication or edge metadata is incomplete/,
-      ),
-    ).toBeInTheDocument();
-    expect(mockedApi.getPublishedEdgeExplanation).not.toHaveBeenCalled();
-  });
+  ])(
+    "shows a pending metadata view for a governed edge with incomplete %s",
+    (_, relationshipFixture) => {
+      render(
+        <RelationshipExplanationPanel
+          relationship={relationshipFixture}
+          publicationId="pub-1"
+        />,
+      );
+      expect(
+        screen.getByText(
+          /governed, but its publication or edge metadata is incomplete/,
+        ),
+      ).toBeInTheDocument();
+      expect(mockedApi.getPublishedEdgeExplanation).not.toHaveBeenCalled();
+    },
+  );
 
   it("renders the full publication-bound governed explanation once fetched", async () => {
     mockedApi.getPublishedEdgeExplanation.mockResolvedValue(
@@ -390,10 +393,14 @@ describe("RelationshipExplanationPanel", () => {
       },
     };
 
-    let resolvePub2: (value: PublishedEdgeExplanationResponse) => void = () => {};
-    const pub2Promise = new Promise<PublishedEdgeExplanationResponse>((resolve) => {
-      resolvePub2 = resolve;
-    });
+    let resolvePub2: (
+      value: PublishedEdgeExplanationResponse,
+    ) => void = () => {};
+    const pub2Promise = new Promise<PublishedEdgeExplanationResponse>(
+      (resolve) => {
+        resolvePub2 = resolve;
+      },
+    );
     mockedApi.getPublishedEdgeExplanation.mockReturnValue(pub2Promise);
 
     rerender(
@@ -404,7 +411,9 @@ describe("RelationshipExplanationPanel", () => {
     );
 
     // Stale-state suppression: should show the loading view because requestKey has changed
-    expect(screen.getByText("Loading governed explanation...")).toBeInTheDocument();
+    expect(
+      screen.getByText("Loading governed explanation..."),
+    ).toBeInTheDocument();
 
     // Resolve the second fetch
     resolvePub2(pub2ExplanationResponse);

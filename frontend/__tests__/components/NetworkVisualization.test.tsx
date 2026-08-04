@@ -288,7 +288,12 @@ describe("NetworkVisualization Component", () => {
 
     it("selects a relationship via keyboard navigation using tab and Enter/Space key", async () => {
       mockedApi.getPublishedEdgeExplanation.mockResolvedValue(
-        createMockExplanation("pedge-1", "ASSET_2", "ASSET_1", "ASSET_2 is the issuer of ASSET_1")
+        createMockExplanation(
+          "pedge-1",
+          "ASSET_2",
+          "ASSET_1",
+          "ASSET_2 is the issuer of ASSET_1",
+        ),
       );
 
       const user = userEvent.setup();
@@ -328,7 +333,12 @@ describe("NetworkVisualization Component", () => {
 
     it("selects a relationship via Plotly customdata click", async () => {
       mockedApi.getPublishedEdgeExplanation.mockResolvedValue(
-        createMockExplanation("pedge-1", "ASSET_2", "ASSET_1", "ASSET_2 is the issuer of ASSET_1")
+        createMockExplanation(
+          "pedge-1",
+          "ASSET_2",
+          "ASSET_1",
+          "ASSET_2 is the issuer of ASSET_1",
+        ),
       );
 
       const user = userEvent.setup();
@@ -352,12 +362,28 @@ describe("NetworkVisualization Component", () => {
     });
 
     it("allows canonical and reverse representations to select independently by their edge_id", async () => {
-      mockedApi.getPublishedEdgeExplanation.mockImplementation((pubId, projectionEdgeId) => {
-        if (projectionEdgeId === "pedge-1") {
-          return Promise.resolve(createMockExplanation("pedge-1", "ASSET_2", "ASSET_1", "ASSET_2 is the issuer of ASSET_1"));
-        }
-        return Promise.resolve(createMockExplanation("pedge-2", "ASSET_1", "ASSET_2", "ASSET_1 is the issuer of ASSET_2"));
-      });
+      mockedApi.getPublishedEdgeExplanation.mockImplementation(
+        (pubId, projectionEdgeId) => {
+          if (projectionEdgeId === "pedge-1") {
+            return Promise.resolve(
+              createMockExplanation(
+                "pedge-1",
+                "ASSET_2",
+                "ASSET_1",
+                "ASSET_2 is the issuer of ASSET_1",
+              ),
+            );
+          }
+          return Promise.resolve(
+            createMockExplanation(
+              "pedge-2",
+              "ASSET_1",
+              "ASSET_2",
+              "ASSET_1 is the issuer of ASSET_2",
+            ),
+          );
+        },
+      );
 
       const user = userEvent.setup();
       render(<NetworkVisualization data={governedData} />);
@@ -375,7 +401,9 @@ describe("NetworkVisualization Component", () => {
       expect(canonicalButton).toHaveAttribute("aria-pressed", "false");
 
       await waitFor(() => {
-        expect(screen.getByText("ASSET_1 is the issuer of ASSET_2")).toBeInTheDocument();
+        expect(
+          screen.getByText("ASSET_1 is the issuer of ASSET_2"),
+        ).toBeInTheDocument();
       });
 
       // Select canonical representation
@@ -384,7 +412,9 @@ describe("NetworkVisualization Component", () => {
       expect(reverseButton).toHaveAttribute("aria-pressed", "false");
 
       await waitFor(() => {
-        expect(screen.getByText("ASSET_2 is the issuer of ASSET_1")).toBeInTheDocument();
+        expect(
+          screen.getByText("ASSET_2 is the issuer of ASSET_1"),
+        ).toBeInTheDocument();
       });
     });
   });
