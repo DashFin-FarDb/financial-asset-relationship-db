@@ -1,0 +1,24 @@
+frontend/__tests__/components/NetworkVisualization.test.tsx
+  h_f327e6ff3ec3c1 127,132,139-140,150-168,171-190,197,206-207,210-223,225-239,241-246,248-261,263,269,274,276,285,287-289,299-367
+frontend/__tests__/components/RelationshipExplanationPanel.test.tsx
+  h_f327e6ff3ec3c1 9-10,32,35,37,40-53,55-56,61-73,75-85,87-105,107,109-134,136,149,157,161,164-165,170,173,176-177,180-183,196-205,207,209-210,215,220-229,236,238,243-246,252,256-276,278-286,288-305,309-312,335-336,339-342,346-348,354-357
+frontend/__tests__/test-utils.test.ts
+  h_f327e6ff3ec3c1 508
+frontend/__tests__/test-utils.ts
+  h_f327e6ff3ec3c1 136,173,182-270
+frontend/app/components/NetworkVisualization.tsx
+  h_f327e6ff3ec3c1 88-90,100-108,111,117,482
+frontend/app/components/RelationshipExplanationPanel.tsx
+  h_f327e6ff3ec3c1 9-10,27,35,43,63,141-142,183-188,204,285-289,342,344-350,352-442,450,454,456,473,478,488-489,497-509,513,518,523-524,527-528,531-533,536-537,553-554,561,564,572-573,580,597,601,615-620,622,630,638,659,666-667,671-672,674,678-679
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.20",
+  "base_commit_sha": "1a8329a7899d8c8940ff3c53d35ec8c8482e1a78",
+  "prompts": {},
+  "humans": {
+    "h_f327e6ff3ec3c1": {
+      "author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}
