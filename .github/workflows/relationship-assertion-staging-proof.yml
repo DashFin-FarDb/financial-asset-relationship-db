@@ -203,6 +203,7 @@ jobs:
             ARGS+=("--output" "staging-proof-result.json")
 
             if [ "$REQUIRE_PERSISTENCE" = "true" ]; then
+              ARGS+=("--require-persistence")
               ARGS+=("--startup-source" "$STARTUP_SOURCE")
             fi
 
