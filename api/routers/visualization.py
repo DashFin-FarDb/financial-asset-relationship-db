@@ -84,40 +84,48 @@ def _build_visualization_nodes(
     return nodes
 
 
+def _build_visualization_edge(
+    source_id: str,
+    target_id: str,
+    rel_type: str,
+    strength: float,
+    snapshot: PublishedRelationshipSnapshot,
+) -> VisualizationEdge:
+    """Build a single visualization edge with optional published governance metadata."""
+    relationship_key = (source_id, target_id, rel_type)
+    payload: dict[str, object] = {
+        "source": source_id,
+        "target": target_id,
+        "relationship_type": rel_type,
+        "strength": strength,
+    }
+    metadata = snapshot.governance_index.get(relationship_key)
+    if metadata is not None:
+        binding = snapshot.projection_bindings.get(relationship_key)
+        if snapshot.publication is None or binding is None:
+            raise HTTPException(
+                status_code=503,
+                detail="Graph publication metadata is inconsistent",
+            )
+        payload.update(metadata)
+        payload["projection_edge_id"] = binding.projection_edge_id
+        payload["edge_id"] = (
+            f"published:{snapshot.publication.publication_id}:edge:{binding.projection_edge_id}:{binding.orientation}"
+        )
+    else:
+        payload["edge_id"] = _legacy_edge_id(source_id, target_id, rel_type)
+    return VisualizationEdge.model_validate(payload)
+
+
 def _build_visualization_edges(
     g: AssetRelationshipGraph,
     snapshot: PublishedRelationshipSnapshot,
 ) -> list[VisualizationEdge]:
     """Build visualization edges with optional published governance metadata."""
-    governed_index = snapshot.governance_index
-    publication = snapshot.publication
-    projection_bindings = snapshot.projection_bindings
     edges: list[VisualizationEdge] = []
     for source_id, rels in g.relationships.items():
         for target_id, rel_type, strength in rels:
-            relationship_key = (source_id, target_id, rel_type)
-            payload: dict[str, object] = {
-                "source": source_id,
-                "target": target_id,
-                "relationship_type": rel_type,
-                "strength": strength,
-            }
-            metadata = governed_index.get(relationship_key)
-            if metadata is not None:
-                binding = projection_bindings.get(relationship_key)
-                if publication is None or binding is None:
-                    raise HTTPException(
-                        status_code=503,
-                        detail="Graph publication metadata is inconsistent",
-                    )
-                payload.update(metadata)
-                payload["projection_edge_id"] = binding.projection_edge_id
-                payload["edge_id"] = (
-                    f"published:{publication.publication_id}:edge:{binding.projection_edge_id}:{binding.orientation}"
-                )
-            else:
-                payload["edge_id"] = _legacy_edge_id(source_id, target_id, rel_type)
-            edges.append(VisualizationEdge.model_validate(payload))
+            edges.append(_build_visualization_edge(source_id, target_id, rel_type, strength, snapshot))
     return edges
 
 

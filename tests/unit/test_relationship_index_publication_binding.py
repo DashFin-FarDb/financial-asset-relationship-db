@@ -223,6 +223,71 @@ def test_published_projection_binding_for_rebuild_job_still_fails_closed_for_inv
     assert exc_info.value.detail == "Graph persistence database is misconfigured"
 
 
+def test_published_projection_binding_for_rebuild_job_validation_error_maps_to_503(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Validation errors during binding resolution map to 503 inconsistent detail."""
+
+    def raise_error() -> None:
+        raise relationship_index.ValidationError("inconsistent data")
+
+    monkeypatch.setattr(relationship_index, "_governance_session_factory", raise_error)
+
+    with pytest.raises(HTTPException) as exc_info:
+        relationship_index._published_projection_binding_for_rebuild_job_from_persistence("job-1")
+
+    assert exc_info.value.status_code == status.HTTP_503_SERVICE_UNAVAILABLE
+    assert exc_info.value.detail == "Graph publication metadata is inconsistent"
+
+
+def test_published_projection_binding_for_rebuild_job_sqlalchemy_error_maps_to_503(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Database query errors map to 503 unavailable detail."""
+
+    def raise_error() -> None:
+        raise relationship_index.SQLAlchemyError("db down")
+
+    monkeypatch.setattr(relationship_index, "_governance_session_factory", raise_error)
+
+    with pytest.raises(HTTPException) as exc_info:
+        relationship_index._published_projection_binding_for_rebuild_job_from_persistence("job-1")
+
+    assert exc_info.value.status_code == status.HTTP_503_SERVICE_UNAVAILABLE
+    assert exc_info.value.detail == "Graph persistence database is unavailable"
+
+
+def test_published_projection_binding_for_rebuild_job_success(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Successful repository binding returns revision_id and publication_id."""
+
+    class FakeRepository:
+        def __init__(self, _session: object) -> None:
+            pass
+
+        def published_projection_binding_for_rebuild_job(self, rebuild_job_id: str) -> tuple[str, str] | None:
+            if rebuild_job_id == "job-1":
+                return ("rev-1", "pub-1")
+            return None
+
+    class FakeSession:
+        def commit(self) -> None:
+            pass
+
+        def rollback(self) -> None:
+            pass
+
+        def close(self) -> None:
+            pass
+
+    monkeypatch.setattr(relationship_index, "_governance_session_factory", lambda: (lambda: FakeSession()))
+    monkeypatch.setattr(relationship_index, "RelationshipAssertionRepository", FakeRepository)
+
+    result = relationship_index._published_projection_binding_for_rebuild_job_from_persistence("job-1")
+    assert result == ("rev-1", "pub-1")
+
+
 def test_unmanaged_graph_retains_isolated_loader_path(monkeypatch: pytest.MonkeyPatch) -> None:
     """Test and tool graphs without lifecycle ownership keep the bounded legacy path."""
     graph = AssetRelationshipGraph()

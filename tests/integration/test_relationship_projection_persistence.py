@@ -427,3 +427,58 @@ def test_projection_revision_rows_are_immutable(repo: RelationshipAssertionRepos
     with pytest.raises(_MUTATION_ERRORS):
         _mutate("DELETE FROM relationship_projection_revisions WHERE id = 'rev-empty'")
     repo._session.rollback()
+
+
+def test_published_projection_binding_for_rebuild_job(repo: RelationshipAssertionRepository) -> None:
+    """Return binding only for succeeded rebuild jobs."""
+    assert repo.published_projection_binding_for_rebuild_job("non-existent-job") is None
+
+    _contract, predicates, _transitions = load_contract_bundle()
+    revision = project(
+        ProjectRequest(
+            assertions=[],
+            events=[],
+            evidence=[],
+            evidence_links=[],
+            predicate_registry=predicates,
+            purpose=PURPOSE,
+            effective_at=NOW,
+            known_at=NOW,
+        )
+    )
+    repo.persist_projection_revision(
+        PersistProjectionRequest(
+            revision=revision,
+            revision_id="rev-1",
+            created_at=NOW,
+            edge_ids=[],
+        )
+    )
+
+    job = RebuildJobORM(
+        job_id="job-test-1",
+        requested_by="admin",
+        status="running",
+        source="sample",
+        created_at=NOW,
+        updated_at=NOW,
+        execution_id="exec-1",
+    )
+    publication = RelationshipProjectionPublicationORM(
+        id="pub-1",
+        rebuild_job_id="job-test-1",
+        revision_id="rev-1",
+        execution_id="exec-1",
+        published_at=NOW,
+    )
+    repo._session.add(job)
+    repo._session.add(publication)
+    repo._session.commit()
+
+    assert repo.published_projection_binding_for_rebuild_job("job-test-1") is None
+
+    job.status = "succeeded"
+    repo._session.commit()
+
+    binding = repo.published_projection_binding_for_rebuild_job("job-test-1")
+    assert binding == ("rev-1", "pub-1")
