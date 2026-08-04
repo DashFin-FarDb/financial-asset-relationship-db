@@ -34,6 +34,7 @@ This runbook describes the staging proof workflow for Governed Relationship Asse
 Validates initial evidence creation, proposal/determination flow, and publication binding.
 
 **Checks:**
+
 - Deployed SHA matches source
 - Contract and registry digests are valid
 - Database URL is properly configured
@@ -43,6 +44,7 @@ Validates initial evidence creation, proposal/determination flow, and publicatio
 - Revision hash is well-formed
 
 **When to use:**
+
 - Initial staging deployment
 - After contract or registry updates
 - When validating proposal/determination flow
@@ -53,6 +55,7 @@ Validates initial evidence creation, proposal/determination flow, and publicatio
 Validates persistence, restart behavior, historical reconstruction, and scope continuity.
 
 **Checks:**
+
 - Deployed SHA matches restarted instance
 - Startup source is `persisted` (when required)
 - Authorization evidence is current
@@ -62,6 +65,7 @@ Validates persistence, restart behavior, historical reconstruction, and scope co
 - Legacy edges do not reappear
 
 **When to use:**
+
 - After staging restart/redeploy
 - When validating persistence behavior
 - Before production promotion
@@ -101,6 +105,7 @@ FARDB_EXPOSED_DATABASE_SCHEMAS: "public"
 5. Review workflow output and artifacts
 
 **Example:**
+
 ```yaml
 mode: seed_and_publish
 deployed_sha: a1b2c3d4e5f6789012345678901234567890abcd
@@ -122,6 +127,7 @@ strict_mode: true
 5. Review workflow output and artifacts
 
 **Example:**
+
 ```yaml
 mode: verify_after_restart
 deployed_sha: a1b2c3d4e5f6789012345678901234567890abcd
@@ -134,27 +140,32 @@ strict_mode: true
 The workflow **MUST FAIL** when:
 
 ### SHA Mismatch
+
 - Deployed SHA format is invalid (not 40-character hex)
 - Deployed SHA differs from workflow input
 - Authorization evidence SHA doesn't match deployed SHA
 
 ### Authorization Failures
+
 - Authorization evidence is missing (in strict mode)
 - Evidence status is not "passed"
 - PostgreSQL authorization check was skipped
 - Database URL is missing or malformed
 
 ### Actor Separation Violations
+
 - Proposer and determiner are the same identity
 - Executor matches proposer or determiner
 - Actor IDs are missing (in strict mode)
 
 ### Publication Errors
+
 - Publication count is not exactly 1
 - Owner identity doesn't match expected value
 - Revision hash is invalid or mismatched
 
 ### Restart/Persistence Failures
+
 - Startup source is not "persisted" (when required)
 - Scopes differ before/after restart
 - Historical entries are missing or malformed
@@ -162,6 +173,7 @@ The workflow **MUST FAIL** when:
 - Legacy edges reappear after transition
 
 ### Contract Violations
+
 - Contract or registry digest is invalid
 - Digest format is wrong (not 64-character SHA-256)
 - Required evidence is missing in strict mode
@@ -216,6 +228,7 @@ The workflow **MUST FAIL** when:
 **Cause:** Required database secrets are missing from staging-manual-gate environment.
 
 **Resolution:**
+
 1. Verify `DATABASE_URL` secret exists in GitHub environment settings
 2. Check that secret value is properly formatted: `postgresql://user:pass@host/db`
 3. Re-run workflow after adding secret
@@ -225,6 +238,7 @@ The workflow **MUST FAIL** when:
 **Cause:** Same actor identity used for proposal and determination.
 
 **Resolution:**
+
 1. Ensure distinct user accounts for proposer and determiner roles
 2. Verify actor IDs are captured correctly from application logs
 3. Check that determination step uses different credentials
@@ -234,6 +248,7 @@ The workflow **MUST FAIL** when:
 **Cause:** Database authorization check was skipped or incomplete.
 
 **Resolution:**
+
 1. Ensure all database URLs are configured (app, asset-graph, coordination)
 2. Verify `scripts/check_database_authorization.py` exists at deployed SHA
 3. Check database connectivity from GitHub Actions runner
@@ -244,6 +259,7 @@ The workflow **MUST FAIL** when:
 **Cause:** Application started from fallback/sample data instead of persisted state.
 
 **Resolution:**
+
 1. Verify persistence configuration is enabled in deployment
 2. Check database contains persisted graph data
 3. Review application startup logs for persistence errors
@@ -254,6 +270,7 @@ The workflow **MUST FAIL** when:
 **Cause:** Scope continuity violated across restart.
 
 **Resolution:**
+
 1. Check for schema migrations between captures
 2. Verify persistence layer is working correctly
 3. Review application logs for scope reconciliation errors
@@ -266,6 +283,7 @@ Each run produces two artifacts:
 ### staging-proof-result.json
 
 Complete validation result with:
+
 - Status (passed/failed)
 - List of all errors
 - Metadata about checks performed
@@ -277,6 +295,7 @@ Complete validation result with:
 ### authz-evidence.json
 
 Database authorization evidence with:
+
 - Status (passed/failed/skipped)
 - Deployed SHA binding
 - PostgreSQL verification flag
@@ -307,6 +326,7 @@ Before promoting to production:
 ## Support
 
 For questions or issues:
+
 - Review workflow logs in GitHub Actions
 - Check `staging-proof-result.json` artifact for detailed errors
 - Consult related documentation above
