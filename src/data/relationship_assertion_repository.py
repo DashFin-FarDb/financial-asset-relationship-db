@@ -901,7 +901,10 @@ class RelationshipAssertionRepository:
         return published, persisted.revision.edges[0]
 
     def latest_published_projection_binding(self, purpose: str) -> tuple[str, str, str] | None:
-        """Load the latest succeeded publication binding (rebuild_job_id, revision_id, publication_id) for ``purpose``."""
+        """
+        Load the latest succeeded publication binding
+        (rebuild_job_id, revision_id, publication_id) for ``purpose``.
+        """
         publication = self._session.execute(
             select(
                 RelationshipProjectionPublicationORM.rebuild_job_id,

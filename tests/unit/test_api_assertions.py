@@ -398,7 +398,7 @@ def test_get_published_edge_explanation_success(
     from datetime import datetime, timezone
 
     from src.data.relationship_assertion_repository import PersistedProjectionRevision, PublishedProjectionRevision
-    from src.governance.relationship_assertion import Assertion, AssertionAsOf, AssertionEvent, EvidenceLink
+    from src.governance.relationship_assertion import Assertion, AssertionAsOf, AssertionEvent
     from src.logic.relationship_projection import GovernedScope, ProjectionEdge, ProjectionRevision
 
     now = datetime.now(tz=timezone.utc)
@@ -478,6 +478,10 @@ def test_get_published_edge_explanation_success(
     def mock_get_published_edge(
         _self: object, pub_id: str, edge_id: str
     ) -> tuple[PublishedProjectionRevision, ProjectionEdge] | None:
+        """Return the published projection revision and edge for a given publication and edge ID.
+
+        Returns a tuple of PublishedProjectionRevision and ProjectionEdge if the publication ID and edge ID match the test values, otherwise returns None.
+        """
         if pub_id == "pub-test" and edge_id == "projection-edge-test":
             return published, edge
         return None
@@ -485,6 +489,10 @@ def test_get_published_edge_explanation_success(
     def mock_get_as_of(
         _self: object, assertion_id: str, known_at: datetime, effective_at: datetime | None
     ) -> AssertionAsOf | None:
+        """Retrieve the assertion state as of the specified known and effective timestamps.
+
+        Increments the get_as_of_calls counter, validates parameters against the expected 'now' timestamp, and returns the predefined AssertionAsOf object.
+        """
         nonlocal get_as_of_calls
         get_as_of_calls += 1
         assert known_at == now
@@ -534,6 +542,7 @@ def test_get_published_edge_explanation_wrong_edge_returns_404(
         direction="canonical",
         assertion_id="assertion-test",
     )
+"""Test module for relationship assertion API, verifying published edge retrieval and explanation endpoints."""
     revision = ProjectionRevision(
         purpose="financial_graph_current_view",
         effective_at=now,
@@ -562,6 +571,7 @@ def test_get_published_edge_explanation_wrong_edge_returns_404(
     def mock_get_published_edge(
         _self: object, pub_id: str, edge_id: str
     ) -> tuple[PublishedProjectionRevision, ProjectionEdge] | None:
+        """Mock get_published_edge to return the expected published projection revision and edge when provided correct IDs."""
         if pub_id == "pub-test" and edge_id == "projection-edge-test":
             return published, edge
         return None
@@ -574,17 +584,17 @@ def test_get_published_edge_explanation_wrong_edge_returns_404(
 
 
 @pytest.mark.unit
-def test_get_published_edge_explanation_strict_zip_mismatch_returns_503(
-    client: TestClient,
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    """Strict-zip mismatch (edge_ids and revision.edges mismatch) returns 503."""
-    from datetime import datetime, timezone
+ def test_get_published_edge_explanation_strict_zip_mismatch_returns_503(
+     client: TestClient,
+     monkeypatch: pytest.MonkeyPatch,
+ ) -> None:
+     """Strict-zip mismatch (edge_ids and revision.edges mismatch) returns 503."""
+     from datetime import datetime, timezone
 
-    from src.data.relationship_assertion_repository import PersistedProjectionRevision, PublishedProjectionRevision
-    from src.logic.relationship_projection import ProjectionEdge, ProjectionRevision
+     from src.data.relationship_assertion_repository import PersistedProjectionRevision, PublishedProjectionRevision
+     from src.logic.relationship_projection import ProjectionEdge, ProjectionRevision
 
-    now = datetime.now(tz=timezone.utc)
+     now = datetime.now(tz=timezone.utc)
     edge = ProjectionEdge(
         source_id="BOND",
         target_id="ISSUER",

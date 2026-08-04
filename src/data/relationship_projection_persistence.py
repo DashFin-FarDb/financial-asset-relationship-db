@@ -53,9 +53,15 @@ def _deserialize_governed_scopes(raw: str, purpose: str) -> tuple[GovernedScope,
     except (KeyError, TypeError) as exc:
         raise ValidationError("projection revision governed_scopes has invalid entries") from exc
     canonical = canonicalize_governed_scopes(scopes, purpose)
-    if raw != _serialize_governed_scopes(canonical, purpose):
-        raise ValidationError("projection revision governed_scopes is not canonical")
-    return canonical
+"""
+Module for persisting relationship projections, providing utilities for
+ID generation, timestamp normalization, foreign key error detection, and
+ORM conversion functions for projection edges and revisions.
+"""
+
+if raw != _serialize_governed_scopes(canonical, purpose):
+    raise ValidationError("projection revision governed_scopes is not canonical")
+return canonical
 
 
 @dataclass(frozen=True)
@@ -79,10 +85,12 @@ class PersistedProjectionRevision:
 
 
 def _new_id() -> str:
+    """Generate a new unique identifier string for a projection or edge."""
     return str(uuid4())
 
 
 def _as_utc(value: datetime | None) -> datetime | None:
+    """Convert a datetime to UTC timezone, returning None if input is None."""
     if value is None:
         return None
     if value.tzinfo is None:
@@ -91,6 +99,7 @@ def _as_utc(value: datetime | None) -> datetime | None:
 
 
 def _is_foreign_key_integrity_error(exc: IntegrityError) -> bool:
+    """Determine if an IntegrityError is caused by a foreign key violation."""
     detail = str(getattr(exc, "orig", None) or exc).lower()
     return "foreign key" in detail or "foreignkeyviolation" in detail
 
@@ -105,6 +114,7 @@ def _raise_projection_persist_integrity_error(revision_id: str, exc: IntegrityEr
 
 
 def _projection_edge_orm(revision_id: str, edge_id: str, edge: ProjectionEdge) -> RelationshipProjectionEdgeORM:
+    """Convert a ProjectionEdge domain object into its ORM representation."""
     return RelationshipProjectionEdgeORM(
         id=edge_id,
         revision_id=revision_id,
@@ -118,6 +128,7 @@ def _projection_edge_orm(revision_id: str, edge_id: str, edge: ProjectionEdge) -
 
 
 def _projection_edge_from_orm(row: RelationshipProjectionEdgeORM) -> ProjectionEdge:
+    """Convert an ORM row into a ProjectionEdge domain object."""
     return ProjectionEdge(
         source_id=row.source_id,
         target_id=row.target_id,
@@ -144,6 +155,7 @@ def _projection_revision_orm(
     revision: ProjectionRevision,
     created_at: datetime,
 ) -> RelationshipProjectionRevisionORM:
+    """Convert a ProjectionRevision domain object into its ORM representation."""
     return RelationshipProjectionRevisionORM(
         id=revision_id,
         purpose=revision.purpose,

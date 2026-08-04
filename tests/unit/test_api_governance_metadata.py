@@ -572,6 +572,7 @@ def test_validation_error_in_governance_persistence_returns_503(
     )
 
     def mock_latest_published_projection_record(*args: object, **kwargs: object) -> None:
+        """Mock function to simulate raising ValidationError when retrieving the latest published projection record."""
         raise ValidationError("inconsistent publication data")
 
     monkeypatch.setattr(
@@ -590,6 +591,11 @@ def test_validation_error_in_governance_persistence_returns_503(
 
 @pytest.mark.unit
 @pytest.mark.parametrize("path", ["/api/relationships", "/api/visualization"])
+"""
+This module contains unit tests for the API governance metadata endpoints,
+ensuring proper error handling and data integrity when invalid data is encountered.
+"""
+
 def test_pydantic_validation_error_in_governance_persistence_returns_503(
     client: TestClient,
     monkeypatch: pytest.MonkeyPatch,
@@ -608,6 +614,7 @@ def test_pydantic_validation_error_in_governance_persistence_returns_503(
     )
 
     class Dummy(BaseModel):
+        """Dummy Pydantic model used to test validation error handling."""
         x: int
 
     try:
@@ -616,6 +623,9 @@ def test_pydantic_validation_error_in_governance_persistence_returns_503(
         pydantic_err = err
 
     def mock_latest_published_projection_record(*args: object, **kwargs: object) -> None:
+        """Mock function to simulate retrieval of the latest published projection record,
+        raising a Pydantic validation error to trigger error handling."""
+        pydantic_err = Exception("Pydantic validation error")
         raise pydantic_err
 
     monkeypatch.setattr(
