@@ -308,8 +308,7 @@ jobs:
                   f.write(f"## ✗ Staging Proof Failed\n")
 
               f.write(f"**Mode:** {mode}\n")
-              f.write(f"**Deployed SHA:** {deployed_sha}
-              f.write(f"**Deployed SHA:** {deployed_sha}
+              f.write(f"**Deployed SHA:** {deployed_sha}\n")
 
               if errors:
                   f.write(f"**Errors ({len(errors)}):**\n")
