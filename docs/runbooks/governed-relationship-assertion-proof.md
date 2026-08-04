@@ -4,8 +4,8 @@
 
 This runbook describes the staging proof workflow for Governed Relationship Assertion Contract (GRAC) v1. The workflow validates that staged deployments meet all required invariants before promotion to production.
 
-**Workflow:** `.github/workflows/relationship-assertion-staging-proof.yml`  
-**Script:** `scripts/check_relationship_assertion_proof.py`  
+**Workflow:** `.github/workflows/relationship-assertion-staging-proof.yml`
+**Script:** `scripts/check_relationship_assertion_proof.py`
 **Environment:** `staging-manual-gate` (requires approval)
 
 ## Security Model
@@ -271,7 +271,7 @@ Complete validation result with:
 - Metadata about checks performed
 - Run context (SHA, run ID, timestamp)
 
-**Retention:** 90 days  
+**Retention:** 90 days
 **Size limit:** 128 KB (enforced)
 
 ### authz-evidence.json
@@ -282,7 +282,7 @@ Database authorization evidence with:
 - PostgreSQL verification flag
 - Exit code (on failure)
 
-**Retention:** 90 days  
+**Retention:** 90 days
 **Size limit:** 128 KB (enforced)
 
 ## Integration with Production Promotion

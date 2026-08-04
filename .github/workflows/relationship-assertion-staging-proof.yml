@@ -138,7 +138,7 @@ jobs:
           FARDB_EXPOSED_DATABASE_SCHEMAS_POSTGRES: ${{ secrets.FARDB_EXPOSED_DATABASE_SCHEMAS_POSTGRES }}
         run: |
           set +e
-          
+
           # Check if any database URL is configured
           if [ -z "${DATABASE_URL}${ASSET_GRAPH_DATABASE_URL}${COORDINATION_DATABASE_URL}${POSTGRES_URL}" ]; then
             echo '{"status":"skipped","reason":"no_database_configured"}' > authz-evidence.json

@@ -1,9 +1,9 @@
 # Governed Relationship Assertion v1 Evidence Template
 
-**Purpose:** Record staging proof evidence for GRAC v1 deployments  
-**Workflow:** `.github/workflows/relationship-assertion-staging-proof.yml`  
-**Created:** [YYYY-MM-DD]  
-**Deployment SHA:** `[40-character Git SHA]`  
+**Purpose:** Record staging proof evidence for GRAC v1 deployments
+**Workflow:** `.github/workflows/relationship-assertion-staging-proof.yml`
+**Created:** [YYYY-MM-DD]
+**Deployment SHA:** `[40-character Git SHA]`
 **Evidence ID:** `[grac-v1-YYYYMMDD-NNNN]`
 
 ---
@@ -59,7 +59,7 @@
 | **Untrusted roles denied** | ✓ Yes / ✗ No / N/A | Function execute revoked |
 | **Evidence SHA binding** | `[SHA]` | Must match deployed SHA |
 
-**Authz evidence artifact:** `authz-evidence.json`  
+**Authz evidence artifact:** `authz-evidence.json`
 **Authz workflow:** [Link to check_database_authorization.py run]
 
 ---
@@ -144,9 +144,9 @@
 
 ### Summary
 
-**Total errors:** [count]  
-**Critical failures:** [count]  
-**Warnings:** [count]  
+**Total errors:** [count]
+**Critical failures:** [count]
+**Warnings:** [count]
 **Overall status:** ✓ PASS / ✗ FAIL
 
 ---
@@ -159,7 +159,7 @@
 | **Authz evidence** | `authz-evidence.json` | [bytes] | `[digest]` |
 | **Workflow logs** | [GitHub Actions link] | [size] | N/A |
 
-**Artifact retention:** 90 days from run date  
+**Artifact retention:** 90 days from run date
 **Download instructions:** See workflow artifacts tab
 
 ---
@@ -173,10 +173,10 @@
 - [ ] Artifacts archived
 - [ ] Evidence reviewed by: [@reviewer-username]
 
-**Promotion decision:** READY / BLOCKED  
+**Promotion decision:** READY / BLOCKED
 **Blocking issues:** [List if any, or "None"]
 
 ---
 
-**Template version:** 1.0  
+**Template version:** 1.0
 **Last updated:** 2024-01-XX
