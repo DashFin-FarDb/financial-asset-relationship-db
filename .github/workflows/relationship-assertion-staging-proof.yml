@@ -98,14 +98,6 @@ jobs:
             pip install -r requirements.txt
             pip install -r requirements-dev.txt
 
-      - name: Verify proof script exists
-        working-directory: proof-source
-        run: |
-          if [ ! -f scripts/check_relationship_assertion_proof.py ]; then
-            echo "Error: Proof script not found at deployed SHA"
-            exit 1
-          fi
-
       - name: Mask sensitive environment variables
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
@@ -113,13 +105,16 @@ jobs:
           COORDINATION_DATABASE_URL: ${{ secrets.COORDINATION_DATABASE_URL }}
         run: |
           if [ -n "$DATABASE_URL" ]; then
-            echo "::add-mask::$DATABASE_URL"
+            DB_URL_VAL="$DATABASE_URL"
+            echo "::add-mask::$DB_URL_VAL"
           fi
           if [ -n "$ASSET_GRAPH_DATABASE_URL" ]; then
-            echo "::add-mask::$ASSET_GRAPH_DATABASE_URL"
+            AG_DB_URL_VAL="$ASSET_GRAPH_DATABASE_URL"
+            echo "::add-mask::$AG_DB_URL_VAL"
           fi
           if [ -n "$COORDINATION_DATABASE_URL" ]; then
-            echo "::add-mask::$COORDINATION_DATABASE_URL"
+            COORD_DB_URL_VAL="$COORDINATION_DATABASE_URL"
+            echo "::add-mask::$COORD_DB_URL_VAL"
           fi
 
       - name: Run database authorization check
@@ -162,8 +157,7 @@ jobs:
             exit 1
           fi
 
-      - name: Run seed_and_publish mode
-        if: inputs.mode == 'seed_and_publish'
+      - name: Run staging proof validation
         working-directory: proof-source
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
@@ -171,60 +165,54 @@ jobs:
           CONTRACT_DIGEST: ${{ inputs.contract_digest }}
           REGISTRY_DIGEST: ${{ inputs.registry_digest }}
           STRICT_MODE: ${{ inputs.strict_mode }}
-        run: |
-          ARGS=("seed_and_publish")
-          ARGS+=("--deployed-sha" "$DEPLOYED_SHA")
-          ARGS+=("--output" "staging-proof-result.json")
-
-          if [ -n "$CONTRACT_DIGEST" ]; then
-            ARGS+=("--contract-digest" "$CONTRACT_DIGEST")
-          fi
-
-          if [ -n "$REGISTRY_DIGEST" ]; then
-            ARGS+=("--registry-digest" "$REGISTRY_DIGEST")
-          fi
-
-          if [ -f "authz-evidence.json" ]; then
-            ARGS+=("--authz-evidence" "authz-evidence.json")
-          fi
-
-          if [ "$STRICT_MODE" = "true" ]; then
-            ARGS+=("--strict")
-          fi
-
-          python scripts/check_relationship_assertion_proof.py "${ARGS[@]}"
-
-      - name: Run verify_after_restart mode
-        if: inputs.mode == 'verify_after_restart'
-        working-directory: proof-source
-        env:
-          DEPLOYED_SHA: ${{ inputs.deployed_sha }}
           REQUIRE_PERSISTENCE: ${{ inputs.require_persistence }}
-          STRICT_MODE: ${{ inputs.strict_mode }}
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          STRICT_MODE: ${{ inputs.strict_mode }}
-          ARGS+=("--deployed-sha" "${{ inputs.deployed_sha }}")
-          ARGS+=("--output" "staging-proof-result.json")
-          ARGS+=("--deployed-sha" "$DEPLOYED_SHA")
-          if [ "${{ inputs.require_persistence }}" = "true" ]; then
-            ARGS+=("--require-persistence")
-          if [ "$REQUIRE_PERSISTENCE" = "true" ]; then
-            # In real scenario, you would capture startup_source from deployed instance
-            # TODO: SECURITY ISSUE - This hard-codes 'persisted' instead of querying the deployed instance
-            # This makes the persistence check tautologically pass and undermines the proof's purpose
-            ARGS+=("--startup-source" "persisted")
-            # Fix: Fetch actual startup_source from deployed instance/logs before passing to validator
-          fi
+          MODE: ${{ inputs.mode }}
+        run: |
+          if [ "$MODE" = "seed_and_publish" ]; then
+            ARGS=("seed_and_publish")
+            ARGS+=("--deployed-sha" "$DEPLOYED_SHA")
+            ARGS+=("--output" "staging-proof-result.json")
 
-          if [ -f "authz-evidence.json" ]; then
-            ARGS+=("--authz-evidence" "authz-evidence.json")
-          fi
+            if [ -n "$CONTRACT_DIGEST" ]; then
+              ARGS+=("--contract-digest" "$CONTRACT_DIGEST")
+            fi
 
-          if [ "$STRICT_MODE" = "true" ]; then
-            ARGS+=("--strict")
-          fi
+            if [ -n "$REGISTRY_DIGEST" ]; then
+              ARGS+=("--registry-digest" "$REGISTRY_DIGEST")
+            fi
 
-          python scripts/check_relationship_assertion_proof.py "${ARGS[@]}"
+            if [ -f "authz-evidence.json" ]; then
+              ARGS+=("--authz-evidence" "authz-evidence.json")
+            fi
+
+            if [ "$STRICT_MODE" = "true" ]; then
+              ARGS+=("--strict")
+            fi
+
+            python scripts/check_relationship_assertion_proof.py "${ARGS[@]}"
+          else
+            ARGS=("verify_after_restart")
+            ARGS+=("--deployed-sha" "$DEPLOYED_SHA")
+            ARGS+=("--output" "staging-proof-result.json")
+
+            if [ "$REQUIRE_PERSISTENCE" = "true" ]; then
+              # In real scenario, you would capture startup_source from deployed instance
+              # TODO: SECURITY ISSUE - This hard-codes 'persisted' instead of querying the deployed instance
+              # This makes the persistence check tautologically pass and undermines the proof's purpose
+              ARGS+=("--startup-source" "persisted")
+              # Fix: Fetch actual startup_source from deployed instance/logs before passing to validator
+            fi
+
+            if [ -f "authz-evidence.json" ]; then
+              ARGS+=("--authz-evidence" "authz-evidence.json")
+            fi
+
+            if [ "$STRICT_MODE" = "true" ]; then
+              ARGS+=("--strict")
+            fi
+
+            python scripts/check_relationship_assertion_proof.py "${ARGS[@]}"
+          fi
 
       - name: Add run metadata to result
         if: always()

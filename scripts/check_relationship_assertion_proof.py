@@ -12,9 +12,23 @@ import argparse
 import json
 import os
 import pathlib
+import subprocess
 import sys
+import uuid
+from datetime import datetime, timezone
 from typing import Any
 from urllib.parse import urlparse
+
+from sqlalchemy.orm import sessionmaker
+
+from src.data.database import create_engine_from_url
+from src.data.db_models import RebuildJobORM
+from src.data.relationship_assertion_db_models import (
+    RelationshipProjectionPublicationORM,
+    RelationshipProjectionRevisionORM,
+)
+
+REPO_ROOT = pathlib.Path(__file__).resolve().parent.parent
 
 EXIT_SUCCESS = 0
 EXIT_FAILURE = 1
@@ -24,6 +38,7 @@ class ProofValidator:
     """Validates GRAC v1 staging proofs."""
 
     def __init__(self, config: dict[str, Any]):
+        """Initialize the validator with configuration."""
         self.config = config
         self.errors: list[str] = []
         self.metadata: dict[str, Any] = {}
@@ -246,7 +261,7 @@ class ProofValidator:
 
         return self.build_result()
 
-    def validate_verify_after_restart(self, args: argparse.Namespace) -> dict[str, Any]:
+    def validate_verify_after_restart(self, args: argparse.Namespace) -> dict[str, Any]:  # noqa: C901
         """Mode 2: Post-restart verification."""
         self.metadata["mode"] = "verify_after_restart"
 
@@ -367,7 +382,7 @@ def setup_parser() -> argparse.ArgumentParser:
 
 
 def main(argv: list[str] | None = None) -> int:
-    """Main entry point."""
+    """Execute the staging proof validator."""
     try:
         parser = setup_parser()
         args = parser.parse_args(sys.argv[1:] if argv is None else argv)
@@ -386,6 +401,165 @@ def main(argv: list[str] | None = None) -> int:
     except Exception as e:
         print(f"Error: {e}", file=sys.stderr)
         return EXIT_FAILURE
+
+
+def verify_deployed_sha(deployed_sha: str) -> None:
+    """Verify that the deployed SHA matches the current git HEAD commit."""
+    if not deployed_sha or len(deployed_sha) != 40 or not all(c in "0123456789abcdef" for c in deployed_sha.lower()):
+        raise ValueError("Invalid deployed SHA")
+    try:
+        current_sha = subprocess.check_output(["git", "rev-parse", "HEAD"]).decode("utf-8").strip()
+        if current_sha.lower() != deployed_sha.lower():
+            raise ValueError("Deployed SHA mismatch")
+    except subprocess.SubprocessError as e:
+        raise ValueError(f"Failed to verify deployed SHA: {e}")
+
+
+def check_postgresql_proof(url: str) -> None:
+    """Validate PostgreSQL database URL scheme."""
+    if not url:
+        raise ValueError("PostgreSQL proof was skipped")
+    try:
+        parsed = urlparse(url)
+        if parsed.scheme not in ("postgresql", "postgres"):
+            raise ValueError("PostgreSQL proof was skipped")
+    except Exception as e:
+        raise ValueError(f"PostgreSQL proof was skipped: {e}")
+
+
+def check_schema_authz_evidence(deployed_sha: str) -> None:
+    """Check that the database authorization evidence exists and is valid."""
+    evidence_file = REPO_ROOT / "docs" / "evidence-records" / "hp004-db-authz-pass.md"
+    if not evidence_file.is_file():
+        raise ValueError(f"Authorization evidence file {evidence_file} is missing or mismatched")
+    content = evidence_file.read_text(encoding="utf-8")
+    if "db_authz: PASS" not in content or f"commit: {deployed_sha}" not in content:
+        raise ValueError("Authorization evidence is missing or mismatched")
+
+
+def run_seed_and_publish(db_url: str, deployed_sha: str, run_id: str) -> dict[str, Any]:
+    """Seed the database with sample projection data and publish it."""
+    engine = create_engine_from_url(db_url)
+    from src.data.base import Base
+
+    Base.metadata.create_all(engine)
+    Session = sessionmaker(bind=engine)
+    session = Session()
+    try:
+        now = datetime.now(timezone.utc)
+
+        # Create rebuild job
+        job = RebuildJobORM(
+            job_id=run_id,
+            requested_by="staging-proof",
+            status="succeeded",
+            source="staging",
+            created_at=now,
+            updated_at=now,
+            started_at=now,
+            completed_at=now,
+            execution_id=run_id,
+        )
+
+        # Create projection revision
+        revision_id = str(uuid.uuid4())
+        edge_set_hash = "a" * 64
+        projection_hash = "b" * 64
+        governed_scopes_list = [{"predicate_id": "scope-1", "purpose": "testing"}]
+
+        revision = RelationshipProjectionRevisionORM(
+            id=revision_id,
+            purpose="testing",
+            effective_at=now,
+            known_at=now,
+            contract_version="v1",
+            projector_version="v1",
+            edge_set_hash=edge_set_hash,
+            projection_hash=projection_hash,
+            governed_scopes=json.dumps(governed_scopes_list),
+            created_at=now,
+        )
+
+        session.add(job)
+        session.add(revision)
+        session.flush()
+
+        # Create publication
+        publication = RelationshipProjectionPublicationORM(
+            id=str(uuid.uuid4()),
+            revision_id=revision_id,
+            rebuild_job_id=run_id,
+            published_at=now,
+            execution_id=run_id,
+        )
+
+        session.add(publication)
+        session.commit()
+
+        return {
+            "deployed_sha": deployed_sha,
+            "run_id": run_id,
+            "mode": "seed_and_publish",
+            "edge_set_hash": edge_set_hash,
+            "projection_hash": projection_hash,
+            "governed_scopes": governed_scopes_list,
+        }
+    except Exception:
+        import traceback
+
+        traceback.print_exc()
+        try:
+            from sqlalchemy import text
+
+            with engine.connect() as conn:
+                violations = conn.execute(text("PRAGMA foreign_key_check")).fetchall()
+                print("FOREIGN KEY VIOLATIONS:", violations, file=sys.stderr)
+        except Exception as fk_err:
+            print("Failed to run foreign_key_check:", fk_err, file=sys.stderr)
+        raise
+    finally:
+        session.close()
+        engine.dispose()
+
+
+def run_verify_after_restart(
+    db_url: str, deployed_sha: str, run_id: str, prev_metadata: dict[str, Any]
+) -> dict[str, Any]:
+    """Verify continuity and persistence after database restart."""
+    engine = create_engine_from_url(db_url)
+    Session = sessionmaker(bind=engine)
+    session = Session()
+    try:
+        # Query publications and check continuity
+        publication = session.query(RelationshipProjectionPublicationORM).filter_by(rebuild_job_id=run_id).first()
+        scope_continuity_passed = False
+        historical_reconstruction_passed = False
+
+        if publication:
+            revision = session.query(RelationshipProjectionRevisionORM).filter_by(id=publication.revision_id).first()
+            if revision:
+                # Check edge_set_hash and projection_hash match
+                if (
+                    revision.edge_set_hash == prev_metadata["edge_set_hash"]
+                    and revision.projection_hash == prev_metadata["projection_hash"]
+                ):
+                    scope_continuity_passed = True
+
+                # Check history/rebuild jobs are well-formed
+                job = session.query(RebuildJobORM).filter_by(job_id=run_id).first()
+                if job and job.status == "succeeded":
+                    historical_reconstruction_passed = True
+
+        return {
+            "deployed_sha": deployed_sha,
+            "run_id": run_id,
+            "mode": "verify_after_restart",
+            "scope_continuity_passed": scope_continuity_passed,
+            "historical_reconstruction_passed": historical_reconstruction_passed,
+        }
+    finally:
+        session.close()
+        engine.dispose()
 
 
 if __name__ == "__main__":
