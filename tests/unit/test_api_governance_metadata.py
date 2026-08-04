@@ -613,16 +613,10 @@ def test_pydantic_validation_error_in_governance_persistence_returns_503(
 
         x: int
 
-    try:
-        Dummy(x="not-an-int")
-    except PydanticValidationError as err:
-        pydantic_err = err
-
     def mock_latest_published_projection_record(*args: object, **kwargs: object) -> None:
         """Mock function to simulate retrieval of the latest published projection record,
         raising a Pydantic validation error to trigger error handling."""
-        pydantic_err = Exception("Pydantic validation error")
-        raise pydantic_err
+        raise Exception("Pydantic validation error")
 
     monkeypatch.setattr(
         RelationshipAssertionRepository,
