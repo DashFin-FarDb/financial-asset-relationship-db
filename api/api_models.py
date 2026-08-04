@@ -5,6 +5,7 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from api.assertion_models import PublishedProjectionContextResponse
 from api.graph_lifecycle import GraphStartupSource
 from src.data.db_models import RebuildJobStatus
 
@@ -99,8 +100,10 @@ class VisualizationEdge(BaseModel):
 
     source: str
     target: str
+    edge_id: str
     relationship_type: str
     strength: float
+    projection_edge_id: str | None = None
     assertion_id: str | None = None
     governance_status: Literal["governed"] | None = None
     revision_id: str | None = None
@@ -115,6 +118,7 @@ class VisualizationDataResponse(BaseModel):
     nodes: list[VisualizationNode]
     edges: list[VisualizationEdge]
     network_density: float
+    publication: PublishedProjectionContextResponse | None = None
 
 
 class GraphHealthResponse(BaseModel):

@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import hashlib
+import json
 import logging
 import math
 
@@ -11,6 +13,7 @@ from src.logic.asset_graph import AssetRelationshipGraph, calculate_graph_densit
 from src.observability.facade import ObservabilityEvent, log_event
 
 from ..api_models import VisualizationDataResponse, VisualizationEdge, VisualizationNode
+from ..assertion_models import GovernedScopeResponse, PublishedProjectionContextResponse
 from ..router_helpers import (
     _ASSET_CLASS_COLORS,
     _DEFAULT_COLOR,
@@ -18,9 +21,9 @@ from ..router_helpers import (
     logger,
 )
 from ..services.relationship_index import (
-    GovernanceMetadata,
-    GovernedRelationshipIndex,
-    load_governed_relationship_index,
+    PublishedProjectionContext,
+    PublishedRelationshipSnapshot,
+    load_governed_relationship_snapshot,
 )
 
 router = APIRouter()
@@ -81,23 +84,71 @@ def _build_visualization_nodes(
 
 def _build_visualization_edges(
     g: AssetRelationshipGraph,
-    governed_index: GovernedRelationshipIndex,
+    snapshot: PublishedRelationshipSnapshot,
 ) -> list[VisualizationEdge]:
     """Build visualization edges with optional published governance metadata."""
+    governed_index = snapshot.governance_index
+    publication = snapshot.publication
+    projection_bindings = snapshot.projection_bindings
     edges: list[VisualizationEdge] = []
     for source_id, rels in g.relationships.items():
         for target_id, rel_type, strength in rels:
+            relationship_key = (source_id, target_id, rel_type)
             payload: dict[str, object] = {
                 "source": source_id,
                 "target": target_id,
                 "relationship_type": rel_type,
                 "strength": strength,
             }
-            metadata: GovernanceMetadata | None = governed_index.get((source_id, target_id, rel_type))
+            metadata = governed_index.get(relationship_key)
             if metadata is not None:
+                binding = projection_bindings.get(relationship_key)
+                if publication is None or binding is None:
+                    raise HTTPException(
+                        status_code=503,
+                        detail="Graph publication metadata is inconsistent",
+                    )
                 payload.update(metadata)
+                payload["projection_edge_id"] = binding.projection_edge_id
+                payload["edge_id"] = (
+                    f"published:{publication.publication_id}:edge:{binding.projection_edge_id}:{binding.orientation}"
+                )
+            else:
+                payload["edge_id"] = _legacy_edge_id(source_id, target_id, rel_type)
             edges.append(VisualizationEdge.model_validate(payload))
     return edges
+
+
+def _legacy_edge_id(source_id: str, target_id: str, relationship_type: str) -> str:
+    """Return a deterministic, direction-sensitive legacy edge identifier."""
+    payload = json.dumps([source_id, target_id, relationship_type], separators=(",", ":"), ensure_ascii=False)
+    return f"legacy:{hashlib.sha256(payload.encode('utf-8')).hexdigest().lower()}"
+
+
+def _publication_response(
+    publication: PublishedProjectionContext | None,
+) -> PublishedProjectionContextResponse | None:
+    """Convert publication snapshot context into API response shape."""
+    if publication is None:
+        return None
+    return PublishedProjectionContextResponse(
+        publication_id=publication.publication_id,
+        revision_id=publication.revision_id,
+        rebuild_job_id=publication.rebuild_job_id,
+        execution_id=publication.execution_id,
+        published_at=publication.published_at,
+        purpose=publication.purpose,
+        effective_at=publication.effective_at,
+        known_at=publication.known_at,
+        contract_version=publication.contract_version,
+        projector_version=publication.projector_version,
+        edge_set_hash=publication.edge_set_hash,
+        projection_hash=publication.projection_hash,
+        governed_scopes=[
+            GovernedScopeResponse(purpose=scope.purpose, predicate_id=scope.predicate_id)
+            for scope in publication.governed_scopes
+        ],
+    )
 
 
 @router.get("/api/visualization", response_model_exclude_none=True)
@@ -116,10 +167,16 @@ async def get_visualization_data() -> VisualizationDataResponse:
         g = get_graph()
         asset_ids = list(g.assets.keys())
         nodes = _build_visualization_nodes(g, asset_ids)
-        edges = _build_visualization_edges(g, load_governed_relationship_index(g))
+        snapshot = load_governed_relationship_snapshot(g)
+        edges = _build_visualization_edges(g, snapshot)
         effective_assets_count = len(asset_ids)
         network_density = calculate_graph_density(effective_assets_count, len(edges))
-        return VisualizationDataResponse(nodes=nodes, edges=edges, network_density=network_density)
+        return VisualizationDataResponse(
+            nodes=nodes,
+            edges=edges,
+            network_density=network_density,
+            publication=_publication_response(snapshot.publication),
+        )
     except HTTPException:
         raise
     except Exception as e:

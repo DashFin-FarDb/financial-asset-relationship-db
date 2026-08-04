@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
+from dataclasses import dataclass
+from datetime import datetime
 from functools import lru_cache
 from threading import Lock
 from typing import Literal, TypeAlias, TypedDict
@@ -15,19 +17,16 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session, sessionmaker
 
 from src.data.database import create_engine_from_url, create_session_factory
-from src.data.db_models import RebuildJobORM
 from src.data.relationship_assertion_db_models import (
     RelationshipAssertionORM,
-    RelationshipProjectionPublicationORM,
-    RelationshipProjectionRevisionORM,
 )
-from src.data.relationship_assertion_repository import RelationshipAssertionRepository
+from src.data.relationship_assertion_repository import PublishedProjectionRevision, RelationshipAssertionRepository
 from src.data.relationship_projection_persistence import PersistedProjectionRevision
 from src.data.repository import session_scope
 from src.governance.relationship_assertion import ValidationError
 from src.governance.relationship_assertion_contract import PredicatesDocument, PredicateSpec, load_contract_bundle
 from src.logic.asset_graph import AssetRelationshipGraph
-from src.logic.relationship_projection import ProjectionEdge
+from src.logic.relationship_projection import GovernedScope, ProjectionEdge
 
 from ..graph_lifecycle_providers import (
     GraphPersistenceInvalidUrlError,
@@ -41,6 +40,7 @@ from ..graph_lifecycle_providers import (
 _GRAC_CURRENT_PURPOSE = "financial_graph_current_view"
 _GRAPH_PERSISTENCE_MISCONFIGURED_DETAIL = "Graph persistence database is misconfigured"
 _GRAPH_PERSISTENCE_UNAVAILABLE_DETAIL = "Graph persistence database is unavailable"
+_GRAPH_PUBLICATION_INCONSISTENT_DETAIL = "Graph publication metadata is inconsistent"
 _IN_CLAUSE_CHUNK_SIZE = 400
 _cache_generation_lock = Lock()
 _persistence_runtime_lock = Lock()
@@ -78,7 +78,45 @@ class GovernanceMetadata(TypedDict):
 
 
 GovernedRelationshipIndex: TypeAlias = dict[tuple[str, str, str], GovernanceMetadata]
-PublicationBinding: TypeAlias = tuple[str, str]
+PublicationBinding: TypeAlias = tuple[str, str, str]
+RelationshipKey: TypeAlias = tuple[str, str, str]
+
+
+@dataclass(frozen=True)
+class PublishedProjectionContext:
+    """Publication/revision envelope bound to one governed graph snapshot."""
+
+    publication_id: str
+    revision_id: str
+    rebuild_job_id: str
+    execution_id: str
+    published_at: datetime
+    purpose: str
+    effective_at: datetime
+    known_at: datetime
+    contract_version: str
+    projector_version: str
+    edge_set_hash: str
+    projection_hash: str
+    governed_scopes: tuple[GovernedScope, ...]
+
+
+@dataclass(frozen=True)
+class ProjectionEdgeBinding:
+    """Persisted edge identity bound to one runtime key orientation."""
+
+    projection_edge_id: str
+    orientation: Literal["canonical", "reverse"]
+    metadata: GovernanceMetadata
+
+
+@dataclass(frozen=True)
+class PublishedRelationshipSnapshot:
+    """Publication envelope, runtime governance index, and projection-edge bindings."""
+
+    publication: PublishedProjectionContext | None
+    governance_index: GovernedRelationshipIndex
+    projection_bindings: Mapping[RelationshipKey, ProjectionEdgeBinding]
 
 
 def _current_cache_generation() -> int:
@@ -114,6 +152,8 @@ def _session_factory_for_url(persistence_url: str) -> sessionmaker[Session]:
         _persistence_runtime.url = persistence_url
         _persistence_runtime.engine = engine
         _persistence_runtime.session_factory = session_factory
+        _load_governed_relationship_snapshot.cache_clear()
+        _load_bound_governed_relationship_snapshot.cache_clear()
         _load_governed_relationship_index.cache_clear()
         _load_bound_governed_relationship_index.cache_clear()
 
@@ -138,6 +178,8 @@ def _reset_governance_persistence_runtime() -> None:
             engine.dispose()
     with _runtime_graph_bindings_lock:
         _runtime_graph_bindings.clear()
+    _load_governed_relationship_snapshot.cache_clear()
+    _load_bound_governed_relationship_snapshot.cache_clear()
     _load_governed_relationship_index.cache_clear()
     _load_bound_governed_relationship_index.cache_clear()
 
@@ -206,6 +248,8 @@ def _scope_ref_for_edge(
 
 def _add_governed_edge(
     index: GovernedRelationshipIndex,
+    projection_bindings: dict[RelationshipKey, ProjectionEdgeBinding],
+    projection_edge_id: str,
     edge: ProjectionEdge,
     metadata: GovernanceMetadata,
 ) -> None:
@@ -215,24 +259,46 @@ def _add_governed_edge(
     if existing is not None and existing["assertion_id"] != metadata["assertion_id"]:
         raise ValidationError(f"duplicate governance key {forward_key!r} with conflicting assertion provenance")
     index[forward_key] = metadata
+    existing_binding = projection_bindings.get(forward_key)
+    if existing_binding is not None and (
+        existing_binding.projection_edge_id != projection_edge_id or existing_binding.orientation != "canonical"
+    ):
+        raise ValidationError(f"duplicate projection-edge binding for runtime key {forward_key!r}")
+    projection_bindings[forward_key] = ProjectionEdgeBinding(
+        projection_edge_id=projection_edge_id,
+        orientation="canonical",
+        metadata=metadata,
+    )
     if edge.direction == "bidirectional":
         reverse_key = (edge.target_id, edge.source_id, edge.edge_type)
         existing = index.get(reverse_key)
         if existing is not None and existing["assertion_id"] != metadata["assertion_id"]:
             raise ValidationError(f"duplicate governance key {reverse_key!r} with conflicting assertion provenance")
         index[reverse_key] = metadata
+        existing_binding = projection_bindings.get(reverse_key)
+        if existing_binding is not None and (
+            existing_binding.projection_edge_id != projection_edge_id or existing_binding.orientation != "reverse"
+        ):
+            raise ValidationError(f"duplicate projection-edge binding for runtime key {reverse_key!r}")
+        projection_bindings[reverse_key] = ProjectionEdgeBinding(
+            projection_edge_id=projection_edge_id,
+            orientation="reverse",
+            metadata=metadata,
+        )
 
 
-def _published_relationship_index(
+def _published_relationship_snapshot(
     published: PersistedProjectionRevision,
+    publication: PublishedProjectionContext,
     predicates: PredicatesDocument,
     assertion_predicates: Mapping[str, str],
-) -> GovernedRelationshipIndex:
+) -> PublishedRelationshipSnapshot:
     """Build exact assertion-owned governance metadata for a published revision."""
     governed_scope_ids = {scope.predicate_id for scope in published.revision.governed_scopes}
     predicates_by_id = {predicate.id: predicate for predicate in predicates.predicates}
     index: GovernedRelationshipIndex = {}
-    for edge in published.revision.edges:
+    projection_bindings: dict[RelationshipKey, ProjectionEdgeBinding] = {}
+    for projection_edge_id, edge in zip(published.edge_ids, published.revision.edges, strict=True):
         predicate_id = _scope_ref_for_edge(
             edge,
             predicates_by_id,
@@ -245,51 +311,57 @@ def _published_relationship_index(
             "revision_id": published.revision_id,
             "scope_refs": [predicate_id],
         }
-        _add_governed_edge(index, edge, metadata)
-    return index
+        _add_governed_edge(index, projection_bindings, projection_edge_id, edge, metadata)
+    return PublishedRelationshipSnapshot(
+        publication=publication,
+        governance_index=index,
+        projection_bindings=projection_bindings,
+    )
 
 
 def _build_published_relationship_index(
     session: Session,
     published: PersistedProjectionRevision,
-) -> GovernedRelationshipIndex:
-    """Build governed metadata for an immutable persisted projection revision."""
+    publication: PublishedProjectionContext,
+) -> PublishedRelationshipSnapshot:
+    """Build governed metadata and projection bindings for one immutable publication."""
     predicates = _load_contract_predicates()
     assertion_predicates = _assertion_predicates_for_edges(session, published)
-    return _published_relationship_index(published, predicates, assertion_predicates)
+    return _published_relationship_snapshot(published, publication, predicates, assertion_predicates)
+
+
+def _published_projection_context(
+    published: PublishedProjectionRevision,
+) -> PublishedProjectionContext:
+    """Map one publication record to the public snapshot envelope."""
+    persisted = published.persisted
+    revision = persisted.revision
+    return PublishedProjectionContext(
+        publication_id=published.publication_id,
+        revision_id=persisted.revision_id,
+        rebuild_job_id=published.rebuild_job_id,
+        execution_id=published.execution_id,
+        published_at=published.published_at,
+        purpose=revision.purpose,
+        effective_at=revision.effective_at,
+        known_at=revision.known_at,
+        contract_version=revision.contract_version,
+        projector_version=revision.projector_version,
+        edge_set_hash=revision.edge_set_hash,
+        projection_hash=revision.projection_hash,
+        governed_scopes=revision.governed_scopes,
+    )
 
 
 def _latest_published_projection_binding_from_persistence() -> PublicationBinding | None:
-    """Return the shared latest ``(rebuild_job_id, revision_id)`` publication version."""
+    """Return the shared latest ``(rebuild_job_id, revision_id, publication_id)`` version."""
     try:
         with session_scope(_governance_session_factory()) as session:
-            row = (
-                session.execute(
-                    select(
-                        RelationshipProjectionPublicationORM.rebuild_job_id,
-                        RelationshipProjectionPublicationORM.revision_id,
-                    )
-                    .join(
-                        RelationshipProjectionRevisionORM,
-                        RelationshipProjectionRevisionORM.id == RelationshipProjectionPublicationORM.revision_id,
-                    )
-                    .join(
-                        RebuildJobORM,
-                        RebuildJobORM.job_id == RelationshipProjectionPublicationORM.rebuild_job_id,
-                    )
-                    .where(RelationshipProjectionRevisionORM.purpose == _GRAC_CURRENT_PURPOSE)
-                    .where(RebuildJobORM.status == "succeeded")
-                    .order_by(
-                        RelationshipProjectionPublicationORM.published_at.desc(),
-                        RelationshipProjectionPublicationORM.rebuild_job_id.desc(),
-                        RelationshipProjectionPublicationORM.id.desc(),
-                    )
-                    .limit(1)
-                )
-                .tuples()
-                .one_or_none()
-            )
-            return None if row is None else (row[0], row[1])
+            repository = RelationshipAssertionRepository(session)
+            published = repository.latest_published_projection_record(_GRAC_CURRENT_PURPOSE)
+            if published is None:
+                return None
+            return (published.rebuild_job_id, published.persisted.revision_id, published.publication_id)
     except GraphPersistenceInvalidUrlError as exc:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
@@ -300,6 +372,11 @@ def _latest_published_projection_binding_from_persistence() -> PublicationBindin
         # treat a missing publication binding as "omit optional governance metadata",
         # so surface the same signal here instead of failing closed with a 503.
         return None
+    except ValidationError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=_GRAPH_PUBLICATION_INCONSISTENT_DETAIL,
+        ) from exc
     except SQLAlchemyError as exc:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
@@ -307,25 +384,68 @@ def _latest_published_projection_binding_from_persistence() -> PublicationBindin
         ) from exc
 
 
-def _load_governed_relationship_index_for_revision(revision_id: str) -> GovernedRelationshipIndex:
-    """Load governed metadata for one exact immutable projection revision."""
+def _load_governed_relationship_snapshot_for_publication(
+    revision_id: str,
+    publication_id: str,
+) -> PublishedRelationshipSnapshot:
+    """Load governed metadata and bindings for one immutable publication."""
     try:
         with session_scope(_governance_session_factory()) as session:
             repository = RelationshipAssertionRepository(session)
-            published = repository.get_projection_revision(revision_id)
+            published = repository.get_published_projection(publication_id)
             if published is None:
                 raise HTTPException(
                     status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-                    detail="Graph publication metadata is inconsistent",
+                    detail=_GRAPH_PUBLICATION_INCONSISTENT_DETAIL,
                 )
-            return _build_published_relationship_index(session, published)
+            if published.persisted.revision_id != revision_id:
+                raise HTTPException(
+                    status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                    detail=_GRAPH_PUBLICATION_INCONSISTENT_DETAIL,
+                )
+            publication = _published_projection_context(published)
+            return _build_published_relationship_index(session, published.persisted, publication)
     except GraphPersistenceInvalidUrlError as exc:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail=_GRAPH_PERSISTENCE_MISCONFIGURED_DETAIL,
         ) from exc
     except (GraphPersistenceNotConfiguredError, GraphPersistenceNonDurableError):
-        return {}
+        return PublishedRelationshipSnapshot(publication=None, governance_index={}, projection_bindings={})
+    except ValidationError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=_GRAPH_PUBLICATION_INCONSISTENT_DETAIL,
+        ) from exc
+    except SQLAlchemyError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=_GRAPH_PERSISTENCE_UNAVAILABLE_DETAIL,
+        ) from exc
+
+
+def _load_governed_relationship_snapshot_from_persistence() -> PublishedRelationshipSnapshot:
+    """Load latest governed metadata for unmanaged/test graph instances."""
+    try:
+        with session_scope(_governance_session_factory()) as session:
+            repository = RelationshipAssertionRepository(session)
+            published = repository.latest_published_projection_record(_GRAC_CURRENT_PURPOSE)
+            if published is None:
+                return PublishedRelationshipSnapshot(publication=None, governance_index={}, projection_bindings={})
+            publication = _published_projection_context(published)
+            return _build_published_relationship_index(session, published.persisted, publication)
+    except GraphPersistenceInvalidUrlError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=_GRAPH_PERSISTENCE_MISCONFIGURED_DETAIL,
+        ) from exc
+    except (GraphPersistenceNotConfiguredError, GraphPersistenceNonDurableError):
+        return PublishedRelationshipSnapshot(publication=None, governance_index={}, projection_bindings={})
+    except ValidationError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=_GRAPH_PUBLICATION_INCONSISTENT_DETAIL,
+        ) from exc
     except SQLAlchemyError as exc:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
@@ -334,26 +454,8 @@ def _load_governed_relationship_index_for_revision(revision_id: str) -> Governed
 
 
 def _load_governed_relationship_index_from_persistence() -> GovernedRelationshipIndex:
-    """Load latest governed metadata for unmanaged/test graph instances."""
-    try:
-        with session_scope(_governance_session_factory()) as session:
-            repository = RelationshipAssertionRepository(session)
-            published = repository.latest_published_projection(_GRAC_CURRENT_PURPOSE)
-            if published is None:
-                return {}
-            return _build_published_relationship_index(session, published)
-    except GraphPersistenceInvalidUrlError as exc:
-        raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail=_GRAPH_PERSISTENCE_MISCONFIGURED_DETAIL,
-        ) from exc
-    except (GraphPersistenceNotConfiguredError, GraphPersistenceNonDurableError):
-        return {}
-    except SQLAlchemyError as exc:
-        raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail=_GRAPH_PERSISTENCE_UNAVAILABLE_DETAIL,
-        ) from exc
+    """Backward-compatible unmanaged governance index loader."""
+    return _load_governed_relationship_snapshot_from_persistence().governance_index
 
 
 def _runtime_graph_publication_binding(graph: AssetRelationshipGraph) -> tuple[bool, str | None]:
@@ -385,21 +487,76 @@ def register_runtime_graph_publication_binding(
 
 
 @lru_cache(maxsize=4)
-def _load_governed_relationship_index(
+def _load_governed_relationship_snapshot(
     _graph: AssetRelationshipGraph,
     _generation: int,
+) -> PublishedRelationshipSnapshot:
+    """Load latest governed metadata snapshot for one unmanaged graph and generation."""
+    return _load_governed_relationship_snapshot_from_persistence()
+
+
+@lru_cache(maxsize=8)
+def _load_bound_governed_relationship_snapshot(
+    revision_id: str,
+    publication_id: str,
+    _generation: int,
+) -> PublishedRelationshipSnapshot:
+    """Load one immutable publication snapshot and cache generation."""
+    return _load_governed_relationship_snapshot_for_publication(revision_id, publication_id)
+
+
+@lru_cache(maxsize=4)
+def _load_governed_relationship_index(
+    graph: AssetRelationshipGraph,
+    generation: int,
 ) -> GovernedRelationshipIndex:
-    """Load latest governed metadata for one unmanaged graph snapshot and cache generation."""
-    return _load_governed_relationship_index_from_persistence()
+    """Backward-compatible index cache wrapper for existing tests/callers."""
+    return _load_governed_relationship_snapshot(graph, generation).governance_index
 
 
 @lru_cache(maxsize=8)
 def _load_bound_governed_relationship_index(
     revision_id: str,
-    _generation: int,
+    publication_id: str,
+    generation: int,
 ) -> GovernedRelationshipIndex:
-    """Load metadata for one immutable publication revision and generation."""
-    return _load_governed_relationship_index_for_revision(revision_id)
+    """Backward-compatible bound index cache wrapper for existing tests/callers."""
+    return _load_bound_governed_relationship_snapshot(revision_id, publication_id, generation).governance_index
+
+
+def load_governed_relationship_snapshot(graph: AssetRelationshipGraph) -> PublishedRelationshipSnapshot:
+    """Return publication envelope, governed index, and persisted edge bindings for ``graph``."""
+    managed, rebuild_job_id = _runtime_graph_publication_binding(graph)
+    generation = _current_cache_generation()
+    if not managed:
+        return _load_governed_relationship_snapshot(graph, generation)
+
+    if rebuild_job_id is None:
+        try:
+            _resolve_governance_persistence_url()
+        except GraphPersistenceInvalidUrlError as exc:
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail=_GRAPH_PERSISTENCE_MISCONFIGURED_DETAIL,
+            ) from exc
+        except (GraphPersistenceNotConfiguredError, GraphPersistenceNonDurableError):
+            pass
+        return PublishedRelationshipSnapshot(publication=None, governance_index={}, projection_bindings={})
+
+    latest_binding = _latest_published_projection_binding_from_persistence()
+    if latest_binding is None:
+        return PublishedRelationshipSnapshot(publication=None, governance_index={}, projection_bindings={})
+    latest_job_id, revision_id, publication_id = latest_binding
+    if rebuild_job_id != latest_job_id:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Graph publication synchronization is pending",
+        )
+    return _load_bound_governed_relationship_snapshot(
+        revision_id,
+        publication_id,
+        generation,
+    )
 
 
 def load_governed_relationship_index(graph: AssetRelationshipGraph) -> GovernedRelationshipIndex:
@@ -413,47 +570,14 @@ def load_governed_relationship_index(graph: AssetRelationshipGraph) -> GovernedR
     governance metadata. Unmanaged graph objects retain the legacy path used by
     isolated tests and tools.
     """
-    managed, rebuild_job_id = _runtime_graph_publication_binding(graph)
-    generation = _current_cache_generation()
-    if not managed:
-        return _load_governed_relationship_index(graph, generation)
-
-    if rebuild_job_id is None:
-        # A managed startup graph with no governed publication binding has nothing to
-        # synchronize against, so skip the (expensive) publication lookup. Still
-        # surface a genuinely misconfigured persistence URL as a 503 rather than
-        # silently omitting optional governance metadata.
-        try:
-            _resolve_governance_persistence_url()
-        except GraphPersistenceInvalidUrlError as exc:
-            raise HTTPException(
-                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-                detail=_GRAPH_PERSISTENCE_MISCONFIGURED_DETAIL,
-            ) from exc
-        except (GraphPersistenceNotConfiguredError, GraphPersistenceNonDurableError):
-            # Expected for managed startup graphs without durable governance persistence:
-            # optional governance metadata is omitted in this path.
-            pass
-        return {}
-
-    latest_binding = _latest_published_projection_binding_from_persistence()
-    if latest_binding is None:
-        return {}
-    latest_job_id, revision_id = latest_binding
-    if rebuild_job_id != latest_job_id:
-        raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="Graph publication synchronization is pending",
-        )
-    return _load_bound_governed_relationship_index(
-        revision_id,
-        generation,
-    )
+    return load_governed_relationship_snapshot(graph).governance_index
 
 
 def invalidate_governed_relationship_index_cache() -> None:
     """Advance the cache generation and clear entries after publication writes."""
     with _cache_generation_lock:
         _cache_generation.value += 1
+        _load_governed_relationship_snapshot.cache_clear()
+        _load_bound_governed_relationship_snapshot.cache_clear()
         _load_governed_relationship_index.cache_clear()
         _load_bound_governed_relationship_index.cache_clear()

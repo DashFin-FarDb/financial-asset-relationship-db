@@ -164,6 +164,68 @@ class AssertionHistoryResponse(BaseModel):
     events: list[AssertionPublicEventResponse]
 
 
+class GovernedScopeResponse(BaseModel):
+    """Public governed scope identity pair."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    purpose: str
+    predicate_id: str
+
+
+class PublishedProjectionContextResponse(BaseModel):
+    """Publication and revision context for one governed read projection."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    publication_id: str
+    revision_id: str
+    rebuild_job_id: str
+    execution_id: str
+    published_at: datetime
+    purpose: str
+    effective_at: datetime
+    known_at: datetime
+    contract_version: str
+    projector_version: str
+    edge_set_hash: str
+    projection_hash: str
+    governed_scopes: list[GovernedScopeResponse]
+
+
+class PublishedProjectionEdgeResponse(BaseModel):
+    """Canonical published projection edge identity and provenance."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    projection_edge_id: str
+    source: str
+    target: str
+    relationship_type: str
+    strength: str
+    direction: str
+    assertion_id: str
+
+
+class PublishedAssertionBundleResponse(BaseModel):
+    """Publication-bound assertion explanation and history."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    explanation: AssertionReadResponse
+    history: AssertionHistoryResponse
+
+
+class PublishedEdgeExplanationResponse(BaseModel):
+    """Publication-owned edge explanation response contract."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    publication: PublishedProjectionContextResponse
+    edge: PublishedProjectionEdgeResponse
+    assertion: PublishedAssertionBundleResponse
+
+
 class AssertionCommandResponse(BaseModel):
     """Response for proposal, decision, and supersession commands."""
 
