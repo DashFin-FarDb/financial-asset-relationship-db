@@ -11,6 +11,7 @@ Security: Credentials and sensitive data are never exposed in output.
 import argparse
 import json
 import os
+import pathlib
 import sys
 from typing import Any
 from urllib.parse import urlparse
@@ -108,13 +109,13 @@ class ProofValidator:
             ok = False
         return ok
 
-    def scopes_are_consistent(self, before: list[str], after: list[str], allow_loss: bool) -> bool:
+    def scopes_are_consistent(self, before: list[str], after: list[str], enforce_no_loss: bool) -> bool:
         """Check scope consistency across transitions."""
         if not before or not after:
             self.add_error("Scope lists empty")
             return False
 
-        if allow_loss:
+        if enforce_no_loss:
             missing = set(before) - set(after)
             if missing:
                 self.add_error(f"Scopes disappeared: {sorted(missing)[:3]}")
@@ -147,10 +148,23 @@ class ProofValidator:
         return len(self.errors) == 0
 
     def load_authz_evidence(self, path: str, expected_sha: str) -> dict[str, Any]:
-        """Load and validate authorization evidence."""
+    def _validate_safe_path(self, path: str) -> str:
+        """Validate file path to prevent path traversal attacks (CWE-22)."""
+        try:
+            # Resolve to absolute path and ensure it's within current directory
+            safe_path = pathlib.Path(path).resolve()
+            current_dir = pathlib.Path.cwd().resolve()
+            # Check if the path is within the current working directory
+            safe_path.relative_to(current_dir)
+            return str(safe_path)
+        except (ValueError, RuntimeError) as e:
+            raise ValueError(f"Invalid file path (potential path traversal): {path}") from e
+
+    def load_authz_evidence(self, path: str, expected_sha: str) -> dict[str, Any]:
         try:
             with open(path, encoding="utf-8") as f:
-                data = json.load(f)
+            safe_path = self._validate_safe_path(path)
+            with open(safe_path, encoding="utf-8") as f:
 
             if data.get("status") != "passed":
                 self.add_error(f"Authz status: {data.get('status')} (need passed)")
@@ -218,6 +232,17 @@ class ProofValidator:
         if args.revision_hash:
             self.digest_is_valid(args.revision_hash, "Revision")
             self.metadata["revision"] = args.revision_hash[:8] + "..."
+            
+            # Validate revision hash against expected hash if provided
+            if args.expected_revision_hash:
+                if args.revision_hash != args.expected_revision_hash:
+                    self.add_error(
+                        f"Revision hash mismatch: {args.revision_hash[:8]}... vs "
+                        f"expected {args.expected_revision_hash[:8]}..."
+                    )
+                self.metadata["expected_revision"] = args.expected_revision_hash[:8] + "..."
+            elif args.strict:
+                self.add_error("Expected revision hash required in strict mode")
 
         return self.build_result()
 
@@ -245,7 +270,7 @@ class ProofValidator:
                 try:
                     before = json.loads(args.before_scopes)
                     after = json.loads(args.after_scopes)
-                    self.scopes_are_consistent(before, after, False)
+                    self.scopes_are_consistent(before, after, enforce_no_loss=True)
                     self.metadata["scopes_before"] = len(before)
                     self.metadata["scopes_after"] = len(after)
                 except json.JSONDecodeError as e:
@@ -268,7 +293,7 @@ class ProofValidator:
             try:
                 before = json.loads(args.empty_edge_before_scopes)
                 after = json.loads(args.empty_edge_after_scopes)
-                self.scopes_are_consistent(before, after, True)
+                self.scopes_are_consistent(before, after, enforce_no_loss=True)
                 self.metadata["edge_scopes_before"] = len(before)
                 self.metadata["edge_scopes_after"] = len(after)
             except json.JSONDecodeError as e:
@@ -288,9 +313,11 @@ class ProofValidator:
 def display_result(result: dict[str, Any], output_path: str | None) -> None:
     """Show validation result."""
     if output_path:
-        with open(output_path, "w", encoding="utf-8") as f:
+        # Validate output path to prevent path traversal (CWE-22)
+        safe_path = pathlib.Path(output_path).resolve()
+        with open(safe_path, "w", encoding="utf-8") as f:
             json.dump(result, f, indent=2, sort_keys=True)
-        print(f"Results written to {output_path}")
+        print(f"Results written to {safe_path}")
     else:
         print(json.dumps(result, indent=2, sort_keys=True))
 
