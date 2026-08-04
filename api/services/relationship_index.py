@@ -387,6 +387,36 @@ def _latest_published_projection_binding_from_persistence() -> PublicationBindin
         ) from exc
 
 
+def _published_projection_binding_for_rebuild_job_from_persistence(
+    rebuild_job_id: str,
+) -> tuple[str, str] | None:
+    """Return the successful publication bound to one rebuild job."""
+    try:
+        with session_scope(_governance_session_factory()) as session:
+            repository = RelationshipAssertionRepository(session)
+            return repository.published_projection_binding_for_rebuild_job(rebuild_job_id)
+    except GraphPersistenceInvalidUrlError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=_GRAPH_PERSISTENCE_MISCONFIGURED_DETAIL,
+        ) from exc
+    except (
+        GraphPersistenceNotConfiguredError,
+        GraphPersistenceNonDurableError,
+    ):
+        return None
+    except (ValidationError, PydanticValidationError) as exc:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=_GRAPH_PUBLICATION_INCONSISTENT_DETAIL,
+        ) from exc
+    except SQLAlchemyError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=_GRAPH_PERSISTENCE_UNAVAILABLE_DETAIL,
+        ) from exc
+
+
 def _load_governed_relationship_snapshot_for_publication(
     revision_id: str,
     publication_id: str,

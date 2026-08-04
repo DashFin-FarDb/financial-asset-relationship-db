@@ -146,17 +146,6 @@ def _transition_lifecycle_state(next_state: GraphRuntimeLifecycleState) -> None:
     graph_state.lifecycle_state = next_state
 
 
-def publish_runtime_graph(
-    graph: AssetRelationshipGraph,
-    relationships: list,
-    rebuild_job_id: str,
-) -> None:
-    """Atomically publish relationships and their producing rebuild binding."""
-    with graph_lock:
-        graph.relationships = relationships
-        graph_state.last_synced_job_id = rebuild_job_id
-
-
 def _normalize_shutdown_state() -> None:
     """Complete any in-progress shutdown sequence by advancing to UNINITIALIZED.
 

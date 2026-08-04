@@ -923,9 +923,34 @@ class RelationshipAssertionRepository:
 
         return published, persisted.revision.edges[0]
 
+    def published_projection_binding_for_rebuild_job(
+        self,
+        rebuild_job_id: str,
+    ) -> tuple[str, str] | None:
+        """Load the succeeded publication binding for one rebuild job."""
+        publication = self._session.execute(
+            select(
+                RelationshipProjectionPublicationORM.revision_id,
+                RelationshipProjectionPublicationORM.id,
+            )
+            .join(
+                RebuildJobORM,
+                RebuildJobORM.job_id == RelationshipProjectionPublicationORM.rebuild_job_id,
+            )
+            .where(RelationshipProjectionPublicationORM.rebuild_job_id == rebuild_job_id)
+            .where(RebuildJobORM.status == "succeeded")
+        ).one_or_none()
+
+        if publication is None:
+            return None
+
+        self._require_single_publication_for_rebuild_job(rebuild_job_id)
+        revision_id, publication_id = publication
+        return revision_id, publication_id
+
     def latest_published_projection_binding(self, purpose: str) -> tuple[str, str, str] | None:
-        """
-        Load the latest succeeded publication binding
+        """Load the latest succeeded publication binding for purpose.
+
         (rebuild_job_id, revision_id, publication_id) for ``purpose``.
         """
         publication = self._session.execute(

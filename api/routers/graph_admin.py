@@ -1798,7 +1798,11 @@ def _finalize_rebuild_success(
             pre_commit_check=pre_commit_check,
         )
     invalidate_governed_relationship_index_cache()
-    graph.relationships = publication_graph.relationships
+    if not synchronize_runtime_graph(
+        publication_graph,
+        job_id=job_id,
+    ):
+        raise RuntimeError("Runtime graph publication was rejected")
     return response
 
 

@@ -280,6 +280,10 @@ def test_cache_primed_read_is_refreshed_after_admin_publication(
             """Simulate successful projection publication."""
             return None
 
+        def published_projection_binding_for_rebuild_job(self, _job_id: str) -> tuple[str, str] | None:
+            """Return publication binding for test rebuild job."""
+            return "revision-v2", "publication-v2"
+
     publication_graph = AssetRelationshipGraph()
     publication_graph.relationships = graph.relationships
 
@@ -298,26 +302,31 @@ def test_cache_primed_read_is_refreshed_after_admin_publication(
         ),
     )
 
-    graph_admin._finalize_rebuild_success(
-        session_factory=lambda: None,
-        job_id="job-test",
-        execution_id="exec-test",
-        graph=graph,
-        source="sample",
-        job_started_at=0.0,
-        lock_lost=threading.Event(),
-        cancel_event=threading.Event(),
-    )
+    try:
+        graph_admin._finalize_rebuild_success(
+            session_factory=lambda: None,
+            job_id="job-test",
+            execution_id="exec-test",
+            graph=graph,
+            source="sample",
+            job_started_at=0.0,
+            lock_lost=threading.Event(),
+            cancel_event=threading.Event(),
+        )
 
-    second = client.get("/api/relationships")
-    assert second.status_code == 200
-    assert second.json()[0]["assertion_id"] == "assertion-v2"
-    assert second.json()[0]["revision_id"] == "revision-v2"
+        second = client.get("/api/relationships")
+        assert second.status_code == 200
+        assert second.json()[0]["assertion_id"] == "assertion-v2"
+        assert second.json()[0]["revision_id"] == "revision-v2"
 
-    second_visualization = client.get("/api/visualization")
-    assert second_visualization.status_code == 200
-    assert second_visualization.json()["edges"][0]["assertion_id"] == "assertion-v2"
-    assert second_visualization.json()["edges"][0]["revision_id"] == "revision-v2"
+        second_visualization = client.get("/api/visualization")
+        assert second_visualization.status_code == 200
+        assert second_visualization.json()["edges"][0]["assertion_id"] == "assertion-v2"
+        assert second_visualization.json()["edges"][0]["revision_id"] == "revision-v2"
+    finally:
+        from api.graph_lifecycle import graph_state
+
+        graph_state.last_synced_job_id = None
 
 
 @pytest.mark.unit
