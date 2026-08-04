@@ -89,7 +89,7 @@ function findSupersessionEvent(
 }
 
 function relationshipHeading(relationship: ExplainableRelationship): string {
-  return `${relationship.source} \u2192 ${relationship.target} (${relationship.relationship_type})`;
+  return `${relationship.source} → ${relationship.target} (${relationship.relationship_type})`;
 }
 
 function PanelShell({
@@ -177,16 +177,35 @@ function UnavailableView({ heading }: Readonly<{ heading: string }>) {
   );
 }
 
+function normalizeIdentifier(
+  value: string | null | undefined,
+): string | null {
+  if (typeof value !== "string") return null;
+  const normalized = value.trim();
+  return normalized.length > 0 ? normalized : null;
+}
+
 function buildRequestKey(
   publicationId: string | null | undefined,
   projectionEdgeId: string | null | undefined,
   revisionId?: string | null | undefined,
   assertionId?: string | null | undefined,
 ): string | null {
-  if (!publicationId || !projectionEdgeId || !revisionId || !assertionId) {
+  const normalizedPublicationId = normalizeIdentifier(publicationId);
+  const normalizedProjectionEdgeId = normalizeIdentifier(projectionEdgeId);
+  const normalizedRevisionId = normalizeIdentifier(revisionId);
+  const normalizedAssertionId = normalizeIdentifier(assertionId);
+
+  if (
+    normalizedPublicationId === null ||
+    normalizedProjectionEdgeId === null ||
+    normalizedRevisionId === null ||
+    normalizedAssertionId === null
+  ) {
     return null;
   }
-  return `pub:${publicationId}:edge:${projectionEdgeId}:rev:${revisionId}:assert:${assertionId}`;
+
+  return `pub:${normalizedPublicationId}:edge:${normalizedProjectionEdgeId}:rev:${normalizedRevisionId}:assert:${normalizedAssertionId}`;
 }
 
 function formatStrength(
@@ -236,7 +255,7 @@ function ConfidenceAndTimeSummary({
         <dd className="text-gray-800">
           {formatTimestamp(explanation.effective_from)}
           {explanation.effective_to
-            ? ` \u2013 ${formatTimestamp(explanation.effective_to)}`
+            ? ` – ${formatTimestamp(explanation.effective_to)}`
             : " (ongoing)"}
         </dd>
       </div>
@@ -268,7 +287,7 @@ function AuthoritySummary({
       <ul className="mt-1 space-y-1">
         {summary.proposer && (
           <li>
-            {AUTHORITY_LABELS.proposer} {"\u2014"}{" "}
+            {AUTHORITY_LABELS.proposer} {"—"}{" "}
             {formatTimestamp(summary.proposer.recorded_at)}
           </li>
         )}
@@ -276,7 +295,7 @@ function AuthoritySummary({
           <li>
             {AUTHORITY_LABELS[summary.determiner.authority] ??
               "Determining authority"}{" "}
-            {"\u2014"} {formatTimestamp(summary.determiner.recorded_at)}
+            {"—"} {formatTimestamp(summary.determiner.recorded_at)}
           </li>
         )}
       </ul>
@@ -332,7 +351,7 @@ function LifecycleHistory({
       <ul className="mt-1 space-y-1">
         {history.events.map((event) => (
           <li key={event.event_id}>
-            #{event.sequence} {event.from_state ?? "(none)"} {"\u2192"}{" "}
+            #{event.sequence} {event.from_state ?? "(none)"} {"→"}{" "}
             {event.to_state}{" "}
             <span className="text-xs text-gray-500">
               ({AUTHORITY_LABELS[event.authority] ?? event.authority},{" "}
@@ -341,7 +360,7 @@ function LifecycleHistory({
             {event.successor_assertion_id && (
               <span className="text-xs text-gray-500">
                 {" "}
-                {"\u2014"} superseded by assertion{" "}
+                {"—"} superseded by assertion{" "}
                 {event.successor_assertion_id}
               </span>
             )}
@@ -546,22 +565,28 @@ async function fetchAssertionResult({
   expectedAssertionId,
   signal,
 }: FetchAssertionResultOptions): Promise<PanelResult | null> {
+  const normalizedPublicationId = normalizeIdentifier(publicationId);
+  const normalizedProjectionEdgeId = normalizeIdentifier(projectionEdgeId);
+  const normalizedRevisionId = normalizeIdentifier(expectedRevisionId);
+  const normalizedAssertionId = normalizeIdentifier(expectedAssertionId);
   const requestKey = buildRequestKey(
-    publicationId,
-    projectionEdgeId,
-    expectedRevisionId,
-    expectedAssertionId,
+    normalizedPublicationId,
+    normalizedProjectionEdgeId,
+    normalizedRevisionId,
+    normalizedAssertionId,
   );
-  if (!requestKey || !publicationId || !projectionEdgeId) return null;
+  if (!requestKey || !normalizedPublicationId || !normalizedProjectionEdgeId) {
+    return null;
+  }
 
   try {
     return await fetchPublishedEdgeExplanation(
-      publicationId,
-      projectionEdgeId,
+      normalizedPublicationId,
+      normalizedProjectionEdgeId,
       requestKey,
       signal,
-      expectedRevisionId,
-      expectedAssertionId,
+      normalizedRevisionId,
+      normalizedAssertionId,
     );
   } catch (err) {
     if (signal.aborted) return null;
