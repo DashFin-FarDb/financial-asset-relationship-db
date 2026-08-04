@@ -329,6 +329,7 @@ class ProofValidator:
         self._validate_restart_scopes(args)
         self._validate_restart_history(args)
         self._validate_restart_edge_scopes(args)
+        self._validate_revision(args)
 
         return self.build_result()
 
