@@ -232,7 +232,7 @@ class ProofValidator:
         if args.revision_hash:
             self.digest_is_valid(args.revision_hash, "Revision")
             self.metadata["revision"] = args.revision_hash[:8] + "..."
-            
+
             # Validate revision hash against expected hash if provided
             if args.expected_revision_hash:
                 if args.revision_hash != args.expected_revision_hash:
