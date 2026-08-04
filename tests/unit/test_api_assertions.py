@@ -528,57 +528,11 @@ def test_get_published_edge_explanation_wrong_edge_returns_404(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """Edge belonging to another publication returns indistinguishable 404."""
-    from datetime import datetime, timezone
-
-    from src.data.relationship_assertion_repository import PersistedProjectionRevision, PublishedProjectionRevision
-    from src.logic.relationship_projection import ProjectionEdge, ProjectionRevision
-
-    now = datetime.now(tz=timezone.utc)
-    edge = ProjectionEdge(
-        source_id="BOND",
-        target_id="ISSUER",
-        edge_type="corporate_link",
-        strength="0.9",
-        direction="canonical",
-        assertion_id="assertion-test",
+    monkeypatch.setattr(
+        RelationshipAssertionRepository,
+        "get_published_edge",
+        lambda _self, pub_id, edge_id: None,
     )
-
-
-"""Test module for relationship assertion API, verifying published edge retrieval and explanation endpoints."""
-    revision = ProjectionRevision(
-        purpose="financial_graph_current_view",
-        effective_at=now,
-        known_at=now,
-        contract_version="contract.v1",
-        projector_version="projector.v1",
-        edge_set_hash="0" * 64,
-        projection_hash="1" * 64,
-        edges=(edge,),
-        governed_scopes=(),
-    )
-    persisted = PersistedProjectionRevision(
-        revision_id="revision-test",
-        created_at=now,
-        revision=revision,
-        edge_ids=("projection-edge-test",),
-    )
-    published = PublishedProjectionRevision(
-        persisted=persisted,
-        publication_id="pub-test",
-        rebuild_job_id="job-test",
-        execution_id="exec-test",
-        published_at=now,
-    )
-
-    def mock_get_published_edge(
-        _self: object, pub_id: str, edge_id: str
-    ) -> tuple[PublishedProjectionRevision, ProjectionEdge] | None:
-        """Mock get_published_edge to return the expected published projection revision and edge when provided correct IDs."""
-        if pub_id == "pub-test" and edge_id == "projection-edge-test":
-            return published, edge
-        return None
-
-    monkeypatch.setattr(RelationshipAssertionRepository, "get_published_edge", mock_get_published_edge)
 
     response = client.get("/api/publications/pub-test/edges/wrong-edge-id/explanation")
     assert response.status_code == 404
@@ -586,17 +540,17 @@ def test_get_published_edge_explanation_wrong_edge_returns_404(
 
 
 @pytest.mark.unit
- def test_get_published_edge_explanation_strict_zip_mismatch_returns_503(
-     client: TestClient,
-     monkeypatch: pytest.MonkeyPatch,
- ) -> None:
-     """Strict-zip mismatch (edge_ids and revision.edges mismatch) returns 503."""
-     from datetime import datetime, timezone
+def test_get_published_edge_explanation_strict_zip_mismatch_returns_503(
+    client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Strict-zip mismatch (edge_ids and revision.edges mismatch) returns 503."""
+    from datetime import datetime, timezone
 
-     from src.data.relationship_assertion_repository import PersistedProjectionRevision, PublishedProjectionRevision
-     from src.logic.relationship_projection import ProjectionEdge, ProjectionRevision
+    from src.data.relationship_assertion_repository import PersistedProjectionRevision, PublishedProjectionRevision
+    from src.logic.relationship_projection import ProjectionEdge, ProjectionRevision
 
-     now = datetime.now(tz=timezone.utc)
+    now = datetime.now(tz=timezone.utc)
     edge = ProjectionEdge(
         source_id="BOND",
         target_id="ISSUER",
