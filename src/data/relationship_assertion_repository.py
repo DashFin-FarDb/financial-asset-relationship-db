@@ -821,20 +821,15 @@ class RelationshipAssertionRepository:
             published_at=published_at,
         )
 
-    def _require_single_publication_for_rebuild_job(self, purpose: str, rebuild_job_id: str) -> None:
+    def _require_single_publication_for_rebuild_job(self, rebuild_job_id: str) -> None:
         """Fail closed when one succeeded rebuild owns multiple publication rows."""
         count = self._session.execute(
             select(func.count())
             .select_from(RelationshipProjectionPublicationORM)
             .join(
-                RelationshipProjectionRevisionORM,
-                RelationshipProjectionRevisionORM.id == RelationshipProjectionPublicationORM.revision_id,
-            )
-            .join(
                 RebuildJobORM,
                 RebuildJobORM.job_id == RelationshipProjectionPublicationORM.rebuild_job_id,
             )
-            .where(RelationshipProjectionRevisionORM.purpose == purpose)
             .where(RebuildJobORM.status == "succeeded")
             .where(RelationshipProjectionPublicationORM.rebuild_job_id == rebuild_job_id)
         ).scalar_one()
@@ -858,7 +853,6 @@ class RelationshipAssertionRepository:
             return None
         published = self._published_projection_from_orm(publication)
         self._require_single_publication_for_rebuild_job(
-            published.persisted.revision.purpose,
             published.rebuild_job_id,
         )
         return published
@@ -901,11 +895,41 @@ class RelationshipAssertionRepository:
         )
 
         self._require_single_publication_for_rebuild_job(
-            published.persisted.revision.purpose,
             published.rebuild_job_id,
         )
 
         return published, persisted.revision.edges[0]
+
+    def latest_published_projection_binding(self, purpose: str) -> tuple[str, str, str] | None:
+        """Load the latest succeeded publication binding (rebuild_job_id, revision_id, publication_id) for ``purpose``."""
+        publication = self._session.execute(
+            select(
+                RelationshipProjectionPublicationORM.rebuild_job_id,
+                RelationshipProjectionPublicationORM.revision_id,
+                RelationshipProjectionPublicationORM.id,
+            )
+            .join(
+                RelationshipProjectionRevisionORM,
+                RelationshipProjectionRevisionORM.id == RelationshipProjectionPublicationORM.revision_id,
+            )
+            .join(
+                RebuildJobORM,
+                RebuildJobORM.job_id == RelationshipProjectionPublicationORM.rebuild_job_id,
+            )
+            .where(RelationshipProjectionRevisionORM.purpose == purpose)
+            .where(RebuildJobORM.status == "succeeded")
+            .order_by(
+                RelationshipProjectionPublicationORM.published_at.desc(),
+                RelationshipProjectionPublicationORM.rebuild_job_id.desc(),
+                RelationshipProjectionPublicationORM.id.desc(),
+            )
+            .limit(1)
+        ).first()
+        if publication is None:
+            return None
+        rebuild_job_id, revision_id, publication_id = publication
+        self._require_single_publication_for_rebuild_job(rebuild_job_id)
+        return (rebuild_job_id, revision_id, publication_id)
 
     def latest_published_projection_record(self, purpose: str) -> PublishedProjectionRevision | None:
         """Load the latest succeeded publication record for ``purpose``."""
@@ -930,7 +954,7 @@ class RelationshipAssertionRepository:
         ).scalar_one_or_none()
         if publication is None:
             return None
-        self._require_single_publication_for_rebuild_job(purpose, publication.rebuild_job_id)
+        self._require_single_publication_for_rebuild_job(publication.rebuild_job_id)
         return self._published_projection_from_orm(publication)
 
     def latest_published_projection(self, purpose: str) -> PersistedProjectionRevision | None:

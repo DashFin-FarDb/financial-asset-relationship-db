@@ -474,17 +474,11 @@ function useAssertionResult(
   publicationId: string | null | undefined,
 ): PanelResult | null {
   const [result, setResult] = useState<PanelResult | null>(null);
-  const [prevRequestKey, setPrevRequestKey] = useState<string | null>(null);
 
   const requestKey =
     publicationId && projectionEdgeId
       ? `pub:${publicationId}:edge:${projectionEdgeId}`
       : assertionId;
-
-  if (requestKey !== prevRequestKey) {
-    setResult(null);
-    setPrevRequestKey(requestKey);
-  }
 
   useEffect(() => {
     if (!requestKey) {
@@ -504,7 +498,7 @@ function useAssertionResult(
     return () => controller.abort();
   }, [assertionId, projectionEdgeId, publicationId, requestKey]);
 
-  return result;
+  return result?.requestKey === requestKey ? result : null;
 }
 
 /** Discriminated description of what the panel should render next. */

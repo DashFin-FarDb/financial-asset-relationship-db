@@ -364,10 +364,7 @@ def _latest_published_projection_binding_from_persistence() -> PublicationBindin
     try:
         with session_scope(_governance_session_factory()) as session:
             repository = RelationshipAssertionRepository(session)
-            published = repository.latest_published_projection_record(_GRAC_CURRENT_PURPOSE)
-            if published is None:
-                return None
-            return (published.rebuild_job_id, published.persisted.revision_id, published.publication_id)
+            return repository.latest_published_projection_binding(_GRAC_CURRENT_PURPOSE)
     except GraphPersistenceInvalidUrlError as exc:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
