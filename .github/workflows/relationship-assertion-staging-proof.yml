@@ -226,11 +226,11 @@ jobs:
           DEPLOYED_SHA_VAR="$DEPLOYED_SHA"
 
           if [ -f staging-proof-result.json ]; then
-            # Add run metadata to the result
-            python3 - <<EOF
+          # Add run metadata to the result
+          python3 - <<EOF
           import json
           import sys
-
+  
           try:
               with open('staging-proof-result.json', 'r') as f:
                   result = json.load(f)
