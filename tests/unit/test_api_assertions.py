@@ -480,7 +480,8 @@ def test_get_published_edge_explanation_success(
     ) -> tuple[PublishedProjectionRevision, ProjectionEdge] | None:
         """Return the published projection revision and edge for a given publication and edge ID.
 
-        Returns a tuple of PublishedProjectionRevision and ProjectionEdge if the publication ID and edge ID match the test values, otherwise returns None.
+        Returns a tuple of PublishedProjectionRevision and ProjectionEdge if the publication ID
+        and edge ID match the test values, otherwise returns None.
         """
         if pub_id == "pub-test" and edge_id == "projection-edge-test":
             return published, edge
@@ -491,7 +492,8 @@ def test_get_published_edge_explanation_success(
     ) -> AssertionAsOf | None:
         """Retrieve the assertion state as of the specified known and effective timestamps.
 
-        Increments the get_as_of_calls counter, validates parameters against the expected 'now' timestamp, and returns the predefined AssertionAsOf object.
+        Increments the get_as_of_calls counter, validates parameters against the expected
+        'now' timestamp, and returns the predefined AssertionAsOf object.
         """
         nonlocal get_as_of_calls
         get_as_of_calls += 1
