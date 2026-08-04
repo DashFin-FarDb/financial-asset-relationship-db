@@ -1,0 +1,14 @@
+tests/unit/test_relationship_index_publication_binding.py
+  h_f327e6ff3ec3c1 232,250,268-269,271,274,280-281,283,286,289-293,295
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.20",
+  "base_commit_sha": "5c9bb191e93e1356172f52aa9835024ce97804fc",
+  "prompts": {},
+  "humans": {
+    "h_f327e6ff3ec3c1": {
+      "author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}
