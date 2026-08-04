@@ -13,6 +13,7 @@ from src.data.database import create_engine_from_url, init_db
 
 @pytest.fixture
 def test_db_url(tmp_path: Path) -> str:
+    """Fixture to create and initialize a temporary SQLite test database."""
     db_file = tmp_path / "staging-proof-test.db"
     url = f"sqlite:///{db_file}"
     engine = create_engine_from_url(url)
@@ -25,6 +26,7 @@ def test_db_url(tmp_path: Path) -> str:
 @patch("scripts.check_relationship_assertion_proof.verify_deployed_sha", lambda sha: None)
 @patch("scripts.check_relationship_assertion_proof.check_schema_authz_evidence", lambda sha: None)
 def test_staging_proof_flow_sqlite(test_db_url: str, tmp_path: Path) -> None:
+    """Test the complete staging proof seeding, publication, and restart verification flow using SQLite."""
     # 1. Run seed_and_publish
     deployed_sha = "a" * 40
     run_id = "test-run-1"

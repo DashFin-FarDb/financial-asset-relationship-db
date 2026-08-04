@@ -12,6 +12,7 @@ import argparse
 import json
 import os
 import pathlib
+import shutil
 import subprocess
 import sys
 import uuid
@@ -183,13 +184,8 @@ class ProofValidator:
             self.add_error(f"Authz evidence error: {e}")
             return {}
 
-    def validate_seed_and_publish(self, args: argparse.Namespace) -> dict[str, Any]:
-        """Mode 1: Seed and publish validation."""
-        self.metadata["mode"] = "seed_and_publish"
-
-        self.git_sha_is_valid(args.deployed_sha, "Deployed")
-        self.metadata["sha"] = args.deployed_sha[:8] + "..." if args.deployed_sha else "N/A"
-
+    def _validate_digests(self, args: argparse.Namespace) -> None:
+        """Validate contract and registry digests."""
         if args.contract_digest or args.strict:
             self.digest_is_valid(args.contract_digest, "Contract")
             self.metadata["contract"] = args.contract_digest[:8] + "..." if args.contract_digest else "N/A"
@@ -198,6 +194,8 @@ class ProofValidator:
             self.digest_is_valid(args.registry_digest, "Registry")
             self.metadata["registry"] = args.registry_digest[:8] + "..." if args.registry_digest else "N/A"
 
+    def _validate_db(self, args: argparse.Namespace) -> None:
+        """Validate database configuration URL."""
         db_url = args.database_url or os.getenv("DATABASE_URL")
         if db_url or args.strict:
             if db_url:
@@ -206,6 +204,8 @@ class ProofValidator:
             else:
                 self.add_error("DB URL required in strict mode")
 
+    def _validate_authz(self, args: argparse.Namespace) -> None:
+        """Validate authorization evidence file."""
         if args.authz_evidence or args.strict:
             if args.authz_evidence:
                 authz_meta = self.load_authz_evidence(args.authz_evidence, args.deployed_sha)
@@ -213,6 +213,8 @@ class ProofValidator:
             else:
                 self.add_error("Authz evidence required in strict mode")
 
+    def _validate_actors(self, args: argparse.Namespace) -> None:
+        """Verify actor separation limits."""
         if (args.proposer_id and args.determiner_id) or args.strict:
             if args.proposer_id and args.determiner_id:
                 self.actors_are_distinct(args.proposer_id, args.determiner_id, args.executor_id)
@@ -221,15 +223,18 @@ class ProofValidator:
             else:
                 self.add_error("Actor IDs required in strict mode")
 
+    def _validate_publications(self, args: argparse.Namespace) -> None:
+        """Verify publication properties and ownership."""
         if args.publication_count is not None:
             self.publication_is_correct(args.publication_count, args.owner_id or "", args.expected_owner)
             self.metadata["publications"] = args.publication_count
 
+    def _validate_revision(self, args: argparse.Namespace) -> None:
+        """Validate revision hash binding."""
         if args.revision_hash:
             self.digest_is_valid(args.revision_hash, "Revision")
             self.metadata["revision"] = args.revision_hash[:8] + "..."
 
-            # Validate revision hash against expected hash if provided
             if args.expected_revision_hash:
                 if args.revision_hash != args.expected_revision_hash:
                     self.add_error(
@@ -240,20 +245,31 @@ class ProofValidator:
             elif args.strict:
                 self.add_error("Expected revision hash required in strict mode")
 
-        return self.build_result()
-
-    def validate_verify_after_restart(self, args: argparse.Namespace) -> dict[str, Any]:  # noqa: C901
-        """Mode 2: Post-restart verification."""
-        self.metadata["mode"] = "verify_after_restart"
+    def validate_seed_and_publish(self, args: argparse.Namespace) -> dict[str, Any]:
+        """Mode 1: Seed and publish validation."""
+        self.metadata["mode"] = "seed_and_publish"
 
         self.git_sha_is_valid(args.deployed_sha, "Deployed")
         self.metadata["sha"] = args.deployed_sha[:8] + "..." if args.deployed_sha else "N/A"
 
+        self._validate_digests(args)
+        self._validate_db(args)
+        self._validate_authz(args)
+        self._validate_actors(args)
+        self._validate_publications(args)
+        self._validate_revision(args)
+
+        return self.build_result()
+
+    def _validate_restart_persistence(self, args: argparse.Namespace) -> None:
+        """Validate startup source persistence."""
         if args.require_persistence:
             if args.startup_source != "persisted":
                 self.add_error(f"Startup: {args.startup_source or 'N/A'} (need persisted)")
             self.metadata["startup"] = args.startup_source or "N/A"
 
+    def _validate_restart_authz(self, args: argparse.Namespace) -> None:
+        """Validate authorization proof evidence."""
         if args.authz_evidence or args.strict:
             if args.authz_evidence:
                 authz_meta = self.load_authz_evidence(args.authz_evidence, args.deployed_sha)
@@ -261,6 +277,8 @@ class ProofValidator:
             else:
                 self.add_error("Authz evidence required in strict mode")
 
+    def _validate_restart_scopes(self, args: argparse.Namespace) -> None:
+        """Validate consistency of governed scopes."""
         if (args.before_scopes and args.after_scopes) or args.strict:
             if args.before_scopes and args.after_scopes:
                 try:
@@ -274,6 +292,8 @@ class ProofValidator:
             else:
                 self.add_error("Scopes required in strict mode")
 
+    def _validate_restart_history(self, args: argparse.Namespace) -> None:
+        """Validate execution history entries."""
         if args.history_entries or args.strict:
             if args.history_entries:
                 try:
@@ -285,6 +305,8 @@ class ProofValidator:
             else:
                 self.add_error("History required in strict mode")
 
+    def _validate_restart_edge_scopes(self, args: argparse.Namespace) -> None:
+        """Validate scope consistency of empty edge assertions."""
         if args.empty_edge_before_scopes and args.empty_edge_after_scopes:
             try:
                 before = json.loads(args.empty_edge_before_scopes)
@@ -294,6 +316,19 @@ class ProofValidator:
                 self.metadata["edge_scopes_after"] = len(after)
             except json.JSONDecodeError as e:
                 self.add_error(f"Empty-edge JSON error: {e}")
+
+    def validate_verify_after_restart(self, args: argparse.Namespace) -> dict[str, Any]:
+        """Mode 2: Post-restart verification."""
+        self.metadata["mode"] = "verify_after_restart"
+
+        self.git_sha_is_valid(args.deployed_sha, "Deployed")
+        self.metadata["sha"] = args.deployed_sha[:8] + "..." if args.deployed_sha else "N/A"
+
+        self._validate_restart_persistence(args)
+        self._validate_restart_authz(args)
+        self._validate_restart_scopes(args)
+        self._validate_restart_history(args)
+        self._validate_restart_edge_scopes(args)
 
         return self.build_result()
 
@@ -334,31 +369,31 @@ def setup_parser() -> argparse.ArgumentParser:
     """Configure argument parser."""
     parser = argparse.ArgumentParser(description="GRAC v1 staging proof validator")
     parser.add_argument("mode", choices=["seed_and_publish", "verify_after_restart"])
-    parser.add_argument("--deployed-sha", required=True)
+    parser.add_argument("--deployed-sha", required=True, help="Git commit SHA at target release")
     parser.add_argument("--run-id", default=os.getenv("GITHUB_RUN_ID", "local"))
     parser.add_argument("--run-number", default=os.getenv("GITHUB_RUN_NUMBER", "0"))
-    parser.add_argument("--database-url")
-    parser.add_argument("--contract-digest")
-    parser.add_argument("--registry-digest")
-    parser.add_argument("--require-persistence", action="store_true")
-    parser.add_argument("--strict", action="store_true")
-    parser.add_argument("--output")
-    parser.add_argument("--authz-evidence")
-    parser.add_argument("--proposer-id")
-    parser.add_argument("--determiner-id")
-    parser.add_argument("--executor-id")
-    parser.add_argument("--publication-count", type=int)
-    parser.add_argument("--owner-id")
-    parser.add_argument("--expected-owner")
-    parser.add_argument("--revision-hash")
-    parser.add_argument("--expected-revision-hash")
-    parser.add_argument("--startup-source")
-    parser.add_argument("--before-scopes")
-    parser.add_argument("--after-scopes")
-    parser.add_argument("--history-entries")
-    parser.add_argument("--expected-min-history", type=int, default=1)
-    parser.add_argument("--empty-edge-before-scopes")
-    parser.add_argument("--empty-edge-after-scopes")
+    parser.add_argument("--contract-digest", help="Staging validation contract digest")
+    parser.add_argument("--registry-digest", help="Staging validation registry digest")
+    parser.add_argument("--database-url", help="Database connection URL")
+    parser.add_argument("--authz-evidence", help="Authorization pass evidence file")
+    parser.add_argument("--proposer-id", help="Proposer actor signature UUID")
+    parser.add_argument("--determiner-id", help="Determiner actor signature UUID")
+    parser.add_argument("--executor-id", help="Executor actor signature UUID")
+    parser.add_argument("--publication-count", type=int, help="Verified publication count")
+    parser.add_argument("--owner-id", help="UUID of the owner role signature")
+    parser.add_argument("--expected-owner", help="Expected owner role signature UUID")
+    parser.add_argument("--revision-hash", help="Validation revision hash value")
+    parser.add_argument("--expected-revision-hash", help="Expected target revision hash value")
+    parser.add_argument("--require-persistence", action="store_true", help="Assert startup persistence")
+    parser.add_argument("--startup-source", help="Observed runtime startup source value")
+    parser.add_argument("--before-scopes", help="Scope list JSON before promotion")
+    parser.add_argument("--after-scopes", help="Scope list JSON after promotion")
+    parser.add_argument("--history-entries", help="Execution log history entries JSON")
+    parser.add_argument("--expected-min-history", type=int, default=1, help="Minimum history length")
+    parser.add_argument("--empty-edge-before-scopes", help="Empty-edge scope list JSON before promotion")
+    parser.add_argument("--empty-edge-after-scopes", help="Empty-edge scope list JSON after promotion")
+    parser.add_argument("--output", help="Proof validation JSON output filepath")
+    parser.add_argument("--strict", action="store_true", help="Fail validation on any warning")
     return parser
 
 
@@ -368,7 +403,12 @@ def main(argv: list[str] | None = None) -> int:
         parser = setup_parser()
         args = parser.parse_args(sys.argv[1:] if argv is None else argv)
 
-        validator = ProofValidator({"run_id": args.run_id, "run_number": args.run_number})
+        validator = ProofValidator(
+            {
+                "run_id": args.run_id if hasattr(args, "run_id") else None,
+                "run_number": args.run_number if hasattr(args, "run_number") else None,
+            }
+        )
 
         if args.mode == "seed_and_publish":
             result = validator.validate_seed_and_publish(args)
@@ -388,8 +428,11 @@ def verify_deployed_sha(deployed_sha: str) -> None:
     """Verify that the deployed SHA matches the current git HEAD commit."""
     if not deployed_sha or len(deployed_sha) != 40 or not all(c in "0123456789abcdef" for c in deployed_sha.lower()):
         raise ValueError("Invalid deployed SHA")
+    git_path = shutil.which("git")
+    if not git_path:
+        raise ValueError("git command not found on PATH")
     try:
-        current_sha = subprocess.check_output(["git", "rev-parse", "HEAD"]).decode("utf-8").strip()
+        current_sha = subprocess.check_output([git_path, "rev-parse", "HEAD"]).decode("utf-8").strip()
         if current_sha.lower() != deployed_sha.lower():
             raise ValueError("Deployed SHA mismatch")
     except subprocess.SubprocessError as e:

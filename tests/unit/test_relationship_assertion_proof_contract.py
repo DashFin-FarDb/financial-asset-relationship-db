@@ -15,6 +15,7 @@ from scripts.check_relationship_assertion_proof import (
 
 
 def test_verify_deployed_sha_valid() -> None:
+    """Test that a valid deployed SHA matching git HEAD verification succeeds."""
     with patch("subprocess.check_output") as mock_run:
         mock_run.return_value = b"a" * 40
         verify_deployed_sha("a" * 40)
@@ -22,11 +23,13 @@ def test_verify_deployed_sha_valid() -> None:
 
 
 def test_verify_deployed_sha_invalid() -> None:
+    """Test that checking an invalid SHA format fails with ValueError."""
     with pytest.raises(ValueError, match="Invalid deployed SHA"):
         verify_deployed_sha("short")
 
 
 def test_verify_deployed_sha_mismatch() -> None:
+    """Test that verification fails if the deployed SHA differs from git HEAD."""
     with patch("subprocess.check_output") as mock_run:
         mock_run.return_value = b"b" * 40
         with pytest.raises(ValueError, match="Deployed SHA mismatch"):
@@ -34,16 +37,19 @@ def test_verify_deployed_sha_mismatch() -> None:
 
 
 def test_check_postgresql_proof_success() -> None:
+    """Test that valid postgresql and postgres database URLs pass validation."""
     check_postgresql_proof("postgresql://user:pass@localhost:5432/db")
     check_postgresql_proof("postgres://user:pass@localhost:5432/db")
 
 
 def test_check_postgresql_proof_failure() -> None:
+    """Test that a non-postgresql URL (like sqlite) fails proof checks."""
     with pytest.raises(ValueError, match="PostgreSQL proof was skipped"):
         check_postgresql_proof("sqlite:///:memory:")
 
 
 def test_check_schema_authz_evidence_not_found(tmp_path: Path) -> None:
+    """Test that authorization evidence check fails if evidence file is missing."""
     with patch("scripts.check_relationship_assertion_proof.REPO_ROOT", tmp_path):
         evidence_dir = tmp_path / "docs" / "evidence-records"
         evidence_dir.mkdir(parents=True)
@@ -52,6 +58,7 @@ def test_check_schema_authz_evidence_not_found(tmp_path: Path) -> None:
 
 
 def test_check_schema_authz_evidence_success(tmp_path: Path) -> None:
+    """Test that authorization evidence validation succeeds when the correct file and SHA are present."""
     with patch("scripts.check_relationship_assertion_proof.REPO_ROOT", tmp_path):
         evidence_dir = tmp_path / "docs" / "evidence-records"
         evidence_dir.mkdir(parents=True)
