@@ -610,6 +610,7 @@ def test_pydantic_validation_error_in_governance_persistence_returns_503(
 
     class Dummy(BaseModel):
         """Dummy Pydantic model used to test validation error handling."""
+
         x: int
 
     try:
