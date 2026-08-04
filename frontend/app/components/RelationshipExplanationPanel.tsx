@@ -388,6 +388,40 @@ function ReadyView({
   );
 }
 
+async function fetchPublishedEdgeExplanation(
+  publicationId: string,
+  projectionEdgeId: string,
+  requestKey: string,
+  signal: AbortSignal,
+): Promise<PanelResult | null> {
+  const response = await api.getPublishedEdgeExplanation(
+    publicationId,
+    projectionEdgeId,
+    signal,
+  );
+  if (signal.aborted) return null;
+  return {
+    status: "ready",
+    requestKey,
+    explanation: response.assertion.explanation,
+    history: response.assertion.history,
+  };
+}
+
+async function fetchLegacyAssertionExplanation(
+  assertionId: string,
+  requestKey: string,
+  signal: AbortSignal,
+): Promise<PanelResult | null> {
+  const asOf = { known_at: new Date().toISOString() };
+  const [explanation, history] = await Promise.all([
+    api.getAssertion(assertionId, asOf, signal),
+    api.getAssertionHistory(assertionId, asOf, signal),
+  ]);
+  if (signal.aborted) return null;
+  return { status: "ready", requestKey, explanation, history };
+}
+
 /**
  * Fetch the explanation and history for a governed assertion, resolving to a
  * settled `PanelResult` (or `null` if the request was aborted). Kept as its
@@ -410,30 +444,15 @@ async function fetchAssertionResult(
 
   try {
     if (publicationId && projectionEdgeId) {
-      const response = await api.getPublishedEdgeExplanation(
+      return await fetchPublishedEdgeExplanation(
         publicationId,
         projectionEdgeId,
+        requestKey,
         signal,
       );
-      return signal.aborted
-        ? null
-        : {
-            status: "ready",
-            requestKey,
-            explanation: response.assertion.explanation,
-            history: response.assertion.history,
-          };
-    } else {
-      if (!assertionId) return null;
-      const asOf = { known_at: new Date().toISOString() };
-      const [explanation, history] = await Promise.all([
-        api.getAssertion(assertionId, asOf, signal),
-        api.getAssertionHistory(assertionId, asOf, signal),
-      ]);
-      return signal.aborted
-        ? null
-        : { status: "ready", requestKey, explanation, history };
     }
+    if (!assertionId) return null;
+    return await fetchLegacyAssertionExplanation(assertionId, requestKey, signal);
   } catch (err) {
     if (signal.aborted) return null;
     const httpStatus = (err as { response?: { status?: number } })?.response
