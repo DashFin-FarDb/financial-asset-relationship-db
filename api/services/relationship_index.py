@@ -546,21 +546,23 @@ def load_governed_relationship_snapshot(graph: AssetRelationshipGraph) -> Publis
             pass
         return PublishedRelationshipSnapshot(publication=None, governance_index={}, projection_bindings={})
 
-    latest_binding = _latest_published_projection_binding_from_persistence()
-    if latest_binding is None:
-        return PublishedRelationshipSnapshot(publication=None, governance_index={}, projection_bindings={})
-    latest_job_id, revision_id, publication_id = latest_binding
-    if rebuild_job_id != latest_job_id:
+    binding = _published_projection_binding_for_rebuild_job_from_persistence(
+        rebuild_job_id
+    )
+    
+    if binding is None:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="Graph publication synchronization is pending",
         )
+    
+    revision_id, publication_id = binding
+
     return _load_bound_governed_relationship_snapshot(
         revision_id,
         publication_id,
         generation,
     )
-
 
 def load_governed_relationship_index(graph: AssetRelationshipGraph) -> GovernedRelationshipIndex:
     """Return governance metadata consistent with the supplied graph snapshot.
