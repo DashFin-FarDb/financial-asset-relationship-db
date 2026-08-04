@@ -461,6 +461,7 @@ class RelationshipAssertionRepository:
         return _as_utc(value)
 
     def _latest_successful_publication_time(self) -> datetime | None:
+        """Return the UTC timestamp of the most recent successful projection publication."""
         value = self._session.execute(
             select(func.max(RelationshipProjectionPublicationORM.published_at))
             .join(
