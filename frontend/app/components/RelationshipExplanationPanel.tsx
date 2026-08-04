@@ -498,10 +498,13 @@ async function fetchPublishedEdgeExplanation(
   // Defensive response-identity validation
   if (
     response.publication.publication_id !== publicationId ||
-    (expectedRevisionId && response.publication.revision_id !== expectedRevisionId) ||
+    (expectedRevisionId &&
+      response.publication.revision_id !== expectedRevisionId) ||
     response.edge.projection_edge_id !== projectionEdgeId ||
-    (expectedAssertionId && response.edge.assertion_id !== expectedAssertionId) ||
-    response.assertion.explanation.assertion_id !== response.edge.assertion_id ||
+    (expectedAssertionId &&
+      response.edge.assertion_id !== expectedAssertionId) ||
+    response.assertion.explanation.assertion_id !==
+      response.edge.assertion_id ||
     response.assertion.history.assertion_id !== response.edge.assertion_id
   ) {
     return { status: "unavailable", requestKey };
@@ -577,7 +580,13 @@ function useAssertionResult(
     });
 
     return () => controller.abort();
-  }, [requestKey, projectionEdgeId, publicationId, expectedRevisionId, expectedAssertionId]);
+  }, [
+    requestKey,
+    projectionEdgeId,
+    publicationId,
+    expectedRevisionId,
+    expectedAssertionId,
+  ]);
 
   return result?.requestKey === requestKey ? result : null;
 }
@@ -613,7 +622,12 @@ function resolveViewState(
   }
 
   const projectionEdgeId = relationship.projection_edge_id;
-  if (!publicationId || !projectionEdgeId || !relationship.assertion_id || !relationship.revision_id) {
+  if (
+    !publicationId ||
+    !projectionEdgeId ||
+    !relationship.assertion_id ||
+    !relationship.revision_id
+  ) {
     return { kind: "pending", heading };
   }
 
@@ -671,7 +685,8 @@ export default function RelationshipExplanationPanel({
   publication,
   publicationId: publicationIdProp,
 }: RelationshipExplanationPanelProps) {
-  const publicationId = publication?.publication_id ?? publicationIdProp ?? null;
+  const publicationId =
+    publication?.publication_id ?? publicationIdProp ?? null;
   const result = useAssertionResult(
     relationship?.projection_edge_id,
     publicationId,

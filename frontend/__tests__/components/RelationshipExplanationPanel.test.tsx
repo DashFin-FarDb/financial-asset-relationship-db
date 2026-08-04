@@ -174,7 +174,9 @@ describe("RelationshipExplanationPanel", () => {
   });
 
   it("renders the full publication-bound governed explanation once fetched", async () => {
-    mockedApi.getPublishedEdgeExplanation.mockResolvedValue(baseExplanationResponse);
+    mockedApi.getPublishedEdgeExplanation.mockResolvedValue(
+      baseExplanationResponse,
+    );
 
     render(
       <RelationshipExplanationPanel
@@ -207,7 +209,9 @@ describe("RelationshipExplanationPanel", () => {
     expect(screen.getAllByText(/0\.50/).length).toBeGreaterThan(0);
 
     // Public evidence shows source ref; restricted evidence never leaks a body
-    expect(screen.getByText(/Source ref: https:\/\/example\.com\/filing/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Source ref: https:\/\/example\.com\/filing/),
+    ).toBeInTheDocument();
     expect(
       screen.getByText(/Evidence body and restricted references are not shown/),
     ).toBeInTheDocument();
@@ -226,7 +230,9 @@ describe("RelationshipExplanationPanel", () => {
     expect(screen.getByText("v1.2.3")).toBeInTheDocument();
     expect(screen.getByText("sha256-edge-hash-val")).toBeInTheDocument();
     expect(screen.getByText("sha256-proj-hash-val")).toBeInTheDocument();
-    expect(screen.getByText("(financial-relationship-graph, predicate-issuer)")).toBeInTheDocument();
+    expect(
+      screen.getByText("(financial-relationship-graph, predicate-issuer)"),
+    ).toBeInTheDocument();
   });
 
   it.each([
@@ -333,7 +339,9 @@ describe("RelationshipExplanationPanel", () => {
   });
 
   it("re-fetches when the selected relationship or publication changes and suppresses stale state", async () => {
-    mockedApi.getPublishedEdgeExplanation.mockResolvedValue(baseExplanationResponse);
+    mockedApi.getPublishedEdgeExplanation.mockResolvedValue(
+      baseExplanationResponse,
+    );
 
     const { rerender } = render(
       <RelationshipExplanationPanel
