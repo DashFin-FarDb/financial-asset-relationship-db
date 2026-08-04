@@ -73,15 +73,18 @@ export interface VisualizationNode {
 export interface VisualizationEdge extends GovernedEdgeMetadata {
   source: string;
   target: string;
+  edge_id: string;
   relationship_type: string;
   /** Relationship strength, normalised to the range 0.0–1.0. */
   strength: number;
+  projection_edge_id?: string | null;
 }
 
 export interface VisualizationData {
   nodes: VisualizationNode[];
   edges: VisualizationEdge[];
   network_density: number;
+  publication?: PublishedProjectionContextResponse | null;
 }
 
 /**
@@ -206,4 +209,46 @@ export interface AssertionHistory extends AssertionLifecycleMetadata {
 export interface AssertionAsOfParams {
   known_at?: string;
   effective_at?: string;
+}
+
+export interface GovernedScopeResponse {
+  purpose: string;
+  predicate_id: string;
+}
+
+export interface PublishedProjectionContextResponse {
+  publication_id: string;
+  revision_id: string;
+  rebuild_job_id: string;
+  execution_id: string;
+  published_at: string;
+  purpose: string;
+  effective_at: string;
+  known_at: string;
+  contract_version: string;
+  projector_version: string;
+  edge_set_hash: string;
+  projection_hash: string;
+  governed_scopes: GovernedScopeResponse[];
+}
+
+export interface PublishedProjectionEdgeResponse {
+  projection_edge_id: string;
+  source: string;
+  target: string;
+  relationship_type: string;
+  strength: string;
+  direction: string;
+  assertion_id: string;
+}
+
+export interface PublishedAssertionBundleResponse {
+  explanation: AssertionExplanation;
+  history: AssertionHistory;
+}
+
+export interface PublishedEdgeExplanationResponse {
+  publication: PublishedProjectionContextResponse;
+  edge: PublishedProjectionEdgeResponse;
+  assertion: PublishedAssertionBundleResponse;
 }

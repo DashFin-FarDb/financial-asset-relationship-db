@@ -239,6 +239,28 @@ class ProjectionRevisionStore:
             edge_ids=tuple(edge_row.id for edge_row in edge_rows),
         )
 
+    def get_with_single_edge(self, revision_id: str, projection_edge_id: str) -> PersistedProjectionRevision | None:
+        """Load a persisted candidate revision and only the single requested edge."""
+        row = self._session.get(RelationshipProjectionRevisionORM, revision_id)
+        if row is None:
+            return None
+        edge_row = self._session.execute(
+            select(RelationshipProjectionEdgeORM)
+            .where(RelationshipProjectionEdgeORM.revision_id == revision_id)
+            .where(RelationshipProjectionEdgeORM.id == projection_edge_id)
+        ).scalar_one_or_none()
+        if edge_row is None:
+            return None
+        edges = (_projection_edge_from_orm(edge_row),)
+        governed_scopes = _deserialize_governed_scopes(row.governed_scopes, row.purpose)
+        revision, created_at = _domain_revision_from_orm(row, edges, governed_scopes)
+        return PersistedProjectionRevision(
+            revision_id=row.id,
+            created_at=created_at,
+            revision=revision,
+            edge_ids=(projection_edge_id,),
+        )
+
     def latest_published_scopes(self, purpose: str) -> tuple[GovernedScope, ...]:
         """Load metadata from the latest successful publication for the purpose."""
         row = self._session.execute(

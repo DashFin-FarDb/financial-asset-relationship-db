@@ -8,7 +8,6 @@ import type {
   AssertionPublicEvent,
 } from "../types/api";
 
-/** The minimal edge shape the panel needs to explain a selected relationship. */
 export type ExplainableRelationship = Readonly<{
   source: string;
   target: string;
@@ -18,10 +17,12 @@ export type ExplainableRelationship = Readonly<{
   governance_status?: "governed" | null;
   revision_id?: string | null;
   scope_refs?: string[] | null;
+  projection_edge_id?: string | null;
 }>;
 
 type RelationshipExplanationPanelProps = Readonly<{
   relationship: ExplainableRelationship | null;
+  publicationId?: string | null;
 }>;
 
 /**
@@ -344,6 +345,7 @@ function PublicationFooter({
         {relationship.scope_refs?.length
           ? relationship.scope_refs.join(", ")
           : "unknown"}
+        {relationship.projection_edge_id && ` | Edge ID: ${relationship.projection_edge_id}`}
       </p>
     </div>
   );
@@ -393,24 +395,43 @@ function ReadyView({
  * cyclomatic complexity budget, not the rendering component's.
  */
 async function fetchAssertionResult(
-  requestKey: string,
+  assertionId: string | null,
+  projectionEdgeId: string | null | undefined,
+  publicationId: string | null | undefined,
   signal: AbortSignal,
 ): Promise<PanelResult | null> {
-  // Capture a single as-of snapshot and pass it to both calls so the
-  // explanation and history are resolved consistently with each other.
-  // NOTE: this does not yet guarantee consistency with the displayed
-  // graph's own publication snapshot -- see the `known_at`/`effective_at`
-  // limitation documented in `types/api.ts`.
-  const asOf = { known_at: new Date().toISOString() };
+  const requestKey = (publicationId && projectionEdgeId)
+    ? `pub:${publicationId}:edge:${projectionEdgeId}`
+    : assertionId;
+
+  if (!requestKey) return null;
 
   try {
-    const [explanation, history] = await Promise.all([
-      api.getAssertion(requestKey, asOf, signal),
-      api.getAssertionHistory(requestKey, asOf, signal),
-    ]);
-    return signal.aborted
-      ? null
-      : { status: "ready", requestKey, explanation, history };
+    if (publicationId && projectionEdgeId) {
+      const response = await api.getPublishedEdgeExplanation(
+        publicationId,
+        projectionEdgeId,
+        signal
+      );
+      return signal.aborted
+        ? null
+        : {
+            status: "ready",
+            requestKey,
+            explanation: response.assertion.explanation,
+            history: response.assertion.history,
+          };
+    } else {
+      if (!assertionId) return null;
+      const asOf = { known_at: new Date().toISOString() };
+      const [explanation, history] = await Promise.all([
+        api.getAssertion(assertionId, asOf, signal),
+        api.getAssertionHistory(assertionId, asOf, signal),
+      ]);
+      return signal.aborted
+        ? null
+        : { status: "ready", requestKey, explanation, history };
+    }
   } catch (err) {
     if (signal.aborted) return null;
     const httpStatus = (err as { response?: { status?: number } })?.response
@@ -422,26 +443,35 @@ async function fetchAssertionResult(
   }
 }
 
-/**
- * Fetch and hold the settled result for a governed assertion's explanation
- * and history, keyed by `requestKey`, or `null` while not applicable/pending.
- * Aborts the in-flight request on unmount or when `requestKey` changes.
- */
-function useAssertionResult(requestKey: string | null): PanelResult | null {
+function useAssertionResult(
+  assertionId: string | null,
+  projectionEdgeId: string | null | undefined,
+  publicationId: string | null | undefined,
+): PanelResult | null {
   const [result, setResult] = useState<PanelResult | null>(null);
 
   useEffect(() => {
+    const requestKey = (publicationId && projectionEdgeId)
+      ? `pub:${publicationId}:edge:${projectionEdgeId}`
+      : assertionId;
+
     if (!requestKey) {
+      setResult(null);
       return;
     }
 
     const controller = new AbortController();
-    fetchAssertionResult(requestKey, controller.signal).then((settled) => {
+    fetchAssertionResult(
+      assertionId,
+      projectionEdgeId,
+      publicationId,
+      controller.signal
+    ).then((settled) => {
       if (settled) setResult(settled);
     });
 
     return () => controller.abort();
-  }, [requestKey]);
+  }, [assertionId, projectionEdgeId, publicationId]);
 
   return result;
 }
@@ -478,6 +508,7 @@ function resolveAssertionId(
 function resolveViewState(
   relationship: ExplainableRelationship | null,
   result: PanelResult | null,
+  publicationId?: string | null,
 ): ViewState {
   if (!relationship) return { kind: "empty" };
 
@@ -488,10 +519,14 @@ function resolveViewState(
   }
   if (!assertionId) return { kind: "pending", heading };
 
+  const requestKey = (publicationId && relationship.projection_edge_id)
+    ? `pub:${publicationId}:edge:${relationship.projection_edge_id}`
+    : assertionId;
+
   // "Loading" is derived, not stored: if there is no settled result yet, or
   // the settled result belongs to a superseded request key, treat it as
   // loading rather than briefly flashing stale content.
-  if (result?.requestKey !== assertionId) return { kind: "loading", heading };
+  if (result?.requestKey !== requestKey) return { kind: "loading", heading };
 
   if (result.status === "ready") {
     return {
@@ -546,9 +581,10 @@ function renderView(view: ViewState) {
  */
 export default function RelationshipExplanationPanel({
   relationship,
+  publicationId,
 }: RelationshipExplanationPanelProps) {
   const assertionId = resolveAssertionId(relationship);
-  const result = useAssertionResult(assertionId);
-  const view = resolveViewState(relationship, result);
+  const result = useAssertionResult(assertionId, relationship?.projection_edge_id, publicationId);
+  const view = resolveViewState(relationship, result, publicationId);
   return renderView(view);
 }

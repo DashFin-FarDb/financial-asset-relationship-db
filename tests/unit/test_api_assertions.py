@@ -387,3 +387,241 @@ def test_decision_operator_audit_receives_request(
 
     assert response.status_code == 200
     assert audited_paths == [f"/api/assertions/{assertion_id}/decisions"]
+
+
+@pytest.mark.unit
+def test_get_published_edge_explanation_success(
+    client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Exact publication-owned edge returns 200 with the correct envelope and bitemporal bounds."""
+    from datetime import datetime, timezone
+
+    from src.data.relationship_assertion_repository import PersistedProjectionRevision, PublishedProjectionRevision
+    from src.governance.relationship_assertion import Assertion, AssertionAsOf, AssertionEvent, EvidenceLink
+    from src.logic.relationship_projection import GovernedScope, ProjectionEdge, ProjectionRevision
+
+    now = datetime.now(tz=timezone.utc)
+
+    edge = ProjectionEdge(
+        source_id="BOND",
+        target_id="ISSUER",
+        edge_type="corporate_link",
+        strength="0.9",
+        direction="canonical",
+        assertion_id="assertion-test",
+    )
+    revision = ProjectionRevision(
+        purpose="financial_graph_current_view",
+        effective_at=now,
+        known_at=now,
+        contract_version="contract.v1",
+        projector_version="projector.v1",
+        edge_set_hash="0" * 64,
+        projection_hash="1" * 64,
+        edges=(edge,),
+        governed_scopes=(
+            GovernedScope(purpose="financial_graph_current_view", predicate_id="financial.bond.issuer_reference@1"),
+        ),
+    )
+    persisted = PersistedProjectionRevision(
+        revision_id="revision-test",
+        created_at=now,
+        revision=revision,
+        edge_ids=("projection-edge-test",),
+    )
+    published = PublishedProjectionRevision(
+        persisted=persisted,
+        publication_id="pub-test",
+        rebuild_job_id="job-test",
+        execution_id="exec-test",
+        published_at=now,
+    )
+
+    get_as_of_calls = 0
+    assertion_obj = Assertion(
+        assertion_id="assertion-test",
+        predicate_id="financial.bond.issuer_reference@1",
+        subject_id="BOND",
+        object_id="ISSUER",
+        method_id="bond.issuer_id.resolution@1",
+        proposition="test",
+        confidence_status="assessed",
+        confidence_bp=100,
+        confidence_type="type",
+        confidence_method="method",
+        effective_from=now,
+        effective_to=None,
+        recorded_at=now,
+    )
+    event_obj = AssertionEvent(
+        event_id="event-test",
+        assertion_id="assertion-test",
+        sequence=1,
+        from_state=None,
+        to_state="Accepted",
+        authority="acceptor",
+        actor_id="admin",
+        rationale="test",
+        policy_version="contract.v1",
+        recorded_at=now,
+    )
+    as_of = AssertionAsOf(
+        assertion=assertion_obj,
+        state="Accepted",
+        events=(event_obj,),
+        evidence_links=(),
+        known_at=now,
+        effective_at=now,
+    )
+
+    def mock_get_published_edge(
+        _self: object, pub_id: str, edge_id: str
+    ) -> tuple[PublishedProjectionRevision, ProjectionEdge] | None:
+        if pub_id == "pub-test" and edge_id == "projection-edge-test":
+            return published, edge
+        return None
+
+    def mock_get_as_of(
+        _self: object, assertion_id: str, known_at: datetime, effective_at: datetime | None
+    ) -> AssertionAsOf | None:
+        nonlocal get_as_of_calls
+        get_as_of_calls += 1
+        assert known_at == now
+        assert effective_at == now
+        return as_of
+
+    monkeypatch.setattr(RelationshipAssertionRepository, "get_published_edge", mock_get_published_edge)
+    monkeypatch.setattr(RelationshipAssertionRepository, "get_as_of", mock_get_as_of)
+    response = client.get("/api/publications/pub-test/edges/projection-edge-test/explanation")
+    assert response.status_code == 200
+    data = response.json()
+    assert data["publication"]["publication_id"] == "pub-test"
+    assert data["edge"]["projection_edge_id"] == "projection-edge-test"
+    assert data["assertion"]["explanation"]["assertion_id"] == "assertion-test"
+    assert get_as_of_calls == 1
+
+
+@pytest.mark.unit
+def test_get_published_edge_explanation_unknown_publication_returns_404(
+    client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Unknown publication returns bounded 404."""
+    monkeypatch.setattr(RelationshipAssertionRepository, "get_published_edge", lambda _self, pub_id, edge_id: None)
+    response = client.get("/api/publications/unknown-pub/edges/edge-1/explanation")
+    assert response.status_code == 404
+    assert response.json()["detail"] == "unknown publication_id or projection_edge_id"
+
+
+@pytest.mark.unit
+def test_get_published_edge_explanation_wrong_edge_returns_404(
+    client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Edge belonging to another publication returns indistinguishable 404."""
+    from datetime import datetime, timezone
+
+    from src.data.relationship_assertion_repository import PersistedProjectionRevision, PublishedProjectionRevision
+    from src.logic.relationship_projection import ProjectionEdge, ProjectionRevision
+
+    now = datetime.now(tz=timezone.utc)
+    edge = ProjectionEdge(
+        source_id="BOND",
+        target_id="ISSUER",
+        edge_type="corporate_link",
+        strength="0.9",
+        direction="canonical",
+        assertion_id="assertion-test",
+    )
+    revision = ProjectionRevision(
+        purpose="financial_graph_current_view",
+        effective_at=now,
+        known_at=now,
+        contract_version="contract.v1",
+        projector_version="projector.v1",
+        edge_set_hash="0" * 64,
+        projection_hash="1" * 64,
+        edges=(edge,),
+        governed_scopes=(),
+    )
+    persisted = PersistedProjectionRevision(
+        revision_id="revision-test",
+        created_at=now,
+        revision=revision,
+        edge_ids=("projection-edge-test",),
+    )
+    published = PublishedProjectionRevision(
+        persisted=persisted,
+        publication_id="pub-test",
+        rebuild_job_id="job-test",
+        execution_id="exec-test",
+        published_at=now,
+    )
+
+    def mock_get_published_edge(
+        _self: object, pub_id: str, edge_id: str
+    ) -> tuple[PublishedProjectionRevision, ProjectionEdge] | None:
+        if pub_id == "pub-test" and edge_id == "projection-edge-test":
+            return published, edge
+        return None
+
+    monkeypatch.setattr(RelationshipAssertionRepository, "get_published_edge", mock_get_published_edge)
+
+    response = client.get("/api/publications/pub-test/edges/wrong-edge-id/explanation")
+    assert response.status_code == 404
+    assert response.json()["detail"] == "unknown publication_id or projection_edge_id"
+
+
+@pytest.mark.unit
+def test_get_published_edge_explanation_strict_zip_mismatch_returns_503(
+    client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Strict-zip mismatch (edge_ids and revision.edges mismatch) returns 503."""
+    from datetime import datetime, timezone
+
+    from src.data.relationship_assertion_repository import PersistedProjectionRevision, PublishedProjectionRevision
+    from src.logic.relationship_projection import ProjectionEdge, ProjectionRevision
+
+    now = datetime.now(tz=timezone.utc)
+    edge = ProjectionEdge(
+        source_id="BOND",
+        target_id="ISSUER",
+        edge_type="corporate_link",
+        strength="0.9",
+        direction="canonical",
+        assertion_id="assertion-test",
+    )
+    revision = ProjectionRevision(
+        purpose="financial_graph_current_view",
+        effective_at=now,
+        known_at=now,
+        contract_version="contract.v1",
+        projector_version="projector.v1",
+        edge_set_hash="0" * 64,
+        projection_hash="1" * 64,
+        edges=(edge,),
+        governed_scopes=(),
+    )
+    # Mismatch: edge_ids has length 2, edges has length 1
+    persisted = PersistedProjectionRevision(
+        revision_id="revision-test",
+        created_at=now,
+        revision=revision,
+        edge_ids=("projection-edge-test", "another-edge-id"),
+    )
+    published = PublishedProjectionRevision(
+        persisted=persisted,
+        publication_id="pub-test",
+        rebuild_job_id="job-test",
+        execution_id="exec-test",
+        published_at=now,
+    )
+    monkeypatch.setattr(
+        RelationshipAssertionRepository, "get_published_edge", lambda _self, pub_id, edge_id: (published, edge)
+    )
+
+    response = client.get("/api/publications/pub-test/edges/projection-edge-test/explanation")
+    assert response.status_code == 503
+    assert response.json()["detail"] == "Graph publication metadata is inconsistent"

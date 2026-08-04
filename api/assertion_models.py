@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Literal
+from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 from typing_extensions import Self
@@ -191,6 +191,50 @@ class PublishedProjectionContextResponse(BaseModel):
     edge_set_hash: str
     projection_hash: str
     governed_scopes: list[GovernedScopeResponse]
+
+    @classmethod
+    def from_source(cls, source: Any) -> PublishedProjectionContextResponse:
+        """Create a response model from a PublishedProjectionContext or PublishedProjectionRevision."""
+        if hasattr(source, "persisted"):
+            revision = source.persisted.revision
+            revision_id = source.persisted.revision_id
+            governed_scopes = revision.governed_scopes
+            purpose = revision.purpose
+            effective_at = revision.effective_at
+            known_at = revision.known_at
+            contract_version = revision.contract_version
+            projector_version = revision.projector_version
+            edge_set_hash = revision.edge_set_hash
+            projection_hash = revision.projection_hash
+        else:
+            revision_id = source.revision_id
+            governed_scopes = source.governed_scopes
+            purpose = source.purpose
+            effective_at = source.effective_at
+            known_at = source.known_at
+            contract_version = source.contract_version
+            projector_version = source.projector_version
+            edge_set_hash = source.edge_set_hash
+            projection_hash = source.projection_hash
+
+        return cls(
+            publication_id=source.publication_id,
+            revision_id=revision_id,
+            rebuild_job_id=source.rebuild_job_id,
+            execution_id=source.execution_id,
+            published_at=source.published_at,
+            purpose=purpose,
+            effective_at=effective_at,
+            known_at=known_at,
+            contract_version=contract_version,
+            projector_version=projector_version,
+            edge_set_hash=edge_set_hash,
+            projection_hash=projection_hash,
+            governed_scopes=[
+                GovernedScopeResponse(purpose=scope.purpose, predicate_id=scope.predicate_id)
+                for scope in governed_scopes
+            ],
+        )
 
 
 class PublishedProjectionEdgeResponse(BaseModel):

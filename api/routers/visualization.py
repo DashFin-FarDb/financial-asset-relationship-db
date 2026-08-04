@@ -8,12 +8,14 @@ import logging
 import math
 
 from fastapi import APIRouter, HTTPException
+from pydantic import ValidationError as PydanticValidationError
 
+from src.governance.relationship_assertion import ValidationError
 from src.logic.asset_graph import AssetRelationshipGraph, calculate_graph_density
 from src.observability.facade import ObservabilityEvent, log_event
 
 from ..api_models import VisualizationDataResponse, VisualizationEdge, VisualizationNode
-from ..assertion_models import GovernedScopeResponse, PublishedProjectionContextResponse
+from ..assertion_models import PublishedProjectionContextResponse
 from ..router_helpers import (
     _ASSET_CLASS_COLORS,
     _DEFAULT_COLOR,
@@ -131,27 +133,14 @@ def _publication_response(
     """Convert publication snapshot context into API response shape."""
     if publication is None:
         return None
-    return PublishedProjectionContextResponse(
-        publication_id=publication.publication_id,
-        revision_id=publication.revision_id,
-        rebuild_job_id=publication.rebuild_job_id,
-        execution_id=publication.execution_id,
-        published_at=publication.published_at,
-        purpose=publication.purpose,
-        effective_at=publication.effective_at,
-        known_at=publication.known_at,
-        contract_version=publication.contract_version,
-        projector_version=publication.projector_version,
-        edge_set_hash=publication.edge_set_hash,
-        projection_hash=publication.projection_hash,
-        governed_scopes=[
-            GovernedScopeResponse(purpose=scope.purpose, predicate_id=scope.predicate_id)
-            for scope in publication.governed_scopes
-        ],
-    )
+    return PublishedProjectionContextResponse.from_source(publication)
 
 
-@router.get("/api/visualization", response_model_exclude_none=True)
+@router.get(
+    "/api/visualization",
+    response_model_exclude_none=True,
+    responses={503: {"description": "Graph publication metadata is inconsistent or database is unavailable"}},
+)
 async def get_visualization_data() -> VisualizationDataResponse:
     """
     Produce visualization nodes and edges for the current asset relationship graph.
@@ -179,6 +168,11 @@ async def get_visualization_data() -> VisualizationDataResponse:
         )
     except HTTPException:
         raise
+    except (ValidationError, PydanticValidationError, ValueError) as e:
+        raise HTTPException(
+            status_code=503,
+            detail="Graph publication metadata is inconsistent",
+        ) from e
     except Exception as e:
         log_event(
             logger,
