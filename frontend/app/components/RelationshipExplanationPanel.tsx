@@ -452,7 +452,11 @@ async function fetchAssertionResult(
       );
     }
     if (!assertionId) return null;
-    return await fetchLegacyAssertionExplanation(assertionId, requestKey, signal);
+    return await fetchLegacyAssertionExplanation(
+      assertionId,
+      requestKey,
+      signal,
+    );
   } catch (err) {
     if (signal.aborted) return null;
     const httpStatus = (err as { response?: { status?: number } })?.response
