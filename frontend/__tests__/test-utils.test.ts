@@ -450,6 +450,8 @@ describe("test-utils Mock Data Validation", () => {
 
     it("should have edges with valid data types", () => {
       mockVisualizationData.edges.forEach((edge) => {
+        expect(typeof edge.edge_id).toBe("string");
+        expect(edge.edge_id.trim().length).toBeGreaterThan(0);
         expect(typeof edge.source).toBe("string");
         expect(typeof edge.target).toBe("string");
         expect(typeof edge.relationship_type).toBe("string");
@@ -505,6 +507,8 @@ describe("test-utils Mock Data Validation", () => {
 
     it("should have valid edge structure", () => {
       mockVizData.edges.forEach((edge) => {
+        expect(typeof edge.edge_id).toBe("string");
+        expect(edge.edge_id.trim().length).toBeGreaterThan(0);
         expect(typeof edge.source).toBe("string");
         expect(typeof edge.target).toBe("string");
         expect(typeof edge.relationship_type).toBe("string");

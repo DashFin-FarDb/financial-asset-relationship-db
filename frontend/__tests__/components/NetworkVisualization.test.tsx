@@ -15,10 +15,29 @@ jest.mock("../../app/lib/api");
 const mockedApi = api as jest.Mocked<typeof api>;
 
 jest.mock("react-plotly.js", () => {
-  return function MockPlot({ data }: { data: unknown }) {
+  return function MockPlot({
+    data,
+    onClick,
+  }: {
+    data: unknown;
+    onClick?: (event: unknown) => void;
+  }) {
     return (
       <div data-testid="mock-plot">
         <div data-testid="plot-data">{JSON.stringify(data)}</div>
+        <button
+          type="button"
+          data-testid="plot-click-trigger"
+          onClick={() => {
+            if (onClick) {
+              onClick({
+                points: [{ customdata: "edge-canonical" }],
+              });
+            }
+          }}
+        >
+          Click Plot Edge
+        </button>
       </div>
     );
   };
@@ -124,17 +143,20 @@ describe("NetworkVisualization Component", () => {
     ).toBeInTheDocument();
   });
 
-  describe("keyboard-accessible relationship selection", () => {
+  describe("keyboard-accessible relationship selection and opaque edge_id selection", () => {
     const governedData: VisualizationData = {
       nodes: mockVisualizationData.nodes,
       edges: [
         {
+          edge_id: "legacy-edge-1",
           source: "ASSET_1",
           target: "ASSET_2",
           relationship_type: "SAME_SECTOR",
           strength: 0.7,
         },
         {
+          edge_id: "edge-canonical",
+          projection_edge_id: "pedge-1",
           source: "ASSET_2",
           target: "ASSET_1",
           relationship_type: "CORPORATE_LINK",
@@ -144,15 +166,54 @@ describe("NetworkVisualization Component", () => {
           revision_id: "rev-1",
           scope_refs: ["predicate-issuer"],
         },
+        {
+          edge_id: "edge-reverse",
+          projection_edge_id: "pedge-2",
+          source: "ASSET_1",
+          target: "ASSET_2",
+          relationship_type: "CORPORATE_LINK",
+          strength: 0.9,
+          assertion_id: "assertion-1",
+          governance_status: "governed",
+          revision_id: "rev-1",
+          scope_refs: ["predicate-issuer"],
+        },
+        {
+          // Edge missing edge_id should be skipped
+          source: "ASSET_1",
+          target: "ASSET_2",
+          relationship_type: "INVALID_MALFORMED",
+          strength: 0.5,
+        } as unknown as VisualizationData["edges"][number],
       ],
       network_density: 0.5,
+      publication: {
+        publication_id: "pub-1",
+        revision_id: "rev-1",
+        rebuild_job_id: "job-1",
+        execution_id: "exec-1",
+        published_at: "2024-01-01T00:00:00Z",
+        purpose: "financial-relationship-graph",
+        effective_at: "2024-01-01T00:00:00Z",
+        known_at: "2024-01-01T00:00:00Z",
+        contract_version: "grac-v1",
+        projector_version: "v1.0.0",
+        edge_set_hash: "hash-edges-123",
+        projection_hash: "hash-proj-456",
+        governed_scopes: [
+          {
+            purpose: "financial-relationship-graph",
+            predicate_id: "predicate-issuer",
+          },
+        ],
+      },
     };
 
     beforeEach(() => {
       jest.clearAllMocks();
     });
 
-    it("lists every relationship with a governed/legacy badge", () => {
+    it("lists valid relationships and skips malformed edges missing edge_id", () => {
       render(<NetworkVisualization data={governedData} />);
 
       expect(
@@ -161,82 +222,195 @@ describe("NetworkVisualization Component", () => {
         }),
       ).toBeInTheDocument();
       expect(screen.getByText("Legacy")).toBeInTheDocument();
-      expect(screen.getByText("Governed")).toBeInTheDocument();
+      expect(screen.getAllByText("Governed")).toHaveLength(2);
+      expect(screen.queryByText(/INVALID_MALFORMED/)).not.toBeInTheDocument();
     });
 
-    it("selects a relationship via keyboard/click on the list, not only line-clicking", async () => {
-      mockedApi.getAssertion.mockResolvedValue({
+    const createMockExplanation = (
+      projectionEdgeId: string,
+      source: string,
+      target: string,
+      proposition: string,
+    ): PublishedEdgeExplanationResponse => ({
+      publication: governedData.publication!,
+      edge: {
+        projection_edge_id: projectionEdgeId,
+        source,
+        target,
+        relationship_type: "CORPORATE_LINK",
+        strength: "0.90",
+        direction: "directional",
         assertion_id: "assertion-1",
-        predicate_id: "predicate-issuer",
-        subject_id: "ASSET_2",
-        object_id: "ASSET_1",
-        method_id: "method-1",
-        proposition: "ASSET_2 is the issuer of ASSET_1",
-        confidence_status: "not_assessed",
-        confidence_bp: null,
-        confidence_type: null,
-        confidence_method: null,
-        effective_from: "2024-01-01T00:00:00Z",
-        effective_to: null,
-        recorded_at: "2024-01-01T00:00:00Z",
-        state: "Accepted",
-        known_at: "2024-01-01T00:00:00Z",
-        effective_at: "2024-01-01T00:00:00Z",
-        sequence: 1,
-        evidence: [],
-      });
-      mockedApi.getAssertionHistory.mockResolvedValue({
-        assertion_id: "assertion-1",
-        effective_from: "2024-01-01T00:00:00Z",
-        effective_to: null,
-        recorded_at: "2024-01-01T00:00:00Z",
-        state: "Accepted",
-        known_at: "2024-01-01T00:00:00Z",
-        effective_at: "2024-01-01T00:00:00Z",
-        events: [
-          {
-            event_id: "event-1",
-            assertion_id: "assertion-1",
-            sequence: 1,
-            from_state: null,
-            to_state: "Proposed",
-            authority: "proposer",
-            recorded_at: "2024-01-01T00:00:00Z",
-          },
-        ],
-      });
+      },
+      assertion: {
+        explanation: {
+          assertion_id: "assertion-1",
+          predicate_id: "predicate-issuer",
+          subject_id: source,
+          object_id: target,
+          method_id: "method-1",
+          proposition,
+          confidence_status: "not_assessed",
+          confidence_bp: null,
+          confidence_type: null,
+          confidence_method: null,
+          effective_from: "2024-01-01T00:00:00Z",
+          effective_to: null,
+          recorded_at: "2024-01-01T00:00:00Z",
+          state: "Accepted",
+          known_at: "2024-01-01T00:00:00Z",
+          effective_at: "2024-01-01T00:00:00Z",
+          sequence: 1,
+          evidence: [],
+        },
+        history: {
+          assertion_id: "assertion-1",
+          effective_from: "2024-01-01T00:00:00Z",
+          effective_to: null,
+          recorded_at: "2024-01-01T00:00:00Z",
+          state: "Accepted",
+          known_at: "2024-01-01T00:00:00Z",
+          effective_at: "2024-01-01T00:00:00Z",
+          events: [
+            {
+              event_id: "event-1",
+              assertion_id: "assertion-1",
+              sequence: 1,
+              from_state: null,
+              to_state: "Proposed",
+              authority: "proposer",
+              recorded_at: "2024-01-01T00:00:00Z",
+            },
+          ],
+        },
+      },
+    });
+
+    it("selects a relationship via keyboard navigation using tab and Enter/Space key", async () => {
+      mockedApi.getPublishedEdgeExplanation.mockResolvedValue(
+        createMockExplanation(
+          "pedge-1",
+          "ASSET_2",
+          "ASSET_1",
+          "ASSET_2 is the issuer of ASSET_1",
+        ),
+      );
 
       const user = userEvent.setup();
       render(<NetworkVisualization data={governedData} />);
 
-      const governedButton = screen.getByRole("button", {
+      const canonicalButton = screen.getByRole("button", {
         name: /ASSET_2.*ASSET_1.*CORPORATE_LINK.*Governed/,
       });
 
-      // Exercise a genuine tab sequence (rather than calling `.focus()`
-      // directly) so this test actually proves the button is reachable via
-      // keyboard navigation, not merely programmatically focusable.
-      const MAX_TAB_STOPS = 25;
       let reachedButton = false;
-      for (let tabStop = 0; tabStop < MAX_TAB_STOPS; tabStop += 1) {
+      for (let tabStop = 0; tabStop < 25; tabStop += 1) {
         await user.tab();
-        if (document.activeElement === governedButton) {
+        if (document.activeElement === canonicalButton) {
           reachedButton = true;
           break;
         }
       }
       expect(reachedButton).toBe(true);
 
-      await user.keyboard("{Enter}");
+      // Verify Space key activation
+      await user.keyboard(" ");
 
-      expect(governedButton).toHaveAttribute("aria-pressed", "true");
+      expect(canonicalButton).toHaveAttribute("aria-pressed", "true");
       await waitFor(() => {
-        expect(mockedApi.getAssertion).toHaveBeenCalledWith(
-          "assertion-1",
-          expect.objectContaining({ known_at: expect.any(String) }),
+        expect(mockedApi.getPublishedEdgeExplanation).toHaveBeenCalledWith(
+          "pub-1",
+          "pedge-1",
           expect.anything(),
         );
       });
+      await waitFor(() => {
+        expect(
+          screen.getByText("ASSET_2 is the issuer of ASSET_1"),
+        ).toBeInTheDocument();
+      });
+    });
+
+    it("selects a relationship via Plotly customdata click", async () => {
+      mockedApi.getPublishedEdgeExplanation.mockResolvedValue(
+        createMockExplanation(
+          "pedge-1",
+          "ASSET_2",
+          "ASSET_1",
+          "ASSET_2 is the issuer of ASSET_1",
+        ),
+      );
+
+      const user = userEvent.setup();
+      render(<NetworkVisualization data={governedData} />);
+
+      const trigger = screen.getByTestId("plot-click-trigger");
+      await user.click(trigger);
+
+      const canonicalButton = screen.getByRole("button", {
+        name: /ASSET_2.*ASSET_1.*CORPORATE_LINK.*Governed/,
+      });
+      expect(canonicalButton).toHaveAttribute("aria-pressed", "true");
+
+      await waitFor(() => {
+        expect(mockedApi.getPublishedEdgeExplanation).toHaveBeenCalledWith(
+          "pub-1",
+          "pedge-1",
+          expect.anything(),
+        );
+      });
+    });
+
+    it("allows canonical and reverse representations to select independently by their edge_id", async () => {
+      mockedApi.getPublishedEdgeExplanation.mockImplementation(
+        (pubId, projectionEdgeId) => {
+          if (projectionEdgeId === "pedge-1") {
+            return Promise.resolve(
+              createMockExplanation(
+                "pedge-1",
+                "ASSET_2",
+                "ASSET_1",
+                "ASSET_2 is the issuer of ASSET_1",
+              ),
+            );
+          }
+          return Promise.resolve(
+            createMockExplanation(
+              "pedge-2",
+              "ASSET_1",
+              "ASSET_2",
+              "ASSET_1 is the issuer of ASSET_2",
+            ),
+          );
+        },
+      );
+
+      const user = userEvent.setup();
+      render(<NetworkVisualization data={governedData} />);
+
+      const canonicalButton = screen.getByRole("button", {
+        name: /ASSET_2.*ASSET_1.*CORPORATE_LINK.*Governed/,
+      });
+      const reverseButton = screen.getByRole("button", {
+        name: /ASSET_1.*ASSET_2.*CORPORATE_LINK.*Governed/,
+      });
+
+      // Select reverse representation
+      await user.click(reverseButton);
+      expect(reverseButton).toHaveAttribute("aria-pressed", "true");
+      expect(canonicalButton).toHaveAttribute("aria-pressed", "false");
+
+      await waitFor(() => {
+        expect(
+          screen.getByText("ASSET_1 is the issuer of ASSET_2"),
+        ).toBeInTheDocument();
+      });
+
+      // Select canonical representation
+      await user.click(canonicalButton);
+      expect(canonicalButton).toHaveAttribute("aria-pressed", "true");
+      expect(reverseButton).toHaveAttribute("aria-pressed", "false");
+
       await waitFor(() => {
         expect(
           screen.getByText("ASSET_2 is the issuer of ASSET_1"),

@@ -1,7 +1,3 @@
-/**
- * Focused unit + accessibility tests for RelationshipExplanationPanel.
- */
-
 import React from "react";
 import { render, screen, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom";
@@ -10,8 +6,8 @@ import RelationshipExplanationPanel, {
 } from "../../app/components/RelationshipExplanationPanel";
 import { api } from "../../app/lib/api";
 import type {
-  AssertionExplanation,
-  AssertionHistory,
+  PublishedEdgeExplanationResponse,
+  PublishedProjectionContextResponse,
 } from "../../app/types/api";
 
 jest.mock("../../app/lib/api");
@@ -33,6 +29,12 @@ const governedRelationship: ExplainableRelationship = {
   governance_status: "governed",
   revision_id: "rev-1",
   scope_refs: ["predicate-issuer"],
+  projection_edge_id: "pedge-1",
+};
+
+const governedWithoutProjectionEdgeId: ExplainableRelationship = {
+  ...governedRelationship,
+  projection_edge_id: null,
 };
 
 const governedWithoutAssertionId: ExplainableRelationship = {
@@ -40,70 +42,108 @@ const governedWithoutAssertionId: ExplainableRelationship = {
   assertion_id: null,
 };
 
-const baseExplanation: AssertionExplanation = {
-  assertion_id: "assertion-1",
-  predicate_id: "predicate-issuer",
-  subject_id: "ASSET_1",
-  object_id: "ASSET_3",
-  method_id: "method-1",
-  proposition: "ASSET_1 is the issuer of ASSET_3",
-  confidence_status: "assessed",
-  confidence_bp: 9500,
-  confidence_type: "statistical",
-  confidence_method: "manual-review",
-  effective_from: "2024-01-01T00:00:00Z",
-  effective_to: null,
-  recorded_at: "2024-01-01T00:00:00Z",
-  state: "Accepted",
-  known_at: "2024-01-01T00:00:00Z",
-  effective_at: "2024-01-01T00:00:00Z",
-  sequence: 2,
-  evidence: [
+const governedWithoutRevisionId: ExplainableRelationship = {
+  ...governedRelationship,
+  revision_id: null,
+};
+
+const mockPublication: PublishedProjectionContextResponse = {
+  publication_id: "pub-1",
+  revision_id: "rev-1",
+  rebuild_job_id: "job-100",
+  execution_id: "exec-200",
+  published_at: "2024-01-01T12:00:00Z",
+  purpose: "financial-relationship-graph",
+  effective_at: "2024-01-01T12:00:00Z",
+  known_at: "2024-01-01T12:00:00Z",
+  contract_version: "grac-v1",
+  projector_version: "v1.2.3",
+  edge_set_hash: "sha256-edge-hash-val",
+  projection_hash: "sha256-proj-hash-val",
+  governed_scopes: [
     {
-      evidence_id: "evidence-public",
-      polarity: "supporting",
-      visibility: "public",
-      redacted: false,
-      source_ref: "https://example.com/filing",
-      content_sha256: "abc123",
-    },
-    {
-      evidence_id: "evidence-restricted",
-      polarity: "supporting",
-      visibility: "restricted",
-      redacted: true,
+      purpose: "financial-relationship-graph",
+      predicate_id: "predicate-issuer",
     },
   ],
 };
 
-const baseHistory: AssertionHistory = {
-  assertion_id: "assertion-1",
-  effective_from: "2024-01-01T00:00:00Z",
-  effective_to: null,
-  recorded_at: "2024-01-01T00:00:00Z",
-  state: "Accepted",
-  known_at: "2024-01-01T00:00:00Z",
-  effective_at: "2024-01-01T00:00:00Z",
-  events: [
-    {
-      event_id: "event-1",
+const baseExplanationResponse: PublishedEdgeExplanationResponse = {
+  publication: mockPublication,
+  edge: {
+    projection_edge_id: "pedge-1",
+    source: "ASSET_1",
+    target: "ASSET_3",
+    relationship_type: "CORPORATE_LINK",
+    strength: "0.50",
+    direction: "directional",
+    assertion_id: "assertion-1",
+  },
+  assertion: {
+    explanation: {
       assertion_id: "assertion-1",
-      sequence: 1,
-      from_state: null,
-      to_state: "Proposed",
-      authority: "proposer",
+      predicate_id: "predicate-issuer",
+      subject_id: "ASSET_1",
+      object_id: "ASSET_3",
+      method_id: "method-1",
+      proposition: "ASSET_1 is the issuer of ASSET_3",
+      confidence_status: "assessed",
+      confidence_bp: 9500,
+      confidence_type: "statistical",
+      confidence_method: "manual-review",
+      effective_from: "2024-01-01T00:00:00Z",
+      effective_to: null,
       recorded_at: "2024-01-01T00:00:00Z",
-    },
-    {
-      event_id: "event-2",
-      assertion_id: "assertion-1",
+      state: "Accepted",
+      known_at: "2024-01-01T00:00:00Z",
+      effective_at: "2024-01-01T00:00:00Z",
       sequence: 2,
-      from_state: "Proposed",
-      to_state: "Accepted",
-      authority: "acceptor",
-      recorded_at: "2024-01-02T00:00:00Z",
+      evidence: [
+        {
+          evidence_id: "evidence-public",
+          polarity: "supporting",
+          visibility: "public",
+          redacted: false,
+          source_ref: "https://example.com/filing",
+        },
+        {
+          evidence_id: "evidence-restricted",
+          polarity: "supporting",
+          visibility: "restricted",
+          redacted: true,
+        },
+      ],
     },
-  ],
+    history: {
+      assertion_id: "assertion-1",
+      effective_from: "2024-01-01T00:00:00Z",
+      effective_to: null,
+      recorded_at: "2024-01-01T00:00:00Z",
+      state: "Accepted",
+      known_at: "2024-01-01T00:00:00Z",
+      effective_at: "2024-01-01T00:00:00Z",
+      events: [
+        {
+          event_id: "event-1",
+          assertion_id: "assertion-1",
+          sequence: 1,
+          from_state: null,
+          to_state: "Proposed",
+          authority: "proposer",
+          recorded_at: "2024-01-01T00:00:00Z",
+        },
+        {
+          event_id: "event-2",
+          assertion_id: "assertion-1",
+          sequence: 2,
+          from_state: "Proposed",
+          to_state: "Accepted",
+          authority: "acceptor",
+          recorded_at: "2024-01-02T00:00:00Z",
+        },
+      ],
+    },
+  },
 };
 
 describe("RelationshipExplanationPanel", () => {
@@ -116,6 +156,7 @@ describe("RelationshipExplanationPanel", () => {
     expect(
       screen.getByText("Select a relationship to see how it was determined."),
     ).toBeInTheDocument();
+    expect(mockedApi.getPublishedEdgeExplanation).not.toHaveBeenCalled();
     expect(mockedApi.getAssertion).not.toHaveBeenCalled();
   });
 
@@ -123,29 +164,42 @@ describe("RelationshipExplanationPanel", () => {
     render(<RelationshipExplanationPanel relationship={legacyRelationship} />);
     expect(screen.getByText("Legacy")).toBeInTheDocument();
     expect(screen.getByText(/outside any governed scope/)).toBeInTheDocument();
+    expect(mockedApi.getPublishedEdgeExplanation).not.toHaveBeenCalled();
     expect(mockedApi.getAssertion).not.toHaveBeenCalled();
   });
 
-  it("shows a bounded unavailable state for a governed edge with no assertion id", () => {
+  it.each([
+    ["projection_edge_id", governedWithoutProjectionEdgeId],
+    ["assertion_id", governedWithoutAssertionId],
+    ["revision_id", governedWithoutRevisionId],
+  ])(
+    "shows a pending metadata view for a governed edge with incomplete %s",
+    (_, relationshipFixture) => {
+      render(
+        <RelationshipExplanationPanel
+          relationship={relationshipFixture}
+          publicationId="pub-1"
+        />,
+      );
+      expect(
+        screen.getByText(
+          /governed, but its publication or edge metadata is incomplete/,
+        ),
+      ).toBeInTheDocument();
+      expect(mockedApi.getPublishedEdgeExplanation).not.toHaveBeenCalled();
+    },
+  );
+
+  it("renders the full publication-bound governed explanation once fetched", async () => {
+    mockedApi.getPublishedEdgeExplanation.mockResolvedValue(
+      baseExplanationResponse,
+    );
+
     render(
       <RelationshipExplanationPanel
-        relationship={governedWithoutAssertionId}
+        relationship={governedRelationship}
+        publicationId="pub-1"
       />,
-    );
-    expect(
-      screen.getByText(
-        /governed, but its assertion metadata is not yet available/,
-      ),
-    ).toBeInTheDocument();
-    expect(mockedApi.getAssertion).not.toHaveBeenCalled();
-  });
-
-  it("renders the full governed explanation once fetched", async () => {
-    mockedApi.getAssertion.mockResolvedValue(baseExplanation);
-    mockedApi.getAssertionHistory.mockResolvedValue(baseHistory);
-
-    render(
-      <RelationshipExplanationPanel relationship={governedRelationship} />,
     );
 
     expect(
@@ -158,71 +212,127 @@ describe("RelationshipExplanationPanel", () => {
       ).toBeInTheDocument();
     });
 
-    // Confidence vs. projection strength are shown as distinct facts.
-    expect(screen.getByText(/statistical/)).toBeInTheDocument();
-    expect(screen.getByText(/0\.50/)).toBeInTheDocument();
+    // Proves single bundled request called without generic assertion fallback or client temporal authority
+    expect(mockedApi.getPublishedEdgeExplanation).toHaveBeenCalledTimes(1);
+    expect(mockedApi.getPublishedEdgeExplanation).toHaveBeenCalledWith(
+      "pub-1",
+      "pedge-1",
+      expect.anything(),
+    );
+    expect(mockedApi.getAssertion).not.toHaveBeenCalled();
 
-    // Public evidence shows its digest; restricted evidence never leaks a body/reference.
-    expect(screen.getByText(/SHA-256: abc123/)).toBeInTheDocument();
+    // Confidence vs projection strength distinct facts
+    expect(screen.getByText(/statistical/)).toBeInTheDocument();
+    expect(screen.getAllByText(/0\.50/).length).toBeGreaterThan(0);
+
+    // Public evidence shows source ref; restricted evidence never leaks a body
+    expect(
+      screen.getByText(/Source ref: https:\/\/example\.com\/filing/),
+    ).toBeInTheDocument();
     expect(
       screen.getByText(/Evidence body and restricted references are not shown/),
     ).toBeInTheDocument();
 
-    // Proposer and determining authority are distinct, identity-redacted roles.
+    // Authority roles
     expect(screen.getAllByText(/Proposer of record/).length).toBeGreaterThan(0);
     expect(
       screen.getAllByText(/Determining authority \(acceptor\)/).length,
     ).toBeGreaterThan(0);
+
+    // Publication provenance details rendered
+    expect(screen.getByText("pub-1")).toBeInTheDocument();
+    expect(screen.getByText("job-100")).toBeInTheDocument();
+    expect(screen.getByText("exec-200")).toBeInTheDocument();
+    expect(screen.getByText("grac-v1")).toBeInTheDocument();
+    expect(screen.getByText("v1.2.3")).toBeInTheDocument();
+    expect(screen.getByText("sha256-edge-hash-val")).toBeInTheDocument();
+    expect(screen.getByText("sha256-proj-hash-val")).toBeInTheDocument();
+    expect(
+      screen.getByText("(financial-relationship-graph, predicate-issuer)"),
+    ).toBeInTheDocument();
   });
 
   it.each([
     { httpStatus: 404, expectedText: /could not be found/ },
     { httpStatus: 503, expectedText: /temporarily unavailable/ },
   ])(
-    "shows a bounded state without fabricating governance facts on a $httpStatus failure",
+    "shows a bounded state without fallback to generic assertion endpoints on $httpStatus failure",
     async ({ httpStatus, expectedText }) => {
-      mockedApi.getAssertion.mockRejectedValue({
-        response: { status: httpStatus },
-      });
-      mockedApi.getAssertionHistory.mockRejectedValue({
+      mockedApi.getPublishedEdgeExplanation.mockRejectedValue({
         response: { status: httpStatus },
       });
 
       render(
-        <RelationshipExplanationPanel relationship={governedRelationship} />,
+        <RelationshipExplanationPanel
+          relationship={governedRelationship}
+          publicationId="pub-1"
+        />,
       );
 
       await waitFor(() => {
         expect(screen.getByText(expectedText)).toBeInTheDocument();
       });
+      expect(mockedApi.getAssertion).not.toHaveBeenCalled();
     },
   );
 
-  it("shows superseded chain information when a successor is recorded", async () => {
-    mockedApi.getAssertion.mockResolvedValue({
-      ...baseExplanation,
-      state: "Superseded",
+  it("maps defensive response-identity mismatches to unavailable view", async () => {
+    const mismatchedResponse: PublishedEdgeExplanationResponse = {
+      ...baseExplanationResponse,
+      edge: {
+        ...baseExplanationResponse.edge,
+        projection_edge_id: "mismatched-edge-id",
+      },
+    };
+    mockedApi.getPublishedEdgeExplanation.mockResolvedValue(mismatchedResponse);
+
+    render(
+      <RelationshipExplanationPanel
+        relationship={governedRelationship}
+        publicationId="pub-1"
+      />,
+    );
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(/Governance explanation is temporarily unavailable/),
+      ).toBeInTheDocument();
     });
-    mockedApi.getAssertionHistory.mockResolvedValue({
-      ...baseHistory,
-      state: "Superseded",
-      events: [
-        ...baseHistory.events,
-        {
-          event_id: "event-3",
-          assertion_id: "assertion-1",
-          sequence: 3,
-          from_state: "Accepted",
-          to_state: "Superseded",
-          authority: "acceptor",
-          recorded_at: "2024-02-01T00:00:00Z",
-          successor_assertion_id: "assertion-2",
+  });
+
+  it("shows superseded chain information when a successor is recorded", async () => {
+    mockedApi.getPublishedEdgeExplanation.mockResolvedValue({
+      ...baseExplanationResponse,
+      assertion: {
+        explanation: {
+          ...baseExplanationResponse.assertion.explanation,
+          state: "Superseded",
         },
-      ],
+        history: {
+          ...baseExplanationResponse.assertion.history,
+          state: "Superseded",
+          events: [
+            ...baseExplanationResponse.assertion.history.events,
+            {
+              event_id: "event-3",
+              assertion_id: "assertion-1",
+              sequence: 3,
+              from_state: "Accepted",
+              to_state: "Superseded",
+              authority: "acceptor",
+              recorded_at: "2024-02-01T00:00:00Z",
+              successor_assertion_id: "assertion-2",
+            },
+          ],
+        },
+      },
     });
 
     render(
-      <RelationshipExplanationPanel relationship={governedRelationship} />,
+      <RelationshipExplanationPanel
+        relationship={governedRelationship}
+        publicationId="pub-1"
+      />,
     );
 
     await waitFor(() => {
@@ -245,45 +355,75 @@ describe("RelationshipExplanationPanel", () => {
     ).toBeGreaterThan(0);
   });
 
-  it("passes identical as-of bounds to both the explanation and history requests", async () => {
-    mockedApi.getAssertion.mockResolvedValue(baseExplanation);
-    mockedApi.getAssertionHistory.mockResolvedValue(baseHistory);
-
-    render(
-      <RelationshipExplanationPanel relationship={governedRelationship} />,
+  it("re-fetches when the selected relationship or publication changes and suppresses stale state", async () => {
+    mockedApi.getPublishedEdgeExplanation.mockResolvedValue(
+      baseExplanationResponse,
     );
-
-    await waitFor(() => {
-      expect(mockedApi.getAssertion).toHaveBeenCalledTimes(1);
-      expect(mockedApi.getAssertionHistory).toHaveBeenCalledTimes(1);
-    });
-
-    const explanationParams = mockedApi.getAssertion.mock.calls[0][1];
-    const historyParams = mockedApi.getAssertionHistory.mock.calls[0][1];
-    expect(explanationParams).toBeDefined();
-    expect(explanationParams).toEqual(historyParams);
-  });
-
-  it("re-fetches when the selected relationship changes and no stale state leaks through", async () => {
-    mockedApi.getAssertion.mockResolvedValue(baseExplanation);
-    mockedApi.getAssertionHistory.mockResolvedValue(baseHistory);
 
     const { rerender } = render(
-      <RelationshipExplanationPanel relationship={governedRelationship} />,
+      <RelationshipExplanationPanel
+        relationship={governedRelationship}
+        publicationId="pub-1"
+      />,
     );
 
     await waitFor(() => {
-      expect(mockedApi.getAssertion).toHaveBeenCalledWith(
-        "assertion-1",
-        expect.objectContaining({ known_at: expect.any(String) }),
+      expect(mockedApi.getPublishedEdgeExplanation).toHaveBeenCalledWith(
+        "pub-1",
+        "pedge-1",
         expect.anything(),
       );
     });
 
     rerender(
-      <RelationshipExplanationPanel relationship={legacyRelationship} />,
+      <RelationshipExplanationPanel
+        relationship={legacyRelationship}
+        publicationId="pub-1"
+      />,
     );
 
     expect(screen.getByText("Legacy")).toBeInTheDocument();
+
+    // Rerender with governedRelationship and a different publicationId ("pub-2") after legacy transition
+    const pub2ExplanationResponse = {
+      ...baseExplanationResponse,
+      publication: {
+        ...baseExplanationResponse.publication,
+        publication_id: "pub-2",
+      },
+    };
+
+    let resolvePub2: (
+      value: PublishedEdgeExplanationResponse,
+    ) => void = () => {};
+    const pub2Promise = new Promise<PublishedEdgeExplanationResponse>(
+      (resolve) => {
+        resolvePub2 = resolve;
+      },
+    );
+    mockedApi.getPublishedEdgeExplanation.mockReturnValue(pub2Promise);
+
+    rerender(
+      <RelationshipExplanationPanel
+        relationship={governedRelationship}
+        publicationId="pub-2"
+      />,
+    );
+
+    // Stale-state suppression: should show the loading view because requestKey has changed
+    expect(
+      screen.getByText("Loading governed explanation..."),
+    ).toBeInTheDocument();
+
+    // Resolve the second fetch
+    resolvePub2(pub2ExplanationResponse);
+
+    await waitFor(() => {
+      expect(mockedApi.getPublishedEdgeExplanation).toHaveBeenLastCalledWith(
+        "pub-2",
+        "pedge-1",
+        expect.anything(),
+      );
+    });
   });
 });
