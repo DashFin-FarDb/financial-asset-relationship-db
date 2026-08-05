@@ -221,37 +221,37 @@ jobs:
       - name: Add run metadata to result
         if: always()
         working-directory: proof-source
+        shell: python
         env:
           DEPLOYED_SHA: ${{ inputs.deployed_sha }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+          GITHUB_RUN_NUMBER: ${{ github.run_number }}
+          GITHUB_SHA: ${{ github.sha }}
         run: |
-          DEPLOYED_SHA_VAR="$DEPLOYED_SHA"
-
-          if [ -f staging-proof-result.json ]; then
-          # Add run metadata to the result
-          python3 - <<EOF
           import json
+          import os
           import sys
 
-          try:
-              with open('staging-proof-result.json', 'r') as f:
-                  result = json.load(f)
+          if os.path.exists('staging-proof-result.json'):
+              try:
+                  with open('staging-proof-result.json', 'r') as f:
+                      result = json.load(f)
 
-              result['metadata']['github_run_id'] = '${{ github.run_id }}'
-              result['metadata']['github_run_number'] = '${{ github.run_number }}'
-              result['metadata']['github_sha'] = '${{ github.sha }}'
-              result['metadata']['deployed_sha'] = '${DEPLOYED_SHA_VAR}'
-              result['metadata']['workflow'] = 'relationship-assertion-staging-proof'
+                  result['metadata']['github_run_id'] = os.environ.get('GITHUB_RUN_ID')
+                  result['metadata']['github_run_number'] = os.environ.get('GITHUB_RUN_NUMBER')
+                  result['metadata']['github_sha'] = os.environ.get('GITHUB_SHA')
+                  result['metadata']['deployed_sha'] = os.environ.get('DEPLOYED_SHA')
+                  result['metadata']['workflow'] = 'relationship-assertion-staging-proof'
 
+                  with open('staging-proof-result.json', 'w') as f:
+                      json.dump(result, f, indent=2, sort_keys=True)
+
+                  print("Run metadata added to result")
+              except Exception as e:
+                  print(f"Warning: Failed to add run metadata: {e}", file=sys.stderr)
+          else:
               with open('staging-proof-result.json', 'w') as f:
-                  json.dump(result, f, indent=2, sort_keys=True)
-
-              print("Run metadata added to result")
-          except Exception as e:
-              print(f"Warning: Failed to add run metadata: {e}", file=sys.stderr)
-          EOF
-          else
-            echo '{"status":"failed","error":"Result file not created"}' > staging-proof-result.json
-          fi
+                  json.dump({"status": "failed", "error": "Result file not created"}, f)
 
       - name: Upload proof artifacts
         if: always()
@@ -266,20 +266,23 @@ jobs:
       - name: Emit proof summary
         if: always()
         working-directory: proof-source
+        shell: python
         env:
           DEPLOYED_SHA_SAFE: ${{ inputs.deployed_sha }}
         run: |
-          if [ ! -f staging-proof-result.json ]; then
-            echo "## ✗ Staging Proof Failed" >> $GITHUB_STEP_SUMMARY
-            echo "Result file was not generated" >> $GITHUB_STEP_SUMMARY
-            exit 1
-          fi
-
-          python3 - <<'EOF'
           import json
           import os
           import sys
           import re
+
+          step_summary_path = os.environ.get('GITHUB_STEP_SUMMARY')
+
+          if not os.path.exists('staging-proof-result.json'):
+              if step_summary_path:
+                  with open(step_summary_path, 'a') as f:
+                      f.write("## ✗ Staging Proof Failed\n")
+                      f.write("Result file was not generated\n")
+              sys.exit(1)
 
           with open('staging-proof-result.json', 'r') as f:
               result = json.load(f)
@@ -294,21 +297,21 @@ jobs:
           if not re.match(r'^[0-9a-fA-F]{40}$', deployed_sha):
               deployed_sha = 'invalid'
 
-          with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as f:
-              if status == 'passed':
-                  f.write(f"## ✓ Staging Proof Passed\n")
-              else:
-                  f.write(f"## ✗ Staging Proof Failed\n")
+          if step_summary_path:
+              with open(step_summary_path, 'a') as f:
+                  if status == 'passed':
+                      f.write("## ✓ Staging Proof Passed\n")
+                  else:
+                      f.write("## ✗ Staging Proof Failed\n")
 
-              f.write(f"**Mode:** {mode}\n")
-              f.write(f"**Deployed SHA:** {deployed_sha}\n")
+                  f.write(f"**Mode:** {mode}\n")
+                  f.write(f"**Deployed SHA:** {deployed_sha}\n")
 
-              if errors:
-                  f.write(f"**Errors ({len(errors)}):**\n")
-                  for err in errors[:20]:
-                      f.write(f"- {err}\n")
-                  if len(errors) > 20:
-                      f.write(f"- ... and {len(errors) - 20} more\n")
+                  if errors:
+                      f.write(f"**Errors ({len(errors)}):**\n")
+                      for err in errors[:20]:
+                          f.write(f"- {err}\n")
+                      if len(errors) > 20:
+                          f.write(f"- ... and {len(errors) - 20} more\n")
 
           sys.exit(0 if status == 'passed' else 1)
-          EOF
