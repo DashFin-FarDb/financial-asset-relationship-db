@@ -672,7 +672,7 @@ def setup_parser() -> argparse.ArgumentParser:
     parser.add_argument("--publication-count", type=int, help="Verified publication count")
     parser.add_argument(
         "--owner-id",
-        help=("Authoritative publication-owner actor ID. " "Execution and correlation IDs are not ownership evidence."),
+        help=("Authoritative publication-owner actor ID. Execution and correlation IDs are not ownership evidence."),
     )
     parser.add_argument(
         "--expected-owner",
