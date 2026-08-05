@@ -123,6 +123,14 @@ class ProofValidator:
 
     def scopes_are_consistent(self, before: list[str], after: list[str], enforce_no_loss: bool) -> bool:
         """Check scope consistency across transitions."""
+        if not isinstance(before, list) or not isinstance(after, list):
+            self.add_error("Scopes must be lists")
+            return False
+
+        if not all(isinstance(x, str) for x in before) or not all(isinstance(x, str) for x in after):
+            self.add_error("Scopes must be lists of strings")
+            return False
+
         if not before or not after:
             self.add_error("Scope lists empty")
             return False
@@ -285,9 +293,9 @@ class ProofValidator:
                     before = json.loads(args.before_scopes)
                     after = json.loads(args.after_scopes)
                     self.scopes_are_consistent(before, after, enforce_no_loss=True)
-                    self.metadata["scopes_before"] = len(before)
-                    self.metadata["scopes_after"] = len(after)
-                except json.JSONDecodeError as e:
+                    self.metadata["scopes_before"] = len(before) if isinstance(before, list) else 0
+                    self.metadata["scopes_after"] = len(after) if isinstance(after, list) else 0
+                except Exception as e:
                     self.add_error(f"Scope JSON error: {e}")
             else:
                 self.add_error("Scopes required in strict mode")
@@ -299,8 +307,8 @@ class ProofValidator:
                 try:
                     entries = json.loads(args.history_entries)
                     self.history_is_well_formed(entries, args.expected_min_history)
-                    self.metadata["history_entries"] = len(entries)
-                except json.JSONDecodeError as e:
+                    self.metadata["history_entries"] = len(entries) if isinstance(entries, list) else 0
+                except Exception as e:
                     self.add_error(f"History JSON error: {e}")
             else:
                 self.add_error("History required in strict mode")
@@ -312,9 +320,9 @@ class ProofValidator:
                 before = json.loads(args.empty_edge_before_scopes)
                 after = json.loads(args.empty_edge_after_scopes)
                 self.scopes_are_consistent(before, after, enforce_no_loss=True)
-                self.metadata["edge_scopes_before"] = len(before)
-                self.metadata["edge_scopes_after"] = len(after)
-            except json.JSONDecodeError as e:
+                self.metadata["edge_scopes_before"] = len(before) if isinstance(before, list) else 0
+                self.metadata["edge_scopes_after"] = len(after) if isinstance(after, list) else 0
+            except Exception as e:
                 self.add_error(f"Empty-edge JSON error: {e}")
 
     def validate_verify_after_restart(self, args: argparse.Namespace) -> dict[str, Any]:

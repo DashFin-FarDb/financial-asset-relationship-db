@@ -8,6 +8,7 @@ from unittest.mock import patch
 import pytest
 
 from scripts.check_relationship_assertion_proof import (
+    ProofValidator,
     check_postgresql_proof,
     check_schema_authz_evidence,
     verify_deployed_sha,
@@ -65,3 +66,16 @@ def test_check_schema_authz_evidence_success(tmp_path: Path) -> None:
         evidence_file = evidence_dir / "hp004-db-authz-pass.md"
         evidence_file.write_text("db_authz: PASS\ncommit: a" + "a" * 39, encoding="utf-8")
         check_schema_authz_evidence("a" * 40)
+
+
+def test_scopes_are_consistent_invalid_types() -> None:
+    """Test that scopes_are_consistent handles non-list or unhashable inputs gracefully."""
+    validator = ProofValidator({})
+    # Test non-list inputs
+    assert validator.scopes_are_consistent("not-a-list", ["scope1"], enforce_no_loss=True) is False  # type: ignore[arg-type]
+    assert "Scopes must be lists" in validator.errors
+
+    # Test non-string inputs (unhashable)
+    validator.errors.clear()
+    assert validator.scopes_are_consistent([{"unhashable": "dict"}], ["scope1"], enforce_no_loss=True) is False  # type: ignore[list-item]
+    assert "Scopes must be lists of strings" in validator.errors
