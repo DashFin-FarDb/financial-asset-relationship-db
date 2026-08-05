@@ -21,7 +21,7 @@ from datetime import datetime, timezone
 from typing import Any
 from urllib.parse import urlparse
 
-from sqlalchemy import or_, select
+from sqlalchemy import select
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.sql.functions import count
 
@@ -377,20 +377,6 @@ class ProofValidator:
                     args.revision_hash = row[0]
                 revision_id = _sanitize_db_id(row[1])
 
-        if not args.revision_hash:
-            fallback_rev_query = (
-                select(
-                    RelationshipProjectionRevisionORM.projection_hash,
-                    RelationshipProjectionRevisionORM.id,
-                )
-                .order_by(RelationshipProjectionRevisionORM.created_at.desc())
-                .limit(1)
-            )
-            row = conn.execute(fallback_rev_query).first()
-            if row:
-                args.revision_hash = row[0]
-                revision_id = _sanitize_db_id(row[1])
-
         return revision_id
 
     def _populate_actors_from_db(
@@ -406,33 +392,32 @@ class ProofValidator:
         if not clean_job_id:
             return
 
-        assertion_ids_subquery = None
-        if clean_rev_id:
-            assertion_ids_subquery = select(RelationshipProjectionEdgeORM.assertion_id).where(
-                RelationshipProjectionEdgeORM.revision_id == clean_rev_id
-            )
+        if not clean_rev_id:
+            self.add_error("Correlation failed: revision_id missing")
+            return
 
-        prop_conds = [RelationshipAssertionEventORM.correlation_id == clean_job_id]
-        if assertion_ids_subquery is not None:
-            prop_conds.append(RelationshipAssertionEventORM.assertion_id.in_(assertion_ids_subquery))
+        assertion_ids_subquery = select(RelationshipProjectionEdgeORM.assertion_id).where(
+            RelationshipProjectionEdgeORM.revision_id == clean_rev_id
+        )
 
+        # Proposer query: using AND conjunction and rejecting zero/multiple matches
         proposer_stmt = (
             select(RelationshipAssertionEventORM.actor_id)
             .where(
-                or_(*prop_conds),
-                or_(
-                    RelationshipAssertionEventORM.to_state == "Proposed",
-                    RelationshipAssertionEventORM.authority == "proposer",
-                ),
+                RelationshipAssertionEventORM.correlation_id == clean_job_id,
+                RelationshipAssertionEventORM.assertion_id.in_(assertion_ids_subquery),
+                (RelationshipAssertionEventORM.to_state == "Proposed")
+                | (RelationshipAssertionEventORM.authority == "proposer"),
             )
             .distinct()
         )
-        proposers = [r[0] for r in conn.execute(proposer_stmt).fetchall() if r[0]]
+        proposer_rows = conn.execute(proposer_stmt.limit(2)).fetchall()
+        proposers = [r[0] for r in proposer_rows if r[0]]
 
         if len(proposers) == 0:
-            self.add_error("Proposer actor evidence missing in database events")
+            self.add_error("No correlated proposing actor evidence found")
         elif len(proposers) > 1:
-            self.add_error(f"Ambiguous proposer evidence in database: multiple actors found ({sorted(proposers)})")
+            self.add_error("Ambiguous proposing actor evidence")
         else:
             db_proposer = proposers[0]
             if args.proposer_id and args.proposer_id != db_proposer:
@@ -441,27 +426,24 @@ class ProofValidator:
                 )
             args.proposer_id = db_proposer
 
-        det_conds = [RelationshipAssertionEventORM.correlation_id == clean_job_id]
-        if assertion_ids_subquery is not None:
-            det_conds.append(RelationshipAssertionEventORM.assertion_id.in_(assertion_ids_subquery))
-
+        # Determiner query: using AND conjunction and rejecting zero/multiple matches
         determiner_stmt = (
             select(RelationshipAssertionEventORM.actor_id)
             .where(
-                or_(*det_conds),
-                or_(
-                    RelationshipAssertionEventORM.to_state == "Accepted",
-                    RelationshipAssertionEventORM.authority.in_(["determiner", "reviewer", "acceptor"]),
-                ),
+                RelationshipAssertionEventORM.correlation_id == clean_job_id,
+                RelationshipAssertionEventORM.assertion_id.in_(assertion_ids_subquery),
+                (RelationshipAssertionEventORM.to_state == "Accepted")
+                | (RelationshipAssertionEventORM.authority.in_(["determiner", "reviewer", "acceptor"])),
             )
             .distinct()
         )
-        determiners = [r[0] for r in conn.execute(determiner_stmt).fetchall() if r[0]]
+        determiner_rows = conn.execute(determiner_stmt.limit(2)).fetchall()
+        determiners = [r[0] for r in determiner_rows if r[0]]
 
         if len(determiners) == 0:
-            self.add_error("Determiner actor evidence missing in database events")
+            self.add_error("No correlated determining actor evidence found")
         elif len(determiners) > 1:
-            self.add_error(f"Ambiguous determiner evidence in database: multiple actors found ({sorted(determiners)})")
+            self.add_error("Ambiguous determining actor evidence")
         else:
             db_determiner = determiners[0]
             if args.determiner_id and args.determiner_id != db_determiner:
@@ -562,14 +544,84 @@ class ProofValidator:
             else:
                 self.add_error("Authz evidence required in strict mode")
 
+    def _query_restart_scopes_from_db(self, args: argparse.Namespace, db_url: str) -> str | None:
+        """Query current scopes from database for the current rebuild job ID."""
+        try:
+            from sqlalchemy import create_engine
+
+            engine = create_engine(db_url)
+            with engine.connect() as conn:
+                rebuild_job_id = _sanitize_db_id(args.run_id)
+                if not rebuild_job_id:
+                    self.add_error("Invalid or missing rebuild_job_id")
+                    return None
+
+                # Check publication existence and cardinality
+                count_stmt = (
+                    select(count())
+                    .select_from(RelationshipProjectionPublicationORM)
+                    .where(RelationshipProjectionPublicationORM.rebuild_job_id == rebuild_job_id)
+                )
+                pub_count = conn.execute(count_stmt).scalar()
+                if pub_count == 0:
+                    self.add_error(f"Expected publication for rebuild job {rebuild_job_id} not found")
+                    return None
+                if pub_count > 1:
+                    self.add_error(f"More than one publication matches rebuild job {rebuild_job_id}")
+                    return None
+
+                # Fetch publication and revision
+                pub_stmt = select(RelationshipProjectionPublicationORM.revision_id).where(
+                    RelationshipProjectionPublicationORM.rebuild_job_id == rebuild_job_id
+                )
+                raw_revision_id = conn.execute(pub_stmt).scalar()
+                revision_id = _sanitize_db_id(raw_revision_id)
+                if not revision_id:
+                    self.add_error("Revision ID not found or invalid for publication")
+                    return None
+
+                rev_stmt = select(RelationshipProjectionRevisionORM.governed_scopes).where(
+                    RelationshipProjectionRevisionORM.id == revision_id
+                )
+                rev_scopes = conn.execute(rev_stmt).scalar()
+                if rev_scopes is None:
+                    self.add_error(f"Revision {revision_id} cannot be found")
+                    return None
+
+                try:
+                    json.loads(rev_scopes)
+                    return str(rev_scopes)
+                except Exception:
+                    self.add_error("governed_scopes is malformed")
+                    return None
+        except Exception as e:
+            self.add_error(f"Failed to query current scopes from database: {e}")
+            return None
+
     def _validate_restart_scopes(self, args: argparse.Namespace) -> None:
         """Validate consistency of governed scopes."""
         before_str = args.before_scopes
-        after_str = args.after_scopes
-
-        if not before_str or not after_str:
+        if not before_str:
             if args.strict:
-                self.add_error("Scopes required in strict mode")
+                self.add_error("Before scopes required in strict mode")
+            return
+
+        after_str = args.after_scopes
+        if not after_str:
+            db_url = os.getenv("DATABASE_URL")
+            if db_url:
+                after_str = self._query_restart_scopes_from_db(args, db_url)
+                if after_str:
+                    args.after_scopes = after_str
+                else:
+                    return
+            else:
+                if args.strict:
+                    self.add_error("Database URL required to observe current scopes in strict mode")
+                return
+
+        if not after_str:
+            self.add_error("After scopes observed as empty or missing")
             return
 
         try:

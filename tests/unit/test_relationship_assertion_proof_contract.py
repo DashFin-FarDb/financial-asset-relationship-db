@@ -106,3 +106,118 @@ def test_scopes_are_consistent_invalid_types() -> None:
     validator.errors.clear()
     assert validator.scopes_are_consistent([{"unhashable": "dict"}], ["scope1"], enforce_no_loss=True) is False  # type: ignore[list-item]
     assert "Scopes must be lists of strings" in validator.errors
+
+
+def test_actor_separated_validation() -> None:
+    """Proposer, determiner, and executor roles must be distinct."""
+    validator = ProofValidator({})
+
+    # Identical proposer and determiner
+    assert validator.actors_are_distinct("actor-1", "actor-1", None) is False
+    assert "Collision: proposer and determiner are same" in validator.errors[0]
+
+    # Identical proposer and executor
+    validator.errors.clear()
+    assert validator.actors_are_distinct("actor-1", "actor-2", "actor-1") is False
+    assert "Collision: proposer and executor are same" in validator.errors[0]
+
+    # Identical determiner and executor
+    validator.errors.clear()
+    assert validator.actors_are_distinct("actor-1", "actor-2", "actor-2") is False
+    assert "Collision: determiner and executor are same" in validator.errors[0]
+
+    # Distinct roles
+    validator.errors.clear()
+    assert validator.actors_are_distinct("actor-1", "actor-2", "actor-3") is True
+    assert len(validator.errors) == 0
+
+
+def test_restart_scopes_lookup_failures() -> None:
+    """Test that _validate_restart_scopes fails on missing, multiple, or malformed DB data."""
+    import shutil
+    import tempfile
+    from argparse import Namespace
+    from pathlib import Path
+
+    from scripts.check_relationship_assertion_proof import run_seed_and_publish
+    from src.data.database import create_engine_from_url, init_db
+
+    # Setup SQLite test DB URL
+    temp_dir = tempfile.mkdtemp()
+    db_file = Path(temp_dir) / "test.db"
+    url = f"sqlite:///{db_file}"
+    engine = create_engine_from_url(url)
+    init_db(engine)
+
+    validator = ProofValidator({})
+
+    # 1. No publication found
+    validator.errors.clear()
+    import os
+
+    os.environ["DATABASE_URL"] = url
+    args = Namespace(before_scopes='["scope-1"]', after_scopes=None, run_id="nonexistent-run", strict=True)
+    validator._validate_restart_scopes(args)
+    assert any("Expected publication" in err for err in validator.errors)
+
+    # 2. Malformed json scopes
+    # Seed a publication and revision with malformed scopes JSON
+    import uuid
+    from datetime import datetime, timezone
+
+    from sqlalchemy.orm import sessionmaker
+
+    from src.data.db_models import RebuildJobORM
+    from src.data.relationship_assertion_db_models import (
+        RelationshipProjectionPublicationORM,
+        RelationshipProjectionRevisionORM,
+    )
+
+    Session = sessionmaker(bind=engine)
+    session = Session()
+    now = datetime.now(timezone.utc)
+    job = RebuildJobORM(
+        job_id="malformed-run",
+        requested_by="owner-1",
+        status="succeeded",
+        source="staging",
+        created_at=now,
+        updated_at=now,
+        started_at=now,
+        completed_at=now,
+        execution_id="malformed-run",
+    )
+    revision = RelationshipProjectionRevisionORM(
+        id="rev-malformed",
+        purpose="testing",
+        effective_at=now,
+        known_at=now,
+        contract_version="v1",
+        projector_version="v1",
+        edge_set_hash="a" * 64,
+        projection_hash="b" * 64,
+        governed_scopes="malformed { json }",
+        created_at=now,
+    )
+    publication = RelationshipProjectionPublicationORM(
+        id=str(uuid.uuid4()),
+        revision_id="rev-malformed",
+        rebuild_job_id="malformed-run",
+        published_at=now,
+        execution_id="malformed-run",
+    )
+    session.add(job)
+    session.add(revision)
+    session.flush()
+    session.add(publication)
+    session.commit()
+    session.close()
+
+    validator.errors.clear()
+    args.run_id = "malformed-run"
+    validator._validate_restart_scopes(args)
+    assert any("governed_scopes is malformed" in err for err in validator.errors)
+
+    os.environ.pop("DATABASE_URL", None)
+    engine.dispose()
+    shutil.rmtree(temp_dir)

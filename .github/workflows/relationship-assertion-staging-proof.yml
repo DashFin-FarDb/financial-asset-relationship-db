@@ -15,11 +15,15 @@ on:
         required: true
         type: string
       contract_digest:
-        description: "GRAC v1 contract digest (SHA-256, optional)"
-        required: false
+        description: "GRAC v1 contract digest (SHA-256)"
+        required: true
         type: string
       registry_digest:
-        description: "GRAC v1 registry digest (SHA-256, optional)"
+        description: "GRAC v1 registry digest (SHA-256)"
+        required: true
+        type: string
+      seed_run_id:
+        description: "GitHub Actions run ID of the successful seed_and_publish proof"
         required: false
         type: string
       require_persistence:
@@ -40,6 +44,7 @@ on:
 
 permissions:
   contents: read
+  actions: read
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}-${{ inputs.mode }}
@@ -139,14 +144,36 @@ jobs:
           FARDB_EXPOSED_DATABASE_SCHEMAS_POSTGRES: ${{ secrets.FARDB_EXPOSED_DATABASE_SCHEMAS_POSTGRES }}
           DEPLOYED_SHA: ${{ inputs.deployed_sha }}
         run: |
-          set +e
+          set -e
 
-          # Check if any database URL is configured
-          if [ -z "${DATABASE_URL}${ASSET_GRAPH_DATABASE_URL}${COORDINATION_DATABASE_URL}${POSTGRES_URL}" ]; then
-            echo '{"status":"skipped","reason":"no_database_configured"}' > authz-evidence.json
-            echo "Database authorization check skipped (no DB configured)"
-            exit 0
-          fi
+          # Verify a PostgreSQL URL is genuinely configured before running the check
+          python - <<'PY'
+          import os
+          from urllib.parse import urlparse
+
+          names = (
+              "DATABASE_URL",
+              "ASSET_GRAPH_DATABASE_URL",
+              "COORDINATION_DATABASE_URL",
+              "POSTGRES_URL",
+          )
+
+          configured = [
+              os.environ[name]
+              for name in names
+              if os.environ.get(name)
+          ]
+
+          postgresql_checked = any(
+              urlparse(value).scheme in {"postgres", "postgresql"}
+              for value in configured
+          )
+
+          if not postgresql_checked:
+              raise SystemExit(
+                  "PostgreSQL authorization proof required, but no PostgreSQL URL is configured"
+              )
+          PY
 
           # Run authorization check
           python scripts/check_database_authorization.py
@@ -164,6 +191,70 @@ jobs:
             exit 1
           fi
 
+      - name: Download seed artifact
+        if: ${{ inputs.mode == 'verify_after_restart' }}
+        working-directory: proof-source
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SEED_RUN_ID: ${{ inputs.seed_run_id }}
+        run: |
+          if [ -z "$SEED_RUN_ID" ]; then
+            echo "Error: seed_run_id is required in verify_after_restart mode"
+            exit 1
+          fi
+          echo "Downloading seed artifact from run $SEED_RUN_ID..."
+          gh run download "$SEED_RUN_ID" \
+            --repo "$GITHUB_REPOSITORY" \
+            --name "staging-proof-seed_and_publish-$SEED_RUN_ID" \
+            --dir previous-proof
+
+          PREVIOUS_RESULT="previous-proof/staging-proof-result.json"
+          if [ ! -f "$PREVIOUS_RESULT" ]; then
+            echo "Error: staging-proof-result.json not found in downloaded artifact"
+            exit 1
+          fi
+
+          # Validate that the artifact:
+          # - came from seed_and_publish
+          ACTUAL_MODE=$(jq -r '.metadata.mode' "$PREVIOUS_RESULT")
+          if [ "$ACTUAL_MODE" != "seed_and_publish" ]; then
+            echo "Error: Artifact mode is not seed_and_publish (got $ACTUAL_MODE)"
+            exit 1
+          fi
+
+          # - has status passed
+          STATUS=$(jq -r '.status' "$PREVIOUS_RESULT")
+          if [ "$STATUS" != "passed" ]; then
+            echo "Error: Artifact status is not passed (got $STATUS)"
+            exit 1
+          fi
+
+          # - is bound to the same deployed SHA
+          ARTIFACT_SHA=$(jq -r '.metadata.deployed_sha' "$PREVIOUS_RESULT")
+          if [ "$ARTIFACT_SHA" != "${{ inputs.deployed_sha }}" ]; then
+            echo "Error: Deployed SHA mismatch (artifact: $ARTIFACT_SHA vs input: ${{ inputs.deployed_sha }})"
+            exit 1
+          fi
+
+          # - contains the expected run ID
+          ARTIFACT_RUN_ID=$(jq -r '.metadata.github_run_id' "$PREVIOUS_RESULT")
+          if [ "$ARTIFACT_RUN_ID" != "$SEED_RUN_ID" ]; then
+            echo "Error: Run ID mismatch (artifact: $ARTIFACT_RUN_ID vs input: $SEED_RUN_ID)"
+            exit 1
+          fi
+
+          # - contains required revision, scope and history evidence
+          if jq -e '.evidence.observed.revision_hash' "$PREVIOUS_RESULT" >/dev/null 2>&1; then
+            echo "Artifact contains evidence.observed.revision_hash"
+          elif jq -e '.metadata.raw_revision_hash' "$PREVIOUS_RESULT" >/dev/null 2>&1; then
+            echo "Artifact contains metadata.raw_revision_hash"
+          else
+            echo "Error: Missing required revision and scope evidence in artifact"
+            exit 1
+          fi
+
+          cp "$PREVIOUS_RESULT" previous-staging-proof-result.json
+
       - name: Run staging proof validation
         working-directory: proof-source
         env:
@@ -176,6 +267,7 @@ jobs:
           MODE: ${{ inputs.mode }}
           STARTUP_SOURCE: ${{ inputs.startup_source }}
           HOSTED_READINESS_BASE_URL: ${{ secrets.HOSTED_READINESS_BASE_URL }}
+          RUN_ID: ${{ github.run_id }}
         run: |
           if [ "$MODE" = "seed_and_publish" ]; then
             ARGS=("seed_and_publish")
@@ -197,6 +289,9 @@ jobs:
             if [ "$STRICT_MODE" = "true" ]; then
               ARGS+=("--strict")
             fi
+
+            # Pass github.run_id as run-id for tracking
+            ARGS+=("--run-id" "$RUN_ID")
 
             python scripts/check_relationship_assertion_proof.py "${ARGS[@]}"
           else
@@ -235,25 +330,31 @@ jobs:
               ARGS+=("--strict")
             fi
 
-            # The restart proof must consume the exact seed-and-publish result.
-            # Artifact fetching or operator placement must make this file available
-            # before validation; absent prior evidence is a hard failure.
             PREVIOUS_RESULT="previous-staging-proof-result.json"
             if [ ! -f "$PREVIOUS_RESULT" ]; then
               echo "Error: $PREVIOUS_RESULT is required for verify_after_restart"
               exit 1
             fi
 
-            # EvidenceCollector.finalize() nests proof evidence under .evidence.
-            # jq -e/-c makes missing, null, or malformed evidence fail immediately.
-            BEFORE_SCOPES=$(jq -cer '.evidence.observed.governed_scopes' "$PREVIOUS_RESULT")
-            HISTORY_ENTRIES=$(jq -cer '.evidence.history.execution_history' "$PREVIOUS_RESULT")
-            EXPECTED_REVISION_HASH=$(jq -er '.evidence.observed.revision_hash' "$PREVIOUS_RESULT")
+            # Extract before_scopes, history_entries, and expected_revision_hash from the seed artifact.
+            # Support both wrapped and raw output.
+            if jq -e '.evidence.observed.governed_scopes' "$PREVIOUS_RESULT" >/dev/null 2>&1; then
+              BEFORE_SCOPES=$(jq -cer '.evidence.observed.governed_scopes' "$PREVIOUS_RESULT")
+              HISTORY_ENTRIES=$(jq -cer '.evidence.history.execution_history' "$PREVIOUS_RESULT")
+              EXPECTED_REVISION_HASH=$(jq -er '.evidence.observed.revision_hash' "$PREVIOUS_RESULT")
+            else
+              # Raw format
+              BEFORE_SCOPES=$(jq -cer '.metadata.raw_governed_scopes // .metadata.scopes_before // .metadata.scopes_after // "[]"' "$PREVIOUS_RESULT")
+              HISTORY_ENTRIES=$(jq -cer '.metadata.history_entries // "[]"' "$PREVIOUS_RESULT")
+              EXPECTED_REVISION_HASH=$(jq -er '.metadata.raw_revision_hash' "$PREVIOUS_RESULT")
+            fi
 
             ARGS+=("--before-scopes" "$BEFORE_SCOPES")
-            ARGS+=("--after-scopes" "$BEFORE_SCOPES")
             ARGS+=("--history-entries" "$HISTORY_ENTRIES")
             ARGS+=("--expected-revision-hash" "$EXPECTED_REVISION_HASH")
+
+            # Pass github.run_id as run-id for tracking
+            ARGS+=("--run-id" "$RUN_ID")
 
             python scripts/check_relationship_assertion_proof.py "${ARGS[@]}"
           fi

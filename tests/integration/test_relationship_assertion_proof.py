@@ -95,3 +95,77 @@ def test_proof_validator_populates_from_db(test_db_url: str, monkeypatch: pytest
     assert args.determiner_id == "determiner-actor-1"
     assert args.owner_id == "owner-actor-1"
     assert args.publication_count == 1
+
+
+@patch("scripts.check_relationship_assertion_proof.check_postgresql_proof", _no_op)
+@patch("scripts.check_relationship_assertion_proof.verify_deployed_sha", _no_op)
+@patch("scripts.check_relationship_assertion_proof.check_schema_authz_evidence", _no_op)
+def test_proof_validator_rejects_unrelated_events_and_ambiguity(
+    test_db_url: str, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Test that ProofValidator fails on ambiguous actor evidence or unrelated events."""
+    import uuid
+    from argparse import Namespace
+    from datetime import datetime, timezone
+
+    from sqlalchemy.orm import sessionmaker
+
+    from scripts.check_relationship_assertion_proof import ProofValidator, run_seed_and_publish
+    from src.data.database import create_engine_from_url
+    from src.data.relationship_assertion_db_models import RelationshipAssertionEventORM
+
+    deployed_sha = "a" * 40
+    run_id = "test-run-3"
+    run_seed_and_publish(test_db_url, deployed_sha, run_id)
+
+    # Manually add an ambiguous determiner event (same job, same assertion, different actor)
+    engine = create_engine_from_url(test_db_url)
+    Session = sessionmaker(bind=engine)
+    session = Session()
+
+    # Find the assertion seeded
+    event = session.query(RelationshipAssertionEventORM).filter_by(correlation_id=run_id).first()
+    assertion_id = event.assertion_id
+
+    # Create another det event to introduce ambiguity
+    ambiguous_det = RelationshipAssertionEventORM(
+        id=str(uuid.uuid4()),
+        assertion_id=assertion_id,
+        sequence=3,
+        from_state="Accepted",
+        to_state="Accepted",
+        authority="determiner",
+        actor_id="determiner-actor-2",  # Different actor
+        rationale="Ambiguous determination",
+        policy_version="v1",
+        recorded_at=datetime.now(timezone.utc),
+        correlation_id=run_id,
+    )
+    session.add(ambiguous_det)
+    session.commit()
+    session.close()
+
+    monkeypatch.setenv("DATABASE_URL", test_db_url)
+    validator = ProofValidator({})
+    args = Namespace(
+        mode="seed_and_publish",
+        deployed_sha=deployed_sha,
+        contract_digest="c" * 64,
+        registry_digest="d" * 64,
+        authz_evidence=None,
+        proposer_id=None,
+        determiner_id=None,
+        executor_id=None,
+        publication_count=None,
+        owner_id=None,
+        expected_owner=None,
+        revision_hash=None,
+        expected_revision_hash=None,
+        output=None,
+        strict=False,
+    )
+
+    result = validator.validate_seed_and_publish(args)
+    assert result["status"] == "failed"
+    assert any("Ambiguous determining actor evidence" in err for err in result["errors"])
+    engine.dispose()
