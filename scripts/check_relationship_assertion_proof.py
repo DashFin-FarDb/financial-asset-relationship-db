@@ -345,8 +345,11 @@ class ProofValidator:
                     prev_meta = prev_data.get("metadata", {})
                     if prev_meta.get("mode") == "seed_and_publish":
                         self._populate_from_file(args, prev_meta)
-            except Exception:
-                pass
+            except Exception as exc:
+                print(
+                    f"Warning: failed to load prior metadata from '{prev_path}': {exc}",
+                    file=sys.stderr,
+                )
 
         # 2. Query database for missing validation inputs if DB URL is available
         db_url = args.database_url or os.getenv("DATABASE_URL")
