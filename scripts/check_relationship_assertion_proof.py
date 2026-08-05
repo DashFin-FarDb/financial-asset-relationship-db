@@ -343,10 +343,12 @@ class ProofValidator:
             RebuildJobORM.job_id == expected_job_id,
         )
 
-        if hasattr(args, "execution_id") and args.execution_id:
+        if getattr(args, "execution_id", None):
             clean_exec_id = _sanitize_db_id(args.execution_id)
-            if clean_exec_id:
-                job_query = job_query.where(RebuildJobORM.execution_id == clean_exec_id)
+            if not clean_exec_id:
+                self.add_error("Certified execution ID is invalid")
+                return None
+            job_query = job_query.where(RebuildJobORM.execution_id == clean_exec_id)
 
         rows = conn.execute(job_query.limit(2)).all()
 
@@ -442,7 +444,10 @@ class ProofValidator:
 
         if getattr(args, "execution_id", None):
             clean_exec_id = _sanitize_db_id(args.execution_id)
-            if clean_exec_id and execution_id != clean_exec_id:
+            if not clean_exec_id:
+                self.add_error("Certified execution ID is invalid")
+                return None
+            if execution_id != clean_exec_id:
                 self.add_error(
                     f"Publication execution ID {execution_id} does not match certified execution {clean_exec_id}"
                 )
