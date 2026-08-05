@@ -12,6 +12,7 @@ import argparse
 import json
 import os
 import pathlib
+import re
 import shutil
 import subprocess
 import sys
@@ -435,7 +436,7 @@ def main(argv: list[str] | None = None) -> int:
 
 def verify_deployed_sha(deployed_sha: str) -> None:
     """Verify that the deployed SHA matches the current git HEAD commit."""
-    if not deployed_sha or len(deployed_sha) != 40 or not all(c in "0123456789abcdef" for c in deployed_sha.lower()):
+    if not re.match(r"^[0-9a-fA-F]{40}$", deployed_sha or ""):
         raise ValueError("Invalid deployed SHA")
     git_path = shutil.which("git")
     if not git_path:
