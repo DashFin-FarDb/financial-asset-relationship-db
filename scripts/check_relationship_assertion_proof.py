@@ -58,16 +58,16 @@ class ProofValidator:
         """Record validation error."""
         self.errors.append(msg)
 
-    def git_sha_is_valid(self, sha: str, label: str) -> bool:
+    def git_sha_is_valid(self, sha: str | None, label: str) -> bool:
         """Check Git SHA format."""
-        if not sha or len(sha) != 40 or not all(c in "0123456789abcdef" for c in sha.lower()):
+        if not re.match(r"^[0-9a-fA-F]{40}$", sha or ""):
             self.add_error(f"{label} SHA invalid or missing")
             return False
         return True
 
     def digest_is_valid(self, digest: str | None, label: str) -> bool:
         """Check SHA-256 digest format."""
-        if not digest or len(digest) != 64 or not all(c in "0123456789abcdef" for c in digest.lower()):
+        if not re.match(r"^[0-9a-fA-F]{64}$", digest or ""):
             self.add_error(f"{label} digest invalid or missing")
             return False
         return True
@@ -94,18 +94,22 @@ class ProofValidator:
 
     def actors_are_distinct(self, proposer: str, determiner: str, executor: str | None) -> bool:
         """Ensure separation of duties among actors."""
-        if not proposer or not determiner:
+        if not proposer:
+            self.add_error("Proposer and determiner must be specified")
+            return False
+        if not determiner:
             self.add_error("Proposer and determiner must be specified")
             return False
         if proposer == determiner:
             self.add_error(f"Collision: proposer and determiner are same ({proposer[:8]}...)")
             return False
-        if executor and proposer == executor:
-            self.add_error(f"Collision: proposer and executor are same ({proposer[:8]}...)")
-            return False
-        if executor and determiner == executor:
-            self.add_error(f"Collision: determiner and executor are same ({determiner[:8]}...)")
-            return False
+        if executor:
+            if proposer == executor:
+                self.add_error(f"Collision: proposer and executor are same ({proposer[:8]}...)")
+                return False
+            if determiner == executor:
+                self.add_error(f"Collision: determiner and executor are same ({determiner[:8]}...)")
+                return False
         return True
 
     def publication_is_correct(self, count: int, owner: str, expected: str | None) -> bool:
@@ -148,6 +152,15 @@ class ProofValidator:
 
         return True
 
+    def _validate_history_entry(self, idx: int, entry: dict[str, Any]) -> None:
+        """Validate a single history entry."""
+        if "id" not in entry:
+            self.add_error(f"History[{idx}] missing id")
+        if "status" not in entry:
+            self.add_error(f"History[{idx}] missing status")
+        if "created_at" not in entry:
+            self.add_error(f"History[{idx}] missing created_at")
+
     def history_is_well_formed(self, entries: list[dict[str, Any]], min_count: int) -> bool:
         """Validate pipeline execution history schema."""
         if len(entries) < min_count:
@@ -155,9 +168,7 @@ class ProofValidator:
             return False
 
         for idx, entry in enumerate(entries):
-            for req_field in ("id", "status", "created_at"):
-                if req_field not in entry:
-                    self.add_error(f"History[{idx}] missing {req_field}")
+            self._validate_history_entry(idx, entry)
 
         return len(self.errors) == 0
 
