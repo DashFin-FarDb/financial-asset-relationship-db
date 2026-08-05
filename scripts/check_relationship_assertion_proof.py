@@ -294,18 +294,22 @@ class ProofValidator:
 
     def _validate_restart_scopes(self, args: argparse.Namespace) -> None:
         """Validate consistency of governed scopes."""
-        if (args.before_scopes and args.after_scopes) or args.strict:
-            if args.before_scopes and args.after_scopes:
-                try:
-                    before = json.loads(args.before_scopes)
-                    after = json.loads(args.after_scopes)
-                    self.scopes_are_consistent(before, after, enforce_no_loss=True)
-                    self.metadata["scopes_before"] = len(before) if isinstance(before, list) else 0
-                    self.metadata["scopes_after"] = len(after) if isinstance(after, list) else 0
-                except Exception as e:
-                    self.add_error(f"Scope JSON error: {e}")
-            else:
+        before_str = args.before_scopes
+        after_str = args.after_scopes
+
+        if not before_str or not after_str:
+            if args.strict:
                 self.add_error("Scopes required in strict mode")
+            return
+
+        try:
+            before = json.loads(before_str)
+            after = json.loads(after_str)
+            self.scopes_are_consistent(before, after, enforce_no_loss=True)
+            self.metadata["scopes_before"] = len(before) if isinstance(before, list) else 0
+            self.metadata["scopes_after"] = len(after) if isinstance(after, list) else 0
+        except Exception as e:
+            self.add_error(f"Scope JSON error: {e}")
 
     def _validate_restart_history(self, args: argparse.Namespace) -> None:
         """Validate execution history entries."""
