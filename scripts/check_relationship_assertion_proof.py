@@ -835,8 +835,14 @@ def display_result(result: dict[str, Any], output_path: str | None) -> None:
     if output_path:
         # Validate output path to prevent path traversal (CWE-22)
         safe_path = validate_safe_path(output_path)
-        with open(safe_path, "w", encoding="utf-8") as f:
-            json.dump(result, f, indent=2, sort_keys=True)
+
+        flags = os.O_WRONLY | os.O_CREAT | os.O_TRUNC
+        if hasattr(os, "O_NOFOLLOW"):
+            flags |= os.O_NOFOLLOW
+
+        fd = os.open(safe_path, flags, 0o600)
+        with os.fdopen(fd, "w", encoding="utf-8") as file:
+            json.dump(result, file, indent=2, sort_keys=True)
         print(f"Results written to {safe_path}")
     else:
         print(json.dumps(result, indent=2, sort_keys=True))
