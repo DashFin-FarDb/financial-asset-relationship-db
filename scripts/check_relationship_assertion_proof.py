@@ -193,15 +193,21 @@ class ProofValidator:
             self.add_error(f"Authz evidence error: {e}")
             return {}
 
+    def _format_digest(self, digest: str | None) -> str:
+        """Format digest value for metadata."""
+        if not digest:
+            return "N/A"
+        return digest[:8] + "..."
+
     def _validate_digests(self, args: argparse.Namespace) -> None:
         """Validate contract and registry digests."""
         if args.contract_digest or args.strict:
             self.digest_is_valid(args.contract_digest, "Contract")
-            self.metadata["contract"] = args.contract_digest[:8] + "..." if args.contract_digest else "N/A"
+            self.metadata["contract"] = self._format_digest(args.contract_digest)
 
         if args.registry_digest or args.strict:
             self.digest_is_valid(args.registry_digest, "Registry")
-            self.metadata["registry"] = args.registry_digest[:8] + "..." if args.registry_digest else "N/A"
+            self.metadata["registry"] = self._format_digest(args.registry_digest)
 
     def _validate_db(self, args: argparse.Namespace) -> None:
         """Validate database configuration URL."""
