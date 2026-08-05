@@ -73,12 +73,13 @@ class ProofValidator:
         return True
 
     def mask_database_url(self, url: str) -> str:
-        """Mask password credentials in database URL."""
+        """Mask password credentials and sensitive info in database URL."""
         try:
             parsed = urlparse(url)
-            if parsed.password:
-                return url.replace(parsed.password, "********")
-            return url
+            if parsed.scheme in ("sqlite", ""):
+                return "sqlite:///*** (masked)"
+            port_suffix = f":{parsed.port}" if parsed.port else ""
+            return f"{parsed.scheme}://{parsed.hostname}{port_suffix}/*** (masked)"
         except Exception:
             return "********"
 
@@ -222,10 +223,15 @@ class ProofValidator:
 
     def _validate_db(self, args: argparse.Namespace) -> None:
         """Validate database configuration URL."""
-        db_url = args.database_url or os.getenv("DATABASE_URL")
+        db_url = os.getenv("DATABASE_URL")
         if db_url or args.strict:
             if db_url:
-                self.check_db_url_structure(db_url)
+                if not self.check_db_url_structure(db_url):
+                    try:
+                        scheme = urlparse(db_url).scheme or "unknown"
+                    except Exception:
+                        scheme = "unknown"
+                    self.add_error(f"Unsupported database URL scheme: {scheme}")
                 self.metadata["db"] = self.mask_database_url(db_url)
             else:
                 self.add_error("DB URL required in strict mode")
@@ -338,18 +344,24 @@ class ProofValidator:
         """Populate missing arguments from previous run results and database state."""
         # 1. Load previous metadata from local file if available
         prev_path = args.output or "staging-proof-result.json"
-        if os.path.isfile(prev_path):
+        try:
+            safe_prev_path = self._validate_safe_path(prev_path)
+        except Exception as err:
+            print(f"Warning: Failed to validate path {prev_path}: {err}", file=sys.stderr)
+            safe_prev_path = ""
+
+        if safe_prev_path and os.path.isfile(safe_prev_path):
             try:
-                with open(prev_path, "r", encoding="utf-8") as f:
+                with open(safe_prev_path, "r", encoding="utf-8") as f:
                     prev_data = json.load(f)
                     prev_meta = prev_data.get("metadata", {})
                     if prev_meta.get("mode") == "seed_and_publish":
                         self._populate_from_file(args, prev_meta)
-            except Exception:
-                pass
+            except Exception as err:
+                print(f"Warning: Failed to load previous metadata: {err}", file=sys.stderr)
 
         # 2. Query database for missing validation inputs if DB URL is available
-        db_url = args.database_url or os.getenv("DATABASE_URL")
+        db_url = os.getenv("DATABASE_URL")
         if db_url and (
             args.publication_count is None
             or not args.revision_hash
@@ -363,8 +375,8 @@ class ProofValidator:
                 engine = create_engine(db_url)
                 with engine.connect() as conn:
                     self._populate_from_db(args, conn)
-            except Exception:
-                pass
+            except Exception as err:
+                print(f"Warning: Failed to query database: {err}", file=sys.stderr)
 
     def validate_seed_and_publish(self, args: argparse.Namespace) -> dict[str, Any]:
         """Mode 1: Seed and publish validation."""
@@ -511,7 +523,6 @@ def setup_parser() -> argparse.ArgumentParser:
     parser.add_argument("--run-number", default=os.getenv("GITHUB_RUN_NUMBER", "0"))
     parser.add_argument("--contract-digest", help="Staging validation contract digest")
     parser.add_argument("--registry-digest", help="Staging validation registry digest")
-    parser.add_argument("--database-url", help="Database connection URL")
     parser.add_argument("--authz-evidence", help="Authorization pass evidence file")
     parser.add_argument("--proposer-id", help="Proposer actor signature UUID")
     parser.add_argument("--determiner-id", help="Determiner actor signature UUID")
