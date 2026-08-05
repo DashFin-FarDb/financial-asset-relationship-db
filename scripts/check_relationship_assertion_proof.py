@@ -447,7 +447,15 @@ class ProofValidator:
             self.add_error("Certified revision governed_scopes must be a non-empty list of identifiers")
             return None
 
-        is_valid = all(isinstance(scope, str) and scope.strip() for scope in governed_scopes)
+        is_valid = all(
+            (isinstance(scope, str) and scope.strip())
+            or (
+                isinstance(scope, dict)
+                and isinstance(scope.get("predicate_id"), str)
+                and scope.get("predicate_id", "").strip()
+            )
+            for scope in governed_scopes
+        )
         if not is_valid:
             self.add_error("Certified revision governed_scopes must be a non-empty list of identifiers")
             return None
