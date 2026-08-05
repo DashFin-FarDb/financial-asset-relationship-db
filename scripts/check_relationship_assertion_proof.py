@@ -40,14 +40,25 @@ REPO_ROOT = pathlib.Path(__file__).resolve().parent.parent
 EXIT_SUCCESS = 0
 EXIT_FAILURE = 1
 
+_ALLOWED_EVIDENCE_FILENAMES = frozenset(
+    {
+        "authz-evidence.json",
+        "staging-proof-result.json",
+        "previous-staging-proof-result.json",
+    }
+)
 
-def validate_safe_path(path: str) -> str:
-    """Validate file path to prevent path traversal attacks (CWE-22)."""
-    # Restrict to simple filename in current working directory to prevent path traversal
-    filename = os.path.basename(path)
-    if filename != path:
-        raise ValueError(f"Path traversal detected: directory components not allowed in '{path}'")
-    return os.path.join(os.getcwd(), filename)
+
+def validate_safe_path(path: str) -> pathlib.Path:
+    """Resolve one explicitly permitted evidence filename."""
+    if path not in _ALLOWED_EVIDENCE_FILENAMES:
+        raise ValueError(f"Unsupported evidence filename: {path!r}")
+
+    resolved = pathlib.Path.cwd() / path
+    if resolved.is_symlink():
+        raise ValueError(f"Evidence path must not be a symbolic link: {path!r}")
+
+    return resolved
 
 
 def _sanitize_db_id(val: Any) -> str | None:
@@ -838,8 +849,14 @@ def display_result(result: dict[str, Any], output_path: str | None) -> None:
     if output_path:
         # Validate output path to prevent path traversal (CWE-22)
         safe_path = validate_safe_path(output_path)
-        with open(safe_path, "w", encoding="utf-8") as f:
-            json.dump(result, f, indent=2, sort_keys=True)
+
+        flags = os.O_WRONLY | os.O_CREAT | os.O_TRUNC
+        if hasattr(os, "O_NOFOLLOW"):
+            flags |= os.O_NOFOLLOW
+
+        fd = os.open(safe_path, flags, 0o600)
+        with os.fdopen(fd, "w", encoding="utf-8") as file:
+            json.dump(result, file, indent=2, sort_keys=True)
         print(f"Results written to {safe_path}")
     else:
         print(json.dumps(result, indent=2, sort_keys=True))
