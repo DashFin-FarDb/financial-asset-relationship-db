@@ -339,6 +339,8 @@ class ProofValidator:
             RebuildJobORM.job_id,
             RebuildJobORM.requested_by,
             RebuildJobORM.execution_id,
+            RebuildJobORM.status,
+            RebuildJobORM.created_at,
         ).where(
             RebuildJobORM.job_id == expected_job_id,
         )
@@ -360,12 +362,24 @@ class ProofValidator:
             self.add_error("Certified rebuild job evidence is ambiguous")
             return None
 
-        job_id, requested_by, execution_id = rows[0]
+        job_id, requested_by, execution_id, status, created_at = rows[0]
         if not args.owner_id:
             args.owner_id = requested_by
 
+        if not status or created_at is None:
+            self.add_error("Certified rebuild job history is incomplete")
+            return None
+
+        created_at_value = created_at.isoformat() if hasattr(created_at, "isoformat") else str(created_at)
         self.metadata["raw_rebuild_job_id"] = job_id
         self.metadata["raw_execution_id"] = execution_id
+        self.metadata["history_entries"] = [
+            {
+                "id": job_id,
+                "status": status,
+                "created_at": created_at_value,
+            }
+        ]
         return job_id
 
     def _get_publication_from_db(

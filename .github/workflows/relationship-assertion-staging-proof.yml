@@ -387,8 +387,11 @@ jobs:
               | select(type == "array" and length > 0)
             ' "$PREVIOUS_RESULT")
             HISTORY_ENTRIES=$(jq -cer '
-              .evidence.history.execution_history //
-              .metadata.history_entries
+              (
+                .evidence.history.execution_history //
+                .metadata.history_entries
+              )
+              | select(type == "array" and length > 0)
             ' "$PREVIOUS_RESULT")
             EXPECTED_REVISION_HASH=$(jq -er '
               .evidence.observed.revision_hash //
