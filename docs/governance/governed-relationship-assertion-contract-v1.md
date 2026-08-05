@@ -1,7 +1,7 @@
 # Governed Relationship Assertion Contract v1
 
 **Status:** Frozen normative contract (Accepted via [ADR 0008](../adr/0008-governed-relationship-assertion-contract.md))
-**Claim class for runtime capability:** `NEXT` until exact-SHA staging proof (programme PR 10 / issue #1540)
+**Claim class for runtime capability:** `CURRENT` (exact-SHA staging proof completed)
 **Contract version:** `grac.v1`
 **Baseline:** `main` at `5e45753705c10c2c4f50e0e9bc4d07b823d752ab`
 **Runtime impact of this document:** Documentation only. An empty assertion store must produce zero behavioural change.

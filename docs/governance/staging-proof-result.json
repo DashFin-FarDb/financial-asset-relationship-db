@@ -1,0 +1,47 @@
+{
+  "errors": [],
+  "metadata": {
+    "authz_sha": "1b0cf35f...",
+    "authz_status": "passed",
+    "contract": "12806344...",
+    "db": "postgresql://aws-1-us-east-1.pooler.supabase.com:5432/*** (masked)",
+    "deployed_sha": "1b0cf35f99581c66a407f725cc92556fbddf8fd3",
+    "determiner": "admin...",
+    "github_run_id": "31044093646",
+    "github_run_number": "10",
+    "github_sha": "db48fc5c74bb6e378aecaf4c2e8e3313e67e8a8c",
+    "history_entries": [
+      {
+        "created_at": "2026-08-05T20:10:18.173063+00:00",
+        "id": "4dae133f-a66b-45df-8a4d-bd8df52146da",
+        "status": "succeeded"
+      }
+    ],
+    "mode": "seed_and_publish",
+    "pg_verified": true,
+    "proposer": "grac_sta...",
+    "publications": 1,
+    "raw_determiner_id": "admin",
+    "raw_execution_id": "38dd15c0-4d61-4381-96f4-2a85024f67c6",
+    "raw_executor_id": null,
+    "raw_expected_owner": null,
+    "raw_governed_scopes": [
+      {
+        "predicate_id": "financial.bond.issuer_reference@1",
+        "purpose": "financial_graph_current_view"
+      }
+    ],
+    "raw_owner_id": "admin",
+    "raw_proposer_id": "grac_staging_proposer",
+    "raw_publication_count": 1,
+    "raw_publication_id": "b5d034e9-2fff-455e-b6ae-2b01291d86d0",
+    "raw_rebuild_job_id": "4dae133f-a66b-45df-8a4d-bd8df52146da",
+    "raw_revision_hash": "aa2f8187499b0bb07bc5a40aec3328aefeec4cc329753ff1c052b77019cec7a4",
+    "raw_revision_id": "d1ee3300-5725-4006-a105-6bd44027f49a",
+    "registry": "7ebf9342...",
+    "revision": "aa2f8187...",
+    "sha": "1b0cf35f...",
+    "workflow": "relationship-assertion-staging-proof"
+  },
+  "status": "passed"
+}
