@@ -112,8 +112,7 @@ def test_proof_validator_rejects_unrelated_events_and_ambiguity(
 
     from sqlalchemy.orm import sessionmaker
 
-    from scripts.check_relationship_assertion_proof import ProofValidator, run_seed_and_publish
-    from src.data.database import create_engine_from_url
+    from scripts.check_relationship_assertion_proof import ProofValidator
     from src.data.relationship_assertion_db_models import RelationshipAssertionEventORM
 
     deployed_sha = "a" * 40
@@ -182,7 +181,7 @@ def test_proof_validator_rejects_unrelated_newer_job(test_db_url: str, monkeypat
     """Test that ProofValidator does not bind to a newer unrelated job in the database."""
     from argparse import Namespace
 
-    from scripts.check_relationship_assertion_proof import ProofValidator, run_seed_and_publish
+    from scripts.check_relationship_assertion_proof import ProofValidator
 
     deployed_sha = "a" * 40
     target_job_id = "target-job-1"

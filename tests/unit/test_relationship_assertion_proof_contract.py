@@ -137,7 +137,6 @@ def test_restart_scopes_lookup_failures() -> None:
     import shutil
     import tempfile
     from argparse import Namespace
-    from pathlib import Path
 
     from src.data.database import create_engine_from_url, init_db
 

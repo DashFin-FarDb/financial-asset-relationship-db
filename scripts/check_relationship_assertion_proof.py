@@ -357,15 +357,10 @@ class ProofValidator:
         self.metadata["raw_execution_id"] = execution_id
         return job_id
 
-    def _populate_publication_and_revision_from_db(
-        self, args: argparse.Namespace, conn: Any, rebuild_job_id: str
-    ) -> dict[str, Any] | None:
-        """Retrieve the exact publication and revision identity, verifying execution correlation."""
-        clean_job_id = _sanitize_db_id(rebuild_job_id)
-        if not clean_job_id:
-            self.add_error("Invalid rebuild job ID for publication lookup")
-            return None
-
+    def _get_publication_from_db(
+        self, conn: Any, clean_job_id: str, args: argparse.Namespace
+    ) -> tuple[str, str, str] | None:
+        """Retrieve and validate publication row from DB."""
         publication_query = select(
             RelationshipProjectionPublicationORM.id,
             RelationshipProjectionPublicationORM.revision_id,
@@ -386,23 +381,11 @@ class ProofValidator:
             args.publication_count = len(rows)
             return None
 
-        pub_id, revision_id, execution_id = rows[0]
         args.publication_count = 1
+        return rows[0]
 
-        if hasattr(args, "execution_id") and args.execution_id:
-            clean_exec_id = _sanitize_db_id(args.execution_id)
-            if clean_exec_id and execution_id != clean_exec_id:
-                self.add_error(
-                    f"Publication execution ID {execution_id} does not match certified execution {clean_exec_id}"
-                )
-                return None
-
-        clean_rev_id = _sanitize_db_id(revision_id)
-        if not clean_rev_id:
-            self.add_error("Invalid revision ID found for publication")
-            return None
-
-        # Fetch the exact revision hash and governed scopes for the certified publication.
+    def _get_and_validate_revision_scopes(self, conn: Any, clean_rev_id: str) -> tuple[str, list[str]] | None:
+        """Fetch and validate revision projection hash and governed scopes."""
         rev_query = select(
             RelationshipProjectionRevisionORM.projection_hash,
             RelationshipProjectionRevisionORM.governed_scopes,
@@ -431,6 +414,40 @@ class ProofValidator:
             self.add_error("Certified revision governed_scopes must be a non-empty list of identifiers")
             return None
 
+        return proj_hash, governed_scopes
+
+    def _populate_publication_and_revision_from_db(
+        self, args: argparse.Namespace, conn: Any, rebuild_job_id: str
+    ) -> dict[str, Any] | None:
+        """Retrieve the exact publication and revision identity, verifying execution correlation."""
+        clean_job_id = _sanitize_db_id(rebuild_job_id)
+        if not clean_job_id:
+            self.add_error("Invalid rebuild job ID for publication lookup")
+            return None
+
+        pub_row = self._get_publication_from_db(conn, clean_job_id, args)
+        if not pub_row:
+            return None
+        pub_id, revision_id, execution_id = pub_row
+
+        if getattr(args, "execution_id", None):
+            clean_exec_id = _sanitize_db_id(args.execution_id)
+            if clean_exec_id and execution_id != clean_exec_id:
+                self.add_error(
+                    f"Publication execution ID {execution_id} does not match certified execution {clean_exec_id}"
+                )
+                return None
+
+        clean_rev_id = _sanitize_db_id(revision_id)
+        if not clean_rev_id:
+            self.add_error("Invalid revision ID found for publication")
+            return None
+
+        rev_info = self._get_and_validate_revision_scopes(conn, clean_rev_id)
+        if not rev_info:
+            return None
+        proj_hash, governed_scopes = rev_info
+
         if not args.revision_hash:
             args.revision_hash = proj_hash
 
@@ -441,10 +458,9 @@ class ProofValidator:
         self.metadata["raw_governed_scopes"] = governed_scopes
 
         # Verify expected revision ID if provided (from previous result / metadata in restart mode)
-        if hasattr(args, "expected_revision_id") and args.expected_revision_id:
-            if revision_id != args.expected_revision_id:
-                self.add_error(f"Revision ID mismatch: {revision_id} vs expected {args.expected_revision_id}")
-                return None
+        if getattr(args, "expected_revision_id", None) and revision_id != args.expected_revision_id:
+            self.add_error(f"Revision ID mismatch: {revision_id} vs expected {args.expected_revision_id}")
+            return None
 
         return {
             "publication_id": pub_id,
@@ -646,7 +662,7 @@ class ProofValidator:
                     .select_from(RelationshipProjectionPublicationORM)
                     .where(RelationshipProjectionPublicationORM.rebuild_job_id == rebuild_job_id)
                 )
-                pub_count = conn.execute(count_stmt).scalar()
+                pub_count = int(conn.execute(count_stmt).scalar() or 0)
                 if pub_count == 0:
                     self.add_error(f"Expected publication for rebuild job {rebuild_job_id} not found")
                     return None
