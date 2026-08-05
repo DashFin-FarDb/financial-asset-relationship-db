@@ -65,9 +65,11 @@ jobs:
     timeout-minutes: 20
 
     steps:
-      - name: Checkout workflow source
+      - name: Checkout trusted proof source
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
+          ref: main
+          path: proof-source
           persist-credentials: false
           fetch-depth: 0
 
@@ -89,6 +91,7 @@ jobs:
           fi
 
       - name: Verify SHA is ancestor of main
+        working-directory: proof-source
         env:
           DEPLOYED_SHA: ${{ inputs.deployed_sha }}
         run: |
@@ -96,13 +99,6 @@ jobs:
             echo "Error: $DEPLOYED_SHA is not an ancestor of main branch. Execution halted for security."
             exit 1
           fi
-
-      - name: Checkout deployed SHA
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
-        with:
-          ref: ${{ inputs.deployed_sha }}
-          path: proof-source
-          persist-credentials: false
 
       - name: Install Python dependencies
         uses: ./proof-source/.github/actions/ci-common
