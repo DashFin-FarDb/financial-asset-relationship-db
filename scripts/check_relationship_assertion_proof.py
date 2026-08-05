@@ -207,7 +207,7 @@ class ProofValidator:
 
     def _validate_safe_path(self, path: str) -> str:
         """Validate file path to prevent path traversal attacks (CWE-22)."""
-        return validate_safe_path(path)
+        return str(validate_safe_path(path))
 
     def load_authz_evidence(self, path: str, expected_sha: str) -> dict[str, Any]:
         """Load and validate authorization evidence."""
