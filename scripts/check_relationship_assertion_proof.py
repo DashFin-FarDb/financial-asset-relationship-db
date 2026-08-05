@@ -463,6 +463,7 @@ class ProofValidator:
         clean_job_id = _sanitize_db_id(rebuild_job_id)
         clean_rev_id = _sanitize_db_id(revision_id)
         if not clean_job_id:
+            self.add_error("Correlation failed: rebuild_job_id missing")
             return
 
         if not clean_rev_id:
@@ -473,11 +474,12 @@ class ProofValidator:
             RelationshipProjectionEdgeORM.revision_id == clean_rev_id
         )
 
-        # Proposer query: using AND conjunction and rejecting zero/multiple matches
+        # HTTP assertion events carry request correlation IDs, not rebuild-job IDs.
+        # Actor evidence is bound through the exact certified lineage:
+        # rebuild job -> single publication -> revision -> projected assertion IDs.
         proposer_stmt = (
             select(RelationshipAssertionEventORM.actor_id)
             .where(
-                RelationshipAssertionEventORM.correlation_id == clean_job_id,
                 RelationshipAssertionEventORM.assertion_id.in_(assertion_ids_subquery),
                 (RelationshipAssertionEventORM.to_state == "Proposed")
                 | (RelationshipAssertionEventORM.authority == "proposer"),
@@ -499,11 +501,12 @@ class ProofValidator:
                 )
             args.proposer_id = db_proposer
 
-        # Determiner query: using AND conjunction and rejecting zero/multiple matches
+        # Determiner evidence is constrained to assertions projected by the
+        # exact certified revision. Its request correlation ID is intentionally
+        # not compared with the later rebuild-job ID.
         determiner_stmt = (
             select(RelationshipAssertionEventORM.actor_id)
             .where(
-                RelationshipAssertionEventORM.correlation_id == clean_job_id,
                 RelationshipAssertionEventORM.assertion_id.in_(assertion_ids_subquery),
                 (RelationshipAssertionEventORM.to_state == "Accepted")
                 | (RelationshipAssertionEventORM.authority.in_(["determiner", "reviewer", "acceptor"])),
