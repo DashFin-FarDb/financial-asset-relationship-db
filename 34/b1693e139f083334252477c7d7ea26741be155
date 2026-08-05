@@ -1,0 +1,16 @@
+.github/workflows/relationship-assertion-staging-proof.yml
+  h_f327e6ff3ec3c1 390-394
+scripts/check_relationship_assertion_proof.py
+  h_f327e6ff3ec3c1 342-343,365,369-373,376-382
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.21",
+  "base_commit_sha": "34b1693e139f083334252477c7d7ea26741be155",
+  "prompts": {},
+  "humans": {
+    "h_f327e6ff3ec3c1": {
+      "author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}
