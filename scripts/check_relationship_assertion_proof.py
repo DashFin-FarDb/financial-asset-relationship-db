@@ -40,14 +40,25 @@ REPO_ROOT = pathlib.Path(__file__).resolve().parent.parent
 EXIT_SUCCESS = 0
 EXIT_FAILURE = 1
 
+_ALLOWED_EVIDENCE_FILENAMES = frozenset(
+    {
+        "authz-evidence.json",
+        "staging-proof-result.json",
+        "previous-staging-proof-result.json",
+    }
+)
 
-def validate_safe_path(path: str) -> str:
-    """Validate file path to prevent path traversal attacks (CWE-22)."""
-    # Restrict to simple filename in current working directory to prevent path traversal
-    filename = os.path.basename(path)
-    if filename != path:
-        raise ValueError(f"Path traversal detected: directory components not allowed in '{path}'")
-    return os.path.join(os.getcwd(), filename)
+
+def validate_safe_path(path: str) -> pathlib.Path:
+    """Resolve one explicitly permitted evidence filename."""
+    if path not in _ALLOWED_EVIDENCE_FILENAMES:
+        raise ValueError(f"Unsupported evidence filename: {path!r}")
+
+    resolved = pathlib.Path.cwd() / path
+    if resolved.is_symlink():
+        raise ValueError(f"Evidence path must not be a symbolic link: {path!r}")
+
+    return resolved
 
 
 def _sanitize_db_id(val: Any) -> str | None:
