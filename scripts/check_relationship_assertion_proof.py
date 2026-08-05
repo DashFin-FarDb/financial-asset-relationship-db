@@ -795,8 +795,128 @@ class ProofValidator:
         except Exception as e:
             self.add_error(f"Scope JSON error: {e}")
 
+    def _validate_reconstructed_assertion(
+        self,
+        assertion_id: str,
+        events: list[Any],
+    ) -> bool:
+        """Validate one projected assertion's persisted lifecycle."""
+        if not events:
+            self.add_error(f"Assertion {assertion_id} has no persisted lifecycle events")
+            return False
+
+        sequences = [event.sequence for event in events]
+        if any(not isinstance(sequence, int) for sequence in sequences):
+            self.add_error(f"Assertion {assertion_id} has invalid lifecycle sequence values")
+            return False
+        if sequences != sorted(sequences) or len(sequences) != len(set(sequences)):
+            self.add_error(f"Assertion {assertion_id} lifecycle sequence is not strictly ordered")
+            return False
+
+        proposed = [event for event in events if event.to_state == "Proposed" and event.authority == "proposer"]
+        accepted = [
+            event
+            for event in events
+            if event.to_state == "Accepted" and event.authority in {"determiner", "reviewer", "acceptor"}
+        ]
+        if len(proposed) != 1 or len(accepted) != 1:
+            self.add_error(f"Assertion {assertion_id} must have exactly one proposer and one acceptance event")
+            return False
+
+        proposal = proposed[0]
+        determination = accepted[0]
+        if proposal.sequence >= determination.sequence:
+            self.add_error(f"Assertion {assertion_id} acceptance does not follow proposal")
+            return False
+        if determination.from_state != "Proposed":
+            self.add_error(f"Assertion {assertion_id} acceptance has invalid predecessor state")
+            return False
+        if not proposal.actor_id or not determination.actor_id:
+            self.add_error(f"Assertion {assertion_id} lifecycle actor is missing")
+            return False
+        if proposal.actor_id == determination.actor_id:
+            self.add_error(f"Assertion {assertion_id} proposer and determiner are not distinct")
+            return False
+        return True
+
+    def _reconstruct_assertion_history_from_db(self, args: argparse.Namespace) -> None:
+        """Reconstruct persisted lifecycle history for the certified revision."""
+        db_url = os.getenv("DATABASE_URL")
+        if not db_url:
+            self.add_error("Database URL required for historical reconstruction")
+            return
+
+        rebuild_job_id = _sanitize_db_id(args.rebuild_job_id)
+        execution_id = _sanitize_db_id(args.execution_id)
+        expected_revision_id = _sanitize_db_id(args.expected_revision_id)
+        if not rebuild_job_id or not execution_id or not expected_revision_id:
+            self.add_error("Exact lineage IDs required for historical reconstruction")
+            return
+
+        engine = None
+        try:
+            from sqlalchemy import create_engine
+
+            engine = create_engine(db_url)
+            with engine.connect() as conn:
+                publication_rows = conn.execute(
+                    select(
+                        RelationshipProjectionPublicationORM.revision_id,
+                        RelationshipProjectionPublicationORM.execution_id,
+                    )
+                    .where(RelationshipProjectionPublicationORM.rebuild_job_id == rebuild_job_id)
+                    .limit(2)
+                ).all()
+                if len(publication_rows) != 1:
+                    self.add_error("Historical reconstruction requires exactly one certified publication")
+                    return
+
+                revision_id, publication_execution_id = publication_rows[0]
+                if revision_id != expected_revision_id:
+                    self.add_error("Historical reconstruction revision identity mismatch")
+                    return
+                if publication_execution_id != execution_id:
+                    self.add_error("Historical reconstruction execution identity mismatch")
+                    return
+
+                assertion_ids = [
+                    row[0]
+                    for row in conn.execute(
+                        select(RelationshipProjectionEdgeORM.assertion_id)
+                        .where(RelationshipProjectionEdgeORM.revision_id == expected_revision_id)
+                        .distinct()
+                    ).all()
+                    if row[0]
+                ]
+                if not assertion_ids:
+                    self.add_error("Certified revision contains no assertions to reconstruct")
+                    return
+
+                reconstructed = 0
+                for assertion_id in assertion_ids:
+                    events = (
+                        conn.execute(
+                            select(RelationshipAssertionEventORM)
+                            .where(RelationshipAssertionEventORM.assertion_id == assertion_id)
+                            .order_by(RelationshipAssertionEventORM.sequence)
+                        )
+                        .scalars()
+                        .all()
+                    )
+                    if self._validate_reconstructed_assertion(assertion_id, events):
+                        reconstructed += 1
+
+                self.metadata["reconstructed_assertions"] = reconstructed
+                if reconstructed != len(assertion_ids):
+                    self.add_error("Historical reconstruction failed for one or more projected assertions")
+        except Exception as exc:
+            self.add_error(f"Historical reconstruction query failed: {exc}")
+        finally:
+            if engine is not None:
+                engine.dispose()
+
     def _validate_restart_history(self, args: argparse.Namespace) -> None:
-        """Validate execution history entries."""
+        """Validate rebuild audit history and reconstruct assertion lifecycle history."""
         if args.history_entries or args.strict:
             if args.history_entries:
                 try:
@@ -805,8 +925,12 @@ class ProofValidator:
                     self.metadata["history_entries"] = len(entries) if isinstance(entries, list) else 0
                 except Exception as e:
                     self.add_error(f"History JSON error: {e}")
+                    return
             else:
                 self.add_error("History required in strict mode")
+                return
+
+        self._reconstruct_assertion_history_from_db(args)
 
     def _validate_restart_edge_scopes(self, args: argparse.Namespace) -> None:
         """Validate scope consistency of empty edge assertions."""
