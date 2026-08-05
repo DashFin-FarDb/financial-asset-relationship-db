@@ -300,9 +300,8 @@ class ProofValidator:
         if not args.expected_owner:
             args.expected_owner = prev_meta.get("raw_expected_owner")
 
-    def _populate_from_db(self, args: argparse.Namespace, conn: Any) -> None:
-        """Populate missing validation fields using active DB connection."""
-        # 1. Query latest rebuild job first to discover the active execution ID
+    def _populate_jobs_from_db(self, args: argparse.Namespace, conn: Any) -> str | None:
+        """Fetch latest rebuild job and set proposer and determiner IDs."""
         exec_id = None
         job_query = (
             select(RebuildJobORM.requested_by, RebuildJobORM.execution_id)
@@ -316,54 +315,72 @@ class ProofValidator:
                 args.proposer_id = row[0]
             if not args.determiner_id:
                 args.determiner_id = row[1]
+        return exec_id
 
-        active_exec_id = exec_id or args.determiner_id
+    def _populate_publication_count_from_db(
+        self, args: argparse.Namespace, conn: Any, active_exec_id: str | None
+    ) -> None:
+        """Fetch publication count filtered by active execution ID."""
+        if args.publication_count is not None:
+            return
+        count_query = select(count()).select_from(RelationshipProjectionPublicationORM)
+        if active_exec_id:
+            count_query = count_query.where(RelationshipProjectionPublicationORM.execution_id == active_exec_id)
+        args.publication_count = conn.execute(count_query).scalar()
 
-        # 2. Filter publication count by active execution ID
-        if args.publication_count is None:
-            count_query = select(count()).select_from(RelationshipProjectionPublicationORM)
-            if active_exec_id:
-                count_query = count_query.where(RelationshipProjectionPublicationORM.execution_id == active_exec_id)
-            args.publication_count = conn.execute(count_query).scalar()
+    def _populate_revision_hash_from_db(self, args: argparse.Namespace, conn: Any, active_exec_id: str | None) -> None:
+        """Fetch revision hash filtered by active execution ID with global fallback."""
+        if args.revision_hash:
+            return
+        if active_exec_id:
+            rev_query = (
+                select(RelationshipProjectionRevisionORM.projection_hash)
+                .join(
+                    RelationshipProjectionPublicationORM,
+                    RelationshipProjectionRevisionORM.id == RelationshipProjectionPublicationORM.revision_id,
+                )
+                .where(RelationshipProjectionPublicationORM.execution_id == active_exec_id)
+                .order_by(RelationshipProjectionPublicationORM.published_at.desc())
+                .limit(1)
+            )
+            args.revision_hash = conn.execute(rev_query).scalar()
 
         if not args.revision_hash:
-            if active_exec_id:
-                rev_query = (
-                    select(RelationshipProjectionRevisionORM.projection_hash)
-                    .join(
-                        RelationshipProjectionPublicationORM,
-                        RelationshipProjectionRevisionORM.id == RelationshipProjectionPublicationORM.revision_id,
-                    )
-                    .where(RelationshipProjectionPublicationORM.execution_id == active_exec_id)
-                    .order_by(RelationshipProjectionPublicationORM.published_at.desc())
-                    .limit(1)
-                )
-                args.revision_hash = conn.execute(rev_query).scalar()
+            fallback_rev_query = (
+                select(RelationshipProjectionRevisionORM.projection_hash)
+                .order_by(RelationshipProjectionRevisionORM.created_at.desc())
+                .limit(1)
+            )
+            args.revision_hash = conn.execute(fallback_rev_query).scalar()
 
-            if not args.revision_hash:
-                fallback_rev_query = (
-                    select(RelationshipProjectionRevisionORM.projection_hash)
-                    .order_by(RelationshipProjectionRevisionORM.created_at.desc())
-                    .limit(1)
-                )
-                args.revision_hash = conn.execute(fallback_rev_query).scalar()
+    def _populate_owner_id_from_db(self, args: argparse.Namespace, conn: Any, active_exec_id: str | None) -> None:
+        """Fetch owner ID filtered by active execution ID with global fallback."""
+        if args.owner_id:
+            return
+        if active_exec_id:
+            pub_query = (
+                select(RelationshipProjectionPublicationORM.execution_id)
+                .where(RelationshipProjectionPublicationORM.execution_id == active_exec_id)
+                .limit(1)
+            )
+            args.owner_id = conn.execute(pub_query).scalar()
 
         if not args.owner_id:
-            if active_exec_id:
-                pub_query = (
-                    select(RelationshipProjectionPublicationORM.execution_id)
-                    .where(RelationshipProjectionPublicationORM.execution_id == active_exec_id)
-                    .limit(1)
-                )
-                args.owner_id = conn.execute(pub_query).scalar()
+            fallback_pub_query = (
+                select(RelationshipProjectionPublicationORM.execution_id)
+                .order_by(RelationshipProjectionPublicationORM.published_at.desc())
+                .limit(1)
+            )
+            args.owner_id = conn.execute(fallback_pub_query).scalar()
 
-            if not args.owner_id:
-                fallback_pub_query = (
-                    select(RelationshipProjectionPublicationORM.execution_id)
-                    .order_by(RelationshipProjectionPublicationORM.published_at.desc())
-                    .limit(1)
-                )
-                args.owner_id = conn.execute(fallback_pub_query).scalar()
+    def _populate_from_db(self, args: argparse.Namespace, conn: Any) -> None:
+        """Populate missing validation fields using active DB connection."""
+        exec_id = self._populate_jobs_from_db(args, conn)
+        active_exec_id = exec_id or args.determiner_id
+
+        self._populate_publication_count_from_db(args, conn, active_exec_id)
+        self._populate_revision_hash_from_db(args, conn, active_exec_id)
+        self._populate_owner_id_from_db(args, conn, active_exec_id)
 
     def _populate_missing_evidence(self, args: argparse.Namespace) -> None:
         """Populate missing arguments from previous run results and database state."""
