@@ -208,11 +208,11 @@ jobs:
 
               # Fetch startup_source from the observed runtime state of the running staging instance
               if [ -z "$HOSTED_READINESS_BASE_URL" ]; then
-                echo "Error: HOSTED_READINESS_BASE_URL is required for persistence proof"
+                echo "Error: Staging readiness URL is required for persistence proof"
                 exit 1
               fi
 
-              echo "Querying detailed health endpoint at $HOSTED_READINESS_BASE_URL to observe runtime startup source..."
+              echo "Querying detailed health endpoint to observe runtime startup source..."
               HEALTH_JSON=$(curl --fail --silent --show-error --max-time 10 "$HOSTED_READINESS_BASE_URL/api/health/detailed")
               OBSERVED_STARTUP_SOURCE=$(echo "$HEALTH_JSON" | jq -r '.graph.startup_source // empty')
               if [ -z "$OBSERVED_STARTUP_SOURCE" ]; then
