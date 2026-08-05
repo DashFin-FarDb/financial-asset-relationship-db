@@ -115,11 +115,11 @@ class ProofValidator:
                 return False
         return True
 
-    def publication_is_correct(self, count: int, owner: str, expected: str | None) -> bool:
+    def publication_is_correct(self, pub_count: int, owner: str, expected: str | None) -> bool:
         """Verify publication properties."""
         ok = True
-        if count <= 0:
-            self.add_error(f"Invalid publication count: {count}")
+        if pub_count <= 0:
+            self.add_error(f"Invalid publication count: {pub_count}")
             ok = False
         if not owner:
             self.add_error("Publication owner missing")
