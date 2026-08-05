@@ -312,72 +312,126 @@ class ProofValidator:
             args.owner_id = prev_meta.get("raw_owner_id")
         if not args.expected_owner:
             args.expected_owner = prev_meta.get("raw_expected_owner")
+        if not hasattr(args, "rebuild_job_id") or not args.rebuild_job_id:
+            args.rebuild_job_id = prev_meta.get("raw_rebuild_job_id")
+        if not hasattr(args, "execution_id") or not args.execution_id:
+            args.execution_id = prev_meta.get("raw_execution_id")
+        if not hasattr(args, "expected_revision_id") or not args.expected_revision_id:
+            args.expected_revision_id = prev_meta.get("raw_revision_id")
 
     def _populate_jobs_and_owner_from_db(self, args: argparse.Namespace, conn: Any) -> str | None:
-        """Fetch latest rebuild job and extract rebuild_job_id and owner_id from RebuildJobORM.requested_by."""
-        job_query = (
-            select(RebuildJobORM.job_id, RebuildJobORM.requested_by).order_by(RebuildJobORM.created_at.desc()).limit(1)
-        )
-        row = conn.execute(job_query).first()
-        if not row:
-            self.add_error("No rebuild job record found in database")
+        """Query RebuildJobORM by expected rebuild-job-id, rejecting ambiguity and latest-job selection."""
+        expected_job_id = _sanitize_db_id(args.rebuild_job_id)
+        if not expected_job_id:
+            self.add_error("Certified rebuild job ID not configured or invalid")
             return None
 
-        rebuild_job_id = _sanitize_db_id(row[0])
-        db_owner_id = row[1]
-        if not db_owner_id:
-            self.add_error("Rebuild job owner identity (requested_by) missing in database")
-        else:
-            if args.owner_id and args.owner_id != db_owner_id:
-                self.add_error(f"Owner mismatch: database evidence {db_owner_id[:8]}... vs {args.owner_id[:8]}...")
-            args.owner_id = db_owner_id
+        job_query = select(
+            RebuildJobORM.job_id,
+            RebuildJobORM.requested_by,
+            RebuildJobORM.execution_id,
+        ).where(
+            RebuildJobORM.job_id == expected_job_id,
+        )
 
-        return rebuild_job_id
+        if hasattr(args, "execution_id") and args.execution_id:
+            clean_exec_id = _sanitize_db_id(args.execution_id)
+            if clean_exec_id:
+                job_query = job_query.where(RebuildJobORM.execution_id == clean_exec_id)
 
-    def _populate_publication_count_from_db(
-        self, args: argparse.Namespace, conn: Any, rebuild_job_id: str | None
-    ) -> None:
-        """Fetch publication count filtered by rebuild job ID."""
-        if args.publication_count is not None:
-            return
+        rows = conn.execute(job_query.limit(2)).all()
+
+        if not rows:
+            self.add_error("Certified rebuild job was not found")
+            return None
+
+        if len(rows) != 1:
+            self.add_error("Certified rebuild job evidence is ambiguous")
+            return None
+
+        job_id, requested_by, execution_id = rows[0]
+        if not args.owner_id:
+            args.owner_id = requested_by
+
+        self.metadata["raw_rebuild_job_id"] = job_id
+        self.metadata["raw_execution_id"] = execution_id
+        return job_id
+
+    def _populate_publication_and_revision_from_db(
+        self, args: argparse.Namespace, conn: Any, rebuild_job_id: str
+    ) -> dict[str, Any] | None:
+        """Retrieve the exact publication and revision identity, verifying execution correlation."""
         clean_job_id = _sanitize_db_id(rebuild_job_id)
         if not clean_job_id:
-            args.publication_count = 0
-            return
-        count_query = (
-            select(count())
-            .select_from(RelationshipProjectionPublicationORM)
-            .where(RelationshipProjectionPublicationORM.rebuild_job_id == clean_job_id)
+            self.add_error("Invalid rebuild job ID for publication lookup")
+            return None
+
+        publication_query = select(
+            RelationshipProjectionPublicationORM.id,
+            RelationshipProjectionPublicationORM.revision_id,
+            RelationshipProjectionPublicationORM.execution_id,
+        ).where(
+            RelationshipProjectionPublicationORM.rebuild_job_id == clean_job_id,
         )
-        args.publication_count = conn.execute(count_query).scalar()
 
-    def _populate_revision_hash_from_db(
-        self, args: argparse.Namespace, conn: Any, rebuild_job_id: str | None
-    ) -> str | None:
-        """Fetch revision hash filtered by rebuild job ID."""
-        revision_id = None
-        clean_job_id = _sanitize_db_id(rebuild_job_id)
-        if clean_job_id:
-            rev_query = (
-                select(
-                    RelationshipProjectionRevisionORM.projection_hash,
-                    RelationshipProjectionRevisionORM.id,
-                )
-                .join(
-                    RelationshipProjectionPublicationORM,
-                    RelationshipProjectionRevisionORM.id == RelationshipProjectionPublicationORM.revision_id,
-                )
-                .where(RelationshipProjectionPublicationORM.rebuild_job_id == clean_job_id)
-                .order_by(RelationshipProjectionPublicationORM.published_at.desc())
-                .limit(1)
-            )
-            row = conn.execute(rev_query).first()
-            if row:
-                if not args.revision_hash:
-                    args.revision_hash = row[0]
-                revision_id = _sanitize_db_id(row[1])
+        rows = conn.execute(publication_query.limit(2)).all()
 
-        return revision_id
+        if len(rows) == 0:
+            self.add_error("Expected exactly one publication for rebuild job; found 0")
+            args.publication_count = 0
+            return None
+
+        if len(rows) > 1:
+            self.add_error(f"Expected exactly one publication for rebuild job; found {len(rows)} (ambiguous)")
+            args.publication_count = len(rows)
+            return None
+
+        pub_id, revision_id, execution_id = rows[0]
+        args.publication_count = 1
+
+        if hasattr(args, "execution_id") and args.execution_id:
+            clean_exec_id = _sanitize_db_id(args.execution_id)
+            if clean_exec_id and execution_id != clean_exec_id:
+                self.add_error(
+                    f"Publication execution ID {execution_id} does not match certified execution {clean_exec_id}"
+                )
+                return None
+
+        clean_rev_id = _sanitize_db_id(revision_id)
+        if not clean_rev_id:
+            self.add_error("Invalid revision ID found for publication")
+            return None
+
+        # Fetch revision projection hash to populate args.revision_hash
+        rev_query = select(
+            RelationshipProjectionRevisionORM.projection_hash,
+        ).where(
+            RelationshipProjectionRevisionORM.id == clean_rev_id,
+        )
+        proj_hash = conn.execute(rev_query).scalar()
+        if not proj_hash:
+            self.add_error(f"Revision {clean_rev_id} not found in database")
+            return None
+
+        if not args.revision_hash:
+            args.revision_hash = proj_hash
+
+        # Store IDs in metadata
+        self.metadata["raw_publication_id"] = pub_id
+        self.metadata["raw_revision_id"] = revision_id
+        self.metadata["raw_revision_hash"] = proj_hash
+
+        # Verify expected revision ID if provided (from previous result / metadata in restart mode)
+        if hasattr(args, "expected_revision_id") and args.expected_revision_id:
+            if revision_id != args.expected_revision_id:
+                self.add_error(f"Revision ID mismatch: {revision_id} vs expected {args.expected_revision_id}")
+                return None
+
+        return {
+            "publication_id": pub_id,
+            "revision_id": revision_id,
+            "execution_id": execution_id,
+        }
 
     def _populate_actors_from_db(
         self,
@@ -456,8 +510,12 @@ class ProofValidator:
     def _populate_from_db(self, args: argparse.Namespace, conn: Any) -> None:
         """Populate missing validation fields using active DB connection."""
         rebuild_job_id = self._populate_jobs_and_owner_from_db(args, conn)
-        revision_id = self._populate_revision_hash_from_db(args, conn, rebuild_job_id)
-        self._populate_publication_count_from_db(args, conn, rebuild_job_id)
+        if not rebuild_job_id:
+            return
+        pub_info = self._populate_publication_and_revision_from_db(args, conn, rebuild_job_id)
+        if not pub_info:
+            return
+        revision_id = pub_info["revision_id"]
         self._populate_actors_from_db(args, conn, rebuild_job_id, revision_id)
 
     def _populate_missing_evidence(self, args: argparse.Namespace) -> None:
@@ -504,6 +562,10 @@ class ProofValidator:
 
     def validate_seed_and_publish(self, args: argparse.Namespace) -> dict[str, Any]:
         """Mode 1: Seed and publish validation."""
+        if args.strict and not getattr(args, "rebuild_job_id", None):
+            self.add_error("Rebuild job ID required in strict mode")
+            return self.build_result()
+
         self._populate_missing_evidence(args)
         self.metadata["mode"] = "seed_and_publish"
 
@@ -551,7 +613,7 @@ class ProofValidator:
 
             engine = create_engine(db_url)
             with engine.connect() as conn:
-                rebuild_job_id = _sanitize_db_id(args.run_id)
+                rebuild_job_id = _sanitize_db_id(args.rebuild_job_id)
                 if not rebuild_job_id:
                     self.add_error("Invalid or missing rebuild_job_id")
                     return None
@@ -732,6 +794,9 @@ def setup_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("--revision-hash", help="Validation revision hash value")
     parser.add_argument("--expected-revision-hash", help="Expected target revision hash value")
+    parser.add_argument("--rebuild-job-id", help="Exact rebuild job being certified")
+    parser.add_argument("--execution-id", help="Exact pipeline/rebuild execution correlation being certified")
+    parser.add_argument("--expected-revision-id", help="Expected target revision ID value")
     parser.add_argument("--require-persistence", action="store_true", help="Assert startup persistence")
     parser.add_argument("--startup-source", help="Observed runtime startup source value")
     parser.add_argument("--before-scopes", help="Scope list JSON before promotion")
@@ -944,6 +1009,11 @@ def run_seed_and_publish(db_url: str, deployed_sha: str, run_id: str) -> dict[st
             "proposer_id": proposer_id,
             "determiner_id": determiner_id,
             "owner_id": owner_id,
+            "raw_rebuild_job_id": run_id,
+            "raw_execution_id": run_id,
+            "raw_publication_id": publication.id,
+            "raw_revision_id": revision_id,
+            "raw_revision_hash": projection_hash,
         }
     except Exception:
         import traceback
@@ -972,7 +1042,10 @@ def run_verify_after_restart(
     session = Session()
     try:
         # Query publications and check continuity
-        publication = session.query(RelationshipProjectionPublicationORM).filter_by(rebuild_job_id=run_id).first()
+        rebuild_job_id = prev_metadata.get("raw_rebuild_job_id") or run_id
+        publication = (
+            session.query(RelationshipProjectionPublicationORM).filter_by(rebuild_job_id=rebuild_job_id).first()
+        )
         scope_continuity_passed = False
         historical_reconstruction_passed = False
 
@@ -995,7 +1068,7 @@ def run_verify_after_restart(
                     scope_continuity_passed = True
 
                 # Check history/rebuild jobs are well-formed
-                job = session.query(RebuildJobORM).filter_by(job_id=run_id).first()
+                job = session.query(RebuildJobORM).filter_by(job_id=rebuild_job_id).first()
                 if job and job.status == "succeeded":
                     historical_reconstruction_passed = True
 

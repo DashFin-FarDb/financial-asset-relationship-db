@@ -26,6 +26,14 @@ on:
         description: "GitHub Actions run ID of the successful seed_and_publish proof"
         required: false
         type: string
+      rebuild_job_id:
+        description: "Exact rebuild job ID being certified"
+        required: false
+        type: string
+      execution_id:
+        description: "Exact pipeline/rebuild execution correlation ID being certified"
+        required: false
+        type: string
       require_persistence:
         description: "Require persistence proof in verify_after_restart mode"
         required: false
@@ -268,6 +276,8 @@ jobs:
           STARTUP_SOURCE: ${{ inputs.startup_source }}
           HOSTED_READINESS_BASE_URL: ${{ secrets.HOSTED_READINESS_BASE_URL }}
           RUN_ID: ${{ github.run_id }}
+          REBUILD_JOB_ID: ${{ inputs.rebuild_job_id }}
+          EXECUTION_ID: ${{ inputs.execution_id }}
         run: |
           if [ "$MODE" = "seed_and_publish" ]; then
             ARGS=("seed_and_publish")
@@ -288,6 +298,14 @@ jobs:
 
             if [ "$STRICT_MODE" = "true" ]; then
               ARGS+=("--strict")
+            fi
+
+            # Pass rebuild_job_id and execution_id if configured
+            if [ -n "$REBUILD_JOB_ID" ]; then
+              ARGS+=("--rebuild-job-id" "$REBUILD_JOB_ID")
+            fi
+            if [ -n "$EXECUTION_ID" ]; then
+              ARGS+=("--execution-id" "$EXECUTION_ID")
             fi
 
             # Pass github.run_id as run-id for tracking
@@ -349,9 +367,17 @@ jobs:
               EXPECTED_REVISION_HASH=$(jq -er '.metadata.raw_revision_hash' "$PREVIOUS_RESULT")
             fi
 
+            # Load raw lineage values from seed artifact
+            REBUILD_JOB_ID_VAL=$(jq -er '.metadata.raw_rebuild_job_id' "$PREVIOUS_RESULT")
+            EXECUTION_ID_VAL=$(jq -er '.metadata.raw_execution_id' "$PREVIOUS_RESULT")
+            EXPECTED_REVISION_ID_VAL=$(jq -er '.metadata.raw_revision_id' "$PREVIOUS_RESULT")
+
             ARGS+=("--before-scopes" "$BEFORE_SCOPES")
             ARGS+=("--history-entries" "$HISTORY_ENTRIES")
             ARGS+=("--expected-revision-hash" "$EXPECTED_REVISION_HASH")
+            ARGS+=("--rebuild-job-id" "$REBUILD_JOB_ID_VAL")
+            ARGS+=("--execution-id" "$EXECUTION_ID_VAL")
+            ARGS+=("--expected-revision-id" "$EXPECTED_REVISION_ID_VAL")
 
             # Pass github.run_id as run-id for tracking
             ARGS+=("--run-id" "$RUN_ID")
@@ -398,11 +424,11 @@ jobs:
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: staging-proof-${{ inputs.mode }}-${{ github.run_number }}
+          name: staging-proof-${{ inputs.mode }}-${{ github.run_id }}
           path: |
             proof-source/staging-proof-result.json
             proof-source/authz-evidence.json
-          if-no-files-found: warn
+          if-no-files-found: error
 
       - name: Emit proof summary
         if: always()

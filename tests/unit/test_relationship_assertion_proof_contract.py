@@ -156,7 +156,13 @@ def test_restart_scopes_lookup_failures() -> None:
     import os
 
     os.environ["DATABASE_URL"] = url
-    args = Namespace(before_scopes='["scope-1"]', after_scopes=None, run_id="nonexistent-run", strict=True)
+    args = Namespace(
+        before_scopes='["scope-1"]',
+        after_scopes=None,
+        run_id="nonexistent-run",
+        rebuild_job_id="nonexistent-run",
+        strict=True,
+    )
     validator._validate_restart_scopes(args)
     assert any("Expected publication" in err for err in validator.errors)
 
@@ -214,7 +220,7 @@ def test_restart_scopes_lookup_failures() -> None:
     session.close()
 
     validator.errors.clear()
-    args.run_id = "malformed-run"
+    args.rebuild_job_id = "malformed-run"
     validator._validate_restart_scopes(args)
     assert any("governed_scopes is malformed" in err for err in validator.errors)
 
