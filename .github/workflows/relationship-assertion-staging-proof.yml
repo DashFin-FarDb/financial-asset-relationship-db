@@ -305,7 +305,7 @@ jobs:
 
             ARGS=("seed_and_publish")
             ARGS+=("--deployed-sha" "$DEPLOYED_SHA")
-            ARGS+=("--output" "staging-proof-result.json")
+            ARGS+=("--write-output")
 
             if [ -n "$CONTRACT_DIGEST" ]; then
               ARGS+=("--contract-digest" "$CONTRACT_DIGEST")
@@ -316,7 +316,7 @@ jobs:
             fi
 
             if [ -f "authz-evidence.json" ]; then
-              ARGS+=("--authz-evidence" "authz-evidence.json")
+              ARGS+=("--check-authz")
             fi
 
             if [ "$STRICT_MODE" = "true" ]; then
@@ -338,7 +338,7 @@ jobs:
           else
             ARGS=("verify_after_restart")
             ARGS+=("--deployed-sha" "$DEPLOYED_SHA")
-            ARGS+=("--output" "staging-proof-result.json")
+            ARGS+=("--write-output")
 
             if [ "$REQUIRE_PERSISTENCE" = "true" ]; then
               ARGS+=("--require-persistence")
@@ -364,7 +364,7 @@ jobs:
             fi
 
             if [ -f "authz-evidence.json" ]; then
-              ARGS+=("--authz-evidence" "authz-evidence.json")
+              ARGS+=("--check-authz")
             fi
 
             if [ "$STRICT_MODE" = "true" ]; then

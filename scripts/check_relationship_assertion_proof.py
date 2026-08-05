@@ -48,6 +48,9 @@ _ALLOWED_EVIDENCE_FILENAMES = frozenset(
     }
 )
 
+PROOF_RESULT_FILENAME = "staging-proof-result.json"
+AUTHZ_EVIDENCE_FILENAME = "authz-evidence.json"
+
 
 def validate_safe_path(path: str) -> pathlib.Path:
     """Resolve one explicitly permitted evidence filename."""
@@ -207,10 +210,10 @@ class ProofValidator:
         """Validate file path to prevent path traversal attacks (CWE-22)."""
         return str(validate_safe_path(path))
 
-    def load_authz_evidence(self, path: str, expected_sha: str) -> dict[str, Any]:
+    def load_authz_evidence(self, expected_sha: str) -> dict[str, Any]:
         """Load and validate authorization evidence."""
         try:
-            safe_path = validate_safe_path(path)
+            safe_path = validate_safe_path(AUTHZ_EVIDENCE_FILENAME)
             with open(safe_path, encoding="utf-8") as f:
                 data = json.load(f)
 
@@ -271,12 +274,12 @@ class ProofValidator:
 
     def _validate_authz(self, args: argparse.Namespace) -> None:
         """Validate authorization evidence file."""
-        if not args.authz_evidence and args.strict:
-            self.add_error("Authz evidence required in strict mode")
-            return
+        if not args.check_authz and args.strict:
+            self.add_error("Strict mode requires authorization evidence")
 
-        if args.authz_evidence:
-            authz_meta = self.load_authz_evidence(args.authz_evidence, args.deployed_sha)
+        authz_meta = None
+        if args.check_authz:
+            authz_meta = self.load_authz_evidence(args.deployed_sha)
             self.metadata.update(authz_meta)
 
     def _validate_actors(self, args: argparse.Namespace) -> None:
@@ -597,7 +600,7 @@ class ProofValidator:
 
     def _load_evidence_from_file(self, args: argparse.Namespace) -> None:
         """Load previous metadata from local file if available."""
-        prev_path = args.output or "staging-proof-result.json"
+        prev_path = PROOF_RESULT_FILENAME
         try:
             safe_prev_path = self._validate_safe_path(prev_path)
         except Exception as err:
@@ -690,10 +693,11 @@ class ProofValidator:
             self.metadata["startup"] = args.startup_source or "N/A"
 
     def _validate_restart_authz(self, args: argparse.Namespace) -> None:
-        """Validate authorization proof evidence."""
-        if args.authz_evidence or args.strict:
-            if args.authz_evidence:
-                authz_meta = self.load_authz_evidence(args.authz_evidence, args.deployed_sha)
+        """Validate authorization evidence."""
+        authz_meta = None
+        if args.check_authz or args.strict:
+            if args.check_authz:
+                authz_meta = self.load_authz_evidence(args.deployed_sha)
                 self.metadata.update(authz_meta)
             else:
                 self.add_error("Authz evidence required in strict mode")
@@ -842,11 +846,11 @@ class ProofValidator:
         }
 
 
-def display_result(result: dict[str, Any], output_path: str | None) -> None:
+def display_result(result: dict[str, Any], write_output: bool) -> None:
     """Show validation result."""
-    if output_path:
+    if write_output:
         # Validate output path to prevent path traversal (CWE-22)
-        safe_path = validate_safe_path(output_path)
+        safe_path = validate_safe_path(PROOF_RESULT_FILENAME)
 
         flags = os.O_WRONLY | os.O_CREAT | os.O_TRUNC
         if hasattr(os, "O_NOFOLLOW"):
@@ -881,7 +885,7 @@ def setup_parser() -> argparse.ArgumentParser:
     parser.add_argument("--run-number", default=os.getenv("GITHUB_RUN_NUMBER", "0"))
     parser.add_argument("--contract-digest", help="Staging validation contract digest")
     parser.add_argument("--registry-digest", help="Staging validation registry digest")
-    parser.add_argument("--authz-evidence", help="Authorization pass evidence file")
+    parser.add_argument("--check-authz", action="store_true", help="Check authorization pass evidence file")
     parser.add_argument("--proposer-id", help="Proposer actor signature UUID")
     parser.add_argument("--determiner-id", help="Determiner actor signature UUID")
     parser.add_argument("--executor-id", help="Executor actor signature UUID")
@@ -907,7 +911,7 @@ def setup_parser() -> argparse.ArgumentParser:
     parser.add_argument("--expected-min-history", type=int, default=1, help="Minimum history length")
     parser.add_argument("--empty-edge-before-scopes", help="Empty-edge scope list JSON before promotion")
     parser.add_argument("--empty-edge-after-scopes", help="Empty-edge scope list JSON after promotion")
-    parser.add_argument("--output", help="Proof validation JSON output filepath")
+    parser.add_argument("--write-output", action="store_true", help="Write proof validation JSON output")
     parser.add_argument("--strict", action="store_true", help="Fail validation on any warning")
     return parser
 
@@ -930,7 +934,7 @@ def main(argv: list[str] | None = None) -> int:
         else:
             result = validator.validate_verify_after_restart(args)
 
-        display_result(result, args.output)
+        display_result(result, args.write_output)
 
         return EXIT_SUCCESS if result["status"] == "passed" else EXIT_FAILURE
 
