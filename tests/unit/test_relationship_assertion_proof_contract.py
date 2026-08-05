@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from argparse import Namespace
 from pathlib import Path
 from unittest.mock import patch
 
@@ -136,7 +137,6 @@ def test_restart_scopes_lookup_failures(monkeypatch: pytest.MonkeyPatch) -> None
     """Test that _validate_restart_scopes fails on missing, multiple, or malformed DB data."""
     import shutil
     import tempfile
-    from argparse import Namespace
 
     from src.data.database import create_engine_from_url, init_db
 
@@ -221,3 +221,63 @@ def test_restart_scopes_lookup_failures(monkeypatch: pytest.MonkeyPatch) -> None
     assert any("governed_scopes is malformed" in err for err in validator.errors)
     engine.dispose()
     shutil.rmtree(temp_dir)
+
+
+def test_strict_mode_seed_and_publish_no_expected_revision():
+    validator = ProofValidator({})
+    args = Namespace(
+        strict=True,
+        mode="seed_and_publish",
+        revision_hash="a" * 64,
+        expected_revision_hash=None,
+    )
+    validator._validate_revision(args)
+    assert not validator.errors
+
+
+def test_strict_mode_verify_after_restart_requires_expected_revision():
+    validator = ProofValidator({})
+    args = Namespace(
+        strict=True,
+        mode="verify_after_restart",
+        revision_hash="a" * 64,
+        expected_revision_hash=None,
+    )
+    validator._validate_revision(args)
+    assert any("Expected revision hash required" in err for err in validator.errors)
+
+
+def test_validate_revision_scopes_malformed():
+    import json
+    from unittest.mock import MagicMock
+
+    validator = ProofValidator({})
+    conn = MagicMock()
+    conn.execute().first.return_value = ("hash", json.dumps({"not": "a list"}))
+    result = validator._get_and_validate_revision_scopes(conn=conn, clean_rev_id="r")
+    assert result is None
+    assert any("must be a non-empty list" in err for err in validator.errors)
+
+
+def test_validate_revision_scopes_invalid_objects():
+    import json
+    from unittest.mock import MagicMock
+
+    validator = ProofValidator({})
+    conn = MagicMock()
+    conn.execute().first.return_value = ("hash", json.dumps([{"predicate_id": 123}]))
+    result = validator._get_and_validate_revision_scopes(conn=conn, clean_rev_id="r")
+    assert result is None
+    assert any("invalid or missing predicate_id" in err for err in validator.errors)
+
+
+def test_validate_revision_scopes_valid_objects():
+    import json
+    from unittest.mock import MagicMock
+
+    validator = ProofValidator({})
+    conn = MagicMock()
+    conn.execute().first.return_value = ("hash", json.dumps([{"predicate_id": "scope-1"}, {"predicate_id": "scope-2"}]))
+    result = validator._get_and_validate_revision_scopes(conn=conn, clean_rev_id="r")
+    assert result == ("hash", ["scope-1", "scope-2"])
+    assert not validator.errors

@@ -315,7 +315,7 @@ class ProofValidator:
                         f"expected {args.expected_revision_hash[:8]}..."
                     )
                 self.metadata["expected_revision"] = args.expected_revision_hash[:8] + "..."
-            elif args.strict:
+            elif args.strict and args.mode != "seed_and_publish":
                 self.add_error("Expected revision hash required in strict mode")
         elif args.strict:
             self.add_error("Revision hash required in strict mode")
@@ -444,15 +444,24 @@ class ProofValidator:
             return None
 
         if not isinstance(governed_scopes, list) or not governed_scopes:
-            self.add_error("Certified revision governed_scopes must be a non-empty list of identifiers")
+            self.add_error("Certified revision governed_scopes must be a non-empty list of identifiers or objects")
             return None
 
-        is_valid = all(isinstance(scope, str) and scope.strip() for scope in governed_scopes)
-        if not is_valid:
-            self.add_error("Certified revision governed_scopes must be a non-empty list of identifiers")
+        parsed_scopes = []
+        for scope in governed_scopes:
+            if isinstance(scope, str):
+                parsed_scopes.append(scope)
+            elif isinstance(scope, dict) and "predicate_id" in scope and isinstance(scope["predicate_id"], str):
+                parsed_scopes.append(scope["predicate_id"])
+            else:
+                self.add_error("Certified revision governed_scopes contains invalid or missing predicate_id entries")
+                return None
+
+        if not all(scope.strip() for scope in parsed_scopes):
+            self.add_error("Certified revision governed_scopes contains invalid or missing predicate_id entries")
             return None
 
-        return proj_hash, governed_scopes
+        return proj_hash, parsed_scopes
 
     def _populate_publication_and_revision_from_db(
         self, args: argparse.Namespace, conn: Any, rebuild_job_id: str
