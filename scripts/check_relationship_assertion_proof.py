@@ -21,7 +21,7 @@ from datetime import datetime, timezone
 from typing import Any, Sequence
 from urllib.parse import urlparse
 
-from sqlalchemy import select
+from sqlalchemy import bindparam, select
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.sql.functions import count
 
@@ -718,9 +718,15 @@ class ProofValidator:
                 count_stmt = (
                     select(count())
                     .select_from(RelationshipProjectionPublicationORM)
-                    .where(RelationshipProjectionPublicationORM.rebuild_job_id == rebuild_job_id)
+                    .where(RelationshipProjectionPublicationORM.rebuild_job_id == bindparam("restart_rebuild_job_id"))
                 )
-                pub_count = int(conn.execute(count_stmt).scalar() or 0)
+                pub_count = int(
+                    conn.execute(
+                        count_stmt,
+                        {"restart_rebuild_job_id": rebuild_job_id},
+                    ).scalar()
+                    or 0
+                )
                 if pub_count == 0:
                     self.add_error(f"Expected publication for rebuild job {rebuild_job_id} not found")
                     return None
@@ -730,18 +736,24 @@ class ProofValidator:
 
                 # Fetch publication and revision
                 pub_stmt = select(RelationshipProjectionPublicationORM.revision_id).where(
-                    RelationshipProjectionPublicationORM.rebuild_job_id == rebuild_job_id
+                    RelationshipProjectionPublicationORM.rebuild_job_id == bindparam("restart_publication_job_id")
                 )
-                raw_revision_id = conn.execute(pub_stmt).scalar()
+                raw_revision_id = conn.execute(
+                    pub_stmt,
+                    {"restart_publication_job_id": rebuild_job_id},
+                ).scalar()
                 revision_id = _sanitize_db_id(raw_revision_id)
                 if not revision_id:
                     self.add_error("Revision ID not found or invalid for publication")
                     return None
 
                 rev_stmt = select(RelationshipProjectionRevisionORM.governed_scopes).where(
-                    RelationshipProjectionRevisionORM.id == revision_id
+                    RelationshipProjectionRevisionORM.id == bindparam("restart_revision_id")
                 )
-                rev_scopes = conn.execute(rev_stmt).scalar()
+                rev_scopes = conn.execute(
+                    rev_stmt,
+                    {"restart_revision_id": revision_id},
+                ).scalar()
                 if rev_scopes is None:
                     self.add_error(f"Revision {revision_id} cannot be found")
                     return None
@@ -859,13 +871,17 @@ class ProofValidator:
 
             engine = create_engine(db_url)
             with engine.connect() as conn:
-                publication_rows = conn.execute(
+                publication_stmt = (
                     select(
                         RelationshipProjectionPublicationORM.revision_id,
                         RelationshipProjectionPublicationORM.execution_id,
                     )
-                    .where(RelationshipProjectionPublicationORM.rebuild_job_id == rebuild_job_id)
+                    .where(RelationshipProjectionPublicationORM.rebuild_job_id == bindparam("history_rebuild_job_id"))
                     .limit(2)
+                )
+                publication_rows = conn.execute(
+                    publication_stmt,
+                    {"history_rebuild_job_id": rebuild_job_id},
                 ).all()
                 if len(publication_rows) != 1:
                     self.add_error("Historical reconstruction requires exactly one certified publication")
@@ -883,8 +899,9 @@ class ProofValidator:
                     row[0]
                     for row in conn.execute(
                         select(RelationshipProjectionEdgeORM.assertion_id)
-                        .where(RelationshipProjectionEdgeORM.revision_id == expected_revision_id)
-                        .distinct()
+                        .where(RelationshipProjectionEdgeORM.revision_id == bindparam("history_revision_id"))
+                        .distinct(),
+                        {"history_revision_id": expected_revision_id},
                     ).all()
                     if row[0]
                 ]
@@ -894,8 +911,9 @@ class ProofValidator:
                     events = (
                         conn.execute(
                             select(RelationshipAssertionEventORM)
-                            .where(RelationshipAssertionEventORM.assertion_id == assertion_id)
-                            .order_by(RelationshipAssertionEventORM.sequence)
+                            .where(RelationshipAssertionEventORM.assertion_id == bindparam("history_assertion_id"))
+                            .order_by(RelationshipAssertionEventORM.sequence),
+                            {"history_assertion_id": assertion_id},
                         )
                         .scalars()
                         .all()
