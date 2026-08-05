@@ -627,9 +627,13 @@ class ProofValidator:
 
     def validate_seed_and_publish(self, args: argparse.Namespace) -> dict[str, Any]:
         """Mode 1: Seed and publish validation."""
-        if args.strict and not getattr(args, "rebuild_job_id", None):
-            self.add_error("Rebuild job ID required in strict mode")
-            return self.build_result()
+        if args.strict:
+            if not getattr(args, "rebuild_job_id", None):
+                self.add_error("Rebuild job ID required in strict mode")
+            if not getattr(args, "execution_id", None):
+                self.add_error("Execution ID required in strict mode")
+            if self.errors:
+                return self.build_result()
 
         self._populate_missing_evidence(args)
         self.metadata["mode"] = "seed_and_publish"

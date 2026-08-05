@@ -31,7 +31,7 @@ on:
         required: false
         type: string
       execution_id:
-        description: "Exact pipeline/rebuild execution correlation ID being certified"
+        description: "Exact pipeline/rebuild execution ID; required for strict seed_and_publish"
         required: false
         type: string
       require_persistence:
@@ -292,6 +292,17 @@ jobs:
           EXECUTION_ID: ${{ inputs.execution_id }}
         run: |
           if [ "$MODE" = "seed_and_publish" ]; then
+            if [ "$STRICT_MODE" = "true" ]; then
+              if [ -z "$REBUILD_JOB_ID" ]; then
+                echo "Error: rebuild_job_id is required for strict seed_and_publish"
+                exit 1
+              fi
+              if [ -z "$EXECUTION_ID" ]; then
+                echo "Error: execution_id is required for strict seed_and_publish"
+                exit 1
+              fi
+            fi
+
             ARGS=("seed_and_publish")
             ARGS+=("--deployed-sha" "$DEPLOYED_SHA")
             ARGS+=("--output" "staging-proof-result.json")
