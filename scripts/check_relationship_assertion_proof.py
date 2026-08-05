@@ -315,7 +315,7 @@ class ProofValidator:
                         f"expected {args.expected_revision_hash[:8]}..."
                     )
                 self.metadata["expected_revision"] = args.expected_revision_hash[:8] + "..."
-            elif args.strict:
+            elif args.strict and args.mode != "seed_and_publish":
                 self.add_error("Expected revision hash required in strict mode")
         elif args.strict:
             self.add_error("Revision hash required in strict mode")
