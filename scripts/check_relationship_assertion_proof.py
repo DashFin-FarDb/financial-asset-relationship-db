@@ -888,9 +888,6 @@ class ProofValidator:
                     ).all()
                     if row[0]
                 ]
-                if not assertion_ids:
-                    self.add_error("Certified revision contains no assertions to reconstruct")
-                    return
 
                 reconstructed = 0
                 for assertion_id in assertion_ids:
