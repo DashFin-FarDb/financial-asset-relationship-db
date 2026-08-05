@@ -1,0 +1,511 @@
+name: Governed Relationship Assertion Staging Proof
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "Proof mode: seed_and_publish or verify_after_restart"
+        required: true
+        type: choice
+        options:
+          - seed_and_publish
+          - verify_after_restart
+      deployed_sha:
+        description: "Deployed Git commit SHA (40-character hex)"
+        required: true
+        type: string
+      contract_digest:
+        description: "GRAC v1 contract digest (SHA-256)"
+        required: true
+        type: string
+      registry_digest:
+        description: "GRAC v1 registry digest (SHA-256)"
+        required: true
+        type: string
+      seed_run_id:
+        description: "GitHub Actions run ID of the successful seed_and_publish proof"
+        required: false
+        type: string
+      rebuild_job_id:
+        description: "Exact rebuild job ID being certified"
+        required: false
+        type: string
+      execution_id:
+        description: "Exact pipeline/rebuild execution ID; required for strict seed_and_publish"
+        required: false
+        type: string
+      require_persistence:
+        description: "Require persistence proof in verify_after_restart mode"
+        required: false
+        type: boolean
+        default: true
+      startup_source:
+        description: "Deployed instance startup source (e.g. 'persisted' or 'memory')"
+        required: false
+        type: string
+        default: "persisted"
+      strict_mode:
+        description: "Enable strict validation (fail on missing optional evidence)"
+        required: false
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}-${{ inputs.mode }}
+  cancel-in-progress: false
+
+jobs:
+  staging-proof:
+    runs-on: ubuntu-latest
+    environment: staging-manual-gate
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout trusted proof source
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          ref: main
+          path: proof-source
+          persist-credentials: false
+          fetch-depth: 0
+
+      - name: Validate deployed SHA format
+        env:
+          DEPLOYED_SHA: ${{ inputs.deployed_sha }}
+        run: |
+          if [ -z "$DEPLOYED_SHA" ]; then
+            echo "Error: deployed_sha is required"
+            exit 1
+          fi
+          if [ ${#DEPLOYED_SHA} -ne 40 ]; then
+            echo "Error: deployed_sha must be 40 characters (got ${#DEPLOYED_SHA})"
+            exit 1
+          fi
+          if ! echo "$DEPLOYED_SHA" | grep -qE '^[0-9a-fA-F]{40}$'; then
+            echo "Error: deployed_sha must be a 40-character hexadecimal string"
+            exit 1
+          fi
+
+      - name: Verify SHA is ancestor of main
+        working-directory: proof-source
+        env:
+          DEPLOYED_SHA: ${{ inputs.deployed_sha }}
+        run: |
+          if ! git merge-base --is-ancestor "$DEPLOYED_SHA" origin/main 2>/dev/null; then
+            echo "Error: $DEPLOYED_SHA is not an ancestor of main branch. Execution halted for security."
+            exit 1
+          fi
+
+      - name: Install Python dependencies
+        uses: ./proof-source/.github/actions/ci-common
+        with:
+          language: python
+          python-version: "3.12"
+          dependency-paths: |
+            proof-source/requirements.txt
+            proof-source/requirements-dev.txt
+          working-directory: proof-source
+          install: |
+            pip install -r requirements.txt
+            pip install -r requirements-dev.txt
+
+      - name: Mask sensitive environment variables
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          ASSET_GRAPH_DATABASE_URL: ${{ secrets.ASSET_GRAPH_DATABASE_URL }}
+          COORDINATION_DATABASE_URL: ${{ secrets.COORDINATION_DATABASE_URL }}
+        run: |
+          if [ -n "$DATABASE_URL" ]; then
+            DB_URL_VAL="$DATABASE_URL"
+            echo "::add-mask::$DB_URL_VAL"
+          fi
+          if [ -n "$ASSET_GRAPH_DATABASE_URL" ]; then
+            AG_DB_URL_VAL="$ASSET_GRAPH_DATABASE_URL"
+            echo "::add-mask::$AG_DB_URL_VAL"
+          fi
+          if [ -n "$COORDINATION_DATABASE_URL" ]; then
+            COORD_DB_URL_VAL="$COORDINATION_DATABASE_URL"
+            echo "::add-mask::$COORD_DB_URL_VAL"
+          fi
+
+      - name: Run database authorization check
+        id: check_authz
+        working-directory: proof-source
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          ASSET_GRAPH_DATABASE_URL: ${{ secrets.ASSET_GRAPH_DATABASE_URL }}
+          COORDINATION_DATABASE_URL: ${{ secrets.COORDINATION_DATABASE_URL }}
+          POSTGRES_URL: ${{ secrets.POSTGRES_URL }}
+          FARDB_UNTRUSTED_DATABASE_ROLES: ${{ secrets.FARDB_UNTRUSTED_DATABASE_ROLES }}
+          FARDB_EXPOSED_DATABASE_SCHEMAS: ${{ secrets.FARDB_EXPOSED_DATABASE_SCHEMAS }}
+          FARDB_EXPOSED_DATABASE_SCHEMAS_DATABASE: ${{ secrets.FARDB_EXPOSED_DATABASE_SCHEMAS_DATABASE }}
+          FARDB_EXPOSED_DATABASE_SCHEMAS_ASSET_GRAPH: ${{ secrets.FARDB_EXPOSED_DATABASE_SCHEMAS_ASSET_GRAPH }}
+          FARDB_EXPOSED_DATABASE_SCHEMAS_COORDINATION: ${{ secrets.FARDB_EXPOSED_DATABASE_SCHEMAS_COORDINATION }}
+          FARDB_EXPOSED_DATABASE_SCHEMAS_POSTGRES: ${{ secrets.FARDB_EXPOSED_DATABASE_SCHEMAS_POSTGRES }}
+          DEPLOYED_SHA: ${{ inputs.deployed_sha }}
+        run: |
+          set -e
+
+          # Verify a PostgreSQL URL is genuinely configured before running the check
+          python - <<'PY'
+          import os
+          from urllib.parse import urlparse
+
+          names = (
+              "DATABASE_URL",
+              "ASSET_GRAPH_DATABASE_URL",
+              "COORDINATION_DATABASE_URL",
+              "POSTGRES_URL",
+          )
+
+          configured = [
+              os.environ[name]
+              for name in names
+              if os.environ.get(name)
+          ]
+
+          postgresql_checked = any(
+              urlparse(value).scheme in {"postgres", "postgresql"}
+              for value in configured
+          )
+
+          if not postgresql_checked:
+              raise SystemExit(
+                  "PostgreSQL authorization proof required, but no PostgreSQL URL is configured"
+              )
+          PY
+
+          # Run authorization check
+          python scripts/check_database_authorization.py
+          authz_exit=$?
+
+          # Use environment variable to prevent script injection
+          DEPLOYED_SHA_VAR="$DEPLOYED_SHA"
+
+          if [ $authz_exit -eq 0 ]; then
+            echo "{\"status\":\"passed\",\"sha\":\"$DEPLOYED_SHA_VAR\",\"postgresql_checked\":true}" > authz-evidence.json
+            echo "Database authorization check passed"
+          else
+            echo "{\"status\":\"failed\",\"sha\":\"$DEPLOYED_SHA_VAR\",\"postgresql_checked\":true,\"exit_code\":$authz_exit}" > authz-evidence.json
+            echo "Database authorization check failed with exit code $authz_exit"
+            exit 1
+          fi
+
+      - name: Download seed artifact
+        if: ${{ inputs.mode == 'verify_after_restart' }}
+        working-directory: proof-source
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SEED_RUN_ID: ${{ inputs.seed_run_id }}
+          EXPECTED_DEPLOYED_SHA: ${{ inputs.deployed_sha }}
+        run: |
+          if [ -z "$SEED_RUN_ID" ]; then
+            echo "Error: seed_run_id is required in verify_after_restart mode"
+            exit 1
+          fi
+          echo "Downloading seed artifact from run $SEED_RUN_ID..."
+          gh run download "$SEED_RUN_ID" \
+            --repo "$GITHUB_REPOSITORY" \
+            --name "staging-proof-seed_and_publish-$SEED_RUN_ID" \
+            --dir previous-proof
+
+          PREVIOUS_RESULT="previous-proof/staging-proof-result.json"
+          if [ ! -f "$PREVIOUS_RESULT" ]; then
+            echo "Error: staging-proof-result.json not found in downloaded artifact"
+            exit 1
+          fi
+
+          # Validate that the artifact:
+          # - came from seed_and_publish
+          ACTUAL_MODE=$(jq -r '.metadata.mode' "$PREVIOUS_RESULT")
+          if [ "$ACTUAL_MODE" != "seed_and_publish" ]; then
+            echo "Error: Artifact mode is not seed_and_publish (got $ACTUAL_MODE)"
+            exit 1
+          fi
+
+          # - has status passed
+          STATUS=$(jq -r '.status' "$PREVIOUS_RESULT")
+          if [ "$STATUS" != "passed" ]; then
+            echo "Error: Artifact status is not passed (got $STATUS)"
+            exit 1
+          fi
+
+          # - is bound to the same deployed SHA
+          ARTIFACT_SHA=$(jq -er '.metadata.deployed_sha' "$PREVIOUS_RESULT")
+          if [ "$ARTIFACT_SHA" != "$EXPECTED_DEPLOYED_SHA" ]; then
+            echo "Error: Deployed SHA mismatch (artifact: $ARTIFACT_SHA vs expected: $EXPECTED_DEPLOYED_SHA)"
+            exit 1
+          fi
+
+          # - contains the expected run ID
+          ARTIFACT_RUN_ID=$(jq -r '.metadata.github_run_id' "$PREVIOUS_RESULT")
+          if [ "$ARTIFACT_RUN_ID" != "$SEED_RUN_ID" ]; then
+            echo "Error: Run ID mismatch (artifact: $ARTIFACT_RUN_ID vs input: $SEED_RUN_ID)"
+            exit 1
+          fi
+
+          # - contains required revision and a non-empty governed-scope baseline
+          if jq -e '.evidence.observed.revision_hash // .metadata.raw_revision_hash'             "$PREVIOUS_RESULT" >/dev/null 2>&1; then
+            echo "Artifact contains revision evidence"
+          else
+            echo "Error: Missing required revision evidence in artifact"
+            exit 1
+          fi
+
+          if jq -e '
+            (
+              .evidence.observed.governed_scopes //
+              .metadata.raw_governed_scopes
+            )
+            | select(type == "array" and length > 0)
+          ' "$PREVIOUS_RESULT" >/dev/null 2>&1; then
+            echo "Artifact contains a non-empty governed-scope baseline"
+          else
+            echo "Error: Missing or empty governed-scope baseline in seed artifact"
+            exit 1
+          fi
+
+          cp "$PREVIOUS_RESULT" previous-staging-proof-result.json
+
+      - name: Run staging proof validation
+        working-directory: proof-source
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          DEPLOYED_SHA: ${{ inputs.deployed_sha }}
+          CONTRACT_DIGEST: ${{ inputs.contract_digest }}
+          REGISTRY_DIGEST: ${{ inputs.registry_digest }}
+          STRICT_MODE: ${{ inputs.strict_mode }}
+          REQUIRE_PERSISTENCE: ${{ inputs.require_persistence }}
+          MODE: ${{ inputs.mode }}
+          STARTUP_SOURCE: ${{ inputs.startup_source }}
+          HOSTED_READINESS_BASE_URL: ${{ secrets.HOSTED_READINESS_BASE_URL }}
+          RUN_ID: ${{ github.run_id }}
+          REBUILD_JOB_ID: ${{ inputs.rebuild_job_id }}
+          EXECUTION_ID: ${{ inputs.execution_id }}
+        run: |
+          if [ "$MODE" = "seed_and_publish" ]; then
+            if [ "$STRICT_MODE" = "true" ]; then
+              if [ -z "$REBUILD_JOB_ID" ]; then
+                echo "Error: rebuild_job_id is required for strict seed_and_publish"
+                exit 1
+              fi
+              if [ -z "$EXECUTION_ID" ]; then
+                echo "Error: execution_id is required for strict seed_and_publish"
+                exit 1
+              fi
+            fi
+
+            ARGS=("seed_and_publish")
+            ARGS+=("--deployed-sha" "$DEPLOYED_SHA")
+            ARGS+=("--write-output")
+
+            if [ -n "$CONTRACT_DIGEST" ]; then
+              ARGS+=("--contract-digest" "$CONTRACT_DIGEST")
+            fi
+
+            if [ -n "$REGISTRY_DIGEST" ]; then
+              ARGS+=("--registry-digest" "$REGISTRY_DIGEST")
+            fi
+
+            if [ -f "authz-evidence.json" ]; then
+              ARGS+=("--check-authz")
+            fi
+
+            if [ "$STRICT_MODE" = "true" ]; then
+              ARGS+=("--strict")
+            fi
+
+            # Pass rebuild_job_id and execution_id if configured
+            if [ -n "$REBUILD_JOB_ID" ]; then
+              ARGS+=("--rebuild-job-id" "$REBUILD_JOB_ID")
+            fi
+            if [ -n "$EXECUTION_ID" ]; then
+              ARGS+=("--execution-id" "$EXECUTION_ID")
+            fi
+
+            # Pass github.run_id as run-id for tracking
+            ARGS+=("--run-id" "$RUN_ID")
+
+            python scripts/check_relationship_assertion_proof.py "${ARGS[@]}"
+          else
+            ARGS=("verify_after_restart")
+            ARGS+=("--deployed-sha" "$DEPLOYED_SHA")
+            ARGS+=("--write-output")
+
+            if [ "$REQUIRE_PERSISTENCE" = "true" ]; then
+              ARGS+=("--require-persistence")
+
+              # Fetch startup_source from the observed runtime state of the running staging instance
+              if [ -z "$HOSTED_READINESS_BASE_URL" ]; then
+                echo "Error: Staging readiness URL is required for persistence proof"
+                exit 1
+              fi
+
+              echo "Querying detailed health endpoint to observe runtime startup source..."
+              HEALTH_JSON=$(curl --fail --silent --show-error --max-time 10 "$HOSTED_READINESS_BASE_URL/api/health/detailed")
+              OBSERVED_STARTUP_SOURCE=$(echo "$HEALTH_JSON" | jq -r '.graph.startup_source // empty')
+              if [ -z "$OBSERVED_STARTUP_SOURCE" ]; then
+                echo "Error: detailed health response did not provide graph.startup_source"
+                exit 1
+              fi
+
+              FINAL_STARTUP_SOURCE="$OBSERVED_STARTUP_SOURCE"
+              echo "Observed startup source: $FINAL_STARTUP_SOURCE"
+
+              ARGS+=("--startup-source" "$FINAL_STARTUP_SOURCE")
+            fi
+
+            if [ -f "authz-evidence.json" ]; then
+              ARGS+=("--check-authz")
+            fi
+
+            if [ "$STRICT_MODE" = "true" ]; then
+              ARGS+=("--strict")
+            fi
+
+            PREVIOUS_RESULT="previous-staging-proof-result.json"
+            if [ ! -f "$PREVIOUS_RESULT" ]; then
+              echo "Error: $PREVIOUS_RESULT is required for verify_after_restart"
+              exit 1
+            fi
+
+            # Extract an independently recorded, non-empty seed baseline.
+            # Empty or absent scopes are a hard failure; never substitute [].
+            BEFORE_SCOPES=$(jq -cer '
+              (
+                .evidence.observed.governed_scopes //
+                .metadata.raw_governed_scopes
+              )
+              | select(type == "array" and length > 0)
+            ' "$PREVIOUS_RESULT")
+            HISTORY_ENTRIES=$(jq -cer '
+              (
+                .evidence.history.execution_history //
+                .metadata.history_entries
+              )
+              | select(type == "array" and length > 0)
+            ' "$PREVIOUS_RESULT")
+            EXPECTED_REVISION_HASH=$(jq -er '
+              .evidence.observed.revision_hash //
+              .metadata.raw_revision_hash
+            ' "$PREVIOUS_RESULT")
+
+            # Load raw lineage values from seed artifact
+            REBUILD_JOB_ID_VAL=$(jq -er '.metadata.raw_rebuild_job_id' "$PREVIOUS_RESULT")
+            EXECUTION_ID_VAL=$(jq -er '.metadata.raw_execution_id' "$PREVIOUS_RESULT")
+            EXPECTED_REVISION_ID_VAL=$(jq -er '.metadata.raw_revision_id' "$PREVIOUS_RESULT")
+
+            ARGS+=("--before-scopes" "$BEFORE_SCOPES")
+            ARGS+=("--history-entries" "$HISTORY_ENTRIES")
+            ARGS+=("--expected-revision-hash" "$EXPECTED_REVISION_HASH")
+            ARGS+=("--rebuild-job-id" "$REBUILD_JOB_ID_VAL")
+            ARGS+=("--execution-id" "$EXECUTION_ID_VAL")
+            ARGS+=("--expected-revision-id" "$EXPECTED_REVISION_ID_VAL")
+
+            # Pass github.run_id as run-id for tracking
+            ARGS+=("--run-id" "$RUN_ID")
+
+            python scripts/check_relationship_assertion_proof.py "${ARGS[@]}"
+          fi
+
+      - name: Add run metadata to result
+        if: always()
+        working-directory: proof-source
+        shell: python
+        env:
+          DEPLOYED_SHA: ${{ inputs.deployed_sha }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+          GITHUB_RUN_NUMBER: ${{ github.run_number }}
+          GITHUB_SHA: ${{ github.sha }}
+        run: |
+          import json
+          import os
+          import sys
+
+          if os.path.exists('staging-proof-result.json'):
+              try:
+                  with open('staging-proof-result.json', 'r') as f:
+                      result = json.load(f)
+
+                  result['metadata']['github_run_id'] = os.environ.get('GITHUB_RUN_ID')
+                  result['metadata']['github_run_number'] = os.environ.get('GITHUB_RUN_NUMBER')
+                  result['metadata']['github_sha'] = os.environ.get('GITHUB_SHA')
+                  result['metadata']['deployed_sha'] = os.environ.get('DEPLOYED_SHA')
+                  result['metadata']['workflow'] = 'relationship-assertion-staging-proof'
+
+                  with open('staging-proof-result.json', 'w') as f:
+                      json.dump(result, f, indent=2, sort_keys=True)
+
+                  print("Run metadata added to result")
+              except Exception as e:
+                  print(f"Warning: Failed to add run metadata: {e}", file=sys.stderr)
+          else:
+              with open('staging-proof-result.json', 'w') as f:
+                  json.dump({"status": "failed", "error": "Result file not created"}, f)
+
+      - name: Upload proof artifacts
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: staging-proof-${{ inputs.mode }}-${{ github.run_id }}
+          path: |
+            proof-source/staging-proof-result.json
+            proof-source/authz-evidence.json
+          if-no-files-found: error
+
+      - name: Emit proof summary
+        if: always()
+        working-directory: proof-source
+        shell: python
+        env:
+          DEPLOYED_SHA_SAFE: ${{ inputs.deployed_sha }}
+        run: |
+          import json
+          import os
+          import sys
+          import re
+
+          step_summary_path = os.environ.get('GITHUB_STEP_SUMMARY')
+
+          if not os.path.exists('staging-proof-result.json'):
+              if step_summary_path:
+                  with open(step_summary_path, 'a') as f:
+                      f.write("## ✗ Staging Proof Failed\n")
+                      f.write("Result file was not generated\n")
+              sys.exit(1)
+
+          with open('staging-proof-result.json', 'r') as f:
+              result = json.load(f)
+
+          status = result.get('status', 'unknown')
+          mode = result.get('metadata', {}).get('mode', 'unknown')
+          errors = result.get('errors', [])
+
+          # Get deployed SHA safely from environment
+          deployed_sha = os.environ.get('DEPLOYED_SHA_SAFE', 'N/A')
+          # Validate it's hex only (security check)
+          if not re.match(r'^[0-9a-fA-F]{40}$', deployed_sha):
+              deployed_sha = 'invalid'
+
+          if step_summary_path:
+              with open(step_summary_path, 'a') as f:
+                  if status == 'passed':
+                      f.write("## ✓ Staging Proof Passed\n")
+                  else:
+                      f.write("## ✗ Staging Proof Failed\n")
+
+                  f.write(f"**Mode:** {mode}\n")
+                  f.write(f"**Deployed SHA:** {deployed_sha}\n")
+
+                  if errors:
+                      f.write(f"**Errors ({len(errors)}):**\n")
+                      for err in errors[:20]:
+                          f.write(f"- {err}\n")
+                      if len(errors) > 20:
+                          f.write(f"- ... and {len(errors) - 20} more\n")
+
+          sys.exit(0 if status == 'passed' else 1)
