@@ -68,6 +68,33 @@ def test_check_schema_authz_evidence_success(tmp_path: Path) -> None:
         check_schema_authz_evidence("a" * 40)
 
 
+def test_publication_validation_cardinality() -> None:
+    """Publication validation must require exactly 1 publication."""
+    validator = ProofValidator({})
+
+    # 0 publications
+    assert validator.publication_is_correct(0, "owner-1", None) is False
+    assert "Invalid publication count: 0 (need exactly 1)" in validator.errors
+
+    # 1 publication
+    validator.errors.clear()
+    assert validator.publication_is_correct(1, "owner-1", None) is True
+    assert len(validator.errors) == 0
+
+    # 2 publications
+    validator.errors.clear()
+    assert validator.publication_is_correct(2, "owner-1", None) is False
+    assert "Invalid publication count: 2 (need exactly 1)" in validator.errors
+
+
+def test_publication_validation_fails_closed_without_owner() -> None:
+    """Publication correlation must not be accepted as ownership evidence."""
+    validator = ProofValidator({})
+
+    assert validator.publication_is_correct(1, "", None) is False
+    assert "Publication owner missing" in validator.errors
+
+
 def test_scopes_are_consistent_invalid_types() -> None:
     """Test that scopes_are_consistent handles non-list or unhashable inputs gracefully."""
     validator = ProofValidator({})

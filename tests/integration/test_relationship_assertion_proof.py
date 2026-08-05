@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Any
 from unittest.mock import patch
 
 import pytest
@@ -22,10 +23,14 @@ def test_db_url(tmp_path: Path) -> str:
     return url
 
 
-@patch("scripts.check_relationship_assertion_proof.check_postgresql_proof", lambda url: None)
-@patch("scripts.check_relationship_assertion_proof.verify_deployed_sha", lambda sha: None)
-@patch("scripts.check_relationship_assertion_proof.check_schema_authz_evidence", lambda sha: None)
-def test_staging_proof_flow_sqlite(test_db_url: str, tmp_path: Path) -> None:
+def _no_op(*_args: Any, **_kwargs: Any) -> None:
+    """Typed no-op used to isolate external proof boundaries."""
+
+
+@patch("scripts.check_relationship_assertion_proof.check_postgresql_proof", _no_op)
+@patch("scripts.check_relationship_assertion_proof.verify_deployed_sha", _no_op)
+@patch("scripts.check_relationship_assertion_proof.check_schema_authz_evidence", _no_op)
+def test_staging_proof_flow_sqlite(test_db_url: str) -> None:
     """Test the complete staging proof seeding, publication, and restart verification flow using SQLite."""
     # 1. Run seed_and_publish
     deployed_sha = "a" * 40
@@ -37,7 +42,10 @@ def test_staging_proof_flow_sqlite(test_db_url: str, tmp_path: Path) -> None:
     assert metadata["mode"] == "seed_and_publish"
     assert metadata["edge_set_hash"] != ""
     assert metadata["projection_hash"] != ""
-    assert len(metadata["governed_scopes"]) > 0
+    assert metadata["governed_scopes"] == ["scope-1"]
+    assert metadata["proposer_id"] == "proposer-actor-1"
+    assert metadata["determiner_id"] == "determiner-actor-1"
+    assert metadata["owner_id"] == "owner-actor-1"
 
     # 2. Run verify_after_restart
     metadata_verify = run_verify_after_restart(test_db_url, deployed_sha, run_id, metadata)
@@ -46,3 +54,44 @@ def test_staging_proof_flow_sqlite(test_db_url: str, tmp_path: Path) -> None:
     assert metadata_verify["mode"] == "verify_after_restart"
     assert metadata_verify["scope_continuity_passed"] is True
     assert metadata_verify["historical_reconstruction_passed"] is True
+
+
+@patch("scripts.check_relationship_assertion_proof.check_postgresql_proof", _no_op)
+@patch("scripts.check_relationship_assertion_proof.verify_deployed_sha", _no_op)
+@patch("scripts.check_relationship_assertion_proof.check_schema_authz_evidence", _no_op)
+def test_proof_validator_populates_from_db(test_db_url: str, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Test that ProofValidator correctly populates proposer, determiner, owner, and pub_count from DB."""
+    from argparse import Namespace
+
+    from scripts.check_relationship_assertion_proof import ProofValidator
+
+    deployed_sha = "a" * 40
+    run_id = "test-run-2"
+    run_seed_and_publish(test_db_url, deployed_sha, run_id)
+
+    monkeypatch.setenv("DATABASE_URL", test_db_url)
+    validator = ProofValidator({})
+    args = Namespace(
+        mode="seed_and_publish",
+        deployed_sha=deployed_sha,
+        contract_digest="c" * 64,
+        registry_digest="d" * 64,
+        authz_evidence=None,
+        proposer_id=None,
+        determiner_id=None,
+        executor_id=None,
+        publication_count=None,
+        owner_id=None,
+        expected_owner=None,
+        revision_hash=None,
+        expected_revision_hash=None,
+        output=None,
+        strict=False,
+    )
+
+    result = validator.validate_seed_and_publish(args)
+    assert result["status"] == "passed"
+    assert args.proposer_id == "proposer-actor-1"
+    assert args.determiner_id == "determiner-actor-1"
+    assert args.owner_id == "owner-actor-1"
+    assert args.publication_count == 1

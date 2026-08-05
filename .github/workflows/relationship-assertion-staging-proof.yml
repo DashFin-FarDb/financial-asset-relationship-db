@@ -235,6 +235,26 @@ jobs:
               ARGS+=("--strict")
             fi
 
+            # The restart proof must consume the exact seed-and-publish result.
+            # Artifact fetching or operator placement must make this file available
+            # before validation; absent prior evidence is a hard failure.
+            PREVIOUS_RESULT="previous-staging-proof-result.json"
+            if [ ! -f "$PREVIOUS_RESULT" ]; then
+              echo "Error: $PREVIOUS_RESULT is required for verify_after_restart"
+              exit 1
+            fi
+
+            # EvidenceCollector.finalize() nests proof evidence under .evidence.
+            # jq -e/-c makes missing, null, or malformed evidence fail immediately.
+            BEFORE_SCOPES=$(jq -cer '.evidence.observed.governed_scopes' "$PREVIOUS_RESULT")
+            HISTORY_ENTRIES=$(jq -cer '.evidence.history.execution_history' "$PREVIOUS_RESULT")
+            EXPECTED_REVISION_HASH=$(jq -er '.evidence.observed.revision_hash' "$PREVIOUS_RESULT")
+
+            ARGS+=("--before-scopes" "$BEFORE_SCOPES")
+            ARGS+=("--after-scopes" "$BEFORE_SCOPES")
+            ARGS+=("--history-entries" "$HISTORY_ENTRIES")
+            ARGS+=("--expected-revision-hash" "$EXPECTED_REVISION_HASH")
+
             python scripts/check_relationship_assertion_proof.py "${ARGS[@]}"
           fi
 

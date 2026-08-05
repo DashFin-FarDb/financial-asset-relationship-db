@@ -21,13 +21,16 @@ from datetime import datetime, timezone
 from typing import Any
 from urllib.parse import urlparse
 
-from sqlalchemy import select
+from sqlalchemy import or_, select
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.sql.functions import count
 
 from src.data.database import create_engine_from_url
 from src.data.db_models import RebuildJobORM
 from src.data.relationship_assertion_db_models import (
+    RelationshipAssertionEventORM,
+    RelationshipAssertionORM,
+    RelationshipProjectionEdgeORM,
     RelationshipProjectionPublicationORM,
     RelationshipProjectionRevisionORM,
 )
@@ -45,6 +48,16 @@ def validate_safe_path(path: str) -> str:
     if filename != path:
         raise ValueError(f"Path traversal detected: directory components not allowed in '{path}'")
     return os.path.join(os.getcwd(), filename)
+
+
+def _sanitize_db_id(val: Any) -> str | None:
+    """Sanitize database identifier input to prevent injection."""
+    if not val or not isinstance(val, str):
+        return None
+    clean_val = val.strip()
+    if not re.match(r"^[a-zA-Z0-9_\-]+$", clean_val):
+        return None
+    return clean_val
 
 
 class ProofValidator:
@@ -118,8 +131,8 @@ class ProofValidator:
     def publication_is_correct(self, pub_count: int, owner: str, expected: str | None) -> bool:
         """Verify publication properties."""
         ok = True
-        if pub_count <= 0:
-            self.add_error(f"Invalid publication count: {pub_count}")
+        if pub_count != 1:
+            self.add_error(f"Invalid publication count: {pub_count} (need exactly 1)")
             ok = False
         if not owner:
             self.add_error("Publication owner missing")
@@ -300,87 +313,170 @@ class ProofValidator:
         if not args.expected_owner:
             args.expected_owner = prev_meta.get("raw_expected_owner")
 
-    def _populate_jobs_from_db(self, args: argparse.Namespace, conn: Any) -> str | None:
-        """Fetch latest rebuild job and set proposer and determiner IDs."""
-        exec_id = None
+    def _populate_jobs_and_owner_from_db(self, args: argparse.Namespace, conn: Any) -> str | None:
+        """Fetch latest rebuild job and extract rebuild_job_id and owner_id from RebuildJobORM.requested_by."""
         job_query = (
-            select(RebuildJobORM.requested_by, RebuildJobORM.execution_id)
-            .order_by(RebuildJobORM.created_at.desc())
-            .limit(1)
+            select(RebuildJobORM.job_id, RebuildJobORM.requested_by).order_by(RebuildJobORM.created_at.desc()).limit(1)
         )
         row = conn.execute(job_query).first()
-        if row:
-            exec_id = row[1]
-            if not args.proposer_id:
-                args.proposer_id = row[0]
-            if not args.determiner_id:
-                args.determiner_id = row[1]
-        return exec_id
+        if not row:
+            self.add_error("No rebuild job record found in database")
+            return None
+
+        rebuild_job_id = _sanitize_db_id(row[0])
+        db_owner_id = row[1]
+        if not db_owner_id:
+            self.add_error("Rebuild job owner identity (requested_by) missing in database")
+        else:
+            if args.owner_id and args.owner_id != db_owner_id:
+                self.add_error(f"Owner mismatch: database evidence {db_owner_id[:8]}... vs {args.owner_id[:8]}...")
+            args.owner_id = db_owner_id
+
+        return rebuild_job_id
 
     def _populate_publication_count_from_db(
-        self, args: argparse.Namespace, conn: Any, active_exec_id: str | None
+        self, args: argparse.Namespace, conn: Any, rebuild_job_id: str | None
     ) -> None:
-        """Fetch publication count filtered by active execution ID."""
+        """Fetch publication count filtered by rebuild job ID."""
         if args.publication_count is not None:
             return
-        count_query = select(count()).select_from(RelationshipProjectionPublicationORM)
-        if active_exec_id:
-            count_query = count_query.where(RelationshipProjectionPublicationORM.execution_id == active_exec_id)
+        clean_job_id = _sanitize_db_id(rebuild_job_id)
+        if not clean_job_id:
+            args.publication_count = 0
+            return
+        count_query = (
+            select(count())
+            .select_from(RelationshipProjectionPublicationORM)
+            .where(RelationshipProjectionPublicationORM.rebuild_job_id == clean_job_id)
+        )
         args.publication_count = conn.execute(count_query).scalar()
 
-    def _populate_revision_hash_from_db(self, args: argparse.Namespace, conn: Any, active_exec_id: str | None) -> None:
-        """Fetch revision hash filtered by active execution ID with global fallback."""
-        if args.revision_hash:
-            return
-        if active_exec_id:
+    def _populate_revision_hash_from_db(
+        self, args: argparse.Namespace, conn: Any, rebuild_job_id: str | None
+    ) -> str | None:
+        """Fetch revision hash filtered by rebuild job ID."""
+        revision_id = None
+        clean_job_id = _sanitize_db_id(rebuild_job_id)
+        if clean_job_id:
             rev_query = (
-                select(RelationshipProjectionRevisionORM.projection_hash)
+                select(
+                    RelationshipProjectionRevisionORM.projection_hash,
+                    RelationshipProjectionRevisionORM.id,
+                )
                 .join(
                     RelationshipProjectionPublicationORM,
                     RelationshipProjectionRevisionORM.id == RelationshipProjectionPublicationORM.revision_id,
                 )
-                .where(RelationshipProjectionPublicationORM.execution_id == active_exec_id)
+                .where(RelationshipProjectionPublicationORM.rebuild_job_id == clean_job_id)
                 .order_by(RelationshipProjectionPublicationORM.published_at.desc())
                 .limit(1)
             )
-            args.revision_hash = conn.execute(rev_query).scalar()
+            row = conn.execute(rev_query).first()
+            if row:
+                if not args.revision_hash:
+                    args.revision_hash = row[0]
+                revision_id = _sanitize_db_id(row[1])
 
         if not args.revision_hash:
             fallback_rev_query = (
-                select(RelationshipProjectionRevisionORM.projection_hash)
+                select(
+                    RelationshipProjectionRevisionORM.projection_hash,
+                    RelationshipProjectionRevisionORM.id,
+                )
                 .order_by(RelationshipProjectionRevisionORM.created_at.desc())
                 .limit(1)
             )
-            args.revision_hash = conn.execute(fallback_rev_query).scalar()
+            row = conn.execute(fallback_rev_query).first()
+            if row:
+                args.revision_hash = row[0]
+                revision_id = _sanitize_db_id(row[1])
 
-    def _populate_owner_id_from_db(self, args: argparse.Namespace, conn: Any, active_exec_id: str | None) -> None:
-        """Fetch owner ID filtered by active execution ID with global fallback."""
-        if args.owner_id:
+        return revision_id
+
+    def _populate_actors_from_db(
+        self,
+        args: argparse.Namespace,
+        conn: Any,
+        rebuild_job_id: str | None,
+        revision_id: str | None,
+    ) -> None:
+        """Query proposer and determiner actors from RelationshipAssertionEventORM."""
+        clean_job_id = _sanitize_db_id(rebuild_job_id)
+        clean_rev_id = _sanitize_db_id(revision_id)
+        if not clean_job_id:
             return
-        if active_exec_id:
-            pub_query = (
-                select(RelationshipProjectionPublicationORM.execution_id)
-                .where(RelationshipProjectionPublicationORM.execution_id == active_exec_id)
-                .limit(1)
-            )
-            args.owner_id = conn.execute(pub_query).scalar()
 
-        if not args.owner_id:
-            fallback_pub_query = (
-                select(RelationshipProjectionPublicationORM.execution_id)
-                .order_by(RelationshipProjectionPublicationORM.published_at.desc())
-                .limit(1)
+        assertion_ids_subquery = None
+        if clean_rev_id:
+            assertion_ids_subquery = select(RelationshipProjectionEdgeORM.assertion_id).where(
+                RelationshipProjectionEdgeORM.revision_id == clean_rev_id
             )
-            args.owner_id = conn.execute(fallback_pub_query).scalar()
+
+        prop_conds = [RelationshipAssertionEventORM.correlation_id == clean_job_id]
+        if assertion_ids_subquery is not None:
+            prop_conds.append(RelationshipAssertionEventORM.assertion_id.in_(assertion_ids_subquery))
+
+        proposer_stmt = (
+            select(RelationshipAssertionEventORM.actor_id)
+            .where(
+                or_(*prop_conds),
+                or_(
+                    RelationshipAssertionEventORM.to_state == "Proposed",
+                    RelationshipAssertionEventORM.authority == "proposer",
+                ),
+            )
+            .distinct()
+        )
+        proposers = [r[0] for r in conn.execute(proposer_stmt).fetchall() if r[0]]
+
+        if len(proposers) == 0:
+            self.add_error("Proposer actor evidence missing in database events")
+        elif len(proposers) > 1:
+            self.add_error(f"Ambiguous proposer evidence in database: multiple actors found ({sorted(proposers)})")
+        else:
+            db_proposer = proposers[0]
+            if args.proposer_id and args.proposer_id != db_proposer:
+                self.add_error(
+                    f"Proposer mismatch: database evidence {db_proposer[:8]}... vs expected {args.proposer_id[:8]}..."
+                )
+            args.proposer_id = db_proposer
+
+        det_conds = [RelationshipAssertionEventORM.correlation_id == clean_job_id]
+        if assertion_ids_subquery is not None:
+            det_conds.append(RelationshipAssertionEventORM.assertion_id.in_(assertion_ids_subquery))
+
+        determiner_stmt = (
+            select(RelationshipAssertionEventORM.actor_id)
+            .where(
+                or_(*det_conds),
+                or_(
+                    RelationshipAssertionEventORM.to_state == "Accepted",
+                    RelationshipAssertionEventORM.authority.in_(["determiner", "reviewer", "acceptor"]),
+                ),
+            )
+            .distinct()
+        )
+        determiners = [r[0] for r in conn.execute(determiner_stmt).fetchall() if r[0]]
+
+        if len(determiners) == 0:
+            self.add_error("Determiner actor evidence missing in database events")
+        elif len(determiners) > 1:
+            self.add_error(f"Ambiguous determiner evidence in database: multiple actors found ({sorted(determiners)})")
+        else:
+            db_determiner = determiners[0]
+            if args.determiner_id and args.determiner_id != db_determiner:
+                self.add_error(
+                    f"Determiner mismatch: database evidence {db_determiner[:8]}... "
+                    f"vs expected {args.determiner_id[:8]}..."
+                )
+            args.determiner_id = db_determiner
 
     def _populate_from_db(self, args: argparse.Namespace, conn: Any) -> None:
         """Populate missing validation fields using active DB connection."""
-        exec_id = self._populate_jobs_from_db(args, conn)
-        active_exec_id = exec_id or args.determiner_id
-
-        self._populate_publication_count_from_db(args, conn, active_exec_id)
-        self._populate_revision_hash_from_db(args, conn, active_exec_id)
-        self._populate_owner_id_from_db(args, conn, active_exec_id)
+        rebuild_job_id = self._populate_jobs_and_owner_from_db(args, conn)
+        revision_id = self._populate_revision_hash_from_db(args, conn, rebuild_job_id)
+        self._populate_publication_count_from_db(args, conn, rebuild_job_id)
+        self._populate_actors_from_db(args, conn, rebuild_job_id, revision_id)
 
     def _populate_missing_evidence(self, args: argparse.Namespace) -> None:
         """Populate missing arguments from previous run results and database state."""
@@ -407,13 +503,14 @@ class ProofValidator:
 
         # 2. Query database for missing validation inputs if DB URL is available
         db_url = os.getenv("DATABASE_URL")
-        if db_url and (
-            args.publication_count is None
-            or not args.revision_hash
-            or not args.proposer_id
-            or not args.determiner_id
-            or not args.owner_id
-        ):
+        missing_inputs = [
+            args.publication_count,
+            args.revision_hash,
+            args.proposer_id,
+            args.determiner_id,
+            args.owner_id,
+        ]
+        if db_url and any(val is None or not val for val in missing_inputs):
             try:
                 from sqlalchemy import create_engine
 
@@ -573,8 +670,14 @@ def setup_parser() -> argparse.ArgumentParser:
     parser.add_argument("--determiner-id", help="Determiner actor signature UUID")
     parser.add_argument("--executor-id", help="Executor actor signature UUID")
     parser.add_argument("--publication-count", type=int, help="Verified publication count")
-    parser.add_argument("--owner-id", help="UUID of the owner role signature")
-    parser.add_argument("--expected-owner", help="Expected owner role signature UUID")
+    parser.add_argument(
+        "--owner-id",
+        help=("Authoritative publication-owner actor ID. " "Execution and correlation IDs are not ownership evidence."),
+    )
+    parser.add_argument(
+        "--expected-owner",
+        help="Protected expected publication-owner actor ID",
+    )
     parser.add_argument("--revision-hash", help="Validation revision hash value")
     parser.add_argument("--expected-revision-hash", help="Expected target revision hash value")
     parser.add_argument("--require-persistence", action="store_true", help="Assert startup persistence")
@@ -664,11 +767,14 @@ def run_seed_and_publish(db_url: str, deployed_sha: str, run_id: str) -> dict[st
     session = Session()
     try:
         now = datetime.now(timezone.utc)
+        proposer_id = "proposer-actor-1"
+        determiner_id = "determiner-actor-1"
+        owner_id = "owner-actor-1"
 
         # Create rebuild job
         job = RebuildJobORM(
             job_id=run_id,
-            requested_by="staging-proof",
+            requested_by=owner_id,
             status="succeeded",
             source="staging",
             created_at=now,
@@ -682,7 +788,8 @@ def run_seed_and_publish(db_url: str, deployed_sha: str, run_id: str) -> dict[st
         revision_id = str(uuid.uuid4())
         edge_set_hash = "a" * 64
         projection_hash = "b" * 64
-        governed_scopes_list = [{"predicate_id": "scope-1", "purpose": "testing"}]
+        governed_predicate_id = "scope-1"
+        governed_scopes_list = [governed_predicate_id]
 
         revision = RelationshipProjectionRevisionORM(
             id=revision_id,
@@ -697,8 +804,70 @@ def run_seed_and_publish(db_url: str, deployed_sha: str, run_id: str) -> dict[st
             created_at=now,
         )
 
+        # Create assertion
+        assertion_id = str(uuid.uuid4())
+        assertion = RelationshipAssertionORM(
+            id=assertion_id,
+            predicate_id=governed_predicate_id,
+            subject_id="asset-1",
+            object_id="asset-2",
+            method_id="method-1",
+            proposition="Asset 1 related to Asset 2",
+            confidence_status="not_assessed",
+            effective_from=now,
+            recorded_at=now,
+        )
+
+        # Create proposal event
+        prop_event = RelationshipAssertionEventORM(
+            id=str(uuid.uuid4()),
+            assertion_id=assertion_id,
+            sequence=1,
+            from_state=None,
+            to_state="Proposed",
+            authority="proposer",
+            actor_id=proposer_id,
+            rationale="Initial staging proposal",
+            policy_version="v1",
+            recorded_at=now,
+            correlation_id=run_id,
+        )
+
+        # Create determination event
+        det_event = RelationshipAssertionEventORM(
+            id=str(uuid.uuid4()),
+            assertion_id=assertion_id,
+            sequence=2,
+            from_state="Proposed",
+            to_state="Accepted",
+            authority="determiner",
+            actor_id=determiner_id,
+            rationale="Accepted proposal",
+            policy_version="v1",
+            recorded_at=now,
+            correlation_id=run_id,
+        )
+
+        # Create projection edge linking revision to assertion
+        edge = RelationshipProjectionEdgeORM(
+            id=str(uuid.uuid4()),
+            revision_id=revision_id,
+            source_id="asset-1",
+            target_id="asset-2",
+            edge_type="same_sector",
+            strength="1",
+            direction="bidirectional",
+            assertion_id=assertion_id,
+        )
+
         session.add(job)
         session.add(revision)
+        session.add(assertion)
+        session.flush()
+
+        session.add(prop_event)
+        session.add(det_event)
+        session.add(edge)
         session.flush()
 
         # Create publication
@@ -720,6 +889,9 @@ def run_seed_and_publish(db_url: str, deployed_sha: str, run_id: str) -> dict[st
             "edge_set_hash": edge_set_hash,
             "projection_hash": projection_hash,
             "governed_scopes": governed_scopes_list,
+            "proposer_id": proposer_id,
+            "determiner_id": determiner_id,
+            "owner_id": owner_id,
         }
     except Exception:
         import traceback
@@ -755,10 +927,18 @@ def run_verify_after_restart(
         if publication:
             revision = session.query(RelationshipProjectionRevisionORM).filter_by(id=publication.revision_id).first()
             if revision:
-                # Check edge_set_hash and projection_hash match
+                # Verify deterministic hashes and the exact governed predicate set.
+                try:
+                    persisted_scopes = json.loads(revision.governed_scopes)
+                except (TypeError, json.JSONDecodeError):
+                    persisted_scopes = None
+
                 if (
-                    revision.edge_set_hash == prev_metadata["edge_set_hash"]
-                    and revision.projection_hash == prev_metadata["projection_hash"]
+                    revision.edge_set_hash == prev_metadata.get("edge_set_hash")
+                    and revision.projection_hash == prev_metadata.get("projection_hash")
+                    and persisted_scopes == prev_metadata.get("governed_scopes")
+                    and isinstance(persisted_scopes, list)
+                    and all(isinstance(scope_id, str) and scope_id.strip() for scope_id in persisted_scopes)
                 ):
                     scope_continuity_passed = True
 
