@@ -21,7 +21,9 @@ from datetime import datetime, timezone
 from typing import Any
 from urllib.parse import urlparse
 
+from sqlalchemy import select
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.sql.functions import count
 
 from src.data.database import create_engine_from_url
 from src.data.db_models import RebuildJobORM
@@ -300,16 +302,8 @@ class ProofValidator:
 
     def _populate_from_db(self, args: argparse.Namespace, conn: Any) -> None:
         """Populate missing validation fields using active DB connection."""
-        from sqlalchemy import func, select
-
-        from src.data.db_models import RebuildJobORM
-        from src.data.relationship_assertion_db_models import (
-            RelationshipProjectionPublicationORM,
-            RelationshipProjectionRevisionORM,
-        )
-
         if args.publication_count is None:
-            count_query = select(func.count()).select_from(RelationshipProjectionPublicationORM)
+            count_query = select(count()).select_from(RelationshipProjectionPublicationORM)
             args.publication_count = conn.execute(count_query).scalar()
 
         if not args.revision_hash:
