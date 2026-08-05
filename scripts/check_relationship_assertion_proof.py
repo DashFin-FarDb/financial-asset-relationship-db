@@ -402,24 +402,43 @@ class ProofValidator:
             self.add_error("Invalid revision ID found for publication")
             return None
 
-        # Fetch revision projection hash to populate args.revision_hash
+        # Fetch the exact revision hash and governed scopes for the certified publication.
         rev_query = select(
             RelationshipProjectionRevisionORM.projection_hash,
+            RelationshipProjectionRevisionORM.governed_scopes,
         ).where(
             RelationshipProjectionRevisionORM.id == clean_rev_id,
         )
-        proj_hash = conn.execute(rev_query).scalar()
-        if not proj_hash:
+        rev_row = conn.execute(rev_query).first()
+        if not rev_row or not rev_row[0]:
             self.add_error(f"Revision {clean_rev_id} not found in database")
+            return None
+
+        proj_hash, governed_scopes_raw = rev_row
+        try:
+            governed_scopes = (
+                json.loads(governed_scopes_raw) if isinstance(governed_scopes_raw, str) else governed_scopes_raw
+            )
+        except (TypeError, json.JSONDecodeError):
+            self.add_error("Certified revision governed_scopes is malformed")
+            return None
+
+        if (
+            not isinstance(governed_scopes, list)
+            or not governed_scopes
+            or not all(isinstance(scope, str) and scope.strip() for scope in governed_scopes)
+        ):
+            self.add_error("Certified revision governed_scopes must be a non-empty list of identifiers")
             return None
 
         if not args.revision_hash:
             args.revision_hash = proj_hash
 
-        # Store IDs in metadata
+        # Store exact lineage and the independent seed scope baseline.
         self.metadata["raw_publication_id"] = pub_id
         self.metadata["raw_revision_id"] = revision_id
         self.metadata["raw_revision_hash"] = proj_hash
+        self.metadata["raw_governed_scopes"] = governed_scopes
 
         # Verify expected revision ID if provided (from previous result / metadata in restart mode)
         if hasattr(args, "expected_revision_id") and args.expected_revision_id:

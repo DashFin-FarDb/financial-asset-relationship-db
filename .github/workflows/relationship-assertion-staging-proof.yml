@@ -205,6 +205,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           SEED_RUN_ID: ${{ inputs.seed_run_id }}
+          EXPECTED_DEPLOYED_SHA: ${{ inputs.deployed_sha }}
         run: |
           if [ -z "$SEED_RUN_ID" ]; then
             echo "Error: seed_run_id is required in verify_after_restart mode"
@@ -238,9 +239,9 @@ jobs:
           fi
 
           # - is bound to the same deployed SHA
-          ARTIFACT_SHA=$(jq -r '.metadata.deployed_sha' "$PREVIOUS_RESULT")
-          if [ "$ARTIFACT_SHA" != "${{ inputs.deployed_sha }}" ]; then
-            echo "Error: Deployed SHA mismatch (artifact: $ARTIFACT_SHA vs input: ${{ inputs.deployed_sha }})"
+          ARTIFACT_SHA=$(jq -er '.metadata.deployed_sha' "$PREVIOUS_RESULT")
+          if [ "$ARTIFACT_SHA" != "$EXPECTED_DEPLOYED_SHA" ]; then
+            echo "Error: Deployed SHA mismatch (artifact: $ARTIFACT_SHA vs expected: $EXPECTED_DEPLOYED_SHA)"
             exit 1
           fi
 
@@ -251,13 +252,24 @@ jobs:
             exit 1
           fi
 
-          # - contains required revision, scope and history evidence
-          if jq -e '.evidence.observed.revision_hash' "$PREVIOUS_RESULT" >/dev/null 2>&1; then
-            echo "Artifact contains evidence.observed.revision_hash"
-          elif jq -e '.metadata.raw_revision_hash' "$PREVIOUS_RESULT" >/dev/null 2>&1; then
-            echo "Artifact contains metadata.raw_revision_hash"
+          # - contains required revision and a non-empty governed-scope baseline
+          if jq -e '.evidence.observed.revision_hash // .metadata.raw_revision_hash'             "$PREVIOUS_RESULT" >/dev/null 2>&1; then
+            echo "Artifact contains revision evidence"
           else
-            echo "Error: Missing required revision and scope evidence in artifact"
+            echo "Error: Missing required revision evidence in artifact"
+            exit 1
+          fi
+
+          if jq -e '
+            (
+              .evidence.observed.governed_scopes //
+              .metadata.raw_governed_scopes
+            )
+            | select(type == "array" and length > 0)
+          ' "$PREVIOUS_RESULT" >/dev/null 2>&1; then
+            echo "Artifact contains a non-empty governed-scope baseline"
+          else
+            echo "Error: Missing or empty governed-scope baseline in seed artifact"
             exit 1
           fi
 
@@ -354,18 +366,23 @@ jobs:
               exit 1
             fi
 
-            # Extract before_scopes, history_entries, and expected_revision_hash from the seed artifact.
-            # Support both wrapped and raw output.
-            if jq -e '.evidence.observed.governed_scopes' "$PREVIOUS_RESULT" >/dev/null 2>&1; then
-              BEFORE_SCOPES=$(jq -cer '.evidence.observed.governed_scopes' "$PREVIOUS_RESULT")
-              HISTORY_ENTRIES=$(jq -cer '.evidence.history.execution_history' "$PREVIOUS_RESULT")
-              EXPECTED_REVISION_HASH=$(jq -er '.evidence.observed.revision_hash' "$PREVIOUS_RESULT")
-            else
-              # Raw format
-              BEFORE_SCOPES=$(jq -cer '.metadata.raw_governed_scopes // .metadata.scopes_before // .metadata.scopes_after // "[]"' "$PREVIOUS_RESULT")
-              HISTORY_ENTRIES=$(jq -cer '.metadata.history_entries // "[]"' "$PREVIOUS_RESULT")
-              EXPECTED_REVISION_HASH=$(jq -er '.metadata.raw_revision_hash' "$PREVIOUS_RESULT")
-            fi
+            # Extract an independently recorded, non-empty seed baseline.
+            # Empty or absent scopes are a hard failure; never substitute [].
+            BEFORE_SCOPES=$(jq -cer '
+              (
+                .evidence.observed.governed_scopes //
+                .metadata.raw_governed_scopes
+              )
+              | select(type == "array" and length > 0)
+            ' "$PREVIOUS_RESULT")
+            HISTORY_ENTRIES=$(jq -cer '
+              .evidence.history.execution_history //
+              .metadata.history_entries
+            ' "$PREVIOUS_RESULT")
+            EXPECTED_REVISION_HASH=$(jq -er '
+              .evidence.observed.revision_hash //
+              .metadata.raw_revision_hash
+            ' "$PREVIOUS_RESULT")
 
             # Load raw lineage values from seed artifact
             REBUILD_JOB_ID_VAL=$(jq -er '.metadata.raw_rebuild_job_id' "$PREVIOUS_RESULT")

@@ -139,7 +139,6 @@ def test_restart_scopes_lookup_failures() -> None:
     from argparse import Namespace
     from pathlib import Path
 
-    from scripts.check_relationship_assertion_proof import run_seed_and_publish
     from src.data.database import create_engine_from_url, init_db
 
     # Setup SQLite test DB URL
