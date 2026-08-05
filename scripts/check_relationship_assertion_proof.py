@@ -142,18 +142,24 @@ class ProofValidator:
             ok = False
         return ok
 
-    def scopes_are_consistent(self, before: list[str], after: list[str], enforce_no_loss: bool) -> bool:
-        """Check scope consistency across transitions."""
-        if not isinstance(before, list) or not isinstance(after, list):
+    def _validate_scope_list(self, lst: Any, name: str) -> bool:
+        """Check if lst is a non-empty list of strings."""
+        if not isinstance(lst, list):
             self.add_error("Scopes must be lists")
             return False
-
-        if not all(isinstance(x, str) for x in before) or not all(isinstance(x, str) for x in after):
+        if not lst:
+            self.add_error("Scope lists empty")
+            return False
+        if not all(isinstance(x, str) for x in lst):
             self.add_error("Scopes must be lists of strings")
             return False
+        return True
 
-        if not before or not after:
-            self.add_error("Scope lists empty")
+    def scopes_are_consistent(self, before: list[str], after: list[str], enforce_no_loss: bool) -> bool:
+        """Check scope consistency across transitions."""
+        if not self._validate_scope_list(before, "Before Scopes") or not self._validate_scope_list(
+            after, "After Scopes"
+        ):
             return False
 
         if enforce_no_loss:
@@ -239,36 +245,42 @@ class ProofValidator:
     def _validate_db(self, args: argparse.Namespace) -> None:
         """Validate database configuration URL."""
         db_url = os.getenv("DATABASE_URL")
-        if db_url or args.strict:
-            if db_url:
-                if not self.check_db_url_structure(db_url):
-                    try:
-                        scheme = urlparse(db_url).scheme or "unknown"
-                    except Exception:
-                        scheme = "unknown"
-                    self.add_error(f"Unsupported database URL scheme: {scheme}")
-                self.metadata["db"] = self.mask_database_url(db_url)
-            else:
-                self.add_error("DB URL required in strict mode")
+        if not db_url and args.strict:
+            self.add_error("DB URL required in strict mode")
+            return
+
+        if not db_url:
+            return
+
+        if not self.check_db_url_structure(db_url):
+            try:
+                scheme = urlparse(db_url).scheme or "unknown"
+            except Exception:
+                scheme = "unknown"
+            self.add_error(f"Unsupported database URL scheme: {scheme}")
+        self.metadata["db"] = self.mask_database_url(db_url)
 
     def _validate_authz(self, args: argparse.Namespace) -> None:
         """Validate authorization evidence file."""
-        if args.authz_evidence or args.strict:
-            if args.authz_evidence:
-                authz_meta = self.load_authz_evidence(args.authz_evidence, args.deployed_sha)
-                self.metadata.update(authz_meta)
-            else:
-                self.add_error("Authz evidence required in strict mode")
+        if not args.authz_evidence and args.strict:
+            self.add_error("Authz evidence required in strict mode")
+            return
+
+        if args.authz_evidence:
+            authz_meta = self.load_authz_evidence(args.authz_evidence, args.deployed_sha)
+            self.metadata.update(authz_meta)
 
     def _validate_actors(self, args: argparse.Namespace) -> None:
         """Verify actor separation limits."""
-        if (args.proposer_id and args.determiner_id) or args.strict:
-            if args.proposer_id and args.determiner_id:
-                self.actors_are_distinct(args.proposer_id, args.determiner_id, args.executor_id)
-                self.metadata["proposer"] = args.proposer_id[:8] + "..."
-                self.metadata["determiner"] = args.determiner_id[:8] + "..."
-            else:
-                self.add_error("Actor IDs required in strict mode")
+        has_actors = bool(args.proposer_id and args.determiner_id)
+        if not has_actors and args.strict:
+            self.add_error("Actor IDs required in strict mode")
+            return
+
+        if has_actors:
+            self.actors_are_distinct(args.proposer_id, args.determiner_id, args.executor_id)
+            self.metadata["proposer"] = args.proposer_id[:8] + "..."
+            self.metadata["determiner"] = args.determiner_id[:8] + "..."
 
     def _validate_publications(self, args: argparse.Namespace) -> None:
         """Verify publication properties and ownership."""
@@ -298,26 +310,23 @@ class ProofValidator:
 
     def _populate_from_file(self, args: argparse.Namespace, prev_meta: dict[str, Any]) -> None:
         """Populate missing fields from previous metadata dict."""
-        if not args.expected_revision_hash:
-            args.expected_revision_hash = prev_meta.get("raw_revision_hash")
-        if not args.proposer_id:
-            args.proposer_id = prev_meta.get("raw_proposer_id")
-        if not args.determiner_id:
-            args.determiner_id = prev_meta.get("raw_determiner_id")
-        if not args.executor_id:
-            args.executor_id = prev_meta.get("raw_executor_id")
-        if args.publication_count is None:
+        mapping = {
+            "expected_revision_hash": "raw_revision_hash",
+            "proposer_id": "raw_proposer_id",
+            "determiner_id": "raw_determiner_id",
+            "executor_id": "raw_executor_id",
+            "owner_id": "raw_owner_id",
+            "expected_owner": "raw_expected_owner",
+            "rebuild_job_id": "raw_rebuild_job_id",
+            "execution_id": "raw_execution_id",
+            "expected_revision_id": "raw_revision_id",
+        }
+        for attr, key in mapping.items():
+            if not getattr(args, attr, None):
+                setattr(args, attr, prev_meta.get(key))
+
+        if getattr(args, "publication_count", None) is None:
             args.publication_count = prev_meta.get("raw_publication_count")
-        if not args.owner_id:
-            args.owner_id = prev_meta.get("raw_owner_id")
-        if not args.expected_owner:
-            args.expected_owner = prev_meta.get("raw_expected_owner")
-        if not hasattr(args, "rebuild_job_id") or not args.rebuild_job_id:
-            args.rebuild_job_id = prev_meta.get("raw_rebuild_job_id")
-        if not hasattr(args, "execution_id") or not args.execution_id:
-            args.execution_id = prev_meta.get("raw_execution_id")
-        if not hasattr(args, "expected_revision_id") or not args.expected_revision_id:
-            args.expected_revision_id = prev_meta.get("raw_revision_id")
 
     def _populate_jobs_and_owner_from_db(self, args: argparse.Namespace, conn: Any) -> str | None:
         """Query RebuildJobORM by expected rebuild-job-id, rejecting ambiguity and latest-job selection."""
@@ -406,11 +415,12 @@ class ProofValidator:
             self.add_error("Certified revision governed_scopes is malformed")
             return None
 
-        if (
-            not isinstance(governed_scopes, list)
-            or not governed_scopes
-            or not all(isinstance(scope, str) and scope.strip() for scope in governed_scopes)
-        ):
+        if not isinstance(governed_scopes, list) or not governed_scopes:
+            self.add_error("Certified revision governed_scopes must be a non-empty list of identifiers")
+            return None
+
+        is_valid = all(isinstance(scope, str) and scope.strip() for scope in governed_scopes)
+        if not is_valid:
             self.add_error("Certified revision governed_scopes must be a non-empty list of identifiers")
             return None
 
@@ -468,31 +478,8 @@ class ProofValidator:
             "execution_id": execution_id,
         }
 
-    def _populate_actors_from_db(
-        self,
-        args: argparse.Namespace,
-        conn: Any,
-        rebuild_job_id: str | None,
-        revision_id: str | None,
-    ) -> None:
-        """Query proposer and determiner actors from RelationshipAssertionEventORM."""
-        clean_job_id = _sanitize_db_id(rebuild_job_id)
-        clean_rev_id = _sanitize_db_id(revision_id)
-        if not clean_job_id:
-            self.add_error("Correlation failed: rebuild_job_id missing")
-            return
-
-        if not clean_rev_id:
-            self.add_error("Correlation failed: revision_id missing")
-            return
-
-        assertion_ids_subquery = select(RelationshipProjectionEdgeORM.assertion_id).where(
-            RelationshipProjectionEdgeORM.revision_id == clean_rev_id
-        )
-
-        # HTTP assertion events carry request correlation IDs, not rebuild-job IDs.
-        # Actor evidence is bound through the exact certified lineage:
-        # rebuild job -> single publication -> revision -> projected assertion IDs.
+    def _populate_proposer(self, args: argparse.Namespace, conn: Any, assertion_ids_subquery: Any) -> None:
+        """Query and validate proposer actor."""
         proposer_stmt = (
             select(RelationshipAssertionEventORM.actor_id)
             .where(
@@ -517,9 +504,8 @@ class ProofValidator:
                 )
             args.proposer_id = db_proposer
 
-        # Determiner evidence is constrained to assertions projected by the
-        # exact certified revision. Its request correlation ID is intentionally
-        # not compared with the later rebuild-job ID.
+    def _populate_determiner(self, args: argparse.Namespace, conn: Any, assertion_ids_subquery: Any) -> None:
+        """Query and validate determiner actor."""
         determiner_stmt = (
             select(RelationshipAssertionEventORM.actor_id)
             .where(
@@ -545,6 +531,31 @@ class ProofValidator:
                 )
             args.determiner_id = db_determiner
 
+    def _populate_actors_from_db(
+        self,
+        args: argparse.Namespace,
+        conn: Any,
+        rebuild_job_id: str | None,
+        revision_id: str | None,
+    ) -> None:
+        """Query proposer and determiner actors from RelationshipAssertionEventORM."""
+        clean_job_id = _sanitize_db_id(rebuild_job_id)
+        clean_rev_id = _sanitize_db_id(revision_id)
+        if not clean_job_id:
+            self.add_error("Correlation failed: rebuild_job_id missing")
+            return
+
+        if not clean_rev_id:
+            self.add_error("Correlation failed: revision_id missing")
+            return
+
+        assertion_ids_subquery = select(RelationshipProjectionEdgeORM.assertion_id).where(
+            RelationshipProjectionEdgeORM.revision_id == clean_rev_id
+        )
+
+        self._populate_proposer(args, conn, assertion_ids_subquery)
+        self._populate_determiner(args, conn, assertion_ids_subquery)
+
     def _populate_from_db(self, args: argparse.Namespace, conn: Any) -> None:
         """Populate missing validation fields using active DB connection."""
         rebuild_job_id = self._populate_jobs_and_owner_from_db(args, conn)
@@ -556,15 +567,14 @@ class ProofValidator:
         revision_id = pub_info["revision_id"]
         self._populate_actors_from_db(args, conn, rebuild_job_id, revision_id)
 
-    def _populate_missing_evidence(self, args: argparse.Namespace) -> None:
-        """Populate missing arguments from previous run results and database state."""
-        # 1. Load previous metadata from local file if available
+    def _load_evidence_from_file(self, args: argparse.Namespace) -> None:
+        """Load previous metadata from local file if available."""
         prev_path = args.output or "staging-proof-result.json"
         try:
             safe_prev_path = self._validate_safe_path(prev_path)
         except Exception as err:
             print(f"Warning: Failed to validate path {prev_path}: {err}", file=sys.stderr)
-            safe_prev_path = ""
+            return
 
         if safe_prev_path and os.path.isfile(safe_prev_path):
             try:
@@ -579,8 +589,12 @@ class ProofValidator:
                     file=sys.stderr,
                 )
 
-        # 2. Query database for missing validation inputs if DB URL is available
+    def _load_evidence_from_db(self, args: argparse.Namespace) -> None:
+        """Query database for missing validation inputs if DB URL is available."""
         db_url = os.getenv("DATABASE_URL")
+        if not db_url:
+            return
+
         missing_inputs = [
             args.publication_count,
             args.revision_hash,
@@ -588,15 +602,23 @@ class ProofValidator:
             args.determiner_id,
             args.owner_id,
         ]
-        if db_url and any(val is None or not val for val in missing_inputs):
-            try:
-                from sqlalchemy import create_engine
+        has_missing = any(val is None or not val for val in missing_inputs)
+        if not has_missing:
+            return
 
-                engine = create_engine(db_url)
-                with engine.connect() as conn:
-                    self._populate_from_db(args, conn)
-            except Exception as err:
-                print(f"Warning: Failed to query database: {err}", file=sys.stderr)
+        try:
+            from sqlalchemy import create_engine
+
+            engine = create_engine(db_url)
+            with engine.connect() as conn:
+                self._populate_from_db(args, conn)
+        except Exception as err:
+            print(f"Warning: Failed to query database: {err}", file=sys.stderr)
+
+    def _populate_missing_evidence(self, args: argparse.Namespace) -> None:
+        """Populate missing arguments from previous run results and database state."""
+        self._load_evidence_from_file(args)
+        self._load_evidence_from_db(args)
 
     def validate_seed_and_publish(self, args: argparse.Namespace) -> dict[str, Any]:
         """Mode 1: Seed and publish validation."""
@@ -698,6 +720,23 @@ class ProofValidator:
             self.add_error(f"Failed to query current scopes from database: {e}")
             return None
 
+    def _resolve_restart_after_scopes(self, args: argparse.Namespace) -> str | None:
+        """Resolve after_scopes from DB if missing."""
+        after_str = args.after_scopes
+        if after_str:
+            return after_str
+
+        db_url = os.getenv("DATABASE_URL")
+        if not db_url:
+            if args.strict:
+                self.add_error("Database URL required to observe current scopes in strict mode")
+            return None
+
+        after_str = self._query_restart_scopes_from_db(args, db_url)
+        if after_str:
+            args.after_scopes = after_str
+        return after_str
+
     def _validate_restart_scopes(self, args: argparse.Namespace) -> None:
         """Validate consistency of governed scopes."""
         before_str = args.before_scopes
@@ -706,20 +745,7 @@ class ProofValidator:
                 self.add_error("Before scopes required in strict mode")
             return
 
-        after_str = args.after_scopes
-        if not after_str:
-            db_url = os.getenv("DATABASE_URL")
-            if db_url:
-                after_str = self._query_restart_scopes_from_db(args, db_url)
-                if after_str:
-                    args.after_scopes = after_str
-                else:
-                    return
-            else:
-                if args.strict:
-                    self.add_error("Database URL required to observe current scopes in strict mode")
-                return
-
+        after_str = self._resolve_restart_after_scopes(args)
         if not after_str:
             self.add_error("After scopes observed as empty or missing")
             return
@@ -1071,6 +1097,47 @@ def run_seed_and_publish(db_url: str, deployed_sha: str, run_id: str) -> dict[st
         engine.dispose()
 
 
+def _query_verification_data_from_db(session: Any, rebuild_job_id: str) -> tuple[Any, Any, Any]:
+    """Retrieve publication, revision, and rebuild job from DB."""
+    publication = session.query(RelationshipProjectionPublicationORM).filter_by(rebuild_job_id=rebuild_job_id).first()
+    if not publication:
+        return None, None, None
+    revision = session.query(RelationshipProjectionRevisionORM).filter_by(id=publication.revision_id).first()
+    job = session.query(RebuildJobORM).filter_by(job_id=rebuild_job_id).first()
+    return publication, revision, job
+
+
+def _verify_scopes_continuity(revision: Any, prev_metadata: dict[str, Any]) -> bool:
+    """Check scopes continuity for restart verification."""
+    if not revision:
+        return False
+
+    try:
+        persisted_scopes = json.loads(revision.governed_scopes)
+    except (TypeError, json.JSONDecodeError):
+        return False
+
+    if not isinstance(persisted_scopes, list) or not persisted_scopes:
+        return False
+
+    is_valid = all(isinstance(scope_id, str) and scope_id.strip() for scope_id in persisted_scopes)
+    if not is_valid:
+        return False
+
+    return (
+        revision.edge_set_hash == prev_metadata.get("edge_set_hash")
+        and revision.projection_hash == prev_metadata.get("projection_hash")
+        and persisted_scopes == prev_metadata.get("governed_scopes")
+    )
+
+
+def _verify_scopes_and_history(revision: Any, job: Any, prev_metadata: dict[str, Any]) -> tuple[bool, bool]:
+    """Check scopes continuity and historical reconstruction."""
+    scope_continuity_passed = _verify_scopes_continuity(revision, prev_metadata)
+    historical_reconstruction_passed = bool(job and job.status == "succeeded")
+    return scope_continuity_passed, historical_reconstruction_passed
+
+
 def run_verify_after_restart(
     db_url: str, deployed_sha: str, run_id: str, prev_metadata: dict[str, Any]
 ) -> dict[str, Any]:
@@ -1079,36 +1146,11 @@ def run_verify_after_restart(
     Session = sessionmaker(bind=engine)
     session = Session()
     try:
-        # Query publications and check continuity
         rebuild_job_id = prev_metadata.get("raw_rebuild_job_id") or run_id
-        publication = (
-            session.query(RelationshipProjectionPublicationORM).filter_by(rebuild_job_id=rebuild_job_id).first()
+        _, revision, job = _query_verification_data_from_db(session, rebuild_job_id)
+        scope_continuity_passed, historical_reconstruction_passed = _verify_scopes_and_history(
+            revision, job, prev_metadata
         )
-        scope_continuity_passed = False
-        historical_reconstruction_passed = False
-
-        if publication:
-            revision = session.query(RelationshipProjectionRevisionORM).filter_by(id=publication.revision_id).first()
-            if revision:
-                # Verify deterministic hashes and the exact governed predicate set.
-                try:
-                    persisted_scopes = json.loads(revision.governed_scopes)
-                except (TypeError, json.JSONDecodeError):
-                    persisted_scopes = None
-
-                if (
-                    revision.edge_set_hash == prev_metadata.get("edge_set_hash")
-                    and revision.projection_hash == prev_metadata.get("projection_hash")
-                    and persisted_scopes == prev_metadata.get("governed_scopes")
-                    and isinstance(persisted_scopes, list)
-                    and all(isinstance(scope_id, str) and scope_id.strip() for scope_id in persisted_scopes)
-                ):
-                    scope_continuity_passed = True
-
-                # Check history/rebuild jobs are well-formed
-                job = session.query(RebuildJobORM).filter_by(job_id=rebuild_job_id).first()
-                if job and job.status == "succeeded":
-                    historical_reconstruction_passed = True
 
         return {
             "deployed_sha": deployed_sha,

@@ -132,7 +132,7 @@ def test_actor_separated_validation() -> None:
     assert len(validator.errors) == 0
 
 
-def test_restart_scopes_lookup_failures() -> None:
+def test_restart_scopes_lookup_failures(monkeypatch: pytest.MonkeyPatch) -> None:
     """Test that _validate_restart_scopes fails on missing, multiple, or malformed DB data."""
     import shutil
     import tempfile
@@ -151,9 +151,7 @@ def test_restart_scopes_lookup_failures() -> None:
 
     # 1. No publication found
     validator.errors.clear()
-    import os
-
-    os.environ["DATABASE_URL"] = url
+    monkeypatch.setenv("DATABASE_URL", url)
     args = Namespace(
         before_scopes='["scope-1"]',
         after_scopes=None,
@@ -221,7 +219,5 @@ def test_restart_scopes_lookup_failures() -> None:
     args.rebuild_job_id = "malformed-run"
     validator._validate_restart_scopes(args)
     assert any("governed_scopes is malformed" in err for err in validator.errors)
-
-    os.environ.pop("DATABASE_URL", None)
     engine.dispose()
     shutil.rmtree(temp_dir)
