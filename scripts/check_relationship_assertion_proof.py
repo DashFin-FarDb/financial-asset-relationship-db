@@ -327,20 +327,43 @@ class ProofValidator:
             args.publication_count = conn.execute(count_query).scalar()
 
         if not args.revision_hash:
-            rev_query = (
-                select(RelationshipProjectionRevisionORM.projection_hash)
-                .order_by(RelationshipProjectionRevisionORM.created_at.desc())
-                .limit(1)
-            )
-            args.revision_hash = conn.execute(rev_query).scalar()
+            if active_exec_id:
+                rev_query = (
+                    select(RelationshipProjectionRevisionORM.projection_hash)
+                    .join(
+                        RelationshipProjectionPublicationORM,
+                        RelationshipProjectionRevisionORM.id == RelationshipProjectionPublicationORM.revision_id,
+                    )
+                    .where(RelationshipProjectionPublicationORM.execution_id == active_exec_id)
+                    .order_by(RelationshipProjectionPublicationORM.published_at.desc())
+                    .limit(1)
+                )
+                args.revision_hash = conn.execute(rev_query).scalar()
+
+            if not args.revision_hash:
+                fallback_rev_query = (
+                    select(RelationshipProjectionRevisionORM.projection_hash)
+                    .order_by(RelationshipProjectionRevisionORM.created_at.desc())
+                    .limit(1)
+                )
+                args.revision_hash = conn.execute(fallback_rev_query).scalar()
 
         if not args.owner_id:
-            pub_query = (
-                select(RelationshipProjectionPublicationORM.execution_id)
-                .order_by(RelationshipProjectionPublicationORM.published_at.desc())
-                .limit(1)
-            )
-            args.owner_id = conn.execute(pub_query).scalar()
+            if active_exec_id:
+                pub_query = (
+                    select(RelationshipProjectionPublicationORM.execution_id)
+                    .where(RelationshipProjectionPublicationORM.execution_id == active_exec_id)
+                    .limit(1)
+                )
+                args.owner_id = conn.execute(pub_query).scalar()
+
+            if not args.owner_id:
+                fallback_pub_query = (
+                    select(RelationshipProjectionPublicationORM.execution_id)
+                    .order_by(RelationshipProjectionPublicationORM.published_at.desc())
+                    .limit(1)
+                )
+                args.owner_id = conn.execute(fallback_pub_query).scalar()
 
     def _populate_missing_evidence(self, args: argparse.Namespace) -> None:
         """Populate missing arguments from previous run results and database state."""
