@@ -3,6 +3,6 @@
 # Auto-flip to github_only after >=3 synthesize push conflicts or divergent
 # ledger tips within conflict_window_minutes.
 writer_mode: dual
-conflict_count: 0
+conflict_count: 1
 conflict_window_minutes: 30
-last_conflict_at: null
+last_conflict_at: 2026-08-05T15:05:04Z
