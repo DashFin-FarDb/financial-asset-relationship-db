@@ -18,7 +18,7 @@ import subprocess
 import sys
 import uuid
 from datetime import datetime, timezone
-from typing import Any
+from typing import Any, Sequence
 from urllib.parse import urlparse
 
 from sqlalchemy import select
@@ -798,7 +798,7 @@ class ProofValidator:
     def _validate_reconstructed_assertion(
         self,
         assertion_id: str,
-        events: list[Any],
+        events: Sequence[Any],
     ) -> bool:
         """Validate one projected assertion's persisted lifecycle."""
         if not events:
