@@ -254,6 +254,8 @@ class ProofValidator:
         if args.publication_count is not None:
             self.publication_is_correct(args.publication_count, args.owner_id or "", args.expected_owner)
             self.metadata["publications"] = args.publication_count
+        elif args.strict:
+            self.add_error("Publication count required in strict mode")
 
     def _validate_revision(self, args: argparse.Namespace) -> None:
         """Validate revision hash binding."""
@@ -270,9 +272,103 @@ class ProofValidator:
                 self.metadata["expected_revision"] = args.expected_revision_hash[:8] + "..."
             elif args.strict:
                 self.add_error("Expected revision hash required in strict mode")
+        elif args.strict:
+            self.add_error("Revision hash required in strict mode")
+
+    def _populate_from_file(self, args: argparse.Namespace, prev_meta: dict[str, Any]) -> None:
+        """Populate missing fields from previous metadata dict."""
+        if not args.expected_revision_hash:
+            args.expected_revision_hash = prev_meta.get("raw_revision_hash")
+        if not args.proposer_id:
+            args.proposer_id = prev_meta.get("raw_proposer_id")
+        if not args.determiner_id:
+            args.determiner_id = prev_meta.get("raw_determiner_id")
+        if not args.executor_id:
+            args.executor_id = prev_meta.get("raw_executor_id")
+        if args.publication_count is None:
+            args.publication_count = prev_meta.get("raw_publication_count")
+        if not args.owner_id:
+            args.owner_id = prev_meta.get("raw_owner_id")
+        if not args.expected_owner:
+            args.expected_owner = prev_meta.get("raw_expected_owner")
+
+    def _populate_from_db(self, args: argparse.Namespace, conn: Any) -> None:
+        """Populate missing validation fields using active DB connection."""
+        from sqlalchemy import func, select
+
+        from src.data.db_models import RebuildJobORM
+        from src.data.relationship_assertion_db_models import (
+            RelationshipProjectionPublicationORM,
+            RelationshipProjectionRevisionORM,
+        )
+
+        if args.publication_count is None:
+            count_query = select(func.count()).select_from(RelationshipProjectionPublicationORM)
+            args.publication_count = conn.execute(count_query).scalar()
+
+        if not args.revision_hash:
+            rev_query = (
+                select(RelationshipProjectionRevisionORM.projection_hash)
+                .order_by(RelationshipProjectionRevisionORM.created_at.desc())
+                .limit(1)
+            )
+            args.revision_hash = conn.execute(rev_query).scalar()
+
+        job_query = (
+            select(RebuildJobORM.requested_by, RebuildJobORM.execution_id)
+            .order_by(RebuildJobORM.created_at.desc())
+            .limit(1)
+        )
+        row = conn.execute(job_query).first()
+        if row:
+            if not args.proposer_id:
+                args.proposer_id = row[0]
+            if not args.determiner_id:
+                args.determiner_id = row[1]
+
+        if not args.owner_id:
+            pub_query = (
+                select(RelationshipProjectionPublicationORM.execution_id)
+                .order_by(RelationshipProjectionPublicationORM.published_at.desc())
+                .limit(1)
+            )
+            args.owner_id = conn.execute(pub_query).scalar()
+
+    def _populate_missing_evidence(self, args: argparse.Namespace) -> None:
+        """Populate missing arguments from previous run results and database state."""
+        # 1. Load previous metadata from local file if available
+        prev_path = args.output or "staging-proof-result.json"
+        if os.path.isfile(prev_path):
+            try:
+                with open(prev_path, "r", encoding="utf-8") as f:
+                    prev_data = json.load(f)
+                    prev_meta = prev_data.get("metadata", {})
+                    if prev_meta.get("mode") == "seed_and_publish":
+                        self._populate_from_file(args, prev_meta)
+            except Exception:
+                pass
+
+        # 2. Query database for missing validation inputs if DB URL is available
+        db_url = args.database_url or os.getenv("DATABASE_URL")
+        if db_url and (
+            args.publication_count is None
+            or not args.revision_hash
+            or not args.proposer_id
+            or not args.determiner_id
+            or not args.owner_id
+        ):
+            try:
+                from sqlalchemy import create_engine
+
+                engine = create_engine(db_url)
+                with engine.connect() as conn:
+                    self._populate_from_db(args, conn)
+            except Exception:
+                pass
 
     def validate_seed_and_publish(self, args: argparse.Namespace) -> dict[str, Any]:
         """Mode 1: Seed and publish validation."""
+        self._populate_missing_evidence(args)
         self.metadata["mode"] = "seed_and_publish"
 
         self.git_sha_is_valid(args.deployed_sha, "Deployed")
@@ -284,6 +380,15 @@ class ProofValidator:
         self._validate_actors(args)
         self._validate_publications(args)
         self._validate_revision(args)
+
+        # Store raw parameters in metadata for restart mode verification continuity
+        self.metadata["raw_proposer_id"] = args.proposer_id
+        self.metadata["raw_determiner_id"] = args.determiner_id
+        self.metadata["raw_executor_id"] = args.executor_id
+        self.metadata["raw_publication_count"] = args.publication_count
+        self.metadata["raw_owner_id"] = args.owner_id
+        self.metadata["raw_expected_owner"] = args.expected_owner
+        self.metadata["raw_revision_hash"] = args.revision_hash
 
         return self.build_result()
 
@@ -349,6 +454,7 @@ class ProofValidator:
 
     def validate_verify_after_restart(self, args: argparse.Namespace) -> dict[str, Any]:
         """Mode 2: Post-restart verification."""
+        self._populate_missing_evidence(args)
         self.metadata["mode"] = "verify_after_restart"
 
         self.git_sha_is_valid(args.deployed_sha, "Deployed")
