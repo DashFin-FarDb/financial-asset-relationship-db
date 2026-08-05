@@ -1,0 +1,14 @@
+scripts/check_relationship_assertion_proof.py
+  h_f327e6ff3ec3c1 156,171
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.21",
+  "base_commit_sha": "50f2b2feb050ea01861eb454ce60cef5951d753d",
+  "prompts": {},
+  "humans": {
+    "h_f327e6ff3ec3c1": {
+      "author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}
