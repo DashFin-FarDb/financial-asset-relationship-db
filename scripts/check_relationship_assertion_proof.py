@@ -153,7 +153,7 @@ class ProofValidator:
             ok = False
         return ok
 
-    def _validate_scope_list(self, lst: Any, name: str) -> bool:
+    def _validate_scope_list(self, lst: Any) -> bool:
         """Check if lst is a non-empty list of strings."""
         if not isinstance(lst, list):
             self.add_error("Scopes must be lists")
@@ -168,9 +168,7 @@ class ProofValidator:
 
     def scopes_are_consistent(self, before: list[str], after: list[str], enforce_no_loss: bool) -> bool:
         """Check scope consistency across transitions."""
-        if not self._validate_scope_list(before, "Before Scopes") or not self._validate_scope_list(
-            after, "After Scopes"
-        ):
+        if not self._validate_scope_list(before) or not self._validate_scope_list(after):
             return False
 
         if enforce_no_loss:
