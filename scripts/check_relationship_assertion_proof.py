@@ -302,8 +302,28 @@ class ProofValidator:
 
     def _populate_from_db(self, args: argparse.Namespace, conn: Any) -> None:
         """Populate missing validation fields using active DB connection."""
+        # 1. Query latest rebuild job first to discover the active execution ID
+        exec_id = None
+        job_query = (
+            select(RebuildJobORM.requested_by, RebuildJobORM.execution_id)
+            .order_by(RebuildJobORM.created_at.desc())
+            .limit(1)
+        )
+        row = conn.execute(job_query).first()
+        if row:
+            exec_id = row[1]
+            if not args.proposer_id:
+                args.proposer_id = row[0]
+            if not args.determiner_id:
+                args.determiner_id = row[1]
+
+        active_exec_id = exec_id or args.determiner_id
+
+        # 2. Filter publication count by active execution ID
         if args.publication_count is None:
             count_query = select(count()).select_from(RelationshipProjectionPublicationORM)
+            if active_exec_id:
+                count_query = count_query.where(RelationshipProjectionPublicationORM.execution_id == active_exec_id)
             args.publication_count = conn.execute(count_query).scalar()
 
         if not args.revision_hash:
@@ -313,18 +333,6 @@ class ProofValidator:
                 .limit(1)
             )
             args.revision_hash = conn.execute(rev_query).scalar()
-
-        job_query = (
-            select(RebuildJobORM.requested_by, RebuildJobORM.execution_id)
-            .order_by(RebuildJobORM.created_at.desc())
-            .limit(1)
-        )
-        row = conn.execute(job_query).first()
-        if row:
-            if not args.proposer_id:
-                args.proposer_id = row[0]
-            if not args.determiner_id:
-                args.determiner_id = row[1]
 
         if not args.owner_id:
             pub_query = (
