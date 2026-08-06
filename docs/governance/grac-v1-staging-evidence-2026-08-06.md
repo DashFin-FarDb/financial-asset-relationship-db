@@ -50,6 +50,24 @@ relationship_assertion_v1: PASS|seed:31077645600;restart:31078079469|6bb1f2e473c
 - lifecycle reconstruction: passed
 - historical reconstruction: passed
 
+## Post-restart governed graph reconstruction
+
+- Restart proof run: 31078079469
+- Restart artifact: `staging-proof-verify_after_restart-31078079469`
+- Artifact ID: 8958332003
+- Artifact SHA-256:
+  `ad6fc25d8a4b235f524f4bf7fde254cdc2868ea7c804659b80f25ac0c25f37f2`
+- Certified revision ID:
+  `89b59302-e4a4-41cf-a82a-9605dbd5ebd3`
+- Certified revision hash:
+  `1eef1124c6a82ab0a4b8a840d42e1e19abf627a760f0caad17be16ecca89cde7`
+- Publication ID:
+  `cc0edcaa-8dd4-4531-a3fb-6270a17be02e`
+- Governed scopes before restart: 1
+- Governed scopes after restart: 1
+- Reconstructed governed assertions: 1
+- Result: passed
+
 ## Review
 
 - Secret and credential redaction reviewed: yes
