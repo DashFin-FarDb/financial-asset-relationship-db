@@ -1,7 +1,7 @@
 # Governed Relationship Assertion Contract v1
 
 **Status:** Frozen normative contract (Accepted via [ADR 0008](../adr/0008-governed-relationship-assertion-contract.md))
-**Claim class for runtime capability:** `CURRENT` (exact-SHA staging proof passed)
+**Claim class for runtime capability:** `CURRENT` for the exact-SHA evidenced staging scope
 **Contract version:** `grac.v1`
 **Baseline:** `main` at `5e45753705c10c2c4f50e0e9bc4d07b823d752ab`
 **Runtime impact of this document:** Documentation only. An empty assertion store must produce zero behavioural change.
@@ -478,7 +478,7 @@ Do not silently rewrite v1 inside schema, projector, API, UI, or staging PRs.
   proposal/determination actor separation normative. Runtime capability remains `NEXT`, and issue #1536 stays
   paused until the corrective lifecycle and hosted-schema proofs land.
 
-- **2026-08-06 CURRENT promotion:** Staging proofs (seed_and_publish and verify_after_restart) succeeded on `main` at `8cbbb8fe2d4`. Contract claim class promoted from `NEXT` to `CURRENT`.
+- **2026-08-06 CURRENT promotion:** Staging proofs (seed_and_publish: 31077645600, verify_after_restart: 31078079469) succeeded on `main` at `8cbbb8fe2d4`. Contract claim class promoted from `NEXT` to `CURRENT`.
 
 ---
 
