@@ -1,12 +1,13 @@
 # GRAC v1 exact-SHA staging evidence
 
-relationship_assertion_v1: PASS|seed:31077645600;restart:31078079469|8cbbb8fe2d4
+relationship_assertion_v1: PASS|seed:31077645600;restart:31078079469|6bb1f2e473c
 
 ## Target
 
 - Environment: Vercel staging
-- Source SHA: 8cbbb8fe2d4eca7988d781bd7617a960f858feff
-- Deployed SHA: 8cbbb8fe2d4eca7988d781bd7617a960f858feff
+- Certified deployed SHA: 6bb1f2e473ce4190b6c7ee06f69734873e2abdce
+- Seed workflow SHA: 51c25007c0c9d2c899f33d05286b8ac6a8139cf6
+- Restart workflow SHA: 8cbbb8fe2d4eca7988d781bd7617a960f858feff
 
 ## Live proof runs
 
@@ -38,7 +39,9 @@ relationship_assertion_v1: PASS|seed:31077645600;restart:31078079469|8cbbb8fe2d4
 - proposer identity: grac_staging_proposer
 - determiner identity: admin
 - proposer and determiner distinct: true
-- database authorization run: 31078079469
+- database authorization evidence: passed and embedded in proof runs
+- authorization evidence SHA: 6bb1f2e473ce4190b6c7ee06f69734873e2abdce
+- restart proof reference: 31078079469
 
 ## Restart verification
 

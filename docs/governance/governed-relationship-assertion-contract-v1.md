@@ -478,7 +478,13 @@ Do not silently rewrite v1 inside schema, projector, API, UI, or staging PRs.
   proposal/determination actor separation normative. Runtime capability remains `NEXT`, and issue #1536 stays
   paused until the corrective lifecycle and hosted-schema proofs land.
 
-- **2026-08-06 CURRENT promotion:** Staging proofs (seed_and_publish: 31077645600, verify_after_restart: 31078079469) succeeded on `main` at `8cbbb8fe2d4`. Contract claim class promoted from `NEXT` to `CURRENT`.
+- **2026-08-06 CURRENT promotion:** Strict staging proofs passed for deployed
+  SHA `6bb1f2e473ce4190b6c7ee06f69734873e2abdce`
+  (`seed_and_publish`: 31077645600; `verify_after_restart`: 31078079469).
+  The restart proof executed from `main` at
+  `8cbbb8fe2d4eca7988d781bd7617a960f858feff`.
+  Contract claim class promoted from `NEXT` to `CURRENT` for the evidenced
+  staging scope.
 
 ---
 
