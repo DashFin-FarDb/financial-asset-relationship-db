@@ -2,6 +2,7 @@ import argparse
 import hashlib
 import json
 from pathlib import Path
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -155,62 +156,99 @@ def test_valid_health_provenance(base_args):
     assert validator.metadata["health_observation_deployed_sha"] == "sha123"
 
 
-class MockSession:
-    def __init__(self, count_val, hash_val):
-        self.count_val = count_val
-        self.hash_val = hash_val
+def _setup_mock_session(
+    mocker, mock_session, assertion_count, edge_count, edge_manifest_hash, expected_revision_id, execution_id
+):
+    # We mock the return values for session.execute(...).all() and .scalar()
+    # 1. Publication query: returns [(revision_id, execution_id)]
+    # 2. Assertion IDs query: returns [[id_0], [id_1], ...]
+    # 3. For each assertion ID: returns list of events via scalars().all()
+    # 4. Edge count query via scalar()
+    # 5. Edge manifest hash query via scalar()
 
-    def execute(self, stmt, params=None):
-        class Result:
-            def __init__(self, val):
-                self.val = val
+    def execute_side_effect(stmt, params=None):
+        stmt_str = str(stmt).lower()
+        mock_result = MagicMock()
 
-            def scalar(self):
-                return self.val
+        if "relationship_projection_publications" in stmt_str:
+            mock_result.all.return_value = [(expected_revision_id, execution_id)]
+        elif "relationship_projection_edges.assertion_id" in stmt_str:
+            mock_result.all.return_value = [[f"id_{i}"] for i in range(assertion_count)]
+        elif "relationship_assertion_events" in stmt_str:
+            mock_result.scalars.return_value.all.return_value = (
+                []
+            )  # No events for now, we mock validate_reconstructed_assertion anyway
+        elif "count" in stmt_str:
+            mock_result.scalar.return_value = edge_count
+        elif "hash" in stmt_str:
+            mock_result.scalar.return_value = edge_manifest_hash
+        else:
+            mock_result.all.return_value = []
+            mock_result.scalar.return_value = None
 
-            def all(self):
-                return [[f"id_{i}"] for i in range(self.val)] if isinstance(self.val, int) else []
+        return mock_result
 
-        if "count" in str(stmt).lower():
-            return Result(self.count_val)
-        if "hash" in str(stmt).lower():
-            return Result(self.hash_val)
-        return Result(self.count_val)
+    mock_session.execute.side_effect = execute_side_effect
 
 
-def test_restart_assertion_count_mismatch(base_args):
+@patch("sqlalchemy.create_engine")
+@patch("sqlalchemy.orm.Session")
+@patch("os.getenv")
+def test_restart_assertion_count_mismatch(mock_getenv, mock_session_cls, mock_create_engine, base_args):
+    mock_getenv.return_value = "sqlite:///:memory:"
+
+    mock_session = MagicMock()
+    mock_session_cls.return_value.__enter__.return_value = mock_session
+
+    # We reconstruct 5 assertions but expect 10 (from base_args.before_assertion_count)
+    _setup_mock_session(
+        mock_session, mock_session, 5, 20, "hash123", base_args.expected_revision_id, base_args.execution_id
+    )
+
     validator = ProofValidator({"db_url": "sqlite:///:memory:"})
-    validator.metadata["reconstructed_assertions"] = 5
-    validator._validate_reconstructed_assertion = lambda a, e: True
-    base_args.history_entries = 10
+    validator._validate_reconstructed_assertion = MagicMock(return_value=True)
 
-    reconstructed = 5
-    if base_args.before_assertion_count is not None:
-        if reconstructed != base_args.before_assertion_count:
-            validator.add_error(
-                f"Assertion count mismatch: {reconstructed} vs expected {base_args.before_assertion_count}"
-            )
-
+    validator._reconstruct_assertion_history_from_db(base_args)
     assert any("Assertion count mismatch: 5 vs expected 10" in e for e in validator.errors)
 
 
-def test_edge_count_mismatch(base_args):
-    validator = ProofValidator({"db_url": "sqlite:///:memory:"})
-    edge_count = 15
-    if base_args.before_edge_count is not None:
-        if edge_count != base_args.before_edge_count:
-            validator.add_error(f"Edge count mismatch: {edge_count} vs expected {base_args.before_edge_count}")
+@patch("sqlalchemy.create_engine")
+@patch("sqlalchemy.orm.Session")
+@patch("os.getenv")
+def test_edge_count_mismatch(mock_getenv, mock_session_cls, mock_create_engine, base_args):
+    mock_getenv.return_value = "sqlite:///:memory:"
 
+    mock_session = MagicMock()
+    mock_session_cls.return_value.__enter__.return_value = mock_session
+
+    # We reconstruct 10 assertions (correct) but 15 edges, expecting 20
+    _setup_mock_session(
+        mock_session, mock_session, 10, 15, "hash123", base_args.expected_revision_id, base_args.execution_id
+    )
+
+    validator = ProofValidator({"db_url": "sqlite:///:memory:"})
+    validator._validate_reconstructed_assertion = MagicMock(return_value=True)
+
+    validator._reconstruct_assertion_history_from_db(base_args)
     assert any("Edge count mismatch: 15 vs expected 20" in e for e in validator.errors)
 
 
-def test_edge_manifest_mismatch(base_args):
-    validator = ProofValidator({"db_url": "sqlite:///:memory:"})
-    edge_manifest_hash = "wronghash"
-    if base_args.before_edge_manifest_hash is not None:
-        if edge_manifest_hash != base_args.before_edge_manifest_hash:
-            validator.add_error(
-                f"Edge manifest hash mismatch: {edge_manifest_hash} vs expected {base_args.before_edge_manifest_hash}"
-            )
+@patch("sqlalchemy.create_engine")
+@patch("sqlalchemy.orm.Session")
+@patch("os.getenv")
+def test_edge_manifest_mismatch(mock_getenv, mock_session_cls, mock_create_engine, base_args):
+    mock_getenv.return_value = "sqlite:///:memory:"
 
-    assert any("Edge manifest hash mismatch" in e for e in validator.errors)
+    mock_session = MagicMock()
+    mock_session_cls.return_value.__enter__.return_value = mock_session
+
+    # We reconstruct 10 assertions (correct) and 20 edges (correct), but wrong hash
+    _setup_mock_session(
+        mock_session, mock_session, 10, 20, "wronghash", base_args.expected_revision_id, base_args.execution_id
+    )
+
+    validator = ProofValidator({"db_url": "sqlite:///:memory:"})
+    validator._validate_reconstructed_assertion = MagicMock(return_value=True)
+
+    validator._reconstruct_assertion_history_from_db(base_args)
+    assert any("Edge manifest hash mismatch: wronghash vs expected hash123" in e for e in validator.errors)
