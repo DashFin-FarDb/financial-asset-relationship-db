@@ -755,7 +755,6 @@ class ProofValidator:
             if getattr(args, "health_observation_path", None):
                 try:
                     import hashlib
-                    import json
                     from pathlib import Path
 
                     health_bytes = Path(args.health_observation_path).read_bytes()
