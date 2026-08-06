@@ -50,6 +50,7 @@ _ALLOWED_EVIDENCE_FILENAMES = frozenset(
 
 PROOF_RESULT_FILENAME = "staging-proof-result.json"
 AUTHZ_EVIDENCE_FILENAME = "authz-evidence.json"
+ERR_INVALID_SCOPE_PREDICATE = "Certified revision governed_scopes contains invalid or missing predicate_id entries"
 
 
 def validate_safe_path(path: str) -> pathlib.Path:
@@ -167,28 +168,22 @@ class ProofValidator:
             if isinstance(scope, str):
                 predicate_id = scope.strip()
                 if not predicate_id:
-                    self.add_error(
-                        "Certified revision governed_scopes contains invalid or missing predicate_id entries"
-                    )
+                    self.add_error(ERR_INVALID_SCOPE_PREDICATE)
                     return None
                 parsed.append(f"{predicate_id}::{expected_purpose}" if expected_purpose else predicate_id)
             elif isinstance(scope, dict):
                 if "predicate_id" not in scope or "purpose" not in scope:
-                    self.add_error(
-                        "Certified revision governed_scopes contains invalid or missing predicate_id entries"
-                    )
+                    self.add_error(ERR_INVALID_SCOPE_PREDICATE)
                     return None
                 if expected_purpose and scope["purpose"] != expected_purpose:
                     self.add_error("Certified revision governed_scopes contains entries with incorrect purpose")
                     return None
                 if not isinstance(scope["predicate_id"], str):
-                    self.add_error(
-                        "Certified revision governed_scopes contains invalid or missing predicate_id entries"
-                    )
+                    self.add_error(ERR_INVALID_SCOPE_PREDICATE)
                     return None
                 parsed.append(f"{scope['predicate_id'].strip()}::{scope['purpose']}")
             else:
-                self.add_error("Certified revision governed_scopes contains invalid or missing predicate_id entries")
+                self.add_error(ERR_INVALID_SCOPE_PREDICATE)
                 return None
 
         return parsed
