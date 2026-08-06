@@ -101,12 +101,13 @@ def test_scopes_are_consistent_invalid_types() -> None:
     validator = ProofValidator({})
     # Test non-list inputs
     assert validator.scopes_are_consistent("not-a-list", ["scope1"], enforce_no_loss=True) is False  # type: ignore[arg-type]
-    assert "Scopes must be lists" in validator.errors
-
-    # Test non-string inputs (unhashable)
+    assert any("must be a non-empty list" in err for err in validator.errors)
     validator.errors.clear()
-    assert validator.scopes_are_consistent([{"unhashable": "dict"}], ["scope1"], enforce_no_loss=True) is False  # type: ignore[list-item]
-    assert "Scopes must be lists of strings" in validator.errors
+
+    # Test lists containing non-strings
+    assert validator.scopes_are_consistent([123], ["scope1"], enforce_no_loss=True) is False  # type: ignore[list-item]
+    assert any("invalid or missing predicate_id entries" in err for err in validator.errors)
+    validator.errors.clear()
 
 
 def test_actor_separated_validation() -> None:
@@ -247,36 +248,86 @@ def test_strict_mode_expected_revision_hash_requirement(mode: str, should_error:
 
 
 def test_validate_revision_scopes_malformed():
+    """Test that malformed governed scopes (e.g., dict instead of list) are rejected."""
     import json
     from unittest.mock import MagicMock
 
     validator = ProofValidator({})
     conn = MagicMock()
-    conn.execute().first.return_value = ("hash", json.dumps({"not": "a list"}))
+    conn.execute().first.return_value = ("hash", json.dumps({"not": "a list"}), "testing")
     result = validator._get_and_validate_revision_scopes(conn=conn, clean_rev_id="r")
     assert result is None
     assert any("must be a non-empty list" in err for err in validator.errors)
 
 
 def test_validate_revision_scopes_invalid_objects():
+    """Test that scopes missing a predicate_id or with an invalid predicate_id type are rejected."""
     import json
     from unittest.mock import MagicMock
 
     validator = ProofValidator({})
     conn = MagicMock()
-    conn.execute().first.return_value = ("hash", json.dumps([{"predicate_id": 123}]))
+    conn.execute().first.return_value = ("hash", json.dumps([{"predicate_id": 123}]), "testing")
     result = validator._get_and_validate_revision_scopes(conn=conn, clean_rev_id="r")
     assert result is None
     assert any("invalid or missing predicate_id" in err for err in validator.errors)
 
 
-def test_validate_revision_scopes_valid_objects():
+def test_validate_revision_scopes_missing_purpose():
+    """Test that object scopes missing a purpose are rejected."""
     import json
     from unittest.mock import MagicMock
 
     validator = ProofValidator({})
     conn = MagicMock()
-    conn.execute().first.return_value = ("hash", json.dumps([{"predicate_id": "scope-1"}, {"predicate_id": "scope-2"}]))
+    conn.execute().first.return_value = ("hash", json.dumps([{"predicate_id": "scope-1"}]), "testing")
+    result = validator._get_and_validate_revision_scopes(conn=conn, clean_rev_id="r")
+    assert result is None
+    assert any("invalid or missing predicate_id entries" in err for err in validator.errors)
+
+
+def test_validate_revision_scopes_wrong_purpose():
+    """Test that object scopes with a mismatched purpose are rejected."""
+    import json
+    from unittest.mock import MagicMock
+
+    validator = ProofValidator({})
+    conn = MagicMock()
+    conn.execute().first.return_value = (
+        "hash",
+        json.dumps([{"predicate_id": "scope-1", "purpose": "other"}]),
+        "testing",
+    )
+    result = validator._get_and_validate_revision_scopes(conn=conn, clean_rev_id="r")
+    assert result is None
+    assert any("incorrect purpose" in err for err in validator.errors)
+
+
+def test_validate_revision_scopes_blank_identifiers():
+    """Test that string scopes or object scopes with blank predicate_ids are rejected."""
+    import json
+    from unittest.mock import MagicMock
+
+    validator = ProofValidator({})
+    conn = MagicMock()
+    conn.execute().first.return_value = ("hash", json.dumps([" "]), "testing")
+    result = validator._get_and_validate_revision_scopes(conn=conn, clean_rev_id="r")
+    assert result is None
+    assert any("invalid or missing predicate_id" in err for err in validator.errors)
+
+
+def test_validate_revision_scopes_valid_objects_and_strings():
+    """Test that valid string scopes and valid object scopes with correct purposes are parsed properly."""
+    import json
+    from unittest.mock import MagicMock
+
+    validator = ProofValidator({})
+    conn = MagicMock()
+    conn.execute().first.return_value = (
+        "hash",
+        json.dumps(["scope-1", {"predicate_id": "scope-2", "purpose": "testing"}]),
+        "testing",
+    )
     result = validator._get_and_validate_revision_scopes(conn=conn, clean_rev_id="r")
     assert result == ("hash", ["scope-1", "scope-2"])
     assert not validator.errors

@@ -156,32 +156,58 @@ class ProofValidator:
             ok = False
         return ok
 
-    def _validate_scope_list(self, lst: Any) -> bool:
-        """Check if lst is a non-empty list of strings."""
-        if not isinstance(lst, list):
-            self.add_error("Scopes must be lists")
-            return False
-        if not lst:
-            self.add_error("Scope lists empty")
-            return False
-        if not all(isinstance(x, str) for x in lst):
-            self.add_error("Scopes must be lists of strings")
-            return False
-        return True
+    def normalize_scopes(self, lst: Any, expected_purpose: str | None = None) -> list[str] | None:
+        """Normalize a list of scopes into a canonical list of strings, validating structure."""
+        if not isinstance(lst, list) or not lst:
+            self.add_error("Certified revision governed_scopes must be a non-empty list of identifiers or objects")
+            return None
 
-    def scopes_are_consistent(self, before: list[str], after: list[str], enforce_no_loss: bool) -> bool:
+        parsed = []
+        for scope in lst:
+            if isinstance(scope, str):
+                parsed.append(scope)
+            elif isinstance(scope, dict):
+                if "predicate_id" not in scope or "purpose" not in scope:
+                    self.add_error(
+                        "Certified revision governed_scopes contains invalid or missing predicate_id entries"
+                    )
+                    return None
+                if expected_purpose and scope["purpose"] != expected_purpose:
+                    self.add_error("Certified revision governed_scopes contains entries with incorrect purpose")
+                    return None
+                if not isinstance(scope["predicate_id"], str):
+                    self.add_error(
+                        "Certified revision governed_scopes contains invalid or missing predicate_id entries"
+                    )
+                    return None
+                parsed.append(scope["predicate_id"])
+            else:
+                self.add_error("Certified revision governed_scopes contains invalid or missing predicate_id entries")
+                return None
+
+        if not all(isinstance(x, str) and x.strip() for x in parsed):
+            self.add_error("Certified revision governed_scopes contains invalid or missing predicate_id entries")
+            return None
+
+        return parsed
+
+    def scopes_are_consistent(
+        self, before: Any, after: Any, enforce_no_loss: bool, expected_purpose: str | None = None
+    ) -> bool:
         """Check scope consistency across transitions."""
-        if not self._validate_scope_list(before) or not self._validate_scope_list(after):
+        before_normalized = self.normalize_scopes(before, expected_purpose)
+        after_normalized = self.normalize_scopes(after, expected_purpose)
+        if before_normalized is None or after_normalized is None:
             return False
 
         if enforce_no_loss:
-            missing = set(before) - set(after)
+            missing = set(before_normalized) - set(after_normalized)
             if missing:
                 self.add_error(f"Scopes disappeared: {sorted(missing)[:3]}")
                 return False
         else:
-            if set(before) != set(after):
-                self.add_error(f"Scope mismatch: {len(before)} before, {len(after)} after")
+            if set(before_normalized) != set(after_normalized):
+                self.add_error(f"Scope mismatch: {len(before_normalized)} before, {len(after_normalized)} after")
                 return False
 
         return True
@@ -426,6 +452,7 @@ class ProofValidator:
         rev_query = select(
             RelationshipProjectionRevisionORM.projection_hash,
             RelationshipProjectionRevisionORM.governed_scopes,
+            RelationshipProjectionRevisionORM.purpose,
         ).where(
             RelationshipProjectionRevisionORM.id == clean_rev_id,
         )
@@ -434,7 +461,7 @@ class ProofValidator:
             self.add_error(f"Revision {clean_rev_id} not found in database")
             return None
 
-        proj_hash, governed_scopes_raw = rev_row
+        proj_hash, governed_scopes_raw, purpose = rev_row
         try:
             governed_scopes = (
                 json.loads(governed_scopes_raw) if isinstance(governed_scopes_raw, str) else governed_scopes_raw
@@ -443,22 +470,8 @@ class ProofValidator:
             self.add_error("Certified revision governed_scopes is malformed")
             return None
 
-        if not isinstance(governed_scopes, list) or not governed_scopes:
-            self.add_error("Certified revision governed_scopes must be a non-empty list of identifiers or objects")
-            return None
-
-        parsed_scopes = []
-        for scope in governed_scopes:
-            if isinstance(scope, str):
-                parsed_scopes.append(scope)
-            elif isinstance(scope, dict) and "predicate_id" in scope and isinstance(scope["predicate_id"], str):
-                parsed_scopes.append(scope["predicate_id"])
-            else:
-                self.add_error("Certified revision governed_scopes contains invalid or missing predicate_id entries")
-                return None
-
-        if not all(scope.strip() for scope in parsed_scopes):
-            self.add_error("Certified revision governed_scopes contains invalid or missing predicate_id entries")
+        parsed_scopes = self.normalize_scopes(governed_scopes, expected_purpose=purpose)
+        if parsed_scopes is None:
             return None
 
         return proj_hash, parsed_scopes
