@@ -11,6 +11,7 @@ from scripts.check_relationship_assertion_proof import ProofValidator
 
 @pytest.fixture
 def base_args(tmp_path):
+    """Build valid strict restart arguments with a retained health observation."""
     health_json = {
         "persistence_configured": True,
         "graph": {"persistence_enabled": True, "persistence_loaded": True, "startup_source": "persisted"},
@@ -50,6 +51,7 @@ def base_args(tmp_path):
 
 
 def test_strict_restart_missing_seed_baselines(base_args):
+    """Reject strict restart verification if any seed baselines are missing."""
     validator = ProofValidator({"db_url": "sqlite:///:memory:"})
 
     # Missing assertion count
@@ -73,6 +75,7 @@ def test_strict_restart_missing_seed_baselines(base_args):
 
 
 def test_zero_seed_assertion_count(base_args):
+    """Reject strict restart verification if seed assertion count is zero."""
     validator = ProofValidator({"db_url": "sqlite:///:memory:"})
     base_args.before_assertion_count = 0
     validator.validate_verify_after_restart(base_args)
@@ -80,6 +83,7 @@ def test_zero_seed_assertion_count(base_args):
 
 
 def test_missing_health_file(base_args):
+    """Reject strict persistence proof without a retained health observation."""
     validator = ProofValidator({"db_url": "sqlite:///:memory:"})
     base_args.health_observation_path = None
     validator._validate_restart_persistence(base_args)
@@ -87,6 +91,7 @@ def test_missing_health_file(base_args):
 
 
 def test_malformed_health_json(tmp_path, base_args):
+    """Reject persistence proof if health observation JSON is malformed."""
     bad_health = tmp_path / "bad.json"
     bad_health.write_text("{bad json")
     base_args.health_observation_path = str(bad_health)
@@ -97,6 +102,7 @@ def test_malformed_health_json(tmp_path, base_args):
 
 
 def test_persistence_configured_false(tmp_path, base_args):
+    """Reject persistence proof if persistence is not configured."""
     health = json.loads(Path(base_args.health_observation_path).read_text())
     health["persistence_configured"] = False
     Path(base_args.health_observation_path).write_text(json.dumps(health))
@@ -107,6 +113,7 @@ def test_persistence_configured_false(tmp_path, base_args):
 
 
 def test_persistence_enabled_false(tmp_path, base_args):
+    """Reject persistence proof if persistence is not enabled in graph."""
     health = json.loads(Path(base_args.health_observation_path).read_text())
     health["graph"]["persistence_enabled"] = False
     Path(base_args.health_observation_path).write_text(json.dumps(health))
@@ -117,6 +124,7 @@ def test_persistence_enabled_false(tmp_path, base_args):
 
 
 def test_persistence_loaded_false(tmp_path, base_args):
+    """Reject persistence proof if persistence is not loaded in graph."""
     health = json.loads(Path(base_args.health_observation_path).read_text())
     health["graph"]["persistence_loaded"] = False
     Path(base_args.health_observation_path).write_text(json.dumps(health))
@@ -127,6 +135,7 @@ def test_persistence_loaded_false(tmp_path, base_args):
 
 
 def test_startup_source_not_persisted(tmp_path, base_args):
+    """Reject persistence proof if startup source is not persisted."""
     health = json.loads(Path(base_args.health_observation_path).read_text())
     health["graph"]["startup_source"] = "memory"
     Path(base_args.health_observation_path).write_text(json.dumps(health))
@@ -137,6 +146,7 @@ def test_startup_source_not_persisted(tmp_path, base_args):
 
 
 def test_startup_source_mismatch(tmp_path, base_args):
+    """Reject persistence proof if startup source does not match expected source."""
     base_args.startup_source = "memory"
     validator = ProofValidator({"db_url": "sqlite:///:memory:"})
     validator._validate_restart_persistence(base_args)
@@ -144,6 +154,7 @@ def test_startup_source_mismatch(tmp_path, base_args):
 
 
 def test_valid_health_provenance(base_args):
+    """Verify successful binding of health observation metadata."""
     validator = ProofValidator({"db_url": "sqlite:///:memory:"})
     validator._validate_restart_persistence(base_args)
     assert len(validator.errors) == 0
@@ -159,6 +170,7 @@ def test_valid_health_provenance(base_args):
 def _setup_mock_session(
     mocker, mock_session, assertion_count, edge_count, edge_manifest_hash, expected_revision_id, execution_id
 ):
+    """Setup mocked SQLAlchemy session methods for testing graph history reconstruction."""
     # We mock the return values for session.execute(...).all() and .scalar()
     # 1. Publication query: returns [(revision_id, execution_id)]
     # 2. Assertion IDs query: returns [[id_0], [id_1], ...]
@@ -167,6 +179,7 @@ def _setup_mock_session(
     # 5. Edge manifest hash query via scalar()
 
     def execute_side_effect(stmt, params=None):
+        """Side effect function to dispatch to appropriate mock result based on statement."""
         stmt_str = str(stmt).lower()
         mock_result = MagicMock()
 
@@ -193,6 +206,7 @@ def _setup_mock_session(
 @patch("sqlalchemy.orm.Session")
 @patch("os.getenv")
 def test_restart_assertion_count_mismatch(mock_getenv, mock_session_cls, mock_create_engine, base_args):
+    """Reject restart reconstruction if assertion count does not match seed baseline."""
     mock_getenv.return_value = "sqlite:///:memory:"
 
     mock_session = MagicMock()
@@ -214,6 +228,7 @@ def test_restart_assertion_count_mismatch(mock_getenv, mock_session_cls, mock_cr
 @patch("sqlalchemy.orm.Session")
 @patch("os.getenv")
 def test_edge_count_mismatch(mock_getenv, mock_session_cls, mock_create_engine, base_args):
+    """Reject restart reconstruction if edge count does not match seed baseline."""
     mock_getenv.return_value = "sqlite:///:memory:"
 
     mock_session = MagicMock()
@@ -235,6 +250,7 @@ def test_edge_count_mismatch(mock_getenv, mock_session_cls, mock_create_engine, 
 @patch("sqlalchemy.orm.Session")
 @patch("os.getenv")
 def test_edge_manifest_mismatch(mock_getenv, mock_session_cls, mock_create_engine, base_args):
+    """Reject restart reconstruction if edge manifest hash does not match seed baseline."""
     mock_getenv.return_value = "sqlite:///:memory:"
 
     mock_session = MagicMock()

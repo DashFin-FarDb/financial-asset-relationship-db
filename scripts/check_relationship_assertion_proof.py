@@ -962,8 +962,6 @@ class ProofValidator:
         return self._validate_assertion_actors_and_states(assertion_id, proposed[0], accepted[0])
 
     def _reconstruct_assertion_history_from_db(self, args: argparse.Namespace) -> None:  # noqa: C901
-        from sqlalchemy import func
-
         """Reconstruct persisted lifecycle history for the certified revision."""
         db_url = os.getenv("DATABASE_URL")
         if not db_url:
@@ -1036,48 +1034,72 @@ class ProofValidator:
 
                 self.metadata["reconstructed_assertions"] = reconstructed
 
-                # Check edge counts
-                edge_count = (
-                    session.execute(
-                        select(func.count(RelationshipProjectionEdgeORM.id)).where(
-                            RelationshipProjectionEdgeORM.revision_id == expected_revision_id
-                        )
-                    ).scalar()
-                    or 0
-                )
-
-                edge_manifest_hash = session.execute(
-                    select(RelationshipProjectionRevisionORM.edge_set_hash).where(
-                        RelationshipProjectionRevisionORM.id == expected_revision_id
-                    )
-                ).scalar()
-
-                if getattr(args, "before_edge_count", None) is not None:
-                    if edge_count != args.before_edge_count:
-                        self.add_error(f"Edge count mismatch: {edge_count} vs expected {args.before_edge_count}")
-                if getattr(args, "before_edge_manifest_hash", None) is not None:
-                    if edge_manifest_hash != args.before_edge_manifest_hash:
-                        self.add_error(
-                            f"Edge manifest hash mismatch: {edge_manifest_hash} vs expected {args.before_edge_manifest_hash}"
-                        )
+                edge_count, edge_manifest_hash = self._query_restart_graph_metrics(session, expected_revision_id)
 
                 if reconstructed != len(assertion_ids):
                     self.add_error("Historical reconstruction failed for one or more projected assertions")
 
-                # Check metrics against seed
-                if getattr(args, "before_assertion_count", None) is not None:
-                    if reconstructed != args.before_assertion_count:
-                        self.add_error(
-                            f"Assertion count mismatch: {reconstructed} vs expected {args.before_assertion_count}"
-                        )
-                if reconstructed == 0:
-                    self.add_error("Reconstructed assertion count must be > 0 for this GRAC vertical-slice promotion")
+                self._validate_restart_graph_parity(
+                    args,
+                    reconstructed_assertions=reconstructed,
+                    edge_count=edge_count,
+                    edge_manifest_hash=edge_manifest_hash,
+                )
 
         except Exception as exc:
             self.add_error(f"Historical reconstruction query failed: {exc}")
         finally:
             if engine is not None:
                 engine.dispose()
+
+    def _query_restart_graph_metrics(self, session: Any, revision_id: str) -> tuple[int, str | None]:
+        """Return edge count and canonical edge-set hash for a revision."""
+        from sqlalchemy import func
+
+        # pylint: disable=not-callable
+        edge_count = (
+            session.execute(
+                select(func.count(RelationshipProjectionEdgeORM.id)).where(
+                    RelationshipProjectionEdgeORM.revision_id == revision_id
+                )
+            ).scalar()
+            or 0
+        )
+        # pylint: enable=not-callable
+
+        edge_manifest_hash = session.execute(
+            select(RelationshipProjectionRevisionORM.edge_set_hash).where(
+                RelationshipProjectionRevisionORM.id == revision_id
+            )
+        ).scalar()
+
+        return edge_count, edge_manifest_hash
+
+    def _validate_restart_graph_parity(
+        self,
+        args: argparse.Namespace,
+        *,
+        reconstructed_assertions: int,
+        edge_count: int,
+        edge_manifest_hash: str | None,
+    ) -> None:
+        """Compare restart graph metrics with the seed-side baseline."""
+        before_edge_count = getattr(args, "before_edge_count", None)
+        if before_edge_count is not None and edge_count != before_edge_count:
+            self.add_error(f"Edge count mismatch: {edge_count} vs expected {before_edge_count}")
+
+        before_edge_manifest_hash = getattr(args, "before_edge_manifest_hash", None)
+        if before_edge_manifest_hash is not None and edge_manifest_hash != before_edge_manifest_hash:
+            self.add_error(
+                "Edge manifest hash mismatch: " f"{edge_manifest_hash} vs expected " f"{before_edge_manifest_hash}"
+            )
+
+        before_assertion_count = getattr(args, "before_assertion_count", None)
+        if before_assertion_count is not None and reconstructed_assertions != before_assertion_count:
+            self.add_error(f"Assertion count mismatch: {reconstructed_assertions} vs expected {before_assertion_count}")
+
+        if reconstructed_assertions == 0:
+            self.add_error("Reconstructed assertion count must be > 0 for this GRAC vertical-slice promotion")
 
     def _validate_restart_history(self, args: argparse.Namespace) -> None:
         """Validate rebuild audit history and reconstruct assertion lifecycle history."""
@@ -1120,7 +1142,8 @@ class ProofValidator:
             if missing:
                 self.add_error("Strict restart verification requires seed graph baselines: " + ", ".join(missing))
 
-        if getattr(args, "before_assertion_count", None) is not None and getattr(args, "before_assertion_count") <= 0:
+        before_assertion_count = getattr(args, "before_assertion_count", None)
+        if before_assertion_count is not None and before_assertion_count <= 0:
             self.add_error("Seed assertion count must be > 0 for the GRAC vertical slice")
 
         self._populate_missing_evidence(args)
