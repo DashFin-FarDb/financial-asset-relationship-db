@@ -1095,12 +1095,26 @@ class ProofValidator:
             self.add_error(f"Edge count mismatch: {edge_count} vs expected {before_edge_count}")
 
         before_edge_manifest_hash = getattr(args, "before_edge_manifest_hash", None)
-        if before_edge_manifest_hash is not None and edge_manifest_hash != before_edge_manifest_hash:
-            self.add_error(f"Edge manifest hash mismatch: {edge_manifest_hash} vs expected {before_edge_manifest_hash}")
+        if (
+            before_edge_manifest_hash is not None
+            and edge_manifest_hash != before_edge_manifest_hash
+        ):
+            self.add_error(
+                "Edge manifest hash mismatch: "
+                f"{edge_manifest_hash} vs expected "
+                f"{before_edge_manifest_hash}"
+            )
 
         before_assertion_count = getattr(args, "before_assertion_count", None)
-        if before_assertion_count is not None and reconstructed_assertions != before_assertion_count:
-            self.add_error(f"Assertion count mismatch: {reconstructed_assertions} vs expected {before_assertion_count}")
+        if (
+            before_assertion_count is not None
+            and reconstructed_assertions != before_assertion_count
+        ):
+            self.add_error(
+                "Assertion count mismatch: "
+                f"{reconstructed_assertions} vs expected "
+                f"{before_assertion_count}"
+            )
 
         if reconstructed_assertions == 0:
             self.add_error("Reconstructed assertion count must be > 0 for this GRAC vertical-slice promotion")
