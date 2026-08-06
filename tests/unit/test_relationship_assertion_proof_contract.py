@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from argparse import Namespace
 from pathlib import Path
 from unittest.mock import patch
 
@@ -100,12 +101,13 @@ def test_scopes_are_consistent_invalid_types() -> None:
     validator = ProofValidator({})
     # Test non-list inputs
     assert validator.scopes_are_consistent("not-a-list", ["scope1"], enforce_no_loss=True) is False  # type: ignore[arg-type]
-    assert "Scopes must be lists" in validator.errors
-
-    # Test non-string inputs (unhashable)
+    assert any("must be a non-empty list" in err for err in validator.errors)
     validator.errors.clear()
-    assert validator.scopes_are_consistent([{"unhashable": "dict"}], ["scope1"], enforce_no_loss=True) is False  # type: ignore[list-item]
-    assert "Scopes must be lists of strings" in validator.errors
+
+    # Test lists containing non-strings
+    assert validator.scopes_are_consistent([123], ["scope1"], enforce_no_loss=True) is False  # type: ignore[list-item]
+    assert any("invalid or missing predicate_id entries" in err for err in validator.errors)
+    validator.errors.clear()
 
 
 def test_actor_separated_validation() -> None:
@@ -136,7 +138,6 @@ def test_restart_scopes_lookup_failures(monkeypatch: pytest.MonkeyPatch) -> None
     """Test that _validate_restart_scopes fails on missing, multiple, or malformed DB data."""
     import shutil
     import tempfile
-    from argparse import Namespace
 
     from src.data.database import create_engine_from_url, init_db
 
@@ -221,3 +222,102 @@ def test_restart_scopes_lookup_failures(monkeypatch: pytest.MonkeyPatch) -> None
     assert any("governed_scopes is malformed" in err for err in validator.errors)
     engine.dispose()
     shutil.rmtree(temp_dir)
+
+
+@pytest.mark.parametrize(
+    "mode, should_error",
+    [
+        ("seed_and_publish", False),
+        ("verify_after_restart", True),
+    ],
+)
+def test_strict_mode_expected_revision_hash_requirement(mode: str, should_error: bool):
+    """Test that expected_revision_hash is required only for verify_after_restart mode."""
+    validator = ProofValidator({})
+    args = Namespace(
+        strict=True,
+        mode=mode,
+        revision_hash="a" * 64,
+        expected_revision_hash=None,
+    )
+    validator._validate_revision(args)
+
+    if should_error:
+        assert any("Expected revision hash required" in err for err in validator.errors)
+    else:
+        assert not validator.errors
+
+
+@pytest.mark.parametrize(
+    ("scopes", "expected", "error_fragment"),
+    [
+        ({"not": "a list"}, None, "must be a non-empty list"),
+        ([{"predicate_id": 123}], None, "invalid or missing predicate_id"),
+        ([{"predicate_id": "scope-1"}], None, "invalid or missing predicate_id"),
+        (
+            [{"predicate_id": "scope-1", "purpose": "other"}],
+            None,
+            "incorrect purpose",
+        ),
+        ([" "], None, "invalid or missing predicate_id"),
+        (
+            ["scope-1", {"predicate_id": "scope-2", "purpose": "testing"}],
+            ("hash", ["scope-1::testing", "scope-2::testing"]),
+            None,
+        ),
+    ],
+)
+def test_validate_revision_scopes(
+    scopes: object,
+    expected: tuple[str, list[str]] | None,
+    error_fragment: str | None,
+) -> None:
+    """Validate supported and rejected governed-scope representations."""
+    import json
+    from unittest.mock import MagicMock
+
+    validator = ProofValidator({})
+    conn = MagicMock()
+    conn.execute().first.return_value = (
+        "hash",
+        json.dumps(scopes),
+        "testing",
+    )
+
+    result = validator._get_and_validate_revision_scopes(
+        conn=conn,
+        clean_rev_id="r",
+    )
+
+    assert result == expected
+    if error_fragment:
+        assert any(error_fragment in error for error in validator.errors)
+    else:
+        assert not validator.errors
+
+
+def test_scopes_are_consistent_purpose_mismatch():
+    """Test that scopes_are_consistent rejects identical predicate_ids if the purpose differs."""
+    validator = ProofValidator({})
+
+    before = [{"predicate_id": "scope-1", "purpose": "purpose-a"}]
+    after = [{"predicate_id": "scope-1", "purpose": "purpose-b"}]
+
+    assert validator.scopes_are_consistent(before, after, enforce_no_loss=True) is False
+    assert any("Scopes disappeared" in err for err in validator.errors)
+
+
+def test_scopes_are_consistent_mixed_equivalent_representations() -> None:
+    """Treat equivalent string and canonical object scopes identically."""
+    validator = ProofValidator({})
+
+    before = ["scope-1"]
+    after = [{"predicate_id": "scope-1", "purpose": "testing"}]
+
+    assert validator.scopes_are_consistent(
+        before,
+        after,
+        enforce_no_loss=True,
+        expected_purpose="testing",
+    )
+    assert not validator.errors

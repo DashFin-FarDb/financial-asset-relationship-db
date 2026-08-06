@@ -50,6 +50,7 @@ _ALLOWED_EVIDENCE_FILENAMES = frozenset(
 
 PROOF_RESULT_FILENAME = "staging-proof-result.json"
 AUTHZ_EVIDENCE_FILENAME = "authz-evidence.json"
+ERR_INVALID_SCOPE_PREDICATE = "Certified revision governed_scopes contains invalid or missing predicate_id entries"
 
 
 def validate_safe_path(path: str) -> pathlib.Path:
@@ -156,32 +157,66 @@ class ProofValidator:
             ok = False
         return ok
 
-    def _validate_scope_list(self, lst: Any) -> bool:
-        """Check if lst is a non-empty list of strings."""
-        if not isinstance(lst, list):
-            self.add_error("Scopes must be lists")
-            return False
-        if not lst:
-            self.add_error("Scope lists empty")
-            return False
-        if not all(isinstance(x, str) for x in lst):
-            self.add_error("Scopes must be lists of strings")
-            return False
-        return True
+    def _normalize_string_scope(self, scope: str, expected_purpose: str | None) -> str | None:
+        """Normalize a string scope identifier."""
+        predicate_id = scope.strip()
+        if not predicate_id:
+            self.add_error(ERR_INVALID_SCOPE_PREDICATE)
+            return None
+        return f"{predicate_id}::{expected_purpose}" if expected_purpose else predicate_id
 
-    def scopes_are_consistent(self, before: list[str], after: list[str], enforce_no_loss: bool) -> bool:
+    def _normalize_dict_scope(self, scope: dict[str, Any], expected_purpose: str | None) -> str | None:
+        """Normalize an object-shaped scope, enforcing expected purpose."""
+        if "predicate_id" not in scope or "purpose" not in scope:
+            self.add_error(ERR_INVALID_SCOPE_PREDICATE)
+            return None
+        if expected_purpose and scope["purpose"] != expected_purpose:
+            self.add_error("Certified revision governed_scopes contains entries with incorrect purpose")
+            return None
+        if not isinstance(scope["predicate_id"], str):
+            self.add_error(ERR_INVALID_SCOPE_PREDICATE)
+            return None
+        return f"{scope['predicate_id'].strip()}::{scope['purpose']}"
+
+    def normalize_scopes(self, lst: Any, expected_purpose: str | None = None) -> list[str] | None:
+        """Normalize a list of scopes into a canonical list of strings, validating structure."""
+        if not isinstance(lst, list) or not lst:
+            self.add_error("Certified revision governed_scopes must be a non-empty list of identifiers or objects")
+            return None
+
+        parsed = []
+        for scope in lst:
+            if isinstance(scope, str):
+                normalized = self._normalize_string_scope(scope, expected_purpose)
+            elif isinstance(scope, dict):
+                normalized = self._normalize_dict_scope(scope, expected_purpose)
+            else:
+                self.add_error(ERR_INVALID_SCOPE_PREDICATE)
+                return None
+
+            if normalized is None:
+                return None
+            parsed.append(normalized)
+
+        return parsed
+
+    def scopes_are_consistent(
+        self, before: Any, after: Any, enforce_no_loss: bool, expected_purpose: str | None = None
+    ) -> bool:
         """Check scope consistency across transitions."""
-        if not self._validate_scope_list(before) or not self._validate_scope_list(after):
+        before_normalized = self.normalize_scopes(before, expected_purpose)
+        after_normalized = self.normalize_scopes(after, expected_purpose)
+        if before_normalized is None or after_normalized is None:
             return False
 
         if enforce_no_loss:
-            missing = set(before) - set(after)
+            missing = set(before_normalized) - set(after_normalized)
             if missing:
                 self.add_error(f"Scopes disappeared: {sorted(missing)[:3]}")
                 return False
         else:
-            if set(before) != set(after):
-                self.add_error(f"Scope mismatch: {len(before)} before, {len(after)} after")
+            if set(before_normalized) != set(after_normalized):
+                self.add_error(f"Scope mismatch: {len(before_normalized)} before, {len(after_normalized)} after")
                 return False
 
         return True
@@ -315,7 +350,7 @@ class ProofValidator:
                         f"expected {args.expected_revision_hash[:8]}..."
                     )
                 self.metadata["expected_revision"] = args.expected_revision_hash[:8] + "..."
-            elif args.strict:
+            elif args.strict and args.mode != "seed_and_publish":
                 self.add_error("Expected revision hash required in strict mode")
         elif args.strict:
             self.add_error("Revision hash required in strict mode")
@@ -426,6 +461,7 @@ class ProofValidator:
         rev_query = select(
             RelationshipProjectionRevisionORM.projection_hash,
             RelationshipProjectionRevisionORM.governed_scopes,
+            RelationshipProjectionRevisionORM.purpose,
         ).where(
             RelationshipProjectionRevisionORM.id == clean_rev_id,
         )
@@ -434,7 +470,7 @@ class ProofValidator:
             self.add_error(f"Revision {clean_rev_id} not found in database")
             return None
 
-        proj_hash, governed_scopes_raw = rev_row
+        proj_hash, governed_scopes_raw, purpose = rev_row
         try:
             governed_scopes = (
                 json.loads(governed_scopes_raw) if isinstance(governed_scopes_raw, str) else governed_scopes_raw
@@ -443,16 +479,11 @@ class ProofValidator:
             self.add_error("Certified revision governed_scopes is malformed")
             return None
 
-        if not isinstance(governed_scopes, list) or not governed_scopes:
-            self.add_error("Certified revision governed_scopes must be a non-empty list of identifiers")
+        parsed_scopes = self.normalize_scopes(governed_scopes, expected_purpose=purpose)
+        if parsed_scopes is None:
             return None
 
-        is_valid = all(isinstance(scope, str) and scope.strip() for scope in governed_scopes)
-        if not is_valid:
-            self.add_error("Certified revision governed_scopes must be a non-empty list of identifiers")
-            return None
-
-        return proj_hash, governed_scopes
+        return proj_hash, parsed_scopes
 
     def _populate_publication_and_revision_from_db(
         self, args: argparse.Namespace, conn: Any, rebuild_job_id: str
@@ -702,7 +733,7 @@ class ProofValidator:
             else:
                 self.add_error("Authz evidence required in strict mode")
 
-    def _query_restart_scopes_from_db(self, args: argparse.Namespace, db_url: str) -> str | None:
+    def _query_restart_scopes_from_db(self, args: argparse.Namespace, db_url: str) -> tuple[str, str | None] | None:
         """Query current scopes from database for the current rebuild job ID."""
         try:
             from sqlalchemy import create_engine
@@ -747,20 +778,25 @@ class ProofValidator:
                     self.add_error("Revision ID not found or invalid for publication")
                     return None
 
-                rev_stmt = select(RelationshipProjectionRevisionORM.governed_scopes).where(
-                    RelationshipProjectionRevisionORM.id == bindparam("restart_revision_id")
-                )
-                rev_scopes = conn.execute(
+                rev_stmt = select(
+                    RelationshipProjectionRevisionORM.governed_scopes, RelationshipProjectionRevisionORM.purpose
+                ).where(RelationshipProjectionRevisionORM.id == bindparam("restart_revision_id"))
+                rev_row = conn.execute(
                     rev_stmt,
                     {"restart_revision_id": revision_id},
-                ).scalar()
+                ).first()
+                if not rev_row:
+                    self.add_error(f"Revision {revision_id} cannot be found")
+                    return None
+
+                rev_scopes, rev_purpose = rev_row
                 if rev_scopes is None:
                     self.add_error(f"Revision {revision_id} cannot be found")
                     return None
 
                 try:
                     json.loads(rev_scopes)
-                    return str(rev_scopes)
+                    return str(rev_scopes), str(rev_purpose) if rev_purpose else None
                 except Exception:
                     self.add_error("governed_scopes is malformed")
                     return None
@@ -780,9 +816,11 @@ class ProofValidator:
                 self.add_error("Database URL required to observe current scopes in strict mode")
             return None
 
-        after_str = self._query_restart_scopes_from_db(args, db_url)
-        if after_str:
+        result = self._query_restart_scopes_from_db(args, db_url)
+        if result:
+            after_str, after_purpose = result
             args.after_scopes = after_str
+            args.scope_purpose = after_purpose
         return after_str
 
     def _validate_restart_scopes(self, args: argparse.Namespace) -> None:
@@ -801,22 +839,19 @@ class ProofValidator:
         try:
             before = json.loads(before_str)
             after = json.loads(after_str)
-            self.scopes_are_consistent(before, after, enforce_no_loss=True)
+            self.scopes_are_consistent(
+                before,
+                after,
+                enforce_no_loss=True,
+                expected_purpose=getattr(args, "scope_purpose", None),
+            )
             self.metadata["scopes_before"] = len(before) if isinstance(before, list) else 0
             self.metadata["scopes_after"] = len(after) if isinstance(after, list) else 0
         except Exception as e:
             self.add_error(f"Scope JSON error: {e}")
 
-    def _validate_reconstructed_assertion(
-        self,
-        assertion_id: str,
-        events: Sequence[Any],
-    ) -> bool:
-        """Validate one projected assertion's persisted lifecycle."""
-        if not events:
-            self.add_error(f"Assertion {assertion_id} has no persisted lifecycle events")
-            return False
-
+    def _validate_assertion_sequences(self, assertion_id: str, events: Sequence[Any]) -> bool:
+        """Validate the order and uniqueness of lifecycle sequence numbers."""
         sequences = [event.sequence for event in events]
         if any(not isinstance(sequence, int) for sequence in sequences):
             self.add_error(f"Assertion {assertion_id} has invalid lifecycle sequence values")
@@ -824,19 +859,10 @@ class ProofValidator:
         if sequences != sorted(sequences) or len(sequences) != len(set(sequences)):
             self.add_error(f"Assertion {assertion_id} lifecycle sequence is not strictly ordered")
             return False
+        return True
 
-        proposed = [event for event in events if event.to_state == "Proposed" and event.authority == "proposer"]
-        accepted = [
-            event
-            for event in events
-            if event.to_state == "Accepted" and event.authority in {"determiner", "reviewer", "acceptor"}
-        ]
-        if len(proposed) != 1 or len(accepted) != 1:
-            self.add_error(f"Assertion {assertion_id} must have exactly one proposer and one acceptance event")
-            return False
-
-        proposal = proposed[0]
-        determination = accepted[0]
+    def _validate_assertion_actors_and_states(self, assertion_id: str, proposal: Any, determination: Any) -> bool:
+        """Validate the relationship between a proposal and determination event."""
         if proposal.sequence >= determination.sequence:
             self.add_error(f"Assertion {assertion_id} acceptance does not follow proposal")
             return False
@@ -850,6 +876,31 @@ class ProofValidator:
             self.add_error(f"Assertion {assertion_id} proposer and determiner are not distinct")
             return False
         return True
+
+    def _validate_reconstructed_assertion(
+        self,
+        assertion_id: str,
+        events: Sequence[Any],
+    ) -> bool:
+        """Validate one projected assertion's persisted lifecycle."""
+        if not events:
+            self.add_error(f"Assertion {assertion_id} has no persisted lifecycle events")
+            return False
+
+        if not self._validate_assertion_sequences(assertion_id, events):
+            return False
+
+        proposed = [event for event in events if event.to_state == "Proposed" and event.authority == "proposer"]
+        accepted = [
+            event
+            for event in events
+            if event.to_state == "Accepted" and event.authority in {"determiner", "reviewer", "acceptor"}
+        ]
+        if len(proposed) != 1 or len(accepted) != 1:
+            self.add_error(f"Assertion {assertion_id} must have exactly one proposer and one acceptance event")
+            return False
+
+        return self._validate_assertion_actors_and_states(assertion_id, proposed[0], accepted[0])
 
     def _reconstruct_assertion_history_from_db(self, args: argparse.Namespace) -> None:
         """Reconstruct persisted lifecycle history for the certified revision."""
