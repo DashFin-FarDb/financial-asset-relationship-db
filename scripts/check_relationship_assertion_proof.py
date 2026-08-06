@@ -163,7 +163,9 @@ class ProofValidator:
         if not predicate_id:
             self.add_error(ERR_INVALID_SCOPE_PREDICATE)
             return None
-        return f"{predicate_id}::{expected_purpose}" if expected_purpose else predicate_id
+        if expected_purpose and not predicate_id.endswith(f"::{expected_purpose}"):
+            return f"{predicate_id}::{expected_purpose}"
+        return predicate_id
 
     def _normalize_dict_scope(self, scope: dict[str, Any], expected_purpose: str | None) -> str | None:
         """Normalize an object-shaped scope, enforcing expected purpose."""
@@ -919,9 +921,10 @@ class ProofValidator:
         engine = None
         try:
             from sqlalchemy import create_engine
+            from sqlalchemy.orm import Session
 
             engine = create_engine(db_url)
-            with engine.connect() as conn:
+            with Session(engine) as session:
                 publication_stmt = (
                     select(
                         RelationshipProjectionPublicationORM.revision_id,
@@ -930,7 +933,7 @@ class ProofValidator:
                     .where(RelationshipProjectionPublicationORM.rebuild_job_id == bindparam("history_rebuild_job_id"))
                     .limit(2)
                 )
-                publication_rows = conn.execute(
+                publication_rows = session.execute(
                     publication_stmt,
                     {"history_rebuild_job_id": rebuild_job_id},
                 ).all()
@@ -948,7 +951,7 @@ class ProofValidator:
 
                 assertion_ids = [
                     row[0]
-                    for row in conn.execute(
+                    for row in session.execute(
                         select(RelationshipProjectionEdgeORM.assertion_id)
                         .where(RelationshipProjectionEdgeORM.revision_id == bindparam("history_revision_id"))
                         .distinct(),
@@ -960,7 +963,7 @@ class ProofValidator:
                 reconstructed = 0
                 for assertion_id in assertion_ids:
                     events = (
-                        conn.execute(
+                        session.execute(
                             select(RelationshipAssertionEventORM)
                             .where(RelationshipAssertionEventORM.assertion_id == bindparam("history_assertion_id"))
                             .order_by(RelationshipAssertionEventORM.sequence),
