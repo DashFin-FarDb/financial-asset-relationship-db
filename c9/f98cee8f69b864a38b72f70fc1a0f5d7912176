@@ -1,0 +1,16 @@
+docs/governance/governed-relationship-assertion-contract-v1.md
+  h_f327e6ff3ec3c1 4,481
+docs/governance/grac-v1-staging-evidence-2026-08-06.md
+  h_f327e6ff3ec3c1 1-55
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.21",
+  "base_commit_sha": "c9f98cee8f69b864a38b72f70fc1a0f5d7912176",
+  "prompts": {},
+  "humans": {
+    "h_f327e6ff3ec3c1": {
+      "author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}
