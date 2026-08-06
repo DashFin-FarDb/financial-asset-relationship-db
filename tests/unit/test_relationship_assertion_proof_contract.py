@@ -247,47 +247,31 @@ def test_strict_mode_expected_revision_hash_requirement(mode: str, should_error:
         assert not validator.errors
 
 
-def test_validate_revision_scopes_malformed():
-    """Test that malformed governed scopes (e.g., dict instead of list) are rejected."""
-    import json
-    from unittest.mock import MagicMock
-
-    validator = ProofValidator({})
-    conn = MagicMock()
-    conn.execute().first.return_value = ("hash", json.dumps({"not": "a list"}), "testing")
-    result = validator._get_and_validate_revision_scopes(conn=conn, clean_rev_id="r")
-    assert result is None
-    assert any("must be a non-empty list" in err for err in validator.errors)
-
-
-def test_validate_revision_scopes_invalid_objects():
-    """Test that scopes missing a predicate_id or with an invalid predicate_id type are rejected."""
-    import json
-    from unittest.mock import MagicMock
-
-    validator = ProofValidator({})
-    conn = MagicMock()
-    conn.execute().first.return_value = ("hash", json.dumps([{"predicate_id": 123}]), "testing")
-    result = validator._get_and_validate_revision_scopes(conn=conn, clean_rev_id="r")
-    assert result is None
-    assert any("invalid or missing predicate_id" in err for err in validator.errors)
-
-
-def test_validate_revision_scopes_missing_purpose():
-    """Test that object scopes missing a purpose are rejected."""
-    import json
-    from unittest.mock import MagicMock
-
-    validator = ProofValidator({})
-    conn = MagicMock()
-    conn.execute().first.return_value = ("hash", json.dumps([{"predicate_id": "scope-1"}]), "testing")
-    result = validator._get_and_validate_revision_scopes(conn=conn, clean_rev_id="r")
-    assert result is None
-    assert any("invalid or missing predicate_id entries" in err for err in validator.errors)
-
-
-def test_validate_revision_scopes_wrong_purpose():
-    """Test that object scopes with a mismatched purpose are rejected."""
+@pytest.mark.parametrize(
+    ("scopes", "expected", "error_fragment"),
+    [
+        ({"not": "a list"}, None, "must be a non-empty list"),
+        ([{"predicate_id": 123}], None, "invalid or missing predicate_id"),
+        ([{"predicate_id": "scope-1"}], None, "invalid or missing predicate_id"),
+        (
+            [{"predicate_id": "scope-1", "purpose": "other"}],
+            None,
+            "incorrect purpose",
+        ),
+        ([" "], None, "invalid or missing predicate_id"),
+        (
+            ["scope-1", {"predicate_id": "scope-2", "purpose": "testing"}],
+            ("hash", ["scope-1::testing", "scope-2::testing"]),
+            None,
+        ),
+    ],
+)
+def test_validate_revision_scopes(
+    scopes: object,
+    expected: tuple[str, list[str]] | None,
+    error_fragment: str | None,
+) -> None:
+    """Validate supported and rejected governed-scope representations."""
     import json
     from unittest.mock import MagicMock
 
@@ -295,42 +279,20 @@ def test_validate_revision_scopes_wrong_purpose():
     conn = MagicMock()
     conn.execute().first.return_value = (
         "hash",
-        json.dumps([{"predicate_id": "scope-1", "purpose": "other"}]),
+        json.dumps(scopes),
         "testing",
     )
-    result = validator._get_and_validate_revision_scopes(conn=conn, clean_rev_id="r")
-    assert result is None
-    assert any("incorrect purpose" in err for err in validator.errors)
 
-
-def test_validate_revision_scopes_blank_identifiers():
-    """Test that string scopes or object scopes with blank predicate_ids are rejected."""
-    import json
-    from unittest.mock import MagicMock
-
-    validator = ProofValidator({})
-    conn = MagicMock()
-    conn.execute().first.return_value = ("hash", json.dumps([" "]), "testing")
-    result = validator._get_and_validate_revision_scopes(conn=conn, clean_rev_id="r")
-    assert result is None
-    assert any("invalid or missing predicate_id" in err for err in validator.errors)
-
-
-def test_validate_revision_scopes_valid_objects_and_strings():
-    """Test that valid string scopes and valid object scopes with correct purposes are parsed properly."""
-    import json
-    from unittest.mock import MagicMock
-
-    validator = ProofValidator({})
-    conn = MagicMock()
-    conn.execute().first.return_value = (
-        "hash",
-        json.dumps(["scope-1", {"predicate_id": "scope-2", "purpose": "testing"}]),
-        "testing",
+    result = validator._get_and_validate_revision_scopes(
+        conn=conn,
+        clean_rev_id="r",
     )
-    result = validator._get_and_validate_revision_scopes(conn=conn, clean_rev_id="r")
-    assert result == ("hash", ["scope-1", "scope-2::testing"])
-    assert not validator.errors
+
+    assert result == expected
+    if error_fragment:
+        assert any(error_fragment in error for error in validator.errors)
+    else:
+        assert not validator.errors
 
 
 def test_scopes_are_consistent_purpose_mismatch():
@@ -342,3 +304,19 @@ def test_scopes_are_consistent_purpose_mismatch():
 
     assert validator.scopes_are_consistent(before, after, enforce_no_loss=True) is False
     assert any("Scopes disappeared" in err for err in validator.errors)
+
+
+def test_scopes_are_consistent_mixed_equivalent_representations() -> None:
+    """Treat equivalent string and canonical object scopes identically."""
+    validator = ProofValidator({})
+
+    before = ["scope-1"]
+    after = [{"predicate_id": "scope-1", "purpose": "testing"}]
+
+    assert validator.scopes_are_consistent(
+        before,
+        after,
+        enforce_no_loss=True,
+        expected_purpose="testing",
+    )
+    assert not validator.errors

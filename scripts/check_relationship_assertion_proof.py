@@ -165,7 +165,13 @@ class ProofValidator:
         parsed = []
         for scope in lst:
             if isinstance(scope, str):
-                parsed.append(scope)
+                predicate_id = scope.strip()
+                if not predicate_id:
+                    self.add_error(
+                        "Certified revision governed_scopes contains invalid or missing predicate_id entries"
+                    )
+                    return None
+                parsed.append(f"{predicate_id}::{expected_purpose}" if expected_purpose else predicate_id)
             elif isinstance(scope, dict):
                 if "predicate_id" not in scope or "purpose" not in scope:
                     self.add_error(
@@ -180,14 +186,10 @@ class ProofValidator:
                         "Certified revision governed_scopes contains invalid or missing predicate_id entries"
                     )
                     return None
-                parsed.append(f"{scope['predicate_id']}::{scope['purpose']}")
+                parsed.append(f"{scope['predicate_id'].strip()}::{scope['purpose']}")
             else:
                 self.add_error("Certified revision governed_scopes contains invalid or missing predicate_id entries")
                 return None
-
-        if not all(isinstance(x, str) and x.strip() for x in parsed):
-            self.add_error("Certified revision governed_scopes contains invalid or missing predicate_id entries")
-            return None
 
         return parsed
 
@@ -724,7 +726,7 @@ class ProofValidator:
             else:
                 self.add_error("Authz evidence required in strict mode")
 
-    def _query_restart_scopes_from_db(self, args: argparse.Namespace, db_url: str) -> str | None:
+    def _query_restart_scopes_from_db(self, args: argparse.Namespace, db_url: str) -> tuple[str, str | None] | None:
         """Query current scopes from database for the current rebuild job ID."""
         try:
             from sqlalchemy import create_engine
@@ -769,20 +771,25 @@ class ProofValidator:
                     self.add_error("Revision ID not found or invalid for publication")
                     return None
 
-                rev_stmt = select(RelationshipProjectionRevisionORM.governed_scopes).where(
-                    RelationshipProjectionRevisionORM.id == bindparam("restart_revision_id")
-                )
-                rev_scopes = conn.execute(
+                rev_stmt = select(
+                    RelationshipProjectionRevisionORM.governed_scopes, RelationshipProjectionRevisionORM.purpose
+                ).where(RelationshipProjectionRevisionORM.id == bindparam("restart_revision_id"))
+                rev_row = conn.execute(
                     rev_stmt,
                     {"restart_revision_id": revision_id},
-                ).scalar()
+                ).first()
+                if not rev_row:
+                    self.add_error(f"Revision {revision_id} cannot be found")
+                    return None
+
+                rev_scopes, rev_purpose = rev_row
                 if rev_scopes is None:
                     self.add_error(f"Revision {revision_id} cannot be found")
                     return None
 
                 try:
                     json.loads(rev_scopes)
-                    return str(rev_scopes)
+                    return str(rev_scopes), str(rev_purpose) if rev_purpose else None
                 except Exception:
                     self.add_error("governed_scopes is malformed")
                     return None
@@ -802,9 +809,11 @@ class ProofValidator:
                 self.add_error("Database URL required to observe current scopes in strict mode")
             return None
 
-        after_str = self._query_restart_scopes_from_db(args, db_url)
-        if after_str:
+        result = self._query_restart_scopes_from_db(args, db_url)
+        if result:
+            after_str, after_purpose = result
             args.after_scopes = after_str
+            args.scope_purpose = after_purpose
         return after_str
 
     def _validate_restart_scopes(self, args: argparse.Namespace) -> None:
@@ -823,7 +832,12 @@ class ProofValidator:
         try:
             before = json.loads(before_str)
             after = json.loads(after_str)
-            self.scopes_are_consistent(before, after, enforce_no_loss=True)
+            self.scopes_are_consistent(
+                before,
+                after,
+                enforce_no_loss=True,
+                expected_purpose=getattr(args, "scope_purpose", None),
+            )
             self.metadata["scopes_before"] = len(before) if isinstance(before, list) else 0
             self.metadata["scopes_after"] = len(after) if isinstance(after, list) else 0
         except Exception as e:
