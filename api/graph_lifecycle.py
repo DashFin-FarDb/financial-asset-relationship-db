@@ -287,6 +287,7 @@ def get_graph_with_startup_source() -> tuple[AssetRelationshipGraph, GraphStartu
 
         return graph_state.graph, graph_state.startup_metadata
 
+
 def get_runtime_edge_set_hash(
     revision_id: str,
 ) -> str:
@@ -302,19 +303,20 @@ def get_runtime_edge_set_hash(
     )
 
     if not isinstance(relationships, dict):
-        raise RuntimeError(
-            "Runtime graph relationships are unavailable"
-        )
+        raise RuntimeError("Runtime graph relationships are unavailable")
 
     canonical_edges: list[dict[str, object]] = []
 
     for edge_group in relationships.values():
         for edge in edge_group:
-            if getattr(
-                edge,
-                "revision_id",
-                None,
-            ) != revision_id:
+            if (
+                getattr(
+                    edge,
+                    "revision_id",
+                    None,
+                )
+                != revision_id
+            ):
                 continue
 
             canonical_edges.append(
@@ -373,6 +375,7 @@ def get_runtime_edge_set_hash(
     ).encode("utf-8")
 
     return hashlib.sha256(payload).hexdigest()
+
 
 def set_graph(graph_instance: AssetRelationshipGraph) -> None:
     """Register a global graph instance returned by get_graph()."""
