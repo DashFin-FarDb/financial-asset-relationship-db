@@ -1,7 +1,7 @@
 # Governed Relationship Assertion Contract v1
 
 **Status:** Frozen normative contract (Accepted via [ADR 0008](../adr/0008-governed-relationship-assertion-contract.md))
-**Claim class for runtime capability:** `NEXT` until exact-SHA staging proof (programme PR 10 / issue #1540)
+**Claim class for runtime capability:** `CURRENT` (exact-SHA staging proof passed)
 **Contract version:** `grac.v1`
 **Baseline:** `main` at `5e45753705c10c2c4f50e0e9bc4d07b823d752ab`
 **Runtime impact of this document:** Documentation only. An empty assertion store must produce zero behavioural change.
@@ -40,7 +40,6 @@ FarDB stores consequential financial relationships. GRAC v1 makes those relation
 - Generic AI inference writing accepted graph truth.
 - Broad RBAC redesign beyond the authority matrix defined here.
 - Archiving `control-plane-platform` (separate, explicitly approved action after GRAC v1 is verified).
-- Claiming `CURRENT` capability before exact-SHA staging proof.
 
 ### Non-negotiable invariants
 
@@ -478,6 +477,8 @@ Do not silently rewrite v1 inside schema, projector, API, UI, or staging PRs.
   no-retirement behavior; pinned one-revision-per-rebuild publication with non-null execution identity; and made
   proposal/determination actor separation normative. Runtime capability remains `NEXT`, and issue #1536 stays
   paused until the corrective lifecycle and hosted-schema proofs land.
+
+- **2026-08-06 CURRENT promotion:** Staging proofs (seed_and_publish and verify_after_restart) succeeded on `main` at `8cbbb8fe2d4`. Contract claim class promoted from `NEXT` to `CURRENT`.
 
 ---
 
