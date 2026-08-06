@@ -1,0 +1,8 @@
+{
+  "persistence_configured": true,
+  "graph": {
+    "persistence_enabled": true,
+    "persistence_loaded": true,
+    "startup_source": "persisted"
+  }
+}

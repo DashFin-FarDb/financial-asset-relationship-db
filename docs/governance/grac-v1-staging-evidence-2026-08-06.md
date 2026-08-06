@@ -56,3 +56,21 @@ relationship_assertion_v1: PASS|seed:31077645600;restart:31078079469|6bb1f2e473c
 - Reviewed by: Mohamed Mohamed
 - Review date: 2026-08-06
 - Sign-off: approved for the evidenced staging scope only
+
+## Durable persistence observation
+
+- Observation run: captured locally, digest 4766421b0c93f12f6fbcb566ab69b9d99e3323ac3b8fd4a917f7fac134f68a71
+- Observed deployment SHA: 6bb1f2e473ce4190b6c7ee06f69734873e2abdce
+- Retained JSON: `docs/governance/evidence/grac-v1-restart-health-observation.json`
+- Retained JSON SHA-256: 4766421b0c93f12f6fbcb566ab69b9d99e3323ac3b8fd4a917f7fac134f68a71
+
+```json
+{
+  "persistence_configured": true,
+  "graph": {
+    "persistence_enabled": true,
+    "persistence_loaded": true,
+    "startup_source": "persisted"
+  }
+}
+```
