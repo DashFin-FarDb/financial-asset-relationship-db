@@ -168,7 +168,13 @@ def test_valid_health_provenance(base_args):
 
 
 def _setup_mock_session(
-    mocker, mock_session, assertion_count, edge_count, edge_manifest_hash, expected_revision_id, execution_id
+    mocker,
+    mock_session,
+    assertion_count,
+    edge_count,
+    edge_manifest_hash,
+    expected_revision_id,
+    execution_id,
 ):
     """Setup mocked SQLAlchemy session methods for testing graph history reconstruction."""
     # We mock the return values for session.execute(...).all() and .scalar()
@@ -188,7 +194,8 @@ def _setup_mock_session(
         elif "relationship_projection_edges.assertion_id" in stmt_str:
             mock_result.all.return_value = [[f"id_{i}"] for i in range(assertion_count)]
         elif "relationship_assertion_events" in stmt_str:
-            mock_result.scalars.return_value.all.return_value = []  # No events for now, we mock validate_reconstructed_assertion anyway
+            # Event validation is mocked by _validate_reconstructed_assertion.
+            mock_result.scalars.return_value.all.return_value = []
         elif "count" in stmt_str:
             mock_result.scalar.return_value = edge_count
         elif "hash" in stmt_str:
