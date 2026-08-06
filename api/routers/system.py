@@ -1,9 +1,15 @@
 """System and metadata API routes."""
 
 import logging
+import os
 from typing import Any, Literal, NoReturn, cast
 
-from fastapi import APIRouter, HTTPException, Response
+from fastapi import (
+    APIRouter,
+    Header,
+    HTTPException,
+    Response,
+)
 from prometheus_client import CONTENT_TYPE_LATEST, generate_latest  # pylint: disable=import-error
 
 from src.models.financial_models import AssetClass
@@ -14,6 +20,8 @@ from ..api_models import (
     DatabaseHealthResponse,
     DetailedHealthResponse,
     GraphHealthResponse,
+    RuntimeGraphProofMetrics,
+    RuntimeProofObservation,
     SLOEvaluationResultModel,
     SLOSummary,
 )
@@ -159,6 +167,68 @@ def _get_graph_health() -> GraphHealthResponse:
             relationship_count=0,
         )
 
+def _get_runtime_graph_proof_metrics(
+    expected_revision_id: str,
+) -> RuntimeGraphProofMetrics:
+    """Derive governed metrics from the in-memory served graph."""
+    graph, _ = (
+        graph_lifecycle.get_graph_with_startup_source()
+    )
+
+    relationships = getattr(
+        graph,
+        "relationships",
+        {},
+    )
+    if not isinstance(relationships, dict):
+        raise HTTPException(
+            status_code=503,
+            detail="Runtime graph is unavailable",
+        )
+
+    governed_edges = []
+    assertion_ids: set[str] = set()
+
+    for edge_group in relationships.values():
+        for edge in edge_group:
+            revision_id = getattr(
+                edge,
+                "revision_id",
+                None,
+            )
+            assertion_id = getattr(
+                edge,
+                "assertion_id",
+                None,
+            )
+
+            if revision_id != expected_revision_id:
+                continue
+
+            governed_edges.append(edge)
+            if assertion_id:
+                assertion_ids.add(assertion_id)
+
+    if not governed_edges:
+        raise HTTPException(
+            status_code=503,
+            detail=(
+                "Restarted runtime serves no governed "
+                "edges for the certified revision"
+            ),
+        )
+
+    edge_set_hash = (
+        graph_lifecycle.get_runtime_edge_set_hash(
+            expected_revision_id
+        )
+    )
+
+    return RuntimeGraphProofMetrics(
+        assertion_count=len(assertion_ids),
+        edge_count=len(governed_edges),
+        edge_set_hash=edge_set_hash,
+    )
 
 def _get_database_health() -> DatabaseHealthResponse:
     """
@@ -261,7 +331,16 @@ def _get_graph_persistence_configured() -> bool:
 
 
 @router.get("/api/health/detailed")
-def detailed_health_check() -> DetailedHealthResponse:
+def detailed_health_check(
+    proof_run_id: str | None = Header(
+        default=None,
+        alias="X-FarDB-Proof-Run-ID",
+    ),
+    expected_revision_id: str | None = Header(
+        default=None,
+        alias="X-FarDB-Expected-Revision-ID",
+    ),
+) -> DetailedHealthResponse:
     """Return detailed health including graph persistence configuration."""
     graph_health = _get_graph_health()
     database_health = _get_database_health()
@@ -270,12 +349,50 @@ def detailed_health_check() -> DetailedHealthResponse:
         "healthy" if graph_health.available and database_health.reachable else "degraded"
     )
 
-    return DetailedHealthResponse(
-        status=status_value,
-        graph_persistence_configured=_get_graph_persistence_configured(),
-        graph=graph_health,
-        database=database_health,
-    )
+    proof_observation = None
+    runtime_graph = None
+    
+    if proof_run_id or expected_revision_id:
+        if not proof_run_id or not expected_revision_id:
+            raise HTTPException(
+                status_code=400,
+                detail=(
+                    "Both proof run ID and expected revision "
+                    "ID are required"
+                ),
+            )
+    
+        deployment_sha = os.getenv(
+            "VERCEL_GIT_COMMIT_SHA",
+            os.getenv("GITHUB_SHA", ""),
+        )
+        if not deployment_sha:
+            raise HTTPException(
+                status_code=503,
+                detail=(
+                    "Runtime deployment SHA is unavailable"
+                ),
+            )
+    
+        runtime_graph = _get_runtime_graph_proof_metrics(
+            expected_revision_id
+        )
+        proof_observation = RuntimeProofObservation(
+            run_id=proof_run_id,
+            deployment_sha=deployment_sha,
+            revision_id=expected_revision_id,
+        )
+        
+        return DetailedHealthResponse(
+            status=status_value,
+            graph_persistence_configured=(
+                _get_graph_persistence_configured()
+            ),
+            graph=graph_health,
+            database=database_health,
+            proof_observation=proof_observation,
+            runtime_graph=runtime_graph,
+        )
 
 
 @router.get(
