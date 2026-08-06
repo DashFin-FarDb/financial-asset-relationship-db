@@ -1,7 +1,7 @@
 # Governed Relationship Assertion Contract v1
 
 **Status:** Frozen normative contract (Accepted via [ADR 0008](../adr/0008-governed-relationship-assertion-contract.md))
-**Claim class for runtime capability:** `NEXT` (exact-SHA staging proof passed)
+**Claim class for runtime capability:** `NEXT` until a fresh exact-SHA seed-and-restart proof passes with workflow-bound persistence provenance and seed/restart graph parity (issue #1540)
 **Contract version:** `grac.v1`
 **Baseline:** `main` at `5e45753705c10c2c4f50e0e9bc4d07b823d752ab`
 **Runtime impact of this document:** Documentation only. An empty assertion store must produce zero behavioural change.
@@ -470,21 +470,22 @@ If implementation exposes a semantic flaw in this contract:
 
 Do not silently rewrite v1 inside schema, projector, API, UI, or staging PRs.
 
-### Amendment record
+### Amendment log
 
+- **2026-08-06 promotion evidence withdrawn pending hardened rerun:** The earlier
+  seed and restart runs established useful staging evidence but did not retain
+  workflow-bound persistence provenance or an immutable seed-side graph
+  baseline. Runtime capability therefore remains `NEXT`. The staging proof
+  workflow and checker were hardened to retain detailed health evidence and
+  compare assertion count, edge count, and canonical edge-set hash across
+  restart. A fresh strict seed-and-restart proof is required before promotion
+  to `CURRENT`.
 - **2026-07-26 pre-publication amendment:** Against reviewed `main` at
   `0a72dfee67aae4ef7cc44041347474a6a6e234cd`, defined governed-scope establishment, durable carry-forward, and
   no-retirement behavior; pinned one-revision-per-rebuild publication with non-null execution identity; and made
   proposal/determination actor separation normative. Runtime capability remains `NEXT`, and issue #1536 stays
   paused until the corrective lifecycle and hosted-schema proofs land.
-
-- **2026-08-06 CURRENT promotion:** Strict staging proofs passed for deployed
-  SHA `6bb1f2e473ce4190b6c7ee06f69734873e2abdce`
-  (`seed_and_publish`: 31077645600; `verify_after_restart`: 31078079469).
-  The restart proof executed from `main` at
-  `8cbbb8fe2d4eca7988d781bd7617a960f858feff`.
-  Contract claim class promoted from `NEXT` to `CURRENT` for the evidenced
-  staging scope.
+- **2026-07-25 (`grac.v1`):** Frozen exact-SHA specification published for staging deployment.
 
 ---
 

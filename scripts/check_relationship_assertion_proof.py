@@ -754,16 +754,30 @@ class ProofValidator:
             self.metadata["startup"] = args.startup_source or "N/A"
             if getattr(args, "health_observation_path", None):
                 try:
+                    import hashlib
                     import json
+                    from pathlib import Path
 
-                    with open(args.health_observation_path, "r") as f:
-                        health = json.load(f)
+                    health_bytes = Path(args.health_observation_path).read_bytes()
+                    health = json.loads(health_bytes)
+                    self.metadata["health_observation_sha256"] = hashlib.sha256(health_bytes).hexdigest()
+                    self.metadata["health_observation_run_id"] = getattr(args, "run_id", "unknown")
+                    self.metadata["health_observation_deployed_sha"] = getattr(args, "deployed_sha", "unknown")
+
                     if (
                         not health.get("persistence_configured")
                         or not health.get("graph", {}).get("persistence_enabled")
                         or not health.get("graph", {}).get("persistence_loaded")
                     ):
                         self.add_error("Health observation failed persistence validation")
+
+                    observed_startup = health.get("graph", {}).get("startup_source")
+                    if observed_startup != "persisted":
+                        self.add_error(
+                            f"Health observation startup source is {observed_startup or 'missing'}; expected persisted"
+                        )
+                    if observed_startup != args.startup_source:
+                        self.add_error("Health observation and supplied startup source do not match")
                 except Exception as e:
                     self.add_error(f"Failed to load or parse health observation: {e}")
             else:
@@ -1097,6 +1111,19 @@ class ProofValidator:
 
     def validate_verify_after_restart(self, args: argparse.Namespace) -> dict[str, Any]:
         """Mode 2: Post-restart verification."""
+        if getattr(args, "strict", False):
+            required_baselines = {
+                "before_assertion_count": getattr(args, "before_assertion_count", None),
+                "before_edge_count": getattr(args, "before_edge_count", None),
+                "before_edge_manifest_hash": getattr(args, "before_edge_manifest_hash", None),
+            }
+            missing = [name for name, value in required_baselines.items() if value is None or value == ""]
+            if missing:
+                self.add_error("Strict restart verification requires seed graph baselines: " + ", ".join(missing))
+
+        if getattr(args, "before_assertion_count", None) is not None and getattr(args, "before_assertion_count") <= 0:
+            self.add_error("Seed assertion count must be > 0 for the GRAC vertical slice")
+
         self._populate_missing_evidence(args)
         self.metadata["mode"] = "verify_after_restart"
 
