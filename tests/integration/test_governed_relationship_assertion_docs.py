@@ -183,7 +183,7 @@ class TestGovernedRelationshipAssertionADR:
     def test_status_is_accepted(self, adr_content: str) -> None:
         """Contract decision status must be Accepted."""
         status = _section_after(adr_content, "## Status").strip()
-        first_nonempty = next(line for line in status.splitlines() if line.strip())
+        first_nonempty = next((line for line in status.splitlines() if line.strip()), "")
         assert first_nonempty.strip() == "Accepted"
 
     def test_has_date_section(self, adr_content: str) -> None:
@@ -193,7 +193,7 @@ class TestGovernedRelationshipAssertionADR:
     def test_date_is_2026_07_25(self, adr_content: str) -> None:
         """ADR date must be 2026-07-25."""
         date_section = _section_after(adr_content, "## Date").strip()
-        first_nonempty = next(line for line in date_section.splitlines() if line.strip())
+        first_nonempty = next((line for line in date_section.splitlines() if line.strip()), "")
         assert first_nonempty.strip() == "2026-07-25"
 
     def test_has_context_decision_consequences(self, adr_content: str) -> None:

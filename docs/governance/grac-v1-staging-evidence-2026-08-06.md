@@ -1,6 +1,6 @@
 # GRAC v1 exact-SHA staging evidence
 
-relationship_assertion_v1: PASS|seed:31077645600;restart:31078079469|6bb1f2e473c
+relationship_assertion_v1: PASS|seed:31077645600;restart:31078079469|6bb1f2e473ce4190b6c7ee06f69734873e2abdce
 
 ## Target
 
