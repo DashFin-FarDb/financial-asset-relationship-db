@@ -158,6 +158,7 @@ class ProofValidator:
         return ok
 
     def _normalize_string_scope(self, scope: str, expected_purpose: str | None) -> str | None:
+        """Normalize a string scope identifier."""
         predicate_id = scope.strip()
         if not predicate_id:
             self.add_error(ERR_INVALID_SCOPE_PREDICATE)
@@ -165,6 +166,7 @@ class ProofValidator:
         return f"{predicate_id}::{expected_purpose}" if expected_purpose else predicate_id
 
     def _normalize_dict_scope(self, scope: dict[str, Any], expected_purpose: str | None) -> str | None:
+        """Normalize an object-shaped scope, enforcing expected purpose."""
         if "predicate_id" not in scope or "purpose" not in scope:
             self.add_error(ERR_INVALID_SCOPE_PREDICATE)
             return None
@@ -859,6 +861,22 @@ class ProofValidator:
             return False
         return True
 
+    def _validate_assertion_actors_and_states(self, assertion_id: str, proposal: Any, determination: Any) -> bool:
+        """Validate the relationship between a proposal and determination event."""
+        if proposal.sequence >= determination.sequence:
+            self.add_error(f"Assertion {assertion_id} acceptance does not follow proposal")
+            return False
+        if determination.from_state != "Proposed":
+            self.add_error(f"Assertion {assertion_id} acceptance has invalid predecessor state")
+            return False
+        if not proposal.actor_id or not determination.actor_id:
+            self.add_error(f"Assertion {assertion_id} lifecycle actor is missing")
+            return False
+        if proposal.actor_id == determination.actor_id:
+            self.add_error(f"Assertion {assertion_id} proposer and determiner are not distinct")
+            return False
+        return True
+
     def _validate_reconstructed_assertion(
         self,
         assertion_id: str,
@@ -882,21 +900,7 @@ class ProofValidator:
             self.add_error(f"Assertion {assertion_id} must have exactly one proposer and one acceptance event")
             return False
 
-        proposal = proposed[0]
-        determination = accepted[0]
-        if proposal.sequence >= determination.sequence:
-            self.add_error(f"Assertion {assertion_id} acceptance does not follow proposal")
-            return False
-        if determination.from_state != "Proposed":
-            self.add_error(f"Assertion {assertion_id} acceptance has invalid predecessor state")
-            return False
-        if not proposal.actor_id or not determination.actor_id:
-            self.add_error(f"Assertion {assertion_id} lifecycle actor is missing")
-            return False
-        if proposal.actor_id == determination.actor_id:
-            self.add_error(f"Assertion {assertion_id} proposer and determiner are not distinct")
-            return False
-        return True
+        return self._validate_assertion_actors_and_states(assertion_id, proposed[0], accepted[0])
 
     def _reconstruct_assertion_history_from_db(self, args: argparse.Namespace) -> None:
         """Reconstruct persisted lifecycle history for the certified revision."""
