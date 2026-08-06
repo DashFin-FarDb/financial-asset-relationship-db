@@ -843,6 +843,17 @@ class ProofValidator:
         except Exception as e:
             self.add_error(f"Scope JSON error: {e}")
 
+    def _validate_assertion_sequences(self, assertion_id: str, events: Sequence[Any]) -> bool:
+        """Validate the order and uniqueness of lifecycle sequence numbers."""
+        sequences = [event.sequence for event in events]
+        if any(not isinstance(sequence, int) for sequence in sequences):
+            self.add_error(f"Assertion {assertion_id} has invalid lifecycle sequence values")
+            return False
+        if sequences != sorted(sequences) or len(sequences) != len(set(sequences)):
+            self.add_error(f"Assertion {assertion_id} lifecycle sequence is not strictly ordered")
+            return False
+        return True
+
     def _validate_reconstructed_assertion(
         self,
         assertion_id: str,
@@ -853,12 +864,7 @@ class ProofValidator:
             self.add_error(f"Assertion {assertion_id} has no persisted lifecycle events")
             return False
 
-        sequences = [event.sequence for event in events]
-        if any(not isinstance(sequence, int) for sequence in sequences):
-            self.add_error(f"Assertion {assertion_id} has invalid lifecycle sequence values")
-            return False
-        if sequences != sorted(sequences) or len(sequences) != len(set(sequences)):
-            self.add_error(f"Assertion {assertion_id} lifecycle sequence is not strictly ordered")
+        if not self._validate_assertion_sequences(assertion_id, events):
             return False
 
         proposed = [event for event in events if event.to_state == "Proposed" and event.authority == "proposer"]

@@ -232,6 +232,7 @@ def test_restart_scopes_lookup_failures(monkeypatch: pytest.MonkeyPatch) -> None
     ],
 )
 def test_strict_mode_expected_revision_hash_requirement(mode: str, should_error: bool):
+    """Test that expected_revision_hash is required only for verify_after_restart mode."""
     validator = ProofValidator({})
     args = Namespace(
         strict=True,
