@@ -760,27 +760,22 @@ class ProofValidator:
     ) -> tuple[dict[str, Any], str] | None:
         """Load retained health evidence and calculate its digest."""
         import hashlib
-    
+
         try:
             safe_path = validate_safe_path(path)
             health_bytes = safe_path.read_bytes()
             health = json.loads(health_bytes)
         except (OSError, TypeError, json.JSONDecodeError) as exc:
-            self.add_error(
-                f"Failed to load or parse health observation: {exc}"
-            )
+            self.add_error(f"Failed to load or parse health observation: {exc}")
             return None
-    
+
         if not isinstance(health, dict):
-            self.add_error(
-                "Health observation must be a JSON object"
-            )
+            self.add_error("Health observation must be a JSON object")
             return None
-    
+
         digest = hashlib.sha256(health_bytes).hexdigest()
         return health, digest
-    
-    
+
     def _validate_health_provenance(
         self,
         args: argparse.Namespace,
@@ -789,49 +784,32 @@ class ProofValidator:
         """Bind health evidence to its observed workflow and deployment."""
         provenance = health.get("proof_observation")
         if not isinstance(provenance, dict):
-            self.add_error(
-                "Health observation proof provenance is missing"
-            )
+            self.add_error("Health observation proof provenance is missing")
             return
-    
+
         observed_run_id = provenance.get("run_id")
         observed_deployed_sha = provenance.get("deployment_sha")
-    
+
         expected_run_id = getattr(args, "run_id", None)
         expected_deployed_sha = getattr(
             args,
             "deployed_sha",
             None,
         )
-    
+
         if not observed_run_id:
-            self.add_error(
-                "Health observation run ID is missing"
-            )
+            self.add_error("Health observation run ID is missing")
         elif observed_run_id != expected_run_id:
-            self.add_error(
-                "Health observation run ID does not match "
-                "the certified workflow run"
-            )
-    
+            self.add_error("Health observation run ID does not match " "the certified workflow run")
+
         if not observed_deployed_sha:
-            self.add_error(
-                "Health observation deployment SHA is missing"
-            )
+            self.add_error("Health observation deployment SHA is missing")
         elif observed_deployed_sha != expected_deployed_sha:
-            self.add_error(
-                "Health observation deployment SHA does not "
-                "match the certified deployment"
-            )
-    
-        self.metadata[
-            "health_observation_run_id"
-        ] = observed_run_id
-        self.metadata[
-            "health_observation_deployed_sha"
-        ] = observed_deployed_sha
-    
-    
+            self.add_error("Health observation deployment SHA does not " "match the certified deployment")
+
+        self.metadata["health_observation_run_id"] = observed_run_id
+        self.metadata["health_observation_deployed_sha"] = observed_deployed_sha
+
     def _validate_health_persistence_state(
         self,
         health: dict[str, Any],
@@ -839,35 +817,23 @@ class ProofValidator:
         """Validate persistence fields reported by the runtime."""
         graph = health.get("graph")
         if not isinstance(graph, dict):
-            self.add_error(
-                "Health observation graph state is missing"
-            )
+            self.add_error("Health observation graph state is missing")
             return
-    
+
         persistence_configured = health.get(
             "graph_persistence_configured",
             health.get("persistence_configured"),
         )
-    
+
         if persistence_configured is not True:
-            self.add_error(
-                "Health observation reports persistence "
-                "is not configured"
-            )
-    
+            self.add_error("Health observation reports persistence " "is not configured")
+
         if graph.get("persistence_enabled") is not True:
-            self.add_error(
-                "Health observation reports persistence "
-                "is not enabled"
-            )
-    
+            self.add_error("Health observation reports persistence " "is not enabled")
+
         if graph.get("persistence_loaded") is not True:
-            self.add_error(
-                "Health observation reports persistence "
-                "was not loaded"
-            )
-    
-    
+            self.add_error("Health observation reports persistence " "was not loaded")
+
     def _validate_health_startup_source(
         self,
         args: argparse.Namespace,
@@ -877,25 +843,20 @@ class ProofValidator:
         graph = health.get("graph")
         if not isinstance(graph, dict):
             return
-    
+
         observed_startup = graph.get("startup_source")
-    
+
         if observed_startup != "persisted":
             self.add_error(
-                "Health observation startup source is "
-                f"{observed_startup or 'missing'}; "
-                "expected persisted"
+                "Health observation startup source is " f"{observed_startup or 'missing'}; " "expected persisted"
             )
-    
+
         if observed_startup != getattr(
             args,
             "startup_source",
             None,
         ):
-            self.add_error(
-                "Health observation and supplied startup "
-                "source do not match"
-            )
+            self.add_error("Health observation and supplied startup " "source do not match")
 
     def _validate_restart_persistence(
         self,
@@ -904,35 +865,28 @@ class ProofValidator:
         """Validate persisted startup with runtime-bound evidence."""
         if not args.require_persistence:
             return
-    
+
         if args.startup_source != "persisted":
-            self.add_error(
-                f"Startup: {args.startup_source or 'N/A'} "
-                "(need persisted)"
-            )
-    
-        self.metadata["startup"] = (
-            args.startup_source or "N/A"
-        )
-    
+            self.add_error(f"Startup: {args.startup_source or 'N/A'} " "(need persisted)")
+
+        self.metadata["startup"] = args.startup_source or "N/A"
+
         path = getattr(
             args,
             "health_observation_path",
             None,
         )
         if not path:
-            self.add_error(
-                "Health observation JSON is missing"
-            )
+            self.add_error("Health observation JSON is missing")
             return
-    
+
         loaded = self._load_health_observation(path)
         if loaded is None:
             return
-    
+
         health, digest = loaded
         self.metadata["health_observation_sha256"] = digest
-    
+
         self._validate_health_provenance(args, health)
         self._validate_health_persistence_state(health)
         self._validate_health_startup_source(args, health)
@@ -948,11 +902,9 @@ class ProofValidator:
             None,
         )
         if not path:
-            self.add_error(
-                "Runtime graph observation is required"
-            )
+            self.add_error("Runtime graph observation is required")
             return None
-    
+
         try:
             safe_path = validate_safe_path(path)
             with safe_path.open(
@@ -960,21 +912,15 @@ class ProofValidator:
             ) as observation_file:
                 observation = json.load(observation_file)
         except (OSError, TypeError, json.JSONDecodeError) as exc:
-            self.add_error(
-                "Failed to load runtime graph "
-                f"observation: {exc}"
-            )
+            self.add_error("Failed to load runtime graph " f"observation: {exc}")
             return None
-    
+
         if not isinstance(observation, dict):
-            self.add_error(
-                "Runtime graph observation must be "
-                "a JSON object"
-            )
+            self.add_error("Runtime graph observation must be " "a JSON object")
             return None
-    
+
         return observation
-    
+
     def _validate_runtime_graph_provenance(
         self,
         args: argparse.Namespace,
@@ -986,131 +932,83 @@ class ProofValidator:
             "run_id",
             None,
         ):
-            self.add_error(
-                "Runtime graph observation run ID mismatch"
-            )
-    
+            self.add_error("Runtime graph observation run ID mismatch")
+
         if provenance.get("deployment_sha") != getattr(
             args,
             "deployed_sha",
             None,
         ):
-            self.add_error(
-                "Runtime graph observation deployment "
-                "SHA mismatch"
-            )
-    
+            self.add_error("Runtime graph observation deployment " "SHA mismatch")
+
         if provenance.get("revision_id") != getattr(
             args,
             "expected_revision_id",
             None,
         ):
-            self.add_error(
-                "Runtime graph observation revision "
-                "ID mismatch"
-            )
-    
+            self.add_error("Runtime graph observation revision " "ID mismatch")
+
     def _validate_runtime_graph_metrics(
         self,
         args: argparse.Namespace,
         runtime_graph: dict[str, Any],
     ) -> None:
         """Compare served graph metrics with the seed baseline."""
-        observed_assertions = runtime_graph.get(
-            "assertion_count"
-        )
+        observed_assertions = runtime_graph.get("assertion_count")
         observed_edges = runtime_graph.get("edge_count")
-        observed_manifest = runtime_graph.get(
-            "edge_set_hash"
-        )
-    
+        observed_manifest = runtime_graph.get("edge_set_hash")
+
         if observed_assertions != getattr(
             args,
             "before_assertion_count",
             None,
         ):
-            self.add_error(
-                "Served graph assertion count does not "
-                "match the seed baseline"
-            )
-    
+            self.add_error("Served graph assertion count does not " "match the seed baseline")
+
         if observed_edges != getattr(
             args,
             "before_edge_count",
             None,
         ):
-            self.add_error(
-                "Served graph edge count does not match "
-                "the seed baseline"
-            )
-    
+            self.add_error("Served graph edge count does not match " "the seed baseline")
+
         if observed_manifest != getattr(
             args,
             "before_edge_manifest_hash",
             None,
         ):
-            self.add_error(
-                "Served graph edge-set hash does not "
-                "match the seed baseline"
-            )
-    
-        if (
-            not isinstance(observed_assertions, int)
-            or observed_assertions <= 0
-        ):
-            self.add_error(
-                "Served graph must contain at least one "
-                "governed assertion"
-            )
-    
-        if (
-            not isinstance(observed_edges, int)
-            or observed_edges <= 0
-        ):
-            self.add_error(
-                "Served graph must contain at least one "
-                "governed edge"
-            )
-    
-        self.metadata[
-            "runtime_graph_assertion_count"
-        ] = observed_assertions
-        self.metadata[
-            "runtime_graph_edge_count"
-        ] = observed_edges
-        self.metadata[
-            "runtime_graph_edge_set_hash"
-        ] = observed_manifest
-    
+            self.add_error("Served graph edge-set hash does not " "match the seed baseline")
+
+        if not isinstance(observed_assertions, int) or observed_assertions <= 0:
+            self.add_error("Served graph must contain at least one " "governed assertion")
+
+        if not isinstance(observed_edges, int) or observed_edges <= 0:
+            self.add_error("Served graph must contain at least one " "governed edge")
+
+        self.metadata["runtime_graph_assertion_count"] = observed_assertions
+        self.metadata["runtime_graph_edge_count"] = observed_edges
+        self.metadata["runtime_graph_edge_set_hash"] = observed_manifest
+
     def _validate_served_graph_parity(
         self,
         args: argparse.Namespace,
     ) -> None:
         """Validate graph state served by the restarted process."""
-        observation = (
-            self._load_runtime_graph_observation(args)
-        )
+        observation = self._load_runtime_graph_observation(args)
         if observation is None:
             return
-    
-        provenance = observation.get(
-            "proof_observation"
-        )
+
+        provenance = observation.get("proof_observation")
         runtime_graph = observation.get("runtime_graph")
-    
+
         if not isinstance(provenance, dict):
-            self.add_error(
-                "Runtime graph observation provenance "
-                "is missing"
-            )
+            self.add_error("Runtime graph observation provenance " "is missing")
             return
-    
+
         if not isinstance(runtime_graph, dict):
-            self.add_error(
-                "Runtime graph metrics are missing"
-            )
+            self.add_error("Runtime graph metrics are missing")
             return
-    
+
         self._validate_runtime_graph_provenance(
             args,
             provenance,
@@ -1119,7 +1017,7 @@ class ProofValidator:
             args,
             runtime_graph,
         )
-    
+
     def _validate_restart_authz(self, args: argparse.Namespace) -> None:
         """Validate authorization evidence."""
         authz_meta = None
@@ -1568,12 +1466,9 @@ def setup_parser() -> argparse.ArgumentParser:
     parser.add_argument("--startup-source", help="Observed runtime startup source value")
     parser.add_argument("--health-observation-path", help="Path to the detailed health observation JSON file")
     parser.add_argument(
-                        "--runtime-graph-observation-path",
-                        help=(
-                            "Path to the authenticated post-restart "
-                            "runtime graph observation JSON"
-                        ),
-                    )
+        "--runtime-graph-observation-path",
+        help=("Path to the authenticated post-restart " "runtime graph observation JSON"),
+    )
     parser.add_argument("--before-assertion-count", type=int, help="Expected assertion count from seed")
     parser.add_argument("--before-edge-count", type=int, help="Expected edge count from seed")
     parser.add_argument("--before-edge-manifest-hash", help="Expected edge manifest hash from seed")
