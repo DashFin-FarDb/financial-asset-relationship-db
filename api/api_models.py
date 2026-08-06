@@ -146,6 +146,26 @@ class DatabaseHealthResponse(BaseModel):
     reachable: bool
 
 
+class RuntimeProofObservation(BaseModel):
+    """Immutable identity attached to a runtime proof observation."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    run_id: str
+    deployment_sha: str
+    revision_id: str
+
+
+class RuntimeGraphProofMetrics(BaseModel):
+    """Governed graph metrics observed from the serving process."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    assertion_count: int = Field(ge=0)
+    edge_count: int = Field(ge=0)
+    edge_set_hash: str
+
+
 class SLOEvaluationResultModel(BaseModel):
     """Response model for a single SLO evaluation."""
 
@@ -184,6 +204,8 @@ class DetailedHealthResponse(BaseModel):
     )
     graph: GraphHealthResponse
     database: DatabaseHealthResponse
+    proof_observation: RuntimeProofObservation | None = None
+    runtime_graph: RuntimeGraphProofMetrics | None = None
 
 
 class GraphRebuildResponse(BaseModel):
