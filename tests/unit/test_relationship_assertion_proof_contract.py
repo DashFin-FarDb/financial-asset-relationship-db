@@ -100,7 +100,9 @@ def test_scopes_are_consistent_invalid_types() -> None:
     """Test that scopes_are_consistent handles non-list or unhashable inputs gracefully."""
     validator = ProofValidator({})
     # Test non-list inputs
-    assert validator.scopes_are_consistent("not-a-list", ["scope1"], enforce_no_loss=True) is False  # type: ignore[arg-type]
+    assert (
+        validator.scopes_are_consistent("not-a-list", ["scope1"], enforce_no_loss=True) is False
+    )  # type: ignore[arg-type]
     assert any("must be a non-empty list" in err for err in validator.errors)
     validator.errors.clear()
 
@@ -262,14 +264,14 @@ def test_strict_mode_expected_revision_hash_requirement(mode: str, should_error:
         ([" "], None, "invalid or missing predicate_id"),
         (
             ["scope-1", {"predicate_id": "scope-2", "purpose": "testing"}],
-            ("hash", ["scope-1::testing", "scope-2::testing"]),
+            ("hash", ["scope-1::testing", "scope-2::testing"], "edge-set-hash"),
             None,
         ),
     ],
 )
 def test_validate_revision_scopes(
     scopes: object,
-    expected: tuple[str, list[str]] | None,
+    expected: tuple[str, list[str], str] | None,
     error_fragment: str | None,
 ) -> None:
     """Validate supported and rejected governed-scope representations."""
@@ -282,6 +284,7 @@ def test_validate_revision_scopes(
         "hash",
         json.dumps(scopes),
         "testing",
+        "edge-set-hash",
     )
 
     result = validator._get_and_validate_revision_scopes(
