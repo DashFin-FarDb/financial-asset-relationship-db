@@ -100,9 +100,7 @@ def test_scopes_are_consistent_invalid_types() -> None:
     """Test that scopes_are_consistent handles non-list or unhashable inputs gracefully."""
     validator = ProofValidator({})
     # Test non-list inputs
-    assert (
-        validator.scopes_are_consistent("not-a-list", ["scope1"], enforce_no_loss=True) is False
-    )  # type: ignore[arg-type]
+    assert validator.scopes_are_consistent("not-a-list", ["scope1"], enforce_no_loss=True) is False  # type: ignore[arg-type]
     assert any("must be a non-empty list" in err for err in validator.errors)
     validator.errors.clear()
 
