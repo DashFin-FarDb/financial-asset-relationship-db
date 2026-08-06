@@ -75,6 +75,30 @@ def _sanitize_db_id(val: Any) -> str | None:
     return clean_val
 
 
+def _count_revision_projection_rows(
+    conn: Any,
+    revision_id: str,
+) -> tuple[int, int]:
+    """Return distinct assertion and projection-edge counts for a revision."""
+    from sqlalchemy import func
+
+    # pylint: disable=not-callable
+    assertion_count = conn.execute(
+        select(func.count(func.distinct(RelationshipProjectionEdgeORM.assertion_id))).where(
+            RelationshipProjectionEdgeORM.revision_id == revision_id
+        )
+    ).scalar()
+
+    edge_count = conn.execute(
+        select(func.count(RelationshipProjectionEdgeORM.id)).where(
+            RelationshipProjectionEdgeORM.revision_id == revision_id
+        )
+    ).scalar()
+    # pylint: enable=not-callable
+
+    return int(assertion_count or 0), int(edge_count or 0)
+
+
 class ProofValidator:
     """Validates GRAC v1 staging proofs."""
 
@@ -522,27 +546,9 @@ class ProofValidator:
         if not rev_info:
             return None
         proj_hash, governed_scopes, edge_set_hash = rev_info
-        from sqlalchemy import func
-
         # Get assertion count and edge count
         try:
-            assertion_count = (
-                conn.execute(
-                    select(func.count(func.distinct(RelationshipProjectionEdgeORM.assertion_id))).where(
-                        RelationshipProjectionEdgeORM.revision_id == clean_rev_id
-                    )
-                ).scalar()
-                or 0
-            )
-
-            edge_count = (
-                conn.execute(
-                    select(func.count(RelationshipProjectionEdgeORM.id)).where(
-                        RelationshipProjectionEdgeORM.revision_id == clean_rev_id
-                    )
-                ).scalar()
-                or 0
-            )
+            assertion_count, edge_count = _count_revision_projection_rows(conn, clean_rev_id)
 
             self.metadata["raw_assertion_count"] = assertion_count
             self.metadata["raw_edge_count"] = edge_count
