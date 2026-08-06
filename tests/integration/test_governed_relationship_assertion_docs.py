@@ -305,8 +305,8 @@ class TestGovernedRelationshipAssertionContractV1:
         assert "Frozen" in header or "frozen" in header
         assert "0008" in header or "ADR 0008" in contract_content[:500]
 
-    def test_capability_claim_is_current(self, contract_content: str) -> None:
-        """Runtime capability claim class must identify the evidenced CURRENT scope."""
+    def test_capability_claim_is_next(self, contract_content: str) -> None:
+        """Runtime capability claim class must remain NEXT."""
         header = "\n".join(contract_content.splitlines()[:20])
         claim_line = next(
             (
@@ -317,9 +317,8 @@ class TestGovernedRelationshipAssertionContractV1:
             "",
         )
         assert claim_line, "missing capability claim class header line"
-        assert "`CURRENT`" in claim_line
-        assert "exact-SHA evidenced staging scope" in claim_line
-        assert "NEXT" not in claim_line
+        assert "`NEXT`" in claim_line
+        assert "CURRENT" not in claim_line
 
     def test_required_sections_present(self, contract_content: str) -> None:
         """All normative numbered sections must be present."""

@@ -458,12 +458,13 @@ class ProofValidator:
         args.publication_count = 1
         return rows[0]
 
-    def _get_and_validate_revision_scopes(self, conn: Any, clean_rev_id: str) -> tuple[str, list[str]] | None:
+    def _get_and_validate_revision_scopes(self, conn: Any, clean_rev_id: str) -> tuple[str, list[str], str] | None:
         """Fetch and validate revision projection hash and governed scopes."""
         rev_query = select(
             RelationshipProjectionRevisionORM.projection_hash,
             RelationshipProjectionRevisionORM.governed_scopes,
             RelationshipProjectionRevisionORM.purpose,
+            RelationshipProjectionRevisionORM.edge_set_hash,
         ).where(
             RelationshipProjectionRevisionORM.id == clean_rev_id,
         )
@@ -472,7 +473,7 @@ class ProofValidator:
             self.add_error(f"Revision {clean_rev_id} not found in database")
             return None
 
-        proj_hash, governed_scopes_raw, purpose = rev_row
+        proj_hash, governed_scopes_raw, purpose, edge_set_hash = rev_row
         try:
             governed_scopes = (
                 json.loads(governed_scopes_raw) if isinstance(governed_scopes_raw, str) else governed_scopes_raw
@@ -485,7 +486,7 @@ class ProofValidator:
         if parsed_scopes is None:
             return None
 
-        return proj_hash, parsed_scopes
+        return proj_hash, parsed_scopes, edge_set_hash
 
     def _populate_publication_and_revision_from_db(
         self, args: argparse.Namespace, conn: Any, rebuild_job_id: str
@@ -520,7 +521,34 @@ class ProofValidator:
         rev_info = self._get_and_validate_revision_scopes(conn, clean_rev_id)
         if not rev_info:
             return None
-        proj_hash, governed_scopes = rev_info
+        proj_hash, governed_scopes, edge_set_hash = rev_info
+        from sqlalchemy import func
+
+        # Get assertion count and edge count
+        try:
+            assertion_count = (
+                conn.execute(
+                    select(func.count(func.distinct(RelationshipProjectionEdgeORM.assertion_id))).where(
+                        RelationshipProjectionEdgeORM.revision_id == clean_rev_id
+                    )
+                ).scalar()
+                or 0
+            )
+
+            edge_count = (
+                conn.execute(
+                    select(func.count(RelationshipProjectionEdgeORM.id)).where(
+                        RelationshipProjectionEdgeORM.revision_id == clean_rev_id
+                    )
+                ).scalar()
+                or 0
+            )
+
+            self.metadata["raw_assertion_count"] = assertion_count
+            self.metadata["raw_edge_count"] = edge_count
+            self.metadata["raw_edge_manifest_hash"] = edge_set_hash
+        except Exception as e:
+            self.add_error(f"Failed to query counts: {e}")
 
         if not args.revision_hash:
             args.revision_hash = proj_hash
@@ -724,6 +752,22 @@ class ProofValidator:
             if args.startup_source != "persisted":
                 self.add_error(f"Startup: {args.startup_source or 'N/A'} (need persisted)")
             self.metadata["startup"] = args.startup_source or "N/A"
+            if getattr(args, "health_observation_path", None):
+                try:
+                    import json
+
+                    with open(args.health_observation_path, "r") as f:
+                        health = json.load(f)
+                    if (
+                        not health.get("persistence_configured")
+                        or not health.get("graph", {}).get("persistence_enabled")
+                        or not health.get("graph", {}).get("persistence_loaded")
+                    ):
+                        self.add_error("Health observation failed persistence validation")
+                except Exception as e:
+                    self.add_error(f"Failed to load or parse health observation: {e}")
+            else:
+                self.add_error("Health observation JSON is missing")
 
     def _validate_restart_authz(self, args: argparse.Namespace) -> None:
         """Validate authorization evidence."""
@@ -904,7 +948,9 @@ class ProofValidator:
 
         return self._validate_assertion_actors_and_states(assertion_id, proposed[0], accepted[0])
 
-    def _reconstruct_assertion_history_from_db(self, args: argparse.Namespace) -> None:
+    def _reconstruct_assertion_history_from_db(self, args: argparse.Namespace) -> None:  # noqa: C901
+        from sqlalchemy import func
+
         """Reconstruct persisted lifecycle history for the certified revision."""
         db_url = os.getenv("DATABASE_URL")
         if not db_url:
@@ -976,8 +1022,44 @@ class ProofValidator:
                         reconstructed += 1
 
                 self.metadata["reconstructed_assertions"] = reconstructed
+
+                # Check edge counts
+                edge_count = (
+                    session.execute(
+                        select(func.count(RelationshipProjectionEdgeORM.id)).where(
+                            RelationshipProjectionEdgeORM.revision_id == expected_revision_id
+                        )
+                    ).scalar()
+                    or 0
+                )
+
+                edge_manifest_hash = session.execute(
+                    select(RelationshipProjectionRevisionORM.edge_set_hash).where(
+                        RelationshipProjectionRevisionORM.id == expected_revision_id
+                    )
+                ).scalar()
+
+                if getattr(args, "before_edge_count", None) is not None:
+                    if edge_count != args.before_edge_count:
+                        self.add_error(f"Edge count mismatch: {edge_count} vs expected {args.before_edge_count}")
+                if getattr(args, "before_edge_manifest_hash", None) is not None:
+                    if edge_manifest_hash != args.before_edge_manifest_hash:
+                        self.add_error(
+                            f"Edge manifest hash mismatch: {edge_manifest_hash} vs expected {args.before_edge_manifest_hash}"
+                        )
+
                 if reconstructed != len(assertion_ids):
                     self.add_error("Historical reconstruction failed for one or more projected assertions")
+
+                # Check metrics against seed
+                if getattr(args, "before_assertion_count", None) is not None:
+                    if reconstructed != args.before_assertion_count:
+                        self.add_error(
+                            f"Assertion count mismatch: {reconstructed} vs expected {args.before_assertion_count}"
+                        )
+                if reconstructed == 0:
+                    self.add_error("Reconstructed assertion count must be > 0 for this GRAC vertical-slice promotion")
+
         except Exception as exc:
             self.add_error(f"Historical reconstruction query failed: {exc}")
         finally:
@@ -1098,6 +1180,10 @@ def setup_parser() -> argparse.ArgumentParser:
     parser.add_argument("--expected-revision-id", help="Expected target revision ID value")
     parser.add_argument("--require-persistence", action="store_true", help="Assert startup persistence")
     parser.add_argument("--startup-source", help="Observed runtime startup source value")
+    parser.add_argument("--health-observation-path", help="Path to the detailed health observation JSON file")
+    parser.add_argument("--before-assertion-count", type=int, help="Expected assertion count from seed")
+    parser.add_argument("--before-edge-count", type=int, help="Expected edge count from seed")
+    parser.add_argument("--before-edge-manifest-hash", help="Expected edge manifest hash from seed")
     parser.add_argument("--before-scopes", help="Scope list JSON before promotion")
     parser.add_argument("--after-scopes", help="Scope list JSON after promotion")
     parser.add_argument("--history-entries", help="Execution log history entries JSON")
