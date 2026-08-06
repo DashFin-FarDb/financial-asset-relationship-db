@@ -211,7 +211,7 @@ def _get_runtime_graph_proof_metrics(
     if not governed_edges:
         raise HTTPException(
             status_code=503,
-            detail=("Restarted runtime serves no governed " "edges for the certified revision"),
+            detail=("Restarted runtime serves no governed edges for the certified revision"),
         )
 
     edge_set_hash = graph_lifecycle.get_runtime_edge_set_hash(expected_revision_id)
@@ -349,7 +349,7 @@ def detailed_health_check(
         if not proof_run_id or not expected_revision_id:
             raise HTTPException(
                 status_code=400,
-                detail=("Both proof run ID and expected revision " "ID are required"),
+                detail=("Both proof run ID and expected revision ID are required"),
             )
 
         deployment_sha = os.getenv(
