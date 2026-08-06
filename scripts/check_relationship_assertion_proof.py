@@ -800,12 +800,12 @@ class ProofValidator:
         if not observed_run_id:
             self.add_error("Health observation run ID is missing")
         elif observed_run_id != expected_run_id:
-            self.add_error("Health observation run ID does not match " "the certified workflow run")
+            self.add_error("Health observation run ID does not match the certified workflow run")
 
         if not observed_deployed_sha:
             self.add_error("Health observation deployment SHA is missing")
         elif observed_deployed_sha != expected_deployed_sha:
-            self.add_error("Health observation deployment SHA does not " "match the certified deployment")
+            self.add_error("Health observation deployment SHA does not match the certified deployment")
 
         self.metadata["health_observation_run_id"] = observed_run_id
         self.metadata["health_observation_deployed_sha"] = observed_deployed_sha
@@ -826,13 +826,13 @@ class ProofValidator:
         )
 
         if persistence_configured is not True:
-            self.add_error("Health observation reports persistence " "is not configured")
+            self.add_error("Health observation reports persistence is not configured")
 
         if graph.get("persistence_enabled") is not True:
-            self.add_error("Health observation reports persistence " "is not enabled")
+            self.add_error("Health observation reports persistence is not enabled")
 
         if graph.get("persistence_loaded") is not True:
-            self.add_error("Health observation reports persistence " "was not loaded")
+            self.add_error("Health observation reports persistence was not loaded")
 
     def _validate_health_startup_source(
         self,
@@ -847,16 +847,14 @@ class ProofValidator:
         observed_startup = graph.get("startup_source")
 
         if observed_startup != "persisted":
-            self.add_error(
-                "Health observation startup source is " f"{observed_startup or 'missing'}; " "expected persisted"
-            )
+            self.add_error(f"Health observation startup source is {observed_startup or 'missing'}; expected persisted")
 
         if observed_startup != getattr(
             args,
             "startup_source",
             None,
         ):
-            self.add_error("Health observation and supplied startup " "source do not match")
+            self.add_error("Health observation and supplied startup source do not match")
 
     def _validate_restart_persistence(
         self,
@@ -867,7 +865,7 @@ class ProofValidator:
             return
 
         if args.startup_source != "persisted":
-            self.add_error(f"Startup: {args.startup_source or 'N/A'} " "(need persisted)")
+            self.add_error(f"Startup: {args.startup_source or 'N/A'} (need persisted)")
 
         self.metadata["startup"] = args.startup_source or "N/A"
 
@@ -912,11 +910,11 @@ class ProofValidator:
             ) as observation_file:
                 observation = json.load(observation_file)
         except (OSError, TypeError, json.JSONDecodeError) as exc:
-            self.add_error("Failed to load runtime graph " f"observation: {exc}")
+            self.add_error(f"Failed to load runtime graph observation: {exc}")
             return None
 
         if not isinstance(observation, dict):
-            self.add_error("Runtime graph observation must be " "a JSON object")
+            self.add_error("Runtime graph observation must be a JSON object")
             return None
 
         return observation
@@ -939,14 +937,14 @@ class ProofValidator:
             "deployed_sha",
             None,
         ):
-            self.add_error("Runtime graph observation deployment " "SHA mismatch")
+            self.add_error("Runtime graph observation deployment SHA mismatch")
 
         if provenance.get("revision_id") != getattr(
             args,
             "expected_revision_id",
             None,
         ):
-            self.add_error("Runtime graph observation revision " "ID mismatch")
+            self.add_error("Runtime graph observation revision ID mismatch")
 
     def _validate_runtime_graph_metrics(
         self,
@@ -963,27 +961,27 @@ class ProofValidator:
             "before_assertion_count",
             None,
         ):
-            self.add_error("Served graph assertion count does not " "match the seed baseline")
+            self.add_error("Served graph assertion count does not match the seed baseline")
 
         if observed_edges != getattr(
             args,
             "before_edge_count",
             None,
         ):
-            self.add_error("Served graph edge count does not match " "the seed baseline")
+            self.add_error("Served graph edge count does not match the seed baseline")
 
         if observed_manifest != getattr(
             args,
             "before_edge_manifest_hash",
             None,
         ):
-            self.add_error("Served graph edge-set hash does not " "match the seed baseline")
+            self.add_error("Served graph edge-set hash does not match the seed baseline")
 
         if not isinstance(observed_assertions, int) or observed_assertions <= 0:
-            self.add_error("Served graph must contain at least one " "governed assertion")
+            self.add_error("Served graph must contain at least one governed assertion")
 
         if not isinstance(observed_edges, int) or observed_edges <= 0:
-            self.add_error("Served graph must contain at least one " "governed edge")
+            self.add_error("Served graph must contain at least one governed edge")
 
         self.metadata["runtime_graph_assertion_count"] = observed_assertions
         self.metadata["runtime_graph_edge_count"] = observed_edges
@@ -1002,7 +1000,7 @@ class ProofValidator:
         runtime_graph = observation.get("runtime_graph")
 
         if not isinstance(provenance, dict):
-            self.add_error("Runtime graph observation provenance " "is missing")
+            self.add_error("Runtime graph observation provenance is missing")
             return
 
         if not isinstance(runtime_graph, dict):
@@ -1467,7 +1465,7 @@ def setup_parser() -> argparse.ArgumentParser:
     parser.add_argument("--health-observation-path", help="Path to the detailed health observation JSON file")
     parser.add_argument(
         "--runtime-graph-observation-path",
-        help=("Path to the authenticated post-restart " "runtime graph observation JSON"),
+        help=("Path to the authenticated post-restart runtime graph observation JSON"),
     )
     parser.add_argument("--before-assertion-count", type=int, help="Expected assertion count from seed")
     parser.add_argument("--before-edge-count", type=int, help="Expected edge count from seed")
