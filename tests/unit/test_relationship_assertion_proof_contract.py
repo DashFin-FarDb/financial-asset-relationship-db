@@ -223,28 +223,27 @@ def test_restart_scopes_lookup_failures(monkeypatch: pytest.MonkeyPatch) -> None
     shutil.rmtree(temp_dir)
 
 
-def test_strict_mode_seed_and_publish_no_expected_revision():
+@pytest.mark.parametrize(
+    "mode, should_error",
+    [
+        ("seed_and_publish", False),
+        ("verify_after_restart", True),
+    ],
+)
+def test_strict_mode_expected_revision_hash_requirement(mode: str, should_error: bool):
     validator = ProofValidator({})
     args = Namespace(
         strict=True,
-        mode="seed_and_publish",
+        mode=mode,
         revision_hash="a" * 64,
         expected_revision_hash=None,
     )
     validator._validate_revision(args)
-    assert not validator.errors
 
-
-def test_strict_mode_verify_after_restart_requires_expected_revision():
-    validator = ProofValidator({})
-    args = Namespace(
-        strict=True,
-        mode="verify_after_restart",
-        revision_hash="a" * 64,
-        expected_revision_hash=None,
-    )
-    validator._validate_revision(args)
-    assert any("Expected revision hash required" in err for err in validator.errors)
+    if should_error:
+        assert any("Expected revision hash required" in err for err in validator.errors)
+    else:
+        assert not validator.errors
 
 
 def test_validate_revision_scopes_malformed():
