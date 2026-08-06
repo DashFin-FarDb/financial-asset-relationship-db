@@ -329,5 +329,16 @@ def test_validate_revision_scopes_valid_objects_and_strings():
         "testing",
     )
     result = validator._get_and_validate_revision_scopes(conn=conn, clean_rev_id="r")
-    assert result == ("hash", ["scope-1", "scope-2"])
+    assert result == ("hash", ["scope-1", "scope-2::testing"])
     assert not validator.errors
+
+
+def test_scopes_are_consistent_purpose_mismatch():
+    """Test that scopes_are_consistent rejects identical predicate_ids if the purpose differs."""
+    validator = ProofValidator({})
+
+    before = [{"predicate_id": "scope-1", "purpose": "purpose-a"}]
+    after = [{"predicate_id": "scope-1", "purpose": "purpose-b"}]
+
+    assert validator.scopes_are_consistent(before, after, enforce_no_loss=True) is False
+    assert any("Scopes disappeared" in err for err in validator.errors)

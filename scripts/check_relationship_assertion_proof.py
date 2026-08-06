@@ -180,7 +180,7 @@ class ProofValidator:
                         "Certified revision governed_scopes contains invalid or missing predicate_id entries"
                     )
                     return None
-                parsed.append(scope["predicate_id"])
+                parsed.append(f"{scope['predicate_id']}::{scope['purpose']}")
             else:
                 self.add_error("Certified revision governed_scopes contains invalid or missing predicate_id entries")
                 return None
