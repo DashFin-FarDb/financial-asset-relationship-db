@@ -157,6 +157,25 @@ class ProofValidator:
             ok = False
         return ok
 
+    def _normalize_string_scope(self, scope: str, expected_purpose: str | None) -> str | None:
+        predicate_id = scope.strip()
+        if not predicate_id:
+            self.add_error(ERR_INVALID_SCOPE_PREDICATE)
+            return None
+        return f"{predicate_id}::{expected_purpose}" if expected_purpose else predicate_id
+
+    def _normalize_dict_scope(self, scope: dict[str, Any], expected_purpose: str | None) -> str | None:
+        if "predicate_id" not in scope or "purpose" not in scope:
+            self.add_error(ERR_INVALID_SCOPE_PREDICATE)
+            return None
+        if expected_purpose and scope["purpose"] != expected_purpose:
+            self.add_error("Certified revision governed_scopes contains entries with incorrect purpose")
+            return None
+        if not isinstance(scope["predicate_id"], str):
+            self.add_error(ERR_INVALID_SCOPE_PREDICATE)
+            return None
+        return f"{scope['predicate_id'].strip()}::{scope['purpose']}"
+
     def normalize_scopes(self, lst: Any, expected_purpose: str | None = None) -> list[str] | None:
         """Normalize a list of scopes into a canonical list of strings, validating structure."""
         if not isinstance(lst, list) or not lst:
@@ -166,25 +185,16 @@ class ProofValidator:
         parsed = []
         for scope in lst:
             if isinstance(scope, str):
-                predicate_id = scope.strip()
-                if not predicate_id:
-                    self.add_error(ERR_INVALID_SCOPE_PREDICATE)
-                    return None
-                parsed.append(f"{predicate_id}::{expected_purpose}" if expected_purpose else predicate_id)
+                normalized = self._normalize_string_scope(scope, expected_purpose)
             elif isinstance(scope, dict):
-                if "predicate_id" not in scope or "purpose" not in scope:
-                    self.add_error(ERR_INVALID_SCOPE_PREDICATE)
-                    return None
-                if expected_purpose and scope["purpose"] != expected_purpose:
-                    self.add_error("Certified revision governed_scopes contains entries with incorrect purpose")
-                    return None
-                if not isinstance(scope["predicate_id"], str):
-                    self.add_error(ERR_INVALID_SCOPE_PREDICATE)
-                    return None
-                parsed.append(f"{scope['predicate_id'].strip()}::{scope['purpose']}")
+                normalized = self._normalize_dict_scope(scope, expected_purpose)
             else:
                 self.add_error(ERR_INVALID_SCOPE_PREDICATE)
                 return None
+
+            if normalized is None:
+                return None
+            parsed.append(normalized)
 
         return parsed
 
