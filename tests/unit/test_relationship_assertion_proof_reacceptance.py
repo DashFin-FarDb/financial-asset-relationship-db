@@ -2,9 +2,22 @@
 
 from __future__ import annotations
 
-from types import SimpleNamespace
+from dataclasses import dataclass
+
+import pytest
 
 from scripts.check_relationship_assertion_proof import ProofValidator
+
+
+@dataclass
+class _LifecycleEvent:
+    """Lifecycle event fields consumed by the proof validator."""
+
+    sequence: int
+    from_state: str | None
+    to_state: str
+    authority: str
+    actor_id: str
 
 
 def _event(
@@ -12,10 +25,10 @@ def _event(
     transition: tuple[str | None, str],
     authority: str,
     actor_id: str,
-) -> SimpleNamespace:
+) -> _LifecycleEvent:
     """Build the lifecycle fields consumed by the proof validator."""
     from_state, to_state = transition
-    return SimpleNamespace(
+    return _LifecycleEvent(
         sequence=sequence,
         from_state=from_state,
         to_state=to_state,
