@@ -89,9 +89,7 @@ def test_reconstructed_assertion_rejects_discontinuous_reacceptance_chain() -> N
     ]
 
     assert validator._validate_reconstructed_assertion("assertion-1", events) is False
-    assert validator.errors == [
-        "Assertion assertion-1 lifecycle state chain is discontinuous"
-    ]
+    assert validator.errors == ["Assertion assertion-1 lifecycle state chain is discontinuous"]
 
 
 def test_reconstructed_assertion_rejects_reacceptance_without_dispute_event() -> None:
@@ -104,6 +102,4 @@ def test_reconstructed_assertion_rejects_reacceptance_without_dispute_event() ->
     ]
 
     assert validator._validate_reconstructed_assertion("assertion-1", events) is False
-    assert validator.errors == [
-        "Assertion assertion-1 lifecycle state chain is discontinuous"
-    ]
+    assert validator.errors == ["Assertion assertion-1 lifecycle state chain is discontinuous"]
