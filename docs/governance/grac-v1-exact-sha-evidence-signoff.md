@@ -26,11 +26,11 @@ binding for this record, not a substitute for the two staging-proof runs recorde
 
 ## Exact candidate and corrective lineage
 
-| Evidence                                 | Immutable identity                                                          |
-| ---------------------------------------- | --------------------------------------------------------------------------- |
-| Final reviewed source SHA                | `16d0a69c5d6f9bae94b9251991466bacbf15d3f0`                                  |
-| Corrective #1555 / PR #1563 merge commit | `16a3724703a8fbdd5ff20d82f879b62ec1ee1ba3`                                  |
-| Corrective #1556 / PR #1564 merge commit | `a1732133dbf619c4faf2d0225872870beb77ed3e`                                  |
+| Evidence                                 | Immutable identity                                                        |
+| ---------------------------------------- | ------------------------------------------------------------------------- |
+| Final reviewed source SHA                | `16d0a69c5d6f9bae94b9251991466bacbf15d3f0`                                |
+| Corrective #1555 / PR #1563 merge commit | `16a3724703a8fbdd5ff20d82f879b62ec1ee1ba3`                                |
+| Corrective #1556 / PR #1564 merge commit | `a1732133dbf619c4faf2d0225872870beb77ed3e`                                |
 | Contract digest                          | `sha256:1280634438f92308f542b9075234e51902b175201e882c629943a446fb2ddeff` |
 | Predicate/registry digest                | `sha256:7ebf9342242e17cdce502bfdb3f5b7a170f27179856aa6405e616ef0098f3e54` |
 
@@ -78,15 +78,15 @@ production merely because the provider's deployment target has production semant
 The exact-SHA release-readiness artifact subsequently returned the durable-health fields required by the repository's
 operational-evidence framework:
 
-| Returned field                                  | Observed value |
-| ----------------------------------------------- | -------------- |
-| `/api/health/detailed.status`                   | `healthy`      |
-| `/api/health/detailed.graph_persistence_configured` | `true`     |
-| `/api/health/detailed.graph.persistence_enabled`    | `true`     |
-| `/api/health/detailed.graph.persistence_loaded`     | `true`     |
-| `/api/health/detailed.graph.startup_source`          | `persisted`|
-| `/api/health/detailed.database.configured`           | `true`     |
-| `/api/health/detailed.database.reachable`            | `true`     |
+| Returned field                                      | Observed value |
+| --------------------------------------------------- | -------------- |
+| `/api/health/detailed.status`                       | `healthy`      |
+| `/api/health/detailed.graph_persistence_configured` | `true`         |
+| `/api/health/detailed.graph.persistence_enabled`    | `true`         |
+| `/api/health/detailed.graph.persistence_loaded`     | `true`         |
+| `/api/health/detailed.graph.startup_source`         | `persisted`    |
+| `/api/health/detailed.database.configured`          | `true`         |
+| `/api/health/detailed.database.reachable`           | `true`         |
 
 ### Verify after restart
 
@@ -106,14 +106,14 @@ operational-evidence framework:
 
 Identity-level restart parity recorded directly in the verify artifact:
 
-| Identity / content                   | Restarted observed value                                                   |
-| ------------------------------------ | -------------------------------------------------------------------------- |
-| Revision ID                          | `24ba3cf9-e6ff-47f8-ae39-e9b007b114ae`                                     |
-| Publication ID                       | `442988aa-f9f5-467c-99eb-baf9550a1353`                                     |
-| Rebuild job ID                       | `37845906-7da4-4ad7-9ee0-10cf13667f35`                                     |
-| Execution ID                         | `d2adc175-365a-4a9b-8008-1055226189a8`                                     |
-| Projection/revision hash             | `26f326642a55e7f18b44752c476b8631da94a13a7f730d7f78029256688a1967`         |
-| Canonical governed scope             | `financial.bond.issuer_reference@1::financial_graph_current_view`          |
+| Identity / content       | Restarted observed value                                           |
+| ------------------------ | ------------------------------------------------------------------ |
+| Revision ID              | `24ba3cf9-e6ff-47f8-ae39-e9b007b114ae`                             |
+| Publication ID           | `442988aa-f9f5-467c-99eb-baf9550a1353`                             |
+| Rebuild job ID           | `37845906-7da4-4ad7-9ee0-10cf13667f35`                             |
+| Execution ID             | `d2adc175-365a-4a9b-8008-1055226189a8`                             |
+| Projection/revision hash | `26f326642a55e7f18b44752c476b8631da94a13a7f730d7f78029256688a1967` |
+| Canonical governed scope | `financial.bond.issuer_reference@1::financial_graph_current_view`  |
 
 The seed and restart-verification artifacts therefore bind the same revision/publication/rebuild/execution lineage,
 not merely equal counts. The persisted predecessor/successor assertion identities and the full exercised publication
@@ -270,22 +270,22 @@ predecessor/successor attribution established by the persistence audit.
 
 ## Merge-criterion disposition
 
-| Criterion                                        | Disposition                                                    |
-| ------------------------------------------------ | -------------------------------------------------------------- |
-| #1555, #1556, #1536-#1539 merged                 | SATISFIED                                                      |
-| Exact-candidate database authorization rerun     | SATISFIED — release-evidence run `31207377781`                 |
-| Both #1539 live proof modes pass                 | SATISFIED — runs `31201674203` and `31205820371`               |
-| Exact SHA/source/deployment binding              | SATISFIED                                                      |
-| Distinct proposer/determiner                     | SATISFIED                                                      |
-| Atomic supersession/successor linkage            | SATISFIED                                                      |
-| Publication cardinality/execution ownership      | SATISFIED                                                      |
-| Empty-edge governed-scope continuity             | SATISFIED                                                      |
-| Restart identity/historical reconstruction       | SATISFIED                                                      |
-| Release persistence/readiness/security/API gates | SATISFIED                                                      |
-| Artifact/provider redaction review               | SATISFIED — human disposition recorded                         |
-| Named human sign-off                             | SATISFIED — `@mohavro`, 2026-08-07, PR #1598                  |
-| Machine-readable marker                          | SATISFIED — exactly one authorized marker in this record       |
-| `NEXT -> CURRENT` promotion                      | SATISFIED — limited to the proved staging financial slice      |
+| Criterion                                        | Disposition                                               |
+| ------------------------------------------------ | --------------------------------------------------------- |
+| #1555, #1556, #1536-#1539 merged                 | SATISFIED                                                 |
+| Exact-candidate database authorization rerun     | SATISFIED — release-evidence run `31207377781`            |
+| Both #1539 live proof modes pass                 | SATISFIED — runs `31201674203` and `31205820371`          |
+| Exact SHA/source/deployment binding              | SATISFIED                                                 |
+| Distinct proposer/determiner                     | SATISFIED                                                 |
+| Atomic supersession/successor linkage            | SATISFIED                                                 |
+| Publication cardinality/execution ownership      | SATISFIED                                                 |
+| Empty-edge governed-scope continuity             | SATISFIED                                                 |
+| Restart identity/historical reconstruction       | SATISFIED                                                 |
+| Release persistence/readiness/security/API gates | SATISFIED                                                 |
+| Artifact/provider redaction review               | SATISFIED — human disposition recorded                    |
+| Named human sign-off                             | SATISFIED — `@mohavro`, 2026-08-07, PR #1598              |
+| Machine-readable marker                          | SATISFIED — exactly one authorized marker in this record  |
+| `NEXT -> CURRENT` promotion                      | SATISFIED — limited to the proved staging financial slice |
 
 ## Named human sign-off
 
