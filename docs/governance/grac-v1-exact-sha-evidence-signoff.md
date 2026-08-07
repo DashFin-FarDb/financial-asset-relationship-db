@@ -23,13 +23,13 @@ relationship_assertion_v1: PASS|run-31207377781|16d0a69c
 
 ## Exact candidate and corrective lineage
 
-| Evidence | Immutable identity |
-| --- | --- |
-| Final reviewed source SHA | `16d0a69c5d6f9bae94b9251991466bacbf15d3f0` |
-| Corrective #1555 / PR #1563 merge commit | `16a3724703a8fbdd5ff20d82f879b62ec1ee1ba3` |
-| Corrective #1556 / PR #1564 merge commit | `a1732133dbf619c4faf2d0225872870beb77ed3e` |
-| Contract digest | `1280634438f92308f542b9075234e51902b175201e882c629943a446fb2ddeff` |
-| Predicate/registry digest | `7ebf9342242e17cdce502bfdb3f5b7a170f27179856aa6405e616ef0098f3e54` |
+| Evidence                                 | Immutable identity                                                 |
+| ---------------------------------------- | ------------------------------------------------------------------ |
+| Final reviewed source SHA                | `16d0a69c5d6f9bae94b9251991466bacbf15d3f0`                         |
+| Corrective #1555 / PR #1563 merge commit | `16a3724703a8fbdd5ff20d82f879b62ec1ee1ba3`                         |
+| Corrective #1556 / PR #1564 merge commit | `a1732133dbf619c4faf2d0225872870beb77ed3e`                         |
+| Contract digest                          | `1280634438f92308f542b9075234e51902b175201e882c629943a446fb2ddeff` |
+| Predicate/registry digest                | `7ebf9342242e17cdce502bfdb3f5b7a170f27179856aa6405e616ef0098f3e54` |
 
 Both corrective merge commits precede the final candidate SHA.
 
@@ -99,17 +99,17 @@ The earlier RC2 release-evidence run is historical context only and is not used 
 
 ## Authority and lifecycle proof
 
-| Role / item | Persisted value |
-| --- | --- |
-| Proposer of record | `grac_staging_proposer` |
-| Determiner | `admin` |
-| Owner/operator | `admin` |
-| Predecessor assertion | `grac-v1-aapl-bond-issuer-20260805-01` |
-| Successor assertion | `grac-v1-aapl-bond-issuer-20260807-02` |
-| Predicate | `financial.bond.issuer_reference@1` |
-| Subject | `AAPL_BOND_2030` |
-| Object | `AAPL` |
-| Method | `bond.issuer_id.resolution@1` |
+| Role / item              | Persisted value                         |
+| ------------------------ | --------------------------------------- |
+| Proposer of record       | `grac_staging_proposer`                 |
+| Determiner               | `admin`                                 |
+| Owner/operator           | `admin`                                 |
+| Predecessor assertion    | `grac-v1-aapl-bond-issuer-20260805-01`  |
+| Successor assertion      | `grac-v1-aapl-bond-issuer-20260807-02`  |
+| Predicate                | `financial.bond.issuer_reference@1`     |
+| Subject                  | `AAPL_BOND_2030`                        |
+| Object                   | `AAPL`                                  |
+| Method                   | `bond.issuer_id.resolution@1`           |
 | Supersession correlation | `grac-v1-staging-supersession-20260807` |
 
 The proposer and determiner are distinct persisted principals.
@@ -127,51 +127,51 @@ This proves successor linkage and causal ordering without rewriting predecessor 
 
 ### Predecessor historical publication
 
-| Field | Value |
-| --- | --- |
-| Revision | `d1ee3300-5725-4006-a105-6bd44027f49a` |
-| Publication | `b5d034e9-2fff-455e-b6ae-2b01291d86d0` |
-| Rebuild job | `4dae133f-a66b-45df-8a4d-bd8df52146da` |
-| Execution | `38dd15c0-4d61-4381-96f4-2a85024f67c6` |
-| Projection hash | `aa2f8187499b0bb07bc5a40aec3328aefeec4cc329753ff1c052b77019cec7a4` |
-| Edge-set hash | `c8c8e738ffe460a7716fcd89fa16baf494fe4015e2551a1f107e53b129a7d345` |
-| Governed edge rows | `1` |
+| Field              | Value                                                              |
+| ------------------ | ------------------------------------------------------------------ |
+| Revision           | `d1ee3300-5725-4006-a105-6bd44027f49a`                             |
+| Publication        | `b5d034e9-2fff-455e-b6ae-2b01291d86d0`                             |
+| Rebuild job        | `4dae133f-a66b-45df-8a4d-bd8df52146da`                             |
+| Execution          | `38dd15c0-4d61-4381-96f4-2a85024f67c6`                             |
+| Projection hash    | `aa2f8187499b0bb07bc5a40aec3328aefeec4cc329753ff1c052b77019cec7a4` |
+| Edge-set hash      | `c8c8e738ffe460a7716fcd89fa16baf494fe4015e2551a1f107e53b129a7d345` |
+| Governed edge rows | `1`                                                                |
 
 ### Successor accepted publication
 
-| Field | Value |
-| --- | --- |
-| Revision | `78babe14-266b-49f9-88d3-e70cdef34a90` |
-| Publication | `8199d8e1-84e2-44e0-a42f-76e7c3c02dcd` |
-| Rebuild job | `4b3aeb23-c332-4d7e-b1f4-4009895b2141` |
-| Execution | `a59c21a4-2bda-4f94-b5d8-c344b3f869f4` |
-| Projection hash | `6ad67ef6c94e3d8abe18cb2e66c08a88251e5e2236dcdd4eb4cdd5f9ecd9aa74` |
-| Edge-set hash | `c8c8e738ffe460a7716fcd89fa16baf494fe4015e2551a1f107e53b129a7d345` |
-| Governed edge rows | `1` |
+| Field              | Value                                                              |
+| ------------------ | ------------------------------------------------------------------ |
+| Revision           | `78babe14-266b-49f9-88d3-e70cdef34a90`                             |
+| Publication        | `8199d8e1-84e2-44e0-a42f-76e7c3c02dcd`                             |
+| Rebuild job        | `4b3aeb23-c332-4d7e-b1f4-4009895b2141`                             |
+| Execution          | `a59c21a4-2bda-4f94-b5d8-c344b3f869f4`                             |
+| Projection hash    | `6ad67ef6c94e3d8abe18cb2e66c08a88251e5e2236dcdd4eb4cdd5f9ecd9aa74` |
+| Edge-set hash      | `c8c8e738ffe460a7716fcd89fa16baf494fe4015e2551a1f107e53b129a7d345` |
+| Governed edge rows | `1`                                                                |
 
 ### Empty-edge publication
 
-| Field | Value |
-| --- | --- |
-| Revision | `87a7b5b0-811b-4f79-b91c-1d86fe9a05d9` |
-| Publication | `559b72d9-47c8-45bf-8e2e-db43a6cf413a` |
-| Rebuild job | `fc7ffbf3-c771-421b-b116-286c0734ea53` |
-| Execution | `8c6de0cd-225f-4f98-a962-e235b11bab7f` |
-| Projection hash | `ec149926bc6c4a7f3c12798e4dd251eba2a24fa1458d7b43f52d0d18970da30a` |
-| Edge-set hash | `4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945` |
-| Governed edge rows | `0` |
+| Field              | Value                                                              |
+| ------------------ | ------------------------------------------------------------------ |
+| Revision           | `87a7b5b0-811b-4f79-b91c-1d86fe9a05d9`                             |
+| Publication        | `559b72d9-47c8-45bf-8e2e-db43a6cf413a`                             |
+| Rebuild job        | `fc7ffbf3-c771-421b-b116-286c0734ea53`                             |
+| Execution          | `8c6de0cd-225f-4f98-a962-e235b11bab7f`                             |
+| Projection hash    | `ec149926bc6c4a7f3c12798e4dd251eba2a24fa1458d7b43f52d0d18970da30a` |
+| Edge-set hash      | `4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945` |
+| Governed edge rows | `0`                                                                |
 
 ### Final restored/certified publication
 
-| Field | Value |
-| --- | --- |
-| Revision | `24ba3cf9-e6ff-47f8-ae39-e9b007b114ae` |
-| Publication | `442988aa-f9f5-467c-99eb-baf9550a1353` |
-| Rebuild job | `37845906-7da4-4ad7-9ee0-10cf13667f35` |
-| Execution | `d2adc175-365a-4a9b-8008-1055226189a8` |
-| Projection hash | `26f326642a55e7f18b44752c476b8631da94a13a7f730d7f78029256688a1967` |
-| Edge-set hash | `c8c8e738ffe460a7716fcd89fa16baf494fe4015e2551a1f107e53b129a7d345` |
-| Governed edge rows | `1` |
+| Field              | Value                                                              |
+| ------------------ | ------------------------------------------------------------------ |
+| Revision           | `24ba3cf9-e6ff-47f8-ae39-e9b007b114ae`                             |
+| Publication        | `442988aa-f9f5-467c-99eb-baf9550a1353`                             |
+| Rebuild job        | `37845906-7da4-4ad7-9ee0-10cf13667f35`                             |
+| Execution          | `d2adc175-365a-4a9b-8008-1055226189a8`                             |
+| Projection hash    | `26f326642a55e7f18b44752c476b8631da94a13a7f730d7f78029256688a1967` |
+| Edge-set hash      | `c8c8e738ffe460a7716fcd89fa16baf494fe4015e2551a1f107e53b129a7d345` |
+| Governed edge rows | `1`                                                                |
 
 For the final publication, live persistence verification confirmed publication count `1` and
 `publication.execution_id == rebuild_jobs.execution_id == d2adc175-365a-4a9b-8008-1055226189a8`.
@@ -218,21 +218,21 @@ No database locator is reproduced in this evidence record.
 
 ## Mechanical merge-criterion disposition
 
-| Criterion | Disposition |
-| --- | --- |
-| #1555, #1556, #1536-#1539 merged | SATISFIED |
-| Exact-candidate database authorization rerun | SATISFIED — release-evidence run `31207377781` |
-| Both #1539 live proof modes pass | SATISFIED — runs `31201674203` and `31205820371` |
-| Exact SHA/source/deployment binding | SATISFIED |
-| Distinct proposer/determiner | SATISFIED |
-| Atomic supersession/history | SATISFIED |
-| Publication cardinality/execution ownership | SATISFIED |
-| Empty-edge governed-scope continuity | SATISFIED |
-| Restart/historical reconstruction | SATISFIED |
-| Release persistence/readiness/security/API gates | SATISFIED |
-| Artifact redaction mechanical scan | SATISFIED; masked-locator policy interpretation requires human acceptance |
-| Named human sign-off | PENDING |
-| PASS marker / `NEXT -> CURRENT` promotion | BLOCKED until named sign-off |
+| Criterion                                        | Disposition                                                               |
+| ------------------------------------------------ | ------------------------------------------------------------------------- |
+| #1555, #1556, #1536-#1539 merged                 | SATISFIED                                                                 |
+| Exact-candidate database authorization rerun     | SATISFIED — release-evidence run `31207377781`                            |
+| Both #1539 live proof modes pass                 | SATISFIED — runs `31201674203` and `31205820371`                          |
+| Exact SHA/source/deployment binding              | SATISFIED                                                                 |
+| Distinct proposer/determiner                     | SATISFIED                                                                 |
+| Atomic supersession/history                      | SATISFIED                                                                 |
+| Publication cardinality/execution ownership      | SATISFIED                                                                 |
+| Empty-edge governed-scope continuity             | SATISFIED                                                                 |
+| Restart/historical reconstruction                | SATISFIED                                                                 |
+| Release persistence/readiness/security/API gates | SATISFIED                                                                 |
+| Artifact redaction mechanical scan               | SATISFIED; masked-locator policy interpretation requires human acceptance |
+| Named human sign-off                             | PENDING                                                                   |
+| PASS marker / `NEXT -> CURRENT` promotion        | BLOCKED until named sign-off                                              |
 
 ## Named human sign-off
 
