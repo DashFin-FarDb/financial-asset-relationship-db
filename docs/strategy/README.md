@@ -34,12 +34,12 @@ proposal/determination authority, deterministic publication, supersession, empty
 restart reconstruction, and explanation evidence. The binding record is
 [GRAC v1 exact-SHA staging evidence and sign-off](../governance/grac-v1-exact-sha-evidence-signoff.md).
 
-**CURRENT — broader platform foundation:** The implementation remains a financial relationship platform with durable
-persistence, rebuild control plane, bounded FastAPI/Next.js interfaces, database-authorization controls, and
-evidence-led release mechanisms.
+**CURRENT — evidence date 7 August 2026 — broader platform foundation:** The implementation remains a financial
+relationship platform with durable persistence, rebuild control plane, bounded FastAPI/Next.js interfaces,
+database-authorization controls, and evidence-led release mechanisms.
 
-**NEXT:** Production certification for the GRAC capability, measured capacity/resilience, repeated immutable
-promotion, and a second-domain proof remain separate future gates.
+**NEXT — evidence date 7 August 2026:** Production certification for the GRAC capability, measured
+capacity/resilience, repeated immutable promotion, and a second-domain proof remain separate future gates.
 
 **ASPIRATION — evidence date 15 July 2026:** The governed relationship direction can be tested across carefully
 selected domains without turning every domain into a fork.
