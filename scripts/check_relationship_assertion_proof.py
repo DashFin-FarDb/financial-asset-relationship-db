@@ -893,16 +893,18 @@ class ProofValidator:
             return False
 
         proposed = [event for event in events if event.to_state == "Proposed" and event.authority == "proposer"]
-        accepted = [
+        initial_acceptances = [
             event
             for event in events
-            if event.to_state == "Accepted" and event.authority in {"determiner", "reviewer", "acceptor"}
+            if event.from_state == "Proposed"
+            and event.to_state == "Accepted"
+            and event.authority in {"determiner", "reviewer", "acceptor"}
         ]
-        if len(proposed) != 1 or len(accepted) != 1:
-            self.add_error(f"Assertion {assertion_id} must have exactly one proposer and one acceptance event")
+        if len(proposed) != 1 or len(initial_acceptances) != 1:
+            self.add_error(f"Assertion {assertion_id} must have exactly one proposer and one initial acceptance event")
             return False
 
-        return self._validate_assertion_actors_and_states(assertion_id, proposed[0], accepted[0])
+        return self._validate_assertion_actors_and_states(assertion_id, proposed[0], initial_acceptances[0])
 
     def _reconstruct_assertion_history_from_db(self, args: argparse.Namespace) -> None:
         """Reconstruct persisted lifecycle history for the certified revision."""
@@ -1042,7 +1044,7 @@ class ProofValidator:
 def display_result(result: dict[str, Any], write_output: bool) -> None:
     """Show validation result."""
     if write_output:
-        # Validate output path to prevent path traversal (CWE-22)
+        # Validate output path to prevent path traversal attacks (CWE-22)
         safe_path = validate_safe_path(PROOF_RESULT_FILENAME)
 
         flags = os.O_WRONLY | os.O_CREAT | os.O_TRUNC
