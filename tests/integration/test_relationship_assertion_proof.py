@@ -59,6 +59,54 @@ def test_staging_proof_flow_sqlite(test_db_url: str) -> None:
 @patch("scripts.check_relationship_assertion_proof.check_postgresql_proof", _no_op)
 @patch("scripts.check_relationship_assertion_proof.verify_deployed_sha", _no_op)
 @patch("scripts.check_relationship_assertion_proof.check_schema_authz_evidence", _no_op)
+def test_restart_helper_rejects_discontinuous_lifecycle(test_db_url: str) -> None:
+    """Reject restart history when persisted assertion events form a discontinuous chain."""
+    import uuid
+    from datetime import datetime, timezone
+
+    from sqlalchemy.orm import sessionmaker
+
+    from src.data.relationship_assertion_db_models import RelationshipAssertionEventORM
+
+    deployed_sha = "a" * 40
+    run_id = "test-run-corrupt-history"
+    metadata = run_seed_and_publish(test_db_url, deployed_sha, run_id)
+
+    engine = create_engine_from_url(test_db_url)
+    Session = sessionmaker(bind=engine)
+    session = Session()
+    try:
+        seeded_event = session.query(RelationshipAssertionEventORM).filter_by(correlation_id=run_id).first()
+        assert seeded_event is not None
+        session.add(
+            RelationshipAssertionEventORM(
+                id=str(uuid.uuid4()),
+                assertion_id=seeded_event.assertion_id,
+                sequence=3,
+                from_state="Disputed",
+                to_state="Accepted",
+                authority="acceptor",
+                actor_id="determiner-actor-1",
+                rationale="Injected discontinuous reacceptance",
+                policy_version="v1",
+                recorded_at=datetime.now(timezone.utc),
+                correlation_id=run_id,
+            )
+        )
+        session.commit()
+    finally:
+        session.close()
+        engine.dispose()
+
+    metadata_verify = run_verify_after_restart(test_db_url, deployed_sha, run_id, metadata)
+
+    assert metadata_verify["scope_continuity_passed"] is True
+    assert metadata_verify["historical_reconstruction_passed"] is False
+
+
+@patch("scripts.check_relationship_assertion_proof.check_postgresql_proof", _no_op)
+@patch("scripts.check_relationship_assertion_proof.verify_deployed_sha", _no_op)
+@patch("scripts.check_relationship_assertion_proof.check_schema_authz_evidence", _no_op)
 def test_proof_validator_populates_from_db(test_db_url: str, monkeypatch: pytest.MonkeyPatch) -> None:
     """Test that ProofValidator correctly populates proposer, determiner, owner, and pub_count from DB."""
     from argparse import Namespace
