@@ -131,11 +131,7 @@ def test_restart_helper_ignores_events_after_revision_known_at(test_db_url: str)
     try:
         with Session() as session:
             seeded_event = session.query(RelationshipAssertionEventORM).filter_by(correlation_id=run_id).first()
-            revision = (
-                session.query(RelationshipProjectionRevisionORM)
-                .filter_by(id=metadata["raw_revision_id"])
-                .one()
-            )
+            revision = session.query(RelationshipProjectionRevisionORM).filter_by(id=metadata["raw_revision_id"]).one()
             assert seeded_event is not None
             session.add(
                 RelationshipAssertionEventORM(
