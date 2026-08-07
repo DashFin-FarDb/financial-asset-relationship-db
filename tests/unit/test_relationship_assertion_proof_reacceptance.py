@@ -53,20 +53,6 @@ def test_reconstructed_assertion_allows_reacceptance_after_dispute() -> None:
 
 
 @pytest.mark.unit
-def test_reconstructed_assertion_rejects_duplicate_initial_acceptance() -> None:
-    """Cardinality remains fail-closed for two Proposed -> Accepted determinations."""
-    validator = ProofValidator({})
-    events = [
-        _event(1, (None, "Proposed"), "proposer", "proposer-1"),
-        _event(2, ("Proposed", "Accepted"), "acceptor", "acceptor-1"),
-        _event(3, ("Proposed", "Accepted"), "acceptor", "acceptor-2"),
-    ]
-
-    assert validator._validate_reconstructed_assertion("assertion-1", events) is False
-    assert validator.errors == ["Assertion assertion-1 must have exactly one proposer and one initial acceptance event"]
-
-
-@pytest.mark.unit
 def test_reconstructed_assertion_rejects_illegal_transition_into_accepted() -> None:
     """Only Proposed or Disputed may transition into Accepted during reconstruction."""
     validator = ProofValidator({})
@@ -126,6 +112,7 @@ def test_reconstructed_assertion_rejects_reacceptance_without_dispute_event() ->
 
 @pytest.mark.unit
 def test_select_initial_assertion_events_rejects_duplicate_initial_acceptance() -> None:
+    """Initial acceptance selection remains fail-closed for duplicate determinations."""
     validator = ProofValidator({})
     events = [
         _event(1, (None, "Proposed"), "proposer", "proposer-1"),
