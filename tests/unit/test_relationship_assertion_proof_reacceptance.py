@@ -49,3 +49,30 @@ def test_reconstructed_assertion_rejects_duplicate_initial_acceptance() -> None:
 
     assert validator._validate_reconstructed_assertion("assertion-1", events) is False
     assert validator.errors == ["Assertion assertion-1 must have exactly one proposer and one initial acceptance event"]
+
+
+def test_reconstructed_assertion_rejects_illegal_transition_into_accepted() -> None:
+    """Only Proposed or Disputed may transition into Accepted during reconstruction."""
+    validator = ProofValidator({})
+    events = [
+        _event(1, (None, "Proposed"), "proposer", "proposer-1"),
+        _event(2, ("Proposed", "Accepted"), "acceptor", "acceptor-1"),
+        _event(3, ("Accepted", "Accepted"), "acceptor", "acceptor-1"),
+    ]
+
+    assert validator._validate_reconstructed_assertion("assertion-1", events) is False
+    assert validator.errors == ["Assertion assertion-1 has invalid transition into Accepted"]
+
+
+def test_reconstructed_assertion_rejects_proposer_reacceptance() -> None:
+    """Reacceptance keeps the proposer/acceptor separation-of-duties boundary."""
+    validator = ProofValidator({})
+    events = [
+        _event(1, (None, "Proposed"), "proposer", "proposer-1"),
+        _event(2, ("Proposed", "Accepted"), "acceptor", "acceptor-1"),
+        _event(3, ("Accepted", "Disputed"), "disputer", "acceptor-1"),
+        _event(4, ("Disputed", "Accepted"), "acceptor", "proposer-1"),
+    ]
+
+    assert validator._validate_reconstructed_assertion("assertion-1", events) is False
+    assert validator.errors == ["Assertion assertion-1 reacceptance actor is missing or not distinct from proposer"]
