@@ -121,6 +121,4 @@ def test_select_initial_assertion_events_rejects_duplicate_initial_acceptance() 
     ]
 
     assert validator._select_initial_assertion_events("assertion-1", events) is None
-    assert validator.errors == [
-        "Assertion assertion-1 must have exactly one proposer and one initial acceptance event"
-    ]
+    assert validator.errors == ["Assertion assertion-1 must have exactly one proposer and one initial acceptance event"]
