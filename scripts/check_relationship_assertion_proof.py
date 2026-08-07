@@ -863,6 +863,23 @@ class ProofValidator:
             return False
         return True
 
+    def _validate_assertion_state_chain(
+        self,
+        assertion_id: str,
+        events: Sequence[Any],
+    ) -> bool:
+        """Validate continuity between consecutive persisted lifecycle events."""
+        if events[0].from_state is not None:
+            self.add_error(f"Assertion {assertion_id} initial lifecycle event has a predecessor state")
+            return False
+
+        for previous, current in zip(events, events[1:], strict=False):
+            if current.from_state != previous.to_state:
+                self.add_error(f"Assertion {assertion_id} lifecycle state chain is discontinuous")
+                return False
+
+        return True
+
     def _validate_assertion_actors_and_states(self, assertion_id: str, proposal: Any, determination: Any) -> bool:
         """Validate the relationship between a proposal and determination event."""
         if proposal.sequence >= determination.sequence:
@@ -879,6 +896,46 @@ class ProofValidator:
             return False
         return True
 
+    def _select_initial_assertion_events(
+        self,
+        assertion_id: str,
+        events: Sequence[Any],
+    ) -> tuple[Any, Any] | None:
+        """Select the unique proposal and initial Proposed -> Accepted determination."""
+        proposed = [event for event in events if event.to_state == "Proposed" and event.authority == "proposer"]
+        initial_acceptances = [
+            event
+            for event in events
+            if (event.from_state, event.to_state) == ("Proposed", "Accepted")
+            and event.authority in {"determiner", "reviewer", "acceptor"}
+        ]
+        if len(proposed) != 1 or len(initial_acceptances) != 1:
+            self.add_error(f"Assertion {assertion_id} must have exactly one proposer and one initial acceptance event")
+            return None
+        return proposed[0], initial_acceptances[0]
+
+    def _validate_reacceptance_events(
+        self,
+        assertion_id: str,
+        events: Sequence[Any],
+        proposal: Any,
+        initial_acceptance: Any,
+    ) -> bool:
+        """Allow only contract-valid Disputed -> Accepted entries after initial acceptance."""
+        for event in events:
+            if event.to_state != "Accepted" or event.from_state == "Proposed":
+                continue
+            if (event.from_state, event.authority) != ("Disputed", "acceptor"):
+                self.add_error(f"Assertion {assertion_id} has invalid transition into Accepted")
+                return False
+            if event.sequence <= initial_acceptance.sequence:
+                self.add_error(f"Assertion {assertion_id} reacceptance does not follow initial acceptance")
+                return False
+            if not event.actor_id or event.actor_id == proposal.actor_id:
+                self.add_error(f"Assertion {assertion_id} reacceptance actor is missing or not distinct from proposer")
+                return False
+        return True
+
     def _validate_reconstructed_assertion(
         self,
         assertion_id: str,
@@ -892,17 +949,17 @@ class ProofValidator:
         if not self._validate_assertion_sequences(assertion_id, events):
             return False
 
-        proposed = [event for event in events if event.to_state == "Proposed" and event.authority == "proposer"]
-        accepted = [
-            event
-            for event in events
-            if event.to_state == "Accepted" and event.authority in {"determiner", "reviewer", "acceptor"}
-        ]
-        if len(proposed) != 1 or len(accepted) != 1:
-            self.add_error(f"Assertion {assertion_id} must have exactly one proposer and one acceptance event")
+        if not self._validate_assertion_state_chain(assertion_id, events):
             return False
 
-        return self._validate_assertion_actors_and_states(assertion_id, proposed[0], accepted[0])
+        selected = self._select_initial_assertion_events(assertion_id, events)
+        if selected is None:
+            return False
+        proposal, initial_acceptance = selected
+
+        return self._validate_assertion_actors_and_states(
+            assertion_id, proposal, initial_acceptance
+        ) and self._validate_reacceptance_events(assertion_id, events, proposal, initial_acceptance)
 
     def _reconstruct_assertion_history_from_db(self, args: argparse.Namespace) -> None:
         """Reconstruct persisted lifecycle history for the certified revision."""
