@@ -1132,33 +1132,33 @@ class ProofValidator:
 
 
 def display_result(result: dict[str, Any], write_output: bool) -> None:
-        """Show validation result."""
-        if write_output:
-            # Validate output path to prevent path traversal (CWE-22)
-            safe_path = validate_safe_path(PROOF_RESULT_FILENAME)
+    """Show validation result."""
+    if write_output:
+        # Validate output path to prevent path traversal (CWE-22)
+        safe_path = validate_safe_path(PROOF_RESULT_FILENAME)
 
-            flags = os.O_WRONLY | os.O_CREAT | os.O_TRUNC
-            if hasattr(os, "O_NOFOLLOW"):
-                flags |= os.O_NOFOLLOW
+        flags = os.O_WRONLY | os.O_CREAT | os.O_TRUNC
+        if hasattr(os, "O_NOFOLLOW"):
+            flags |= os.O_NOFOLLOW
 
-            fd = os.open(safe_path, flags, 0o600)
-            with os.fdopen(fd, "w", encoding="utf-8") as file:
-                json.dump(result, file, indent=2, sort_keys=True)
-            print(f"Results written to {safe_path}")
-        else:
-            print(json.dumps(result, indent=2, sort_keys=True))
+        fd = os.open(safe_path, flags, 0o600)
+        with os.fdopen(fd, "w", encoding="utf-8") as file:
+            json.dump(result, file, indent=2, sort_keys=True)
+        print(f"Results written to {safe_path}")
+    else:
+        print(json.dumps(result, indent=2, sort_keys=True))
 
-        mode = result["metadata"].get("mode", "unknown")
-        status = result["status"]
+    mode = result["metadata"].get("mode", "unknown")
+    status = result["status"]
 
-        if status == "passed":
-            print(f"✓ Validation passed ({mode})", file=sys.stderr)
-        else:
-            print(f"✗ Validation failed ({mode}):", file=sys.stderr)
-            for err in result["errors"][:10]:
-                print(f"  - {err}", file=sys.stderr)
-            if len(result["errors"]) > 10:
-                print(f"  ({len(result['errors']) - 10} more errors)", file=sys.stderr)
+    if status == "passed":
+        print(f"✓ Validation passed ({mode})", file=sys.stderr)
+    else:
+        print(f"✗ Validation failed ({mode}):", file=sys.stderr)
+        for err in result["errors"][:10]:
+            print(f"  - {err}", file=sys.stderr)
+        if len(result["errors"]) > 10:
+            print(f"  ({len(result['errors']) - 10} more errors)", file=sys.stderr)
 
 
 def setup_parser() -> argparse.ArgumentParser:
