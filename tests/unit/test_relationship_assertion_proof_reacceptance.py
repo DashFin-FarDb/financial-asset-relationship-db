@@ -76,3 +76,34 @@ def test_reconstructed_assertion_rejects_proposer_reacceptance() -> None:
 
     assert validator._validate_reconstructed_assertion("assertion-1", events) is False
     assert validator.errors == ["Assertion assertion-1 reacceptance actor is missing or not distinct from proposer"]
+
+
+def test_reconstructed_assertion_rejects_discontinuous_reacceptance_chain() -> None:
+    """A claimed reacceptance must follow a persisted event that actually entered Disputed."""
+    validator = ProofValidator({})
+    events = [
+        _event(1, (None, "Proposed"), "proposer", "proposer-1"),
+        _event(2, ("Proposed", "Accepted"), "acceptor", "acceptor-1"),
+        _event(3, ("Accepted", "Withdrawn"), "withdrawer", "acceptor-1"),
+        _event(4, ("Disputed", "Accepted"), "acceptor", "acceptor-1"),
+    ]
+
+    assert validator._validate_reconstructed_assertion("assertion-1", events) is False
+    assert validator.errors == [
+        "Assertion assertion-1 lifecycle state chain is discontinuous"
+    ]
+
+
+def test_reconstructed_assertion_rejects_reacceptance_without_dispute_event() -> None:
+    """A Disputed -> Accepted event cannot appear unless the preceding event entered Disputed."""
+    validator = ProofValidator({})
+    events = [
+        _event(1, (None, "Proposed"), "proposer", "proposer-1"),
+        _event(2, ("Proposed", "Accepted"), "acceptor", "acceptor-1"),
+        _event(3, ("Disputed", "Accepted"), "acceptor", "acceptor-1"),
+    ]
+
+    assert validator._validate_reconstructed_assertion("assertion-1", events) is False
+    assert validator.errors == [
+        "Assertion assertion-1 lifecycle state chain is discontinuous"
+    ]
