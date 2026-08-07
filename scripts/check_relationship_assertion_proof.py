@@ -961,6 +961,10 @@ class ProofValidator:
             assertion_id, proposal, initial_acceptance
         ) and self._validate_reacceptance_events(assertion_id, events, proposal, initial_acceptance)
 
+    def assertion_history_is_valid(self, assertion_id: str, events: Sequence[Any]) -> bool:
+        """Validate one persisted assertion lifecycle for helper reuse."""
+        return self._validate_reconstructed_assertion(assertion_id, events)
+
     def _reconstruct_assertion_history_from_db(self, args: argparse.Namespace) -> None:
         """Reconstruct persisted lifecycle history for the certified revision."""
         db_url = os.getenv("DATABASE_URL")
@@ -1423,10 +1427,40 @@ def _verify_scopes_continuity(revision: Any, prev_metadata: dict[str, Any]) -> b
     )
 
 
-def _verify_scopes_and_history(revision: Any, job: Any, prev_metadata: dict[str, Any]) -> tuple[bool, bool]:
+def _verify_persisted_assertion_history(session: Any, revision: Any) -> bool:
+    """Validate persisted assertion lifecycle history for one projected revision."""
+    if not revision:
+        return False
+
+    assertion_ids = [
+        row[0]
+        for row in session.query(RelationshipProjectionEdgeORM.assertion_id)
+        .filter_by(revision_id=revision.id)
+        .distinct()
+        .all()
+        if row[0]
+    ]
+    validator = ProofValidator({})
+    for assertion_id in assertion_ids:
+        events = (
+            session.query(RelationshipAssertionEventORM)
+            .filter_by(assertion_id=assertion_id)
+            .order_by(RelationshipAssertionEventORM.sequence)
+            .all()
+        )
+        if not validator.assertion_history_is_valid(assertion_id, events):
+            return False
+    return True
+
+
+def _verify_scopes_and_history(
+    session: Any, revision: Any, job: Any, prev_metadata: dict[str, Any]
+) -> tuple[bool, bool]:
     """Check scopes continuity and historical reconstruction."""
     scope_continuity_passed = _verify_scopes_continuity(revision, prev_metadata)
-    historical_reconstruction_passed = bool(job and job.status == "succeeded")
+    historical_reconstruction_passed = bool(
+        job and job.status == "succeeded" and _verify_persisted_assertion_history(session, revision)
+    )
     return scope_continuity_passed, historical_reconstruction_passed
 
 
@@ -1441,7 +1475,7 @@ def run_verify_after_restart(
         rebuild_job_id = prev_metadata.get("raw_rebuild_job_id") or run_id
         _, revision, job = _query_verification_data_from_db(session, rebuild_job_id)
         scope_continuity_passed, historical_reconstruction_passed = _verify_scopes_and_history(
-            revision, job, prev_metadata
+            session, revision, job, prev_metadata
         )
 
         return {
