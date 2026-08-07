@@ -297,7 +297,6 @@ class ProofValidator:
         if not db_url and args.strict:
             self.add_error("DB URL required in strict mode")
             return
-
         if not db_url:
             return
 
@@ -961,9 +960,55 @@ class ProofValidator:
             assertion_id, proposal, initial_acceptance
         ) and self._validate_reacceptance_events(assertion_id, events, proposal, initial_acceptance)
 
-    def assertion_history_is_valid(self, assertion_id: str, events: Sequence[Any]) -> bool:
-        """Validate one persisted assertion lifecycle for helper reuse."""
-        return self._validate_reconstructed_assertion(assertion_id, events)
+    def projected_assertion_histories_are_valid(
+        self,
+        session: Any,
+        revision_id: str,
+        known_at: datetime,
+    ) -> bool:
+        """Validate projected assertion histories at one revision knowledge boundary."""
+        assertion_ids = [
+            row[0]
+            for row in session.execute(
+                select(RelationshipProjectionEdgeORM.assertion_id)
+                .where(RelationshipProjectionEdgeORM.revision_id == revision_id)
+                .distinct()
+            ).all()
+            if row[0]
+        ]
+        self.metadata["reconstructed_assertions"] = 0
+        if not assertion_ids:
+            return True
+
+        events = (
+            session.execute(
+                select(RelationshipAssertionEventORM)
+                .where(
+                    RelationshipAssertionEventORM.assertion_id.in_(assertion_ids),
+                    RelationshipAssertionEventORM.recorded_at <= known_at,
+                )
+                .order_by(
+                    RelationshipAssertionEventORM.assertion_id,
+                    RelationshipAssertionEventORM.sequence,
+                )
+            )
+            .scalars()
+            .all()
+        )
+        events_by_assertion = {assertion_id: [] for assertion_id in assertion_ids}
+        for event in events:
+            events_by_assertion[event.assertion_id].append(event)
+
+        reconstructed = 0
+        for assertion_id in assertion_ids:
+            if self._validate_reconstructed_assertion(assertion_id, events_by_assertion[assertion_id]):
+                reconstructed += 1
+
+        self.metadata["reconstructed_assertions"] = reconstructed
+        if reconstructed != len(assertion_ids):
+            self.add_error("Historical reconstruction failed for one or more projected assertions")
+            return False
+        return True
 
     def _reconstruct_assertion_history_from_db(self, args: argparse.Namespace) -> None:
         """Reconstruct persisted lifecycle history for the certified revision."""
@@ -1010,35 +1055,21 @@ class ProofValidator:
                     self.add_error("Historical reconstruction execution identity mismatch")
                     return
 
-                assertion_ids = [
-                    row[0]
-                    for row in session.execute(
-                        select(RelationshipProjectionEdgeORM.assertion_id)
-                        .where(RelationshipProjectionEdgeORM.revision_id == bindparam("history_revision_id"))
-                        .distinct(),
-                        {"history_revision_id": expected_revision_id},
-                    ).all()
-                    if row[0]
-                ]
+                revision_known_at = session.execute(
+                    select(RelationshipProjectionRevisionORM.known_at).where(
+                        RelationshipProjectionRevisionORM.id == bindparam("history_revision_id")
+                    ),
+                    {"history_revision_id": expected_revision_id},
+                ).scalar_one_or_none()
+                if revision_known_at is None:
+                    self.add_error("Historical reconstruction revision boundary is missing")
+                    return
 
-                reconstructed = 0
-                for assertion_id in assertion_ids:
-                    events = (
-                        session.execute(
-                            select(RelationshipAssertionEventORM)
-                            .where(RelationshipAssertionEventORM.assertion_id == bindparam("history_assertion_id"))
-                            .order_by(RelationshipAssertionEventORM.sequence),
-                            {"history_assertion_id": assertion_id},
-                        )
-                        .scalars()
-                        .all()
-                    )
-                    if self._validate_reconstructed_assertion(assertion_id, events):
-                        reconstructed += 1
-
-                self.metadata["reconstructed_assertions"] = reconstructed
-                if reconstructed != len(assertion_ids):
-                    self.add_error("Historical reconstruction failed for one or more projected assertions")
+                self.projected_assertion_histories_are_valid(
+                    session,
+                    expected_revision_id,
+                    revision_known_at,
+                )
         except Exception as exc:
             self.add_error(f"Historical reconstruction query failed: {exc}")
         finally:
@@ -1101,33 +1132,33 @@ class ProofValidator:
 
 
 def display_result(result: dict[str, Any], write_output: bool) -> None:
-    """Show validation result."""
-    if write_output:
-        # Validate output path to prevent path traversal (CWE-22)
-        safe_path = validate_safe_path(PROOF_RESULT_FILENAME)
+        """Show validation result."""
+        if write_output:
+            # Validate output path to prevent path traversal (CWE-22)
+            safe_path = validate_safe_path(PROOF_RESULT_FILENAME)
 
-        flags = os.O_WRONLY | os.O_CREAT | os.O_TRUNC
-        if hasattr(os, "O_NOFOLLOW"):
-            flags |= os.O_NOFOLLOW
+            flags = os.O_WRONLY | os.O_CREAT | os.O_TRUNC
+            if hasattr(os, "O_NOFOLLOW"):
+                flags |= os.O_NOFOLLOW
 
-        fd = os.open(safe_path, flags, 0o600)
-        with os.fdopen(fd, "w", encoding="utf-8") as file:
-            json.dump(result, file, indent=2, sort_keys=True)
-        print(f"Results written to {safe_path}")
-    else:
-        print(json.dumps(result, indent=2, sort_keys=True))
+            fd = os.open(safe_path, flags, 0o600)
+            with os.fdopen(fd, "w", encoding="utf-8") as file:
+                json.dump(result, file, indent=2, sort_keys=True)
+            print(f"Results written to {safe_path}")
+        else:
+            print(json.dumps(result, indent=2, sort_keys=True))
 
-    mode = result["metadata"].get("mode", "unknown")
-    status = result["status"]
+        mode = result["metadata"].get("mode", "unknown")
+        status = result["status"]
 
-    if status == "passed":
-        print(f"✓ Validation passed ({mode})", file=sys.stderr)
-    else:
-        print(f"✗ Validation failed ({mode}):", file=sys.stderr)
-        for err in result["errors"][:10]:
-            print(f"  - {err}", file=sys.stderr)
-        if len(result["errors"]) > 10:
-            print(f"  ({len(result['errors']) - 10} more errors)", file=sys.stderr)
+        if status == "passed":
+            print(f"✓ Validation passed ({mode})", file=sys.stderr)
+        else:
+            print(f"✗ Validation failed ({mode}):", file=sys.stderr)
+            for err in result["errors"][:10]:
+                print(f"  - {err}", file=sys.stderr)
+            if len(result["errors"]) > 10:
+                print(f"  ({len(result['errors']) - 10} more errors)", file=sys.stderr)
 
 
 def setup_parser() -> argparse.ArgumentParser:
@@ -1427,41 +1458,30 @@ def _verify_scopes_continuity(revision: Any, prev_metadata: dict[str, Any]) -> b
     )
 
 
-def _verify_persisted_assertion_history(session: Any, revision: Any) -> bool:
+def _verify_persisted_assertion_history(session: Any, revision: Any) -> tuple[bool, list[str]]:
     """Validate persisted assertion lifecycle history for one projected revision."""
     if not revision:
-        return False
+        return False, ["Historical reconstruction revision is missing"]
 
-    assertion_ids = [
-        row[0]
-        for row in session.query(RelationshipProjectionEdgeORM.assertion_id)
-        .filter_by(revision_id=revision.id)
-        .distinct()
-        .all()
-        if row[0]
-    ]
     validator = ProofValidator({})
-    for assertion_id in assertion_ids:
-        events = (
-            session.query(RelationshipAssertionEventORM)
-            .filter_by(assertion_id=assertion_id)
-            .order_by(RelationshipAssertionEventORM.sequence)
-            .all()
-        )
-        if not validator.assertion_history_is_valid(assertion_id, events):
-            return False
-    return True
+    ok = validator.projected_assertion_histories_are_valid(
+        session,
+        revision.id,
+        revision.known_at,
+    )
+    return ok, validator.errors
 
 
 def _verify_scopes_and_history(
     session: Any, revision: Any, job: Any, prev_metadata: dict[str, Any]
-) -> tuple[bool, bool]:
+) -> tuple[bool, bool, list[str]]:
     """Check scopes continuity and historical reconstruction."""
     scope_continuity_passed = _verify_scopes_continuity(revision, prev_metadata)
-    historical_reconstruction_passed = bool(
-        job and job.status == "succeeded" and _verify_persisted_assertion_history(session, revision)
-    )
-    return scope_continuity_passed, historical_reconstruction_passed
+    if not job or job.status != "succeeded":
+        return scope_continuity_passed, False, ["Certified rebuild job is missing or not succeeded"]
+
+    history_ok, history_errors = _verify_persisted_assertion_history(session, revision)
+    return scope_continuity_passed, history_ok, history_errors
 
 
 def run_verify_after_restart(
@@ -1474,9 +1494,11 @@ def run_verify_after_restart(
     try:
         rebuild_job_id = prev_metadata.get("raw_rebuild_job_id") or run_id
         _, revision, job = _query_verification_data_from_db(session, rebuild_job_id)
-        scope_continuity_passed, historical_reconstruction_passed = _verify_scopes_and_history(
-            session, revision, job, prev_metadata
-        )
+        (
+            scope_continuity_passed,
+            historical_reconstruction_passed,
+            historical_reconstruction_errors,
+        ) = _verify_scopes_and_history(session, revision, job, prev_metadata)
 
         return {
             "deployed_sha": deployed_sha,
@@ -1484,6 +1506,7 @@ def run_verify_after_restart(
             "mode": "verify_after_restart",
             "scope_continuity_passed": scope_continuity_passed,
             "historical_reconstruction_passed": historical_reconstruction_passed,
+            "historical_reconstruction_errors": historical_reconstruction_errors,
         }
     finally:
         session.close()
