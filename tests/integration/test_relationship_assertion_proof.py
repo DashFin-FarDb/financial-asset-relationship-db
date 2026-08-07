@@ -54,6 +54,7 @@ def test_staging_proof_flow_sqlite(test_db_url: str) -> None:
     assert metadata_verify["mode"] == "verify_after_restart"
     assert metadata_verify["scope_continuity_passed"] is True
     assert metadata_verify["historical_reconstruction_passed"] is True
+    assert metadata_verify["historical_reconstruction_errors"] == []
 
 
 @patch("scripts.check_relationship_assertion_proof.check_postgresql_proof", _no_op)
@@ -62,7 +63,6 @@ def test_staging_proof_flow_sqlite(test_db_url: str) -> None:
 def test_restart_helper_rejects_discontinuous_lifecycle(test_db_url: str) -> None:
     """Reject restart history when persisted assertion events form a discontinuous chain."""
     import uuid
-    from datetime import datetime, timezone
 
     from sqlalchemy.orm import sessionmaker
 
@@ -74,34 +74,93 @@ def test_restart_helper_rejects_discontinuous_lifecycle(test_db_url: str) -> Non
 
     engine = create_engine_from_url(test_db_url)
     Session = sessionmaker(bind=engine)
-    session = Session()
     try:
-        seeded_event = session.query(RelationshipAssertionEventORM).filter_by(correlation_id=run_id).first()
-        assert seeded_event is not None
-        session.add(
-            RelationshipAssertionEventORM(
-                id=str(uuid.uuid4()),
-                assertion_id=seeded_event.assertion_id,
-                sequence=3,
-                from_state="Disputed",
-                to_state="Accepted",
-                authority="acceptor",
-                actor_id="determiner-actor-1",
-                rationale="Injected discontinuous reacceptance",
-                policy_version="v1",
-                recorded_at=datetime.now(timezone.utc),
-                correlation_id=run_id,
+        with Session() as session:
+            seeded_event = session.query(RelationshipAssertionEventORM).filter_by(correlation_id=run_id).first()
+            assert seeded_event is not None
+            session.add(
+                RelationshipAssertionEventORM(
+                    id=str(uuid.uuid4()),
+                    assertion_id=seeded_event.assertion_id,
+                    sequence=3,
+                    from_state="Disputed",
+                    to_state="Accepted",
+                    authority="acceptor",
+                    actor_id="determiner-actor-1",
+                    rationale="Injected discontinuous reacceptance",
+                    policy_version="v1",
+                    recorded_at=seeded_event.recorded_at,
+                    correlation_id=run_id,
+                )
             )
-        )
-        session.commit()
+            session.commit()
     finally:
-        session.close()
         engine.dispose()
 
     metadata_verify = run_verify_after_restart(test_db_url, deployed_sha, run_id, metadata)
 
     assert metadata_verify["scope_continuity_passed"] is True
     assert metadata_verify["historical_reconstruction_passed"] is False
+    assert any(
+        "lifecycle state chain is discontinuous" in error
+        for error in metadata_verify["historical_reconstruction_errors"]
+    )
+
+
+@patch("scripts.check_relationship_assertion_proof.check_postgresql_proof", _no_op)
+@patch("scripts.check_relationship_assertion_proof.verify_deployed_sha", _no_op)
+@patch("scripts.check_relationship_assertion_proof.check_schema_authz_evidence", _no_op)
+def test_restart_helper_ignores_events_after_revision_known_at(test_db_url: str) -> None:
+    """Ignore lifecycle events recorded after the verified revision knowledge boundary."""
+    import uuid
+    from datetime import timedelta
+
+    from sqlalchemy.orm import sessionmaker
+
+    from src.data.relationship_assertion_db_models import (
+        RelationshipAssertionEventORM,
+        RelationshipProjectionRevisionORM,
+    )
+
+    deployed_sha = "a" * 40
+    run_id = "test-run-late-history"
+    metadata = run_seed_and_publish(test_db_url, deployed_sha, run_id)
+
+    engine = create_engine_from_url(test_db_url)
+    Session = sessionmaker(bind=engine)
+    try:
+        with Session() as session:
+            seeded_event = session.query(RelationshipAssertionEventORM).filter_by(correlation_id=run_id).first()
+            revision = (
+                session.query(RelationshipProjectionRevisionORM)
+                .filter_by(id=metadata["raw_revision_id"])
+                .one()
+            )
+            assert seeded_event is not None
+            session.add(
+                RelationshipAssertionEventORM(
+                    id=str(uuid.uuid4()),
+                    assertion_id=seeded_event.assertion_id,
+                    sequence=3,
+                    from_state="Disputed",
+                    to_state="Accepted",
+                    authority="acceptor",
+                    actor_id="determiner-actor-1",
+                    rationale="Post-revision discontinuous reacceptance",
+                    policy_version="v1",
+                    recorded_at=revision.known_at + timedelta(seconds=1),
+                    correlation_id=run_id,
+                )
+            )
+            session.commit()
+    finally:
+        engine.dispose()
+
+    metadata_verify = run_verify_after_restart(test_db_url, deployed_sha, run_id, metadata)
+
+    assert metadata_verify["scope_continuity_passed"] is True
+    assert metadata_verify["historical_reconstruction_passed"] is True
+    assert metadata_verify["historical_reconstruction_errors"] == []
 
 
 @patch("scripts.check_relationship_assertion_proof.check_postgresql_proof", _no_op)
