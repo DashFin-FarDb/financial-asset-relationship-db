@@ -83,7 +83,7 @@ has now been satisfied.
 | ------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
 | [ADR 0008: Governed Relationship Assertion Contract](../adr/0008-governed-relationship-assertion-contract.md) | Accepted decision to adopt GRAC v1; claim discipline and control-plane disposition.   |
 | [Governed Relationship Assertion Contract v1](../governance/governed-relationship-assertion-contract-v1.md)   | Frozen normative contract (lifecycle, evidence, bitemporal rules, projection, slice). |
-| [Exact-SHA GRAC v1 staging sign-off](../governance/grac-v1-exact-sha-evidence-signoff.md)                      | Current bounded staging evidence, final marker, redaction disposition, and sign-off.  |
+| [Exact-SHA GRAC v1 staging sign-off](../governance/grac-v1-exact-sha-evidence-signoff.md)                     | Current bounded staging evidence, final marker, redaction disposition, and sign-off.  |
 
 ## Planned corpus
 
