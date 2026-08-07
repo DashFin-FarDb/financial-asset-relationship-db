@@ -870,18 +870,14 @@ class ProofValidator:
     ) -> bool:
         """Validate continuity between consecutive persisted lifecycle events."""
         if events[0].from_state is not None:
-            self.add_error(
-                f"Assertion {assertion_id} initial lifecycle event has a predecessor state"
-            )
+            self.add_error(f"Assertion {assertion_id} initial lifecycle event has a predecessor state")
             return False
-    
+
         for previous, current in zip(events, events[1:]):
             if current.from_state != previous.to_state:
-                self.add_error(
-                    f"Assertion {assertion_id} lifecycle state chain is discontinuous"
-                )
+                self.add_error(f"Assertion {assertion_id} lifecycle state chain is discontinuous")
                 return False
-    
+
         return True
 
     def _validate_assertion_actors_and_states(self, assertion_id: str, proposal: Any, determination: Any) -> bool:
