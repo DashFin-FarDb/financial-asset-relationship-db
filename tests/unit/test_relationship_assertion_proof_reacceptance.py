@@ -24,6 +24,7 @@ def _event(
     )
 
 
+@pytest.mark.unit
 def test_reconstructed_assertion_allows_reacceptance_after_dispute() -> None:
     """A legal Accepted -> Disputed -> Accepted cycle must not look like duplicate initial acceptance."""
     validator = ProofValidator({})
@@ -38,6 +39,7 @@ def test_reconstructed_assertion_allows_reacceptance_after_dispute() -> None:
     assert validator.errors == []
 
 
+@pytest.mark.unit
 def test_reconstructed_assertion_rejects_duplicate_initial_acceptance() -> None:
     """Cardinality remains fail-closed for two Proposed -> Accepted determinations."""
     validator = ProofValidator({})
@@ -51,6 +53,7 @@ def test_reconstructed_assertion_rejects_duplicate_initial_acceptance() -> None:
     assert validator.errors == ["Assertion assertion-1 must have exactly one proposer and one initial acceptance event"]
 
 
+@pytest.mark.unit
 def test_reconstructed_assertion_rejects_illegal_transition_into_accepted() -> None:
     """Only Proposed or Disputed may transition into Accepted during reconstruction."""
     validator = ProofValidator({})
@@ -64,6 +67,7 @@ def test_reconstructed_assertion_rejects_illegal_transition_into_accepted() -> N
     assert validator.errors == ["Assertion assertion-1 has invalid transition into Accepted"]
 
 
+@pytest.mark.unit
 def test_reconstructed_assertion_rejects_proposer_reacceptance() -> None:
     """Reacceptance keeps the proposer/acceptor separation-of-duties boundary."""
     validator = ProofValidator({})
@@ -78,6 +82,7 @@ def test_reconstructed_assertion_rejects_proposer_reacceptance() -> None:
     assert validator.errors == ["Assertion assertion-1 reacceptance actor is missing or not distinct from proposer"]
 
 
+@pytest.mark.unit
 def test_reconstructed_assertion_rejects_discontinuous_reacceptance_chain() -> None:
     """A claimed reacceptance must follow a persisted event that actually entered Disputed."""
     validator = ProofValidator({})
@@ -92,6 +97,7 @@ def test_reconstructed_assertion_rejects_discontinuous_reacceptance_chain() -> N
     assert validator.errors == ["Assertion assertion-1 lifecycle state chain is discontinuous"]
 
 
+@pytest.mark.unit
 def test_reconstructed_assertion_rejects_reacceptance_without_dispute_event() -> None:
     """A Disputed -> Accepted event cannot appear unless the preceding event entered Disputed."""
     validator = ProofValidator({})
@@ -103,3 +109,18 @@ def test_reconstructed_assertion_rejects_reacceptance_without_dispute_event() ->
 
     assert validator._validate_reconstructed_assertion("assertion-1", events) is False
     assert validator.errors == ["Assertion assertion-1 lifecycle state chain is discontinuous"]
+
+
+@pytest.mark.unit
+def test_select_initial_assertion_events_rejects_duplicate_initial_acceptance() -> None:
+    validator = ProofValidator({})
+    events = [
+        _event(1, (None, "Proposed"), "proposer", "proposer-1"),
+        _event(2, ("Proposed", "Accepted"), "acceptor", "acceptor-1"),
+        _event(3, ("Proposed", "Accepted"), "acceptor", "acceptor-2"),
+    ]
+
+    assert validator._select_initial_assertion_events("assertion-1", events) is None
+    assert validator.errors == [
+        "Assertion assertion-1 must have exactly one proposer and one initial acceptance event"
+    ]
