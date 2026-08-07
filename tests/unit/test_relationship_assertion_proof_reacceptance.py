@@ -49,6 +49,4 @@ def test_reconstructed_assertion_rejects_duplicate_initial_acceptance() -> None:
     ]
 
     assert validator._validate_reconstructed_assertion("assertion-1", events) is False
-    assert validator.errors == [
-        "Assertion assertion-1 must have exactly one proposer and one initial acceptance event"
-    ]
+    assert validator.errors == ["Assertion assertion-1 must have exactly one proposer and one initial acceptance event"]
