@@ -873,7 +873,7 @@ class ProofValidator:
             self.add_error(f"Assertion {assertion_id} initial lifecycle event has a predecessor state")
             return False
 
-        or previous, current in zip(events, events[1:], strict=False):
+        for previous, current in zip(events, events[1:], strict=False):
             if current.from_state != previous.to_state:
                 self.add_error(f"Assertion {assertion_id} lifecycle state chain is discontinuous")
                 return False
