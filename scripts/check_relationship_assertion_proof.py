@@ -1044,7 +1044,7 @@ class ProofValidator:
 def display_result(result: dict[str, Any], write_output: bool) -> None:
     """Show validation result."""
     if write_output:
-        # Validate output path to prevent path traversal attacks (CWE-22)
+        # Validate output path to prevent path traversal (CWE-22)
         safe_path = validate_safe_path(PROOF_RESULT_FILENAME)
 
         flags = os.O_WRONLY | os.O_CREAT | os.O_TRUNC
