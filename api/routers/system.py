@@ -369,14 +369,14 @@ def detailed_health_check(
             revision_id=expected_revision_id,
         )
 
-        return DetailedHealthResponse(
-            status=status_value,
-            graph_persistence_configured=(_get_graph_persistence_configured()),
-            graph=graph_health,
-            database=database_health,
-            proof_observation=proof_observation,
-            runtime_graph=runtime_graph,
-        )
+    return DetailedHealthResponse(
+        status=status_value,
+        graph_persistence_configured=(_get_graph_persistence_configured()),
+        graph=graph_health,
+        database=database_health,
+        proof_observation=proof_observation,
+        runtime_graph=runtime_graph,
+    )
 
 
 @router.get(
