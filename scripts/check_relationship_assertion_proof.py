@@ -863,6 +863,27 @@ class ProofValidator:
             return False
         return True
 
+    def _validate_assertion_state_chain(
+        self,
+        assertion_id: str,
+        events: Sequence[Any],
+    ) -> bool:
+        """Validate continuity between consecutive persisted lifecycle events."""
+        if events[0].from_state is not None:
+            self.add_error(
+                f"Assertion {assertion_id} initial lifecycle event has a predecessor state"
+            )
+            return False
+    
+        for previous, current in zip(events, events[1:]):
+            if current.from_state != previous.to_state:
+                self.add_error(
+                    f"Assertion {assertion_id} lifecycle state chain is discontinuous"
+                )
+                return False
+    
+        return True
+
     def _validate_assertion_actors_and_states(self, assertion_id: str, proposal: Any, determination: Any) -> bool:
         """Validate the relationship between a proposal and determination event."""
         if proposal.sequence >= determination.sequence:
@@ -930,6 +951,9 @@ class ProofValidator:
             return False
 
         if not self._validate_assertion_sequences(assertion_id, events):
+            return False
+
+        if not self._validate_assertion_state_chain(assertion_id, events):
             return False
 
         selected = self._select_initial_assertion_events(assertion_id, events)
