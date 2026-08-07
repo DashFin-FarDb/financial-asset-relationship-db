@@ -85,7 +85,9 @@ def _seed_discontinuous_reacceptance(
             assert seeded_event is not None
             recorded_at = seeded_event.recorded_at
             if after_revision_known_at:
-                revision = session.query(RelationshipProjectionRevisionORM).filter_by(id=metadata["raw_revision_id"]).one()
+                revision = (
+                    session.query(RelationshipProjectionRevisionORM).filter_by(id=metadata["raw_revision_id"]).one()
+                )
                 recorded_at = revision.known_at + timedelta(seconds=1)
 
             session.add(
