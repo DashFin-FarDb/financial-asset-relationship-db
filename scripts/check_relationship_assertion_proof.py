@@ -751,9 +751,7 @@ class ProofValidator:
                     .select_from(RelationshipProjectionPublicationORM)
                     .where(RelationshipProjectionPublicationORM.rebuild_job_id == bindparam("restart_rebuild_job_id"))
                 )
-                pub_count = int(
-                    conn.execute(count_stmt, {"restart_rebuild_job_id": rebuild_job_id}).scalar() or 0
-                )
+                pub_count = int(conn.execute(count_stmt, {"restart_rebuild_job_id": rebuild_job_id}).scalar() or 0)
                 if pub_count == 0:
                     self.add_error(f"Expected publication for rebuild job {rebuild_job_id} not found")
                     return None
