@@ -746,18 +746,13 @@ class ProofValidator:
                     self.add_error("Invalid or missing rebuild_job_id")
                     return None
 
-                # Check publication existence and cardinality
                 count_stmt = (
                     select(count())
                     .select_from(RelationshipProjectionPublicationORM)
                     .where(RelationshipProjectionPublicationORM.rebuild_job_id == bindparam("restart_rebuild_job_id"))
                 )
                 pub_count = int(
-                    conn.execute(
-                        count_stmt,
-                        {"restart_rebuild_job_id": rebuild_job_id},
-                    ).scalar()
-                    or 0
+                    conn.execute(count_stmt, {"restart_rebuild_job_id": rebuild_job_id}).scalar() or 0
                 )
                 if pub_count == 0:
                     self.add_error(f"Expected publication for rebuild job {rebuild_job_id} not found")
@@ -766,7 +761,6 @@ class ProofValidator:
                     self.add_error(f"More than one publication matches rebuild job {rebuild_job_id}")
                     return None
 
-                # Fetch publication and revision
                 pub_stmt = select(RelationshipProjectionPublicationORM.revision_id).where(
                     RelationshipProjectionPublicationORM.rebuild_job_id == bindparam("restart_publication_job_id")
                 )
@@ -995,7 +989,7 @@ class ProofValidator:
             .scalars()
             .all()
         )
-        events_by_assertion = {assertion_id: [] for assertion_id in assertion_ids}
+        events_by_assertion: dict[str, list[Any]] = {assertion_id: [] for assertion_id in assertion_ids}
         for event in events:
             events_by_assertion[event.assertion_id].append(event)
 
@@ -1134,7 +1128,6 @@ class ProofValidator:
 def display_result(result: dict[str, Any], write_output: bool) -> None:
     """Show validation result."""
     if write_output:
-        # Validate output path to prevent path traversal (CWE-22)
         safe_path = validate_safe_path(PROOF_RESULT_FILENAME)
 
         flags = os.O_WRONLY | os.O_CREAT | os.O_TRUNC
@@ -1179,10 +1172,7 @@ def setup_parser() -> argparse.ArgumentParser:
         "--owner-id",
         help=("Authoritative publication-owner actor ID. Execution and correlation IDs are not ownership evidence."),
     )
-    parser.add_argument(
-        "--expected-owner",
-        help="Protected expected publication-owner actor ID",
-    )
+    parser.add_argument("--expected-owner", help="Protected expected publication-owner actor ID")
     parser.add_argument("--revision-hash", help="Validation revision hash value")
     parser.add_argument("--expected-revision-hash", help="Expected target revision hash value")
     parser.add_argument("--rebuild-job-id", help="Exact rebuild job being certified")
@@ -1279,7 +1269,6 @@ def run_seed_and_publish(db_url: str, deployed_sha: str, run_id: str) -> dict[st
         determiner_id = "determiner-actor-1"
         owner_id = "owner-actor-1"
 
-        # Create rebuild job
         job = RebuildJobORM(
             job_id=run_id,
             requested_by=owner_id,
@@ -1292,7 +1281,6 @@ def run_seed_and_publish(db_url: str, deployed_sha: str, run_id: str) -> dict[st
             execution_id=run_id,
         )
 
-        # Create projection revision
         revision_id = str(uuid.uuid4())
         edge_set_hash = "a" * 64
         projection_hash = "b" * 64
@@ -1312,7 +1300,6 @@ def run_seed_and_publish(db_url: str, deployed_sha: str, run_id: str) -> dict[st
             created_at=now,
         )
 
-        # Create assertion
         assertion_id = str(uuid.uuid4())
         assertion = RelationshipAssertionORM(
             id=assertion_id,
@@ -1326,7 +1313,6 @@ def run_seed_and_publish(db_url: str, deployed_sha: str, run_id: str) -> dict[st
             recorded_at=now,
         )
 
-        # Create proposal event
         prop_event = RelationshipAssertionEventORM(
             id=str(uuid.uuid4()),
             assertion_id=assertion_id,
@@ -1341,7 +1327,6 @@ def run_seed_and_publish(db_url: str, deployed_sha: str, run_id: str) -> dict[st
             correlation_id=run_id,
         )
 
-        # Create determination event
         det_event = RelationshipAssertionEventORM(
             id=str(uuid.uuid4()),
             assertion_id=assertion_id,
@@ -1356,7 +1341,6 @@ def run_seed_and_publish(db_url: str, deployed_sha: str, run_id: str) -> dict[st
             correlation_id=run_id,
         )
 
-        # Create projection edge linking revision to assertion
         edge = RelationshipProjectionEdgeORM(
             id=str(uuid.uuid4()),
             revision_id=revision_id,
@@ -1372,13 +1356,11 @@ def run_seed_and_publish(db_url: str, deployed_sha: str, run_id: str) -> dict[st
         session.add(revision)
         session.add(assertion)
         session.flush()
-
         session.add(prop_event)
         session.add(det_event)
         session.add(edge)
         session.flush()
 
-        # Create publication
         publication = RelationshipProjectionPublicationORM(
             id=str(uuid.uuid4()),
             revision_id=revision_id,
@@ -1464,11 +1446,7 @@ def _verify_persisted_assertion_history(session: Any, revision: Any) -> tuple[bo
         return False, ["Historical reconstruction revision is missing"]
 
     validator = ProofValidator({})
-    ok = validator.projected_assertion_histories_are_valid(
-        session,
-        revision.id,
-        revision.known_at,
-    )
+    ok = validator.projected_assertion_histories_are_valid(session, revision.id, revision.known_at)
     return ok, validator.errors
 
 
