@@ -1,5 +1,8 @@
 # Dependency Matrix
 
+> **LEGACY SNAPSHOT — NOT CURRENT REPOSITORY INVENTORY.** Start with
+> [`docs/agent-task-entry.md`](../../docs/agent-task-entry.md).
+
 *Generated: 2026-03-03T20:51:09.132Z*
 
 ## Summary

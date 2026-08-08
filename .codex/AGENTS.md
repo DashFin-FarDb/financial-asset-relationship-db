@@ -2,6 +2,9 @@
 
 This file supplements the root `AGENTS.md` with a short repo-local baseline for Codex users.
 
+Start every task with the [agent task entry route](../docs/agent-task-entry.md). Do not infer current priority from
+historical plans, generated memory, or an old conversation.
+
 ## Keep in mind
 
 - Production path is FastAPI in `api/` plus Next.js in `frontend/`.
@@ -15,6 +18,7 @@ This file supplements the root `AGENTS.md` with a short repo-local baseline for 
 - Root guidance: [`AGENTS.md`](../AGENTS.md)
 - Production architecture policy: [`.github/AUTOMATION_SCOPE_POLICY.md`](../.github/AUTOMATION_SCOPE_POLICY.md)
 - Architecture decision record: [`docs/adr/0001-production-architecture.md`](../docs/adr/0001-production-architecture.md)
+- Current task-entry and authority route: [`docs/agent-task-entry.md`](../docs/agent-task-entry.md)
 
 ## When editing
 

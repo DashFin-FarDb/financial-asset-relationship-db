@@ -1,8 +1,8 @@
 """Structural gates for GRAC v1 ADR 0008, frozen contract, and continuity links.
 
 Patterned on ``tests/integration/test_production_architecture_documentation.py`` and
-ADR 0007 documentation wiring tests: assert file presence, Accepted status, claim
-discipline (capability remains NEXT), and required contract anchors.
+ADR 0007 documentation wiring tests: assert file presence, Accepted status, bounded
+claim discipline, and required contract anchors.
 """
 
 from __future__ import annotations
@@ -305,8 +305,8 @@ class TestGovernedRelationshipAssertionContractV1:
         assert "Frozen" in header or "frozen" in header
         assert "0008" in header or "ADR 0008" in contract_content[:500]
 
-    def test_capability_claim_is_next(self, contract_content: str) -> None:
-        """Runtime capability claim class must remain NEXT."""
+    def test_capability_claim_is_bounded_to_exact_sha_staging_slice(self, contract_content: str) -> None:
+        """Runtime claim must keep bounded staging CURRENT separate from broader NEXT."""
         header = "\n".join(contract_content.splitlines()[:20])
         claim_line = next(
             (
@@ -317,8 +317,11 @@ class TestGovernedRelationshipAssertionContractV1:
             "",
         )
         assert claim_line, "missing capability claim class header line"
-        assert "`NEXT`" in claim_line
-        assert "CURRENT" not in claim_line
+        assert "`CURRENT`" in header
+        assert "exact-SHA staging financial slice" in header
+        assert "#1540 sign-off record" in header
+        assert "production certification" in header
+        assert "`NEXT`" in header
 
     def test_required_sections_present(self, contract_content: str) -> None:
         """All normative numbered sections must be present."""

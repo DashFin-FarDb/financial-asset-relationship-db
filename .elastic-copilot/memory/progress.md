@@ -1,5 +1,8 @@
 # Implementation Progress
 
+> **LEGACY SNAPSHOT — NOT CURRENT PROGRESS.** Start with
+> [`docs/agent-task-entry.md`](../../docs/agent-task-entry.md).
+
 ## Completed Tasks
 
 - Updated rebuild_jobs schema DDL to align with canonical migration (PR #1260).

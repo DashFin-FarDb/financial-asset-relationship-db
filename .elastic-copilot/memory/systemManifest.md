@@ -1,5 +1,8 @@
 # System Manifest
 
+> **LEGACY SNAPSHOT — NOT CURRENT REPOSITORY AUTHORITY.** Start with
+> [`docs/agent-task-entry.md`](../../docs/agent-task-entry.md).
+
 ## Project Overview
 
 - Name: financial-asset-relationship-db

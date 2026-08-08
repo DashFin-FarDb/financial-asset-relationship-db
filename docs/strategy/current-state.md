@@ -1,8 +1,13 @@
-# Current state of FarDB
+# Historical current-state snapshot of FarDB
 
-**Claim class:** CURRENT, with explicit limitations
+**Status:** Historical snapshot; not current task, release, or capability authority
+**Claim class at the evidence date:** CURRENT, with explicit limitations
 **Evidence date:** 14 July 2026
 **Repository baseline:** `main` at `2afe77212fba06b6556d38696a5323e55f04a35a`
+
+> This page preserves the state assessed at the baseline above. For current capability claims, begin with the
+> [strategy index](README.md); for coding work, use the [agent task entry route](../agent-task-entry.md) and the exact
+> task brief supplied for the current work item.
 
 ## Executive statement
 
