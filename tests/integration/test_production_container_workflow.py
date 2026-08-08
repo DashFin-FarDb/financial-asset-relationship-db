@@ -80,8 +80,9 @@ def test_persistence_smoke_migrates_before_api_start(production_container_raw: s
 
 def test_persistence_smoke_keeps_admin_password_out_of_runtime(production_container_raw: str) -> None:
     """Admin password belongs to migration/token setup, not the runtime API container."""
-    start_api_body = production_container_raw.split("start_api() {", 1)[1].split("}", 1)[0]
-    migrate_body = production_container_raw.split("migrate_database() {", 1)[1].split("}", 1)[0]
+    function_end = "\n          }\n"
+    start_api_body = production_container_raw.split("start_api() {", 1)[1].split(function_end, 1)[0]
+    migrate_body = production_container_raw.split("migrate_database() {", 1)[1].split(function_end, 1)[0]
 
     assert "ADMIN_PASSWORD" not in start_api_body
     assert "ADMIN_PASSWORD" in migrate_body
