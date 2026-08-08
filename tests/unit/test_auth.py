@@ -10,6 +10,7 @@ This module tests:
 """
 
 import os
+import secrets
 import subprocess  # nosec B404 - isolated test process, never production input
 import sys
 from datetime import datetime, timedelta, timezone
@@ -43,9 +44,9 @@ def test_auth_module_import_performs_no_database_writes(tmp_path) -> None:
     environment = {
         **os.environ,
         "DATABASE_URL": f"sqlite:///{database_path}",
-        "SECRET_KEY": "test-secret-key-at-least-32-bytes-long",
+        "SECRET_KEY": secrets.token_urlsafe(32),
         "ADMIN_USERNAME": "admin",
-        "ADMIN_PASSWORD": "must-not-be-consumed",
+        "ADMIN_PASSWORD": secrets.token_urlsafe(24),
     }
 
     result = subprocess.run(  # noqa: S603  # nosec B603 - fixed interpreter and repository-owned import
