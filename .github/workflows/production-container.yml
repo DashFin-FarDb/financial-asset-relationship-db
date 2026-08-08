@@ -71,8 +71,20 @@ jobs:
               -e ASSET_GRAPH_DATABASE_URL="$DB_URL" \
               -e SECRET_KEY="$SECRET_KEY" \
               -e ADMIN_USERNAME="$ADMIN_USERNAME" \
-              -e ADMIN_PASSWORD="$ADMIN_PASSWORD" \
               fardb-api
+          }
+
+          migrate_database() {
+            docker run --rm --name api_persist_migrate \
+              -v "${VOLUME_NAME}:/data" \
+              -e ENV=production \
+              -e DATABASE_URL="$DB_URL" \
+              -e ASSET_GRAPH_DATABASE_URL="$DB_URL" \
+              -e SECRET_KEY="$SECRET_KEY" \
+              -e ADMIN_USERNAME="$ADMIN_USERNAME" \
+              -e ADMIN_PASSWORD="$ADMIN_PASSWORD" \
+              fardb-api \
+              python -m scripts.migrate_database
           }
 
           wait_healthy() {
@@ -95,6 +107,10 @@ jobs:
             docker volume rm -f "$VOLUME_NAME" >/dev/null 2>&1 || true
           }
           trap cleanup EXIT
+
+          # Phase 0: startup is read-only, so prepare schema and credentials via
+          # the explicit operator migration path before launching the API.
+          migrate_database
 
           # Phase A: start, liveness, rebuild+persist onto the volume.
           start_api api_persist_seed

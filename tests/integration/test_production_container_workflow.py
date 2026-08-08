@@ -67,6 +67,26 @@ def test_persistence_smoke_rebuilds_then_restarts(production_container_raw: str)
     assert "api_persist_reload" in production_container_raw
 
 
+def test_persistence_smoke_migrates_before_api_start(production_container_raw: str) -> None:
+    """Startup is read-only, so CI must run explicit migration authority first."""
+    migration_call = "          migrate_database\n"
+    first_api_start = "          start_api api_persist_seed"
+
+    assert "python -m scripts.migrate_database" in production_container_raw
+    assert production_container_raw.index(migration_call, production_container_raw.index("trap cleanup EXIT")) < (
+        production_container_raw.index(first_api_start)
+    )
+
+
+def test_persistence_smoke_keeps_admin_password_out_of_runtime(production_container_raw: str) -> None:
+    """Admin password belongs to migration/token setup, not the runtime API container."""
+    start_api_body = production_container_raw.split("start_api() {", 1)[1].split("}", 1)[0]
+    migrate_body = production_container_raw.split("migrate_database() {", 1)[1].split("}", 1)[0]
+
+    assert "ADMIN_PASSWORD" not in start_api_body
+    assert "ADMIN_PASSWORD" in migrate_body
+
+
 def test_persistence_fields_asserted_after_reload(production_container_raw: str) -> None:
     """Local curl/jq asserts must match hosted persistence gate fields."""
     for marker in (
@@ -114,6 +134,12 @@ def test_api_dockerfile_copies_migrations() -> None:
     """Production API image must ship SQL migrations for durable SQLite init."""
     text = (REPO_ROOT / "Dockerfile.api").read_text(encoding="utf-8")
     assert "COPY migrations/ ./migrations/" in text
+
+
+def test_api_dockerfile_copies_migration_operator() -> None:
+    """Production API image must ship the explicit migration authority command."""
+    text = (REPO_ROOT / "Dockerfile.api").read_text(encoding="utf-8")
+    assert "scripts/migrate_database.py" in text
 
 
 def test_assets_smoke_requires_positive_integer_total(production_container_raw: str) -> None:
