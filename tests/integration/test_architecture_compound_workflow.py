@@ -11,8 +11,8 @@ from tests.integration.test_github_workflows import GitHubActionsYamlLoader
 
 WORKFLOW = Path(__file__).resolve().parents[2] / ".github" / "workflows"
 WORKFLOW = WORKFLOW / "architecture-compound.yml"
-CHECKOUT_ACTION_PIN = "actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0"
-SETUP_PYTHON_ACTION_SHA = "ece7cb06caefa5fff74198d8649806c4678c61a1"
+CHECKOUT_ACTION_PIN = "actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1"
+SETUP_PYTHON_ACTION_SHA = "5fda3b95a4ea91299a34e894583c3862153e4b97"
 SETUP_PYTHON_ACTION_PIN = f"actions/setup-python@{SETUP_PYTHON_ACTION_SHA}"
 RESTORE_SCRIPTS_CMD = " ".join(
     [
