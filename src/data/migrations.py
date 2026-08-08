@@ -17,6 +17,7 @@ import re
 import sqlite3
 from collections.abc import Mapping
 from pathlib import Path
+from typing import cast
 
 from sqlalchemy import inspect, text
 from sqlalchemy.engine import Engine
@@ -302,10 +303,11 @@ def _inspect_rebuild_jobs_columns(inspector: Inspector) -> tuple[list[str], dict
     existing: set[str] = set()
     identifier_columns: dict[str, ReflectedColumn] = {}
     for col in columns:
-        name = str(col["name"])
+        column = cast(ReflectedColumn, col)
+        name = str(column["name"])
         existing.add(name)
         if name in _REBUILD_IDENTIFIER_COLUMNS:
-            identifier_columns[name] = col
+            identifier_columns[name] = column
 
     statements: list[str] = []
     if "active_worker_id" not in existing:
@@ -440,7 +442,11 @@ def _status_constraint_is_canonical(constraint: ReflectedCheckConstraint | None)
 
 def _postgresql_rebuild_columns(inspector: Inspector) -> dict[str, ReflectedColumn]:
     """Return reflected rebuild_jobs columns keyed by name."""
-    return {str(column["name"]): column for column in inspector.get_columns("rebuild_jobs")}
+    columns: dict[str, ReflectedColumn] = {}
+    for reflected_column in inspector.get_columns("rebuild_jobs"):
+        column = cast(ReflectedColumn, reflected_column)
+        columns[str(column["name"])] = column
+    return columns
 
 
 def _postgresql_required_column_gaps(columns: dict[str, ReflectedColumn]) -> list[str]:
@@ -470,14 +476,11 @@ def _postgresql_identifier_width_gaps(columns: dict[str, ReflectedColumn]) -> li
 
 def _postgresql_status_constraint(inspector: Inspector) -> ReflectedCheckConstraint | None:
     """Return the rebuild_jobs status CHECK constraint when present."""
-    return next(
-        (
-            constraint
-            for constraint in inspector.get_check_constraints("rebuild_jobs")
-            if constraint.get("name") == "ck_rebuild_jobs_status"
-        ),
-        None,
-    )
+    for reflected_constraint in inspector.get_check_constraints("rebuild_jobs"):
+        constraint = cast(ReflectedCheckConstraint, reflected_constraint)
+        if constraint.get("name") == "ck_rebuild_jobs_status":
+            return constraint
+    return None
 
 
 def postgresql_heartbeat_schema_gaps(inspector: Inspector) -> list[str]:

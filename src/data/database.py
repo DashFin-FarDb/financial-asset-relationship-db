@@ -349,34 +349,50 @@ def _single_quoted_literals(value: str) -> list[str]:
         search_start = literal_end + 1
 
 
+def _next_literal_set_bounds(sql: str, search_start: int) -> tuple[int, int, int] | None:
+    """Return the next simple ``IN (...)`` bounds, if one exists."""
+    cursor = search_start
+    while True:
+        in_start = sql.find("in", cursor)
+        if in_start == -1:
+            return None
+        cursor = in_start + len("in")
+        if in_start > 0 and (sql[in_start - 1].isalnum() or sql[in_start - 1] == "_"):
+            continue
+
+        open_paren = cursor
+        while open_paren < len(sql) and sql[open_paren].isspace():
+            open_paren += 1
+        if open_paren >= len(sql) or sql[open_paren] != "(":
+            continue
+
+        close_paren = sql.find(")", open_paren + 1)
+        return None if close_paren == -1 else (in_start, open_paren, close_paren)
+
+
+def _sorted_literal_set_replacement(body: str) -> str | None:
+    """Return a sorted replacement when ``body`` contains only string literals."""
+    literals = _single_quoted_literals(body)
+    remainder = body
+    for literal in literals:
+        remainder = remainder.replace(literal, "", 1)
+    if not literals or remainder.replace(",", "").strip():
+        return None
+    return "in(" + ",".join(sorted(literals)) + ")"
+
+
 def _sort_literal_sets(sql: str) -> str:
     """Sort simple ``IN ('a', 'b')`` literal lists for dialect-insensitive comparison."""
     result = sql
     search_start = 0
     while True:
-        in_start = result.find("in", search_start)
-        if in_start == -1:
+        bounds = _next_literal_set_bounds(result, search_start)
+        if bounds is None:
             return result
-        if in_start > 0 and (result[in_start - 1].isalnum() or result[in_start - 1] == "_"):
-            search_start = in_start + len("in")
-            continue
-        open_paren = in_start + len("in")
-        while open_paren < len(result) and result[open_paren].isspace():
-            open_paren += 1
-        if open_paren >= len(result) or result[open_paren] != "(":
-            search_start = in_start + len("in")
-            continue
-        close_paren = result.find(")", open_paren + 1)
-        if close_paren == -1:
-            return result
-
+        in_start, open_paren, close_paren = bounds
         body = result[open_paren + 1 : close_paren]
-        literals = _single_quoted_literals(body)
-        remainder = body
-        for literal in literals:
-            remainder = remainder.replace(literal, "", 1)
-        if literals and not remainder.replace(",", "").strip():
-            replacement = "in(" + ",".join(sorted(literals)) + ")"
+        replacement = _sorted_literal_set_replacement(body)
+        if replacement is not None:
             result = result[:in_start] + replacement + result[close_paren + 1 :]
             search_start = in_start + len(replacement)
             continue
