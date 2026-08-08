@@ -2,8 +2,11 @@
 
 from __future__ import annotations
 
+from typing import Any, Mapping, cast
+
 from sqlalchemy import CheckConstraint, bindparam, create_engine, event, inspect, text
 from sqlalchemy.engine import Engine, make_url
+from sqlalchemy.engine.reflection import Inspector
 from sqlalchemy.exc import ArgumentError
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool
@@ -215,6 +218,57 @@ def init_db(engine: Engine) -> None:
     ensure_relationship_assertion_schema(engine)
 
 
+def _column_names(inspector: Inspector, table_name: str) -> set[str]:
+    """Return reflected column names for a table."""
+    columns = cast(list[Mapping[str, object]], inspector.get_columns(table_name))
+    return {str(name) for column in columns if (name := column.get("name"))}
+
+
+def _check_constraint_names(inspector: Inspector, table_name: str) -> set[str]:
+    """Return reflected named CHECK constraints for a table."""
+    constraints = cast(list[Mapping[str, object]], inspector.get_check_constraints(table_name))
+    return {str(name) for constraint in constraints if (name := constraint.get("name"))}
+
+
+def _index_names(inspector: Inspector, table_name: str) -> set[str]:
+    """Return reflected index names for a table."""
+    indexes = cast(list[Mapping[str, object]], inspector.get_indexes(table_name))
+    return {str(name) for index in indexes if (name := index.get("name"))}
+
+
+def _expected_check_names(expected_table: Any) -> set[str]:
+    """Return named CHECK constraints declared by an ORM table."""
+    return {
+        str(constraint.name)
+        for constraint in expected_table.constraints
+        if isinstance(constraint, CheckConstraint) and constraint.name
+    }
+
+
+def _verify_table_schema(inspector: Inspector, table_name: str) -> None:
+    """Verify one ORM table against the live database catalog."""
+    expected_table = Base.metadata.tables[table_name]
+    missing_columns = sorted(set(expected_table.columns.keys()) - _column_names(inspector, table_name))
+    if missing_columns:
+        raise SchemaCompatibilityError(
+            f"database table {table_name} missing required columns: {', '.join(missing_columns)}"
+        )
+
+    expected_checks = _expected_check_names(expected_table)
+    missing_checks = sorted(expected_checks - _check_constraint_names(inspector, table_name))
+    if missing_checks:
+        raise SchemaCompatibilityError(
+            f"database table {table_name} missing required constraints: {', '.join(missing_checks)}"
+        )
+
+    expected_indexes = {index.name for index in expected_table.indexes if index.name}
+    missing_indexes = sorted(expected_indexes - _index_names(inspector, table_name))
+    if missing_indexes:
+        raise SchemaCompatibilityError(
+            f"database table {table_name} missing required indexes: {', '.join(missing_indexes)}"
+        )
+
+
 def verify_database_schema(engine: Engine) -> None:
     """Verify the asset-store schema without creating, altering, or repairing it.
 
@@ -247,39 +301,7 @@ def verify_database_schema(engine: Engine) -> None:
             raise SchemaCompatibilityError(f"database schema missing required tables: {', '.join(missing_tables)}")
 
         for table_name in sorted(expected_tables):
-            expected_table = Base.metadata.tables[table_name]
-            actual_columns = {column["name"] for column in inspector.get_columns(table_name)}
-            missing_columns = sorted(set(expected_table.columns.keys()) - actual_columns)
-            if missing_columns:
-                raise SchemaCompatibilityError(
-                    f"database table {table_name} missing required columns: {', '.join(missing_columns)}"
-                )
-
-            expected_checks = {
-                str(constraint.name)
-                for constraint in expected_table.constraints
-                if isinstance(constraint, CheckConstraint) and constraint.name
-            }
-            if expected_checks:
-                actual_checks = {
-                    str(constraint["name"])
-                    for constraint in inspector.get_check_constraints(table_name)
-                    if constraint.get("name")
-                }
-                missing_checks = sorted(expected_checks - actual_checks)
-                if missing_checks:
-                    raise SchemaCompatibilityError(
-                        f"database table {table_name} missing required constraints: {', '.join(missing_checks)}"
-                    )
-
-            expected_indexes = {index.name for index in expected_table.indexes if index.name}
-            if expected_indexes:
-                actual_indexes = {index.get("name") for index in inspector.get_indexes(table_name) if index.get("name")}
-                missing_indexes = sorted(expected_indexes - actual_indexes)
-                if missing_indexes:
-                    raise SchemaCompatibilityError(
-                        f"database table {table_name} missing required indexes: {', '.join(missing_indexes)}"
-                    )
+            _verify_table_schema(inspector, table_name)
 
         if backend == "postgresql":
             heartbeat_gaps = postgresql_heartbeat_schema_gaps(inspector)
