@@ -623,31 +623,28 @@ def _install_sqlite_immutability_guards(connection: Connection) -> None:
         # nosemgrep: python.sqlalchemy.security.audit.avoid-sqlalchemy-text.avoid-sqlalchemy-text
         connection.execute(text(f"DROP TRIGGER IF EXISTS {update_name}"))
         connection.execute(text(f"DROP TRIGGER IF EXISTS {delete_name}"))
-        connection.execute(
-            text(f"""
+        update_trigger_sql = f"""
                 CREATE TRIGGER {update_name}
                 BEFORE UPDATE ON {table_name}
                 BEGIN
                     SELECT RAISE(ABORT, 'GRAC v1 immutability: UPDATE forbidden on {table_name}');
                 END
-                """)
-        )
-        connection.execute(
-            text(f"""
+                """
+        delete_trigger_sql = f"""
                 CREATE TRIGGER {delete_name}
                 BEFORE DELETE ON {table_name}
                 BEGIN
                     SELECT RAISE(ABORT, 'GRAC v1 immutability: DELETE forbidden on {table_name}');
                 END
-                """)
-        )
+                """
+        connection.execute(text(update_trigger_sql))
+        connection.execute(text(delete_trigger_sql))
 
 
 def _install_postgresql_immutability_guards(connection: Connection) -> None:
     """Install a shared RAISE function and BEFORE UPDATE/DELETE/TRUNCATE triggers."""
     # nosemgrep: python.sqlalchemy.security.audit.avoid-sqlalchemy-text.avoid-sqlalchemy-text
-    connection.execute(
-        text(f"""
+    function_sql = f"""
             CREATE OR REPLACE FUNCTION {_IMMUTABILITY_FUNCTION}()
             RETURNS trigger
             LANGUAGE plpgsql
@@ -659,8 +656,8 @@ def _install_postgresql_immutability_guards(connection: Connection) -> None:
                     USING ERRCODE = 'integrity_constraint_violation';
             END;
             $$
-            """)
-    )
+            """
+    connection.execute(text(function_sql))
     _revoke_immutability_function_execute(connection)
 
     for table_name in GRAC_TABLE_NAMES:
@@ -669,27 +666,24 @@ def _install_postgresql_immutability_guards(connection: Connection) -> None:
         connection.execute(text(f"DROP TRIGGER IF EXISTS {update_name} ON {table_name}"))
         connection.execute(text(f"DROP TRIGGER IF EXISTS {delete_name} ON {table_name}"))
         connection.execute(text(f"DROP TRIGGER IF EXISTS {truncate_name} ON {table_name}"))
-        connection.execute(
-            text(f"""
+        update_trigger_sql = f"""
                 CREATE TRIGGER {update_name}
                 BEFORE UPDATE ON {table_name}
                 FOR EACH ROW
                 EXECUTE FUNCTION {_IMMUTABILITY_FUNCTION}()
-                """)
-        )
-        connection.execute(
-            text(f"""
+                """
+        delete_trigger_sql = f"""
                 CREATE TRIGGER {delete_name}
                 BEFORE DELETE ON {table_name}
                 FOR EACH ROW
                 EXECUTE FUNCTION {_IMMUTABILITY_FUNCTION}()
-                """)
-        )
-        connection.execute(
-            text(f"""
+                """
+        truncate_trigger_sql = f"""
                 CREATE TRIGGER {truncate_name}
                 BEFORE TRUNCATE ON {table_name}
                 FOR EACH STATEMENT
                 EXECUTE FUNCTION {_IMMUTABILITY_FUNCTION}()
-                """)
-        )
+                """
+        connection.execute(text(update_trigger_sql))
+        connection.execute(text(delete_trigger_sql))
+        connection.execute(text(truncate_trigger_sql))
