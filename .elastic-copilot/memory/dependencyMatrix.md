@@ -3,7 +3,7 @@
 > **LEGACY SNAPSHOT — NOT CURRENT REPOSITORY INVENTORY.** Start with
 > [`docs/agent-task-entry.md`](../../docs/agent-task-entry.md).
 
-*Generated: 2026-03-03T20:51:09.132Z*
+_Generated: 2026-03-03T20:51:09.132Z_
 
 ## Summary
 
@@ -27,6 +27,7 @@ No common dependencies found
 ### TS
 
 Top dependencies:
+
 - ../app/types/api
 - axios
 - ../../app/types/api
@@ -40,6 +41,7 @@ Top dependencies:
 ### TSX
 
 Top dependencies:
+
 - react
 - @testing-library/react
 - @testing-library/jest-dom
@@ -54,6 +56,7 @@ Top dependencies:
 ### JS
 
 Top dependencies:
+
 - @testing-library/jest-dom
 - vector
 

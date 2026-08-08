@@ -24,14 +24,14 @@ are central next proofs.
 
 ## Current production path
 
-| Layer | Reviewed baseline | Qualification |
-| --- | --- | --- |
-| Product experience | Next.js | Declared production UI path. |
-| Application and API | FastAPI | Declared production backend path. |
-| Hosted persistence target | PostgreSQL | Durable hosted target. |
-| Local compatibility | SQLite | Local development and test path retained. |
-| Research and demo UI | Gradio | Non-production runtime surface; shared dependency manifests still install it. |
-| Delivery gates | GitHub Actions and evidence workflows | Repository proof and hosted proof remain distinct. |
+| Layer                     | Reviewed baseline                     | Qualification                                                                 |
+| ------------------------- | ------------------------------------- | ----------------------------------------------------------------------------- |
+| Product experience        | Next.js                               | Declared production UI path.                                                  |
+| Application and API       | FastAPI                               | Declared production backend path.                                             |
+| Hosted persistence target | PostgreSQL                            | Durable hosted target.                                                        |
+| Local compatibility       | SQLite                                | Local development and test path retained.                                     |
+| Research and demo UI      | Gradio                                | Non-production runtime surface; shared dependency manifests still install it. |
+| Delivery gates            | GitHub Actions and evidence workflows | Repository proof and hosted proof remain distinct.                            |
 
 See [ADR 0001](../adr/0001-production-architecture.md),
 [ADR 0002](../adr/0002-hosted-deployment-and-persistence.md) and the
