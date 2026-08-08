@@ -201,7 +201,6 @@ class TestSettingsModel:
             ("secret_key", ""),
             ("secret_key", "   "),
             ("admin_username", ""),
-            ("admin_password", ""),
         ],
     )
     def test_production_rejects_empty_required_secrets(self, field_name: str, field_value: str) -> None:
@@ -210,7 +209,6 @@ class TestSettingsModel:
             "env": DeploymentEnvironment.PRODUCTION,
             "secret_key": "secret-key-that-is-at-least-32-bytes",
             "admin_username": "admin",
-            "admin_password": "configured-value",
             field_name: field_value,
         }
         with pytest.raises(ValueError, match="non-empty deployment credentials") as exc_info:
@@ -223,7 +221,16 @@ class TestSettingsModel:
         assert "admin_username" not in error_message
         assert "admin_password" not in error_message
         assert "secret-key-that-is-at-least-32-bytes" not in error_message
-        assert "configured-value" not in error_message
+
+    def test_production_allows_missing_bootstrap_password(self) -> None:
+        """Test that production runtime does not require migrate-time ADMIN_PASSWORD."""
+        settings = Settings(
+            env=DeploymentEnvironment.PRODUCTION,
+            secret_key="secret-key-that-is-at-least-32-bytes",
+            admin_username="admin",
+            admin_password=None,
+        )
+        assert settings.admin_password is None
 
     def test_production_validates_trimmed_secret_key_length(self) -> None:
         """Test that whitespace padding cannot satisfy production secret length."""
@@ -232,7 +239,6 @@ class TestSettingsModel:
                 env=DeploymentEnvironment.PRODUCTION,
                 secret_key=" " * 32 + "short-secret" + " " * 32,
                 admin_username="admin",
-                admin_password="configured-value",
             )
 
     def test_development_allows_empty_required_secrets(self) -> None:

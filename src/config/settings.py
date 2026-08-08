@@ -157,7 +157,9 @@ class Settings(BaseModel):
         if self.env != DeploymentEnvironment.PRODUCTION:
             return
 
-        required_values = (self.secret_key, self.admin_username, self.admin_password)
+        # ADMIN_PASSWORD is migrate-time bootstrap only; runtime production requires
+        # SECRET_KEY plus ADMIN_USERNAME for rebuild-operator identity.
+        required_values = (self.secret_key, self.admin_username)
         if any(value is None or not value.strip() for value in required_values):
             raise ValueError("Production requires non-empty deployment credentials.")
 
