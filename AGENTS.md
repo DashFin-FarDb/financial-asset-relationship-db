@@ -385,8 +385,9 @@ startup/update process, so you normally only need to start services and run chec
 - **Frontend → backend wiring:** start the frontend with `NEXT_PUBLIC_API_URL=http://localhost:8000` (defaults to that anyway). Public dashboard routes (visualization/metrics/assets) need no login; JWT is only needed for `/api/users/me` and rebuild-admin endpoints (use `/token` to obtain a JWT).
 - **Backend serves sample data by default**; no external DB or `USE_REAL_DATA_FETCHER` needed for local end-to-end.
 - **Venv package note:** this image uses Python 3.12 and normally has venv support preinstalled. If that changes or setup is skipped, install the versioned package (`python3.12-venv`) manually (for example: `sudo apt-get install python3.12-venv`).
-- **CodeQL workflow:** `.github/workflows/codeql.yml` exists. Treat a future workflow-YAML test failure as a current
-  repository or validator issue; do not rely on the former missing-workflow exception.
+- **CodeQL workflow:** `.github/workflows/codeql.yml` exists. If a workflow-YAML test fails, inspect the workflow,
+  validator output, and recent changes before attributing the defect; do not rely on the former missing-workflow
+  exception.
 - **Frontend dependency baseline (do not bump past these majors without updating peers):** the frontend must stay on
   **TypeScript 5.9.x** and **ESLint 9.x**. `@typescript-eslint/*` / `typescript-eslint@8.x` (pulled in transitively by
   `eslint-config-next@16.x`) pin `typescript` to `>=4.8.4 <6.1.0`, so bumping `typescript` to 7.x (or `eslint` /

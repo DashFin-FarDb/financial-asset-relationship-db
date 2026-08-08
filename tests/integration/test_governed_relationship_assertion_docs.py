@@ -1,8 +1,7 @@
 """Structural gates for GRAC v1 ADR 0008, frozen contract, and continuity links.
 
-Patterned on ``tests/integration/test_production_architecture_documentation.py`` and
-ADR 0007 documentation wiring tests: assert file presence, Accepted status, bounded
-claim discipline, and required contract anchors.
+Patterned on ``tests/integration/test_production_architecture_documentation.py``: assert file presence, Accepted
+status, bounded claim discipline, and required contract anchors.
 """
 
 from __future__ import annotations
@@ -20,6 +19,9 @@ STRATEGY_README = REPO_ROOT / "docs" / "strategy" / "README.md"
 
 CONTRACT_BASELINE_SHA = "5e45753705c10c2c4f50e0e9bc4d07b823d752ab"
 EVIDENCE_CUTOFF_SHA = "0a72dfee67aae4ef7cc44041347474a6a6e234cd"
+PROVED_STAGING_SHA = "16d0a69c5d6f9bae94b9251991466bacbf15d3f0"
+PROVED_STAGING_PREDICATE = "financial.bond.issuer_reference@1"
+PROVED_STAGING_SIGNOFF = "grac-v1-exact-sha-evidence-signoff.md"
 REQUIRED_CONTRACT_SECTIONS = (
     "## 1. Purpose and boundaries",
     "## 2. Vocabulary",
@@ -318,7 +320,9 @@ class TestGovernedRelationshipAssertionContractV1:
         )
         assert claim_line, "missing capability claim class header line"
         assert "`CURRENT`" in header
-        assert "exact-SHA staging financial slice" in header
+        assert PROVED_STAGING_SHA in header
+        assert PROVED_STAGING_PREDICATE in header
+        assert PROVED_STAGING_SIGNOFF in header
         assert "#1540 sign-off record" in header
         assert "production certification" in header
         assert "`NEXT`" in header

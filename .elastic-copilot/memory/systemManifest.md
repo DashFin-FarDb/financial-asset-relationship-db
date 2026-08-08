@@ -176,7 +176,7 @@ Dependencies:
 - TestClient
 - traceback
 
-### /tests/**init**.py
+### /tests/__init__.py
 
 No dependencies found
 

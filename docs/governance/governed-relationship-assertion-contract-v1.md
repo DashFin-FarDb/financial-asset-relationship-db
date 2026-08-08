@@ -1,7 +1,8 @@
 # Governed Relationship Assertion Contract v1
 
 **Status:** Frozen normative contract (Accepted via [ADR 0008](../adr/0008-governed-relationship-assertion-contract.md))
-**Claim class for runtime capability:** `CURRENT` only for the exact-SHA staging financial slice proved in
+**Claim class for runtime capability:** `CURRENT` only for `financial.bond.issuer_reference@1` at exact staging SHA
+`16d0a69c5d6f9bae94b9251991466bacbf15d3f0`, as proved in
 [the #1540 sign-off record](grac-v1-exact-sha-evidence-signoff.md); production certification, capacity, and broader
 generality remain `NEXT`
 **Contract version:** `grac.v1`
