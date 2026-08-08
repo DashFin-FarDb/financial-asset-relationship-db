@@ -1,5 +1,8 @@
 # Active Context
 
+> **LEGACY SNAPSHOT — NOT ACTIVE INSTRUCTION.** This March 2026 context is retained for provenance only. Start with
+> [`docs/agent-task-entry.md`](../../docs/agent-task-entry.md).
+
 ## Current Phase
 
 Implementation / Integration

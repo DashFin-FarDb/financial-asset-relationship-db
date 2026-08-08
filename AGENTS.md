@@ -2,6 +2,12 @@
 
 This file is hosted and maintained by Dosu (dosu.dev). It provides guidance to AI coding agents when working with code in this repository.
 
+## Start here
+
+Before accepting a task or opening implementation files, follow the
+[agent task entry route](docs/agent-task-entry.md). It defines the authority order, required task brief, scope and
+stop conditions, and evidence needed to begin work without treating historical material as current instruction.
+
 ## IMPORTANT: Production Architecture Declaration
 
 **Production:** FastAPI backend (api/) + Next.js frontend (frontend/)
@@ -379,7 +385,9 @@ startup/update process, so you normally only need to start services and run chec
 - **Frontend → backend wiring:** start the frontend with `NEXT_PUBLIC_API_URL=http://localhost:8000` (defaults to that anyway). Public dashboard routes (visualization/metrics/assets) need no login; JWT is only needed for `/api/users/me` and rebuild-admin endpoints (use `/token` to obtain a JWT).
 - **Backend serves sample data by default**; no external DB or `USE_REAL_DATA_FETCHER` needed for local end-to-end.
 - **Venv package note:** this image uses Python 3.12 and normally has venv support preinstalled. If that changes or setup is skipped, install the versioned package (`python3.12-venv`) manually (for example: `sudo apt-get install python3.12-venv`).
-- **Known pre-existing test failure (not an environment issue):** `tests/unit/test_workflow_yaml_files.py` fails on `codeql.yml` (via `pytest.fail`) because `.github/workflows/codeql.yml` does not exist in the repository.
+- **CodeQL workflow:** `.github/workflows/codeql.yml` exists. If a workflow-YAML test fails, inspect the workflow,
+  validator output, and recent changes before attributing the defect; do not rely on the former missing-workflow
+  exception.
 - **Frontend dependency baseline (do not bump past these majors without updating peers):** the frontend must stay on
   **TypeScript 5.9.x** and **ESLint 9.x**. `@typescript-eslint/*` / `typescript-eslint@8.x` (pulled in transitively by
   `eslint-config-next@16.x`) pin `typescript` to `>=4.8.4 <6.1.0`, so bumping `typescript` to 7.x (or `eslint` /
