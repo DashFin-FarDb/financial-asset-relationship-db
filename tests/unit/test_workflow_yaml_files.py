@@ -384,6 +384,42 @@ class TestSpecificWorkflows:
         else:
             assert "pull_request" in triggers or "pull_request_target" in triggers
 
+    def test_ci_gate_d_prepares_auth_database_before_startup(self):
+        """Gate D should migrate auth storage before read-only runtime startup."""
+        workflow_path = PROJECT_ROOT / ".github" / "workflows" / "ci-gate-spec.yaml"
+        if not workflow_path.exists():
+            pytest.skip("ci-gate-spec.yaml does not exist")
+
+        with open(workflow_path, encoding="utf-8") as f:
+            config = yaml.safe_load(f)
+        assert isinstance(config, dict), "ci-gate-spec.yaml should parse to a mapping/dict"
+        jobs = config.get("jobs")
+        assert isinstance(jobs, Mapping), "ci-gate-spec.yaml jobs should be a mapping/dict"
+        gate_job = jobs.get("observability-metrics-validation")
+        assert isinstance(gate_job, Mapping), "Gate D job should be present"
+        steps = gate_job.get("steps")
+        assert isinstance(steps, list), "Gate D job should define steps"
+
+        metrics_step = next(
+            (
+                step
+                for step in steps
+                if isinstance(step, Mapping) and step.get("name") == "Verify metrics endpoint exposes new metrics"
+            ),
+            None,
+        )
+        assert isinstance(metrics_step, Mapping), "Gate D metrics endpoint step should be present"
+        env = metrics_step.get("env")
+        assert isinstance(env, Mapping), "Gate D metrics endpoint step should define env"
+        assert env.get("DATABASE_URL") != "sqlite:///:memory:"
+
+        command = _step_run_command(metrics_step)
+        assert command is not None
+        migrate_index = command.index("python -m scripts.migrate_database")
+        unset_index = command.index("unset ADMIN_PASSWORD")
+        uvicorn_index = command.index("python -m uvicorn api.main:app")
+        assert migrate_index < unset_index < uvicorn_index
+
 
 @pytest.mark.unit
 class TestWorkflowSecurity:

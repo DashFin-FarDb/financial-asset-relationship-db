@@ -1,0 +1,5 @@
+{
+  "source_directories": ["."],
+  "site_package_search_strategy": "all",
+  "exclude": [".*/\\.venv/.*", ".*/node_modules/.*", ".*/frontend/.*", ".*/tests?/.*"]
+}
