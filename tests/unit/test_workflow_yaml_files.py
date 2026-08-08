@@ -411,7 +411,8 @@ class TestSpecificWorkflows:
         assert isinstance(metrics_step, Mapping), "Gate D metrics endpoint step should be present"
         env = metrics_step.get("env")
         assert isinstance(env, Mapping), "Gate D metrics endpoint step should define env"
-        assert env.get("DATABASE_URL") != "sqlite:///:memory:"
+        assert env.get("DATABASE_URL") == "sqlite:gate-d-auth.db"
+        assert env.get("COORDINATION_DATABASE_URL") == "sqlite:///gate-d-coordination.db"
 
         command = _step_run_command(metrics_step)
         assert command is not None

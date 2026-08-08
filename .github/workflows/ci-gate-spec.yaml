@@ -235,7 +235,8 @@ jobs:
 
       - name: Verify metrics endpoint exposes new metrics
         env:
-          DATABASE_URL: "sqlite:${{ runner.temp }}/gate-d-auth.db"
+          DATABASE_URL: sqlite:gate-d-auth.db
+          COORDINATION_DATABASE_URL: sqlite:///gate-d-coordination.db
           SECRET_KEY: test-secret-key-for-ci
           ADMIN_USERNAME: admin
           ADMIN_PASSWORD: admin
