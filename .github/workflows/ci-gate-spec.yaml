@@ -235,11 +235,14 @@ jobs:
 
       - name: Verify metrics endpoint exposes new metrics
         env:
-          DATABASE_URL: "sqlite:///:memory:"
+          DATABASE_URL: "sqlite:///${{ runner.temp }}/observability-metrics.db"
           SECRET_KEY: test-secret-key-for-ci
           ADMIN_USERNAME: admin
           ADMIN_PASSWORD: admin
         run: |
+          # Provision the auth/coordination schema before runtime startup.
+          python -m scripts.migrate_database
+
           # Start API in background
           python -m uvicorn api.main:app --host 127.0.0.1 --port 8000 > /tmp/api.log 2>&1 &
           API_PID=$!

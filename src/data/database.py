@@ -272,12 +272,12 @@ def _normalize_check_definition(definition: object) -> str:
     normalized = normalized.removeprefix("check")
     normalized = normalized.replace("!~~", "not like").replace("~~", "like")
     normalized = re.sub(
-        r"=\s*any\s*\(\s*\(?\s*array\s*\[(.*?)\]\s*\)?\s*\)",
+        r"=\s*any\s*\(\s*\(?\s*array\s*\[([^\]]*)\]\s*\)?\s*\)",
         r" in (\1)",
         normalized,
     )
     normalized = re.sub(
-        r"(\S+)\s+between\s+(\S+)\s+and\s+(\S+)",
+        r"([^\s()]+)\s+between\s+([^\s()]+)\s+and\s+([^\s()]+)",
         r"\1 >= \2 and \1 <= \3",
         normalized,
     )

@@ -61,6 +61,8 @@ def test_persistence_smoke_uses_durable_volume(production_container_raw: str) ->
 
 def test_persistence_smoke_rebuilds_then_restarts(production_container_raw: str) -> None:
     """Prove rebuild+persist then container restart before persistence asserts."""
+    assert "migrate_databases" in production_container_raw
+    assert "python -m scripts.migrate_database" in production_container_raw
     assert "/api/graph/rebuild" in production_container_raw
     assert "/token" in production_container_raw
     assert "api_persist_seed" in production_container_raw
@@ -114,6 +116,7 @@ def test_api_dockerfile_copies_migrations() -> None:
     """Production API image must ship SQL migrations for durable SQLite init."""
     text = (REPO_ROOT / "Dockerfile.api").read_text(encoding="utf-8")
     assert "COPY migrations/ ./migrations/" in text
+    assert "COPY scripts/migrate_database.py ./scripts/migrate_database.py" in text
 
 
 def test_assets_smoke_requires_positive_integer_total(production_container_raw: str) -> None:

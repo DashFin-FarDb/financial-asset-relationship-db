@@ -284,12 +284,17 @@ async def test_hosted_fallback_cannot_degrade_schema_incompatibility(base_settin
             "_verify_auth_database",
             lambda: (_ for _ in ()).throw(SchemaCompatibilityError("incompatible auth schema")),
         )
-        with pytest.raises(SchemaCompatibilityError, match="incompatible auth schema"):
+
+        async def initialize_application_state() -> None:
+            """Invoke startup state initialization under the hosted fallback settings."""
             await app_factory._initialize_application_state(  # pylint: disable=protected-access
                 cast(Any, hosted_settings),
                 has_persistence=True,
                 hosted_startup_degradation_allowed=True,
             )
+
+        with pytest.raises(SchemaCompatibilityError, match="incompatible auth schema"):
+            await initialize_application_state()
 
 
 @pytest.mark.asyncio
@@ -306,12 +311,16 @@ async def test_auth_database_verification_timeout_fails_closed(
     monkeypatch.setattr(app_factory.asyncio, "to_thread", _never_complete)
     monkeypatch.setattr(app_factory, "_AUTH_DATABASE_VERIFICATION_TIMEOUT_SECONDS", 0.001)
 
-    with pytest.raises(SchemaCompatibilityError, match="verification timed out"):
+    async def initialize_application_state() -> None:
+        """Invoke startup state initialization with the timeout hook installed."""
         await app_factory._initialize_application_state(  # pylint: disable=protected-access
             cast(Any, base_settings),
             has_persistence=False,
             hosted_startup_degradation_allowed=False,
         )
+
+    with pytest.raises(SchemaCompatibilityError, match="verification timed out"):
+        await initialize_application_state()
 
 
 def test_auth_runtime_verification_does_not_call_mutators(monkeypatch: pytest.MonkeyPatch) -> None:

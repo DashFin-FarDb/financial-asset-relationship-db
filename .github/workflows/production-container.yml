@@ -62,6 +62,18 @@ jobs:
           DB_URL="sqlite:////data/fardb.db"
           docker volume create "$VOLUME_NAME" >/dev/null
 
+          migrate_databases() {
+            docker run --rm --name api_persist_migrate \
+              -v "${VOLUME_NAME}:/data" \
+              -e ENV=production \
+              -e DATABASE_URL="$DB_URL" \
+              -e ASSET_GRAPH_DATABASE_URL="$DB_URL" \
+              -e SECRET_KEY="$SECRET_KEY" \
+              -e ADMIN_USERNAME="$ADMIN_USERNAME" \
+              -e ADMIN_PASSWORD="$ADMIN_PASSWORD" \
+              fardb-api python -m scripts.migrate_database
+          }
+
           start_api() {
             local name="$1"
             docker run -d --name "$name" -p 8000:8000 \
@@ -96,7 +108,8 @@ jobs:
           }
           trap cleanup EXIT
 
-          # Phase A: start, liveness, rebuild+persist onto the volume.
+          # Phase A: explicitly migrate, start, liveness, rebuild+persist onto the volume.
+          migrate_databases
           start_api api_persist_seed
           wait_healthy api_persist_seed
           curl -fsS http://127.0.0.1:8000/api/health >/dev/null
