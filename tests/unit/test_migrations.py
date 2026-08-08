@@ -6,7 +6,13 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from src.data.migrations import apply_postgresql_heartbeat_migration, postgresql_heartbeat_schema_gaps
+from src.data.migrations import (
+    _REBUILD_IDENTIFIER_COLUMNS,
+    _REBUILD_IDENTIFIER_NORMALIZATION_STATEMENTS,
+    _REBUILD_IDENTIFIER_RECHECK_STATEMENTS,
+    apply_postgresql_heartbeat_migration,
+    postgresql_heartbeat_schema_gaps,
+)
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -204,6 +210,14 @@ class TestApplyPostgresqlHeartbeatMigration:
         executed_sql = [str(call.args[0]) for call in begin_conn.execute.call_args_list]
 
         assert any("ALTER COLUMN execution_id TYPE VARCHAR(64)" in sql for sql in executed_sql)
+
+    @staticmethod
+    def test_normalization_statements_are_allowlisted_for_identifier_columns() -> None:
+        """Normalization SQL should be static and keyed only by trusted identifier columns."""
+        expected_columns = set(_REBUILD_IDENTIFIER_COLUMNS)
+
+        assert set(_REBUILD_IDENTIFIER_RECHECK_STATEMENTS) == expected_columns
+        assert set(_REBUILD_IDENTIFIER_NORMALIZATION_STATEMENTS) == expected_columns
 
 
 class TestPostgresqlHeartbeatSchemaGaps:

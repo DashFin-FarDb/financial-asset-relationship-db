@@ -238,7 +238,13 @@ _MEMORY_CONNECTION_LOCK = threading.Lock()
 # Separate reentrant lock used to serialize concurrent use of the shared in-memory connection.
 _MEMORY_USE_LOCK = threading.RLock()
 _CREDENTIAL_COLUMNS = ("id", "username", "email", "full_name", "hashed_password", "disabled")
-_CREDENTIAL_COLUMN_LITERALS = ", ".join(f"'{column}'" for column in _CREDENTIAL_COLUMNS)
+_CREDENTIAL_COLUMN_SET = frozenset(_CREDENTIAL_COLUMNS)
+_POSTGRES_CREDENTIAL_COLUMN_NAMES_SQL = (
+    "SELECT string_agg(column_name, ',' ORDER BY column_name) "
+    "FROM information_schema.columns "
+    "WHERE table_schema = current_schema() AND table_name = 'user_credentials'"
+)
+_SQLITE_CREDENTIAL_COLUMN_NAMES_SQL = "SELECT group_concat(name, ',') FROM pragma_table_info('user_credentials')"
 
 
 def _is_memory_db(path: str | None = None) -> bool:
@@ -658,6 +664,13 @@ def fetch_value(query: str, parameters: tuple | list | None = None) -> object | 
         return row
 
 
+def _parse_catalog_column_names(value: Any) -> set[str]:
+    """Parse comma-delimited catalog column names returned by backend aggregate queries."""
+    if value is None:
+        return set()
+    return {name for name in str(value).split(",") if name}
+
+
 def initialize_schema() -> None:
     """
     Create the `user_credentials` table if it does not already exist.
@@ -702,13 +715,8 @@ def initialize_schema() -> None:
 
 def verify_schema_compatibility() -> None:
     """Verify the API credential schema using read-only catalog queries."""
-    required_column_count = len(_CREDENTIAL_COLUMNS)
     if DATABASE_TYPE == "postgresql":
-        column_count = fetch_value(
-            "SELECT COUNT(*) FROM information_schema.columns "
-            "WHERE table_schema = current_schema() AND table_name = 'user_credentials' "
-            f"AND column_name IN ({_CREDENTIAL_COLUMN_LITERALS})"
-        )
+        column_names = _parse_catalog_column_names(fetch_value(_POSTGRES_CREDENTIAL_COLUMN_NAMES_SQL))
         username_unique = fetch_value(
             "SELECT EXISTS ("
             "SELECT 1 FROM pg_constraint AS con "
@@ -720,9 +728,7 @@ def verify_schema_compatibility() -> None:
             ")]::smallint[])"
         )
     else:
-        column_count = fetch_value(
-            f"SELECT COUNT(*) FROM pragma_table_info('user_credentials') WHERE name IN ({_CREDENTIAL_COLUMN_LITERALS})"
-        )
+        column_names = _parse_catalog_column_names(fetch_value(_SQLITE_CREDENTIAL_COLUMN_NAMES_SQL))
         username_unique = fetch_value(
             "SELECT EXISTS ("
             "SELECT 1 FROM pragma_index_list('user_credentials') AS indexes "
@@ -731,7 +737,7 @@ def verify_schema_compatibility() -> None:
             "AND (SELECT name FROM pragma_index_info(indexes.name) LIMIT 1) = 'username')"
         )
 
-    if column_count != required_column_count:
+    if not _CREDENTIAL_COLUMN_SET.issubset(column_names):
         raise SchemaCompatibilityError("API credential schema is missing required columns")
     if not username_unique:
         raise SchemaCompatibilityError("API credential schema is missing the username uniqueness invariant")

@@ -357,7 +357,7 @@ class TestSchemaInitialization:
         for column in required_columns:
             assert column in sql, f"Missing column: {column}"
 
-    @patch("api.database.fetch_value", side_effect=[6, 1])
+    @patch("api.database.fetch_value", side_effect=["disabled,email,full_name,hashed_password,id,username", 1])
     def test_verify_schema_compatibility_is_read_only(self, mock_fetch_value):
         """Credential verification should use catalog reads and perform no DDL."""
         with patch("api.database.execute") as mock_execute:
@@ -368,10 +368,18 @@ class TestSchemaInitialization:
         sqlite_unique_query = mock_fetch_value.call_args_list[1].args[0]
         assert "COUNT(*) FROM pragma_index_info(indexes.name)" in sqlite_unique_query
         assert "= 1" in sqlite_unique_query
+        column_query = mock_fetch_value.call_args_list[0].args[0]
+        assert "WHERE name IN" not in column_query
 
-    @patch("api.database.fetch_value", side_effect=[0, 0])
+    @patch("api.database.fetch_value", side_effect=[None, 0])
     def test_verify_schema_compatibility_fails_when_table_is_missing(self, _mock_fetch_value):
         """Missing credential schema should produce a stable compatibility failure."""
+        with pytest.raises(SchemaCompatibilityError, match="missing required columns"):
+            verify_schema_compatibility()
+
+    @patch("api.database.fetch_value", side_effect=["disabled,email,full_name,id,username", 1])
+    def test_verify_schema_compatibility_fails_when_required_column_is_missing(self, _mock_fetch_value):
+        """Credential verification should compare the returned catalog names against the shared column set."""
         with pytest.raises(SchemaCompatibilityError, match="missing required columns"):
             verify_schema_compatibility()
 

@@ -48,6 +48,14 @@ REBUILD_JOB_STATUSES = (
 )
 _REBUILD_JOB_STATUS_LITERALS = ", ".join(f"'{status}'" for status in REBUILD_JOB_STATUSES)
 _REBUILD_IDENTIFIER_COLUMNS = ("active_worker_id", "execution_id")
+_REBUILD_IDENTIFIER_RECHECK_STATEMENTS = {
+    "active_worker_id": text("SELECT MAX(LENGTH(active_worker_id)) FROM rebuild_jobs"),
+    "execution_id": text("SELECT MAX(LENGTH(execution_id)) FROM rebuild_jobs"),
+}
+_REBUILD_IDENTIFIER_NORMALIZATION_STATEMENTS = {
+    "active_worker_id": text("ALTER TABLE rebuild_jobs ALTER COLUMN active_worker_id TYPE VARCHAR(64)"),
+    "execution_id": text("ALTER TABLE rebuild_jobs ALTER COLUMN execution_id TYPE VARCHAR(64)"),
+}
 
 
 def apply_migrations(db_path: Path | str) -> None:
@@ -347,9 +355,9 @@ def _apply_normalization_in_transaction(connection, columns_to_normalize: tuple[
 
     connection.execute(text("LOCK TABLE rebuild_jobs IN ACCESS EXCLUSIVE MODE"))
     for column_name in columns_to_normalize:
-        recheck = connection.execute(text(f"SELECT MAX(LENGTH({column_name})) FROM rebuild_jobs")).scalar()
+        recheck = connection.execute(_REBUILD_IDENTIFIER_RECHECK_STATEMENTS[column_name]).scalar()
         if recheck is None or recheck <= 64:
-            connection.execute(text(f"ALTER TABLE rebuild_jobs ALTER COLUMN {column_name} TYPE VARCHAR(64)"))
+            connection.execute(_REBUILD_IDENTIFIER_NORMALIZATION_STATEMENTS[column_name])
             continue
         log_event(
             logger,
