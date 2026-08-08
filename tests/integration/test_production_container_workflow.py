@@ -67,6 +67,13 @@ def test_persistence_smoke_rebuilds_then_restarts(production_container_raw: str)
     assert "api_persist_reload" in production_container_raw
 
 
+def test_runtime_receives_seeded_admin_credentials(production_container_raw: str) -> None:
+    """Runtime containers need seeded credentials for production settings and token issuance."""
+    start_api_block = production_container_raw.split("start_api() {", 1)[1].split("wait_healthy() {", 1)[0]
+    assert '-e ADMIN_USERNAME="$ADMIN_USERNAME"' in start_api_block
+    assert '-e ADMIN_PASSWORD="$ADMIN_PASSWORD"' in start_api_block
+
+
 def test_persistence_fields_asserted_after_reload(production_container_raw: str) -> None:
     """Local curl/jq asserts must match hosted persistence gate fields."""
     for marker in (

@@ -73,10 +73,24 @@ jobs:
       - name: Ensure Pyre configuration
         run: |
           if [ ! -f .pyre_configuration ]; then
-            printf '%s\n' '{' \
-              '  "source_directories": ["."],' \
-              '  "exclude": [".*/\\\\.venv/.*", ".*/node_modules/.*", ".*/frontend/.*", ".*/tests?/.*"]' \
-              '}' > .pyre_configuration
+          python3 <<'PY'
+          import json
+          import site
+          from pathlib import Path
+
+          Path(".pyre_configuration").write_text(
+              json.dumps(
+                  {
+                      "source_directories": ["."],
+                      "search_path": site.getsitepackages(),
+                      "exclude": [".*/\\\\.venv/.*", ".*/node_modules/.*", ".*/frontend/.*", ".*/tests?/.*"],
+                  },
+                  indent=2,
+              )
+              + "\n",
+              encoding="utf-8",
+          )
+          PY
           fi
 
       - name: Run Pyre

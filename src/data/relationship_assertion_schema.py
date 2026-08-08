@@ -333,7 +333,10 @@ def _postgresql_grac_constraints_present(connection: Connection) -> bool:
         ("relationship_assertions", "ck_relationship_assertions_effective_window"): EFFECTIVE_WINDOW_CHECK,
         ("relationship_projection_edges", "ck_relationship_projection_edges_strength"): STRENGTH_DECIMAL_CHECK,
     }
-    actual = _postgresql_constraint_catalog(connection, [name for _table, name in expected])
+    actual = _postgresql_constraint_catalog(
+        connection,
+        [constraint_name for (_table_name, constraint_name), _canonical_check in expected.items()],
+    )
     if not all(actual.get(key, (None, False))[1] for key in expected):
         return False
     return all(_postgresql_check_matches(actual[key][0], canonical) for key, canonical in expected.items())
