@@ -387,7 +387,12 @@ class TestSchemaInitialization:
     def test_verify_runtime_authority_accepts_restricted_postgresql_role(self, mock_fetch_value):
         """Auth startup should accept a PostgreSQL role without migration authority."""
         verify_runtime_authority()
-        assert "current_schema() IS NOT NULL" in mock_fetch_value.call_args.args[0]
+        authority_query = mock_fetch_value.call_args.args[0]
+        assert "current_schema() IS NOT NULL" in authority_query
+        assert "login.rolname = session_user" in authority_query
+        assert "pg_has_role(login.oid, assumable.oid, 'MEMBER')" in authority_query
+        assert "namespace.nspowner = assumable.oid" in authority_query
+        assert "database.datdba = assumable.oid" in authority_query
 
 
 class TestEdgeCases:

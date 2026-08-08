@@ -312,8 +312,10 @@ If a future schema renames `sanitized_failure_category` to `failure_category`, u
 
 For hosted PostgreSQL restores, the restored schema should come from PITR or the `pg_restore` dump. Do not run `migrations/001_initial.sql` through `psql`; the repository SQL migration files are SQLite-oriented, and a full PostgreSQL restore already contains schema and data.
 
-If the restore point predates repository compatibility migrations, run the explicit database migration command against
-the restored database before restarting live traffic.
+If the restore point predates repository compatibility migrations, first point `DATABASE_URL`,
+`ASSET_GRAPH_DATABASE_URL`, and `COORDINATION_DATABASE_URL` at their intended restored Auth, Asset Graph, and
+Coordination targets. Verify each target identity using the provider project/reference and database name without
+printing credentials. Only then run the explicit database migration command, before restarting live traffic.
 
 Current operator migration behavior (evidence: `scripts/migrate_database.py`, `src/data/database.py` `init_db`,
 `src/data/migrations.py`, `src/data/db_models.py` `ck_rebuild_jobs_status`):

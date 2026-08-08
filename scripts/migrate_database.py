@@ -6,7 +6,7 @@ from collections.abc import Callable
 
 from sqlalchemy.engine import Engine
 
-from api.auth import _seed_credentials_from_settings, user_repository
+from api.auth import seed_credentials_from_settings, user_repository
 from api.database import DATABASE_URL as API_DATABASE_URL
 from api.database import initialize_schema, verify_schema_compatibility
 from api.graph_lifecycle_providers import resolve_hosted_graph_database_url
@@ -57,7 +57,7 @@ def migrate_configured_databases(
             migrated.append("graph" if url == graph_url else "coordination")
 
         initialize_schema()
-        _seed_credentials_from_settings(user_repository, resolved_settings)
+        seed_credentials_from_settings(user_repository, resolved_settings)
         verify_schema_compatibility()
         if not user_repository.has_users():
             raise RuntimeError(

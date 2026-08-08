@@ -14,7 +14,9 @@ from src.data.base import Base
 from src.data.database import init_db, verify_database_schema
 from src.data.db_models import AssetORM, RebuildJobORM
 from src.data.relationship_assertion_db_models import (
+    EFFECTIVE_WINDOW_CHECK,
     GRAC_TABLE_NAMES,
+    STRENGTH_DECIMAL_CHECK,
     RelationshipAssertionEventORM,
     RelationshipAssertionEvidenceORM,
     RelationshipAssertionORM,
@@ -24,6 +26,7 @@ from src.data.relationship_assertion_db_models import (
     RelationshipProjectionRevisionORM,
 )
 from src.data.relationship_assertion_schema import (
+    _postgresql_check_matches,
     ensure_relationship_assertion_schema,
     list_immutability_trigger_names,
     verify_relationship_assertion_schema,
@@ -32,6 +35,14 @@ from tests.conftest import enable_sqlite_foreign_keys
 
 UTC = timezone.utc
 DIGEST = "c" * 64
+
+
+@pytest.mark.parametrize("canonical", [EFFECTIVE_WINDOW_CHECK, STRENGTH_DECIMAL_CHECK])
+def test_postgresql_grac_constraint_comparison_requires_canonical_predicate(canonical: str) -> None:
+    """Named, validated constraints must also preserve the canonical predicate."""
+    assert _postgresql_check_matches(f"CHECK (({canonical}))", canonical)
+    assert not _postgresql_check_matches("CHECK (TRUE)", canonical)
+
 
 LEGACY_TABLES = (
     "assets",

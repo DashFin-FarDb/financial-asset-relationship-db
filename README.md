@@ -45,7 +45,6 @@ export SECRET_KEY=replace-with-a-long-random-secret
 export ADMIN_USERNAME=admin
 export ADMIN_PASSWORD=replace-with-a-strong-password
 python -m scripts.migrate_database
-unset ADMIN_PASSWORD
 ./run-dev.sh
 ```
 
@@ -56,7 +55,6 @@ set SECRET_KEY=replace-with-a-long-random-secret
 set ADMIN_USERNAME=admin
 set ADMIN_PASSWORD=replace-with-a-strong-password
 python -m scripts.migrate_database
-set ADMIN_PASSWORD=
 run-dev.bat
 ```
 
@@ -81,9 +79,14 @@ ${FRONTEND_PORT:-3000}).
    python -m uvicorn api.main:app --reload --port ${BACKEND_PORT:-8000}
    ```
 
-   Windows PowerShell users should activate `.venv\\Scripts\\Activate.ps1` and set the same
-   environment variables with `$env:NAME="value"` before running the `python -m uvicorn ...`
-   command.
+   Windows PowerShell users should activate `.venv\\Scripts\\Activate.ps1`, set the same
+   environment variables with `$env:NAME="value"`, and run:
+
+   ```powershell
+   python -m scripts.migrate_database
+   Remove-Item Env:ADMIN_PASSWORD
+   python -m uvicorn api.main:app --reload --port 8000
+   ```
 
    The backend production entrypoint is `api.main:app`. Production deployments should run the same
    app object with a command equivalent to the following; set the PORT environment variable as

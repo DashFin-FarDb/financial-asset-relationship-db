@@ -174,6 +174,7 @@ def test_restricted_runtime_role_verifies_schema_on_cold_start_and_restart() -> 
         pytest.skip("Runtime database URL contains a placeholder password token")
 
     from sqlalchemy import create_engine, text
+    from sqlalchemy.exc import DBAPIError
 
     from src.data.database import verify_database_schema, verify_runtime_database_authority
 
@@ -196,7 +197,27 @@ def test_restricted_runtime_role_verifies_schema_on_cold_start_and_restart() -> 
 
         verify_database_schema(engine)
         verify_runtime_database_authority(engine)
+
+        with engine.connect() as connection:
+            assert connection.execute(text("SELECT to_regclass('user_credentials')")).scalar_one() is not None
+
+        forbidden_statements = (
+            "CREATE TABLE cq_runtime_authority_probe (id INTEGER)",
+            "GRANT SELECT ON assets TO PUBLIC",
+            "INSERT INTO user_credentials "
+            "(username, hashed_password, disabled) VALUES ('cq-runtime-probe', 'not-used', 1)",
+        )
+        for statement in forbidden_statements:
+            with engine.connect() as connection:
+                transaction = connection.begin()
+                try:
+                    with pytest.raises(DBAPIError):
+                        connection.execute(text(statement))
+                finally:
+                    transaction.rollback()
+
         engine.dispose()
+        engine = create_engine(runtime_url, future=True)
         verify_database_schema(engine)
         verify_runtime_database_authority(engine)
     finally:

@@ -237,6 +237,8 @@ _MEMORY_CONNECTION_MANAGER: _DatabaseConnectionManager | None = None
 _MEMORY_CONNECTION_LOCK = threading.Lock()
 # Separate reentrant lock used to serialize concurrent use of the shared in-memory connection.
 _MEMORY_USE_LOCK = threading.RLock()
+_CREDENTIAL_COLUMNS = ("id", "username", "email", "full_name", "hashed_password", "disabled")
+_CREDENTIAL_COLUMN_LITERALS = ", ".join(f"'{column}'" for column in _CREDENTIAL_COLUMNS)
 
 
 def _is_memory_db(path: str | None = None) -> bool:
@@ -700,12 +702,12 @@ def initialize_schema() -> None:
 
 def verify_schema_compatibility() -> None:
     """Verify the API credential schema using read-only catalog queries."""
-    required_column_count = 6
+    required_column_count = len(_CREDENTIAL_COLUMNS)
     if DATABASE_TYPE == "postgresql":
         column_count = fetch_value(
             "SELECT COUNT(*) FROM information_schema.columns "
             "WHERE table_schema = current_schema() AND table_name = 'user_credentials' "
-            "AND column_name IN ('id', 'username', 'email', 'full_name', 'hashed_password', 'disabled')"
+            f"AND column_name IN ({_CREDENTIAL_COLUMN_LITERALS})"
         )
         username_unique = fetch_value(
             "SELECT EXISTS ("
@@ -720,7 +722,7 @@ def verify_schema_compatibility() -> None:
     else:
         column_count = fetch_value(
             "SELECT COUNT(*) FROM pragma_table_info('user_credentials') "
-            "WHERE name IN ('id', 'username', 'email', 'full_name', 'hashed_password', 'disabled')"
+            f"WHERE name IN ({_CREDENTIAL_COLUMN_LITERALS})"
         )
         username_unique = fetch_value(
             "SELECT EXISTS ("
@@ -742,14 +744,24 @@ def verify_runtime_authority() -> None:
         return
 
     restricted = fetch_value(
-        "SELECT current_schema() IS NOT NULL AND NOT ("
-        "role.rolsuper OR role.rolcreaterole OR role.rolcreatedb OR role.rolbypassrls "
-        "OR has_schema_privilege(role.oid, current_schema(), 'CREATE') "
+        "SELECT current_schema() IS NOT NULL AND NOT EXISTS ("
+        "SELECT 1 FROM pg_roles AS assumable "
+        "WHERE (assumable.oid = login.oid "
+        "OR pg_has_role(login.oid, assumable.oid, 'MEMBER')) "
+        "AND (assumable.rolsuper OR assumable.rolcreaterole "
+        "OR assumable.rolcreatedb OR assumable.rolbypassrls "
+        "OR has_schema_privilege(assumable.oid, current_schema(), 'CREATE') "
+        "OR EXISTS (SELECT 1 FROM pg_namespace AS namespace "
+        "WHERE namespace.nspname = current_schema() "
+        "AND namespace.nspowner = assumable.oid) "
+        "OR EXISTS (SELECT 1 FROM pg_database AS database "
+        "WHERE database.datname = current_database() "
+        "AND database.datdba = assumable.oid) "
         "OR EXISTS (SELECT 1 FROM pg_class AS rel "
         "JOIN pg_namespace AS namespace ON namespace.oid = rel.relnamespace "
         "WHERE namespace.nspname = current_schema() AND rel.relkind IN ('r', 'p', 'S') "
-        "AND pg_has_role(role.oid, rel.relowner, 'MEMBER'))) "
-        "FROM pg_roles AS role WHERE role.rolname = current_user"
+        "AND rel.relowner = assumable.oid))) "
+        "FROM pg_roles AS login WHERE login.rolname = session_user"
     )
     if not restricted:
         raise SchemaCompatibilityError("API runtime database role retains schema-migration authority")

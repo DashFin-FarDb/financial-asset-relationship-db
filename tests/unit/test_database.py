@@ -396,14 +396,15 @@ class TestDatabaseInitialization:
         init_db(migration_engine)
         migration_engine.dispose()
 
+        def _make_query_only(dbapi_connection, _connection_record) -> None:
+            """Force each runtime connection into SQLite query-only mode."""
+            cursor = dbapi_connection.cursor()
+            cursor.execute("PRAGMA query_only=ON")
+            cursor.close()
+
         for _restart in range(2):
             runtime_engine = create_engine_from_url(database_url)
-
-            @event.listens_for(runtime_engine, "connect")
-            def _make_query_only(dbapi_connection, _connection_record) -> None:
-                cursor = dbapi_connection.cursor()
-                cursor.execute("PRAGMA query_only=ON")
-                cursor.close()
+            event.listen(runtime_engine, "connect", _make_query_only)
 
             try:
                 verify_database_schema(runtime_engine)
@@ -412,29 +413,28 @@ class TestDatabaseInitialization:
             finally:
                 runtime_engine.dispose()
 
-    def test_postgresql_runtime_authority_fails_when_role_is_privileged(self) -> None:
-        """A PostgreSQL runtime role retaining migration authority must fail closed."""
+    @pytest.mark.parametrize("restricted", [False, True], ids=["privileged", "restricted"])
+    def test_postgresql_runtime_authority_posture(self, restricted: bool) -> None:
+        """PostgreSQL runtime authority must reject privileged and accept restricted roles."""
         runtime_engine = Mock(spec=Engine)
         runtime_engine.url = "postgresql://runtime:secret@database.invalid/fardb"
         connection = MagicMock()
-        connection.execute.return_value.scalar_one.return_value = False
+        connection.execute.return_value.scalar_one.return_value = restricted
         runtime_engine.connect.return_value.__enter__ = MagicMock(return_value=connection)
         runtime_engine.connect.return_value.__exit__ = MagicMock(return_value=False)
 
-        with pytest.raises(SchemaCompatibilityError, match="retains schema-migration authority"):
-            verify_runtime_database_authority(runtime_engine)
-
-    def test_postgresql_runtime_authority_accepts_restricted_role(self) -> None:
-        """A PostgreSQL role without owner/DDL powers should pass the authority check."""
-        runtime_engine = Mock(spec=Engine)
-        runtime_engine.url = "postgresql://runtime:secret@database.invalid/fardb"
-        connection = MagicMock()
-        connection.execute.return_value.scalar_one.return_value = True
-        runtime_engine.connect.return_value.__enter__ = MagicMock(return_value=connection)
-        runtime_engine.connect.return_value.__exit__ = MagicMock(return_value=False)
+        if not restricted:
+            with pytest.raises(SchemaCompatibilityError, match="retains schema-migration authority"):
+                verify_runtime_database_authority(runtime_engine)
+            return
 
         verify_runtime_database_authority(runtime_engine)
-        assert "current_schema() IS NOT NULL" in str(connection.execute.call_args.args[0])
+        authority_query = str(connection.execute.call_args.args[0])
+        assert "current_schema() IS NOT NULL" in authority_query
+        assert "login.rolname = session_user" in authority_query
+        assert "pg_has_role(login.oid, assumable.oid, 'MEMBER')" in authority_query
+        assert "namespace.nspowner = assumable.oid" in authority_query
+        assert "database.datdba = assumable.oid" in authority_query
 
 
 # ---------------------------------------------------------------------------

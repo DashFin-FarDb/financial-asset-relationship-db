@@ -346,7 +346,7 @@ def get_password_hash(password):
     return pwd_context.hash(password)
 
 
-def _seed_credentials_from_settings(
+def seed_credentials_from_settings(
     repository: UserRepository,
     settings: Settings,
 ) -> None:
@@ -390,7 +390,12 @@ def _seed_credentials_from_env(repository: UserRepository) -> None:
     Parameters:
         repository (UserRepository): Repository to seed.
     """
-    _seed_credentials_from_settings(repository, load_settings())
+    seed_credentials_from_settings(repository, load_settings())
+
+
+# Compatibility alias for existing internal callers; new bootstrap code uses
+# the public settings-injected abstraction above.
+_seed_credentials_from_settings = seed_credentials_from_settings
 
 
 def get_user(

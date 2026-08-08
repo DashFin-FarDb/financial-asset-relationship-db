@@ -318,7 +318,10 @@ def test_auth_runtime_verification_does_not_call_mutators(monkeypatch: pytest.Mo
     import api.auth as auth
     import api.database as database
 
-    monkeypatch.setattr(database, "verify_schema_compatibility", lambda: None)
+    verify_schema = MagicMock()
+    verify_authority = MagicMock()
+    monkeypatch.setattr(database, "verify_schema_compatibility", verify_schema)
+    monkeypatch.setattr(database, "verify_runtime_authority", verify_authority)
     monkeypatch.setattr(auth.user_repository, "has_users", lambda: True)
     initialize = MagicMock(side_effect=AssertionError("runtime DDL forbidden"))
     seed = MagicMock(side_effect=AssertionError("runtime credential seed forbidden"))
@@ -327,8 +330,26 @@ def test_auth_runtime_verification_does_not_call_mutators(monkeypatch: pytest.Mo
 
     app_factory._verify_auth_database()  # pylint: disable=protected-access
 
+    verify_schema.assert_called_once_with()
+    verify_authority.assert_called_once_with()
     initialize.assert_not_called()
     seed.assert_not_called()
+
+
+def test_auth_runtime_verification_sanitizes_unexpected_failures(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Driver details must not escape the auth startup verification boundary."""
+    import api.database as database
+
+    monkeypatch.setattr(
+        database,
+        "verify_schema_compatibility",
+        MagicMock(side_effect=OSError("credential-bearing driver detail")),
+    )
+
+    with pytest.raises(SchemaCompatibilityError, match=r"failed \(OSError\)") as exc_info:
+        app_factory._verify_auth_database()  # pylint: disable=protected-access
+
+    assert "credential-bearing" not in str(exc_info.value)
 
 
 @pytest.mark.parametrize(

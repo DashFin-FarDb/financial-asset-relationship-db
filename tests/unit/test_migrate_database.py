@@ -9,6 +9,8 @@ import pytest
 import scripts.migrate_database as migrate_database
 from src.config.settings import Settings
 
+pytestmark = pytest.mark.unit
+
 
 def test_migrate_configured_databases_owns_all_mutating_setup(monkeypatch) -> None:
     """One command should migrate graph/coordination and provision auth state."""
@@ -30,14 +32,16 @@ def test_migrate_configured_databases_owns_all_mutating_setup(monkeypatch) -> No
     verify_auth = MagicMock()
     init_db = MagicMock()
     verify_graph = MagicMock()
+    verify_alignment = MagicMock(wraps=migrate_database._require_auth_database_alignment)
 
     monkeypatch.setattr(migrate_database, "initialize_schema", initialize_schema)
-    monkeypatch.setattr(migrate_database, "_seed_credentials_from_settings", seed_credentials)
+    monkeypatch.setattr(migrate_database, "seed_credentials_from_settings", seed_credentials)
     monkeypatch.setattr(migrate_database, "verify_schema_compatibility", verify_auth)
     monkeypatch.setattr(migrate_database.user_repository, "has_users", lambda: True)
     monkeypatch.setattr(migrate_database, "init_db", init_db)
     monkeypatch.setattr(migrate_database, "verify_database_schema", verify_graph)
     monkeypatch.setattr(migrate_database, "API_DATABASE_URL", settings.database_url)
+    monkeypatch.setattr(migrate_database, "_require_auth_database_alignment", verify_alignment)
 
     migrated = migrate_database.migrate_configured_databases(
         settings,
@@ -50,6 +54,7 @@ def test_migrate_configured_databases_owns_all_mutating_setup(monkeypatch) -> No
     initialize_schema.assert_called_once_with()
     seed_credentials.assert_called_once_with(migrate_database.user_repository, settings)
     verify_auth.assert_called_once_with()
+    verify_alignment.assert_called_once_with(settings)
     for engine in engines.values():
         engine.dispose.assert_called_once_with()
 
@@ -59,7 +64,7 @@ def test_migrate_configured_databases_requires_provisioned_credentials(monkeypat
     settings = Settings(secret_key="s" * 32, database_url="sqlite:///auth.db")
     monkeypatch.setattr(migrate_database, "initialize_schema", lambda: None)
     monkeypatch.setattr(migrate_database, "verify_schema_compatibility", lambda: None)
-    monkeypatch.setattr(migrate_database, "_seed_credentials_from_settings", lambda *_args: None)
+    monkeypatch.setattr(migrate_database, "seed_credentials_from_settings", lambda *_args: None)
     monkeypatch.setattr(migrate_database.user_repository, "has_users", lambda: False)
     monkeypatch.setattr(migrate_database, "API_DATABASE_URL", settings.database_url)
     monkeypatch.setattr(migrate_database, "init_db", lambda _engine: None)
@@ -86,7 +91,7 @@ def test_migrate_configured_databases_migrates_coordination_without_graph(monkey
     monkeypatch.setattr(migrate_database, "verify_database_schema", MagicMock())
     monkeypatch.setattr(migrate_database, "initialize_schema", lambda: None)
     monkeypatch.setattr(migrate_database, "verify_schema_compatibility", lambda: None)
-    monkeypatch.setattr(migrate_database, "_seed_credentials_from_settings", lambda *_args: None)
+    monkeypatch.setattr(migrate_database, "seed_credentials_from_settings", lambda *_args: None)
     monkeypatch.setattr(migrate_database.user_repository, "has_users", lambda: True)
 
     migrated = migrate_database.migrate_configured_databases(

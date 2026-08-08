@@ -342,6 +342,9 @@ def verify_database_schema(engine: Engine) -> None:
         verify_relationship_assertion_schema(engine)
     except SchemaCompatibilityError:
         raise
+    except (PermissionError, RuntimeError) as exc:
+        # GRAC verification emits bounded repository-owned invariant messages.
+        raise SchemaCompatibilityError(str(exc)) from None
     except Exception as exc:  # noqa: BLE001 - sanitize driver/catalog errors at the runtime boundary
         raise SchemaCompatibilityError(
             f"database schema compatibility verification failed ({type(exc).__name__})"
@@ -358,20 +361,29 @@ def verify_runtime_database_authority(engine: Engine) -> None:
         with engine.connect() as connection:
             restricted = connection.execute(
                 text(
-                    "SELECT current_schema() IS NOT NULL AND NOT ("
-                    "role.rolsuper OR role.rolcreaterole OR role.rolcreatedb "
-                    "OR role.rolbypassrls "
-                    "OR has_schema_privilege(role.oid, current_schema(), 'CREATE') "
+                    "SELECT current_schema() IS NOT NULL AND NOT EXISTS ("
+                    "SELECT 1 FROM pg_roles AS assumable "
+                    "WHERE (assumable.oid = login.oid "
+                    "OR pg_has_role(login.oid, assumable.oid, 'MEMBER')) "
+                    "AND (assumable.rolsuper OR assumable.rolcreaterole "
+                    "OR assumable.rolcreatedb OR assumable.rolbypassrls "
+                    "OR has_schema_privilege(assumable.oid, current_schema(), 'CREATE') "
+                    "OR EXISTS (SELECT 1 FROM pg_namespace AS namespace "
+                    "WHERE namespace.nspname = current_schema() "
+                    "AND namespace.nspowner = assumable.oid) "
+                    "OR EXISTS (SELECT 1 FROM pg_database AS database "
+                    "WHERE database.datname = current_database() "
+                    "AND database.datdba = assumable.oid) "
                     "OR EXISTS (SELECT 1 FROM pg_class AS rel "
                     "JOIN pg_namespace AS namespace ON namespace.oid = rel.relnamespace "
                     "WHERE namespace.nspname = current_schema() AND rel.relname IN :tables "
-                    "AND pg_has_role(role.oid, rel.relowner, 'MEMBER')) "
+                    "AND rel.relowner = assumable.oid) "
                     "OR EXISTS (SELECT 1 FROM pg_proc AS proc "
                     "JOIN pg_namespace AS namespace ON namespace.oid = proc.pronamespace "
                     "WHERE namespace.nspname = current_schema() "
                     "AND proc.proname = 'grac_v1_reject_mutation' "
-                    "AND pg_has_role(role.oid, proc.proowner, 'MEMBER'))) "
-                    "FROM pg_roles AS role WHERE role.rolname = current_user"
+                    "AND proc.proowner = assumable.oid))) "
+                    "FROM pg_roles AS login WHERE login.rolname = session_user"
                 ).bindparams(bindparam("tables", expanding=True)),
                 {"tables": sorted(Base.metadata.tables)},
             ).scalar_one()

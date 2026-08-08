@@ -134,10 +134,17 @@ def _verify_auth_database() -> None:
     from .auth import user_repository
     from .database import verify_runtime_authority, verify_schema_compatibility
 
-    verify_schema_compatibility()
-    verify_runtime_authority()
-    if not user_repository.has_users():
-        raise SchemaCompatibilityError("API credential store has no users; run the explicit database migration command")
+    try:
+        verify_schema_compatibility()
+        verify_runtime_authority()
+        if not user_repository.has_users():
+            raise SchemaCompatibilityError(
+                "API credential store has no users; run the explicit database migration command"
+            )
+    except SchemaCompatibilityError:
+        raise
+    except Exception as exc:  # noqa: BLE001 - sanitize catalog/driver failures at the startup boundary
+        raise SchemaCompatibilityError(f"API credential database verification failed ({type(exc).__name__})") from None
 
 
 def _execute_recovery_gate(engine: Any, coord_engine: Any, cancellation_event: threading.Event | None = None) -> None:

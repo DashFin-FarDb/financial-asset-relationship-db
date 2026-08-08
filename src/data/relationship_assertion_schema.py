@@ -275,20 +275,13 @@ def _ensure_postgresql_grac_constraints(connection: Connection) -> None:
         ("relationship_assertions", "ck_relationship_assertions_effective_window", EFFECTIVE_WINDOW_CHECK),
         ("relationship_projection_edges", "ck_relationship_projection_edges_strength", STRENGTH_DECIMAL_CHECK),
     )
-    rows = connection.execute(
-        text(
-            "SELECT rel.relname, con.conname, pg_get_constraintdef(con.oid), con.convalidated "
-            "FROM pg_constraint AS con "
-            "JOIN pg_class AS rel ON rel.oid = con.conrelid "
-            "JOIN pg_namespace AS namespace ON namespace.oid = rel.relnamespace "
-            "WHERE namespace.nspname = current_schema() AND con.conname IN :names"
-        ).bindparams(bindparam("names", expanding=True)),
-        {"names": [name for _table, name, _check in constraints]},
-    ).all()
-    existing = {(table, name): (definition, validated) for table, name, definition, validated in rows}
+    existing = _postgresql_constraint_catalog(
+        connection,
+        [name for _table, name, _check in constraints],
+    )
     for table, name, check in constraints:
         current = existing.get((table, name))
-        if current is not None and (name.endswith("strength") and "replace" not in current[0]):
+        if current is not None and not _postgresql_check_matches(current[0], check):
             connection.execute(text(f"ALTER TABLE {table} DROP CONSTRAINT {name}"))
             current = None
         if current is None:
@@ -296,12 +289,11 @@ def _ensure_postgresql_grac_constraints(connection: Connection) -> None:
         connection.execute(text(f"ALTER TABLE {table} VALIDATE CONSTRAINT {name}"))
 
 
-def _postgresql_grac_constraints_present(connection: Connection) -> bool:
-    """Return whether the current schema has the validated GRAC compatibility checks."""
-    expected = {
-        ("relationship_assertions", "ck_relationship_assertions_effective_window"),
-        ("relationship_projection_edges", "ck_relationship_projection_edges_strength"),
-    }
+def _postgresql_constraint_catalog(
+    connection: Connection,
+    names: list[str],
+) -> dict[tuple[str, str], tuple[str, bool]]:
+    """Return PostgreSQL CHECK definitions and validation state by table/name."""
     rows = connection.execute(
         text(
             "SELECT rel.relname, con.conname, pg_get_constraintdef(con.oid), con.convalidated "
@@ -310,13 +302,39 @@ def _postgresql_grac_constraints_present(connection: Connection) -> bool:
             "JOIN pg_namespace AS namespace ON namespace.oid = rel.relnamespace "
             "WHERE namespace.nspname = current_schema() AND con.conname IN :names"
         ).bindparams(bindparam("names", expanding=True)),
-        {"names": [name for _table, name in expected]},
+        {"names": names},
     ).all()
-    actual = {(table, name): (definition, validated) for table, name, definition, validated in rows}
+    return {(table, name): (definition, validated) for table, name, definition, validated in rows}
+
+
+def _normalize_postgresql_check(sql: str) -> str:
+    """Normalize PostgreSQL-deparsed CHECK SQL for canonical comparison."""
+    normalized = re.sub(r"::(?:text|character varying)", "", sql.lower())
+    normalized = re.sub(r"\s+", "", normalized)
+    normalized = normalized.removeprefix("check")
+    normalized = normalized.replace("!~~", "notlike").replace("~~", "like")
+    normalized = normalized.replace(
+        "length(strength)between1and32",
+        "length(strength)>=1andlength(strength)<=32",
+    )
+    return normalized.replace("(", "").replace(")", "")
+
+
+def _postgresql_check_matches(definition: str, canonical_check: str) -> bool:
+    """Return whether a catalog CHECK matches the repository canonical predicate."""
+    return _normalize_postgresql_check(definition) == _normalize_postgresql_check(canonical_check)
+
+
+def _postgresql_grac_constraints_present(connection: Connection) -> bool:
+    """Return whether the current schema has the validated GRAC compatibility checks."""
+    expected = {
+        ("relationship_assertions", "ck_relationship_assertions_effective_window"): EFFECTIVE_WINDOW_CHECK,
+        ("relationship_projection_edges", "ck_relationship_projection_edges_strength"): STRENGTH_DECIMAL_CHECK,
+    }
+    actual = _postgresql_constraint_catalog(connection, [name for _table, name in expected])
     if not all(actual.get(key, (None, False))[1] for key in expected):
         return False
-    strength_definition = actual[("relationship_projection_edges", "ck_relationship_projection_edges_strength")][0]
-    return "replace" in strength_definition
+    return all(_postgresql_check_matches(actual[key][0], canonical) for key, canonical in expected.items())
 
 
 def _harden_postgresql_grac_access(connection: Connection) -> None:
