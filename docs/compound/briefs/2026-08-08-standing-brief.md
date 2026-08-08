@@ -23,9 +23,9 @@ Claims are labeled landed vs provisional. ADRs/policy are not rewritten.
 - [landed] **sha:51c25007c0c9d2c899f33d05286b8ac6a8139cf6**: Merge/push to main 51c25007c0c9d2c899f33d05286b8ac6a8139cf6
 
 ### api
+- [provisional] **pr:1608**: -/-  x     y
 - [provisional] **pr:1611**: x       
 - [provisional] **pr:1610**: x    
-- [provisional] **pr:1608**: -/-  x     y
 - [provisional] **pr:1609**: x      
 - [provisional] **pr:1606**:  y/ .. → .. ()
 - [provisional] **pr:1602**: x()  y y   
@@ -40,9 +40,9 @@ Claims are labeled landed vs provisional. ADRs/policy are not rewritten.
 - [landed] **pr:1586**: x     - x
 
 ### persistence
+- [provisional] **pr:1608**: -/-  x     y
 - [provisional] **pr:1611**: x       
 - [provisional] **pr:1610**: x    
-- [provisional] **pr:1608**: -/-  x     y
 - [provisional] **pr:1609**: x      
 - [provisional] **pr:1584**: x   x   
 - [landed] **pr:1569**:   v     
@@ -86,9 +86,9 @@ Claims are labeled landed vs provisional. ADRs/policy are not rewritten.
 - [provisional] **pr:1403**: fix(ci): resolve compound workflow failures
 
 ### deployment
+- [provisional] **pr:1608**: -/-  x     y
 - [provisional] **pr:1611**: x       
 - [provisional] **pr:1610**: x    
-- [provisional] **pr:1608**: -/-  x     y
 - [provisional] **pr:1609**: x      
 - [landed] **pr:1529**: (--)   z   w  -
 - [landed] **pr:1528**:   - -- z  v
