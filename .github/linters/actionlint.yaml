@@ -1,3 +1,6 @@
+ignore:
+  - 'unknown permission scope "models"'
+
 paths:
   .github/workflows/summary.yml:
     ignore:
