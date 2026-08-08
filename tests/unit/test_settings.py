@@ -201,7 +201,6 @@ class TestSettingsModel:
             ("secret_key", ""),
             ("secret_key", "   "),
             ("admin_username", ""),
-            ("admin_password", ""),
         ],
     )
     def test_production_rejects_empty_required_secrets(self, field_name: str, field_value: str) -> None:
@@ -224,6 +223,17 @@ class TestSettingsModel:
         assert "admin_password" not in error_message
         assert "secret-key-that-is-at-least-32-bytes" not in error_message
         assert "configured-value" not in error_message
+
+    @pytest.mark.parametrize("admin_password", [None, "", "   "])
+    def test_production_allows_missing_bootstrap_password(self, admin_password: str | None) -> None:
+        """Test that production runtime settings do not require ADMIN_PASSWORD."""
+        settings = Settings(
+            env=DeploymentEnvironment.PRODUCTION,
+            secret_key="secret-key-that-is-at-least-32-bytes",
+            admin_username="admin",
+            admin_password=admin_password,
+        )
+        assert settings.admin_password == admin_password
 
     def test_production_validates_trimmed_secret_key_length(self) -> None:
         """Test that whitespace padding cannot satisfy production secret length."""
