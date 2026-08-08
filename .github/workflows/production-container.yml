@@ -71,7 +71,6 @@ jobs:
               -e ASSET_GRAPH_DATABASE_URL="$DB_URL" \
               -e SECRET_KEY="$SECRET_KEY" \
               -e ADMIN_USERNAME="$ADMIN_USERNAME" \
-              -e ADMIN_PASSWORD="$ADMIN_PASSWORD" \
               fardb-api
           }
 
@@ -95,6 +94,18 @@ jobs:
             docker volume rm -f "$VOLUME_NAME" >/dev/null 2>&1 || true
           }
           trap cleanup EXIT
+
+          # Explicit migration authority before read-only runtime startup.
+          docker run --rm \
+            -v "${VOLUME_NAME}:/data" \
+            -e ENV=production \
+            -e DATABASE_URL="$DB_URL" \
+            -e ASSET_GRAPH_DATABASE_URL="$DB_URL" \
+            -e SECRET_KEY="$SECRET_KEY" \
+            -e ADMIN_USERNAME="$ADMIN_USERNAME" \
+            -e ADMIN_PASSWORD="$ADMIN_PASSWORD" \
+            fardb-api \
+            python -m scripts.migrate_database
 
           # Phase A: start, liveness, rebuild+persist onto the volume.
           start_api api_persist_seed
@@ -195,14 +206,12 @@ jobs:
         env:
           SECRET_KEY: ${{ secrets.CI_SMOKE_TEST_SECRET_KEY || 'ci-smoke-test-key-not-a-real-secret' }}
           ADMIN_USERNAME: ci-admin
-          ADMIN_PASSWORD: ci-admin-password
         run: |
           set +e
           timeout 15s docker run --name api_bad_env \
             -e ENV=production \
             -e SECRET_KEY="$SECRET_KEY" \
             -e ADMIN_USERNAME="$ADMIN_USERNAME" \
-            -e ADMIN_PASSWORD="$ADMIN_PASSWORD" \
             -e DATABASE_URL="bad_scheme://bad" \
             fardb-api
           exit_code=$?

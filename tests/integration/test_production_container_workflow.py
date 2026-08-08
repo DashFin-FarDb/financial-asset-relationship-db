@@ -67,6 +67,18 @@ def test_persistence_smoke_rebuilds_then_restarts(production_container_raw: str)
     assert "api_persist_reload" in production_container_raw
 
 
+def test_persistence_smoke_migrates_before_runtime_startup(production_container_raw: str) -> None:
+    """Fresh volumes must run explicit migrate authority before uvicorn starts."""
+    migrate_marker = "python -m scripts.migrate_database"
+    start_marker = "start_api api_persist_seed"
+    assert migrate_marker in production_container_raw
+    assert start_marker in production_container_raw
+    assert production_container_raw.index(migrate_marker) < production_container_raw.index(start_marker)
+    # Runtime start must not inject migration-only ADMIN_PASSWORD.
+    start_api_block = production_container_raw.split("start_api()", 1)[1].split("wait_healthy()", 1)[0]
+    assert "ADMIN_PASSWORD" not in start_api_block
+
+
 def test_persistence_fields_asserted_after_reload(production_container_raw: str) -> None:
     """Local curl/jq asserts must match hosted persistence gate fields."""
     for marker in (
@@ -114,6 +126,7 @@ def test_api_dockerfile_copies_migrations() -> None:
     """Production API image must ship SQL migrations for durable SQLite init."""
     text = (REPO_ROOT / "Dockerfile.api").read_text(encoding="utf-8")
     assert "COPY migrations/ ./migrations/" in text
+    assert "COPY scripts/ ./scripts/" in text
 
 
 def test_assets_smoke_requires_positive_integer_total(production_container_raw: str) -> None:
