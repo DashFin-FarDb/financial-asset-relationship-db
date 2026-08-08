@@ -428,6 +428,14 @@ def apply_postgresql_heartbeat_migration(engine: Engine) -> None:
         _apply_postgresql_status_constraint_update(connection)
 
 
+def _status_constraint_is_canonical(constraint: dict | None) -> bool:
+    """Return whether reflected SQL enforces exactly the supported status domain."""
+    if not constraint:
+        return False
+    sql_text = str(constraint.get("sqltext", ""))
+    return "status" in sql_text.lower() and set(re.findall(r"'([^']+)'", sql_text)) == set(REBUILD_JOB_STATUSES)
+
+
 def postgresql_heartbeat_schema_gaps(inspector: Inspector) -> list[str]:
     """Return PostgreSQL rebuild compatibility gaps without changing the schema."""
     if "rebuild_jobs" not in inspector.get_table_names():
@@ -451,7 +459,6 @@ def postgresql_heartbeat_schema_gaps(inspector: Inspector) -> list[str]:
         if length is None or length > 64:
             gaps.append(f"rebuild_jobs.{column_name} width <= 64")
 
-    supported_statuses = set(REBUILD_JOB_STATUSES)
     status_constraint = next(
         (
             constraint
@@ -460,8 +467,6 @@ def postgresql_heartbeat_schema_gaps(inspector: Inspector) -> list[str]:
         ),
         None,
     )
-    sql_text = str(status_constraint.get("sqltext", "")) if status_constraint else ""
-    status_literals = set(re.findall(r"'([^']+)'", sql_text))
-    if not status_constraint or "status" not in sql_text.lower() or status_literals != supported_statuses:
+    if not _status_constraint_is_canonical(status_constraint):
         gaps.append("ck_rebuild_jobs_status")
     return gaps

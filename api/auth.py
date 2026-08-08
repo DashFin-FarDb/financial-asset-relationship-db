@@ -393,11 +393,6 @@ def _seed_credentials_from_env(repository: UserRepository) -> None:
     seed_credentials_from_settings(repository, load_settings())
 
 
-# Compatibility alias for existing internal callers; new bootstrap code uses
-# the public settings-injected abstraction above.
-_seed_credentials_from_settings = seed_credentials_from_settings
-
-
 def get_user(
     username: str,
     repository: UserRepository | None = None,

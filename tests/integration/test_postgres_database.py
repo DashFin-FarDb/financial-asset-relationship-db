@@ -174,7 +174,7 @@ def test_restricted_runtime_role_verifies_schema_on_cold_start_and_restart() -> 
         pytest.skip("Runtime database URL contains a placeholder password token")
 
     from sqlalchemy import create_engine, text
-    from sqlalchemy.exc import DBAPIError
+    from sqlalchemy.exc import ProgrammingError
 
     from src.data.database import verify_database_schema, verify_runtime_database_authority
 
@@ -211,7 +211,7 @@ def test_restricted_runtime_role_verifies_schema_on_cold_start_and_restart() -> 
             with engine.connect() as connection:
                 transaction = connection.begin()
                 try:
-                    with pytest.raises(DBAPIError):
+                    with pytest.raises(ProgrammingError, match=r"permission denied|must be owner"):
                         connection.execute(text(statement))
                 finally:
                     transaction.rollback()

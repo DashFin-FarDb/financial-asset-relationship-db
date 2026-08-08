@@ -300,6 +300,7 @@ async def test_auth_database_verification_timeout_fails_closed(
     """A stalled auth catalog read must not block startup indefinitely."""
 
     async def _never_complete(*_args, **_kwargs) -> None:
+        """Model a catalog call that never returns."""
         await asyncio.Event().wait()
 
     monkeypatch.setattr(app_factory.asyncio, "to_thread", _never_complete)
@@ -326,7 +327,7 @@ def test_auth_runtime_verification_does_not_call_mutators(monkeypatch: pytest.Mo
     initialize = MagicMock(side_effect=AssertionError("runtime DDL forbidden"))
     seed = MagicMock(side_effect=AssertionError("runtime credential seed forbidden"))
     monkeypatch.setattr(database, "initialize_schema", initialize)
-    monkeypatch.setattr(auth, "_seed_credentials_from_settings", seed)
+    monkeypatch.setattr(auth, "seed_credentials_from_settings", seed)
 
     app_factory._verify_auth_database()  # pylint: disable=protected-access
 

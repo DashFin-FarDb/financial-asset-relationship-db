@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import re
+
 from sqlalchemy import (
     CheckConstraint,
     ForeignKeyConstraint,
@@ -263,6 +265,32 @@ def _verify_table_constraints(inspector, table_name: str, expected_table) -> Non
         raise SchemaCompatibilityError(f"database table {table_name} missing foreign-key invariants")
 
 
+def _normalize_check_definition(definition: object) -> str:
+    """Normalize ORM and reflected CHECK SQL without weakening its predicate."""
+    normalized = "" if definition is None else str(definition).lower()
+    normalized = re.sub(r"::\s*(?:character varying|text)(?:\[\])?", "", normalized)
+    normalized = normalized.removeprefix("check")
+    normalized = normalized.replace("!~~", "not like").replace("~~", "like")
+    normalized = re.sub(
+        r"=\s*any\s*\(\s*\(?\s*array\s*\[(.*?)\]\s*\)?\s*\)",
+        r" in (\1)",
+        normalized,
+    )
+    normalized = re.sub(
+        r"(\S+)\s+between\s+(\S+)\s+and\s+(\S+)",
+        r"\1 >= \2 and \1 <= \3",
+        normalized,
+    )
+
+    def _sort_literal_set(match: re.Match[str]) -> str:
+        literals = re.findall(r"'[^']*'", match.group(1))
+        remainder = re.sub(r"'[^']*'|[\s,]", "", match.group(1))
+        return "in(" + ",".join(sorted(literals)) + ")" if literals and not remainder else match.group(0)
+
+    normalized = re.sub(r"\bin\s*\(([^()]*)\)", _sort_literal_set, normalized)
+    return re.sub(r'[\s()"]+', "", normalized)
+
+
 def _verify_table_schema(inspector, table_name: str) -> None:
     """Verify columns and named schema invariants for one ORM table."""
     expected_table = Base.metadata.tables[table_name]
@@ -274,25 +302,49 @@ def _verify_table_schema(inspector, table_name: str) -> None:
         )
 
     expected_checks = {
-        str(constraint.name)
+        str(constraint.name): _normalize_check_definition(constraint.sqltext)
         for constraint in expected_table.constraints
         if isinstance(constraint, CheckConstraint) and constraint.name
     }
     actual_checks = {
-        str(constraint["name"]) for constraint in inspector.get_check_constraints(table_name) if constraint.get("name")
+        str(constraint["name"]): _normalize_check_definition(constraint.get("sqltext"))
+        for constraint in inspector.get_check_constraints(table_name)
+        if constraint.get("name")
     }
-    missing_checks = sorted(expected_checks - actual_checks)
+    missing_checks = sorted(set(expected_checks) - set(actual_checks))
     if missing_checks:
         raise SchemaCompatibilityError(
             f"database table {table_name} missing required constraints: {', '.join(missing_checks)}"
         )
+    mismatched_checks = sorted(
+        name for name, definition in expected_checks.items() if actual_checks[name] != definition
+    )
+    if mismatched_checks:
+        raise SchemaCompatibilityError(
+            f"database table {table_name} has incompatible constraints: {', '.join(mismatched_checks)}"
+        )
 
-    expected_indexes = {index.name for index in expected_table.indexes if index.name}
-    actual_indexes = {index.get("name") for index in inspector.get_indexes(table_name) if index.get("name")}
-    missing_indexes = sorted(expected_indexes - actual_indexes)
+    expected_indexes = {
+        str(index.name): (tuple(column.name for column in index.columns), bool(index.unique))
+        for index in expected_table.indexes
+        if index.name
+    }
+    actual_indexes = {
+        str(index["name"]): (tuple(index.get("column_names") or ()), bool(index.get("unique")))
+        for index in inspector.get_indexes(table_name)
+        if index.get("name")
+    }
+    missing_indexes = sorted(set(expected_indexes) - set(actual_indexes))
     if missing_indexes:
         raise SchemaCompatibilityError(
             f"database table {table_name} missing required indexes: {', '.join(missing_indexes)}"
+        )
+    mismatched_indexes = sorted(
+        name for name, definition in expected_indexes.items() if actual_indexes[name] != definition
+    )
+    if mismatched_indexes:
+        raise SchemaCompatibilityError(
+            f"database table {table_name} has incompatible indexes: {', '.join(mismatched_indexes)}"
         )
 
     _verify_table_constraints(inspector, table_name, expected_table)

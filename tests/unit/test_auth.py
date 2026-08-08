@@ -1048,17 +1048,17 @@ class TestAuthenticationIntegrationFlow:
 
 
 class TestSeedCredentialsFromSettings:
-    """Test _seed_credentials_from_settings with explicit settings injection."""
+    """Test seed_credentials_from_settings with explicit settings injection."""
 
     def test_seed_credentials_from_settings_uses_settings_values(self):
         """Test that admin seed values can be supplied through Settings."""
-        from api.auth import _seed_credentials_from_settings
+        from api.auth import seed_credentials_from_settings
         from src.config.settings import Settings
 
         mock_repo = Mock(spec=UserRepository)
 
         with patch("api.auth.get_password_hash", return_value="hashed_adminpass"):
-            _seed_credentials_from_settings(
+            seed_credentials_from_settings(
                 mock_repo,
                 Settings(
                     secret_key="secret",
@@ -1082,10 +1082,10 @@ class TestSeedCredentialsFromSettings:
 
     def test_seed_credentials_from_settings_skips_when_username_or_password_missing(self):
         """Test that incomplete admin settings do not seed a user."""
-        from api.auth import _seed_credentials_from_settings
+        from api.auth import seed_credentials_from_settings
         from src.config.settings import Settings
 
         mock_repo = Mock(spec=UserRepository)
 
-        _seed_credentials_from_settings(mock_repo, Settings(secret_key="secret"))
+        seed_credentials_from_settings(mock_repo, Settings(secret_key="secret"))
         mock_repo.create_or_update_user.assert_not_called()

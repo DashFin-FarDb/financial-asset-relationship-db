@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import os
 from datetime import datetime, timezone
+from unittest.mock import MagicMock
 
 import pytest
 from sqlalchemy import create_engine, inspect, text
@@ -13,6 +14,7 @@ from sqlalchemy.exc import DBAPIError, IntegrityError
 from src.data.base import Base
 from src.data.database import init_db, verify_database_schema
 from src.data.db_models import AssetORM, RebuildJobORM
+from src.data.migrations import _status_constraint_is_canonical
 from src.data.relationship_assertion_db_models import (
     EFFECTIVE_WINDOW_CHECK,
     GRAC_TABLE_NAMES,
@@ -26,6 +28,7 @@ from src.data.relationship_assertion_db_models import (
     RelationshipProjectionRevisionORM,
 )
 from src.data.relationship_assertion_schema import (
+    _ensure_postgresql_grac_constraints,
     _postgresql_check_matches,
     ensure_relationship_assertion_schema,
     list_immutability_trigger_names,
@@ -42,6 +45,67 @@ def test_postgresql_grac_constraint_comparison_requires_canonical_predicate(cano
     """Named, validated constraints must also preserve the canonical predicate."""
     assert _postgresql_check_matches(f"CHECK (({canonical}))", canonical)
     assert not _postgresql_check_matches("CHECK (TRUE)", canonical)
+
+
+@pytest.mark.parametrize(
+    ("canonical", "catalog_definition"),
+    [
+        (
+            EFFECTIVE_WINDOW_CHECK,
+            "CHECK (((effective_to IS NULL) OR (effective_to >= effective_from)))",
+        ),
+        (
+            STRENGTH_DECIMAL_CHECK,
+            "CHECK ((((length((strength)::text) >= 1) AND (length((strength)::text) <= 32)) "
+            "AND (translate((strength)::text, '0123456789.'::text, ''::text) = ''::text) "
+            "AND ((strength)::text !~~ '.%'::text) AND ((strength)::text !~~ '%.'::text) "
+            "AND ((strength)::text !~~ '%..%'::text) AND ((strength)::text !~~ '%.%.%'::text) "
+            "AND (((strength)::text = '0'::text) OR ((strength)::text = '1'::text) "
+            "OR ((strength)::text ~~ '0.%'::text) OR (((strength)::text ~~ '1.%'::text) "
+            "AND (replace(substr((strength)::text, 3), '0'::text, ''::text) = ''::text)))))",
+        ),
+    ],
+)
+def test_postgresql_grac_constraint_comparison_accepts_catalog_deparse(
+    canonical: str,
+    catalog_definition: str,
+) -> None:
+    """Canonical GRAC predicates must match PostgreSQL 17 catalog rendering."""
+    assert _postgresql_check_matches(catalog_definition, canonical)
+
+
+def test_postgresql_rebuild_status_comparison_accepts_catalog_deparse() -> None:
+    """The rebuild status verifier must accept PostgreSQL 17 ANY/ARRAY rendering."""
+    definition = (
+        "CHECK (((status)::text = ANY ((ARRAY['pending'::character varying, "
+        "'running'::character varying, 'succeeded'::character varying, "
+        "'failed'::character varying, 'cancel_requested'::character varying, "
+        "'cancelled'::character varying])::text[])))"
+    )
+    assert _status_constraint_is_canonical({"name": "ck_rebuild_jobs_status", "sqltext": definition})
+
+
+def test_postgresql_grac_migration_skips_already_validated_constraints() -> None:
+    """Repeat operator runs must not rescan matching, validated GRAC constraints."""
+    connection = MagicMock()
+    connection.execute.return_value.all.return_value = [
+        (
+            "relationship_assertions",
+            "ck_relationship_assertions_effective_window",
+            f"CHECK (({EFFECTIVE_WINDOW_CHECK}))",
+            True,
+        ),
+        (
+            "relationship_projection_edges",
+            "ck_relationship_projection_edges_strength",
+            f"CHECK (({STRENGTH_DECIMAL_CHECK}))",
+            True,
+        ),
+    ]
+
+    _ensure_postgresql_grac_constraints(connection)
+
+    assert connection.execute.call_count == 1
 
 
 LEGACY_TABLES = (

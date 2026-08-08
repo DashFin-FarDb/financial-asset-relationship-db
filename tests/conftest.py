@@ -6,6 +6,7 @@ import importlib.util
 import os
 import sys
 from collections.abc import Callable
+from datetime import timezone
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
@@ -16,9 +17,6 @@ from sqlalchemy.engine import Engine
 _SCRIPTS_ROOT = Path(__file__).resolve().parents[1] / "scripts"
 if str(_SCRIPTS_ROOT) not in sys.path:
     sys.path.insert(0, str(_SCRIPTS_ROOT))
-
-if TYPE_CHECKING:
-    from src.logic.reconciliation_engine import ReconciliationPlan
 
 # Ensure a clean SQLite database for the authentication layer before any modules import it.
 _db_path = Path(__file__).resolve().parent / "test_auth.db"
@@ -34,8 +32,6 @@ os.environ["ADMIN_EMAIL"] = "admin@example.com"
 os.environ["ADMIN_FULL_NAME"] = "Test Admin"
 os.environ["ADMIN_DISABLED"] = "false"
 
-from datetime import timezone  # noqa: E402
-
 from api.auth import seed_credentials_from_settings, user_repository  # noqa: E402
 from api.database import initialize_schema  # noqa: E402
 from src.config.settings import load_settings  # noqa: E402
@@ -50,6 +46,9 @@ from src.models.financial_models import (  # noqa: E402
     RegulatoryActivity,
     RegulatoryEvent,
 )
+
+if TYPE_CHECKING:
+    from src.logic.reconciliation_engine import ReconciliationPlan
 
 # Test authentication state is created explicitly. Importing the runtime auth
 # module must never create schema or seed credentials.

@@ -286,6 +286,8 @@ def _ensure_postgresql_grac_constraints(connection: Connection) -> None:
             current = None
         if current is None:
             connection.execute(text(f"ALTER TABLE {table} ADD CONSTRAINT {name} CHECK ({check}) NOT VALID"))
+        elif current[1]:
+            continue
         connection.execute(text(f"ALTER TABLE {table} VALIDATE CONSTRAINT {name}"))
 
 

@@ -79,7 +79,7 @@ ${FRONTEND_PORT:-3000}).
    python -m uvicorn api.main:app --reload --port ${BACKEND_PORT:-8000}
    ```
 
-   Windows PowerShell users should activate `.venv\\Scripts\\Activate.ps1`, set the same
+   Windows PowerShell users should activate `.venv\Scripts\Activate.ps1`, set the same
    environment variables with `$env:NAME="value"`, and run:
 
    ```powershell
