@@ -19,7 +19,7 @@ from pathlib import Path
 
 from sqlalchemy import inspect, text
 from sqlalchemy.engine import Engine
-from sqlalchemy.engine.interfaces import ReflectedColumn
+from sqlalchemy.engine.interfaces import ReflectedCheckConstraint, ReflectedColumn
 from sqlalchemy.engine.reflection import Inspector
 
 from src.observability.events import ObservabilityEvent
@@ -286,7 +286,7 @@ def _inspect_rebuild_jobs_columns(inspector: Inspector) -> tuple[list[str], dict
 
     Scans rebuild_jobs columns once and produces:
     - The list of ADD COLUMN IF NOT EXISTS statements needed for missing
-      heartbeat columns.
+        heartbeat columns.
     - The SQLAlchemy column metadata for each bounded rebuild identifier.
 
     Args:
@@ -428,7 +428,7 @@ def apply_postgresql_heartbeat_migration(engine: Engine) -> None:
         _apply_postgresql_status_constraint_update(connection)
 
 
-def _status_constraint_is_canonical(constraint: dict | None) -> bool:
+def _status_constraint_is_canonical(constraint: ReflectedCheckConstraint | None) -> bool:
     """Return whether reflected SQL enforces exactly the supported status domain."""
     if not constraint:
         return False
