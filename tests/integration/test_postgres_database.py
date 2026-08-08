@@ -5,10 +5,10 @@ This test is intentionally opt-in because it requires real credentials.
 It also requires a live database and is skipped in CI/local runs by default.
 
 Enable explicitly by setting:
-  RUN_POSTGRES_TESTS=1
+    RUN_POSTGRES_TESTS=1
 and providing one of:
-  ASSET_GRAPH_DATABASE_URL (preferred)
-  DATABASE_URL
+    ASSET_GRAPH_DATABASE_URL (preferred)
+    DATABASE_URL
 
 Security:
 - We never print the full DSN.

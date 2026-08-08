@@ -539,9 +539,9 @@ async def test_lifespan_emits_startup_failed_with_trace_ids_on_get_graph_excepti
     """Ensure get_graph exceptions trace ids.
 
     When get_graph() raises during the traced startup block, the lifespan should:
-      - raise the original exception (fail-fast)
-      - emit exactly one ObservabilityEvent with event == "startup_failed"
-      - include the generated trace_id and span_id in the event.metadata
+        - raise the original exception (fail-fast)
+        - emit exactly one ObservabilityEvent with event == "startup_failed"
+        - include the generated trace_id and span_id in the event.metadata
     """
     app = FastAPI()
 

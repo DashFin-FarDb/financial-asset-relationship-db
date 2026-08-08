@@ -265,9 +265,9 @@ def _inspect_rebuild_jobs_columns(inspector) -> tuple[list[str], dict | None]:
 
     Scans rebuild_jobs columns once and produces:
     - The list of ADD COLUMN IF NOT EXISTS statements needed for missing
-      heartbeat columns.
+        heartbeat columns.
     - The SQLAlchemy column metadata dict for active_worker_id, or None
-      if the column does not yet exist.
+        if the column does not yet exist.
 
     Args:
         inspector: SQLAlchemy inspector instance.
