@@ -15,10 +15,10 @@ parameters argument and must not be interpolated into SQL strings.
 The module handles two parameter placeholder styles:
 
 1. SQLite: Uses '?' placeholders (qmark style)
-   Example: "SELECT * FROM users WHERE id = ?"
+    Example: "SELECT * FROM users WHERE id = ?"
 
 2. PostgreSQL: Uses '%s' placeholders (format style, per DB-API 2.0 standard via psycopg2)
-   Example: "SELECT * FROM users WHERE id = %s"
+    Example: "SELECT * FROM users WHERE id = %s"
 
 For the limited set of internal queries used in this module and api/auth.py, the module
 converts '?' placeholders to '%s' when using PostgreSQL. This conversion is intentionally
@@ -167,7 +167,7 @@ def _resolve_file_path(path: str) -> str:
     - Absolute paths starting with a single leading slash (e.g., "/foo") are resolved as-is.
     - UNC-like paths starting with two leading slashes (e.g., "//server/path") drop the first slash and are resolved.
     - Rootless or relative-looking paths have any leading slashes removed and are resolved
-      relative to the current working directory.
+        relative to the current working directory.
 
     Parameters:
         path (str): Normalized SQLite path component; may be absolute ("/..."), UNC-like ("//..."), or rootless.

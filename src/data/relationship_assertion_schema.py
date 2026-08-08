@@ -11,9 +11,10 @@ import json
 import os
 import re
 from collections.abc import Mapping
+from typing import Any, TypeAlias
 
-from sqlalchemy import bindparam, text
-from sqlalchemy.engine import Connection, Engine, make_url
+from sqlalchemy import bindparam, text  # pyre-ignore[21]
+from sqlalchemy.engine import make_url  # pyre-ignore[21]
 
 from src.data.relationship_assertion_db_models import (
     EFFECTIVE_WINDOW_CHECK,
@@ -29,6 +30,8 @@ _GRAC_TABLE_NAME_SET = frozenset(GRAC_TABLE_NAMES)
 _UNTRUSTED_DATABASE_ROLES_ENV = "FARDB_UNTRUSTED_DATABASE_ROLES"
 _DEFAULT_UNTRUSTED_DATABASE_ROLES = ("anon", "authenticated")
 _SAFE_ROLE_PATTERN = re.compile(r"^[a-z_][a-z0-9_]*$")
+Connection: TypeAlias = Any
+Engine: TypeAlias = Any
 
 
 def ensure_relationship_assertion_schema(engine: Engine) -> None:

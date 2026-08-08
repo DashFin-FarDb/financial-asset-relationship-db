@@ -3,8 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Callable
-
-from sqlalchemy.engine import Engine
+from typing import Any
 
 from api.auth import seed_credentials_from_settings, user_repository
 from api.database import DATABASE_URL as API_DATABASE_URL
@@ -16,8 +15,8 @@ from src.data.database import create_engine_from_url, init_db, verify_database_s
 
 def _configured_engines(
     settings: Settings,
-    engine_factory: Callable[[str], Engine],
-) -> tuple[str | None, dict[str, Engine]]:
+    engine_factory: Callable[[str], Any],
+) -> tuple[str | None, dict[str, Any]]:
     """Resolve each configured graph authority target exactly once."""
     graph_url = resolve_hosted_graph_database_url(settings)
     engines = {graph_url: engine_factory(graph_url)} if graph_url else {}
@@ -37,7 +36,7 @@ def _require_auth_database_alignment(settings: Settings) -> None:
 def migrate_configured_databases(
     settings: Settings | None = None,
     *,
-    engine_factory: Callable[[str], Engine] = create_engine_from_url,
+    engine_factory: Callable[[str], Any] = create_engine_from_url,
 ) -> tuple[str, ...]:
     """Apply configured graph/coordination/auth setup through operator authority.
 

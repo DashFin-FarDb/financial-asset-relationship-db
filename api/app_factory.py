@@ -20,12 +20,15 @@ from slowapi import _rate_limit_exceeded_handler  # type: ignore[import-not-foun
 from slowapi.errors import RateLimitExceeded  # type: ignore[import-not-found]
 from sqlalchemy.exc import SQLAlchemyError
 
+from src.config.settings import get_settings
 from src.data.database import SchemaCompatibilityError
 from src.observability.context import async_trace_context, get_span_id, get_trace_id
 from src.observability.events import ObservabilityEvent
 from src.observability.logger import log_event
 from src.observability.logging import setup_logging
 
+from . import auth as auth_module
+from . import database as api_database
 from .cors_policy import configure_cors
 from .graph_lifecycle import (
     GraphRuntimeLifecycleState,
@@ -131,13 +134,11 @@ def _verify_reconciliation_schemas(engine: Any, coord_engine: Any) -> None:
 
 def _verify_auth_database() -> None:
     """Verify credential schema and provisioning without mutating the auth database."""
-    from .auth import user_repository
-    from .database import verify_runtime_authority, verify_schema_compatibility
-
     try:
-        verify_schema_compatibility()
-        verify_runtime_authority()
-        if not user_repository.has_users():
+        _initialize_ephemeral_auth_database()
+        api_database.verify_schema_compatibility()
+        api_database.verify_runtime_authority()
+        if not auth_module.user_repository.has_users():
             raise SchemaCompatibilityError(
                 "API credential store has no users; run the explicit database migration command"
             )
@@ -145,6 +146,14 @@ def _verify_auth_database() -> None:
         raise
     except Exception as exc:  # noqa: BLE001 - sanitize catalog/driver failures at the startup boundary
         raise SchemaCompatibilityError(f"API credential database verification failed ({type(exc).__name__})") from None
+
+
+def _initialize_ephemeral_auth_database() -> None:
+    """Create and seed auth schema only for process-local in-memory SQLite."""
+    if api_database.DATABASE_TYPE != "sqlite" or not api_database._is_memory_db():  # pylint: disable=protected-access
+        return
+    api_database.initialize_schema()
+    auth_module.seed_credentials_from_settings(auth_module.user_repository, get_settings())
 
 
 def _execute_recovery_gate(engine: Any, coord_engine: Any, cancellation_event: threading.Event | None = None) -> None:

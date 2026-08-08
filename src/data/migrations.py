@@ -15,12 +15,12 @@ from __future__ import annotations
 import logging
 import re
 import sqlite3
+from collections.abc import Mapping, Sequence
+from contextlib import closing
 from pathlib import Path
+from typing import Any, Protocol, TypeAlias
 
-from sqlalchemy import inspect, text
-from sqlalchemy.engine import Engine
-from sqlalchemy.engine.interfaces import ReflectedColumn
-from sqlalchemy.engine.reflection import Inspector
+from sqlalchemy import inspect, text  # pyre-ignore[21]
 
 from src.observability.events import ObservabilityEvent
 from src.observability.logger import log_event
@@ -58,6 +58,35 @@ _REBUILD_IDENTIFIER_NORMALIZATION_STATEMENTS = {
     "execution_id": text("ALTER TABLE rebuild_jobs ALTER COLUMN execution_id TYPE VARCHAR(64)"),
 }
 
+ReflectedColumn: TypeAlias = Mapping[str, Any]
+ReflectedCheckConstraint: TypeAlias = Mapping[str, Any]
+
+
+class DatabaseInspector(Protocol):
+    """Minimal SQLAlchemy inspector surface used by PostgreSQL compatibility checks."""
+
+    def get_table_names(self, schema: str | None = None, **kw: Any) -> list[str]:
+        """Return reflected table names."""
+        ...
+
+    def get_columns(
+        self,
+        table_name: str,
+        schema: str | None = None,
+        **kw: Any,
+    ) -> Sequence[ReflectedColumn]:
+        """Return reflected column metadata for a table."""
+        ...
+
+    def get_check_constraints(
+        self,
+        table_name: str,
+        schema: str | None = None,
+        **kw: Any,
+    ) -> Sequence[ReflectedCheckConstraint]:
+        """Return reflected check constraints for a table."""
+        ...
+
 
 def apply_migrations(db_path: Path | str) -> None:
     """
@@ -81,8 +110,6 @@ def apply_migrations(db_path: Path | str) -> None:
     db_path = Path(db_path)
     # migrations/ is at repository root, not under src/
     migrations_dir = Path(__file__).resolve().parents[2] / "migrations"
-
-    from contextlib import closing
 
     with closing(sqlite3.connect(db_path)) as connection, connection:
         # Migration 001: Base schema (always safe to run, uses IF NOT EXISTS)
@@ -280,13 +307,13 @@ def _apply_upgrade_004_cancellation_columns(connection: sqlite3.Connection) -> N
 # ---------------------------------------------------------------------------
 
 
-def _inspect_rebuild_jobs_columns(inspector: Inspector) -> tuple[list[str], dict[str, ReflectedColumn]]:
+def _inspect_rebuild_jobs_columns(inspector: DatabaseInspector) -> tuple[list[str], dict[str, ReflectedColumn]]:
     """
     Return missing-column statements and metadata for bounded identifiers.
 
     Scans rebuild_jobs columns once and produces:
     - The list of ADD COLUMN IF NOT EXISTS statements needed for missing
-      heartbeat columns.
+        heartbeat columns.
     - The SQLAlchemy column metadata for each bounded rebuild identifier.
 
     Args:
@@ -393,7 +420,7 @@ def _apply_postgresql_status_constraint_update(connection) -> None:
 # ---------------------------------------------------------------------------
 
 
-def apply_postgresql_heartbeat_migration(engine: Engine) -> None:
+def apply_postgresql_heartbeat_migration(engine: Any) -> None:
     """
     Ensure heartbeat columns exist for PostgreSQL rebuild_jobs tables.
 
@@ -428,7 +455,7 @@ def apply_postgresql_heartbeat_migration(engine: Engine) -> None:
         _apply_postgresql_status_constraint_update(connection)
 
 
-def _status_constraint_is_canonical(constraint: dict | None) -> bool:
+def _status_constraint_is_canonical(constraint: ReflectedCheckConstraint | None) -> bool:
     """Return whether reflected SQL enforces exactly the supported status domain."""
     if not constraint:
         return False
@@ -436,7 +463,7 @@ def _status_constraint_is_canonical(constraint: dict | None) -> bool:
     return "status" in sql_text.lower() and set(re.findall(r"'([^']+)'", sql_text)) == set(REBUILD_JOB_STATUSES)
 
 
-def postgresql_heartbeat_schema_gaps(inspector: Inspector) -> list[str]:
+def postgresql_heartbeat_schema_gaps(inspector: DatabaseInspector) -> list[str]:
     """Return PostgreSQL rebuild compatibility gaps without changing the schema."""
     if "rebuild_jobs" not in inspector.get_table_names():
         return ["rebuild_jobs table"]

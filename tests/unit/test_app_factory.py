@@ -12,6 +12,8 @@ import pytest
 from fastapi import FastAPI
 
 from api import app_factory
+from api import auth as auth_module
+from api import database as api_database
 from src.config.settings import DeploymentEnvironment
 from src.data.database import SchemaCompatibilityError
 from src.data.sample_data import create_sample_database
@@ -314,20 +316,20 @@ async def test_auth_database_verification_timeout_fails_closed(
         )
 
 
-def test_auth_runtime_verification_does_not_call_mutators(monkeypatch: pytest.MonkeyPatch) -> None:
-    """Auth startup verification must not create schema or seed credentials."""
-    import api.auth as auth
-    import api.database as database
-
+def test_auth_runtime_verification_does_not_call_mutators_for_persistent_database(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Auth startup verification must not create schema or seed credentials for persistent databases."""
     verify_schema = MagicMock()
     verify_authority = MagicMock()
-    monkeypatch.setattr(database, "verify_schema_compatibility", verify_schema)
-    monkeypatch.setattr(database, "verify_runtime_authority", verify_authority)
-    monkeypatch.setattr(auth.user_repository, "has_users", lambda: True)
+    monkeypatch.setattr(api_database, "verify_schema_compatibility", verify_schema)
+    monkeypatch.setattr(api_database, "verify_runtime_authority", verify_authority)
+    monkeypatch.setattr(api_database, "_is_memory_db", lambda: False)
+    monkeypatch.setattr(auth_module.user_repository, "has_users", lambda: True)
     initialize = MagicMock(side_effect=AssertionError("runtime DDL forbidden"))
     seed = MagicMock(side_effect=AssertionError("runtime credential seed forbidden"))
-    monkeypatch.setattr(database, "initialize_schema", initialize)
-    monkeypatch.setattr(auth, "seed_credentials_from_settings", seed)
+    monkeypatch.setattr(api_database, "initialize_schema", initialize)
+    monkeypatch.setattr(auth_module, "seed_credentials_from_settings", seed)
 
     app_factory._verify_auth_database()  # pylint: disable=protected-access
 
@@ -337,12 +339,32 @@ def test_auth_runtime_verification_does_not_call_mutators(monkeypatch: pytest.Mo
     seed.assert_not_called()
 
 
+def test_auth_runtime_verification_bootstraps_in_memory_database(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Auth startup may seed only process-local in-memory SQLite databases."""
+    initialize = MagicMock()
+    seed = MagicMock()
+    verify_schema = MagicMock()
+    verify_authority = MagicMock()
+    monkeypatch.setattr(api_database, "DATABASE_TYPE", "sqlite")
+    monkeypatch.setattr(api_database, "_is_memory_db", lambda: True)
+    monkeypatch.setattr(api_database, "initialize_schema", initialize)
+    monkeypatch.setattr(api_database, "verify_schema_compatibility", verify_schema)
+    monkeypatch.setattr(api_database, "verify_runtime_authority", verify_authority)
+    monkeypatch.setattr(auth_module, "seed_credentials_from_settings", seed)
+    monkeypatch.setattr(auth_module.user_repository, "has_users", lambda: True)
+
+    app_factory._verify_auth_database()  # pylint: disable=protected-access
+
+    initialize.assert_called_once_with()
+    seed.assert_called_once_with(auth_module.user_repository, app_factory.get_settings())
+    verify_schema.assert_called_once_with()
+    verify_authority.assert_called_once_with()
+
+
 def test_auth_runtime_verification_sanitizes_unexpected_failures(monkeypatch: pytest.MonkeyPatch) -> None:
     """Driver details must not escape the auth startup verification boundary."""
-    import api.database as database
-
     monkeypatch.setattr(
-        database,
+        api_database,
         "verify_schema_compatibility",
         MagicMock(side_effect=OSError("credential-bearing driver detail")),
     )

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import re
 
-from sqlalchemy import (
+from sqlalchemy import (  # pyre-ignore[21]
     CheckConstraint,
     ForeignKeyConstraint,
     UniqueConstraint,
@@ -14,7 +14,7 @@ from sqlalchemy import (
     inspect,
     text,
 )
-from sqlalchemy.engine import Engine, make_url
+from sqlalchemy.engine import Engine, make_url  # pyre-ignore[21]
 from sqlalchemy.exc import ArgumentError
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool
