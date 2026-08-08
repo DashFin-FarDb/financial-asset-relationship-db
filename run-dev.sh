@@ -8,7 +8,7 @@ echo ""
 
 # Check required environment variables
 echo "🔍 Checking required environment variables..."
-required_vars=(DATABASE_URL SECRET_KEY ADMIN_USERNAME ADMIN_PASSWORD)
+required_vars=(DATABASE_URL SECRET_KEY ADMIN_USERNAME)
 missing_vars=()
 
 for var in "${required_vars[@]}"; do
@@ -30,7 +30,9 @@ if [[ ${#missing_vars[@]} -ne 0 ]]; then
     echo "  export DATABASE_URL=sqlite:dev.db"
     echo "  export SECRET_KEY=replace-with-a-long-random-secret"
     echo "  export ADMIN_USERNAME=admin"
-    echo "  export ADMIN_PASSWORD=replace-with-a-strong-password"
+    echo ""
+    echo "Provision credentials with ADMIN_PASSWORD via python -m scripts.migrate_database,"
+    echo "then unset ADMIN_PASSWORD before starting the runtime."
     echo ""
     echo "See README.md and .env.example for more details."
   } >&2
