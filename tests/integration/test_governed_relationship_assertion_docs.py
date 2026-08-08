@@ -19,6 +19,7 @@ STRATEGY_README = REPO_ROOT / "docs" / "strategy" / "README.md"
 
 CONTRACT_BASELINE_SHA = "5e45753705c10c2c4f50e0e9bc4d07b823d752ab"
 EVIDENCE_CUTOFF_SHA = "0a72dfee67aae4ef7cc44041347474a6a6e234cd"
+LIVE_MAIN_CUTOFF_SHA = "a9757abc304675ff36ae6e3d6d1c9a03ca5c0553"
 PROVED_STAGING_SHA = "16d0a69c5d6f9bae94b9251991466bacbf15d3f0"
 PROVED_STAGING_PREDICATE = "financial.bond.issuer_reference@1"
 PROVED_STAGING_SIGNOFF = "grac-v1-exact-sha-evidence-signoff.md"
@@ -319,13 +320,12 @@ class TestGovernedRelationshipAssertionContractV1:
             "",
         )
         assert claim_line, "missing capability claim class header line"
-        assert "`CURRENT`" in header
-        assert PROVED_STAGING_SHA in header
-        assert PROVED_STAGING_PREDICATE in header
-        assert PROVED_STAGING_SIGNOFF in header
-        assert "#1540 sign-off record" in header
-        assert "production certification" in header
-        assert "`NEXT`" in header
+        claim = " ".join(header[header.index(claim_line) :].split())
+        assert (
+            f"**Claim class for runtime capability:** `CURRENT` only for `{PROVED_STAGING_PREDICATE}` at exact "
+            f"staging SHA `{PROVED_STAGING_SHA}`, as proved in [the #1540 sign-off record]({PROVED_STAGING_SIGNOFF}); "
+            "production certification, capacity, and broader generality remain `NEXT`"
+        ) in claim
 
     def test_required_sections_present(self, contract_content: str) -> None:
         """All normative numbered sections must be present."""
@@ -511,38 +511,40 @@ class TestGovernedRelationshipAssertionContinuityAndStrategy:
         """Continuity ledger must exist."""
         assert CONTINUITY.is_file()
 
-    def test_evidence_cutoff_is_reviewed_implementation_sha(self, continuity_content: str) -> None:
-        """Continuity cutoff must advance through the reviewed implementation SHA."""
+    def test_evidence_cutoff_is_revalidated_live_main_sha(self, continuity_content: str) -> None:
+        """Continuity cutoff must identify the revalidated live ``main`` SHA."""
         header = "\n".join(continuity_content.splitlines()[:8])
-        assert EVIDENCE_CUTOFF_SHA in header
+        assert LIVE_MAIN_CUTOFF_SHA in header
+        assert EVIDENCE_CUTOFF_SHA not in header
         assert CONTRACT_BASELINE_SHA not in header
 
     def test_fardb_grac_v1_ledger_entry(self, continuity_content: str) -> None:
-        """FARDB-GRAC-V1 must be recorded as Agreed."""
+        """FARDB-GRAC-V1 must bind its verified claim to the exact staging evidence."""
         assert "### FARDB-GRAC-V1" in continuity_content
         entry = _section_after(continuity_content, "### FARDB-GRAC-V1")
-        assert "**Status:** Agreed" in entry
+        assert "**Status:** Verified — bounded staging slice" in entry
         assert "financial.bond.issuer_reference@1" in entry
         assert CONTRACT_BASELINE_SHA in entry
         assert EVIDENCE_CUTOFF_SHA in entry
-        for pr_number in ("#1541", "#1542", "#1549", "#1550", "#1552"):
-            assert pr_number in entry
+        assert PROVED_STAGING_SHA[:8] in entry
+        assert "exact-SHA sign-off record" in entry
+        assert "runtime/migration authority" in entry
 
-    def test_fpc_04_foundation_through_candidate_projection_recorded(self, continuity_content: str) -> None:
-        """FPC-2026-07-21-04 must record the landed foundation and bounded staging proof."""
+    def test_fpc_04_records_only_the_bounded_staging_capability_as_current(self, continuity_content: str) -> None:
+        """FPC-2026-07-21-04 must not generalise the exact staging proof."""
         assert "### FPC-2026-07-21-04" in continuity_content
         entry = _section_after(continuity_content, "### FPC-2026-07-21-04")
-        assert "implemented through candidate" in entry.lower()
-        assert "bounded current gate" in entry.lower()
+        assert "bounded exact-SHA staging slice `CURRENT`" in entry
+        assert "broader capability remains `NEXT`" in entry
         assert PROVED_STAGING_SHA in entry
-        assert PROVED_STAGING_PREDICATE in entry
-        assert "Agreed" in entry
+        assert "Production certification" in entry
 
-    def test_fpc_04_records_exact_sha_signoff_supersession(self, continuity_content: str) -> None:
-        """FPC-2026-07-21-04 must record exact-SHA sign-off supersession."""
+    def test_fpc_04_forbids_transferring_staging_approval(self, continuity_content: str) -> None:
+        """FPC-2026-07-21-04 must preserve the exact-SHA evidence boundary."""
         entry = _section_after(continuity_content, "### FPC-2026-07-21-04")
-        assert PROVED_STAGING_SIGNOFF in entry
-        assert "production certification, capacity, and broader generality remain" in entry.lower()
+        assert "Do not transfer the staging approval" in entry
+        for boundary in ("SHA", "predicate", "environment", "broader capability"):
+            assert boundary in entry
 
     def test_cutoff_does_not_claim_pr_1510_open(self, continuity_content: str) -> None:
         """H-P1-03 / PR #1510 must not be described as open after the refreshed cutoff."""

@@ -84,8 +84,8 @@ class TestDependencyMatrix:
         Parameters:
             dependency_matrix_content(str): The full text content of dependencyMatrix.md to be inspected.
         """
-        # Look for: *Generated: 2025-11-07T18:22:38.791Z*
-        timestamp_pattern = r"\*Generated: (\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z)\*"
+        # Accept either Markdown emphasis delimiter; formatters can safely normalise between them.
+        timestamp_pattern = r"(?:\*|_)Generated: (\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z)(?:\*|_)"
         match = re.search(timestamp_pattern, dependency_matrix_content)
 
         assert match is not None, "Generated timestamp not found"
