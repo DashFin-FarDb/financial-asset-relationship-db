@@ -23,6 +23,7 @@ Claims are labeled landed vs provisional. ADRs/policy are not rewritten.
 - [landed] **sha:8cbbb8fe2d4eca7988d781bd7617a960f858feff**: Merge/push to main 8cbbb8fe2d4eca7988d781bd7617a960f858feff
 
 ### api
+- [provisional] **pr:1613**: x       
 - [provisional] **pr:1612**: x     y 
 - [provisional] **pr:1608**: -/-  x     y
 - [provisional] **pr:1611**: x       
@@ -37,9 +38,9 @@ Claims are labeled landed vs provisional. ADRs/policy are not rewritten.
 - [provisional] **pr:1591**: ()   -    y w  
 - [landed] **pr:1590**: (-v)  -x  ..  ..  /
 - [provisional] **pr:1588**:    y- .. → .. ()
-- [provisional] **pr:1587**:  y- .. → .. ()
 
 ### persistence
+- [provisional] **pr:1613**: x       
 - [provisional] **pr:1612**: x     y 
 - [provisional] **pr:1608**: -/-  x     y
 - [provisional] **pr:1611**: x       
@@ -54,9 +55,9 @@ Claims are labeled landed vs provisional. ADRs/policy are not rewritten.
 - [landed] **pr:1552**:      v
 - [landed] **pr:1550**:   -y  y  y
 - [landed] **pr:1549**:   v   
-- [landed] **pr:1455**: x    y 
 
 ### ci-guardrails
+- [provisional] **pr:1613**: x       
 - [provisional] **pr:1611**: x       
 - [provisional] **pr:1610**: x    
 - [provisional] **pr:1609**: x      
@@ -71,7 +72,6 @@ Claims are labeled landed vs provisional. ADRs/policy are not rewritten.
 - [landed] **pr:1564**: x       
 - [landed] **pr:1551**:       ww
 - [provisional] **pr:1545**: ()   -    y w  
-- [landed] **pr:1549**:   v   
 
 ### rebuild-reconciliation
 - [landed] **pr:1455**: x    y 
@@ -86,6 +86,7 @@ Claims are labeled landed vs provisional. ADRs/policy are not rewritten.
 - [provisional] **pr:1403**: fix(ci): resolve compound workflow failures
 
 ### deployment
+- [provisional] **pr:1613**: x       
 - [provisional] **pr:1612**: x     y 
 - [provisional] **pr:1608**: -/-  x     y
 - [provisional] **pr:1611**: x       
@@ -100,4 +101,3 @@ Claims are labeled landed vs provisional. ADRs/policy are not rewritten.
 - [landed] **pr:1517**:      (--)
 - [landed] **pr:1515**: x      (--)
 - [landed] **pr:1510**:   -vy  - ww (--)
-- [landed] **pr:1509**:     w ww (--)
