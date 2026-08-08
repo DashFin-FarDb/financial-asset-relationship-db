@@ -19,6 +19,7 @@ from pathlib import Path
 
 from sqlalchemy import inspect, text
 from sqlalchemy.engine import Engine
+from sqlalchemy.engine.interfaces import ReflectedColumn
 from sqlalchemy.engine.reflection import Inspector
 
 from src.observability.events import ObservabilityEvent
@@ -279,26 +280,25 @@ def _apply_upgrade_004_cancellation_columns(connection: sqlite3.Connection) -> N
 # ---------------------------------------------------------------------------
 
 
-def _inspect_rebuild_jobs_columns(inspector: Inspector) -> tuple[list[str], dict[str, dict]]:
+def _inspect_rebuild_jobs_columns(inspector: Inspector) -> tuple[list[str], dict[str, ReflectedColumn]]:
     """
     Return missing-column statements and metadata for bounded identifiers.
 
     Scans rebuild_jobs columns once and produces:
     - The list of ADD COLUMN IF NOT EXISTS statements needed for missing
       heartbeat columns.
-    - The SQLAlchemy column metadata dict for active_worker_id, or None
-      if the column does not yet exist.
+    - The SQLAlchemy column metadata for each bounded rebuild identifier.
 
     Args:
         inspector: SQLAlchemy inspector instance.
 
     Returns:
-        tuple[list[str], dict | None]: A tuple containing the list of SQL statements and
-            optional column metadata.
+        tuple[list[str], dict[str, ReflectedColumn]]: Missing-column SQL
+            statements and reflected identifier metadata.
     """
     columns = inspector.get_columns("rebuild_jobs")
     existing: set[str] = set()
-    identifier_columns: dict[str, dict] = {}
+    identifier_columns: dict[str, ReflectedColumn] = {}
     for col in columns:
         name = col["name"]
         existing.add(name)
@@ -319,7 +319,7 @@ def _inspect_rebuild_jobs_columns(inspector: Inspector) -> tuple[list[str], dict
     return statements, identifier_columns
 
 
-def _identifier_declared_incompatible(column: dict | None) -> bool:
+def _identifier_declared_incompatible(column: ReflectedColumn | None) -> bool:
     """Check whether a present identifier column is unbounded or wider than 64.
 
     Return True when the identifier is unbounded or wider than VARCHAR(64).
@@ -328,7 +328,7 @@ def _identifier_declared_incompatible(column: dict | None) -> bool:
     _apply_normalization_in_transaction(), after taking an exclusive lock.
 
     Args:
-        column (dict | None): SQLAlchemy column metadata dict.
+        column (ReflectedColumn | None): SQLAlchemy column metadata.
 
     Returns:
         bool: True if the column is unbounded or wider than 64 characters.

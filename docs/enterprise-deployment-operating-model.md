@@ -240,7 +240,10 @@ A Vercel rollback/promotion can recover a previous application deployment, but i
 
 ## Secret Handling
 
-- **Production/Staging**: Secrets such as `SECRET_KEY`, migration-time `ADMIN_PASSWORD`, `DATABASE_URL`, `POSTGRES_URL`, and `ASSET_GRAPH_DATABASE_URL` must be configured through an approved secret-management surface and must never be checked into version control. Migration-owner database URLs and `ADMIN_PASSWORD` belong only to the bounded operator execution; FastAPI receives restricted runtime URLs and no bootstrap password.
+- **Production/Staging**: Secrets such as `SECRET_KEY`, migration-time `ADMIN_PASSWORD`, `DATABASE_URL`,
+  `POSTGRES_URL`, and `ASSET_GRAPH_DATABASE_URL` must be configured through an approved secret-management surface and
+  must never be checked into version control. Migration-owner database URLs and `ADMIN_PASSWORD` belong only to the
+  bounded operator execution; FastAPI receives restricted runtime URLs and no bootstrap password.
 - **Preview**: Non-production secrets must still be handled through environment-variable management and must not be embedded in code or docs.
 - **Local Development**: Use a local `.env` file or equivalent local environment configuration. Keep it out of version control.
 

@@ -242,7 +242,7 @@ async def _initialize_application_state(
             asyncio.to_thread(_verify_auth_database),
             timeout=_AUTH_DATABASE_VERIFICATION_TIMEOUT_SECONDS,
         )
-    except TimeoutError:
+    except asyncio.TimeoutError:
         raise SchemaCompatibilityError("API credential database verification timed out") from None
     if has_persistence:
         try:

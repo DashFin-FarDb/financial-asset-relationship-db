@@ -7,7 +7,7 @@
 ## Contract
 
 FastAPI runtime startup is a read-only compatibility boundary. It checks required tables, columns, named constraints,
-indexes, GRAC immutability triggers, PostgreSQL RLS/grant posture, and the API credential schema. It fails closed when
+indices, GRAC immutability triggers, PostgreSQL RLS/grant posture, and the API credential schema. It fails closed when
 the configured databases are absent or incompatible and never attempts repair.
 
 The operator command is the only supported mutating setup path for this tranche. It wraps the existing custom
