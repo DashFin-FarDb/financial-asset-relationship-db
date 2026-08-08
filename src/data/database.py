@@ -31,10 +31,6 @@ from .repository import session_scope  # noqa: F401, E402
 DEFAULT_DATABASE_URL = "sqlite:///./asset_graph.db"
 ASSET_GRAPH_DATABASE_URL_ENV_VAR = "ASSET_GRAPH_DATABASE_URL"
 SQLITE_MEMORY_DATABASE = ":memory:"
-_POSTGRESQL_ARRAY_ANY_PATTERN = re.compile(r"=\s*any\s*\(\s*\(?\s*array\s*\[([^\]]*)\]\s*\)?\s*\)")
-_BETWEEN_PATTERN = re.compile(r"([^\s()]+)\s+between\s+([^\s()]+)\s+and\s+([^\s()]+)")
-_IN_LITERAL_SET_PATTERN = re.compile(r"\bin\s*\(([^()]*)\)")
-_SINGLE_QUOTED_LITERAL_PATTERN = re.compile(r"'[^']*'")
 _CHECK_COMPARISON_PADDING_PATTERN = re.compile(r'[\s()"]+')
 
 
@@ -277,16 +273,114 @@ def _normalize_check_definition(definition: object) -> str:
     normalized = re.sub(r"::\s*(?:character varying|text)(?:\[\])?", "", normalized)
     normalized = normalized.removeprefix("check")
     normalized = normalized.replace("!~~", "not like").replace("~~", "like")
-    normalized = _POSTGRESQL_ARRAY_ANY_PATTERN.sub(r" in (\1)", normalized)
-    normalized = _BETWEEN_PATTERN.sub(r"\1 >= \2 and \1 <= \3", normalized)
-
-    def _sort_literal_set(match: re.Match[str]) -> str:
-        literals = _SINGLE_QUOTED_LITERAL_PATTERN.findall(match.group(1))
-        remainder = _SINGLE_QUOTED_LITERAL_PATTERN.sub("", match.group(1)).replace(",", "").strip()
-        return "in(" + ",".join(sorted(literals)) + ")" if literals and not remainder else match.group(0)
-
-    normalized = _IN_LITERAL_SET_PATTERN.sub(_sort_literal_set, normalized)
+    normalized = _normalize_postgresql_array_any(normalized)
+    normalized = _normalize_between_predicates(normalized)
+    normalized = _sort_literal_sets(normalized)
     return _CHECK_COMPARISON_PADDING_PATTERN.sub("", normalized)
+
+
+def _normalize_postgresql_array_any(sql: str) -> str:
+    """Convert PostgreSQL ``= ANY (ARRAY[...])`` rendering into ``IN (...)``."""
+    marker = "= any"
+    array_marker = "array["
+    result = sql
+    search_start = 0
+    while True:
+        marker_start = result.find(marker, search_start)
+        if marker_start == -1:
+            return result
+        array_start = result.find(array_marker, marker_start + len(marker))
+        if array_start == -1:
+            search_start = marker_start + len(marker)
+            continue
+        literal_start = array_start + len(array_marker)
+        literal_end = result.find("]", literal_start)
+        if literal_end == -1:
+            search_start = literal_start
+            continue
+        result = result[:marker_start] + " in (" + result[literal_start:literal_end] + ")" + result[literal_end + 1 :]
+        search_start = marker_start
+
+
+def _normalize_between_predicates(sql: str) -> str:
+    """Convert simple ``x BETWEEN y AND z`` predicates into equivalent comparisons."""
+    result = sql
+    search_start = 0
+    while True:
+        between_start = result.find(" between ", search_start)
+        if between_start == -1:
+            return result
+        left_start = between_start - 1
+        while left_start >= 0 and not result[left_start].isspace():
+            left_start -= 1
+        left_start += 1
+
+        lower_start = between_start + len(" between ")
+        and_start = result.find(" and ", lower_start)
+        if and_start == -1:
+            search_start = lower_start
+            continue
+
+        upper_start = and_start + len(" and ")
+        upper_end = upper_start
+        while upper_end < len(result) and not result[upper_end].isspace() and result[upper_end] != ")":
+            upper_end += 1
+
+        column = result[left_start:between_start]
+        lower_bound = result[lower_start:and_start]
+        upper_bound = result[upper_start:upper_end]
+        replacement = f"{column} >= {lower_bound} and {column} <= {upper_bound}"
+        result = result[:left_start] + replacement + result[upper_end:]
+        search_start = left_start + len(replacement)
+
+
+def _single_quoted_literals(value: str) -> list[str]:
+    """Extract simple single-quoted SQL literals, preserving quotes."""
+    literals: list[str] = []
+    search_start = 0
+    while True:
+        literal_start = value.find("'", search_start)
+        if literal_start == -1:
+            return literals
+        literal_end = value.find("'", literal_start + 1)
+        if literal_end == -1:
+            return literals
+        literals.append(value[literal_start : literal_end + 1])
+        search_start = literal_end + 1
+
+
+def _sort_literal_sets(sql: str) -> str:
+    """Sort simple ``IN ('a', 'b')`` literal lists for dialect-insensitive comparison."""
+    result = sql
+    search_start = 0
+    while True:
+        in_start = result.find("in", search_start)
+        if in_start == -1:
+            return result
+        if in_start > 0 and (result[in_start - 1].isalnum() or result[in_start - 1] == "_"):
+            search_start = in_start + len("in")
+            continue
+        open_paren = in_start + len("in")
+        while open_paren < len(result) and result[open_paren].isspace():
+            open_paren += 1
+        if open_paren >= len(result) or result[open_paren] != "(":
+            search_start = in_start + len("in")
+            continue
+        close_paren = result.find(")", open_paren + 1)
+        if close_paren == -1:
+            return result
+
+        body = result[open_paren + 1 : close_paren]
+        literals = _single_quoted_literals(body)
+        remainder = body
+        for literal in literals:
+            remainder = remainder.replace(literal, "", 1)
+        if literals and not remainder.replace(",", "").strip():
+            replacement = "in(" + ",".join(sorted(literals)) + ")"
+            result = result[:in_start] + replacement + result[close_paren + 1 :]
+            search_start = in_start + len(replacement)
+            continue
+        search_start = close_paren + 1
 
 
 def _expected_check_definitions(expected_table) -> dict[str, str]:
