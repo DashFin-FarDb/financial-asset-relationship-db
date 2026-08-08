@@ -10,7 +10,7 @@ This module tests:
 """
 
 import os
-import subprocess
+import subprocess  # nosec B404 - isolated test process, never production input
 import sys
 from datetime import datetime, timedelta, timezone
 from unittest.mock import Mock, patch
@@ -48,7 +48,7 @@ def test_auth_module_import_performs_no_database_writes(tmp_path) -> None:
         "ADMIN_PASSWORD": "must-not-be-consumed",
     }
 
-    result = subprocess.run(  # noqa: S603 - fixed interpreter and repository-owned import statement
+    result = subprocess.run(  # noqa: S603  # nosec B603 - fixed interpreter and repository-owned import
         [sys.executable, "-c", "import api.auth"],
         check=False,
         capture_output=True,

@@ -362,7 +362,7 @@ class TestDatabaseInitialization:
     def test_postgresql_runtime_authority_fails_when_role_is_privileged(self) -> None:
         """A PostgreSQL runtime role retaining migration authority must fail closed."""
         runtime_engine = Mock(spec=Engine)
-        runtime_engine.url = "postgresql://runtime:secret@localhost/fardb"
+        runtime_engine.url = "postgresql://runtime:secret@database.invalid/fardb"
         connection = MagicMock()
         connection.execute.return_value.scalar_one.return_value = False
         runtime_engine.connect.return_value.__enter__ = MagicMock(return_value=connection)
@@ -374,7 +374,7 @@ class TestDatabaseInitialization:
     def test_postgresql_runtime_authority_accepts_restricted_role(self) -> None:
         """A PostgreSQL role without owner/DDL powers should pass the authority check."""
         runtime_engine = Mock(spec=Engine)
-        runtime_engine.url = "postgresql://runtime:secret@localhost/fardb"
+        runtime_engine.url = "postgresql://runtime:secret@database.invalid/fardb"
         connection = MagicMock()
         connection.execute.return_value.scalar_one.return_value = True
         runtime_engine.connect.return_value.__enter__ = MagicMock(return_value=connection)

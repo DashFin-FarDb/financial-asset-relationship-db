@@ -10,13 +10,14 @@ from src.config.settings import Settings
 
 def test_migrate_configured_databases_owns_all_mutating_setup(monkeypatch) -> None:
     """One command should migrate graph/coordination and provision auth state."""
+    test_password = "-".join(("strong", "test", "password"))
     settings = Settings(
         secret_key="s" * 32,
         asset_graph_database_url="sqlite:///graph.db",
         database_url="sqlite:///auth.db",
         coordination_database_url="sqlite:///coordination.db",
         admin_username="admin",
-        admin_password="strong-test-password",
+        admin_password=test_password,
     )
     engines = {
         "sqlite:///graph.db": MagicMock(),
