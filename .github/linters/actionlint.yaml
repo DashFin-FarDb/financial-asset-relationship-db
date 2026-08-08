@@ -1,4 +1,5 @@
-paths:
-  .github/workflows/**/*.{yml,yaml}:
-    ignore:
-      - 'unknown permission scope "models"'
+---
+# Super-Linter v7 currently bundles actionlint 1.7.1. That version cannot
+# suppress the newer GitHub Models permission through config-file ignores, so
+# the known false positive is passed through GITHUB_ACTIONS_COMMAND_ARGS in
+# .github/workflows/super-linter.yml.
