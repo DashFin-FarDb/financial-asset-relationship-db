@@ -721,8 +721,7 @@ def verify_schema_compatibility() -> None:
         )
     else:
         column_count = fetch_value(
-            "SELECT COUNT(*) FROM pragma_table_info('user_credentials') "
-            f"WHERE name IN ({_CREDENTIAL_COLUMN_LITERALS})"
+            f"SELECT COUNT(*) FROM pragma_table_info('user_credentials') WHERE name IN ({_CREDENTIAL_COLUMN_LITERALS})"
         )
         username_unique = fetch_value(
             "SELECT EXISTS ("
