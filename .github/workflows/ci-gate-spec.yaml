@@ -235,11 +235,14 @@ jobs:
 
       - name: Verify metrics endpoint exposes new metrics
         env:
-          DATABASE_URL: "sqlite:///:memory:"
+          DATABASE_URL: "sqlite:stage5c_metrics.db"
           SECRET_KEY: test-secret-key-for-ci
           ADMIN_USERNAME: admin
           ADMIN_PASSWORD: admin
         run: |
+          # Startup is read-only; prepare the auth schema and admin credential explicitly first.
+          python -m scripts.migrate_database
+
           # Start API in background
           python -m uvicorn api.main:app --host 127.0.0.1 --port 8000 > /tmp/api.log 2>&1 &
           API_PID=$!

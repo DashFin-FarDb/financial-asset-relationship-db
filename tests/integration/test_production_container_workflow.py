@@ -7,6 +7,7 @@ import yaml  # type: ignore[import-untyped]
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 WORKFLOW_PATH = REPO_ROOT / ".github" / "workflows" / "production-container.yml"
+CI_GATE_WORKFLOW_PATH = REPO_ROOT / ".github" / "workflows" / "ci-gate-spec.yaml"
 COMPOSE_PATH = REPO_ROOT / "docker-compose.production.yml"
 
 GRADIO_WORKFLOWS = (
@@ -114,6 +115,24 @@ def test_api_dockerfile_copies_migrations() -> None:
     """Production API image must ship SQL migrations for durable SQLite init."""
     text = (REPO_ROOT / "Dockerfile.api").read_text(encoding="utf-8")
     assert "COPY migrations/ ./migrations/" in text
+
+
+def test_api_dockerfile_copies_migration_command() -> None:
+    """Production API image must ship the explicit operator migration command."""
+    text = (REPO_ROOT / "Dockerfile.api").read_text(encoding="utf-8")
+    assert "COPY scripts/migrate_database.py ./scripts/migrate_database.py" in text
+
+
+def test_gate_d_migrates_file_backed_database_before_api_startup() -> None:
+    """Gate D must use a DB that survives the migration subprocess before startup."""
+    text = CI_GATE_WORKFLOW_PATH.read_text(encoding="utf-8")
+    migrate_command = "python -m scripts.migrate_database"
+    startup_command = "python -m uvicorn api.main:app"
+
+    assert 'DATABASE_URL: "sqlite:stage5c_metrics.db"' in text
+    assert 'DATABASE_URL: "sqlite:///:memory:"' not in text
+    assert migrate_command in text
+    assert text.index(migrate_command) < text.index(startup_command)
 
 
 def test_assets_smoke_requires_positive_integer_total(production_container_raw: str) -> None:
