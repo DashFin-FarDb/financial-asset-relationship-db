@@ -365,6 +365,9 @@ class TestSchemaInitialization:
 
         mock_execute.assert_not_called()
         assert mock_fetch_value.call_count == 2
+        sqlite_unique_query = mock_fetch_value.call_args_list[1].args[0]
+        assert "COUNT(*) FROM pragma_index_info(indexes.name)" in sqlite_unique_query
+        assert "= 1" in sqlite_unique_query
 
     @patch("api.database.fetch_value", side_effect=[0, 0])
     def test_verify_schema_compatibility_fails_when_table_is_missing(self, _mock_fetch_value):
@@ -381,9 +384,10 @@ class TestSchemaInitialization:
 
     @patch.object(database, "DATABASE_TYPE", "postgresql")
     @patch("api.database.fetch_value", return_value=True)
-    def test_verify_runtime_authority_accepts_restricted_postgresql_role(self, _mock_fetch_value):
+    def test_verify_runtime_authority_accepts_restricted_postgresql_role(self, mock_fetch_value):
         """Auth startup should accept a PostgreSQL role without migration authority."""
         verify_runtime_authority()
+        assert "current_schema() IS NOT NULL" in mock_fetch_value.call_args.args[0]
 
 
 class TestEdgeCases:

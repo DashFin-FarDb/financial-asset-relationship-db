@@ -66,48 +66,65 @@ def verify_relationship_assertion_schema(engine: Engine) -> None:
     with engine.connect() as connection:
         _require_projection_revision_scope_metadata(connection, backend)
         if backend == "sqlite":
-            _require_sqlite_grac_constraints(connection)
-            if not _sqlite_guards_present(connection):
-                raise RuntimeError("SQLite GRAC immutability guards are incomplete")
+            _verify_sqlite_grac_schema(connection)
         elif backend == "postgresql":
-            if not _postgresql_grac_constraints_present(connection):
-                raise RuntimeError("PostgreSQL GRAC constraints are incomplete or unvalidated")
-            if not _postgresql_guards_present(connection):
-                raise RuntimeError("PostgreSQL GRAC immutability guards are incomplete")
-            roles = _untrusted_database_roles()
-            if _immutability_function_has_untrusted_execute(connection, roles):
-                raise PermissionError("PostgreSQL GRAC immutability function is executable by an untrusted role")
-            if not _postgresql_grac_access_hardened(connection):
-                raise PermissionError("PostgreSQL GRAC RLS/grant posture is incompatible")
+            _verify_postgresql_grac_schema(connection)
+
+
+def _verify_sqlite_grac_schema(connection: Connection) -> None:
+    """Verify SQLite GRAC compatibility and immutability guards."""
+    _require_sqlite_grac_constraints(connection)
+    if not _sqlite_guards_present(connection):
+        raise RuntimeError("SQLite GRAC immutability guards are incomplete")
+
+
+def _verify_postgresql_grac_schema(connection: Connection) -> None:
+    """Verify PostgreSQL GRAC compatibility, guards, and least authority."""
+    if not _postgresql_grac_constraints_present(connection):
+        raise RuntimeError("PostgreSQL GRAC constraints are incomplete or unvalidated")
+    if not _postgresql_guards_present(connection):
+        raise RuntimeError("PostgreSQL GRAC immutability guards are incomplete")
+    roles = _untrusted_database_roles()
+    if _immutability_function_has_untrusted_execute(connection, roles):
+        raise PermissionError("PostgreSQL GRAC immutability function is executable by an untrusted role")
+    if not _postgresql_grac_access_hardened(connection):
+        raise PermissionError("PostgreSQL GRAC RLS/grant posture is incompatible")
+
+
+def _projection_revision_scope_metadata(connection: Connection, backend: str) -> tuple[set[str], set[str]]:
+    """Read projection columns and assertion-event indexes for one backend."""
+    if backend == "sqlite":
+        columns = {row[1] for row in connection.execute(text("PRAGMA table_info(relationship_projection_revisions)"))}
+        indexes = {row[1] for row in connection.execute(text("PRAGMA index_list(relationship_assertion_events)"))}
+        return columns, indexes
+    if backend != "postgresql":
+        raise RuntimeError(f"unsupported database backend for GRAC verification: {backend}")
+
+    columns = {
+        row[0]
+        for row in connection.execute(
+            text(
+                "SELECT column_name FROM information_schema.columns "
+                "WHERE table_schema = current_schema() "
+                "AND table_name = 'relationship_projection_revisions'"
+            )
+        )
+    }
+    indexes = {
+        row[0]
+        for row in connection.execute(
+            text(
+                "SELECT indexname FROM pg_indexes WHERE schemaname = current_schema() "
+                "AND tablename = 'relationship_assertion_events'"
+            )
+        )
+    }
+    return columns, indexes
 
 
 def _require_projection_revision_scope_metadata(connection: Connection, backend: str) -> None:
     """Require the additive projection column and successor lookup index."""
-    if backend == "sqlite":
-        columns = {row[1] for row in connection.execute(text("PRAGMA table_info(relationship_projection_revisions)"))}
-        indexes = {row[1] for row in connection.execute(text("PRAGMA index_list(relationship_assertion_events)"))}
-    elif backend == "postgresql":
-        columns = {
-            row[0]
-            for row in connection.execute(
-                text(
-                    "SELECT column_name FROM information_schema.columns "
-                    "WHERE table_schema = current_schema() "
-                    "AND table_name = 'relationship_projection_revisions'"
-                )
-            )
-        }
-        indexes = {
-            row[0]
-            for row in connection.execute(
-                text(
-                    "SELECT indexname FROM pg_indexes WHERE schemaname = current_schema() "
-                    "AND tablename = 'relationship_assertion_events'"
-                )
-            )
-        }
-    else:
-        raise RuntimeError(f"unsupported database backend for GRAC verification: {backend}")
+    columns, indexes = _projection_revision_scope_metadata(connection, backend)
 
     if "governed_scopes" not in columns:
         raise RuntimeError("relationship_projection_revisions.governed_scopes is missing")

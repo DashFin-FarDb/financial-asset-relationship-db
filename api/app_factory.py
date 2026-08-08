@@ -60,6 +60,7 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 _STARTUP_RECONCILIATION_LOCK_TTL_SECONDS = 10.0
+_AUTH_DATABASE_VERIFICATION_TIMEOUT_SECONDS = 30.0
 
 
 def _get_durable_graph_database_url(settings: GraphLifecycleSettings) -> str | None:
@@ -229,7 +230,13 @@ async def _initialize_application_state(
     """Run startup reconciliation and initialize the graph, handling degraded startup."""
     # Credential compatibility is an authority boundary, not an optional hosted
     # fallback. It must fail closed before any HTTP traffic is accepted.
-    await asyncio.to_thread(_verify_auth_database)
+    try:
+        await asyncio.wait_for(
+            asyncio.to_thread(_verify_auth_database),
+            timeout=_AUTH_DATABASE_VERIFICATION_TIMEOUT_SECONDS,
+        )
+    except TimeoutError:
+        raise SchemaCompatibilityError("API credential database verification timed out") from None
     if has_persistence:
         try:
             await _perform_startup_reconciliation(settings)

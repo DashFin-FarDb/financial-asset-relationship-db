@@ -2,7 +2,16 @@
 
 from __future__ import annotations
 
-from sqlalchemy import CheckConstraint, bindparam, create_engine, event, inspect, text
+from sqlalchemy import (
+    CheckConstraint,
+    ForeignKeyConstraint,
+    UniqueConstraint,
+    bindparam,
+    create_engine,
+    event,
+    inspect,
+    text,
+)
 from sqlalchemy.engine import Engine, make_url
 from sqlalchemy.exc import ArgumentError
 from sqlalchemy.orm import Session, sessionmaker
@@ -215,6 +224,80 @@ def init_db(engine: Engine) -> None:
     ensure_relationship_assertion_schema(engine)
 
 
+def _verify_table_constraints(inspector, table_name: str, expected_table) -> None:
+    """Verify key and uniqueness invariants for one reflected table."""
+    expected_primary_key = tuple(column.name for column in expected_table.primary_key.columns)
+    actual_primary_key = tuple(inspector.get_pk_constraint(table_name).get("constrained_columns") or ())
+    if expected_primary_key != actual_primary_key:
+        raise SchemaCompatibilityError(f"database table {table_name} missing primary-key invariant")
+
+    expected_unique = {
+        frozenset(column.name for column in constraint.columns)
+        for constraint in expected_table.constraints
+        if isinstance(constraint, UniqueConstraint)
+    }
+    actual_unique = {
+        frozenset(constraint.get("column_names") or ()) for constraint in inspector.get_unique_constraints(table_name)
+    }
+    if expected_unique - actual_unique:
+        raise SchemaCompatibilityError(f"database table {table_name} missing uniqueness invariants")
+
+    expected_foreign_keys = {
+        (
+            tuple(column.name for column in constraint.columns),
+            constraint.referred_table.name,
+            tuple(element.column.name for element in constraint.elements),
+        )
+        for constraint in expected_table.constraints
+        if isinstance(constraint, ForeignKeyConstraint)
+    }
+    actual_foreign_keys = {
+        (
+            tuple(constraint.get("constrained_columns") or ()),
+            constraint.get("referred_table"),
+            tuple(constraint.get("referred_columns") or ()),
+        )
+        for constraint in inspector.get_foreign_keys(table_name)
+    }
+    if expected_foreign_keys - actual_foreign_keys:
+        raise SchemaCompatibilityError(f"database table {table_name} missing foreign-key invariants")
+
+
+def _verify_table_schema(inspector, table_name: str) -> None:
+    """Verify columns and named schema invariants for one ORM table."""
+    expected_table = Base.metadata.tables[table_name]
+    actual_columns = {column["name"] for column in inspector.get_columns(table_name)}
+    missing_columns = sorted(set(expected_table.columns.keys()) - actual_columns)
+    if missing_columns:
+        raise SchemaCompatibilityError(
+            f"database table {table_name} missing required columns: {', '.join(missing_columns)}"
+        )
+
+    expected_checks = {
+        str(constraint.name)
+        for constraint in expected_table.constraints
+        if isinstance(constraint, CheckConstraint) and constraint.name
+    }
+    actual_checks = {
+        str(constraint["name"]) for constraint in inspector.get_check_constraints(table_name) if constraint.get("name")
+    }
+    missing_checks = sorted(expected_checks - actual_checks)
+    if missing_checks:
+        raise SchemaCompatibilityError(
+            f"database table {table_name} missing required constraints: {', '.join(missing_checks)}"
+        )
+
+    expected_indexes = {index.name for index in expected_table.indexes if index.name}
+    actual_indexes = {index.get("name") for index in inspector.get_indexes(table_name) if index.get("name")}
+    missing_indexes = sorted(expected_indexes - actual_indexes)
+    if missing_indexes:
+        raise SchemaCompatibilityError(
+            f"database table {table_name} missing required indexes: {', '.join(missing_indexes)}"
+        )
+
+    _verify_table_constraints(inspector, table_name, expected_table)
+
+
 def verify_database_schema(engine: Engine) -> None:
     """Verify the asset-store schema without creating, altering, or repairing it.
 
@@ -247,39 +330,7 @@ def verify_database_schema(engine: Engine) -> None:
             raise SchemaCompatibilityError(f"database schema missing required tables: {', '.join(missing_tables)}")
 
         for table_name in sorted(expected_tables):
-            expected_table = Base.metadata.tables[table_name]
-            actual_columns = {column["name"] for column in inspector.get_columns(table_name)}
-            missing_columns = sorted(set(expected_table.columns.keys()) - actual_columns)
-            if missing_columns:
-                raise SchemaCompatibilityError(
-                    f"database table {table_name} missing required columns: {', '.join(missing_columns)}"
-                )
-
-            expected_checks = {
-                str(constraint.name)
-                for constraint in expected_table.constraints
-                if isinstance(constraint, CheckConstraint) and constraint.name
-            }
-            if expected_checks:
-                actual_checks = {
-                    str(constraint["name"])
-                    for constraint in inspector.get_check_constraints(table_name)
-                    if constraint.get("name")
-                }
-                missing_checks = sorted(expected_checks - actual_checks)
-                if missing_checks:
-                    raise SchemaCompatibilityError(
-                        f"database table {table_name} missing required constraints: {', '.join(missing_checks)}"
-                    )
-
-            expected_indexes = {index.name for index in expected_table.indexes if index.name}
-            if expected_indexes:
-                actual_indexes = {index.get("name") for index in inspector.get_indexes(table_name) if index.get("name")}
-                missing_indexes = sorted(expected_indexes - actual_indexes)
-                if missing_indexes:
-                    raise SchemaCompatibilityError(
-                        f"database table {table_name} missing required indexes: {', '.join(missing_indexes)}"
-                    )
+            _verify_table_schema(inspector, table_name)
 
         if backend == "postgresql":
             heartbeat_gaps = postgresql_heartbeat_schema_gaps(inspector)
@@ -307,7 +358,8 @@ def verify_runtime_database_authority(engine: Engine) -> None:
         with engine.connect() as connection:
             restricted = connection.execute(
                 text(
-                    "SELECT NOT (role.rolsuper OR role.rolcreaterole OR role.rolcreatedb "
+                    "SELECT current_schema() IS NOT NULL AND NOT ("
+                    "role.rolsuper OR role.rolcreaterole OR role.rolcreatedb "
                     "OR role.rolbypassrls "
                     "OR has_schema_privilege(role.oid, current_schema(), 'CREATE') "
                     "OR EXISTS (SELECT 1 FROM pg_class AS rel "

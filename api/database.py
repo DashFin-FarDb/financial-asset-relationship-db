@@ -725,8 +725,9 @@ def verify_schema_compatibility() -> None:
         username_unique = fetch_value(
             "SELECT EXISTS ("
             "SELECT 1 FROM pragma_index_list('user_credentials') AS indexes "
-            "JOIN pragma_index_info(indexes.name) AS columns ON columns.name = 'username' "
-            "WHERE indexes.[unique] = 1)"
+            "WHERE indexes.[unique] = 1 "
+            "AND (SELECT COUNT(*) FROM pragma_index_info(indexes.name)) = 1 "
+            "AND (SELECT name FROM pragma_index_info(indexes.name) LIMIT 1) = 'username')"
         )
 
     if column_count != required_column_count:
@@ -741,7 +742,8 @@ def verify_runtime_authority() -> None:
         return
 
     restricted = fetch_value(
-        "SELECT NOT (role.rolsuper OR role.rolcreaterole OR role.rolcreatedb OR role.rolbypassrls "
+        "SELECT current_schema() IS NOT NULL AND NOT ("
+        "role.rolsuper OR role.rolcreaterole OR role.rolcreatedb OR role.rolbypassrls "
         "OR has_schema_privilege(role.oid, current_schema(), 'CREATE') "
         "OR EXISTS (SELECT 1 FROM pg_class AS rel "
         "JOIN pg_namespace AS namespace ON namespace.oid = rel.relnamespace "

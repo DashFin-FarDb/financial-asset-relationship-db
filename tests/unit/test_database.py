@@ -21,7 +21,18 @@ from typing import Any
 from unittest.mock import MagicMock, Mock, patch
 
 import pytest
-from sqlalchemy import Column, Integer, String, create_engine, event, inspect
+from sqlalchemy import (
+    Column,
+    ForeignKey,
+    Integer,
+    MetaData,
+    String,
+    Table,
+    UniqueConstraint,
+    create_engine,
+    event,
+    inspect,
+)
 from sqlalchemy.engine import Engine
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.pool import NullPool, StaticPool
@@ -40,6 +51,7 @@ from src.data.database import (
     DEFAULT_DATABASE_URL,
     Base,
     SchemaCompatibilityError,
+    _verify_table_constraints,
     configure_sqlite_engine,
     create_engine_from_url,
     create_session_factory,
@@ -48,6 +60,47 @@ from src.data.database import (
     verify_database_schema,
     verify_runtime_database_authority,
 )
+
+
+@pytest.mark.parametrize(
+    "missing_invariant, error_match",
+    [
+        ("primary_key", "primary-key"),
+        ("unique", "uniqueness"),
+        ("foreign_key", "foreign-key"),
+    ],
+)
+def test_table_constraint_verifier_rejects_missing_invariants(missing_invariant: str, error_match: str) -> None:
+    """Runtime verification must cover PK, exact uniqueness, and FK contracts."""
+    metadata = MetaData()
+    Table("parent", metadata, Column("id", Integer, primary_key=True))
+    child = Table(
+        "child",
+        metadata,
+        Column("id", Integer, primary_key=True),
+        Column("code", String),
+        Column("parent_id", ForeignKey("parent.id")),
+        UniqueConstraint("code"),
+    )
+    inspector = MagicMock()
+    inspector.get_pk_constraint.return_value = {"constrained_columns": ["id"]}
+    inspector.get_unique_constraints.return_value = [{"column_names": ["code"]}]
+    inspector.get_foreign_keys.return_value = [
+        {
+            "constrained_columns": ["parent_id"],
+            "referred_table": "parent",
+            "referred_columns": ["id"],
+        }
+    ]
+    if missing_invariant == "primary_key":
+        inspector.get_pk_constraint.return_value = {"constrained_columns": []}
+    elif missing_invariant == "unique":
+        inspector.get_unique_constraints.return_value = []
+    else:
+        inspector.get_foreign_keys.return_value = []
+
+    with pytest.raises(SchemaCompatibilityError, match=error_match):
+        _verify_table_constraints(inspector, "child", child)
 
 
 @pytest.fixture(autouse=True)
@@ -381,6 +434,7 @@ class TestDatabaseInitialization:
         runtime_engine.connect.return_value.__exit__ = MagicMock(return_value=False)
 
         verify_runtime_database_authority(runtime_engine)
+        assert "current_schema() IS NOT NULL" in str(connection.execute.call_args.args[0])
 
 
 # ---------------------------------------------------------------------------
