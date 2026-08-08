@@ -15,17 +15,19 @@ from __future__ import annotations
 import logging
 import re
 import sqlite3
+from collections.abc import Mapping
 from pathlib import Path
 
 from sqlalchemy import inspect, text
 from sqlalchemy.engine import Engine
-from sqlalchemy.engine.interfaces import ReflectedCheckConstraint, ReflectedColumn
 from sqlalchemy.engine.reflection import Inspector
 
 from src.observability.events import ObservabilityEvent
 from src.observability.logger import log_event
 
 logger = logging.getLogger(__name__)
+ReflectedColumn = Mapping[str, object]
+ReflectedCheckConstraint = Mapping[str, object]
 
 # Explicit whitelist of allowed migration files
 # Only migrations listed here can be executed (defense in depth)
@@ -300,7 +302,7 @@ def _inspect_rebuild_jobs_columns(inspector: Inspector) -> tuple[list[str], dict
     existing: set[str] = set()
     identifier_columns: dict[str, ReflectedColumn] = {}
     for col in columns:
-        name = col["name"]
+        name = str(col["name"])
         existing.add(name)
         if name in _REBUILD_IDENTIFIER_COLUMNS:
             identifier_columns[name] = col
@@ -438,7 +440,7 @@ def _status_constraint_is_canonical(constraint: ReflectedCheckConstraint | None)
 
 def _postgresql_rebuild_columns(inspector: Inspector) -> dict[str, ReflectedColumn]:
     """Return reflected rebuild_jobs columns keyed by name."""
-    return {column["name"]: column for column in inspector.get_columns("rebuild_jobs")}
+    return {str(column["name"]): column for column in inspector.get_columns("rebuild_jobs")}
 
 
 def _postgresql_required_column_gaps(columns: dict[str, ReflectedColumn]) -> list[str]:
