@@ -554,9 +554,9 @@ describe("Package.json Validation", () => {
   });
 
   describe("Version Upgrade Validation", () => {
-    it("axios should be version 1.18.1 as per the upgrade", () => {
+    it("axios should be version 1.19.0 as per the upgrade", () => {
       const axiosVersion = packageJson.dependencies.axios;
-      expect(axiosVersion).toBe("^1.18.1");
+      expect(axiosVersion).toBe("^1.19.0");
     });
 
     it("axios upgrade should maintain backward compatibility", () => {
