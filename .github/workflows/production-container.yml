@@ -46,7 +46,6 @@ jobs:
         env:
           SECRET_KEY: ${{ secrets.CI_SMOKE_TEST_SECRET_KEY || 'ci-smoke-test-key-not-a-real-secret' }}
           ADMIN_USERNAME: ci-admin
-          ADMIN_PASSWORD: ci-admin-password
           NEXT_PUBLIC_API_URL: http://localhost:8000
         run: docker compose -f docker-compose.production.yml config >/dev/null
 
@@ -62,6 +61,19 @@ jobs:
           DB_URL="sqlite:////data/fardb.db"
           docker volume create "$VOLUME_NAME" >/dev/null
 
+          migrate_api() {
+            docker run --rm --name api_migrate \
+              -v "${VOLUME_NAME}:/data" \
+              -v "${GITHUB_WORKSPACE}/scripts:/app/scripts:ro" \
+              -e ENV=production \
+              -e DATABASE_URL="$DB_URL" \
+              -e ASSET_GRAPH_DATABASE_URL="$DB_URL" \
+              -e SECRET_KEY="$SECRET_KEY" \
+              -e ADMIN_USERNAME="$ADMIN_USERNAME" \
+              -e ADMIN_PASSWORD="$ADMIN_PASSWORD" \
+              fardb-api python -m scripts.migrate_database
+          }
+
           start_api() {
             local name="$1"
             docker run -d --name "$name" -p 8000:8000 \
@@ -70,8 +82,6 @@ jobs:
               -e DATABASE_URL="$DB_URL" \
               -e ASSET_GRAPH_DATABASE_URL="$DB_URL" \
               -e SECRET_KEY="$SECRET_KEY" \
-              -e ADMIN_USERNAME="$ADMIN_USERNAME" \
-              -e ADMIN_PASSWORD="$ADMIN_PASSWORD" \
               fardb-api
           }
 
@@ -91,12 +101,13 @@ jobs:
           }
 
           cleanup() {
-            docker rm -f api_persist_seed api_persist_reload >/dev/null 2>&1 || true
+            docker rm -f api_migrate api_persist_seed api_persist_reload >/dev/null 2>&1 || true
             docker volume rm -f "$VOLUME_NAME" >/dev/null 2>&1 || true
           }
           trap cleanup EXIT
 
-          # Phase A: start, liveness, rebuild+persist onto the volume.
+          # Phase A: migrate with operator authority, then start the restricted runtime.
+          migrate_api
           start_api api_persist_seed
           wait_healthy api_persist_seed
           curl -fsS http://127.0.0.1:8000/api/health >/dev/null
@@ -194,15 +205,11 @@ jobs:
       - name: Test Environment Variable Failure Behavior
         env:
           SECRET_KEY: ${{ secrets.CI_SMOKE_TEST_SECRET_KEY || 'ci-smoke-test-key-not-a-real-secret' }}
-          ADMIN_USERNAME: ci-admin
-          ADMIN_PASSWORD: ci-admin-password
         run: |
           set +e
           timeout 15s docker run --name api_bad_env \
             -e ENV=production \
             -e SECRET_KEY="$SECRET_KEY" \
-            -e ADMIN_USERNAME="$ADMIN_USERNAME" \
-            -e ADMIN_PASSWORD="$ADMIN_PASSWORD" \
             -e DATABASE_URL="bad_scheme://bad" \
             fardb-api
           exit_code=$?
