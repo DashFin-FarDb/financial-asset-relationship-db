@@ -226,8 +226,7 @@ class TestPostgresqlHeartbeatSchemaGaps:
         inspector.get_check_constraints.return_value = [
             {
                 "name": "ck_rebuild_jobs_status",
-                "sqltext": "status IN ('pending', 'running', 'succeeded', 'failed', "
-                "'cancel_requested', 'cancelled')",
+                "sqltext": "status IN ('pending', 'running', 'succeeded', 'failed', 'cancel_requested', 'cancelled')",
             }
         ]
 
