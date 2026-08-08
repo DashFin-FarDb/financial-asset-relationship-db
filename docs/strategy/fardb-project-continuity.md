@@ -3,7 +3,8 @@
 **Repository:** `DashFin-FarDb/financial-asset-relationship-db`
 **Established:** 2026-07-21
 **Repository evidence cutoff:** `main` at `0a72dfee67aae4ef7cc44041347474a6a6e234cd`
-**Continuity status:** Reconciled through the first five GRAC foundation PRs; publication paused for three corrective PRs
+**Continuity status:** Reconciled through the first five GRAC foundation PRs; later superseded for the bounded
+staging financial slice by the GRAC v1 exact-SHA sign-off record
 
 This ledger preserves durable project decisions, plans, milestones, and handoffs across ChatGPT, Codex, and
 repository work. It is an index of authoritative evidence, not a replacement for detailed specifications, issues,
@@ -42,8 +43,11 @@ At the evidence cutoff:
   candidate projector.
 - The earlier staging database-authorization PASS remains valid for its recorded SHA, but it is not transferable to
   the expanded schema at this cutoff. Exact-SHA authorization proof must be rerun after hosted-schema correction.
-- GRAC runtime capability remains `NEXT`. Publication issue #1536 is paused until contract, lifecycle, and
-  hosted-schema/PostgreSQL corrective PRs land in order.
+- GRAC runtime capability remains `NEXT` at this cutoff. The later
+  [GRAC v1 exact-SHA sign-off](../governance/grac-v1-exact-sha-evidence-signoff.md) supersedes this only for the
+  bounded `financial.bond.issuer_reference@1::financial_graph_current_view` staging slice at
+  `16d0a69c5d6f9bae94b9251991466bacbf15d3f0`; production certification, capacity, and broader generality remain
+  `NEXT`.
 - Production-scale capacity, repeated immutable promotion, and domain-neutral reuse remain unproven.
 
 Primary authorities:
@@ -53,7 +57,8 @@ Primary authorities:
 - [Claims and Truth Policy](claims-and-truth-policy.md)
 - [Release Evidence Pack](../release-evidence-pack.md)
 - [State Machine and Operating Authority](../governance/state-machine-and-operating-authority.md)
-- [Governed Relationship Assertion Contract v1](../governance/governed-relationship-assertion-contract-v1.md) (NEXT capability)
+- [Governed Relationship Assertion Contract v1](../governance/governed-relationship-assertion-contract-v1.md)
+  (bounded staging slice `CURRENT`; broader capability `NEXT`)
 - [The Big Read](the-big-read.md)
 
 ## Active commitments
@@ -133,7 +138,8 @@ Primary authorities:
 ### FPC-2026-07-21-04 — Ratify the governed relationship-assertion contract
 
 - **Type:** Product architecture
-- **Status:** Agreed — contract decision ratified (ADR 0008 / contract v1); runtime capability remains `NEXT`
+- **Status:** Agreed — contract decision ratified (ADR 0008 / contract v1); bounded staging slice later proved
+  `CURRENT`
 - **Decision or objective:** Decide and document the lifecycle that distinguishes propositions, evidence, assertions,
   determinations, projections, corrections, supersession, authority, purpose, and time.
 - **Rationale and constraints:** This is the proposed differentiating semantic core. It must not be represented as a
@@ -141,15 +147,19 @@ Primary authorities:
 - **Repository scope:** ADR 0008, frozen contract v1, continuity/strategy links; conformance, schema, lifecycle, and
   candidate projection landed through #1532–#1535; publication, APIs, UI, and staging proof remain #1536–#1540.
 - **Dependencies or blockers:** Three pre-publication corrective PRs: contract amendment; lifecycle/temporal/
-  serialization enforcement; hosted schema plus full PostgreSQL proof. Staging proof remains required before CURRENT.
-- **Evidence and provenance:** User decision 2026-07-25; original contract baseline `5e457537`; reviewed implementation
-  baseline `0a72dfee`; ADR 0008 Accepted; PRs #1541, #1542, #1549, #1550, and #1552 merged in order. Runtime
-  capability remains `NEXT`. Executable conformance and the vertical slice are implemented through candidate
-  projection; publication remains paused.
-- **Next action and completion test:** Land the three corrective PRs in order, then resume #1536–#1540. Complete only
-  when exact-SHA staging proof answers provenance, proposition, evidence, method, confidence, time, authority,
-  supersession, revision, governed-scope continuity, and the pre-correction graph after restart.
-- **Last updated:** 2026-07-26
+  serialization enforcement; hosted schema plus full PostgreSQL proof. The exact-SHA staging sign-off later satisfied
+  the bounded CURRENT gate for the financial slice only.
+- **Evidence and provenance:** User decision 2026-07-25; original contract baseline `5e457537`; reviewed
+  implementation baseline `0a72dfee`; ADR 0008 Accepted; PRs #1541, #1542, #1549, #1550, and #1552 merged in order.
+  The [GRAC v1 exact-SHA staging evidence and sign-off](../governance/grac-v1-exact-sha-evidence-signoff.md)
+  supersedes this entry's earlier `NEXT` wording for the bounded
+  `financial.bond.issuer_reference@1::financial_graph_current_view` staging slice at
+  `16d0a69c5d6f9bae94b9251991466bacbf15d3f0`. Production certification, capacity, and broader generality remain
+  `NEXT`. The foundation remains implemented through candidate projection for this historical entry.
+- **Next action and completion test:** The bounded financial-slice staging proof is satisfied by the exact-SHA
+  sign-off record. Broader production certification, capacity, and multi-domain claims still require separate dated
+  evidence.
+- **Last updated:** 2026-08-08
 
 ### FPC-2026-07-21-05 — Prove domain generality without weakening the core
 
@@ -183,13 +193,17 @@ Primary authorities:
   no raw evidence blobs, multi-domain expansion or graph-database migration.
 - **Evidence:** User decision dated 2026-07-25; original contract baseline
   `5e45753705c10c2c4f50e0e9bc4d07b823d752ab`; reviewed implementation baseline
-  `0a72dfee67aae4ef7cc44041347474a6a6e234cd`; tracker epic #1530 / children #1531–#1540; merged foundation
-  PRs #1541, #1542, #1549, #1550, and #1552; ADR 0008 Accepted; frozen contract
-  [governed-relationship-assertion-contract-v1.md](../governance/governed-relationship-assertion-contract-v1.md).
-- **Next action:** Land the three pre-publication corrective PRs, then resume #1536–#1540.
-- **Completion test:** Exact-SHA staging proof of proposal, authorization,
-  publication, supersession, restart and historical reconstruction.
-- **Last updated:** 2026-07-26
+  `0a72dfee67aae4ef7cc44041347474a6a6e234cd`; tracker epic #1530 / children #1531–#1540; merged foundation PRs
+  #1541, #1542, #1549, #1550, and #1552; ADR 0008 Accepted; frozen contract
+  [governed-relationship-assertion-contract-v1.md](../governance/governed-relationship-assertion-contract-v1.md);
+  bounded exact-SHA staging proof and named sign-off for
+  `financial.bond.issuer_reference@1::financial_graph_current_view` recorded in
+  [grac-v1-exact-sha-evidence-signoff.md](../governance/grac-v1-exact-sha-evidence-signoff.md).
+- **Next action:** Keep broader production certification, capacity, and multi-domain capability as separate `NEXT`
+  gates.
+- **Completion test:** Bounded exact-SHA staging proof of proposal, authorization, publication, supersession, restart
+  and historical reconstruction is satisfied for the financial slice only.
+- **Last updated:** 2026-08-08
 
 ### FPC-2025-10-26-01 — Financial relationship prototype becomes a versioned project
 
@@ -387,8 +401,9 @@ Primary authorities:
    when the next release record is prepared.
 4. **Tracker vs ledger:** Active commitments in this ledger may outlive or precede open GitHub issues/PRs. Empty or
    sparse trackers are not evidence that release gates are satisfied.
-5. **Product category decision:** ADR 0008 Accepted and contract v1 frozen (FARDB-GRAC-V1 Agreed). Runtime governed
-   assertion capability remains `NEXT` until exact-SHA staging proof (#1540); do not treat ratification as CURRENT.
+5. **Product category decision:** ADR 0008 Accepted and contract v1 frozen (FARDB-GRAC-V1 Agreed). The exact-SHA
+   sign-off record supersedes the earlier `NEXT` wording only for the bounded
+   `financial.bond.issuer_reference@1::financial_graph_current_view` staging slice; broader capability remains `NEXT`.
 
 ## Agent-ready handoff
 
@@ -401,8 +416,9 @@ Primary authorities:
 - RC1 has candidate-specific approved hosted and restore evidence.
 - `main` is `0a72dfee67aae4ef7cc44041347474a6a6e234cd` at this cutoff. GRAC foundation PRs #1541, #1542, #1549,
   #1550, and #1552 are merged.
-- GRAC v1 programme tracker: epic #1530 / children #1531–#1540; publication #1536 is paused for three corrective
-  PRs; capability claim remains `NEXT`.
+- GRAC v1 programme tracker: epic #1530 / children #1531–#1540; exact-SHA sign-off proves bounded staging `CURRENT`
+  for `financial.bond.issuer_reference@1::financial_graph_current_view`; production certification, capacity, and
+  broader generality remain `NEXT`.
 
 ### Governing constraints
 
@@ -416,16 +432,14 @@ Primary authorities:
 
 ### Next highest-value action
 
-Keep #1536 paused. Land, in order: (1) the GRAC scope/publication contract amendment, (2) lifecycle, actor, temporal,
-and supersession-serialization enforcement, and (3) hosted-schema hardening with durable governed scopes and full
-PostgreSQL projection/lifecycle CI. Then rerun exact-SHA database authorization proof and resume #1536–#1540.
+Preserve the exact-SHA sign-off as the bounded staging proof for the financial slice. Treat production certification,
+capacity/resilience, repeated immutable promotion, and multi-domain generality as separate `NEXT` gates.
 Release repeatability (**FPC-2026-07-21-02**) remains an active parallel commitment.
 
 ### Completion test
 
-The three corrective PRs merge in order; exact-SHA database authorization passes for the corrected schema; and the
-resumed #1536–#1540 sequence proves distinct proposal/determination actors, publication, governed-scope continuity,
-supersession, restart, and historical reconstruction without promoting capability before the staging evidence exists.
+The exact-SHA sign-off remains linked from current strategy and contract authorities, while any broader `CURRENT`
+claim continues to require separate dated evidence for the exact artefact under promotion.
 
 ## Backfill coverage and gaps
 

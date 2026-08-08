@@ -529,18 +529,20 @@ class TestGovernedRelationshipAssertionContinuityAndStrategy:
             assert pr_number in entry
 
     def test_fpc_04_foundation_through_candidate_projection_recorded(self, continuity_content: str) -> None:
-        """FPC-2026-07-21-04 must record the landed foundation without claiming publication."""
+        """FPC-2026-07-21-04 must record the landed foundation and bounded staging proof."""
         assert "### FPC-2026-07-21-04" in continuity_content
         entry = _section_after(continuity_content, "### FPC-2026-07-21-04")
         assert "implemented through candidate" in entry.lower()
-        assert "publication remains paused" in entry.lower()
+        assert "bounded current gate" in entry.lower()
+        assert PROVED_STAGING_SHA in entry
+        assert PROVED_STAGING_PREDICATE in entry
         assert "Agreed" in entry
 
-    def test_fpc_04_pauses_publication_for_corrective_sequence(self, continuity_content: str) -> None:
-        """FPC-2026-07-21-04 must record the pre-publication corrective sequence."""
+    def test_fpc_04_records_exact_sha_signoff_supersession(self, continuity_content: str) -> None:
+        """FPC-2026-07-21-04 must record exact-SHA sign-off supersession."""
         entry = _section_after(continuity_content, "### FPC-2026-07-21-04")
-        assert "three pre-publication corrective prs" in entry.lower()
-        assert "then resume #1536" in entry.lower()
+        assert PROVED_STAGING_SIGNOFF in entry
+        assert "production certification, capacity, and broader generality remain" in entry.lower()
 
     def test_cutoff_does_not_claim_pr_1510_open(self, continuity_content: str) -> None:
         """H-P1-03 / PR #1510 must not be described as open after the refreshed cutoff."""
