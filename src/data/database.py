@@ -230,11 +230,21 @@ def init_db(engine: Engine) -> None:
 
 def _verify_table_constraints(inspector, table_name: str, expected_table) -> None:
     """Verify key and uniqueness invariants for one reflected table."""
+    _verify_primary_key_constraint(inspector, table_name, expected_table)
+    _verify_unique_constraints(inspector, table_name, expected_table)
+    _verify_foreign_key_constraints(inspector, table_name, expected_table)
+
+
+def _verify_primary_key_constraint(inspector, table_name: str, expected_table) -> None:
+    """Verify the reflected primary key matches the ORM contract."""
     expected_primary_key = tuple(column.name for column in expected_table.primary_key.columns)
     actual_primary_key = tuple(inspector.get_pk_constraint(table_name).get("constrained_columns") or ())
     if expected_primary_key != actual_primary_key:
         raise SchemaCompatibilityError(f"database table {table_name} missing primary-key invariant")
 
+
+def _verify_unique_constraints(inspector, table_name: str, expected_table) -> None:
+    """Verify reflected unique constraints include every ORM uniqueness invariant."""
     expected_unique = {
         frozenset(column.name for column in constraint.columns)
         for constraint in expected_table.constraints
@@ -246,6 +256,9 @@ def _verify_table_constraints(inspector, table_name: str, expected_table) -> Non
     if expected_unique - actual_unique:
         raise SchemaCompatibilityError(f"database table {table_name} missing uniqueness invariants")
 
+
+def _verify_foreign_key_constraints(inspector, table_name: str, expected_table) -> None:
+    """Verify reflected foreign keys include every ORM relationship invariant."""
     expected_foreign_keys = {
         (
             tuple(column.name for column in constraint.columns),
