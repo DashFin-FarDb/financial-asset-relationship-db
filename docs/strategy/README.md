@@ -70,7 +70,7 @@ the exact-SHA sign-off record is authoritative for the bounded post-#1540 capabi
 | Document                                              | Purpose                                                                           |
 | ----------------------------------------------------- | --------------------------------------------------------------------------------- |
 | [Claims and truth policy](claims-and-truth-policy.md) | Defines the five claim classes.                                                   |
-| [Historical current-state snapshot](current-state.md) | Preserves what the 14 July 2026 baseline established and did not establish.        |
+| [Historical current-state snapshot](current-state.md) | Preserves what the 14 July 2026 baseline established and did not establish.       |
 | [The big read](the-big-read.md)                       | Tells the accessible, evidence-qualified story from prototype to platform vision. |
 
 ## Programme documents (NEXT) — historical programme classification
