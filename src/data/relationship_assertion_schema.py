@@ -60,6 +60,62 @@ def ensure_relationship_assertion_schema(engine: Engine) -> None:
                 _harden_postgresql_grac_access(connection)
 
 
+def verify_relationship_assertion_schema(engine: Engine) -> None:
+    """Verify GRAC schema and authority invariants without performing repair."""
+    backend = make_url(str(engine.url)).get_backend_name()
+    with engine.connect() as connection:
+        _require_projection_revision_scope_metadata(connection, backend)
+        if backend == "sqlite":
+            _require_sqlite_grac_constraints(connection)
+            if not _sqlite_guards_present(connection):
+                raise RuntimeError("SQLite GRAC immutability guards are incomplete")
+        elif backend == "postgresql":
+            if not _postgresql_grac_constraints_present(connection):
+                raise RuntimeError("PostgreSQL GRAC constraints are incomplete or unvalidated")
+            if not _postgresql_guards_present(connection):
+                raise RuntimeError("PostgreSQL GRAC immutability guards are incomplete")
+            roles = _untrusted_database_roles()
+            if _immutability_function_has_untrusted_execute(connection, roles):
+                raise PermissionError("PostgreSQL GRAC immutability function is executable by an untrusted role")
+            if not _postgresql_grac_access_hardened(connection):
+                raise PermissionError("PostgreSQL GRAC RLS/grant posture is incompatible")
+
+
+def _require_projection_revision_scope_metadata(connection: Connection, backend: str) -> None:
+    """Require the additive projection column and successor lookup index."""
+    if backend == "sqlite":
+        columns = {row[1] for row in connection.execute(text("PRAGMA table_info(relationship_projection_revisions)"))}
+        indexes = {row[1] for row in connection.execute(text("PRAGMA index_list(relationship_assertion_events)"))}
+    elif backend == "postgresql":
+        columns = {
+            row[0]
+            for row in connection.execute(
+                text(
+                    "SELECT column_name FROM information_schema.columns "
+                    "WHERE table_schema = current_schema() "
+                    "AND table_name = 'relationship_projection_revisions'"
+                )
+            )
+        }
+        indexes = {
+            row[0]
+            for row in connection.execute(
+                text(
+                    "SELECT indexname FROM pg_indexes WHERE schemaname = current_schema() "
+                    "AND tablename = 'relationship_assertion_events'"
+                )
+            )
+        }
+    else:
+        raise RuntimeError(f"unsupported database backend for GRAC verification: {backend}")
+
+    if "governed_scopes" not in columns:
+        raise RuntimeError("relationship_projection_revisions.governed_scopes is missing")
+    required_index = "ix_relationship_assertion_events_successor_assertion_id"
+    if required_index not in indexes:
+        raise RuntimeError(f"{required_index} is missing")
+
+
 def _ensure_projection_revision_scope_metadata(connection: Connection, backend: str) -> None:
     """Add durable scope metadata and the successor FK index on upgrade."""
     requires_backfill = False
@@ -223,6 +279,29 @@ def _ensure_postgresql_grac_constraints(connection: Connection) -> None:
         if current is None:
             connection.execute(text(f"ALTER TABLE {table} ADD CONSTRAINT {name} CHECK ({check}) NOT VALID"))
         connection.execute(text(f"ALTER TABLE {table} VALIDATE CONSTRAINT {name}"))
+
+
+def _postgresql_grac_constraints_present(connection: Connection) -> bool:
+    """Return whether the current schema has the validated GRAC compatibility checks."""
+    expected = {
+        ("relationship_assertions", "ck_relationship_assertions_effective_window"),
+        ("relationship_projection_edges", "ck_relationship_projection_edges_strength"),
+    }
+    rows = connection.execute(
+        text(
+            "SELECT rel.relname, con.conname, pg_get_constraintdef(con.oid), con.convalidated "
+            "FROM pg_constraint AS con "
+            "JOIN pg_class AS rel ON rel.oid = con.conrelid "
+            "JOIN pg_namespace AS namespace ON namespace.oid = rel.relnamespace "
+            "WHERE namespace.nspname = current_schema() AND con.conname IN :names"
+        ).bindparams(bindparam("names", expanding=True)),
+        {"names": [name for _table, name in expected]},
+    ).all()
+    actual = {(table, name): (definition, validated) for table, name, definition, validated in rows}
+    if not all(actual.get(key, (None, False))[1] for key in expected):
+        return False
+    strength_definition = actual[("relationship_projection_edges", "ck_relationship_projection_edges_strength")][0]
+    return "replace" in strength_definition
 
 
 def _harden_postgresql_grac_access(connection: Connection) -> None:

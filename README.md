@@ -44,6 +44,8 @@ export DATABASE_URL=sqlite:dev.db
 export SECRET_KEY=replace-with-a-long-random-secret
 export ADMIN_USERNAME=admin
 export ADMIN_PASSWORD=replace-with-a-strong-password
+python -m scripts.migrate_database
+unset ADMIN_PASSWORD
 ./run-dev.sh
 ```
 
@@ -53,6 +55,8 @@ set DATABASE_URL=sqlite:dev.db
 set SECRET_KEY=replace-with-a-long-random-secret
 set ADMIN_USERNAME=admin
 set ADMIN_PASSWORD=replace-with-a-strong-password
+python -m scripts.migrate_database
+set ADMIN_PASSWORD=
 run-dev.bat
 ```
 
@@ -72,6 +76,8 @@ ${FRONTEND_PORT:-3000}).
    export SECRET_KEY=replace-with-a-long-random-secret
    export ADMIN_USERNAME=admin
    export ADMIN_PASSWORD=replace-with-a-strong-password
+   python -m scripts.migrate_database
+   unset ADMIN_PASSWORD
    python -m uvicorn api.main:app --reload --port ${BACKEND_PORT:-8000}
    ```
 
@@ -141,6 +147,8 @@ export DATABASE_URL="sqlite:dev.db"
 export SECRET_KEY="change-me-to-a-long-random-secret"
 export ADMIN_USERNAME="admin"
 export ADMIN_PASSWORD="change-me"
+python -m scripts.migrate_database
+unset ADMIN_PASSWORD
 python -m uvicorn api.main:app --reload --port ${BACKEND_PORT:-8000}
 ```
 
@@ -153,6 +161,11 @@ curl http://localhost:${BACKEND_PORT:-8000}/api/visualization
 
 If `/api/health` fails, fix the backend startup first. If `/api/health` works but the frontend still
 fails, check `NEXT_PUBLIC_API_URL` and the browser Network tab.
+
+FastAPI startup verifies database compatibility but never creates tables, repairs guards/grants, or
+seeds credentials. Run `python -m scripts.migrate_database` explicitly before the first start and
+after deploying schema-relevant code. See
+[the database migration authority runbook](docs/runbooks/database-migration-authority.md).
 
 #### Backend fails with `sqlite3.OperationalError: unable to open database file`
 

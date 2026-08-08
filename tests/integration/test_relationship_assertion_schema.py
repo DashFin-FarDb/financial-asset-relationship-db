@@ -11,7 +11,7 @@ from sqlalchemy.engine import Engine
 from sqlalchemy.exc import DBAPIError, IntegrityError
 
 from src.data.base import Base
-from src.data.database import init_db
+from src.data.database import init_db, verify_database_schema
 from src.data.db_models import AssetORM, RebuildJobORM
 from src.data.relationship_assertion_db_models import (
     GRAC_TABLE_NAMES,
@@ -26,6 +26,7 @@ from src.data.relationship_assertion_db_models import (
 from src.data.relationship_assertion_schema import (
     ensure_relationship_assertion_schema,
     list_immutability_trigger_names,
+    verify_relationship_assertion_schema,
 )
 from tests.conftest import enable_sqlite_foreign_keys
 
@@ -269,6 +270,26 @@ class TestRelationshipAssertionSchemaBootstrap:
         assert set(GRAC_TABLE_NAMES).issubset(_table_names(schema_engine))
 
     @staticmethod
+    def test_verifier_rejects_missing_guard_without_repair(schema_engine: Engine):
+        """Read-only verification must report, not reinstall, a missing SQLite trigger."""
+        if schema_engine.dialect.name != "sqlite":
+            pytest.skip("SQLite-specific no-repair proof")
+        init_db(schema_engine)
+        update_trigger, _delete_trigger, _truncate_trigger = list_immutability_trigger_names("relationship_assertions")
+        with schema_engine.begin() as connection:
+            connection.execute(text(f"DROP TRIGGER {update_trigger}"))
+
+        with pytest.raises(RuntimeError, match="immutability guards are incomplete"):
+            verify_relationship_assertion_schema(schema_engine)
+
+        with schema_engine.connect() as connection:
+            remaining = connection.execute(
+                text("SELECT COUNT(*) FROM sqlite_master WHERE type = 'trigger' AND name = :name"),
+                {"name": update_trigger},
+            ).scalar_one()
+        assert remaining == 0
+
+    @staticmethod
     def test_upgrade_backfills_legacy_projection_scopes(schema_engine: Engine):
         """Adding governed_scopes preserves canonical metadata and restores guards."""
         now = datetime.now(tz=UTC)
@@ -450,6 +471,26 @@ class TestRelationshipAssertionSchemaParity:
         assert {row[0] for row in rows} == set(GRAC_TABLE_NAMES)
         assert all(row[1] and row[2] == 0 and not row[3] for row in rows)
         assert "search_path=pg_catalog" in (function_config or [])
+
+    @staticmethod
+    def test_postgresql_verifier_cold_start_and_restart_in_read_only_transactions(schema_engine: Engine):
+        """PostgreSQL compatibility verification must succeed with writes disabled."""
+        if schema_engine.dialect.name != "postgresql":
+            pytest.skip("PostgreSQL-only read-only transaction proof")
+        init_db(schema_engine)
+        pg_url = _postgres_url()
+        assert pg_url is not None
+
+        for _restart in range(2):
+            runtime_engine = create_engine(
+                pg_url,
+                future=True,
+                connect_args={"options": "-c default_transaction_read_only=on"},
+            )
+            try:
+                verify_database_schema(runtime_engine)
+            finally:
+                runtime_engine.dispose()
 
 
 @pytest.mark.integration

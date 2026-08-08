@@ -403,3 +403,48 @@ def apply_postgresql_heartbeat_migration(engine: Engine) -> None:
             connection.execute(text(statement))
         _apply_normalization_in_transaction(connection, needs_width_normalization)
         _apply_postgresql_status_constraint_update(connection)
+
+
+def postgresql_heartbeat_schema_gaps(inspector) -> list[str]:
+    """Return PostgreSQL rebuild compatibility gaps without changing the schema."""
+    if "rebuild_jobs" not in inspector.get_table_names():
+        return ["rebuild_jobs table"]
+
+    required_columns = {
+        "active_worker_id",
+        "last_heartbeat_at",
+        "execution_id",
+        "checkpoint_data",
+        "cancellation_requested_at",
+    }
+    columns = {column["name"]: column for column in inspector.get_columns("rebuild_jobs")}
+    gaps = [f"rebuild_jobs.{name}" for name in sorted(required_columns - set(columns))]
+
+    for column_name in ("active_worker_id", "execution_id"):
+        column = columns.get(column_name)
+        if column is None:
+            continue
+        length = getattr(column.get("type"), "length", None)
+        if isinstance(length, int) and length > 64:
+            gaps.append(f"rebuild_jobs.{column_name} width <= 64")
+
+    supported_statuses = {
+        "pending",
+        "running",
+        "succeeded",
+        "failed",
+        "cancel_requested",
+        "cancelled",
+    }
+    status_constraint = next(
+        (
+            constraint
+            for constraint in inspector.get_check_constraints("rebuild_jobs")
+            if constraint.get("name") == "ck_rebuild_jobs_status"
+        ),
+        None,
+    )
+    sql_text = str(status_constraint.get("sqltext", "")) if status_constraint else ""
+    if not status_constraint or any(f"'{status}'" not in sql_text for status in supported_statuses):
+        gaps.append("ck_rebuild_jobs_status")
+    return gaps

@@ -10,6 +10,8 @@ This module tests:
 """
 
 import os
+import subprocess
+import sys
 from datetime import datetime, timedelta, timezone
 from unittest.mock import Mock, patch
 
@@ -33,6 +35,29 @@ from api.auth import (
 from api.models import UserPublic
 
 UTC = timezone.utc
+
+
+def test_auth_module_import_performs_no_database_writes(tmp_path) -> None:
+    """Importing runtime authentication must not initialize or seed the database."""
+    database_path = tmp_path / "auth-import.db"
+    environment = {
+        **os.environ,
+        "DATABASE_URL": f"sqlite:///{database_path}",
+        "SECRET_KEY": "test-secret-key-at-least-32-bytes-long",
+        "ADMIN_USERNAME": "admin",
+        "ADMIN_PASSWORD": "must-not-be-consumed",
+    }
+
+    result = subprocess.run(  # noqa: S603 - fixed interpreter and repository-owned import statement
+        [sys.executable, "-c", "import api.auth"],
+        check=False,
+        capture_output=True,
+        text=True,
+        env=environment,
+    )
+
+    assert result.returncode == 0, result.stderr
+    assert not database_path.exists()
 
 
 class TestPasswordHashing:

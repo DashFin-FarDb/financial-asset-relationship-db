@@ -30,7 +30,10 @@ from api.database import (
     fetch_value,
     get_connection,
     initialize_schema,
+    verify_runtime_authority,
+    verify_schema_compatibility,
 )
+from src.data.database import SchemaCompatibilityError
 
 
 @pytest.fixture(autouse=True)
@@ -353,6 +356,34 @@ class TestSchemaInitialization:
 
         for column in required_columns:
             assert column in sql, f"Missing column: {column}"
+
+    @patch("api.database.fetch_value", side_effect=[6, 1])
+    def test_verify_schema_compatibility_is_read_only(self, mock_fetch_value):
+        """Credential verification should use catalog reads and perform no DDL."""
+        with patch("api.database.execute") as mock_execute:
+            verify_schema_compatibility()
+
+        mock_execute.assert_not_called()
+        assert mock_fetch_value.call_count == 2
+
+    @patch("api.database.fetch_value", side_effect=[0, 0])
+    def test_verify_schema_compatibility_fails_when_table_is_missing(self, _mock_fetch_value):
+        """Missing credential schema should produce a stable compatibility failure."""
+        with pytest.raises(SchemaCompatibilityError, match="missing required columns"):
+            verify_schema_compatibility()
+
+    @patch.object(database, "DATABASE_TYPE", "postgresql")
+    @patch("api.database.fetch_value", return_value=False)
+    def test_verify_runtime_authority_rejects_privileged_postgresql_role(self, _mock_fetch_value):
+        """Auth startup should fail when its PostgreSQL role can migrate schema."""
+        with pytest.raises(SchemaCompatibilityError, match="retains schema-migration authority"):
+            verify_runtime_authority()
+
+    @patch.object(database, "DATABASE_TYPE", "postgresql")
+    @patch("api.database.fetch_value", return_value=True)
+    def test_verify_runtime_authority_accepts_restricted_postgresql_role(self, _mock_fetch_value):
+        """Auth startup should accept a PostgreSQL role without migration authority."""
+        verify_runtime_authority()
 
 
 class TestEdgeCases:

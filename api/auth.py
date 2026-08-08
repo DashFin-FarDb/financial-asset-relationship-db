@@ -22,7 +22,7 @@ from src.config.settings import Settings, get_settings, load_settings
 from src.observability.context import get_request_context
 from src.observability.facade import ObservabilityEvent, log_event
 
-from .database import execute, fetch_one, fetch_value, initialize_schema
+from .database import execute, fetch_one, fetch_value
 
 UTC = timezone.utc
 
@@ -320,7 +320,6 @@ class UserRepository:
         )
 
 
-initialize_schema()
 user_repository = UserRepository()
 
 
@@ -392,14 +391,6 @@ def _seed_credentials_from_env(repository: UserRepository) -> None:
         repository (UserRepository): Repository to seed.
     """
     _seed_credentials_from_settings(repository, load_settings())
-
-
-_seed_credentials_from_settings(user_repository, _AUTH_SETTINGS)
-
-if not user_repository.has_users():
-    raise ValueError(
-        "No user credentials available. Provide ADMIN_USERNAME and ADMIN_PASSWORD or pre-populate the database."
-    )
 
 
 def get_user(

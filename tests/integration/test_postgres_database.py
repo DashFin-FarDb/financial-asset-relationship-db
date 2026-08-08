@@ -160,3 +160,44 @@ def test_postgres_connection_smoke() -> None:
     assert isinstance(database_name, str) and database_name  # nosec B101
     assert isinstance(database_user, str) and database_user  # nosec B101
     assert isinstance(postgres_version, str) and postgres_version  # nosec B101
+
+
+@pytest.mark.integration
+def test_restricted_runtime_role_verifies_schema_on_cold_start_and_restart() -> None:
+    """A separately configured app role must verify twice without migration authority."""
+    _ensure_live_test_enabled()
+    runtime_url = os.getenv("FARDB_RUNTIME_DATABASE_URL")
+    if not runtime_url:
+        pytest.skip("Set FARDB_RUNTIME_DATABASE_URL to the restricted application-role DSN")
+    assert runtime_url is not None
+    if any(token in runtime_url for token in PLACEHOLDER_TOKENS):
+        pytest.skip("Runtime database URL contains a placeholder password token")
+
+    from sqlalchemy import create_engine, text
+
+    from src.data.database import verify_database_schema, verify_runtime_database_authority
+
+    engine = create_engine(runtime_url, future=True)
+    try:
+        with engine.connect() as connection:
+            role_posture = connection.execute(
+                text(
+                    "SELECT role.rolsuper, "
+                    "has_schema_privilege(current_user, current_schema(), 'CREATE'), "
+                    "COUNT(table_rel.oid) FILTER (WHERE table_rel.relowner = role.oid) "
+                    "FROM pg_roles AS role "
+                    "LEFT JOIN pg_class AS table_rel ON table_rel.relname IN "
+                    "('assets', 'rebuild_jobs', 'relationship_assertions', 'user_credentials') "
+                    "AND table_rel.relnamespace = (SELECT oid FROM pg_namespace WHERE nspname = current_schema()) "
+                    "WHERE role.rolname = current_user GROUP BY role.rolsuper, role.oid"
+                )
+            ).one()
+        assert role_posture == (False, False, 0)
+
+        verify_database_schema(engine)
+        verify_runtime_database_authority(engine)
+        engine.dispose()
+        verify_database_schema(engine)
+        verify_runtime_database_authority(engine)
+    finally:
+        engine.dispose()

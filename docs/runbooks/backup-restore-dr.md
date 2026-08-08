@@ -312,9 +312,11 @@ If a future schema renames `sanitized_failure_category` to `failure_category`, u
 
 For hosted PostgreSQL restores, the restored schema should come from PITR or the `pg_restore` dump. Do not run `migrations/001_initial.sql` through `psql`; the repository SQL migration files are SQLite-oriented, and a full PostgreSQL restore already contains schema and data.
 
-If the restore point predates repository compatibility migrations, run the repository initialization path against the restored database before restarting live traffic.
+If the restore point predates repository compatibility migrations, run the explicit database migration command against
+the restored database before restarting live traffic.
 
-Current startup behavior (**landed** on `main`; evidence: `src/data/database.py` `init_db`, `src/data/migrations.py`, `src/data/db_models.py` `ck_rebuild_jobs_status`; compound index: `docs/compound/domains/persistence.md`):
+Current operator migration behavior (evidence: `scripts/migrate_database.py`, `src/data/database.py` `init_db`,
+`src/data/migrations.py`, `src/data/db_models.py` `ck_rebuild_jobs_status`):
 
 - **Landed:** `Base.metadata.create_all(engine)` creates any missing ORM tables (`src/data/database.py`).
 - **Landed:** On SQLite file databases, `apply_migrations(db_path)` runs repository migration steps `001` through `004` (including execution/checkpoint/cancellation columns) (`src/data/migrations.py`).
@@ -327,6 +329,13 @@ Current startup behavior (**landed** on `main`; evidence: `src/data/database.py`
   - the status constraint values `('pending', 'running', 'succeeded', 'failed', 'cancel_requested', 'cancelled')` (also declared on the ORM model in `src/data/db_models.py`)
 
 For local SQLite validation only (**landed**), use `src.data.migrations.apply_migrations(db_path)` (`src/data/migrations.py`).
+
+FastAPI startup calls the read-only compatibility verifier and fails closed; it does not run any of the migration
+steps above. Follow [the database migration authority runbook](database-migration-authority.md) and run:
+
+```bash
+python -m scripts.migrate_database
+```
 
 Inspect the expected tables:
 
@@ -373,7 +382,9 @@ WHERE constraint_schema = 'public'
 
 The result should contain both `cancel_requested` and `cancelled` in `check_clause`.
 
-If any expected compatibility column is missing, or the status constraint is absent/outdated, run the repository initialization path (`src.data.database.init_db(engine)`) against the restored database before declaring restore readiness.
+If any expected compatibility column is missing, or the status constraint is absent/outdated, run
+`python -m scripts.migrate_database` with migration-owner credentials before declaring restore readiness. Do not grant
+migration authority to the runtime application role as a workaround.
 
 ### 5. Rollback guidance for failed restore
 

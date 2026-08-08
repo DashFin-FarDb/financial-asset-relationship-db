@@ -63,10 +63,12 @@ Minimum env vars for startup (see `api/auth.py` and `api/database.py`):
 
 - `DATABASE_URL` (SQLite URL; e.g. `sqlite:///./dev.db` or `sqlite:///:memory:`)
 - `SECRET_KEY` (JWT signing key) — now centralized via `src/config/settings.py`
-- Either pre-populated user credentials in the DB, or seed via:
-  - `ADMIN_USERNAME`
-  - `ADMIN_PASSWORD`
-  - optional: `ADMIN_EMAIL`, `ADMIN_FULL_NAME`, `ADMIN_DISABLED`
+- A schema migrated through `python -m scripts.migrate_database`.
+- Pre-populated user credentials, or `ADMIN_USERNAME` / `ADMIN_PASSWORD` supplied only to that explicit operator command.
+- Optional provisioning fields: `ADMIN_EMAIL`, `ADMIN_FULL_NAME`, `ADMIN_DISABLED`.
+
+FastAPI startup is read-only with respect to schema and credentials. It fails closed when compatibility or credentials
+are missing; it does not create tables, repair constraints/triggers/grants, or seed an administrator.
 
 Auth settings (`SECRET_KEY`, `ADMIN_*`) are now centralized in `src/config/settings.py` (PR #1059).
 
@@ -203,6 +205,10 @@ Run `make help` for the full target list with descriptions.
   ```pwsh
   python scripts/check_hosted_readiness.py <base_url> [--timeout SECONDS]
   ```
+
+- `scripts/migrate_database.py` — the single explicit operator path for current schema setup and initial credential
+  provisioning. Run `python -m scripts.migrate_database` with migration-owner database credentials before starting
+  the application with restricted runtime credentials.
 
 - `scripts/validate_manifest.py` — Validate `.elastic-copilot/memory/systemManifest.md`
   for duplicate level-2 headings (markdownlint MD024).
@@ -365,12 +371,15 @@ startup/update process, so you normally only need to start services and run chec
   - **Problem:** SQLAlchemy-style `sqlite:///./dev.db` resolves to `/dev.db` under this resolver and is usually unwritable (`sqlite3.OperationalError: unable to open database file`).
   - **Known-bad examples:** `sqlite:///./dev.db`, `sqlite:///./asset_graph.db`.
   - **Recommended values:** `sqlite:dev.db` (repository-relative), `sqlite:///:memory:`, or an explicit writable absolute path such as `sqlite:////absolute/path/dev.db`.
-- **Backend startup env vars:** importing `api.main` needs `DATABASE_URL` and `SECRET_KEY`; if the auth DB is empty (typical for new SQLite files), also set `ADMIN_USERNAME` + `ADMIN_PASSWORD` to seed the first user (otherwise pre-populate the DB). Example working start:
+- **Backend startup env vars:** importing `api.main` needs `DATABASE_URL` and `SECRET_KEY`. New databases must first be
+  prepared explicitly; startup never migrates or seeds. Example working setup and start:
   ```bash
-  DATABASE_URL=sqlite:dev.db \
-  SECRET_KEY="$(openssl rand -hex 32)" \
-  ADMIN_USERNAME=admin \
-  ADMIN_PASSWORD="$(openssl rand -base64 24)" \
+  export DATABASE_URL=sqlite:dev.db
+  export SECRET_KEY="$(openssl rand -hex 32)"
+  export ADMIN_USERNAME=admin
+  export ADMIN_PASSWORD="$(openssl rand -base64 24)"
+  python3 -m scripts.migrate_database
+  unset ADMIN_PASSWORD
   python3 -m uvicorn api.main:app --reload --host 127.0.0.1 --port 8000
   ```
   If `openssl` is unavailable, use Python to generate secrets instead:

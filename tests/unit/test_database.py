@@ -18,10 +18,10 @@ import tempfile
 import threading
 from collections.abc import Iterator
 from typing import Any
-from unittest.mock import Mock, patch
+from unittest.mock import MagicMock, Mock, patch
 
 import pytest
-from sqlalchemy import Column, Integer, String, create_engine
+from sqlalchemy import Column, Integer, String, create_engine, event, inspect
 from sqlalchemy.engine import Engine
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.pool import NullPool, StaticPool
@@ -39,11 +39,14 @@ from api.database import (
 from src.data.database import (
     DEFAULT_DATABASE_URL,
     Base,
+    SchemaCompatibilityError,
     configure_sqlite_engine,
     create_engine_from_url,
     create_session_factory,
     init_db,
     session_scope,
+    verify_database_schema,
+    verify_runtime_database_authority,
 )
 
 
@@ -315,6 +318,69 @@ class TestDatabaseInitialization:
         apply_postgres_migration.assert_called_once_with(engine)
         apply_sqlite_migrations.assert_not_called()
         ensure_grac.assert_called_once_with(engine)
+
+    def test_runtime_verifier_accepts_initialized_schema(self, engine: Engine) -> None:
+        """Explicit migration output should satisfy the read-only runtime verifier."""
+        init_db(engine)
+
+        verify_database_schema(engine)
+
+    def test_runtime_verifier_fails_without_creating_schema(self, tmp_path) -> None:
+        """An empty runtime database should fail closed and remain empty."""
+        empty_engine = create_engine_from_url(f"sqlite:///{tmp_path / 'empty-runtime.db'}")
+        try:
+            with pytest.raises(SchemaCompatibilityError, match="missing required tables"):
+                verify_database_schema(empty_engine)
+
+            assert inspect(empty_engine).get_table_names() == []
+        finally:
+            empty_engine.dispose()
+
+    def test_runtime_verifier_supports_query_only_cold_start_and_restart(self, tmp_path) -> None:
+        """A migrated SQLite database verifies twice with persistent writes prohibited."""
+        database_url = f"sqlite:///{tmp_path / 'query-only-runtime.db'}"
+        migration_engine = create_engine_from_url(database_url)
+        init_db(migration_engine)
+        migration_engine.dispose()
+
+        for _restart in range(2):
+            runtime_engine = create_engine_from_url(database_url)
+
+            @event.listens_for(runtime_engine, "connect")
+            def _make_query_only(dbapi_connection, _connection_record) -> None:
+                cursor = dbapi_connection.cursor()
+                cursor.execute("PRAGMA query_only=ON")
+                cursor.close()
+
+            try:
+                verify_database_schema(runtime_engine)
+                with runtime_engine.connect() as connection:
+                    assert connection.exec_driver_sql("PRAGMA query_only").scalar_one() == 1
+            finally:
+                runtime_engine.dispose()
+
+    def test_postgresql_runtime_authority_fails_when_role_is_privileged(self) -> None:
+        """A PostgreSQL runtime role retaining migration authority must fail closed."""
+        runtime_engine = Mock(spec=Engine)
+        runtime_engine.url = "postgresql://runtime:secret@localhost/fardb"
+        connection = MagicMock()
+        connection.execute.return_value.scalar_one.return_value = False
+        runtime_engine.connect.return_value.__enter__ = MagicMock(return_value=connection)
+        runtime_engine.connect.return_value.__exit__ = MagicMock(return_value=False)
+
+        with pytest.raises(SchemaCompatibilityError, match="retains schema-migration authority"):
+            verify_runtime_database_authority(runtime_engine)
+
+    def test_postgresql_runtime_authority_accepts_restricted_role(self) -> None:
+        """A PostgreSQL role without owner/DDL powers should pass the authority check."""
+        runtime_engine = Mock(spec=Engine)
+        runtime_engine.url = "postgresql://runtime:secret@localhost/fardb"
+        connection = MagicMock()
+        connection.execute.return_value.scalar_one.return_value = True
+        runtime_engine.connect.return_value.__enter__ = MagicMock(return_value=connection)
+        runtime_engine.connect.return_value.__exit__ = MagicMock(return_value=False)
+
+        verify_runtime_database_authority(runtime_engine)
 
 
 # ---------------------------------------------------------------------------

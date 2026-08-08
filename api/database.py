@@ -49,6 +49,7 @@ from typing import Any
 from urllib.parse import unquote, urlparse
 
 from src.config.settings import get_settings
+from src.data.database import SchemaCompatibilityError
 
 
 def _is_postgres_url(url: str) -> bool:
@@ -695,3 +696,58 @@ def initialize_schema() -> None:
                 disabled INTEGER NOT NULL DEFAULT 0
             )
             """)
+
+
+def verify_schema_compatibility() -> None:
+    """Verify the API credential schema using read-only catalog queries."""
+    required_column_count = 6
+    if DATABASE_TYPE == "postgresql":
+        column_count = fetch_value(
+            "SELECT COUNT(*) FROM information_schema.columns "
+            "WHERE table_schema = current_schema() AND table_name = 'user_credentials' "
+            "AND column_name IN ('id', 'username', 'email', 'full_name', 'hashed_password', 'disabled')"
+        )
+        username_unique = fetch_value(
+            "SELECT EXISTS ("
+            "SELECT 1 FROM pg_constraint AS con "
+            "JOIN pg_class AS rel ON rel.oid = con.conrelid "
+            "JOIN pg_namespace AS namespace ON namespace.oid = rel.relnamespace "
+            "WHERE namespace.nspname = current_schema() AND rel.relname = 'user_credentials' "
+            "AND con.contype = 'u' AND con.conkey = ARRAY[("
+            "SELECT attnum FROM pg_attribute WHERE attrelid = rel.oid AND attname = 'username'"
+            ")]::smallint[])"
+        )
+    else:
+        column_count = fetch_value(
+            "SELECT COUNT(*) FROM pragma_table_info('user_credentials') "
+            "WHERE name IN ('id', 'username', 'email', 'full_name', 'hashed_password', 'disabled')"
+        )
+        username_unique = fetch_value(
+            "SELECT EXISTS ("
+            "SELECT 1 FROM pragma_index_list('user_credentials') AS indexes "
+            "JOIN pragma_index_info(indexes.name) AS columns ON columns.name = 'username' "
+            "WHERE indexes.[unique] = 1)"
+        )
+
+    if column_count != required_column_count:
+        raise SchemaCompatibilityError("API credential schema is missing required columns")
+    if not username_unique:
+        raise SchemaCompatibilityError("API credential schema is missing the username uniqueness invariant")
+
+
+def verify_runtime_authority() -> None:
+    """Require a PostgreSQL API role without schema-migration authority."""
+    if DATABASE_TYPE != "postgresql":
+        return
+
+    restricted = fetch_value(
+        "SELECT NOT (role.rolsuper OR role.rolcreaterole OR role.rolcreatedb OR role.rolbypassrls "
+        "OR has_schema_privilege(role.oid, current_schema(), 'CREATE') "
+        "OR EXISTS (SELECT 1 FROM pg_class AS rel "
+        "JOIN pg_namespace AS namespace ON namespace.oid = rel.relnamespace "
+        "WHERE namespace.nspname = current_schema() AND rel.relkind IN ('r', 'p', 'S') "
+        "AND pg_has_role(role.oid, rel.relowner, 'MEMBER'))) "
+        "FROM pg_roles AS role WHERE role.rolname = current_user"
+    )
+    if not restricted:
+        raise SchemaCompatibilityError("API runtime database role retains schema-migration authority")

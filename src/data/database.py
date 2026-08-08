@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from sqlalchemy import create_engine, event
+from sqlalchemy import CheckConstraint, bindparam, create_engine, event, inspect, text
 from sqlalchemy.engine import Engine, make_url
 from sqlalchemy.exc import ArgumentError
 from sqlalchemy.orm import Session, sessionmaker
@@ -19,6 +19,10 @@ from .repository import session_scope  # noqa: F401, E402
 DEFAULT_DATABASE_URL = "sqlite:///./asset_graph.db"
 ASSET_GRAPH_DATABASE_URL_ENV_VAR = "ASSET_GRAPH_DATABASE_URL"
 SQLITE_MEMORY_DATABASE = ":memory:"
+
+
+class SchemaCompatibilityError(RuntimeError):
+    """Raised when a runtime database does not match the required schema contract."""
 
 
 def _sqlite_translate(value: str | None, from_chars: str | None, to_chars: str | None) -> str | None:
@@ -209,3 +213,121 @@ def init_db(engine: Engine) -> None:
         apply_postgresql_heartbeat_migration(engine)
 
     ensure_relationship_assertion_schema(engine)
+
+
+def verify_database_schema(engine: Engine) -> None:
+    """Verify the asset-store schema without creating, altering, or repairing it.
+
+    The explicit operator migration path remains responsible for every schema
+    mutation. Runtime callers use this function to fail closed when required
+    tables, columns, constraints, indexes, or GRAC authority guards are absent.
+
+    Parameters:
+        engine: SQLAlchemy engine connected with runtime application authority.
+
+    Raises:
+        SchemaCompatibilityError: If the schema or authority posture is not compatible.
+    """
+    # Register every ORM table on Base.metadata before comparing the live schema.
+    from . import relationship_assertion_db_models as _relationship_assertion_db_models  # noqa: F401
+    from .migrations import postgresql_heartbeat_schema_gaps
+    from .relationship_assertion_schema import verify_relationship_assertion_schema
+
+    backend = make_url(engine.url).get_backend_name()
+    if backend == "sqlite":
+        # Connection-local UDF/pragma setup is not persistent schema mutation.
+        configure_sqlite_engine(engine)
+
+    try:
+        inspector = inspect(engine)
+        actual_tables = set(inspector.get_table_names())
+        expected_tables = set(Base.metadata.tables)
+        missing_tables = sorted(expected_tables - actual_tables)
+        if missing_tables:
+            raise SchemaCompatibilityError(f"database schema missing required tables: {', '.join(missing_tables)}")
+
+        for table_name in sorted(expected_tables):
+            expected_table = Base.metadata.tables[table_name]
+            actual_columns = {column["name"] for column in inspector.get_columns(table_name)}
+            missing_columns = sorted(set(expected_table.columns.keys()) - actual_columns)
+            if missing_columns:
+                raise SchemaCompatibilityError(
+                    f"database table {table_name} missing required columns: {', '.join(missing_columns)}"
+                )
+
+            expected_checks = {
+                str(constraint.name)
+                for constraint in expected_table.constraints
+                if isinstance(constraint, CheckConstraint) and constraint.name
+            }
+            if expected_checks:
+                actual_checks = {
+                    str(constraint["name"])
+                    for constraint in inspector.get_check_constraints(table_name)
+                    if constraint.get("name")
+                }
+                missing_checks = sorted(expected_checks - actual_checks)
+                if missing_checks:
+                    raise SchemaCompatibilityError(
+                        f"database table {table_name} missing required constraints: {', '.join(missing_checks)}"
+                    )
+
+            expected_indexes = {index.name for index in expected_table.indexes if index.name}
+            if expected_indexes:
+                actual_indexes = {index.get("name") for index in inspector.get_indexes(table_name) if index.get("name")}
+                missing_indexes = sorted(expected_indexes - actual_indexes)
+                if missing_indexes:
+                    raise SchemaCompatibilityError(
+                        f"database table {table_name} missing required indexes: {', '.join(missing_indexes)}"
+                    )
+
+        if backend == "postgresql":
+            heartbeat_gaps = postgresql_heartbeat_schema_gaps(inspector)
+            if heartbeat_gaps:
+                raise SchemaCompatibilityError(
+                    "database rebuild compatibility requirements are missing: " + ", ".join(heartbeat_gaps)
+                )
+
+        verify_relationship_assertion_schema(engine)
+    except SchemaCompatibilityError:
+        raise
+    except Exception as exc:  # noqa: BLE001 - sanitize driver/catalog errors at the runtime boundary
+        raise SchemaCompatibilityError(
+            f"database schema compatibility verification failed ({type(exc).__name__})"
+        ) from None
+
+
+def verify_runtime_database_authority(engine: Engine) -> None:
+    """Require a PostgreSQL runtime role without schema-migration authority."""
+    backend = make_url(engine.url).get_backend_name()
+    if backend != "postgresql":
+        return
+
+    try:
+        with engine.connect() as connection:
+            restricted = connection.execute(
+                text(
+                    "SELECT NOT (role.rolsuper OR role.rolcreaterole OR role.rolcreatedb "
+                    "OR role.rolbypassrls "
+                    "OR has_schema_privilege(role.oid, current_schema(), 'CREATE') "
+                    "OR EXISTS (SELECT 1 FROM pg_class AS rel "
+                    "JOIN pg_namespace AS namespace ON namespace.oid = rel.relnamespace "
+                    "WHERE namespace.nspname = current_schema() AND rel.relname IN :tables "
+                    "AND pg_has_role(role.oid, rel.relowner, 'MEMBER')) "
+                    "OR EXISTS (SELECT 1 FROM pg_proc AS proc "
+                    "JOIN pg_namespace AS namespace ON namespace.oid = proc.pronamespace "
+                    "WHERE namespace.nspname = current_schema() "
+                    "AND proc.proname = 'grac_v1_reject_mutation' "
+                    "AND pg_has_role(role.oid, proc.proowner, 'MEMBER'))) "
+                    "FROM pg_roles AS role WHERE role.rolname = current_user"
+                ).bindparams(bindparam("tables", expanding=True)),
+                {"tables": sorted(Base.metadata.tables)},
+            ).scalar_one()
+        if not restricted:
+            raise SchemaCompatibilityError("runtime database role retains schema-migration authority")
+    except SchemaCompatibilityError:
+        raise
+    except Exception as exc:  # noqa: BLE001 - sanitize driver/catalog errors at the runtime boundary
+        raise SchemaCompatibilityError(
+            f"runtime database authority verification failed ({type(exc).__name__})"
+        ) from None

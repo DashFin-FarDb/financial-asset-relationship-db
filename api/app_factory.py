@@ -20,6 +20,7 @@ from slowapi import _rate_limit_exceeded_handler  # type: ignore[import-not-foun
 from slowapi.errors import RateLimitExceeded  # type: ignore[import-not-found]
 from sqlalchemy.exc import SQLAlchemyError
 
+from src.data.database import SchemaCompatibilityError
 from src.observability.context import async_trace_context, get_span_id, get_trace_id
 from src.observability.events import ObservabilityEvent
 from src.observability.logger import log_event
@@ -98,11 +99,11 @@ def _run_startup_reconciliation(
     coord_engine = create_engine_from_url(coord_url) if coord_url != url else engine
 
     try:
-        # Check cancellation before schema initialization (potentially slow)
+        # Check cancellation before schema verification (potentially slow)
         if cancellation_event and cancellation_event.is_set():
             return
 
-        _init_reconciliation_schemas(engine, coord_engine)
+        _verify_reconciliation_schemas(engine, coord_engine)
 
         # Check cancellation before recovery gate (lock acquisition/evaluation)
         if cancellation_event and cancellation_event.is_set():
@@ -116,13 +117,26 @@ def _run_startup_reconciliation(
             coord_engine.dispose()
 
 
-def _init_reconciliation_schemas(engine: Any, coord_engine: Any) -> None:
-    """Initialize database schemas for reconciliation."""
-    from src.data.database import init_db
+def _verify_reconciliation_schemas(engine: Any, coord_engine: Any) -> None:
+    """Verify reconciliation schemas without exercising migration authority."""
+    from src.data.database import verify_database_schema, verify_runtime_database_authority
 
-    init_db(engine)
+    verify_database_schema(engine)
+    verify_runtime_database_authority(engine)
     if coord_engine is not engine:
-        init_db(coord_engine)
+        verify_database_schema(coord_engine)
+        verify_runtime_database_authority(coord_engine)
+
+
+def _verify_auth_database() -> None:
+    """Verify credential schema and provisioning without mutating the auth database."""
+    from .auth import user_repository
+    from .database import verify_runtime_authority, verify_schema_compatibility
+
+    verify_schema_compatibility()
+    verify_runtime_authority()
+    if not user_repository.has_users():
+        raise SchemaCompatibilityError("API credential store has no users; run the explicit database migration command")
 
 
 def _execute_recovery_gate(engine: Any, coord_engine: Any, cancellation_event: threading.Event | None = None) -> None:
@@ -213,9 +227,14 @@ async def _initialize_application_state(
     hosted_startup_degradation_allowed: bool,
 ) -> None:
     """Run startup reconciliation and initialize the graph, handling degraded startup."""
+    # Credential compatibility is an authority boundary, not an optional hosted
+    # fallback. It must fail closed before any HTTP traffic is accepted.
+    await asyncio.to_thread(_verify_auth_database)
     if has_persistence:
         try:
             await _perform_startup_reconciliation(settings)
+        except SchemaCompatibilityError:
+            raise
         except (SQLAlchemyError, OSError, RuntimeError) as exc:
             if not hosted_startup_degradation_allowed:
                 raise
@@ -339,6 +358,8 @@ async def _perform_startup_reconciliation(settings: GraphLifecycleSettings) -> N
                 ),
             )
             raise RuntimeError("Startup reconciliation timed out") from None
+    except SchemaCompatibilityError:
+        raise
     except ExecutionBlockedError as exc:
         _handle_reconciliation_blocked(exc)
     except Exception as exc:

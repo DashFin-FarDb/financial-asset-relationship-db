@@ -36,7 +36,10 @@ os.environ["ADMIN_DISABLED"] = "false"
 
 from datetime import timezone  # noqa: E402
 
-from src.data.database import configure_sqlite_engine  # noqa: E402
+from api.auth import _seed_credentials_from_settings, user_repository  # noqa: E402
+from api.database import initialize_schema  # noqa: E402
+from src.config.settings import load_settings  # noqa: E402
+from src.data.database import configure_sqlite_engine, create_engine_from_url, init_db  # noqa: E402
 from src.logic.asset_graph import AssetRelationshipGraph  # noqa: E402
 from src.models.financial_models import (  # noqa: E402
     AssetClass,
@@ -47,6 +50,14 @@ from src.models.financial_models import (  # noqa: E402
     RegulatoryActivity,
     RegulatoryEvent,
 )
+
+# Test authentication state is created explicitly. Importing the runtime auth
+# module must never create schema or seed credentials.
+_test_coordination_engine = create_engine_from_url(os.environ["DATABASE_URL"])
+init_db(_test_coordination_engine)
+_test_coordination_engine.dispose()
+initialize_schema()
+_seed_credentials_from_settings(user_repository, load_settings())
 
 UTC = timezone.utc
 
