@@ -548,8 +548,10 @@ def _runtime_policy_specs(
                 specs[(table_name, policy_name)] = (_RLS_COMMANDS[command], "true", None)
             elif command == "INSERT":
                 specs[(table_name, policy_name)] = (_RLS_COMMANDS[command], None, "true")
-            else:
+            elif command == "UPDATE":
                 specs[(table_name, policy_name)] = (_RLS_COMMANDS[command], "true", "true")
+            else:
+                specs[(table_name, policy_name)] = (_RLS_COMMANDS[command], "true", None)
         if capability == GRAPH_RUNTIME_CAPABILITY and table_name in GRAC_TABLE_NAMES:
             # PostgreSQL requires UPDATE authority and an UPDATE policy for
             # SELECT ... FOR UPDATE. Only the immutable primary-key column is
