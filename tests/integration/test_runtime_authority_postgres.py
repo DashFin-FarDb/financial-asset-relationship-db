@@ -25,6 +25,7 @@ from src.data.database import (  # noqa: E402
 )
 
 _EPHEMERAL_AUTHORITY_FLAG = "FARDB_EPHEMERAL_POSTGRES_AUTHORITY_TESTS"
+_EPHEMERAL_POSTGRES_URL = "FARDB_EPHEMERAL_POSTGRES_URL"
 _AUTH_RUNTIME_LOGIN = "cq1608_auth_runtime"
 _AUTH_WRITE_ROLE = "cq1608_auth_writer"
 _AUTH_REPLICATION_ROLE = "cq1608_auth_replication"
@@ -35,9 +36,11 @@ _SEQUENCE_OWNER_ROLE = "cq1608_sequence_owner"
 def _ephemeral_database_url() -> str:
     if os.getenv(_EPHEMERAL_AUTHORITY_FLAG) != "1":
         pytest.skip(f"Set {_EPHEMERAL_AUTHORITY_FLAG}=1 only for disposable PostgreSQL authority tests")
-    database_url = os.getenv("ASSET_GRAPH_DATABASE_URL")
-    if not database_url or not database_url.startswith(("postgresql://", "postgres://")):
-        pytest.skip("Disposable PostgreSQL authority tests require ASSET_GRAPH_DATABASE_URL")
+    database_url = os.getenv(_EPHEMERAL_POSTGRES_URL)
+    if not database_url:
+        pytest.fail(f"{_EPHEMERAL_POSTGRES_URL} is required when {_EPHEMERAL_AUTHORITY_FLAG}=1")
+    if not database_url.startswith(("postgresql://", "postgres://")):
+        pytest.fail(f"{_EPHEMERAL_POSTGRES_URL} must be a PostgreSQL URL")
     return database_url
 
 
