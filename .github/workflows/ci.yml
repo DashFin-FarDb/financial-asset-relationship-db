@@ -152,6 +152,7 @@ jobs:
         env:
           ASSET_GRAPH_DATABASE_URL: postgresql://test:test@localhost:5432/test_db
           FARDB_EPHEMERAL_POSTGRES_AUTHORITY_TESTS: "1"
+          FARDB_EPHEMERAL_POSTGRES_URL: postgresql://test:test@localhost:5432/test_db
           SECRET_KEY: ci-grac-schema-test-key-not-a-real-secret
           DATABASE_URL: sqlite:///./ci-auth.db
           ADMIN_USERNAME: admin
@@ -160,7 +161,7 @@ jobs:
           pytest tests/integration/test_relationship_assertion_schema.py \
             tests/integration/test_relationship_assertion_repository.py \
             tests/integration/test_relationship_projection_persistence.py \
-            tests/integration/test_runtime_authority_postgres.py -v
+            tests/integration/test_runtime_authority_postgres.py -v -rs
 
   security:
     name: Security checks
