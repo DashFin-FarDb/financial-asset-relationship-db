@@ -3,7 +3,7 @@
 **Repository:** `DashFin-FarDb/financial-asset-relationship-db`
 **Established:** 2026-07-21
 **Repository evidence cutoff:** `main` at `a9757abc304675ff36ae6e3d6d1c9a03ca5c0553`
-**Continuity status:** Reconciled through GRAC v1 exact-SHA staging sign-off (PR #1598)
+**Continuity status:** Reconciled through the active CQ-01/CQ-02 execution programme (draft PR #1608)
 
 This ledger preserves durable project decisions, plans, milestones, and handoffs across ChatGPT, Codex, and
 repository work. It is an index of authoritative evidence, not a replacement for detailed specifications, issues,
@@ -37,8 +37,9 @@ recovery evidence.
 
 At the evidence cutoff:
 
-- `main` resolves to `a9757abc304675ff36ae6e3d6d1c9a03ca5c0553`; the only first-parent change after PR #1598 is the
-  Python dependency group merge in PR #1571.
+- The broad repository review cutoff remains `main@a9757abc304675ff36ae6e3d6d1c9a03ca5c0553`.
+- Newer execution evidence separately verifies `main@820342d7b3d1bc7b3a6429589794b0efee174d2b` as the exact base of draft
+  PR #1608, the active CQ-01/CQ-02 implementation branch.
 - PR #1598 records named human sign-off and exact-SHA staging evidence for candidate
   `16d0a69c5d6f9bae94b9251991466bacbf15d3f0`.
 - GRAC runtime capability is `CURRENT` only for the evidenced staging slice
@@ -60,6 +61,35 @@ Primary authorities:
 - [The Big Read](the-big-read.md)
 
 ## Active commitments
+
+### FPC-2026-08-09-01 — Separate migration and runtime database authority
+
+- **Type:** Security / production qualification blocker
+- **Status:** In progress — draft PR #1608
+- **Decision or objective:** Make database mutation and credential bootstrap an explicit operator action, then require
+  verify-only startup under restricted runtime credentials that exclude `ADMIN_PASSWORD` and schema-migration
+  authority.
+- **Rationale and constraints:** ADR 0007 requires distinct application and migration authority. Preserve the custom
+  synchronous migration path and SQLite compatibility; do not introduce Alembic, provider-led schema authority,
+  dependency changes, or implicit startup repair.
+- **Repository scope:** `scripts/migrate_database.py`, startup and database compatibility verification, runtime
+  settings, production/container gates, launchers, focused tests, migration-authority runbooks, and the canonical
+  operating-authority record in draft PR #1608.
+- **Dependencies or blockers:** Restricted Supabase runtime roles and Vercel runtime database variables require a
+  separate human-controlled provider operation. Vercel currently cancels unverified-commit previews before build, so
+  an exact-head preview requires the commit-provenance gate to be satisfied. The PR must remain draft until current
+  review findings and exact-head CI are reconciled.
+- **Evidence and provenance:** User ratification on 2026-08-09; draft
+  [PR #1608](https://github.com/DashFin-FarDb/financial-asset-relationship-db/pull/1608) from
+  `main@820342d7b3d1bc7b3a6429589794b0efee174d2b`; Production Container and Stage 5C passed on reviewed head
+  `63982466ea67064f6b86ec6050f674b0efac885e`. The ratified review-closure tranche adds launcher password separation,
+  case-preserving CHECK normalisation, exact rebuild-status predicate verification, and operating-authority
+  alignment; focused local validation passed 552 tests with 21 PostgreSQL-only skips before exact-head CI.
+- **Next action and completion test:** Publish the review-closure tranche, reconcile every in-scope review outcome,
+  and obtain exact-head GitHub CI. Then provision and bind restricted provider roles under explicit human authority,
+  run the operator migration followed by password-free restricted-runtime cold-start/restart in an isolated target,
+  and retain the PR as draft until those provider and promotion gates are evidenced.
+- **Last updated:** 2026-08-09
 
 ### FPC-2026-07-21-01 — Close the hosted database authorization gate
 
@@ -422,9 +452,10 @@ Primary authorities:
 
 ### Next highest-value action
 
-Separate ordinary runtime authority from schema migration, grant management, and credential bootstrap; add a
-read-only compatibility check that fails closed without repairing schema. Then reconcile one authoritative migration
-ledger and qualify a new exact production candidate. Release repeatability (**FPC-2026-07-21-02**) remains active.
+Complete draft PR #1608 and its provider evidence gate: publish and qualify the review-closure tranche, provision
+restricted runtime roles without exposing credentials, and prove operator migration followed by password-free,
+verify-only cold-start/restart on one isolated exact-SHA target. Then reconcile one authoritative migration ledger and
+qualify a new exact production candidate. Release repeatability (**FPC-2026-07-21-02**) remains active.
 
 ### Completion test
 

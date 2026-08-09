@@ -297,6 +297,8 @@ class TestPostgresqlHeartbeatSchemaGaps:
         [
             "status IN ('pending', 'running', 'succeeded', 'failed')",
             "status IN ('pending', 'running', 'succeeded', 'failed', 'cancel_requested', 'cancelled', 'paused')",
+            ("status IN ('pending', 'running', 'succeeded', 'failed', 'cancel_requested', 'cancelled') " "OR TRUE"),
+            ("other_status IN " "('pending', 'running', 'succeeded', 'failed', 'cancel_requested', 'cancelled')"),
         ],
     )
     def test_reports_noncanonical_status_domain(sqltext: str) -> None:
@@ -313,3 +315,29 @@ class TestPostgresqlHeartbeatSchemaGaps:
         inspector.get_check_constraints.return_value = [{"name": "ck_rebuild_jobs_status", "sqltext": sqltext}]
 
         assert "ck_rebuild_jobs_status" in postgresql_heartbeat_schema_gaps(inspector)
+
+    @staticmethod
+    def test_accepts_postgresql_any_status_constraint_rendering() -> None:
+        """PostgreSQL deparsing of the exact status predicate should remain compatible."""
+        inspector = MagicMock()
+        inspector.get_table_names.return_value = ["rebuild_jobs"]
+        inspector.get_columns.return_value = [
+            _make_col("active_worker_id", length=64),
+            _make_col("last_heartbeat_at"),
+            _make_col("execution_id", length=64),
+            _make_col("checkpoint_data"),
+            _make_col("cancellation_requested_at"),
+        ]
+        inspector.get_check_constraints.return_value = [
+            {
+                "name": "ck_rebuild_jobs_status",
+                "sqltext": (
+                    "((status)::text = ANY ((ARRAY['cancelled'::character varying, "
+                    "'cancel_requested'::character varying, 'failed'::character varying, "
+                    "'pending'::character varying, 'running'::character varying, "
+                    "'succeeded'::character varying])::text[]))"
+                ),
+            }
+        ]
+
+        assert postgresql_heartbeat_schema_gaps(inspector) == []

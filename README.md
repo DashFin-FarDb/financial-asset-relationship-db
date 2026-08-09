@@ -45,6 +45,7 @@ export SECRET_KEY=replace-with-a-long-random-secret
 export ADMIN_USERNAME=admin
 export ADMIN_PASSWORD=replace-with-a-strong-password
 python -m scripts.migrate_database
+unset ADMIN_PASSWORD
 ./run-dev.sh
 ```
 
@@ -55,6 +56,7 @@ set SECRET_KEY=replace-with-a-long-random-secret
 set ADMIN_USERNAME=admin
 set ADMIN_PASSWORD=replace-with-a-strong-password
 python -m scripts.migrate_database
+set "ADMIN_PASSWORD="
 run-dev.bat
 ```
 

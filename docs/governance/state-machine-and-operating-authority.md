@@ -234,14 +234,34 @@ The following invariants are the current review and operating contract:
 
 Role names align with [`docs/enterprise-deployment-operating-model.md`](../enterprise-deployment-operating-model.md).
 
+### Database migration and runtime authority
+
+Database mutation is an explicit operator action. `python -m scripts.migrate_database` is the single application-owned
+command for schema compatibility migration and initial credential provisioning. It runs with migration-owner
+authority, may receive `ADMIN_PASSWORD` only for that bounded bootstrap action, and must finish before the application
+runtime starts.
+
+FastAPI startup is verify-only. It checks schema compatibility, credential availability, and PostgreSQL authority
+without creating, repairing, granting, or seeding database state. The runtime receives `ADMIN_USERNAME` as the
+operator identity but must not receive `ADMIN_PASSWORD`; its database roles must also lack schema-migration,
+grant-management, ownership, or assumable elevated authority. A failed compatibility or authority check blocks
+startup rather than falling back to mutation.
+
+Provider role creation, secret rotation, and environment-variable cutover remain separate human-controlled
+operations. The migration command succeeding does not prove that hosted runtime credentials are restricted, and a
+runtime startup succeeding does not authorize later migration. Promotion evidence must therefore bind the migration
+action and the restricted-runtime restart to the same isolated target and immutable application artefact without
+recording credential values.
+
 | Role | Owns | Handoff boundary |
 | --- | --- | --- |
+| Database migration operator | Runs the explicit migration command with migration-owner authority and bounded bootstrap inputs. | Hands a successfully migrated and compatibility-verified target to the Secret/config maintainer; does not pass migration-owner credentials or `ADMIN_PASSWORD` to runtime. |
 | Deploy operator | Executes deployment to the target environment. | Hands to Promotion approver for gate review before staging/production promotion. |
 | Promotion approver | Confirms promotion gates and durable graph-persistence evidence. | Blocks promotion if durable evidence is incomplete or contradicted. |
 | Rollback executor | Performs Vercel rollback/promotion to a previous known-good deployment. | Hands to Persistence-verification operator after rollback; does not perform data restore by rollback alone. |
 | Backup Operator | Verifies backup health and performs ad-hoc backups before risky changes. | Hands to Restore Operator when recovery requires restore execution. |
 | Restore Operator | Executes database restore and post-restore verification under the DR runbook. | Hands restored environment to Persistence-verification operator and Incident Commander for service verification. |
-| Secret/config maintainer | Owns environment variables, secrets, and rotation. | Confirms `DATABASE_URL`, `ASSET_GRAPH_DATABASE_URL`, `COORDINATION_DATABASE_URL`, and secret settings before promotion or restore verification. |
+| Secret/config maintainer | Owns environment variables, secrets, and rotation. | Confirms runtime database URLs reference restricted roles, keeps migration-owner inputs operator-only, and verifies runtime does not receive `ADMIN_PASSWORD` before promotion or restore verification. |
 | Persistence-verification operator | Runs and records durable graph-persistence smoke evidence. | Hands pass/fail evidence to Promotion approver or Incident Commander. |
 | Incident Commander | Escalation point for restore failures, data-loss events, RTO/RPO risk, split-brain, and emergency override. | Coordinates exception approval and closure evidence. |
 | Rebuild recovery operator | Executes or supervises RecoveryGate-approved rebuild recovery actions. | Escalates to Incident Commander when RecoveryGate returns manual, unsafe, split-brain, integrity-compromised, or evaluation-failed plans. This may be the same person as another role, but the responsibility must be explicit. |

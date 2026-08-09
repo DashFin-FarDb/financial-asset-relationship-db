@@ -360,6 +360,26 @@ class TestShellScripts:
         assert "8000" in content
         assert "3000" in content
 
+    def test_run_dev_scripts_do_not_require_migration_password(self):
+        """Runtime launchers must not require the migration-only admin password."""
+        with open("run-dev.sh") as f:
+            sh_content = f.read()
+        with open("run-dev.bat") as f:
+            bat_content = f.read()
+
+        assert "required_vars=(DATABASE_URL SECRET_KEY ADMIN_USERNAME)" in sh_content
+        assert "ADMIN_PASSWORD" not in sh_content
+        assert 'if "%ADMIN_PASSWORD%"==""' not in bat_content
+        assert "ADMIN_PASSWORD" not in bat_content
+
+    def test_readme_clears_migration_password_before_runtime_launchers(self):
+        """Quick-start commands must clear the bootstrap password before runtime."""
+        with open("README.md") as f:
+            content = f.read()
+
+        assert "python -m scripts.migrate_database\nunset ADMIN_PASSWORD\n./run-dev.sh" in content
+        assert 'python -m scripts.migrate_database\nset "ADMIN_PASSWORD="\nrun-dev.bat' in content
+
     def test_run_dev_bat_windows_conventions(self):
         """Test that run-dev.bat follows Windows batch conventions."""
         with open("run-dev.bat") as f:

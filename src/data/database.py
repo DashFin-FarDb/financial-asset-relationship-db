@@ -265,30 +265,80 @@ def _verify_table_constraints(inspector, table_name: str, expected_table) -> Non
         raise SchemaCompatibilityError(f"database table {table_name} missing foreign-key invariants")
 
 
+def _protect_quoted_sql_tokens(definition: str) -> tuple[str, dict[str, str]]:
+    """Replace quoted SQL tokens with markers before syntax canonicalisation."""
+    protected: dict[str, str] = {}
+    output: list[str] = []
+    position = 0
+
+    while position < len(definition):
+        quote = definition[position]
+        if quote not in {"'", '"'}:
+            output.append(quote)
+            position += 1
+            continue
+
+        start = position
+        position += 1
+        while position < len(definition):
+            if definition[position] != quote:
+                position += 1
+                continue
+            if position + 1 < len(definition) and definition[position + 1] == quote:
+                position += 2
+                continue
+            position += 1
+            break
+
+        token = definition[start:position]
+        canonical_token = token
+        if quote == '"' and token.endswith('"'):
+            identifier = token[1:-1]
+            if re.fullmatch(r"[a-z_][a-z0-9_$]*", identifier):
+                canonical_token = identifier
+
+        marker = f"\x00fardb_quoted_{len(protected)}\x00"
+        protected[marker] = canonical_token
+        output.append(marker)
+
+    return "".join(output), protected
+
+
+def _restore_quoted_sql_tokens(definition: str, protected: dict[str, str]) -> str:
+    """Restore quoted SQL tokens after syntax canonicalisation."""
+    for marker, token in protected.items():
+        definition = definition.replace(marker, token)
+    return definition
+
+
 def _normalize_check_definition(definition: object) -> str:
     """Normalize ORM and reflected CHECK SQL without weakening its predicate."""
-    normalized = "" if definition is None else str(definition).lower()
+    raw_definition = "" if definition is None else str(definition)
+    normalized, protected = _protect_quoted_sql_tokens(raw_definition)
+    normalized = normalized.lower().strip()
     normalized = re.sub(r"::\s*(?:character varying|text)(?:\[\])?", "", normalized)
     normalized = normalized.removeprefix("check")
     normalized = normalized.replace("!~~", "not like").replace("~~", "like")
     normalized = re.sub(
-        r"=\s*any\s*\(\s*\(?\s*array\s*\[(.*?)\]\s*\)?\s*\)",
+        r"=\s*any\s*\(\s*\(?\s*array\s*\[([^\[\]]*)\]\s*\)?\s*\)",
         r" in (\1)",
         normalized,
     )
     normalized = re.sub(
-        r"(\S+)\s+between\s+(\S+)\s+and\s+(\S+)",
+        r"([^\s()]+)\s+between\s+([^\s()]+)\s+and\s+([^\s()]+)",
         r"\1 >= \2 and \1 <= \3",
         normalized,
     )
 
     def _sort_literal_set(match: re.Match[str]) -> str:
-        literals = re.findall(r"'[^']*'", match.group(1))
-        remainder = re.sub(r"'[^']*'|[\s,]", "", match.group(1))
-        return "in(" + ",".join(sorted(literals)) + ")" if literals and not remainder else match.group(0)
+        literals = [item.strip() for item in match.group(1).split(",")]
+        if literals and all(item in protected and protected[item].startswith("'") for item in literals):
+            return "in(" + ",".join(sorted(literals, key=protected.__getitem__)) + ")"
+        return match.group(0)
 
     normalized = re.sub(r"\bin\s*\(([^()]*)\)", _sort_literal_set, normalized)
-    return re.sub(r'[\s()"]+', "", normalized)
+    normalized = re.sub(r'[\s()"]+', "", normalized)
+    return _restore_quoted_sql_tokens(normalized, protected)
 
 
 def _verify_table_schema(inspector, table_name: str) -> None:

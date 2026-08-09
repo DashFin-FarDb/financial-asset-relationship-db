@@ -13,7 +13,6 @@ Security:
 from __future__ import annotations
 
 import logging
-import re
 import sqlite3
 from pathlib import Path
 
@@ -48,6 +47,7 @@ REBUILD_JOB_STATUSES = (
     "cancelled",
 )
 _REBUILD_JOB_STATUS_LITERALS = ", ".join(f"'{status}'" for status in REBUILD_JOB_STATUSES)
+_REBUILD_JOB_STATUS_PREDICATE = f"status IN ({_REBUILD_JOB_STATUS_LITERALS})"
 _REBUILD_IDENTIFIER_COLUMNS = ("active_worker_id", "execution_id")
 _REBUILD_IDENTIFIER_RECHECK_STATEMENTS = {
     "active_worker_id": text("SELECT MAX(LENGTH(active_worker_id)) FROM rebuild_jobs"),
@@ -228,7 +228,7 @@ def _apply_upgrade_004_cancellation_columns(connection: sqlite3.Connection) -> N
                 checkpoint_data TEXT,
                 cancellation_requested_at TEXT,
                 CONSTRAINT ck_rebuild_jobs_status CHECK (
-                    status IN ({_REBUILD_JOB_STATUS_LITERALS})
+                    {_REBUILD_JOB_STATUS_PREDICATE}
                 )
             )
             """)
@@ -383,7 +383,7 @@ def _apply_postgresql_status_constraint_update(connection) -> None:
     # 2. Add the updated constraint
     status_constraint_sql = f"""
         ALTER TABLE rebuild_jobs ADD CONSTRAINT ck_rebuild_jobs_status
-            CHECK (status IN ({_REBUILD_JOB_STATUS_LITERALS}))
+            CHECK ({_REBUILD_JOB_STATUS_PREDICATE})
     """
     connection.execute(text(status_constraint_sql))
 
@@ -432,8 +432,10 @@ def _status_constraint_is_canonical(constraint: ReflectedCheckConstraint | None)
     """Return whether reflected SQL enforces exactly the supported status domain."""
     if not constraint:
         return False
+    from .database import _normalize_check_definition
+
     sql_text = str(constraint.get("sqltext", ""))
-    return "status" in sql_text.lower() and set(re.findall(r"'([^']+)'", sql_text)) == set(REBUILD_JOB_STATUSES)
+    return _normalize_check_definition(sql_text) == _normalize_check_definition(_REBUILD_JOB_STATUS_PREDICATE)
 
 
 def postgresql_heartbeat_schema_gaps(inspector: Inspector) -> list[str]:

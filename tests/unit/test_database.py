@@ -118,6 +118,30 @@ def test_check_normalization_accepts_postgresql_any_rendering() -> None:
 
 
 @pytest.mark.parametrize(
+    ("left", "right"),
+    [
+        ("CHECK (code = 'A')", "CHECK (code = 'a')"),
+        ("CHECK (\"Code\" = 'A')", "CHECK (\"code\" = 'A')"),
+        ("CHECK (code = 'A''B')", "CHECK (code = 'a''b')"),
+    ],
+)
+def test_check_normalization_preserves_quoted_token_case(left: str, right: str) -> None:
+    """Case-sensitive literals and quoted identifiers must remain distinct."""
+    assert _normalize_check_definition(left) != _normalize_check_definition(right)
+
+
+def test_check_normalization_accepts_equivalent_lowercase_quoted_identifier() -> None:
+    """A quoted lowercase identifier should match its PostgreSQL unquoted form."""
+    assert _normalize_check_definition("CHECK (\"code\" = 'A')") == _normalize_check_definition("CHECK (code = 'A')")
+
+
+def test_check_normalization_does_not_rewrite_literal_sql_syntax() -> None:
+    """Operator, cast, and BETWEEN text inside a literal must remain opaque."""
+    literal = "'A::TEXT ~~ BETWEEN X AND Y'"
+    assert literal in _normalize_check_definition(f"CHECK (label = {literal})")
+
+
+@pytest.mark.parametrize(
     ("mismatch", "error_match"),
     [("check", "incompatible constraints"), ("index", "incompatible indexes")],
 )
