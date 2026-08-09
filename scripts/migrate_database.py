@@ -8,7 +8,13 @@ from collections.abc import Callable
 from sqlalchemy.engine import Engine
 
 from api.auth import seed_credentials_from_settings, user_repository
-from api.database import bind_database_url, ensure_runtime_access, initialize_schema, verify_schema_compatibility
+from api.database import (
+    bind_database_url,
+    ensure_runtime_access,
+    fetch_value,
+    initialize_schema,
+    verify_schema_compatibility,
+)
 from api.graph_lifecycle_providers import resolve_hosted_graph_database_url
 from src.config.settings import Settings, load_settings
 from src.data.database import (
@@ -33,7 +39,27 @@ def _configured_engines(
     coordination_url = settings.coordination_database_url or graph_url
     if coordination_url:
         configured.setdefault(coordination_url, set()).add(COORDINATION_RUNTIME_CAPABILITY)
-    return graph_url, {url: (engine_factory(url), capabilities) for url, capabilities in configured.items()}
+
+    engines: dict[str, tuple[Engine, set[str]]] = {}
+    try:
+        for url, capabilities in configured.items():
+            engines[url] = (engine_factory(url), capabilities)
+    except Exception:
+        for engine, _capabilities in engines.values():
+            engine.dispose()
+        raise
+    return graph_url, engines
+
+
+def _has_usable_credentials() -> bool:
+    """Return whether an enabled credential has a supported password hash."""
+    return bool(
+        fetch_value(
+            "SELECT 1 FROM user_credentials "
+            "WHERE disabled = 0 AND hashed_password LIKE ? LIMIT 1",
+            ("$pbkdf2-sha256$%",),
+        )
+    )
 
 
 def migrate_configured_databases(
@@ -45,9 +71,16 @@ def migrate_configured_databases(
 
     Existing environment precedence and database abstractions are intentionally
     preserved. Operators run this command with migration-owner credentials,
-    then start the application with its restricted runtime credentials.
+    then start the application with its restricted runtime credentials. Capability
+    selection controls the installed runtime grants and RLS policies; ``init_db``
+    deliberately installs the shared structural schema even for a coordination-only
+    target.
     """
     resolved_settings = settings or load_settings()
+    auth_url = resolved_settings.database_url
+    if not auth_url:
+        raise RuntimeError("configured auth database is missing")
+
     migrated: list[str] = []
     _graph_url, engines = _configured_engines(resolved_settings, engine_factory)
 
@@ -61,15 +94,12 @@ def migrate_configured_databases(
             if COORDINATION_RUNTIME_CAPABILITY in capabilities:
                 migrated.append("coordination")
 
-        auth_url = resolved_settings.database_url
-        if not auth_url:
-            raise RuntimeError("configured auth database is missing")
         with bind_database_url(auth_url):
             initialize_schema()
             seed_credentials_from_settings(user_repository, resolved_settings)
             ensure_runtime_access()
             verify_schema_compatibility()
-            if not user_repository.has_users():
+            if not _has_usable_credentials():
                 raise RuntimeError(
                     "credential provisioning incomplete: configure ADMIN_USERNAME and ADMIN_PASSWORD "
                     "or provision a user before running the application"

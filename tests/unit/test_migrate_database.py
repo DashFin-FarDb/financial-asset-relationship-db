@@ -45,7 +45,7 @@ def test_migrate_configured_databases_owns_all_mutating_setup(monkeypatch) -> No
     monkeypatch.setattr(migrate_database, "initialize_schema", initialize_schema)
     monkeypatch.setattr(migrate_database, "seed_credentials_from_settings", seed_credentials)
     monkeypatch.setattr(migrate_database, "verify_schema_compatibility", verify_auth)
-    monkeypatch.setattr(migrate_database.user_repository, "has_users", lambda: True)
+    monkeypatch.setattr(migrate_database, "_has_usable_credentials", lambda: True)
     monkeypatch.setattr(migrate_database, "init_db", init_db)
     monkeypatch.setattr(migrate_database, "verify_database_schema", verify_graph)
     monkeypatch.setattr(migrate_database, "ensure_runtime_database_capabilities", ensure_capabilities)
@@ -77,16 +77,50 @@ def test_migrate_configured_databases_requires_provisioned_credentials(monkeypat
     monkeypatch.setattr(migrate_database, "verify_schema_compatibility", lambda: None)
     monkeypatch.setattr(migrate_database, "ensure_runtime_access", lambda: None)
     monkeypatch.setattr(migrate_database, "seed_credentials_from_settings", lambda *_args: None)
-    monkeypatch.setattr(migrate_database.user_repository, "has_users", lambda: False)
+    monkeypatch.setattr(migrate_database, "_has_usable_credentials", lambda: False)
     monkeypatch.setattr(migrate_database, "init_db", lambda _engine: None)
     monkeypatch.setattr(migrate_database, "verify_database_schema", lambda _engine, **_kwargs: None)
 
-    try:
+    with pytest.raises(RuntimeError, match="credential provisioning incomplete"):
         migrate_database.migrate_configured_databases(settings, engine_factory=lambda _url: MagicMock())
-    except RuntimeError as exc:
-        assert "credential provisioning incomplete" in str(exc)
-    else:
-        raise AssertionError("migration command accepted an empty credential store")
+
+
+def test_migrate_configured_databases_rejects_missing_auth_before_other_targets(monkeypatch) -> None:
+    """A missing auth target must fail before graph/coordination engines can mutate."""
+    settings = Settings(
+        secret_key="s" * 32,
+        database_url=None,
+        coordination_database_url="sqlite:///coordination.db",
+    )
+    engine_factory = MagicMock()
+    init_db = MagicMock()
+    ensure_capabilities = MagicMock()
+    monkeypatch.setattr(migrate_database, "init_db", init_db)
+    monkeypatch.setattr(migrate_database, "ensure_runtime_database_capabilities", ensure_capabilities)
+
+    with pytest.raises(RuntimeError, match="configured auth database is missing"):
+        migrate_database.migrate_configured_databases(settings, engine_factory=engine_factory)
+
+    engine_factory.assert_not_called()
+    init_db.assert_not_called()
+    ensure_capabilities.assert_not_called()
+
+
+def test_configured_engines_disposes_partial_construction_on_factory_failure() -> None:
+    """A later engine-construction failure must dispose already-created engines."""
+    settings = Settings(
+        secret_key="s" * 32,
+        asset_graph_database_url="sqlite:///graph.db",
+        database_url="sqlite:///auth.db",
+        coordination_database_url="sqlite:///coordination.db",
+    )
+    first_engine = MagicMock()
+    engine_factory = MagicMock(side_effect=[first_engine, RuntimeError("engine factory failed")])
+
+    with pytest.raises(RuntimeError, match="engine factory failed"):
+        migrate_database._configured_engines(settings, engine_factory)  # pylint: disable=protected-access
+
+    first_engine.dispose.assert_called_once_with()
 
 
 def test_migrate_configured_databases_migrates_coordination_without_graph(monkeypatch) -> None:
@@ -104,7 +138,7 @@ def test_migrate_configured_databases_migrates_coordination_without_graph(monkey
     monkeypatch.setattr(migrate_database, "initialize_schema", lambda: None)
     monkeypatch.setattr(migrate_database, "verify_schema_compatibility", lambda: None)
     monkeypatch.setattr(migrate_database, "seed_credentials_from_settings", lambda *_args: None)
-    monkeypatch.setattr(migrate_database.user_repository, "has_users", lambda: True)
+    monkeypatch.setattr(migrate_database, "_has_usable_credentials", lambda: True)
 
     migrated = migrate_database.migrate_configured_databases(
         settings,
@@ -133,7 +167,7 @@ def test_migrate_configured_databases_combines_shared_graph_and_coordination_cap
     monkeypatch.setattr(migrate_database, "verify_schema_compatibility", lambda: None)
     monkeypatch.setattr(migrate_database, "ensure_runtime_access", lambda: None)
     monkeypatch.setattr(migrate_database, "seed_credentials_from_settings", lambda *_args: None)
-    monkeypatch.setattr(migrate_database.user_repository, "has_users", lambda: True)
+    monkeypatch.setattr(migrate_database, "_has_usable_credentials", lambda: True)
 
     migrated = migrate_database.migrate_configured_databases(
         settings,
@@ -165,7 +199,7 @@ def test_migrate_configured_databases_binds_auth_target_at_execution_time(monkey
     monkeypatch.setattr(migrate_database, "verify_schema_compatibility", lambda: None)
     monkeypatch.setattr(migrate_database, "ensure_runtime_access", lambda: None)
     monkeypatch.setattr(migrate_database, "seed_credentials_from_settings", lambda *_args: None)
-    monkeypatch.setattr(migrate_database.user_repository, "has_users", lambda: True)
+    monkeypatch.setattr(migrate_database, "_has_usable_credentials", lambda: True)
 
     assert migrate_database.migrate_configured_databases(settings) == ("auth",)
     assert bound_targets == ["sqlite:///requested.db"]

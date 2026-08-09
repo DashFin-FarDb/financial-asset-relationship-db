@@ -25,3 +25,11 @@ def test_check_normalization_accepts_nullable_postgresql_any_rendering() -> None
     )
 
     assert _normalize_check_definition(reflected) == _normalize_check_definition(expected)
+
+
+def test_check_normalization_preserves_boolean_grouping() -> None:
+    """Redundant-parenthesis cleanup must not weaken AND/OR precedence."""
+    left = "CHECK (a AND (b OR c))"
+    right = "CHECK ((a AND b) OR c)"
+
+    assert _normalize_check_definition(left) != _normalize_check_definition(right)

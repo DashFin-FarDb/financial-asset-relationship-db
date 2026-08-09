@@ -68,7 +68,7 @@ CQ-03. Do not represent a successful command run as CQ-03 closure.
    memberships only when those boundaries deliberately share one URL. Do not paste login names or commands with
    credentials into public evidence.
 7. Replace migration-owner URLs with the corresponding restricted-login URLs. Remove `ADMIN_PASSWORD` from the
-   runtime environment. Keep `ADMIN_USERNAME` only when required for rebuild-operator authorization.
+   runtime environment, but keep `ADMIN_USERNAME` in production runtime configuration.
 8. Start FastAPI. A compatibility failure is a deployment blocker: return to this procedure rather than broadening
    the app role.
 9. Prove cold start and restart, exercise graph/coordination/auth runtime operations, and run the hosted readiness and
@@ -80,8 +80,10 @@ For an isolated PostgreSQL rehearsal, the opt-in integration contract accepts re
 approved operator environment and retain only bounded pass/fail evidence. The test does not create logins, grant
 memberships, or change provider configuration.
 
-When graph and coordination share one URL, the command initializes that engine once. When no durable graph URL is
-configured for a local demo, it initializes only the auth database.
+When graph and coordination share one URL, the command initializes that engine once. A coordination-only target still
+receives the shared FarDB structural schema; its requested capability set controls the runtime grants and RLS policies,
+not which ORM tables the operator creates. When no durable graph or coordination URL is configured for a local demo,
+the command initializes only the auth database.
 
 ## Local SQLite example
 

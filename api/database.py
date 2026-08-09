@@ -259,7 +259,7 @@ def _is_memory_db(path: str | None = None) -> bool:
     """
     Determine whether a SQLite database path denotes an in-memory database.
 
-    If `path` is omitted, the configured `DATABASE_PATH` is evaluated. The function treats the
+    If `path` is omitted, the configured ``DATABASE_PATH`` is evaluated. The function treats the
     literal ":memory:" and file-style URIs whose path component is exactly ":memory:" (for
     example, "file::memory:" or "file::memory:?cache=shared") as in-memory targets. It does not
     treat file URIs where ":memory:" appears as part of a filesystem path or URIs that use
@@ -843,16 +843,16 @@ def ensure_runtime_access() -> None:
     execute("DROP POLICY IF EXISTS fardb_auth_select_v1 ON user_credentials")
     execute(
         f"DO $fardb$ BEGIN EXECUTE format("
-        f"'GRANT USAGE ON SCHEMA %I TO {AUTH_RUNTIME_ROLE}', current_schema()); END $fardb$"
+        f"'GRANT USAGE ON SCHEMA %%I TO {AUTH_RUNTIME_ROLE}', current_schema()); END $fardb$"
     )
     execute(f"GRANT SELECT ON TABLE user_credentials TO {AUTH_RUNTIME_ROLE}")
     execute(
         f"DO $fardb$ DECLARE sequence_name text := "
         f"pg_get_serial_sequence('user_credentials', 'id'); BEGIN "
         f"IF sequence_name IS NOT NULL THEN "
-        f"EXECUTE format('REVOKE ALL PRIVILEGES ON SEQUENCE %s FROM PUBLIC', sequence_name); "
+        f"EXECUTE format('REVOKE ALL PRIVILEGES ON SEQUENCE %%s FROM PUBLIC', sequence_name); "
         f"EXECUTE format("
-        f"'REVOKE ALL PRIVILEGES ON SEQUENCE %s FROM {AUTH_RUNTIME_ROLE}', sequence_name); END IF; "
+        f"'REVOKE ALL PRIVILEGES ON SEQUENCE %%s FROM {AUTH_RUNTIME_ROLE}', sequence_name); END IF; "
         f"END $fardb$"
     )
     execute(
