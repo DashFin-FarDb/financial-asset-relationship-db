@@ -187,6 +187,16 @@ class TestConnectionManagement:
             assert conn is not None
             assert isinstance(conn, sqlite3.Connection)
 
+    def test_connection_has_uri(self):
+        """Test that URI-style paths are supported."""
+        uri_path = "file::memory:?cache=shared"
+        with (
+            patch("api.database.DATABASE_PATH", uri_path),
+            patch("api.database._is_memory_db", return_value=True),
+            get_connection() as conn,
+        ):
+            assert conn is not None
+
     def test_connection_has_row_factory(self):
         """Test that connection has Row factory set."""
         with patch("api.database.DATABASE_PATH", ":memory:"), get_connection() as conn:
@@ -225,7 +235,7 @@ class TestConnectionManagement:
             with get_connection() as conn2:
                 conn2_id = id(conn2)
 
-            # Should be different connection for file DB
+            # Should be different connections for file DB
             assert conn1_id != conn2_id
 
     def test_connection_supports_uri(self):
@@ -258,7 +268,7 @@ class TestQueryExecution:
 
     @patch("api.database.get_connection")
     def test_execute_with_parameters(self, mock_get_conn):
-        """Test execute with parameters."""
+        """Test execute with query parameters."""
         mock_conn = Mock()
         mock_context = Mock()
         mock_context.__enter__ = Mock(return_value=mock_conn)
@@ -324,7 +334,7 @@ class TestQueryExecution:
 
     @patch("api.database.get_connection")
     def test_fetch_value_returns_none_when_empty(self, mock_get_conn):
-        """Test fetch_value returns None when no rows."""
+        """Test that fetch_value returns None when no rows."""
         mock_cursor = Mock()
         mock_cursor.fetchone.return_value = None
         mock_conn = Mock()
@@ -359,7 +369,7 @@ class TestSchemaInitialization:
 
     @patch("api.database.execute")
     def test_initialize_schema_creates_table(self, mock_execute):
-        """Test that initialize_schema creates table."""
+        """Test that initialize_schema creates user_credentials table."""
         initialize_schema()
 
         mock_execute.assert_called_once()
@@ -368,6 +378,7 @@ class TestSchemaInitialization:
 
         assert "CREATE TABLE IF NOT EXISTS user_credentials" in sql
         assert "username TEXT UNIQUE NOT NULL" in sql
+        assert "hashed_password TEXT NOT NULL" in sql
 
     @patch("api.database.execute")
     def test_initialize_schema_all_columns_present(self, mock_execute):
@@ -465,6 +476,7 @@ class TestEdgeCases:
             mock_cursor = Mock()
             mock_cursor.fetchone.return_value = None
             mock_conn = Mock()
+            mock_conn.execute.return_value = mock_cursor
             mock_context = Mock()
             mock_context.__enter__ = Mock(return_value=mock_conn)
             mock_context.__exit__ = Mock(return_value=False)
