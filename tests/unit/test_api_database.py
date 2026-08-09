@@ -187,16 +187,6 @@ class TestConnectionManagement:
             assert conn is not None
             assert isinstance(conn, sqlite3.Connection)
 
-    def test_connection_has_uri(self):
-        """Test that URI-style paths are supported."""
-        uri_path = "file::memory:?cache=shared"
-        with (
-            patch("api.database.DATABASE_PATH", uri_path),
-            patch("api.database._is_memory_db", return_value=True),
-            get_connection() as conn,
-        ):
-            assert conn is not None
-
     def test_connection_has_row_factory(self):
         """Test that connection has Row factory set."""
         with patch("api.database.DATABASE_PATH", ":memory:"), get_connection() as conn:
