@@ -6,6 +6,7 @@ Claims are labeled landed vs provisional. ADRs/policy are not rewritten.
 ## Seam movement by domain
 
 ### architecture
+- [provisional] **pr:1619**: x     y 
 - [provisional] **pr:1618**: x   y 
 - [provisional] **pr:1608**: -/-  x     y
 - [provisional] **pr:1617**: x   y 
@@ -20,9 +21,9 @@ Claims are labeled landed vs provisional. ADRs/policy are not rewritten.
 - [landed] **sha:a9757abc304675ff36ae6e3d6d1c9a03ca5c0553**: Merge/push to main a9757abc304675ff36ae6e3d6d1c9a03ca5c0553
 - [landed] **pr:1571**: ()   y-    y w  
 - [provisional] **pr:1600**: x     
-- [landed] **pr:1598**:    v x- v   
 
 ### api
+- [provisional] **pr:1619**: x     y 
 - [provisional] **pr:1618**: x   y 
 - [provisional] **pr:1608**: -/-  x     y
 - [provisional] **pr:1617**: x   y 
@@ -37,9 +38,9 @@ Claims are labeled landed vs provisional. ADRs/policy are not rewritten.
 - [provisional] **pr:1606**:  y/ .. → .. ()
 - [provisional] **pr:1602**: x()  y y   
 - [provisional] **pr:1603**: x()  y y   
-- [provisional] **pr:1599**: ()   -    y w  
 
 ### persistence
+- [provisional] **pr:1619**: x     y 
 - [provisional] **pr:1618**: x   y 
 - [provisional] **pr:1608**: -/-  x     y
 - [provisional] **pr:1617**: x   y 
@@ -54,9 +55,9 @@ Claims are labeled landed vs provisional. ADRs/policy are not rewritten.
 - [provisional] **pr:1584**: x   x   
 - [landed] **pr:1569**:   v     
 - [provisional] **pr:1565**:   v     
-- [provisional] **pr:1567**:    w    x y
 
 ### ci-guardrails
+- [provisional] **pr:1619**: x     y 
 - [provisional] **pr:1618**: x   y 
 - [provisional] **pr:1608**: -/-  x     y
 - [provisional] **pr:1617**: x   y 
@@ -71,7 +72,6 @@ Claims are labeled landed vs provisional. ADRs/policy are not rewritten.
 - [provisional] **pr:1604**: ()   -    y w  
 - [provisional] **pr:1601**: x()  y- ww 
 - [provisional] **pr:1594**: x(v)        
-- [landed] **pr:1589**:   v   v ww
 
 ### rebuild-reconciliation
 - [landed] **pr:1455**: x    y 
@@ -86,6 +86,7 @@ Claims are labeled landed vs provisional. ADRs/policy are not rewritten.
 - [provisional] **pr:1403**: fix(ci): resolve compound workflow failures
 
 ### deployment
+- [provisional] **pr:1619**: x     y 
 - [provisional] **pr:1618**: x   y 
 - [provisional] **pr:1608**: -/-  x     y
 - [provisional] **pr:1617**: x   y 
@@ -99,5 +100,4 @@ Claims are labeled landed vs provisional. ADRs/policy are not rewritten.
 - [provisional] **pr:1609**: x      
 - [landed] **pr:1529**: (--)   z   w  -
 - [landed] **pr:1528**:   - -- z  v
-- [landed] **pr:1524**: x        
-- [landed] **pr:1523**:  -#  v   --
+- [landed] **pr:1524**: x
