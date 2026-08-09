@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import re
 
-from sqlalchemy import (
+from sqlalchemy import (  # pyre-ignore[21]: External code scanning does not install SQLAlchemy.
     CheckConstraint,
     ForeignKeyConstraint,
     UniqueConstraint,
@@ -30,6 +30,7 @@ from .repository import session_scope  # noqa: F401, E402
 DEFAULT_DATABASE_URL = "sqlite:///./asset_graph.db"
 ASSET_GRAPH_DATABASE_URL_ENV_VAR = "ASSET_GRAPH_DATABASE_URL"
 SQLITE_MEMORY_DATABASE = ":memory:"
+_SQL_IDENTIFIER_PATTERN = re.compile(r"[a-z_][a-z0-9_$]*")
 
 
 class SchemaCompatibilityError(RuntimeError):
@@ -265,6 +266,30 @@ def _verify_table_constraints(inspector, table_name: str, expected_table) -> Non
         raise SchemaCompatibilityError(f"database table {table_name} missing foreign-key invariants")
 
 
+def _read_quoted_sql_token(definition: str, start: int, quote: str) -> tuple[str, int]:
+    """Read one quoted SQL token, preserving doubled quote escapes."""
+    position = start + 1
+    while position < len(definition):
+        if definition[position] != quote:
+            position += 1
+            continue
+        if position + 1 < len(definition) and definition[position + 1] == quote:
+            position += 2
+            continue
+        return definition[start : position + 1], position + 1
+    return definition[start:position], position
+
+
+def _canonical_quoted_sql_token(token: str, quote: str) -> str:
+    """Unquote simple SQL identifiers while preserving string literals."""
+    if quote != '"' or not token.endswith('"'):
+        return token
+    identifier = token[1:-1]
+    if _SQL_IDENTIFIER_PATTERN.fullmatch(identifier):
+        return identifier
+    return token
+
+
 def _protect_quoted_sql_tokens(definition: str) -> tuple[str, dict[str, str]]:
     """Replace quoted SQL tokens with markers before syntax canonicalisation."""
     protected: dict[str, str] = {}
@@ -273,33 +298,14 @@ def _protect_quoted_sql_tokens(definition: str) -> tuple[str, dict[str, str]]:
 
     while position < len(definition):
         quote = definition[position]
-        if quote not in {"'", '"'}:
+        if quote in {"'", '"'}:
+            token, position = _read_quoted_sql_token(definition, position, quote)
+            marker = f"\x00fardb_quoted_{len(protected)}\x00"
+            protected[marker] = _canonical_quoted_sql_token(token, quote)
+            output.append(marker)
+        else:
             output.append(quote)
             position += 1
-            continue
-
-        start = position
-        position += 1
-        while position < len(definition):
-            if definition[position] != quote:
-                position += 1
-                continue
-            if position + 1 < len(definition) and definition[position + 1] == quote:
-                position += 2
-                continue
-            position += 1
-            break
-
-        token = definition[start:position]
-        canonical_token = token
-        if quote == '"' and token.endswith('"'):
-            identifier = token[1:-1]
-            if re.fullmatch(r"[a-z_][a-z0-9_$]*", identifier):
-                canonical_token = identifier
-
-        marker = f"\x00fardb_quoted_{len(protected)}\x00"
-        protected[marker] = canonical_token
-        output.append(marker)
 
     return "".join(output), protected
 
@@ -311,6 +317,82 @@ def _restore_quoted_sql_tokens(definition: str, protected: dict[str, str]) -> st
     return definition
 
 
+def _skip_sql_spaces(definition: str, position: int) -> int:
+    """Return the next non-space position in a CHECK definition fragment."""
+    while position < len(definition) and definition[position].isspace():
+        position += 1
+    return position
+
+
+def _consume_postgresql_any_array(definition: str, start: int) -> tuple[str, int] | None:
+    """Parse a PostgreSQL ``= ANY (ARRAY[...])`` fragment if one starts here."""
+    position = _skip_sql_spaces(definition, start + 1)
+    if not definition.startswith("any", position):
+        return None
+
+    position = _skip_sql_spaces(definition, position + len("any"))
+    if position >= len(definition) or definition[position] != "(":
+        return None
+
+    position = _skip_sql_spaces(definition, position + 1)
+    has_extra_group = position < len(definition) and definition[position] == "("
+    if has_extra_group:
+        position = _skip_sql_spaces(definition, position + 1)
+
+    if not definition.startswith("array", position):
+        return None
+
+    position = _skip_sql_spaces(definition, position + len("array"))
+    if position >= len(definition) or definition[position] != "[":
+        return None
+
+    items_start = position + 1
+    items_end = definition.find("]", items_start)
+    if items_end < 0:
+        return None
+
+    position = _skip_sql_spaces(definition, items_end + 1)
+    if has_extra_group:
+        if position >= len(definition) or definition[position] != ")":
+            return None
+        position = _skip_sql_spaces(definition, position + 1)
+    if position >= len(definition) or definition[position] != ")":
+        return None
+    return definition[items_start:items_end], position + 1
+
+
+def _rewrite_postgresql_any_arrays(definition: str) -> str:
+    """Rewrite PostgreSQL ``= ANY (ARRAY[...])`` syntax to SQL ``IN (...)``."""
+    output: list[str] = []
+    position = 0
+    while position < len(definition):
+        if definition[position] == "=":
+            replacement = _consume_postgresql_any_array(definition, position)
+            if replacement is not None:
+                items, position = replacement
+                output.append(f" in ({items})")
+                continue
+        output.append(definition[position])
+        position += 1
+    return "".join(output)
+
+
+def _expand_simple_between(definition: str) -> str:
+    """Expand simple ``x BETWEEN y AND z`` clauses to comparison form."""
+    tokens = definition.split()
+    output: list[str] = []
+    position = 0
+    while position < len(tokens):
+        if position + 4 < len(tokens) and tokens[position + 1] == "between" and tokens[position + 3] == "and":
+            lhs = tokens[position]
+            output.append(f"{lhs} >= {tokens[position + 2]} and {lhs} <= {tokens[position + 4]}")
+            position += 5
+            continue
+        output.append(tokens[position])
+        position += 1
+    return " ".join(output)
+
+
 def _normalize_check_definition(definition: object) -> str:
     """Normalize ORM and reflected CHECK SQL without weakening its predicate."""
     raw_definition = "" if definition is None else str(definition)
@@ -319,16 +401,8 @@ def _normalize_check_definition(definition: object) -> str:
     normalized = re.sub(r"::\s*(?:character varying|text)(?:\[\])?", "", normalized)
     normalized = normalized.removeprefix("check")
     normalized = normalized.replace("!~~", "not like").replace("~~", "like")
-    normalized = re.sub(
-        r"=\s*any\s*\(\s*\(?\s*array\s*\[([^\[\]]*)\]\s*\)?\s*\)",
-        r" in (\1)",
-        normalized,
-    )
-    normalized = re.sub(
-        r"([^\s()]+)\s+between\s+([^\s()]+)\s+and\s+([^\s()]+)",
-        r"\1 >= \2 and \1 <= \3",
-        normalized,
-    )
+    normalized = _rewrite_postgresql_any_arrays(normalized)
+    normalized = _expand_simple_between(normalized)
 
     def _sort_literal_set(match: re.Match[str]) -> str:
         literals = [item.strip() for item in match.group(1).split(",")]

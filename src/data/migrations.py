@@ -15,11 +15,10 @@ from __future__ import annotations
 import logging
 import sqlite3
 from pathlib import Path
+from typing import Any
 
-from sqlalchemy import inspect, text
-from sqlalchemy.engine import Engine
-from sqlalchemy.engine.interfaces import ReflectedCheckConstraint, ReflectedColumn
-from sqlalchemy.engine.reflection import Inspector
+from sqlalchemy import inspect, text  # pyre-ignore[21]: External code scanning does not install SQLAlchemy.
+from sqlalchemy.engine import Engine  # pyre-ignore[21]: External code scanning does not install SQLAlchemy.
 
 from src.observability.events import ObservabilityEvent
 from src.observability.logger import log_event
@@ -280,7 +279,7 @@ def _apply_upgrade_004_cancellation_columns(connection: sqlite3.Connection) -> N
 # ---------------------------------------------------------------------------
 
 
-def _inspect_rebuild_jobs_columns(inspector: Inspector) -> tuple[list[str], dict[str, ReflectedColumn]]:
+def _inspect_rebuild_jobs_columns(inspector: Any) -> tuple[list[str], dict[str, Any]]:
     """
     Return missing-column statements and metadata for bounded identifiers.
 
@@ -293,12 +292,12 @@ def _inspect_rebuild_jobs_columns(inspector: Inspector) -> tuple[list[str], dict
         inspector: SQLAlchemy inspector instance.
 
     Returns:
-        tuple[list[str], dict[str, ReflectedColumn]]: Missing-column SQL
+        tuple[list[str], dict[str, Any]]: Missing-column SQL
             statements and reflected identifier metadata.
     """
     columns = inspector.get_columns("rebuild_jobs")
     existing: set[str] = set()
-    identifier_columns: dict[str, ReflectedColumn] = {}
+    identifier_columns: dict[str, Any] = {}
     for col in columns:
         name = col["name"]
         existing.add(name)
@@ -319,7 +318,7 @@ def _inspect_rebuild_jobs_columns(inspector: Inspector) -> tuple[list[str], dict
     return statements, identifier_columns
 
 
-def _identifier_declared_incompatible(column: ReflectedColumn | None) -> bool:
+def _identifier_declared_incompatible(column: Any | None) -> bool:
     """Check whether a present identifier column is unbounded or wider than 64.
 
     Return True when the identifier is unbounded or wider than VARCHAR(64).
@@ -428,7 +427,7 @@ def apply_postgresql_heartbeat_migration(engine: Engine) -> None:
         _apply_postgresql_status_constraint_update(connection)
 
 
-def _status_constraint_is_canonical(constraint: ReflectedCheckConstraint | None) -> bool:
+def _status_constraint_is_canonical(constraint: Any | None) -> bool:
     """Return whether reflected SQL enforces exactly the supported status domain."""
     if not constraint:
         return False
@@ -438,7 +437,7 @@ def _status_constraint_is_canonical(constraint: ReflectedCheckConstraint | None)
     return _normalize_check_definition(sql_text) == _normalize_check_definition(_REBUILD_JOB_STATUS_PREDICATE)
 
 
-def postgresql_heartbeat_schema_gaps(inspector: Inspector) -> list[str]:
+def postgresql_heartbeat_schema_gaps(inspector: Any) -> list[str]:
     """Return PostgreSQL rebuild compatibility gaps without changing the schema."""
     if "rebuild_jobs" not in inspector.get_table_names():
         return ["rebuild_jobs table"]

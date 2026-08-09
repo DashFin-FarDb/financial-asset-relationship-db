@@ -11,9 +11,10 @@ import json
 import os
 import re
 from collections.abc import Mapping
+from typing import Any
 
-from sqlalchemy import bindparam, text
-from sqlalchemy.engine import Connection, Engine, make_url
+from sqlalchemy import bindparam, text  # pyre-ignore[21]: External code scanning does not install SQLAlchemy.
+from sqlalchemy.engine import Connection, Engine, make_url  # pyre-ignore[21]: External code scanning lacks SQLAlchemy.
 
 from src.data.relationship_assertion_db_models import (
     EFFECTIVE_WINDOW_CHECK,
@@ -71,7 +72,7 @@ def verify_relationship_assertion_schema(engine: Engine) -> None:
             _verify_postgresql_grac_schema(connection)
 
 
-def _verify_sqlite_grac_schema(connection: Connection) -> None:
+def _verify_sqlite_grac_schema(connection: Any) -> None:
     """Verify SQLite GRAC compatibility and immutability guards."""
     _require_sqlite_grac_constraints(connection)
     if not _sqlite_guards_present(connection):
@@ -333,7 +334,7 @@ def _postgresql_grac_constraints_present(connection: Connection) -> bool:
         ("relationship_assertions", "ck_relationship_assertions_effective_window"): EFFECTIVE_WINDOW_CHECK,
         ("relationship_projection_edges", "ck_relationship_projection_edges_strength"): STRENGTH_DECIMAL_CHECK,
     }
-    actual = _postgresql_constraint_catalog(connection, [name for _table, name in expected])
+    actual = _postgresql_constraint_catalog(connection, [name for (_table, name), _check in expected.items()])
     if not all(actual.get(key, (None, False))[1] for key in expected):
         return False
     return all(_postgresql_check_matches(actual[key][0], canonical) for key, canonical in expected.items())
