@@ -436,11 +436,8 @@ def _status_constraint_is_canonical(constraint: ReflectedCheckConstraint | None)
     return "status" in sql_text.lower() and set(re.findall(r"'([^']+)'", sql_text)) == set(REBUILD_JOB_STATUSES)
 
 
-def postgresql_heartbeat_schema_gaps(inspector: Inspector) -> list[str]:
-    """Return PostgreSQL rebuild compatibility gaps without changing the schema."""
-    if "rebuild_jobs" not in inspector.get_table_names():
-        return ["rebuild_jobs table"]
-
+def _rebuild_jobs_column_gaps(columns: dict[str, ReflectedColumn]) -> list[str]:
+    """Return missing rebuild_jobs compatibility column names."""
     required_columns = {
         "active_worker_id",
         "last_heartbeat_at",
@@ -448,9 +445,12 @@ def postgresql_heartbeat_schema_gaps(inspector: Inspector) -> list[str]:
         "checkpoint_data",
         "cancellation_requested_at",
     }
-    columns = {column["name"]: column for column in inspector.get_columns("rebuild_jobs")}
-    gaps = [f"rebuild_jobs.{name}" for name in sorted(required_columns - set(columns))]
+    return [f"rebuild_jobs.{name}" for name in sorted(required_columns - set(columns))]
 
+
+def _rebuild_jobs_identifier_width_gaps(columns: dict[str, ReflectedColumn]) -> list[str]:
+    """Return identifier columns that are unbounded or wider than the contract."""
+    gaps: list[str] = []
     for column_name in _REBUILD_IDENTIFIER_COLUMNS:
         column = columns.get(column_name)
         if column is None:
@@ -458,7 +458,11 @@ def postgresql_heartbeat_schema_gaps(inspector: Inspector) -> list[str]:
         length = getattr(column.get("type"), "length", None)
         if length is None or length > 64:
             gaps.append(f"rebuild_jobs.{column_name} width <= 64")
+    return gaps
 
+
+def _rebuild_jobs_status_constraint_gap(inspector: Inspector) -> list[str]:
+    """Return the status-constraint gap when reflected status values drift."""
     status_constraint = next(
         (
             constraint
@@ -467,6 +471,16 @@ def postgresql_heartbeat_schema_gaps(inspector: Inspector) -> list[str]:
         ),
         None,
     )
-    if not _status_constraint_is_canonical(status_constraint):
-        gaps.append("ck_rebuild_jobs_status")
+    return [] if _status_constraint_is_canonical(status_constraint) else ["ck_rebuild_jobs_status"]
+
+
+def postgresql_heartbeat_schema_gaps(inspector: Inspector) -> list[str]:
+    """Return PostgreSQL rebuild compatibility gaps without changing the schema."""
+    if "rebuild_jobs" not in inspector.get_table_names():
+        return ["rebuild_jobs table"]
+
+    columns = {column["name"]: column for column in inspector.get_columns("rebuild_jobs")}
+    gaps = _rebuild_jobs_column_gaps(columns)
+    gaps.extend(_rebuild_jobs_identifier_width_gaps(columns))
+    gaps.extend(_rebuild_jobs_status_constraint_gap(inspector))
     return gaps

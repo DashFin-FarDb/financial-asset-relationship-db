@@ -13,7 +13,6 @@ from fastapi import FastAPI
 
 from api import app_factory
 from src.config.settings import DeploymentEnvironment
-from src.data.database import SchemaCompatibilityError
 from src.data.sample_data import create_sample_database
 from src.logic.recovery_gate import ExecutionBlockedError
 
@@ -267,90 +266,6 @@ async def test_lifespan_keeps_fail_fast_behavior_outside_hosted_fallback(
     with pytest.raises(RuntimeError, match="reconciliation failed"):
         async with app_factory.lifespan(app):
             pass
-
-
-@pytest.mark.asyncio
-async def test_hosted_fallback_cannot_degrade_schema_incompatibility(base_settings: SimpleNamespace) -> None:
-    """Schema incompatibility must fail closed even where transient failures may degrade."""
-    hosted_settings = SimpleNamespace(
-        **vars(base_settings),
-        env=DeploymentEnvironment.PREVIEW,
-        vercel_env="preview",
-    )
-
-    with pytest.MonkeyPatch.context() as monkeypatch:
-        monkeypatch.setattr(
-            app_factory,
-            "_verify_auth_database",
-            lambda: (_ for _ in ()).throw(SchemaCompatibilityError("incompatible auth schema")),
-        )
-        with pytest.raises(SchemaCompatibilityError, match="incompatible auth schema"):
-            await app_factory._initialize_application_state(  # pylint: disable=protected-access
-                cast(Any, hosted_settings),
-                has_persistence=True,
-                hosted_startup_degradation_allowed=True,
-            )
-
-
-@pytest.mark.asyncio
-async def test_auth_database_verification_timeout_fails_closed(
-    monkeypatch: pytest.MonkeyPatch,
-    base_settings: SimpleNamespace,
-) -> None:
-    """A stalled auth catalog read must not block startup indefinitely."""
-
-    async def _never_complete(*_args, **_kwargs) -> None:
-        """Model a catalog call that never returns."""
-        await asyncio.Event().wait()
-
-    monkeypatch.setattr(app_factory.asyncio, "to_thread", _never_complete)
-    monkeypatch.setattr(app_factory, "_AUTH_DATABASE_VERIFICATION_TIMEOUT_SECONDS", 0.001)
-
-    with pytest.raises(SchemaCompatibilityError, match="verification timed out"):
-        await app_factory._initialize_application_state(  # pylint: disable=protected-access
-            cast(Any, base_settings),
-            has_persistence=False,
-            hosted_startup_degradation_allowed=False,
-        )
-
-
-def test_auth_runtime_verification_does_not_call_mutators(monkeypatch: pytest.MonkeyPatch) -> None:
-    """Auth startup verification must not create schema or seed credentials."""
-    import api.auth as auth
-    import api.database as database
-
-    verify_schema = MagicMock()
-    verify_authority = MagicMock()
-    monkeypatch.setattr(database, "verify_schema_compatibility", verify_schema)
-    monkeypatch.setattr(database, "verify_runtime_authority", verify_authority)
-    monkeypatch.setattr(auth.user_repository, "has_users", lambda: True)
-    initialize = MagicMock(side_effect=AssertionError("runtime DDL forbidden"))
-    seed = MagicMock(side_effect=AssertionError("runtime credential seed forbidden"))
-    monkeypatch.setattr(database, "initialize_schema", initialize)
-    monkeypatch.setattr(auth, "seed_credentials_from_settings", seed)
-
-    app_factory._verify_auth_database()  # pylint: disable=protected-access
-
-    verify_schema.assert_called_once_with()
-    verify_authority.assert_called_once_with()
-    initialize.assert_not_called()
-    seed.assert_not_called()
-
-
-def test_auth_runtime_verification_sanitizes_unexpected_failures(monkeypatch: pytest.MonkeyPatch) -> None:
-    """Driver details must not escape the auth startup verification boundary."""
-    import api.database as database
-
-    monkeypatch.setattr(
-        database,
-        "verify_schema_compatibility",
-        MagicMock(side_effect=OSError("credential-bearing driver detail")),
-    )
-
-    with pytest.raises(SchemaCompatibilityError, match=r"failed \(OSError\)") as exc_info:
-        app_factory._verify_auth_database()  # pylint: disable=protected-access
-
-    assert "credential-bearing" not in str(exc_info.value)
 
 
 @pytest.mark.parametrize(

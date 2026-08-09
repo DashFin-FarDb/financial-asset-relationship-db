@@ -78,17 +78,22 @@ def _verify_sqlite_grac_schema(connection: Connection) -> None:
         raise RuntimeError("SQLite GRAC immutability guards are incomplete")
 
 
+def _verify_postgresql_grac_authority(connection: Connection) -> None:
+    """Verify PostgreSQL GRAC least-authority posture."""
+    roles = _untrusted_database_roles()
+    if _immutability_function_has_untrusted_execute(connection, roles):
+        raise PermissionError("PostgreSQL GRAC immutability function is executable by an untrusted role")
+    if not _postgresql_grac_access_hardened(connection):
+        raise PermissionError("PostgreSQL GRAC RLS/grant posture is incompatible")
+
+
 def _verify_postgresql_grac_schema(connection: Connection) -> None:
     """Verify PostgreSQL GRAC compatibility, guards, and least authority."""
     if not _postgresql_grac_constraints_present(connection):
         raise RuntimeError("PostgreSQL GRAC constraints are incomplete or unvalidated")
     if not _postgresql_guards_present(connection):
         raise RuntimeError("PostgreSQL GRAC immutability guards are incomplete")
-    roles = _untrusted_database_roles()
-    if _immutability_function_has_untrusted_execute(connection, roles):
-        raise PermissionError("PostgreSQL GRAC immutability function is executable by an untrusted role")
-    if not _postgresql_grac_access_hardened(connection):
-        raise PermissionError("PostgreSQL GRAC RLS/grant posture is incompatible")
+    _verify_postgresql_grac_authority(connection)
 
 
 def _projection_revision_scope_metadata(connection: Connection, backend: str) -> tuple[set[str], set[str]]:

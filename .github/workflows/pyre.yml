@@ -75,6 +75,7 @@ jobs:
           if [ ! -f .pyre_configuration ]; then
             printf '%s\n' '{' \
               '  "source_directories": ["."],' \
+              '  "search_path": [{"site-package": "sqlalchemy"}],' \
               '  "exclude": [".*/\\\\.venv/.*", ".*/node_modules/.*", ".*/frontend/.*", ".*/tests?/.*"]' \
               '}' > .pyre_configuration
           fi
