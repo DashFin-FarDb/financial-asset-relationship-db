@@ -55,8 +55,7 @@ def _has_usable_credentials() -> bool:
     """Return whether an enabled credential has a supported password hash."""
     return bool(
         fetch_value(
-            "SELECT 1 FROM user_credentials "
-            "WHERE disabled = 0 AND hashed_password LIKE ? LIMIT 1",
+            "SELECT 1 FROM user_credentials " "WHERE disabled = 0 AND hashed_password LIKE ? LIMIT 1",
             ("$pbkdf2-sha256$%",),
         )
     )
