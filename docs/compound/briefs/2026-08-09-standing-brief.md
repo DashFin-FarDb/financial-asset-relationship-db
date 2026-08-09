@@ -6,6 +6,7 @@ Claims are labeled landed vs provisional. ADRs/policy are not rewritten.
 ## Seam movement by domain
 
 ### architecture
+- [provisional] **pr:1616**: x   y 
 - [provisional] **pr:1608**: -/-  x     y
 - [provisional] **pr:1614**: x   v    y
 - [provisional] **pr:1613**: x       
@@ -20,9 +21,9 @@ Claims are labeled landed vs provisional. ADRs/policy are not rewritten.
 - [landed] **pr:1598**:    v x- v   
 - [landed] **sha:f36aefb695cc4b9207db2809091f58a9c4474b4c**: Merge/push to main f36aefb695cc4b9207db2809091f58a9c4474b4c
 - [landed] **pr:1597**: x(-)  y  y y
-- [landed] **sha:16d0a69c5d6f9bae94b9251991466bacbf15d3f0**: Merge/push to main 16d0a69c5d6f9bae94b9251991466bacbf15d3f0
 
 ### api
+- [provisional] **pr:1616**: x   y 
 - [provisional] **pr:1608**: -/-  x     y
 - [provisional] **pr:1615**: x     y 
 - [provisional] **pr:1614**: x   v    y
@@ -37,9 +38,9 @@ Claims are labeled landed vs provisional. ADRs/policy are not rewritten.
 - [provisional] **pr:1599**: ()   -    y w  
 - [provisional] **pr:1595**:   .. → .. ()
 - [provisional] **pr:1594**: x(v)        
-- [provisional] **pr:1591**: ()   -    y w  
 
 ### persistence
+- [provisional] **pr:1616**: x   y 
 - [provisional] **pr:1608**: -/-  x     y
 - [provisional] **pr:1615**: x     y 
 - [provisional] **pr:1614**: x   v    y
@@ -54,9 +55,9 @@ Claims are labeled landed vs provisional. ADRs/policy are not rewritten.
 - [provisional] **pr:1567**:    w    x y
 - [landed] **pr:1564**: x       
 - [landed] **pr:1563**: x   y   v
-- [landed] **pr:1552**:      v
 
 ### ci-guardrails
+- [provisional] **pr:1616**: x   y 
 - [provisional] **pr:1608**: -/-  x     y
 - [provisional] **pr:1615**: x     y 
 - [provisional] **pr:1614**: x   v    y
@@ -71,7 +72,6 @@ Claims are labeled landed vs provisional. ADRs/policy are not rewritten.
 - [landed] **pr:1589**:   v   v ww
 - [provisional] **pr:1577**: ()   -    y w  
 - [landed] **pr:1576**:   .y      v  
-- [provisional] **pr:1573**: ()   -    y w  
 
 ### rebuild-reconciliation
 - [landed] **pr:1455**: x    y 
@@ -86,6 +86,7 @@ Claims are labeled landed vs provisional. ADRs/policy are not rewritten.
 - [provisional] **pr:1403**: fix(ci): resolve compound workflow failures
 
 ### deployment
+- [provisional] **pr:1616**: x   y 
 - [provisional] **pr:1608**: -/-  x     y
 - [provisional] **pr:1615**: x     y 
 - [provisional] **pr:1614**: x   v    y
@@ -99,5 +100,4 @@ Claims are labeled landed vs provisional. ADRs/policy are not rewritten.
 - [landed] **pr:1524**: x        
 - [landed] **pr:1523**:  -#  v   --
 - [landed] **pr:1520**:         (--)
-- [landed] **pr:1518**: x - --  z   -v 
-- [landed] **pr:1517**:      (--)
+- [landed] **pr:1518**: x - --  z   -v
