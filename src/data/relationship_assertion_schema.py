@@ -11,15 +11,19 @@ import json
 import os
 import re
 from collections.abc import Mapping
+from typing import Any, TypeAlias
 
-from sqlalchemy import bindparam, text
-from sqlalchemy.engine import Connection, Engine, make_url
+from sqlalchemy import bindparam, text  # pyre-ignore[21]
+from sqlalchemy.engine import make_url  # pyre-ignore[21]
 
 from src.data.relationship_assertion_db_models import (
     EFFECTIVE_WINDOW_CHECK,
     GRAC_TABLE_NAMES,
     STRENGTH_DECIMAL_CHECK,
 )
+
+Connection: TypeAlias = Any
+Engine: TypeAlias = Any
 
 # Keep names well under PostgreSQL's 63-byte identifier limit for every table.
 _IMMUTABILITY_FUNCTION = "grac_v1_reject_mutation"
@@ -78,17 +82,27 @@ def _verify_sqlite_grac_schema(connection: Connection) -> None:
         raise RuntimeError("SQLite GRAC immutability guards are incomplete")
 
 
-def _verify_postgresql_grac_schema(connection: Connection) -> None:
-    """Verify PostgreSQL GRAC compatibility, guards, and least authority."""
+def _require_postgresql_grac_integrity(connection: Connection) -> None:
+    """Require PostgreSQL GRAC constraints and immutability guards."""
     if not _postgresql_grac_constraints_present(connection):
         raise RuntimeError("PostgreSQL GRAC constraints are incomplete or unvalidated")
     if not _postgresql_guards_present(connection):
         raise RuntimeError("PostgreSQL GRAC immutability guards are incomplete")
-    roles = _untrusted_database_roles()
+
+
+def _require_postgresql_grac_least_authority(connection: Connection, roles: tuple[str, ...]) -> None:
+    """Require untrusted roles to have no GRAC write or function authority."""
     if _immutability_function_has_untrusted_execute(connection, roles):
         raise PermissionError("PostgreSQL GRAC immutability function is executable by an untrusted role")
     if not _postgresql_grac_access_hardened(connection):
         raise PermissionError("PostgreSQL GRAC RLS/grant posture is incompatible")
+
+
+def _verify_postgresql_grac_schema(connection: Connection) -> None:
+    """Verify PostgreSQL GRAC compatibility, guards, and least authority."""
+    _require_postgresql_grac_integrity(connection)
+    roles = _untrusted_database_roles()
+    _require_postgresql_grac_least_authority(connection, roles)
 
 
 def _projection_revision_scope_metadata(connection: Connection, backend: str) -> tuple[set[str], set[str]]:
@@ -333,7 +347,7 @@ def _postgresql_grac_constraints_present(connection: Connection) -> bool:
         ("relationship_assertions", "ck_relationship_assertions_effective_window"): EFFECTIVE_WINDOW_CHECK,
         ("relationship_projection_edges", "ck_relationship_projection_edges_strength"): STRENGTH_DECIMAL_CHECK,
     }
-    actual = _postgresql_constraint_catalog(connection, [name for _table, name in expected])
+    actual = _postgresql_constraint_catalog(connection, [name for (_table, name), _canonical in expected.items()])
     if not all(actual.get(key, (None, False))[1] for key in expected):
         return False
     return all(_postgresql_check_matches(actual[key][0], canonical) for key, canonical in expected.items())

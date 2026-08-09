@@ -3,8 +3,9 @@
 from __future__ import annotations
 
 import re
+from collections.abc import Mapping
 
-from sqlalchemy import (
+from sqlalchemy import (  # pyre-ignore[21]
     CheckConstraint,
     ForeignKeyConstraint,
     UniqueConstraint,
@@ -14,10 +15,10 @@ from sqlalchemy import (
     inspect,
     text,
 )
-from sqlalchemy.engine import Engine, make_url
-from sqlalchemy.exc import ArgumentError
-from sqlalchemy.orm import Session, sessionmaker
-from sqlalchemy.pool import StaticPool
+from sqlalchemy.engine import Engine, make_url  # pyre-ignore[21]
+from sqlalchemy.exc import ArgumentError  # pyre-ignore[21]
+from sqlalchemy.orm import Session, sessionmaker  # pyre-ignore[21]
+from sqlalchemy.pool import StaticPool  # pyre-ignore[21]
 
 from src.config.settings import get_settings
 
@@ -30,6 +31,13 @@ from .repository import session_scope  # noqa: F401, E402
 DEFAULT_DATABASE_URL = "sqlite:///./asset_graph.db"
 ASSET_GRAPH_DATABASE_URL_ENV_VAR = "ASSET_GRAPH_DATABASE_URL"
 SQLITE_MEMORY_DATABASE = ":memory:"
+_SQL_IDENTIFIER_PATTERN = re.compile(r"[a-z_][a-z0-9_$]*")
+_POSTGRESQL_ANY_ARRAY_PATTERN = re.compile(r"=\s*any\s*\(\s*\(?\s*array\s*\[([^\]]*)\]\s*\)?\s*\)")
+_CHECK_TOKEN_PATTERN = r"(?:[a-z_][a-z0-9_.$]*|\d+(?:\.\d+)?)"
+_BETWEEN_PREDICATE_PATTERN = re.compile(
+    rf"\b({_CHECK_TOKEN_PATTERN})\s+between\s+({_CHECK_TOKEN_PATTERN})\s+and\s+({_CHECK_TOKEN_PATTERN})"
+)
+_IN_LITERAL_SET_PATTERN = re.compile(r"\bin\s*\(([^()]*)\)")
 
 
 class SchemaCompatibilityError(RuntimeError):
@@ -265,6 +273,30 @@ def _verify_table_constraints(inspector, table_name: str, expected_table) -> Non
         raise SchemaCompatibilityError(f"database table {table_name} missing foreign-key invariants")
 
 
+def _consume_quoted_sql_token(definition: str, start: int, quote: str) -> tuple[str, int]:
+    """Return one quoted SQL token and the next scan position."""
+    position = start + 1
+    while position < len(definition):
+        if definition[position] != quote:
+            position += 1
+            continue
+        if position + 1 < len(definition) and definition[position + 1] == quote:
+            position += 2
+            continue
+        return definition[start : position + 1], position + 1
+    return definition[start:position], position
+
+
+def _canonicalize_quoted_sql_token(token: str, quote: str) -> str:
+    """Unquote simple PostgreSQL identifiers while preserving string literals."""
+    if quote != '"' or not token.endswith('"'):
+        return token
+    identifier = token[1:-1]
+    if _SQL_IDENTIFIER_PATTERN.fullmatch(identifier):
+        return identifier
+    return token
+
+
 def _protect_quoted_sql_tokens(definition: str) -> tuple[str, dict[str, str]]:
     """Replace quoted SQL tokens with markers before syntax canonicalisation."""
     protected: dict[str, str] = {}
@@ -278,27 +310,9 @@ def _protect_quoted_sql_tokens(definition: str) -> tuple[str, dict[str, str]]:
             position += 1
             continue
 
-        start = position
-        position += 1
-        while position < len(definition):
-            if definition[position] != quote:
-                position += 1
-                continue
-            if position + 1 < len(definition) and definition[position + 1] == quote:
-                position += 2
-                continue
-            position += 1
-            break
-
-        token = definition[start:position]
-        canonical_token = token
-        if quote == '"' and token.endswith('"'):
-            identifier = token[1:-1]
-            if re.fullmatch(r"[a-z_][a-z0-9_$]*", identifier):
-                canonical_token = identifier
-
+        token, position = _consume_quoted_sql_token(definition, position, quote)
         marker = f"\x00fardb_quoted_{len(protected)}\x00"
-        protected[marker] = canonical_token
+        protected[marker] = _canonicalize_quoted_sql_token(token, quote)
         output.append(marker)
 
     return "".join(output), protected
@@ -319,16 +333,8 @@ def _normalize_check_definition(definition: object) -> str:
     normalized = re.sub(r"::\s*(?:character varying|text)(?:\[\])?", "", normalized)
     normalized = normalized.removeprefix("check")
     normalized = normalized.replace("!~~", "not like").replace("~~", "like")
-    normalized = re.sub(
-        r"=\s*any\s*\(\s*\(?\s*array\s*\[([^\[\]]*)\]\s*\)?\s*\)",
-        r" in (\1)",
-        normalized,
-    )
-    normalized = re.sub(
-        r"([^\s()]+)\s+between\s+([^\s()]+)\s+and\s+([^\s()]+)",
-        r"\1 >= \2 and \1 <= \3",
-        normalized,
-    )
+    normalized = _POSTGRESQL_ANY_ARRAY_PATTERN.sub(r" in (\1)", normalized)
+    normalized = _BETWEEN_PREDICATE_PATTERN.sub(r"\1 >= \2 and \1 <= \3", normalized)
 
     def _sort_literal_set(match: re.Match[str]) -> str:
         literals = [item.strip() for item in match.group(1).split(",")]
@@ -336,66 +342,92 @@ def _normalize_check_definition(definition: object) -> str:
             return "in(" + ",".join(sorted(literals, key=protected.__getitem__)) + ")"
         return match.group(0)
 
-    normalized = re.sub(r"\bin\s*\(([^()]*)\)", _sort_literal_set, normalized)
+    normalized = _IN_LITERAL_SET_PATTERN.sub(_sort_literal_set, normalized)
     normalized = re.sub(r'[\s()"]+', "", normalized)
     return _restore_quoted_sql_tokens(normalized, protected)
 
 
-def _verify_table_schema(inspector, table_name: str) -> None:
-    """Verify columns and named schema invariants for one ORM table."""
-    expected_table = Base.metadata.tables[table_name]
-    actual_columns = {column["name"] for column in inspector.get_columns(table_name)}
+def _verify_required_columns(expected_table, actual_columns: set[str], table_name: str) -> None:
+    """Verify that all ORM columns exist in the reflected table."""
     missing_columns = sorted(set(expected_table.columns.keys()) - actual_columns)
     if missing_columns:
         raise SchemaCompatibilityError(
             f"database table {table_name} missing required columns: {', '.join(missing_columns)}"
         )
 
-    expected_checks = {
+
+def _expected_check_definitions(expected_table) -> dict[str, str]:
+    """Return normalized named CHECK definitions from ORM metadata."""
+    return {
         str(constraint.name): _normalize_check_definition(constraint.sqltext)
         for constraint in expected_table.constraints
         if isinstance(constraint, CheckConstraint) and constraint.name
     }
-    actual_checks = {
+
+
+def _reflected_check_definitions(inspector, table_name: str) -> dict[str, str]:
+    """Return normalized named CHECK definitions from a live table."""
+    return {
         str(constraint["name"]): _normalize_check_definition(constraint.get("sqltext"))
         for constraint in inspector.get_check_constraints(table_name)
         if constraint.get("name")
     }
-    missing_checks = sorted(set(expected_checks) - set(actual_checks))
-    if missing_checks:
+
+
+def _verify_named_definitions(
+    table_name: str,
+    expected: Mapping[str, object],
+    actual: Mapping[str, object],
+    invariant: str,
+) -> None:
+    """Compare named schema definitions and raise bounded compatibility errors."""
+    missing = sorted(set(expected) - set(actual))
+    if missing:
         raise SchemaCompatibilityError(
-            f"database table {table_name} missing required constraints: {', '.join(missing_checks)}"
+            f"database table {table_name} missing required {invariant}: {', '.join(missing)}"
         )
-    mismatched_checks = sorted(
-        name for name, definition in expected_checks.items() if actual_checks[name] != definition
-    )
-    if mismatched_checks:
+    mismatched = sorted(name for name, definition in expected.items() if actual[name] != definition)
+    if mismatched:
         raise SchemaCompatibilityError(
-            f"database table {table_name} has incompatible constraints: {', '.join(mismatched_checks)}"
+            f"database table {table_name} has incompatible {invariant}: {', '.join(mismatched)}"
         )
 
-    expected_indexes = {
+
+def _expected_index_definitions(expected_table) -> dict[str, tuple[tuple[str, ...], bool]]:
+    """Return expected index columns and uniqueness by index name."""
+    return {
         str(index.name): (tuple(column.name for column in index.columns), bool(index.unique))
         for index in expected_table.indexes
         if index.name
     }
-    actual_indexes = {
+
+
+def _reflected_index_definitions(inspector, table_name: str) -> dict[str, tuple[tuple[str, ...], bool]]:
+    """Return reflected index columns and uniqueness by index name."""
+    return {
         str(index["name"]): (tuple(index.get("column_names") or ()), bool(index.get("unique")))
         for index in inspector.get_indexes(table_name)
         if index.get("name")
     }
-    missing_indexes = sorted(set(expected_indexes) - set(actual_indexes))
-    if missing_indexes:
-        raise SchemaCompatibilityError(
-            f"database table {table_name} missing required indexes: {', '.join(missing_indexes)}"
-        )
-    mismatched_indexes = sorted(
-        name for name, definition in expected_indexes.items() if actual_indexes[name] != definition
+
+
+def _verify_table_schema(inspector, table_name: str) -> None:
+    """Verify columns and named schema invariants for one ORM table."""
+    expected_table = Base.metadata.tables[table_name]
+    actual_columns = {column["name"] for column in inspector.get_columns(table_name)}
+    _verify_required_columns(expected_table, actual_columns, table_name)
+    _verify_named_definitions(
+        table_name,
+        _expected_check_definitions(expected_table),
+        _reflected_check_definitions(inspector, table_name),
+        "constraints",
     )
-    if mismatched_indexes:
-        raise SchemaCompatibilityError(
-            f"database table {table_name} has incompatible indexes: {', '.join(mismatched_indexes)}"
-        )
+    _verify_named_definitions(
+        table_name,
+        _expected_index_definitions(expected_table),
+        _reflected_index_definitions(inspector, table_name),
+        "indexes",
+    )
 
     _verify_table_constraints(inspector, table_name, expected_table)
 

@@ -18,7 +18,7 @@ from fastapi import FastAPI
 # pylint: disable=import-error
 from slowapi import _rate_limit_exceeded_handler  # type: ignore[import-not-found]
 from slowapi.errors import RateLimitExceeded  # type: ignore[import-not-found]
-from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.exc import SQLAlchemyError  # pyre-ignore[21]
 
 from src.data.database import SchemaCompatibilityError
 from src.observability.context import async_trace_context, get_span_id, get_trace_id
@@ -229,6 +229,68 @@ async def _run_with_generated_trace(
             raise
 
 
+async def _verify_auth_database_with_timeout() -> None:
+    """Verify auth storage within the bounded startup window."""
+    try:
+        await asyncio.wait_for(
+            asyncio.to_thread(_verify_auth_database),
+            timeout=_AUTH_DATABASE_VERIFICATION_TIMEOUT_SECONDS,
+        )
+    except asyncio.TimeoutError:
+        raise SchemaCompatibilityError("API credential database verification timed out") from None
+
+
+def _log_hosted_startup_degradation(exc: Exception, phase: str, message: str) -> None:
+    """Emit sanitized hosted-startup degradation telemetry."""
+    log_event(
+        logger,
+        logging.WARNING,
+        ObservabilityEvent(
+            event="startup_degraded",
+            message=message,
+            metadata={
+                "error": type(exc).__name__,
+                "phase": phase,
+                "trace_id": _trace_or_unknown(get_trace_id()),
+                "span_id": _trace_or_unknown(get_span_id()),
+            },
+        ),
+    )
+
+
+async def _reconcile_or_degrade(
+    settings: GraphLifecycleSettings,
+    hosted_startup_degradation_allowed: bool,
+) -> None:
+    """Run startup reconciliation, degrading only for hosted transient failures."""
+    try:
+        await _perform_startup_reconciliation(settings)
+    except SchemaCompatibilityError:
+        raise
+    except (SQLAlchemyError, OSError, RuntimeError) as exc:
+        if not hosted_startup_degradation_allowed:
+            raise
+        _log_hosted_startup_degradation(
+            exc,
+            "reconciliation",
+            "Hosted fallback startup reconciliation failed; continuing with degraded boot.",
+        )
+
+
+def _load_graph_or_degrade(hosted_startup_degradation_allowed: bool) -> None:
+    """Load the in-process graph, degrading only for hosted bootstrap failures."""
+    try:
+        get_graph()
+    except (SQLAlchemyError, OSError) as exc:
+        if not hosted_startup_degradation_allowed:
+            raise
+        _log_hosted_startup_degradation(
+            exc,
+            "graph_bootstrap",
+            "Hosted fallback graph bootstrap failed; continuing with degraded boot.",
+        )
+
+
 async def _initialize_application_state(
     settings: GraphLifecycleSettings,
     has_persistence: bool,
@@ -237,55 +299,11 @@ async def _initialize_application_state(
     """Run startup reconciliation and initialize the graph, handling degraded startup."""
     # Credential compatibility is an authority boundary, not an optional hosted
     # fallback. It must fail closed before any HTTP traffic is accepted.
-    try:
-        await asyncio.wait_for(
-            asyncio.to_thread(_verify_auth_database),
-            timeout=_AUTH_DATABASE_VERIFICATION_TIMEOUT_SECONDS,
-        )
-    except asyncio.TimeoutError:
-        raise SchemaCompatibilityError("API credential database verification timed out") from None
+    await _verify_auth_database_with_timeout()
     if has_persistence:
-        try:
-            await _perform_startup_reconciliation(settings)
-        except SchemaCompatibilityError:
-            raise
-        except (SQLAlchemyError, OSError, RuntimeError) as exc:
-            if not hosted_startup_degradation_allowed:
-                raise
-            log_event(
-                logger,
-                logging.WARNING,
-                ObservabilityEvent(
-                    event="startup_degraded",
-                    message=("Hosted fallback startup reconciliation failed; continuing with degraded boot."),
-                    metadata={
-                        "error": type(exc).__name__,
-                        "phase": "reconciliation",
-                        "trace_id": _trace_or_unknown(get_trace_id()),
-                        "span_id": _trace_or_unknown(get_span_id()),
-                    },
-                ),
-            )
+        await _reconcile_or_degrade(settings, hosted_startup_degradation_allowed)
     # Required initialization for all environments to ensure state validity
-    try:
-        get_graph()
-    except (SQLAlchemyError, OSError) as exc:
-        if not hosted_startup_degradation_allowed:
-            raise
-        log_event(
-            logger,
-            logging.WARNING,
-            ObservabilityEvent(
-                event="startup_degraded",
-                message="Hosted fallback graph bootstrap failed; continuing with degraded boot.",
-                metadata={
-                    "error": type(exc).__name__,
-                    "phase": "graph_bootstrap",
-                    "trace_id": _trace_or_unknown(get_trace_id()),
-                    "span_id": _trace_or_unknown(get_span_id()),
-                },
-            ),
-        )
+    _load_graph_or_degrade(hosted_startup_degradation_allowed)
 
 
 @asynccontextmanager

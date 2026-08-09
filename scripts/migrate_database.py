@@ -3,8 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Callable
-
-from sqlalchemy.engine import Engine
+from typing import Any, TypeAlias
 
 from api.auth import seed_credentials_from_settings, user_repository
 from api.database import DATABASE_URL as API_DATABASE_URL
@@ -12,6 +11,8 @@ from api.database import initialize_schema, verify_schema_compatibility
 from api.graph_lifecycle_providers import resolve_hosted_graph_database_url
 from src.config.settings import Settings, load_settings
 from src.data.database import create_engine_from_url, init_db, verify_database_schema
+
+Engine: TypeAlias = Any
 
 
 def _configured_engines(
