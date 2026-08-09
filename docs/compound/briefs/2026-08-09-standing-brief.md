@@ -6,9 +6,9 @@ Claims are labeled landed vs provisional. ADRs/policy are not rewritten.
 ## Seam movement by domain
 
 ### architecture
+- [provisional] **pr:1608**: -/-  x     y
 - [provisional] **pr:1619**: x     y 
 - [provisional] **pr:1618**: x   y 
-- [provisional] **pr:1608**: -/-  x     y
 - [provisional] **pr:1617**: x   y 
 - [provisional] **pr:1616**: x   y 
 - [provisional] **pr:1614**: x   v    y
@@ -23,9 +23,9 @@ Claims are labeled landed vs provisional. ADRs/policy are not rewritten.
 - [provisional] **pr:1600**: x     
 
 ### api
+- [provisional] **pr:1608**: -/-  x     y
 - [provisional] **pr:1619**: x     y 
 - [provisional] **pr:1618**: x   y 
-- [provisional] **pr:1608**: -/-  x     y
 - [provisional] **pr:1617**: x   y 
 - [provisional] **pr:1616**: x   y 
 - [provisional] **pr:1615**: x     y 
@@ -40,9 +40,9 @@ Claims are labeled landed vs provisional. ADRs/policy are not rewritten.
 - [provisional] **pr:1603**: x()  y y   
 
 ### persistence
+- [provisional] **pr:1608**: -/-  x     y
 - [provisional] **pr:1619**: x     y 
 - [provisional] **pr:1618**: x   y 
-- [provisional] **pr:1608**: -/-  x     y
 - [provisional] **pr:1617**: x   y 
 - [provisional] **pr:1616**: x   y 
 - [provisional] **pr:1615**: x     y 
@@ -57,9 +57,9 @@ Claims are labeled landed vs provisional. ADRs/policy are not rewritten.
 - [provisional] **pr:1565**:   v     
 
 ### ci-guardrails
+- [provisional] **pr:1608**: -/-  x     y
 - [provisional] **pr:1619**: x     y 
 - [provisional] **pr:1618**: x   y 
-- [provisional] **pr:1608**: -/-  x     y
 - [provisional] **pr:1617**: x   y 
 - [provisional] **pr:1616**: x   y 
 - [provisional] **pr:1615**: x     y 
@@ -86,9 +86,9 @@ Claims are labeled landed vs provisional. ADRs/policy are not rewritten.
 - [provisional] **pr:1403**: fix(ci): resolve compound workflow failures
 
 ### deployment
+- [provisional] **pr:1608**: -/-  x     y
 - [provisional] **pr:1619**: x     y 
 - [provisional] **pr:1618**: x   y 
-- [provisional] **pr:1608**: -/-  x     y
 - [provisional] **pr:1617**: x   y 
 - [provisional] **pr:1616**: x   y 
 - [provisional] **pr:1615**: x     y 
