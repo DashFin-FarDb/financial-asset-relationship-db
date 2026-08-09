@@ -225,7 +225,7 @@ class TestConnectionManagement:
             with get_connection() as conn2:
                 conn2_id = id(conn2)
 
-            # Should be different connections for file DB
+            # Should be different connection for file DB
             assert conn1_id != conn2_id
 
     def test_connection_supports_uri(self):
@@ -258,7 +258,7 @@ class TestQueryExecution:
 
     @patch("api.database.get_connection")
     def test_execute_with_parameters(self, mock_get_conn):
-        """Test execute with query parameters."""
+        """Test execute with parameters."""
         mock_conn = Mock()
         mock_context = Mock()
         mock_context.__enter__ = Mock(return_value=mock_conn)
@@ -324,7 +324,7 @@ class TestQueryExecution:
 
     @patch("api.database.get_connection")
     def test_fetch_value_returns_none_when_empty(self, mock_get_conn):
-        """Test that fetch_value returns None when no rows."""
+        """Test fetch_value returns None when no rows."""
         mock_cursor = Mock()
         mock_cursor.fetchone.return_value = None
         mock_conn = Mock()
@@ -359,7 +359,7 @@ class TestSchemaInitialization:
 
     @patch("api.database.execute")
     def test_initialize_schema_creates_table(self, mock_execute):
-        """Test that initialize_schema creates user_credentials table."""
+        """Test that initialize_schema creates table."""
         initialize_schema()
 
         mock_execute.assert_called_once()
@@ -368,7 +368,6 @@ class TestSchemaInitialization:
 
         assert "CREATE TABLE IF NOT EXISTS user_credentials" in sql
         assert "username TEXT UNIQUE NOT NULL" in sql
-        assert "hashed_password TEXT NOT NULL" in sql
 
     @patch("api.database.execute")
     def test_initialize_schema_all_columns_present(self, mock_execute):
@@ -431,7 +430,14 @@ class TestSchemaInitialization:
         assert "current_schema() IS NOT NULL" in authority_query
         assert "login.rolname = session_user" in authority_query
         assert "pg_has_role(login.oid, assumable.oid, 'MEMBER')" in authority_query
+        assert "assumable.rolreplication" in authority_query
         assert "has_database_privilege(assumable.oid, current_database(), 'CREATE')" in authority_query
+        assert "has_table_privilege(assumable.oid, 'user_credentials', 'UPDATE')" in authority_query
+        assert "has_any_column_privilege(assumable.oid, 'user_credentials', 'UPDATE')" in authority_query
+        assert (
+            "has_sequence_privilege(assumable.oid, pg_get_serial_sequence('user_credentials', 'id'), 'UPDATE')"
+            in authority_query
+        )
         assert "namespace.nspowner = assumable.oid" in authority_query
         assert "database.datdba = assumable.oid" in authority_query
 
@@ -459,7 +465,6 @@ class TestEdgeCases:
             mock_cursor = Mock()
             mock_cursor.fetchone.return_value = None
             mock_conn = Mock()
-            mock_conn.execute.return_value = mock_cursor
             mock_context = Mock()
             mock_context.__enter__ = Mock(return_value=mock_conn)
             mock_context.__exit__ = Mock(return_value=False)
