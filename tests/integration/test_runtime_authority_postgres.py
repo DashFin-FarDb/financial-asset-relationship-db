@@ -155,9 +155,9 @@ def test_runtime_database_authority_rejects_assumable_replication_role() -> None
                 ).format(sql.Identifier(_GRAPH_RUNTIME_LOGIN))
             )
             cursor.execute(
-                sql.SQL(
-                    "CREATE ROLE {} NOLOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE " "NOBYPASSRLS REPLICATION"
-                ).format(sql.Identifier(_GRAPH_REPLICATION_ROLE))
+                sql.SQL("CREATE ROLE {} NOLOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE " "NOBYPASSRLS REPLICATION").format(
+                    sql.Identifier(_GRAPH_REPLICATION_ROLE)
+                )
             )
             cursor.execute(
                 sql.SQL("GRANT {} TO {}").format(
