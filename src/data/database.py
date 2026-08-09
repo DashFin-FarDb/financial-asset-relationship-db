@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import re
 
-from sqlalchemy import (
+from sqlalchemy import (  # pyre-ignore[21]: SQLAlchemy is a declared runtime dependency; external scanner lacks deps.
     CheckConstraint,
     ForeignKeyConstraint,
     UniqueConstraint,
@@ -272,12 +272,12 @@ def _normalize_check_definition(definition: object) -> str:
     normalized = normalized.removeprefix("check")
     normalized = normalized.replace("!~~", "not like").replace("~~", "like")
     normalized = re.sub(
-        r"=\s*any\s*\(\s*\(?\s*array\s*\[(.*?)\]\s*\)?\s*\)",
+        r"=\s*any\s*\(\s*(?:\(\s*)?array\s*\[([^\]]*)\]\s*(?:\)\s*)?\)",
         r" in (\1)",
         normalized,
     )
     normalized = re.sub(
-        r"(\S+)\s+between\s+(\S+)\s+and\s+(\S+)",
+        r"([^\s()]+)\s+between\s+([^\s()]+)\s+and\s+([^\s()]+)",
         r"\1 >= \2 and \1 <= \3",
         normalized,
     )
@@ -291,9 +291,8 @@ def _normalize_check_definition(definition: object) -> str:
     return re.sub(r'[\s()"]+', "", normalized)
 
 
-def _verify_table_schema(inspector, table_name: str) -> None:
-    """Verify columns and named schema invariants for one ORM table."""
-    expected_table = Base.metadata.tables[table_name]
+def _verify_table_columns(inspector, table_name: str, expected_table) -> None:
+    """Verify required columns exist for one ORM table."""
     actual_columns = {column["name"] for column in inspector.get_columns(table_name)}
     missing_columns = sorted(set(expected_table.columns.keys()) - actual_columns)
     if missing_columns:
@@ -301,16 +300,29 @@ def _verify_table_schema(inspector, table_name: str) -> None:
             f"database table {table_name} missing required columns: {', '.join(missing_columns)}"
         )
 
-    expected_checks = {
+
+def _expected_check_definitions(expected_table) -> dict[str, str]:
+    """Return canonical CHECK definitions keyed by constraint name."""
+    return {
         str(constraint.name): _normalize_check_definition(constraint.sqltext)
         for constraint in expected_table.constraints
         if isinstance(constraint, CheckConstraint) and constraint.name
     }
-    actual_checks = {
+
+
+def _actual_check_definitions(inspector, table_name: str) -> dict[str, str]:
+    """Return reflected CHECK definitions keyed by constraint name."""
+    return {
         str(constraint["name"]): _normalize_check_definition(constraint.get("sqltext"))
         for constraint in inspector.get_check_constraints(table_name)
         if constraint.get("name")
     }
+
+
+def _verify_table_checks(inspector, table_name: str, expected_table) -> None:
+    """Verify named CHECK constraints match the ORM contract."""
+    expected_checks = _expected_check_definitions(expected_table)
+    actual_checks = _actual_check_definitions(inspector, table_name)
     missing_checks = sorted(set(expected_checks) - set(actual_checks))
     if missing_checks:
         raise SchemaCompatibilityError(
@@ -324,16 +336,29 @@ def _verify_table_schema(inspector, table_name: str) -> None:
             f"database table {table_name} has incompatible constraints: {', '.join(mismatched_checks)}"
         )
 
-    expected_indexes = {
+
+def _expected_index_definitions(expected_table) -> dict[str, tuple[tuple[str, ...], bool]]:
+    """Return expected index definitions keyed by index name."""
+    return {
         str(index.name): (tuple(column.name for column in index.columns), bool(index.unique))
         for index in expected_table.indexes
         if index.name
     }
-    actual_indexes = {
+
+
+def _actual_index_definitions(inspector, table_name: str) -> dict[str, tuple[tuple[str, ...], bool]]:
+    """Return reflected index definitions keyed by index name."""
+    return {
         str(index["name"]): (tuple(index.get("column_names") or ()), bool(index.get("unique")))
         for index in inspector.get_indexes(table_name)
         if index.get("name")
     }
+
+
+def _verify_table_indexes(inspector, table_name: str, expected_table) -> None:
+    """Verify named index definitions match the ORM contract."""
+    expected_indexes = _expected_index_definitions(expected_table)
+    actual_indexes = _actual_index_definitions(inspector, table_name)
     missing_indexes = sorted(set(expected_indexes) - set(actual_indexes))
     if missing_indexes:
         raise SchemaCompatibilityError(
@@ -347,6 +372,13 @@ def _verify_table_schema(inspector, table_name: str) -> None:
             f"database table {table_name} has incompatible indexes: {', '.join(mismatched_indexes)}"
         )
 
+
+def _verify_table_schema(inspector, table_name: str) -> None:
+    """Verify columns and named schema invariants for one ORM table."""
+    expected_table = Base.metadata.tables[table_name]
+    _verify_table_columns(inspector, table_name, expected_table)
+    _verify_table_checks(inspector, table_name, expected_table)
+    _verify_table_indexes(inspector, table_name, expected_table)
     _verify_table_constraints(inspector, table_name, expected_table)
 
 

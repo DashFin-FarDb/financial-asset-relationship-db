@@ -208,11 +208,12 @@ def test_restricted_runtime_role_verifies_schema_on_cold_start_and_restart() -> 
             "(username, hashed_password, disabled) VALUES ('cq-runtime-probe', 'not-used', 1)",
         )
         for statement in forbidden_statements:
+            statement_text = text(statement)
             with engine.connect() as connection:
                 transaction = connection.begin()
                 try:
                     with pytest.raises(ProgrammingError, match=r"permission denied|must be owner"):
-                        connection.execute(text(statement))
+                        connection.execute(statement_text)
                 finally:
                     transaction.rollback()
 

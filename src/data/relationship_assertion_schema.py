@@ -11,15 +11,19 @@ import json
 import os
 import re
 from collections.abc import Mapping
+from typing import Any, TypeAlias
 
 from sqlalchemy import bindparam, text
-from sqlalchemy.engine import Connection, Engine, make_url
+from sqlalchemy.engine import make_url
 
 from src.data.relationship_assertion_db_models import (
     EFFECTIVE_WINDOW_CHECK,
     GRAC_TABLE_NAMES,
     STRENGTH_DECIMAL_CHECK,
 )
+
+Connection: TypeAlias = Any
+Engine: TypeAlias = Any
 
 # Keep names well under PostgreSQL's 63-byte identifier limit for every table.
 _IMMUTABILITY_FUNCTION = "grac_v1_reject_mutation"
@@ -80,10 +84,25 @@ def _verify_sqlite_grac_schema(connection: Connection) -> None:
 
 def _verify_postgresql_grac_schema(connection: Connection) -> None:
     """Verify PostgreSQL GRAC compatibility, guards, and least authority."""
+    _require_postgresql_grac_constraints_verified(connection)
+    _require_postgresql_grac_guards_verified(connection)
+    _require_postgresql_grac_authority_verified(connection)
+
+
+def _require_postgresql_grac_constraints_verified(connection: Connection) -> None:
+    """Require PostgreSQL GRAC CHECK constraints to be present and validated."""
     if not _postgresql_grac_constraints_present(connection):
         raise RuntimeError("PostgreSQL GRAC constraints are incomplete or unvalidated")
+
+
+def _require_postgresql_grac_guards_verified(connection: Connection) -> None:
+    """Require PostgreSQL append-only guard triggers to be installed."""
     if not _postgresql_guards_present(connection):
         raise RuntimeError("PostgreSQL GRAC immutability guards are incomplete")
+
+
+def _require_postgresql_grac_authority_verified(connection: Connection) -> None:
+    """Require PostgreSQL GRAC least-authority posture."""
     roles = _untrusted_database_roles()
     if _immutability_function_has_untrusted_execute(connection, roles):
         raise PermissionError("PostgreSQL GRAC immutability function is executable by an untrusted role")
@@ -333,7 +352,7 @@ def _postgresql_grac_constraints_present(connection: Connection) -> bool:
         ("relationship_assertions", "ck_relationship_assertions_effective_window"): EFFECTIVE_WINDOW_CHECK,
         ("relationship_projection_edges", "ck_relationship_projection_edges_strength"): STRENGTH_DECIMAL_CHECK,
     }
-    actual = _postgresql_constraint_catalog(connection, [name for _table, name in expected])
+    actual = _postgresql_constraint_catalog(connection, [name for _table, name in expected.keys()])
     if not all(actual.get(key, (None, False))[1] for key in expected):
         return False
     return all(_postgresql_check_matches(actual[key][0], canonical) for key, canonical in expected.items())
