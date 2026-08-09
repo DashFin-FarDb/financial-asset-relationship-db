@@ -6,9 +6,9 @@ Claims are labeled landed vs provisional. ADRs/policy are not rewritten.
 ## Seam movement by domain
 
 ### architecture
+- [provisional] **pr:1608**: -/-  x     y
 - [provisional] **pr:1617**: x   y 
 - [provisional] **pr:1616**: x   y 
-- [provisional] **pr:1608**: -/-  x     y
 - [provisional] **pr:1614**: x   v    y
 - [provisional] **pr:1613**: x       
 - [provisional] **pr:1612**: x     y 
@@ -23,9 +23,9 @@ Claims are labeled landed vs provisional. ADRs/policy are not rewritten.
 - [landed] **sha:f36aefb695cc4b9207db2809091f58a9c4474b4c**: Merge/push to main f36aefb695cc4b9207db2809091f58a9c4474b4c
 
 ### api
+- [provisional] **pr:1608**: -/-  x     y
 - [provisional] **pr:1617**: x   y 
 - [provisional] **pr:1616**: x   y 
-- [provisional] **pr:1608**: -/-  x     y
 - [provisional] **pr:1615**: x     y 
 - [provisional] **pr:1614**: x   v    y
 - [provisional] **pr:1613**: x       
@@ -40,9 +40,9 @@ Claims are labeled landed vs provisional. ADRs/policy are not rewritten.
 - [provisional] **pr:1595**:   .. → .. ()
 
 ### persistence
+- [provisional] **pr:1608**: -/-  x     y
 - [provisional] **pr:1617**: x   y 
 - [provisional] **pr:1616**: x   y 
-- [provisional] **pr:1608**: -/-  x     y
 - [provisional] **pr:1615**: x     y 
 - [provisional] **pr:1614**: x   v    y
 - [provisional] **pr:1613**: x       
@@ -57,9 +57,9 @@ Claims are labeled landed vs provisional. ADRs/policy are not rewritten.
 - [landed] **pr:1564**: x       
 
 ### ci-guardrails
+- [provisional] **pr:1608**: -/-  x     y
 - [provisional] **pr:1617**: x   y 
 - [provisional] **pr:1616**: x   y 
-- [provisional] **pr:1608**: -/-  x     y
 - [provisional] **pr:1615**: x     y 
 - [provisional] **pr:1614**: x   v    y
 - [provisional] **pr:1613**: x       
@@ -86,9 +86,9 @@ Claims are labeled landed vs provisional. ADRs/policy are not rewritten.
 - [provisional] **pr:1403**: fix(ci): resolve compound workflow failures
 
 ### deployment
+- [provisional] **pr:1608**: -/-  x     y
 - [provisional] **pr:1617**: x   y 
 - [provisional] **pr:1616**: x   y 
-- [provisional] **pr:1608**: -/-  x     y
 - [provisional] **pr:1615**: x     y 
 - [provisional] **pr:1614**: x   v    y
 - [provisional] **pr:1613**: x       
