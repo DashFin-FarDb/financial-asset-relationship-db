@@ -113,6 +113,13 @@ def test_check_normalization_accepts_postgresql_any_rendering() -> None:
     assert _normalize_check_definition(reflected) == _normalize_check_definition(expected)
 
 
+def test_check_normalization_rewrites_between_with_function_operands() -> None:
+    """PostgreSQL BETWEEN deparsing must match ORM length(...) BETWEEN contracts."""
+    expected = "length(strength) BETWEEN 1 AND 32"
+    reflected = "length((strength)::text) >= 1 AND length((strength)::text) <= 32"
+    assert _normalize_check_definition(reflected) == _normalize_check_definition(expected)
+
+
 @pytest.mark.parametrize(
     ("mismatch", "error_match"),
     [("check", "incompatible constraints"), ("index", "incompatible indexes")],

@@ -64,7 +64,6 @@ jobs:
           migrate_api() {
             docker run --rm --name api_migrate \
               -v "${VOLUME_NAME}:/data" \
-              -v "${GITHUB_WORKSPACE}/scripts:/app/scripts:ro" \
               -e ENV=production \
               -e DATABASE_URL="$DB_URL" \
               -e ASSET_GRAPH_DATABASE_URL="$DB_URL" \

@@ -114,6 +114,15 @@ def test_api_dockerfile_copies_migrations() -> None:
     """Production API image must ship SQL migrations for durable SQLite init."""
     text = (REPO_ROOT / "Dockerfile.api").read_text(encoding="utf-8")
     assert "COPY migrations/ ./migrations/" in text
+    assert "COPY scripts/ ./scripts/" in text
+
+
+def test_production_compose_declares_migrate_service() -> None:
+    """Production compose must expose an in-image migrate path against api-data."""
+    text = COMPOSE_PATH.read_text(encoding="utf-8")
+    assert 'profiles: ["migrate"]' in text or "profiles: ['migrate']" in text
+    assert "python -m scripts.migrate_database" in text or '["python", "-m", "scripts.migrate_database"]' in text
+    assert "ADMIN_PASSWORD=" in text
 
 
 def test_assets_smoke_requires_positive_integer_total(production_container_raw: str) -> None:

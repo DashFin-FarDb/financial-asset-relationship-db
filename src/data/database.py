@@ -276,8 +276,11 @@ def _normalize_check_definition(definition: object) -> str:
         r" in (\1)",
         normalized,
     )
+    # Allow function-style operands such as length(strength); PostgreSQL 17 deparses
+    # BETWEEN into >= / <=, so both forms must normalize identically before paren stripping.
+    between_operand = r"(?:[^\s()]+|\([^()]*\))+"
     normalized = re.sub(
-        r"([^\s()]+)\s+between\s+([^\s()]+)\s+and\s+([^\s()]+)",
+        rf"({between_operand})\s+between\s+({between_operand})\s+and\s+({between_operand})",
         r"\1 >= \2 and \1 <= \3",
         normalized,
     )

@@ -1,6 +1,25 @@
 version: '3.8'
 
 services:
+  # One-shot schema/credential setup against the shared api-data volume.
+  # Run before first api start:
+  #   docker compose -f docker-compose.production.yml --profile migrate run --rm migrate
+  migrate:
+    profiles: ["migrate"]
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    volumes:
+      - api-data:/data
+    environment:
+      - ENV=production
+      - DATABASE_URL=${DATABASE_URL:-sqlite:////data/fardb.db}
+      - ASSET_GRAPH_DATABASE_URL=${ASSET_GRAPH_DATABASE_URL:-sqlite:////data/fardb.db}
+      - SECRET_KEY=${SECRET_KEY:?SECRET_KEY is required}
+      - ADMIN_USERNAME=${ADMIN_USERNAME:?ADMIN_USERNAME is required for rebuild authorization}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD:?ADMIN_PASSWORD is required for migration credential provisioning}
+    command: ["python", "-m", "scripts.migrate_database"]
+
   api:
     build:
       context: .
@@ -19,7 +38,7 @@ services:
       - ASSET_GRAPH_DATABASE_URL=${ASSET_GRAPH_DATABASE_URL:-sqlite:////data/fardb.db}
       - SECRET_KEY=${SECRET_KEY:?SECRET_KEY is required}
       # Runtime operator identity only. Initial credential provisioning is a separate
-      # `python -m scripts.migrate_database` operator action; do not expose its password here.
+      # migrate service / `python -m scripts.migrate_database` action; do not expose its password here.
       - ADMIN_USERNAME=${ADMIN_USERNAME:?ADMIN_USERNAME is required for rebuild authorization}
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]

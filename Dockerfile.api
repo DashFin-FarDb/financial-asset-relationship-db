@@ -16,6 +16,8 @@ COPY src/ ./src/
 COPY api/ ./api/
 # Required by src.data.database.init_db → apply_migrations on durable SQLite.
 COPY migrations/ ./migrations/
+# Operator migration authority: python -m scripts.migrate_database
+COPY scripts/ ./scripts/
 
 ENV PYTHONPATH=/app
 ENV PORT=8000
