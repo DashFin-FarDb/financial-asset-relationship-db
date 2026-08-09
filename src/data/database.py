@@ -33,7 +33,8 @@ ASSET_GRAPH_DATABASE_URL_ENV_VAR = "ASSET_GRAPH_DATABASE_URL"
 SQLITE_MEMORY_DATABASE = ":memory:"
 _SQL_IDENTIFIER_PATTERN = re.compile(r"[a-z_][a-z0-9_$]*")
 _POSTGRESQL_ANY_ARRAY_PATTERN = re.compile(r"=\s*any\s*\(\s*\(?\s*array\s*\[([^\]]*)\]\s*\)?\s*\)")
-_CHECK_TOKEN_PATTERN = r"(?:[a-z_][a-z0-9_.$]*|\d+(?:\.\d+)?)"
+# Identifier/number, or a simple function call such as length(strength).
+_CHECK_TOKEN_PATTERN = r"(?:[a-z_][a-z0-9_.$]*(?:\([^()]*\))?|\d+(?:\.\d+)?)"
 _BETWEEN_PREDICATE_PATTERN = re.compile(
     rf"\b({_CHECK_TOKEN_PATTERN})\s+between\s+({_CHECK_TOKEN_PATTERN})\s+and\s+({_CHECK_TOKEN_PATTERN})"
 )
