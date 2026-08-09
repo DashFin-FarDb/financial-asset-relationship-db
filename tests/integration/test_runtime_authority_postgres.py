@@ -125,12 +125,13 @@ def test_auth_runtime_rejects_assumable_privileged_roles(attack_role: str) -> No
         ):
             api_database.verify_runtime_authority()
     finally:
-        with _operator_connection(database_url) as connection, connection.cursor() as cursor:
-            cursor.execute(
-                sql.SQL("REVOKE UPDATE (hashed_password) ON TABLE user_credentials FROM {}").format(
-                    sql.Identifier(_AUTH_WRITE_ROLE)
+        if attack_role == "credential_update":
+            with _operator_connection(database_url) as connection, connection.cursor() as cursor:
+                cursor.execute(
+                    sql.SQL("REVOKE UPDATE (hashed_password) ON TABLE user_credentials FROM {}").format(
+                        sql.Identifier(_AUTH_WRITE_ROLE)
+                    )
                 )
-            )
         _drop_roles(database_url, _AUTH_RUNTIME_LOGIN, elevated_role)
 
 
