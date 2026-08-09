@@ -82,6 +82,7 @@ jobs:
               -e DATABASE_URL="$DB_URL" \
               -e ASSET_GRAPH_DATABASE_URL="$DB_URL" \
               -e SECRET_KEY="$SECRET_KEY" \
+              -e ADMIN_USERNAME="$ADMIN_USERNAME" \
               fardb-api
           }
 
