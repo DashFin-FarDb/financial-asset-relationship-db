@@ -11,9 +11,10 @@ import json
 import os
 import re
 from collections.abc import Mapping
+from typing import Any, TypeAlias
 
 from sqlalchemy import bindparam, text
-from sqlalchemy.engine import Connection, Engine, make_url
+from sqlalchemy.engine import Engine, make_url
 
 from src.data.relationship_assertion_db_models import (
     EFFECTIVE_WINDOW_CHECK,
@@ -29,6 +30,7 @@ _GRAC_TABLE_NAME_SET = frozenset(GRAC_TABLE_NAMES)
 _UNTRUSTED_DATABASE_ROLES_ENV = "FARDB_UNTRUSTED_DATABASE_ROLES"
 _DEFAULT_UNTRUSTED_DATABASE_ROLES = ("anon", "authenticated")
 _SAFE_ROLE_PATTERN = re.compile(r"^[a-z_][a-z0-9_]*$")
+Connection: TypeAlias = Any
 
 
 def ensure_relationship_assertion_schema(engine: Engine) -> None:
@@ -71,7 +73,7 @@ def verify_relationship_assertion_schema(engine: Engine) -> None:
             _verify_postgresql_grac_schema(connection)
 
 
-def _verify_sqlite_grac_schema(connection: Connection) -> None:
+def _verify_sqlite_grac_schema(connection: Any) -> None:
     """Verify SQLite GRAC compatibility and immutability guards."""
     _require_sqlite_grac_constraints(connection)
     if not _sqlite_guards_present(connection):
@@ -333,7 +335,8 @@ def _postgresql_grac_constraints_present(connection: Connection) -> bool:
         ("relationship_assertions", "ck_relationship_assertions_effective_window"): EFFECTIVE_WINDOW_CHECK,
         ("relationship_projection_edges", "ck_relationship_projection_edges_strength"): STRENGTH_DECIMAL_CHECK,
     }
-    actual = _postgresql_constraint_catalog(connection, [name for _table, name in expected])
+    constraint_names = [name for (_table, name), _canonical in expected.items()]
+    actual = _postgresql_constraint_catalog(connection, constraint_names)
     if not all(actual.get(key, (None, False))[1] for key in expected):
         return False
     return all(_postgresql_check_matches(actual[key][0], canonical) for key, canonical in expected.items())

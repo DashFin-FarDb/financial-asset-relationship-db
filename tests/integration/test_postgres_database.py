@@ -210,9 +210,10 @@ def test_restricted_runtime_role_verifies_schema_on_cold_start_and_restart() -> 
         for statement in forbidden_statements:
             with engine.connect() as connection:
                 transaction = connection.begin()
+                sql = text(statement)
                 try:
                     with pytest.raises(ProgrammingError, match=r"permission denied|must be owner"):
-                        connection.execute(text(statement))
+                        connection.execute(sql)
                 finally:
                     transaction.rollback()
 

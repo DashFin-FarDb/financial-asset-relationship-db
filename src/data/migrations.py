@@ -15,11 +15,10 @@ from __future__ import annotations
 import logging
 import sqlite3
 from pathlib import Path
+from typing import Any, TypeAlias
 
 from sqlalchemy import inspect, text
 from sqlalchemy.engine import Engine
-from sqlalchemy.engine.interfaces import ReflectedCheckConstraint, ReflectedColumn
-from sqlalchemy.engine.reflection import Inspector
 
 from src.observability.events import ObservabilityEvent
 from src.observability.logger import log_event
@@ -49,6 +48,15 @@ REBUILD_JOB_STATUSES = (
 _REBUILD_JOB_STATUS_LITERALS = ", ".join(f"'{status}'" for status in REBUILD_JOB_STATUSES)
 _REBUILD_JOB_STATUS_PREDICATE = f"status IN ({_REBUILD_JOB_STATUS_LITERALS})"
 _REBUILD_IDENTIFIER_COLUMNS = ("active_worker_id", "execution_id")
+_REQUIRED_REBUILD_JOB_COLUMNS = frozenset(
+    {
+        "active_worker_id",
+        "last_heartbeat_at",
+        "execution_id",
+        "checkpoint_data",
+        "cancellation_requested_at",
+    }
+)
 _REBUILD_IDENTIFIER_RECHECK_STATEMENTS = {
     "active_worker_id": text("SELECT MAX(LENGTH(active_worker_id)) FROM rebuild_jobs"),
     "execution_id": text("SELECT MAX(LENGTH(execution_id)) FROM rebuild_jobs"),
@@ -57,6 +65,9 @@ _REBUILD_IDENTIFIER_NORMALIZATION_STATEMENTS = {
     "active_worker_id": text("ALTER TABLE rebuild_jobs ALTER COLUMN active_worker_id TYPE VARCHAR(64)"),
     "execution_id": text("ALTER TABLE rebuild_jobs ALTER COLUMN execution_id TYPE VARCHAR(64)"),
 }
+Inspector: TypeAlias = Any
+ReflectedCheckConstraint: TypeAlias = dict[str, Any]
+ReflectedColumn: TypeAlias = dict[str, Any]
 
 
 def apply_migrations(db_path: Path | str) -> None:
@@ -438,21 +449,14 @@ def _status_constraint_is_canonical(constraint: ReflectedCheckConstraint | None)
     return _normalize_check_definition(sql_text) == _normalize_check_definition(_REBUILD_JOB_STATUS_PREDICATE)
 
 
-def postgresql_heartbeat_schema_gaps(inspector: Inspector) -> list[str]:
-    """Return PostgreSQL rebuild compatibility gaps without changing the schema."""
-    if "rebuild_jobs" not in inspector.get_table_names():
-        return ["rebuild_jobs table"]
+def _rebuild_job_required_column_gaps(columns: dict[str, ReflectedColumn]) -> list[str]:
+    """Return missing rebuild_jobs compatibility columns."""
+    return [f"rebuild_jobs.{name}" for name in sorted(_REQUIRED_REBUILD_JOB_COLUMNS - set(columns))]
 
-    required_columns = {
-        "active_worker_id",
-        "last_heartbeat_at",
-        "execution_id",
-        "checkpoint_data",
-        "cancellation_requested_at",
-    }
-    columns = {column["name"]: column for column in inspector.get_columns("rebuild_jobs")}
-    gaps = [f"rebuild_jobs.{name}" for name in sorted(required_columns - set(columns))]
 
+def _rebuild_identifier_width_gaps(columns: dict[str, ReflectedColumn]) -> list[str]:
+    """Return identifier columns wider than the runtime contract permits."""
+    gaps: list[str] = []
     for column_name in _REBUILD_IDENTIFIER_COLUMNS:
         column = columns.get(column_name)
         if column is None:
@@ -460,8 +464,12 @@ def postgresql_heartbeat_schema_gaps(inspector: Inspector) -> list[str]:
         length = getattr(column.get("type"), "length", None)
         if length is None or length > 64:
             gaps.append(f"rebuild_jobs.{column_name} width <= 64")
+    return gaps
 
-    status_constraint = next(
+
+def _reflected_status_constraint(inspector: Inspector) -> ReflectedCheckConstraint | None:
+    """Return the reflected rebuild_jobs status constraint, if present."""
+    return next(
         (
             constraint
             for constraint in inspector.get_check_constraints("rebuild_jobs")
@@ -469,6 +477,18 @@ def postgresql_heartbeat_schema_gaps(inspector: Inspector) -> list[str]:
         ),
         None,
     )
+
+
+def postgresql_heartbeat_schema_gaps(inspector: Inspector) -> list[str]:
+    """Return PostgreSQL rebuild compatibility gaps without changing the schema."""
+    if "rebuild_jobs" not in inspector.get_table_names():
+        return ["rebuild_jobs table"]
+
+    columns = {column["name"]: column for column in inspector.get_columns("rebuild_jobs")}
+    gaps = _rebuild_job_required_column_gaps(columns)
+    gaps.extend(_rebuild_identifier_width_gaps(columns))
+
+    status_constraint = _reflected_status_constraint(inspector)
     if not _status_constraint_is_canonical(status_constraint):
         gaps.append("ck_rebuild_jobs_status")
     return gaps

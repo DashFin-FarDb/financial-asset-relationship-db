@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import re
 
-from sqlalchemy import (
+from sqlalchemy import (  # pyre-ignore[21]: SQLAlchemy is installed in runtime/test environments.
     CheckConstraint,
     ForeignKeyConstraint,
     UniqueConstraint,
@@ -14,10 +14,10 @@ from sqlalchemy import (
     inspect,
     text,
 )
-from sqlalchemy.engine import Engine, make_url
-from sqlalchemy.exc import ArgumentError
-from sqlalchemy.orm import Session, sessionmaker
-from sqlalchemy.pool import StaticPool
+from sqlalchemy.engine import Engine, make_url  # pyre-ignore[21]: SQLAlchemy is installed for this project.
+from sqlalchemy.exc import ArgumentError  # pyre-ignore[21]: SQLAlchemy is installed for this project.
+from sqlalchemy.orm import Session, sessionmaker  # pyre-ignore[21]: SQLAlchemy is installed for this project.
+from sqlalchemy.pool import StaticPool  # pyre-ignore[21]: SQLAlchemy is installed for this project.
 
 from src.config.settings import get_settings
 
@@ -30,6 +30,7 @@ from .repository import session_scope  # noqa: F401, E402
 DEFAULT_DATABASE_URL = "sqlite:///./asset_graph.db"
 ASSET_GRAPH_DATABASE_URL_ENV_VAR = "ASSET_GRAPH_DATABASE_URL"
 SQLITE_MEMORY_DATABASE = ":memory:"
+_ANY_ARRAY_PREFIX_PATTERN = re.compile(r"=\s*any\s*\(\s*\(?\s*array\s*\[")
 
 
 class SchemaCompatibilityError(RuntimeError):
@@ -265,6 +266,30 @@ def _verify_table_constraints(inspector, table_name: str, expected_table) -> Non
         raise SchemaCompatibilityError(f"database table {table_name} missing foreign-key invariants")
 
 
+def _consume_quoted_sql_token(definition: str, start: int, quote: str) -> int:
+    """Return the end position for one quoted SQL token."""
+    position = start + 1
+    while position < len(definition):
+        if definition[position] != quote:
+            position += 1
+            continue
+        if position + 1 < len(definition) and definition[position + 1] == quote:
+            position += 2
+            continue
+        return position + 1
+    return position
+
+
+def _canonicalize_quoted_sql_token(token: str, quote: str) -> str:
+    """Remove harmless identifier quoting while preserving string literals."""
+    if quote != '"' or not token.endswith('"'):
+        return token
+    identifier = token[1:-1]
+    if re.fullmatch(r"[a-z_][a-z0-9_$]*", identifier):
+        return identifier
+    return token
+
+
 def _protect_quoted_sql_tokens(definition: str) -> tuple[str, dict[str, str]]:
     """Replace quoted SQL tokens with markers before syntax canonicalisation."""
     protected: dict[str, str] = {}
@@ -278,28 +303,12 @@ def _protect_quoted_sql_tokens(definition: str) -> tuple[str, dict[str, str]]:
             position += 1
             continue
 
-        start = position
-        position += 1
-        while position < len(definition):
-            if definition[position] != quote:
-                position += 1
-                continue
-            if position + 1 < len(definition) and definition[position + 1] == quote:
-                position += 2
-                continue
-            position += 1
-            break
-
-        token = definition[start:position]
-        canonical_token = token
-        if quote == '"' and token.endswith('"'):
-            identifier = token[1:-1]
-            if re.fullmatch(r"[a-z_][a-z0-9_$]*", identifier):
-                canonical_token = identifier
-
+        end = _consume_quoted_sql_token(definition, position, quote)
+        token = definition[position:end]
         marker = f"\x00fardb_quoted_{len(protected)}\x00"
-        protected[marker] = canonical_token
+        protected[marker] = _canonicalize_quoted_sql_token(token, quote)
         output.append(marker)
+        position = end
 
     return "".join(output), protected
 
@@ -311,6 +320,72 @@ def _restore_quoted_sql_tokens(definition: str, protected: dict[str, str]) -> st
     return definition
 
 
+def _consume_any_array_suffix(definition: str, position: int) -> int | None:
+    """Consume the optional inner and required outer suffix for ANY(ARRAY[...])."""
+    current = position
+    while current < len(definition) and definition[current].isspace():
+        current += 1
+    if current < len(definition) and definition[current] == ")":
+        current += 1
+    while current < len(definition) and definition[current].isspace():
+        current += 1
+    if current < len(definition) and definition[current] == ")":
+        return current + 1
+    return None
+
+
+def _replace_any_array_predicates(definition: str) -> str:
+    """Convert PostgreSQL ``= ANY(ARRAY[...])`` predicates to comparable IN clauses."""
+    output: list[str] = []
+    position = 0
+    while position < len(definition):
+        match = _ANY_ARRAY_PREFIX_PATTERN.search(definition, position)
+        if match is None:
+            output.append(definition[position:])
+            break
+        close_bracket = definition.find("]", match.end())
+        if close_bracket == -1:
+            output.append(definition[position:])
+            break
+        suffix_end = _consume_any_array_suffix(definition, close_bracket + 1)
+        if suffix_end is None:
+            output.append(definition[position : match.end()])
+            position = match.end()
+            continue
+        output.append(definition[position : match.start()])
+        output.append(f" in ({definition[match.end() : close_bracket]})")
+        position = suffix_end
+    return "".join(output)
+
+
+def _is_simple_check_token(token: str) -> bool:
+    """Return whether a token is safe for the simple BETWEEN rewrite."""
+    return bool(token) and not any(char in token for char in "()")
+
+
+def _replace_between_predicates(definition: str) -> str:
+    """Expand simple ``BETWEEN`` predicates into equivalent bound comparisons."""
+    tokens = definition.split()
+    output: list[str] = []
+    index = 0
+    while index < len(tokens):
+        if (
+            index + 4 < len(tokens)
+            and tokens[index + 1] == "between"
+            and tokens[index + 3] == "and"
+            and _is_simple_check_token(tokens[index])
+            and _is_simple_check_token(tokens[index + 2])
+            and _is_simple_check_token(tokens[index + 4])
+        ):
+            subject = tokens[index]
+            output.extend([f"{subject} >= {tokens[index + 2]}", "and", f"{subject} <= {tokens[index + 4]}"])
+            index += 5
+            continue
+        output.append(tokens[index])
+        index += 1
+    return " ".join(output)
+
+
 def _normalize_check_definition(definition: object) -> str:
     """Normalize ORM and reflected CHECK SQL without weakening its predicate."""
     raw_definition = "" if definition is None else str(definition)
@@ -319,16 +394,8 @@ def _normalize_check_definition(definition: object) -> str:
     normalized = re.sub(r"::\s*(?:character varying|text)(?:\[\])?", "", normalized)
     normalized = normalized.removeprefix("check")
     normalized = normalized.replace("!~~", "not like").replace("~~", "like")
-    normalized = re.sub(
-        r"=\s*any\s*\(\s*\(?\s*array\s*\[([^\[\]]*)\]\s*\)?\s*\)",
-        r" in (\1)",
-        normalized,
-    )
-    normalized = re.sub(
-        r"([^\s()]+)\s+between\s+([^\s()]+)\s+and\s+([^\s()]+)",
-        r"\1 >= \2 and \1 <= \3",
-        normalized,
-    )
+    normalized = _replace_any_array_predicates(normalized)
+    normalized = _replace_between_predicates(normalized)
 
     def _sort_literal_set(match: re.Match[str]) -> str:
         literals = [item.strip() for item in match.group(1).split(",")]
@@ -341,9 +408,8 @@ def _normalize_check_definition(definition: object) -> str:
     return _restore_quoted_sql_tokens(normalized, protected)
 
 
-def _verify_table_schema(inspector, table_name: str) -> None:
-    """Verify columns and named schema invariants for one ORM table."""
-    expected_table = Base.metadata.tables[table_name]
+def _verify_table_columns(inspector, table_name: str, expected_table) -> None:
+    """Verify reflected columns match the ORM table contract."""
     actual_columns = {column["name"] for column in inspector.get_columns(table_name)}
     missing_columns = sorted(set(expected_table.columns.keys()) - actual_columns)
     if missing_columns:
@@ -351,6 +417,9 @@ def _verify_table_schema(inspector, table_name: str) -> None:
             f"database table {table_name} missing required columns: {', '.join(missing_columns)}"
         )
 
+
+def _verify_table_checks(inspector, table_name: str, expected_table) -> None:
+    """Verify named CHECK constraints match the ORM table contract."""
     expected_checks = {
         str(constraint.name): _normalize_check_definition(constraint.sqltext)
         for constraint in expected_table.constraints
@@ -374,6 +443,9 @@ def _verify_table_schema(inspector, table_name: str) -> None:
             f"database table {table_name} has incompatible constraints: {', '.join(mismatched_checks)}"
         )
 
+
+def _verify_table_indexes(inspector, table_name: str, expected_table) -> None:
+    """Verify reflected indexes match the ORM table contract."""
     expected_indexes = {
         str(index.name): (tuple(column.name for column in index.columns), bool(index.unique))
         for index in expected_table.indexes
@@ -397,6 +469,13 @@ def _verify_table_schema(inspector, table_name: str) -> None:
             f"database table {table_name} has incompatible indexes: {', '.join(mismatched_indexes)}"
         )
 
+
+def _verify_table_schema(inspector, table_name: str) -> None:
+    """Verify columns and named schema invariants for one ORM table."""
+    expected_table = Base.metadata.tables[table_name]
+    _verify_table_columns(inspector, table_name, expected_table)
+    _verify_table_checks(inspector, table_name, expected_table)
+    _verify_table_indexes(inspector, table_name, expected_table)
     _verify_table_constraints(inspector, table_name, expected_table)
 
 
