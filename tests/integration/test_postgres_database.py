@@ -308,6 +308,7 @@ def test_auth_runtime_role_is_read_only_and_uses_explicit_target() -> None:
     runtime_url = os.getenv("FARDB_AUTH_RUNTIME_DATABASE_URL")
     if not runtime_url:
         pytest.skip("Set FARDB_AUTH_RUNTIME_DATABASE_URL to the restricted auth-login DSN")
+    assert runtime_url is not None
 
     from api.database import (
         bind_database_url,

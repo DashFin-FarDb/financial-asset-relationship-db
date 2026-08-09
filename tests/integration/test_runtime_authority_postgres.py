@@ -10,6 +10,7 @@ from __future__ import annotations
 import os
 from collections.abc import Iterator
 from contextlib import contextmanager
+from typing import Any
 from unittest.mock import patch
 
 import pytest
@@ -39,13 +40,14 @@ def _ephemeral_database_url() -> str:
     database_url = os.getenv(_EPHEMERAL_POSTGRES_URL)
     if not database_url:
         pytest.fail(f"{_EPHEMERAL_POSTGRES_URL} is required when {_EPHEMERAL_AUTHORITY_FLAG}=1")
+    assert database_url is not None
     if not database_url.startswith(("postgresql://", "postgres://")):
         pytest.fail(f"{_EPHEMERAL_POSTGRES_URL} must be a PostgreSQL URL")
     return database_url
 
 
 @contextmanager
-def _operator_connection(database_url: str) -> Iterator[object]:
+def _operator_connection(database_url: str) -> Iterator[Any]:
     connection = psycopg2.connect(database_url)
     connection.autocommit = True
     try:
