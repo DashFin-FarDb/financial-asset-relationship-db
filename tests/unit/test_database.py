@@ -51,9 +51,12 @@ from api.database import (
 )
 from src.data.database import (
     DEFAULT_DATABASE_URL,
+    GRAPH_RUNTIME_CAPABILITY,
     Base,
     SchemaCompatibilityError,
     _normalize_check_definition,
+    _runtime_policy_specs,
+    _runtime_table_privileges,
     _verify_table_constraints,
     _verify_table_schema,
     configure_sqlite_engine,
@@ -64,6 +67,18 @@ from src.data.database import (
     verify_database_schema,
     verify_runtime_database_authority,
 )
+
+
+def test_graph_capability_preserves_grac_immutability_and_locking() -> None:
+    """GRAC grants allow inserts and row locks without a usable update path."""
+    from src.data.relationship_assertion_db_models import GRAC_TABLE_NAMES
+
+    capabilities = (GRAPH_RUNTIME_CAPABILITY,)
+    privileges = _runtime_table_privileges(capabilities)
+    policies = _runtime_policy_specs(capabilities)
+    for table_name in GRAC_TABLE_NAMES:
+        assert privileges[(GRAPH_RUNTIME_CAPABILITY, table_name)] == {"SELECT", "INSERT"}
+        assert policies[(table_name, "fardb_graph_lock_v1")] == ("w", "true", "false")
 
 
 @pytest.mark.parametrize(
@@ -115,6 +130,13 @@ def test_check_normalization_accepts_postgresql_any_rendering() -> None:
         "'cancelled'::character varying, 'pending'::character varying])::text[])))"
     )
     assert _normalize_check_definition(reflected) == _normalize_check_definition(expected)
+
+
+def test_check_normalization_preserves_boolean_grouping() -> None:
+    """Constraint comparison must not erase parentheses that change precedence."""
+    grouped = "CHECK ((a = 1 OR b = 1) AND c = 1)"
+    ungrouped = "CHECK (a = 1 OR b = 1 AND c = 1)"
+    assert _normalize_check_definition(grouped) != _normalize_check_definition(ungrouped)
 
 
 @pytest.mark.parametrize(

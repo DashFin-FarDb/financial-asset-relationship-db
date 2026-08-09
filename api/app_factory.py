@@ -120,13 +120,22 @@ def _run_startup_reconciliation(
 
 def _verify_reconciliation_schemas(engine: Any, coord_engine: Any) -> None:
     """Verify reconciliation schemas without exercising migration authority."""
-    from src.data.database import verify_database_schema, verify_runtime_database_authority
+    from src.data.database import (
+        COORDINATION_RUNTIME_CAPABILITY,
+        GRAPH_RUNTIME_CAPABILITY,
+        verify_database_schema,
+        verify_runtime_database_authority,
+    )
 
-    verify_database_schema(engine)
-    verify_runtime_database_authority(engine)
+    graph_capabilities = {GRAPH_RUNTIME_CAPABILITY}
+    if coord_engine is engine:
+        graph_capabilities.add(COORDINATION_RUNTIME_CAPABILITY)
+    verify_database_schema(engine, required_capabilities=graph_capabilities)
+    verify_runtime_database_authority(engine, required_capabilities=graph_capabilities)
     if coord_engine is not engine:
-        verify_database_schema(coord_engine)
-        verify_runtime_database_authority(coord_engine)
+        coordination_capabilities = {COORDINATION_RUNTIME_CAPABILITY}
+        verify_database_schema(coord_engine, required_capabilities=coordination_capabilities)
+        verify_runtime_database_authority(coord_engine, required_capabilities=coordination_capabilities)
 
 
 def _verify_auth_database() -> None:

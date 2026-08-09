@@ -309,17 +309,92 @@ def _postgresql_constraint_catalog(
     return {(table, name): (definition, validated) for table, name, definition, validated in rows}
 
 
-def _normalize_postgresql_check(sql: str) -> str:
-    """Normalize PostgreSQL-deparsed CHECK SQL for canonical comparison."""
+def _normalize_postgresql_check(sql: str) -> object:
+    """Normalize PostgreSQL-deparsed CHECK SQL without erasing boolean grouping."""
     normalized = re.sub(r"::(?:text|character varying)", "", sql.lower())
-    normalized = re.sub(r"\s+", "", normalized)
-    normalized = normalized.removeprefix("check")
-    normalized = normalized.replace("!~~", "notlike").replace("~~", "like")
+    normalized = re.sub(r"\s+", " ", normalized).strip()
+    normalized = normalized.removeprefix("check").strip()
+    normalized = normalized.replace("!~~", " not like ").replace("~~", " like ")
     normalized = normalized.replace(
-        "length(strength)between1and32",
-        "length(strength)>=1andlength(strength)<=32",
+        "length(strength) between 1 and 32",
+        "length(strength) >= 1 and length(strength) <= 32",
     )
-    return normalized.replace("(", "").replace(")", "")
+    return _postgresql_boolean_ast(normalized)
+
+
+def _postgresql_boolean_ast(expression: str) -> object:
+    """Return a small associative AND/OR AST with normalized atomic predicates."""
+    expression = _strip_redundant_outer_parentheses(expression.strip())
+    for operator in ("or", "and"):
+        pieces = _split_top_level_boolean(expression, operator)
+        if len(pieces) > 1:
+            children: list[object] = []
+            for piece in pieces:
+                child = _postgresql_boolean_ast(piece)
+                if isinstance(child, tuple) and child[0] == operator:
+                    children.extend(child[1:])
+                else:
+                    children.append(child)
+            return (operator, *children)
+    atomic = re.sub(r"(?<![a-z0-9_$])\(([a-z_][a-z0-9_$]*)\)", r"\1", expression)
+    return re.sub(r"\s+", "", atomic)
+
+
+def _split_top_level_boolean(expression: str, operator: str) -> list[str]:
+    """Split on one boolean operator while respecting quotes and parentheses."""
+    delimiter = f" {operator} "
+    pieces: list[str] = []
+    start = 0
+    depth = 0
+    quote: str | None = None
+    position = 0
+    while position < len(expression):
+        char = expression[position]
+        if quote is not None:
+            if char == quote:
+                if position + 1 < len(expression) and expression[position + 1] == quote:
+                    position += 2
+                    continue
+                quote = None
+            position += 1
+            continue
+        if char in {"'", '"'}:
+            quote = char
+            position += 1
+            continue
+        if char == "(":
+            depth += 1
+        elif char == ")":
+            depth -= 1
+        elif depth == 0 and expression.startswith(delimiter, position):
+            pieces.append(expression[start:position])
+            position += len(delimiter)
+            start = position
+            continue
+        position += 1
+    if not pieces:
+        return [expression]
+    pieces.append(expression[start:])
+    return pieces
+
+
+def _strip_redundant_outer_parentheses(definition: str) -> str:
+    """Remove only a balanced pair that encloses the full CHECK expression."""
+    while definition.startswith("(") and definition.endswith(")"):
+        depth = 0
+        encloses_all = True
+        for position, char in enumerate(definition):
+            if char == "(":
+                depth += 1
+            elif char == ")":
+                depth -= 1
+            if depth == 0 and position != len(definition) - 1:
+                encloses_all = False
+                break
+        if not encloses_all or depth != 0:
+            break
+        definition = definition[1:-1]
+    return definition
 
 
 def _postgresql_check_matches(definition: str, canonical_check: str) -> bool:
@@ -340,7 +415,7 @@ def _postgresql_grac_constraints_present(connection: Connection) -> bool:
 
 
 def _harden_postgresql_grac_access(connection: Connection) -> None:
-    """Enable RLS and revoke public/untrusted table grants without adding policies."""
+    """Enable RLS and revoke public/untrusted table grants."""
     roles = _untrusted_database_roles()
     for table_name in GRAC_TABLE_NAMES:
         _require_grac_table(table_name)
@@ -366,7 +441,12 @@ def _postgresql_grac_access_hardened(connection: Connection) -> bool:
 
 
 def _postgresql_grac_access_gaps(connection: Connection, roles: tuple[str, ...]) -> list[str]:
-    """Return GRAC tables without RLS hardening or reachable by an untrusted role."""
+    """Return GRAC tables without RLS hardening or reachable by an untrusted role.
+
+    The exact repository-owned runtime policies are verified separately by the
+    capability contract in ``src.data.database``. This baseline guard remains
+    valid both before capability installation and after policies are present.
+    """
     return list(
         connection.execute(
             text(
@@ -375,14 +455,21 @@ def _postgresql_grac_access_gaps(connection: Connection, roles: tuple[str, ...])
                 "WHERE n.nspname = pg_catalog.current_schema() "
                 "AND c.relname IN :tables "
                 "AND (NOT c.relrowsecurity OR EXISTS ("
-                "SELECT 1 FROM pg_policy AS p WHERE p.polrelid = c.oid) OR EXISTS ("
                 "SELECT 1 FROM aclexplode(COALESCE(c.relacl, acldefault('r', c.relowner))) "
                 "AS acl(grantor, grantee, privilege_type, is_grantable) "
                 "WHERE acl.grantee = 0) OR EXISTS (SELECT 1 FROM pg_roles AS rol "
-                "WHERE rol.rolname IN :roles AND (has_table_privilege(rol.oid, c.oid, "
-                "'SELECT, INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER') "
-                "OR has_any_column_privilege(rol.oid, c.oid, "
-                "'SELECT, INSERT, UPDATE, REFERENCES'))))"
+                "WHERE rol.rolname IN :roles AND ("
+                "has_table_privilege(rol.oid, c.oid, 'SELECT') "
+                "OR has_table_privilege(rol.oid, c.oid, 'INSERT') "
+                "OR has_table_privilege(rol.oid, c.oid, 'UPDATE') "
+                "OR has_table_privilege(rol.oid, c.oid, 'DELETE') "
+                "OR has_table_privilege(rol.oid, c.oid, 'TRUNCATE') "
+                "OR has_table_privilege(rol.oid, c.oid, 'REFERENCES') "
+                "OR has_table_privilege(rol.oid, c.oid, 'TRIGGER') "
+                "OR has_any_column_privilege(rol.oid, c.oid, 'SELECT') "
+                "OR has_any_column_privilege(rol.oid, c.oid, 'INSERT') "
+                "OR has_any_column_privilege(rol.oid, c.oid, 'UPDATE') "
+                "OR has_any_column_privilege(rol.oid, c.oid, 'REFERENCES'))))"
             ).bindparams(
                 bindparam("tables", expanding=True),
                 bindparam("roles", expanding=True),

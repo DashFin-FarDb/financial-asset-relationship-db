@@ -74,6 +74,14 @@ def test_postgresql_grac_constraint_comparison_accepts_catalog_deparse(
     assert _postgresql_check_matches(catalog_definition, canonical)
 
 
+def test_postgresql_grac_constraint_comparison_preserves_boolean_grouping() -> None:
+    """PostgreSQL CHECK comparison must reject precedence-changing regrouping."""
+    assert not _postgresql_check_matches(
+        "CHECK ((a = 1 OR b = 1) AND c = 1)",
+        "CHECK (a = 1 OR (b = 1 AND c = 1))",
+    )
+
+
 def test_postgresql_rebuild_status_comparison_accepts_catalog_deparse() -> None:
     """The rebuild status verifier must accept PostgreSQL 17 ANY/ARRAY rendering."""
     definition = (

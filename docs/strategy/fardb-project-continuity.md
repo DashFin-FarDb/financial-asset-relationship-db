@@ -65,7 +65,7 @@ Primary authorities:
 ### FPC-2026-08-09-01 — Separate migration and runtime database authority
 
 - **Type:** Security / production qualification blocker
-- **Status:** In progress — draft PR #1608
+- **Status:** Repository implementation in progress — draft PR #1608; provider binding remains blocked on human action
 - **Decision or objective:** Make database mutation and credential bootstrap an explicit operator action, then require
   verify-only startup under restricted runtime credentials that exclude `ADMIN_PASSWORD` and schema-migration
   authority.
@@ -75,20 +75,25 @@ Primary authorities:
 - **Repository scope:** `scripts/migrate_database.py`, startup and database compatibility verification, runtime
   settings, production/container gates, launchers, focused tests, migration-authority runbooks, and the canonical
   operating-authority record in draft PR #1608.
-- **Dependencies or blockers:** Restricted Supabase runtime roles and Vercel runtime database variables require a
-  separate human-controlled provider operation. Vercel currently cancels unverified-commit previews before build, so
-  an exact-head preview requires the commit-provenance gate to be satisfied. The PR must remain draft until current
-  review findings and exact-head CI are reconciled.
+- **Dependencies or blockers:** Restricted Supabase login-role membership and Vercel runtime database variables require
+  a separate human-controlled provider operation. Repository code now owns stable `NOLOGIN` auth, graph, and
+  coordination capability roles plus exact grants and RLS policies; it deliberately does not create credentials or
+  mutate provider configuration. Vercel currently cancels unverified-commit previews before build, so an exact-head
+  preview requires the commit-provenance gate to be satisfied. The PR must remain draft until exact-head CI and live
+  restricted-runtime evidence are reconciled.
 - **Evidence and provenance:** User ratification on 2026-08-09; draft
   [PR #1608](https://github.com/DashFin-FarDb/financial-asset-relationship-db/pull/1608) from
   `main@820342d7b3d1bc7b3a6429589794b0efee174d2b`; Production Container and Stage 5C passed on reviewed head
-  `63982466ea67064f6b86ec6050f674b0efac885e`. The ratified review-closure tranche adds launcher password separation,
-  case-preserving CHECK normalisation, exact rebuild-status predicate verification, and operating-authority
-  alignment; focused local validation passed 552 tests with 21 PostgreSQL-only skips before exact-head CI.
-- **Next action and completion test:** Publish the review-closure tranche, reconcile every in-scope review outcome,
-  and obtain exact-head GitHub CI. Then provision and bind restricted provider roles under explicit human authority,
-  run the operator migration followed by password-free restricted-runtime cold-start/restart in an isolated target,
-  and retain the PR as draft until those provider and promotion gates are evidenced.
+  `63982466ea67064f6b86ec6050f674b0efac885e`. The current ratified repository tranche adds execution-time auth target
+  binding, stable capability roles, exact per-boundary grants and named RLS policies, non-vacuous startup authority
+  verification, GRAC lock-compatible immutability, sanitized migration failures, and grouping-preserving CHECK
+  comparison. Focused local validation passed 180 tests with 25 PostgreSQL/environment skips; Black, Ruff, Flake8,
+  mypy, and `git diff --check` passed. Parser validation accepted all 246 emitted graph/coordination PostgreSQL
+  statements and all 9 emitted auth statements. Live restricted-role proof remains intentionally pending.
+- **Next action and completion test:** Complete focused PostgreSQL contract coverage, publish the repository tranche,
+  and obtain exact-head GitHub CI. Then provision login identities and bind only the applicable capability roles under
+  explicit human authority, switch runtime URLs, and prove password-free graph/coordination/auth operations plus cold
+  start/restart in an isolated target. Retain the PR as draft until those provider and promotion gates are evidenced.
 - **Last updated:** 2026-08-09
 
 ### FPC-2026-07-21-01 — Close the hosted database authorization gate

@@ -391,8 +391,8 @@ def test_startup_reconciliation_lock_release_behavior(
         yield MagicMock()
 
     monkeypatch.setattr("src.data.database.create_engine_from_url", lambda _url: fake_engine)
-    monkeypatch.setattr("src.data.database.verify_database_schema", lambda _engine: None)
-    monkeypatch.setattr("src.data.database.verify_runtime_database_authority", lambda _engine: None)
+    monkeypatch.setattr("src.data.database.verify_database_schema", lambda _engine, **_kwargs: None)
+    monkeypatch.setattr("src.data.database.verify_runtime_database_authority", lambda _engine, **_kwargs: None)
     monkeypatch.setattr("src.data.database.create_session_factory", lambda _engine: lambda: None)
     monkeypatch.setattr("src.data.repository.session_scope", fake_session_scope)
     monkeypatch.setattr("src.data.distributed_lock.DistributedLock", lambda **_kwargs: fake_lock)
@@ -410,6 +410,28 @@ def test_startup_reconciliation_lock_release_behavior(
         app_factory._run_startup_reconciliation(cast(Any, base_settings))  # pylint: disable=protected-access
         assert fake_lock.lock_name == "graph_rebuild"
         fake_lock.release.assert_called()
+
+
+def test_reconciliation_schema_verification_separates_runtime_capabilities(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Separate graph and coordination URLs must require disjoint capability roles."""
+    graph_engine = object()
+    coordination_engine = object()
+    verify_schema = MagicMock()
+    verify_authority = MagicMock()
+    monkeypatch.setattr("src.data.database.verify_database_schema", verify_schema)
+    monkeypatch.setattr("src.data.database.verify_runtime_database_authority", verify_authority)
+
+    app_factory._verify_reconciliation_schemas(  # pylint: disable=protected-access
+        graph_engine,
+        coordination_engine,
+    )
+
+    assert verify_schema.call_args_list[0].kwargs["required_capabilities"] == {"graph"}
+    assert verify_schema.call_args_list[1].kwargs["required_capabilities"] == {"coordination"}
+    assert verify_authority.call_args_list[0].kwargs["required_capabilities"] == {"graph"}
+    assert verify_authority.call_args_list[1].kwargs["required_capabilities"] == {"coordination"}
 
 
 @pytest.mark.asyncio

@@ -26,6 +26,7 @@ pytest.importorskip("psycopg2")
 
 # pyright: ignore[reportMissingModuleSource]
 # pylint: disable=wrong-import-position,import-error
+from psycopg2 import ProgrammingError as PsycopgProgrammingError  # noqa: E402  # type: ignore[import-untyped]
 from psycopg2 import connect  # noqa: E402  # type: ignore[import-untyped]
 
 # pylint: enable=wrong-import-position,import-error
@@ -164,11 +165,11 @@ def test_postgres_connection_smoke() -> None:
 
 @pytest.mark.integration
 def test_restricted_runtime_role_verifies_schema_on_cold_start_and_restart() -> None:
-    """A separately configured app role must verify twice without migration authority."""
+    """The graph login must verify twice and exercise its exact runtime DML."""
     _ensure_live_test_enabled()
-    runtime_url = os.getenv("FARDB_RUNTIME_DATABASE_URL")
+    runtime_url = os.getenv("FARDB_GRAPH_RUNTIME_DATABASE_URL") or os.getenv("FARDB_RUNTIME_DATABASE_URL")
     if not runtime_url:
-        pytest.skip("Set FARDB_RUNTIME_DATABASE_URL to the restricted application-role DSN")
+        pytest.skip("Set FARDB_GRAPH_RUNTIME_DATABASE_URL to the restricted graph-login DSN")
     assert runtime_url is not None
     if any(token in runtime_url for token in PLACEHOLDER_TOKENS):
         pytest.skip("Runtime database URL contains a placeholder password token")
@@ -195,17 +196,46 @@ def test_restricted_runtime_role_verifies_schema_on_cold_start_and_restart() -> 
             ).one()
         assert role_posture == (False, False, 0)
 
-        verify_database_schema(engine)
-        verify_runtime_database_authority(engine)
+        verify_database_schema(engine, required_capabilities={"graph"})
+        verify_runtime_database_authority(engine, required_capabilities={"graph"})
 
         with engine.connect() as connection:
-            assert connection.execute(text("SELECT to_regclass('user_credentials')")).scalar_one() is not None
+            transaction = connection.begin()
+            try:
+                connection.execute(
+                    text(
+                        "INSERT INTO assets (id, symbol, name, asset_class, sector, price, currency) "
+                        "VALUES ('cq-runtime-probe', 'CQ', 'Capability probe', 'equity', 'test', 1.0, 'GBP')"
+                    )
+                )
+                connection.execute(text("UPDATE assets SET price = 2.0 WHERE id = 'cq-runtime-probe'"))
+                assert (
+                    connection.execute(text("SELECT price FROM assets WHERE id = 'cq-runtime-probe'")).scalar_one()
+                    == 2.0
+                )
+                connection.execute(text("DELETE FROM assets WHERE id = 'cq-runtime-probe'"))
+                connection.execute(
+                    text(
+                        "INSERT INTO relationship_evidence "
+                        "(id, source_ref, content_sha256, media_type, visibility, custody_id, recorded_at) "
+                        "VALUES ('cq-runtime-evidence', 'urn:cq:probe', :sha, 'application/json', "
+                        "'internal', 'cq-probe', CURRENT_TIMESTAMP)"
+                    ),
+                    {"sha": "0" * 64},
+                )
+                assert (
+                    connection.execute(
+                        text("SELECT id FROM relationship_evidence WHERE id = 'cq-runtime-evidence' FOR UPDATE")
+                    ).scalar_one()
+                    == "cq-runtime-evidence"
+                )
+            finally:
+                transaction.rollback()
 
         forbidden_statements = (
             "CREATE TABLE cq_runtime_authority_probe (id INTEGER)",
             "GRANT SELECT ON assets TO PUBLIC",
-            "INSERT INTO user_credentials "
-            "(username, hashed_password, disabled) VALUES ('cq-runtime-probe', 'not-used', 1)",
+            "DELETE FROM relationship_evidence WHERE id = 'cq-runtime-evidence'",
         )
         for statement in forbidden_statements:
             with engine.connect() as connection:
@@ -218,7 +248,80 @@ def test_restricted_runtime_role_verifies_schema_on_cold_start_and_restart() -> 
 
         engine.dispose()
         engine = create_engine(runtime_url, future=True)
-        verify_database_schema(engine)
-        verify_runtime_database_authority(engine)
+        verify_database_schema(engine, required_capabilities={"graph"})
+        verify_runtime_database_authority(engine, required_capabilities={"graph"})
     finally:
         engine.dispose()
+
+
+@pytest.mark.integration
+def test_coordination_runtime_role_exercises_only_lock_dml() -> None:
+    """The coordination login must have lock DML and no graph-data capability."""
+    _ensure_live_test_enabled()
+    runtime_url = os.getenv("FARDB_COORDINATION_RUNTIME_DATABASE_URL")
+    if not runtime_url:
+        pytest.skip("Set FARDB_COORDINATION_RUNTIME_DATABASE_URL to the restricted coordination-login DSN")
+
+    from sqlalchemy import create_engine, text
+    from sqlalchemy.exc import ProgrammingError
+
+    from src.data.database import verify_database_schema, verify_runtime_database_authority
+
+    engine = create_engine(runtime_url, future=True)
+    try:
+        verify_database_schema(engine, required_capabilities={"coordination"})
+        verify_runtime_database_authority(engine, required_capabilities={"coordination"})
+        with engine.connect() as connection:
+            transaction = connection.begin()
+            try:
+                connection.execute(
+                    text(
+                        "INSERT INTO distributed_locks "
+                        "(lock_name, holder_id, expires_at, created_at, updated_at) "
+                        "VALUES ('cq-runtime-probe', 'cq-holder', CURRENT_TIMESTAMP + INTERVAL '1 minute', "
+                        "CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)"
+                    )
+                )
+                connection.execute(
+                    text("UPDATE distributed_locks SET holder_id = 'cq-renewed' WHERE lock_name = 'cq-runtime-probe'")
+                )
+                assert (
+                    connection.execute(
+                        text("SELECT holder_id FROM distributed_locks WHERE lock_name = 'cq-runtime-probe'")
+                    ).scalar_one()
+                    == "cq-renewed"
+                )
+                connection.execute(text("DELETE FROM distributed_locks WHERE lock_name = 'cq-runtime-probe'"))
+            finally:
+                transaction.rollback()
+        with engine.connect() as connection, pytest.raises(ProgrammingError, match="permission denied"):
+            connection.execute(text("SELECT * FROM assets LIMIT 1"))
+    finally:
+        engine.dispose()
+
+
+@pytest.mark.integration
+def test_auth_runtime_role_is_read_only_and_uses_explicit_target() -> None:
+    """The auth login must verify at the requested target and reject credential writes."""
+    _ensure_live_test_enabled()
+    runtime_url = os.getenv("FARDB_AUTH_RUNTIME_DATABASE_URL")
+    if not runtime_url:
+        pytest.skip("Set FARDB_AUTH_RUNTIME_DATABASE_URL to the restricted auth-login DSN")
+
+    from api.database import (
+        bind_database_url,
+        execute,
+        fetch_value,
+        verify_runtime_authority,
+        verify_schema_compatibility,
+    )
+
+    with bind_database_url(runtime_url):
+        verify_schema_compatibility()
+        verify_runtime_authority()
+        assert fetch_value("SELECT COUNT(*) FROM user_credentials") is not None
+        with pytest.raises(PsycopgProgrammingError, match="permission denied|row-level security"):
+            execute(
+                "INSERT INTO user_credentials (username, hashed_password, disabled) "
+                "VALUES ('cq-runtime-probe', 'not-used', 1)"
+            )

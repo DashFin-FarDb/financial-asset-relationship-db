@@ -25,6 +25,8 @@ from api.database import (
     DATABASE_URL,
     _is_memory_db,
     _resolve_sqlite_path,
+    bind_database_url,
+    ensure_runtime_access,
     execute,
     fetch_one,
     fetch_value,
@@ -59,6 +61,21 @@ class TestDatabaseURLConfiguration:
         """Test that DATABASE_PATH is resolved."""
         assert DATABASE_PATH is not None
         assert isinstance(DATABASE_PATH, str)
+
+    def test_explicit_database_binding_restores_import_time_target(self, tmp_path: Path):
+        """Operator binding must use the requested target and restore module state."""
+        original_target = (database.DATABASE_URL, database.DATABASE_TYPE, database.DATABASE_PATH)
+        requested_path = tmp_path / "explicit-auth.db"
+
+        with bind_database_url(f"sqlite:///{requested_path}"):
+            assert str(requested_path) == database.DATABASE_PATH
+            initialize_schema()
+
+        assert original_target == (database.DATABASE_URL, database.DATABASE_TYPE, database.DATABASE_PATH)
+        with sqlite3.connect(requested_path) as connection:
+            assert connection.execute(
+                "SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = 'user_credentials'"
+            ).fetchone() == (1,)
 
     def test_missing_database_url_raises_error(self):
         """Test that missing DATABASE_URL raises a ValueError."""
@@ -325,6 +342,21 @@ class TestQueryExecution:
 class TestSchemaInitialization:
     """Test schema initialization."""
 
+    @patch.object(database, "DATABASE_TYPE", "postgresql")
+    @patch("api.database.fetch_value", return_value=None)
+    @patch("api.database.execute")
+    def test_ensure_runtime_access_installs_read_only_auth_policy(self, mock_execute, _mock_fetch_value):
+        """Auth capability setup must grant SELECT and no mutation privilege."""
+        ensure_runtime_access()
+
+        statements = "\n".join(call.args[0] for call in mock_execute.call_args_list)
+        assert "CREATE ROLE fardb_runtime_auth NOLOGIN" in statements
+        assert "GRANT SELECT ON TABLE user_credentials TO fardb_runtime_auth" in statements
+        assert "FOR SELECT TO fardb_runtime_auth USING (true)" in statements
+        assert "GRANT INSERT" not in statements
+        assert "GRANT UPDATE" not in statements
+        assert "GRANT DELETE" not in statements
+
     @patch("api.database.execute")
     def test_initialize_schema_creates_table(self, mock_execute):
         """Test that initialize_schema creates user_credentials table."""
@@ -395,7 +427,7 @@ class TestSchemaInitialization:
     def test_verify_runtime_authority_accepts_restricted_postgresql_role(self, mock_fetch_value):
         """Auth startup should accept a PostgreSQL role without migration authority."""
         verify_runtime_authority()
-        authority_query = mock_fetch_value.call_args.args[0]
+        authority_query = mock_fetch_value.call_args_list[0].args[0]
         assert "current_schema() IS NOT NULL" in authority_query
         assert "login.rolname = session_user" in authority_query
         assert "pg_has_role(login.oid, assumable.oid, 'MEMBER')" in authority_query
