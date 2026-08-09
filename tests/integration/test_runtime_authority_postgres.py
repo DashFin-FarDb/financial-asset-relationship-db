@@ -30,6 +30,8 @@ _EPHEMERAL_POSTGRES_URL = "FARDB_EPHEMERAL_POSTGRES_URL"
 _AUTH_RUNTIME_LOGIN = "cq1608_auth_runtime"
 _AUTH_WRITE_ROLE = "cq1608_auth_writer"
 _AUTH_REPLICATION_ROLE = "cq1608_auth_replication"
+_GRAPH_RUNTIME_LOGIN = "cq1608_graph_runtime"
+_GRAPH_REPLICATION_ROLE = "cq1608_graph_replication"
 _SEQUENCE_RUNTIME_LOGIN = "cq1608_sequence_runtime"
 _SEQUENCE_OWNER_ROLE = "cq1608_sequence_owner"
 
@@ -138,6 +140,43 @@ def test_auth_runtime_rejects_assumable_privileged_roles(attack_role: str) -> No
                     )
                 )
         _drop_roles(database_url, _AUTH_RUNTIME_LOGIN, elevated_role)
+
+
+@pytest.mark.integration
+def test_runtime_database_authority_rejects_assumable_replication_role() -> None:
+    """The general runtime verifier rejects SET ROLE access to REPLICATION."""
+    database_url = _ephemeral_database_url()
+    runtime_engine = None
+    try:
+        with _operator_connection(database_url) as connection, connection.cursor() as cursor:
+            cursor.execute(
+                sql.SQL(
+                    "CREATE ROLE {} LOGIN NOINHERIT NOSUPERUSER NOCREATEDB NOCREATEROLE " "NOBYPASSRLS NOREPLICATION"
+                ).format(sql.Identifier(_GRAPH_RUNTIME_LOGIN))
+            )
+            cursor.execute(
+                sql.SQL(
+                    "CREATE ROLE {} NOLOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE " "NOBYPASSRLS REPLICATION"
+                ).format(sql.Identifier(_GRAPH_REPLICATION_ROLE))
+            )
+            cursor.execute(
+                sql.SQL("GRANT {} TO {}").format(
+                    sql.Identifier(_GRAPH_REPLICATION_ROLE),
+                    sql.Identifier(_GRAPH_RUNTIME_LOGIN),
+                )
+            )
+
+        runtime_engine = create_engine(
+            "postgresql+psycopg2://",
+            creator=lambda: _runtime_connection(database_url, _GRAPH_RUNTIME_LOGIN),
+            future=True,
+        )
+        with pytest.raises(SchemaCompatibilityError, match="retains schema-migration authority"):
+            verify_runtime_database_authority(runtime_engine)
+    finally:
+        if runtime_engine is not None:
+            runtime_engine.dispose()
+        _drop_roles(database_url, _GRAPH_RUNTIME_LOGIN, _GRAPH_REPLICATION_ROLE)
 
 
 @pytest.mark.integration
