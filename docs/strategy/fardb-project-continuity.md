@@ -453,9 +453,12 @@ Primary authorities:
 ### Next highest-value action
 
 Complete draft PR #1608 and its provider evidence gate: publish and qualify the review-closure tranche, provision
-restricted runtime roles without exposing credentials, and prove operator migration followed by password-free,
-verify-only cold-start/restart on one isolated exact-SHA target. Then reconcile one authoritative migration ledger and
-qualify a new exact production candidate. Release repeatability (**FPC-2026-07-21-02**) remains active.
+restricted runtime roles without exposing credentials, and require the PostgreSQL authority verifier to pass for the
+session login and every role it can assume through `MEMBER`. Evidence must show a current schema and no superuser,
+role/database-creation, RLS-bypass, current-schema `CREATE` or ownership, current-database ownership, protected-table
+ownership, or `grac_v1_reject_mutation` ownership. Prove operator migration followed by password-free, verify-only
+cold-start/restart on one isolated exact-SHA target. Then reconcile one authoritative migration ledger and qualify a
+new exact production candidate. Release repeatability (**FPC-2026-07-21-02**) remains active.
 
 ### Completion test
 
