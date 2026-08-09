@@ -20,7 +20,10 @@ from psycopg2 import sql  # noqa: E402  # type: ignore[import-untyped]
 from sqlalchemy import create_engine  # noqa: E402
 
 from src.data.database import (  # noqa: E402
+    GRAPH_RUNTIME_CAPABILITY,
+    GRAPH_RUNTIME_ROLE,
     SchemaCompatibilityError,
+    ensure_runtime_database_capabilities,
     init_db,
     verify_runtime_database_authority,
 )
@@ -32,6 +35,8 @@ _AUTH_WRITE_ROLE = "cq1608_auth_writer"
 _AUTH_REPLICATION_ROLE = "cq1608_auth_replication"
 _GRAPH_RUNTIME_LOGIN = "cq1608_graph_runtime"
 _GRAPH_REPLICATION_ROLE = "cq1608_graph_replication"
+_GRAPH_EXTRA_RUNTIME_LOGIN = "cq1608_graph_extra_runtime"
+_GRAPH_EXTRA_TRUNCATE_ROLE = "cq1608_graph_extra_truncate"
 _SEQUENCE_RUNTIME_LOGIN = "cq1608_sequence_runtime"
 _SEQUENCE_OWNER_ROLE = "cq1608_sequence_owner"
 
@@ -149,22 +154,21 @@ def test_runtime_database_authority_rejects_assumable_replication_role() -> None
     runtime_engine = None
     try:
         with _operator_connection(database_url) as connection, connection.cursor() as cursor:
-            cursor.execute(
-                sql.SQL(
-                    "CREATE ROLE {} LOGIN NOINHERIT NOSUPERUSER NOCREATEDB NOCREATEROLE " "NOBYPASSRLS NOREPLICATION"
-                ).format(sql.Identifier(_GRAPH_RUNTIME_LOGIN))
+            runtime_login_ddl = sql.SQL(
+                "CREATE ROLE {} LOGIN NOINHERIT NOSUPERUSER NOCREATEDB NOCREATEROLE " "NOBYPASSRLS NOREPLICATION"
             )
-            cursor.execute(
-                sql.SQL("CREATE ROLE {} NOLOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE " "NOBYPASSRLS REPLICATION").format(
-                    sql.Identifier(_GRAPH_REPLICATION_ROLE)
-                )
+            cursor.execute(runtime_login_ddl.format(sql.Identifier(_GRAPH_RUNTIME_LOGIN)))
+
+            replication_role_ddl = sql.SQL(
+                "CREATE ROLE {} NOLOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE " "NOBYPASSRLS REPLICATION"
             )
-            cursor.execute(
-                sql.SQL("GRANT {} TO {}").format(
-                    sql.Identifier(_GRAPH_REPLICATION_ROLE),
-                    sql.Identifier(_GRAPH_RUNTIME_LOGIN),
-                )
+            cursor.execute(replication_role_ddl.format(sql.Identifier(_GRAPH_REPLICATION_ROLE)))
+
+            membership_ddl = sql.SQL("GRANT {} TO {}").format(
+                sql.Identifier(_GRAPH_REPLICATION_ROLE),
+                sql.Identifier(_GRAPH_RUNTIME_LOGIN),
             )
+            cursor.execute(membership_ddl)
 
         runtime_engine = create_engine(
             "postgresql+psycopg2://",
@@ -177,6 +181,81 @@ def test_runtime_database_authority_rejects_assumable_replication_role() -> None
         if runtime_engine is not None:
             runtime_engine.dispose()
         _drop_roles(database_url, _GRAPH_RUNTIME_LOGIN, _GRAPH_REPLICATION_ROLE)
+
+
+@pytest.mark.integration
+def test_runtime_database_authority_rejects_unexpected_assumable_truncate_role() -> None:
+    """Unexpected role membership cannot retain whole-table write authority."""
+    database_url = _ephemeral_database_url()
+    operator_engine = create_engine(database_url, future=True)
+    runtime_engine = None
+
+    init_db(operator_engine)
+    ensure_runtime_database_capabilities(
+        operator_engine,
+        {GRAPH_RUNTIME_CAPABILITY},
+    )
+
+    try:
+        with _operator_connection(database_url) as connection, connection.cursor() as cursor:
+            runtime_login_ddl = sql.SQL(
+                "CREATE ROLE {} LOGIN NOINHERIT NOSUPERUSER NOCREATEDB NOCREATEROLE " "NOBYPASSRLS NOREPLICATION"
+            )
+            cursor.execute(runtime_login_ddl.format(sql.Identifier(_GRAPH_EXTRA_RUNTIME_LOGIN)))
+
+            extra_role_ddl = sql.SQL(
+                "CREATE ROLE {} NOLOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE " "NOBYPASSRLS NOREPLICATION"
+            )
+            cursor.execute(extra_role_ddl.format(sql.Identifier(_GRAPH_EXTRA_TRUNCATE_ROLE)))
+
+            cursor.execute(
+                sql.SQL("GRANT {} TO {}").format(
+                    sql.Identifier(GRAPH_RUNTIME_ROLE),
+                    sql.Identifier(_GRAPH_EXTRA_RUNTIME_LOGIN),
+                )
+            )
+            cursor.execute(
+                sql.SQL("GRANT TRUNCATE ON TABLE assets TO {}").format(sql.Identifier(_GRAPH_EXTRA_TRUNCATE_ROLE))
+            )
+            cursor.execute(
+                sql.SQL("GRANT {} TO {}").format(
+                    sql.Identifier(_GRAPH_EXTRA_TRUNCATE_ROLE),
+                    sql.Identifier(_GRAPH_EXTRA_RUNTIME_LOGIN),
+                )
+            )
+
+        runtime_engine = create_engine(
+            "postgresql+psycopg2://",
+            creator=lambda: _runtime_connection(
+                database_url,
+                _GRAPH_EXTRA_RUNTIME_LOGIN,
+            ),
+            future=True,
+        )
+
+        with pytest.raises(
+            SchemaCompatibilityError,
+            match="capability memberships are incompatible",
+        ):
+            verify_runtime_database_authority(
+                runtime_engine,
+                required_capabilities={GRAPH_RUNTIME_CAPABILITY},
+            )
+    finally:
+        if runtime_engine is not None:
+            runtime_engine.dispose()
+
+        with _operator_connection(database_url) as connection, connection.cursor() as cursor:
+            cursor.execute(
+                sql.SQL("REVOKE TRUNCATE ON TABLE assets FROM {}").format(sql.Identifier(_GRAPH_EXTRA_TRUNCATE_ROLE))
+            )
+
+        _drop_roles(
+            database_url,
+            _GRAPH_EXTRA_RUNTIME_LOGIN,
+            _GRAPH_EXTRA_TRUNCATE_ROLE,
+        )
+        operator_engine.dispose()
 
 
 @pytest.mark.integration

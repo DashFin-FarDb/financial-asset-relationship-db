@@ -979,12 +979,11 @@ def verify_runtime_database_authority(
                 actual_roles = set(
                     connection.execute(
                         text(
-                            "SELECT capability.rolname FROM pg_roles AS login "
-                            "JOIN pg_roles AS capability ON capability.rolname IN :role_names "
-                            "AND pg_has_role(login.oid, capability.oid, 'MEMBER') "
+                            "SELECT assumable.rolname FROM pg_roles AS login "
+                            "JOIN pg_roles AS assumable ON assumable.oid <> login.oid "
+                            "AND pg_has_role(login.oid, assumable.oid, 'MEMBER') "
                             "WHERE login.rolname = session_user"
-                        ).bindparams(bindparam("role_names", expanding=True)),
-                        {"role_names": sorted(RUNTIME_CAPABILITY_ROLES.values())},
+                        )
                     )
                     .scalars()
                     .all()
