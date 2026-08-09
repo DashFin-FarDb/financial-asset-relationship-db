@@ -12,28 +12,28 @@ required_vars=(DATABASE_URL SECRET_KEY ADMIN_USERNAME)
 missing_vars=()
 
 for var in "${required_vars[@]}"; do
-  if [[ -z "${!var:-}" ]]; then
-    missing_vars+=("$var")
-  fi
+	if [[ -z "${!var:-}" ]]; then
+		missing_vars+=("$var")
+	fi
 done
 
 if [[ ${#missing_vars[@]} -ne 0 ]]; then
-  {
-    echo ""
-    echo "❌ Error: Missing required backend environment variables:"
-    for var in "${missing_vars[@]}"; do
-      echo "   - $var"
-    done
-    echo ""
-    echo "Set required variables before running ./run-dev.sh:"
-    echo ""
-    echo "  export DATABASE_URL=sqlite:dev.db"
-    echo "  export SECRET_KEY=replace-with-a-long-random-secret"
-    echo "  export ADMIN_USERNAME=admin"
-    echo ""
-    echo "See README.md and .env.example for more details."
-  } >&2
-  exit 1
+	{
+		echo ""
+		echo "❌ Error: Missing required backend environment variables:"
+		for var in "${missing_vars[@]}"; do
+			echo "   - $var"
+		done
+		echo ""
+		echo "Set required variables before running ./run-dev.sh:"
+		echo ""
+		echo "  export DATABASE_URL=sqlite:dev.db"
+		echo "  export SECRET_KEY=replace-with-a-long-random-secret"
+		echo "  export ADMIN_USERNAME=admin"
+		echo ""
+		echo "See README.md and .env.example for more details."
+	} >&2
+	exit 1
 fi
 
 echo "✓ All required environment variables are set"
@@ -41,12 +41,13 @@ echo ""
 
 # Check if virtual environment exists
 if [ ! -d ".venv" ]; then
-    echo "📦 Creating Python virtual environment..."
-    python -m venv .venv
+	echo "📦 Creating Python virtual environment..."
+	python -m venv .venv
 fi
 
 # Activate virtual environment
 echo "🐍 Activating Python virtual environment..."
+# shellcheck source=/dev/null
 source .venv/bin/activate
 
 # Install Python dependencies
@@ -67,10 +68,10 @@ sleep 3
 
 # Check if frontend directory exists
 if [ ! -d "frontend/node_modules" ]; then
-    echo "📦 Installing frontend dependencies..."
-    cd frontend
-    npm install
-    cd ..
+	echo "📦 Installing frontend dependencies..."
+	cd frontend
+	npm install
+	cd ..
 fi
 
 # Start frontend using FRONTEND_PORT env (frontend tooling can still auto-pick an available port)
@@ -92,5 +93,12 @@ echo "Press Ctrl+C to stop both servers"
 echo ""
 
 # Wait for Ctrl+C
-trap "echo ''; echo '🛑 Stopping servers...'; kill $BACKEND_PID $FRONTEND_PID 2>/dev/null; exit" INT
+cleanup() {
+	echo ""
+	echo "🛑 Stopping servers..."
+	kill "$BACKEND_PID" "$FRONTEND_PID" 2>/dev/null || true
+	exit
+}
+
+trap cleanup INT
 wait
