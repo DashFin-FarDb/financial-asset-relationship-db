@@ -485,8 +485,4 @@ def postgresql_heartbeat_schema_gaps(inspector: Inspector) -> list[str]:
         return ["rebuild_jobs table"]
 
     columns = {column["name"]: column for column in inspector.get_columns("rebuild_jobs")}
-    return (
-        _required_rebuild_column_gaps(columns)
-        + _identifier_width_gaps(columns)
-        + _status_constraint_gap(inspector)
-    )
+    return _required_rebuild_column_gaps(columns) + _identifier_width_gaps(columns) + _status_constraint_gap(inspector)
