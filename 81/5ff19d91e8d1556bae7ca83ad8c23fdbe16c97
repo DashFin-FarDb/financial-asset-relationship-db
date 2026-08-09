@@ -1,0 +1,25 @@
+tests/integration/test_runtime_authority_postgres.py
+  s_97fc15acf20f75::t_3ba0819a6a12e2 38-39
+  s_97fc15acf20f75::t_2a1860602aa2a8 23-24,26
+  s_97fc15acf20f75::t_a005bd3b0dbebc 157-169,171
+  s_97fc15acf20f75::t_eef05ea6b66c9a 177,187-206,208-210,212-214,217-219,222-223,229-232,235-243,247-258
+  s_97fc15acf20f75::t_b3af8449911662 172-176,178-186,207
+src/data/database.py
+  s_97fc15acf20f75::t_aea666c65ec31b 982-984,986
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.21",
+  "base_commit_sha": "815ff19d91e8d1556bae7ca83ad8c23fdbe16c97",
+  "prompts": {},
+  "sessions": {
+    "s_97fc15acf20f75": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "fe8baa04-319a-4b21-8392-0ad867596ec6",
+        "model": "composer-2.5"
+      },
+      "human_author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}
