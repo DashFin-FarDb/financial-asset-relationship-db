@@ -399,6 +399,7 @@ class TestSchemaInitialization:
         assert "current_schema() IS NOT NULL" in authority_query
         assert "login.rolname = session_user" in authority_query
         assert "pg_has_role(login.oid, assumable.oid, 'MEMBER')" in authority_query
+        assert "has_database_privilege(assumable.oid, current_database(), 'CREATE')" in authority_query
         assert "namespace.nspowner = assumable.oid" in authority_query
         assert "database.datdba = assumable.oid" in authority_query
 

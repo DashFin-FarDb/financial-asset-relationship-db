@@ -469,6 +469,7 @@ def verify_runtime_database_authority(engine: Engine) -> None:
                     "OR pg_has_role(login.oid, assumable.oid, 'MEMBER')) "
                     "AND (assumable.rolsuper OR assumable.rolcreaterole "
                     "OR assumable.rolcreatedb OR assumable.rolbypassrls "
+                    "OR has_database_privilege(assumable.oid, current_database(), 'CREATE') "
                     "OR has_schema_privilege(assumable.oid, current_schema(), 'CREATE') "
                     "OR EXISTS (SELECT 1 FROM pg_namespace AS namespace "
                     "WHERE namespace.nspname = current_schema() "
