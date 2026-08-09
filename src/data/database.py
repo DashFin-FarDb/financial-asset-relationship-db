@@ -562,23 +562,26 @@ def _ensure_capability_role(connection, role_name: str) -> None:
     """Create one stable NOLOGIN capability role or reject an unsafe existing role."""
     connection.execute(
         text(
-            f"DO $fardb$ BEGIN "
-            f"IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = '{role_name}') THEN "
-            f"CREATE ROLE {role_name} NOLOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOBYPASSRLS NOREPLICATION; "
-            f"END IF; "
-            f"IF EXISTS (SELECT 1 FROM pg_roles AS role WHERE role.rolname = '{role_name}' "
-            f"AND (role.rolcanlogin OR role.rolsuper OR role.rolcreatedb "
-            f"OR role.rolcreaterole OR role.rolbypassrls OR role.rolreplication "
-            f"OR has_database_privilege(role.oid, current_database(), 'CREATE') "
-            f"OR has_schema_privilege(role.oid, current_schema(), 'CREATE') "
-            f"OR EXISTS (SELECT 1 FROM pg_proc AS proc "
-            f"JOIN pg_namespace AS namespace ON namespace.oid = proc.pronamespace "
-            f"WHERE namespace.nspname = current_schema() "
-            f"AND proc.proname = 'grac_v1_reject_mutation' AND proc.proowner = role.oid) OR EXISTS ("
-            f"SELECT 1 FROM pg_auth_members AS membership WHERE membership.member = role.oid))) "
-            f"THEN RAISE EXCEPTION 'unsafe FarDB capability role: {role_name}'; END IF; "
-            f"END $fardb$"
-        )
+            "DO $fardb$ DECLARE capability_role text := :role_name; BEGIN "
+            "IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = capability_role) THEN "
+            "EXECUTE 'CREATE ROLE ' || quote_ident(capability_role) || "
+            "' NOLOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOBYPASSRLS NOREPLICATION'; "
+            "END IF; "
+            "IF EXISTS (SELECT 1 FROM pg_roles AS role WHERE role.rolname = capability_role "
+            "AND (role.rolcanlogin OR role.rolsuper OR role.rolcreatedb "
+            "OR role.rolcreaterole OR role.rolbypassrls OR role.rolreplication "
+            "OR has_database_privilege(role.oid, current_database(), 'CREATE') "
+            "OR has_schema_privilege(role.oid, current_schema(), 'CREATE') "
+            "OR EXISTS (SELECT 1 FROM pg_proc AS proc "
+            "JOIN pg_namespace AS namespace ON namespace.oid = proc.pronamespace "
+            "WHERE namespace.nspname = current_schema() "
+            "AND proc.proname = 'grac_v1_reject_mutation' AND proc.proowner = role.oid) OR EXISTS ("
+            "SELECT 1 FROM pg_auth_members AS membership WHERE membership.member = role.oid))) "
+            "THEN RAISE EXCEPTION USING MESSAGE = "
+            "'unsafe FarDB capability role: ' || capability_role; END IF; "
+            "END $fardb$"
+        ),
+        {"role_name": role_name},
     )
 
 
