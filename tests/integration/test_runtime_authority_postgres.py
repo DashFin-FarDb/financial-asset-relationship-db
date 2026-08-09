@@ -85,22 +85,19 @@ def test_auth_runtime_rejects_assumable_privileged_roles(attack_role: str) -> No
         with _operator_connection(database_url) as connection, connection.cursor() as cursor:
             cursor.execute(
                 sql.SQL(
-                    "CREATE ROLE {} LOGIN NOINHERIT NOSUPERUSER NOCREATEDB NOCREATEROLE "
-                    "NOBYPASSRLS NOREPLICATION"
+                    "CREATE ROLE {} LOGIN NOINHERIT NOSUPERUSER NOCREATEDB NOCREATEROLE " "NOBYPASSRLS NOREPLICATION"
                 ).format(sql.Identifier(_AUTH_RUNTIME_LOGIN))
             )
             if attack_role == "replication":
                 cursor.execute(
                     sql.SQL(
-                        "CREATE ROLE {} NOLOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE "
-                        "NOBYPASSRLS REPLICATION"
+                        "CREATE ROLE {} NOLOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE " "NOBYPASSRLS REPLICATION"
                     ).format(sql.Identifier(elevated_role))
                 )
             else:
                 cursor.execute(
                     sql.SQL(
-                        "CREATE ROLE {} NOLOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE "
-                        "NOBYPASSRLS NOREPLICATION"
+                        "CREATE ROLE {} NOLOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE " "NOBYPASSRLS NOREPLICATION"
                     ).format(sql.Identifier(elevated_role))
                 )
                 cursor.execute(
@@ -153,21 +150,22 @@ def test_runtime_database_authority_executes_against_linked_application_sequence
             assert isinstance(original_owner, str) and original_owner
 
             cursor.execute(
-                sql.SQL(
-                    "CREATE ROLE {} NOLOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOBYPASSRLS NOREPLICATION"
-                ).format(sql.Identifier(_SEQUENCE_OWNER_ROLE))
+                sql.SQL("CREATE ROLE {} NOLOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOBYPASSRLS NOREPLICATION").format(
+                    sql.Identifier(_SEQUENCE_OWNER_ROLE)
+                )
             )
             cursor.execute(
                 sql.SQL(
-                    "CREATE ROLE {} LOGIN NOINHERIT NOSUPERUSER NOCREATEDB NOCREATEROLE "
-                    "NOBYPASSRLS NOREPLICATION"
+                    "CREATE ROLE {} LOGIN NOINHERIT NOSUPERUSER NOCREATEDB NOCREATEROLE " "NOBYPASSRLS NOREPLICATION"
                 ).format(sql.Identifier(_SEQUENCE_RUNTIME_LOGIN))
             )
             cursor.execute(sql.SQL("GRANT CREATE ON SCHEMA public TO {}").format(sql.Identifier(_SEQUENCE_OWNER_ROLE)))
             cursor.execute(
                 sql.SQL("ALTER TABLE asset_relationships OWNER TO {}").format(sql.Identifier(_SEQUENCE_OWNER_ROLE))
             )
-            cursor.execute(sql.SQL("REVOKE CREATE ON SCHEMA public FROM {}").format(sql.Identifier(_SEQUENCE_OWNER_ROLE)))
+            cursor.execute(
+                sql.SQL("REVOKE CREATE ON SCHEMA public FROM {}").format(sql.Identifier(_SEQUENCE_OWNER_ROLE))
+            )
             cursor.execute(
                 sql.SQL("GRANT {} TO {}").format(
                     sql.Identifier(_SEQUENCE_OWNER_ROLE),
