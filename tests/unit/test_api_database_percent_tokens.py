@@ -7,13 +7,12 @@ from unittest.mock import patch
 
 import pytest
 
-import api.database as database
 from api.database import ensure_runtime_access
 
 pytestmark = pytest.mark.unit
 
 
-@patch.object(database, "DATABASE_TYPE", "postgresql")
+@patch("api.database.DATABASE_TYPE", "postgresql")
 @patch("api.database.fetch_value", return_value=None)
 @patch("api.database.execute")
 def test_ensure_runtime_access_escapes_driver_percent_tokens(mock_execute, _mock_fetch_value) -> None:

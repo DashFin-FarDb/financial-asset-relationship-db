@@ -925,6 +925,7 @@ def verify_runtime_database_authority(
 
     try:
         normalized_capabilities = _normalized_runtime_capabilities(required_capabilities)
+        managed_tables = sorted(Base.metadata.tables)
         with engine.connect() as connection:
             restricted = connection.execute(
                 text(
@@ -944,16 +945,29 @@ def verify_runtime_database_authority(
                     "AND database.datdba = assumable.oid) "
                     "OR EXISTS (SELECT 1 FROM pg_class AS rel "
                     "JOIN pg_namespace AS namespace ON namespace.oid = rel.relnamespace "
-                    "WHERE namespace.nspname = current_schema() AND rel.relname IN :tables "
-                    "AND rel.relowner = assumable.oid) "
+                    "WHERE namespace.nspname = current_schema() "
+                    "AND rel.relowner = assumable.oid "
+                    "AND (rel.relname IN :tables OR (rel.relkind = 'S' "
+                    "AND EXISTS (SELECT 1 FROM pg_depend AS dependency "
+                    "JOIN pg_class AS owning_table ON owning_table.oid = dependency.refobjid "
+                    "JOIN pg_namespace AS owning_namespace ON owning_namespace.oid = owning_table.relnamespace "
+                    "WHERE dependency.classid = 'pg_class'::regclass "
+                    "AND dependency.refclassid = 'pg_class'::regclass "
+                    "AND dependency.objid = rel.oid "
+                    "AND dependency.deptype IN ('a', 'i') "
+                    "AND owning_namespace.nspname = current_schema() "
+                    "AND owning_table.relname IN :sequence_tables)))) "
                     "OR EXISTS (SELECT 1 FROM pg_proc AS proc "
                     "JOIN pg_namespace AS namespace ON namespace.oid = proc.pronamespace "
                     "WHERE namespace.nspname = current_schema() "
                     "AND proc.proname = 'grac_v1_reject_mutation' "
                     "AND proc.proowner = assumable.oid))) "
                     "FROM pg_roles AS login WHERE login.rolname = session_user"
-                ).bindparams(bindparam("tables", expanding=True)),
-                {"tables": sorted(Base.metadata.tables)},
+                ).bindparams(
+                    bindparam("tables", expanding=True),
+                    bindparam("sequence_tables", expanding=True),
+                ),
+                {"tables": managed_tables, "sequence_tables": managed_tables},
             ).scalar_one()
             if not restricted:
                 raise SchemaCompatibilityError("runtime database role retains schema-migration authority")
