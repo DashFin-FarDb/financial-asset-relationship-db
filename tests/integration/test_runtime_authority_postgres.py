@@ -40,6 +40,7 @@ _GRAPH_NO_CAP_RUNTIME_LOGIN = "cq1608_graph_no_cap_runtime"
 _GRAPH_ORDINARY_ROLE = "cq1608_graph_ordinary"
 _GRAPH_EXTRA_RUNTIME_LOGIN = "cq1608_graph_extra_runtime"
 _GRAPH_EXTRA_TRUNCATE_ROLE = "cq1608_graph_extra_truncate"
+_GRAPH_DIRECT_SEQUENCE_LOGIN = "cq1608_graph_direct_sequence"
 _SEQUENCE_RUNTIME_LOGIN = "cq1608_sequence_runtime"
 _SEQUENCE_OWNER_ROLE = "cq1608_sequence_owner"
 
@@ -344,6 +345,82 @@ def test_runtime_database_authority_rejects_unexpected_assumable_truncate_role()
             database_url,
             _GRAPH_EXTRA_RUNTIME_LOGIN,
             _GRAPH_EXTRA_TRUNCATE_ROLE,
+        )
+        operator_engine.dispose()
+
+
+@pytest.mark.integration
+def test_runtime_database_authority_rejects_direct_sequence_update_grant() -> None:
+    """Direct sequence UPDATE may not exceed the graph capability contract."""
+    database_url = _ephemeral_database_url()
+    operator_engine = create_engine(database_url, future=True)
+    runtime_engine = None
+    sequence_name: str | None = None
+
+    init_db(operator_engine)
+    ensure_runtime_database_capabilities(
+        operator_engine,
+        {GRAPH_RUNTIME_CAPABILITY},
+    )
+
+    try:
+        with _operator_connection(database_url) as connection, connection.cursor() as cursor:
+            runtime_login_ddl = sql.SQL(
+                "CREATE ROLE {} LOGIN INHERIT NOSUPERUSER NOCREATEDB " "NOCREATEROLE NOBYPASSRLS NOREPLICATION"
+            )
+            cursor.execute(runtime_login_ddl.format(sql.Identifier(_GRAPH_DIRECT_SEQUENCE_LOGIN)))
+
+            cursor.execute(
+                sql.SQL("GRANT {} TO {}").format(
+                    sql.Identifier(GRAPH_RUNTIME_ROLE),
+                    sql.Identifier(_GRAPH_DIRECT_SEQUENCE_LOGIN),
+                )
+            )
+
+            cursor.execute("SELECT pg_get_serial_sequence('asset_relationships', 'id')")
+            sequence_name = cursor.fetchone()[0]
+            assert isinstance(sequence_name, str) and sequence_name
+
+            cursor.execute(
+                sql.SQL("GRANT UPDATE ON SEQUENCE {} TO {}").format(
+                    sql.Identifier(*sequence_name.split(".")),
+                    sql.Identifier(_GRAPH_DIRECT_SEQUENCE_LOGIN),
+                )
+            )
+
+        runtime_engine = create_engine(
+            "postgresql+psycopg2://",
+            creator=lambda: _runtime_connection(
+                database_url,
+                _GRAPH_DIRECT_SEQUENCE_LOGIN,
+            ),
+            future=True,
+        )
+
+        with pytest.raises(
+            SchemaCompatibilityError,
+            match="runtime login sequence grants are incompatible",
+        ):
+            verify_runtime_database_authority(
+                runtime_engine,
+                required_capabilities={GRAPH_RUNTIME_CAPABILITY},
+            )
+    finally:
+        if runtime_engine is not None:
+            runtime_engine.dispose()
+
+        if sequence_name is not None:
+            with _operator_connection(database_url) as connection, connection.cursor() as cursor:
+                cursor.execute(
+                    sql.SQL("REVOKE UPDATE ON SEQUENCE {} FROM {}").format(
+                        sql.Identifier(*sequence_name.split(".")),
+                        sql.Identifier(_GRAPH_DIRECT_SEQUENCE_LOGIN),
+                    )
+                )
+
+        _drop_roles(
+            database_url,
+            _GRAPH_DIRECT_SEQUENCE_LOGIN,
         )
         operator_engine.dispose()
 

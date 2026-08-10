@@ -60,6 +60,8 @@ _RLS_COMMANDS = {
 }
 _TABLE_PRIVILEGES = (*_RLS_COMMANDS, "TRUNCATE", "REFERENCES", "TRIGGER")
 _COLUMN_PRIVILEGES = ("SELECT", "INSERT", "UPDATE", "REFERENCES")
+_SEQUENCE_PRIVILEGES = ("USAGE", "SELECT", "UPDATE")
+_GRAPH_SEQUENCE_PRIVILEGES = frozenset({"USAGE", "SELECT"})
 
 
 class SchemaCompatibilityError(RuntimeError):
@@ -857,6 +859,38 @@ def _verify_runtime_capability_catalog(  # noqa: C901 - exact fail-closed privil
                 )
 
 
+def _verify_runtime_login_sequence_grants(
+    connection,
+    capabilities: tuple[str, ...],
+) -> None:
+    """Verify effective login sequence privileges against the capability contract."""
+    expected_privileges = _GRAPH_SEQUENCE_PRIVILEGES if GRAPH_RUNTIME_CAPABILITY in capabilities else frozenset()
+
+    for table_name, column_name in _GRAPH_SEQUENCE_TABLE_COLUMNS:
+        sequence_name = connection.execute(
+            text("SELECT pg_get_serial_sequence(:table_name, :column_name)"),
+            {
+                "table_name": table_name,
+                "column_name": column_name,
+            },
+        ).scalar_one()
+
+        if sequence_name is None:
+            raise SchemaCompatibilityError(f"required runtime sequence is missing for {table_name}")
+
+        for privilege in _SEQUENCE_PRIVILEGES:
+            actual = connection.execute(
+                text("SELECT has_sequence_privilege(" "session_user, :sequence_name, :privilege)"),
+                {
+                    "sequence_name": sequence_name,
+                    "privilege": privilege,
+                },
+            ).scalar_one()
+
+            if bool(actual) != (privilege in expected_privileges):
+                raise SchemaCompatibilityError(f"runtime login sequence grants are incompatible on {table_name}")
+
+
 def verify_database_schema(
     engine: Engine,
     *,
@@ -1034,6 +1068,10 @@ def verify_runtime_database_authority(
                                 raise SchemaCompatibilityError(
                                     f"runtime login column grants are incompatible on {table_name}"
                                 )
+                _verify_runtime_login_sequence_grants(
+                    connection,
+                    normalized_capabilities,
+                )
     except SchemaCompatibilityError:
         raise
     except Exception as exc:  # noqa: BLE001 - sanitize driver/catalog errors at the runtime boundary
