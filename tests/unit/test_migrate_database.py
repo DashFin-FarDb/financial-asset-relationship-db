@@ -3,12 +3,13 @@
 from __future__ import annotations
 
 from contextlib import contextmanager
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, call
 
 import pytest
 
 import scripts.migrate_database as migrate_database
 from src.config.settings import Settings
+from src.data.database import SchemaCompatibilityError
 
 pytestmark = pytest.mark.unit
 
@@ -59,7 +60,7 @@ def test_migrate_configured_databases_owns_all_mutating_setup(monkeypatch) -> No
 
     assert migrated == ("graph", "coordination", "auth")
     assert init_db.call_count == 2
-    assert verify_graph.call_count == 2
+    assert verify_graph.call_count == 4
     assert ensure_capabilities.call_count == 2
     initialize_schema.assert_called_once_with()
     seed_credentials.assert_called_once_with(migrate_database.user_repository, settings)
@@ -68,6 +69,34 @@ def test_migrate_configured_databases_owns_all_mutating_setup(monkeypatch) -> No
     assert bound_targets == ["sqlite:///auth.db"]
     for engine in engines.values():
         engine.dispose.assert_called_once_with()
+
+
+def test_migrate_configured_databases_rejects_incompatible_structure_before_authority(monkeypatch) -> None:
+    """Structural incompatibility must fail before runtime authority can be changed."""
+    graph_url = "sqlite:///graph.db"
+    settings = Settings(
+        secret_key="s" * 32,
+        asset_graph_database_url=graph_url,
+        database_url="sqlite:///auth.db",
+    )
+    graph_engine = MagicMock()
+    init_db = MagicMock()
+    verify_graph = MagicMock(side_effect=SchemaCompatibilityError("incompatible pre-existing schema"))
+    ensure_capabilities = MagicMock()
+    monkeypatch.setattr(migrate_database, "init_db", init_db)
+    monkeypatch.setattr(migrate_database, "verify_database_schema", verify_graph)
+    monkeypatch.setattr(migrate_database, "ensure_runtime_database_capabilities", ensure_capabilities)
+
+    with pytest.raises(SchemaCompatibilityError, match="incompatible pre-existing schema"):
+        migrate_database.migrate_configured_databases(
+            settings,
+            engine_factory=lambda _url: graph_engine,
+        )
+
+    init_db.assert_called_once_with(graph_engine)
+    verify_graph.assert_called_once_with(graph_engine)
+    ensure_capabilities.assert_not_called()
+    graph_engine.dispose.assert_called_once_with()
 
 
 def test_migrate_configured_databases_requires_provisioned_credentials(monkeypatch) -> None:
@@ -180,7 +209,10 @@ def test_migrate_configured_databases_combines_shared_graph_and_coordination_cap
         migrate_database.GRAPH_RUNTIME_CAPABILITY,
         migrate_database.COORDINATION_RUNTIME_CAPABILITY,
     }
-    verify_graph.assert_called_once_with(shared_engine, required_capabilities=capabilities)
+    assert verify_graph.call_args_list == [
+        call(shared_engine),
+        call(shared_engine, required_capabilities=capabilities),
+    ]
     shared_engine.dispose.assert_called_once_with()
 
 

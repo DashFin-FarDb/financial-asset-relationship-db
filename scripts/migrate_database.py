@@ -55,7 +55,7 @@ def _has_usable_credentials() -> bool:
     """Return whether an enabled credential has a supported password hash."""
     return bool(
         fetch_value(
-            "SELECT 1 FROM user_credentials " "WHERE disabled = 0 AND hashed_password LIKE ? LIMIT 1",
+            "SELECT 1 FROM user_credentials WHERE disabled = 0 AND hashed_password LIKE ? LIMIT 1",
             ("$pbkdf2-sha256$%",),
         )
     )
@@ -86,6 +86,7 @@ def migrate_configured_databases(
     try:
         for _url, (engine, capabilities) in engines.items():
             init_db(engine)
+            verify_database_schema(engine)
             ensure_runtime_database_capabilities(engine, capabilities)
             verify_database_schema(engine, required_capabilities=capabilities)
             if GRAPH_RUNTIME_CAPABILITY in capabilities:

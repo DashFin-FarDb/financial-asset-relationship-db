@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import sqlite3
+from contextlib import closing
 
 import pytest
 from sqlalchemy import create_engine, inspect
@@ -50,7 +51,7 @@ def test_migration_rejects_store_with_only_disabled_user(tmp_path) -> None:
     with pytest.raises(RuntimeError, match="credential provisioning incomplete"):
         migrate_configured_databases(settings)
 
-    with sqlite3.connect(auth_path) as connection:
+    with closing(sqlite3.connect(auth_path)) as connection, connection:
         row = connection.execute(
             "SELECT disabled, hashed_password FROM user_credentials WHERE username = ?",
             ("disabled-admin",),

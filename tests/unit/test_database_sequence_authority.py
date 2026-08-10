@@ -7,6 +7,8 @@ from sqlalchemy.engine import Engine
 
 from src.data.database import SchemaCompatibilityError, verify_runtime_database_authority
 
+pytestmark = pytest.mark.unit
+
 
 def test_postgresql_authority_gate_covers_assumable_application_sequence_owner() -> None:
     """FarDB-owned serial/identity sequences must participate in the ownership gate."""

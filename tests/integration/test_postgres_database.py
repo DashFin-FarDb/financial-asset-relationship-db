@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import os
 from typing import Final, cast
+from uuid import uuid4
 
 import pytest
 
@@ -267,6 +268,7 @@ def test_coordination_runtime_role_exercises_only_lock_dml() -> None:
 
     from src.data.database import verify_database_schema, verify_runtime_database_authority
 
+    lock_name = f"cq-runtime-probe-{uuid4().hex}"
     engine = create_engine(runtime_url, future=True)
     try:
         verify_database_schema(engine, required_capabilities={"coordination"})
@@ -278,20 +280,26 @@ def test_coordination_runtime_role_exercises_only_lock_dml() -> None:
                     text(
                         "INSERT INTO distributed_locks "
                         "(lock_name, holder_id, expires_at, created_at, updated_at) "
-                        "VALUES ('cq-runtime-probe', 'cq-holder', CURRENT_TIMESTAMP + INTERVAL '1 minute', "
+                        "VALUES (:lock_name, 'cq-holder', CURRENT_TIMESTAMP + INTERVAL '1 minute', "
                         "CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)"
-                    )
+                    ),
+                    {"lock_name": lock_name},
                 )
                 connection.execute(
-                    text("UPDATE distributed_locks SET holder_id = 'cq-renewed' WHERE lock_name = 'cq-runtime-probe'")
+                    text("UPDATE distributed_locks SET holder_id = 'cq-renewed' WHERE lock_name = :lock_name"),
+                    {"lock_name": lock_name},
                 )
                 assert (
                     connection.execute(
-                        text("SELECT holder_id FROM distributed_locks WHERE lock_name = 'cq-runtime-probe'")
+                        text("SELECT holder_id FROM distributed_locks WHERE lock_name = :lock_name"),
+                        {"lock_name": lock_name},
                     ).scalar_one()
                     == "cq-renewed"
                 )
-                connection.execute(text("DELETE FROM distributed_locks WHERE lock_name = 'cq-runtime-probe'"))
+                connection.execute(
+                    text("DELETE FROM distributed_locks WHERE lock_name = :lock_name"),
+                    {"lock_name": lock_name},
+                )
             finally:
                 transaction.rollback()
         with engine.connect() as connection:

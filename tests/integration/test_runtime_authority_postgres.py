@@ -34,7 +34,6 @@ _AUTH_RUNTIME_LOGIN = "cq1608_auth_runtime"
 _AUTH_WRITE_ROLE = "cq1608_auth_writer"
 _AUTH_REPLICATION_ROLE = "cq1608_auth_replication"
 _AUTH_ORDINARY_ROLE = "cq1608_auth_ordinary"
-_GRAPH_RUNTIME_LOGIN = "cq1608_graph_runtime"
 _GRAPH_REPLICATION_ROLE = "cq1608_graph_replication"
 _GRAPH_NO_CAP_RUNTIME_LOGIN = "cq1608_graph_no_cap_runtime"
 _GRAPH_ORDINARY_ROLE = "cq1608_graph_ordinary"
@@ -43,6 +42,10 @@ _GRAPH_EXTRA_TRUNCATE_ROLE = "cq1608_graph_extra_truncate"
 _GRAPH_DIRECT_SEQUENCE_LOGIN = "cq1608_graph_direct_sequence"
 _SEQUENCE_RUNTIME_LOGIN = "cq1608_sequence_runtime"
 _SEQUENCE_OWNER_ROLE = "cq1608_sequence_owner"
+_RUNTIME_LOGIN_DDL = sql.SQL(
+    "CREATE ROLE {} LOGIN NOINHERIT NOSUPERUSER NOCREATEDB NOCREATEROLE "
+    "NOBYPASSRLS NOREPLICATION"
+)
 
 
 def _ephemeral_database_url() -> str:
@@ -99,21 +102,19 @@ def test_auth_runtime_rejects_assumable_privileged_roles(attack_role: str) -> No
     elevated_role = _AUTH_REPLICATION_ROLE if attack_role == "replication" else _AUTH_WRITE_ROLE
     try:
         with _operator_connection(database_url) as connection, connection.cursor() as cursor:
-            cursor.execute(
-                sql.SQL(
-                    "CREATE ROLE {} LOGIN NOINHERIT NOSUPERUSER NOCREATEDB NOCREATEROLE " "NOBYPASSRLS NOREPLICATION"
-                ).format(sql.Identifier(_AUTH_RUNTIME_LOGIN))
-            )
+            cursor.execute(_RUNTIME_LOGIN_DDL.format(sql.Identifier(_AUTH_RUNTIME_LOGIN)))
             if attack_role == "replication":
                 cursor.execute(
                     sql.SQL(
-                        "CREATE ROLE {} NOLOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE " "NOBYPASSRLS REPLICATION"
+                        "CREATE ROLE {} NOLOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE "
+                        "NOBYPASSRLS REPLICATION"
                     ).format(sql.Identifier(elevated_role))
                 )
             else:
                 cursor.execute(
                     sql.SQL(
-                        "CREATE ROLE {} NOLOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE " "NOBYPASSRLS NOREPLICATION"
+                        "CREATE ROLE {} NOLOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE "
+                        "NOBYPASSRLS NOREPLICATION"
                     ).format(sql.Identifier(elevated_role))
                 )
                 cursor.execute(
@@ -164,13 +165,11 @@ def test_auth_runtime_rejects_unexpected_assumable_ordinary_role() -> None:
 
     try:
         with _operator_connection(database_url) as connection, connection.cursor() as cursor:
-            runtime_login_ddl = sql.SQL(
-                "CREATE ROLE {} LOGIN NOINHERIT NOSUPERUSER NOCREATEDB NOCREATEROLE " "NOBYPASSRLS NOREPLICATION"
-            )
-            cursor.execute(runtime_login_ddl.format(sql.Identifier(_AUTH_RUNTIME_LOGIN)))
+            cursor.execute(_RUNTIME_LOGIN_DDL.format(sql.Identifier(_AUTH_RUNTIME_LOGIN)))
 
             ordinary_role_ddl = sql.SQL(
-                "CREATE ROLE {} NOLOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE " "NOBYPASSRLS NOREPLICATION"
+                "CREATE ROLE {} NOLOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE "
+                "NOBYPASSRLS NOREPLICATION"
             )
             cursor.execute(ordinary_role_ddl.format(sql.Identifier(_AUTH_ORDINARY_ROLE)))
 
@@ -202,25 +201,36 @@ def test_auth_runtime_rejects_unexpected_assumable_ordinary_role() -> None:
 
 
 @pytest.mark.integration
-def test_runtime_database_authority_rejects_unexpected_assumable_role_without_capabilities() -> None:
+@pytest.mark.parametrize(
+    ("assumable_role", "role_attribute", "expected_error"),
+    [
+        (_GRAPH_ORDINARY_ROLE, "NOREPLICATION", "capability memberships are incompatible"),
+        (_GRAPH_REPLICATION_ROLE, "REPLICATION", "retains schema-migration authority"),
+    ],
+)
+def test_runtime_database_authority_rejects_unexpected_assumable_role_without_capabilities(
+    assumable_role: str,
+    role_attribute: str,
+    expected_error: str,
+) -> None:
     """A no-capability runtime login may not retain any assumable role membership."""
     database_url = _ephemeral_database_url()
     runtime_engine = None
     try:
         with _operator_connection(database_url) as connection, connection.cursor() as cursor:
-            runtime_login_ddl = sql.SQL(
-                "CREATE ROLE {} LOGIN NOINHERIT NOSUPERUSER NOCREATEDB NOCREATEROLE " "NOBYPASSRLS NOREPLICATION"
-            )
-            cursor.execute(runtime_login_ddl.format(sql.Identifier(_GRAPH_NO_CAP_RUNTIME_LOGIN)))
+            cursor.execute(_RUNTIME_LOGIN_DDL.format(sql.Identifier(_GRAPH_NO_CAP_RUNTIME_LOGIN)))
 
-            ordinary_role_ddl = sql.SQL(
-                "CREATE ROLE {} NOLOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE " "NOBYPASSRLS NOREPLICATION"
+            assumable_role_ddl = sql.SQL(
+                "CREATE ROLE {} NOLOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOBYPASSRLS {}"
+            ).format(
+                sql.Identifier(assumable_role),
+                sql.SQL(role_attribute),
             )
-            cursor.execute(ordinary_role_ddl.format(sql.Identifier(_GRAPH_ORDINARY_ROLE)))
+            cursor.execute(assumable_role_ddl)
 
             cursor.execute(
                 sql.SQL("GRANT {} TO {}").format(
-                    sql.Identifier(_GRAPH_ORDINARY_ROLE),
+                    sql.Identifier(assumable_role),
                     sql.Identifier(_GRAPH_NO_CAP_RUNTIME_LOGIN),
                 )
             )
@@ -230,74 +240,39 @@ def test_runtime_database_authority_rejects_unexpected_assumable_role_without_ca
             creator=lambda: _runtime_connection(database_url, _GRAPH_NO_CAP_RUNTIME_LOGIN),
             future=True,
         )
-        with pytest.raises(SchemaCompatibilityError, match="capability memberships are incompatible"):
+        with pytest.raises(SchemaCompatibilityError, match=expected_error):
             verify_runtime_database_authority(runtime_engine)
     finally:
         if runtime_engine is not None:
             runtime_engine.dispose()
-        _drop_roles(database_url, _GRAPH_NO_CAP_RUNTIME_LOGIN, _GRAPH_ORDINARY_ROLE)
-
-
-@pytest.mark.integration
-def test_runtime_database_authority_rejects_assumable_replication_role() -> None:
-    """The general runtime verifier rejects SET ROLE access to REPLICATION."""
-    database_url = _ephemeral_database_url()
-    runtime_engine = None
-    try:
-        with _operator_connection(database_url) as connection, connection.cursor() as cursor:
-            runtime_login_ddl = sql.SQL(
-                "CREATE ROLE {} LOGIN NOINHERIT NOSUPERUSER NOCREATEDB NOCREATEROLE " "NOBYPASSRLS NOREPLICATION"
-            )
-            cursor.execute(runtime_login_ddl.format(sql.Identifier(_GRAPH_RUNTIME_LOGIN)))
-
-            replication_role_ddl = sql.SQL(
-                "CREATE ROLE {} NOLOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE " "NOBYPASSRLS REPLICATION"
-            )
-            cursor.execute(replication_role_ddl.format(sql.Identifier(_GRAPH_REPLICATION_ROLE)))
-
-            membership_ddl = sql.SQL("GRANT {} TO {}").format(
-                sql.Identifier(_GRAPH_REPLICATION_ROLE),
-                sql.Identifier(_GRAPH_RUNTIME_LOGIN),
-            )
-            cursor.execute(membership_ddl)
-
-        runtime_engine = create_engine(
-            "postgresql+psycopg2://",
-            creator=lambda: _runtime_connection(database_url, _GRAPH_RUNTIME_LOGIN),
-            future=True,
-        )
-        with pytest.raises(SchemaCompatibilityError, match="retains schema-migration authority"):
-            verify_runtime_database_authority(runtime_engine)
-    finally:
-        if runtime_engine is not None:
-            runtime_engine.dispose()
-        _drop_roles(database_url, _GRAPH_RUNTIME_LOGIN, _GRAPH_REPLICATION_ROLE)
+        _drop_roles(database_url, _GRAPH_NO_CAP_RUNTIME_LOGIN, assumable_role)
 
 
 @pytest.mark.integration
 def test_runtime_database_authority_rejects_unexpected_assumable_truncate_role() -> None:
     """Unexpected role membership cannot retain whole-table write authority."""
     database_url = _ephemeral_database_url()
-    operator_engine = create_engine(database_url, future=True)
+    operator_engine = None
     runtime_engine = None
-
-    init_db(operator_engine)
-    ensure_runtime_database_capabilities(
-        operator_engine,
-        {GRAPH_RUNTIME_CAPABILITY},
-    )
+    extra_role_created = False
 
     try:
+        operator_engine = create_engine(database_url, future=True)
+        init_db(operator_engine)
+        ensure_runtime_database_capabilities(
+            operator_engine,
+            {GRAPH_RUNTIME_CAPABILITY},
+        )
+
         with _operator_connection(database_url) as connection, connection.cursor() as cursor:
-            runtime_login_ddl = sql.SQL(
-                "CREATE ROLE {} LOGIN NOINHERIT NOSUPERUSER NOCREATEDB NOCREATEROLE " "NOBYPASSRLS NOREPLICATION"
-            )
-            cursor.execute(runtime_login_ddl.format(sql.Identifier(_GRAPH_EXTRA_RUNTIME_LOGIN)))
+            cursor.execute(_RUNTIME_LOGIN_DDL.format(sql.Identifier(_GRAPH_EXTRA_RUNTIME_LOGIN)))
 
             extra_role_ddl = sql.SQL(
-                "CREATE ROLE {} NOLOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE " "NOBYPASSRLS NOREPLICATION"
+                "CREATE ROLE {} NOLOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE "
+                "NOBYPASSRLS NOREPLICATION"
             )
             cursor.execute(extra_role_ddl.format(sql.Identifier(_GRAPH_EXTRA_TRUNCATE_ROLE)))
+            extra_role_created = True
 
             cursor.execute(
                 sql.SQL("GRANT {} TO {}").format(
@@ -336,37 +311,43 @@ def test_runtime_database_authority_rejects_unexpected_assumable_truncate_role()
         if runtime_engine is not None:
             runtime_engine.dispose()
 
-        with _operator_connection(database_url) as connection, connection.cursor() as cursor:
-            cursor.execute(
-                sql.SQL("REVOKE TRUNCATE ON TABLE assets FROM {}").format(sql.Identifier(_GRAPH_EXTRA_TRUNCATE_ROLE))
-            )
+        if extra_role_created:
+            with _operator_connection(database_url) as connection, connection.cursor() as cursor:
+                cursor.execute(
+                    sql.SQL("REVOKE TRUNCATE ON TABLE assets FROM {}").format(
+                        sql.Identifier(_GRAPH_EXTRA_TRUNCATE_ROLE)
+                    )
+                )
 
         _drop_roles(
             database_url,
             _GRAPH_EXTRA_RUNTIME_LOGIN,
             _GRAPH_EXTRA_TRUNCATE_ROLE,
         )
-        operator_engine.dispose()
+        if operator_engine is not None:
+            operator_engine.dispose()
 
 
 @pytest.mark.integration
 def test_runtime_database_authority_rejects_direct_sequence_update_grant() -> None:
     """Direct sequence UPDATE may not exceed the graph capability contract."""
     database_url = _ephemeral_database_url()
-    operator_engine = create_engine(database_url, future=True)
+    operator_engine = None
     runtime_engine = None
     sequence_name: str | None = None
 
-    init_db(operator_engine)
-    ensure_runtime_database_capabilities(
-        operator_engine,
-        {GRAPH_RUNTIME_CAPABILITY},
-    )
-
     try:
+        operator_engine = create_engine(database_url, future=True)
+        init_db(operator_engine)
+        ensure_runtime_database_capabilities(
+            operator_engine,
+            {GRAPH_RUNTIME_CAPABILITY},
+        )
+
         with _operator_connection(database_url) as connection, connection.cursor() as cursor:
             runtime_login_ddl = sql.SQL(
-                "CREATE ROLE {} LOGIN INHERIT NOSUPERUSER NOCREATEDB " "NOCREATEROLE NOBYPASSRLS NOREPLICATION"
+                "CREATE ROLE {} LOGIN INHERIT NOSUPERUSER NOCREATEDB "
+                "NOCREATEROLE NOBYPASSRLS NOREPLICATION"
             )
             cursor.execute(runtime_login_ddl.format(sql.Identifier(_GRAPH_DIRECT_SEQUENCE_LOGIN)))
 
@@ -422,7 +403,8 @@ def test_runtime_database_authority_rejects_direct_sequence_update_grant() -> No
             database_url,
             _GRAPH_DIRECT_SEQUENCE_LOGIN,
         )
-        operator_engine.dispose()
+        if operator_engine is not None:
+            operator_engine.dispose()
 
 
 @pytest.mark.integration
@@ -445,11 +427,7 @@ def test_runtime_database_authority_executes_against_linked_application_sequence
                     sql.Identifier(_SEQUENCE_OWNER_ROLE)
                 )
             )
-            cursor.execute(
-                sql.SQL(
-                    "CREATE ROLE {} LOGIN NOINHERIT NOSUPERUSER NOCREATEDB NOCREATEROLE " "NOBYPASSRLS NOREPLICATION"
-                ).format(sql.Identifier(_SEQUENCE_RUNTIME_LOGIN))
-            )
+            cursor.execute(_RUNTIME_LOGIN_DDL.format(sql.Identifier(_SEQUENCE_RUNTIME_LOGIN)))
             cursor.execute(sql.SQL("GRANT CREATE ON SCHEMA public TO {}").format(sql.Identifier(_SEQUENCE_OWNER_ROLE)))
             cursor.execute(
                 sql.SQL("ALTER TABLE asset_relationships OWNER TO {}").format(sql.Identifier(_SEQUENCE_OWNER_ROLE))

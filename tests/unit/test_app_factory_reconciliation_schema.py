@@ -7,6 +7,7 @@ from unittest.mock import MagicMock
 import pytest
 
 from api import app_factory
+from src.data.database import COORDINATION_RUNTIME_CAPABILITY, GRAPH_RUNTIME_CAPABILITY
 
 pytestmark = pytest.mark.unit
 
@@ -24,10 +25,10 @@ def test_reconciliation_schema_verification_calls_each_separate_target_once(monk
 
     assert verify_schema.call_count == 2
     assert verify_authority.call_count == 2
-    assert verify_schema.call_args_list[0].kwargs["required_capabilities"] == {"graph"}
-    assert verify_schema.call_args_list[1].kwargs["required_capabilities"] == {"coordination"}
-    assert verify_authority.call_args_list[0].kwargs["required_capabilities"] == {"graph"}
-    assert verify_authority.call_args_list[1].kwargs["required_capabilities"] == {"coordination"}
+    assert verify_schema.call_args_list[0].kwargs["required_capabilities"] == {GRAPH_RUNTIME_CAPABILITY}
+    assert verify_schema.call_args_list[1].kwargs["required_capabilities"] == {COORDINATION_RUNTIME_CAPABILITY}
+    assert verify_authority.call_args_list[0].kwargs["required_capabilities"] == {GRAPH_RUNTIME_CAPABILITY}
+    assert verify_authority.call_args_list[1].kwargs["required_capabilities"] == {COORDINATION_RUNTIME_CAPABILITY}
 
 
 def test_reconciliation_schema_verification_combines_shared_target_capabilities(monkeypatch) -> None:
@@ -40,5 +41,6 @@ def test_reconciliation_schema_verification_combines_shared_target_capabilities(
 
     app_factory._verify_reconciliation_schemas(shared_engine, shared_engine)  # pylint: disable=protected-access
 
-    verify_schema.assert_called_once_with(shared_engine, required_capabilities={"graph", "coordination"})
-    verify_authority.assert_called_once_with(shared_engine, required_capabilities={"graph", "coordination"})
+    required_capabilities = {GRAPH_RUNTIME_CAPABILITY, COORDINATION_RUNTIME_CAPABILITY}
+    verify_schema.assert_called_once_with(shared_engine, required_capabilities=required_capabilities)
+    verify_authority.assert_called_once_with(shared_engine, required_capabilities=required_capabilities)
