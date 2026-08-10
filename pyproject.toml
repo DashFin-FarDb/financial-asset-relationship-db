@@ -147,6 +147,10 @@ extend-select = ["I", "UP", "B", "C4", "SIM"]
 # violations and are tracked as cleanup debt outside this CI-fix scope (see tracked issue #1356 for removal plan).
 ignore = ["UP006", "UP015", "UP017", "UP035", "UP037", "UP040", "UP041", "UP042", "B010", "B028", "B904", "C408", "SIM102", "SIM103", "SIM105", "SIM113", "SIM117"]
 
+[tool.ruff.lint.per-file-ignores]
+# SQLAlchemy ColumnCollection iteration yields Column objects; keys() intentionally yields bindable names.
+"src/data/database.py" = ["SIM118"]
+
 [tool.ruff.lint.isort]
 known-first-party = ["src"]
 
