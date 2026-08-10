@@ -22,7 +22,12 @@ def test_ensure_runtime_access_counts_only_usable_login_grantees(monkeypatch) ->
     authority_ddl = execute.call_args_list[0].args[0]
     assert "grantee.rolcanlogin" in authority_ddl
     assert "WITH RECURSIVE role_membership(member, roleid, member_is_superuser)" in authority_ddl
-    assert "membership.inherit_option OR membership.set_option OR grantee.rolsuper" in authority_ddl
+    assert "to_jsonb(membership) ->> 'inherit_option'" in authority_ddl
+    assert "to_jsonb(membership) ->> 'set_option'" in authority_ddl
+    assert "membership.inherit_option" not in authority_ddl
+    assert "membership.set_option" not in authority_ddl
+    assert authority_ddl.count("::boolean, TRUE)") == 4
+    assert "OR grantee.rolsuper" in authority_ddl
     assert "membership.member = role_membership.roleid" in authority_ddl
     assert "OR role_membership.member_is_superuser" in authority_ddl
     assert "role_membership.member = grantee.oid" in authority_ddl
@@ -42,7 +47,12 @@ def test_verify_runtime_authority_rejects_other_usable_login_grantees(monkeypatc
     safe_role_query = fetch_value.call_args_list[3].args[0]
     assert "grantee.rolcanlogin" in safe_role_query
     assert "WITH RECURSIVE role_membership(member, roleid, member_is_superuser)" in safe_role_query
-    assert "membership.inherit_option OR membership.set_option OR grantee.rolsuper" in safe_role_query
+    assert "to_jsonb(membership) ->> 'inherit_option'" in safe_role_query
+    assert "to_jsonb(membership) ->> 'set_option'" in safe_role_query
+    assert "membership.inherit_option" not in safe_role_query
+    assert "membership.set_option" not in safe_role_query
+    assert safe_role_query.count("::boolean, TRUE)") == 4
+    assert "OR grantee.rolsuper" in safe_role_query
     assert "membership.member = role_membership.roleid" in safe_role_query
     assert "OR role_membership.member_is_superuser" in safe_role_query
     assert "grantee.rolname <> session_user" in safe_role_query

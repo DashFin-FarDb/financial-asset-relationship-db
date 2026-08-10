@@ -53,6 +53,14 @@ from src.data.database import SchemaCompatibilityError
 
 AUTH_RUNTIME_ROLE = "fardb_runtime_auth"
 
+# PostgreSQL 16 added per-membership INHERIT and SET options to pg_auth_members.
+# On PostgreSQL 15 every membership remains usable through SET ROLE, so absent
+# catalog keys must fail closed as usable rather than being treated as inert.
+_AUTH_MEMBERSHIP_USABLE_SQL = (
+    "COALESCE((to_jsonb(membership) ->> 'inherit_option')::boolean, TRUE) "
+    "OR COALESCE((to_jsonb(membership) ->> 'set_option')::boolean, TRUE)"
+)
+
 
 def _is_postgres_url(url: str) -> bool:
     """
@@ -833,13 +841,13 @@ def ensure_runtime_access() -> None:
         f"SELECT membership.member, membership.roleid, grantee.rolsuper "
         f"FROM pg_auth_members AS membership "
         f"JOIN pg_roles AS grantee ON grantee.oid = membership.member "
-        f"WHERE membership.inherit_option OR membership.set_option OR grantee.rolsuper "
+        f"WHERE ({_AUTH_MEMBERSHIP_USABLE_SQL} OR grantee.rolsuper) "
         f"UNION SELECT role_membership.member, membership.roleid, "
         f"role_membership.member_is_superuser "
         f"FROM role_membership JOIN pg_auth_members AS membership "
         f"ON membership.member = role_membership.roleid "
-        f"WHERE membership.inherit_option OR membership.set_option "
-        f"OR role_membership.member_is_superuser) "
+        f"WHERE ({_AUTH_MEMBERSHIP_USABLE_SQL} "
+        f"OR role_membership.member_is_superuser)) "
         f"SELECT COUNT(*) FROM pg_roles AS grantee "
         f"WHERE grantee.rolcanlogin AND EXISTS (SELECT 1 FROM role_membership "
         f"WHERE role_membership.member = grantee.oid AND role_membership.roleid = role.oid)) > 1)) THEN "
@@ -934,13 +942,13 @@ def verify_runtime_authority() -> None:
         "SELECT membership.member, membership.roleid, grantee.rolsuper "
         "FROM pg_auth_members AS membership "
         "JOIN pg_roles AS grantee ON grantee.oid = membership.member "
-        "WHERE membership.inherit_option OR membership.set_option OR grantee.rolsuper "
+        f"WHERE ({_AUTH_MEMBERSHIP_USABLE_SQL} OR grantee.rolsuper) "
         "UNION SELECT role_membership.member, membership.roleid, "
         "role_membership.member_is_superuser "
         "FROM role_membership JOIN pg_auth_members AS membership "
         "ON membership.member = role_membership.roleid "
-        "WHERE membership.inherit_option OR membership.set_option "
-        "OR role_membership.member_is_superuser) "
+        f"WHERE ({_AUTH_MEMBERSHIP_USABLE_SQL} "
+        "OR role_membership.member_is_superuser)) "
         "SELECT 1 FROM pg_roles AS grantee "
         "WHERE grantee.rolcanlogin AND grantee.rolname <> session_user "
         "AND EXISTS (SELECT 1 FROM role_membership WHERE role_membership.member = grantee.oid "
