@@ -880,11 +880,8 @@ def _verify_runtime_login_sequence_grants(
 
         for privilege in _SEQUENCE_PRIVILEGES:
             actual = connection.execute(
-                text("SELECT has_sequence_privilege(" "session_user, :sequence_name, :privilege)"),
-                {
-                    "sequence_name": sequence_name,
-                    "privilege": privilege,
-                },
+                text(f"SELECT has_sequence_privilege(session_user, :sequence_name, '{privilege}')"),
+                {"sequence_name": sequence_name},
             ).scalar_one()
 
             if bool(actual) != (privilege in expected_privileges):
