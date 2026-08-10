@@ -21,6 +21,7 @@ def test_ensure_runtime_access_rejects_more_than_one_login_grantee(monkeypatch) 
 
     authority_ddl = execute.call_args_list[0].args[0]
     assert "grantee.rolcanlogin" in authority_ddl
+    assert "NOT grantee.rolsuper" in authority_ddl
     assert "pg_has_role(grantee.oid, role.oid, 'MEMBER')" in authority_ddl
     assert "> 1" in authority_ddl
 
@@ -36,5 +37,6 @@ def test_verify_runtime_authority_rejects_other_login_grantees(monkeypatch) -> N
 
     safe_role_query = fetch_value.call_args_list[3].args[0]
     assert "grantee.rolcanlogin" in safe_role_query
+    assert "NOT grantee.rolsuper" in safe_role_query
     assert "grantee.rolname <> session_user" in safe_role_query
     assert "pg_has_role(grantee.oid, role.oid, 'MEMBER')" in safe_role_query
