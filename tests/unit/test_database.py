@@ -522,13 +522,20 @@ class TestDatabaseInitialization:
         runtime_engine.connect.return_value.__enter__ = MagicMock(return_value=connection)
         runtime_engine.connect.return_value.__exit__ = MagicMock(return_value=False)
 
-        if not restricted:
-            with pytest.raises(SchemaCompatibilityError, match="retains schema-migration authority"):
-                verify_runtime_database_authority(runtime_engine)
-            return
+        with (
+            patch("src.data.database._verify_runtime_login_relation_grants") as verify_relation_grants,
+            patch("src.data.database._verify_runtime_login_sequence_grants") as verify_sequence_grants,
+        ):
+            if not restricted:
+                with pytest.raises(SchemaCompatibilityError, match="retains schema-migration authority"):
+                    verify_runtime_database_authority(runtime_engine)
+                return
 
-        connection.execute.return_value.scalars.return_value.all.return_value = []
-        verify_runtime_database_authority(runtime_engine)
+            connection.execute.return_value.scalars.return_value.all.return_value = []
+            verify_runtime_database_authority(runtime_engine)
+
+        verify_relation_grants.assert_called_once_with(connection, ())
+        verify_sequence_grants.assert_called_once_with(connection, ())
         restricted_query = str(connection.execute.call_args_list[0].args[0])
         membership_query = str(connection.execute.call_args_list[1].args[0])
         assert "current_schema() IS NOT NULL" in restricted_query

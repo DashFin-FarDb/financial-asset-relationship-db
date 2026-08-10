@@ -36,6 +36,7 @@ _AUTH_REPLICATION_ROLE = "cq1608_auth_replication"
 _AUTH_ORDINARY_ROLE = "cq1608_auth_ordinary"
 _GRAPH_REPLICATION_ROLE = "cq1608_graph_replication"
 _GRAPH_NO_CAP_RUNTIME_LOGIN = "cq1608_graph_no_cap_runtime"
+_GRAPH_NO_CAP_DIRECT_LOGIN = "cq1608_graph_no_cap_direct"
 _GRAPH_ORDINARY_ROLE = "cq1608_graph_ordinary"
 _GRAPH_EXTRA_RUNTIME_LOGIN = "cq1608_graph_extra_runtime"
 _GRAPH_EXTRA_TRUNCATE_ROLE = "cq1608_graph_extra_truncate"
@@ -247,6 +248,84 @@ def test_runtime_database_authority_rejects_unexpected_assumable_role_without_ca
         if runtime_engine is not None:
             runtime_engine.dispose()
         _drop_roles(database_url, _GRAPH_NO_CAP_RUNTIME_LOGIN, assumable_role)
+
+
+@pytest.mark.integration
+def test_runtime_database_authority_enforces_zero_managed_privileges_without_capabilities() -> None:
+    """A no-capability login may hold no managed table, column, or sequence privilege."""
+    database_url = _ephemeral_database_url()
+    operator_engine = create_engine(database_url, future=True)
+    runtime_engine = None
+    sequence_name: str | None = None
+
+    try:
+        init_db(operator_engine)
+        with _operator_connection(database_url) as connection, connection.cursor() as cursor:
+            cursor.execute(_RUNTIME_LOGIN_DDL.format(sql.Identifier(_GRAPH_NO_CAP_DIRECT_LOGIN)))
+            cursor.execute("SELECT pg_get_serial_sequence('asset_relationships', 'id')")
+            sequence_name = cursor.fetchone()[0]
+            assert isinstance(sequence_name, str) and sequence_name
+
+        runtime_engine = create_engine(
+            "postgresql+psycopg2://",
+            creator=lambda: _runtime_connection(database_url, _GRAPH_NO_CAP_DIRECT_LOGIN),
+            future=True,
+        )
+
+        verify_runtime_database_authority(runtime_engine)
+
+        with _operator_connection(database_url) as connection, connection.cursor() as cursor:
+            cursor.execute(
+                sql.SQL("GRANT INSERT ON TABLE assets TO {}").format(sql.Identifier(_GRAPH_NO_CAP_DIRECT_LOGIN))
+            )
+        with pytest.raises(SchemaCompatibilityError, match="runtime login grants are incompatible on assets"):
+            verify_runtime_database_authority(runtime_engine)
+        with _operator_connection(database_url) as connection, connection.cursor() as cursor:
+            cursor.execute(
+                sql.SQL("REVOKE INSERT ON TABLE assets FROM {}").format(sql.Identifier(_GRAPH_NO_CAP_DIRECT_LOGIN))
+            )
+            cursor.execute(
+                sql.SQL("GRANT UPDATE (price) ON TABLE assets TO {}").format(sql.Identifier(_GRAPH_NO_CAP_DIRECT_LOGIN))
+            )
+        with pytest.raises(SchemaCompatibilityError, match="runtime login column grants are incompatible on assets"):
+            verify_runtime_database_authority(runtime_engine)
+        with _operator_connection(database_url) as connection, connection.cursor() as cursor:
+            cursor.execute(
+                sql.SQL("REVOKE UPDATE (price) ON TABLE assets FROM {}").format(
+                    sql.Identifier(_GRAPH_NO_CAP_DIRECT_LOGIN)
+                )
+            )
+            cursor.execute(
+                sql.SQL("GRANT USAGE ON SEQUENCE {} TO {}").format(
+                    sql.Identifier(*sequence_name.split(".")),
+                    sql.Identifier(_GRAPH_NO_CAP_DIRECT_LOGIN),
+                )
+            )
+        with pytest.raises(SchemaCompatibilityError, match="runtime login sequence grants are incompatible"):
+            verify_runtime_database_authority(runtime_engine)
+    finally:
+        if runtime_engine is not None:
+            runtime_engine.dispose()
+        if sequence_name is not None:
+            with _operator_connection(database_url) as connection, connection.cursor() as cursor:
+                cursor.execute(
+                    sql.SQL("REVOKE ALL PRIVILEGES ON TABLE assets FROM {}").format(
+                        sql.Identifier(_GRAPH_NO_CAP_DIRECT_LOGIN)
+                    )
+                )
+                cursor.execute(
+                    sql.SQL("REVOKE UPDATE (price) ON TABLE assets FROM {}").format(
+                        sql.Identifier(_GRAPH_NO_CAP_DIRECT_LOGIN)
+                    )
+                )
+                cursor.execute(
+                    sql.SQL("REVOKE ALL PRIVILEGES ON SEQUENCE {} FROM {}").format(
+                        sql.Identifier(*sequence_name.split(".")),
+                        sql.Identifier(_GRAPH_NO_CAP_DIRECT_LOGIN),
+                    )
+                )
+        _drop_roles(database_url, _GRAPH_NO_CAP_DIRECT_LOGIN)
+        operator_engine.dispose()
 
 
 @pytest.mark.integration

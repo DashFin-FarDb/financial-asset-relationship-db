@@ -707,6 +707,50 @@ def _verify_runtime_capability_catalog(  # noqa: C901  # skipcq: PY-R1000
                 )
 
 
+def _verify_runtime_login_relation_grants(
+    connection,
+    capabilities: tuple[str, ...],
+) -> None:
+    """Verify effective login table and column privileges against the capability contract."""
+    from .relationship_assertion_db_models import GRAC_TABLE_NAMES
+
+    effective_privileges = _runtime_table_privileges(capabilities)
+    grac_tables = frozenset(GRAC_TABLE_NAMES)
+
+    for table_name in sorted(Base.metadata.tables):
+        expected = frozenset(
+            privilege
+            for capability in capabilities
+            for privilege in effective_privileges.get((capability, table_name), frozenset())
+        )
+        for privilege in _TABLE_PRIVILEGES:
+            actual = connection.execute(
+                text("SELECT has_table_privilege(session_user, :table_name, :privilege)"),
+                {"table_name": table_name, "privilege": privilege},
+            ).scalar_one()
+            if bool(actual) != (privilege in expected):
+                raise SchemaCompatibilityError(f"runtime login grants are incompatible on {table_name}")
+
+        for column_name in Base.metadata.tables[table_name].columns.keys():
+            for privilege in _COLUMN_PRIVILEGES:
+                lock_column_update = (
+                    privilege == "UPDATE"
+                    and GRAPH_RUNTIME_CAPABILITY in capabilities
+                    and table_name in grac_tables
+                    and column_name == "id"
+                )
+                actual = connection.execute(
+                    text("SELECT has_column_privilege(session_user, :table_name, :column_name, :privilege)"),
+                    {
+                        "table_name": table_name,
+                        "column_name": column_name,
+                        "privilege": privilege,
+                    },
+                ).scalar_one()
+                if bool(actual) != (privilege in expected or lock_column_update):
+                    raise SchemaCompatibilityError(f"runtime login column grants are incompatible on {table_name}")
+
+
 def _verify_runtime_login_sequence_grants(
     connection,
     capabilities: tuple[str, ...],
@@ -875,51 +919,8 @@ def verify_runtime_database_authority(  # skipcq: PY-R1000
                 raise SchemaCompatibilityError("runtime login capability memberships are incompatible")
             if normalized_capabilities:
                 _verify_runtime_capability_catalog(connection, normalized_capabilities)
-                effective_privileges = _runtime_table_privileges(normalized_capabilities)
-                from .relationship_assertion_db_models import GRAC_TABLE_NAMES
-
-                grac_tables = frozenset(GRAC_TABLE_NAMES)
-                for table_name in sorted(Base.metadata.tables):
-                    expected = frozenset().union(
-                        *(
-                            effective_privileges.get((capability, table_name), frozenset())
-                            for capability in normalized_capabilities
-                        )
-                    )
-                    for privilege in _TABLE_PRIVILEGES:
-                        actual = connection.execute(
-                            text("SELECT has_table_privilege(session_user, :table_name, :privilege)"),
-                            {"table_name": table_name, "privilege": privilege},
-                        ).scalar_one()
-                        if bool(actual) != (privilege in expected):
-                            raise SchemaCompatibilityError(f"runtime login grants are incompatible on {table_name}")
-                    for column_name in Base.metadata.tables[table_name].columns.keys():
-                        for privilege in _COLUMN_PRIVILEGES:
-                            lock_column_update = (
-                                privilege == "UPDATE"
-                                and GRAPH_RUNTIME_CAPABILITY in normalized_capabilities
-                                and table_name in grac_tables
-                                and column_name == "id"
-                            )
-                            actual = connection.execute(
-                                text(
-                                    "SELECT has_column_privilege("
-                                    "session_user, :table_name, :column_name, :privilege)"
-                                ),
-                                {
-                                    "table_name": table_name,
-                                    "column_name": column_name,
-                                    "privilege": privilege,
-                                },
-                            ).scalar_one()
-                            if bool(actual) != (privilege in expected or lock_column_update):
-                                raise SchemaCompatibilityError(
-                                    f"runtime login column grants are incompatible on {table_name}"
-                                )
-                _verify_runtime_login_sequence_grants(
-                    connection,
-                    normalized_capabilities,
-                )
+            _verify_runtime_login_relation_grants(connection, normalized_capabilities)
+            _verify_runtime_login_sequence_grants(connection, normalized_capabilities)
     except SchemaCompatibilityError:
         raise
     except Exception as exc:  # noqa: BLE001 - sanitize driver/catalog errors at the runtime boundary
