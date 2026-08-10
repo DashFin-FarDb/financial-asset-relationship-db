@@ -58,8 +58,7 @@ def test_sequence_authority_helpers_execute_against_postgresql() -> None:
             with connection.cursor() as cursor:
                 cursor.execute(
                     sql.SQL(
-                        "CREATE ROLE {} LOGIN INHERIT NOSUPERUSER NOCREATEDB "
-                        "NOCREATEROLE NOBYPASSRLS NOREPLICATION"
+                        "CREATE ROLE {} LOGIN INHERIT NOSUPERUSER NOCREATEDB " "NOCREATEROLE NOBYPASSRLS NOREPLICATION"
                     ).format(sql.Identifier(_RUNTIME_LOGIN))
                 )
                 cursor.execute(
