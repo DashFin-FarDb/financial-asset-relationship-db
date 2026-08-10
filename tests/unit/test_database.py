@@ -533,14 +533,18 @@ class TestDatabaseInitialization:
                 verify_runtime_database_authority(runtime_engine)
             return
 
+        connection.execute.return_value.scalars.return_value.all.return_value = []
         verify_runtime_database_authority(runtime_engine)
-        authority_query = str(connection.execute.call_args.args[0])
-        assert "current_schema() IS NOT NULL" in authority_query
-        assert "login.rolname = session_user" in authority_query
-        assert "pg_has_role(login.oid, assumable.oid, 'MEMBER')" in authority_query
-        assert "has_database_privilege(assumable.oid, current_database(), 'CREATE')" in authority_query
-        assert "namespace.nspowner = assumable.oid" in authority_query
-        assert "database.datdba = assumable.oid" in authority_query
+        restricted_query = str(connection.execute.call_args_list[0].args[0])
+        membership_query = str(connection.execute.call_args_list[1].args[0])
+        assert "current_schema() IS NOT NULL" in restricted_query
+        assert "login.rolname = session_user" in restricted_query
+        assert "pg_has_role(login.oid, assumable.oid, 'MEMBER')" in restricted_query
+        assert "has_database_privilege(assumable.oid, current_database(), 'CREATE')" in restricted_query
+        assert "namespace.nspowner = assumable.oid" in restricted_query
+        assert "database.datdba = assumable.oid" in restricted_query
+        assert "pg_has_role(login.oid, assumable.oid, 'MEMBER')" in membership_query
+        assert "assumable.oid <> login.oid" in membership_query
 
 
 # ---------------------------------------------------------------------------
