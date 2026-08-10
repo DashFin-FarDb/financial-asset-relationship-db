@@ -43,8 +43,7 @@ _GRAPH_DIRECT_SEQUENCE_LOGIN = "cq1608_graph_direct_sequence"
 _SEQUENCE_RUNTIME_LOGIN = "cq1608_sequence_runtime"
 _SEQUENCE_OWNER_ROLE = "cq1608_sequence_owner"
 _RUNTIME_LOGIN_DDL = sql.SQL(
-    "CREATE ROLE {} LOGIN NOINHERIT NOSUPERUSER NOCREATEDB NOCREATEROLE "
-    "NOBYPASSRLS NOREPLICATION"
+    "CREATE ROLE {} LOGIN NOINHERIT NOSUPERUSER NOCREATEDB NOCREATEROLE " "NOBYPASSRLS NOREPLICATION"
 )
 
 
@@ -106,15 +105,13 @@ def test_auth_runtime_rejects_assumable_privileged_roles(attack_role: str) -> No
             if attack_role == "replication":
                 cursor.execute(
                     sql.SQL(
-                        "CREATE ROLE {} NOLOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE "
-                        "NOBYPASSRLS REPLICATION"
+                        "CREATE ROLE {} NOLOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE " "NOBYPASSRLS REPLICATION"
                     ).format(sql.Identifier(elevated_role))
                 )
             else:
                 cursor.execute(
                     sql.SQL(
-                        "CREATE ROLE {} NOLOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE "
-                        "NOBYPASSRLS NOREPLICATION"
+                        "CREATE ROLE {} NOLOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE " "NOBYPASSRLS NOREPLICATION"
                     ).format(sql.Identifier(elevated_role))
                 )
                 cursor.execute(
@@ -168,8 +165,7 @@ def test_auth_runtime_rejects_unexpected_assumable_ordinary_role() -> None:
             cursor.execute(_RUNTIME_LOGIN_DDL.format(sql.Identifier(_AUTH_RUNTIME_LOGIN)))
 
             ordinary_role_ddl = sql.SQL(
-                "CREATE ROLE {} NOLOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE "
-                "NOBYPASSRLS NOREPLICATION"
+                "CREATE ROLE {} NOLOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE " "NOBYPASSRLS NOREPLICATION"
             )
             cursor.execute(ordinary_role_ddl.format(sql.Identifier(_AUTH_ORDINARY_ROLE)))
 
@@ -268,8 +264,7 @@ def test_runtime_database_authority_rejects_unexpected_assumable_truncate_role()
             cursor.execute(_RUNTIME_LOGIN_DDL.format(sql.Identifier(_GRAPH_EXTRA_RUNTIME_LOGIN)))
 
             extra_role_ddl = sql.SQL(
-                "CREATE ROLE {} NOLOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE "
-                "NOBYPASSRLS NOREPLICATION"
+                "CREATE ROLE {} NOLOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE " "NOBYPASSRLS NOREPLICATION"
             )
             cursor.execute(extra_role_ddl.format(sql.Identifier(_GRAPH_EXTRA_TRUNCATE_ROLE)))
             extra_role_created = True
@@ -346,8 +341,7 @@ def test_runtime_database_authority_rejects_direct_sequence_update_grant() -> No
 
         with _operator_connection(database_url) as connection, connection.cursor() as cursor:
             runtime_login_ddl = sql.SQL(
-                "CREATE ROLE {} LOGIN INHERIT NOSUPERUSER NOCREATEDB "
-                "NOCREATEROLE NOBYPASSRLS NOREPLICATION"
+                "CREATE ROLE {} LOGIN INHERIT NOSUPERUSER NOCREATEDB " "NOCREATEROLE NOBYPASSRLS NOREPLICATION"
             )
             cursor.execute(runtime_login_ddl.format(sql.Identifier(_GRAPH_DIRECT_SEQUENCE_LOGIN)))
 
