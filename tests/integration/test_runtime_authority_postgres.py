@@ -34,6 +34,7 @@ _AUTH_RUNTIME_LOGIN = "cq1608_auth_runtime"
 _AUTH_WRITE_ROLE = "cq1608_auth_writer"
 _AUTH_REPLICATION_ROLE = "cq1608_auth_replication"
 _AUTH_ORDINARY_ROLE = "cq1608_auth_ordinary"
+_AUTH_INERT_CREATOR_LOGIN = "cq1608_auth_inert_creator"
 _GRAPH_REPLICATION_ROLE = "cq1608_graph_replication"
 _GRAPH_NO_CAP_RUNTIME_LOGIN = "cq1608_graph_no_cap_runtime"
 _GRAPH_NO_CAP_DIRECT_LOGIN = "cq1608_graph_no_cap_direct"
@@ -200,6 +201,56 @@ def test_auth_runtime_rejects_unexpected_assumable_ordinary_role() -> None:
             api_database.verify_runtime_authority()
     finally:
         _drop_roles(database_url, _AUTH_RUNTIME_LOGIN, _AUTH_ORDINARY_ROLE)
+
+
+@pytest.mark.integration
+def test_auth_runtime_accepts_inert_postgresql_creator_membership() -> None:
+    """An ADMIN-only creator edge without INHERIT or SET does not expose capability data."""
+    database_url = _ephemeral_database_url()
+    _prepare_auth_schema(database_url)
+
+    import api.database as api_database
+
+    with api_database.bind_database_url(database_url):
+        api_database.ensure_runtime_access()
+
+    try:
+        with _operator_connection(database_url) as connection, connection.cursor() as cursor:
+            cursor.execute("SHOW server_version_num")
+            if int(cursor.fetchone()[0]) < 160000:
+                pytest.skip("per-membership INHERIT and SET options require PostgreSQL 16+")
+            runtime_login_ddl = sql.SQL(
+                "CREATE ROLE {} LOGIN INHERIT NOSUPERUSER NOCREATEDB " "NOCREATEROLE NOBYPASSRLS NOREPLICATION"
+            )
+            cursor.execute(runtime_login_ddl.format(sql.Identifier(_AUTH_RUNTIME_LOGIN)))
+            cursor.execute(runtime_login_ddl.format(sql.Identifier(_AUTH_INERT_CREATOR_LOGIN)))
+            cursor.execute(
+                sql.SQL("GRANT {} TO {} WITH INHERIT TRUE, SET TRUE").format(
+                    sql.Identifier(api_database.AUTH_RUNTIME_ROLE),
+                    sql.Identifier(_AUTH_RUNTIME_LOGIN),
+                )
+            )
+            cursor.execute(
+                sql.SQL("GRANT {} TO {} WITH ADMIN OPTION, INHERIT FALSE, SET FALSE").format(
+                    sql.Identifier(api_database.AUTH_RUNTIME_ROLE),
+                    sql.Identifier(_AUTH_INERT_CREATOR_LOGIN),
+                )
+            )
+
+        with api_database.bind_database_url(database_url):
+            api_database.ensure_runtime_access()
+
+        with (
+            patch.object(api_database, "DATABASE_TYPE", "postgresql"),
+            patch.object(
+                api_database,
+                "_create_postgres_connection",
+                side_effect=lambda: _runtime_connection(database_url, _AUTH_RUNTIME_LOGIN),
+            ),
+        ):
+            api_database.verify_runtime_authority()
+    finally:
+        _drop_roles(database_url, _AUTH_RUNTIME_LOGIN, _AUTH_INERT_CREATOR_LOGIN)
 
 
 @pytest.mark.integration

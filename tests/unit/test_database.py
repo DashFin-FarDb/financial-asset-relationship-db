@@ -57,6 +57,7 @@ from src.data.database import (
     _normalize_check_definition,
     _runtime_policy_specs,
     _runtime_table_privileges,
+    _verify_runtime_capability_catalog,
     _verify_table_constraints,
     _verify_table_schema,
     configure_sqlite_engine,
@@ -69,6 +70,20 @@ from src.data.database import (
 )
 
 
+class _CatalogResult:
+    """Small SQLAlchemy result stand-in for catalog-verifier unit coverage."""
+
+    def __init__(self, *, scalar: object | None = None, rows: list[tuple] | None = None) -> None:
+        self._scalar = scalar
+        self._rows = rows or []
+
+    def scalar_one(self) -> object:
+        return self._scalar
+
+    def all(self) -> list[tuple]:
+        return self._rows
+
+
 def test_graph_capability_preserves_grac_immutability_and_locking() -> None:
     """GRAC grants allow inserts and row locks without a usable update path."""
     from src.data.relationship_assertion_db_models import GRAC_TABLE_NAMES
@@ -79,6 +94,94 @@ def test_graph_capability_preserves_grac_immutability_and_locking() -> None:
     for table_name in GRAC_TABLE_NAMES:
         assert privileges[(GRAPH_RUNTIME_CAPABILITY, table_name)] == {"SELECT", "INSERT"}
         assert policies[(table_name, "fardb_graph_lock_v1")] == ("w", "true", "false")
+
+
+def test_runtime_capability_catalog_accepts_exact_graph_contract() -> None:
+    """The catalog verifier accepts the complete graph role, RLS, and grant matrix."""
+    from src.data import relationship_assertion_db_models  # noqa: F401
+    from src.data.relationship_assertion_db_models import GRAC_TABLE_NAMES
+
+    capabilities = (GRAPH_RUNTIME_CAPABILITY,)
+    role_name = "fardb_runtime_graph"
+    table_privileges = _runtime_table_privileges(capabilities)
+    policy_rows = [
+        (table_name, policy_name, command, True, role_name, using_expression, check_expression)
+        for (table_name, policy_name), (command, using_expression, check_expression) in _runtime_policy_specs(
+            capabilities
+        ).items()
+    ]
+    grac_tables = frozenset(GRAC_TABLE_NAMES)
+
+    def _execute(statement, parameters=None) -> _CatalogResult:
+        sql = str(statement)
+        parameters = parameters or {}
+        if "COUNT(*) = 1 FROM pg_roles" in sql:
+            return _CatalogResult(scalar=True)
+        if "has_schema_privilege(:role_name" in sql:
+            return _CatalogResult(scalar=True)
+        if "SELECT COUNT(*) FROM pg_class" in sql:
+            return _CatalogResult(scalar=len(Base.metadata.tables))
+        if "FROM pg_policy AS policy" in sql:
+            return _CatalogResult(rows=policy_rows)
+        if "has_table_privilege" in sql:
+            expected = table_privileges.get(
+                (GRAPH_RUNTIME_CAPABILITY, parameters["table_name"]),
+                frozenset(),
+            )
+            return _CatalogResult(scalar=parameters["privilege"] in expected)
+        if "has_column_privilege" in sql:
+            table_name = parameters["table_name"]
+            privilege = parameters["privilege"]
+            expected = table_privileges.get((GRAPH_RUNTIME_CAPABILITY, table_name), frozenset())
+            lock_column_update = (
+                privilege == "UPDATE" and table_name in grac_tables and parameters["column_name"] == "id"
+            )
+            return _CatalogResult(scalar=privilege in expected or lock_column_update)
+        if "pg_get_serial_sequence" in sql:
+            return _CatalogResult(scalar=f"{parameters['table_name']}_id_seq")
+        if "has_sequence_privilege" in sql:
+            return _CatalogResult(scalar=True)
+        raise AssertionError(f"unexpected catalog query: {sql}")
+
+    connection = MagicMock()
+    connection.execute.side_effect = _execute
+
+    _verify_runtime_capability_catalog(connection, capabilities)
+
+
+@pytest.mark.parametrize(
+    ("checkpoint", "error_match"),
+    [
+        ("unsafe-role", "unsafe or missing runtime capability role"),
+        ("schema-grants", "runtime schema grants"),
+        ("rls-disabled", "row-level security enabled"),
+        ("policy-mismatch", "RLS policy catalog"),
+    ],
+)
+def test_runtime_capability_catalog_rejects_early_contract_mismatches(checkpoint: str, error_match: str) -> None:
+    """Each early catalog mismatch fails with its bounded compatibility error."""
+    from src.data import relationship_assertion_db_models  # noqa: F401
+
+    catalog_results = {
+        "unsafe-role": [_CatalogResult(scalar=False)],
+        "schema-grants": [_CatalogResult(scalar=True), _CatalogResult(scalar=False)],
+        "rls-disabled": [
+            _CatalogResult(scalar=True),
+            _CatalogResult(scalar=True),
+            _CatalogResult(scalar=len(Base.metadata.tables) - 1),
+        ],
+        "policy-mismatch": [
+            _CatalogResult(scalar=True),
+            _CatalogResult(scalar=True),
+            _CatalogResult(scalar=len(Base.metadata.tables)),
+            _CatalogResult(rows=[]),
+        ],
+    }[checkpoint]
+    connection = MagicMock()
+    connection.execute.side_effect = catalog_results
+
+    with pytest.raises(SchemaCompatibilityError, match=error_match):
+        _verify_runtime_capability_catalog(connection, (GRAPH_RUNTIME_CAPABILITY,))
 
 
 @pytest.mark.parametrize(
