@@ -73,28 +73,3 @@ def all_workflows() -> list[dict]:
                 continue
 
     return workflows
-
-
-@pytest.fixture(autouse=True)
-def _expose_sequence_authority_catalog_failure(request, monkeypatch):
-    """Temporarily bypass production sanitization for one PostgreSQL diagnostic."""
-    if request.node.name != "test_runtime_database_authority_rejects_direct_sequence_update_grant":
-        return
-
-    from src.data import database as database_module
-
-    def diagnostic_verifier(engine, *, required_capabilities=()):
-        normalized = database_module._normalized_runtime_capabilities(  # pylint: disable=protected-access
-            required_capabilities
-        )
-        with engine.connect() as connection:
-            database_module._verify_runtime_capability_catalog(  # pylint: disable=protected-access
-                connection,
-                normalized,
-            )
-            database_module._verify_runtime_login_sequence_grants(  # pylint: disable=protected-access
-                connection,
-                normalized,
-            )
-
-    monkeypatch.setattr(request.node.module, "verify_runtime_database_authority", diagnostic_verifier)
