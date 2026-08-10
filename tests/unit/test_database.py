@@ -393,9 +393,7 @@ class TestDatabaseInitialization:
     """Tests for database initialization and schema creation."""
 
     def test_init_db_creates_tables(self, engine: Engine, isolated_base) -> None:
-        """
-        Verifies that init_db creates tables for models registered on the provided declarative base.
-        """
+        """Verify that init_db creates registered model tables."""
 
         class TestModel(isolated_base):  # type: ignore[misc]  # pylint: disable=redefined-outer-name
             """Test model for verifying table creation functionality."""
@@ -407,8 +405,6 @@ class TestDatabaseInitialization:
         _assert_model_registered(TestModel, "test_model")
 
         init_db(engine)
-
-        from sqlalchemy import inspect  # noqa: PLC0415
 
         inspector = inspect(engine)
         assert "test_model" in inspector.get_table_names()  # nosec B101
@@ -426,8 +422,6 @@ class TestDatabaseInitialization:
 
         init_db(engine)
         init_db(engine)
-
-        from sqlalchemy import inspect  # noqa: PLC0415
 
         inspector = inspect(engine)
         assert "test_idempotent" in inspector.get_table_names()  # nosec B101

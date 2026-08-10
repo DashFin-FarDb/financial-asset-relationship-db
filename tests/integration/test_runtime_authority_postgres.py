@@ -48,6 +48,7 @@ _RUNTIME_LOGIN_DDL = sql.SQL(
 
 
 def _ephemeral_database_url() -> str:
+    """Return the disposable PostgreSQL URL or skip when the opt-in guard is absent."""
     if os.getenv(_EPHEMERAL_AUTHORITY_FLAG) != "1":
         pytest.skip(f"Set {_EPHEMERAL_AUTHORITY_FLAG}=1 only for disposable PostgreSQL authority tests")
     database_url = os.getenv(_EPHEMERAL_POSTGRES_URL)
@@ -61,6 +62,7 @@ def _ephemeral_database_url() -> str:
 
 @contextmanager
 def _operator_connection(database_url: str) -> Iterator[Any]:
+    """Yield an autocommit operator connection for authority-fixture setup and cleanup."""
     connection = psycopg2.connect(database_url)
     connection.autocommit = True
     try:
@@ -70,6 +72,7 @@ def _operator_connection(database_url: str) -> Iterator[Any]:
 
 
 def _runtime_connection(database_url: str, role_name: str):
+    """Return a connection whose session authorization is the requested runtime role."""
     connection = psycopg2.connect(database_url)
     connection.autocommit = True
     with connection.cursor() as cursor:
@@ -79,12 +82,14 @@ def _runtime_connection(database_url: str, role_name: str):
 
 
 def _drop_roles(database_url: str, *role_names: str) -> None:
+    """Drop disposable authority-test roles after their object grants have been removed."""
     with _operator_connection(database_url) as connection, connection.cursor() as cursor:
         for role_name in role_names:
             cursor.execute(sql.SQL("DROP ROLE IF EXISTS {}").format(sql.Identifier(role_name)))
 
 
 def _prepare_auth_schema(database_url: str) -> None:
+    """Create the auth schema against the explicit disposable operator target."""
     import api.database as api_database
 
     with api_database.bind_database_url(database_url):

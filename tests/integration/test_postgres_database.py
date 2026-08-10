@@ -302,9 +302,8 @@ def test_coordination_runtime_role_exercises_only_lock_dml() -> None:
                 )
             finally:
                 transaction.rollback()
-        with engine.connect() as connection:
-            with pytest.raises(ProgrammingError, match="permission denied"):
-                connection.execute(text("SELECT * FROM assets LIMIT 1"))
+        with engine.connect() as connection, pytest.raises(ProgrammingError, match="permission denied"):
+            connection.execute(text("SELECT * FROM assets LIMIT 1"))
     finally:
         engine.dispose()
 

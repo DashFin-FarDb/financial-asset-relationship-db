@@ -399,8 +399,8 @@ def bind_database_url(url: str) -> Iterator[None]:
     normal application runtime continues to use its import-time stable target.
     The previous target and any pre-existing in-memory connection are restored.
     """
-    global DATABASE_URL, DATABASE_TYPE, DATABASE_PATH, _db_manager
-    global _MEMORY_CONNECTION, _MEMORY_CONNECTION_MANAGER
+    global DATABASE_URL, DATABASE_TYPE, DATABASE_PATH, _db_manager  # skipcq: PYL-W0603
+    global _MEMORY_CONNECTION, _MEMORY_CONNECTION_MANAGER  # skipcq: PYL-W0603
 
     database_type, database_path = _resolve_database_target(url)
     with _DATABASE_BINDING_LOCK:

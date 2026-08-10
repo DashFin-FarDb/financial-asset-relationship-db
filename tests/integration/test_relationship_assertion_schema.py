@@ -225,14 +225,17 @@ def schema_engine(request, tmp_path) -> Engine:
 
 
 def _table_names(engine: Engine) -> set[str]:
+    """Return the reflected table names for the supplied test engine."""
     return set(inspect(engine).get_table_names())
 
 
 def _check_names(engine: Engine, table: str) -> set[str]:
+    """Return named CHECK constraints reflected for one table."""
     return {item["name"] for item in inspect(engine).get_check_constraints(table)}
 
 
 def _index_names(engine: Engine, table: str) -> set[str]:
+    """Return named indexes and unique constraints reflected for one table."""
     names = {item["name"] for item in inspect(engine).get_indexes(table) if item.get("name")}
     # UniqueConstraints may appear as unique indexes depending on dialect.
     for uk in inspect(engine).get_unique_constraints(table):
@@ -242,6 +245,7 @@ def _index_names(engine: Engine, table: str) -> set[str]:
 
 
 def _fk_pairs(engine: Engine, table: str) -> set[tuple[str, str]]:
+    """Return local-to-remote column pairs for reflected foreign keys."""
     pairs: set[tuple[str, str]] = set()
     for fk in inspect(engine).get_foreign_keys(table):
         referred = fk.get("referred_table")
@@ -485,9 +489,8 @@ class TestRelationshipAssertionSchemaBootstrap:
                 '[{"predicate_id":"financial.bond.issuer_reference@1","purpose":"current_view"}]',
             ),
         ]
-        with pytest.raises((DBAPIError, IntegrityError)):
-            with schema_engine.begin() as conn:
-                conn.execute(text("UPDATE relationship_projection_revisions SET purpose = 'changed'"))
+        with pytest.raises((DBAPIError, IntegrityError)), schema_engine.begin() as conn:
+            conn.execute(text("UPDATE relationship_projection_revisions SET purpose = 'changed'"))
 
 
 @pytest.mark.integration
@@ -610,6 +613,7 @@ class TestRelationshipAssertionImmutability:
         _seed_immutability_rows(schema_engine, datetime.now(tz=UTC))
 
         def _execute(statement: str) -> None:
+            """Execute one attempted immutable-row mutation in a transaction."""
             with schema_engine.begin() as conn:
                 conn.execute(text(statement))
 

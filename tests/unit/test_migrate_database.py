@@ -40,6 +40,7 @@ def test_migrate_configured_databases_owns_all_mutating_setup(monkeypatch) -> No
 
     @contextmanager
     def bind_target(url: str):
+        """Record and yield one temporary API database binding."""
         bound_targets.append(url)
         yield
 
@@ -223,6 +224,7 @@ def test_migrate_configured_databases_binds_auth_target_at_execution_time(monkey
 
     @contextmanager
     def bind_target(url: str):
+        """Record and yield the auth target selected at execution time."""
         bound_targets.append(url)
         yield
 
@@ -242,6 +244,7 @@ def test_main_sanitizes_dependency_errors(monkeypatch, capsys) -> None:
     secret_dsn = "postgresql://operator:secret@database.invalid/fardb"
 
     def fail_migration():
+        """Raise a DSN-bearing dependency error for CLI redaction coverage."""
         raise RuntimeError(f"connection failed for {secret_dsn}")
 
     monkeypatch.setattr(migrate_database, "migrate_configured_databases", fail_migration)

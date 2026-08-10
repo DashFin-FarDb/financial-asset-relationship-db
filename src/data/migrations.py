@@ -24,6 +24,8 @@ from sqlalchemy.engine.reflection import Inspector
 from src.observability.events import ObservabilityEvent
 from src.observability.logger import log_event
 
+from .check_constraint_normalization import normalize_check_definition
+
 logger = logging.getLogger(__name__)
 
 # Explicit whitelist of allowed migration files
@@ -432,10 +434,9 @@ def _status_constraint_is_canonical(constraint: ReflectedCheckConstraint | None)
     """Return whether reflected SQL enforces exactly the supported status domain."""
     if not constraint:
         return False
-    from .database import _normalize_check_definition
 
     sql_text = str(constraint.get("sqltext", ""))
-    return _normalize_check_definition(sql_text) == _normalize_check_definition(_REBUILD_JOB_STATUS_PREDICATE)
+    return normalize_check_definition(sql_text) == normalize_check_definition(_REBUILD_JOB_STATUS_PREDICATE)
 
 
 def postgresql_heartbeat_schema_gaps(inspector: Inspector) -> list[str]:
