@@ -847,9 +847,9 @@ def _verify_runtime_capability_catalog(  # noqa: C901 - exact fail-closed privil
                 raise SchemaCompatibilityError(f"required runtime sequence is missing for {table_name}")
             sequence_access = connection.execute(
                 text(
-                    "SELECT has_sequence_privilege(:role_name, :sequence_name, 'USAGE') "
-                    "AND has_sequence_privilege(:role_name, :sequence_name, 'SELECT') "
-                    "AND NOT has_sequence_privilege(:role_name, :sequence_name, 'UPDATE')"
+                    "SELECT has_sequence_privilege(CAST(:role_name AS text), CAST(:sequence_name AS text), 'USAGE') "
+                    "AND has_sequence_privilege(CAST(:role_name AS text), CAST(:sequence_name AS text), 'SELECT') "
+                    "AND NOT has_sequence_privilege(CAST(:role_name AS text), CAST(:sequence_name AS text), 'UPDATE')"
                 ),
                 {"role_name": role_name, "sequence_name": sequence_name},
             ).scalar_one()
@@ -880,7 +880,7 @@ def _verify_runtime_login_sequence_grants(
 
         for privilege in _SEQUENCE_PRIVILEGES:
             actual = connection.execute(
-                text(f"SELECT has_sequence_privilege(session_user, :sequence_name, '{privilege}')"),
+                text(f"SELECT has_sequence_privilege(session_user, CAST(:sequence_name AS text), '{privilege}')"),
                 {"sequence_name": sequence_name},
             ).scalar_one()
 
