@@ -830,7 +830,8 @@ def ensure_runtime_access() -> None:
         f"OR EXISTS (SELECT 1 FROM pg_auth_members AS membership "
         f"WHERE membership.member = role.oid) "
         f"OR (SELECT COUNT(*) FROM pg_roles AS grantee "
-        f"WHERE grantee.rolcanlogin AND pg_has_role(grantee.oid, role.oid, 'MEMBER')) > 1)) THEN "
+        f"WHERE grantee.rolcanlogin AND NOT grantee.rolsuper "
+        f"AND pg_has_role(grantee.oid, role.oid, 'MEMBER')) > 1)) THEN "
         f"RAISE EXCEPTION 'unsafe FarDB capability role: {AUTH_RUNTIME_ROLE}'; END IF; "
         f"END $fardb$"
     )
@@ -919,7 +920,8 @@ def verify_runtime_authority() -> None:
         "AND NOT has_database_privilege(role.oid, current_database(), 'CREATE') "
         "AND NOT EXISTS (SELECT 1 FROM pg_auth_members AS membership WHERE membership.member = role.oid) "
         "AND NOT EXISTS (SELECT 1 FROM pg_roles AS grantee "
-        "WHERE grantee.rolcanlogin AND grantee.rolname <> session_user "
+        "WHERE grantee.rolcanlogin AND NOT grantee.rolsuper "
+        "AND grantee.rolname <> session_user "
         "AND pg_has_role(grantee.oid, role.oid, 'MEMBER'))",
         (AUTH_RUNTIME_ROLE,),
     )
