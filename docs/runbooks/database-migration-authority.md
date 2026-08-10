@@ -27,11 +27,11 @@ separate human-controlled provider operation.
 
 ## PostgreSQL runtime capability contract
 
-| Capability role | Intended login boundary | Effective data authority |
-| --- | --- | --- |
-| `fardb_runtime_auth` | `DATABASE_URL` / auth | `SELECT` on `user_credentials`; no credential writes |
-| `fardb_runtime_graph` | `ASSET_GRAPH_DATABASE_URL` | graph-domain DML required by repositories; rebuild-job `SELECT`/`INSERT`/`UPDATE`; GRAC `SELECT`/`INSERT` |
-| `fardb_runtime_coordination` | `COORDINATION_DATABASE_URL` | `SELECT`/`INSERT`/`UPDATE`/`DELETE` on `distributed_locks` |
+| Capability role              | Intended login boundary     | Effective data authority                                                                                  |
+| ---------------------------- | --------------------------- | --------------------------------------------------------------------------------------------------------- |
+| `fardb_runtime_auth`         | `DATABASE_URL` / auth       | `SELECT` on `user_credentials`; no credential writes                                                      |
+| `fardb_runtime_graph`        | `ASSET_GRAPH_DATABASE_URL`  | graph-domain DML required by repositories; rebuild-job `SELECT`/`INSERT`/`UPDATE`; GRAC `SELECT`/`INSERT` |
+| `fardb_runtime_coordination` | `COORDINATION_DATABASE_URL` | `SELECT`/`INSERT`/`UPDATE`/`DELETE` on `distributed_locks`                                                |
 
 GRAC remains physically immutable. PostgreSQL requires UPDATE authority and an UPDATE policy for
 `SELECT ... FOR UPDATE`, so the graph capability receives UPDATE only on each GRAC primary-key `id` column and an
