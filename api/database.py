@@ -52,11 +52,6 @@ from src.config.settings import get_settings
 from src.data.database import SchemaCompatibilityError
 
 AUTH_RUNTIME_ROLE = "fardb_runtime_auth"
-_ALL_RUNTIME_CAPABILITY_ROLES = (
-    AUTH_RUNTIME_ROLE,
-    "fardb_runtime_graph",
-    "fardb_runtime_coordination",
-)
 
 
 def _is_postgres_url(url: str) -> bool:
@@ -902,10 +897,9 @@ def verify_runtime_authority() -> None:
         raise SchemaCompatibilityError("API runtime database role retains schema-migration authority")
 
     membership_count = fetch_value(
-        "SELECT COUNT(*) FROM pg_roles AS login JOIN pg_roles AS capability "
-        "ON capability.rolname IN %s AND pg_has_role(login.oid, capability.oid, 'MEMBER') "
+        "SELECT COUNT(*) FROM pg_roles AS login JOIN pg_roles AS assumable "
+        "ON assumable.oid <> login.oid AND pg_has_role(login.oid, assumable.oid, 'MEMBER') "
         "WHERE login.rolname = session_user",
-        (tuple(_ALL_RUNTIME_CAPABILITY_ROLES),),
     )
     has_auth_membership = fetch_value(
         "SELECT EXISTS (SELECT 1 FROM pg_roles AS login JOIN pg_roles AS capability "

@@ -976,22 +976,22 @@ def verify_runtime_database_authority(
             ).scalar_one()
             if not restricted:
                 raise SchemaCompatibilityError("runtime database role retains schema-migration authority")
-            if normalized_capabilities:
-                expected_roles = {RUNTIME_CAPABILITY_ROLES[name] for name in normalized_capabilities}
-                actual_roles = set(
-                    connection.execute(
-                        text(
-                            "SELECT assumable.rolname FROM pg_roles AS login "
-                            "JOIN pg_roles AS assumable ON assumable.oid <> login.oid "
-                            "AND pg_has_role(login.oid, assumable.oid, 'MEMBER') "
-                            "WHERE login.rolname = session_user"
-                        )
+            expected_roles = {RUNTIME_CAPABILITY_ROLES[name] for name in normalized_capabilities}
+            actual_roles = set(
+                connection.execute(
+                    text(
+                        "SELECT assumable.rolname FROM pg_roles AS login "
+                        "JOIN pg_roles AS assumable ON assumable.oid <> login.oid "
+                        "AND pg_has_role(login.oid, assumable.oid, 'MEMBER') "
+                        "WHERE login.rolname = session_user"
                     )
-                    .scalars()
-                    .all()
                 )
-                if actual_roles != expected_roles:
-                    raise SchemaCompatibilityError("runtime login capability memberships are incompatible")
+                .scalars()
+                .all()
+            )
+            if actual_roles != expected_roles:
+                raise SchemaCompatibilityError("runtime login capability memberships are incompatible")
+            if normalized_capabilities:
                 _verify_runtime_capability_catalog(connection, normalized_capabilities)
                 effective_privileges = _runtime_table_privileges(normalized_capabilities)
                 from .relationship_assertion_db_models import GRAC_TABLE_NAMES

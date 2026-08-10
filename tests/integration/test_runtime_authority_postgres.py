@@ -33,8 +33,11 @@ _EPHEMERAL_POSTGRES_URL = "FARDB_EPHEMERAL_POSTGRES_URL"
 _AUTH_RUNTIME_LOGIN = "cq1608_auth_runtime"
 _AUTH_WRITE_ROLE = "cq1608_auth_writer"
 _AUTH_REPLICATION_ROLE = "cq1608_auth_replication"
+_AUTH_ORDINARY_ROLE = "cq1608_auth_ordinary"
 _GRAPH_RUNTIME_LOGIN = "cq1608_graph_runtime"
 _GRAPH_REPLICATION_ROLE = "cq1608_graph_replication"
+_GRAPH_NO_CAP_RUNTIME_LOGIN = "cq1608_graph_no_cap_runtime"
+_GRAPH_ORDINARY_ROLE = "cq1608_graph_ordinary"
 _GRAPH_EXTRA_RUNTIME_LOGIN = "cq1608_graph_extra_runtime"
 _GRAPH_EXTRA_TRUNCATE_ROLE = "cq1608_graph_extra_truncate"
 _SEQUENCE_RUNTIME_LOGIN = "cq1608_sequence_runtime"
@@ -145,6 +148,93 @@ def test_auth_runtime_rejects_assumable_privileged_roles(attack_role: str) -> No
                     )
                 )
         _drop_roles(database_url, _AUTH_RUNTIME_LOGIN, elevated_role)
+
+
+@pytest.mark.integration
+def test_auth_runtime_rejects_unexpected_assumable_ordinary_role() -> None:
+    """The auth login may assume only fardb_runtime_auth."""
+    database_url = _ephemeral_database_url()
+    _prepare_auth_schema(database_url)
+
+    import api.database as api_database
+
+    with api_database.bind_database_url(database_url):
+        api_database.ensure_runtime_access()
+
+    try:
+        with _operator_connection(database_url) as connection, connection.cursor() as cursor:
+            runtime_login_ddl = sql.SQL(
+                "CREATE ROLE {} LOGIN NOINHERIT NOSUPERUSER NOCREATEDB NOCREATEROLE " "NOBYPASSRLS NOREPLICATION"
+            )
+            cursor.execute(runtime_login_ddl.format(sql.Identifier(_AUTH_RUNTIME_LOGIN)))
+
+            ordinary_role_ddl = sql.SQL(
+                "CREATE ROLE {} NOLOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE " "NOBYPASSRLS NOREPLICATION"
+            )
+            cursor.execute(ordinary_role_ddl.format(sql.Identifier(_AUTH_ORDINARY_ROLE)))
+
+            cursor.execute(
+                sql.SQL("GRANT {} TO {}").format(
+                    sql.Identifier(api_database.AUTH_RUNTIME_ROLE),
+                    sql.Identifier(_AUTH_RUNTIME_LOGIN),
+                )
+            )
+            cursor.execute(
+                sql.SQL("GRANT {} TO {}").format(
+                    sql.Identifier(_AUTH_ORDINARY_ROLE),
+                    sql.Identifier(_AUTH_RUNTIME_LOGIN),
+                )
+            )
+
+        with (
+            patch.object(api_database, "DATABASE_TYPE", "postgresql"),
+            patch.object(
+                api_database,
+                "_create_postgres_connection",
+                side_effect=lambda: _runtime_connection(database_url, _AUTH_RUNTIME_LOGIN),
+            ),
+            pytest.raises(SchemaCompatibilityError, match="capability memberships are incompatible"),
+        ):
+            api_database.verify_runtime_authority()
+    finally:
+        _drop_roles(database_url, _AUTH_RUNTIME_LOGIN, _AUTH_ORDINARY_ROLE)
+
+
+@pytest.mark.integration
+def test_runtime_database_authority_rejects_unexpected_assumable_role_without_capabilities() -> None:
+    """A no-capability runtime login may not retain any assumable role membership."""
+    database_url = _ephemeral_database_url()
+    runtime_engine = None
+    try:
+        with _operator_connection(database_url) as connection, connection.cursor() as cursor:
+            runtime_login_ddl = sql.SQL(
+                "CREATE ROLE {} LOGIN NOINHERIT NOSUPERUSER NOCREATEDB NOCREATEROLE " "NOBYPASSRLS NOREPLICATION"
+            )
+            cursor.execute(runtime_login_ddl.format(sql.Identifier(_GRAPH_NO_CAP_RUNTIME_LOGIN)))
+
+            ordinary_role_ddl = sql.SQL(
+                "CREATE ROLE {} NOLOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE " "NOBYPASSRLS NOREPLICATION"
+            )
+            cursor.execute(ordinary_role_ddl.format(sql.Identifier(_GRAPH_ORDINARY_ROLE)))
+
+            cursor.execute(
+                sql.SQL("GRANT {} TO {}").format(
+                    sql.Identifier(_GRAPH_ORDINARY_ROLE),
+                    sql.Identifier(_GRAPH_NO_CAP_RUNTIME_LOGIN),
+                )
+            )
+
+        runtime_engine = create_engine(
+            "postgresql+psycopg2://",
+            creator=lambda: _runtime_connection(database_url, _GRAPH_NO_CAP_RUNTIME_LOGIN),
+            future=True,
+        )
+        with pytest.raises(SchemaCompatibilityError, match="capability memberships are incompatible"):
+            verify_runtime_database_authority(runtime_engine)
+    finally:
+        if runtime_engine is not None:
+            runtime_engine.dispose()
+        _drop_roles(database_url, _GRAPH_NO_CAP_RUNTIME_LOGIN, _GRAPH_ORDINARY_ROLE)
 
 
 @pytest.mark.integration
