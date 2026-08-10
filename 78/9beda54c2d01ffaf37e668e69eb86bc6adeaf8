@@ -1,0 +1,16 @@
+api/database.py
+  h_f327e6ff3ec3c1 56-63,844,849-850,945,950-951
+tests/unit/test_api_database_auth_grantees.py
+  h_f327e6ff3ec3c1 25-30,50-55
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.21",
+  "base_commit_sha": "789beda54c2d01ffaf37e668e69eb86bc6adeaf8",
+  "prompts": {},
+  "humans": {
+    "h_f327e6ff3ec3c1": {
+      "author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}
