@@ -53,7 +53,9 @@ from src.data.database import (
     DEFAULT_DATABASE_URL,
     GRAPH_RUNTIME_CAPABILITY,
     Base,
+    CapabilityRoleBootstrapRequiredError,
     SchemaCompatibilityError,
+    _ensure_capability_role,
     _normalize_check_definition,
     _runtime_policy_specs,
     _runtime_table_privileges,
@@ -78,9 +80,11 @@ class _CatalogResult:
         self._rows = rows or []
 
     def scalar_one(self) -> object:
+        """Return the configured scalar value."""
         return self._scalar
 
     def all(self) -> list[tuple]:
+        """Return the configured catalog rows."""
         return self._rows
 
 
@@ -94,6 +98,38 @@ def test_graph_capability_preserves_grac_immutability_and_locking() -> None:
     for table_name in GRAC_TABLE_NAMES:
         assert privileges[(GRAPH_RUNTIME_CAPABILITY, table_name)] == {"SELECT", "INSERT"}
         assert policies[(table_name, "fardb_graph_lock_v1")] == ("w", "true", "false")
+
+
+def test_capability_role_requires_superuser_bootstrap_when_missing() -> None:
+    """Normal migration authority cannot create a missing cluster capability role."""
+    role_state = MagicMock()
+    role_state.one.return_value = (False, False)
+    connection = MagicMock()
+    connection.execute.return_value = role_state
+
+    with pytest.raises(
+        CapabilityRoleBootstrapRequiredError,
+        match="bootstrap_database_capability_roles.sql as a PostgreSQL superuser",
+    ):
+        _ensure_capability_role(connection, "fardb_runtime_graph")
+
+    connection.execute.assert_called_once()
+
+
+def test_capability_role_retains_superuser_fallback_creation() -> None:
+    """Disposable superuser setup may still create and strictly validate a missing role."""
+    role_state = MagicMock()
+    role_state.one.return_value = (False, True)
+    connection = MagicMock()
+    connection.execute.side_effect = [role_state, MagicMock()]
+
+    _ensure_capability_role(connection, "fardb_runtime_graph")
+
+    statement = str(connection.execute.call_args_list[1].args[0])
+    assert "CREATE ROLE ' || quote_ident(capability_role)" in statement
+    assert "rolname = CURRENT_USER" in statement
+    assert "rolsuper" in statement
+    assert "membership.roleid = role.oid AND membership.admin_option" in statement
 
 
 def test_runtime_capability_catalog_accepts_exact_graph_contract() -> None:
@@ -113,16 +149,20 @@ def test_runtime_capability_catalog_accepts_exact_graph_contract() -> None:
     grac_tables = frozenset(GRAC_TABLE_NAMES)
 
     def _execute(statement, parameters=None) -> _CatalogResult:
+        """Dispatch one expected catalog query to its configured result."""
         sql = str(statement)
         parameters = parameters or {}
         if "COUNT(*) = 1 FROM pg_roles" in sql:
             assert "membership.roleid = role.oid" in sql
             assert "membership.admin_option" in sql
-            assert "WITH RECURSIVE role_membership(member, roleid)" in sql
+            assert "WITH RECURSIVE role_membership(member, roleid, member_is_superuser)" in sql
+            assert "grantee.rolsuper" in sql
             assert "to_jsonb(membership) ->> 'inherit_option'" in sql
             assert "to_jsonb(membership) ->> 'set_option'" in sql
             assert sql.count("::boolean, TRUE)") == 4
+            assert "OR grantee.rolsuper" in sql
             assert "membership.member = role_membership.roleid" in sql
+            assert "OR role_membership.member_is_superuser" in sql
             assert "SELECT COUNT(*) FROM pg_roles AS grantee" in sql
             assert "role_membership.member = grantee.oid" in sql
             assert "role_membership.roleid = role.oid" in sql

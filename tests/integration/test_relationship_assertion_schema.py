@@ -489,8 +489,9 @@ class TestRelationshipAssertionSchemaBootstrap:
                 '[{"predicate_id":"financial.bond.issuer_reference@1","purpose":"current_view"}]',
             ),
         ]
+        forbidden_update = text("UPDATE relationship_projection_revisions SET purpose = 'changed'")
         with pytest.raises((DBAPIError, IntegrityError)), schema_engine.begin() as conn:
-            conn.execute(text("UPDATE relationship_projection_revisions SET purpose = 'changed'"))
+            conn.execute(forbidden_update)
 
 
 @pytest.mark.integration

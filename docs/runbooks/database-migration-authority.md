@@ -1,8 +1,8 @@
 # Database migration authority
 
 **Applies to:** current FarDB graph, coordination, GRAC, and API credential schemas.
-**Command:** `python -m scripts.migrate_database`
-**Authority:** an explicit operator execution using migration-owner credentials.
+**Commands:** superuser role bootstrap, then `python -m scripts.migrate_database`
+**Authority:** two explicit operator executions with separate superuser and migration-owner credentials.
 
 ## Contract
 
@@ -10,20 +10,42 @@ FastAPI runtime startup is a read-only compatibility boundary. It checks require
 indices, GRAC immutability triggers, PostgreSQL RLS/grant posture, and the API credential schema. It fails closed when
 the configured databases are absent or incompatible and never attempts repair.
 
-The operator command is the only supported mutating setup path for this tranche. It wraps the existing custom
-migration mechanics and owns:
+The operator workflow is the only supported mutating setup path for this tranche. The superuser-owned bootstrap
+creates the cluster-level capability roles; the normal command wraps the existing custom migration mechanics and owns:
 
 - SQLAlchemy ORM table creation;
 - SQLite compatibility migrations;
 - PostgreSQL rebuild-job columns, widths, and status constraint;
 - GRAC projection metadata/backfill, checks, immutable-write triggers, exact named RLS policies, and grant hardening;
 - `user_credentials` table creation and optional initial credential provisioning;
-- stable PostgreSQL `NOLOGIN` capability roles and their exact grants/policies:
+- exact grants and policies for the pre-provisioned PostgreSQL `NOLOGIN` capability roles:
   `fardb_runtime_graph`, `fardb_runtime_coordination`, and `fardb_runtime_auth`.
 
-The command creates capability roles but deliberately does not create login roles, passwords, connection strings, or
-provider configuration. Runtime login creation, credential custody, role membership, and URL replacement remain a
-separate human-controlled provider operation.
+The normal command does not create a missing capability role when run by a non-superuser migration owner. It fails
+closed and directs the operator to `scripts/bootstrap_database_capability_roles.sql`. A superuser connection retains
+fallback role creation for isolated development and disposable tests. Neither path creates login roles, passwords,
+connection strings, or provider configuration. Runtime login creation, credential custody, role membership, and URL
+replacement remain a separate human-controlled provider operation.
+
+## Superuser capability-role bootstrap
+
+Run the static bootstrap once on every distinct PostgreSQL cluster that hosts a FarDB auth, graph, or coordination
+database, before using the normal migration owner:
+
+```bash
+psql --set=ON_ERROR_STOP=1 "$MIGRATION_DATABASE_URL" \
+  --file scripts/bootstrap_database_capability_roles.sql
+```
+
+`MIGRATION_DATABASE_URL` in this example must identify the reviewed superuser-owned bootstrap connection. Do not save
+or publish its value. The artifact creates only the three fixed `NOLOGIN` roles with restricted attributes. It removes
+incoming memberships carrying `ADMIN OPTION`, including PostgreSQL 16's bootstrap-superuser grant to a non-superuser
+`CREATEROLE` creator, and then fails closed if any restricted role invariant remains unsafe. It does not grant a
+runtime login membership or configure schema objects.
+
+Do not replace this step with a `SECURITY DEFINER` function, a privileged application endpoint, or superuser
+credentials in the application environment. Keep bootstrap credentials in the approved operator surface and remove
+them before running the normal migration.
 
 ## PostgreSQL runtime capability contract
 
@@ -50,28 +72,30 @@ CQ-03. Do not represent a successful command run as CQ-03 closure.
 ## First setup or schema-relevant deployment
 
 1. Stop traffic to an unprepared target, or run before deploying application instances that require the new schema.
-2. Configure the existing database URL variables with migration-owner credentials for the intended graph,
+2. Run the superuser capability-role bootstrap above once for each distinct PostgreSQL cluster. Record only bounded
+   pass/fail evidence; never record the bootstrap URL.
+3. Configure the existing database URL variables with migration-owner credentials for the intended graph,
    coordination, and auth boundaries. Existing URL precedence is unchanged.
-3. Configure `SECRET_KEY`. For initial credential provisioning, also configure `ADMIN_USERNAME`, `ADMIN_PASSWORD`, and
+4. Configure `SECRET_KEY`. For initial credential provisioning, also configure `ADMIN_USERNAME`, `ADMIN_PASSWORD`, and
    optional `ADMIN_EMAIL`, `ADMIN_FULL_NAME`, or `ADMIN_DISABLED`.
-4. Run:
+5. Run:
 
    ```bash
    python -m scripts.migrate_database
    ```
 
-5. Require exit status 0 and record only the emitted component names (`graph`, `coordination`, `auth`). Never record
+6. Require exit status 0 and record only the emitted component names (`graph`, `coordination`, `auth`). Never record
    raw database URLs or secrets.
-6. In the provider's protected operator surface, create or select the three restricted login identities and grant
+7. In the provider's protected operator surface, create or select the three restricted login identities and grant
    only the applicable capability membership. For example, the reviewed equivalent of
    `GRANT fardb_runtime_graph TO <graph_login>` belongs on the graph boundary; use both graph and coordination
    memberships only when those boundaries deliberately share one URL. Do not paste login names or commands with
    credentials into public evidence.
-7. Replace migration-owner URLs with the corresponding restricted-login URLs. Remove `ADMIN_PASSWORD` from the
+8. Replace migration-owner URLs with the corresponding restricted-login URLs. Remove `ADMIN_PASSWORD` from the
    runtime environment, but keep `ADMIN_USERNAME` in production runtime configuration.
-8. Start FastAPI. A compatibility failure is a deployment blocker: return to this procedure rather than broadening
+9. Start FastAPI. A compatibility failure is a deployment blocker: return to this procedure rather than broadening
    the app role.
-9. Prove cold start and restart, exercise graph/coordination/auth runtime operations, and run the hosted readiness and
+10. Prove cold start and restart, exercise graph/coordination/auth runtime operations, and run the hosted readiness and
    database-authorization evidence required by the target environment.
 
 For an isolated PostgreSQL rehearsal, the opt-in integration contract accepts restricted DSNs only through
@@ -105,6 +129,9 @@ requires durable graph/reconciliation persistence.
 - A missing-schema or incompatible-schema startup error is evidence that the operator step did not complete against
   the runtime target. Do not retry by granting CREATE, ALTER, TRIGGER, ownership, or grant-management authority to the
   application role.
+- A `required PostgreSQL capability role ... is missing` migration error means the normal migration owner is correctly
+  refusing to create a cluster role. Run the static superuser bootstrap against that cluster, remove the superuser
+  connection from the environment, and rerun the normal migration.
 - If the command fails, retain the target for diagnosis when safe, use the backup/restore procedure for destructive or
   partial migration concerns, and rerun only after the cause is understood.
 - Code rollback may restore the prior application version, but database rollback follows the schema change's reviewed

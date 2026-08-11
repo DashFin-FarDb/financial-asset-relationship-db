@@ -331,10 +331,7 @@ def _postgresql_boolean_ast(expression: str) -> object:
             children: list[object] = []
             for piece in pieces:
                 child = _postgresql_boolean_ast(piece)
-                if isinstance(child, tuple) and child[0] == operator:
-                    children.extend(child[1:])
-                else:
-                    children.append(child)
+                children.extend(child[1:] if isinstance(child, tuple) and child[0] == operator else (child,))
             return (operator, *children)
     atomic = re.sub(r"(?<![a-z0-9_$])\(([a-z_][a-z0-9_$]*)\)", r"\1", expression)
     return re.sub(r"\s+", "", atomic)
@@ -381,20 +378,20 @@ def _split_top_level_boolean(expression: str, operator: str) -> list[str]:
 def _strip_redundant_outer_parentheses(definition: str) -> str:
     """Remove only a balanced pair that encloses the full CHECK expression."""
     while definition.startswith("(") and definition.endswith(")"):
-        depth = 0
-        encloses_all = True
-        for position, char in enumerate(definition):
-            if char == "(":
-                depth += 1
-            elif char == ")":
-                depth -= 1
-            if depth == 0 and position != len(definition) - 1:
-                encloses_all = False
-                break
-        if not encloses_all or depth != 0:
+        if not _outer_parentheses_enclose_expression(definition):
             break
         definition = definition[1:-1]
     return definition
+
+
+def _outer_parentheses_enclose_expression(definition: str) -> bool:
+    """Return whether the first opening parenthesis closes at the expression end."""
+    depth = 0
+    for position, char in enumerate(definition):
+        depth += (char == "(") - (char == ")")
+        if depth == 0 and position != len(definition) - 1:
+            return False
+    return depth == 0
 
 
 def _postgresql_check_matches(definition: str, canonical_check: str) -> bool:

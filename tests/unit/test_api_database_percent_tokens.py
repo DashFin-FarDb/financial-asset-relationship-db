@@ -13,7 +13,7 @@ pytestmark = pytest.mark.unit
 
 
 @patch("api.database.DATABASE_TYPE", "postgresql")
-@patch("api.database.fetch_value", return_value=None)
+@patch("api.database.fetch_value", side_effect=[None, 2])
 @patch("api.database.execute")
 def test_ensure_runtime_access_escapes_driver_percent_tokens(mock_execute, _mock_fetch_value) -> None:
     """Server-side format tokens must be escaped before psycopg2 sees them."""

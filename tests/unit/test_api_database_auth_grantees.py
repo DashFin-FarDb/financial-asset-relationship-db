@@ -5,21 +5,23 @@ from unittest.mock import MagicMock
 import pytest
 
 from api import database as api_database
-from src.data.database import SchemaCompatibilityError
+from src.data.database import CapabilityRoleBootstrapRequiredError, SchemaCompatibilityError
 
 pytestmark = pytest.mark.unit
 
 
 def test_ensure_runtime_access_counts_only_usable_login_grantees(monkeypatch) -> None:
-    """Provisioning must ignore inert creator grants but reject usable or superuser paths."""
+    """Provisioning must reject delegable, usable, and superuser membership paths."""
     execute = MagicMock()
     monkeypatch.setattr(api_database, "DATABASE_TYPE", "postgresql")
-    monkeypatch.setattr(api_database, "fetch_value", lambda *_args, **_kwargs: None)
+    fetch_value = MagicMock(side_effect=[None, 2])
+    monkeypatch.setattr(api_database, "fetch_value", fetch_value)
     monkeypatch.setattr(api_database, "execute", execute)
 
     api_database.ensure_runtime_access()
 
     authority_ddl = execute.call_args_list[0].args[0]
+    assert api_database._AUTH_ROLE_MEMBERSHIP_CTE_SQL in authority_ddl
     assert "grantee.rolcanlogin" in authority_ddl
     assert "WITH RECURSIVE role_membership(member, roleid, member_is_superuser)" in authority_ddl
     assert "to_jsonb(membership) ->> 'inherit_option'" in authority_ddl
@@ -37,6 +39,22 @@ def test_ensure_runtime_access_counts_only_usable_login_grantees(monkeypatch) ->
     assert "> 1" in authority_ddl
 
 
+def test_ensure_runtime_access_requires_bootstrap_for_missing_role(monkeypatch) -> None:
+    """A non-superuser migration owner must not create the auth capability role."""
+    execute = MagicMock()
+    monkeypatch.setattr(api_database, "DATABASE_TYPE", "postgresql")
+    monkeypatch.setattr(api_database, "fetch_value", MagicMock(side_effect=[None, 0]))
+    monkeypatch.setattr(api_database, "execute", execute)
+
+    with pytest.raises(
+        CapabilityRoleBootstrapRequiredError,
+        match="bootstrap_database_capability_roles.sql as a PostgreSQL superuser",
+    ):
+        api_database.ensure_runtime_access()
+
+    execute.assert_not_called()
+
+
 def test_verify_runtime_authority_rejects_other_usable_login_grantees(monkeypatch) -> None:
     """Runtime auth capability must have no other usable or superuser login path."""
     fetch_value = MagicMock(side_effect=[True, 1, True, False, True, True, True, True])
@@ -47,6 +65,7 @@ def test_verify_runtime_authority_rejects_other_usable_login_grantees(monkeypatc
         api_database.verify_runtime_authority()
 
     safe_role_query = fetch_value.call_args_list[3].args[0]
+    assert api_database._AUTH_ROLE_MEMBERSHIP_CTE_SQL in safe_role_query
     assert "grantee.rolcanlogin" in safe_role_query
     assert "WITH RECURSIVE role_membership(member, roleid, member_is_superuser)" in safe_role_query
     assert "to_jsonb(membership) ->> 'inherit_option'" in safe_role_query

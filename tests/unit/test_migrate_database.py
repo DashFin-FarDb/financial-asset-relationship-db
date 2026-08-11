@@ -9,7 +9,7 @@ import pytest
 
 import scripts.migrate_database as migrate_database
 from src.config.settings import Settings
-from src.data.database import SchemaCompatibilityError
+from src.data.database import CapabilityRoleBootstrapRequiredError, SchemaCompatibilityError
 
 pytestmark = pytest.mark.unit
 
@@ -253,3 +253,17 @@ def test_main_sanitizes_dependency_errors(monkeypatch, capsys) -> None:
     captured = capsys.readouterr()
     assert "Database migration failed (RuntimeError)" in captured.err
     assert secret_dsn not in captured.err
+
+
+def test_main_reports_safe_capability_bootstrap_diagnostic(monkeypatch, capsys) -> None:
+    """The operator sees the repository-owned bootstrap action without DSN details."""
+    monkeypatch.setattr(
+        migrate_database,
+        "migrate_configured_databases",
+        MagicMock(side_effect=CapabilityRoleBootstrapRequiredError("fardb_runtime_graph")),
+    )
+
+    assert migrate_database.main() == 1
+    captured = capsys.readouterr()
+    assert "required PostgreSQL capability role fardb_runtime_graph is missing" in captured.err
+    assert "bootstrap_database_capability_roles.sql as a PostgreSQL superuser" in captured.err

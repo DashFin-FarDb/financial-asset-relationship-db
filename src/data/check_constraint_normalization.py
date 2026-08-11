@@ -5,6 +5,27 @@ from __future__ import annotations
 import re
 
 
+def _quoted_run_end(definition: str, start: int, quote: str) -> int:
+    """Return the first position after one SQL quoted token."""
+    position = start + 1
+    while position < len(definition):
+        if definition[position] != quote:
+            position += 1
+        elif position + 1 < len(definition) and definition[position + 1] == quote:
+            position += 2
+        else:
+            return position + 1
+    return position
+
+
+def _canonical_quoted_token(token: str, quote: str) -> str:
+    """Remove safe lowercase identifier quotes while preserving all other tokens."""
+    if quote != '"' or not token.endswith('"'):
+        return token
+    identifier = token[1:-1]
+    return identifier if re.fullmatch(r"[a-z_][a-z0-9_$]*", identifier) else token
+
+
 def _protect_quoted_sql_tokens(definition: str) -> tuple[str, dict[str, str]]:
     """Replace quoted SQL tokens with markers before syntax canonicalisation."""
     protected: dict[str, str] = {}
@@ -19,23 +40,8 @@ def _protect_quoted_sql_tokens(definition: str) -> tuple[str, dict[str, str]]:
             continue
 
         start = position
-        position += 1
-        while position < len(definition):
-            if definition[position] != quote:
-                position += 1
-                continue
-            if position + 1 < len(definition) and definition[position + 1] == quote:
-                position += 2
-                continue
-            position += 1
-            break
-
-        token = definition[start:position]
-        canonical_token = token
-        if quote == '"' and token.endswith('"'):
-            identifier = token[1:-1]
-            if re.fullmatch(r"[a-z_][a-z0-9_$]*", identifier):
-                canonical_token = identifier
+        position = _quoted_run_end(definition, start, quote)
+        canonical_token = _canonical_quoted_token(definition[start:position], quote)
 
         marker = f"\x00fardb_quoted_{len(protected)}\x00"
         protected[marker] = canonical_token
@@ -54,20 +60,20 @@ def _restore_quoted_sql_tokens(definition: str, protected: dict[str, str]) -> st
 def _strip_redundant_outer_parentheses(definition: str) -> str:
     """Remove only parentheses that enclose the entire SQL expression."""
     while definition.startswith("(") and definition.endswith(")"):
-        depth = 0
-        encloses_all = True
-        for position, char in enumerate(definition):
-            if char == "(":
-                depth += 1
-            elif char == ")":
-                depth -= 1
-            if depth == 0 and position != len(definition) - 1:
-                encloses_all = False
-                break
-        if not encloses_all or depth != 0:
+        if not _encloses_whole_expression(definition):
             break
         definition = definition[1:-1]
     return definition
+
+
+def _encloses_whole_expression(definition: str) -> bool:
+    """Return whether the outer parentheses close only at the final character."""
+    depth = 0
+    for position, char in enumerate(definition):
+        depth += (char == "(") - (char == ")")
+        if depth == 0 and position != len(definition) - 1:
+            return False
+    return depth == 0
 
 
 def _split_top_level_check_boolean(expression: str, operator: str) -> list[str]:
@@ -104,10 +110,7 @@ def _check_boolean_ast(expression: str) -> object:
             children: list[object] = []
             for piece in pieces:
                 child = _check_boolean_ast(piece)
-                if isinstance(child, tuple) and child and child[0] == operator:
-                    children.extend(child[1:])
-                else:
-                    children.append(child)
+                children.extend(child[1:] if isinstance(child, tuple) and child and child[0] == operator else (child,))
             return (operator, *children)
     atomic = re.sub(r"(?<![a-z0-9_$])\(([a-z_][a-z0-9_$]*)\)", r"\1", expression)
     return re.sub(r'[\s"]+', "", atomic)
@@ -121,6 +124,12 @@ def _serialize_check_boolean_ast(node: object) -> str:
         return str(node)
     operator = str(node[0])
     return operator + "(" + ",".join(_serialize_check_boolean_ast(child) for child in node[1:]) + ")"
+
+
+def _expand_between_predicate(match: re.Match[str]) -> str:
+    """Rewrite one parsed BETWEEN predicate without changing either bound."""
+    operand, lower_bound, upper_bound = match.groups()
+    return f"{operand} >= {lower_bound} and {operand} <= {upper_bound}"
 
 
 def normalize_check_definition(definition: object) -> str:
@@ -143,9 +152,16 @@ def normalize_check_definition(definition: object) -> str:
         _replace_any_array,
         normalized,
     )
+    # Match bounded, non-nested parenthesized/function operands separately;
+    # negated character classes avoid broad-dot regex backtracking.
+    normalized = re.sub(
+        r"((?:[a-z_][a-z0-9_$]*)?\([^()]*\))\s+between\s+([^\s()]+)\s+and\s+([^\s()]+)",
+        _expand_between_predicate,
+        normalized,
+    )
     normalized = re.sub(
         r"([^\s()]+)\s+between\s+([^\s()]+)\s+and\s+([^\s()]+)",
-        r"\1 >= \2 and \1 <= \3",
+        _expand_between_predicate,
         normalized,
     )
 

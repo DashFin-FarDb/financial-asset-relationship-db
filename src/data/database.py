@@ -68,6 +68,18 @@ class SchemaCompatibilityError(RuntimeError):
     """Raised when a runtime database does not match the required schema contract."""
 
 
+class CapabilityRoleBootstrapRequiredError(SchemaCompatibilityError):
+    """Raised when a non-superuser migration owner finds a missing capability role."""
+
+    def __init__(self, role_name: str) -> None:
+        """Build the fixed operator diagnostic for one missing capability role."""
+        super().__init__(
+            f"required PostgreSQL capability role {role_name} is missing; run "
+            "scripts/bootstrap_database_capability_roles.sql as a PostgreSQL superuser "
+            "before the normal database migration"
+        )
+
+
 def _sqlite_translate(value: str | None, from_chars: str | None, to_chars: str | None) -> str | None:
     """PostgreSQL-compatible ``translate`` for SQLite CHECK constraints."""
     if value is None:
@@ -297,16 +309,8 @@ def _verify_table_constraints(inspector, table_name: str, expected_table) -> Non
         raise SchemaCompatibilityError(f"database table {table_name} missing foreign-key invariants")
 
 
-def _verify_table_schema(inspector, table_name: str) -> None:  # skipcq: PY-R1000
-    """Verify columns and named schema invariants for one ORM table."""
-    expected_table = Base.metadata.tables[table_name]
-    actual_columns = {column["name"] for column in inspector.get_columns(table_name)}
-    missing_columns = sorted(set(expected_table.columns.keys()) - actual_columns)
-    if missing_columns:
-        raise SchemaCompatibilityError(
-            f"database table {table_name} missing required columns: {', '.join(missing_columns)}"
-        )
-
+def _verify_table_checks(inspector, table_name: str, expected_table) -> None:
+    """Verify named CHECK constraints for one ORM table."""
     expected_checks = {
         str(constraint.name): _normalize_check_definition(constraint.sqltext)
         for constraint in expected_table.constraints
@@ -330,6 +334,9 @@ def _verify_table_schema(inspector, table_name: str) -> None:  # skipcq: PY-R100
             f"database table {table_name} has incompatible constraints: {', '.join(mismatched_checks)}"
         )
 
+
+def _verify_table_indexes(inspector, table_name: str, expected_table) -> None:
+    """Verify named indexes for one ORM table."""
     expected_indexes = {
         str(index.name): (tuple(column.name for column in index.columns), bool(index.unique))
         for index in expected_table.indexes
@@ -353,6 +360,19 @@ def _verify_table_schema(inspector, table_name: str) -> None:  # skipcq: PY-R100
             f"database table {table_name} has incompatible indexes: {', '.join(mismatched_indexes)}"
         )
 
+
+def _verify_table_schema(inspector, table_name: str) -> None:
+    """Verify columns and named schema invariants for one ORM table."""
+    expected_table = Base.metadata.tables[table_name]
+    actual_columns = {column["name"] for column in inspector.get_columns(table_name)}
+    missing_columns = sorted(set(expected_table.columns.keys()) - actual_columns)
+    if missing_columns:
+        raise SchemaCompatibilityError(
+            f"database table {table_name} missing required columns: {', '.join(missing_columns)}"
+        )
+
+    _verify_table_checks(inspector, table_name, expected_table)
+    _verify_table_indexes(inspector, table_name, expected_table)
     _verify_table_constraints(inspector, table_name, expected_table)
 
 
@@ -409,11 +429,24 @@ def _runtime_policy_specs(
 
 
 def _ensure_capability_role(connection, role_name: str) -> None:
-    """Create one stable NOLOGIN capability role or reject an unsafe existing role."""
+    """Require one stable capability role, with superuser-only fallback creation."""
+    role_exists, current_user_is_superuser = connection.execute(
+        text(
+            "SELECT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = :role_name), "
+            "COALESCE((SELECT rolsuper FROM pg_roles WHERE rolname = CURRENT_USER), FALSE)"
+        ),
+        {"role_name": role_name},
+    ).one()
+    if not role_exists and not current_user_is_superuser:
+        raise CapabilityRoleBootstrapRequiredError(role_name)
+
+    bootstrap_message = str(CapabilityRoleBootstrapRequiredError(role_name))
     connection.execute(
         text(
             "DO $fardb$ DECLARE capability_role text := :role_name; BEGIN "
             "IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = capability_role) THEN "
+            "IF NOT COALESCE((SELECT rolsuper FROM pg_roles WHERE rolname = CURRENT_USER), FALSE) THEN "
+            "RAISE EXCEPTION USING MESSAGE = :bootstrap_message; END IF; "
             "EXECUTE 'CREATE ROLE ' || quote_ident(capability_role) || "
             "' NOLOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOBYPASSRLS NOREPLICATION'; "
             "END IF; "
@@ -426,12 +459,14 @@ def _ensure_capability_role(connection, role_name: str) -> None:
             "JOIN pg_namespace AS namespace ON namespace.oid = proc.pronamespace "
             "WHERE namespace.nspname = current_schema() "
             "AND proc.proname = 'grac_v1_reject_mutation' AND proc.proowner = role.oid) OR EXISTS ("
-            "SELECT 1 FROM pg_auth_members AS membership WHERE membership.member = role.oid))) "
+            "SELECT 1 FROM pg_auth_members AS membership WHERE membership.member = role.oid) OR EXISTS ("
+            "SELECT 1 FROM pg_auth_members AS membership "
+            "WHERE membership.roleid = role.oid AND membership.admin_option))) "
             "THEN RAISE EXCEPTION USING MESSAGE = "
             "'unsafe FarDB capability role: ' || capability_role; END IF; "
             "END $fardb$"
         ),
-        {"role_name": role_name},
+        {"role_name": role_name, "bootstrap_message": bootstrap_message},
     )
 
 
@@ -596,15 +631,20 @@ def _verify_runtime_capability_catalog(  # noqa: C901  # skipcq: PY-R1000
                 "WHERE membership.member = role.oid) "
                 "AND NOT EXISTS (SELECT 1 FROM pg_auth_members AS membership "
                 "WHERE membership.roleid = role.oid AND membership.admin_option) "
-                "AND (WITH RECURSIVE role_membership(member, roleid) AS ("
-                "SELECT membership.member, membership.roleid FROM pg_auth_members AS membership "
+                "AND (WITH RECURSIVE role_membership(member, roleid, member_is_superuser) AS ("
+                "SELECT membership.member, membership.roleid, grantee.rolsuper "
+                "FROM pg_auth_members AS membership "
+                "JOIN pg_roles AS grantee ON grantee.oid = membership.member "
                 "WHERE (COALESCE((to_jsonb(membership) ->> 'inherit_option')::boolean, TRUE) "
-                "OR COALESCE((to_jsonb(membership) ->> 'set_option')::boolean, TRUE)) "
-                "UNION SELECT role_membership.member, membership.roleid "
+                "OR COALESCE((to_jsonb(membership) ->> 'set_option')::boolean, TRUE) "
+                "OR grantee.rolsuper) "
+                "UNION SELECT role_membership.member, membership.roleid, "
+                "role_membership.member_is_superuser "
                 "FROM role_membership JOIN pg_auth_members AS membership "
                 "ON membership.member = role_membership.roleid "
                 "WHERE (COALESCE((to_jsonb(membership) ->> 'inherit_option')::boolean, TRUE) "
-                "OR COALESCE((to_jsonb(membership) ->> 'set_option')::boolean, TRUE))) "
+                "OR COALESCE((to_jsonb(membership) ->> 'set_option')::boolean, TRUE) "
+                "OR role_membership.member_is_superuser)) "
                 "SELECT COUNT(*) FROM pg_roles AS grantee WHERE grantee.rolcanlogin "
                 "AND EXISTS (SELECT 1 FROM role_membership WHERE role_membership.member = grantee.oid "
                 "AND role_membership.roleid = role.oid)) <= 1"
@@ -688,7 +728,7 @@ def _verify_runtime_capability_catalog(  # noqa: C901  # skipcq: PY-R1000
                         and column_name == "id"
                     )
                     actual_column_privilege = connection.execute(
-                        text("SELECT has_column_privilege(" ":role_name, :table_name, :column_name, :privilege)"),
+                        text("SELECT has_column_privilege(:role_name, :table_name, :column_name, :privilege)"),
                         {
                             "role_name": role_name,
                             "table_name": table_name,
@@ -721,48 +761,58 @@ def _verify_runtime_capability_catalog(  # noqa: C901  # skipcq: PY-R1000
                 )
 
 
-def _verify_runtime_login_relation_grants(
+def _verify_runtime_login_table_grants(connection, table_name: str, expected: frozenset[str]) -> None:
+    """Verify effective login table privileges for one managed table."""
+    for privilege in _TABLE_PRIVILEGES:
+        actual = connection.execute(
+            text("SELECT has_table_privilege(session_user, :table_name, :privilege)"),
+            {"table_name": table_name, "privilege": privilege},
+        ).scalar_one()
+        if bool(actual) != (privilege in expected):
+            raise SchemaCompatibilityError(f"runtime login grants are incompatible on {table_name}")
+
+
+def _verify_runtime_login_column_grants(
     connection,
-    capabilities: tuple[str, ...],
+    table_name: str,
+    expected: frozenset[str],
+    graph_lock_columns: frozenset[tuple[str, str]],
 ) -> None:
+    """Verify effective login column privileges for one managed table."""
+    for column_name in Base.metadata.tables[table_name].columns.keys():
+        for privilege in _COLUMN_PRIVILEGES:
+            lock_column_update = privilege == "UPDATE" and (table_name, column_name) in graph_lock_columns
+            actual = connection.execute(
+                text("SELECT has_column_privilege(session_user, :table_name, :column_name, :privilege)"),
+                {
+                    "table_name": table_name,
+                    "column_name": column_name,
+                    "privilege": privilege,
+                },
+            ).scalar_one()
+            if bool(actual) != (privilege in expected or lock_column_update):
+                raise SchemaCompatibilityError(f"runtime login column grants are incompatible on {table_name}")
+
+
+def _verify_runtime_login_relation_grants(connection, capabilities: tuple[str, ...]) -> None:
     """Verify effective login table and column privileges against the capability contract."""
     from .relationship_assertion_db_models import GRAC_TABLE_NAMES
 
     effective_privileges = _runtime_table_privileges(capabilities)
     grac_tables = frozenset(GRAC_TABLE_NAMES)
-
+    graph_lock_columns = (
+        frozenset((table_name, "id") for table_name in grac_tables)
+        if GRAPH_RUNTIME_CAPABILITY in capabilities
+        else frozenset()
+    )
     for table_name in sorted(Base.metadata.tables):
         expected = frozenset(
             privilege
             for capability in capabilities
             for privilege in effective_privileges.get((capability, table_name), frozenset())
         )
-        for privilege in _TABLE_PRIVILEGES:
-            actual = connection.execute(
-                text("SELECT has_table_privilege(session_user, :table_name, :privilege)"),
-                {"table_name": table_name, "privilege": privilege},
-            ).scalar_one()
-            if bool(actual) != (privilege in expected):
-                raise SchemaCompatibilityError(f"runtime login grants are incompatible on {table_name}")
-
-        for column_name in Base.metadata.tables[table_name].columns.keys():
-            for privilege in _COLUMN_PRIVILEGES:
-                lock_column_update = (
-                    privilege == "UPDATE"
-                    and GRAPH_RUNTIME_CAPABILITY in capabilities
-                    and table_name in grac_tables
-                    and column_name == "id"
-                )
-                actual = connection.execute(
-                    text("SELECT has_column_privilege(session_user, :table_name, :column_name, :privilege)"),
-                    {
-                        "table_name": table_name,
-                        "column_name": column_name,
-                        "privilege": privilege,
-                    },
-                ).scalar_one()
-                if bool(actual) != (privilege in expected or lock_column_update):
-                    raise SchemaCompatibilityError(f"runtime login column grants are incompatible on {table_name}")
+        _verify_runtime_login_table_grants(connection, table_name, expected)
+        _verify_runtime_login_column_grants(connection, table_name, expected, graph_lock_columns)
 
 
 def _verify_runtime_login_sequence_grants(
@@ -786,7 +836,7 @@ def _verify_runtime_login_sequence_grants(
 
         for privilege in _SEQUENCE_PRIVILEGES:
             actual = connection.execute(
-                text("SELECT has_sequence_privilege(" "session_user, :sequence_name, :privilege)"),
+                text("SELECT has_sequence_privilege(session_user, :sequence_name, :privilege)"),
                 {
                     "sequence_name": sequence_name,
                     "privilege": privilege,

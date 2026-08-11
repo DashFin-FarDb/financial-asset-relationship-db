@@ -20,6 +20,7 @@ from src.config.settings import Settings, load_settings
 from src.data.database import (
     COORDINATION_RUNTIME_CAPABILITY,
     GRAPH_RUNTIME_CAPABILITY,
+    CapabilityRoleBootstrapRequiredError,
     create_engine_from_url,
     ensure_runtime_database_capabilities,
     init_db,
@@ -115,6 +116,9 @@ def main() -> int:
     """Run configured migrations and emit only non-sensitive component names."""
     try:
         migrated = migrate_configured_databases()
+    except CapabilityRoleBootstrapRequiredError as exc:
+        print(f"Database migration failed: {exc}", file=sys.stderr)
+        return 1
     except Exception as exc:  # noqa: BLE001 - sanitize dependency and DSN-bearing failures
         print(f"Database migration failed ({type(exc).__name__})", file=sys.stderr)
         return 1

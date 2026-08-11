@@ -49,7 +49,7 @@ from typing import Any
 from urllib.parse import unquote, urlparse
 
 from src.config.settings import get_settings
-from src.data.database import SchemaCompatibilityError
+from src.data.database import CapabilityRoleBootstrapRequiredError, SchemaCompatibilityError
 
 AUTH_RUNTIME_ROLE = "fardb_runtime_auth"
 
@@ -59,6 +59,33 @@ AUTH_RUNTIME_ROLE = "fardb_runtime_auth"
 _AUTH_MEMBERSHIP_USABLE_SQL = (
     "COALESCE((to_jsonb(membership) ->> 'inherit_option')::boolean, TRUE) "
     "OR COALESCE((to_jsonb(membership) ->> 'set_option')::boolean, TRUE)"
+)
+_AUTH_ROLE_MEMBERSHIP_CTE_SQL = (
+    "WITH RECURSIVE role_membership(member, roleid, member_is_superuser) AS ("
+    "SELECT membership.member, membership.roleid, grantee.rolsuper "
+    "FROM pg_auth_members AS membership "
+    "JOIN pg_roles AS grantee ON grantee.oid = membership.member "
+    f"WHERE ({_AUTH_MEMBERSHIP_USABLE_SQL} OR grantee.rolsuper) "
+    "UNION SELECT role_membership.member, membership.roleid, "
+    "role_membership.member_is_superuser "
+    "FROM role_membership JOIN pg_auth_members AS membership "
+    "ON membership.member = role_membership.roleid "
+    f"WHERE ({_AUTH_MEMBERSHIP_USABLE_SQL} "
+    "OR role_membership.member_is_superuser)) "
+)
+_AUTH_SAFE_ROLE_SQL = (
+    "SELECT COUNT(*) = 1 FROM pg_roles AS role WHERE role.rolname = %s "
+    "AND NOT role.rolcanlogin AND NOT role.rolsuper AND NOT role.rolcreatedb "
+    "AND NOT role.rolcreaterole AND NOT role.rolbypassrls AND NOT role.rolreplication "
+    "AND NOT has_database_privilege(role.oid, current_database(), 'CREATE') "
+    "AND NOT EXISTS (SELECT 1 FROM pg_auth_members AS membership WHERE membership.member = role.oid) "
+    "AND NOT EXISTS (SELECT 1 FROM pg_auth_members AS membership "
+    "WHERE membership.roleid = role.oid AND membership.admin_option) "
+    f"AND NOT EXISTS ({_AUTH_ROLE_MEMBERSHIP_CTE_SQL}"
+    "SELECT 1 FROM pg_roles AS grantee "
+    "WHERE grantee.rolcanlogin AND grantee.rolname <> session_user "
+    "AND EXISTS (SELECT 1 FROM role_membership WHERE role_membership.member = grantee.oid "
+    "AND role_membership.roleid = role.oid))"
 )
 
 
@@ -825,9 +852,20 @@ def ensure_runtime_access() -> None:
     if unknown_policy:
         raise SchemaCompatibilityError("user_credentials contains an unknown RLS policy")
 
+    role_state = fetch_value(
+        "SELECT CASE WHEN EXISTS (SELECT 1 FROM pg_roles WHERE rolname = ?) THEN 1 "
+        "WHEN EXISTS (SELECT 1 FROM pg_roles WHERE rolname = CURRENT_USER AND rolsuper) THEN 2 ELSE 0 END",
+        (AUTH_RUNTIME_ROLE,),
+    )
+    if role_state not in (1, 2):
+        raise CapabilityRoleBootstrapRequiredError(AUTH_RUNTIME_ROLE)
+
+    bootstrap_message = str(CapabilityRoleBootstrapRequiredError(AUTH_RUNTIME_ROLE))
     execute(
         f"DO $fardb$ BEGIN "
         f"IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = '{AUTH_RUNTIME_ROLE}') THEN "
+        f"IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = CURRENT_USER AND rolsuper) THEN "
+        f"RAISE EXCEPTION '{bootstrap_message}'; END IF; "
         f"CREATE ROLE {AUTH_RUNTIME_ROLE} NOLOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOBYPASSRLS NOREPLICATION; "
         f"END IF; "
         f"IF EXISTS (SELECT 1 FROM pg_roles AS role WHERE role.rolname = '{AUTH_RUNTIME_ROLE}' "
@@ -839,17 +877,7 @@ def ensure_runtime_access() -> None:
         f"WHERE membership.member = role.oid) "
         f"OR EXISTS (SELECT 1 FROM pg_auth_members AS membership "
         f"WHERE membership.roleid = role.oid AND membership.admin_option) "
-        f"OR (WITH RECURSIVE role_membership(member, roleid, member_is_superuser) AS ("
-        f"SELECT membership.member, membership.roleid, grantee.rolsuper "
-        f"FROM pg_auth_members AS membership "
-        f"JOIN pg_roles AS grantee ON grantee.oid = membership.member "
-        f"WHERE ({_AUTH_MEMBERSHIP_USABLE_SQL} OR grantee.rolsuper) "
-        f"UNION SELECT role_membership.member, membership.roleid, "
-        f"role_membership.member_is_superuser "
-        f"FROM role_membership JOIN pg_auth_members AS membership "
-        f"ON membership.member = role_membership.roleid "
-        f"WHERE ({_AUTH_MEMBERSHIP_USABLE_SQL} "
-        f"OR role_membership.member_is_superuser)) "
+        f"OR ({_AUTH_ROLE_MEMBERSHIP_CTE_SQL}"
         f"SELECT COUNT(*) FROM pg_roles AS grantee "
         f"WHERE grantee.rolcanlogin AND EXISTS (SELECT 1 FROM role_membership "
         f"WHERE role_membership.member = grantee.oid AND role_membership.roleid = role.oid)) > 1)) THEN "
@@ -934,31 +962,7 @@ def verify_runtime_authority() -> None:
     if membership_count != 1 or not has_auth_membership:
         raise SchemaCompatibilityError("API runtime login capability memberships are incompatible")
 
-    safe_role = fetch_value(
-        "SELECT COUNT(*) = 1 FROM pg_roles AS role WHERE role.rolname = %s "
-        "AND NOT role.rolcanlogin AND NOT role.rolsuper AND NOT role.rolcreatedb "
-        "AND NOT role.rolcreaterole AND NOT role.rolbypassrls AND NOT role.rolreplication "
-        "AND NOT has_database_privilege(role.oid, current_database(), 'CREATE') "
-        "AND NOT EXISTS (SELECT 1 FROM pg_auth_members AS membership WHERE membership.member = role.oid) "
-        "AND NOT EXISTS (SELECT 1 FROM pg_auth_members AS membership "
-        "WHERE membership.roleid = role.oid AND membership.admin_option) "
-        "AND NOT EXISTS (WITH RECURSIVE role_membership(member, roleid, member_is_superuser) AS ("
-        "SELECT membership.member, membership.roleid, grantee.rolsuper "
-        "FROM pg_auth_members AS membership "
-        "JOIN pg_roles AS grantee ON grantee.oid = membership.member "
-        f"WHERE ({_AUTH_MEMBERSHIP_USABLE_SQL} OR grantee.rolsuper) "
-        "UNION SELECT role_membership.member, membership.roleid, "
-        "role_membership.member_is_superuser "
-        "FROM role_membership JOIN pg_auth_members AS membership "
-        "ON membership.member = role_membership.roleid "
-        f"WHERE ({_AUTH_MEMBERSHIP_USABLE_SQL} "
-        "OR role_membership.member_is_superuser)) "
-        "SELECT 1 FROM pg_roles AS grantee "
-        "WHERE grantee.rolcanlogin AND grantee.rolname <> session_user "
-        "AND EXISTS (SELECT 1 FROM role_membership WHERE role_membership.member = grantee.oid "
-        "AND role_membership.roleid = role.oid))",
-        (AUTH_RUNTIME_ROLE,),
-    )
+    safe_role = fetch_value(_AUTH_SAFE_ROLE_SQL, (AUTH_RUNTIME_ROLE,))
     exact_access = fetch_value(
         "SELECT has_schema_privilege(%s, current_schema(), 'USAGE') "
         "AND NOT has_schema_privilege(%s, current_schema(), 'CREATE') "

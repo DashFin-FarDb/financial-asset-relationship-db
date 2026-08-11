@@ -239,11 +239,12 @@ def test_restricted_runtime_role_verifies_schema_on_cold_start_and_restart() -> 
             "DELETE FROM relationship_evidence WHERE id = 'cq-runtime-evidence'",
         )
         for statement in forbidden_statements:
+            forbidden_sql = text(statement)
             with engine.connect() as connection:
                 transaction = connection.begin()
                 try:
                     with pytest.raises(ProgrammingError, match=r"permission denied|must be owner"):
-                        connection.execute(text(statement))
+                        connection.execute(forbidden_sql)
                 finally:
                     transaction.rollback()
 
@@ -302,8 +303,9 @@ def test_coordination_runtime_role_exercises_only_lock_dml() -> None:
                 )
             finally:
                 transaction.rollback()
+        forbidden_sql = text("SELECT * FROM assets LIMIT 1")
         with engine.connect() as connection, pytest.raises(ProgrammingError, match="permission denied"):
-            connection.execute(text("SELECT * FROM assets LIMIT 1"))
+            connection.execute(forbidden_sql)
     finally:
         engine.dispose()
 
