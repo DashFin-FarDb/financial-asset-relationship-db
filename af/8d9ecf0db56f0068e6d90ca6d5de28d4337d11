@@ -1,0 +1,75 @@
+tests/unit/test_api_database_percent_tokens.py
+  s_1a4d3926661ace::t_110db7881a5689 16
+src/data/database.py
+  s_1a4d3926661ace::t_19edd6712b44fd 71-74,76-82,432-443,448-449,462-464,469
+  s_1a4d3926661ace::t_be28317dbb1c66 75
+  s_1a4d3926661ace::t_ed097e9e867e26 731,839
+  s_1a4d3926661ace::t_cff9dbff3d8593 764-775,777-778,781-783,785-797,814
+  s_1a4d3926661ace::t_f01cba60f7cada 634-637,639-642,646-647
+  s_1a4d3926661ace::t_e179317caa089a 779,784,803-807,815
+  s_1a4d3926661ace::t_4f2222e24fb827 312-313,337-339,363-375
+tests/unit/test_api_database_auth_grantees.py
+  s_1a4d3926661ace::t_6e12df05b4e929 14,24,68
+  s_1a4d3926661ace::t_110db7881a5689 8,17-18,42-55
+  s_1a4d3926661ace::t_bf863acd59fa68 56-57
+tests/unit/test_app_factory.py
+  s_1a4d3926661ace::t_ed097e9e867e26 287,290,310,313
+tests/unit/test_api_database.py
+  s_1a4d3926661ace::t_110db7881a5689 346
+scripts/migrate_database.py
+  s_1a4d3926661ace::t_19edd6712b44fd 119-121
+  s_1a4d3926661ace::t_ba366a28138576 23
+docs/runbooks/database-migration-authority.md
+  s_1a4d3926661ace::t_19edd6712b44fd 4-5,13-14,21,24-48,75-77,79,81,87,89,94,96,98,132-134
+tests/unit/test_database_check_normalization_regression.py
+  s_1a4d3926661ace::t_6e12df05b4e929 8,37-51
+scripts/bootstrap_database_capability_roles.sql
+  s_1a4d3926661ace::t_19edd6712b44fd 1-69
+tests/integration/test_relationship_assertion_schema.py
+  s_1a4d3926661ace::t_ed097e9e867e26 492,494
+tests/unit/test_database.py
+  s_1a4d3926661ace::t_110db7881a5689 58,103-132
+  s_1a4d3926661ace::t_f01cba60f7cada 133-134,158-159,163,165
+  s_1a4d3926661ace::t_ba366a28138576 56
+  s_1a4d3926661ace::t_6e12df05b4e929 83,87,152
+src/data/relationship_assertion_schema.py
+  s_1a4d3926661ace::t_4e68871c8f9f40 334,381,387-394
+  s_1a4d3926661ace::t_ba0b8318b952b3 395-396
+api/database.py
+  s_1a4d3926661ace::t_6e12df05b4e929 63-89,880,965
+  s_1a4d3926661ace::t_19edd6712b44fd 52,855-863,867-868
+tests/unit/test_migrate_database.py
+  s_1a4d3926661ace::t_110db7881a5689 12,256-269
+src/data/check_constraint_normalization.py
+  s_1a4d3926661ace::t_d38471c6d8b94b 8-28,43-44,63,69-78,113
+  s_1a4d3926661ace::t_6e12df05b4e929 129-134,155-161,164
+tests/integration/test_postgres_database.py
+  s_1a4d3926661ace::t_ed097e9e867e26 242,247,306,308
+tests/integration/test_runtime_authority_postgres.py
+  s_1a4d3926661ace::t_af3001e74e1d3c 740
+  s_1a4d3926661ace::t_110db7881a5689 13,24-25,28-29,39,48-55,93,99-100,112-161
+  s_1a4d3926661ace::t_ed097e9e867e26 745-746,920-921,981-982
+  s_1a4d3926661ace::t_83ce975a95460a 412,416-422,424-438,455-459,461
+  s_1a4d3926661ace::t_e246b01e34e917 577
+  s_1a4d3926661ace::t_f71693bd7afa39 332-346,350-411,439-454,460,462-559
+  s_1a4d3926661ace::t_f01cba60f7cada 47,331,560-576,578-613
+  s_1a4d3926661ace::t_ba366a28138576 347-349,413-415,423
+  s_1a4d3926661ace::t_ca37547f327fc6 162-163
+  s_1a4d3926661ace::t_bdbd61cd0ea0d1 614-615
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "af8d9ecf0db56f0068e6d90ca6d5de28d4337d11",
+  "prompts": {},
+  "sessions": {
+    "s_1a4d3926661ace": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fefd1-5047-7173-ae4c-e6962d4e9ad9",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}
