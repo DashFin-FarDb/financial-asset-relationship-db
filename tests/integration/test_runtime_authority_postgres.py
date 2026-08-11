@@ -23,6 +23,7 @@ from src.data.database import (  # noqa: E402
     GRAPH_RUNTIME_CAPABILITY,
     GRAPH_RUNTIME_ROLE,
     SchemaCompatibilityError,
+    _verify_runtime_capability_catalog,
     ensure_runtime_database_capabilities,
     init_db,
     verify_runtime_database_authority,
@@ -36,7 +37,7 @@ _AUTH_REPLICATION_ROLE = "cq1608_auth_replication"
 _AUTH_ORDINARY_ROLE = "cq1608_auth_ordinary"
 _AUTH_INERT_CREATOR_LOGIN = "cq1608_auth_inert_creator"
 _GRAPH_REPLICATION_ROLE = "cq1608_graph_replication"
-_GRAPH_INERT_CREATOR_LOGIN = "cq1608_graph_inert_creator"
+_GRAPH_OTHER_CAPABILITY_LOGIN = "cq1608_graph_other_capability"
 _GRAPH_NO_CAP_RUNTIME_LOGIN = "cq1608_graph_no_cap_runtime"
 _GRAPH_NO_CAP_DIRECT_LOGIN = "cq1608_graph_no_cap_direct"
 _GRAPH_ORDINARY_ROLE = "cq1608_graph_ordinary"
@@ -259,8 +260,9 @@ def test_auth_runtime_rejects_inert_creator_admin_option() -> None:
 
 
 @pytest.mark.integration
-def test_runtime_database_authority_rejects_inert_capability_admin_option() -> None:
-    """An ADMIN-only capability grantee can delegate application-data access."""
+@pytest.mark.parametrize("membership_posture", ["delegable", "usable"])
+def test_runtime_database_authority_rejects_unsafe_capability_grantee(membership_posture: str) -> None:
+    """No other login may delegate or use an application capability."""
     database_url = _ephemeral_database_url()
     operator_engine = create_engine(database_url, future=True)
     runtime_engine = None
@@ -277,19 +279,34 @@ def test_runtime_database_authority_rejects_inert_capability_admin_option() -> N
                 "CREATE ROLE {} LOGIN INHERIT NOSUPERUSER NOCREATEDB " "NOCREATEROLE NOBYPASSRLS NOREPLICATION"
             )
             cursor.execute(runtime_login_ddl.format(sql.Identifier(_GRAPH_EXTRA_RUNTIME_LOGIN)))
-            cursor.execute(runtime_login_ddl.format(sql.Identifier(_GRAPH_INERT_CREATOR_LOGIN)))
+            cursor.execute(runtime_login_ddl.format(sql.Identifier(_GRAPH_OTHER_CAPABILITY_LOGIN)))
             cursor.execute(
                 sql.SQL("GRANT {} TO {} WITH INHERIT TRUE, SET TRUE").format(
                     sql.Identifier(GRAPH_RUNTIME_ROLE),
                     sql.Identifier(_GRAPH_EXTRA_RUNTIME_LOGIN),
                 )
             )
+            membership_options = (
+                sql.SQL("WITH ADMIN OPTION, INHERIT FALSE, SET FALSE")
+                if membership_posture == "delegable"
+                else sql.SQL("WITH INHERIT TRUE, SET TRUE")
+            )
             cursor.execute(
-                sql.SQL("GRANT {} TO {} WITH ADMIN OPTION, INHERIT FALSE, SET FALSE").format(
+                sql.SQL("GRANT {} TO {} {}").format(
                     sql.Identifier(GRAPH_RUNTIME_ROLE),
-                    sql.Identifier(_GRAPH_INERT_CREATOR_LOGIN),
+                    sql.Identifier(_GRAPH_OTHER_CAPABILITY_LOGIN),
+                    membership_options,
                 )
             )
+
+        with (
+            operator_engine.connect() as connection,
+            pytest.raises(
+                SchemaCompatibilityError,
+                match="unsafe or missing runtime capability role",
+            ),
+        ):
+            _verify_runtime_capability_catalog(connection, (GRAPH_RUNTIME_CAPABILITY,))
 
         runtime_engine = create_engine(
             "postgresql+psycopg2://",
@@ -304,7 +321,7 @@ def test_runtime_database_authority_rejects_inert_capability_admin_option() -> N
     finally:
         if runtime_engine is not None:
             runtime_engine.dispose()
-        _drop_roles(database_url, _GRAPH_EXTRA_RUNTIME_LOGIN, _GRAPH_INERT_CREATOR_LOGIN)
+        _drop_roles(database_url, _GRAPH_EXTRA_RUNTIME_LOGIN, _GRAPH_OTHER_CAPABILITY_LOGIN)
         operator_engine.dispose()
 
 

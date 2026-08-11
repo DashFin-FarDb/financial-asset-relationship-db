@@ -118,6 +118,15 @@ def test_runtime_capability_catalog_accepts_exact_graph_contract() -> None:
         if "COUNT(*) = 1 FROM pg_roles" in sql:
             assert "membership.roleid = role.oid" in sql
             assert "membership.admin_option" in sql
+            assert "WITH RECURSIVE role_membership(member, roleid)" in sql
+            assert "to_jsonb(membership) ->> 'inherit_option'" in sql
+            assert "to_jsonb(membership) ->> 'set_option'" in sql
+            assert sql.count("::boolean, TRUE)") == 4
+            assert "membership.member = role_membership.roleid" in sql
+            assert "SELECT COUNT(*) FROM pg_roles AS grantee" in sql
+            assert "role_membership.member = grantee.oid" in sql
+            assert "role_membership.roleid = role.oid" in sql
+            assert ") <= 1" in sql
             return _CatalogResult(scalar=True)
         if "has_schema_privilege(:role_name" in sql:
             return _CatalogResult(scalar=True)

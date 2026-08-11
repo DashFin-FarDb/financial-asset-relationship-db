@@ -595,7 +595,19 @@ def _verify_runtime_capability_catalog(  # noqa: C901  # skipcq: PY-R1000
                 "AND NOT EXISTS (SELECT 1 FROM pg_auth_members AS membership "
                 "WHERE membership.member = role.oid) "
                 "AND NOT EXISTS (SELECT 1 FROM pg_auth_members AS membership "
-                "WHERE membership.roleid = role.oid AND membership.admin_option)"
+                "WHERE membership.roleid = role.oid AND membership.admin_option) "
+                "AND (WITH RECURSIVE role_membership(member, roleid) AS ("
+                "SELECT membership.member, membership.roleid FROM pg_auth_members AS membership "
+                "WHERE (COALESCE((to_jsonb(membership) ->> 'inherit_option')::boolean, TRUE) "
+                "OR COALESCE((to_jsonb(membership) ->> 'set_option')::boolean, TRUE)) "
+                "UNION SELECT role_membership.member, membership.roleid "
+                "FROM role_membership JOIN pg_auth_members AS membership "
+                "ON membership.member = role_membership.roleid "
+                "WHERE (COALESCE((to_jsonb(membership) ->> 'inherit_option')::boolean, TRUE) "
+                "OR COALESCE((to_jsonb(membership) ->> 'set_option')::boolean, TRUE))) "
+                "SELECT COUNT(*) FROM pg_roles AS grantee WHERE grantee.rolcanlogin "
+                "AND EXISTS (SELECT 1 FROM role_membership WHERE role_membership.member = grantee.oid "
+                "AND role_membership.roleid = role.oid)) <= 1"
             ),
             {"role_name": role_name},
         ).scalar_one()
