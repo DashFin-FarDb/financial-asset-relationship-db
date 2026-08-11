@@ -116,6 +116,8 @@ def test_runtime_capability_catalog_accepts_exact_graph_contract() -> None:
         sql = str(statement)
         parameters = parameters or {}
         if "COUNT(*) = 1 FROM pg_roles" in sql:
+            assert "membership.roleid = role.oid" in sql
+            assert "membership.admin_option" in sql
             return _CatalogResult(scalar=True)
         if "has_schema_privilege(:role_name" in sql:
             return _CatalogResult(scalar=True)

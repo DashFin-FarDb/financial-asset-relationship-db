@@ -593,7 +593,9 @@ def _verify_runtime_capability_catalog(  # noqa: C901  # skipcq: PY-R1000
                 "WHERE namespace.nspname = current_schema() "
                 "AND proc.proname = 'grac_v1_reject_mutation' AND proc.proowner = role.oid) "
                 "AND NOT EXISTS (SELECT 1 FROM pg_auth_members AS membership "
-                "WHERE membership.member = role.oid)"
+                "WHERE membership.member = role.oid) "
+                "AND NOT EXISTS (SELECT 1 FROM pg_auth_members AS membership "
+                "WHERE membership.roleid = role.oid AND membership.admin_option)"
             ),
             {"role_name": role_name},
         ).scalar_one()

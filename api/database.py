@@ -837,6 +837,8 @@ def ensure_runtime_access() -> None:
         f"OR has_schema_privilege(role.oid, current_schema(), 'CREATE') "
         f"OR EXISTS (SELECT 1 FROM pg_auth_members AS membership "
         f"WHERE membership.member = role.oid) "
+        f"OR EXISTS (SELECT 1 FROM pg_auth_members AS membership "
+        f"WHERE membership.roleid = role.oid AND membership.admin_option) "
         f"OR (WITH RECURSIVE role_membership(member, roleid, member_is_superuser) AS ("
         f"SELECT membership.member, membership.roleid, grantee.rolsuper "
         f"FROM pg_auth_members AS membership "

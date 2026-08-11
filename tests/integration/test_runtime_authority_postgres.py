@@ -36,6 +36,7 @@ _AUTH_REPLICATION_ROLE = "cq1608_auth_replication"
 _AUTH_ORDINARY_ROLE = "cq1608_auth_ordinary"
 _AUTH_INERT_CREATOR_LOGIN = "cq1608_auth_inert_creator"
 _GRAPH_REPLICATION_ROLE = "cq1608_graph_replication"
+_GRAPH_INERT_CREATOR_LOGIN = "cq1608_graph_inert_creator"
 _GRAPH_NO_CAP_RUNTIME_LOGIN = "cq1608_graph_no_cap_runtime"
 _GRAPH_NO_CAP_DIRECT_LOGIN = "cq1608_graph_no_cap_direct"
 _GRAPH_ORDINARY_ROLE = "cq1608_graph_ordinary"
@@ -237,7 +238,10 @@ def test_auth_runtime_rejects_inert_creator_admin_option() -> None:
                 )
             )
 
-        with api_database.bind_database_url(database_url):
+        with (
+            api_database.bind_database_url(database_url),
+            pytest.raises(psycopg2.Error, match="unsafe FarDB capability role"),
+        ):
             api_database.ensure_runtime_access()
 
         with (
@@ -252,6 +256,56 @@ def test_auth_runtime_rejects_inert_creator_admin_option() -> None:
             api_database.verify_runtime_authority()
     finally:
         _drop_roles(database_url, _AUTH_RUNTIME_LOGIN, _AUTH_INERT_CREATOR_LOGIN)
+
+
+@pytest.mark.integration
+def test_runtime_database_authority_rejects_inert_capability_admin_option() -> None:
+    """An ADMIN-only capability grantee can delegate application-data access."""
+    database_url = _ephemeral_database_url()
+    operator_engine = create_engine(database_url, future=True)
+    runtime_engine = None
+
+    try:
+        init_db(operator_engine)
+        ensure_runtime_database_capabilities(operator_engine, {GRAPH_RUNTIME_CAPABILITY})
+
+        with _operator_connection(database_url) as connection, connection.cursor() as cursor:
+            cursor.execute("SHOW server_version_num")
+            if int(cursor.fetchone()[0]) < 160000:
+                pytest.skip("per-membership INHERIT and SET options require PostgreSQL 16+")
+            runtime_login_ddl = sql.SQL(
+                "CREATE ROLE {} LOGIN INHERIT NOSUPERUSER NOCREATEDB " "NOCREATEROLE NOBYPASSRLS NOREPLICATION"
+            )
+            cursor.execute(runtime_login_ddl.format(sql.Identifier(_GRAPH_EXTRA_RUNTIME_LOGIN)))
+            cursor.execute(runtime_login_ddl.format(sql.Identifier(_GRAPH_INERT_CREATOR_LOGIN)))
+            cursor.execute(
+                sql.SQL("GRANT {} TO {} WITH INHERIT TRUE, SET TRUE").format(
+                    sql.Identifier(GRAPH_RUNTIME_ROLE),
+                    sql.Identifier(_GRAPH_EXTRA_RUNTIME_LOGIN),
+                )
+            )
+            cursor.execute(
+                sql.SQL("GRANT {} TO {} WITH ADMIN OPTION, INHERIT FALSE, SET FALSE").format(
+                    sql.Identifier(GRAPH_RUNTIME_ROLE),
+                    sql.Identifier(_GRAPH_INERT_CREATOR_LOGIN),
+                )
+            )
+
+        runtime_engine = create_engine(
+            "postgresql+psycopg2://",
+            creator=lambda: _runtime_connection(database_url, _GRAPH_EXTRA_RUNTIME_LOGIN),
+            future=True,
+        )
+        with pytest.raises(SchemaCompatibilityError, match="unsafe or missing runtime capability role"):
+            verify_runtime_database_authority(
+                runtime_engine,
+                required_capabilities={GRAPH_RUNTIME_CAPABILITY},
+            )
+    finally:
+        if runtime_engine is not None:
+            runtime_engine.dispose()
+        _drop_roles(database_url, _GRAPH_EXTRA_RUNTIME_LOGIN, _GRAPH_INERT_CREATOR_LOGIN)
+        operator_engine.dispose()
 
 
 @pytest.mark.integration

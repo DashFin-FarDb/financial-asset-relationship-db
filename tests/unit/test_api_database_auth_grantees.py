@@ -28,6 +28,8 @@ def test_ensure_runtime_access_counts_only_usable_login_grantees(monkeypatch) ->
     assert "membership.set_option" not in authority_ddl
     assert authority_ddl.count("::boolean, TRUE)") == 4
     assert "OR grantee.rolsuper" in authority_ddl
+    assert "membership.roleid = role.oid" in authority_ddl
+    assert "membership.admin_option" in authority_ddl
     assert "membership.member = role_membership.roleid" in authority_ddl
     assert "OR role_membership.member_is_superuser" in authority_ddl
     assert "role_membership.member = grantee.oid" in authority_ddl
