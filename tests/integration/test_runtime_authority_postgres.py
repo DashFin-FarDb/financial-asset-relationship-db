@@ -204,8 +204,8 @@ def test_auth_runtime_rejects_unexpected_assumable_ordinary_role() -> None:
 
 
 @pytest.mark.integration
-def test_auth_runtime_accepts_inert_postgresql_creator_membership() -> None:
-    """An ADMIN-only creator edge without INHERIT or SET does not expose capability data."""
+def test_auth_runtime_rejects_inert_creator_admin_option() -> None:
+    """An inert creator with ADMIN OPTION can re-delegate the auth capability."""
     database_url = _ephemeral_database_url()
     _prepare_auth_schema(database_url)
 
@@ -247,6 +247,7 @@ def test_auth_runtime_accepts_inert_postgresql_creator_membership() -> None:
                 "_create_postgres_connection",
                 side_effect=lambda: _runtime_connection(database_url, _AUTH_RUNTIME_LOGIN),
             ),
+            pytest.raises(SchemaCompatibilityError, match="capability contract is incompatible"),
         ):
             api_database.verify_runtime_authority()
     finally:

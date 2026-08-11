@@ -938,6 +938,8 @@ def verify_runtime_authority() -> None:
         "AND NOT role.rolcreaterole AND NOT role.rolbypassrls AND NOT role.rolreplication "
         "AND NOT has_database_privilege(role.oid, current_database(), 'CREATE') "
         "AND NOT EXISTS (SELECT 1 FROM pg_auth_members AS membership WHERE membership.member = role.oid) "
+        "AND NOT EXISTS (SELECT 1 FROM pg_auth_members AS membership "
+        "WHERE membership.roleid = role.oid AND membership.admin_option) "
         "AND NOT EXISTS (WITH RECURSIVE role_membership(member, roleid, member_is_superuser) AS ("
         "SELECT membership.member, membership.roleid, grantee.rolsuper "
         "FROM pg_auth_members AS membership "

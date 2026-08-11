@@ -53,6 +53,8 @@ def test_verify_runtime_authority_rejects_other_usable_login_grantees(monkeypatc
     assert "membership.set_option" not in safe_role_query
     assert safe_role_query.count("::boolean, TRUE)") == 4
     assert "OR grantee.rolsuper" in safe_role_query
+    assert "membership.roleid = role.oid" in safe_role_query
+    assert "membership.admin_option" in safe_role_query
     assert "membership.member = role_membership.roleid" in safe_role_query
     assert "OR role_membership.member_is_superuser" in safe_role_query
     assert "grantee.rolname <> session_user" in safe_role_query
