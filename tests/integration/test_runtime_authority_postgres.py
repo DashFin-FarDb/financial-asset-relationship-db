@@ -10,7 +10,7 @@ from __future__ import annotations
 import os
 import time
 from collections.abc import Iterator
-from contextlib import contextmanager, nullcontext
+from contextlib import contextmanager
 from pathlib import Path
 from typing import Any
 from unittest.mock import patch
@@ -186,6 +186,7 @@ def test_api_postgres_statement_timeout_is_driver_enforced(monkeypatch: pytest.M
     started = time.monotonic()
     with (
         api_database.bind_database_url(database_url),
+        api_database._bind_postgres_operation_guard(api_database._PostgresOperationGuard()),
         pytest.raises(psycopg2.errors.QueryCanceled),
     ):
         api_database.fetch_value("SELECT pg_sleep(1)")
@@ -204,7 +205,6 @@ def test_auth_runtime_uses_only_inherited_or_settable_membership_paths() -> None
 
     def _verify_runtime(error: str | None = None) -> None:
         """Verify the disposable auth login with an optional expected failure."""
-        verification = pytest.raises(SchemaCompatibilityError, match=error) if error is not None else nullcontext()
         with (
             patch.object(api_database, "DATABASE_TYPE", "postgresql"),
             patch.object(
@@ -212,9 +212,12 @@ def test_auth_runtime_uses_only_inherited_or_settable_membership_paths() -> None
                 "_create_postgres_connection",
                 side_effect=lambda: _runtime_connection(database_url, _AUTH_RUNTIME_LOGIN),
             ),
-            verification,
         ):
-            api_database.verify_runtime_authority()
+            if error is None:
+                api_database.verify_runtime_authority()
+                return
+            with pytest.raises(SchemaCompatibilityError, match=error):
+                api_database.verify_runtime_authority()
 
     with _operator_connection(database_url) as connection, connection.cursor() as cursor:
         cursor.execute("SHOW server_version_num")

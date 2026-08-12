@@ -27,6 +27,7 @@ from .check_constraint_normalization import normalize_check_definition as _norma
 # Canonical transaction helper lives in repository.py per tech spec.
 # Re-export here for backward compatibility with older imports.
 from .repository import session_scope  # noqa: F401, E402
+from .runtime_role_membership import USABLE_ROLE_MEMBERSHIP_CTE_SQL
 
 DEFAULT_DATABASE_URL = "sqlite:///./asset_graph.db"
 ASSET_GRAPH_DATABASE_URL_ENV_VAR = "ASSET_GRAPH_DATABASE_URL"
@@ -474,23 +475,7 @@ def _ensure_capability_role(connection, role_name: str) -> None:
             "SELECT 1 FROM pg_auth_members AS membership WHERE membership.member = role.oid) OR EXISTS ("
             "SELECT 1 FROM pg_auth_members AS membership "
             "WHERE membership.roleid = role.oid AND membership.admin_option) OR "
-            "(WITH RECURSIVE role_membership(member, roleid, member_is_superuser) AS ("
-            "SELECT membership.member, membership.roleid, grantee.rolsuper "
-            "FROM pg_auth_members AS membership "
-            "JOIN pg_roles AS grantee ON grantee.oid = membership.member "
-            "WHERE (COALESCE((to_jsonb(membership) ->> 'inherit_option')::boolean, TRUE) "
-            "OR COALESCE((to_jsonb(membership) ->> 'set_option')::boolean, TRUE) "
-            "OR grantee.rolsuper) "
-            "UNION SELECT role_membership.member, membership.roleid, "
-            "role_membership.member_is_superuser OR member_role.rolsuper "
-            "FROM role_membership JOIN pg_roles AS member_role "
-            "ON member_role.oid = role_membership.roleid "
-            "JOIN pg_auth_members AS membership "
-            "ON membership.member = role_membership.roleid "
-            "WHERE (COALESCE((to_jsonb(membership) ->> 'inherit_option')::boolean, TRUE) "
-            "OR COALESCE((to_jsonb(membership) ->> 'set_option')::boolean, TRUE) "
-            "OR role_membership.member_is_superuser OR member_role.rolsuper)) "
-            "SELECT COUNT(*) FROM pg_roles AS grantee WHERE grantee.rolcanlogin "
+            "(" + USABLE_ROLE_MEMBERSHIP_CTE_SQL + "SELECT COUNT(*) FROM pg_roles AS grantee WHERE grantee.rolcanlogin "
             "AND EXISTS (SELECT 1 FROM role_membership WHERE role_membership.member = grantee.oid "
             "AND role_membership.roleid = role.oid)) > 1)) "
             "THEN RAISE EXCEPTION USING MESSAGE = "
@@ -696,23 +681,9 @@ def _verify_runtime_capability_roles(connection, capabilities: tuple[str, ...], 
                 "WHERE membership.member = role.oid) "
                 "AND NOT EXISTS (SELECT 1 FROM pg_auth_members AS membership "
                 "WHERE membership.roleid = role.oid AND membership.admin_option) "
-                "AND (WITH RECURSIVE role_membership(member, roleid, member_is_superuser) AS ("
-                "SELECT membership.member, membership.roleid, grantee.rolsuper "
-                "FROM pg_auth_members AS membership "
-                "JOIN pg_roles AS grantee ON grantee.oid = membership.member "
-                "WHERE (COALESCE((to_jsonb(membership) ->> 'inherit_option')::boolean, TRUE) "
-                "OR COALESCE((to_jsonb(membership) ->> 'set_option')::boolean, TRUE) "
-                "OR grantee.rolsuper) "
-                "UNION SELECT role_membership.member, membership.roleid, "
-                "role_membership.member_is_superuser OR member_role.rolsuper "
-                "FROM role_membership JOIN pg_roles AS member_role "
-                "ON member_role.oid = role_membership.roleid "
-                "JOIN pg_auth_members AS membership "
-                "ON membership.member = role_membership.roleid "
-                "WHERE (COALESCE((to_jsonb(membership) ->> 'inherit_option')::boolean, TRUE) "
-                "OR COALESCE((to_jsonb(membership) ->> 'set_option')::boolean, TRUE) "
-                "OR role_membership.member_is_superuser OR member_role.rolsuper)) "
-                "SELECT COUNT(*) FROM pg_roles AS grantee WHERE grantee.rolcanlogin "
+                "AND ("
+                + USABLE_ROLE_MEMBERSHIP_CTE_SQL
+                + "SELECT COUNT(*) FROM pg_roles AS grantee WHERE grantee.rolcanlogin "
                 "AND EXISTS (SELECT 1 FROM role_membership WHERE role_membership.member = grantee.oid "
                 "AND role_membership.roleid = role.oid)) <= 1"
             ).bindparams(
@@ -854,6 +825,55 @@ def _first_matrix_mismatch(actual_rows: list[tuple], expected: dict[tuple, bool]
     return next((key for key, expected_value in expected.items() if actual[key] != expected_value), None)
 
 
+def _expected_capability_table_grants(
+    capability: str,
+    role_name: str,
+    managed_tables: list[str],
+    table_privileges: dict,
+) -> dict[tuple, bool]:
+    """Build one capability's expected table-privilege matrix."""
+    return {
+        (role_name, table_name, privilege): privilege in table_privileges.get((capability, table_name), frozenset())
+        for table_name in managed_tables
+        for privilege in _TABLE_PRIVILEGES
+    }
+
+
+def _expected_capability_column_grants(
+    capability: str,
+    role_name: str,
+    managed_tables: list[str],
+    table_privileges: dict,
+    grac_tables: frozenset[str],
+) -> dict[tuple, bool]:
+    """Build one capability's expected column-privilege matrix."""
+    return {
+        (role_name, table_name, column_name, privilege): (
+            privilege in table_privileges.get((capability, table_name), frozenset())
+            or (
+                privilege == "UPDATE"
+                and capability == GRAPH_RUNTIME_CAPABILITY
+                and table_name in grac_tables
+                and column_name == "id"
+            )
+        )
+        for table_name in managed_tables
+        for column_name in Base.metadata.tables[table_name].columns.keys()
+        for privilege in _COLUMN_PRIVILEGES
+    }
+
+
+def _expected_capability_sequence_grants(capability: str, role_name: str) -> dict[tuple, bool]:
+    """Build one capability's expected sequence-privilege matrix."""
+    return {
+        (role_name, table_name, column_name, privilege): (
+            capability == GRAPH_RUNTIME_CAPABILITY and privilege in _GRAPH_SEQUENCE_PRIVILEGES
+        )
+        for table_name, column_name in _GRAPH_SEQUENCE_TABLE_COLUMNS
+        for privilege in _SEQUENCE_PRIVILEGES
+    }
+
+
 def _verify_runtime_capability_grants(
     connection,
     capabilities: tuple[str, ...],
@@ -869,26 +889,19 @@ def _verify_runtime_capability_grants(
     expected_sequences: dict[tuple, bool] = {}
     for capability in capabilities:
         role_name = RUNTIME_CAPABILITY_ROLES[capability]
-        for table_name in managed_tables:
-            expected = table_privileges.get((capability, table_name), frozenset())
-            for privilege in _TABLE_PRIVILEGES:
-                expected_tables[(role_name, table_name, privilege)] = privilege in expected
-            for column_name in Base.metadata.tables[table_name].columns.keys():
-                for privilege in _COLUMN_PRIVILEGES:
-                    lock_column_update = (
-                        privilege == "UPDATE"
-                        and capability == GRAPH_RUNTIME_CAPABILITY
-                        and table_name in grac_tables
-                        and column_name == "id"
-                    )
-                    expected_columns[(role_name, table_name, column_name, privilege)] = (
-                        privilege in expected or lock_column_update
-                    )
-        for table_name, column_name in _GRAPH_SEQUENCE_TABLE_COLUMNS:
-            for privilege in _SEQUENCE_PRIVILEGES:
-                expected_sequences[(role_name, table_name, column_name, privilege)] = (
-                    capability == GRAPH_RUNTIME_CAPABILITY and privilege in _GRAPH_SEQUENCE_PRIVILEGES
-                )
+        expected_tables.update(
+            _expected_capability_table_grants(capability, role_name, managed_tables, table_privileges)
+        )
+        expected_columns.update(
+            _expected_capability_column_grants(
+                capability,
+                role_name,
+                managed_tables,
+                table_privileges,
+                grac_tables,
+            )
+        )
+        expected_sequences.update(_expected_capability_sequence_grants(capability, role_name))
 
     mismatch = _first_matrix_mismatch(_table_privilege_rows(connection, role_names, managed_tables), expected_tables)
     if mismatch is not None:
@@ -906,7 +919,7 @@ def _verify_runtime_capability_grants(
     missing_sequence = next((row[1] for row in sequence_rows if row[3] is None), None)
     if missing_sequence is not None:
         raise SchemaCompatibilityError(f"required runtime sequence is missing for {missing_sequence}")
-    comparable_sequence_rows = [(*row[:3], *row[4:]) for row in sequence_rows]
+    comparable_sequence_rows = [(row[0], row[1], row[2], row[4], row[5]) for row in sequence_rows]
     mismatch = _first_matrix_mismatch(comparable_sequence_rows, expected_sequences)
     if mismatch is not None:
         role_name, table_name, _column_name, _privilege = mismatch
@@ -987,7 +1000,7 @@ def _verify_runtime_login_sequence_grants(
     missing_sequence = next((row[1] for row in sequence_rows if row[3] is None), None)
     if missing_sequence is not None:
         raise SchemaCompatibilityError(f"required runtime sequence is missing for {missing_sequence}")
-    comparable_sequence_rows = [(*row[:3], *row[4:]) for row in sequence_rows]
+    comparable_sequence_rows = [(row[0], row[1], row[2], row[4], row[5]) for row in sequence_rows]
     mismatch = _first_matrix_mismatch(comparable_sequence_rows, expected_sequences)
     if mismatch is not None:
         _role_name, table_name, _column_name, _privilege = mismatch
@@ -1065,8 +1078,8 @@ def verify_runtime_database_authority(  # skipcq: PY-R1000
     if backend != "postgresql":
         return
 
+    normalized_capabilities = _normalized_runtime_capabilities(required_capabilities)
     try:
-        normalized_capabilities = _normalized_runtime_capabilities(required_capabilities)
         managed_tables = sorted(Base.metadata.tables)
         with engine.connect() as connection:
             restricted = connection.execute(

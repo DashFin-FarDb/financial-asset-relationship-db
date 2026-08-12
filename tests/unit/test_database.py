@@ -215,7 +215,7 @@ def test_runtime_capability_catalog_accepts_exact_graph_contract() -> None:  # n
             return _CatalogResult(rows=rows)
         if "has_column_privilege" in sql:
             rows = []
-            columns = zip(parameters["column_tables"], parameters["column_names"], strict=True)
+            columns = list(zip(parameters["column_tables"], parameters["column_names"], strict=True))
             for requested_role in parameters["role_names"]:
                 for table_name, column_name in columns:
                     expected = table_privileges.get((GRAPH_RUNTIME_CAPABILITY, table_name), frozenset())
@@ -233,7 +233,7 @@ def test_runtime_capability_catalog_accepts_exact_graph_contract() -> None:  # n
             return _CatalogResult(rows=rows)
         if "has_sequence_privilege" in sql:
             rows = []
-            sequences = zip(parameters["table_names"], parameters["column_names"], strict=True)
+            sequences = list(zip(parameters["table_names"], parameters["column_names"], strict=True))
             for requested_role in parameters["role_names"]:
                 for table_name, column_name in sequences:
                     rows.extend(
@@ -813,6 +813,16 @@ class TestDatabaseInitialization:
         assert "pg_has_role(login.oid, assumable.oid, 'SET')" in membership_query
         assert "ELSE pg_has_role(login.oid, assumable.oid, 'MEMBER') END" in membership_query
         assert "assumable.oid <> login.oid" in membership_query
+
+    def test_postgresql_runtime_authority_rejects_unknown_capability_as_caller_error(self) -> None:
+        """Unknown capability names must not be sanitized as database failures."""
+        runtime_engine = Mock(spec=Engine)
+        runtime_engine.url = "postgresql://runtime@database.invalid/fardb"
+
+        with pytest.raises(ValueError, match="unknown runtime database capabilities"):
+            verify_runtime_database_authority(runtime_engine, required_capabilities={"unknown"})
+
+        runtime_engine.connect.assert_not_called()
 
 
 # ---------------------------------------------------------------------------

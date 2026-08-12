@@ -47,8 +47,8 @@ def test_auth_module_import_performs_no_database_writes(tmp_path) -> None:
         "DATABASE_URL": f"sqlite:///{database_path}",
         "SECRET_KEY": secrets.token_urlsafe(32),
         "ADMIN_USERNAME": "admin",
-        "ADMIN_PASSWORD": secrets.token_urlsafe(24),
     }
+    environment.pop("ADMIN_PASSWORD", None)
 
     result = subprocess.run(  # noqa: S603  # nosec B603 - fixed interpreter and repository-owned import
         [sys.executable, "-c", "import api.auth"],

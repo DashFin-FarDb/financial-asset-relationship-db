@@ -104,9 +104,12 @@ The production Compose runtime never runs migrations during API startup. Before 
 invoke the isolated operator profile against the same `api-data` volume:
 
 ```bash
-export SECRET_KEY=replace-with-the-runtime-signing-key
+# Obtain SECRET_KEY from the approved operator secret surface.
+: "${SECRET_KEY:?SECRET_KEY must be set}"
 export ADMIN_USERNAME=replace-with-the-initial-admin
-export ADMIN_PASSWORD=replace-with-a-strong-password
+read -r -s -p "Initial admin password: " ADMIN_PASSWORD
+printf '\n'
+export ADMIN_PASSWORD
 docker compose -f docker-compose.production.yml --profile operator run --rm --build migrate
 unset ADMIN_PASSWORD
 docker compose -f docker-compose.production.yml up -d api frontend
@@ -131,9 +134,12 @@ the command initializes only the auth database.
 
 ```bash
 export DATABASE_URL=sqlite:dev.db
-export SECRET_KEY=replace-with-a-long-random-secret
+# Obtain SECRET_KEY from the approved local secret surface.
+: "${SECRET_KEY:?SECRET_KEY must be set}"
 export ADMIN_USERNAME=admin
-export ADMIN_PASSWORD=replace-with-a-strong-password
+read -r -s -p "Initial admin password: " ADMIN_PASSWORD
+printf '\n'
+export ADMIN_PASSWORD
 python -m scripts.migrate_database
 unset ADMIN_PASSWORD
 python -m uvicorn api.main:app --reload --host 127.0.0.1 --port 8000

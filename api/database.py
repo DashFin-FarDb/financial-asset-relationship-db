@@ -43,7 +43,7 @@ import atexit
 import sqlite3
 import threading
 from collections.abc import Iterator
-from contextlib import contextmanager
+from contextlib import contextmanager, suppress
 from contextvars import ContextVar
 from pathlib import Path
 from typing import Any
@@ -51,9 +51,10 @@ from urllib.parse import unquote, urlparse
 
 from src.config.settings import get_settings
 from src.data.database import CapabilityRoleBootstrapRequiredError, SchemaCompatibilityError
+from src.data.runtime_role_membership import USABLE_ROLE_MEMBERSHIP_CTE_SQL
 
 AUTH_RUNTIME_ROLE = "fardb_runtime_auth"
-_POSTGRES_CONNECT_TIMEOUT_SECONDS = 5
+_POSTGRES_CONNECT_TIMEOUT_SECONDS = 10
 _POSTGRES_STATEMENT_TIMEOUT_MILLISECONDS = 15_000
 
 
@@ -86,17 +87,13 @@ class _PostgresOperationGuard:
             connections = tuple(self._connections)
             self._connections.clear()
         for connection in connections:
-            try:
+            with suppress(Exception):
                 connection.cancel()
-            except Exception:  # noqa: BLE001 - cancellation is best-effort before forced close
-                pass
-            try:
+            with suppress(Exception):
                 connection.close()
-            except Exception:  # noqa: BLE001 - preserve the bounded startup error
-                pass
 
 
-_POSTGRES_OPERATION_GUARD: ContextVar[_PostgresOperationGuard | None] = ContextVar(
+_POSTGRES_OPERATION_GUARD = ContextVar[_PostgresOperationGuard | None](
     "postgres_operation_guard",
     default=None,
 )
@@ -112,23 +109,7 @@ def _bind_postgres_operation_guard(guard: _PostgresOperationGuard) -> Iterator[N
         _POSTGRES_OPERATION_GUARD.reset(token)
 
 
-_AUTH_ROLE_MEMBERSHIP_CTE_SQL = (
-    "WITH RECURSIVE role_membership(member, roleid, member_is_superuser) AS ("
-    "SELECT membership.member, membership.roleid, grantee.rolsuper "
-    "FROM pg_auth_members AS membership "
-    "JOIN pg_roles AS grantee ON grantee.oid = membership.member "
-    "WHERE (COALESCE((to_jsonb(membership) ->> 'inherit_option')::boolean, TRUE) "
-    "OR COALESCE((to_jsonb(membership) ->> 'set_option')::boolean, TRUE) OR grantee.rolsuper) "
-    "UNION SELECT role_membership.member, membership.roleid, "
-    "role_membership.member_is_superuser OR member_role.rolsuper "
-    "FROM role_membership JOIN pg_roles AS member_role "
-    "ON member_role.oid = role_membership.roleid "
-    "JOIN pg_auth_members AS membership "
-    "ON membership.member = role_membership.roleid "
-    "WHERE (COALESCE((to_jsonb(membership) ->> 'inherit_option')::boolean, TRUE) "
-    "OR COALESCE((to_jsonb(membership) ->> 'set_option')::boolean, TRUE) "
-    "OR role_membership.member_is_superuser OR member_role.rolsuper)) "
-)
+_AUTH_ROLE_MEMBERSHIP_CTE_SQL = USABLE_ROLE_MEMBERSHIP_CTE_SQL
 _AUTH_SAFE_ROLE_SQL = (
     "SELECT COUNT(*) = 1 FROM pg_roles AS role WHERE role.rolname = %s "
     "AND NOT role.rolcanlogin AND NOT role.rolsuper AND NOT role.rolcreatedb "
@@ -137,22 +118,7 @@ _AUTH_SAFE_ROLE_SQL = (
     "AND NOT EXISTS (SELECT 1 FROM pg_auth_members AS membership WHERE membership.member = role.oid) "
     "AND NOT EXISTS (SELECT 1 FROM pg_auth_members AS membership "
     "WHERE membership.roleid = role.oid AND membership.admin_option) "
-    "AND NOT EXISTS (WITH RECURSIVE role_membership(member, roleid, member_is_superuser) AS ("
-    "SELECT membership.member, membership.roleid, grantee.rolsuper "
-    "FROM pg_auth_members AS membership "
-    "JOIN pg_roles AS grantee ON grantee.oid = membership.member "
-    "WHERE (COALESCE((to_jsonb(membership) ->> 'inherit_option')::boolean, TRUE) "
-    "OR COALESCE((to_jsonb(membership) ->> 'set_option')::boolean, TRUE) OR grantee.rolsuper) "
-    "UNION SELECT role_membership.member, membership.roleid, "
-    "role_membership.member_is_superuser OR member_role.rolsuper "
-    "FROM role_membership JOIN pg_roles AS member_role "
-    "ON member_role.oid = role_membership.roleid "
-    "JOIN pg_auth_members AS membership "
-    "ON membership.member = role_membership.roleid "
-    "WHERE (COALESCE((to_jsonb(membership) ->> 'inherit_option')::boolean, TRUE) "
-    "OR COALESCE((to_jsonb(membership) ->> 'set_option')::boolean, TRUE) "
-    "OR role_membership.member_is_superuser OR member_role.rolsuper)) "
-    "SELECT 1 FROM pg_roles AS grantee "
+    "AND NOT EXISTS (" + USABLE_ROLE_MEMBERSHIP_CTE_SQL + "SELECT 1 FROM pg_roles AS grantee "
     "WHERE grantee.rolcanlogin AND grantee.rolname <> session_user "
     "AND EXISTS (SELECT 1 FROM role_membership WHERE role_membership.member = grantee.oid "
     "AND role_membership.roleid = role.oid))"
@@ -183,22 +149,7 @@ _AUTH_CAPABILITY_ROLE_DDL = (
     "OR EXISTS (SELECT 1 FROM pg_auth_members AS membership WHERE membership.member = role.oid) "
     "OR EXISTS (SELECT 1 FROM pg_auth_members AS membership "
     "WHERE membership.roleid = role.oid AND membership.admin_option) "
-    "OR (WITH RECURSIVE role_membership(member, roleid, member_is_superuser) AS ("
-    "SELECT membership.member, membership.roleid, grantee.rolsuper "
-    "FROM pg_auth_members AS membership "
-    "JOIN pg_roles AS grantee ON grantee.oid = membership.member "
-    "WHERE (COALESCE((to_jsonb(membership) ->> 'inherit_option')::boolean, TRUE) "
-    "OR COALESCE((to_jsonb(membership) ->> 'set_option')::boolean, TRUE) OR grantee.rolsuper) "
-    "UNION SELECT role_membership.member, membership.roleid, "
-    "role_membership.member_is_superuser OR member_role.rolsuper "
-    "FROM role_membership JOIN pg_roles AS member_role "
-    "ON member_role.oid = role_membership.roleid "
-    "JOIN pg_auth_members AS membership "
-    "ON membership.member = role_membership.roleid "
-    "WHERE (COALESCE((to_jsonb(membership) ->> 'inherit_option')::boolean, TRUE) "
-    "OR COALESCE((to_jsonb(membership) ->> 'set_option')::boolean, TRUE) "
-    "OR role_membership.member_is_superuser OR member_role.rolsuper)) "
-    "SELECT COUNT(*) FROM pg_roles AS grantee "
+    "OR (" + USABLE_ROLE_MEMBERSHIP_CTE_SQL + "SELECT COUNT(*) FROM pg_roles AS grantee "
     "WHERE grantee.rolcanlogin AND EXISTS (SELECT 1 FROM role_membership "
     "WHERE role_membership.member = grantee.oid AND role_membership.roleid = role.oid)) > 1)) THEN "
     "RAISE EXCEPTION 'unsafe FarDB capability role: fardb_runtime_auth'; END IF; "
@@ -430,7 +381,7 @@ def _is_memory_db(path: str | None = None) -> bool:
     return parsed.scheme == "file" and (parsed.path == ":memory:" or ":memory:" in parsed.query)
 
 
-def _create_postgres_connection():
+def _create_postgres_connection(*, statement_timeout_milliseconds: int | None = None):
     """
     Create a PostgreSQL database connection using psycopg2.
 
@@ -449,11 +400,10 @@ def _create_postgres_connection():
             "psycopg2-binary is required for PostgreSQL support. Install it with: pip install psycopg2-binary"
         ) from exc
 
-    conn = psycopg2.connect(
-        DATABASE_URL,
-        connect_timeout=_POSTGRES_CONNECT_TIMEOUT_SECONDS,
-        options=f"-c statement_timeout={_POSTGRES_STATEMENT_TIMEOUT_MILLISECONDS}",
-    )
+    connection_options: dict[str, Any] = {"connect_timeout": _POSTGRES_CONNECT_TIMEOUT_SECONDS}
+    if statement_timeout_milliseconds is not None:
+        connection_options["options"] = f"-c statement_timeout={statement_timeout_milliseconds}"
+    conn = psycopg2.connect(DATABASE_URL, **connection_options)
     return conn
 
 
@@ -706,8 +656,13 @@ def get_connection() -> Iterator[Any]:
     """
     if DATABASE_TYPE == "postgresql":
         # PostgreSQL: create new connection, close on exit
-        connection = _create_postgres_connection()
         operation_guard = _POSTGRES_OPERATION_GUARD.get()
+        if operation_guard is None:
+            connection = _create_postgres_connection()
+        else:
+            connection = _create_postgres_connection(
+                statement_timeout_milliseconds=_POSTGRES_STATEMENT_TIMEOUT_MILLISECONDS
+            )
         if operation_guard is not None:
             operation_guard.register(connection)
         try:

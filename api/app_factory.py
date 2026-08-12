@@ -164,6 +164,25 @@ def _verify_auth_database(operation_guard: Any | None = None) -> None:
         raise SchemaCompatibilityError(f"API credential database verification failed ({type(exc).__name__})") from None
 
 
+def _consume_auth_database_verification_result(verification_task: asyncio.Task[None]) -> None:
+    """Retrieve a completed background verification result without leaking its exception."""
+    with contextlib.suppress(asyncio.CancelledError, Exception):
+        verification_task.result()
+
+
+async def _stop_auth_database_verification(verification_task: asyncio.Task[None], operation_guard: Any) -> None:
+    """Stop a worker-owned auth verification and drain its task for a bounded interval."""
+    operation_guard.cancel()
+    done, _pending = await asyncio.wait(
+        {verification_task},
+        timeout=_AUTH_DATABASE_SHUTDOWN_TIMEOUT_SECONDS,
+    )
+    if done:
+        _consume_auth_database_verification_result(verification_task)
+    else:
+        verification_task.add_done_callback(_consume_auth_database_verification_result)
+
+
 def _execute_recovery_gate(engine: Any, coord_engine: Any, cancellation_event: threading.Event | None = None) -> None:
     """Acquire lock and execute recovery gate evaluation."""
     from src.data.database import create_session_factory
@@ -264,15 +283,11 @@ async def _initialize_application_state(
             timeout=_AUTH_DATABASE_VERIFICATION_TIMEOUT_SECONDS,
         )
     except asyncio.TimeoutError:
-        operation_guard.cancel()
-        done, _pending = await asyncio.wait(
-            {verification_task},
-            timeout=_AUTH_DATABASE_SHUTDOWN_TIMEOUT_SECONDS,
-        )
-        if done:
-            with contextlib.suppress(asyncio.CancelledError, Exception):
-                verification_task.result()
+        await _stop_auth_database_verification(verification_task, operation_guard)
         raise SchemaCompatibilityError("API credential database verification timed out") from None
+    except asyncio.CancelledError:
+        await _stop_auth_database_verification(verification_task, operation_guard)
+        raise
     if has_persistence:
         try:
             await _perform_startup_reconciliation(settings)

@@ -181,11 +181,29 @@ class TestMemoryDatabaseDetection:
 class TestConnectionManagement:
     """Test database connection management."""
 
-    def test_postgres_connection_enforces_driver_timeouts(self):
-        """PostgreSQL connections must bound both connection and statement waits."""
+    def test_postgres_connection_enforces_driver_connect_timeout(self):
+        """PostgreSQL connections must always bound connection establishment."""
         connection = Mock()
+        assert database._POSTGRES_CONNECT_TIMEOUT_SECONDS == 10  # pylint: disable=protected-access
         with patch("psycopg2.connect", return_value=connection) as connect:
             assert database._create_postgres_connection() is connection  # pylint: disable=protected-access
+
+        connect.assert_called_once_with(
+            database.DATABASE_URL,
+            connect_timeout=database._POSTGRES_CONNECT_TIMEOUT_SECONDS,  # pylint: disable=protected-access
+        )
+
+    def test_guarded_postgres_connection_enforces_driver_statement_timeout(self):
+        """Bounded startup verification must apply a driver-level statement timeout."""
+        connection = Mock()
+        operation_guard = database._PostgresOperationGuard()  # pylint: disable=protected-access
+        with (
+            patch("api.database.DATABASE_TYPE", "postgresql"),
+            patch("psycopg2.connect", return_value=connection) as connect,
+            database._bind_postgres_operation_guard(operation_guard),  # pylint: disable=protected-access
+            get_connection(),
+        ):
+            pass
 
         connect.assert_called_once_with(
             database.DATABASE_URL,

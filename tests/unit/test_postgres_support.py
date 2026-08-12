@@ -147,7 +147,6 @@ class TestPostgreSQLConnection:
         mock_connect.assert_called_once_with(
             "postgresql://localhost/test",
             connect_timeout=database._POSTGRES_CONNECT_TIMEOUT_SECONDS,
-            options=f"-c statement_timeout={database._POSTGRES_STATEMENT_TIMEOUT_MILLISECONDS}",
         )
         assert conn == mock_conn
 

@@ -179,8 +179,10 @@ def _expand_between_predicates(expression: str) -> str:
             if operand_start <= cursor:
                 marker_start = expression.find(marker, marker_start + len(marker))
                 continue
-            operand_end = operand_start - 1
-            operand_start = _between_operand_start(expression, operand_start - 1)
+            operand_end = operand_start
+            while operand_end > cursor and expression[operand_end - 1].isspace():
+                operand_end -= 1
+            operand_start = _between_operand_start(expression, operand_end)
         lower_start = marker_start + len(marker)
         lower_end = _between_bound_end(expression, lower_start)
         and_marker = " and "

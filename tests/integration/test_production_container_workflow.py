@@ -128,7 +128,7 @@ def test_production_compose_declares_explicit_operator_migration() -> None:
     assert migration["image"] == api["image"]
     assert migration["build"] == api["build"]
     assert "command" not in api
-    assert not any(str(value).startswith("ADMIN_PASSWORD=") for value in api["environment"])
+    assert "ADMIN_PASSWORD" not in {str(value).split("=", 1)[0] for value in api["environment"]}
     for variable in (
         "COORDINATION_DATABASE_URL",
         "ADMIN_PASSWORD",
@@ -151,8 +151,13 @@ def test_api_dockerfile_copies_operator_migration_artifacts() -> None:
 def test_persistence_smoke_uses_packaged_compose_migration(production_container_raw: str) -> None:
     """CI must exercise the production operator profile without a scripts bind mount."""
     operator_command = "docker compose -f docker-compose.production.yml --profile operator run --rm --build migrate"
+    migration_runbook = MIGRATION_RUNBOOK_PATH.read_text(encoding="utf-8")
     assert operator_command in production_container_raw
-    assert operator_command in MIGRATION_RUNBOOK_PATH.read_text(encoding="utf-8")
+    assert operator_command in migration_runbook
+    assert "export SECRET_KEY=replace" not in migration_runbook
+    assert "export ADMIN_PASSWORD=replace" not in migration_runbook
+    assert ': "${SECRET_KEY:?SECRET_KEY must be set}"' in migration_runbook
+    assert 'read -r -s -p "Initial admin password: " ADMIN_PASSWORD' in migration_runbook
     assert "scripts:/app/scripts" not in production_container_raw
 
 
