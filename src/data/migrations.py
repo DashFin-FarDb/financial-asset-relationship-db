@@ -15,6 +15,7 @@ from __future__ import annotations
 import logging
 import sqlite3
 from pathlib import Path
+from typing import Any, cast
 
 from sqlalchemy import inspect, text
 from sqlalchemy.engine import Engine
@@ -337,7 +338,8 @@ def _identifier_declared_incompatible(column: ReflectedColumn | None) -> bool:
     """
     if column is None:
         return False
-    col_length = getattr(column.get("type"), "length", None)
+    column_data = cast(dict[str, Any], column)
+    col_length = getattr(column_data.get("type"), "length", None)
     return col_length is None or col_length > 64
 
 
@@ -435,7 +437,8 @@ def _status_constraint_is_canonical(constraint: ReflectedCheckConstraint | None)
     if not constraint:
         return False
 
-    sql_text = str(constraint.get("sqltext", ""))
+    constraint_data = cast(dict[str, Any], constraint)
+    sql_text = str(constraint_data.get("sqltext", ""))
     return normalize_check_definition(sql_text) == normalize_check_definition(_REBUILD_JOB_STATUS_PREDICATE)
 
 
@@ -451,14 +454,15 @@ def postgresql_heartbeat_schema_gaps(inspector: Inspector) -> list[str]:
         "checkpoint_data",
         "cancellation_requested_at",
     }
-    columns = {column["name"]: column for column in inspector.get_columns("rebuild_jobs")}
+    columns = {cast(dict[str, Any], column)["name"]: column for column in inspector.get_columns("rebuild_jobs")}
     gaps = [f"rebuild_jobs.{name}" for name in sorted(required_columns - set(columns))]
 
     for column_name in _REBUILD_IDENTIFIER_COLUMNS:
         column = columns.get(column_name)
         if column is None:
             continue
-        length = getattr(column.get("type"), "length", None)
+        column_data = cast(dict[str, Any], column)
+        length = getattr(column_data.get("type"), "length", None)
         if length is None or length > 64:
             gaps.append(f"rebuild_jobs.{column_name} width <= 64")
 
@@ -466,7 +470,7 @@ def postgresql_heartbeat_schema_gaps(inspector: Inspector) -> list[str]:
         (
             constraint
             for constraint in inspector.get_check_constraints("rebuild_jobs")
-            if constraint.get("name") == "ck_rebuild_jobs_status"
+            if cast(dict[str, Any], constraint).get("name") == "ck_rebuild_jobs_status"
         ),
         None,
     )

@@ -44,7 +44,7 @@ _AUTH_ORDINARY_ROLE = "cq1608_auth_ordinary"
 _AUTH_INERT_CREATOR_LOGIN = "cq1608_auth_inert_creator"
 _GRAPH_REPLICATION_ROLE = "cq1608_graph_replication"
 _GRAPH_OTHER_CAPABILITY_LOGIN = "cq1608_graph_other_capability"
-_GRAPH_SUPERUSER_LOGIN = "cq1608_graph_superuser"
+_GRAPH_SUPERUSER_ROLE = "cq1608_graph_superuser"
 _BOOTSTRAP_MIGRATION_OWNER = "cq1608_bootstrap_migration_owner"
 _BOOTSTRAP_SCHEMA = "cq1608_bootstrap_schema"
 _BOOTSTRAP_UNRELATED_SCHEMA = "cq1608_bootstrap_unrelated_schema"
@@ -563,10 +563,11 @@ def test_superuser_bootstrap_enables_least_privilege_migration_and_runtime_verif
 def test_capability_bootstrap_rejects_create_on_non_current_schema() -> None:
     """A capability role may not retain CREATE on any schema in the database."""
     database_url = _ephemeral_database_url()
+    bootstrap_sql = _CAPABILITY_BOOTSTRAP_SQL.read_text(encoding="utf-8")
 
     try:
         with _operator_connection(database_url) as connection, connection.cursor() as cursor:
-            cursor.execute(_CAPABILITY_BOOTSTRAP_SQL.read_text(encoding="utf-8"))
+            cursor.execute(bootstrap_sql)
             cursor.execute(
                 sql.SQL("CREATE SCHEMA {} AUTHORIZATION CURRENT_USER").format(
                     sql.Identifier(_BOOTSTRAP_UNRELATED_SCHEMA)
@@ -582,7 +583,7 @@ def test_capability_bootstrap_rejects_create_on_non_current_schema() -> None:
             assert cursor.fetchone()[0] != _BOOTSTRAP_UNRELATED_SCHEMA
 
             with pytest.raises(psycopg2.Error, match="unsafe FarDB capability role"):
-                cursor.execute(_CAPABILITY_BOOTSTRAP_SQL.read_text(encoding="utf-8"))
+                cursor.execute(bootstrap_sql)
     finally:
         with _operator_connection(database_url) as connection, connection.cursor() as cursor:
             cursor.execute(
@@ -591,8 +592,8 @@ def test_capability_bootstrap_rejects_create_on_non_current_schema() -> None:
 
 
 @pytest.mark.integration
-def test_runtime_database_authority_rejects_inert_superuser_capability_grantee() -> None:
-    """A superuser remains able to assume a capability through an option-disabled edge."""
+def test_runtime_database_authority_rejects_capability_reachable_through_superuser_role() -> None:
+    """A login may not reach a capability through an intermediate superuser role."""
     database_url = _ephemeral_database_url()
     operator_engine = create_engine(database_url, future=True)
     runtime_engine = None
@@ -606,10 +607,11 @@ def test_runtime_database_authority_rejects_inert_superuser_capability_grantee()
             if int(cursor.fetchone()[0]) < 160000:
                 pytest.skip("per-membership INHERIT and SET options require PostgreSQL 16+")
             cursor.execute(_RUNTIME_LOGIN_DDL.format(sql.Identifier(_GRAPH_EXTRA_RUNTIME_LOGIN)))
+            cursor.execute(_RUNTIME_LOGIN_DDL.format(sql.Identifier(_GRAPH_OTHER_CAPABILITY_LOGIN)))
             cursor.execute(
                 sql.SQL(
-                    "CREATE ROLE {} LOGIN INHERIT SUPERUSER NOCREATEDB NOCREATEROLE " "NOBYPASSRLS NOREPLICATION"
-                ).format(sql.Identifier(_GRAPH_SUPERUSER_LOGIN))
+                    "CREATE ROLE {} NOLOGIN INHERIT SUPERUSER NOCREATEDB NOCREATEROLE " "NOBYPASSRLS NOREPLICATION"
+                ).format(sql.Identifier(_GRAPH_SUPERUSER_ROLE))
             )
             cursor.execute(
                 sql.SQL("GRANT {} TO {} WITH INHERIT TRUE, SET TRUE").format(
@@ -618,11 +620,20 @@ def test_runtime_database_authority_rejects_inert_superuser_capability_grantee()
                 )
             )
             cursor.execute(
-                sql.SQL("GRANT {} TO {} WITH INHERIT FALSE, SET FALSE").format(
-                    sql.Identifier(GRAPH_RUNTIME_ROLE),
-                    sql.Identifier(_GRAPH_SUPERUSER_LOGIN),
+                sql.SQL("GRANT {} TO {} WITH INHERIT TRUE, SET TRUE").format(
+                    sql.Identifier(_GRAPH_SUPERUSER_ROLE),
+                    sql.Identifier(_GRAPH_OTHER_CAPABILITY_LOGIN),
                 )
             )
+            cursor.execute(
+                sql.SQL("GRANT {} TO {} WITH INHERIT FALSE, SET FALSE").format(
+                    sql.Identifier(GRAPH_RUNTIME_ROLE),
+                    sql.Identifier(_GRAPH_SUPERUSER_ROLE),
+                )
+            )
+
+        with pytest.raises(psycopg2.Error, match="unsafe FarDB capability role"):
+            ensure_runtime_database_capabilities(operator_engine, {GRAPH_RUNTIME_CAPABILITY})
 
         with (
             operator_engine.connect() as connection,
@@ -643,7 +654,12 @@ def test_runtime_database_authority_rejects_inert_superuser_capability_grantee()
     finally:
         if runtime_engine is not None:
             runtime_engine.dispose()
-        _drop_roles(database_url, _GRAPH_EXTRA_RUNTIME_LOGIN, _GRAPH_SUPERUSER_LOGIN)
+        _drop_roles(
+            database_url,
+            _GRAPH_EXTRA_RUNTIME_LOGIN,
+            _GRAPH_OTHER_CAPABILITY_LOGIN,
+            _GRAPH_SUPERUSER_ROLE,
+        )
         operator_engine.dispose()
 
 

@@ -32,11 +32,30 @@ def test_ensure_runtime_access_counts_only_usable_login_grantees(monkeypatch) ->
     assert "OR grantee.rolsuper" in authority_ddl
     assert "membership.roleid = role.oid" in authority_ddl
     assert "membership.admin_option" in authority_ddl
+    assert "JOIN pg_roles AS member_role ON member_role.oid = role_membership.roleid" in authority_ddl
     assert "membership.member = role_membership.roleid" in authority_ddl
-    assert "OR role_membership.member_is_superuser" in authority_ddl
+    assert "OR role_membership.member_is_superuser OR member_role.rolsuper" in authority_ddl
     assert "role_membership.member = grantee.oid" in authority_ddl
     assert "role_membership.roleid = role.oid" in authority_ddl
     assert "> 1" in authority_ddl
+
+
+def test_ensure_runtime_access_rejects_schema_create_and_owned_relations(monkeypatch) -> None:
+    """Provisioning must reject schema CREATE and migration-authority ownership."""
+    execute = MagicMock()
+    monkeypatch.setattr(api_database, "DATABASE_TYPE", "postgresql")
+    monkeypatch.setattr(api_database, "fetch_value", MagicMock(side_effect=[None, 2]))
+    monkeypatch.setattr(api_database, "execute", execute)
+
+    api_database.ensure_runtime_access()
+
+    authority_ddl = execute.call_args_list[0].args[0]
+    assert "has_schema_privilege(role.oid, namespace.oid, 'CREATE')" in authority_ddl
+    assert "has_schema_privilege(role.oid, current_schema(), 'CREATE')" not in authority_ddl
+    assert "database.datname = current_database() AND database.datdba = role.oid" in authority_ddl
+    assert "namespace.nspname = current_schema() AND namespace.nspowner = role.oid" in authority_ddl
+    assert "rel.relkind IN ('r', 'p', 'S')" in authority_ddl
+    assert "rel.relowner = role.oid" in authority_ddl
 
 
 def test_ensure_runtime_access_requires_bootstrap_for_missing_role(monkeypatch) -> None:
@@ -76,8 +95,9 @@ def test_verify_runtime_authority_rejects_other_usable_login_grantees(monkeypatc
     assert "OR grantee.rolsuper" in safe_role_query
     assert "membership.roleid = role.oid" in safe_role_query
     assert "membership.admin_option" in safe_role_query
+    assert "JOIN pg_roles AS member_role ON member_role.oid = role_membership.roleid" in safe_role_query
     assert "membership.member = role_membership.roleid" in safe_role_query
-    assert "OR role_membership.member_is_superuser" in safe_role_query
+    assert "OR role_membership.member_is_superuser OR member_role.rolsuper" in safe_role_query
     assert "grantee.rolname <> session_user" in safe_role_query
     assert "role_membership.member = grantee.oid" in safe_role_query
     assert "role_membership.roleid = role.oid" in safe_role_query

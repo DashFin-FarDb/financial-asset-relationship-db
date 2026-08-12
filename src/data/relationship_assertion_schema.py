@@ -321,7 +321,10 @@ def _postgresql_grac_constraints_present(connection: Connection) -> bool:
         ("relationship_assertions", "ck_relationship_assertions_effective_window"): EFFECTIVE_WINDOW_CHECK,
         ("relationship_projection_edges", "ck_relationship_projection_edges_strength"): STRENGTH_DECIMAL_CHECK,
     }
-    actual = _postgresql_constraint_catalog(connection, [name for _table, name in expected])
+    actual = _postgresql_constraint_catalog(
+        connection,
+        [name for (_table, name), _canonical in expected.items()],
+    )
     for key, canonical in expected.items():
         definition, validated = actual.get(key, (None, False))
         if not validated or definition is None or not _postgresql_check_matches(definition, canonical):

@@ -51,6 +51,7 @@ from api.database import (
     get_connection,
 )
 from src.data.database import (
+    COORDINATION_RUNTIME_CAPABILITY,
     DEFAULT_DATABASE_URL,
     GRAPH_RUNTIME_CAPABILITY,
     Base,
@@ -66,6 +67,7 @@ from src.data.database import (
     configure_sqlite_engine,
     create_engine_from_url,
     create_session_factory,
+    ensure_runtime_database_capabilities,
     init_db,
     session_scope,
     verify_database_schema,
@@ -143,6 +145,8 @@ def test_capability_role_retains_superuser_fallback_creation() -> None:
     assert "rolsuper" in statement
     assert "membership.roleid = role.oid AND membership.admin_option" in statement
     assert "WITH RECURSIVE role_membership(member, roleid, member_is_superuser)" in statement
+    assert "JOIN pg_roles AS member_role ON member_role.oid = role_membership.roleid" in statement
+    assert "role_membership.member_is_superuser OR member_role.rolsuper" in statement
     assert "SELECT COUNT(*) FROM pg_roles AS grantee WHERE grantee.rolcanlogin" in statement
     assert "role_membership.roleid = role.oid)) > 1" in statement
 
@@ -185,8 +189,9 @@ def test_runtime_capability_catalog_accepts_exact_graph_contract() -> None:
             assert "to_jsonb(membership) ->> 'set_option'" in sql
             assert sql.count("::boolean, TRUE)") == 4
             assert "OR grantee.rolsuper" in sql
+            assert "JOIN pg_roles AS member_role ON member_role.oid = role_membership.roleid" in sql
             assert "membership.member = role_membership.roleid" in sql
-            assert "OR role_membership.member_is_superuser" in sql
+            assert "OR role_membership.member_is_superuser OR member_role.rolsuper" in sql
             assert "SELECT COUNT(*) FROM pg_roles AS grantee" in sql
             assert "role_membership.member = grantee.oid" in sql
             assert "role_membership.roleid = role.oid" in sql
@@ -222,6 +227,55 @@ def test_runtime_capability_catalog_accepts_exact_graph_contract() -> None:
     connection.execute.side_effect = _execute
 
     _verify_runtime_capability_catalog(connection, capabilities)
+
+
+def test_runtime_capability_provisioning_applies_exact_matrix(monkeypatch) -> None:
+    """Provisioning must reset and recreate the complete graph/coordination matrix."""
+    from src.data import relationship_assertion_db_models  # noqa: F401
+
+    result = MagicMock()
+    result.scalars.return_value.all.return_value = []
+    connection = MagicMock()
+    connection.execute.return_value = result
+    transaction = MagicMock()
+    transaction.__enter__.return_value = connection
+    engine = MagicMock()
+    engine.url = "postgresql://operator@database.invalid/fardb"
+    engine.begin.return_value = transaction
+    ensure_role = MagicMock()
+    monkeypatch.setattr("src.data.database._ensure_capability_role", ensure_role)
+
+    ensure_runtime_database_capabilities(
+        engine,
+        {GRAPH_RUNTIME_CAPABILITY, COORDINATION_RUNTIME_CAPABILITY},
+    )
+
+    statements = [str(call.args[0]) for call in connection.execute.call_args_list]
+    assert any("ALTER TABLE assets ENABLE ROW LEVEL SECURITY" in statement for statement in statements)
+    assert any("REVOKE ALL PRIVILEGES ON SEQUENCE" in statement for statement in statements)
+    assert any("GRANT UPDATE (id) ON TABLE relationship_assertions" in statement for statement in statements)
+    assert any("GRANT USAGE, SELECT ON SEQUENCE" in statement for statement in statements)
+    assert any("CREATE POLICY fardb_graph_select_v1" in statement for statement in statements)
+    assert any("CREATE POLICY fardb_coordination_select_v1" in statement for statement in statements)
+    assert ensure_role.call_count == 2
+
+
+def test_runtime_capability_provisioning_rejects_unknown_policy() -> None:
+    """Provisioning must fail before mutation when a managed table has an unknown policy."""
+    result = MagicMock()
+    result.scalars.return_value.all.return_value = ["assets.unmanaged_policy"]
+    connection = MagicMock()
+    connection.execute.return_value = result
+    transaction = MagicMock()
+    transaction.__enter__.return_value = connection
+    engine = MagicMock()
+    engine.url = "postgresql://operator@database.invalid/fardb"
+    engine.begin.return_value = transaction
+
+    with pytest.raises(SchemaCompatibilityError, match="assets.unmanaged_policy"):
+        ensure_runtime_database_capabilities(engine, {GRAPH_RUNTIME_CAPABILITY})
+
+    connection.execute.assert_called_once()
 
 
 @pytest.mark.parametrize(
