@@ -165,6 +165,21 @@ def _between_bound_end(expression: str, start: int) -> int:
     return position
 
 
+def _between_operand_bounds(expression: str, marker_start: int, cursor: int) -> tuple[int, int, bool] | None:
+    """Return operand bounds and negation state for one BETWEEN marker."""
+    operand_start = _between_operand_start(expression, marker_start)
+    operand_end = marker_start
+    negated = expression[operand_start:marker_start].strip() == "not"
+    if not negated:
+        return operand_start, operand_end, False
+    if operand_start <= cursor:
+        return None
+    operand_end = operand_start
+    while operand_end > cursor and expression[operand_end - 1].isspace():
+        operand_end -= 1
+    return _between_operand_start(expression, operand_end), operand_end, True
+
+
 def _expand_between_predicates(expression: str) -> str:
     """Expand supported BETWEEN predicates with a bounded linear scan."""
     marker = " between "
@@ -172,17 +187,11 @@ def _expand_between_predicates(expression: str) -> str:
     cursor = 0
     marker_start = expression.find(marker)
     while marker_start >= 0:
-        operand_start = _between_operand_start(expression, marker_start)
-        operand_end = marker_start
-        negated = expression[operand_start:marker_start].strip() == "not"
-        if negated:
-            if operand_start <= cursor:
-                marker_start = expression.find(marker, marker_start + len(marker))
-                continue
-            operand_end = operand_start
-            while operand_end > cursor and expression[operand_end - 1].isspace():
-                operand_end -= 1
-            operand_start = _between_operand_start(expression, operand_end)
+        operand_bounds = _between_operand_bounds(expression, marker_start, cursor)
+        if operand_bounds is None:
+            marker_start = expression.find(marker, marker_start + len(marker))
+            continue
+        operand_start, operand_end, negated = operand_bounds
         lower_start = marker_start + len(marker)
         lower_end = _between_bound_end(expression, lower_start)
         and_marker = " and "
