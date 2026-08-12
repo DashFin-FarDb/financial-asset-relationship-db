@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
+
 from sqlalchemy import (
     CheckConstraint,
     ForeignKeyConstraint,
@@ -535,6 +537,8 @@ def _unknown_runtime_policies(connection, managed_tables: list[str], policy_name
     )
 
 
+# Identifiers are derived only from ORM metadata and repository-owned role/policy constants.
+# bearer:disable python_lang_sql_injection
 def _reset_runtime_table_access(connection, managed_tables: list[str], policy_names: set[str]) -> None:
     """Reset managed-table grants and contract policy names before provisioning."""
     for table_name in managed_tables:
@@ -587,6 +591,8 @@ def _grant_runtime_capability_access(connection, capabilities: tuple[str, ...], 
             _grant_graph_runtime_access(connection, role_name)
 
 
+# Identifiers are derived only from GRAC table/sequence constants and the runtime-role map.
+# bearer:disable python_lang_sql_injection
 def _grant_graph_runtime_access(connection, role_name: str) -> None:
     """Grant graph-only locking columns and sequence access."""
     from .relationship_assertion_db_models import GRAC_TABLE_NAMES
@@ -774,76 +780,78 @@ def _verify_runtime_rls_catalog(connection, managed_tables: list[str], policy_sp
         raise SchemaCompatibilityError("runtime RLS policy catalog does not match the capability contract")
 
 
-def _verify_capability_table_grants(
-    connection,
-    capability: str,
-    role_name: str,
-    table_name: str,
-    expected: frozenset[str],
-) -> None:
-    """Verify one capability role's table grants."""
-    for privilege in _TABLE_PRIVILEGES:
-        actual = connection.execute(
-            text("SELECT has_table_privilege(:role_name, :table_name, :privilege)"),
-            {"role_name": role_name, "table_name": table_name, "privilege": privilege},
-        ).scalar_one()
-        if bool(actual) != (privilege in expected):
-            raise SchemaCompatibilityError(f"runtime grants do not match {capability} capability on {table_name}")
+def _table_privilege_rows(connection, role_names: Sequence[str | None], table_names: Sequence[str]) -> list[tuple]:
+    """Return the complete requested table-privilege matrix in one round trip."""
+    return connection.execute(
+        text(
+            "WITH requested_roles(role_name) AS (SELECT unnest(CAST(:role_names AS text[]))), "
+            "requested_tables(table_name) AS (SELECT unnest(CAST(:table_names AS text[]))), "
+            "requested_privileges(privilege) AS (SELECT unnest(CAST(:privileges AS text[]))) "
+            "SELECT role_name, table_name, privilege, "
+            "has_table_privilege(COALESCE(role_name, session_user), table_name, privilege) "
+            "FROM requested_roles CROSS JOIN requested_tables CROSS JOIN requested_privileges"
+        ),
+        {"role_names": role_names, "table_names": table_names, "privileges": list(_TABLE_PRIVILEGES)},
+    ).all()
 
 
-def _verify_capability_column_grants(
-    connection,
-    capability: str,
-    role_name: str,
-    table_name: str,
-    expected: frozenset[str],
-    grac_tables: frozenset[str],
-) -> None:
-    """Verify one capability role's column grants."""
-    for column_name in Base.metadata.tables[table_name].columns.keys():
-        for privilege in _COLUMN_PRIVILEGES:
-            lock_column_update = (
-                privilege == "UPDATE"
-                and capability == GRAPH_RUNTIME_CAPABILITY
-                and table_name in grac_tables
-                and column_name == "id"
-            )
-            actual = connection.execute(
-                text("SELECT has_column_privilege(:role_name, :table_name, :column_name, :privilege)"),
-                {
-                    "role_name": role_name,
-                    "table_name": table_name,
-                    "column_name": column_name,
-                    "privilege": privilege,
-                },
-            ).scalar_one()
-            if bool(actual) != (privilege in expected or lock_column_update):
-                raise SchemaCompatibilityError(
-                    f"runtime column grants do not match {capability} capability on {table_name}"
-                )
+def _column_privilege_rows(connection, role_names: Sequence[str | None], table_names: Sequence[str]) -> list[tuple]:
+    """Return the complete requested column-privilege matrix in one round trip."""
+    column_tables: list[str] = []
+    column_names: list[str] = []
+    for table_name in table_names:
+        for column_name in Base.metadata.tables[table_name].columns.keys():
+            column_tables.append(table_name)
+            column_names.append(column_name)
+    return connection.execute(
+        text(
+            "WITH requested_roles(role_name) AS (SELECT unnest(CAST(:role_names AS text[]))), "
+            "requested_columns(table_name, column_name) AS ("
+            "SELECT * FROM unnest(CAST(:column_tables AS text[]), CAST(:column_names AS text[]))), "
+            "requested_privileges(privilege) AS (SELECT unnest(CAST(:privileges AS text[]))) "
+            "SELECT role_name, table_name, column_name, privilege, "
+            "has_column_privilege(COALESCE(role_name, session_user), table_name, column_name, privilege) "
+            "FROM requested_roles CROSS JOIN requested_columns CROSS JOIN requested_privileges"
+        ),
+        {
+            "role_names": role_names,
+            "column_tables": column_tables,
+            "column_names": column_names,
+            "privileges": list(_COLUMN_PRIVILEGES),
+        },
+    ).all()
 
 
-def _verify_capability_sequence_grants(connection, capability: str, role_name: str) -> None:
-    """Verify one capability role's graph-sequence grants."""
-    for table_name, column_name in _GRAPH_SEQUENCE_TABLE_COLUMNS:
-        sequence_name = connection.execute(
-            text("SELECT pg_get_serial_sequence(:table_name, :column_name)"),
-            {"table_name": table_name, "column_name": column_name},
-        ).scalar_one()
-        if sequence_name is None:
-            raise SchemaCompatibilityError(f"required runtime sequence is missing for {table_name}")
-        sequence_access = connection.execute(
-            text(
-                "SELECT has_sequence_privilege(:role_name, :sequence_name, 'USAGE') "
-                "AND has_sequence_privilege(:role_name, :sequence_name, 'SELECT') "
-                "AND NOT has_sequence_privilege(:role_name, :sequence_name, 'UPDATE')"
-            ),
-            {"role_name": role_name, "sequence_name": sequence_name},
-        ).scalar_one()
-        if bool(sequence_access) != (capability == GRAPH_RUNTIME_CAPABILITY):
-            raise SchemaCompatibilityError(
-                f"runtime sequence grants do not match {capability} capability on {table_name}"
-            )
+def _sequence_privilege_rows(connection, role_names: Sequence[str | None]) -> list[tuple]:
+    """Return the complete requested application-sequence matrix in one round trip."""
+    table_names, column_names = zip(*_GRAPH_SEQUENCE_TABLE_COLUMNS, strict=True)
+    return connection.execute(
+        text(
+            "WITH requested_roles(role_name) AS (SELECT unnest(CAST(:role_names AS text[]))), "
+            "requested_sequences(table_name, column_name) AS ("
+            "SELECT * FROM unnest(CAST(:table_names AS text[]), CAST(:column_names AS text[]))), "
+            "requested_privileges(privilege) AS (SELECT unnest(CAST(:privileges AS text[]))) "
+            "SELECT role_name, table_name, column_name, sequence_name, privilege, "
+            "has_sequence_privilege(COALESCE(role_name, session_user), sequence_name, privilege) "
+            "FROM requested_roles CROSS JOIN requested_sequences "
+            "CROSS JOIN LATERAL (SELECT pg_get_serial_sequence(table_name, column_name) AS sequence_name) resolved "
+            "CROSS JOIN requested_privileges"
+        ),
+        {
+            "role_names": role_names,
+            "table_names": list(table_names),
+            "column_names": list(column_names),
+            "privileges": list(_SEQUENCE_PRIVILEGES),
+        },
+    ).all()
+
+
+def _first_matrix_mismatch(actual_rows: list[tuple], expected: dict[tuple, bool]) -> tuple | None:
+    """Return the first missing, extra, or incompatible privilege-matrix key."""
+    actual = {tuple(row[:-1]): bool(row[-1]) if row[-1] is not None else None for row in actual_rows}
+    if actual.keys() != expected.keys():
+        return next(iter(actual.keys() ^ expected.keys()))
+    return next((key for key, expected_value in expected.items() if actual[key] != expected_value), None)
 
 
 def _verify_runtime_capability_grants(
@@ -853,21 +861,58 @@ def _verify_runtime_capability_grants(
     table_privileges: dict,
     grac_tables: frozenset[str],
 ) -> None:
-    """Verify the complete table, column, and sequence grant matrix."""
+    """Verify the complete table, column, and sequence grant matrices."""
+    role_names = [RUNTIME_CAPABILITY_ROLES[capability] for capability in capabilities]
+    capability_by_role = {RUNTIME_CAPABILITY_ROLES[capability]: capability for capability in capabilities}
+    expected_tables: dict[tuple, bool] = {}
+    expected_columns: dict[tuple, bool] = {}
+    expected_sequences: dict[tuple, bool] = {}
     for capability in capabilities:
         role_name = RUNTIME_CAPABILITY_ROLES[capability]
         for table_name in managed_tables:
             expected = table_privileges.get((capability, table_name), frozenset())
-            _verify_capability_table_grants(connection, capability, role_name, table_name, expected)
-            _verify_capability_column_grants(
-                connection,
-                capability,
-                role_name,
-                table_name,
-                expected,
-                grac_tables,
-            )
-        _verify_capability_sequence_grants(connection, capability, role_name)
+            for privilege in _TABLE_PRIVILEGES:
+                expected_tables[(role_name, table_name, privilege)] = privilege in expected
+            for column_name in Base.metadata.tables[table_name].columns.keys():
+                for privilege in _COLUMN_PRIVILEGES:
+                    lock_column_update = (
+                        privilege == "UPDATE"
+                        and capability == GRAPH_RUNTIME_CAPABILITY
+                        and table_name in grac_tables
+                        and column_name == "id"
+                    )
+                    expected_columns[(role_name, table_name, column_name, privilege)] = (
+                        privilege in expected or lock_column_update
+                    )
+        for table_name, column_name in _GRAPH_SEQUENCE_TABLE_COLUMNS:
+            for privilege in _SEQUENCE_PRIVILEGES:
+                expected_sequences[(role_name, table_name, column_name, privilege)] = (
+                    capability == GRAPH_RUNTIME_CAPABILITY and privilege in _GRAPH_SEQUENCE_PRIVILEGES
+                )
+
+    mismatch = _first_matrix_mismatch(_table_privilege_rows(connection, role_names, managed_tables), expected_tables)
+    if mismatch is not None:
+        role_name, table_name, _privilege = mismatch
+        raise SchemaCompatibilityError(
+            f"runtime grants do not match {capability_by_role[role_name]} capability on {table_name}"
+        )
+    mismatch = _first_matrix_mismatch(_column_privilege_rows(connection, role_names, managed_tables), expected_columns)
+    if mismatch is not None:
+        role_name, table_name, _column_name, _privilege = mismatch
+        raise SchemaCompatibilityError(
+            f"runtime column grants do not match {capability_by_role[role_name]} capability on {table_name}"
+        )
+    sequence_rows = _sequence_privilege_rows(connection, role_names)
+    missing_sequence = next((row[1] for row in sequence_rows if row[3] is None), None)
+    if missing_sequence is not None:
+        raise SchemaCompatibilityError(f"required runtime sequence is missing for {missing_sequence}")
+    comparable_sequence_rows = [(*row[:3], *row[4:]) for row in sequence_rows]
+    mismatch = _first_matrix_mismatch(comparable_sequence_rows, expected_sequences)
+    if mismatch is not None:
+        role_name, table_name, _column_name, _privilege = mismatch
+        raise SchemaCompatibilityError(
+            f"runtime sequence grants do not match {capability_by_role[role_name]} capability on {table_name}"
+        )
 
 
 # The catalog verifier intentionally exposes each privilege edge in one auditable matrix.
@@ -889,41 +934,8 @@ def _verify_runtime_capability_catalog(connection, capabilities: tuple[str, ...]
     )
 
 
-def _verify_runtime_login_table_grants(connection, table_name: str, expected: frozenset[str]) -> None:
-    """Verify effective login table privileges for one managed table."""
-    for privilege in _TABLE_PRIVILEGES:
-        actual = connection.execute(
-            text("SELECT has_table_privilege(session_user, :table_name, :privilege)"),
-            {"table_name": table_name, "privilege": privilege},
-        ).scalar_one()
-        if bool(actual) != (privilege in expected):
-            raise SchemaCompatibilityError(f"runtime login grants are incompatible on {table_name}")
-
-
-def _verify_runtime_login_column_grants(
-    connection,
-    table_name: str,
-    expected: frozenset[str],
-    graph_lock_columns: frozenset[tuple[str, str]],
-) -> None:
-    """Verify effective login column privileges for one managed table."""
-    for column_name in Base.metadata.tables[table_name].columns.keys():
-        for privilege in _COLUMN_PRIVILEGES:
-            lock_column_update = privilege == "UPDATE" and (table_name, column_name) in graph_lock_columns
-            actual = connection.execute(
-                text("SELECT has_column_privilege(session_user, :table_name, :column_name, :privilege)"),
-                {
-                    "table_name": table_name,
-                    "column_name": column_name,
-                    "privilege": privilege,
-                },
-            ).scalar_one()
-            if bool(actual) != (privilege in expected or lock_column_update):
-                raise SchemaCompatibilityError(f"runtime login column grants are incompatible on {table_name}")
-
-
 def _verify_runtime_login_relation_grants(connection, capabilities: tuple[str, ...]) -> None:
-    """Verify effective login table and column privileges against the capability contract."""
+    """Verify effective login relation privileges in two set-based round trips."""
     from .relationship_assertion_db_models import GRAC_TABLE_NAMES
 
     effective_privileges = _runtime_table_privileges(capabilities)
@@ -933,46 +945,53 @@ def _verify_runtime_login_relation_grants(connection, capabilities: tuple[str, .
         if GRAPH_RUNTIME_CAPABILITY in capabilities
         else frozenset()
     )
-    for table_name in sorted(Base.metadata.tables):
+    managed_tables = sorted(Base.metadata.tables)
+    expected_tables: dict[tuple, bool] = {}
+    expected_columns: dict[tuple, bool] = {}
+    for table_name in managed_tables:
         expected = frozenset(
             privilege
             for capability in capabilities
             for privilege in effective_privileges.get((capability, table_name), frozenset())
         )
-        _verify_runtime_login_table_grants(connection, table_name, expected)
-        _verify_runtime_login_column_grants(connection, table_name, expected, graph_lock_columns)
+        for privilege in _TABLE_PRIVILEGES:
+            expected_tables[(None, table_name, privilege)] = privilege in expected
+        for column_name in Base.metadata.tables[table_name].columns.keys():
+            for privilege in _COLUMN_PRIVILEGES:
+                expected_columns[(None, table_name, column_name, privilege)] = privilege in expected or (
+                    privilege == "UPDATE" and (table_name, column_name) in graph_lock_columns
+                )
+
+    mismatch = _first_matrix_mismatch(_table_privilege_rows(connection, [None], managed_tables), expected_tables)
+    if mismatch is not None:
+        _role_name, table_name, _privilege = mismatch
+        raise SchemaCompatibilityError(f"runtime login grants are incompatible on {table_name}")
+    mismatch = _first_matrix_mismatch(_column_privilege_rows(connection, [None], managed_tables), expected_columns)
+    if mismatch is not None:
+        _role_name, table_name, _column_name, _privilege = mismatch
+        raise SchemaCompatibilityError(f"runtime login column grants are incompatible on {table_name}")
 
 
 def _verify_runtime_login_sequence_grants(
     connection,
     capabilities: tuple[str, ...],
 ) -> None:
-    """Verify effective login sequence privileges against the capability contract."""
+    """Verify effective login sequence privileges in one set-based round trip."""
     expected_privileges = _GRAPH_SEQUENCE_PRIVILEGES if GRAPH_RUNTIME_CAPABILITY in capabilities else frozenset()
-
+    expected_sequences: dict[tuple, bool] = {}
     for table_name, column_name in _GRAPH_SEQUENCE_TABLE_COLUMNS:
-        sequence_name = connection.execute(
-            text("SELECT pg_get_serial_sequence(:table_name, :column_name)"),
-            {
-                "table_name": table_name,
-                "column_name": column_name,
-            },
-        ).scalar_one()
-
-        if sequence_name is None:
-            raise SchemaCompatibilityError(f"required runtime sequence is missing for {table_name}")
-
         for privilege in _SEQUENCE_PRIVILEGES:
-            actual = connection.execute(
-                text("SELECT has_sequence_privilege(session_user, :sequence_name, :privilege)"),
-                {
-                    "sequence_name": sequence_name,
-                    "privilege": privilege,
-                },
-            ).scalar_one()
+            expected_sequences[(None, table_name, column_name, privilege)] = privilege in expected_privileges
 
-            if bool(actual) != (privilege in expected_privileges):
-                raise SchemaCompatibilityError(f"runtime login sequence grants are incompatible on {table_name}")
+    sequence_rows = _sequence_privilege_rows(connection, [None])
+    missing_sequence = next((row[1] for row in sequence_rows if row[3] is None), None)
+    if missing_sequence is not None:
+        raise SchemaCompatibilityError(f"required runtime sequence is missing for {missing_sequence}")
+    comparable_sequence_rows = [(*row[:3], *row[4:]) for row in sequence_rows]
+    mismatch = _first_matrix_mismatch(comparable_sequence_rows, expected_sequences)
+    if mismatch is not None:
+        _role_name, table_name, _column_name, _privilege = mismatch
+        raise SchemaCompatibilityError(f"runtime login sequence grants are incompatible on {table_name}")
 
 
 def verify_database_schema(
@@ -1055,7 +1074,10 @@ def verify_runtime_database_authority(  # skipcq: PY-R1000
                     "SELECT current_schema() IS NOT NULL AND NOT EXISTS ("
                     "SELECT 1 FROM pg_roles AS assumable "
                     "WHERE (assumable.oid = login.oid "
-                    "OR pg_has_role(login.oid, assumable.oid, 'MEMBER')) "
+                    "OR CASE WHEN current_setting('server_version_num')::integer >= 160000 THEN "
+                    "(pg_has_role(login.oid, assumable.oid, 'USAGE') "
+                    "OR pg_has_role(login.oid, assumable.oid, 'SET')) "
+                    "ELSE pg_has_role(login.oid, assumable.oid, 'MEMBER') END) "
                     "AND (assumable.rolsuper OR assumable.rolcreaterole "
                     "OR assumable.rolcreatedb OR assumable.rolbypassrls OR assumable.rolreplication "
                     "OR has_database_privilege(assumable.oid, current_database(), 'CREATE') "
@@ -1100,7 +1122,10 @@ def verify_runtime_database_authority(  # skipcq: PY-R1000
                     text(
                         "SELECT assumable.rolname FROM pg_roles AS login "
                         "JOIN pg_roles AS assumable ON assumable.oid <> login.oid "
-                        "AND pg_has_role(login.oid, assumable.oid, 'MEMBER') "
+                        "AND CASE WHEN current_setting('server_version_num')::integer >= 160000 THEN "
+                        "(pg_has_role(login.oid, assumable.oid, 'USAGE') "
+                        "OR pg_has_role(login.oid, assumable.oid, 'SET')) "
+                        "ELSE pg_has_role(login.oid, assumable.oid, 'MEMBER') END "
                         "WHERE login.rolname = session_user"
                     )
                 )

@@ -173,6 +173,14 @@ def _expand_between_predicates(expression: str) -> str:
     marker_start = expression.find(marker)
     while marker_start >= 0:
         operand_start = _between_operand_start(expression, marker_start)
+        operand_end = marker_start
+        negated = expression[operand_start:marker_start].strip() == "not"
+        if negated:
+            if operand_start <= cursor:
+                marker_start = expression.find(marker, marker_start + len(marker))
+                continue
+            operand_end = operand_start - 1
+            operand_start = _between_operand_start(expression, operand_start - 1)
         lower_start = marker_start + len(marker)
         lower_end = _between_bound_end(expression, lower_start)
         and_marker = " and "
@@ -185,11 +193,12 @@ def _expand_between_predicates(expression: str) -> str:
             marker_start = expression.find(marker, lower_start)
             continue
 
-        operand = expression[operand_start:marker_start]
+        operand = expression[operand_start:operand_end]
         lower_bound = expression[lower_start:lower_end]
         upper_bound = expression[upper_start:upper_end]
         output.append(expression[cursor:operand_start])
-        output.append(f"{operand} >= {lower_bound} and {operand} <= {upper_bound}")
+        expanded = f"{operand} >= {lower_bound} and {operand} <= {upper_bound}"
+        output.append(f"not ({expanded})" if negated else expanded)
         cursor = upper_end
         marker_start = expression.find(marker, cursor)
     output.append(expression[cursor:])

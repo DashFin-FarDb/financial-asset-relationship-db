@@ -44,6 +44,7 @@ import sqlite3
 import threading
 from collections.abc import Iterator
 from contextlib import contextmanager
+from contextvars import ContextVar
 from pathlib import Path
 from typing import Any
 from urllib.parse import unquote, urlparse
@@ -52,6 +53,64 @@ from src.config.settings import get_settings
 from src.data.database import CapabilityRoleBootstrapRequiredError, SchemaCompatibilityError
 
 AUTH_RUNTIME_ROLE = "fardb_runtime_auth"
+_POSTGRES_CONNECT_TIMEOUT_SECONDS = 5
+_POSTGRES_STATEMENT_TIMEOUT_MILLISECONDS = 15_000
+
+
+class _PostgresOperationGuard:
+    """Track and cancel PostgreSQL connections owned by one bounded operation."""
+
+    def __init__(self) -> None:
+        """Create an empty, active operation guard."""
+        self._cancelled = threading.Event()
+        self._connections: set[Any] = set()
+        self._lock = threading.Lock()
+
+    def register(self, connection: Any) -> None:
+        """Track a connection or reject it when cancellation already won the race."""
+        with self._lock:
+            if self._cancelled.is_set():
+                connection.close()
+                raise RuntimeError("PostgreSQL operation was cancelled")
+            self._connections.add(connection)
+
+    def unregister(self, connection: Any) -> None:
+        """Stop tracking a connection after its normal context-manager cleanup."""
+        with self._lock:
+            self._connections.discard(connection)
+
+    def cancel(self) -> None:
+        """Cancel and close every active connection without exposing driver details."""
+        with self._lock:
+            self._cancelled.set()
+            connections = tuple(self._connections)
+            self._connections.clear()
+        for connection in connections:
+            try:
+                connection.cancel()
+            except Exception:  # noqa: BLE001 - cancellation is best-effort before forced close
+                pass
+            try:
+                connection.close()
+            except Exception:  # noqa: BLE001 - preserve the bounded startup error
+                pass
+
+
+_POSTGRES_OPERATION_GUARD: ContextVar[_PostgresOperationGuard | None] = ContextVar(
+    "postgres_operation_guard",
+    default=None,
+)
+
+
+@contextmanager
+def _bind_postgres_operation_guard(guard: _PostgresOperationGuard) -> Iterator[None]:
+    """Bind a cancellation guard to database helpers in the current worker context."""
+    token = _POSTGRES_OPERATION_GUARD.set(guard)
+    try:
+        yield
+    finally:
+        _POSTGRES_OPERATION_GUARD.reset(token)
+
 
 _AUTH_ROLE_MEMBERSHIP_CTE_SQL = (
     "WITH RECURSIVE role_membership(member, roleid, member_is_superuser) AS ("
@@ -390,7 +449,11 @@ def _create_postgres_connection():
             "psycopg2-binary is required for PostgreSQL support. Install it with: pip install psycopg2-binary"
         ) from exc
 
-    conn = psycopg2.connect(DATABASE_URL)
+    conn = psycopg2.connect(
+        DATABASE_URL,
+        connect_timeout=_POSTGRES_CONNECT_TIMEOUT_SECONDS,
+        options=f"-c statement_timeout={_POSTGRES_STATEMENT_TIMEOUT_MILLISECONDS}",
+    )
     return conn
 
 
@@ -644,9 +707,14 @@ def get_connection() -> Iterator[Any]:
     if DATABASE_TYPE == "postgresql":
         # PostgreSQL: create new connection, close on exit
         connection = _create_postgres_connection()
+        operation_guard = _POSTGRES_OPERATION_GUARD.get()
+        if operation_guard is not None:
+            operation_guard.register(connection)
         try:
             yield connection
         finally:
+            if operation_guard is not None:
+                operation_guard.unregister(connection)
             connection.close()
     else:
         # SQLite path (original logic)
@@ -949,7 +1017,10 @@ def verify_runtime_authority() -> None:
         "SELECT current_schema() IS NOT NULL AND NOT EXISTS ("
         "SELECT 1 FROM pg_roles AS assumable "
         "WHERE (assumable.oid = login.oid "
-        "OR pg_has_role(login.oid, assumable.oid, 'MEMBER')) "
+        "OR CASE WHEN current_setting('server_version_num')::integer >= 160000 THEN "
+        "(pg_has_role(login.oid, assumable.oid, 'USAGE') "
+        "OR pg_has_role(login.oid, assumable.oid, 'SET')) "
+        "ELSE pg_has_role(login.oid, assumable.oid, 'MEMBER') END) "
         "AND (assumable.rolsuper OR assumable.rolcreaterole "
         "OR assumable.rolcreatedb OR assumable.rolbypassrls OR assumable.rolreplication "
         "OR has_database_privilege(assumable.oid, current_database(), 'CREATE') "
@@ -983,12 +1054,20 @@ def verify_runtime_authority() -> None:
 
     membership_count = fetch_value(
         "SELECT COUNT(*) FROM pg_roles AS login JOIN pg_roles AS assumable "
-        "ON assumable.oid <> login.oid AND pg_has_role(login.oid, assumable.oid, 'MEMBER') "
+        "ON assumable.oid <> login.oid AND "
+        "CASE WHEN current_setting('server_version_num')::integer >= 160000 THEN "
+        "(pg_has_role(login.oid, assumable.oid, 'USAGE') "
+        "OR pg_has_role(login.oid, assumable.oid, 'SET')) "
+        "ELSE pg_has_role(login.oid, assumable.oid, 'MEMBER') END "
         "WHERE login.rolname = session_user",
     )
     has_auth_membership = fetch_value(
-        "SELECT EXISTS (SELECT 1 FROM pg_roles AS login JOIN pg_roles AS capability "
-        "ON capability.rolname = %s AND pg_has_role(login.oid, capability.oid, 'MEMBER') "
+        "SELECT EXISTS (SELECT 1 FROM pg_roles AS login JOIN pg_roles AS assumable "
+        "ON assumable.rolname = %s AND "
+        "CASE WHEN current_setting('server_version_num')::integer >= 160000 THEN "
+        "(pg_has_role(login.oid, assumable.oid, 'USAGE') "
+        "OR pg_has_role(login.oid, assumable.oid, 'SET')) "
+        "ELSE pg_has_role(login.oid, assumable.oid, 'MEMBER') END "
         "WHERE login.rolname = session_user)",
         (AUTH_RUNTIME_ROLE,),
     )

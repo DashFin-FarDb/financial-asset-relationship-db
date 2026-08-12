@@ -8,8 +8,9 @@ or another provider database.
 from __future__ import annotations
 
 import os
+import time
 from collections.abc import Iterator
-from contextlib import contextmanager
+from contextlib import contextmanager, nullcontext
 from pathlib import Path
 from typing import Any
 from unittest.mock import patch
@@ -18,7 +19,8 @@ import pytest
 
 psycopg2 = pytest.importorskip("psycopg2")
 from psycopg2 import sql  # noqa: E402  # type: ignore[import-untyped]
-from sqlalchemy import create_engine  # noqa: E402
+from sqlalchemy import create_engine, event  # noqa: E402
+from sqlalchemy.exc import DBAPIError  # noqa: E402
 
 from src.data.database import (  # noqa: E402
     COORDINATION_RUNTIME_CAPABILITY,
@@ -42,6 +44,8 @@ _AUTH_WRITE_ROLE = "cq1608_auth_writer"
 _AUTH_REPLICATION_ROLE = "cq1608_auth_replication"
 _AUTH_ORDINARY_ROLE = "cq1608_auth_ordinary"
 _AUTH_INERT_CREATOR_LOGIN = "cq1608_auth_inert_creator"
+_AUTH_MEMBERSHIP_BRIDGE_ROLE = "cq1608_auth_membership_bridge"
+_AUTH_USABLE_PATH_ROLE = "cq1608_auth_usable_path"
 _GRAPH_REPLICATION_ROLE = "cq1608_graph_replication"
 _GRAPH_OTHER_CAPABILITY_LOGIN = "cq1608_graph_other_capability"
 _GRAPH_SUPERUSER_ROLE = "cq1608_graph_superuser"
@@ -170,6 +174,139 @@ def _prepare_auth_schema(database_url: str) -> None:
 
     with api_database.bind_database_url(database_url):
         api_database.initialize_schema()
+
+
+@pytest.mark.integration
+def test_api_postgres_statement_timeout_is_driver_enforced(monkeypatch: pytest.MonkeyPatch) -> None:
+    """A stalled auth query must be interrupted by the PostgreSQL driver setting."""
+    database_url = _ephemeral_database_url()
+    import api.database as api_database
+
+    monkeypatch.setattr(api_database, "_POSTGRES_STATEMENT_TIMEOUT_MILLISECONDS", 50)
+    started = time.monotonic()
+    with (
+        api_database.bind_database_url(database_url),
+        pytest.raises(psycopg2.errors.QueryCanceled),
+    ):
+        api_database.fetch_value("SELECT pg_sleep(1)")
+    assert time.monotonic() - started < 1
+
+
+@pytest.mark.integration
+def test_auth_runtime_uses_only_inherited_or_settable_membership_paths() -> None:
+    """PostgreSQL 16 inert, direct, and transitive memberships retain exact authority."""
+    database_url = _ephemeral_database_url()
+    _prepare_auth_schema(database_url)
+    import api.database as api_database
+
+    with api_database.bind_database_url(database_url):
+        api_database.ensure_runtime_access()
+
+    def _verify_runtime(error: str | None = None) -> None:
+        """Verify the disposable auth login with an optional expected failure."""
+        verification = pytest.raises(SchemaCompatibilityError, match=error) if error is not None else nullcontext()
+        with (
+            patch.object(api_database, "DATABASE_TYPE", "postgresql"),
+            patch.object(
+                api_database,
+                "_create_postgres_connection",
+                side_effect=lambda: _runtime_connection(database_url, _AUTH_RUNTIME_LOGIN),
+            ),
+            verification,
+        ):
+            api_database.verify_runtime_authority()
+
+    with _operator_connection(database_url) as connection, connection.cursor() as cursor:
+        cursor.execute("SHOW server_version_num")
+        if int(cursor.fetchone()[0]) < 160000:
+            pytest.skip("per-membership INHERIT and SET options require PostgreSQL 16+")
+
+    try:
+        with _operator_connection(database_url) as connection, connection.cursor() as cursor:
+            cursor.execute(_RUNTIME_LOGIN_DDL.format(sql.Identifier(_AUTH_RUNTIME_LOGIN)))
+            role_ddl = sql.SQL("CREATE ROLE {} NOLOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOBYPASSRLS NOREPLICATION")
+            cursor.execute(role_ddl.format(sql.Identifier(_AUTH_USABLE_PATH_ROLE)))
+            cursor.execute(role_ddl.format(sql.Identifier(_AUTH_MEMBERSHIP_BRIDGE_ROLE)))
+            cursor.execute(
+                sql.SQL("GRANT UPDATE (hashed_password) ON TABLE user_credentials TO {}").format(
+                    sql.Identifier(_AUTH_USABLE_PATH_ROLE)
+                )
+            )
+            cursor.execute(
+                sql.SQL("GRANT {} TO {} WITH INHERIT TRUE, SET TRUE").format(
+                    sql.Identifier(api_database.AUTH_RUNTIME_ROLE),
+                    sql.Identifier(_AUTH_RUNTIME_LOGIN),
+                )
+            )
+
+            cursor.execute(
+                sql.SQL("GRANT {} TO {} WITH INHERIT FALSE, SET FALSE").format(
+                    sql.Identifier(_AUTH_USABLE_PATH_ROLE),
+                    sql.Identifier(_AUTH_RUNTIME_LOGIN),
+                )
+            )
+        _verify_runtime()
+
+        with _operator_connection(database_url) as connection, connection.cursor() as cursor:
+            cursor.execute(
+                sql.SQL("GRANT {} TO {} WITH INHERIT TRUE, SET FALSE").format(
+                    sql.Identifier(_AUTH_USABLE_PATH_ROLE),
+                    sql.Identifier(_AUTH_RUNTIME_LOGIN),
+                )
+            )
+        _verify_runtime("retains schema-migration authority")
+
+        with _operator_connection(database_url) as connection, connection.cursor() as cursor:
+            cursor.execute(
+                sql.SQL("GRANT {} TO {} WITH INHERIT FALSE, SET TRUE").format(
+                    sql.Identifier(_AUTH_USABLE_PATH_ROLE),
+                    sql.Identifier(_AUTH_RUNTIME_LOGIN),
+                )
+            )
+        _verify_runtime("retains schema-migration authority")
+
+        with _operator_connection(database_url) as connection, connection.cursor() as cursor:
+            cursor.execute(
+                sql.SQL("REVOKE {} FROM {}").format(
+                    sql.Identifier(_AUTH_USABLE_PATH_ROLE),
+                    sql.Identifier(_AUTH_RUNTIME_LOGIN),
+                )
+            )
+            cursor.execute(
+                sql.SQL("GRANT {} TO {} WITH INHERIT FALSE, SET TRUE").format(
+                    sql.Identifier(_AUTH_MEMBERSHIP_BRIDGE_ROLE),
+                    sql.Identifier(_AUTH_RUNTIME_LOGIN),
+                )
+            )
+            cursor.execute(
+                sql.SQL("GRANT {} TO {} WITH INHERIT FALSE, SET TRUE").format(
+                    sql.Identifier(_AUTH_USABLE_PATH_ROLE),
+                    sql.Identifier(_AUTH_MEMBERSHIP_BRIDGE_ROLE),
+                )
+            )
+        _verify_runtime("retains schema-migration authority")
+
+        with _operator_connection(database_url) as connection, connection.cursor() as cursor:
+            cursor.execute(
+                sql.SQL("GRANT {} TO {} WITH INHERIT FALSE, SET FALSE").format(
+                    sql.Identifier(_AUTH_MEMBERSHIP_BRIDGE_ROLE),
+                    sql.Identifier(_AUTH_RUNTIME_LOGIN),
+                )
+            )
+        _verify_runtime()
+    finally:
+        with _operator_connection(database_url) as connection, connection.cursor() as cursor:
+            cursor.execute(
+                sql.SQL("REVOKE UPDATE (hashed_password) ON TABLE user_credentials FROM {}").format(
+                    sql.Identifier(_AUTH_USABLE_PATH_ROLE)
+                )
+            )
+        _drop_roles(
+            database_url,
+            _AUTH_RUNTIME_LOGIN,
+            _AUTH_MEMBERSHIP_BRIDGE_ROLE,
+            _AUTH_USABLE_PATH_ROLE,
+        )
 
 
 @pytest.mark.integration
@@ -632,7 +769,7 @@ def test_runtime_database_authority_rejects_capability_reachable_through_superus
                 )
             )
 
-        with pytest.raises(psycopg2.Error, match="unsafe FarDB capability role"):
+        with pytest.raises(DBAPIError, match="unsafe FarDB capability role"):
             ensure_runtime_database_capabilities(operator_engine, {GRAPH_RUNTIME_CAPABILITY})
 
         with (
@@ -703,7 +840,7 @@ def test_runtime_database_authority_rejects_unsafe_capability_grantee(membership
                 )
             )
 
-        with pytest.raises(psycopg2.Error, match="unsafe FarDB capability role"):
+        with pytest.raises(DBAPIError, match="unsafe FarDB capability role"):
             ensure_runtime_database_capabilities(operator_engine, {GRAPH_RUNTIME_CAPABILITY})
 
         with (
@@ -729,6 +866,35 @@ def test_runtime_database_authority_rejects_unsafe_capability_grantee(membership
         if runtime_engine is not None:
             runtime_engine.dispose()
         _drop_roles(database_url, _GRAPH_EXTRA_RUNTIME_LOGIN, _GRAPH_OTHER_CAPABILITY_LOGIN)
+        operator_engine.dispose()
+
+
+@pytest.mark.integration
+def test_capability_catalog_verification_has_bounded_round_trips() -> None:
+    """The full two-capability grant matrix must remain set-based."""
+    database_url = _ephemeral_database_url()
+    operator_engine = create_engine(database_url, future=True)
+    statement_count = 0
+
+    def _count_statement(*_args, **_kwargs) -> None:
+        """Count driver executions inside the focused catalog verification window."""
+        nonlocal statement_count
+        statement_count += 1
+
+    try:
+        init_db(operator_engine)
+        capabilities = {GRAPH_RUNTIME_CAPABILITY, COORDINATION_RUNTIME_CAPABILITY}
+        ensure_runtime_database_capabilities(operator_engine, capabilities)
+        event.listen(operator_engine, "before_cursor_execute", _count_statement)
+        with operator_engine.connect() as connection:
+            _verify_runtime_capability_catalog(
+                connection,
+                (GRAPH_RUNTIME_CAPABILITY, COORDINATION_RUNTIME_CAPABILITY),
+            )
+        assert statement_count <= 9
+    finally:
+        if event.contains(operator_engine, "before_cursor_execute", _count_statement):
+            event.remove(operator_engine, "before_cursor_execute", _count_statement)
         operator_engine.dispose()
 
 

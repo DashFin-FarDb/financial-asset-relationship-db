@@ -83,6 +83,12 @@ def test_verify_runtime_authority_rejects_other_usable_login_grantees(monkeypatc
     with pytest.raises(SchemaCompatibilityError, match="capability contract is incompatible"):
         api_database.verify_runtime_authority()
 
+    for usable_membership_query in (call.args[0] for call in fetch_value.call_args_list[:3]):
+        assert "current_setting('server_version_num')::integer >= 160000" in usable_membership_query
+        assert "pg_has_role(login.oid, assumable.oid, 'USAGE')" in usable_membership_query
+        assert "pg_has_role(login.oid, assumable.oid, 'SET')" in usable_membership_query
+        assert "ELSE pg_has_role(login.oid, assumable.oid, 'MEMBER') END" in usable_membership_query
+
     safe_role_query = fetch_value.call_args_list[3].args[0]
     assert api_database._AUTH_ROLE_MEMBERSHIP_CTE_SQL in safe_role_query
     assert "grantee.rolcanlogin" in safe_role_query

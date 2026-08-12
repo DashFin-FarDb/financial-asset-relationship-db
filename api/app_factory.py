@@ -61,6 +61,7 @@ logger = logging.getLogger(__name__)
 
 _STARTUP_RECONCILIATION_LOCK_TTL_SECONDS = 10.0
 _AUTH_DATABASE_VERIFICATION_TIMEOUT_SECONDS = 30.0
+_AUTH_DATABASE_SHUTDOWN_TIMEOUT_SECONDS = 5.0
 
 
 def _get_durable_graph_database_url(settings: GraphLifecycleSettings) -> str | None:
@@ -130,26 +131,33 @@ def _verify_reconciliation_schemas(engine: Any, coord_engine: Any) -> None:
     graph_capabilities = {GRAPH_RUNTIME_CAPABILITY}
     if coord_engine is engine:
         graph_capabilities.add(COORDINATION_RUNTIME_CAPABILITY)
-    verify_database_schema(engine, required_capabilities=graph_capabilities)
+    verify_database_schema(engine)
     verify_runtime_database_authority(engine, required_capabilities=graph_capabilities)
     if coord_engine is not engine:
         coordination_capabilities = {COORDINATION_RUNTIME_CAPABILITY}
-        verify_database_schema(coord_engine, required_capabilities=coordination_capabilities)
+        verify_database_schema(coord_engine)
         verify_runtime_database_authority(coord_engine, required_capabilities=coordination_capabilities)
 
 
-def _verify_auth_database() -> None:
+def _verify_auth_database(operation_guard: Any | None = None) -> None:
     """Verify credential schema and provisioning without mutating the auth database."""
     from .auth import user_repository
-    from .database import verify_runtime_authority, verify_schema_compatibility
+    from .database import (
+        _bind_postgres_operation_guard,
+        _PostgresOperationGuard,
+        verify_runtime_authority,
+        verify_schema_compatibility,
+    )
 
     try:
-        verify_schema_compatibility()
-        verify_runtime_authority()
-        if not user_repository.has_users():
-            raise SchemaCompatibilityError(
-                "API credential store has no users; run the explicit database migration command"
-            )
+        guard = operation_guard or _PostgresOperationGuard()
+        with _bind_postgres_operation_guard(guard):
+            verify_schema_compatibility()
+            verify_runtime_authority()
+            if not user_repository.has_users():
+                raise SchemaCompatibilityError(
+                    "API credential store has no users; run the explicit database migration command"
+                )
     except SchemaCompatibilityError:
         raise
     except Exception as exc:  # noqa: BLE001 - sanitize catalog/driver failures at the startup boundary
@@ -246,12 +254,24 @@ async def _initialize_application_state(
     """Run startup reconciliation and initialize the graph, handling degraded startup."""
     # Credential compatibility is an authority boundary, not an optional hosted
     # fallback. It must fail closed before any HTTP traffic is accepted.
+    from .database import _PostgresOperationGuard
+
+    operation_guard = _PostgresOperationGuard()
+    verification_task = asyncio.create_task(asyncio.to_thread(_verify_auth_database, operation_guard))
     try:
         await asyncio.wait_for(
-            asyncio.to_thread(_verify_auth_database),
+            asyncio.shield(verification_task),
             timeout=_AUTH_DATABASE_VERIFICATION_TIMEOUT_SECONDS,
         )
     except asyncio.TimeoutError:
+        operation_guard.cancel()
+        done, _pending = await asyncio.wait(
+            {verification_task},
+            timeout=_AUTH_DATABASE_SHUTDOWN_TIMEOUT_SECONDS,
+        )
+        if done:
+            with contextlib.suppress(asyncio.CancelledError, Exception):
+                verification_task.result()
         raise SchemaCompatibilityError("API credential database verification timed out") from None
     if has_persistence:
         try:

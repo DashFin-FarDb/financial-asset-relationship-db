@@ -181,6 +181,21 @@ class TestMemoryDatabaseDetection:
 class TestConnectionManagement:
     """Test database connection management."""
 
+    def test_postgres_connection_enforces_driver_timeouts(self):
+        """PostgreSQL connections must bound both connection and statement waits."""
+        connection = Mock()
+        with patch("psycopg2.connect", return_value=connection) as connect:
+            assert database._create_postgres_connection() is connection  # pylint: disable=protected-access
+
+        connect.assert_called_once_with(
+            database.DATABASE_URL,
+            connect_timeout=database._POSTGRES_CONNECT_TIMEOUT_SECONDS,  # pylint: disable=protected-access
+            options=(
+                "-c statement_timeout="
+                f"{database._POSTGRES_STATEMENT_TIMEOUT_MILLISECONDS}"  # pylint: disable=protected-access
+            ),
+        )
+
     def test_get_connection_context_manager(self):
         """Test that get_connection works as context manager."""
         with patch("api.database.DATABASE_PATH", ":memory:"), get_connection() as conn:
@@ -430,7 +445,10 @@ class TestSchemaInitialization:
         authority_query = mock_fetch_value.call_args_list[0].args[0]
         assert "current_schema() IS NOT NULL" in authority_query
         assert "login.rolname = session_user" in authority_query
-        assert "pg_has_role(login.oid, assumable.oid, 'MEMBER')" in authority_query
+        assert "pg_has_role(login.oid, assumable.oid, 'USAGE')" in authority_query
+        assert "pg_has_role(login.oid, assumable.oid, 'SET')" in authority_query
+        assert "ELSE pg_has_role(login.oid, assumable.oid, 'MEMBER') END" in authority_query
+        assert "current_setting('server_version_num')::integer >= 160000" in authority_query
         assert "assumable.rolreplication" in authority_query
         assert "has_database_privilege(assumable.oid, current_database(), 'CREATE')" in authority_query
         assert "has_table_privilege(assumable.oid, 'user_credentials', 'UPDATE')" in authority_query

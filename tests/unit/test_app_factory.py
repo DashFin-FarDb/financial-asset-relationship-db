@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
+import threading
 from types import SimpleNamespace
 from typing import Any, cast
 from unittest.mock import MagicMock
@@ -282,7 +283,7 @@ async def test_hosted_fallback_cannot_degrade_schema_incompatibility(base_settin
         monkeypatch.setattr(
             app_factory,
             "_verify_auth_database",
-            lambda: (_ for _ in ()).throw(SchemaCompatibilityError("incompatible auth schema")),
+            lambda _guard: (_ for _ in ()).throw(SchemaCompatibilityError("incompatible auth schema")),
         )
         settings = cast(Any, hosted_settings)
         with pytest.raises(SchemaCompatibilityError, match="incompatible auth schema"):
@@ -298,14 +299,24 @@ async def test_auth_database_verification_timeout_fails_closed(
     monkeypatch: pytest.MonkeyPatch,
     base_settings: SimpleNamespace,
 ) -> None:
-    """A stalled auth catalog read must not block startup indefinitely."""
+    """A stalled auth catalog read must cancel its connection and shut down."""
+    started = threading.Event()
+    released = threading.Event()
+    connection = MagicMock()
+    connection.cancel.side_effect = released.set
 
-    async def _never_complete(*_args, **_kwargs) -> None:
-        """Model a catalog call that never returns."""
-        await asyncio.Event().wait()
+    def _stalled_query(operation_guard) -> None:
+        """Block one worker-owned connection until the outer guard cancels it."""
+        operation_guard.register(connection)
+        started.set()
+        try:
+            released.wait(timeout=1)
+        finally:
+            operation_guard.unregister(connection)
 
-    monkeypatch.setattr(app_factory.asyncio, "to_thread", _never_complete)
-    monkeypatch.setattr(app_factory, "_AUTH_DATABASE_VERIFICATION_TIMEOUT_SECONDS", 0.001)
+    monkeypatch.setattr(app_factory, "_verify_auth_database", _stalled_query)
+    monkeypatch.setattr(app_factory, "_AUTH_DATABASE_VERIFICATION_TIMEOUT_SECONDS", 0.01)
+    monkeypatch.setattr(app_factory, "_AUTH_DATABASE_SHUTDOWN_TIMEOUT_SECONDS", 0.5)
 
     settings = cast(Any, base_settings)
     with pytest.raises(SchemaCompatibilityError, match="verification timed out"):
@@ -314,6 +325,11 @@ async def test_auth_database_verification_timeout_fails_closed(
             has_persistence=False,
             hosted_startup_degradation_allowed=False,
         )
+
+    assert started.is_set()
+    assert released.is_set()
+    connection.cancel.assert_called_once_with()
+    connection.close.assert_called_once_with()
 
 
 def test_auth_runtime_verification_does_not_call_mutators(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -430,8 +446,8 @@ def test_reconciliation_schema_verification_separates_runtime_capabilities(
         coordination_engine,
     )
 
-    assert verify_schema.call_args_list[0].kwargs["required_capabilities"] == {"graph"}
-    assert verify_schema.call_args_list[1].kwargs["required_capabilities"] == {"coordination"}
+    assert verify_schema.call_args_list[0].args == (graph_engine,)
+    assert verify_schema.call_args_list[1].args == (coordination_engine,)
     assert verify_authority.call_args_list[0].kwargs["required_capabilities"] == {"graph"}
     assert verify_authority.call_args_list[1].kwargs["required_capabilities"] == {"coordination"}
 

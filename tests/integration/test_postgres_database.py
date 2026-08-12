@@ -326,8 +326,8 @@ def test_auth_runtime_role_is_read_only_and_uses_explicit_target() -> None:
 
     from api.database import (
         bind_database_url,
-        execute,
         fetch_value,
+        get_connection,
         verify_runtime_authority,
         verify_schema_compatibility,
     )
@@ -336,8 +336,13 @@ def test_auth_runtime_role_is_read_only_and_uses_explicit_target() -> None:
         verify_schema_compatibility()
         verify_runtime_authority()
         assert fetch_value("SELECT COUNT(*) FROM user_credentials") is not None
-        with pytest.raises(PsycopgProgrammingError, match="permission denied|row-level security"):
-            execute(
-                "INSERT INTO user_credentials (username, hashed_password, disabled) "
-                "VALUES ('cq-runtime-probe', 'not-used', 1)"
-            )
+        with get_connection() as connection, connection.cursor() as cursor:
+            cursor.execute("BEGIN")
+            try:
+                with pytest.raises(PsycopgProgrammingError, match="permission denied|row-level security"):
+                    cursor.execute(
+                        "INSERT INTO user_credentials (username, hashed_password, disabled) "
+                        "VALUES ('cq-runtime-probe', 'not-used', 1)"
+                    )
+            finally:
+                connection.rollback()

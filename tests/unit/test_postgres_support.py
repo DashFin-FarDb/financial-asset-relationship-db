@@ -144,7 +144,11 @@ class TestPostgreSQLConnection:
 
         conn = database._create_postgres_connection()
 
-        mock_connect.assert_called_once_with("postgresql://localhost/test")
+        mock_connect.assert_called_once_with(
+            "postgresql://localhost/test",
+            connect_timeout=database._POSTGRES_CONNECT_TIMEOUT_SECONDS,
+            options=f"-c statement_timeout={database._POSTGRES_STATEMENT_TIMEOUT_MILLISECONDS}",
+        )
         assert conn == mock_conn
 
     @patch.dict("os.environ", {"DATABASE_URL": "postgresql://localhost/test"})

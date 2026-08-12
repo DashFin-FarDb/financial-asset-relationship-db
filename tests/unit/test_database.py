@@ -151,7 +151,7 @@ def test_capability_role_retains_superuser_fallback_creation() -> None:
     assert "role_membership.roleid = role.oid)) > 1" in statement
 
 
-def test_runtime_capability_catalog_accepts_exact_graph_contract() -> None:
+def test_runtime_capability_catalog_accepts_exact_graph_contract() -> None:  # noqa: C901
     """The catalog verifier accepts the complete graph role, RLS, and grant matrix."""
     from src.data import relationship_assertion_db_models  # noqa: F401
     from src.data.relationship_assertion_db_models import GRAC_TABLE_NAMES
@@ -204,29 +204,60 @@ def test_runtime_capability_catalog_accepts_exact_graph_contract() -> None:
         if "FROM pg_policy AS policy" in sql:
             return _CatalogResult(rows=policy_rows)
         if "has_table_privilege" in sql:
-            expected = table_privileges.get(
-                (GRAPH_RUNTIME_CAPABILITY, parameters["table_name"]),
-                frozenset(),
-            )
-            return _CatalogResult(scalar=parameters["privilege"] in expected)
+            rows: list[tuple] = []
+            for requested_role in parameters["role_names"]:
+                for table_name in parameters["table_names"]:
+                    expected = table_privileges.get((GRAPH_RUNTIME_CAPABILITY, table_name), frozenset())
+                    rows.extend(
+                        (requested_role, table_name, privilege, privilege in expected)
+                        for privilege in parameters["privileges"]
+                    )
+            return _CatalogResult(rows=rows)
         if "has_column_privilege" in sql:
-            table_name = parameters["table_name"]
-            privilege = parameters["privilege"]
-            expected = table_privileges.get((GRAPH_RUNTIME_CAPABILITY, table_name), frozenset())
-            lock_column_update = (
-                privilege == "UPDATE" and table_name in grac_tables and parameters["column_name"] == "id"
-            )
-            return _CatalogResult(scalar=privilege in expected or lock_column_update)
-        if "pg_get_serial_sequence" in sql:
-            return _CatalogResult(scalar=f"{parameters['table_name']}_id_seq")
+            rows = []
+            columns = zip(parameters["column_tables"], parameters["column_names"], strict=True)
+            for requested_role in parameters["role_names"]:
+                for table_name, column_name in columns:
+                    expected = table_privileges.get((GRAPH_RUNTIME_CAPABILITY, table_name), frozenset())
+                    for privilege in parameters["privileges"]:
+                        lock_column_update = privilege == "UPDATE" and table_name in grac_tables and column_name == "id"
+                        rows.append(
+                            (
+                                requested_role,
+                                table_name,
+                                column_name,
+                                privilege,
+                                privilege in expected or lock_column_update,
+                            )
+                        )
+            return _CatalogResult(rows=rows)
         if "has_sequence_privilege" in sql:
-            return _CatalogResult(scalar=True)
+            rows = []
+            sequences = zip(parameters["table_names"], parameters["column_names"], strict=True)
+            for requested_role in parameters["role_names"]:
+                for table_name, column_name in sequences:
+                    rows.extend(
+                        [
+                            (
+                                requested_role,
+                                table_name,
+                                column_name,
+                                f"{table_name}_{column_name}_seq",
+                                privilege,
+                                privilege in {"USAGE", "SELECT"},
+                            )
+                            for privilege in parameters["privileges"]
+                        ]
+                    )
+            return _CatalogResult(rows=rows)
         raise AssertionError(f"unexpected catalog query: {sql}")
 
     connection = MagicMock()
     connection.execute.side_effect = _execute
 
     _verify_runtime_capability_catalog(connection, capabilities)
+
+    assert connection.execute.call_count == 7
 
 
 def test_runtime_capability_provisioning_applies_exact_matrix(monkeypatch) -> None:
@@ -772,11 +803,15 @@ class TestDatabaseInitialization:
         membership_query = str(connection.execute.call_args_list[1].args[0])
         assert "current_schema() IS NOT NULL" in restricted_query
         assert "login.rolname = session_user" in restricted_query
-        assert "pg_has_role(login.oid, assumable.oid, 'MEMBER')" in restricted_query
+        assert "pg_has_role(login.oid, assumable.oid, 'USAGE')" in restricted_query
+        assert "pg_has_role(login.oid, assumable.oid, 'SET')" in restricted_query
+        assert "ELSE pg_has_role(login.oid, assumable.oid, 'MEMBER') END" in restricted_query
         assert "has_database_privilege(assumable.oid, current_database(), 'CREATE')" in restricted_query
         assert "namespace.nspowner = assumable.oid" in restricted_query
         assert "database.datdba = assumable.oid" in restricted_query
-        assert "pg_has_role(login.oid, assumable.oid, 'MEMBER')" in membership_query
+        assert "pg_has_role(login.oid, assumable.oid, 'USAGE')" in membership_query
+        assert "pg_has_role(login.oid, assumable.oid, 'SET')" in membership_query
+        assert "ELSE pg_has_role(login.oid, assumable.oid, 'MEMBER') END" in membership_query
         assert "assumable.oid <> login.oid" in membership_query
 
 
