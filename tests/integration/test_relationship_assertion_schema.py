@@ -82,6 +82,14 @@ def test_postgresql_grac_constraint_comparison_preserves_boolean_grouping() -> N
     )
 
 
+def test_postgresql_grac_constraint_comparison_accepts_quoted_lowercase_identifiers() -> None:
+    """PostgreSQL-safe identifier quotes must not create false schema drift."""
+    assert _postgresql_check_matches(
+        'CHECK (("effective_to" IS NULL) OR ("effective_to" >= "effective_from"))',
+        EFFECTIVE_WINDOW_CHECK,
+    )
+
+
 def test_postgresql_rebuild_status_comparison_accepts_catalog_deparse() -> None:
     """The rebuild status verifier must accept PostgreSQL 17 ANY/ARRAY rendering."""
     definition = (

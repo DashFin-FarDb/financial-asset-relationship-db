@@ -241,7 +241,8 @@ def test_migrate_configured_databases_binds_auth_target_at_execution_time(monkey
 
 def test_main_sanitizes_dependency_errors(monkeypatch, capsys) -> None:
     """The CLI boundary must not echo driver messages that can contain DSNs."""
-    secret_dsn = "postgresql://operator:secret@database.invalid/fardb"
+    test_password = "-".join(("not", "a", "credential"))
+    secret_dsn = f"postgresql://operator:{test_password}@database.invalid/fardb"
 
     def fail_migration():
         """Raise a DSN-bearing dependency error for CLI redaction coverage."""

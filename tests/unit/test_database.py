@@ -17,6 +17,7 @@ import sqlite3
 import tempfile
 import threading
 from collections.abc import Iterator
+from pathlib import Path
 from typing import Any
 from unittest.mock import MagicMock, Mock, patch
 
@@ -88,6 +89,17 @@ class _CatalogResult:
         return self._rows
 
 
+def test_capability_bootstrap_rejects_create_on_any_database_schema() -> None:
+    """Static bootstrap must inspect every schema rather than only the search path."""
+    bootstrap_sql = (Path(__file__).parents[2] / "scripts" / "bootstrap_database_capability_roles.sql").read_text(
+        encoding="utf-8"
+    )
+
+    assert "FROM pg_namespace AS namespace" in bootstrap_sql
+    assert "has_schema_privilege(role.oid, namespace.oid, 'CREATE')" in bootstrap_sql
+    assert "has_schema_privilege(role.oid, current_schema(), 'CREATE')" not in bootstrap_sql
+
+
 def test_graph_capability_preserves_grac_immutability_and_locking() -> None:
     """GRAC grants allow inserts and row locks without a usable update path."""
     from src.data.relationship_assertion_db_models import GRAC_TABLE_NAMES
@@ -130,6 +142,9 @@ def test_capability_role_retains_superuser_fallback_creation() -> None:
     assert "rolname = CURRENT_USER" in statement
     assert "rolsuper" in statement
     assert "membership.roleid = role.oid AND membership.admin_option" in statement
+    assert "WITH RECURSIVE role_membership(member, roleid, member_is_superuser)" in statement
+    assert "SELECT COUNT(*) FROM pg_roles AS grantee WHERE grantee.rolcanlogin" in statement
+    assert "role_membership.roleid = role.oid)) > 1" in statement
 
 
 def test_runtime_capability_catalog_accepts_exact_graph_contract() -> None:

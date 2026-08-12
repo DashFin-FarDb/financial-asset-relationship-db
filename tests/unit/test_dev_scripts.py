@@ -362,9 +362,9 @@ class TestShellScripts:
 
     def test_run_dev_scripts_do_not_require_migration_password(self):
         """Runtime launchers must not require the migration-only admin password."""
-        with open("run-dev.sh") as f:
+        with open("run-dev.sh", encoding="utf-8") as f:
             sh_content = f.read()
-        with open("run-dev.bat") as f:
+        with open("run-dev.bat", encoding="utf-8") as f:
             bat_content = f.read()
 
         assert "required_vars=(DATABASE_URL SECRET_KEY ADMIN_USERNAME)" in sh_content
@@ -372,9 +372,16 @@ class TestShellScripts:
         assert 'if "%ADMIN_PASSWORD%"==""' not in bat_content
         assert "ADMIN_PASSWORD" not in bat_content
 
+    def test_run_dev_sh_warns_to_migrate_before_runtime_start(self):
+        """The launcher must surface the explicit migration prerequisite."""
+        with open("run-dev.sh", encoding="utf-8") as f:
+            content = f.read()
+
+        assert content.index("python -m scripts.migrate_database") < content.index("python -m uvicorn")
+
     def test_readme_clears_migration_password_before_runtime_launchers(self):
         """Quick-start commands must clear the bootstrap password before runtime."""
-        with open("README.md") as f:
+        with open("README.md", encoding="utf-8") as f:
             content = f.read()
 
         assert "python -m scripts.migrate_database\nunset ADMIN_PASSWORD\n./run-dev.sh" in content

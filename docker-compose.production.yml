@@ -7,10 +7,15 @@ services:
       context: .
       dockerfile: Dockerfile.api
     restart: unless-stopped
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
     ports:
       - "8000:8000"
     volumes:
       - api-data:/data
+    tmpfs:
+      - /tmp
     environment:
       - ENV=production
       - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-http://localhost:3000}
@@ -36,6 +41,8 @@ services:
       dockerfile: Dockerfile.api
     profiles: ["operator"]
     restart: "no"
+    security_opt:
+      - no-new-privileges:true
     volumes:
       - api-data:/data
     environment:

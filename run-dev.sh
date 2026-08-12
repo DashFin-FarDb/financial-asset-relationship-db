@@ -58,6 +58,10 @@ pip install -r requirements.txt
 BACKEND_PORT="${BACKEND_PORT:-8000}"
 FRONTEND_PORT="${FRONTEND_PORT:-3000}"
 
+echo "ℹ️  Database migrations must be completed before startup."
+echo "   For a fresh database, run python -m scripts.migrate_database as described in README.md."
+echo ""
+
 # Start backend in background
 echo "🔧 Starting FastAPI backend on port ${BACKEND_PORT}..."
 python -m uvicorn api.main:app --reload --host 127.0.0.1 --port "${BACKEND_PORT}" &

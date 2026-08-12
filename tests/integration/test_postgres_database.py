@@ -263,6 +263,9 @@ def test_coordination_runtime_role_exercises_only_lock_dml() -> None:
     runtime_url = os.getenv("FARDB_COORDINATION_RUNTIME_DATABASE_URL")
     if not runtime_url:
         pytest.skip("Set FARDB_COORDINATION_RUNTIME_DATABASE_URL to the restricted coordination-login DSN")
+    assert runtime_url is not None
+    if any(token in runtime_url for token in PLACEHOLDER_TOKENS):
+        pytest.skip("Runtime database URL contains a placeholder password token")
 
     from sqlalchemy import create_engine, text
     from sqlalchemy.exc import ProgrammingError
@@ -318,6 +321,8 @@ def test_auth_runtime_role_is_read_only_and_uses_explicit_target() -> None:
     if not runtime_url:
         pytest.skip("Set FARDB_AUTH_RUNTIME_DATABASE_URL to the restricted auth-login DSN")
     assert runtime_url is not None
+    if any(token in runtime_url for token in PLACEHOLDER_TOKENS):
+        pytest.skip("Runtime database URL contains a placeholder password token")
 
     from api.database import (
         bind_database_url,

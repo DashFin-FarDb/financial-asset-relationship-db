@@ -126,13 +126,23 @@ def _serialize_check_boolean_ast(node: object) -> str:
     return operator + "(" + ",".join(_serialize_check_boolean_ast(child) for child in node[1:]) + ")"
 
 
+def _is_between_atom_character(character: str) -> bool:
+    """Return whether a character can occur in one simple BETWEEN operand."""
+    return not character.isspace() and character not in "()"
+
+
+def _is_qualified_identifier_character(character: str) -> bool:
+    """Return whether a character can occur in a qualified function identifier."""
+    return character.isalnum() or character in "_$.\x00"
+
+
 def _between_operand_start(expression: str, end: int) -> int:
     """Return the start of the simple or balanced-call operand ending at ``end``."""
     position = end - 1
     if position < 0:
         return end
     if expression[position] != ")":
-        while position >= 0 and not expression[position].isspace() and expression[position] not in "()":
+        while position >= 0 and _is_between_atom_character(expression[position]):
             position -= 1
         return position + 1
 
@@ -142,7 +152,7 @@ def _between_operand_start(expression: str, end: int) -> int:
         position -= 1
         if depth == 0:
             break
-    while position >= 0 and (expression[position].isalnum() or expression[position] in "_$"):
+    while position >= 0 and _is_qualified_identifier_character(expression[position]):
         position -= 1
     return position + 1
 

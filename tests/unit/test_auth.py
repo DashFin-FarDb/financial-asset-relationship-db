@@ -14,6 +14,7 @@ import secrets
 import subprocess  # nosec B404 - isolated test process, never production input
 import sys
 from datetime import datetime, timedelta, timezone
+from pathlib import Path
 from unittest.mock import Mock, patch
 
 import pytest
@@ -55,6 +56,7 @@ def test_auth_module_import_performs_no_database_writes(tmp_path) -> None:
         capture_output=True,
         text=True,
         env=environment,
+        cwd=Path(__file__).resolve().parents[2],
     )
 
     assert result.returncode == 0, result.stderr
@@ -1061,7 +1063,7 @@ class TestSeedCredentialsFromSettings:
             seed_credentials_from_settings(
                 mock_repo,
                 Settings(
-                    secret_key="secret",
+                    secret_key=secrets.token_urlsafe(32),
                     admin_username="admin",
                     admin_password="adminpass",
                     admin_email="admin@example.com",
@@ -1087,5 +1089,5 @@ class TestSeedCredentialsFromSettings:
 
         mock_repo = Mock(spec=UserRepository)
 
-        seed_credentials_from_settings(mock_repo, Settings(secret_key="secret"))
+        seed_credentials_from_settings(mock_repo, Settings(secret_key=secrets.token_urlsafe(32)))
         mock_repo.create_or_update_user.assert_not_called()

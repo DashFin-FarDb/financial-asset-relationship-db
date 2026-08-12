@@ -53,24 +53,19 @@ from src.data.database import CapabilityRoleBootstrapRequiredError, SchemaCompat
 
 AUTH_RUNTIME_ROLE = "fardb_runtime_auth"
 
-# PostgreSQL 16 added per-membership INHERIT and SET options to pg_auth_members.
-# On PostgreSQL 15 every membership remains usable through SET ROLE, so absent
-# catalog keys must fail closed as usable rather than being treated as inert.
-_AUTH_MEMBERSHIP_USABLE_SQL = (
-    "COALESCE((to_jsonb(membership) ->> 'inherit_option')::boolean, TRUE) "
-    "OR COALESCE((to_jsonb(membership) ->> 'set_option')::boolean, TRUE)"
-)
 _AUTH_ROLE_MEMBERSHIP_CTE_SQL = (
     "WITH RECURSIVE role_membership(member, roleid, member_is_superuser) AS ("
     "SELECT membership.member, membership.roleid, grantee.rolsuper "
     "FROM pg_auth_members AS membership "
     "JOIN pg_roles AS grantee ON grantee.oid = membership.member "
-    f"WHERE ({_AUTH_MEMBERSHIP_USABLE_SQL} OR grantee.rolsuper) "
+    "WHERE (COALESCE((to_jsonb(membership) ->> 'inherit_option')::boolean, TRUE) "
+    "OR COALESCE((to_jsonb(membership) ->> 'set_option')::boolean, TRUE) OR grantee.rolsuper) "
     "UNION SELECT role_membership.member, membership.roleid, "
     "role_membership.member_is_superuser "
     "FROM role_membership JOIN pg_auth_members AS membership "
     "ON membership.member = role_membership.roleid "
-    f"WHERE ({_AUTH_MEMBERSHIP_USABLE_SQL} "
+    "WHERE (COALESCE((to_jsonb(membership) ->> 'inherit_option')::boolean, TRUE) "
+    "OR COALESCE((to_jsonb(membership) ->> 'set_option')::boolean, TRUE) "
     "OR role_membership.member_is_superuser)) "
 )
 _AUTH_SAFE_ROLE_SQL = (
@@ -81,11 +76,57 @@ _AUTH_SAFE_ROLE_SQL = (
     "AND NOT EXISTS (SELECT 1 FROM pg_auth_members AS membership WHERE membership.member = role.oid) "
     "AND NOT EXISTS (SELECT 1 FROM pg_auth_members AS membership "
     "WHERE membership.roleid = role.oid AND membership.admin_option) "
-    f"AND NOT EXISTS ({_AUTH_ROLE_MEMBERSHIP_CTE_SQL}"
+    "AND NOT EXISTS (WITH RECURSIVE role_membership(member, roleid, member_is_superuser) AS ("
+    "SELECT membership.member, membership.roleid, grantee.rolsuper "
+    "FROM pg_auth_members AS membership "
+    "JOIN pg_roles AS grantee ON grantee.oid = membership.member "
+    "WHERE (COALESCE((to_jsonb(membership) ->> 'inherit_option')::boolean, TRUE) "
+    "OR COALESCE((to_jsonb(membership) ->> 'set_option')::boolean, TRUE) OR grantee.rolsuper) "
+    "UNION SELECT role_membership.member, membership.roleid, role_membership.member_is_superuser "
+    "FROM role_membership JOIN pg_auth_members AS membership "
+    "ON membership.member = role_membership.roleid "
+    "WHERE (COALESCE((to_jsonb(membership) ->> 'inherit_option')::boolean, TRUE) "
+    "OR COALESCE((to_jsonb(membership) ->> 'set_option')::boolean, TRUE) "
+    "OR role_membership.member_is_superuser)) "
     "SELECT 1 FROM pg_roles AS grantee "
     "WHERE grantee.rolcanlogin AND grantee.rolname <> session_user "
     "AND EXISTS (SELECT 1 FROM role_membership WHERE role_membership.member = grantee.oid "
     "AND role_membership.roleid = role.oid))"
+)
+_AUTH_CAPABILITY_ROLE_DDL = (
+    "DO $fardb$ BEGIN "
+    "IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'fardb_runtime_auth') THEN "
+    "IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = CURRENT_USER AND rolsuper) THEN "
+    "RAISE EXCEPTION 'required PostgreSQL capability role fardb_runtime_auth is missing; run "
+    "scripts/bootstrap_database_capability_roles.sql as a PostgreSQL superuser before the normal database migration'; "
+    "END IF; "
+    "CREATE ROLE fardb_runtime_auth NOLOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOBYPASSRLS NOREPLICATION; "
+    "END IF; "
+    "IF EXISTS (SELECT 1 FROM pg_roles AS role WHERE role.rolname = 'fardb_runtime_auth' "
+    "AND (role.rolcanlogin OR role.rolsuper OR role.rolcreatedb OR role.rolcreaterole "
+    "OR role.rolbypassrls OR role.rolreplication "
+    "OR has_database_privilege(role.oid, current_database(), 'CREATE') "
+    "OR has_schema_privilege(role.oid, current_schema(), 'CREATE') "
+    "OR EXISTS (SELECT 1 FROM pg_auth_members AS membership WHERE membership.member = role.oid) "
+    "OR EXISTS (SELECT 1 FROM pg_auth_members AS membership "
+    "WHERE membership.roleid = role.oid AND membership.admin_option) "
+    "OR (WITH RECURSIVE role_membership(member, roleid, member_is_superuser) AS ("
+    "SELECT membership.member, membership.roleid, grantee.rolsuper "
+    "FROM pg_auth_members AS membership "
+    "JOIN pg_roles AS grantee ON grantee.oid = membership.member "
+    "WHERE (COALESCE((to_jsonb(membership) ->> 'inherit_option')::boolean, TRUE) "
+    "OR COALESCE((to_jsonb(membership) ->> 'set_option')::boolean, TRUE) OR grantee.rolsuper) "
+    "UNION SELECT role_membership.member, membership.roleid, role_membership.member_is_superuser "
+    "FROM role_membership JOIN pg_auth_members AS membership "
+    "ON membership.member = role_membership.roleid "
+    "WHERE (COALESCE((to_jsonb(membership) ->> 'inherit_option')::boolean, TRUE) "
+    "OR COALESCE((to_jsonb(membership) ->> 'set_option')::boolean, TRUE) "
+    "OR role_membership.member_is_superuser)) "
+    "SELECT COUNT(*) FROM pg_roles AS grantee "
+    "WHERE grantee.rolcanlogin AND EXISTS (SELECT 1 FROM role_membership "
+    "WHERE role_membership.member = grantee.oid AND role_membership.roleid = role.oid)) > 1)) THEN "
+    "RAISE EXCEPTION 'unsafe FarDB capability role: fardb_runtime_auth'; END IF; "
+    "END $fardb$"
 )
 
 
@@ -860,30 +901,7 @@ def ensure_runtime_access() -> None:
     if role_state not in (1, 2):
         raise CapabilityRoleBootstrapRequiredError(AUTH_RUNTIME_ROLE)
 
-    bootstrap_message = str(CapabilityRoleBootstrapRequiredError(AUTH_RUNTIME_ROLE))
-    execute(
-        f"DO $fardb$ BEGIN "
-        f"IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = '{AUTH_RUNTIME_ROLE}') THEN "
-        f"IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = CURRENT_USER AND rolsuper) THEN "
-        f"RAISE EXCEPTION '{bootstrap_message}'; END IF; "
-        f"CREATE ROLE {AUTH_RUNTIME_ROLE} NOLOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOBYPASSRLS NOREPLICATION; "
-        f"END IF; "
-        f"IF EXISTS (SELECT 1 FROM pg_roles AS role WHERE role.rolname = '{AUTH_RUNTIME_ROLE}' "
-        f"AND (role.rolcanlogin OR role.rolsuper OR role.rolcreatedb OR role.rolcreaterole "
-        f"OR role.rolbypassrls OR role.rolreplication "
-        f"OR has_database_privilege(role.oid, current_database(), 'CREATE') "
-        f"OR has_schema_privilege(role.oid, current_schema(), 'CREATE') "
-        f"OR EXISTS (SELECT 1 FROM pg_auth_members AS membership "
-        f"WHERE membership.member = role.oid) "
-        f"OR EXISTS (SELECT 1 FROM pg_auth_members AS membership "
-        f"WHERE membership.roleid = role.oid AND membership.admin_option) "
-        f"OR ({_AUTH_ROLE_MEMBERSHIP_CTE_SQL}"
-        f"SELECT COUNT(*) FROM pg_roles AS grantee "
-        f"WHERE grantee.rolcanlogin AND EXISTS (SELECT 1 FROM role_membership "
-        f"WHERE role_membership.member = grantee.oid AND role_membership.roleid = role.oid)) > 1)) THEN "
-        f"RAISE EXCEPTION 'unsafe FarDB capability role: {AUTH_RUNTIME_ROLE}'; END IF; "
-        f"END $fardb$"
-    )
+    execute(_AUTH_CAPABILITY_ROLE_DDL)
     execute("ALTER TABLE user_credentials ENABLE ROW LEVEL SECURITY")
     execute("REVOKE ALL PRIVILEGES ON TABLE user_credentials FROM PUBLIC")
     execute(f"REVOKE ALL PRIVILEGES ON TABLE user_credentials FROM {AUTH_RUNTIME_ROLE}")
@@ -902,9 +920,7 @@ def ensure_runtime_access() -> None:
         f"'REVOKE ALL PRIVILEGES ON SEQUENCE %%s FROM {AUTH_RUNTIME_ROLE}', sequence_name); END IF; "
         f"END $fardb$"
     )
-    execute(
-        f"CREATE POLICY fardb_auth_select_v1 ON user_credentials " f"FOR SELECT TO {AUTH_RUNTIME_ROLE} USING (true)"
-    )
+    execute(f"CREATE POLICY fardb_auth_select_v1 ON user_credentials FOR SELECT TO {AUTH_RUNTIME_ROLE} USING (true)")
 
 
 def verify_runtime_authority() -> None:

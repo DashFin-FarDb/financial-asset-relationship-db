@@ -60,6 +60,14 @@ def test_check_normalization_accepts_strength_postgresql_deparse() -> None:
             "CHECK (length(trim(strength)) BETWEEN 1 AND 32)",
             "CHECK (length(trim(strength)) >= 1 AND length(trim(strength)) <= 32)",
         ),
+        (
+            "CHECK (pg_catalog.length(trim(strength)) BETWEEN 1 AND 32)",
+            "CHECK (pg_catalog.length(trim(strength)) >= 1 AND pg_catalog.length(trim(strength)) <= 32)",
+        ),
+        (
+            'CHECK ("custom".length(trim(strength)) BETWEEN 1 AND 32)',
+            'CHECK ("custom".length(trim(strength)) >= 1 AND "custom".length(trim(strength)) <= 32)',
+        ),
     ],
 )
 def test_check_normalization_expands_between_with_linear_parser(between: str, expanded: str) -> None:

@@ -47,6 +47,7 @@ _GRAPH_OTHER_CAPABILITY_LOGIN = "cq1608_graph_other_capability"
 _GRAPH_SUPERUSER_LOGIN = "cq1608_graph_superuser"
 _BOOTSTRAP_MIGRATION_OWNER = "cq1608_bootstrap_migration_owner"
 _BOOTSTRAP_SCHEMA = "cq1608_bootstrap_schema"
+_BOOTSTRAP_UNRELATED_SCHEMA = "cq1608_bootstrap_unrelated_schema"
 _BOOTSTRAP_GRAPH_RUNTIME_LOGIN = "cq1608_bootstrap_graph_runtime"
 _BOOTSTRAP_AUTH_RUNTIME_LOGIN = "cq1608_bootstrap_auth_runtime"
 _MISSING_ROLE_MIGRATION_OWNER = "cq1608_missing_role_owner"
@@ -117,8 +118,10 @@ def _drop_schema(database_url: str, schema_name: str) -> None:
 
 def _move_capability_roles_aside(database_url: str) -> tuple[dict[str, str], set[str]]:
     """Temporarily rename existing disposable-cluster capability roles for bootstrap coverage."""
+    import api.database as api_database
+
     role_backups = {
-        "fardb_runtime_auth": "cq1608_saved_runtime_auth",
+        api_database.AUTH_RUNTIME_ROLE: "cq1608_saved_runtime_auth",
         GRAPH_RUNTIME_ROLE: "cq1608_saved_runtime_graph",
         COORDINATION_RUNTIME_ROLE: "cq1608_saved_runtime_coordination",
     }
@@ -557,6 +560,37 @@ def test_superuser_bootstrap_enables_least_privilege_migration_and_runtime_verif
 
 
 @pytest.mark.integration
+def test_capability_bootstrap_rejects_create_on_non_current_schema() -> None:
+    """A capability role may not retain CREATE on any schema in the database."""
+    database_url = _ephemeral_database_url()
+
+    try:
+        with _operator_connection(database_url) as connection, connection.cursor() as cursor:
+            cursor.execute(_CAPABILITY_BOOTSTRAP_SQL.read_text(encoding="utf-8"))
+            cursor.execute(
+                sql.SQL("CREATE SCHEMA {} AUTHORIZATION CURRENT_USER").format(
+                    sql.Identifier(_BOOTSTRAP_UNRELATED_SCHEMA)
+                )
+            )
+            cursor.execute(
+                sql.SQL("GRANT CREATE ON SCHEMA {} TO {}").format(
+                    sql.Identifier(_BOOTSTRAP_UNRELATED_SCHEMA),
+                    sql.Identifier(GRAPH_RUNTIME_ROLE),
+                )
+            )
+            cursor.execute("SELECT current_schema()")
+            assert cursor.fetchone()[0] != _BOOTSTRAP_UNRELATED_SCHEMA
+
+            with pytest.raises(psycopg2.Error, match="unsafe FarDB capability role"):
+                cursor.execute(_CAPABILITY_BOOTSTRAP_SQL.read_text(encoding="utf-8"))
+    finally:
+        with _operator_connection(database_url) as connection, connection.cursor() as cursor:
+            cursor.execute(
+                sql.SQL("DROP SCHEMA IF EXISTS {} CASCADE").format(sql.Identifier(_BOOTSTRAP_UNRELATED_SCHEMA))
+            )
+
+
+@pytest.mark.integration
 def test_runtime_database_authority_rejects_inert_superuser_capability_grantee() -> None:
     """A superuser remains able to assume a capability through an option-disabled edge."""
     database_url = _ephemeral_database_url()
@@ -652,6 +686,9 @@ def test_runtime_database_authority_rejects_unsafe_capability_grantee(membership
                     membership_options,
                 )
             )
+
+        with pytest.raises(psycopg2.Error, match="unsafe FarDB capability role"):
+            ensure_runtime_database_capabilities(operator_engine, {GRAPH_RUNTIME_CAPABILITY})
 
         with (
             operator_engine.connect() as connection,

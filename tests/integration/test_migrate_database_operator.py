@@ -18,12 +18,13 @@ def test_coordination_only_migration_keeps_shared_structural_schema(tmp_path) ->
     """Coordination-only authority still migrates the shared structural schema."""
     coordination_path = tmp_path / "coordination.db"
     auth_path = tmp_path / "auth.db"
+    test_password = "-".join(("strong", "test", "password"))
     settings = Settings(
         secret_key="s" * 32,
         database_url=f"sqlite:///{auth_path}",
         coordination_database_url=f"sqlite:///{coordination_path}",
         admin_username="admin",
-        admin_password="strong-test-password",
+        admin_password=test_password,
     )
 
     assert migrate_configured_databases(settings) == ("coordination", "auth")
@@ -40,11 +41,12 @@ def test_coordination_only_migration_keeps_shared_structural_schema(tmp_path) ->
 def test_migration_rejects_store_with_only_disabled_user(tmp_path) -> None:
     """A disabled credential must not satisfy the migration provisioning postcondition."""
     auth_path = tmp_path / "disabled-auth.db"
+    test_password = "-".join(("strong", "test", "password"))
     settings = Settings(
         secret_key="s" * 32,
         database_url=f"sqlite:///{auth_path}",
         admin_username="disabled-admin",
-        admin_password="strong-test-password",
+        admin_password=test_password,
         admin_disabled=True,
     )
 

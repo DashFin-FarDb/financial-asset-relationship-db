@@ -335,18 +335,28 @@ def _verify_table_checks(inspector, table_name: str, expected_table) -> None:
         )
 
 
-def _verify_table_indexes(inspector, table_name: str, expected_table) -> None:
-    """Verify named indexes for one ORM table."""
-    expected_indexes = {
+def _expected_table_indexes(expected_table) -> dict[str, tuple[tuple[str, ...], bool]]:
+    """Return named ORM index definitions."""
+    return {
         str(index.name): (tuple(column.name for column in index.columns), bool(index.unique))
         for index in expected_table.indexes
         if index.name
     }
-    actual_indexes = {
+
+
+def _reflected_table_indexes(inspector, table_name: str) -> dict[str, tuple[tuple[str, ...], bool]]:
+    """Return named reflected index definitions."""
+    return {
         str(index["name"]): (tuple(index.get("column_names") or ()), bool(index.get("unique")))
         for index in inspector.get_indexes(table_name)
         if index.get("name")
     }
+
+
+def _verify_table_indexes(inspector, table_name: str, expected_table) -> None:
+    """Verify named indexes for one ORM table."""
+    expected_indexes = _expected_table_indexes(expected_table)
+    actual_indexes = _reflected_table_indexes(inspector, table_name)
     missing_indexes = sorted(set(expected_indexes) - set(actual_indexes))
     if missing_indexes:
         raise SchemaCompatibilityError(
@@ -461,7 +471,24 @@ def _ensure_capability_role(connection, role_name: str) -> None:
             "AND proc.proname = 'grac_v1_reject_mutation' AND proc.proowner = role.oid) OR EXISTS ("
             "SELECT 1 FROM pg_auth_members AS membership WHERE membership.member = role.oid) OR EXISTS ("
             "SELECT 1 FROM pg_auth_members AS membership "
-            "WHERE membership.roleid = role.oid AND membership.admin_option))) "
+            "WHERE membership.roleid = role.oid AND membership.admin_option) OR "
+            "(WITH RECURSIVE role_membership(member, roleid, member_is_superuser) AS ("
+            "SELECT membership.member, membership.roleid, grantee.rolsuper "
+            "FROM pg_auth_members AS membership "
+            "JOIN pg_roles AS grantee ON grantee.oid = membership.member "
+            "WHERE (COALESCE((to_jsonb(membership) ->> 'inherit_option')::boolean, TRUE) "
+            "OR COALESCE((to_jsonb(membership) ->> 'set_option')::boolean, TRUE) "
+            "OR grantee.rolsuper) "
+            "UNION SELECT role_membership.member, membership.roleid, "
+            "role_membership.member_is_superuser "
+            "FROM role_membership JOIN pg_auth_members AS membership "
+            "ON membership.member = role_membership.roleid "
+            "WHERE (COALESCE((to_jsonb(membership) ->> 'inherit_option')::boolean, TRUE) "
+            "OR COALESCE((to_jsonb(membership) ->> 'set_option')::boolean, TRUE) "
+            "OR role_membership.member_is_superuser)) "
+            "SELECT COUNT(*) FROM pg_roles AS grantee WHERE grantee.rolcanlogin "
+            "AND EXISTS (SELECT 1 FROM role_membership WHERE role_membership.member = grantee.oid "
+            "AND role_membership.roleid = role.oid)) > 1)) "
             "THEN RAISE EXCEPTION USING MESSAGE = "
             "'unsafe FarDB capability role: ' || capability_role; END IF; "
             "END $fardb$"
@@ -487,6 +514,113 @@ def _policy_creation_sql(
     return sql
 
 
+def _unknown_runtime_policies(connection, managed_tables: list[str], policy_names: set[str]) -> list[str]:
+    """Return non-contract policies attached to managed tables."""
+    return (
+        connection.execute(
+            text(
+                "SELECT policy.tablename || '.' || policy.policyname "
+                "FROM pg_policies AS policy WHERE policy.schemaname = current_schema() "
+                "AND policy.tablename IN :tables AND policy.policyname NOT IN :policy_names"
+            ).bindparams(
+                bindparam("tables", expanding=True),
+                bindparam("policy_names", expanding=True),
+            ),
+            {"tables": managed_tables, "policy_names": sorted(policy_names)},
+        )
+        .scalars()
+        .all()
+    )
+
+
+def _reset_runtime_table_access(connection, managed_tables: list[str], policy_names: set[str]) -> None:
+    """Reset managed-table grants and contract policy names before provisioning."""
+    for table_name in managed_tables:
+        connection.execute(text(f"ALTER TABLE {table_name} ENABLE ROW LEVEL SECURITY"))
+        connection.execute(text(f"REVOKE ALL PRIVILEGES ON TABLE {table_name} FROM PUBLIC"))
+        for role_name in RUNTIME_CAPABILITY_ROLES.values():
+            connection.execute(text(f"REVOKE ALL PRIVILEGES ON TABLE {table_name} FROM {role_name}"))
+        for policy_name in policy_names:
+            connection.execute(text(f"DROP POLICY IF EXISTS {policy_name} ON {table_name}"))
+
+
+def _reset_runtime_sequence_access(connection) -> None:
+    """Reset graph-sequence grants before provisioning."""
+    for table_name, column_name in _GRAPH_SEQUENCE_TABLE_COLUMNS:
+        connection.execute(
+            text(
+                f"DO $fardb$ DECLARE sequence_name text := "
+                f"pg_get_serial_sequence('{table_name}', '{column_name}'); BEGIN "
+                f"IF sequence_name IS NOT NULL THEN EXECUTE format("
+                f"'REVOKE ALL PRIVILEGES ON SEQUENCE %s FROM PUBLIC', sequence_name); END IF; "
+                f"END $fardb$"
+            )
+        )
+        for role_name in RUNTIME_CAPABILITY_ROLES.values():
+            connection.execute(
+                text(
+                    f"DO $fardb$ DECLARE sequence_name text := "
+                    f"pg_get_serial_sequence('{table_name}', '{column_name}'); BEGIN "
+                    f"IF sequence_name IS NOT NULL THEN EXECUTE format("
+                    f"'REVOKE ALL PRIVILEGES ON SEQUENCE %s FROM {role_name}', sequence_name); END IF; "
+                    f"END $fardb$"
+                )
+            )
+
+
+def _grant_runtime_capability_access(connection, capabilities: tuple[str, ...], table_privileges: dict) -> None:
+    """Grant the exact table, column, and sequence capability matrix."""
+    for capability in capabilities:
+        role_name = RUNTIME_CAPABILITY_ROLES[capability]
+        connection.execute(
+            text(
+                f"DO $fardb$ BEGIN EXECUTE format("
+                f"'GRANT USAGE ON SCHEMA %I TO {role_name}', current_schema()); END $fardb$"
+            )
+        )
+        for (contract_capability, table_name), privileges in table_privileges.items():
+            if contract_capability == capability:
+                connection.execute(text(f"GRANT {', '.join(sorted(privileges))} ON TABLE {table_name} TO {role_name}"))
+        if capability == GRAPH_RUNTIME_CAPABILITY:
+            _grant_graph_runtime_access(connection, role_name)
+
+
+def _grant_graph_runtime_access(connection, role_name: str) -> None:
+    """Grant graph-only locking columns and sequence access."""
+    from .relationship_assertion_db_models import GRAC_TABLE_NAMES
+
+    for table_name in GRAC_TABLE_NAMES:
+        connection.execute(text(f"GRANT UPDATE (id) ON TABLE {table_name} TO {role_name}"))
+    for table_name, column_name in _GRAPH_SEQUENCE_TABLE_COLUMNS:
+        connection.execute(
+            text(
+                f"DO $fardb$ DECLARE sequence_name text := "
+                f"pg_get_serial_sequence('{table_name}', '{column_name}'); BEGIN "
+                f"IF sequence_name IS NOT NULL THEN EXECUTE format("
+                f"'GRANT USAGE, SELECT ON SEQUENCE %s TO {role_name}', sequence_name); END IF; "
+                f"END $fardb$"
+            )
+        )
+
+
+def _create_runtime_policies(connection, policy_specs: dict) -> None:
+    """Create the exact named RLS policy matrix."""
+    for (table_name, policy_name), (command_code, using_expression, check_expression) in policy_specs.items():
+        capability = policy_name.split("_", 2)[1]
+        connection.execute(
+            text(
+                _policy_creation_sql(
+                    table_name,
+                    policy_name,
+                    RUNTIME_CAPABILITY_ROLES[capability],
+                    _RLS_COMMAND_NAMES[command_code],
+                    using_expression,
+                    check_expression,
+                )
+            )
+        )
+
+
 # The explicit capability matrix is intentionally kept together for fail-closed auditability.
 def ensure_runtime_database_capabilities(  # noqa: C901  # skipcq: PY-R1000
     engine: Engine,
@@ -507,21 +641,7 @@ def ensure_runtime_database_capabilities(  # noqa: C901  # skipcq: PY-R1000
 
     with engine.begin() as connection:
         managed_tables = sorted(Base.metadata.tables)
-        unknown_policies = (
-            connection.execute(
-                text(
-                    "SELECT policy.tablename || '.' || policy.policyname "
-                    "FROM pg_policies AS policy WHERE policy.schemaname = current_schema() "
-                    "AND policy.tablename IN :tables AND policy.policyname NOT IN :policy_names"
-                ).bindparams(
-                    bindparam("tables", expanding=True),
-                    bindparam("policy_names", expanding=True),
-                ),
-                {"tables": managed_tables, "policy_names": sorted(all_policy_names)},
-            )
-            .scalars()
-            .all()
-        )
+        unknown_policies = _unknown_runtime_policies(connection, managed_tables, all_policy_names)
         if unknown_policies:
             raise SchemaCompatibilityError(
                 "managed tables contain unknown RLS policies: " + ", ".join(sorted(unknown_policies))
@@ -530,92 +650,14 @@ def ensure_runtime_database_capabilities(  # noqa: C901  # skipcq: PY-R1000
         for role_name in RUNTIME_CAPABILITY_ROLES.values():
             _ensure_capability_role(connection, role_name)
 
-        for table_name in managed_tables:
-            connection.execute(text(f"ALTER TABLE {table_name} ENABLE ROW LEVEL SECURITY"))
-            connection.execute(text(f"REVOKE ALL PRIVILEGES ON TABLE {table_name} FROM PUBLIC"))
-            for role_name in RUNTIME_CAPABILITY_ROLES.values():
-                connection.execute(text(f"REVOKE ALL PRIVILEGES ON TABLE {table_name} FROM {role_name}"))
-            for policy_name in all_policy_names:
-                connection.execute(text(f"DROP POLICY IF EXISTS {policy_name} ON {table_name}"))
-
-        for table_name, column_name in _GRAPH_SEQUENCE_TABLE_COLUMNS:
-            connection.execute(
-                text(
-                    f"DO $fardb$ DECLARE sequence_name text := "
-                    f"pg_get_serial_sequence('{table_name}', '{column_name}'); BEGIN "
-                    f"IF sequence_name IS NOT NULL THEN EXECUTE format("
-                    f"'REVOKE ALL PRIVILEGES ON SEQUENCE %s FROM PUBLIC', sequence_name); END IF; "
-                    f"END $fardb$"
-                )
-            )
-            for role_name in RUNTIME_CAPABILITY_ROLES.values():
-                connection.execute(
-                    text(
-                        f"DO $fardb$ DECLARE sequence_name text := "
-                        f"pg_get_serial_sequence('{table_name}', '{column_name}'); BEGIN "
-                        f"IF sequence_name IS NOT NULL THEN EXECUTE format("
-                        f"'REVOKE ALL PRIVILEGES ON SEQUENCE %s FROM {role_name}', sequence_name); END IF; "
-                        f"END $fardb$"
-                    )
-                )
-
-        for capability in normalized:
-            role_name = RUNTIME_CAPABILITY_ROLES[capability]
-            connection.execute(
-                text(
-                    f"DO $fardb$ BEGIN EXECUTE format("
-                    f"'GRANT USAGE ON SCHEMA %I TO {role_name}', current_schema()); END $fardb$"
-                )
-            )
-            for (contract_capability, table_name), privileges in table_privileges.items():
-                if contract_capability != capability:
-                    continue
-                connection.execute(text(f"GRANT {', '.join(sorted(privileges))} ON TABLE {table_name} TO {role_name}"))
-            if capability == GRAPH_RUNTIME_CAPABILITY:
-                from .relationship_assertion_db_models import GRAC_TABLE_NAMES
-
-                for table_name in GRAC_TABLE_NAMES:
-                    connection.execute(text(f"GRANT UPDATE (id) ON TABLE {table_name} TO {role_name}"))
-                for table_name, column_name in _GRAPH_SEQUENCE_TABLE_COLUMNS:
-                    connection.execute(
-                        text(
-                            f"DO $fardb$ DECLARE sequence_name text := "
-                            f"pg_get_serial_sequence('{table_name}', '{column_name}'); BEGIN "
-                            f"IF sequence_name IS NOT NULL THEN EXECUTE format("
-                            f"'GRANT USAGE, SELECT ON SEQUENCE %s TO {role_name}', sequence_name); END IF; "
-                            f"END $fardb$"
-                        )
-                    )
-
-        for (table_name, policy_name), (command_code, using_expression, check_expression) in policy_specs.items():
-            capability = policy_name.split("_", 2)[1]
-            role_name = RUNTIME_CAPABILITY_ROLES[capability]
-            command = _RLS_COMMAND_NAMES[command_code]
-            connection.execute(
-                text(
-                    _policy_creation_sql(
-                        table_name,
-                        policy_name,
-                        role_name,
-                        command,
-                        using_expression,
-                        check_expression,
-                    )
-                )
-            )
+        _reset_runtime_table_access(connection, managed_tables, all_policy_names)
+        _reset_runtime_sequence_access(connection)
+        _grant_runtime_capability_access(connection, normalized, table_privileges)
+        _create_runtime_policies(connection, policy_specs)
 
 
-# The catalog verifier intentionally exposes each privilege edge in one auditable matrix.
-def _verify_runtime_capability_catalog(  # noqa: C901  # skipcq: PY-R1000
-    connection, capabilities: tuple[str, ...]
-) -> None:
-    """Verify exact role attributes, table grants, and named RLS policies."""
-    from .relationship_assertion_db_models import GRAC_TABLE_NAMES
-
-    grac_tables = frozenset(GRAC_TABLE_NAMES)
-    managed_tables = sorted(Base.metadata.tables)
-    table_privileges = _runtime_table_privileges(capabilities)
-    policy_specs = _runtime_policy_specs(capabilities)
+def _verify_runtime_capability_roles(connection, capabilities: tuple[str, ...], managed_tables: list[str]) -> None:
+    """Verify capability-role safety and schema access."""
     for capability in capabilities:
         role_name = RUNTIME_CAPABILITY_ROLES[capability]
         safe_role = connection.execute(
@@ -681,6 +723,9 @@ def _verify_runtime_capability_catalog(  # noqa: C901  # skipcq: PY-R1000
         if not schema_access:
             raise SchemaCompatibilityError(f"runtime schema grants do not match {capability} capability")
 
+
+def _verify_runtime_rls_catalog(connection, managed_tables: list[str], policy_specs: dict) -> None:
+    """Verify RLS enablement and the exact policy catalog."""
     rls_table_count = connection.execute(
         text(
             "SELECT COUNT(*) FROM pg_class AS rel "
@@ -724,59 +769,120 @@ def _verify_runtime_capability_catalog(  # noqa: C901  # skipcq: PY-R1000
     if actual_policies != expected_policies:
         raise SchemaCompatibilityError("runtime RLS policy catalog does not match the capability contract")
 
+
+def _verify_capability_table_grants(
+    connection,
+    capability: str,
+    role_name: str,
+    table_name: str,
+    expected: frozenset[str],
+) -> None:
+    """Verify one capability role's table grants."""
+    for privilege in _TABLE_PRIVILEGES:
+        actual = connection.execute(
+            text("SELECT has_table_privilege(:role_name, :table_name, :privilege)"),
+            {"role_name": role_name, "table_name": table_name, "privilege": privilege},
+        ).scalar_one()
+        if bool(actual) != (privilege in expected):
+            raise SchemaCompatibilityError(f"runtime grants do not match {capability} capability on {table_name}")
+
+
+def _verify_capability_column_grants(
+    connection,
+    capability: str,
+    role_name: str,
+    table_name: str,
+    expected: frozenset[str],
+    grac_tables: frozenset[str],
+) -> None:
+    """Verify one capability role's column grants."""
+    for column_name in Base.metadata.tables[table_name].columns.keys():
+        for privilege in _COLUMN_PRIVILEGES:
+            lock_column_update = (
+                privilege == "UPDATE"
+                and capability == GRAPH_RUNTIME_CAPABILITY
+                and table_name in grac_tables
+                and column_name == "id"
+            )
+            actual = connection.execute(
+                text("SELECT has_column_privilege(:role_name, :table_name, :column_name, :privilege)"),
+                {
+                    "role_name": role_name,
+                    "table_name": table_name,
+                    "column_name": column_name,
+                    "privilege": privilege,
+                },
+            ).scalar_one()
+            if bool(actual) != (privilege in expected or lock_column_update):
+                raise SchemaCompatibilityError(
+                    f"runtime column grants do not match {capability} capability on {table_name}"
+                )
+
+
+def _verify_capability_sequence_grants(connection, capability: str, role_name: str) -> None:
+    """Verify one capability role's graph-sequence grants."""
+    for table_name, column_name in _GRAPH_SEQUENCE_TABLE_COLUMNS:
+        sequence_name = connection.execute(
+            text("SELECT pg_get_serial_sequence(:table_name, :column_name)"),
+            {"table_name": table_name, "column_name": column_name},
+        ).scalar_one()
+        if sequence_name is None:
+            raise SchemaCompatibilityError(f"required runtime sequence is missing for {table_name}")
+        sequence_access = connection.execute(
+            text(
+                "SELECT has_sequence_privilege(:role_name, :sequence_name, 'USAGE') "
+                "AND has_sequence_privilege(:role_name, :sequence_name, 'SELECT') "
+                "AND NOT has_sequence_privilege(:role_name, :sequence_name, 'UPDATE')"
+            ),
+            {"role_name": role_name, "sequence_name": sequence_name},
+        ).scalar_one()
+        if bool(sequence_access) != (capability == GRAPH_RUNTIME_CAPABILITY):
+            raise SchemaCompatibilityError(
+                f"runtime sequence grants do not match {capability} capability on {table_name}"
+            )
+
+
+def _verify_runtime_capability_grants(
+    connection,
+    capabilities: tuple[str, ...],
+    managed_tables: list[str],
+    table_privileges: dict,
+    grac_tables: frozenset[str],
+) -> None:
+    """Verify the complete table, column, and sequence grant matrix."""
     for capability in capabilities:
         role_name = RUNTIME_CAPABILITY_ROLES[capability]
         for table_name in managed_tables:
             expected = table_privileges.get((capability, table_name), frozenset())
-            for privilege in _TABLE_PRIVILEGES:
-                actual = connection.execute(
-                    text("SELECT has_table_privilege(:role_name, :table_name, :privilege)"),
-                    {"role_name": role_name, "table_name": table_name, "privilege": privilege},
-                ).scalar_one()
-                if bool(actual) != (privilege in expected):
-                    raise SchemaCompatibilityError(
-                        f"runtime grants do not match {capability} capability on {table_name}"
-                    )
-            for column_name in Base.metadata.tables[table_name].columns.keys():
-                for privilege in _COLUMN_PRIVILEGES:
-                    lock_column_update = (
-                        privilege == "UPDATE"
-                        and capability == GRAPH_RUNTIME_CAPABILITY
-                        and table_name in grac_tables
-                        and column_name == "id"
-                    )
-                    actual_column_privilege = connection.execute(
-                        text("SELECT has_column_privilege(:role_name, :table_name, :column_name, :privilege)"),
-                        {
-                            "role_name": role_name,
-                            "table_name": table_name,
-                            "column_name": column_name,
-                            "privilege": privilege,
-                        },
-                    ).scalar_one()
-                    if bool(actual_column_privilege) != (privilege in expected or lock_column_update):
-                        raise SchemaCompatibilityError(
-                            f"runtime column grants do not match {capability} capability on {table_name}"
-                        )
-        for table_name, column_name in _GRAPH_SEQUENCE_TABLE_COLUMNS:
-            sequence_name = connection.execute(
-                text("SELECT pg_get_serial_sequence(:table_name, :column_name)"),
-                {"table_name": table_name, "column_name": column_name},
-            ).scalar_one()
-            if sequence_name is None:
-                raise SchemaCompatibilityError(f"required runtime sequence is missing for {table_name}")
-            sequence_access = connection.execute(
-                text(
-                    "SELECT has_sequence_privilege(:role_name, :sequence_name, 'USAGE') "
-                    "AND has_sequence_privilege(:role_name, :sequence_name, 'SELECT') "
-                    "AND NOT has_sequence_privilege(:role_name, :sequence_name, 'UPDATE')"
-                ),
-                {"role_name": role_name, "sequence_name": sequence_name},
-            ).scalar_one()
-            if bool(sequence_access) != (capability == GRAPH_RUNTIME_CAPABILITY):
-                raise SchemaCompatibilityError(
-                    f"runtime sequence grants do not match {capability} capability on {table_name}"
-                )
+            _verify_capability_table_grants(connection, capability, role_name, table_name, expected)
+            _verify_capability_column_grants(
+                connection,
+                capability,
+                role_name,
+                table_name,
+                expected,
+                grac_tables,
+            )
+        _verify_capability_sequence_grants(connection, capability, role_name)
+
+
+# The catalog verifier intentionally exposes each privilege edge in one auditable matrix.
+def _verify_runtime_capability_catalog(connection, capabilities: tuple[str, ...]) -> None:
+    """Verify exact role attributes, table grants, and named RLS policies."""
+    from .relationship_assertion_db_models import GRAC_TABLE_NAMES
+
+    managed_tables = sorted(Base.metadata.tables)
+    table_privileges = _runtime_table_privileges(capabilities)
+    policy_specs = _runtime_policy_specs(capabilities)
+    _verify_runtime_capability_roles(connection, capabilities, managed_tables)
+    _verify_runtime_rls_catalog(connection, managed_tables, policy_specs)
+    _verify_runtime_capability_grants(
+        connection,
+        capabilities,
+        managed_tables,
+        table_privileges,
+        frozenset(GRAC_TABLE_NAMES),
+    )
 
 
 def _verify_runtime_login_table_grants(connection, table_name: str, expected: frozenset[str]) -> None:

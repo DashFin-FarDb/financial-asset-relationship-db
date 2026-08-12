@@ -118,7 +118,11 @@ def test_production_compose_declares_explicit_operator_migration() -> None:
     api = compose["services"]["api"]
     migration = compose["services"]["migrate"]
 
+    assert api["read_only"] is True
+    assert "no-new-privileges:true" in api["security_opt"]
+    assert "/tmp" in api["tmpfs"]
     assert migration["profiles"] == ["operator"]
+    assert "no-new-privileges:true" in migration["security_opt"]
     assert migration["command"] == ["python", "-m", "scripts.migrate_database"]
     assert "api-data:/data" in migration["volumes"]
     assert migration["image"] == api["image"]

@@ -15,6 +15,7 @@ from collections.abc import Mapping
 from sqlalchemy import bindparam, text
 from sqlalchemy.engine import Connection, Engine, make_url
 
+from src.data.check_constraint_normalization import normalize_check_definition
 from src.data.relationship_assertion_db_models import (
     EFFECTIVE_WINDOW_CHECK,
     GRAC_TABLE_NAMES,
@@ -309,94 +310,9 @@ def _postgresql_constraint_catalog(
     return {(table, name): (definition, validated) for table, name, definition, validated in rows}
 
 
-def _normalize_postgresql_check(sql: str) -> object:
-    """Normalize PostgreSQL-deparsed CHECK SQL without erasing boolean grouping."""
-    normalized = re.sub(r"::(?:text|character varying)", "", sql.lower())
-    normalized = re.sub(r"\s+", " ", normalized).strip()
-    normalized = normalized.removeprefix("check").strip()
-    normalized = normalized.replace("!~~", " not like ").replace("~~", " like ")
-    normalized = normalized.replace(
-        "length(strength) between 1 and 32",
-        "length(strength) >= 1 and length(strength) <= 32",
-    )
-    return _postgresql_boolean_ast(normalized)
-
-
-def _postgresql_boolean_ast(expression: str) -> object:
-    """Return a small associative AND/OR AST with normalized atomic predicates."""
-    expression = _strip_redundant_outer_parentheses(expression.strip())
-    for operator in ("or", "and"):
-        pieces = _split_top_level_boolean(expression, operator)
-        if len(pieces) > 1:
-            children: list[object] = []
-            for piece in pieces:
-                child = _postgresql_boolean_ast(piece)
-                children.extend(child[1:] if isinstance(child, tuple) and child[0] == operator else (child,))
-            return (operator, *children)
-    atomic = re.sub(r"(?<![a-z0-9_$])\(([a-z_][a-z0-9_$]*)\)", r"\1", expression)
-    return re.sub(r"\s+", "", atomic)
-
-
-def _split_top_level_boolean(expression: str, operator: str) -> list[str]:
-    """Split on one boolean operator while respecting quotes and parentheses."""
-    delimiter = f" {operator} "
-    pieces: list[str] = []
-    start = 0
-    depth = 0
-    quote: str | None = None
-    position = 0
-    while position < len(expression):
-        char = expression[position]
-        if quote is not None:
-            if char == quote:
-                if position + 1 < len(expression) and expression[position + 1] == quote:
-                    position += 2
-                    continue
-                quote = None
-            position += 1
-            continue
-        if char in {"'", '"'}:
-            quote = char
-            position += 1
-            continue
-        if char == "(":
-            depth += 1
-        elif char == ")":
-            depth -= 1
-        elif depth == 0 and expression.startswith(delimiter, position):
-            pieces.append(expression[start:position])
-            position += len(delimiter)
-            start = position
-            continue
-        position += 1
-    if not pieces:
-        return [expression]
-    pieces.append(expression[start:])
-    return pieces
-
-
-def _strip_redundant_outer_parentheses(definition: str) -> str:
-    """Remove only a balanced pair that encloses the full CHECK expression."""
-    while definition.startswith("(") and definition.endswith(")"):
-        if not _outer_parentheses_enclose_expression(definition):
-            break
-        definition = definition[1:-1]
-    return definition
-
-
-def _outer_parentheses_enclose_expression(definition: str) -> bool:
-    """Return whether the first opening parenthesis closes at the expression end."""
-    depth = 0
-    for position, char in enumerate(definition):
-        depth += (char == "(") - (char == ")")
-        if depth == 0 and position != len(definition) - 1:
-            return False
-    return depth == 0
-
-
 def _postgresql_check_matches(definition: str, canonical_check: str) -> bool:
     """Return whether a catalog CHECK matches the repository canonical predicate."""
-    return _normalize_postgresql_check(definition) == _normalize_postgresql_check(canonical_check)
+    return normalize_check_definition(definition) == normalize_check_definition(canonical_check)
 
 
 def _postgresql_grac_constraints_present(connection: Connection) -> bool:
@@ -406,9 +322,11 @@ def _postgresql_grac_constraints_present(connection: Connection) -> bool:
         ("relationship_projection_edges", "ck_relationship_projection_edges_strength"): STRENGTH_DECIMAL_CHECK,
     }
     actual = _postgresql_constraint_catalog(connection, [name for _table, name in expected])
-    if not all(actual.get(key, (None, False))[1] for key in expected):
-        return False
-    return all(_postgresql_check_matches(actual[key][0], canonical) for key, canonical in expected.items())
+    for key, canonical in expected.items():
+        definition, validated = actual.get(key, (None, False))
+        if not validated or definition is None or not _postgresql_check_matches(definition, canonical):
+            return False
+    return True
 
 
 def _harden_postgresql_grac_access(connection: Connection) -> None:

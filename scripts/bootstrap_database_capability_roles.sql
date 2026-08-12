@@ -51,7 +51,11 @@ BEGIN
                   OR role.rolbypassrls
                   OR role.rolreplication
                   OR has_database_privilege(role.oid, current_database(), 'CREATE')
-                  OR has_schema_privilege(role.oid, current_schema(), 'CREATE')
+                  OR EXISTS (
+                      SELECT 1
+                      FROM pg_namespace AS namespace
+                      WHERE has_schema_privilege(role.oid, namespace.oid, 'CREATE')
+                  )
                   OR EXISTS (
                       SELECT 1 FROM pg_auth_members AS membership
                       WHERE membership.member = role.oid
