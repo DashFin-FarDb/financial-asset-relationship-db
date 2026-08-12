@@ -1,0 +1,72 @@
+tests/unit/test_database.py
+  s_951b443e5699cd::t_96bd0d60a9a9bb 806-808,812-814
+  s_951b443e5699cd::t_90b919d07ed822 208-215,217-233,235-239,251-252,260
+  s_951b443e5699cd::t_e18d763790d1bf 154,207,240-250
+  s_951b443e5699cd::t_71170b1eb56b39 261
+src/data/database.py
+  s_951b443e5699cd::t_e18d763790d1bf 5-6,783,798,825
+  s_951b443e5699cd::t_854869cca24cf2 938,948-951,957-960,963-972,979,981,984,986-994
+  s_951b443e5699cd::t_94c4d7b5728355 784-795,799-822,826-854,864-869,874-915
+  s_951b443e5699cd::t_6ecff84344ae17 540-541,594-595
+  s_951b443e5699cd::t_779861373d4f67 961-962
+  s_951b443e5699cd::t_414a09ab76642a 1077-1080,1125-1128
+tests/unit/test_database_check_normalization_regression.py
+  s_951b443e5699cd::t_99935e7323ef24 58,60,69-70
+  s_951b443e5699cd::t_779861373d4f67 71
+  s_951b443e5699cd::t_65dc6c414bc991 72
+tests/unit/test_app_factory_reconciliation_schema.py
+  s_951b443e5699cd::t_444af3932affcb 28-29,45
+api/app_factory.py
+  s_951b443e5699cd::t_bc214280e99dbc 134,138
+  s_951b443e5699cd::t_f226c828a62c90 64,142,145-146,148-150,153-160,257-260,263,267-274
+  s_951b443e5699cd::t_779861373d4f67 147
+tests/unit/test_api_database.py
+  s_951b443e5699cd::t_f4be616dfeb037 448-451
+  s_951b443e5699cd::t_189ed2d57b4741 184-198
+tests/integration/test_postgres_database.py
+  s_951b443e5699cd::t_11f53dad4b5c77 330,339-348
+tests/unit/test_app_factory.py
+  s_951b443e5699cd::t_f4a9f9030836e3 286
+  s_951b443e5699cd::t_84c0fa4fc22a31 302-319,329-332
+  s_951b443e5699cd::t_f3abeb5f5ed3e8 7
+  s_951b443e5699cd::t_444af3932affcb 449-450
+  s_951b443e5699cd::t_683b51c2493f7e 333
+api/database.py
+  s_951b443e5699cd::t_85fee2d5bfb3a7 47,56-112
+  s_951b443e5699cd::t_69499452b9a0b0 1020-1023,1057-1061,1065-1070
+  s_951b443e5699cd::t_ce70d2f586abd4 452-456,710-712,716-717
+  s_951b443e5699cd::t_eea4543ee2d0ec 113
+src/data/check_constraint_normalization.py
+  s_951b443e5699cd::t_6f3fc35df404d2 176,182,196
+  s_951b443e5699cd::t_04686d625dd082 177-178,183,200-201
+  s_951b443e5699cd::t_e3703cbedf16e8 179-181
+tests/integration/test_runtime_authority_postgres.py
+  s_951b443e5699cd::t_7d14f904e7f6d6 11,22,47-48,179-206,208-218,224-226,228-290,292-309,872
+  s_951b443e5699cd::t_84d1db37c85938 23,291,772,843
+  s_951b443e5699cd::t_779861373d4f67 207,227
+  s_951b443e5699cd::t_8e768afcfc8706 873-895,898-900
+  s_951b443e5699cd::t_e884560130e04e 13
+  s_951b443e5699cd::t_e83e15fe9d15ba 896-897
+  s_951b443e5699cd::t_a9ab2bd7132e82 219-223
+  s_951b443e5699cd::t_d22fa57a1daf92 310-311
+tests/unit/test_api_database_auth_grantees.py
+  s_951b443e5699cd::t_a3a53c0207b6b2 86-91
+tests/unit/test_postgres_support.py
+  s_951b443e5699cd::t_edb8be90aa2585 147-151
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "b1c43221fc8e805939e2701037b84b8cc7da1885",
+  "prompts": {},
+  "sessions": {
+    "s_951b443e5699cd": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019ff519-696e-7c60-b8fa-0b2080202bc9",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}
