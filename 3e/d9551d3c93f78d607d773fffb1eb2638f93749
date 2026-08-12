@@ -1,0 +1,64 @@
+tests/integration/test_runtime_authority_postgres.py
+  s_951b443e5699cd::t_5d40b181372c54 13,216-220
+  s_951b443e5699cd::t_b00548037fc520 189
+docs/runbooks/database-migration-authority.md
+  s_951b443e5699cd::t_64a74d132dddba 107-108,110-112,137-138,140-142
+tests/unit/test_auth.py
+  s_951b443e5699cd::t_568a01fbc023ef 51
+api/database.py
+  s_951b443e5699cd::t_f922d8ce5deca2 384,403-406
+  s_951b443e5699cd::t_c8f1b597895fe4 57
+  s_951b443e5699cd::t_ba33222c95bf19 121,152
+  s_951b443e5699cd::t_466d6cfc1f79bb 660-665
+  s_951b443e5699cd::t_ddaccf7e858a30 54,112
+  s_951b443e5699cd::t_5d40b181372c54 46,90,92,96
+src/data/check_constraint_normalization.py
+  s_951b443e5699cd::t_e884beaf66f8d7 182-185
+tests/unit/test_app_factory.py
+  s_951b443e5699cd::t_568a01fbc023ef 394,408-417,441
+  s_951b443e5699cd::t_c8f1b597895fe4 385-393,395-407,418-440,442-445
+  s_951b443e5699cd::t_f922d8ce5deca2 320-327,343-379
+  s_951b443e5699cd::t_3298ae453135a3 380-384
+src/data/database.py
+  s_951b443e5699cd::t_ddaccf7e858a30 30
+  s_951b443e5699cd::t_085a5d64c9a828 684-685
+  s_951b443e5699cd::t_ba33222c95bf19 478,686
+  s_951b443e5699cd::t_5d40b181372c54 828-835,837-876,892-904,922,1003
+  s_951b443e5699cd::t_d537aec0e4c68a 836
+  s_951b443e5699cd::t_703b4cbae3c585 1081
+api/app_factory.py
+  s_951b443e5699cd::t_c8f1b597895fe4 167-172,181-183
+  s_951b443e5699cd::t_f922d8ce5deca2 173-180,184-185,286,288-290
+tests/unit/test_database.py
+  s_951b443e5699cd::t_f64b0a7850da25 817-826
+  s_951b443e5699cd::t_703b4cbae3c585 218,236
+tests/unit/test_database_check_normalization_regression.py
+  s_951b443e5699cd::t_e884beaf66f8d7 73,86-87
+  s_951b443e5699cd::t_64a74d132dddba 39-50
+  s_951b443e5699cd::t_1b07cdd80844cc 88-89
+tests/integration/test_production_container_workflow.py
+  s_951b443e5699cd::t_64a74d132dddba 154,156-160
+  s_951b443e5699cd::t_703b4cbae3c585 131
+tests/unit/test_api_database.py
+  s_951b443e5699cd::t_c8f1b597895fe4 187
+  s_951b443e5699cd::t_f922d8ce5deca2 184-185,191-206
+  s_951b443e5699cd::t_9bef86a8374323 207
+src/data/runtime_role_membership.py
+  s_951b443e5699cd::t_ddaccf7e858a30 1-19
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "3ed9551d3c93f78d607d773fffb1eb2638f93749",
+  "prompts": {},
+  "sessions": {
+    "s_951b443e5699cd": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019ff519-696e-7c60-b8fa-0b2080202bc9",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}
