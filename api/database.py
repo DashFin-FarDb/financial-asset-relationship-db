@@ -133,7 +133,8 @@ _AUTH_CAPABILITY_ROLE_DDL = "".join(
         "IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'fardb_runtime_auth') THEN "
         "IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = CURRENT_USER AND rolsuper) THEN "
         "RAISE EXCEPTION 'required PostgreSQL capability role fardb_runtime_auth is missing; run "
-        "scripts/bootstrap_database_capability_roles.sql as a PostgreSQL superuser before the normal database migration'; "
+        "scripts/bootstrap_database_capability_roles.sql as a PostgreSQL superuser before the normal ",
+        "database migration'; ",
         "END IF; "
         "CREATE ROLE fardb_runtime_auth NOLOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOBYPASSRLS NOREPLICATION; "
         "END IF; "
