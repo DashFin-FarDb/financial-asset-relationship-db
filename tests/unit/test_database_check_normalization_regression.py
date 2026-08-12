@@ -49,3 +49,19 @@ def test_check_normalization_accepts_strength_postgresql_deparse() -> None:
     )
 
     assert _normalize_check_definition(reflected) == _normalize_check_definition(STRENGTH_DECIMAL_CHECK)
+
+
+@pytest.mark.parametrize(
+    ("between", "expanded"),
+    [
+        ("CHECK (score BETWEEN 1 AND 10)", "CHECK (score >= 1 AND score <= 10)"),
+        ("CHECK ((score) BETWEEN 1 AND 10)", "CHECK ((score) >= 1 AND (score) <= 10)"),
+        (
+            "CHECK (length(trim(strength)) BETWEEN 1 AND 32)",
+            "CHECK (length(trim(strength)) >= 1 AND length(trim(strength)) <= 32)",
+        ),
+    ],
+)
+def test_check_normalization_expands_between_with_linear_parser(between: str, expanded: str) -> None:
+    """Simple and nested-call operands must normalize without backtracking regexes."""
+    assert _normalize_check_definition(between) == _normalize_check_definition(expanded)

@@ -681,6 +681,65 @@ def test_runtime_database_authority_rejects_unsafe_capability_grantee(membership
 
 @pytest.mark.integration
 @pytest.mark.parametrize(
+    ("owned_table", "has_application_sequence"),
+    [("assets", False), ("asset_relationships", True)],
+)
+def test_capability_catalog_rejects_managed_relation_ownership(
+    owned_table: str,
+    has_application_sequence: bool,
+) -> None:
+    """Migration verification rejects capability-owned tables and linked sequences."""
+    database_url = _ephemeral_database_url()
+    operator_engine = create_engine(database_url, future=True)
+    original_owner: str | None = None
+
+    try:
+        init_db(operator_engine)
+        ensure_runtime_database_capabilities(operator_engine, {GRAPH_RUNTIME_CAPABILITY})
+
+        with _operator_connection(database_url) as connection, connection.cursor() as cursor:
+            cursor.execute(
+                sql.SQL("SELECT pg_get_userbyid(relowner) FROM pg_class WHERE oid = {}::regclass").format(
+                    sql.Literal(owned_table)
+                )
+            )
+            original_owner = cursor.fetchone()[0]
+            assert isinstance(original_owner, str)
+            assert original_owner
+            cursor.execute(
+                sql.SQL("ALTER TABLE {} OWNER TO {}").format(
+                    sql.Identifier(owned_table),
+                    sql.Identifier(GRAPH_RUNTIME_ROLE),
+                )
+            )
+            if has_application_sequence:
+                cursor.execute(
+                    sql.SQL(
+                        "SELECT pg_get_userbyid(relowner) FROM pg_class "
+                        "WHERE oid = pg_get_serial_sequence({}, 'id')::regclass"
+                    ).format(sql.Literal(owned_table))
+                )
+                assert cursor.fetchone()[0] == GRAPH_RUNTIME_ROLE
+
+        with (
+            operator_engine.connect() as connection,
+            pytest.raises(SchemaCompatibilityError, match="unsafe or missing runtime capability role"),
+        ):
+            _verify_runtime_capability_catalog(connection, (GRAPH_RUNTIME_CAPABILITY,))
+    finally:
+        if original_owner is not None:
+            with _operator_connection(database_url) as connection, connection.cursor() as cursor:
+                cursor.execute(
+                    sql.SQL("ALTER TABLE {} OWNER TO {}").format(
+                        sql.Identifier(owned_table),
+                        sql.Identifier(original_owner),
+                    )
+                )
+        operator_engine.dispose()
+
+
+@pytest.mark.integration
+@pytest.mark.parametrize(
     ("assumable_role", "role_attribute", "expected_error"),
     [
         (_GRAPH_ORDINARY_ROLE, "NOREPLICATION", "capability memberships are incompatible"),

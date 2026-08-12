@@ -613,6 +613,7 @@ def _verify_runtime_capability_catalog(  # noqa: C901  # skipcq: PY-R1000
     from .relationship_assertion_db_models import GRAC_TABLE_NAMES
 
     grac_tables = frozenset(GRAC_TABLE_NAMES)
+    managed_tables = sorted(Base.metadata.tables)
     table_privileges = _runtime_table_privileges(capabilities)
     policy_specs = _runtime_policy_specs(capabilities)
     for capability in capabilities:
@@ -623,6 +624,20 @@ def _verify_runtime_capability_catalog(  # noqa: C901  # skipcq: PY-R1000
                 "AND NOT role.rolcanlogin AND NOT role.rolsuper AND NOT role.rolcreatedb "
                 "AND NOT role.rolcreaterole AND NOT role.rolbypassrls AND NOT role.rolreplication "
                 "AND NOT has_database_privilege(role.oid, current_database(), 'CREATE') "
+                "AND NOT EXISTS (SELECT 1 FROM pg_class AS rel "
+                "JOIN pg_namespace AS namespace ON namespace.oid = rel.relnamespace "
+                "WHERE namespace.nspname = current_schema() "
+                "AND rel.relowner = role.oid "
+                "AND (rel.relname IN :tables OR (rel.relkind = 'S' "
+                "AND EXISTS (SELECT 1 FROM pg_depend AS dependency "
+                "JOIN pg_class AS owning_table ON owning_table.oid = dependency.refobjid "
+                "JOIN pg_namespace AS owning_namespace ON owning_namespace.oid = owning_table.relnamespace "
+                "WHERE dependency.classid = 'pg_class'::regclass "
+                "AND dependency.refclassid = 'pg_class'::regclass "
+                "AND dependency.objid = rel.oid "
+                "AND dependency.deptype IN ('a', 'i') "
+                "AND owning_namespace.nspname = current_schema() "
+                "AND owning_table.relname IN :sequence_tables)))) "
                 "AND NOT EXISTS (SELECT 1 FROM pg_proc AS proc "
                 "JOIN pg_namespace AS namespace ON namespace.oid = proc.pronamespace "
                 "WHERE namespace.nspname = current_schema() "
@@ -648,8 +663,11 @@ def _verify_runtime_capability_catalog(  # noqa: C901  # skipcq: PY-R1000
                 "SELECT COUNT(*) FROM pg_roles AS grantee WHERE grantee.rolcanlogin "
                 "AND EXISTS (SELECT 1 FROM role_membership WHERE role_membership.member = grantee.oid "
                 "AND role_membership.roleid = role.oid)) <= 1"
+            ).bindparams(
+                bindparam("tables", expanding=True),
+                bindparam("sequence_tables", expanding=True),
             ),
-            {"role_name": role_name},
+            {"role_name": role_name, "tables": managed_tables, "sequence_tables": managed_tables},
         ).scalar_one()
         if not safe_role:
             raise SchemaCompatibilityError(f"unsafe or missing runtime capability role: {role_name}")
@@ -670,7 +688,7 @@ def _verify_runtime_capability_catalog(  # noqa: C901  # skipcq: PY-R1000
             "WHERE namespace.nspname = current_schema() AND rel.relname IN :tables "
             "AND rel.relrowsecurity"
         ).bindparams(bindparam("tables", expanding=True)),
-        {"tables": sorted(Base.metadata.tables)},
+        {"tables": managed_tables},
     ).scalar_one()
     if rls_table_count != len(Base.metadata.tables):
         raise SchemaCompatibilityError("managed tables do not all have row-level security enabled")
@@ -687,7 +705,7 @@ def _verify_runtime_capability_catalog(  # noqa: C901  # skipcq: PY-R1000
             "JOIN pg_namespace AS namespace ON namespace.oid = table_rel.relnamespace "
             "WHERE namespace.nspname = current_schema() AND table_rel.relname IN :tables"
         ).bindparams(bindparam("tables", expanding=True)),
-        {"tables": sorted(Base.metadata.tables)},
+        {"tables": managed_tables},
     ).all()
     actual_policies = {
         (table_name, policy_name): (command, permissive, role_name, using_expression, check_expression)
@@ -708,7 +726,7 @@ def _verify_runtime_capability_catalog(  # noqa: C901  # skipcq: PY-R1000
 
     for capability in capabilities:
         role_name = RUNTIME_CAPABILITY_ROLES[capability]
-        for table_name in sorted(Base.metadata.tables):
+        for table_name in managed_tables:
             expected = table_privileges.get((capability, table_name), frozenset())
             for privilege in _TABLE_PRIVILEGES:
                 actual = connection.execute(

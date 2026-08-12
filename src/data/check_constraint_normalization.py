@@ -126,10 +126,64 @@ def _serialize_check_boolean_ast(node: object) -> str:
     return operator + "(" + ",".join(_serialize_check_boolean_ast(child) for child in node[1:]) + ")"
 
 
-def _expand_between_predicate(match: re.Match[str]) -> str:
-    """Rewrite one parsed BETWEEN predicate without changing either bound."""
-    operand, lower_bound, upper_bound = match.groups()
-    return f"{operand} >= {lower_bound} and {operand} <= {upper_bound}"
+def _between_operand_start(expression: str, end: int) -> int:
+    """Return the start of the simple or balanced-call operand ending at ``end``."""
+    position = end - 1
+    if position < 0:
+        return end
+    if expression[position] != ")":
+        while position >= 0 and not expression[position].isspace() and expression[position] not in "()":
+            position -= 1
+        return position + 1
+
+    depth = 0
+    while position >= 0:
+        depth += (expression[position] == ")") - (expression[position] == "(")
+        position -= 1
+        if depth == 0:
+            break
+    while position >= 0 and (expression[position].isalnum() or expression[position] in "_$"):
+        position -= 1
+    return position + 1
+
+
+def _between_bound_end(expression: str, start: int) -> int:
+    """Return the end of one non-parenthesized BETWEEN bound."""
+    position = start
+    while position < len(expression) and not expression[position].isspace() and expression[position] not in "()":
+        position += 1
+    return position
+
+
+def _expand_between_predicates(expression: str) -> str:
+    """Expand supported BETWEEN predicates with a bounded linear scan."""
+    marker = " between "
+    output: list[str] = []
+    cursor = 0
+    marker_start = expression.find(marker)
+    while marker_start >= 0:
+        operand_start = _between_operand_start(expression, marker_start)
+        lower_start = marker_start + len(marker)
+        lower_end = _between_bound_end(expression, lower_start)
+        and_marker = " and "
+        if operand_start < cursor or not expression.startswith(and_marker, lower_end):
+            marker_start = expression.find(marker, lower_start)
+            continue
+        upper_start = lower_end + len(and_marker)
+        upper_end = _between_bound_end(expression, upper_start)
+        if operand_start == marker_start or lower_start == lower_end or upper_start == upper_end:
+            marker_start = expression.find(marker, lower_start)
+            continue
+
+        operand = expression[operand_start:marker_start]
+        lower_bound = expression[lower_start:lower_end]
+        upper_bound = expression[upper_start:upper_end]
+        output.append(expression[cursor:operand_start])
+        output.append(f"{operand} >= {lower_bound} and {operand} <= {upper_bound}")
+        cursor = upper_end
+        marker_start = expression.find(marker, cursor)
+    output.append(expression[cursor:])
+    return "".join(output)
 
 
 def normalize_check_definition(definition: object) -> str:
@@ -152,18 +206,7 @@ def normalize_check_definition(definition: object) -> str:
         _replace_any_array,
         normalized,
     )
-    # Match bounded, non-nested parenthesized/function operands separately;
-    # negated character classes avoid broad-dot regex backtracking.
-    normalized = re.sub(
-        r"((?:[a-z_][a-z0-9_$]*)?\([^()]*\))\s+between\s+([^\s()]+)\s+and\s+([^\s()]+)",
-        _expand_between_predicate,
-        normalized,
-    )
-    normalized = re.sub(
-        r"([^\s()]+)\s+between\s+([^\s()]+)\s+and\s+([^\s()]+)",
-        _expand_between_predicate,
-        normalized,
-    )
+    normalized = _expand_between_predicates(normalized)
 
     def _sort_literal_set(match: re.Match[str]) -> str:
         """Sort protected string literals inside an IN set for stable comparison."""

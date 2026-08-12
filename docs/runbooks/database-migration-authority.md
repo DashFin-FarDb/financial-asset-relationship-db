@@ -96,7 +96,25 @@ CQ-03. Do not represent a successful command run as CQ-03 closure.
 9. Start FastAPI. A compatibility failure is a deployment blocker: return to this procedure rather than broadening
    the app role.
 10. Prove cold start and restart, exercise graph/coordination/auth runtime operations, and run the hosted readiness and
-   database-authorization evidence required by the target environment.
+    database-authorization evidence required by the target environment.
+
+### Production Compose operator path
+
+The production Compose runtime never runs migrations during API startup. Before starting or restarting the API,
+invoke the isolated operator profile against the same `api-data` volume:
+
+```bash
+export SECRET_KEY=replace-with-the-runtime-signing-key
+export ADMIN_USERNAME=replace-with-the-initial-admin
+export ADMIN_PASSWORD=replace-with-a-strong-password
+docker compose -f docker-compose.production.yml --profile operator run --rm --build migrate
+unset ADMIN_PASSWORD
+docker compose -f docker-compose.production.yml up -d api frontend
+```
+
+The `migrate` service has no ports and does not remain running. It receives `ADMIN_PASSWORD` only for the explicit
+operator invocation; the `api` service does not receive that variable. For PostgreSQL, complete the superuser
+capability-role bootstrap first, then supply migration-owner URLs to this command as described above.
 
 For an isolated PostgreSQL rehearsal, the opt-in integration contract accepts restricted DSNs only through
 `FARDB_GRAPH_RUNTIME_DATABASE_URL`, `FARDB_COORDINATION_RUNTIME_DATABASE_URL`, and

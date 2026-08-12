@@ -46,6 +46,7 @@ jobs:
         env:
           SECRET_KEY: ${{ secrets.CI_SMOKE_TEST_SECRET_KEY || 'ci-smoke-test-key-not-a-real-secret' }}
           ADMIN_USERNAME: ci-admin
+          ADMIN_PASSWORD: ci-admin-password
           NEXT_PUBLIC_API_URL: http://localhost:8000
         run: docker compose -f docker-compose.production.yml config >/dev/null
 
@@ -54,24 +55,17 @@ jobs:
           SECRET_KEY: ${{ secrets.CI_SMOKE_TEST_SECRET_KEY || 'ci-smoke-test-key-not-a-real-secret' }}
           ADMIN_USERNAME: ci-admin
           ADMIN_PASSWORD: ci-admin-password
+          NEXT_PUBLIC_API_URL: http://localhost:8000
+          COMPOSE_PROJECT_NAME: fardb-ci
         run: |
           set -euo pipefail
 
-          VOLUME_NAME="fardb-ci-api-data"
+          VOLUME_NAME="${COMPOSE_PROJECT_NAME}_api-data"
           DB_URL="sqlite:////data/fardb.db"
-          docker volume create "$VOLUME_NAME" >/dev/null
 
           migrate_api() {
-            docker run --rm --name api_migrate \
-              -v "${VOLUME_NAME}:/data" \
-              -v "${GITHUB_WORKSPACE}/scripts:/app/scripts:ro" \
-              -e ENV=production \
-              -e DATABASE_URL="$DB_URL" \
-              -e ASSET_GRAPH_DATABASE_URL="$DB_URL" \
-              -e SECRET_KEY="$SECRET_KEY" \
-              -e ADMIN_USERNAME="$ADMIN_USERNAME" \
-              -e ADMIN_PASSWORD="$ADMIN_PASSWORD" \
-              fardb-api python -m scripts.migrate_database
+            DATABASE_URL="$DB_URL" ASSET_GRAPH_DATABASE_URL="$DB_URL" \
+              docker compose -f docker-compose.production.yml --profile operator run --rm --build migrate
           }
 
           start_api() {
@@ -102,8 +96,8 @@ jobs:
           }
 
           cleanup() {
-            docker rm -f api_migrate api_persist_seed api_persist_reload >/dev/null 2>&1 || true
-            docker volume rm -f "$VOLUME_NAME" >/dev/null 2>&1 || true
+            docker rm -f api_persist_seed api_persist_reload >/dev/null 2>&1 || true
+            docker compose -f docker-compose.production.yml --profile operator down --volumes >/dev/null 2>&1 || true
           }
           trap cleanup EXIT
 
@@ -182,7 +176,7 @@ jobs:
           docker stop api_persist_reload
           docker rm api_persist_reload
           trap - EXIT
-          docker volume rm -f "$VOLUME_NAME" >/dev/null 2>&1 || true
+          docker compose -f docker-compose.production.yml --profile operator down --volumes >/dev/null
 
       - name: Smoke Test Frontend
         run: |

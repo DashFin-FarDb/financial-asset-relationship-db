@@ -153,6 +153,15 @@ def test_runtime_capability_catalog_accepts_exact_graph_contract() -> None:
         sql = str(statement)
         parameters = parameters or {}
         if "COUNT(*) = 1 FROM pg_roles" in sql:
+            assert "rel.relowner = role.oid" in sql
+            assert "rel.relname IN" in sql
+            assert "rel.relkind = 'S'" in sql
+            assert "FROM pg_depend AS dependency" in sql
+            assert "dependency.objid = rel.oid" in sql
+            assert "dependency.deptype IN ('a', 'i')" in sql
+            assert "owning_table.relname IN" in sql
+            assert set(parameters["tables"]) == set(Base.metadata.tables)
+            assert set(parameters["sequence_tables"]) == set(parameters["tables"])
             assert "membership.roleid = role.oid" in sql
             assert "membership.admin_option" in sql
             assert "WITH RECURSIVE role_membership(member, roleid, member_is_superuser)" in sql
