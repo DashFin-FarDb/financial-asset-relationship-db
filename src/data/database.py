@@ -456,31 +456,35 @@ def _ensure_capability_role(connection, role_name: str) -> None:
     bootstrap_message = str(CapabilityRoleBootstrapRequiredError(role_name))
     connection.execute(
         text(
-            "DO $fardb$ DECLARE capability_role text := :role_name; BEGIN "
-            "IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = capability_role) THEN "
-            "IF NOT COALESCE((SELECT rolsuper FROM pg_roles WHERE rolname = CURRENT_USER), FALSE) THEN "
-            "RAISE EXCEPTION USING MESSAGE = :bootstrap_message; END IF; "
-            "EXECUTE 'CREATE ROLE ' || quote_ident(capability_role) || "
-            "' NOLOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOBYPASSRLS NOREPLICATION'; "
-            "END IF; "
-            "IF EXISTS (SELECT 1 FROM pg_roles AS role WHERE role.rolname = capability_role "
-            "AND (role.rolcanlogin OR role.rolsuper OR role.rolcreatedb "
-            "OR role.rolcreaterole OR role.rolbypassrls OR role.rolreplication "
-            "OR has_database_privilege(role.oid, current_database(), 'CREATE') "
-            "OR has_schema_privilege(role.oid, current_schema(), 'CREATE') "
-            "OR EXISTS (SELECT 1 FROM pg_proc AS proc "
-            "JOIN pg_namespace AS namespace ON namespace.oid = proc.pronamespace "
-            "WHERE namespace.nspname = current_schema() "
-            "AND proc.proname = 'grac_v1_reject_mutation' AND proc.proowner = role.oid) OR EXISTS ("
-            "SELECT 1 FROM pg_auth_members AS membership WHERE membership.member = role.oid) OR EXISTS ("
-            "SELECT 1 FROM pg_auth_members AS membership "
-            "WHERE membership.roleid = role.oid AND membership.admin_option) OR "
-            "(" + USABLE_ROLE_MEMBERSHIP_CTE_SQL + "SELECT COUNT(*) FROM pg_roles AS grantee WHERE grantee.rolcanlogin "
-            "AND EXISTS (SELECT 1 FROM role_membership WHERE role_membership.member = grantee.oid "
-            "AND role_membership.roleid = role.oid)) > 1)) "
-            "THEN RAISE EXCEPTION USING MESSAGE = "
-            "'unsafe FarDB capability role: ' || capability_role; END IF; "
-            "END $fardb$"
+            "".join(
+                (
+                    "DO $fardb$ DECLARE capability_role text := :role_name; BEGIN "
+                    "IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = capability_role) THEN "
+                    "IF NOT COALESCE((SELECT rolsuper FROM pg_roles WHERE rolname = CURRENT_USER), FALSE) THEN "
+                    "RAISE EXCEPTION USING MESSAGE = :bootstrap_message; END IF; "
+                    "EXECUTE 'CREATE ROLE ' || quote_ident(capability_role) || "
+                    "' NOLOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOBYPASSRLS NOREPLICATION'; "
+                    "END IF; "
+                    "IF EXISTS (SELECT 1 FROM pg_roles AS role WHERE role.rolname = capability_role "
+                    "AND (role.rolcanlogin OR role.rolsuper OR role.rolcreatedb "
+                    "OR role.rolcreaterole OR role.rolbypassrls OR role.rolreplication "
+                    "OR has_database_privilege(role.oid, current_database(), 'CREATE') "
+                    "OR has_schema_privilege(role.oid, current_schema(), 'CREATE') "
+                    "OR EXISTS (SELECT 1 FROM pg_proc AS proc "
+                    "JOIN pg_namespace AS namespace ON namespace.oid = proc.pronamespace "
+                    "WHERE namespace.nspname = current_schema() "
+                    "AND proc.proname = 'grac_v1_reject_mutation' AND proc.proowner = role.oid) OR EXISTS ("
+                    "SELECT 1 FROM pg_auth_members AS membership WHERE membership.member = role.oid) OR EXISTS ("
+                    "SELECT 1 FROM pg_auth_members AS membership "
+                    "WHERE membership.roleid = role.oid AND membership.admin_option) OR (",
+                    USABLE_ROLE_MEMBERSHIP_CTE_SQL,
+                    "SELECT COUNT(*) FROM pg_roles AS grantee WHERE grantee.rolcanlogin "
+                    "AND EXISTS (SELECT 1 FROM role_membership WHERE role_membership.member = grantee.oid "
+                    "AND role_membership.roleid = role.oid)) > 1)) "
+                    "THEN RAISE EXCEPTION USING MESSAGE = "
+                    "'unsafe FarDB capability role: ' || capability_role; END IF; END $fardb$",
+                )
+            )
         ),
         {"role_name": role_name, "bootstrap_message": bootstrap_message},
     )
@@ -495,12 +499,12 @@ def _policy_creation_sql(
     check_expression: str | None,
 ) -> str:
     """Build DDL from repository-owned identifiers and boolean expressions."""
-    sql = f"CREATE POLICY {policy_name} ON {table_name} FOR {command} TO {role_name}"
+    parts = ["CREATE POLICY ", policy_name, " ON ", table_name, " FOR ", command, " TO ", role_name]
     if using_expression is not None:
-        sql += f" USING ({using_expression})"
+        parts.extend((" USING (", using_expression, ")"))
     if check_expression is not None:
-        sql += f" WITH CHECK ({check_expression})"
-    return sql
+        parts.extend((" WITH CHECK (", check_expression, ")"))
+    return "".join(parts)
 
 
 def _unknown_runtime_policies(connection, managed_tables: list[str], policy_names: set[str]) -> list[str]:
@@ -655,37 +659,40 @@ def _verify_runtime_capability_roles(connection, capabilities: tuple[str, ...], 
         role_name = RUNTIME_CAPABILITY_ROLES[capability]
         safe_role = connection.execute(
             text(
-                "SELECT COUNT(*) = 1 FROM pg_roles AS role WHERE role.rolname = :role_name "
-                "AND NOT role.rolcanlogin AND NOT role.rolsuper AND NOT role.rolcreatedb "
-                "AND NOT role.rolcreaterole AND NOT role.rolbypassrls AND NOT role.rolreplication "
-                "AND NOT has_database_privilege(role.oid, current_database(), 'CREATE') "
-                "AND NOT EXISTS (SELECT 1 FROM pg_class AS rel "
-                "JOIN pg_namespace AS namespace ON namespace.oid = rel.relnamespace "
-                "WHERE namespace.nspname = current_schema() "
-                "AND rel.relowner = role.oid "
-                "AND (rel.relname IN :tables OR (rel.relkind = 'S' "
-                "AND EXISTS (SELECT 1 FROM pg_depend AS dependency "
-                "JOIN pg_class AS owning_table ON owning_table.oid = dependency.refobjid "
-                "JOIN pg_namespace AS owning_namespace ON owning_namespace.oid = owning_table.relnamespace "
-                "WHERE dependency.classid = 'pg_class'::regclass "
-                "AND dependency.refclassid = 'pg_class'::regclass "
-                "AND dependency.objid = rel.oid "
-                "AND dependency.deptype IN ('a', 'i') "
-                "AND owning_namespace.nspname = current_schema() "
-                "AND owning_table.relname IN :sequence_tables)))) "
-                "AND NOT EXISTS (SELECT 1 FROM pg_proc AS proc "
-                "JOIN pg_namespace AS namespace ON namespace.oid = proc.pronamespace "
-                "WHERE namespace.nspname = current_schema() "
-                "AND proc.proname = 'grac_v1_reject_mutation' AND proc.proowner = role.oid) "
-                "AND NOT EXISTS (SELECT 1 FROM pg_auth_members AS membership "
-                "WHERE membership.member = role.oid) "
-                "AND NOT EXISTS (SELECT 1 FROM pg_auth_members AS membership "
-                "WHERE membership.roleid = role.oid AND membership.admin_option) "
-                "AND ("
-                + USABLE_ROLE_MEMBERSHIP_CTE_SQL
-                + "SELECT COUNT(*) FROM pg_roles AS grantee WHERE grantee.rolcanlogin "
-                "AND EXISTS (SELECT 1 FROM role_membership WHERE role_membership.member = grantee.oid "
-                "AND role_membership.roleid = role.oid)) <= 1"
+                "".join(
+                    (
+                        "SELECT COUNT(*) = 1 FROM pg_roles AS role WHERE role.rolname = :role_name "
+                        "AND NOT role.rolcanlogin AND NOT role.rolsuper AND NOT role.rolcreatedb "
+                        "AND NOT role.rolcreaterole AND NOT role.rolbypassrls AND NOT role.rolreplication "
+                        "AND NOT has_database_privilege(role.oid, current_database(), 'CREATE') "
+                        "AND NOT EXISTS (SELECT 1 FROM pg_class AS rel "
+                        "JOIN pg_namespace AS namespace ON namespace.oid = rel.relnamespace "
+                        "WHERE namespace.nspname = current_schema() "
+                        "AND rel.relowner = role.oid "
+                        "AND (rel.relname IN :tables OR (rel.relkind = 'S' "
+                        "AND EXISTS (SELECT 1 FROM pg_depend AS dependency "
+                        "JOIN pg_class AS owning_table ON owning_table.oid = dependency.refobjid "
+                        "JOIN pg_namespace AS owning_namespace ON owning_namespace.oid = owning_table.relnamespace "
+                        "WHERE dependency.classid = 'pg_class'::regclass "
+                        "AND dependency.refclassid = 'pg_class'::regclass "
+                        "AND dependency.objid = rel.oid "
+                        "AND dependency.deptype IN ('a', 'i') "
+                        "AND owning_namespace.nspname = current_schema() "
+                        "AND owning_table.relname IN :sequence_tables)))) "
+                        "AND NOT EXISTS (SELECT 1 FROM pg_proc AS proc "
+                        "JOIN pg_namespace AS namespace ON namespace.oid = proc.pronamespace "
+                        "WHERE namespace.nspname = current_schema() "
+                        "AND proc.proname = 'grac_v1_reject_mutation' AND proc.proowner = role.oid) "
+                        "AND NOT EXISTS (SELECT 1 FROM pg_auth_members AS membership "
+                        "WHERE membership.member = role.oid) "
+                        "AND NOT EXISTS (SELECT 1 FROM pg_auth_members AS membership "
+                        "WHERE membership.roleid = role.oid AND membership.admin_option) AND (",
+                        USABLE_ROLE_MEMBERSHIP_CTE_SQL,
+                        "SELECT COUNT(*) FROM pg_roles AS grantee WHERE grantee.rolcanlogin "
+                        "AND EXISTS (SELECT 1 FROM role_membership WHERE role_membership.member = grantee.oid "
+                        "AND role_membership.roleid = role.oid)) <= 1",
+                    )
+                )
             ).bindparams(
                 bindparam("tables", expanding=True),
                 bindparam("sequence_tables", expanding=True),

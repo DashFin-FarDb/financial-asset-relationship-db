@@ -110,50 +110,56 @@ def _bind_postgres_operation_guard(guard: _PostgresOperationGuard) -> Iterator[N
 
 
 _AUTH_ROLE_MEMBERSHIP_CTE_SQL = USABLE_ROLE_MEMBERSHIP_CTE_SQL
-_AUTH_SAFE_ROLE_SQL = (
-    "SELECT COUNT(*) = 1 FROM pg_roles AS role WHERE role.rolname = %s "
-    "AND NOT role.rolcanlogin AND NOT role.rolsuper AND NOT role.rolcreatedb "
-    "AND NOT role.rolcreaterole AND NOT role.rolbypassrls AND NOT role.rolreplication "
-    "AND NOT has_database_privilege(role.oid, current_database(), 'CREATE') "
-    "AND NOT EXISTS (SELECT 1 FROM pg_auth_members AS membership WHERE membership.member = role.oid) "
-    "AND NOT EXISTS (SELECT 1 FROM pg_auth_members AS membership "
-    "WHERE membership.roleid = role.oid AND membership.admin_option) "
-    "AND NOT EXISTS (" + USABLE_ROLE_MEMBERSHIP_CTE_SQL + "SELECT 1 FROM pg_roles AS grantee "
-    "WHERE grantee.rolcanlogin AND grantee.rolname <> session_user "
-    "AND EXISTS (SELECT 1 FROM role_membership WHERE role_membership.member = grantee.oid "
-    "AND role_membership.roleid = role.oid))"
+_AUTH_SAFE_ROLE_SQL = "".join(
+    (
+        "SELECT COUNT(*) = 1 FROM pg_roles AS role WHERE role.rolname = %s "
+        "AND NOT role.rolcanlogin AND NOT role.rolsuper AND NOT role.rolcreatedb "
+        "AND NOT role.rolcreaterole AND NOT role.rolbypassrls AND NOT role.rolreplication "
+        "AND NOT has_database_privilege(role.oid, current_database(), 'CREATE') "
+        "AND NOT EXISTS (SELECT 1 FROM pg_auth_members AS membership WHERE membership.member = role.oid) "
+        "AND NOT EXISTS (SELECT 1 FROM pg_auth_members AS membership "
+        "WHERE membership.roleid = role.oid AND membership.admin_option) "
+        "AND NOT EXISTS (",
+        USABLE_ROLE_MEMBERSHIP_CTE_SQL,
+        "SELECT 1 FROM pg_roles AS grantee "
+        "WHERE grantee.rolcanlogin AND grantee.rolname <> session_user "
+        "AND EXISTS (SELECT 1 FROM role_membership WHERE role_membership.member = grantee.oid "
+        "AND role_membership.roleid = role.oid))",
+    )
 )
-_AUTH_CAPABILITY_ROLE_DDL = (
-    "DO $fardb$ BEGIN "
-    "IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'fardb_runtime_auth') THEN "
-    "IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = CURRENT_USER AND rolsuper) THEN "
-    "RAISE EXCEPTION 'required PostgreSQL capability role fardb_runtime_auth is missing; run "
-    "scripts/bootstrap_database_capability_roles.sql as a PostgreSQL superuser before the normal database migration'; "
-    "END IF; "
-    "CREATE ROLE fardb_runtime_auth NOLOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOBYPASSRLS NOREPLICATION; "
-    "END IF; "
-    "IF EXISTS (SELECT 1 FROM pg_roles AS role WHERE role.rolname = 'fardb_runtime_auth' "
-    "AND (role.rolcanlogin OR role.rolsuper OR role.rolcreatedb OR role.rolcreaterole "
-    "OR role.rolbypassrls OR role.rolreplication "
-    "OR has_database_privilege(role.oid, current_database(), 'CREATE') "
-    "OR EXISTS (SELECT 1 FROM pg_namespace AS namespace "
-    "WHERE has_schema_privilege(role.oid, namespace.oid, 'CREATE')) "
-    "OR EXISTS (SELECT 1 FROM pg_database AS database "
-    "WHERE database.datname = current_database() AND database.datdba = role.oid) "
-    "OR EXISTS (SELECT 1 FROM pg_namespace AS namespace "
-    "WHERE namespace.nspname = current_schema() AND namespace.nspowner = role.oid) "
-    "OR EXISTS (SELECT 1 FROM pg_class AS rel "
-    "JOIN pg_namespace AS namespace ON namespace.oid = rel.relnamespace "
-    "WHERE namespace.nspname = current_schema() AND rel.relkind IN ('r', 'p', 'S') "
-    "AND rel.relowner = role.oid) "
-    "OR EXISTS (SELECT 1 FROM pg_auth_members AS membership WHERE membership.member = role.oid) "
-    "OR EXISTS (SELECT 1 FROM pg_auth_members AS membership "
-    "WHERE membership.roleid = role.oid AND membership.admin_option) "
-    "OR (" + USABLE_ROLE_MEMBERSHIP_CTE_SQL + "SELECT COUNT(*) FROM pg_roles AS grantee "
-    "WHERE grantee.rolcanlogin AND EXISTS (SELECT 1 FROM role_membership "
-    "WHERE role_membership.member = grantee.oid AND role_membership.roleid = role.oid)) > 1)) THEN "
-    "RAISE EXCEPTION 'unsafe FarDB capability role: fardb_runtime_auth'; END IF; "
-    "END $fardb$"
+_AUTH_CAPABILITY_ROLE_DDL = "".join(
+    (
+        "DO $fardb$ BEGIN "
+        "IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'fardb_runtime_auth') THEN "
+        "IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = CURRENT_USER AND rolsuper) THEN "
+        "RAISE EXCEPTION 'required PostgreSQL capability role fardb_runtime_auth is missing; run "
+        "scripts/bootstrap_database_capability_roles.sql as a PostgreSQL superuser before the normal database migration'; "
+        "END IF; "
+        "CREATE ROLE fardb_runtime_auth NOLOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOBYPASSRLS NOREPLICATION; "
+        "END IF; "
+        "IF EXISTS (SELECT 1 FROM pg_roles AS role WHERE role.rolname = 'fardb_runtime_auth' "
+        "AND (role.rolcanlogin OR role.rolsuper OR role.rolcreatedb OR role.rolcreaterole "
+        "OR role.rolbypassrls OR role.rolreplication "
+        "OR has_database_privilege(role.oid, current_database(), 'CREATE') "
+        "OR EXISTS (SELECT 1 FROM pg_namespace AS namespace "
+        "WHERE has_schema_privilege(role.oid, namespace.oid, 'CREATE')) "
+        "OR EXISTS (SELECT 1 FROM pg_database AS database "
+        "WHERE database.datname = current_database() AND database.datdba = role.oid) "
+        "OR EXISTS (SELECT 1 FROM pg_namespace AS namespace "
+        "WHERE namespace.nspname = current_schema() AND namespace.nspowner = role.oid) "
+        "OR EXISTS (SELECT 1 FROM pg_class AS rel "
+        "JOIN pg_namespace AS namespace ON namespace.oid = rel.relnamespace "
+        "WHERE namespace.nspname = current_schema() AND rel.relkind IN ('r', 'p', 'S') "
+        "AND rel.relowner = role.oid) "
+        "OR EXISTS (SELECT 1 FROM pg_auth_members AS membership WHERE membership.member = role.oid) "
+        "OR EXISTS (SELECT 1 FROM pg_auth_members AS membership "
+        "WHERE membership.roleid = role.oid AND membership.admin_option) OR (",
+        USABLE_ROLE_MEMBERSHIP_CTE_SQL,
+        "SELECT COUNT(*) FROM pg_roles AS grantee "
+        "WHERE grantee.rolcanlogin AND EXISTS (SELECT 1 FROM role_membership "
+        "WHERE role_membership.member = grantee.oid AND role_membership.roleid = role.oid)) > 1)) THEN "
+        "RAISE EXCEPTION 'unsafe FarDB capability role: fardb_runtime_auth'; END IF; END $fardb$",
+    )
 )
 
 
