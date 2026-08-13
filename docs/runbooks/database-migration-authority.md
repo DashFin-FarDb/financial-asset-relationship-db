@@ -144,10 +144,18 @@ the command initializes only the auth database.
 
 ## Local SQLite initial-provisioning example
 
+Store the local signing key once in the gitignored `.env.local` secret surface and reuse it unchanged for every later
+run. If `.env.local` already exists, add a persistent `SECRET_KEY` entry through the approved local secret workflow;
+do not regenerate the key.
+
 ```bash
-export DATABASE_URL=sqlite:dev.db
-export SECRET_KEY="$(python -c 'import secrets; print(secrets.token_urlsafe(32))')"
+umask 077
+test -e .env.local || python -c 'import secrets; print("SECRET_KEY=" + secrets.token_urlsafe(32))' > .env.local
+set -a
+. ./.env.local
+set +a
 : "${SECRET_KEY:?SECRET_KEY must be set}"
+export DATABASE_URL=sqlite:dev.db
 export ADMIN_USERNAME=admin
 read -r -s -p "Initial admin password: " ADMIN_PASSWORD
 printf '\n'
@@ -161,7 +169,11 @@ For later routine local migrations, preserve the existing administrator credenti
 unset:
 
 ```bash
+set -a
+. ./.env.local
+set +a
 : "${SECRET_KEY:?SECRET_KEY must be set}"
+export DATABASE_URL=sqlite:dev.db
 unset ADMIN_PASSWORD
 python -m scripts.migrate_database
 python -m uvicorn api.main:app --reload --host 127.0.0.1 --port 8000
