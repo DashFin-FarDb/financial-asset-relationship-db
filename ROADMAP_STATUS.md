@@ -39,8 +39,8 @@ touched by CQ-03 or later authority work.
 ## Stage 5C.4 - Periodic Background Reconciliation
 
 - [x] **5C.4 RecoveryGate Integration:** startup and periodic callers ask `RecoveryGate` for a reconciliation plan.
-  The gate constructs `RebuildDriftEvaluator` and passes it to `ReconciliationEngine`; the engine invokes the
-  evaluator's `evaluate_drift()` and returns the plan that those callers consume.
+      The gate constructs `RebuildDriftEvaluator` and passes it to `ReconciliationEngine`; the engine invokes the
+      evaluator's `evaluate_drift()` and returns the plan that those callers consume.
 
 ## Phase 1.4 - Observability Enhancements (To Be Done)
 

@@ -416,11 +416,11 @@ requires the separate history-adoption approval defined above.
 - [x] Approve imperative timestamped SQL for initial adoption.
 - [x] Approve Supabase CLI as pinned operator/CI tooling only.
 - [x] Approve the atomic `scripts.migrate_database` PostgreSQL ledger hand-off while preserving its SQLite path and
-  existing operator, CI, Compose, test, and runbook entrypoints.
+      existing operator, CI, Compose, test, and runbook entrypoints.
 - [x] Approve `fardb-pg-scope-v1`, its total ownership classifier, named exclusions, unknown-object non-pass rule,
-  and the `fardb-pg-catalog-v1` normalization contract.
+      and the `fardb-pg-catalog-v1` normalization contract.
 - [x] Approve the three failure categories, `EVALUATION_INCOMPLETE` status, exit behavior, and sanitized evidence
-  boundary.
+      boundary.
 - [x] Approve forward-only migrations and restore-based destructive rollback.
 - [x] Approve a later, separately authorized history-only provider adoption step.
 - [x] Confirm that SQLite compatibility remains separate and cannot claim PostgreSQL authority.
