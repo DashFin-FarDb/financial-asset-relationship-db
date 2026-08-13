@@ -14,6 +14,8 @@ pull requests, ADRs, runbooks, or release evidence packs.
 - **Verified** means supported by current repository evidence at the stated cutoff.
 - **Implemented** means delivery is evidenced but its full completion criteria or live operating proof are not yet
   independently confirmed.
+- **Satisfied** means the commitment's stated completion test is met by current cited evidence for its declared scope;
+  provider rollout or production qualification remains separate unless the entry explicitly includes it.
 - **Agreed** and **Planned** describe intent, not delivered code.
 - Live release, provider, security, and deployment observations expire; recapture them for the exact artefact being
   promoted.
@@ -93,13 +95,10 @@ Primary authorities:
   implementation supplies explicit operator migration, superuser-owned capability bootstrap, password-free
   verify-only runtime startup, restricted capability roles, exact privilege/ownership checks, and production Compose
   migration packaging.
-- **Post-merge review disposition:** Issue
-  [#1623](https://github.com/DashFin-FarDb/financial-asset-relationship-db/issues/1623) records the one bounded P2
-  reliability follow-up: a server-side statement timeout for normal PostgreSQL request connections. Scanner-driven
-  module splitting is not a separate roadmap item; reduce complexity only at characterized seams touched by CQ-03 or
-  later authority work. Comments contradicted by the exact PostgreSQL 15/16 evidence, and scanner heuristics involving
-  test `/tmp`, localhost, repository-controlled SQL identifiers, co-change frequency, or live code labelled dead,
-  require no follow-up.
+- **Post-merge review reference:** Detailed scanner and review-thread dispositions remain in
+  [PR #1608](https://github.com/DashFin-FarDb/financial-asset-relationship-db/pull/1608)'s review record. Issue
+  [#1623](https://github.com/DashFin-FarDb/financial-asset-relationship-db/issues/1623) tracks the only durable
+  follow-up: a bounded P2 server-side statement-timeout improvement for normal PostgreSQL request connections.
 - **Next action and completion test:** Treat CQ-01/CQ-02 as satisfied and begin CQ-03's single PostgreSQL migration
   ledger and drift gate. Qualify provider rollout and production promotion separately against the exact artefact being
   deployed. Issue #1623 may proceed as one small P2 PR without displacing CQ-03.
