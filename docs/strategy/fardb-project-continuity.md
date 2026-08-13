@@ -51,8 +51,10 @@ At the evidence cutoff:
   `financial.bond.issuer_reference@1::financial_graph_current_view`. Production certification, capacity, and
   broader generality remain `NEXT`.
 - CQ-01/CQ-02 are closed at repository and exact-head CI scope.
-- QH-01 is closed through merged PR #1632 and verified squash `5b2685c5ff0635cfd586798cbe2df33a33145216`.
-  The next generated knowledge-branch push remains an operational ignored-build confirmation, not a repository blocker.
+- QH-01 is closed at repository/configuration scope through merged PR #1632 and verified squash
+  `5b2685c5ff0635cfd586798cbe2df33a33145216`. Later generated knowledge-branch pushes were canceled at Vercel's
+  verified-commit gate, so they do not independently prove that `ignoreCommand` executed. A signed or otherwise
+  eligible controlled probe remains an operational evidence item, not a repository blocker.
 - The non-authoritative DeepSource timeout/configuration contexts were explicitly accepted as non-blocking; #1631
   closed as not planned without source repair or threshold weakening.
 - CQ-03A migration-ledger and drift-gate design is active in draft PR #1634 under GitHub #1633 and Linear DAS-62;
