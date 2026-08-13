@@ -117,12 +117,16 @@ jobs:
         continue-on-error: true
 
   grac-assertion-schema-postgres:
-    name: GRAC assertion schema (PostgreSQL)
+    name: GRAC assertion schema (PostgreSQL ${{ matrix.postgres-version }})
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        postgres-version: [15, 16]
 
     services:
       postgres:
-        image: postgres:15
+        image: postgres:${{ matrix.postgres-version }}
         env:
           POSTGRES_USER: test
           POSTGRES_PASSWORD: test
