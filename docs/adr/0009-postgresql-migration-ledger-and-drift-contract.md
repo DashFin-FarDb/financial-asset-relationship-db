@@ -297,7 +297,7 @@ The gate publishes one top-level status per target evaluation:
 
 - `PASS` — every required check ran and no drift category or scope-classification reason was detected; exit zero.
 - `DRIFT_DETECTED` — at least one of the three primary drift categories below was detected; exit non-zero.
-- `EVALUATION_INCOMPLETE` — no primary drift category was detected, but at least one required check is
+- `EVALUATION_INCOMPLETE` — no primary drift category is safely publishable because a required check is
   `NOT_EVALUATED` or a scope-classification reason such as `OUTSIDE_MANAGED_SCOPE` prevents a complete comparison;
   exit non-zero. It is a fail-closed evaluation status, not a fourth drift category.
 
@@ -310,10 +310,14 @@ When status is `DRIFT_DETECTED`, the gate publishes exactly one primary category
 
 Evaluation order and primary-category precedence are `LEDGER_HISTORY_MISMATCH` → `PROVIDER_SCHEMA_DRIFT` →
 `RUNTIME_COMPATIBILITY_MISMATCH`. The gate runs every read-only check that remains safe, records every detected
-category in a restricted artifact, and selects the first detected category by that order. A higher-priority mismatch
-cannot be masked by a lower one. If a category is detected, unavailable downstream checks remain `NOT_EVALUATED`
-in diagnostics without replacing the primary category. If no category is detected and any required check is
-`NOT_EVALUATED`, the result is `EVALUATION_INCOMPLETE`, never `PASS`. Single-failure, combined-failure, and
+category in a restricted artifact, and selects the first detected category by that order. A category is publishable
+as primary only when every required check at the same or higher precedence completed. If any such check is
+`NOT_EVALUATED`, status is `EVALUATION_INCOMPLETE`, public `primary_category` is null, and any detected
+lower-priority category remains bounded restricted evidence with reason code
+`HIGHER_PRIORITY_CHECK_NOT_EVALUATED`; it cannot mask the unknown higher-priority state. Required checks strictly
+downstream of a publishable primary may remain `NOT_EVALUATED` in diagnostics without replacing
+`DRIFT_DETECTED`. If no category is detected and any required check is `NOT_EVALUATED`, the result is likewise
+`EVALUATION_INCOMPLETE`, never `PASS`. Single-failure, combined-failure, unavailable-higher-priority, and
 incomplete-evaluation fixtures must prove these rules.
 
 Public output includes `status`, nullable `primary_category`, bounded reason codes, target class,
@@ -335,8 +339,9 @@ CQ-03 implementation is complete only when all of the following are attached to 
 - a deliberate missing-migration fixture producing `LEDGER_HISTORY_MISMATCH`;
 - a deliberate unrecorded DDL fixture producing `PROVIDER_SCHEMA_DRIFT`;
 - a deliberate required-invariant fixture producing `RUNTIME_COMPATIBILITY_MISMATCH`;
-- a deliberately unavailable required check and an unknown `public` object each producing `EVALUATION_INCOMPLETE`
-  with the applicable bounded reason code and non-zero exit;
+- a deliberately unavailable required check, including an unavailable higher-priority check with a detected
+  lower-priority mismatch, and an unknown `public` object each producing `EVALUATION_INCOMPLETE` with the applicable
+  bounded reason code, null public primary category, and non-zero exit;
 - proof that startup/readiness performs no DDL or migration-history mutation;
 - negative tests proving restricted runtime cannot create, alter, drop, own, grant, repair history, or bootstrap
   credentials;

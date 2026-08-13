@@ -506,7 +506,7 @@ Primary authorities:
 ### Next highest-value action
 
 Follow active commitment **FPC-2026-08-13-01** and draft PR #1634. Review and ratify proposed ADR 0009 before any
-any later CQ-03 implementation phase or provider mutation, then execute the bounded evidence sequence recorded in
+later CQ-03 implementation phase or provider mutation, then execute the bounded evidence sequence recorded in
 that commitment.
 Issue #1623 remains a small P2 follow-up and does not displace the CQ-03 programme. Release repeatability
 (**FPC-2026-07-21-02**) remains active.
