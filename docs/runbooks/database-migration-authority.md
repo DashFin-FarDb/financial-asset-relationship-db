@@ -107,6 +107,7 @@ existing credential without replacing it:
 ```bash
 # Obtain SECRET_KEY from the approved operator secret surface.
 : "${SECRET_KEY:?SECRET_KEY must be set}"
+: "${ADMIN_USERNAME:?ADMIN_USERNAME must remain set for migration}"
 unset ADMIN_PASSWORD
 docker compose -f docker-compose.production.yml --profile operator run --rm --build migrate
 docker compose -f docker-compose.production.yml up -d api frontend

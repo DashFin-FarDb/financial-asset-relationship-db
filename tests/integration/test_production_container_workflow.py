@@ -163,7 +163,10 @@ def test_persistence_smoke_uses_packaged_compose_migration(production_container_
     assert "do not regenerate the key" in migration_runbook
     assert 'read -r -s -p "Initial admin password: " ADMIN_PASSWORD' in migration_runbook
     routine_operator_command = (
-        ': "${SECRET_KEY:?SECRET_KEY must be set}"\n' "unset ADMIN_PASSWORD\n" f"{operator_command}\n"
+        ': "${SECRET_KEY:?SECRET_KEY must be set}"\n'
+        ': "${ADMIN_USERNAME:?ADMIN_USERNAME must remain set for migration}"\n'
+        "unset ADMIN_PASSWORD\n"
+        f"{operator_command}\n"
     )
     assert routine_operator_command in migration_runbook
     assert "routine migrations must leave that variable unset" in migration_runbook
