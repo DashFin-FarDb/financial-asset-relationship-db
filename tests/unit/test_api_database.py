@@ -469,6 +469,7 @@ class TestSchemaInitialization:
         assert "current_setting('server_version_num')::integer >= 160000" in authority_query
         assert "assumable.rolreplication" in authority_query
         assert "has_database_privilege(assumable.oid, current_database(), 'CREATE')" in authority_query
+        assert "has_schema_privilege(assumable.oid, namespace.oid, 'CREATE')" in authority_query
         assert "has_table_privilege(assumable.oid, 'user_credentials', 'UPDATE')" in authority_query
         assert "has_any_column_privilege(assumable.oid, 'user_credentials', 'UPDATE')" in authority_query
         assert (

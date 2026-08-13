@@ -144,6 +144,8 @@ def test_capability_role_retains_superuser_fallback_creation() -> None:
     assert "rolname = CURRENT_USER" in statement
     assert "rolsuper" in statement
     assert "membership.roleid = role.oid AND membership.admin_option" in statement
+    assert "has_schema_privilege(role.oid, namespace.oid, 'CREATE')" in statement
+    assert "has_schema_privilege(role.oid, current_schema(), 'CREATE')" not in statement
     assert "WITH RECURSIVE role_membership(member, roleid, member_is_superuser)" in statement
     assert "JOIN pg_roles AS member_role ON member_role.oid = role_membership.roleid" in statement
     assert "role_membership.member_is_superuser OR member_role.rolsuper" in statement
@@ -172,6 +174,7 @@ def test_runtime_capability_catalog_accepts_exact_graph_contract() -> None:  # n
         sql = str(statement)
         parameters = parameters or {}
         if "COUNT(*) = 1 FROM pg_roles" in sql:
+            assert "has_schema_privilege(role.oid, namespace.oid, 'CREATE')" in sql
             assert "rel.relowner = role.oid" in sql
             assert "rel.relname IN" in sql
             assert "rel.relkind = 'S'" in sql
@@ -198,6 +201,7 @@ def test_runtime_capability_catalog_accepts_exact_graph_contract() -> None:  # n
             assert ") <= 1" in sql
             return _CatalogResult(scalar=True)
         if "has_schema_privilege(:role_name" in sql:
+            assert "has_schema_privilege(:role_name, namespace.oid, 'CREATE')" in sql
             return _CatalogResult(scalar=True)
         if "SELECT COUNT(*) FROM pg_class" in sql:
             return _CatalogResult(scalar=len(Base.metadata.tables))
@@ -807,6 +811,7 @@ class TestDatabaseInitialization:
         assert "pg_has_role(login.oid, assumable.oid, 'SET')" in restricted_query
         assert "ELSE pg_has_role(login.oid, assumable.oid, 'MEMBER') END" in restricted_query
         assert "has_database_privilege(assumable.oid, current_database(), 'CREATE')" in restricted_query
+        assert "has_schema_privilege(assumable.oid, namespace.oid, 'CREATE')" in restricted_query
         assert "namespace.nspowner = assumable.oid" in restricted_query
         assert "database.datdba = assumable.oid" in restricted_query
         assert "pg_has_role(login.oid, assumable.oid, 'USAGE')" in membership_query

@@ -157,7 +157,13 @@ def test_persistence_smoke_uses_packaged_compose_migration(production_container_
     assert "export SECRET_KEY=replace" not in migration_runbook
     assert "export ADMIN_PASSWORD=replace" not in migration_runbook
     assert ': "${SECRET_KEY:?SECRET_KEY must be set}"' in migration_runbook
+    assert "export SECRET_KEY=\"$(python -c 'import secrets; print(secrets.token_urlsafe(32))')\"" in migration_runbook
     assert 'read -r -s -p "Initial admin password: " ADMIN_PASSWORD' in migration_runbook
+    routine_operator_command = (
+        ': "${SECRET_KEY:?SECRET_KEY must be set}"\n' "unset ADMIN_PASSWORD\n" f"{operator_command}\n"
+    )
+    assert routine_operator_command in migration_runbook
+    assert "routine migrations must leave that variable unset" in migration_runbook
     assert "scripts:/app/scripts" not in production_container_raw
 
 

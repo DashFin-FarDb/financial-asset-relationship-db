@@ -46,6 +46,7 @@ _AUTH_ORDINARY_ROLE = "cq1608_auth_ordinary"
 _AUTH_INERT_CREATOR_LOGIN = "cq1608_auth_inert_creator"
 _AUTH_MEMBERSHIP_BRIDGE_ROLE = "cq1608_auth_membership_bridge"
 _AUTH_USABLE_PATH_ROLE = "cq1608_auth_usable_path"
+_AUTH_UNRELATED_SCHEMA = "cq1608_auth_unrelated_schema"
 _GRAPH_REPLICATION_ROLE = "cq1608_graph_replication"
 _GRAPH_OTHER_CAPABILITY_LOGIN = "cq1608_graph_other_capability"
 _GRAPH_SUPERUSER_ROLE = "cq1608_graph_superuser"
@@ -64,6 +65,7 @@ _GRAPH_ORDINARY_ROLE = "cq1608_graph_ordinary"
 _GRAPH_EXTRA_RUNTIME_LOGIN = "cq1608_graph_extra_runtime"
 _GRAPH_EXTRA_TRUNCATE_ROLE = "cq1608_graph_extra_truncate"
 _GRAPH_DIRECT_SEQUENCE_LOGIN = "cq1608_graph_direct_sequence"
+_GRAPH_UNRELATED_SCHEMA = "cq1608_graph_unrelated_schema"
 _SEQUENCE_RUNTIME_LOGIN = "cq1608_sequence_runtime"
 _SEQUENCE_OWNER_ROLE = "cq1608_sequence_owner"
 _RUNTIME_LOGIN_DDL = sql.SQL(
@@ -418,6 +420,56 @@ def test_auth_runtime_rejects_unexpected_assumable_ordinary_role() -> None:
 
 
 @pytest.mark.integration
+def test_auth_runtime_rejects_capability_create_on_non_current_schema() -> None:
+    """Auth provisioning and startup reject capability CREATE on any schema."""
+    database_url = _ephemeral_database_url()
+    _prepare_auth_schema(database_url)
+    import api.database as api_database
+
+    with api_database.bind_database_url(database_url):
+        api_database.ensure_runtime_access()
+
+    try:
+        with _operator_connection(database_url) as connection, connection.cursor() as cursor:
+            cursor.execute(_RUNTIME_LOGIN_DDL.format(sql.Identifier(_AUTH_RUNTIME_LOGIN)))
+            cursor.execute(
+                sql.SQL("GRANT {} TO {}").format(
+                    sql.Identifier(api_database.AUTH_RUNTIME_ROLE),
+                    sql.Identifier(_AUTH_RUNTIME_LOGIN),
+                )
+            )
+            cursor.execute(
+                sql.SQL("CREATE SCHEMA {} AUTHORIZATION CURRENT_USER").format(sql.Identifier(_AUTH_UNRELATED_SCHEMA))
+            )
+            cursor.execute(
+                sql.SQL("GRANT CREATE ON SCHEMA {} TO {}").format(
+                    sql.Identifier(_AUTH_UNRELATED_SCHEMA),
+                    sql.Identifier(api_database.AUTH_RUNTIME_ROLE),
+                )
+            )
+
+        with (
+            api_database.bind_database_url(database_url),
+            pytest.raises(psycopg2.Error, match="unsafe FarDB capability role"),
+        ):
+            api_database.ensure_runtime_access()
+
+        with (
+            patch.object(api_database, "DATABASE_TYPE", "postgresql"),
+            patch.object(
+                api_database,
+                "_create_postgres_connection",
+                side_effect=lambda: _runtime_connection(database_url, _AUTH_RUNTIME_LOGIN),
+            ),
+            pytest.raises(SchemaCompatibilityError, match="retains schema-migration authority"),
+        ):
+            api_database.verify_runtime_authority()
+    finally:
+        _drop_schema(database_url, _AUTH_UNRELATED_SCHEMA)
+        _drop_roles(database_url, _AUTH_RUNTIME_LOGIN)
+
+
+@pytest.mark.integration
 def test_auth_runtime_rejects_inert_creator_admin_option() -> None:
     """An inert creator with ADMIN OPTION can re-delegate the auth capability."""
     database_url = _ephemeral_database_url()
@@ -729,6 +781,62 @@ def test_capability_bootstrap_rejects_create_on_non_current_schema() -> None:
             cursor.execute(
                 sql.SQL("DROP SCHEMA IF EXISTS {} CASCADE").format(sql.Identifier(_BOOTSTRAP_UNRELATED_SCHEMA))
             )
+
+
+@pytest.mark.integration
+def test_graph_runtime_rejects_capability_create_on_non_current_schema() -> None:
+    """Graph provisioning, catalog, and startup reject CREATE on any schema."""
+    database_url = _ephemeral_database_url()
+    operator_engine = create_engine(database_url, future=True)
+    runtime_engine = None
+
+    try:
+        init_db(operator_engine)
+        ensure_runtime_database_capabilities(operator_engine, {GRAPH_RUNTIME_CAPABILITY})
+
+        with _operator_connection(database_url) as connection, connection.cursor() as cursor:
+            cursor.execute(_RUNTIME_LOGIN_DDL.format(sql.Identifier(_GRAPH_EXTRA_RUNTIME_LOGIN)))
+            cursor.execute(
+                sql.SQL("GRANT {} TO {}").format(
+                    sql.Identifier(GRAPH_RUNTIME_ROLE),
+                    sql.Identifier(_GRAPH_EXTRA_RUNTIME_LOGIN),
+                )
+            )
+            cursor.execute(
+                sql.SQL("CREATE SCHEMA {} AUTHORIZATION CURRENT_USER").format(sql.Identifier(_GRAPH_UNRELATED_SCHEMA))
+            )
+            cursor.execute(
+                sql.SQL("GRANT CREATE ON SCHEMA {} TO {}").format(
+                    sql.Identifier(_GRAPH_UNRELATED_SCHEMA),
+                    sql.Identifier(GRAPH_RUNTIME_ROLE),
+                )
+            )
+
+        with pytest.raises(DBAPIError, match="unsafe FarDB capability role"):
+            ensure_runtime_database_capabilities(operator_engine, {GRAPH_RUNTIME_CAPABILITY})
+
+        with (
+            operator_engine.connect() as connection,
+            pytest.raises(SchemaCompatibilityError, match="unsafe or missing runtime capability role"),
+        ):
+            _verify_runtime_capability_catalog(connection, (GRAPH_RUNTIME_CAPABILITY,))
+
+        runtime_engine = create_engine(
+            "postgresql+psycopg2://",
+            creator=lambda: _runtime_connection(database_url, _GRAPH_EXTRA_RUNTIME_LOGIN),
+            future=True,
+        )
+        with pytest.raises(SchemaCompatibilityError, match="retains schema-migration authority"):
+            verify_runtime_database_authority(
+                runtime_engine,
+                required_capabilities={GRAPH_RUNTIME_CAPABILITY},
+            )
+    finally:
+        if runtime_engine is not None:
+            runtime_engine.dispose()
+        _drop_schema(database_url, _GRAPH_UNRELATED_SCHEMA)
+        _drop_roles(database_url, _GRAPH_EXTRA_RUNTIME_LOGIN)
+        operator_engine.dispose()
 
 
 @pytest.mark.integration

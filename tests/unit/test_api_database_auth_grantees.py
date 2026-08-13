@@ -6,6 +6,7 @@ import pytest
 
 from api import database as api_database
 from src.data.database import CapabilityRoleBootstrapRequiredError, SchemaCompatibilityError
+from src.data.runtime_role_membership import USABLE_ROLE_MEMBERSHIP_CTE_SQL
 
 pytestmark = pytest.mark.unit
 
@@ -21,7 +22,7 @@ def test_ensure_runtime_access_counts_only_usable_login_grantees(monkeypatch) ->
     api_database.ensure_runtime_access()
 
     authority_ddl = execute.call_args_list[0].args[0]
-    assert api_database._AUTH_ROLE_MEMBERSHIP_CTE_SQL in authority_ddl
+    assert USABLE_ROLE_MEMBERSHIP_CTE_SQL in authority_ddl
     assert "grantee.rolcanlogin" in authority_ddl
     assert "WITH RECURSIVE role_membership(member, roleid, member_is_superuser)" in authority_ddl
     assert "to_jsonb(membership) ->> 'inherit_option'" in authority_ddl
@@ -90,7 +91,8 @@ def test_verify_runtime_authority_rejects_other_usable_login_grantees(monkeypatc
         assert "ELSE pg_has_role(login.oid, assumable.oid, 'MEMBER') END" in usable_membership_query
 
     safe_role_query = fetch_value.call_args_list[3].args[0]
-    assert api_database._AUTH_ROLE_MEMBERSHIP_CTE_SQL in safe_role_query
+    assert USABLE_ROLE_MEMBERSHIP_CTE_SQL in safe_role_query
+    assert "has_schema_privilege(role.oid, namespace.oid, 'CREATE')" in safe_role_query
     assert "grantee.rolcanlogin" in safe_role_query
     assert "WITH RECURSIVE role_membership(member, roleid, member_is_superuser)" in safe_role_query
     assert "to_jsonb(membership) ->> 'inherit_option'" in safe_role_query

@@ -469,7 +469,8 @@ def _ensure_capability_role(connection, role_name: str) -> None:
                     "AND (role.rolcanlogin OR role.rolsuper OR role.rolcreatedb "
                     "OR role.rolcreaterole OR role.rolbypassrls OR role.rolreplication "
                     "OR has_database_privilege(role.oid, current_database(), 'CREATE') "
-                    "OR has_schema_privilege(role.oid, current_schema(), 'CREATE') "
+                    "OR EXISTS (SELECT 1 FROM pg_namespace AS namespace "
+                    "WHERE has_schema_privilege(role.oid, namespace.oid, 'CREATE')) "
                     "OR EXISTS (SELECT 1 FROM pg_proc AS proc "
                     "JOIN pg_namespace AS namespace ON namespace.oid = proc.pronamespace "
                     "WHERE namespace.nspname = current_schema() "
@@ -665,6 +666,8 @@ def _verify_runtime_capability_roles(connection, capabilities: tuple[str, ...], 
                         "AND NOT role.rolcanlogin AND NOT role.rolsuper AND NOT role.rolcreatedb "
                         "AND NOT role.rolcreaterole AND NOT role.rolbypassrls AND NOT role.rolreplication "
                         "AND NOT has_database_privilege(role.oid, current_database(), 'CREATE') "
+                        "AND NOT EXISTS (SELECT 1 FROM pg_namespace AS namespace "
+                        "WHERE has_schema_privilege(role.oid, namespace.oid, 'CREATE')) "
                         "AND NOT EXISTS (SELECT 1 FROM pg_class AS rel "
                         "JOIN pg_namespace AS namespace ON namespace.oid = rel.relnamespace "
                         "WHERE namespace.nspname = current_schema() "
@@ -704,7 +707,8 @@ def _verify_runtime_capability_roles(connection, capabilities: tuple[str, ...], 
         schema_access = connection.execute(
             text(
                 "SELECT has_schema_privilege(:role_name, current_schema(), 'USAGE') "
-                "AND NOT has_schema_privilege(:role_name, current_schema(), 'CREATE')"
+                "AND NOT EXISTS (SELECT 1 FROM pg_namespace AS namespace "
+                "WHERE has_schema_privilege(:role_name, namespace.oid, 'CREATE'))"
             ),
             {"role_name": role_name},
         ).scalar_one()
@@ -1101,7 +1105,8 @@ def verify_runtime_database_authority(  # skipcq: PY-R1000
                     "AND (assumable.rolsuper OR assumable.rolcreaterole "
                     "OR assumable.rolcreatedb OR assumable.rolbypassrls OR assumable.rolreplication "
                     "OR has_database_privilege(assumable.oid, current_database(), 'CREATE') "
-                    "OR has_schema_privilege(assumable.oid, current_schema(), 'CREATE') "
+                    "OR EXISTS (SELECT 1 FROM pg_namespace AS namespace "
+                    "WHERE has_schema_privilege(assumable.oid, namespace.oid, 'CREATE')) "
                     "OR EXISTS (SELECT 1 FROM pg_namespace AS namespace "
                     "WHERE namespace.nspname = current_schema() "
                     "AND namespace.nspowner = assumable.oid) "

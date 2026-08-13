@@ -109,13 +109,14 @@ def _bind_postgres_operation_guard(guard: _PostgresOperationGuard) -> Iterator[N
         _POSTGRES_OPERATION_GUARD.reset(token)
 
 
-_AUTH_ROLE_MEMBERSHIP_CTE_SQL = USABLE_ROLE_MEMBERSHIP_CTE_SQL
 _AUTH_SAFE_ROLE_SQL = "".join(
     (
         "SELECT COUNT(*) = 1 FROM pg_roles AS role WHERE role.rolname = %s "
         "AND NOT role.rolcanlogin AND NOT role.rolsuper AND NOT role.rolcreatedb "
         "AND NOT role.rolcreaterole AND NOT role.rolbypassrls AND NOT role.rolreplication "
         "AND NOT has_database_privilege(role.oid, current_database(), 'CREATE') "
+        "AND NOT EXISTS (SELECT 1 FROM pg_namespace AS namespace "
+        "WHERE has_schema_privilege(role.oid, namespace.oid, 'CREATE')) "
         "AND NOT EXISTS (SELECT 1 FROM pg_auth_members AS membership WHERE membership.member = role.oid) "
         "AND NOT EXISTS (SELECT 1 FROM pg_auth_members AS membership "
         "WHERE membership.roleid = role.oid AND membership.admin_option) "
@@ -986,7 +987,8 @@ def verify_runtime_authority() -> None:
         "AND (assumable.rolsuper OR assumable.rolcreaterole "
         "OR assumable.rolcreatedb OR assumable.rolbypassrls OR assumable.rolreplication "
         "OR has_database_privilege(assumable.oid, current_database(), 'CREATE') "
-        "OR has_schema_privilege(assumable.oid, current_schema(), 'CREATE') "
+        "OR EXISTS (SELECT 1 FROM pg_namespace AS namespace "
+        "WHERE has_schema_privilege(assumable.oid, namespace.oid, 'CREATE')) "
         "OR has_table_privilege(assumable.oid, 'user_credentials', 'INSERT') "
         "OR has_table_privilege(assumable.oid, 'user_credentials', 'UPDATE') "
         "OR has_table_privilege(assumable.oid, 'user_credentials', 'DELETE') "
@@ -1039,7 +1041,8 @@ def verify_runtime_authority() -> None:
     safe_role = fetch_value(_AUTH_SAFE_ROLE_SQL, (AUTH_RUNTIME_ROLE,))
     exact_access = fetch_value(
         "SELECT has_schema_privilege(%s, current_schema(), 'USAGE') "
-        "AND NOT has_schema_privilege(%s, current_schema(), 'CREATE') "
+        "AND NOT EXISTS (SELECT 1 FROM pg_namespace AS namespace "
+        "WHERE has_schema_privilege(%s, namespace.oid, 'CREATE')) "
         "AND has_table_privilege(%s, 'user_credentials', 'SELECT') "
         "AND NOT has_table_privilege(%s, 'user_credentials', 'INSERT') "
         "AND NOT has_table_privilege(%s, 'user_credentials', 'UPDATE') "

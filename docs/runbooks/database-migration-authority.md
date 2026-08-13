@@ -100,8 +100,19 @@ CQ-03. Do not represent a successful command run as CQ-03 closure.
 
 ### Production Compose operator path
 
-The production Compose runtime never runs migrations during API startup. Before starting or restarting the API,
-invoke the isolated operator profile against the same `api-data` volume:
+The production Compose runtime never runs migrations during API startup. For routine schema migrations after an
+enabled administrator credential has been provisioned, leave `ADMIN_PASSWORD` unset so the migration verifies the
+existing credential without replacing it:
+
+```bash
+# Obtain SECRET_KEY from the approved operator secret surface.
+: "${SECRET_KEY:?SECRET_KEY must be set}"
+unset ADMIN_PASSWORD
+docker compose -f docker-compose.production.yml --profile operator run --rm --build migrate
+docker compose -f docker-compose.production.yml up -d api frontend
+```
+
+Use the password-bearing path only for initial credential provisioning:
 
 ```bash
 # Obtain SECRET_KEY from the approved operator secret surface.
@@ -115,9 +126,10 @@ unset ADMIN_PASSWORD
 docker compose -f docker-compose.production.yml up -d api frontend
 ```
 
-The `migrate` service has no ports and does not remain running. It receives `ADMIN_PASSWORD` only for the explicit
-operator invocation; the `api` service does not receive that variable. For PostgreSQL, complete the superuser
-capability-role bootstrap first, then supply migration-owner URLs to this command as described above.
+The `migrate` service has no ports and does not remain running. It receives `ADMIN_PASSWORD` only for the initial
+credential-provisioning invocation; routine migrations must leave that variable unset, and the `api` service never
+receives it. For PostgreSQL, complete the superuser capability-role bootstrap first, then supply migration-owner URLs
+to this command as described above.
 
 For an isolated PostgreSQL rehearsal, the opt-in integration contract accepts restricted DSNs only through
 `FARDB_GRAPH_RUNTIME_DATABASE_URL`, `FARDB_COORDINATION_RUNTIME_DATABASE_URL`, and
@@ -130,11 +142,11 @@ receives the shared FarDB structural schema; its requested capability set contro
 not which ORM tables the operator creates. When no durable graph or coordination URL is configured for a local demo,
 the command initializes only the auth database.
 
-## Local SQLite example
+## Local SQLite initial-provisioning example
 
 ```bash
 export DATABASE_URL=sqlite:dev.db
-# Obtain SECRET_KEY from the approved local secret surface.
+export SECRET_KEY="$(python -c 'import secrets; print(secrets.token_urlsafe(32))')"
 : "${SECRET_KEY:?SECRET_KEY must be set}"
 export ADMIN_USERNAME=admin
 read -r -s -p "Initial admin password: " ADMIN_PASSWORD
@@ -142,6 +154,16 @@ printf '\n'
 export ADMIN_PASSWORD
 python -m scripts.migrate_database
 unset ADMIN_PASSWORD
+python -m uvicorn api.main:app --reload --host 127.0.0.1 --port 8000
+```
+
+For later routine local migrations, preserve the existing administrator credential by leaving the bootstrap password
+unset:
+
+```bash
+: "${SECRET_KEY:?SECRET_KEY must be set}"
+unset ADMIN_PASSWORD
+python -m scripts.migrate_database
 python -m uvicorn api.main:app --reload --host 127.0.0.1 --port 8000
 ```
 
