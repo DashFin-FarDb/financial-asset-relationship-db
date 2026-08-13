@@ -130,11 +130,12 @@ class TestSummaryWorkflowStructure:
         perms = job.get("permissions", {})
         assert perms.get("issues") == "write", "The 'summary' job must have 'issues: write' to post issue comments"
 
-    def test_summary_job_has_models_read_permission(self, summary_workflow):
-        """The 'summary' job must have 'models: read' permission for AI inference."""
+    def test_summary_job_omits_unsupported_models_permission(self, summary_workflow):
+        """The 'summary' job must omit 'models', which Super-Linter actionlint rejects."""
         job = summary_workflow["jobs"]["summary"]
         perms = job.get("permissions", {})
-        assert perms.get("models") == "read", "The 'summary' job must have 'models: read' to use AI inference"
+        assert "models" not in perms, "The 'summary' job must not declare 'models' (unknown actionlint scope)"
+        assert perms.get("contents") == "read", "The 'summary' job must keep 'contents: read'"
 
 
 class TestSummaryWorkflowSteps:
