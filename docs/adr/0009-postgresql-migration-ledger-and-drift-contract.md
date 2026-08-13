@@ -425,7 +425,7 @@ requires the separate history-adoption approval defined above.
 - [x] Approve a later, separately authorized history-only provider adoption step.
 - [x] Confirm that SQLite compatibility remains separate and cannot claim PostgreSQL authority.
 
-**Decision:** Accepted  
-**Ratifier:** Mohamed Abdel-Aziz Mohamed  
-**Decision date:** 2026-08-13  
+**Decision:** Accepted
+**Ratifier:** Mohamed Abdel-Aziz Mohamed
+**Decision date:** 2026-08-13
 **GitHub evidence link:** [PR #1634](https://github.com/DashFin-FarDb/financial-asset-relationship-db/pull/1634)
