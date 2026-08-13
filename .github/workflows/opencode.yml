@@ -21,12 +21,12 @@ jobs:
       issues: read
     steps:
       - name: Checkout repository
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6  # guardrails-disable-line
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1  # guardrails-disable-line
         with:
           persist-credentials: false
 
       - name: Run opencode
-        uses: anomalyco/opencode/github@7902e04c3a67f7c69726bc955efb46e29214c797 # v1.18.3  # guardrails-disable-line
+        uses: anomalyco/opencode/github@7902e04c3a67f7c69726bc955efb46e29214c797 # v1.18.10  # guardrails-disable-line
         env:
           OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
         with:
