@@ -331,7 +331,7 @@ No implementation begins until the human ratifier records a decision in GitHub #
 - [ ] Approve a later, separately authorized history-only provider adoption step.
 - [ ] Confirm that SQLite compatibility remains separate and cannot claim PostgreSQL authority.
 
-**Decision:** Pending  
-**Ratifier:** Pending  
-**Decision date:** Pending  
+**Decision:** Pending
+**Ratifier:** Pending
+**Decision date:** Pending
 **GitHub evidence link:** Pending
