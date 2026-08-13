@@ -68,7 +68,9 @@ The graph persistence store holds durable graph truth. Evidence/metadata persist
 ### Other Required Settings
 
 - `SECRET_KEY`: Long random string for JWT signing.
-- `ADMIN_USERNAME` / `ADMIN_PASSWORD`: Bootstrap credentials when the auth/application database does not yet contain a usable user.
+- `ADMIN_USERNAME`: Runtime rebuild-operator identity and the username used by explicit initial provisioning.
+- `ADMIN_PASSWORD`: Initial credential supplied only to `python -m scripts.migrate_database`; it is not a FastAPI
+  startup credential and must be removed from the runtime environment after provisioning.
 
 ### Rebuild coordination (optional)
 
@@ -238,7 +240,10 @@ A Vercel rollback/promotion can recover a previous application deployment, but i
 
 ## Secret Handling
 
-- **Production/Staging**: Secrets such as `SECRET_KEY`, `ADMIN_PASSWORD`, `DATABASE_URL`, `POSTGRES_URL`, and `ASSET_GRAPH_DATABASE_URL` must be configured through the hosting platform's secret-management surface and must never be checked into version control.
+- **Production/Staging**: Secrets such as `SECRET_KEY`, migration-time `ADMIN_PASSWORD`, `DATABASE_URL`,
+  `POSTGRES_URL`, and `ASSET_GRAPH_DATABASE_URL` must be configured through an approved secret-management surface and
+  must never be checked into version control. Migration-owner database URLs and `ADMIN_PASSWORD` belong only to the
+  bounded operator execution; FastAPI receives restricted runtime URLs and no bootstrap password.
 - **Preview**: Non-production secrets must still be handled through environment-variable management and must not be embedded in code or docs.
 - **Local Development**: Use a local `.env` file or equivalent local environment configuration. Keep it out of version control.
 

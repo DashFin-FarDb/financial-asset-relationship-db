@@ -1,4 +1,9 @@
-"""INSERT-only persistence helpers for GRAC v1 projection revisions."""
+"""INSERT-only persistence helpers for GRAC v1 projection revisions.
+
+Module for persisting relationship projections, providing utilities for
+ID generation, timestamp normalization, foreign key error detection, and
+ORM conversion functions for projection edges and revisions.
+"""
 
 from __future__ import annotations
 
@@ -79,10 +84,12 @@ class PersistedProjectionRevision:
 
 
 def _new_id() -> str:
+    """Generate a new unique identifier string for a projection or edge."""
     return str(uuid4())
 
 
 def _as_utc(value: datetime | None) -> datetime | None:
+    """Convert a datetime to UTC timezone, returning None if input is None."""
     if value is None:
         return None
     if value.tzinfo is None:
@@ -91,6 +98,7 @@ def _as_utc(value: datetime | None) -> datetime | None:
 
 
 def _is_foreign_key_integrity_error(exc: IntegrityError) -> bool:
+    """Determine if an IntegrityError is caused by a foreign key violation."""
     detail = str(getattr(exc, "orig", None) or exc).lower()
     return "foreign key" in detail or "foreignkeyviolation" in detail
 
@@ -99,12 +107,13 @@ def _raise_projection_persist_integrity_error(revision_id: str, exc: IntegrityEr
     """Translate projection insert IntegrityError into a domain exception."""
     if _is_foreign_key_integrity_error(exc):
         raise ValidationError(
-            f"projection revision foreign-key violation for {revision_id} " "(check assertion_id references on edges)"
+            f"projection revision foreign-key violation for {revision_id} (check assertion_id references on edges)"
         ) from exc
     raise ConcurrencyConflict(f"projection revision insert conflicted for {revision_id}") from exc
 
 
 def _projection_edge_orm(revision_id: str, edge_id: str, edge: ProjectionEdge) -> RelationshipProjectionEdgeORM:
+    """Convert a ProjectionEdge domain object into its ORM representation."""
     return RelationshipProjectionEdgeORM(
         id=edge_id,
         revision_id=revision_id,
@@ -118,6 +127,7 @@ def _projection_edge_orm(revision_id: str, edge_id: str, edge: ProjectionEdge) -
 
 
 def _projection_edge_from_orm(row: RelationshipProjectionEdgeORM) -> ProjectionEdge:
+    """Convert an ORM row into a ProjectionEdge domain object."""
     return ProjectionEdge(
         source_id=row.source_id,
         target_id=row.target_id,
@@ -144,6 +154,7 @@ def _projection_revision_orm(
     revision: ProjectionRevision,
     created_at: datetime,
 ) -> RelationshipProjectionRevisionORM:
+    """Convert a ProjectionRevision domain object into its ORM representation."""
     return RelationshipProjectionRevisionORM(
         id=revision_id,
         purpose=revision.purpose,
@@ -237,6 +248,28 @@ class ProjectionRevisionStore:
             created_at=created_at,
             revision=revision,
             edge_ids=tuple(edge_row.id for edge_row in edge_rows),
+        )
+
+    def get_with_single_edge(self, revision_id: str, projection_edge_id: str) -> PersistedProjectionRevision | None:
+        """Load a persisted candidate revision and only the single requested edge."""
+        row = self._session.get(RelationshipProjectionRevisionORM, revision_id)
+        if row is None:
+            return None
+        edge_row = self._session.execute(
+            select(RelationshipProjectionEdgeORM)
+            .where(RelationshipProjectionEdgeORM.revision_id == revision_id)
+            .where(RelationshipProjectionEdgeORM.id == projection_edge_id)
+        ).scalar_one_or_none()
+        if edge_row is None:
+            return None
+        edges = (_projection_edge_from_orm(edge_row),)
+        governed_scopes = _deserialize_governed_scopes(row.governed_scopes, row.purpose)
+        revision, created_at = _domain_revision_from_orm(row, edges, governed_scopes)
+        return PersistedProjectionRevision(
+            revision_id=row.id,
+            created_at=created_at,
+            revision=revision,
+            edge_ids=(projection_edge_id,),
         )
 
     def latest_published_scopes(self, purpose: str) -> tuple[GovernedScope, ...]:

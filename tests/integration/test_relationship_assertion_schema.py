@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import os
 from datetime import datetime, timezone
+from unittest.mock import MagicMock
 
 import pytest
 from sqlalchemy import create_engine, inspect, text
@@ -11,10 +12,13 @@ from sqlalchemy.engine import Engine
 from sqlalchemy.exc import DBAPIError, IntegrityError
 
 from src.data.base import Base
-from src.data.database import init_db
+from src.data.database import init_db, verify_database_schema
 from src.data.db_models import AssetORM, RebuildJobORM
+from src.data.migrations import _status_constraint_is_canonical
 from src.data.relationship_assertion_db_models import (
+    EFFECTIVE_WINDOW_CHECK,
     GRAC_TABLE_NAMES,
+    STRENGTH_DECIMAL_CHECK,
     RelationshipAssertionEventORM,
     RelationshipAssertionEvidenceORM,
     RelationshipAssertionORM,
@@ -24,13 +28,101 @@ from src.data.relationship_assertion_db_models import (
     RelationshipProjectionRevisionORM,
 )
 from src.data.relationship_assertion_schema import (
+    _ensure_postgresql_grac_constraints,
+    _postgresql_check_matches,
     ensure_relationship_assertion_schema,
     list_immutability_trigger_names,
+    verify_relationship_assertion_schema,
 )
 from tests.conftest import enable_sqlite_foreign_keys
 
 UTC = timezone.utc
 DIGEST = "c" * 64
+
+
+@pytest.mark.parametrize("canonical", [EFFECTIVE_WINDOW_CHECK, STRENGTH_DECIMAL_CHECK])
+def test_postgresql_grac_constraint_comparison_requires_canonical_predicate(canonical: str) -> None:
+    """Named, validated constraints must also preserve the canonical predicate."""
+    assert _postgresql_check_matches(f"CHECK (({canonical}))", canonical)
+    assert not _postgresql_check_matches("CHECK (TRUE)", canonical)
+
+
+@pytest.mark.parametrize(
+    ("canonical", "catalog_definition"),
+    [
+        (
+            EFFECTIVE_WINDOW_CHECK,
+            "CHECK (((effective_to IS NULL) OR (effective_to >= effective_from)))",
+        ),
+        (
+            STRENGTH_DECIMAL_CHECK,
+            "CHECK ((((length((strength)::text) >= 1) AND (length((strength)::text) <= 32)) "
+            "AND (translate((strength)::text, '0123456789.'::text, ''::text) = ''::text) "
+            "AND ((strength)::text !~~ '.%'::text) AND ((strength)::text !~~ '%.'::text) "
+            "AND ((strength)::text !~~ '%..%'::text) AND ((strength)::text !~~ '%.%.%'::text) "
+            "AND (((strength)::text = '0'::text) OR ((strength)::text = '1'::text) "
+            "OR ((strength)::text ~~ '0.%'::text) OR (((strength)::text ~~ '1.%'::text) "
+            "AND (replace(substr((strength)::text, 3), '0'::text, ''::text) = ''::text)))))",
+        ),
+    ],
+)
+def test_postgresql_grac_constraint_comparison_accepts_catalog_deparse(
+    canonical: str,
+    catalog_definition: str,
+) -> None:
+    """Canonical GRAC predicates must match PostgreSQL 17 catalog rendering."""
+    assert _postgresql_check_matches(catalog_definition, canonical)
+
+
+def test_postgresql_grac_constraint_comparison_preserves_boolean_grouping() -> None:
+    """PostgreSQL CHECK comparison must reject precedence-changing regrouping."""
+    assert not _postgresql_check_matches(
+        "CHECK ((a = 1 OR b = 1) AND c = 1)",
+        "CHECK (a = 1 OR (b = 1 AND c = 1))",
+    )
+
+
+def test_postgresql_grac_constraint_comparison_accepts_quoted_lowercase_identifiers() -> None:
+    """PostgreSQL-safe identifier quotes must not create false schema drift."""
+    assert _postgresql_check_matches(
+        'CHECK (("effective_to" IS NULL) OR ("effective_to" >= "effective_from"))',
+        EFFECTIVE_WINDOW_CHECK,
+    )
+
+
+def test_postgresql_rebuild_status_comparison_accepts_catalog_deparse() -> None:
+    """The rebuild status verifier must accept PostgreSQL 17 ANY/ARRAY rendering."""
+    definition = (
+        "CHECK (((status)::text = ANY ((ARRAY['pending'::character varying, "
+        "'running'::character varying, 'succeeded'::character varying, "
+        "'failed'::character varying, 'cancel_requested'::character varying, "
+        "'cancelled'::character varying])::text[])))"
+    )
+    assert _status_constraint_is_canonical({"name": "ck_rebuild_jobs_status", "sqltext": definition})
+
+
+def test_postgresql_grac_migration_skips_already_validated_constraints() -> None:
+    """Repeat operator runs must not rescan matching, validated GRAC constraints."""
+    connection = MagicMock()
+    connection.execute.return_value.all.return_value = [
+        (
+            "relationship_assertions",
+            "ck_relationship_assertions_effective_window",
+            f"CHECK (({EFFECTIVE_WINDOW_CHECK}))",
+            True,
+        ),
+        (
+            "relationship_projection_edges",
+            "ck_relationship_projection_edges_strength",
+            f"CHECK (({STRENGTH_DECIMAL_CHECK}))",
+            True,
+        ),
+    ]
+
+    _ensure_postgresql_grac_constraints(connection)
+
+    assert connection.execute.call_count == 1
+
 
 LEGACY_TABLES = (
     "assets",
@@ -141,14 +233,17 @@ def schema_engine(request, tmp_path) -> Engine:
 
 
 def _table_names(engine: Engine) -> set[str]:
+    """Return the reflected table names for the supplied test engine."""
     return set(inspect(engine).get_table_names())
 
 
 def _check_names(engine: Engine, table: str) -> set[str]:
+    """Return named CHECK constraints reflected for one table."""
     return {item["name"] for item in inspect(engine).get_check_constraints(table)}
 
 
 def _index_names(engine: Engine, table: str) -> set[str]:
+    """Return named indexes and unique constraints reflected for one table."""
     names = {item["name"] for item in inspect(engine).get_indexes(table) if item.get("name")}
     # UniqueConstraints may appear as unique indexes depending on dialect.
     for uk in inspect(engine).get_unique_constraints(table):
@@ -158,6 +253,7 @@ def _index_names(engine: Engine, table: str) -> set[str]:
 
 
 def _fk_pairs(engine: Engine, table: str) -> set[tuple[str, str]]:
+    """Return local-to-remote column pairs for reflected foreign keys."""
     pairs: set[tuple[str, str]] = set()
     for fk in inspect(engine).get_foreign_keys(table):
         referred = fk.get("referred_table")
@@ -267,6 +363,26 @@ class TestRelationshipAssertionSchemaBootstrap:
         init_db(schema_engine)
         ensure_relationship_assertion_schema(schema_engine)
         assert set(GRAC_TABLE_NAMES).issubset(_table_names(schema_engine))
+
+    @staticmethod
+    def test_verifier_rejects_missing_guard_without_repair(schema_engine: Engine):
+        """Read-only verification must report, not reinstall, a missing SQLite trigger."""
+        if schema_engine.dialect.name != "sqlite":
+            pytest.skip("SQLite-specific no-repair proof")
+        init_db(schema_engine)
+        update_trigger, _delete_trigger, _truncate_trigger = list_immutability_trigger_names("relationship_assertions")
+        with schema_engine.begin() as connection:
+            connection.execute(text(f"DROP TRIGGER {update_trigger}"))
+
+        with pytest.raises(RuntimeError, match="immutability guards are incomplete"):
+            verify_relationship_assertion_schema(schema_engine)
+
+        with schema_engine.connect() as connection:
+            remaining = connection.execute(
+                text("SELECT COUNT(*) FROM sqlite_master WHERE type = 'trigger' AND name = :name"),
+                {"name": update_trigger},
+            ).scalar_one()
+        assert remaining == 0
 
     @staticmethod
     def test_upgrade_backfills_legacy_projection_scopes(schema_engine: Engine):
@@ -381,9 +497,9 @@ class TestRelationshipAssertionSchemaBootstrap:
                 '[{"predicate_id":"financial.bond.issuer_reference@1","purpose":"current_view"}]',
             ),
         ]
-        with pytest.raises((DBAPIError, IntegrityError)):
-            with schema_engine.begin() as conn:
-                conn.execute(text("UPDATE relationship_projection_revisions SET purpose = 'changed'"))
+        forbidden_update = text("UPDATE relationship_projection_revisions SET purpose = 'changed'")
+        with pytest.raises((DBAPIError, IntegrityError)), schema_engine.begin() as conn:
+            conn.execute(forbidden_update)
 
 
 @pytest.mark.integration
@@ -451,6 +567,26 @@ class TestRelationshipAssertionSchemaParity:
         assert all(row[1] and row[2] == 0 and not row[3] for row in rows)
         assert "search_path=pg_catalog" in (function_config or [])
 
+    @staticmethod
+    def test_postgresql_verifier_cold_start_and_restart_in_read_only_transactions(schema_engine: Engine):
+        """PostgreSQL compatibility verification must succeed with writes disabled."""
+        if schema_engine.dialect.name != "postgresql":
+            pytest.skip("PostgreSQL-only read-only transaction proof")
+        init_db(schema_engine)
+        pg_url = _postgres_url()
+        assert pg_url is not None
+
+        for _restart in range(2):
+            runtime_engine = create_engine(
+                pg_url,
+                future=True,
+                connect_args={"options": "-c default_transaction_read_only=on"},
+            )
+            try:
+                verify_database_schema(runtime_engine)
+            finally:
+                runtime_engine.dispose()
+
 
 @pytest.mark.integration
 class TestRelationshipAssertionImmutability:
@@ -486,6 +622,7 @@ class TestRelationshipAssertionImmutability:
         _seed_immutability_rows(schema_engine, datetime.now(tz=UTC))
 
         def _execute(statement: str) -> None:
+            """Execute one attempted immutable-row mutation in a transaction."""
             with schema_engine.begin() as conn:
                 conn.execute(text(statement))
 

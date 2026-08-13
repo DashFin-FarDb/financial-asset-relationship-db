@@ -2,14 +2,20 @@ version: '3.8'
 
 services:
   api:
+    image: ${FARDB_API_IMAGE:-fardb-api}
     build:
       context: .
       dockerfile: Dockerfile.api
     restart: unless-stopped
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
     ports:
       - "8000:8000"
     volumes:
       - api-data:/data
+    tmpfs:
+      - /tmp
     environment:
       - ENV=production
       - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-http://localhost:3000}
@@ -18,14 +24,40 @@ services:
       - DATABASE_URL=${DATABASE_URL:-sqlite:////data/fardb.db}
       - ASSET_GRAPH_DATABASE_URL=${ASSET_GRAPH_DATABASE_URL:-sqlite:////data/fardb.db}
       - SECRET_KEY=${SECRET_KEY:?SECRET_KEY is required}
-      - ADMIN_USERNAME=${ADMIN_USERNAME:?ADMIN_USERNAME is required for first-run bootstrap}
-      - ADMIN_PASSWORD=${ADMIN_PASSWORD:?ADMIN_PASSWORD is required for first-run bootstrap}
+      # Runtime operator identity only. Initial credential provisioning is a separate
+      # `python -m scripts.migrate_database` operator action; do not expose its password here.
+      - ADMIN_USERNAME=${ADMIN_USERNAME:?ADMIN_USERNAME is required for rebuild authorization}
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
       interval: 30s
       timeout: 5s
       retries: 3
       start_period: 5s
+
+  migrate:
+    image: ${FARDB_API_IMAGE:-fardb-api}
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    profiles: ["operator"]
+    restart: "no"
+    security_opt:
+      - no-new-privileges:true
+    volumes:
+      - api-data:/data
+    environment:
+      - ENV=production
+      - DATABASE_URL=${DATABASE_URL:-sqlite:////data/fardb.db}
+      - ASSET_GRAPH_DATABASE_URL=${ASSET_GRAPH_DATABASE_URL:-sqlite:////data/fardb.db}
+      - COORDINATION_DATABASE_URL=${COORDINATION_DATABASE_URL:-}
+      - SECRET_KEY=${SECRET_KEY:?SECRET_KEY is required}
+      - ADMIN_USERNAME=${ADMIN_USERNAME:?ADMIN_USERNAME is required for migration}
+      # Operator-only credential. It is intentionally absent from the API service.
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD:-}
+      - ADMIN_EMAIL=${ADMIN_EMAIL:-}
+      - ADMIN_FULL_NAME=${ADMIN_FULL_NAME:-}
+      - ADMIN_DISABLED=${ADMIN_DISABLED:-false}
+    command: ["python", "-m", "scripts.migrate_database"]
 
   frontend:
     build:

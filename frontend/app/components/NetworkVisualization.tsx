@@ -1,8 +1,13 @@
 "use client";
 
-import { useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
-import type { VisualizationData } from "../types/api";
+import type {
+  VisualizationData,
+  VisualizationEdge,
+  VisualizationNode,
+} from "../types/api";
+import RelationshipExplanationPanel from "./RelationshipExplanationPanel";
 
 // Dynamically import Plotly to avoid SSR issues
 const Plot = dynamic(() => import("react-plotly.js"), {
@@ -28,6 +33,8 @@ type EdgeTrace = {
   };
   hoverinfo: "none";
   showlegend: false;
+  /** Stable edge selection key, repeated for each of the two line points. */
+  customdata: [string, string];
 };
 
 type NodeTrace = {
@@ -61,8 +68,60 @@ type VisualizationPreparation = {
   plotData: Array<EdgeTrace | NodeTrace>;
 };
 
+/**
+ * One edge paired with its resolved endpoint nodes. Shared by the Plotly trace
+ * builder and the keyboard-accessible relationship list so both views always
+ * agree on which edges are renderable and how each is identified for selection.
+ */
+type PreparedEdge = {
+  key: string;
+  edge: VisualizationEdge;
+  sourceNode: VisualizationNode;
+  targetNode: VisualizationNode;
+};
+
 const MAX_NODES = Number(process.env.NEXT_PUBLIC_MAX_NODES) || 500;
 const MAX_EDGES = Number(process.env.NEXT_PUBLIC_MAX_EDGES) || 2000;
+
+/**
+ * Resolve edges against their endpoint nodes, skipping any edge whose source
+ * or target node is missing or whose edge_id is missing/empty. This is the single
+ * source of truth for "valid" edges consumed by both Plotly traces and the
+ * keyboard-accessible list.
+ */
+function buildValidEdges(
+  nodes: VisualizationData["nodes"],
+  edges: VisualizationData["edges"],
+): PreparedEdge[] {
+  const nodeMap = new Map(nodes.map((node) => [node.id, node]));
+  const seenEdgeIds = new Set<string>();
+
+  return edges.reduce<PreparedEdge[]>((acc, edge) => {
+    const sourceNode = nodeMap.get(edge.source);
+    const targetNode = nodeMap.get(edge.target);
+    const edgeId = edge.edge_id;
+
+    if (
+      !sourceNode ||
+      !targetNode ||
+      !edgeId ||
+      typeof edgeId !== "string" ||
+      edgeId.trim() === "" ||
+      seenEdgeIds.has(edgeId)
+    ) {
+      if (process.env.NODE_ENV === "development") {
+        console.debug(
+          `[Development Only] Skipping invalid edge: source ${edge.source}, target ${edge.target}, edge_id ${edgeId}.`,
+        );
+      }
+      return acc;
+    }
+
+    seenEdgeIds.add(edgeId);
+    acc.push({ key: edgeId, edge, sourceNode, targetNode });
+    return acc;
+  }, []);
+}
 
 /**
  * Build a Plotly 3D scatter trace that renders nodes as markers with inline labels.
@@ -102,54 +161,34 @@ function buildNodeTrace(nodes: VisualizationData["nodes"]): NodeTrace {
 }
 
 /**
- * Build Plotly 3D line traces for network edges from node and edge lists.
+ * Build Plotly 3D line traces from already-validated edges.
  *
- * Skips edges whose source or target node is missing.
- *
- * @param nodes - Nodes with unique `id` and numeric `x`, `y`, `z` coordinates.
- * @param edges - Edges with `source` and `target` node ids and a numeric `strength` between 0 and 1.
- * @returns An array of `EdgeTrace` objects; each trace is a two-point 3D line connecting source and target where line color and width are derived from the edge's `strength`.
+ * @param validEdges - Edges paired with their resolved endpoint nodes (see `buildValidEdges`).
+ * @returns An array of `EdgeTrace` objects; each trace is a two-point 3D line connecting
+ *   source and target, carrying the edge's stable selection key as `customdata`.
  */
-function buildEdgeTraces(
-  nodes: VisualizationData["nodes"],
-  edges: VisualizationData["edges"],
-): EdgeTrace[] {
-  const nodeMap = new Map(nodes.map((node) => [node.id, node]));
-  return edges.reduce<EdgeTrace[]>((acc, edge) => {
-    const sourceNode = nodeMap.get(edge.source);
-    const targetNode = nodeMap.get(edge.target);
-
-    if (!sourceNode || !targetNode) {
-      if (process.env.NODE_ENV === "development") {
-        console.debug(
-          `[Development Only] Skipping invalid edge: source ${edge.source} or target ${edge.target} not found.`,
-        );
-      }
-      return acc;
-    }
-
-    acc.push({
-      type: "scatter3d",
-      mode: "lines",
-      x: [sourceNode.x, targetNode.x],
-      y: [sourceNode.y, targetNode.y],
-      z: [sourceNode.z, targetNode.z],
-      line: {
-        color: `rgba(125, 125, 125, ${edge.strength})`,
-        width: edge.strength * 3,
-      },
-      hoverinfo: "none",
-      showlegend: false,
-    });
-
-    return acc;
-  }, []);
+function buildEdgeTraces(validEdges: readonly PreparedEdge[]): EdgeTrace[] {
+  return validEdges.map(({ key, edge, sourceNode, targetNode }) => ({
+    type: "scatter3d",
+    mode: "lines",
+    x: [sourceNode.x, targetNode.x],
+    y: [sourceNode.y, targetNode.y],
+    z: [sourceNode.z, targetNode.z],
+    line: {
+      color: `rgba(125, 125, 125, ${edge.strength})`,
+      width: edge.strength * 3,
+    },
+    hoverinfo: "none",
+    showlegend: false,
+    customdata: [key, key],
+  }));
 }
 
 /**
  * Prepare Plotly traces and a rendering status from the provided visualization data.
  *
  * @param data - The visualization input containing `nodes` and `edges` to convert into traces.
+ * @param validEdges - Edges already resolved against their endpoint nodes (see `buildValidEdges`).
  * @returns A `VisualizationPreparation` describing the resulting `status`, a human-readable `message`, and `plotData`:
  * - `status` is `"empty"` when there are no nodes,
  * - `"tooLarge"` when node or edge counts exceed configured limits,
@@ -157,6 +196,7 @@ function buildEdgeTraces(
  */
 function prepareVisualizationData(
   data: VisualizationData,
+  validEdges: readonly PreparedEdge[],
 ): VisualizationPreparation {
   const nodes = Array.isArray(data.nodes) ? data.nodes : [];
   const edges = Array.isArray(data.edges) ? data.edges : [];
@@ -181,13 +221,94 @@ function prepareVisualizationData(
   }
 
   const nodeTrace = buildNodeTrace(nodes);
-  const edgeTraces = buildEdgeTraces(nodes, edges);
+  const edgeTraces = buildEdgeTraces(validEdges);
 
   return {
     status: "ready",
     message: "",
     plotData: [...edgeTraces, nodeTrace],
   };
+}
+
+type RelationshipListProps = Readonly<{
+  validEdges: readonly PreparedEdge[];
+  selectedKey: string | null;
+  onSelect: (key: string) => void;
+}>;
+
+/**
+ * Keyboard-accessible list of relationships, mirroring exactly the edges drawn
+ * in the plot. Provides a first-class selection route independent of clicking
+ * a line in the 3D plot.
+ */
+function RelationshipList({
+  validEdges,
+  selectedKey,
+  onSelect,
+}: RelationshipListProps) {
+  return (
+    <fieldset className="max-h-64 overflow-y-auto border border-gray-200 rounded-lg p-2">
+      <legend className="sr-only">
+        Relationships (keyboard-accessible list)
+      </legend>
+      <ul className="space-y-1">
+        {validEdges.map(({ key, edge }) => (
+          <RelationshipListItem
+            key={key}
+            edgeKey={key}
+            edge={edge}
+            isSelected={key === selectedKey}
+            onSelect={onSelect}
+          />
+        ))}
+      </ul>
+    </fieldset>
+  );
+}
+
+type RelationshipListItemProps = Readonly<{
+  edgeKey: string;
+  edge: VisualizationEdge;
+  isSelected: boolean;
+  onSelect: (key: string) => void;
+}>;
+
+/** A single selectable relationship row within the keyboard-accessible list. */
+function RelationshipListItem({
+  edgeKey: key,
+  edge,
+  isSelected,
+  onSelect,
+}: RelationshipListItemProps) {
+  const isGoverned = edge.governance_status === "governed";
+  return (
+    <li>
+      <button
+        type="button"
+        aria-pressed={isSelected}
+        onClick={() => onSelect(key)}
+        className={`w-full text-left text-sm px-2 py-1 rounded ${
+          isSelected
+            ? "bg-blue-100 text-blue-900"
+            : "hover:bg-gray-100 text-gray-700"
+        }`}
+      >
+        {edge.source} {"\u2192"} {edge.target}{" "}
+        <span className="text-xs text-gray-500">
+          ({edge.relationship_type})
+        </span>{" "}
+        <span
+          className={`text-xs px-1.5 py-0.5 rounded ${
+            isGoverned
+              ? "bg-blue-50 text-blue-700"
+              : "bg-gray-100 text-gray-500"
+          }`}
+        >
+          {isGoverned ? "Governed" : "Legacy"}
+        </span>
+      </button>
+    </li>
+  );
 }
 
 /**
@@ -200,63 +321,172 @@ function prepareVisualizationData(
  *   Edges are objects with at least: `source`, `target`, `relationship_type`, `strength`.
  * @returns A JSX element rendering the 3D network plot when data is valid, or a centred status message when data is missing, invalid or too large.
  */
+/**
+ * Resolve the edges valid for a (possibly absent) visualization payload.
+ * Extracted so `NetworkVisualization` itself does not branch on the shape of
+ * `data` directly.
+ */
+function resolveValidEdges(data: VisualizationData | null | undefined) {
+  const nodes = data?.nodes;
+  const edges = data?.edges;
+  if (!Array.isArray(nodes) || !Array.isArray(edges)) {
+    return [];
+  }
+  return buildValidEdges(nodes, edges);
+}
+
+/**
+ * Resolve the plot-ready `VisualizationPreparation` for a (possibly absent)
+ * visualization payload.
+ */
+function resolvePreparation(
+  data: VisualizationData | null | undefined,
+  validEdges: readonly PreparedEdge[],
+): VisualizationPreparation {
+  if (!data) {
+    return {
+      status: "empty",
+      message: "No visualization data available.",
+      plotData: [],
+    };
+  }
+  return prepareVisualizationData(data, validEdges);
+}
+
+/** Extract the clicked edge's stable key from a Plotly click event, if any. */
+function resolveClickedKey(event: {
+  points?: ReadonlyArray<{ customdata?: unknown }>;
+}): string | null {
+  const customdata = event?.points?.[0]?.customdata;
+  return typeof customdata === "string" ? customdata : null;
+}
+
+/**
+ * Resolve the currently selected edge from `validEdges`. Always re-resolved
+ * from the current `validEdges`, so a stale key can never point at a
+ * relationship other than the one the user selected: if the dataset changes
+ * such that the key no longer exists, this naturally becomes `null` instead
+ * of silently resolving to an unrelated edge.
+ */
+function resolveSelectedEdge(
+  validEdges: readonly PreparedEdge[],
+  selectedKey: string | null,
+): PreparedEdge["edge"] | null {
+  return (
+    validEdges.find((prepared) => prepared.key === selectedKey)?.edge ?? null
+  );
+}
+
+type StatusMessageProps = Readonly<{
+  status: Exclude<VisualizationPreparation["status"], "ready">;
+  message: string;
+}>;
+
+/** Centred status message shown in place of the plot when data isn't ready. */
+function StatusMessage({ status, message }: StatusMessageProps) {
+  const isUrgent = status === "tooLarge";
+  return (
+    <div
+      className="text-center p-8 text-gray-600"
+      role={isUrgent ? "alert" : "status"}
+      aria-live={isUrgent ? "assertive" : "polite"}
+    >
+      {message}
+    </div>
+  );
+}
+
 export default function NetworkVisualization({
   data,
 }: NetworkVisualizationProps) {
-  const preparation = useMemo<VisualizationPreparation>(() => {
-    if (!data) {
-      return {
-        status: "empty",
-        message: "No visualization data available.",
-        plotData: [],
-      };
-    }
-    return prepareVisualizationData(data);
-  }, [data]);
+  const [selectedKey, setSelectedKey] = useState<string | null>(null);
+
+  const validEdges = useMemo<PreparedEdge[]>(
+    () => resolveValidEdges(data),
+    [data],
+  );
+
+  const preparation = useMemo<VisualizationPreparation>(
+    () => resolvePreparation(data, validEdges),
+    [data, validEdges],
+  );
 
   const { plotData, status, message } = preparation;
 
+  const handlePlotClick = useCallback(
+    (event: { points?: ReadonlyArray<{ customdata?: unknown }> }) => {
+      const key = resolveClickedKey(event);
+      if (key) setSelectedKey(key);
+    },
+    [],
+  );
+
+  const selectedEdge = useMemo(
+    () => resolveSelectedEdge(validEdges, selectedKey),
+    [validEdges, selectedKey],
+  );
+
   if (status !== "ready") {
-    const isUrgent = status === "tooLarge";
-    return (
-      <div
-        className="text-center p-8 text-gray-600"
-        role={isUrgent ? "alert" : "status"}
-        aria-live={isUrgent ? "assertive" : "polite"}
-      >
-        {message}
-      </div>
-    );
+    return <StatusMessage status={status} message={message} />;
   }
 
   return (
-    <div className="w-full h-[800px]">
-      <Plot
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        data={plotData as any}
-        layout={{
-          title: "3D Asset Relationship Network",
-          showlegend: false,
-          scene: {
-            xaxis: { showgrid: false, zeroline: false, showticklabels: false },
-            yaxis: { showgrid: false, zeroline: false, showticklabels: false },
-            zaxis: { showgrid: false, zeroline: false, showticklabels: false },
-            camera: {
-              eye: { x: 1.5, y: 1.5, z: 1.5 },
+    <div className="w-full space-y-4">
+      <div className="w-full h-[800px]">
+        <Plot
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          data={plotData as any}
+          layout={{
+            title: "3D Asset Relationship Network",
+            showlegend: false,
+            scene: {
+              xaxis: {
+                showgrid: false,
+                zeroline: false,
+                showticklabels: false,
+              },
+              yaxis: {
+                showgrid: false,
+                zeroline: false,
+                showticklabels: false,
+              },
+              zaxis: {
+                showgrid: false,
+                zeroline: false,
+                showticklabels: false,
+              },
+              camera: {
+                eye: { x: 1.5, y: 1.5, z: 1.5 },
+              },
             },
-          },
-          hovermode: "closest",
-          margin: { l: 0, r: 0, b: 0, t: 40 },
-          paper_bgcolor: "rgba(0,0,0,0)",
-          plot_bgcolor: "rgba(0,0,0,0)",
-        }}
-        config={{
-          displayModeBar: true,
-          displaylogo: false,
-          responsive: true,
-        }}
-        style={{ width: "100%", height: "100%" }}
-      />
+            hovermode: "closest",
+            margin: { l: 0, r: 0, b: 0, t: 40 },
+            paper_bgcolor: "rgba(0,0,0,0)",
+            plot_bgcolor: "rgba(0,0,0,0)",
+          }}
+          config={{
+            displayModeBar: true,
+            displaylogo: false,
+            responsive: true,
+          }}
+          style={{ width: "100%", height: "100%" }}
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          onClick={handlePlotClick as any}
+        />
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <RelationshipList
+          validEdges={validEdges}
+          selectedKey={selectedKey}
+          onSelect={setSelectedKey}
+        />
+        <RelationshipExplanationPanel
+          relationship={selectedEdge}
+          publication={data?.publication ?? null}
+          publicationId={data?.publication?.publication_id}
+        />
+      </div>
     </div>
   );
 }

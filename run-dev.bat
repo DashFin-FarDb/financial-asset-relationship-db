@@ -10,7 +10,6 @@ set "missing_vars="
 if "%DATABASE_URL%"=="" set "missing_vars=%missing_vars% DATABASE_URL"
 if "%SECRET_KEY%"=="" set "missing_vars=%missing_vars% SECRET_KEY"
 if "%ADMIN_USERNAME%"=="" set "missing_vars=%missing_vars% ADMIN_USERNAME"
-if "%ADMIN_PASSWORD%"=="" set "missing_vars=%missing_vars% ADMIN_PASSWORD"
 
 if not "%missing_vars%"=="" (
     echo.
@@ -22,7 +21,6 @@ if not "%missing_vars%"=="" (
     echo   set DATABASE_URL=sqlite:dev.db
     echo   set SECRET_KEY=replace-with-a-long-random-secret
     echo   set ADMIN_USERNAME=admin
-    echo   set ADMIN_PASSWORD=replace-with-a-strong-password
     echo.
     echo See README.md and .env.example for more details.
     exit /b 1

@@ -10,7 +10,11 @@ This module tests:
 """
 
 import os
+import secrets
+import subprocess  # nosec B404 - isolated test process, never production input
+import sys
 from datetime import datetime, timedelta, timezone
+from pathlib import Path
 from unittest.mock import Mock, patch
 
 import pytest
@@ -33,6 +37,30 @@ from api.auth import (
 from api.models import UserPublic
 
 UTC = timezone.utc
+
+
+def test_auth_module_import_performs_no_database_writes(tmp_path) -> None:
+    """Importing runtime authentication must not initialize or seed the database."""
+    database_path = tmp_path / "auth-import.db"
+    environment = {
+        **os.environ,
+        "DATABASE_URL": f"sqlite:///{database_path}",
+        "SECRET_KEY": secrets.token_urlsafe(32),
+        "ADMIN_USERNAME": "admin",
+    }
+    environment.pop("ADMIN_PASSWORD", None)
+
+    result = subprocess.run(  # noqa: S603  # nosec B603 - fixed interpreter and repository-owned import
+        [sys.executable, "-c", "import api.auth"],
+        check=False,
+        capture_output=True,
+        text=True,
+        env=environment,
+        cwd=Path(__file__).resolve().parents[2],
+    )
+
+    assert result.returncode == 0, result.stderr
+    assert not database_path.exists()
 
 
 class TestPasswordHashing:
@@ -1022,20 +1050,20 @@ class TestAuthenticationIntegrationFlow:
 
 
 class TestSeedCredentialsFromSettings:
-    """Test _seed_credentials_from_settings with explicit settings injection."""
+    """Test seed_credentials_from_settings with explicit settings injection."""
 
     def test_seed_credentials_from_settings_uses_settings_values(self):
         """Test that admin seed values can be supplied through Settings."""
-        from api.auth import _seed_credentials_from_settings
+        from api.auth import seed_credentials_from_settings
         from src.config.settings import Settings
 
         mock_repo = Mock(spec=UserRepository)
 
         with patch("api.auth.get_password_hash", return_value="hashed_adminpass"):
-            _seed_credentials_from_settings(
+            seed_credentials_from_settings(
                 mock_repo,
                 Settings(
-                    secret_key="secret",
+                    secret_key=secrets.token_urlsafe(32),
                     admin_username="admin",
                     admin_password="adminpass",
                     admin_email="admin@example.com",
@@ -1056,10 +1084,10 @@ class TestSeedCredentialsFromSettings:
 
     def test_seed_credentials_from_settings_skips_when_username_or_password_missing(self):
         """Test that incomplete admin settings do not seed a user."""
-        from api.auth import _seed_credentials_from_settings
+        from api.auth import seed_credentials_from_settings
         from src.config.settings import Settings
 
         mock_repo = Mock(spec=UserRepository)
 
-        _seed_credentials_from_settings(mock_repo, Settings(secret_key="secret"))
+        seed_credentials_from_settings(mock_repo, Settings(secret_key=secrets.token_urlsafe(32)))
         mock_repo.create_or_update_user.assert_not_called()
