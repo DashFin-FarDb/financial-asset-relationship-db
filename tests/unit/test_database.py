@@ -17,11 +17,25 @@ import sqlite3
 import tempfile
 import threading
 from collections.abc import Iterator
+from pathlib import Path
 from typing import Any
-from unittest.mock import Mock, patch
+from unittest.mock import MagicMock, Mock, patch
 
 import pytest
-from sqlalchemy import Column, Integer, String, create_engine
+from sqlalchemy import (
+    CheckConstraint,
+    Column,
+    ForeignKey,
+    Index,
+    Integer,
+    MetaData,
+    String,
+    Table,
+    UniqueConstraint,
+    create_engine,
+    event,
+    inspect,
+)
 from sqlalchemy.engine import Engine
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.pool import NullPool, StaticPool
@@ -37,14 +51,428 @@ from api.database import (
     get_connection,
 )
 from src.data.database import (
+    COORDINATION_RUNTIME_CAPABILITY,
     DEFAULT_DATABASE_URL,
+    GRAPH_RUNTIME_CAPABILITY,
     Base,
+    CapabilityRoleBootstrapRequiredError,
+    SchemaCompatibilityError,
+    _ensure_capability_role,
+    _normalize_check_definition,
+    _runtime_policy_specs,
+    _runtime_table_privileges,
+    _verify_runtime_capability_catalog,
+    _verify_table_constraints,
+    _verify_table_schema,
     configure_sqlite_engine,
     create_engine_from_url,
     create_session_factory,
+    ensure_runtime_database_capabilities,
     init_db,
     session_scope,
+    verify_database_schema,
+    verify_runtime_database_authority,
 )
+
+
+class _CatalogResult:
+    """Small SQLAlchemy result stand-in for catalog-verifier unit coverage."""
+
+    def __init__(self, *, scalar: object | None = None, rows: list[tuple] | None = None) -> None:
+        self._scalar = scalar
+        self._rows = rows or []
+
+    def scalar_one(self) -> object:
+        """Return the configured scalar value."""
+        return self._scalar
+
+    def all(self) -> list[tuple]:
+        """Return the configured catalog rows."""
+        return self._rows
+
+
+def test_capability_bootstrap_rejects_create_on_any_database_schema() -> None:
+    """Static bootstrap must inspect every schema rather than only the search path."""
+    bootstrap_sql = (Path(__file__).parents[2] / "scripts" / "bootstrap_database_capability_roles.sql").read_text(
+        encoding="utf-8"
+    )
+
+    assert "FROM pg_namespace AS namespace" in bootstrap_sql
+    assert "has_schema_privilege(role.oid, namespace.oid, 'CREATE')" in bootstrap_sql
+    assert "has_schema_privilege(role.oid, current_schema(), 'CREATE')" not in bootstrap_sql
+
+
+def test_graph_capability_preserves_grac_immutability_and_locking() -> None:
+    """GRAC grants allow inserts and row locks without a usable update path."""
+    from src.data.relationship_assertion_db_models import GRAC_TABLE_NAMES
+
+    capabilities = (GRAPH_RUNTIME_CAPABILITY,)
+    privileges = _runtime_table_privileges(capabilities)
+    policies = _runtime_policy_specs(capabilities)
+    for table_name in GRAC_TABLE_NAMES:
+        assert privileges[(GRAPH_RUNTIME_CAPABILITY, table_name)] == {"SELECT", "INSERT"}
+        assert policies[(table_name, "fardb_graph_lock_v1")] == ("w", "true", "false")
+
+
+def test_capability_role_requires_superuser_bootstrap_when_missing() -> None:
+    """Normal migration authority cannot create a missing cluster capability role."""
+    role_state = MagicMock()
+    role_state.one.return_value = (False, False)
+    connection = MagicMock()
+    connection.execute.return_value = role_state
+
+    with pytest.raises(
+        CapabilityRoleBootstrapRequiredError,
+        match="bootstrap_database_capability_roles.sql as a PostgreSQL superuser",
+    ):
+        _ensure_capability_role(connection, "fardb_runtime_graph")
+
+    connection.execute.assert_called_once()
+
+
+def test_capability_role_retains_superuser_fallback_creation() -> None:
+    """Disposable superuser setup may still create and strictly validate a missing role."""
+    role_state = MagicMock()
+    role_state.one.return_value = (False, True)
+    connection = MagicMock()
+    connection.execute.side_effect = [role_state, MagicMock()]
+
+    _ensure_capability_role(connection, "fardb_runtime_graph")
+
+    statement = str(connection.execute.call_args_list[1].args[0])
+    assert "CREATE ROLE ' || quote_ident(capability_role)" in statement
+    assert "rolname = CURRENT_USER" in statement
+    assert "rolsuper" in statement
+    assert "membership.roleid = role.oid AND membership.admin_option" in statement
+    assert "has_schema_privilege(role.oid, namespace.oid, 'CREATE')" in statement
+    assert "has_schema_privilege(role.oid, current_schema(), 'CREATE')" not in statement
+    assert "WITH RECURSIVE role_membership(member, roleid, member_is_superuser)" in statement
+    assert "JOIN pg_roles AS member_role ON member_role.oid = role_membership.roleid" in statement
+    assert "role_membership.member_is_superuser OR member_role.rolsuper" in statement
+    assert "SELECT COUNT(*) FROM pg_roles AS grantee WHERE grantee.rolcanlogin" in statement
+    assert "role_membership.roleid = role.oid)) > 1" in statement
+
+
+def test_runtime_capability_catalog_accepts_exact_graph_contract() -> None:  # noqa: C901
+    """The catalog verifier accepts the complete graph role, RLS, and grant matrix."""
+    from src.data import relationship_assertion_db_models  # noqa: F401
+    from src.data.relationship_assertion_db_models import GRAC_TABLE_NAMES
+
+    capabilities = (GRAPH_RUNTIME_CAPABILITY,)
+    role_name = "fardb_runtime_graph"
+    table_privileges = _runtime_table_privileges(capabilities)
+    policy_rows = [
+        (table_name, policy_name, command, True, role_name, using_expression, check_expression)
+        for (table_name, policy_name), (command, using_expression, check_expression) in _runtime_policy_specs(
+            capabilities
+        ).items()
+    ]
+    grac_tables = frozenset(GRAC_TABLE_NAMES)
+
+    def _execute(statement, parameters=None) -> _CatalogResult:
+        """Dispatch one expected catalog query to its configured result."""
+        sql = str(statement)
+        parameters = parameters or {}
+        if "COUNT(*) = 1 FROM pg_roles" in sql:
+            assert "has_schema_privilege(role.oid, namespace.oid, 'CREATE')" in sql
+            assert "rel.relowner = role.oid" in sql
+            assert "rel.relname IN" in sql
+            assert "rel.relkind = 'S'" in sql
+            assert "FROM pg_depend AS dependency" in sql
+            assert "dependency.objid = rel.oid" in sql
+            assert "dependency.deptype IN ('a', 'i')" in sql
+            assert "owning_table.relname IN" in sql
+            assert set(parameters["tables"]) == set(Base.metadata.tables)
+            assert set(parameters["sequence_tables"]) == set(parameters["tables"])
+            assert "membership.roleid = role.oid" in sql
+            assert "membership.admin_option" in sql
+            assert "WITH RECURSIVE role_membership(member, roleid, member_is_superuser)" in sql
+            assert "grantee.rolsuper" in sql
+            assert "to_jsonb(membership) ->> 'inherit_option'" in sql
+            assert "to_jsonb(membership) ->> 'set_option'" in sql
+            assert sql.count("::boolean, TRUE)") == 4
+            assert "OR grantee.rolsuper" in sql
+            assert "JOIN pg_roles AS member_role ON member_role.oid = role_membership.roleid" in sql
+            assert "membership.member = role_membership.roleid" in sql
+            assert "OR role_membership.member_is_superuser OR member_role.rolsuper" in sql
+            assert "SELECT COUNT(*) FROM pg_roles AS grantee" in sql
+            assert "role_membership.member = grantee.oid" in sql
+            assert "role_membership.roleid = role.oid" in sql
+            assert ") <= 1" in sql
+            return _CatalogResult(scalar=True)
+        if "has_schema_privilege(:role_name" in sql:
+            assert "has_schema_privilege(:role_name, namespace.oid, 'CREATE')" in sql
+            return _CatalogResult(scalar=True)
+        if "SELECT COUNT(*) FROM pg_class" in sql:
+            return _CatalogResult(scalar=len(Base.metadata.tables))
+        if "FROM pg_policy AS policy" in sql:
+            return _CatalogResult(rows=policy_rows)
+        if "has_table_privilege" in sql:
+            rows: list[tuple] = []
+            for requested_role in parameters["role_names"]:
+                for table_name in parameters["table_names"]:
+                    expected = table_privileges.get((GRAPH_RUNTIME_CAPABILITY, table_name), frozenset())
+                    rows.extend(
+                        (requested_role, table_name, privilege, privilege in expected)
+                        for privilege in parameters["privileges"]
+                    )
+            return _CatalogResult(rows=rows)
+        if "has_column_privilege" in sql:
+            rows = []
+            columns = list(zip(parameters["column_tables"], parameters["column_names"], strict=True))
+            for requested_role in parameters["role_names"]:
+                for table_name, column_name in columns:
+                    expected = table_privileges.get((GRAPH_RUNTIME_CAPABILITY, table_name), frozenset())
+                    for privilege in parameters["privileges"]:
+                        lock_column_update = privilege == "UPDATE" and table_name in grac_tables and column_name == "id"
+                        rows.append(
+                            (
+                                requested_role,
+                                table_name,
+                                column_name,
+                                privilege,
+                                privilege in expected or lock_column_update,
+                            )
+                        )
+            return _CatalogResult(rows=rows)
+        if "has_sequence_privilege" in sql:
+            rows = []
+            sequences = list(zip(parameters["table_names"], parameters["column_names"], strict=True))
+            for requested_role in parameters["role_names"]:
+                for table_name, column_name in sequences:
+                    rows.extend(
+                        [
+                            (
+                                requested_role,
+                                table_name,
+                                column_name,
+                                f"{table_name}_{column_name}_seq",
+                                privilege,
+                                privilege in {"USAGE", "SELECT"},
+                            )
+                            for privilege in parameters["privileges"]
+                        ]
+                    )
+            return _CatalogResult(rows=rows)
+        raise AssertionError(f"unexpected catalog query: {sql}")
+
+    connection = MagicMock()
+    connection.execute.side_effect = _execute
+
+    _verify_runtime_capability_catalog(connection, capabilities)
+
+    assert connection.execute.call_count == 7
+
+
+def test_runtime_capability_provisioning_applies_exact_matrix(monkeypatch) -> None:
+    """Provisioning must reset and recreate the complete graph/coordination matrix."""
+    from src.data import relationship_assertion_db_models  # noqa: F401
+
+    result = MagicMock()
+    result.scalars.return_value.all.return_value = []
+    connection = MagicMock()
+    connection.execute.return_value = result
+    transaction = MagicMock()
+    transaction.__enter__.return_value = connection
+    engine = MagicMock()
+    engine.url = "postgresql://operator@database.invalid/fardb"
+    engine.begin.return_value = transaction
+    ensure_role = MagicMock()
+    monkeypatch.setattr("src.data.database._ensure_capability_role", ensure_role)
+
+    ensure_runtime_database_capabilities(
+        engine,
+        {GRAPH_RUNTIME_CAPABILITY, COORDINATION_RUNTIME_CAPABILITY},
+    )
+
+    statements = [str(call.args[0]) for call in connection.execute.call_args_list]
+    assert any("ALTER TABLE assets ENABLE ROW LEVEL SECURITY" in statement for statement in statements)
+    assert any("REVOKE ALL PRIVILEGES ON SEQUENCE" in statement for statement in statements)
+    assert any("GRANT UPDATE (id) ON TABLE relationship_assertions" in statement for statement in statements)
+    assert any("GRANT USAGE, SELECT ON SEQUENCE" in statement for statement in statements)
+    assert any("CREATE POLICY fardb_graph_select_v1" in statement for statement in statements)
+    assert any("CREATE POLICY fardb_coordination_select_v1" in statement for statement in statements)
+    assert ensure_role.call_count == 2
+
+
+def test_runtime_capability_provisioning_rejects_unknown_policy() -> None:
+    """Provisioning must fail before mutation when a managed table has an unknown policy."""
+    result = MagicMock()
+    result.scalars.return_value.all.return_value = ["assets.unmanaged_policy"]
+    connection = MagicMock()
+    connection.execute.return_value = result
+    transaction = MagicMock()
+    transaction.__enter__.return_value = connection
+    engine = MagicMock()
+    engine.url = "postgresql://operator@database.invalid/fardb"
+    engine.begin.return_value = transaction
+
+    with pytest.raises(SchemaCompatibilityError, match="assets.unmanaged_policy"):
+        ensure_runtime_database_capabilities(engine, {GRAPH_RUNTIME_CAPABILITY})
+
+    connection.execute.assert_called_once()
+
+
+@pytest.mark.parametrize(
+    ("checkpoint", "error_match"),
+    [
+        ("unsafe-role", "unsafe or missing runtime capability role"),
+        ("schema-grants", "runtime schema grants"),
+        ("rls-disabled", "row-level security enabled"),
+        ("policy-mismatch", "RLS policy catalog"),
+    ],
+)
+def test_runtime_capability_catalog_rejects_early_contract_mismatches(checkpoint: str, error_match: str) -> None:
+    """Each early catalog mismatch fails with its bounded compatibility error."""
+    from src.data import relationship_assertion_db_models  # noqa: F401
+
+    catalog_results = {
+        "unsafe-role": [_CatalogResult(scalar=False)],
+        "schema-grants": [_CatalogResult(scalar=True), _CatalogResult(scalar=False)],
+        "rls-disabled": [
+            _CatalogResult(scalar=True),
+            _CatalogResult(scalar=True),
+            _CatalogResult(scalar=len(Base.metadata.tables) - 1),
+        ],
+        "policy-mismatch": [
+            _CatalogResult(scalar=True),
+            _CatalogResult(scalar=True),
+            _CatalogResult(scalar=len(Base.metadata.tables)),
+            _CatalogResult(rows=[]),
+        ],
+    }[checkpoint]
+    connection = MagicMock()
+    connection.execute.side_effect = catalog_results
+
+    with pytest.raises(SchemaCompatibilityError, match=error_match):
+        _verify_runtime_capability_catalog(connection, (GRAPH_RUNTIME_CAPABILITY,))
+
+
+@pytest.mark.parametrize(
+    "missing_invariant, error_match",
+    [
+        ("primary_key", "primary-key"),
+        ("unique", "uniqueness"),
+        ("foreign_key", "foreign-key"),
+    ],
+)
+def test_table_constraint_verifier_rejects_missing_invariants(missing_invariant: str, error_match: str) -> None:
+    """Runtime verification must cover PK, exact uniqueness, and FK contracts."""
+    metadata = MetaData()
+    Table("parent", metadata, Column("id", Integer, primary_key=True))
+    child = Table(
+        "child",
+        metadata,
+        Column("id", Integer, primary_key=True),
+        Column("code", String),
+        Column("parent_id", ForeignKey("parent.id")),
+        UniqueConstraint("code"),
+    )
+    inspector = MagicMock()
+    inspector.get_pk_constraint.return_value = {"constrained_columns": ["id"]}
+    inspector.get_unique_constraints.return_value = [{"column_names": ["code"]}]
+    inspector.get_foreign_keys.return_value = [
+        {
+            "constrained_columns": ["parent_id"],
+            "referred_table": "parent",
+            "referred_columns": ["id"],
+        }
+    ]
+    if missing_invariant == "primary_key":
+        inspector.get_pk_constraint.return_value = {"constrained_columns": []}
+    elif missing_invariant == "unique":
+        inspector.get_unique_constraints.return_value = []
+    else:
+        inspector.get_foreign_keys.return_value = []
+
+    with pytest.raises(SchemaCompatibilityError, match=error_match):
+        _verify_table_constraints(inspector, "child", child)
+
+
+def test_check_normalization_accepts_postgresql_any_rendering() -> None:
+    """PostgreSQL deparsing should preserve an equivalent literal status domain."""
+    expected = "status IN ('pending', 'running', 'cancelled')"
+    reflected = (
+        "CHECK (((status)::text = ANY ((ARRAY['running'::character varying, "
+        "'cancelled'::character varying, 'pending'::character varying])::text[])))"
+    )
+    assert _normalize_check_definition(reflected) == _normalize_check_definition(expected)
+
+
+def test_check_normalization_preserves_boolean_grouping() -> None:
+    """Constraint comparison must not erase parentheses that change precedence."""
+    grouped = "CHECK ((a = 1 OR b = 1) AND c = 1)"
+    ungrouped = "CHECK (a = 1 OR b = 1 AND c = 1)"
+    assert _normalize_check_definition(grouped) != _normalize_check_definition(ungrouped)
+
+
+@pytest.mark.parametrize(
+    ("left", "right"),
+    [
+        ("CHECK (code = 'A')", "CHECK (code = 'a')"),
+        ("CHECK (\"Code\" = 'A')", "CHECK (\"code\" = 'A')"),
+        ("CHECK (code = 'A''B')", "CHECK (code = 'a''b')"),
+    ],
+)
+def test_check_normalization_preserves_quoted_token_case(left: str, right: str) -> None:
+    """Case-sensitive literals and quoted identifiers must remain distinct."""
+    assert _normalize_check_definition(left) != _normalize_check_definition(right)
+
+
+def test_check_normalization_accepts_equivalent_lowercase_quoted_identifier() -> None:
+    """A quoted lowercase identifier should match its PostgreSQL unquoted form."""
+    assert _normalize_check_definition("CHECK (\"code\" = 'A')") == _normalize_check_definition("CHECK (code = 'A')")
+
+
+def test_check_normalization_does_not_rewrite_literal_sql_syntax() -> None:
+    """Operator, cast, and BETWEEN text inside a literal must remain opaque."""
+    literal = "'A::TEXT ~~ BETWEEN X AND Y'"
+    assert literal in _normalize_check_definition(f"CHECK (label = {literal})")
+
+
+@pytest.mark.parametrize(
+    ("mismatch", "error_match"),
+    [("check", "incompatible constraints"), ("index", "incompatible indexes")],
+)
+def test_table_schema_rejects_same_named_definition_drift(
+    mismatch: str,
+    error_match: str,
+    isolated_base,
+) -> None:
+    """Names alone must not admit changed CHECK predicates or index properties."""
+
+    class ContractModel(isolated_base):  # type: ignore[misc]
+        """Isolated schema contract for reflected-definition checks."""
+
+        __tablename__ = "definition_contract"
+        __table_args__ = (
+            CheckConstraint("value >= 0", name="ck_definition_contract_value"),
+            Index("ix_definition_contract_value", "value"),
+        )
+        id = Column(Integer, primary_key=True)
+        value = Column(Integer)
+
+    inspector = MagicMock()
+    inspector.get_columns.return_value = [{"name": "id"}, {"name": "value"}]
+    inspector.get_check_constraints.return_value = [
+        {
+            "name": "ck_definition_contract_value",
+            "sqltext": "value >= 1" if mismatch == "check" else "value >= 0",
+        }
+    ]
+    inspector.get_indexes.return_value = [
+        {
+            "name": "ix_definition_contract_value",
+            "column_names": ["id" if mismatch == "index" else "value"],
+            "unique": False,
+        }
+    ]
+    inspector.get_pk_constraint.return_value = {"constrained_columns": ["id"]}
+    inspector.get_unique_constraints.return_value = []
+    inspector.get_foreign_keys.return_value = []
+
+    with pytest.raises(SchemaCompatibilityError, match=error_match):
+        _verify_table_schema(inspector, ContractModel.__tablename__)
 
 
 @pytest.fixture(autouse=True)
@@ -232,9 +660,7 @@ class TestDatabaseInitialization:
     """Tests for database initialization and schema creation."""
 
     def test_init_db_creates_tables(self, engine: Engine, isolated_base) -> None:
-        """
-        Verifies that init_db creates tables for models registered on the provided declarative base.
-        """
+        """Verify that init_db creates registered model tables."""
 
         class TestModel(isolated_base):  # type: ignore[misc]  # pylint: disable=redefined-outer-name
             """Test model for verifying table creation functionality."""
@@ -246,8 +672,6 @@ class TestDatabaseInitialization:
         _assert_model_registered(TestModel, "test_model")
 
         init_db(engine)
-
-        from sqlalchemy import inspect  # noqa: PLC0415
 
         inspector = inspect(engine)
         assert "test_model" in inspector.get_table_names()  # nosec B101
@@ -265,8 +689,6 @@ class TestDatabaseInitialization:
 
         init_db(engine)
         init_db(engine)
-
-        from sqlalchemy import inspect  # noqa: PLC0415
 
         inspector = inspect(engine)
         assert "test_idempotent" in inspector.get_table_names()  # nosec B101
@@ -315,6 +737,97 @@ class TestDatabaseInitialization:
         apply_postgres_migration.assert_called_once_with(engine)
         apply_sqlite_migrations.assert_not_called()
         ensure_grac.assert_called_once_with(engine)
+
+    def test_runtime_verifier_accepts_initialized_schema(self, engine: Engine) -> None:
+        """Explicit migration output should satisfy the read-only runtime verifier."""
+        init_db(engine)
+
+        verify_database_schema(engine)
+
+    def test_runtime_verifier_fails_without_creating_schema(self, tmp_path) -> None:
+        """An empty runtime database should fail closed and remain empty."""
+        empty_engine = create_engine_from_url(f"sqlite:///{tmp_path / 'empty-runtime.db'}")
+        try:
+            with pytest.raises(SchemaCompatibilityError, match="missing required tables"):
+                verify_database_schema(empty_engine)
+
+            assert inspect(empty_engine).get_table_names() == []
+        finally:
+            empty_engine.dispose()
+
+    def test_runtime_verifier_supports_query_only_cold_start_and_restart(self, tmp_path) -> None:
+        """A migrated SQLite database verifies twice with persistent writes prohibited."""
+        database_url = f"sqlite:///{tmp_path / 'query-only-runtime.db'}"
+        migration_engine = create_engine_from_url(database_url)
+        init_db(migration_engine)
+        migration_engine.dispose()
+
+        def _make_query_only(dbapi_connection, _connection_record) -> None:
+            """Force each runtime connection into SQLite query-only mode."""
+            cursor = dbapi_connection.cursor()
+            cursor.execute("PRAGMA query_only=ON")
+            cursor.close()
+
+        for _restart in range(2):
+            runtime_engine = create_engine_from_url(database_url)
+            event.listen(runtime_engine, "connect", _make_query_only)
+
+            try:
+                verify_database_schema(runtime_engine)
+                with runtime_engine.connect() as connection:
+                    assert connection.exec_driver_sql("PRAGMA query_only").scalar_one() == 1
+            finally:
+                runtime_engine.dispose()
+
+    @pytest.mark.parametrize("restricted", [False, True], ids=["privileged", "restricted"])
+    def test_postgresql_runtime_authority_posture(self, restricted: bool) -> None:
+        """PostgreSQL runtime authority must reject privileged and accept restricted roles."""
+        runtime_engine = Mock(spec=Engine)
+        runtime_engine.url = "postgresql://runtime:secret@database.invalid/fardb"
+        connection = MagicMock()
+        connection.execute.return_value.scalar_one.return_value = restricted
+        runtime_engine.connect.return_value.__enter__ = MagicMock(return_value=connection)
+        runtime_engine.connect.return_value.__exit__ = MagicMock(return_value=False)
+
+        with (
+            patch("src.data.database._verify_runtime_login_relation_grants") as verify_relation_grants,
+            patch("src.data.database._verify_runtime_login_sequence_grants") as verify_sequence_grants,
+        ):
+            if not restricted:
+                with pytest.raises(SchemaCompatibilityError, match="retains schema-migration authority"):
+                    verify_runtime_database_authority(runtime_engine)
+                return
+
+            connection.execute.return_value.scalars.return_value.all.return_value = []
+            verify_runtime_database_authority(runtime_engine)
+
+        verify_relation_grants.assert_called_once_with(connection, ())
+        verify_sequence_grants.assert_called_once_with(connection, ())
+        restricted_query = str(connection.execute.call_args_list[0].args[0])
+        membership_query = str(connection.execute.call_args_list[1].args[0])
+        assert "current_schema() IS NOT NULL" in restricted_query
+        assert "login.rolname = session_user" in restricted_query
+        assert "pg_has_role(login.oid, assumable.oid, 'USAGE')" in restricted_query
+        assert "pg_has_role(login.oid, assumable.oid, 'SET')" in restricted_query
+        assert "ELSE pg_has_role(login.oid, assumable.oid, 'MEMBER') END" in restricted_query
+        assert "has_database_privilege(assumable.oid, current_database(), 'CREATE')" in restricted_query
+        assert "has_schema_privilege(assumable.oid, namespace.oid, 'CREATE')" in restricted_query
+        assert "namespace.nspowner = assumable.oid" in restricted_query
+        assert "database.datdba = assumable.oid" in restricted_query
+        assert "pg_has_role(login.oid, assumable.oid, 'USAGE')" in membership_query
+        assert "pg_has_role(login.oid, assumable.oid, 'SET')" in membership_query
+        assert "ELSE pg_has_role(login.oid, assumable.oid, 'MEMBER') END" in membership_query
+        assert "assumable.oid <> login.oid" in membership_query
+
+    def test_postgresql_runtime_authority_rejects_unknown_capability_as_caller_error(self) -> None:
+        """Unknown capability names must not be sanitized as database failures."""
+        runtime_engine = Mock(spec=Engine)
+        runtime_engine.url = "postgresql://runtime@database.invalid/fardb"
+
+        with pytest.raises(ValueError, match="unknown runtime database capabilities"):
+            verify_runtime_database_authority(runtime_engine, required_capabilities={"unknown"})
+
+        runtime_engine.connect.assert_not_called()
 
 
 # ---------------------------------------------------------------------------

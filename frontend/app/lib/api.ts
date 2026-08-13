@@ -3,9 +3,13 @@ import type { AxiosRequestConfig } from "axios";
 import type {
   Asset,
   AssetPageResponse,
+  AssertionAsOfParams,
+  AssertionExplanation,
+  AssertionHistory,
   Relationship,
   Metrics,
   VisualizationData,
+  PublishedEdgeExplanationResponse,
 } from "../types/api";
 
 const envUrl = process.env.NEXT_PUBLIC_API_URL;
@@ -30,8 +34,43 @@ async function getData<T>(
   path: string,
   config?: AxiosRequestConfig,
 ): Promise<T> {
-  const response = config ? await apiClient.get<T>(path, config) : await apiClient.get<T>(path);
+  const response = config
+    ? await apiClient.get<T>(path, config)
+    : await apiClient.get<T>(path);
   return response.data;
+}
+
+/**
+ * Fetch a governed assertion read model (explanation or history) at the given
+ * bitemporal path, forwarding identical `known_at`/`effective_at` bounds so
+ * that callers can request both endpoints against the same as-of snapshot.
+ */
+function getAssertionResource<T>(
+  assertionId: string,
+  resourcePath: "" | "/history",
+  params?: AssertionAsOfParams,
+  signal?: AbortSignal,
+): Promise<T> {
+  return getData<T>(
+    `/api/assertions/${encodeURIComponent(assertionId)}${resourcePath}`,
+    { params, signal },
+  );
+}
+
+/**
+ * Build a single-purpose fetcher bound to one governed-assertion resource
+ * path (the explanation itself, or its history). Generating both
+ * `getAssertion`/`getAssertionHistory` from this one factory -- rather than
+ * hand-writing two structurally identical wrapper functions -- keeps there
+ * from being two near-duplicate function bodies to maintain in parallel.
+ */
+function makeAssertionFetcher<T>(resourcePath: "" | "/history") {
+  return (
+    assertionId: string,
+    params?: AssertionAsOfParams,
+    signal?: AbortSignal,
+  ): Promise<T> =>
+    getAssertionResource<T>(assertionId, resourcePath, params, signal);
 }
 
 export const api = {
@@ -53,26 +92,26 @@ export const api = {
     return getData<AssetPageResponse>("/api/assets", { params, signal });
   },
 
-  getAssetDetail: (
-    assetId: string,
-    signal?: AbortSignal,
-  ): Promise<Asset> => {
-    return getData<Asset>(`/api/assets/${encodeURIComponent(assetId)}`, { signal });
+  getAssetDetail: (assetId: string, signal?: AbortSignal): Promise<Asset> => {
+    return getData<Asset>(`/api/assets/${encodeURIComponent(assetId)}`, {
+      signal,
+    });
   },
 
   getAssetRelationships: (
     assetId: string,
     signal?: AbortSignal,
   ): Promise<Relationship[]> => {
-    return getData<Relationship[]>(`/api/assets/${encodeURIComponent(assetId)}/relationships`, {
-      signal,
-    });
+    return getData<Relationship[]>(
+      `/api/assets/${encodeURIComponent(assetId)}/relationships`,
+      {
+        signal,
+      },
+    );
   },
 
   // Relationships
-  getAllRelationships: (
-    signal?: AbortSignal,
-  ): Promise<Relationship[]> => {
+  getAllRelationships: (signal?: AbortSignal): Promise<Relationship[]> => {
     return getData<Relationship[]>("/api/relationships", { signal });
   },
 
@@ -82,9 +121,7 @@ export const api = {
   },
 
   // Visualization
-  getVisualizationData: (
-    signal?: AbortSignal,
-  ): Promise<VisualizationData> => {
+  getVisualizationData: (signal?: AbortSignal): Promise<VisualizationData> => {
     return getData<VisualizationData>("/api/visualization", { signal });
   },
 
@@ -95,5 +132,26 @@ export const api = {
 
   getSectors: (): Promise<{ sectors: string[] }> => {
     return getData<{ sectors: string[] }>("/api/sectors");
+  },
+
+  // Governed assertion explanation (GRAC v1)
+  //
+  // Callers should capture a single `known_at`/`effective_at` pair and pass
+  // it to both calls below, so the explanation and history are resolved
+  // against the same as-of snapshot rather than two independent server
+  // "now" defaults.
+  getAssertion: makeAssertionFetcher<AssertionExplanation>(""),
+
+  getAssertionHistory: makeAssertionFetcher<AssertionHistory>("/history"),
+
+  getPublishedEdgeExplanation: (
+    publicationId: string,
+    projectionEdgeId: string,
+    signal?: AbortSignal,
+  ): Promise<PublishedEdgeExplanationResponse> => {
+    return getData<PublishedEdgeExplanationResponse>(
+      `/api/publications/${encodeURIComponent(publicationId)}/edges/${encodeURIComponent(projectionEdgeId)}/explanation`,
+      { signal },
+    );
   },
 };

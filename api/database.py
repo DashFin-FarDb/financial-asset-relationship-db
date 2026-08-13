@@ -15,10 +15,10 @@ parameters argument and must not be interpolated into SQL strings.
 The module handles two parameter placeholder styles:
 
 1. SQLite: Uses '?' placeholders (qmark style)
-   Example: "SELECT * FROM users WHERE id = ?"
+    Example: "SELECT * FROM users WHERE id = ?"
 
 2. PostgreSQL: Uses '%s' placeholders (format style, per DB-API 2.0 standard via psycopg2)
-   Example: "SELECT * FROM users WHERE id = %s"
+    Example: "SELECT * FROM users WHERE id = %s"
 
 For the limited set of internal queries used in this module and api/auth.py, the module
 converts '?' placeholders to '%s' when using PostgreSQL. This conversion is intentionally
@@ -43,12 +43,126 @@ import atexit
 import sqlite3
 import threading
 from collections.abc import Iterator
-from contextlib import contextmanager
+from contextlib import contextmanager, suppress
+from contextvars import ContextVar
 from pathlib import Path
 from typing import Any
 from urllib.parse import unquote, urlparse
 
 from src.config.settings import get_settings
+from src.data.database import CapabilityRoleBootstrapRequiredError, SchemaCompatibilityError
+from src.data.runtime_role_membership import USABLE_ROLE_MEMBERSHIP_CTE_SQL
+
+AUTH_RUNTIME_ROLE = "fardb_runtime_auth"
+_POSTGRES_CONNECT_TIMEOUT_SECONDS = 10
+_POSTGRES_STATEMENT_TIMEOUT_MILLISECONDS = 15_000
+
+
+class _PostgresOperationGuard:
+    """Track and cancel PostgreSQL connections owned by one bounded operation."""
+
+    def __init__(self) -> None:
+        """Create an empty, active operation guard."""
+        self._cancelled = threading.Event()
+        self._connections: set[Any] = set()
+        self._lock = threading.Lock()
+
+    def register(self, connection: Any) -> None:
+        """Track a connection or reject it when cancellation already won the race."""
+        with self._lock:
+            if self._cancelled.is_set():
+                connection.close()
+                raise RuntimeError("PostgreSQL operation was cancelled")
+            self._connections.add(connection)
+
+    def unregister(self, connection: Any) -> None:
+        """Stop tracking a connection after its normal context-manager cleanup."""
+        with self._lock:
+            self._connections.discard(connection)
+
+    def cancel(self) -> None:
+        """Cancel and close every active connection without exposing driver details."""
+        with self._lock:
+            self._cancelled.set()
+            connections = tuple(self._connections)
+            self._connections.clear()
+        for connection in connections:
+            with suppress(Exception):
+                connection.cancel()
+            with suppress(Exception):
+                connection.close()
+
+
+_POSTGRES_OPERATION_GUARD = ContextVar[_PostgresOperationGuard | None](
+    "postgres_operation_guard",
+    default=None,
+)
+
+
+@contextmanager
+def _bind_postgres_operation_guard(guard: _PostgresOperationGuard) -> Iterator[None]:
+    """Bind a cancellation guard to database helpers in the current worker context."""
+    token = _POSTGRES_OPERATION_GUARD.set(guard)
+    try:
+        yield
+    finally:
+        _POSTGRES_OPERATION_GUARD.reset(token)
+
+
+_AUTH_SAFE_ROLE_SQL = "".join(
+    (
+        "SELECT COUNT(*) = 1 FROM pg_roles AS role WHERE role.rolname = %s "
+        "AND NOT role.rolcanlogin AND NOT role.rolsuper AND NOT role.rolcreatedb "
+        "AND NOT role.rolcreaterole AND NOT role.rolbypassrls AND NOT role.rolreplication "
+        "AND NOT has_database_privilege(role.oid, current_database(), 'CREATE') "
+        "AND NOT EXISTS (SELECT 1 FROM pg_namespace AS namespace "
+        "WHERE has_schema_privilege(role.oid, namespace.oid, 'CREATE')) "
+        "AND NOT EXISTS (SELECT 1 FROM pg_auth_members AS membership WHERE membership.member = role.oid) "
+        "AND NOT EXISTS (SELECT 1 FROM pg_auth_members AS membership "
+        "WHERE membership.roleid = role.oid AND membership.admin_option) "
+        "AND NOT EXISTS (",
+        USABLE_ROLE_MEMBERSHIP_CTE_SQL,
+        "SELECT 1 FROM pg_roles AS grantee "
+        "WHERE grantee.rolcanlogin AND grantee.rolname <> session_user "
+        "AND EXISTS (SELECT 1 FROM role_membership WHERE role_membership.member = grantee.oid "
+        "AND role_membership.roleid = role.oid))",
+    )
+)
+_AUTH_CAPABILITY_ROLE_DDL = "".join(
+    (
+        "DO $fardb$ BEGIN "
+        "IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'fardb_runtime_auth') THEN "
+        "IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = CURRENT_USER AND rolsuper) THEN "
+        "RAISE EXCEPTION 'required PostgreSQL capability role fardb_runtime_auth is missing; run "
+        "scripts/bootstrap_database_capability_roles.sql as a PostgreSQL superuser before the normal ",
+        "database migration'; ",
+        "END IF; "
+        "CREATE ROLE fardb_runtime_auth NOLOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOBYPASSRLS NOREPLICATION; "
+        "END IF; "
+        "IF EXISTS (SELECT 1 FROM pg_roles AS role WHERE role.rolname = 'fardb_runtime_auth' "
+        "AND (role.rolcanlogin OR role.rolsuper OR role.rolcreatedb OR role.rolcreaterole "
+        "OR role.rolbypassrls OR role.rolreplication "
+        "OR has_database_privilege(role.oid, current_database(), 'CREATE') "
+        "OR EXISTS (SELECT 1 FROM pg_namespace AS namespace "
+        "WHERE has_schema_privilege(role.oid, namespace.oid, 'CREATE')) "
+        "OR EXISTS (SELECT 1 FROM pg_database AS database "
+        "WHERE database.datname = current_database() AND database.datdba = role.oid) "
+        "OR EXISTS (SELECT 1 FROM pg_namespace AS namespace "
+        "WHERE namespace.nspname = current_schema() AND namespace.nspowner = role.oid) "
+        "OR EXISTS (SELECT 1 FROM pg_class AS rel "
+        "JOIN pg_namespace AS namespace ON namespace.oid = rel.relnamespace "
+        "WHERE namespace.nspname = current_schema() AND rel.relkind IN ('r', 'p', 'S') "
+        "AND rel.relowner = role.oid) "
+        "OR EXISTS (SELECT 1 FROM pg_auth_members AS membership WHERE membership.member = role.oid) "
+        "OR EXISTS (SELECT 1 FROM pg_auth_members AS membership "
+        "WHERE membership.roleid = role.oid AND membership.admin_option) OR (",
+        USABLE_ROLE_MEMBERSHIP_CTE_SQL,
+        "SELECT COUNT(*) FROM pg_roles AS grantee "
+        "WHERE grantee.rolcanlogin AND EXISTS (SELECT 1 FROM role_membership "
+        "WHERE role_membership.member = grantee.oid AND role_membership.roleid = role.oid)) > 1)) THEN "
+        "RAISE EXCEPTION 'unsafe FarDB capability role: fardb_runtime_auth'; END IF; END $fardb$",
+    )
+)
 
 
 def _is_postgres_url(url: str) -> bool:
@@ -166,7 +280,7 @@ def _resolve_file_path(path: str) -> str:
     - Absolute paths starting with a single leading slash (e.g., "/foo") are resolved as-is.
     - UNC-like paths starting with two leading slashes (e.g., "//server/path") drop the first slash and are resolved.
     - Rootless or relative-looking paths have any leading slashes removed and are resolved
-      relative to the current working directory.
+        relative to the current working directory.
 
     Parameters:
         path (str): Normalized SQLite path component; may be absolute ("/..."), UNC-like ("//..."), or rootless.
@@ -236,13 +350,22 @@ _MEMORY_CONNECTION_MANAGER: _DatabaseConnectionManager | None = None
 _MEMORY_CONNECTION_LOCK = threading.Lock()
 # Separate reentrant lock used to serialize concurrent use of the shared in-memory connection.
 _MEMORY_USE_LOCK = threading.RLock()
+_DATABASE_BINDING_LOCK = threading.RLock()
+_CREDENTIAL_COLUMNS = ("id", "username", "email", "full_name", "hashed_password", "disabled")
+_CREDENTIAL_COLUMN_SET = frozenset(_CREDENTIAL_COLUMNS)
+_POSTGRES_CREDENTIAL_COLUMN_NAMES_SQL = (
+    "SELECT string_agg(column_name, ',' ORDER BY column_name) "
+    "FROM information_schema.columns "
+    "WHERE table_schema = current_schema() AND table_name = 'user_credentials'"
+)
+_SQLITE_CREDENTIAL_COLUMN_NAMES_SQL = "SELECT group_concat(name, ',') FROM pragma_table_info('user_credentials')"
 
 
 def _is_memory_db(path: str | None = None) -> bool:
     """
     Determine whether a SQLite database path denotes an in-memory database.
 
-    If `path` is omitted, the configured `DATABASE_PATH` is evaluated. The function treats the
+    If `path` is omitted, the configured ``DATABASE_PATH`` is evaluated. The function treats the
     literal ":memory:" and file-style URIs whose path component is exactly ":memory:" (for
     example, "file::memory:" or "file::memory:?cache=shared") as in-memory targets. It does not
     treat file URIs where ":memory:" appears as part of a filesystem path or URIs that use
@@ -266,7 +389,7 @@ def _is_memory_db(path: str | None = None) -> bool:
     return parsed.scheme == "file" and (parsed.path == ":memory:" or ":memory:" in parsed.query)
 
 
-def _create_postgres_connection():
+def _create_postgres_connection(*, statement_timeout_milliseconds: int | None = None):
     """
     Create a PostgreSQL database connection using psycopg2.
 
@@ -285,7 +408,10 @@ def _create_postgres_connection():
             "psycopg2-binary is required for PostgreSQL support. Install it with: pip install psycopg2-binary"
         ) from exc
 
-    conn = psycopg2.connect(DATABASE_URL)
+    connection_options: dict[str, Any] = {"connect_timeout": _POSTGRES_CONNECT_TIMEOUT_SECONDS}
+    if statement_timeout_milliseconds is not None:
+        connection_options["options"] = f"-c statement_timeout={statement_timeout_milliseconds}"
+    conn = psycopg2.connect(DATABASE_URL, **connection_options)
     return conn
 
 
@@ -365,6 +491,64 @@ class _DatabaseConnectionManager:
 
 
 _db_manager = _DatabaseConnectionManager(DATABASE_PATH)
+
+
+def _resolve_database_target(url: str) -> tuple[str, str]:
+    """Resolve an explicit API URL to its backend and connection target."""
+    if _is_postgres_url(url):
+        return "postgresql", url
+    if _is_sqlite_url(url):
+        return "sqlite", _resolve_sqlite_path(url)
+    raise ValueError(
+        f"Unsupported database URL scheme: {urlparse(url).scheme or '<empty>'}. "
+        "Supported schemes are: sqlite:, postgresql://, postgres://"
+    )
+
+
+@contextmanager
+def bind_database_url(url: str) -> Iterator[None]:
+    """Bind API database helpers to an explicit operator-command target.
+
+    This process-local binding exists for the single-threaded migration command;
+    normal application runtime continues to use its import-time stable target.
+    The previous target and any pre-existing in-memory connection are restored.
+    """
+    global DATABASE_URL, DATABASE_TYPE, DATABASE_PATH, _db_manager  # skipcq: PYL-W0603
+    global _MEMORY_CONNECTION, _MEMORY_CONNECTION_MANAGER  # skipcq: PYL-W0603
+
+    database_type, database_path = _resolve_database_target(url)
+    with _DATABASE_BINDING_LOCK:
+        previous = (
+            DATABASE_URL,
+            DATABASE_TYPE,
+            DATABASE_PATH,
+            _db_manager,
+            _MEMORY_CONNECTION,
+            _MEMORY_CONNECTION_MANAGER,
+        )
+        DATABASE_URL = url
+        DATABASE_TYPE = database_type
+        DATABASE_PATH = database_path
+        _db_manager = _DatabaseConnectionManager(database_path)
+        _MEMORY_CONNECTION = None
+        _MEMORY_CONNECTION_MANAGER = None
+        try:
+            yield
+        finally:
+            target_manager = _db_manager
+            target_connection = _MEMORY_CONNECTION
+            target_manager_connection = getattr(target_manager, "_memory_connection", None)
+            if target_connection is not None and target_connection is not target_manager_connection:
+                target_connection.close()
+            target_manager.close_shared_connection()
+            (
+                DATABASE_URL,
+                DATABASE_TYPE,
+                DATABASE_PATH,
+                _db_manager,
+                _MEMORY_CONNECTION,
+                _MEMORY_CONNECTION_MANAGER,
+            ) = previous
 
 
 def _close_memory_connection_cache() -> None:
@@ -480,10 +664,20 @@ def get_connection() -> Iterator[Any]:
     """
     if DATABASE_TYPE == "postgresql":
         # PostgreSQL: create new connection, close on exit
-        connection = _create_postgres_connection()
+        operation_guard = _POSTGRES_OPERATION_GUARD.get()
+        if operation_guard is None:
+            connection = _create_postgres_connection()
+        else:
+            connection = _create_postgres_connection(
+                statement_timeout_milliseconds=_POSTGRES_STATEMENT_TIMEOUT_MILLISECONDS
+            )
+        if operation_guard is not None:
+            operation_guard.register(connection)
         try:
             yield connection
         finally:
+            if operation_guard is not None:
+                operation_guard.unregister(connection)
             connection.close()
     else:
         # SQLite path (original logic)
@@ -655,6 +849,13 @@ def fetch_value(query: str, parameters: tuple | list | None = None) -> object | 
         return row
 
 
+def _parse_catalog_column_names(value: Any) -> set[str]:
+    """Parse comma-delimited catalog column names returned by backend aggregate queries."""
+    if value is None:
+        return set()
+    return {name for name in str(value).split(",") if name}
+
+
 def initialize_schema() -> None:
     """
     Create the `user_credentials` table if it does not already exist.
@@ -695,3 +896,207 @@ def initialize_schema() -> None:
                 disabled INTEGER NOT NULL DEFAULT 0
             )
             """)
+
+
+def verify_schema_compatibility() -> None:
+    """Verify the API credential schema using read-only catalog queries."""
+    if DATABASE_TYPE == "postgresql":
+        column_names = _parse_catalog_column_names(fetch_value(_POSTGRES_CREDENTIAL_COLUMN_NAMES_SQL))
+        username_unique = fetch_value(
+            "SELECT EXISTS ("
+            "SELECT 1 FROM pg_constraint AS con "
+            "JOIN pg_class AS rel ON rel.oid = con.conrelid "
+            "JOIN pg_namespace AS namespace ON namespace.oid = rel.relnamespace "
+            "WHERE namespace.nspname = current_schema() AND rel.relname = 'user_credentials' "
+            "AND con.contype = 'u' AND con.conkey = ARRAY[("
+            "SELECT attnum FROM pg_attribute WHERE attrelid = rel.oid AND attname = 'username'"
+            ")]::smallint[])"
+        )
+    else:
+        column_names = _parse_catalog_column_names(fetch_value(_SQLITE_CREDENTIAL_COLUMN_NAMES_SQL))
+        username_unique = fetch_value(
+            "SELECT EXISTS ("
+            "SELECT 1 FROM pragma_index_list('user_credentials') AS indexes "
+            "WHERE indexes.[unique] = 1 "
+            "AND (SELECT COUNT(*) FROM pragma_index_info(indexes.name)) = 1 "
+            "AND (SELECT name FROM pragma_index_info(indexes.name) LIMIT 1) = 'username')"
+        )
+
+    if not _CREDENTIAL_COLUMN_SET.issubset(column_names):
+        raise SchemaCompatibilityError("API credential schema is missing required columns")
+    if not username_unique:
+        raise SchemaCompatibilityError("API credential schema is missing the username uniqueness invariant")
+
+
+def ensure_runtime_access() -> None:
+    """Install the exact read-only auth capability role and RLS policy."""
+    if DATABASE_TYPE != "postgresql":
+        return
+
+    unknown_policy = fetch_value(
+        "SELECT string_agg(policyname, ',' ORDER BY policyname) FROM pg_policies "
+        "WHERE schemaname = current_schema() AND tablename = 'user_credentials' "
+        "AND policyname <> 'fardb_auth_select_v1'"
+    )
+    if unknown_policy:
+        raise SchemaCompatibilityError("user_credentials contains an unknown RLS policy")
+
+    role_state = fetch_value(
+        "SELECT CASE WHEN EXISTS (SELECT 1 FROM pg_roles WHERE rolname = ?) THEN 1 "
+        "WHEN EXISTS (SELECT 1 FROM pg_roles WHERE rolname = CURRENT_USER AND rolsuper) THEN 2 ELSE 0 END",
+        (AUTH_RUNTIME_ROLE,),
+    )
+    if role_state not in (1, 2):
+        raise CapabilityRoleBootstrapRequiredError(AUTH_RUNTIME_ROLE)
+
+    execute(_AUTH_CAPABILITY_ROLE_DDL)
+    execute("ALTER TABLE user_credentials ENABLE ROW LEVEL SECURITY")
+    execute("REVOKE ALL PRIVILEGES ON TABLE user_credentials FROM PUBLIC")
+    execute(f"REVOKE ALL PRIVILEGES ON TABLE user_credentials FROM {AUTH_RUNTIME_ROLE}")
+    execute("DROP POLICY IF EXISTS fardb_auth_select_v1 ON user_credentials")
+    execute(
+        f"DO $fardb$ BEGIN EXECUTE format("
+        f"'GRANT USAGE ON SCHEMA %%I TO {AUTH_RUNTIME_ROLE}', current_schema()); END $fardb$"
+    )
+    execute(f"GRANT SELECT ON TABLE user_credentials TO {AUTH_RUNTIME_ROLE}")
+    execute(
+        f"DO $fardb$ DECLARE sequence_name text := "
+        f"pg_get_serial_sequence('user_credentials', 'id'); BEGIN "
+        f"IF sequence_name IS NOT NULL THEN "
+        f"EXECUTE format('REVOKE ALL PRIVILEGES ON SEQUENCE %%s FROM PUBLIC', sequence_name); "
+        f"EXECUTE format("
+        f"'REVOKE ALL PRIVILEGES ON SEQUENCE %%s FROM {AUTH_RUNTIME_ROLE}', sequence_name); END IF; "
+        f"END $fardb$"
+    )
+    execute(f"CREATE POLICY fardb_auth_select_v1 ON user_credentials FOR SELECT TO {AUTH_RUNTIME_ROLE} USING (true)")
+
+
+def verify_runtime_authority() -> None:
+    """Require the exact read-only auth capability without migration authority."""
+    if DATABASE_TYPE != "postgresql":
+        return
+
+    restricted = fetch_value(
+        "SELECT current_schema() IS NOT NULL AND NOT EXISTS ("
+        "SELECT 1 FROM pg_roles AS assumable "
+        "WHERE (assumable.oid = login.oid "
+        "OR CASE WHEN current_setting('server_version_num')::integer >= 160000 THEN "
+        "(pg_has_role(login.oid, assumable.oid, 'USAGE') "
+        "OR pg_has_role(login.oid, assumable.oid, 'SET')) "
+        "ELSE pg_has_role(login.oid, assumable.oid, 'MEMBER') END) "
+        "AND (assumable.rolsuper OR assumable.rolcreaterole "
+        "OR assumable.rolcreatedb OR assumable.rolbypassrls OR assumable.rolreplication "
+        "OR has_database_privilege(assumable.oid, current_database(), 'CREATE') "
+        "OR EXISTS (SELECT 1 FROM pg_namespace AS namespace "
+        "WHERE has_schema_privilege(assumable.oid, namespace.oid, 'CREATE')) "
+        "OR has_table_privilege(assumable.oid, 'user_credentials', 'INSERT') "
+        "OR has_table_privilege(assumable.oid, 'user_credentials', 'UPDATE') "
+        "OR has_table_privilege(assumable.oid, 'user_credentials', 'DELETE') "
+        "OR has_table_privilege(assumable.oid, 'user_credentials', 'TRUNCATE') "
+        "OR has_table_privilege(assumable.oid, 'user_credentials', 'REFERENCES') "
+        "OR has_table_privilege(assumable.oid, 'user_credentials', 'TRIGGER') "
+        "OR has_any_column_privilege(assumable.oid, 'user_credentials', 'INSERT') "
+        "OR has_any_column_privilege(assumable.oid, 'user_credentials', 'UPDATE') "
+        "OR has_any_column_privilege(assumable.oid, 'user_credentials', 'REFERENCES') "
+        "OR has_sequence_privilege(assumable.oid, pg_get_serial_sequence('user_credentials', 'id'), 'USAGE') "
+        "OR has_sequence_privilege(assumable.oid, pg_get_serial_sequence('user_credentials', 'id'), 'SELECT') "
+        "OR has_sequence_privilege(assumable.oid, pg_get_serial_sequence('user_credentials', 'id'), 'UPDATE') "
+        "OR EXISTS (SELECT 1 FROM pg_namespace AS namespace "
+        "WHERE namespace.nspname = current_schema() "
+        "AND namespace.nspowner = assumable.oid) "
+        "OR EXISTS (SELECT 1 FROM pg_database AS database "
+        "WHERE database.datname = current_database() "
+        "AND database.datdba = assumable.oid) "
+        "OR EXISTS (SELECT 1 FROM pg_class AS rel "
+        "JOIN pg_namespace AS namespace ON namespace.oid = rel.relnamespace "
+        "WHERE namespace.nspname = current_schema() AND rel.relkind IN ('r', 'p', 'S') "
+        "AND rel.relowner = assumable.oid))) "
+        "FROM pg_roles AS login WHERE login.rolname = session_user"
+    )
+    if not restricted:
+        raise SchemaCompatibilityError("API runtime database role retains schema-migration authority")
+
+    membership_count = fetch_value(
+        "SELECT COUNT(*) FROM pg_roles AS login JOIN pg_roles AS assumable "
+        "ON assumable.oid <> login.oid AND "
+        "CASE WHEN current_setting('server_version_num')::integer >= 160000 THEN "
+        "(pg_has_role(login.oid, assumable.oid, 'USAGE') "
+        "OR pg_has_role(login.oid, assumable.oid, 'SET')) "
+        "ELSE pg_has_role(login.oid, assumable.oid, 'MEMBER') END "
+        "WHERE login.rolname = session_user",
+    )
+    has_auth_membership = fetch_value(
+        "SELECT EXISTS (SELECT 1 FROM pg_roles AS login JOIN pg_roles AS assumable "
+        "ON assumable.rolname = %s AND "
+        "CASE WHEN current_setting('server_version_num')::integer >= 160000 THEN "
+        "(pg_has_role(login.oid, assumable.oid, 'USAGE') "
+        "OR pg_has_role(login.oid, assumable.oid, 'SET')) "
+        "ELSE pg_has_role(login.oid, assumable.oid, 'MEMBER') END "
+        "WHERE login.rolname = session_user)",
+        (AUTH_RUNTIME_ROLE,),
+    )
+    if membership_count != 1 or not has_auth_membership:
+        raise SchemaCompatibilityError("API runtime login capability memberships are incompatible")
+
+    safe_role = fetch_value(_AUTH_SAFE_ROLE_SQL, (AUTH_RUNTIME_ROLE,))
+    exact_access = fetch_value(
+        "SELECT has_schema_privilege(%s, current_schema(), 'USAGE') "
+        "AND NOT EXISTS (SELECT 1 FROM pg_namespace AS namespace "
+        "WHERE has_schema_privilege(%s, namespace.oid, 'CREATE')) "
+        "AND has_table_privilege(%s, 'user_credentials', 'SELECT') "
+        "AND NOT has_table_privilege(%s, 'user_credentials', 'INSERT') "
+        "AND NOT has_table_privilege(%s, 'user_credentials', 'UPDATE') "
+        "AND NOT has_table_privilege(%s, 'user_credentials', 'DELETE') "
+        "AND NOT has_table_privilege(%s, 'user_credentials', 'TRUNCATE') "
+        "AND NOT has_table_privilege(%s, 'user_credentials', 'REFERENCES') "
+        "AND NOT has_table_privilege(%s, 'user_credentials', 'TRIGGER') "
+        "AND NOT has_any_column_privilege(%s, 'user_credentials', 'INSERT') "
+        "AND NOT has_any_column_privilege(%s, 'user_credentials', 'UPDATE') "
+        "AND NOT has_any_column_privilege(%s, 'user_credentials', 'REFERENCES') "
+        "AND has_table_privilege(session_user, 'user_credentials', 'SELECT') "
+        "AND NOT has_table_privilege(session_user, 'user_credentials', 'INSERT') "
+        "AND NOT has_table_privilege(session_user, 'user_credentials', 'UPDATE') "
+        "AND NOT has_table_privilege(session_user, 'user_credentials', 'DELETE') "
+        "AND NOT has_table_privilege(session_user, 'user_credentials', 'TRUNCATE') "
+        "AND NOT has_table_privilege(session_user, 'user_credentials', 'REFERENCES') "
+        "AND NOT has_table_privilege(session_user, 'user_credentials', 'TRIGGER') "
+        "AND NOT has_any_column_privilege(session_user, 'user_credentials', 'INSERT') "
+        "AND NOT has_any_column_privilege(session_user, 'user_credentials', 'UPDATE') "
+        "AND NOT has_any_column_privilege(session_user, 'user_credentials', 'REFERENCES')",
+        (AUTH_RUNTIME_ROLE,) * 12,
+    )
+    exact_policy = fetch_value(
+        "SELECT COUNT(*) = 1 FROM pg_policy AS policy "
+        "JOIN pg_class AS rel ON rel.oid = policy.polrelid "
+        "JOIN pg_namespace AS namespace ON namespace.oid = rel.relnamespace "
+        "WHERE namespace.nspname = current_schema() AND rel.relname = 'user_credentials' "
+        "AND policy.polname = 'fardb_auth_select_v1' AND policy.polcmd = 'r' "
+        "AND cardinality(policy.polroles) = 1 "
+        "AND pg_get_userbyid(policy.polroles[1]) = %s "
+        "AND pg_get_expr(policy.polqual, policy.polrelid) = 'true' "
+        "AND policy.polwithcheck IS NULL "
+        "AND (SELECT COUNT(*) FROM pg_policy AS all_policy WHERE all_policy.polrelid = rel.oid) = 1",
+        (AUTH_RUNTIME_ROLE,),
+    )
+    exact_table_posture = fetch_value(
+        "SELECT rel.relrowsecurity "
+        "AND NOT EXISTS (SELECT 1 FROM aclexplode("
+        "COALESCE(rel.relacl, acldefault('r', rel.relowner))) AS acl "
+        "WHERE acl.grantee = 0) "
+        "AND pg_get_serial_sequence('user_credentials', 'id') IS NOT NULL "
+        "AND NOT has_sequence_privilege(%s, pg_get_serial_sequence('user_credentials', 'id'), 'USAGE') "
+        "AND NOT has_sequence_privilege(%s, pg_get_serial_sequence('user_credentials', 'id'), 'SELECT') "
+        "AND NOT has_sequence_privilege(%s, pg_get_serial_sequence('user_credentials', 'id'), 'UPDATE') "
+        "FROM pg_class AS rel JOIN pg_namespace AS namespace ON namespace.oid = rel.relnamespace "
+        "WHERE namespace.nspname = current_schema() AND rel.relname = 'user_credentials'",
+        (AUTH_RUNTIME_ROLE,) * 3,
+    )
+    auth_routines_absent = fetch_value(
+        "SELECT NOT EXISTS (SELECT 1 FROM pg_trigger AS trigger "
+        "JOIN pg_class AS rel ON rel.oid = trigger.tgrelid "
+        "JOIN pg_namespace AS namespace ON namespace.oid = rel.relnamespace "
+        "WHERE namespace.nspname = current_schema() AND rel.relname = 'user_credentials' "
+        "AND NOT trigger.tgisinternal)"
+    )
+    if not all((safe_role, exact_access, exact_policy, exact_table_posture, auth_routines_absent)):
+        raise SchemaCompatibilityError("API runtime capability contract is incompatible")

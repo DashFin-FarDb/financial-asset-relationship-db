@@ -111,5 +111,6 @@ def test_pyre_workflow_uploads_sarif() -> None:
     text = workflow_path.read_text(encoding="utf-8")
     assert "--output=sarif" in text  # nosec B101
     assert "pyre-results.sarif" in text  # nosec B101
+    assert '"site_package_search_strategy": "pep561"' in text  # nosec B101
     assert "github/codeql-action/upload-sarif@" in text  # nosec B101
     assert "category: pyre" in text  # nosec B101

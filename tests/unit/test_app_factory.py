@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
+import threading
 from types import SimpleNamespace
 from typing import Any, cast
 from unittest.mock import MagicMock
@@ -13,6 +14,7 @@ from fastapi import FastAPI
 
 from api import app_factory
 from src.config.settings import DeploymentEnvironment
+from src.data.database import SchemaCompatibilityError
 from src.data.sample_data import create_sample_database
 from src.logic.recovery_gate import ExecutionBlockedError
 
@@ -268,6 +270,218 @@ async def test_lifespan_keeps_fail_fast_behavior_outside_hosted_fallback(
             pass
 
 
+@pytest.mark.asyncio
+async def test_hosted_fallback_cannot_degrade_schema_incompatibility(base_settings: SimpleNamespace) -> None:
+    """Schema incompatibility must fail closed even where transient failures may degrade."""
+    hosted_settings = SimpleNamespace(
+        **vars(base_settings),
+        env=DeploymentEnvironment.PREVIEW,
+        vercel_env="preview",
+    )
+
+    with pytest.MonkeyPatch.context() as monkeypatch:
+        monkeypatch.setattr(
+            app_factory,
+            "_verify_auth_database",
+            lambda _guard: (_ for _ in ()).throw(SchemaCompatibilityError("incompatible auth schema")),
+        )
+        settings = cast(Any, hosted_settings)
+        with pytest.raises(SchemaCompatibilityError, match="incompatible auth schema"):
+            await app_factory._initialize_application_state(  # pylint: disable=protected-access
+                settings,
+                has_persistence=True,
+                hosted_startup_degradation_allowed=True,
+            )
+
+
+@pytest.mark.asyncio
+async def test_auth_database_verification_timeout_fails_closed(
+    monkeypatch: pytest.MonkeyPatch,
+    base_settings: SimpleNamespace,
+) -> None:
+    """A stalled auth catalog read must cancel its connection and shut down."""
+    started = threading.Event()
+    released = threading.Event()
+    connection = MagicMock()
+    connection.cancel.side_effect = released.set
+
+    def _stalled_query(operation_guard) -> None:
+        """Block one worker-owned connection until the outer guard cancels it."""
+        operation_guard.register(connection)
+        started.set()
+        try:
+            released.wait(timeout=1)
+        finally:
+            operation_guard.unregister(connection)
+
+    monkeypatch.setattr(app_factory, "_verify_auth_database", _stalled_query)
+    monkeypatch.setattr(app_factory, "_AUTH_DATABASE_VERIFICATION_TIMEOUT_SECONDS", 0.01)
+    monkeypatch.setattr(app_factory, "_AUTH_DATABASE_SHUTDOWN_TIMEOUT_SECONDS", 0.5)
+    wait_for = asyncio.wait_for
+
+    async def _wait_after_connection_registration(awaitable, *, timeout):
+        """Start the timeout only after the worker has registered its connection."""
+        assert await asyncio.to_thread(started.wait, 1)
+        return await wait_for(awaitable, timeout=timeout)
+
+    monkeypatch.setattr(app_factory.asyncio, "wait_for", _wait_after_connection_registration)
+
+    settings = cast(Any, base_settings)
+    with pytest.raises(SchemaCompatibilityError, match="verification timed out"):
+        await app_factory._initialize_application_state(  # pylint: disable=protected-access
+            settings,
+            has_persistence=False,
+            hosted_startup_degradation_allowed=False,
+        )
+
+    assert started.is_set()
+    assert released.is_set()
+    connection.cancel.assert_called_once_with()
+    connection.close.assert_called_once_with()
+
+
+@pytest.mark.asyncio
+async def test_auth_database_verification_cancellation_closes_connection(
+    monkeypatch: pytest.MonkeyPatch,
+    base_settings: SimpleNamespace,
+) -> None:
+    """Startup cancellation must stop and drain a shielded auth verification."""
+    started = threading.Event()
+    released = threading.Event()
+    connection = MagicMock()
+    connection.cancel.side_effect = released.set
+
+    def _stalled_query(operation_guard) -> None:
+        """Block one worker-owned connection until startup cancellation closes it."""
+        operation_guard.register(connection)
+        started.set()
+        try:
+            released.wait(timeout=1)
+        finally:
+            operation_guard.unregister(connection)
+
+    monkeypatch.setattr(app_factory, "_verify_auth_database", _stalled_query)
+    monkeypatch.setattr(app_factory, "_AUTH_DATABASE_SHUTDOWN_TIMEOUT_SECONDS", 0.5)
+
+    settings = cast(Any, base_settings)
+    initialization = asyncio.create_task(
+        app_factory._initialize_application_state(  # pylint: disable=protected-access
+            settings,
+            has_persistence=False,
+            hosted_startup_degradation_allowed=False,
+        )
+    )
+    assert await asyncio.to_thread(started.wait, 1)
+    initialization.cancel()
+
+    with pytest.raises(asyncio.CancelledError):
+        await initialization
+
+    assert released.is_set()
+    connection.cancel.assert_called_once_with()
+    connection.close.assert_called_once_with()
+
+
+@pytest.mark.asyncio
+async def test_auth_database_verification_timeout_consumes_late_failure(
+    monkeypatch: pytest.MonkeyPatch,
+    base_settings: SimpleNamespace,
+) -> None:
+    """A verification that outlives bounded shutdown must have its eventual failure retrieved."""
+    started = threading.Event()
+    release_failure = threading.Event()
+    finished = threading.Event()
+    consumed = threading.Event()
+    connection = MagicMock()
+
+    def _stalled_query(operation_guard) -> None:
+        """Ignore connection cancellation until the test releases a late worker failure."""
+        operation_guard.register(connection)
+        started.set()
+        try:
+            release_failure.wait(timeout=1)
+            raise RuntimeError("late verification failure")
+        finally:
+            operation_guard.unregister(connection)
+            finished.set()
+
+    original_consume = app_factory._consume_auth_database_verification_result
+
+    def _consume_result(*args, **kwargs):
+        """Record deterministic completion after retrieving the late task result."""
+        try:
+            return original_consume(*args, **kwargs)
+        finally:
+            consumed.set()
+
+    consume_result = MagicMock(side_effect=_consume_result)
+    monkeypatch.setattr(app_factory, "_verify_auth_database", _stalled_query)
+    monkeypatch.setattr(app_factory, "_consume_auth_database_verification_result", consume_result)
+    monkeypatch.setattr(app_factory, "_AUTH_DATABASE_VERIFICATION_TIMEOUT_SECONDS", 0.01)
+    monkeypatch.setattr(app_factory, "_AUTH_DATABASE_SHUTDOWN_TIMEOUT_SECONDS", 0)
+    wait_for = asyncio.wait_for
+
+    async def _wait_after_connection_registration(awaitable, *, timeout):
+        """Start the timeout only after the worker has registered its connection."""
+        assert await asyncio.to_thread(started.wait, 1)
+        return await wait_for(awaitable, timeout=timeout)
+
+    monkeypatch.setattr(app_factory.asyncio, "wait_for", _wait_after_connection_registration)
+
+    settings = cast(Any, base_settings)
+    with pytest.raises(SchemaCompatibilityError, match="verification timed out"):
+        await app_factory._initialize_application_state(  # pylint: disable=protected-access
+            settings,
+            has_persistence=False,
+            hosted_startup_degradation_allowed=False,
+        )
+
+    release_failure.set()
+    assert await asyncio.to_thread(finished.wait, 1)
+    assert await asyncio.to_thread(consumed.wait, 1)
+
+    consume_result.assert_called_once()
+
+
+def test_auth_runtime_verification_does_not_call_mutators(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Auth startup verification must not create schema or seed credentials."""
+    import api.auth as auth
+    import api.database as database
+
+    verify_schema = MagicMock()
+    verify_authority = MagicMock()
+    monkeypatch.setattr(database, "verify_schema_compatibility", verify_schema)
+    monkeypatch.setattr(database, "verify_runtime_authority", verify_authority)
+    monkeypatch.setattr(auth.user_repository, "has_users", lambda: True)
+    initialize = MagicMock(side_effect=AssertionError("runtime DDL forbidden"))
+    seed = MagicMock(side_effect=AssertionError("runtime credential seed forbidden"))
+    monkeypatch.setattr(database, "initialize_schema", initialize)
+    monkeypatch.setattr(auth, "seed_credentials_from_settings", seed)
+
+    app_factory._verify_auth_database()  # pylint: disable=protected-access
+
+    verify_schema.assert_called_once_with()
+    verify_authority.assert_called_once_with()
+    initialize.assert_not_called()
+    seed.assert_not_called()
+
+
+def test_auth_runtime_verification_sanitizes_unexpected_failures(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Driver details must not escape the auth startup verification boundary."""
+    import api.database as database
+
+    monkeypatch.setattr(
+        database,
+        "verify_schema_compatibility",
+        MagicMock(side_effect=OSError("credential-bearing driver detail")),
+    )
+
+    with pytest.raises(SchemaCompatibilityError, match=r"failed \(OSError\)") as exc_info:
+        app_factory._verify_auth_database()  # pylint: disable=protected-access
+
+    assert "credential-bearing" not in str(exc_info.value)
+
+
 @pytest.mark.parametrize(
     "lock_reacquired, should_raise",
     [
@@ -306,7 +520,8 @@ def test_startup_reconciliation_lock_release_behavior(
         yield MagicMock()
 
     monkeypatch.setattr("src.data.database.create_engine_from_url", lambda _url: fake_engine)
-    monkeypatch.setattr("src.data.database.init_db", lambda _engine: None)
+    monkeypatch.setattr("src.data.database.verify_database_schema", lambda _engine, **_kwargs: None)
+    monkeypatch.setattr("src.data.database.verify_runtime_database_authority", lambda _engine, **_kwargs: None)
     monkeypatch.setattr("src.data.database.create_session_factory", lambda _engine: lambda: None)
     monkeypatch.setattr("src.data.repository.session_scope", fake_session_scope)
     monkeypatch.setattr("src.data.distributed_lock.DistributedLock", lambda **_kwargs: fake_lock)
@@ -324,6 +539,28 @@ def test_startup_reconciliation_lock_release_behavior(
         app_factory._run_startup_reconciliation(cast(Any, base_settings))  # pylint: disable=protected-access
         assert fake_lock.lock_name == "graph_rebuild"
         fake_lock.release.assert_called()
+
+
+def test_reconciliation_schema_verification_separates_runtime_capabilities(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Separate graph and coordination URLs must require disjoint capability roles."""
+    graph_engine = object()
+    coordination_engine = object()
+    verify_schema = MagicMock()
+    verify_authority = MagicMock()
+    monkeypatch.setattr("src.data.database.verify_database_schema", verify_schema)
+    monkeypatch.setattr("src.data.database.verify_runtime_database_authority", verify_authority)
+
+    app_factory._verify_reconciliation_schemas(  # pylint: disable=protected-access
+        graph_engine,
+        coordination_engine,
+    )
+
+    assert verify_schema.call_args_list[0].args == (graph_engine,)
+    assert verify_schema.call_args_list[1].args == (coordination_engine,)
+    assert verify_authority.call_args_list[0].kwargs["required_capabilities"] == {"graph"}
+    assert verify_authority.call_args_list[1].kwargs["required_capabilities"] == {"coordination"}
 
 
 @pytest.mark.asyncio
@@ -496,9 +733,9 @@ async def test_lifespan_emits_startup_failed_with_trace_ids_on_get_graph_excepti
     """Ensure get_graph exceptions trace ids.
 
     When get_graph() raises during the traced startup block, the lifespan should:
-      - raise the original exception (fail-fast)
-      - emit exactly one ObservabilityEvent with event == "startup_failed"
-      - include the generated trace_id and span_id in the event.metadata
+        - raise the original exception (fail-fast)
+        - emit exactly one ObservabilityEvent with event == "startup_failed"
+        - include the generated trace_id and span_id in the event.metadata
     """
     app = FastAPI()
 

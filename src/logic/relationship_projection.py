@@ -283,6 +283,28 @@ def _fail_closed_on_conflicts(candidates: Sequence[_Candidate]) -> None:
         )
 
 
+def _runtime_relationship_keys(edge: ProjectionEdge) -> set[tuple[str, str, str]]:
+    """Return every directed runtime relationship identity emitted by an edge."""
+    keys = {(edge.source_id, edge.target_id, edge.edge_type)}
+    if edge.direction == "bidirectional":
+        keys.add((edge.target_id, edge.source_id, edge.edge_type))
+    return keys
+
+
+def _fail_closed_on_runtime_relationship_collisions(candidates: Sequence[_Candidate]) -> None:
+    """Reject candidates whose runtime relationships cannot retain unique provenance."""
+    groups: dict[tuple[str, str, str], list[_Candidate]] = defaultdict(list)
+    for candidate in candidates:
+        for key in _runtime_relationship_keys(candidate.edge):
+            groups[key].append(candidate)
+
+    for key, group in sorted(groups.items(), key=lambda item: item[0]):
+        if len(group) <= 1:
+            continue
+        owners = sorted((candidate.assertion.assertion_id, candidate.predicate.id) for candidate in group)
+        raise ProjectionError(f"ambiguous projected runtime relationship for key {key}: owners={owners}; fail closed")
+
+
 def _semantic_edge_payload(edge: ProjectionEdge) -> dict[str, str]:
     """Return semantic edge fields used by ``edge_set_hash``."""
     return {
@@ -431,6 +453,7 @@ def project(request: ProjectRequest) -> ProjectionRevision:
     events_by_id = _events_by_assertion(request.events, known)
     candidates = _select_accepted_candidates(request.assertions, events_by_id, predicates, window)
     _fail_closed_on_conflicts(candidates)
+    _fail_closed_on_runtime_relationship_collisions(candidates)
     edges = tuple(sorted((candidate.edge for candidate in candidates), key=_edge_sort_key))
     governed_scopes = _governed_scopes(candidates, request.purpose, request.previously_published_scopes)
     evidence_rows = _evidence_payload_for_edges(
