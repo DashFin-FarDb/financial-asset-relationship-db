@@ -129,7 +129,7 @@ migration files and one migration identity model.
 Adoption must be a separate, reviewed implementation and operator sequence.
 
 The PR mapping and migration-command hand-off are normative:
- 
+
 - CQ-03A ratifies this ADR and changes no migration behavior.
 - CQ-03B performs Phase A and Phase B steps 1–3. It keeps `python -m scripts.migrate_database` and the production
   Compose `migrate` service as stable operator entrypoints, but atomically replaces their PostgreSQL schema-mutation
