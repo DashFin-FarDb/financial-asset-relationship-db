@@ -2,10 +2,11 @@
 
 ## Status
 
-**Proposed — human ratification required.**
+**Accepted — ratified through reviewed PR #1634.**
 
-This ADR records a recommendation and implementation boundary. It does not authorize migration implementation,
-Supabase migration-history changes, hosted schema changes, credential changes, or production promotion.
+This ADR records the accepted CQ-03 migration and drift boundary. It authorizes the repository-only CQ-03B and
+CQ-03C implementation phases within this contract. It does not authorize Supabase migration-history changes, hosted
+schema changes, credential changes, production promotion, or CQ-03D history adoption without its separate approval.
 
 ## Date
 
@@ -14,7 +15,7 @@ Supabase migration-history changes, hosted schema changes, credential changes, o
 ## Decision owner and ratifier
 
 - Decision owner: FarDB maintainers
-- Required human ratifier: Mohamed Abdel-Aziz Mohamed
+- Human ratifier: Mohamed Abdel-Aziz Mohamed
 - Control records: [GitHub #1633](https://github.com/DashFin-FarDb/financial-asset-relationship-db/issues/1633)
   and [Linear DAS-62](https://linear.app/dashfin/issue/DAS-62/cq-03-establish-postgresql-migration-ledger-and-drift-gate)
 - Setup baseline: `main@5b2685c5ff0635cfd586798cbe2df33a33145216`
@@ -30,7 +31,7 @@ object identities:
 
 - the hosted PostgreSQL service is healthy and currently reports PostgreSQL 17;
 - the exposed `public` schema contains 22 tables, all with RLS enabled;
-- the aggregate catalog contains 197 columns, 65 constraints, 71 indexes, 45 policies, 21 user triggers, and
+- the aggregate catalog contains 197 columns, 65 constraints, 71 indices, 45 policies, 21 user triggers, and
   2 functions;
 - the provider migration history contains six timestamped records;
 - the repository currently mixes SQLite-oriented SQL files, two PostgreSQL authorization SQL files,
@@ -43,7 +44,7 @@ timestamps do not by themselves prove equal schema state.
 The runtime boundary from ADR 0007 remains fixed: normal FastAPI request handling must not receive DDL, ownership,
 role creation, grant management, migration-history repair, or credential-bootstrap authority.
 
-## Decision proposed for ratification
+## Decision
 
 ### 1. One repository authority
 
@@ -55,7 +56,7 @@ The repository files are authoritative. The provider table
 design authority. Dashboard edits, SQL-editor edits, ORM metadata, runtime compatibility checks, generated dumps,
 and a provider's current catalog do not become migrations until reviewed SQL is committed to this ledger.
 
-Use the standard 14-digit UTC timestamp plus a descriptive snake-case name:
+Use the standard 14-digit UTC timestamp plus a descriptive snake_case name:
 
 ```text
 supabase/migrations/YYYYMMDDHHMMSS_descriptive_name.sql
@@ -225,7 +226,7 @@ The first contract manages application-owned objects in `public`:
 
 - tables, partitioned tables, columns, generated/identity behavior, types, nullability, and normalized defaults;
 - primary, foreign-key, unique, exclusion, and check constraints;
-- indexes, expressions, predicates, uniqueness, and access method;
+- indices, expressions, predicates, uniqueness, and access method;
 - sequences and application-owned sequence relationships;
 - views and materialized views;
 - application-owned functions by identity, language, volatility, security mode, safe configuration, and normalized
@@ -244,7 +245,7 @@ object classes before applying a classification:
 - **Application-owned:** the exact object identity is produced by replaying `supabase/migrations/` or is declared in
   the versioned application-owned scope manifest with its controlling migration. Columns and other subordinate
   catalog entries inherit their parent only when they have no independent identity; independently addressable
-  functions, sequences, policies, triggers, types, indexes, and grants are classified separately.
+  functions, sequences, policies, triggers, types, indices, and grants are classified separately.
 - **Provider-owned:** the exact object identity appears in the versioned provider-owned `public` allowlist with a
   provider owner and exclusion rationale. Ownership is never inferred from a role, name prefix, extension, or current
   absence from the repository ledger.
@@ -404,24 +405,27 @@ Costs and risks:
 - the normalized catalog profile must be versioned and tested across PostgreSQL releases;
 - a one-time, separately approved hosted history repair is likely required.
 
-## Ratification gate
+## Ratification record
 
-No implementation begins until the human ratifier records a decision in GitHub #1633.
+CQ-03A ratification completed when the named human ratifier authorized ready-state review and merge, all
+substantive review and authoritative CI gates cleared, and PR #1634 merged as squash
+`2dd9f64136eb653284b0f5330a16ee99f6b0b491` on 2026-08-13. CQ-03B/C may proceed within this ADR; CQ-03D still
+requires the separate history-adoption approval defined above.
 
-- [ ] Approve `supabase/migrations/` as the sole repository PostgreSQL ledger.
-- [ ] Approve imperative timestamped SQL for initial adoption.
-- [ ] Approve Supabase CLI as pinned operator/CI tooling only.
-- [ ] Approve the atomic `scripts.migrate_database` PostgreSQL ledger hand-off while preserving its SQLite path and
-  existing operator, CI, Compose, test, and runbook entrypoints.
-- [ ] Approve `fardb-pg-scope-v1`, its total ownership classifier, named exclusions, unknown-object non-pass rule,
-  and the `fardb-pg-catalog-v1` normalization contract.
-- [ ] Approve the three failure categories, `EVALUATION_INCOMPLETE` status, exit behavior, and sanitized evidence
-  boundary.
-- [ ] Approve forward-only migrations and restore-based destructive rollback.
-- [ ] Approve a later, separately authorized history-only provider adoption step.
-- [ ] Confirm that SQLite compatibility remains separate and cannot claim PostgreSQL authority.
+- [x] Approve `supabase/migrations/` as the sole repository PostgreSQL ledger.
+- [x] Approve imperative timestamped SQL for initial adoption.
+- [x] Approve Supabase CLI as pinned operator/CI tooling only.
+- [x] Approve the atomic `scripts.migrate_database` PostgreSQL ledger hand-off while preserving its SQLite path and
+      existing operator, CI, Compose, test, and runbook entrypoints.
+- [x] Approve `fardb-pg-scope-v1`, its total ownership classifier, named exclusions, unknown-object non-pass rule,
+      and the `fardb-pg-catalog-v1` normalization contract.
+- [x] Approve the three failure categories, `EVALUATION_INCOMPLETE` status, exit behavior, and sanitized evidence
+      boundary.
+- [x] Approve forward-only migrations and restore-based destructive rollback.
+- [x] Approve a later, separately authorized history-only provider adoption step.
+- [x] Confirm that SQLite compatibility remains separate and cannot claim PostgreSQL authority.
 
-**Decision:** Pending
-**Ratifier:** Pending
-**Decision date:** Pending
-**GitHub evidence link:** Pending
+**Decision:** Accepted
+**Ratifier:** Mohamed Abdel-Aziz Mohamed
+**Decision date:** 2026-08-13
+**GitHub evidence link:** [PR #1634](https://github.com/DashFin-FarDb/financial-asset-relationship-db/pull/1634)
