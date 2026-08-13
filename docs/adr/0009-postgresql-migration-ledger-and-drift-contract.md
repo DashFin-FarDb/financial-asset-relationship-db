@@ -31,7 +31,7 @@ object identities:
 
 - the hosted PostgreSQL service is healthy and currently reports PostgreSQL 17;
 - the exposed `public` schema contains 22 tables, all with RLS enabled;
-- the aggregate catalog contains 197 columns, 65 constraints, 71 indexes, 45 policies, 21 user triggers, and
+- the aggregate catalog contains 197 columns, 65 constraints, 71 indices, 45 policies, 21 user triggers, and
   2 functions;
 - the provider migration history contains six timestamped records;
 - the repository currently mixes SQLite-oriented SQL files, two PostgreSQL authorization SQL files,
@@ -56,7 +56,7 @@ The repository files are authoritative. The provider table
 design authority. Dashboard edits, SQL-editor edits, ORM metadata, runtime compatibility checks, generated dumps,
 and a provider's current catalog do not become migrations until reviewed SQL is committed to this ledger.
 
-Use the standard 14-digit UTC timestamp plus a descriptive snake-case name:
+Use the standard 14-digit UTC timestamp plus a descriptive snake_case name:
 
 ```text
 supabase/migrations/YYYYMMDDHHMMSS_descriptive_name.sql
@@ -226,7 +226,7 @@ The first contract manages application-owned objects in `public`:
 
 - tables, partitioned tables, columns, generated/identity behavior, types, nullability, and normalized defaults;
 - primary, foreign-key, unique, exclusion, and check constraints;
-- indexes, expressions, predicates, uniqueness, and access method;
+- indices, expressions, predicates, uniqueness, and access method;
 - sequences and application-owned sequence relationships;
 - views and materialized views;
 - application-owned functions by identity, language, volatility, security mode, safe configuration, and normalized
@@ -245,7 +245,7 @@ object classes before applying a classification:
 - **Application-owned:** the exact object identity is produced by replaying `supabase/migrations/` or is declared in
   the versioned application-owned scope manifest with its controlling migration. Columns and other subordinate
   catalog entries inherit their parent only when they have no independent identity; independently addressable
-  functions, sequences, policies, triggers, types, indexes, and grants are classified separately.
+  functions, sequences, policies, triggers, types, indices, and grants are classified separately.
 - **Provider-owned:** the exact object identity appears in the versioned provider-owned `public` allowlist with a
   provider owner and exclusion rationale. Ownership is never inferred from a role, name prefix, extension, or current
   absence from the repository ledger.
@@ -425,7 +425,7 @@ requires the separate history-adoption approval defined above.
 - [x] Approve a later, separately authorized history-only provider adoption step.
 - [x] Confirm that SQLite compatibility remains separate and cannot claim PostgreSQL authority.
 
-**Decision:** Accepted
-**Ratifier:** Mohamed Abdel-Aziz Mohamed
-**Decision date:** 2026-08-13
+**Decision:** Accepted  
+**Ratifier:** Mohamed Abdel-Aziz Mohamed  
+**Decision date:** 2026-08-13  
 **GitHub evidence link:** [PR #1634](https://github.com/DashFin-FarDb/financial-asset-relationship-db/pull/1634)
