@@ -2,8 +2,9 @@
 
 **Repository:** `DashFin-FarDb/financial-asset-relationship-db`
 **Established:** 2026-07-21
-**Repository evidence cutoff:** `main` at `1a49cee56255ec4f50495fa9bdd80ddd3f8f6763`
-**Continuity status:** Reconciled through merged CQ-01/CQ-02; CQ-03 is the next closure dependency
+**Repository evidence cutoff:** `main` at `5b2685c5ff0635cfd586798cbe2df33a33145216`
+**Continuity status:** Reconciled through merged QH-01; ADR 0009 defines CQ-03A as CQ-03's ratification phase, and
+its draft PR #1634 awaits human ratification
 
 This ledger preserves durable project decisions, plans, milestones, and handoffs across ChatGPT, Codex, and
 repository work. It is an index of authoritative evidence, not a replacement for detailed specifications, issues,
@@ -50,9 +51,18 @@ At the evidence cutoff:
 - GRAC runtime capability is `CURRENT` only for the evidenced staging slice
   `financial.bond.issuer_reference@1::financial_graph_current_view`. Production certification, capacity, and
   broader generality remain `NEXT`.
-- CQ-01/CQ-02 are closed at repository and exact-head CI scope. CQ-03 migration-ledger and drift-gate work is the
-  next closure dependency. Provider rollout, production promotion and recovery evidence remain artefact-specific;
-  production scale, repeated immutable promotion, and domain-neutral reuse remain unproven.
+- CQ-01/CQ-02 are closed at repository and exact-head CI scope.
+- QH-01 is closed at repository/configuration scope through merged PR #1632 and verified squash
+  `5b2685c5ff0635cfd586798cbe2df33a33145216`. Later generated knowledge-branch pushes were canceled at Vercel's
+  verified-commit gate, so they do not independently prove that `ignoreCommand` executed. A signed or otherwise
+  eligible controlled probe remains an operational evidence item, not a repository blocker.
+- The non-authoritative DeepSource timeout/configuration contexts were explicitly accepted as non-blocking; #1631
+  closed as not planned without source repair or threshold weakening.
+- CQ-03A, the current ratification phase of the CQ-03 programme, is active in draft PR #1634 under GitHub #1633 and
+  Linear DAS-62;
+  the controlling commitment is FPC-2026-08-13-01. Provider rollout, production
+  promotion and recovery evidence remain artefact-specific; production scale, repeated immutable promotion, and
+  domain-neutral reuse remain unproven.
 
 Primary authorities:
 
@@ -67,6 +77,29 @@ Primary authorities:
 - [The Big Read](the-big-read.md)
 
 ## Active commitments
+
+### FPC-2026-08-13-01 — Establish one PostgreSQL migration ledger and drift gate
+
+- **Type:** Database architecture / production qualification blocker
+- **Status:** Planned — proposed ADR 0009 awaits human ratification
+- **Decision or objective:** Adopt one repository-owned, immutable PostgreSQL migration ledger; prove a fresh rebuild;
+  detect migration-history, catalog, and runtime-compatibility drift without returning mutation authority to FastAPI.
+- **Rationale and constraints:** Read-only evidence shows 22 RLS-enabled public tables and six provider migration
+  receipts, while repository schema evolution is split across SQL files, ORM creation, imperative repair, and
+  provider history. No hosted schema, migration history, credentials, or production target may change in the design
+  tranche.
+- **Repository scope:** Proposed ADR 0009, draft PR #1634, roadmap/continuity updates, GitHub #1633, and Linear
+  DAS-62. The recommended
+  authority is timestamped imperative SQL under `supabase/migrations/`, with the provider history as an execution
+  receipt rather than an independent design source.
+- **Dependencies or blockers:** Mohamed Abdel-Aziz Mohamed must ratify the ledger, adoption protocol, drift scope,
+  forward-only policy, evidence boundary, and later history-only provider adoption step.
+- **Evidence and provenance:** `main@5b2685c5ff0635cfd586798cbe2df33a33145216`; merged QH-01 PR #1632; read-only
+  hosted aggregate inventory captured 2026-08-13; GitHub #1633; Linear DAS-62.
+- **Next action and completion test:** Review and ratify ADR 0009. After ratification, recover provider-recorded
+  history without mutation, produce a reviewed reconciliation migration, prove clean rebuild and deliberate drift
+  failures, then separately approve any hosted history repair.
+- **Last updated:** 2026-08-13
 
 ### FPC-2026-08-09-01 — Separate migration and runtime database authority
 
@@ -99,9 +132,11 @@ Primary authorities:
   [PR #1608](https://github.com/DashFin-FarDb/financial-asset-relationship-db/pull/1608)'s review record. Issue
   [#1623](https://github.com/DashFin-FarDb/financial-asset-relationship-db/issues/1623) tracks the only durable
   follow-up: a bounded P2 server-side statement-timeout improvement for normal PostgreSQL request connections.
-- **Next action and completion test:** Treat CQ-01/CQ-02 as satisfied and begin CQ-03's single PostgreSQL migration
-  ledger and drift gate. Qualify provider rollout and production promotion separately against the exact artefact being
-  deployed. Issue #1623 may proceed as one small P2 PR without displacing CQ-03.
+- **Next action and completion test:** Treat CQ-01/CQ-02 as satisfied and follow FPC-2026-08-13-01: ratify proposed
+  ADR 0009 before any later CQ-03 implementation phase or provider mutation. Qualify provider rollout and production
+  promotion
+  separately against the exact artefact being deployed. Issue #1623 may proceed as one small P2 PR without displacing
+  the CQ-03 programme.
 - **Last updated:** 2026-08-13
 
 ### FPC-2026-07-21-01 — Close the hosted database authorization gate
@@ -450,9 +485,12 @@ Primary authorities:
 - Durable graph load, startup provenance, promotion checking, recovery control plane, API contracts, governance, DR
   documentation, and release-evidence mechanisms exist in the repository.
 - RC1 has candidate-specific approved hosted and restore evidence.
-- `main` is `1a49cee56255ec4f50495fa9bdd80ddd3f8f6763` at this cutoff.
-- CQ-01/CQ-02 are closed through merged PR #1608 with exact PostgreSQL 15/16 authority evidence. Provider rollout
-  and production qualification remain separate evidence obligations.
+- `main` is `5b2685c5ff0635cfd586798cbe2df33a33145216` at this cutoff.
+- CQ-01/CQ-02 are closed through merged PR #1608 with exact PostgreSQL 15/16 authority evidence. QH-01 is closed
+  through merged PR #1632. Provider rollout and production qualification remain separate evidence obligations.
+- CQ-03 is the active critical-path programme; its current CQ-03A ratification phase is controlled by
+  FPC-2026-08-13-01 and draft PR #1634. Proposed ADR 0009 is not
+  implementation authority until human ratification is recorded in GitHub #1633.
 - GRAC v1 is `CURRENT` only for the exact-SHA staging slice recorded by PR #1598; broader claims remain `NEXT`.
 
 ### Governing constraints
@@ -467,11 +505,11 @@ Primary authorities:
 
 ### Next highest-value action
 
-Begin CQ-03: reconcile the PostgreSQL schema into one authoritative migration ledger and add a fail-closed drift gate.
-Preserve the explicit operator migration and restricted verify-only runtime boundary merged through PR #1608. Prove a
-fresh rebuild from the ledger and make unrecorded drift fail CI/readiness with a precise diagnostic. Keep provider
-rollout and production qualification artefact-specific. Issue #1623 is eligible as a small P2 reliability PR, but it
-does not displace CQ-03. Release repeatability (**FPC-2026-07-21-02**) remains active.
+Follow active commitment **FPC-2026-08-13-01** and draft PR #1634. Review and ratify proposed ADR 0009 before any
+later CQ-03 implementation phase or provider mutation, then execute the bounded evidence sequence recorded in
+that commitment.
+Issue #1623 remains a small P2 follow-up and does not displace the CQ-03 programme. Release repeatability
+(**FPC-2026-07-21-02**) remains active.
 
 ### Completion test
 
@@ -483,7 +521,7 @@ verify-only and cannot acquire migration, ownership, grant-management, or implic
 
 ### Sources reviewed
 
-- Repository `main` through `1a49cee56255ec4f50495fa9bdd80ddd3f8f6763` on 2026-08-13.
+- Repository `main` through `5b2685c5ff0635cfd586798cbe2df33a33145216` on 2026-08-13.
 - Repository agent instructions and production-architecture declaration.
 - Enterprise-readiness index, audit, roadmap, PR board, validation-gap audit, release checklist, release evidence pack,
   hosted staging baseline, operational evidence framework, drill and scale-validation documents, and risk register.
@@ -493,6 +531,9 @@ verify-only and cannot acquire migration, ownership, grant-management, or implic
 - Merged hardening PRs #1506, #1508, #1509, and #1510 (H-P1-03).
 - Merged GRAC foundation PRs #1541, #1542, #1549, #1550, and #1552.
 - Merged CQ-01/CQ-02 PR #1608, its final exact-head CI, and post-merge review-thread disposition.
+- Merged QH-01 PR #1632 and Linear DAS-63; closed external-quality record #1631; active CQ-03 programme record #1633
+  and current CQ-03A draft PR #1634, with Linear DAS-62.
+- Read-only Supabase aggregate inventory and migration-history count captured on 2026-08-13; no provider mutation.
 - Available ChatGPT continuity context covering the enterprise-readiness program, PR #1096 onward, RC1 evidence work,
   hosted startup incidents, audit completion, and agreed future-work discussions.
 
@@ -500,7 +541,8 @@ verify-only and cannot acquire migration, ownership, grant-management, or implic
 
 - Earlier conversation context was used to locate and organize decisions, not to prove implementation.
 - The ledger does not reproduce every PR, issue, review comment, CI run, or conversation.
-- Live Supabase, Vercel, scanner, and authorization state was not independently re-executed for this update.
+- Supabase schema and migration history were inspected read-only at aggregate scope; no schema, history, role,
+  credential, project, deployment, Vercel, scanner, or authorization mutation was performed.
 - Restricted security and provider evidence was intentionally not accessed or recorded.
 - RC1 evidence is accepted as a committed candidate-specific record; its live artifacts were not recaptured.
 - Dates for grouped implementation phases are representative ledger anchors; individual PR merge dates remain
