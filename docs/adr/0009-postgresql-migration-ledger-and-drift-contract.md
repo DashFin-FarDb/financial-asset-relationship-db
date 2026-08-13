@@ -167,7 +167,8 @@ separately authorized provider login-membership handoff whose role identities an
 operator material. Its public ledger file preserves the exact timestamp, approved purpose, transaction policy, and
 bounded receipt provenance, but contains no executable membership statement, login identity, OID, DSN, or credential.
 This is a sanitized external-action receipt, not placeholder schema SQL: the provider membership remains outside the
-schema ledger, is not run by `db reset`, and is verified only through the existing restricted runtime-authority checks.
+schema ledger; `supabase db reset` processes the comments-only file as a no-op and never executes the omitted provider
+action; the end state is verified only through the existing restricted runtime-authority checks.
 
 Schema state not explained by the replayable receipts belongs in a later, reviewed reconciliation migration. The
 existing six receipts need no history repair; only that new reconciliation timestamp can become the separately
@@ -216,7 +217,8 @@ already equals the reviewed ledger state.
   executable ledger SQL.
 - A sanitized external-action receipt may preserve an already-recorded provider timestamp only when the action is
   outside repository schema authority, its executable statement would disclose restricted operator identities, the
-  public file is explicitly non-executable, and restricted verification proves the intended end state. Such a receipt
+  public file contains comments only and no executable SQL, and restricted verification proves the intended end
+  state. Such a receipt
   cannot satisfy a schema migration, create a role, grant membership, or authorize provider mutation.
 
 ## Forward and rollback policy
