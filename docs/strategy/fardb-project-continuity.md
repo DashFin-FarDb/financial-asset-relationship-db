@@ -485,7 +485,7 @@ Primary authorities:
 - Durable graph load, startup provenance, promotion checking, recovery control plane, API contracts, governance, DR
   documentation, and release-evidence mechanisms exist in the repository.
 - RC1 has candidate-specific approved hosted and restore evidence.
-- `main` is `5b2685c5ff0635cfd586798cbe2df33a33145216` at this cutoff.
+- `main` is `2dd9f64136eb653284b0f5330a16ee99f6b0b491` at this cutoff.
 - CQ-01/CQ-02 are closed through merged PR #1608 with exact PostgreSQL 15/16 authority evidence. QH-01 is closed
   through merged PR #1632. Provider rollout and production qualification remain separate evidence obligations.
 - CQ-03 is the active critical-path programme. CQ-03A is complete through accepted ADR 0009 and merged PR #1634;
@@ -520,7 +520,7 @@ verify-only and cannot acquire migration, ownership, grant-management, or implic
 
 ### Sources reviewed
 
-- Repository `main` through `5b2685c5ff0635cfd586798cbe2df33a33145216` on 2026-08-13.
+- Repository `main` through `2dd9f64136eb653284b0f5330a16ee99f6b0b491` on 2026-08-13.
 - Repository agent instructions and production-architecture declaration.
 - Enterprise-readiness index, audit, roadmap, PR board, validation-gap audit, release checklist, release evidence pack,
   hosted staging baseline, operational evidence framework, drill and scale-validation documents, and risk register.
