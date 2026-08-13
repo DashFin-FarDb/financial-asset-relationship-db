@@ -61,7 +61,9 @@ Use the standard 14-digit UTC timestamp plus a descriptive snake-case name:
 supabase/migrations/YYYYMMDDHHMMSS_descriptive_name.sql
 ```
 
-Only the timestamp is the migration identity. Names are explanatory and must not be relied on for ordering.
+Only the timestamp determines migration identity and execution order. The descriptive filename stem is immutable
+manifest metadata after application: it does not affect identity or ordering, but renaming it changes provenance and
+therefore fails the immutable-file check. Physical directory, API, and diff-display order are irrelevant.
 
 ### 2. Imperative migrations first
 
@@ -126,7 +128,11 @@ migration files and one migration identity model.
 
 Adoption must be a separate, reviewed implementation and operator sequence.
 
-### Phase A — capture without mutation
+The PR mapping is normative: CQ-03A ratifies this ADR; CQ-03B performs Phase A and Phase B steps 1–3; CQ-03C
+performs Phase B steps 4–7; and CQ-03D performs Phase C. This mapping keeps ledger materialization, drift-gate
+implementation, and hosted-history adoption as separate decisions.
+
+### Phase A — capture without mutation (CQ-03B)
 
 1. Freeze schema-changing work for the bounded capture window.
 2. Record the exact repository SHA and read-only provider migration timestamps.
@@ -138,7 +144,14 @@ Adoption must be a separate, reviewed implementation and operator sequence.
 7. Do not copy data, credentials, row counts, live role names, connection details, or restricted authorization
    evidence into the repository.
 
-### Phase B — prove the repository ledger
+The six observed provider receipts retain their exact timestamp identities as six immutable ledger entries in
+`supabase/migrations/`. CQ-03B must recover and review the SQL for each receipt; it must not collapse them into one
+synthetic baseline or create placeholder SQL. Schema state not explained by those six entries belongs in a later,
+reviewed reconciliation migration. The existing six receipts need no history repair; only that new reconciliation
+timestamp can become the separately approved Phase C history-only adoption candidate. If any receipt SQL cannot be
+recovered or proven, CQ-03B stops and returns to human decision.
+
+### Phase B — prove the repository ledger and drift gate (CQ-03B/C)
 
 1. Replay the complete proposed ledger into a disposable local Supabase database.
 2. Replay the application-owned portable subset against supported plain PostgreSQL versions used by CI.
@@ -149,7 +162,7 @@ Adoption must be a separate, reviewed implementation and operator sequence.
 7. Introduce one deliberate history mismatch and one deliberate schema mutation in disposable databases and prove
    that the correct drift categories fail.
 
-### Phase C — adopt the hosted history
+### Phase C — adopt the hosted history (CQ-03D)
 
 This phase requires a new human approval after Phase B evidence is attached.
 
@@ -168,7 +181,9 @@ already equals the reviewed ledger state.
 - Timestamp identities are unique, strictly increasing, and generated in UTC.
 - An applied migration is immutable. Correct it with a later forward migration.
 - CI records SHA-256 for every migration file in a repository manifest.
-- Renaming, reordering, deleting, or editing an applied timestamp fails CI.
+- Renaming an applied file, changing its timestamp or descriptive stem, deleting it, or editing its bytes fails
+  manifest CI. "Reordering" means changing timestamp values or introducing a timestamp that violates the ledger's
+  strictly increasing UTC order; filesystem enumeration and display order do not matter.
 - A migration header states its control issue, managed schemas, transaction policy, lock expectation, data/backfill
   behavior, rollback or restore path, and whether a provider capability is required.
 - SQL must be deterministic and must not interpolate secrets or environment-specific object identities.
@@ -212,7 +227,8 @@ provider-owned schema exclusion inventory observed at the 2026-08-13 baseline is
 `graphql_public`, `net`, `pgbouncer`, `pgmq`, `realtime`, `storage`, `supabase_functions`,
 `supabase_migrations`, and `vault`. PostgreSQL system, temporary, and TOAST namespaces are classified by catalog
 namespace type rather than an open-ended name wildcard. A newly observed non-`public` schema is reported as
-`OUTSIDE_MANAGED_SCOPE`; excluding it requires an owner, rationale, and reviewed profile-version change.
+`OUTSIDE_MANAGED_SCOPE`; excluding it requires an owner, rationale, and reviewed scope-version change. This
+inclusion/exclusion inventory is independently versioned as `fardb-pg-scope-v1`.
 
 The first contract also excludes:
 
@@ -227,7 +243,8 @@ Every exclusion is named and versioned. A wildcard exclusion without a documente
 
 ### Normalization profile
 
-Define `fardb-pg-catalog-v1` as a versioned catalog normalization profile:
+Define `fardb-pg-catalog-v1` as a versioned catalog normalization profile. The effective drift-contract identity is
+`fardb-pg-catalog-v1+fardb-pg-scope-v1`; changing either component requires review and a new expected digest:
 
 - obtain definitions through PostgreSQL catalog and `pg_get_*def` functions;
 - sort schemas, identities, columns, role sets, policy commands, and ACL items deterministically;
@@ -254,7 +271,8 @@ category in a restricted artifact, and selects the first detected category by th
 cannot be masked by a lower one. A downstream check that cannot run is recorded as `NOT_EVALUATED`, never as a pass
 or mismatch. Single-failure and combined-failure fixtures must prove this precedence.
 
-The public output includes the category, target class, profile version, expected/actual digest, and bounded counts.
+The public output includes the category, target class, normalization-profile version, managed-scope version,
+expected/actual digest, and bounded counts.
 Live object names, data, URLs, raw database errors, and role identities stay in a restricted diagnostic artifact.
 Disposable CI fixtures may name repository-owned objects in test assertions.
 
@@ -337,7 +355,7 @@ No implementation begins until the human ratifier records a decision in GitHub #
 - [ ] Approve `supabase/migrations/` as the sole repository PostgreSQL ledger.
 - [ ] Approve imperative timestamped SQL for initial adoption.
 - [ ] Approve Supabase CLI as pinned operator/CI tooling only.
-- [ ] Approve the managed catalog scope, exclusions, and `fardb-pg-catalog-v1` normalization contract.
+- [ ] Approve `fardb-pg-scope-v1`, its named exclusions, and the `fardb-pg-catalog-v1` normalization contract.
 - [ ] Approve the three failure categories and sanitized evidence boundary.
 - [ ] Approve forward-only migrations and restore-based destructive rollback.
 - [ ] Approve a later, separately authorized history-only provider adoption step.
