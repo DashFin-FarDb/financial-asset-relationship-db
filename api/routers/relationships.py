@@ -1,6 +1,9 @@
 """Relationship API routes."""
 
+from __future__ import annotations
+
 import logging
+from typing import TypeAlias
 
 from fastapi import APIRouter, HTTPException
 
@@ -8,11 +11,35 @@ from src.observability.facade import ObservabilityEvent, log_event
 
 from ..api_models import RelationshipResponse
 from ..router_helpers import get_graph, logger, raise_asset_not_found
+from ..services.relationship_index import (
+    GovernedRelationshipIndex,
+    load_governed_relationship_index,
+)
 
 router = APIRouter()
+GraphRelationship: TypeAlias = tuple[str, str, float]
 
 
-@router.get("/api/assets/{asset_id}/relationships")
+def _relationship_response(
+    source_id: str,
+    relationship: GraphRelationship,
+    governed_index: GovernedRelationshipIndex,
+) -> RelationshipResponse:
+    """Build one relationship response with at most one governance-index lookup."""
+    target_id, relationship_type, strength = relationship
+    payload: dict[str, object] = {
+        "source_id": source_id,
+        "target_id": target_id,
+        "relationship_type": relationship_type,
+        "strength": strength,
+    }
+    metadata = governed_index.get((source_id, target_id, relationship_type))
+    if metadata is not None:
+        payload.update(metadata)
+    return RelationshipResponse.model_validate(payload)
+
+
+@router.get("/api/assets/{asset_id}/relationships", response_model_exclude_none=True)
 async def get_asset_relationships(asset_id: str) -> list[RelationshipResponse]:
     """
     Return outgoing relationships for the specified asset.
@@ -28,14 +55,10 @@ async def get_asset_relationships(asset_id: str) -> list[RelationshipResponse]:
         g = get_graph()
         if asset_id not in g.assets:
             raise_asset_not_found(asset_id)
+        governed_index = load_governed_relationship_index(g)
         return [
-            RelationshipResponse(
-                source_id=asset_id,
-                target_id=target_id,
-                relationship_type=rel_type,
-                strength=strength,
-            )
-            for target_id, rel_type, strength in g.relationships.get(asset_id, [])
+            _relationship_response(asset_id, relationship, governed_index)
+            for relationship in g.relationships.get(asset_id, [])
         ]
     except HTTPException:
         raise
@@ -55,7 +78,7 @@ async def get_asset_relationships(asset_id: str) -> list[RelationshipResponse]:
         ) from e
 
 
-@router.get("/api/relationships")
+@router.get("/api/relationships", response_model_exclude_none=True)
 async def get_all_relationships() -> list[RelationshipResponse]:
     """
     Retrieve all relationships from the shared graph.
@@ -72,16 +95,14 @@ async def get_all_relationships() -> list[RelationshipResponse]:
     """
     try:
         g = get_graph()
+        governed_index = load_governed_relationship_index(g)
         return [
-            RelationshipResponse(
-                source_id=source_id,
-                target_id=target_id,
-                relationship_type=rel_type,
-                strength=strength,
-            )
+            _relationship_response(source_id, relationship, governed_index)
             for source_id, rels in g.relationships.items()
-            for target_id, rel_type, strength in rels
+            for relationship in rels
         ]
+    except HTTPException:
+        raise
     except Exception as e:
         log_event(
             logger,

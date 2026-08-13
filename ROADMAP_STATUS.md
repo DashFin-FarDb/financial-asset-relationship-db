@@ -1,6 +1,23 @@
 # Roadmap Status
 
+> Historical stage ledger. Current programme authority is the
+> [FarDB Project Continuity Ledger](docs/strategy/fardb-project-continuity.md); dated strategy snapshots and generated
+> memory do not override it.
+
+## Current programme checkpoint — 2026-08-13
+
+| Work                                                   | Status       | Evidence / next action                                                                                                                             |
+| ------------------------------------------------------ | ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| CQ-01 — Separate runtime and migration authority       | Complete     | PR [#1608](https://github.com/DashFin-FarDb/financial-asset-relationship-db/pull/1608), verified squash `1a49cee56255ec4f50495fa9bdd80ddd3f8f6763` |
+| CQ-02 — Read-only schema compatibility verification    | Complete     | Closed in the same merge; exact PostgreSQL 15/16 CI passed                                                                                         |
+| CQ-03 — One PostgreSQL migration ledger and drift gate | Next         | Preserve the CQ-01/CQ-02 authority boundary while reconciling fresh rebuild and drift evidence                                                     |
+| PostgreSQL request-path statement timeout              | P2 follow-up | Bounded dedicated issue [#1623](https://github.com/DashFin-FarDb/financial-asset-relationship-db/issues/1623); does not displace CQ-03             |
+
+Broad scanner-driven module decomposition remains deferred. Reduce complexity only when a characterized seam is
+touched by CQ-03 or later authority work.
+
 ## Phase 1.3 - Lifecycle Tracing
+
 - [x] Phase 1.3.a - Trace Context Model and Propagation (PR #1264)
 - [x] Phase 1.3.b - Middleware Refactoring
 - [x] Phase 1.3.c - Startup and Rebuild Engine Tracing (PR #1269)

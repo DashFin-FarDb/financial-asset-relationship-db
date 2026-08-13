@@ -8,6 +8,7 @@ import yaml  # type: ignore[import-untyped]
 REPO_ROOT = Path(__file__).resolve().parents[2]
 WORKFLOW_PATH = REPO_ROOT / ".github" / "workflows" / "production-container.yml"
 COMPOSE_PATH = REPO_ROOT / "docker-compose.production.yml"
+MIGRATION_RUNBOOK_PATH = REPO_ROOT / "docs" / "runbooks" / "database-migration-authority.md"
 
 GRADIO_WORKFLOWS = (
     REPO_ROOT / ".github" / "workflows" / "docker.yml",
@@ -53,7 +54,8 @@ def test_builds_production_dockerfiles(production_container_raw: str) -> None:
 
 def test_persistence_smoke_uses_durable_volume(production_container_raw: str) -> None:
     """API persistence smoke must mount a durable volume under /data."""
-    assert "docker volume create" in production_container_raw
+    assert "COMPOSE_PROJECT_NAME: fardb-ci" in production_container_raw
+    assert "${COMPOSE_PROJECT_NAME}_api-data" in production_container_raw
     assert "/data" in production_container_raw
     assert "ASSET_GRAPH_DATABASE_URL" in production_container_raw
     assert "sqlite:////data/fardb.db" in production_container_raw
@@ -110,10 +112,65 @@ def test_production_compose_declares_persistence_defaults() -> None:
     assert "sqlite:////data/fardb.db" in text
 
 
-def test_api_dockerfile_copies_migrations() -> None:
-    """Production API image must ship SQL migrations for durable SQLite init."""
+def test_production_compose_declares_explicit_operator_migration() -> None:
+    """Migration must be an operator profile sharing the API persistence volume."""
+    compose = yaml.safe_load(COMPOSE_PATH.read_text(encoding="utf-8"))
+    api = compose["services"]["api"]
+    migration = compose["services"]["migrate"]
+
+    assert api["read_only"] is True
+    assert "no-new-privileges:true" in api["security_opt"]
+    assert "/tmp" in api["tmpfs"]
+    assert migration["profiles"] == ["operator"]
+    assert "no-new-privileges:true" in migration["security_opt"]
+    assert migration["command"] == ["python", "-m", "scripts.migrate_database"]
+    assert "api-data:/data" in migration["volumes"]
+    assert migration["image"] == api["image"]
+    assert migration["build"] == api["build"]
+    assert "command" not in api
+    assert "ADMIN_PASSWORD" not in {str(value).split("=", 1)[0] for value in api["environment"]}
+    for variable in (
+        "COORDINATION_DATABASE_URL",
+        "ADMIN_PASSWORD",
+        "ADMIN_EMAIL",
+        "ADMIN_FULL_NAME",
+        "ADMIN_DISABLED",
+    ):
+        assert any(str(value).startswith(f"{variable}=") for value in migration["environment"])
+
+
+def test_api_dockerfile_copies_operator_migration_artifacts() -> None:
+    """Production API image must ship schema migrations and the operator command."""
     text = (REPO_ROOT / "Dockerfile.api").read_text(encoding="utf-8")
     assert "COPY migrations/ ./migrations/" in text
+    assert "scripts/migrate_database.py" in text
+    assert "scripts/bootstrap_database_capability_roles.sql" in text
+    assert 'CMD ["sh", "-c", "uvicorn api.main:app' in text
+
+
+def test_persistence_smoke_uses_packaged_compose_migration(production_container_raw: str) -> None:
+    """CI must exercise the production operator profile without a scripts bind mount."""
+    operator_command = "docker compose -f docker-compose.production.yml --profile operator run --rm --build migrate"
+    migration_runbook = MIGRATION_RUNBOOK_PATH.read_text(encoding="utf-8")
+    assert operator_command in production_container_raw
+    assert operator_command in migration_runbook
+    assert "export SECRET_KEY=replace" not in migration_runbook
+    assert "export ADMIN_PASSWORD=replace" not in migration_runbook
+    assert ': "${SECRET_KEY:?SECRET_KEY must be set}"' in migration_runbook
+    assert 'export SECRET_KEY="$(python -c' not in migration_runbook
+    assert "test -e .env.local || python -c" in migration_runbook
+    assert migration_runbook.count(". ./.env.local") == 2
+    assert "do not regenerate the key" in migration_runbook
+    assert 'read -r -s -p "Initial admin password: " ADMIN_PASSWORD' in migration_runbook
+    routine_operator_command = (
+        ': "${SECRET_KEY:?SECRET_KEY must be set}"\n'
+        ': "${ADMIN_USERNAME:?ADMIN_USERNAME must remain set for migration}"\n'
+        "unset ADMIN_PASSWORD\n"
+        f"{operator_command}\n"
+    )
+    assert routine_operator_command in migration_runbook
+    assert "routine migrations must leave that variable unset" in migration_runbook
+    assert "scripts:/app/scripts" not in production_container_raw
 
 
 def test_assets_smoke_requires_positive_integer_total(production_container_raw: str) -> None:
