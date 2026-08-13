@@ -1,4 +1,7 @@
 paths:
-  .github/workflows/**/*.{yml,yaml}:
+  .github/workflows/**/*.yml:
+    ignore:
+      - 'unknown permission scope "models"'
+  .github/workflows/**/*.yaml:
     ignore:
       - 'unknown permission scope "models"'

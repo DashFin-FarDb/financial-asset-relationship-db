@@ -194,6 +194,48 @@ class TestCodacyConfig:
 
 
 @pytest.mark.unit
+class TestActionlintConfig:
+    """Test Super-Linter actionlint ignore paths."""
+
+    @pytest.fixture
+    def actionlint_config(self) -> dict:
+        """Load Super-Linter actionlint config.
+
+        Returns:
+            dict: Parsed YAML mapping from `.github/linters/actionlint.yaml`.
+        """
+        config_path = PROJECT_ROOT / ".github" / "linters" / "actionlint.yaml"
+        with open(config_path, encoding="utf-8") as f:
+            return yaml.safe_load(f)
+
+    def test_actionlint_config_valid_yaml(self, actionlint_config):
+        """Actionlint config is a non-empty YAML mapping."""
+        assert isinstance(actionlint_config, dict)
+        assert "paths" in actionlint_config
+
+    def test_actionlint_paths_avoid_brace_globs(self, actionlint_config):
+        """Path keys must not use brace expansion, which actionlint treats literally."""
+        paths = actionlint_config["paths"]
+        assert isinstance(paths, dict)
+        for path_key in paths:
+            assert "{" not in path_key
+            assert "}" not in path_key
+
+    def test_actionlint_ignores_models_scope_for_yml_and_yaml(self, actionlint_config):
+        """Both workflow extensions suppress the GitHub Models permission diagnostic."""
+        paths = actionlint_config["paths"]
+        expected_paths = (
+            ".github/workflows/**/*.yml",
+            ".github/workflows/**/*.yaml",
+        )
+        models_ignore = 'unknown permission scope "models"'
+        for expected_path in expected_paths:
+            assert expected_path in paths
+            ignores = paths[expected_path].get("ignore", [])
+            assert models_ignore in ignores
+
+
+@pytest.mark.unit
 class TestGitHubWorkflows:
     """Test GitHub workflow files."""
 
