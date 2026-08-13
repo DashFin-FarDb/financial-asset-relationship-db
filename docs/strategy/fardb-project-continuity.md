@@ -2,8 +2,8 @@
 
 **Repository:** `DashFin-FarDb/financial-asset-relationship-db`
 **Established:** 2026-07-21
-**Repository evidence cutoff:** `main` at `a9757abc304675ff36ae6e3d6d1c9a03ca5c0553`
-**Continuity status:** Reconciled through the active CQ-01/CQ-02 execution programme (draft PR #1608)
+**Repository evidence cutoff:** `main` at `1a49cee56255ec4f50495fa9bdd80ddd3f8f6763`
+**Continuity status:** Reconciled through merged CQ-01/CQ-02; CQ-03 is the next closure dependency
 
 This ledger preserves durable project decisions, plans, milestones, and handoffs across ChatGPT, Codex, and
 repository work. It is an index of authoritative evidence, not a replacement for detailed specifications, issues,
@@ -37,16 +37,20 @@ recovery evidence.
 
 At the evidence cutoff:
 
-- The broad repository review cutoff remains `main@a9757abc304675ff36ae6e3d6d1c9a03ca5c0553`.
-- Newer execution evidence separately verifies `main@820342d7b3d1bc7b3a6429589794b0efee174d2b` as the exact base of draft
-  PR #1608, the active CQ-01/CQ-02 implementation branch.
+- PR [#1608](https://github.com/DashFin-FarDb/financial-asset-relationship-db/pull/1608) merged from final reviewed
+  head `743ce9254ca0fdb20805a789e4082c2891053109` as GitHub-verified squash
+  `1a49cee56255ec4f50495fa9bdd80ddd3f8f6763` on `main`.
+- The final exact-head CI run passed PostgreSQL 16 GRAC/authority, PostgreSQL 15 compatibility, Python 3.10–3.12,
+  and security jobs. The PostgreSQL 16 job executed the membership and authority regressions rather than skipping
+  them.
 - PR #1598 records named human sign-off and exact-SHA staging evidence for candidate
   `16d0a69c5d6f9bae94b9251991466bacbf15d3f0`.
 - GRAC runtime capability is `CURRENT` only for the evidenced staging slice
   `financial.bond.issuer_reference@1::financial_graph_current_view`. Production certification, capacity, and
   broader generality remain `NEXT`.
-- Production implementation closure is blocked by the unresolved runtime/migration-authority boundary; production
-  scale, repeated immutable promotion, and domain-neutral reuse remain unproven.
+- CQ-01/CQ-02 are closed at repository and exact-head CI scope. CQ-03 migration-ledger and drift-gate work is the
+  next closure dependency. Provider rollout, production promotion and recovery evidence remain artefact-specific;
+  production scale, repeated immutable promotion, and domain-neutral reuse remain unproven.
 
 Primary authorities:
 
@@ -65,7 +69,8 @@ Primary authorities:
 ### FPC-2026-08-09-01 — Separate migration and runtime database authority
 
 - **Type:** Security / production qualification blocker
-- **Status:** Repository implementation in progress — draft PR #1608; provider binding remains blocked on human action
+- **Status:** Satisfied — repository implementation and exact-head PostgreSQL 15/16 evidence; provider rollout and
+  production qualification remain separate
 - **Decision or objective:** Make database mutation and credential bootstrap an explicit operator action, then require
   verify-only startup under restricted runtime credentials that exclude `ADMIN_PASSWORD` and schema-migration
   authority.
@@ -74,27 +79,31 @@ Primary authorities:
   dependency changes, or implicit startup repair.
 - **Repository scope:** `scripts/migrate_database.py`, startup and database compatibility verification, runtime
   settings, production/container gates, launchers, focused tests, migration-authority runbooks, and the canonical
-  operating-authority record in draft PR #1608.
-- **Dependencies or blockers:** Restricted Supabase login-role membership and Vercel runtime database variables require
-  a separate human-controlled provider operation. Repository code now owns stable `NOLOGIN` auth, graph, and
-  coordination capability roles plus exact grants and RLS policies; it deliberately does not create credentials or
-  mutate provider configuration. Vercel currently cancels unverified-commit previews before build, so an exact-head
-  preview requires the commit-provenance gate to be satisfied. The PR must remain draft until exact-head CI and live
-  restricted-runtime evidence are reconciled.
-- **Evidence and provenance:** User ratification on 2026-08-09; draft
-  [PR #1608](https://github.com/DashFin-FarDb/financial-asset-relationship-db/pull/1608) from
-  `main@820342d7b3d1bc7b3a6429589794b0efee174d2b`; Production Container and Stage 5C passed on reviewed head
-  `63982466ea67064f6b86ec6050f674b0efac885e`. The current ratified repository tranche adds execution-time auth target
-  binding, stable capability roles, exact per-boundary grants and named RLS policies, non-vacuous startup authority
-  verification, GRAC lock-compatible immutability, sanitized migration failures, and grouping-preserving CHECK
-  comparison. Focused local validation passed 180 tests with 25 PostgreSQL/environment skips; Black, Ruff, Flake8,
-  mypy, and `git diff --check` passed. Parser validation accepted all 246 emitted graph/coordination PostgreSQL
-  statements and all 9 emitted auth statements. Live restricted-role proof remains intentionally pending.
-- **Next action and completion test:** Complete focused PostgreSQL contract coverage, publish the repository tranche,
-  and obtain exact-head GitHub CI. Then provision login identities and bind only the applicable capability roles under
-  explicit human authority, switch runtime URLs, and prove password-free graph/coordination/auth operations plus cold
-  start/restart in an isolated target. Retain the PR as draft until those provider and promotion gates are evidenced.
-- **Last updated:** 2026-08-09
+  operating-authority record merged through PR #1608.
+- **Dependencies or blockers:** Repository closure is no longer blocked. Any target-environment rollout still requires
+  the documented superuser-owned capability-role bootstrap, explicit operator migration, restricted login binding,
+  and fresh target-specific startup, authorization, promotion, rollback, and recovery evidence. Repository code does
+  not create provider credentials or mutate provider configuration.
+- **Evidence and provenance:** User ratification on 2026-08-09; merged
+  [PR #1608](https://github.com/DashFin-FarDb/financial-asset-relationship-db/pull/1608), final reviewed head
+  `743ce9254ca0fdb20805a789e4082c2891053109`, and GitHub-verified squash
+  [`1a49cee56255ec4f50495fa9bdd80ddd3f8f6763`](https://github.com/DashFin-FarDb/financial-asset-relationship-db/commit/1a49cee56255ec4f50495fa9bdd80ddd3f8f6763).
+  [Final CI](https://github.com/DashFin-FarDb/financial-asset-relationship-db/actions/runs/31684943008) passed the
+  PostgreSQL 16 GRAC/authority and PostgreSQL 15 compatibility jobs, Python 3.10–3.12, and security jobs. The merged
+  implementation supplies explicit operator migration, superuser-owned capability bootstrap, password-free
+  verify-only runtime startup, restricted capability roles, exact privilege/ownership checks, and production Compose
+  migration packaging.
+- **Post-merge review disposition:** Issue
+  [#1623](https://github.com/DashFin-FarDb/financial-asset-relationship-db/issues/1623) records the one bounded P2
+  reliability follow-up: a server-side statement timeout for normal PostgreSQL request connections. Scanner-driven
+  module splitting is not a separate roadmap item; reduce complexity only at characterized seams touched by CQ-03 or
+  later authority work. Comments contradicted by the exact PostgreSQL 15/16 evidence, and scanner heuristics involving
+  test `/tmp`, localhost, repository-controlled SQL identifiers, co-change frequency, or live code labelled dead,
+  require no follow-up.
+- **Next action and completion test:** Treat CQ-01/CQ-02 as satisfied and begin CQ-03's single PostgreSQL migration
+  ledger and drift gate. Qualify provider rollout and production promotion separately against the exact artefact being
+  deployed. Issue #1623 may proceed as one small P2 PR without displacing CQ-03.
+- **Last updated:** 2026-08-13
 
 ### FPC-2026-07-21-01 — Close the hosted database authorization gate
 
@@ -442,7 +451,9 @@ Primary authorities:
 - Durable graph load, startup provenance, promotion checking, recovery control plane, API contracts, governance, DR
   documentation, and release-evidence mechanisms exist in the repository.
 - RC1 has candidate-specific approved hosted and restore evidence.
-- `main` is `a9757abc304675ff36ae6e3d6d1c9a03ca5c0553` at this cutoff.
+- `main` is `1a49cee56255ec4f50495fa9bdd80ddd3f8f6763` at this cutoff.
+- CQ-01/CQ-02 are closed through merged PR #1608 with exact PostgreSQL 15/16 authority evidence. Provider rollout
+  and production qualification remain separate evidence obligations.
 - GRAC v1 is `CURRENT` only for the exact-SHA staging slice recorded by PR #1598; broader claims remain `NEXT`.
 
 ### Governing constraints
@@ -457,26 +468,23 @@ Primary authorities:
 
 ### Next highest-value action
 
-Complete draft PR #1608 and its provider evidence gate: publish and qualify the review-closure tranche, provision
-restricted runtime roles without exposing credentials, and require the PostgreSQL authority verifier to pass for the
-session login and every role it can assume through `MEMBER`. Evidence must show a current schema and no superuser,
-role/database-creation, RLS-bypass, current-database `CREATE` or ownership, current-schema `CREATE` or ownership,
-protected-table ownership, or `grac_v1_reject_mutation` ownership. Prove operator migration followed by password-free,
-verify-only
-cold-start/restart on one isolated exact-SHA target. Then reconcile one authoritative migration ledger and qualify a
-new exact production candidate. Release repeatability (**FPC-2026-07-21-02**) remains active.
+Begin CQ-03: reconcile the PostgreSQL schema into one authoritative migration ledger and add a fail-closed drift gate.
+Preserve the explicit operator migration and restricted verify-only runtime boundary merged through PR #1608. Prove a
+fresh rebuild from the ledger and make unrecorded drift fail CI/readiness with a precise diagnostic. Keep provider
+rollout and production qualification artefact-specific. Issue #1623 is eligible as a small P2 reliability PR, but it
+does not displace CQ-03. Release repeatability (**FPC-2026-07-21-02**) remains active.
 
 ### Completion test
 
-A migration authority can build the required schema; a restricted application role cold-starts and restarts without
-DDL, grant-management, or implicit credential-bootstrap authority; readiness verifies migration and required
-invariants without mutation; and negative tests prove the application role cannot alter schema or grants.
+One declared PostgreSQL migration ledger can build a fresh database, adopt the intended live baseline, and detect
+unrecorded schema drift. CI and readiness fail clearly on drift while the restricted application role remains
+verify-only and cannot acquire migration, ownership, grant-management, or implicit credential-bootstrap authority.
 
 ## Backfill coverage and gaps
 
 ### Sources reviewed
 
-- Repository `main` through `a9757abc304675ff36ae6e3d6d1c9a03ca5c0553` on 2026-08-08.
+- Repository `main` through `1a49cee56255ec4f50495fa9bdd80ddd3f8f6763` on 2026-08-13.
 - Repository agent instructions and production-architecture declaration.
 - Enterprise-readiness index, audit, roadmap, PR board, validation-gap audit, release checklist, release evidence pack,
   hosted staging baseline, operational evidence framework, drill and scale-validation documents, and risk register.
@@ -485,6 +493,7 @@ invariants without mutation; and negative tests prove the application role canno
 - Current-state strategy, claims taxonomy, and Big Read chronology.
 - Merged hardening PRs #1506, #1508, #1509, and #1510 (H-P1-03).
 - Merged GRAC foundation PRs #1541, #1542, #1549, #1550, and #1552.
+- Merged CQ-01/CQ-02 PR #1608, its final exact-head CI, and post-merge review-thread disposition.
 - Available ChatGPT continuity context covering the enterprise-readiness program, PR #1096 onward, RC1 evidence work,
   hosted startup incidents, audit completion, and agreed future-work discussions.
 
