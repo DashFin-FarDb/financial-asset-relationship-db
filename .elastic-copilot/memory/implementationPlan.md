@@ -1,5 +1,8 @@
 # Implementation Plan
 
+> **LEGACY PLACEHOLDER — NOT AN ACTIVE PLAN.** Start with
+> [`docs/agent-task-entry.md`](../../docs/agent-task-entry.md).
+
 ## Overview
 
 TBD

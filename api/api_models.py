@@ -5,6 +5,7 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from api.assertion_models import PublishedProjectionContextResponse
 from api.graph_lifecycle import GraphStartupSource
 from src.data.db_models import RebuildJobStatus
 
@@ -35,12 +36,12 @@ class AssetPageResponse(BaseModel):
     Pagination contract:
     - ``page`` is 1-indexed (first page = 1).
     - ``per_page`` defaults to 50; maximum accepted value is 1,000
-      (enforced by ``Query(ge=1, le=1000)`` on the route).
+        (enforced by ``Query(ge=1, le=1000)`` on the route).
     - ``total`` is the exact count of assets matching the current query
-      filters (not an estimate).
+        filters (not an estimate).
     - An out-of-range ``page`` returns an empty ``items`` list, not an error.
     - Results are deterministically ordered by ``asset.id ASC`` to ensure
-      stable pagination across requests.
+        stable pagination across requests.
     """
 
     model_config = ConfigDict(populate_by_name=True)
@@ -59,6 +60,10 @@ class RelationshipResponse(BaseModel):
     target_id: str
     relationship_type: str
     strength: float
+    assertion_id: str | None = None
+    governance_status: Literal["governed"] | None = None
+    revision_id: str | None = None
+    scope_refs: list[str] | None = None
 
 
 class MetricsResponse(BaseModel):
@@ -95,8 +100,14 @@ class VisualizationEdge(BaseModel):
 
     source: str
     target: str
+    edge_id: str
     relationship_type: str
     strength: float
+    projection_edge_id: str | None = None
+    assertion_id: str | None = None
+    governance_status: Literal["governed"] | None = None
+    revision_id: str | None = None
+    scope_refs: list[str] | None = None
 
 
 class VisualizationDataResponse(BaseModel):
@@ -107,6 +118,7 @@ class VisualizationDataResponse(BaseModel):
     nodes: list[VisualizationNode]
     edges: list[VisualizationEdge]
     network_density: float
+    publication: PublishedProjectionContextResponse | None = None
 
 
 class GraphHealthResponse(BaseModel):

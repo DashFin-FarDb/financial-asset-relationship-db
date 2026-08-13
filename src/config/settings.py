@@ -153,11 +153,11 @@ class Settings(BaseModel):
         return value
 
     def model_post_init(self, __context: Any, /) -> None:
-        """Fail fast when production receives missing or empty required secrets."""
+        """Fail fast when production receives missing required runtime configuration."""
         if self.env != DeploymentEnvironment.PRODUCTION:
             return
 
-        required_values = (self.secret_key, self.admin_username, self.admin_password)
+        required_values = (self.secret_key, self.admin_username)
         if any(value is None or not value.strip() for value in required_values):
             raise ValueError("Production requires non-empty deployment credentials.")
 

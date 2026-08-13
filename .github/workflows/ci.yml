@@ -117,12 +117,16 @@ jobs:
         continue-on-error: true
 
   grac-assertion-schema-postgres:
-    name: GRAC assertion schema (PostgreSQL)
+    name: GRAC assertion schema (PostgreSQL ${{ matrix.postgres-version }})
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        postgres-version: [15, 16]
 
     services:
       postgres:
-        image: postgres:15
+        image: postgres:${{ matrix.postgres-version }}
         env:
           POSTGRES_USER: test
           POSTGRES_PASSWORD: test
@@ -148,9 +152,11 @@ jobs:
         # pip lives in scripts/ci_install_python_deps.sh (avoids githubactions:S8544 on -r installs).
         run: bash scripts/ci_install_python_deps.sh
 
-      - name: Run GRAC assertion schema tests against ephemeral Postgres
+      - name: Run PostgreSQL schema and authority tests against ephemeral Postgres
         env:
           ASSET_GRAPH_DATABASE_URL: postgresql://test:test@localhost:5432/test_db
+          FARDB_EPHEMERAL_POSTGRES_AUTHORITY_TESTS: "1"
+          FARDB_EPHEMERAL_POSTGRES_URL: postgresql://test:test@localhost:5432/test_db
           SECRET_KEY: ci-grac-schema-test-key-not-a-real-secret
           DATABASE_URL: sqlite:///./ci-auth.db
           ADMIN_USERNAME: admin
@@ -158,7 +164,8 @@ jobs:
         run: |
           pytest tests/integration/test_relationship_assertion_schema.py \
             tests/integration/test_relationship_assertion_repository.py \
-            tests/integration/test_relationship_projection_persistence.py -v
+            tests/integration/test_relationship_projection_persistence.py \
+            tests/integration/test_runtime_authority_postgres.py -v -rs
 
   security:
     name: Security checks

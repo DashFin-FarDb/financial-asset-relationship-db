@@ -552,10 +552,15 @@ class TestSnykContainerWorkflow:
         assert "--exclude-base-image-vulns" in args
 
     def test_dependabot_prs_skip_when_snyk_secret_unavailable(self, container_job):
-        """Dependabot PRs do not receive repository secrets, so the scan must skip."""
+        """Dependabot PRs do not receive repository secrets, so the scan must skip.
+
+        The guard keys off the PR author, not github.actor, so a maintainer
+        reopen/rerun of a Dependabot PR still skips the secret-dependent scan.
+        """
         job_if = container_job.get("if", "")
         assert "github.event_name != 'pull_request'" in job_if
-        assert "github.actor != 'dependabot[bot]'" in job_if
+        assert "github.event.pull_request.user.login != 'dependabot[bot]'" in job_if
+        assert "github.actor" not in job_if
 
     def test_job_fails_when_sarif_missing(self, container_job):
         """Workflow must fail when Snyk does not produce the expected SARIF artifact."""

@@ -20,6 +20,7 @@ from slowapi import _rate_limit_exceeded_handler  # type: ignore[import-not-foun
 from slowapi.errors import RateLimitExceeded  # type: ignore[import-not-found]
 from sqlalchemy.exc import SQLAlchemyError
 
+from src.data.database import SchemaCompatibilityError
 from src.observability.context import async_trace_context, get_span_id, get_trace_id
 from src.observability.events import ObservabilityEvent
 from src.observability.logger import log_event
@@ -40,6 +41,7 @@ from .graph_lifecycle_providers import (
 from .middleware.correlation import CorrelationMiddleware
 from .middleware.request_metrics import RequestMetricsMiddleware
 from .rate_limit import limiter
+from .routers.assertions import router as assertions_router
 from .routers.assets import router as assets_router
 from .routers.auth import router as auth_router
 from .routers.graph_admin import init_rebuild_executor
@@ -58,6 +60,8 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 _STARTUP_RECONCILIATION_LOCK_TTL_SECONDS = 10.0
+_AUTH_DATABASE_VERIFICATION_TIMEOUT_SECONDS = 30.0
+_AUTH_DATABASE_SHUTDOWN_TIMEOUT_SECONDS = 5.0
 
 
 def _get_durable_graph_database_url(settings: GraphLifecycleSettings) -> str | None:
@@ -97,11 +101,11 @@ def _run_startup_reconciliation(
     coord_engine = create_engine_from_url(coord_url) if coord_url != url else engine
 
     try:
-        # Check cancellation before schema initialization (potentially slow)
+        # Check cancellation before schema verification (potentially slow)
         if cancellation_event and cancellation_event.is_set():
             return
 
-        _init_reconciliation_schemas(engine, coord_engine)
+        _verify_reconciliation_schemas(engine, coord_engine)
 
         # Check cancellation before recovery gate (lock acquisition/evaluation)
         if cancellation_event and cancellation_event.is_set():
@@ -115,13 +119,68 @@ def _run_startup_reconciliation(
             coord_engine.dispose()
 
 
-def _init_reconciliation_schemas(engine: Any, coord_engine: Any) -> None:
-    """Initialize database schemas for reconciliation."""
-    from src.data.database import init_db
+def _verify_reconciliation_schemas(engine: Any, coord_engine: Any) -> None:
+    """Verify reconciliation schemas without exercising migration authority."""
+    from src.data.database import (
+        COORDINATION_RUNTIME_CAPABILITY,
+        GRAPH_RUNTIME_CAPABILITY,
+        verify_database_schema,
+        verify_runtime_database_authority,
+    )
 
-    init_db(engine)
+    graph_capabilities = {GRAPH_RUNTIME_CAPABILITY}
+    if coord_engine is engine:
+        graph_capabilities.add(COORDINATION_RUNTIME_CAPABILITY)
+    verify_database_schema(engine)
+    verify_runtime_database_authority(engine, required_capabilities=graph_capabilities)
     if coord_engine is not engine:
-        init_db(coord_engine)
+        coordination_capabilities = {COORDINATION_RUNTIME_CAPABILITY}
+        verify_database_schema(coord_engine)
+        verify_runtime_database_authority(coord_engine, required_capabilities=coordination_capabilities)
+
+
+def _verify_auth_database(operation_guard: Any | None = None) -> None:
+    """Verify credential schema and provisioning without mutating the auth database."""
+    from .auth import user_repository
+    from .database import (
+        _bind_postgres_operation_guard,
+        _PostgresOperationGuard,
+        verify_runtime_authority,
+        verify_schema_compatibility,
+    )
+
+    try:
+        guard = operation_guard or _PostgresOperationGuard()
+        with _bind_postgres_operation_guard(guard):
+            verify_schema_compatibility()
+            verify_runtime_authority()
+            if not user_repository.has_users():
+                raise SchemaCompatibilityError(
+                    "API credential store has no users; run the explicit database migration command"
+                )
+    except SchemaCompatibilityError:
+        raise
+    except Exception as exc:  # noqa: BLE001 - sanitize catalog/driver failures at the startup boundary
+        raise SchemaCompatibilityError(f"API credential database verification failed ({type(exc).__name__})") from None
+
+
+def _consume_auth_database_verification_result(verification_task: asyncio.Task[None]) -> None:
+    """Retrieve a completed background verification result without leaking its exception."""
+    with contextlib.suppress(asyncio.CancelledError, Exception):
+        verification_task.result()
+
+
+async def _stop_auth_database_verification(verification_task: asyncio.Task[None], operation_guard: Any) -> None:
+    """Stop a worker-owned auth verification and drain its task for a bounded interval."""
+    operation_guard.cancel()
+    done, _pending = await asyncio.wait(
+        {verification_task},
+        timeout=_AUTH_DATABASE_SHUTDOWN_TIMEOUT_SECONDS,
+    )
+    if done:
+        _consume_auth_database_verification_result(verification_task)
+    else:
+        verification_task.add_done_callback(_consume_auth_database_verification_result)
 
 
 def _execute_recovery_gate(engine: Any, coord_engine: Any, cancellation_event: threading.Event | None = None) -> None:
@@ -212,9 +271,28 @@ async def _initialize_application_state(
     hosted_startup_degradation_allowed: bool,
 ) -> None:
     """Run startup reconciliation and initialize the graph, handling degraded startup."""
+    # Credential compatibility is an authority boundary, not an optional hosted
+    # fallback. It must fail closed before any HTTP traffic is accepted.
+    from .database import _PostgresOperationGuard
+
+    operation_guard = _PostgresOperationGuard()
+    verification_task = asyncio.create_task(asyncio.to_thread(_verify_auth_database, operation_guard))
+    try:
+        await asyncio.wait_for(
+            asyncio.shield(verification_task),
+            timeout=_AUTH_DATABASE_VERIFICATION_TIMEOUT_SECONDS,
+        )
+    except asyncio.TimeoutError:
+        await _stop_auth_database_verification(verification_task, operation_guard)
+        raise SchemaCompatibilityError("API credential database verification timed out") from None
+    except asyncio.CancelledError:
+        await _stop_auth_database_verification(verification_task, operation_guard)
+        raise
     if has_persistence:
         try:
             await _perform_startup_reconciliation(settings)
+        except SchemaCompatibilityError:
+            raise
         except (SQLAlchemyError, OSError, RuntimeError) as exc:
             if not hosted_startup_degradation_allowed:
                 raise
@@ -338,6 +416,8 @@ async def _perform_startup_reconciliation(settings: GraphLifecycleSettings) -> N
                 ),
             )
             raise RuntimeError("Startup reconciliation timed out") from None
+    except SchemaCompatibilityError:
+        raise
     except ExecutionBlockedError as exc:
         _handle_reconciliation_blocked(exc)
     except Exception as exc:
@@ -604,6 +684,7 @@ def create_app() -> FastAPI:
     app.add_middleware(CorrelationMiddleware)
 
     app.include_router(auth_router)
+    app.include_router(assertions_router)
     app.include_router(system_router)
     app.include_router(graph_admin_router)
     app.include_router(assets_router)

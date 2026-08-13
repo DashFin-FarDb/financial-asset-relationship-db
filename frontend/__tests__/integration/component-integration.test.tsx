@@ -355,4 +355,273 @@ describe("Component Integration Tests", () => {
       });
     });
   });
+
+  describe("Parent-to-Child Publication-Envelope Integration", () => {
+    const ActualNetworkVisualization = jest.requireActual(
+      "../../app/components/NetworkVisualization",
+    ).default;
+
+    const publicationA = {
+      publication_id: "pub-A",
+      revision_id: "rev-A",
+      rebuild_job_id: "job-100",
+      execution_id: "exec-200",
+      published_at: "2024-01-01T12:00:00Z",
+      purpose: "financial-relationship-graph",
+      effective_at: "2024-01-01T12:00:00Z",
+      known_at: "2024-01-01T12:00:00Z",
+      contract_version: "grac-v1",
+      projector_version: "v1.2.3",
+      edge_set_hash: "hash-edges-A",
+      projection_hash: "hash-proj-A",
+      governed_scopes: [
+        {
+          purpose: "financial-relationship-graph",
+          predicate_id: "predicate-issuer",
+        },
+      ],
+    };
+
+    const publicationB = {
+      ...publicationA,
+      publication_id: "pub-B",
+      revision_id: "rev-B",
+      edge_set_hash: "hash-edges-B",
+      projection_hash: "hash-proj-B",
+    };
+
+    const dataA = {
+      nodes: [
+        {
+          id: "A1",
+          name: "Asset 1",
+          symbol: "A1",
+          asset_class: "EQUITY",
+          x: 1,
+          y: 1,
+          z: 1,
+          color: "red",
+          size: 1,
+        },
+        {
+          id: "A2",
+          name: "Asset 2",
+          symbol: "A2",
+          asset_class: "EQUITY",
+          x: 2,
+          y: 2,
+          z: 2,
+          color: "blue",
+          size: 1,
+        },
+      ],
+      edges: [
+        {
+          edge_id: "edge-A",
+          projection_edge_id: "pedge-A",
+          source: "A1",
+          target: "A2",
+          relationship_type: "CORPORATE_LINK",
+          strength: 0.9,
+          assertion_id: "assert-A",
+          governance_status: "governed",
+          revision_id: "rev-A",
+          scope_refs: ["predicate-issuer"],
+        },
+      ],
+      network_density: 0.5,
+      publication: publicationA,
+    };
+
+    const dataB = {
+      nodes: [
+        {
+          id: "A1",
+          name: "Asset 1",
+          symbol: "A1",
+          asset_class: "EQUITY",
+          x: 1,
+          y: 1,
+          z: 1,
+          color: "red",
+          size: 1,
+        },
+        {
+          id: "A2",
+          name: "Asset 2",
+          symbol: "A2",
+          asset_class: "EQUITY",
+          x: 2,
+          y: 2,
+          z: 2,
+          color: "blue",
+          size: 1,
+        },
+      ],
+      edges: [
+        {
+          edge_id: "edge-B",
+          projection_edge_id: "pedge-B",
+          source: "A1",
+          target: "A2",
+          relationship_type: "CORPORATE_LINK",
+          strength: 0.85,
+          assertion_id: "assert-B",
+          governance_status: "governed",
+          revision_id: "rev-B",
+          scope_refs: ["predicate-issuer"],
+        },
+      ],
+      network_density: 0.5,
+      publication: publicationB,
+    };
+
+    const explanationA = {
+      publication: publicationA,
+      edge: {
+        projection_edge_id: "pedge-A",
+        source: "A1",
+        target: "A2",
+        relationship_type: "CORPORATE_LINK",
+        strength: "0.90",
+        direction: "directional",
+        assertion_id: "assert-A",
+      },
+      assertion: {
+        explanation: {
+          assertion_id: "assert-A",
+          predicate_id: "predicate-issuer",
+          subject_id: "A1",
+          object_id: "A2",
+          method_id: "m-1",
+          proposition: "A1 controls A2",
+          confidence_status: "assessed",
+          confidence_bp: 9000,
+          confidence_type: "statistical",
+          confidence_method: "filings",
+          effective_from: "2024-01-01T12:00:00Z",
+          effective_to: null,
+          recorded_at: "2024-01-01T12:00:00Z",
+          state: "Accepted",
+          known_at: "2024-01-01T12:00:00Z",
+          effective_at: "2024-01-01T12:00:00Z",
+          sequence: 1,
+          evidence: [],
+        },
+        history: {
+          assertion_id: "assert-A",
+          effective_from: "2024-01-01T12:00:00Z",
+          effective_to: null,
+          recorded_at: "2024-01-01T12:00:00Z",
+          state: "Accepted",
+          known_at: "2024-01-01T12:00:00Z",
+          effective_at: "2024-01-01T12:00:00Z",
+          events: [],
+        },
+      },
+    };
+
+    const explanationB = {
+      publication: publicationB,
+      edge: {
+        projection_edge_id: "pedge-B",
+        source: "A1",
+        target: "A2",
+        relationship_type: "CORPORATE_LINK",
+        strength: "0.85",
+        direction: "directional",
+        assertion_id: "assert-B",
+      },
+      assertion: {
+        explanation: {
+          assertion_id: "assert-B",
+          predicate_id: "predicate-issuer",
+          subject_id: "A1",
+          object_id: "A2",
+          method_id: "m-1",
+          proposition: "A1 has exposure to A2",
+          confidence_status: "assessed",
+          confidence_bp: 8500,
+          confidence_type: "statistical",
+          confidence_method: "filings",
+          effective_from: "2024-01-01T12:00:00Z",
+          effective_to: null,
+          recorded_at: "2024-01-01T12:00:00Z",
+          state: "Accepted",
+          known_at: "2024-01-01T12:00:00Z",
+          effective_at: "2024-01-01T12:00:00Z",
+          sequence: 1,
+          evidence: [],
+        },
+        history: {
+          assertion_id: "assert-B",
+          effective_from: "2024-01-01T12:00:00Z",
+          effective_to: null,
+          recorded_at: "2024-01-01T12:00:00Z",
+          state: "Accepted",
+          known_at: "2024-01-01T12:00:00Z",
+          effective_at: "2024-01-01T12:00:00Z",
+          events: [],
+        },
+      },
+    };
+
+    it("verifies the parent-to-child publication envelope lifecycle", async () => {
+      mockedApi.getPublishedEdgeExplanation.mockResolvedValue(explanationA);
+
+      // 1. Render NetworkVisualization with publication A
+      const { rerender } = render(<ActualNetworkVisualization data={dataA} />);
+
+      // 2. Select its governed edge
+      const edgeAButton = screen.getByRole("button", {
+        name: /A1.*A2.*CORPORATE_LINK.*Governed/,
+      });
+      fireEvent.click(edgeAButton);
+
+      // 3. Resolves and displays publication-A explanation data
+      await waitFor(() => {
+        expect(mockedApi.getPublishedEdgeExplanation).toHaveBeenCalledWith(
+          "pub-A",
+          "pedge-A",
+          expect.anything(),
+        );
+      });
+      await waitFor(() => {
+        expect(screen.getByText("A1 controls A2")).toBeInTheDocument();
+        expect(screen.getByText("pub-A")).toBeInTheDocument();
+      });
+
+      // 4. Rerender with publication B, whose edge IDs differ
+      mockedApi.getPublishedEdgeExplanation.mockResolvedValue(explanationB);
+      rerender(<ActualNetworkVisualization data={dataB} />);
+
+      // 5. Verifies the publication-A explanation disappears
+      await waitFor(() => {
+        expect(screen.queryByText("A1 controls A2")).not.toBeInTheDocument();
+      });
+
+      // 6. Verifies no replacement edge is silently selected
+      expect(
+        screen.getByText("Select a relationship to see how it was determined."),
+      ).toBeInTheDocument();
+
+      // 7. Selects publication-B’s edge and confirms the request and displayed provenance use publication B
+      const edgeBButton = screen.getByRole("button", {
+        name: /A1.*A2.*CORPORATE_LINK.*Governed/,
+      });
+      fireEvent.click(edgeBButton);
+
+      await waitFor(() => {
+        expect(mockedApi.getPublishedEdgeExplanation).toHaveBeenLastCalledWith(
+          "pub-B",
+          "pedge-B",
+          expect.anything(),
+        );
+      });
+      await waitFor(() => {
+        expect(screen.getByText("A1 has exposure to A2")).toBeInTheDocument();
+        expect(screen.getByText("pub-B")).toBeInTheDocument();
+      });
+    });
+  });
 });
