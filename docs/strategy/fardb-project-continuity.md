@@ -3,7 +3,8 @@
 **Repository:** `DashFin-FarDb/financial-asset-relationship-db`
 **Established:** 2026-07-21
 **Repository evidence cutoff:** `main` at `5b2685c5ff0635cfd586798cbe2df33a33145216`
-**Continuity status:** Reconciled through merged QH-01; CQ-03A draft PR #1634 awaits human ratification
+**Continuity status:** Reconciled through merged QH-01; ADR 0009 defines CQ-03A as CQ-03's ratification phase, and
+its draft PR #1634 awaits human ratification
 
 This ledger preserves durable project decisions, plans, milestones, and handoffs across ChatGPT, Codex, and
 repository work. It is an index of authoritative evidence, not a replacement for detailed specifications, issues,
@@ -57,7 +58,8 @@ At the evidence cutoff:
   eligible controlled probe remains an operational evidence item, not a repository blocker.
 - The non-authoritative DeepSource timeout/configuration contexts were explicitly accepted as non-blocking; #1631
   closed as not planned without source repair or threshold weakening.
-- CQ-03A migration-ledger and drift-gate design is active in draft PR #1634 under GitHub #1633 and Linear DAS-62;
+- CQ-03A, the current ratification phase of the CQ-03 programme, is active in draft PR #1634 under GitHub #1633 and
+  Linear DAS-62;
   the controlling commitment is FPC-2026-08-13-01. Provider rollout, production
   promotion and recovery evidence remain artefact-specific; production scale, repeated immutable promotion, and
   domain-neutral reuse remain unproven.
@@ -131,9 +133,10 @@ Primary authorities:
   [#1623](https://github.com/DashFin-FarDb/financial-asset-relationship-db/issues/1623) tracks the only durable
   follow-up: a bounded P2 server-side statement-timeout improvement for normal PostgreSQL request connections.
 - **Next action and completion test:** Treat CQ-01/CQ-02 as satisfied and follow FPC-2026-08-13-01: ratify proposed
-  ADR 0009 before any CQ-03 implementation or provider mutation. Qualify provider rollout and production promotion
+  ADR 0009 before any later CQ-03 implementation phase or provider mutation. Qualify provider rollout and production
+  promotion
   separately against the exact artefact being deployed. Issue #1623 may proceed as one small P2 PR without displacing
-  CQ-03.
+  the CQ-03 programme.
 - **Last updated:** 2026-08-13
 
 ### FPC-2026-07-21-01 — Close the hosted database authorization gate
@@ -485,7 +488,8 @@ Primary authorities:
 - `main` is `5b2685c5ff0635cfd586798cbe2df33a33145216` at this cutoff.
 - CQ-01/CQ-02 are closed through merged PR #1608 with exact PostgreSQL 15/16 authority evidence. QH-01 is closed
   through merged PR #1632. Provider rollout and production qualification remain separate evidence obligations.
-- CQ-03 is the active critical-path decision; follow FPC-2026-08-13-01 and draft PR #1634. Proposed ADR 0009 is not
+- CQ-03 is the active critical-path programme; its current CQ-03A ratification phase is controlled by
+  FPC-2026-08-13-01 and draft PR #1634. Proposed ADR 0009 is not
   implementation authority until human ratification is recorded in GitHub #1633.
 - GRAC v1 is `CURRENT` only for the exact-SHA staging slice recorded by PR #1598; broader claims remain `NEXT`.
 
@@ -502,8 +506,9 @@ Primary authorities:
 ### Next highest-value action
 
 Follow active commitment **FPC-2026-08-13-01** and draft PR #1634. Review and ratify proposed ADR 0009 before any
-CQ-03 implementation or provider mutation, then execute the bounded evidence sequence recorded in that commitment.
-Issue #1623 remains a small P2 follow-up and does not displace CQ-03. Release repeatability
+any later CQ-03 implementation phase or provider mutation, then execute the bounded evidence sequence recorded in
+that commitment.
+Issue #1623 remains a small P2 follow-up and does not displace the CQ-03 programme. Release repeatability
 (**FPC-2026-07-21-02**) remains active.
 
 ### Completion test
@@ -526,8 +531,8 @@ verify-only and cannot acquire migration, ownership, grant-management, or implic
 - Merged hardening PRs #1506, #1508, #1509, and #1510 (H-P1-03).
 - Merged GRAC foundation PRs #1541, #1542, #1549, #1550, and #1552.
 - Merged CQ-01/CQ-02 PR #1608, its final exact-head CI, and post-merge review-thread disposition.
-- Merged QH-01 PR #1632 and Linear DAS-63; closed external-quality record #1631; active CQ-03 record #1633,
-  draft PR #1634, and Linear DAS-62.
+- Merged QH-01 PR #1632 and Linear DAS-63; closed external-quality record #1631; active CQ-03 programme record #1633
+  and current CQ-03A draft PR #1634, with Linear DAS-62.
 - Read-only Supabase aggregate inventory and migration-history count captured on 2026-08-13; no provider mutation.
 - Available ChatGPT continuity context covering the enterprise-readiness program, PR #1096 onward, RC1 evidence work,
   hosted startup incidents, audit completion, and agreed future-work discussions.

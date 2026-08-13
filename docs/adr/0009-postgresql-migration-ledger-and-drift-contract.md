@@ -128,9 +128,24 @@ migration files and one migration identity model.
 
 Adoption must be a separate, reviewed implementation and operator sequence.
 
-The PR mapping is normative: CQ-03A ratifies this ADR; CQ-03B performs Phase A and Phase B steps 1–3; CQ-03C
-performs Phase B steps 4–7; and CQ-03D performs Phase C. This mapping keeps ledger materialization, drift-gate
-implementation, and hosted-history adoption as separate decisions.
+The PR mapping and migration-command hand-off are normative:
+ 
+- CQ-03A ratifies this ADR and changes no migration behavior.
+- CQ-03B performs Phase A and Phase B steps 1–3. It keeps `python -m scripts.migrate_database` and the production
+  Compose `migrate` service as stable operator entrypoints, but atomically replaces their PostgreSQL schema-mutation
+  internals with delegation to the pinned Supabase CLI ledger executor over `supabase/migrations/`. For PostgreSQL,
+  the command must no longer call `init_db`, `initialize_schema`, `Base.metadata.create_all`, or imperative schema
+  repair helpers. After ledger application it may perform only separately authorized non-schema duties: read-only
+  compatibility and capability verification plus explicit credential-data provisioning. Cluster capability-role
+  bootstrap remains the preceding, separately authorized operator step.
+- CQ-03B leaves the command's SQLite behavior on the root `migrations/` compatibility track. It updates the operator
+  image, Compose service, CI, tests, and migration runbook in the same PR, so no existing invocation loses an
+  applicable migration mechanism before its replacement is packaged and proven.
+- CQ-03C performs Phase B steps 4–7, and CQ-03D performs Phase C.
+
+Until CQ-03B merges, the current command remains the explicit transitional operator path documented by CQ-01/CQ-02;
+it is not evidence of ledger closure. This mapping keeps ledger materialization, drift-gate implementation, and
+hosted-history adoption as separate decisions while preventing a second PostgreSQL schema authority.
 
 ### Phase A — capture without mutation (CQ-03B)
 
@@ -171,7 +186,8 @@ This phase requires a new human approval after Phase B evidence is attached.
 3. Mark only that reviewed reconciliation timestamp as applied with `supabase migration repair`.
 4. Re-run migration-list parity, normalized drift, compatibility, and authorization verification.
 5. Require `supabase db push --dry-run` to report no unexpected pending migration.
-6. Stop immediately if any catalog digest, migration timestamp, privilege boundary, or target identity changed.
+6. Stop immediately unless every required gate reports `PASS`; any drift category, `EVALUATION_INCOMPLETE`, changed
+   catalog digest, migration timestamp, privilege boundary, or target identity blocks history adoption.
 
 History repair is not schema repair. It is permitted only when read-only evidence proves that the hosted schema
 already equals the reviewed ledger state.
@@ -222,13 +238,31 @@ The first contract manages application-owned objects in `public`:
 
 ### Exclusions
 
-The first contract uses an inclusion allowlist: only application-owned objects in `public` are traversed. The
-provider-owned schema exclusion inventory observed at the 2026-08-13 baseline is `auth`, `extensions`, `graphql`,
-`graphql_public`, `net`, `pgbouncer`, `pgmq`, `realtime`, `storage`, `supabase_functions`,
+The `fardb-pg-scope-v1` classifier is total and deterministic. It enumerates every `public` object in the included
+object classes before applying a classification:
+
+- **Application-owned:** the exact object identity is produced by replaying `supabase/migrations/` or is declared in
+  the versioned application-owned scope manifest with its controlling migration. Columns and other subordinate
+  catalog entries inherit their parent only when they have no independent identity; independently addressable
+  functions, sequences, policies, triggers, types, indexes, and grants are classified separately.
+- **Provider-owned:** the exact object identity appears in the versioned provider-owned `public` allowlist with a
+  provider owner and exclusion rationale. Ownership is never inferred from a role, name prefix, extension, or current
+  absence from the repository ledger.
+- **Unknown:** the identity matches neither list, matches both, or has an unclassified independently addressable
+  dependency. Unknown objects produce the public reason code `OUTSIDE_MANAGED_SCOPE` and
+  `EVALUATION_INCOMPLETE`; they are never silently excluded or treated as provider-owned.
+
+The collector normalizes every application-owned object into the catalog digest. Provider-owned objects are excluded
+from that catalog digest only by exact allowlist identity, but their identities, rationales, and bounded count are
+covered by the managed-scope manifest digest. The public traversal reports bounded application-owned,
+provider-owned, and unknown counts, so their sum accounts for every enumerated `public` object.
+
+The provider-owned non-`public` schema inventory observed at the 2026-08-13 baseline is `auth`, `extensions`,
+`graphql`, `graphql_public`, `net`, `pgbouncer`, `pgmq`, `realtime`, `storage`, `supabase_functions`,
 `supabase_migrations`, and `vault`. PostgreSQL system, temporary, and TOAST namespaces are classified by catalog
-namespace type rather than an open-ended name wildcard. A newly observed non-`public` schema is reported as
-`OUTSIDE_MANAGED_SCOPE`; excluding it requires an owner, rationale, and reviewed scope-version change. This
-inclusion/exclusion inventory is independently versioned as `fardb-pg-scope-v1`.
+namespace type rather than an open-ended name wildcard. A newly observed non-`public` schema produces
+`OUTSIDE_MANAGED_SCOPE` and `EVALUATION_INCOMPLETE`; excluding it requires an owner, rationale, and reviewed
+scope-version change. This inclusion/exclusion inventory is independently versioned as `fardb-pg-scope-v1`.
 
 The first contract also excludes:
 
@@ -258,7 +292,15 @@ Changing the normalization profile is a reviewed contract change and cannot sile
 
 ### Failure categories
 
-The gate publishes exactly one primary category per target evaluation:
+The gate publishes one top-level status per target evaluation:
+
+- `PASS` — every required check ran and no drift category or scope-classification reason was detected; exit zero.
+- `DRIFT_DETECTED` — at least one of the three primary drift categories below was detected; exit non-zero.
+- `EVALUATION_INCOMPLETE` — no primary drift category was detected, but at least one required check is
+  `NOT_EVALUATED` or a scope-classification reason such as `OUTSIDE_MANAGED_SCOPE` prevents a complete comparison;
+  exit non-zero. It is a fail-closed evaluation status, not a fourth drift category.
+
+When status is `DRIFT_DETECTED`, the gate publishes exactly one primary category:
 
 1. `LEDGER_HISTORY_MISMATCH` — expected timestamp or immutable file receipt is missing, extra, reordered, or changed.
 2. `PROVIDER_SCHEMA_DRIFT` — migration history agrees but the normalized managed catalog differs.
@@ -268,13 +310,19 @@ The gate publishes exactly one primary category per target evaluation:
 Evaluation order and primary-category precedence are `LEDGER_HISTORY_MISMATCH` → `PROVIDER_SCHEMA_DRIFT` →
 `RUNTIME_COMPATIBILITY_MISMATCH`. The gate runs every read-only check that remains safe, records every detected
 category in a restricted artifact, and selects the first detected category by that order. A higher-priority mismatch
-cannot be masked by a lower one. A downstream check that cannot run is recorded as `NOT_EVALUATED`, never as a pass
-or mismatch. Single-failure and combined-failure fixtures must prove this precedence.
+cannot be masked by a lower one. If a category is detected, unavailable downstream checks remain `NOT_EVALUATED`
+in diagnostics without replacing the primary category. If no category is detected and any required check is
+`NOT_EVALUATED`, the result is `EVALUATION_INCOMPLETE`, never `PASS`. Single-failure, combined-failure, and
+incomplete-evaluation fixtures must prove these rules.
 
-The public output includes the category, target class, normalization-profile version, managed-scope version,
-expected/actual digest, and bounded counts.
-Live object names, data, URLs, raw database errors, and role identities stay in a restricted diagnostic artifact.
-Disposable CI fixtures may name repository-owned objects in test assertions.
+Public output includes `status`, nullable `primary_category`, bounded reason codes, target class,
+normalization-profile version, managed-scope version, required-check totals, evaluated and `NOT_EVALUATED` counts,
+application-owned/provider-owned/unknown counts, and expected/actual digests when available. Live object names, data,
+URLs, raw database errors, and role identities stay in a restricted diagnostic artifact. Disposable CI fixtures may
+name repository-owned objects in test assertions.
+
+Every Phase C history-adoption step requires `PASS`. `EVALUATION_INCOMPLETE` stops adoption even when no drift
+category has been proven.
 
 ## Verification and completion evidence
 
@@ -286,6 +334,8 @@ CQ-03 implementation is complete only when all of the following are attached to 
 - a deliberate missing-migration fixture producing `LEDGER_HISTORY_MISMATCH`;
 - a deliberate unrecorded DDL fixture producing `PROVIDER_SCHEMA_DRIFT`;
 - a deliberate required-invariant fixture producing `RUNTIME_COMPATIBILITY_MISMATCH`;
+- a deliberately unavailable required check and an unknown `public` object each producing `EVALUATION_INCOMPLETE`
+  with the applicable bounded reason code and non-zero exit;
 - proof that startup/readiness performs no DDL or migration-history mutation;
 - negative tests proving restricted runtime cannot create, alter, drop, own, grant, repair history, or bootstrap
   credentials;
@@ -355,8 +405,12 @@ No implementation begins until the human ratifier records a decision in GitHub #
 - [ ] Approve `supabase/migrations/` as the sole repository PostgreSQL ledger.
 - [ ] Approve imperative timestamped SQL for initial adoption.
 - [ ] Approve Supabase CLI as pinned operator/CI tooling only.
-- [ ] Approve `fardb-pg-scope-v1`, its named exclusions, and the `fardb-pg-catalog-v1` normalization contract.
-- [ ] Approve the three failure categories and sanitized evidence boundary.
+- [ ] Approve the atomic `scripts.migrate_database` PostgreSQL ledger hand-off while preserving its SQLite path and
+  existing operator, CI, Compose, test, and runbook entrypoints.
+- [ ] Approve `fardb-pg-scope-v1`, its total ownership classifier, named exclusions, unknown-object non-pass rule,
+  and the `fardb-pg-catalog-v1` normalization contract.
+- [ ] Approve the three failure categories, `EVALUATION_INCOMPLETE` status, exit behavior, and sanitized evidence
+  boundary.
 - [ ] Approve forward-only migrations and restore-based destructive rollback.
 - [ ] Approve a later, separately authorized history-only provider adoption step.
 - [ ] Confirm that SQLite compatibility remains separate and cannot claim PostgreSQL authority.
