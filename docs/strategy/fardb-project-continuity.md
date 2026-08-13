@@ -132,8 +132,9 @@ Primary authorities:
   [PR #1608](https://github.com/DashFin-FarDb/financial-asset-relationship-db/pull/1608)'s review record. Issue
   [#1623](https://github.com/DashFin-FarDb/financial-asset-relationship-db/issues/1623) tracks the only durable
   follow-up: a bounded P2 server-side statement-timeout improvement for normal PostgreSQL request connections.
-- **Next action and completion test:** Treat CQ-01/CQ-02 as satisfied and follow FPC-2026-08-13-01: ratify proposed
-  ADR 0009 before any later CQ-03 implementation phase or provider mutation. Qualify provider rollout and production
+- **Next action and completion test:** Treat CQ-01/CQ-02 as satisfied and follow FPC-2026-08-13-01: begin CQ-03B
+  within accepted ADR 0009. Preserve CQ-03D's separate human approval before provider history mutation. Qualify
+  provider rollout and production
   promotion
   separately against the exact artefact being deployed. Issue #1623 may proceed as one small P2 PR without displacing
   the CQ-03 programme.
