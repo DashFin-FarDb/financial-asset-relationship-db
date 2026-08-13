@@ -36,14 +36,14 @@ Disaster-recovery procedure details live in [ADR 0005](../adr/0005-backup-restor
 
 ### RebuildJobStatus states
 
-| State | Value | Terminal | Meaning |
-| --- | --- | --- | --- |
-| `PENDING` | `pending` | No | Job row exists but no execution owner has started it. |
-| `RUNNING` | `running` | No | One execution attempt has claimed the job and assigned an `execution_id`. |
-| `SUCCEEDED` | `succeeded` | Yes | Rebuild completed, graph truth was persisted, success metadata was written. |
-| `FAILED` | `failed` | Yes | Rebuild failed with bounded failure category/message and completion metadata. |
-| `CANCELLED` | `cancelled` | Yes | Cooperative cancellation completed and cancellation finalization was recorded. |
-| `CANCEL_REQUESTED` | `cancel_requested` | No | Cancellation has been requested and an executing owner must cooperatively stop before finalization. |
+| State              | Value              | Terminal | Meaning                                                                                             |
+| ------------------ | ------------------ | -------- | --------------------------------------------------------------------------------------------------- |
+| `PENDING`          | `pending`          | No       | Job row exists but no execution owner has started it.                                               |
+| `RUNNING`          | `running`          | No       | One execution attempt has claimed the job and assigned an `execution_id`.                           |
+| `SUCCEEDED`        | `succeeded`        | Yes      | Rebuild completed, graph truth was persisted, success metadata was written.                         |
+| `FAILED`           | `failed`           | Yes      | Rebuild failed with bounded failure category/message and completion metadata.                       |
+| `CANCELLED`        | `cancelled`        | Yes      | Cooperative cancellation completed and cancellation finalization was recorded.                      |
+| `CANCEL_REQUESTED` | `cancel_requested` | No       | Cancellation has been requested and an executing owner must cooperatively stop before finalization. |
 
 Terminal rebuild-job states are `SUCCEEDED`, `FAILED`, and `CANCELLED`. Terminal states are not reopened or mutated into another lifecycle status by the repository transition helpers. Any retry is a new rebuild job, not a resurrection of the terminal job.
 
@@ -53,19 +53,19 @@ Terminal rebuild-job states are `SUCCEEDED`, `FAILED`, and `CANCELLED`. Terminal
 
 The following table mirrors the atomic conditional-update rules in `AssetGraphRepository`.
 
-| From | To / operation | Required guard | Notes |
-| --- | --- | --- | --- |
-| none | `PENDING` | `create_rebuild_job()` creates a new UUID job row. `requested_by` is bounded to 64 chars; `source` is bounded to 32 chars. | Initial creation only. |
-| `PENDING` | `RUNNING` | `job_id` exists, current status is `PENDING`, supplied `execution_id` length is at most 64 chars. | `started_at`, `updated_at`, and `execution_id` are set atomically. |
-| `RUNNING` | `SUCCEEDED` | current status is `RUNNING`; stored `execution_id` equals supplied `execution_id`; `duration_ms`, `node_count`, and `edge_count` are non-negative. | Success metadata and `completed_at` are written atomically. |
-| `PENDING` | `FAILED` | current status is `PENDING`; bounded failure category/message; non-negative duration. | No execution identity is required because execution may not have started. |
-| `RUNNING` | `FAILED` | current status is `RUNNING`; stored `execution_id` equals supplied `execution_id`; bounded failure category/message; non-negative duration. | A stale or superseded owner cannot fail a job it no longer owns. |
-| `PENDING` | `CANCEL_REQUESTED` | current status is `PENDING`. | Cancellation request is recorded with `cancellation_requested_at`. |
-| `RUNNING` | `CANCEL_REQUESTED` | current status is `RUNNING`. | Request is recorded; the active execution owner must observe and finalize cooperatively. |
-| `CANCEL_REQUESTED` | `CANCELLED` | current status is `CANCEL_REQUESTED`; stored `execution_id` equals supplied `execution_id`. | Finalization is owner-only. Already-`CANCELLED` is treated as idempotent success by the repository helper. |
-| `RUNNING` | heartbeat update | current status is `RUNNING`; stored `execution_id` equals supplied `execution_id`; `active_worker_id` is either unset or equals supplied worker id. | Updates `active_worker_id`, `last_heartbeat_at`, and `updated_at`. |
-| `RUNNING` | checkpoint update | current status is `RUNNING`; stored `execution_id` equals supplied `execution_id`. | Updates `checkpoint_data` and `updated_at`. |
-| any status with matching execution | source update | stored `execution_id` equals supplied `execution_id`; source is null or at most 32 chars. | Used to record rebuild source for the current execution attempt. |
+| From                               | To / operation     | Required guard                                                                                                                                      | Notes                                                                                                      |
+| ---------------------------------- | ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| none                               | `PENDING`          | `create_rebuild_job()` creates a new UUID job row. `requested_by` is bounded to 64 chars; `source` is bounded to 32 chars.                          | Initial creation only.                                                                                     |
+| `PENDING`                          | `RUNNING`          | `job_id` exists, current status is `PENDING`, supplied `execution_id` length is at most 64 chars.                                                   | `started_at`, `updated_at`, and `execution_id` are set atomically.                                         |
+| `RUNNING`                          | `SUCCEEDED`        | current status is `RUNNING`; stored `execution_id` equals supplied `execution_id`; `duration_ms`, `node_count`, and `edge_count` are non-negative.  | Success metadata and `completed_at` are written atomically.                                                |
+| `PENDING`                          | `FAILED`           | current status is `PENDING`; bounded failure category/message; non-negative duration.                                                               | No execution identity is required because execution may not have started.                                  |
+| `RUNNING`                          | `FAILED`           | current status is `RUNNING`; stored `execution_id` equals supplied `execution_id`; bounded failure category/message; non-negative duration.         | A stale or superseded owner cannot fail a job it no longer owns.                                           |
+| `PENDING`                          | `CANCEL_REQUESTED` | current status is `PENDING`.                                                                                                                        | Cancellation request is recorded with `cancellation_requested_at`.                                         |
+| `RUNNING`                          | `CANCEL_REQUESTED` | current status is `RUNNING`.                                                                                                                        | Request is recorded; the active execution owner must observe and finalize cooperatively.                   |
+| `CANCEL_REQUESTED`                 | `CANCELLED`        | current status is `CANCEL_REQUESTED`; stored `execution_id` equals supplied `execution_id`.                                                         | Finalization is owner-only. Already-`CANCELLED` is treated as idempotent success by the repository helper. |
+| `RUNNING`                          | heartbeat update   | current status is `RUNNING`; stored `execution_id` equals supplied `execution_id`; `active_worker_id` is either unset or equals supplied worker ID. | Updates `active_worker_id`, `last_heartbeat_at`, and `updated_at`.                                         |
+| `RUNNING`                          | checkpoint update  | current status is `RUNNING`; stored `execution_id` equals supplied `execution_id`.                                                                  | Updates `checkpoint_data` and `updated_at`.                                                                |
+| any status with matching execution | source update      | stored `execution_id` equals supplied `execution_id`; source is null or at most 32 chars.                                                           | Used to record rebuild source for the current execution attempt.                                           |
 
 ### Forbidden rebuild-job transitions and mutations
 
@@ -91,29 +91,29 @@ The following transitions or mutations are forbidden by the current repository c
 
 ### GraphRuntimeLifecycleState states
 
-| State | Terminal | Meaning |
-| --- | --- | --- |
-| `UNINITIALIZED` | No | No runtime graph is currently initialized for this process. |
-| `INITIALIZING` | No | The process is selecting or constructing the runtime graph. |
-| `READY` | No | Runtime graph is available for read serving. |
-| `REBUILDING` | No | A rebuild attempt is in progress and runtime publication is controlled by rebuild completion. |
-| `FAILED` | No | Runtime initialization or rebuild failed; recovery/retry paths may re-enter initialization or rebuild. |
-| `SHUTTING_DOWN` | No | Shutdown sequence has begun. |
-| `STOPPED` | Operationally terminal | Normal shutdown reached stopped state. The only outgoing transition is explicit reset to `UNINITIALIZED` for test isolation or administrative restart paths. |
+| State           | Terminal               | Meaning                                                                                                                                                      |
+| --------------- | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `UNINITIALIZED` | No                     | No runtime graph is currently initialized for this process.                                                                                                  |
+| `INITIALIZING`  | No                     | The process is selecting or constructing the runtime graph.                                                                                                  |
+| `READY`         | No                     | Runtime graph is available for read serving.                                                                                                                 |
+| `REBUILDING`    | No                     | A rebuild attempt is in progress and runtime publication is controlled by rebuild completion.                                                                |
+| `FAILED`        | No                     | Runtime initialization or rebuild failed; recovery/retry paths may re-enter initialization or rebuild.                                                       |
+| `SHUTTING_DOWN` | No                     | Shutdown sequence has begun.                                                                                                                                 |
+| `STOPPED`       | Operationally terminal | Normal shutdown reached stopped state. The only outgoing transition is explicit reset to `UNINITIALIZED` for test isolation or administrative restart paths. |
 
 Runtime lifecycle state is process-local. Rebuild-job state is durable coordination state. A process may be `READY` while no job is active, or `READY` after synchronizing a graph from the latest successful rebuild. A durable `RUNNING` job without a matching runtime active executor is classified through inconsistency detection rather than inferred only from runtime lifecycle state.
 
 ### Allowed runtime lifecycle transitions
 
-| From | Allowed to | Notes |
-| --- | --- | --- |
+| From            | Allowed to                                    | Notes                                                                    |
+| --------------- | --------------------------------------------- | ------------------------------------------------------------------------ |
 | `UNINITIALIZED` | `INITIALIZING`, `REBUILDING`, `SHUTTING_DOWN` | Rebuild may be the first hosted lifecycle operation after process start. |
-| `INITIALIZING` | `READY`, `FAILED`, `SHUTTING_DOWN` | Initialization succeeds, fails, or is interrupted by shutdown. |
-| `READY` | `REBUILDING`, `SHUTTING_DOWN` | Normal read-serving state can enter rebuild or shutdown. |
-| `REBUILDING` | `READY`, `FAILED`, `SHUTTING_DOWN` | Rebuild success returns to ready; rebuild failure marks failed. |
-| `FAILED` | `INITIALIZING`, `REBUILDING`, `SHUTTING_DOWN` | Recovery, retry, or shutdown may follow failure. |
-| `SHUTTING_DOWN` | `STOPPED` | Normal shutdown progression only. |
-| `STOPPED` | `UNINITIALIZED` | Explicit reset for administrative restart or test isolation only. |
+| `INITIALIZING`  | `READY`, `FAILED`, `SHUTTING_DOWN`            | Initialization succeeds, fails, or is interrupted by shutdown.           |
+| `READY`         | `REBUILDING`, `SHUTTING_DOWN`                 | Normal read-serving state can enter rebuild or shutdown.                 |
+| `REBUILDING`    | `READY`, `FAILED`, `SHUTTING_DOWN`            | Rebuild success returns to ready; rebuild failure marks failed.          |
+| `FAILED`        | `INITIALIZING`, `REBUILDING`, `SHUTTING_DOWN` | Recovery, retry, or shutdown may follow failure.                         |
+| `SHUTTING_DOWN` | `STOPPED`                                     | Normal shutdown progression only.                                        |
+| `STOPPED`       | `UNINITIALIZED`                               | Explicit reset for administrative restart or test isolation only.        |
 
 A transition to the current state is a no-op. Every other transition not listed above is invalid and raises a runtime transition error.
 
@@ -132,25 +132,25 @@ A transition to the current state is a no-op. Every other transition not listed 
 
 `LockState` is the database-observed lock state returned by lock checks.
 
-| State | Meaning | Required behaviour |
-| --- | --- | --- |
-| `VALID` | Lock exists, has not expired, and is held by the current `holder_id`. | Current writer may continue, subject to all other guards. |
-| `EXPIRED` | Lock exists but TTL has passed. | A new writer may attempt acquisition through the lock API only. Expiry alone is not permission to mutate. |
-| `UNKNOWN` | Lock does not exist, is held by another holder, or ownership cannot be proven. | Treat as insufficient ownership proof. Do not mutate rebuild state or graph truth. |
-| `LOST` | State check failed due to database/connectivity loss, or lifecycle marked ownership lost. | Treat as unsafe. Abort or block mutation. |
+| State     | Meaning                                                                                   | Required behaviour                                                                                        |
+| --------- | ----------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| `VALID`   | Lock exists, has not expired, and is held by the current `holder_id`.                     | Current writer may continue, subject to all other guards.                                                 |
+| `EXPIRED` | Lock exists but TTL has passed.                                                           | A new writer may attempt acquisition through the lock API only. Expiry alone is not permission to mutate. |
+| `UNKNOWN` | Lock does not exist, is held by another holder, or ownership cannot be proven.            | Treat as insufficient ownership proof. Do not mutate rebuild state or graph truth.                        |
+| `LOST`    | State check failed due to database/connectivity loss, or lifecycle marked ownership lost. | Treat as unsafe. Abort or block mutation.                                                                 |
 
 ### LockLifecycleState states
 
 `LockLifecycleState` is the process-local lifecycle of the coordination primitive.
 
-| State | Meaning |
-| --- | --- |
-| `INITIAL` | Lock object created but no lease has been acquired. |
-| `ACQUIRED` | Lock acquisition succeeded and returned a fencing token. |
-| `REFRESHED` | Lock refresh succeeded and returned a new fencing token. |
+| State       | Meaning                                                        |
+| ----------- | -------------------------------------------------------------- |
+| `INITIAL`   | Lock object created but no lease has been acquired.            |
+| `ACQUIRED`  | Lock acquisition succeeded and returned a fencing token.       |
+| `REFRESHED` | Lock refresh succeeded and returned a new fencing token.       |
 | `CONTENTED` | Another holder or retry ceiling prevented acquisition/refresh. |
-| `LOST` | Refresh/check/acquire error made ownership unsafe. |
-| `RELEASED` | Current holder released the lock row. |
+| `LOST`      | Refresh/check/acquire error made ownership unsafe.             |
+| `RELEASED`  | Current holder released the lock row.                          |
 
 ### Fencing-token invariant
 
@@ -173,19 +173,26 @@ A rebuild owner proves liveness through both signals:
 
 `active_worker_id` is the worker identity that claimed heartbeat ownership. Once set, heartbeat updates from a different worker are rejected. `execution_id` is the durable identity of the execution attempt; owner-only mutations require it to match the stored job row.
 
-`last_heartbeat_at` is the durable liveness timestamp used to classify heartbeat age. The primary rebuild inconsistency classifiers in `rebuild_failure_detection` use an exclusive boundary: a recorded heartbeat is stale only when `heartbeat_age_seconds > threshold_seconds`. At exactly the lock TTL or crash-suspicion threshold, those classifiers still treat the recorded heartbeat as not stale. Missing heartbeat data remains stale immediately.
+`last_heartbeat_at` is the durable liveness timestamp used to classify heartbeat age. The primary rebuild inconsistency
+classifiers in `rebuild_failure_detection` use an exclusive boundary: a recorded heartbeat is stale only when
+`heartbeat_age_seconds > threshold_seconds`. At exactly the lock TTL or crash-suspicion threshold, those classifiers
+still treat the recorded heartbeat as not stale. Missing heartbeat data remains stale immediately.
 
-`RebuildDriftEvaluator` has one narrower owner-mismatch helper used by RecoveryGate severity/reset eligibility. For that helper only, a mismatched owner's heartbeat is considered stale when it is missing, unparseable, or `heartbeat_age_seconds >= lock_ttl_seconds`. This inclusive boundary does not redefine the `STALE_OWNERSHIP` or `CRASH_SUSPICION` `InconsistencyType` classifiers; it only controls whether an owner-mismatch/orphaned-running case may be downgraded from critical split-brain risk to a resettable stale-owner path.
+`RebuildDriftEvaluator` has one narrower owner-mismatch helper used by RecoveryGate severity/reset eligibility. For that
+helper only, a mismatched owner's heartbeat is considered stale when it is missing, unparseable, or
+`heartbeat_age_seconds >= lock_ttl_seconds`. This inclusive boundary does not redefine the `STALE_OWNERSHIP` or
+`CRASH_SUSPICION` `InconsistencyType` classifiers; it only controls whether an owner-mismatch/orphaned-running case may
+be downgraded from critical split-brain risk to a resettable stale-owner path.
 
 `InconsistencyType` classifications are:
 
-| Type | Meaning |
-| --- | --- |
-| `NONE` | No detected rebuild coordination inconsistency. |
-| `STALE_OWNERSHIP` | A `RUNNING` job has no heartbeat, or its recorded heartbeat age is greater than the lock TTL. The boundary is exclusive: `age > lock_ttl_seconds`. |
-| `ORPHANED_RUNNING` | Database says `RUNNING`, but runtime reports no active executor. Owner-mismatch reset eligibility may additionally use the inclusive `age >= lock_ttl_seconds` helper described above. |
-| `ZOMBIE_EXECUTOR` | Runtime reports an active executor but there is no compatible running DB job. |
-| `CRASH_SUSPICION` | A worker is assigned and the heartbeat is missing, or the recorded heartbeat age is greater than the crash-suspicion threshold. The boundary is exclusive: `age > heartbeat_stale_threshold_seconds`. |
+| Type               | Meaning                                                                                                                                                                                               |
+| ------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `NONE`             | No detected rebuild coordination inconsistency.                                                                                                                                                       |
+| `STALE_OWNERSHIP`  | A `RUNNING` job has no heartbeat, or its recorded heartbeat age is greater than the lock TTL. The boundary is exclusive: `age > lock_ttl_seconds`.                                                    |
+| `ORPHANED_RUNNING` | Database says `RUNNING`, but runtime reports no active executor. Owner-mismatch reset eligibility may additionally use the inclusive `age >= lock_ttl_seconds` helper described above.                |
+| `ZOMBIE_EXECUTOR`  | Runtime reports an active executor but there is no compatible running DB job.                                                                                                                         |
+| `CRASH_SUSPICION`  | A worker is assigned and the heartbeat is missing, or the recorded heartbeat age is greater than the crash-suspicion threshold. The boundary is exclusive: `age > heartbeat_stale_threshold_seconds`. |
 
 Detection priority is zombie executor without a DB job, orphaned running, crash suspicion, stale ownership, then none.
 
@@ -205,7 +212,10 @@ Persistence invariants:
 - `SUCCEEDED` means graph persistence and success metadata were both completed for the owning execution attempt;
 - bounded readiness is not durable graph truth.
 
-The bounded-health versus durable-truth rule is strict: `GET /api/health/detailed` can prove bounded service health, in-memory graph availability, and application DB reachability. It cannot prove staging/production durable graph truth unless accompanied by persisted startup evidence such as `graph.persistence_loaded == true`, `graph.startup_source == "persisted"`, and expected persisted graph counts or sentinels.
+The bounded-health versus durable-truth rule is strict: `GET /api/health/detailed` can prove bounded service health,
+in-memory graph availability, and application DB reachability. It cannot prove staging/production durable graph truth
+unless accompanied by persisted startup evidence such as `graph.persistence_loaded == true`,
+`graph.startup_source == "persisted"`, and expected persisted graph counts or sentinels.
 
 ## Formal invariants
 
@@ -234,18 +244,38 @@ The following invariants are the current review and operating contract:
 
 Role names align with [`docs/enterprise-deployment-operating-model.md`](../enterprise-deployment-operating-model.md).
 
-| Role | Owns | Handoff boundary |
-| --- | --- | --- |
-| Deploy operator | Executes deployment to the target environment. | Hands to Promotion approver for gate review before staging/production promotion. |
-| Promotion approver | Confirms promotion gates and durable graph-persistence evidence. | Blocks promotion if durable evidence is incomplete or contradicted. |
-| Rollback executor | Performs Vercel rollback/promotion to a previous known-good deployment. | Hands to Persistence-verification operator after rollback; does not perform data restore by rollback alone. |
-| Backup Operator | Verifies backup health and performs ad-hoc backups before risky changes. | Hands to Restore Operator when recovery requires restore execution. |
-| Restore Operator | Executes database restore and post-restore verification under the DR runbook. | Hands restored environment to Persistence-verification operator and Incident Commander for service verification. |
-| Secret/config maintainer | Owns environment variables, secrets, and rotation. | Confirms `DATABASE_URL`, `ASSET_GRAPH_DATABASE_URL`, `COORDINATION_DATABASE_URL`, and secret settings before promotion or restore verification. |
-| Persistence-verification operator | Runs and records durable graph-persistence smoke evidence. | Hands pass/fail evidence to Promotion approver or Incident Commander. |
-| Incident Commander | Escalation point for restore failures, data-loss events, RTO/RPO risk, split-brain, and emergency override. | Coordinates exception approval and closure evidence. |
-| Rebuild recovery operator | Executes or supervises RecoveryGate-approved rebuild recovery actions. | Escalates to Incident Commander when RecoveryGate returns manual, unsafe, split-brain, integrity-compromised, or evaluation-failed plans. This may be the same person as another role, but the responsibility must be explicit. |
-| Exception approver | Explicit maintainer approval for documented exceptions. | Approval must be recorded in the PR or incident record and follow the governance exception rules below. This may be the Incident Commander or maintainer, depending on context. |
+### Database migration and runtime authority
+
+Database mutation is an explicit operator action. `python -m scripts.migrate_database` is the single application-owned
+command for schema compatibility migration and initial credential provisioning. It runs with migration-owner
+authority, may receive `ADMIN_PASSWORD` only for that bounded bootstrap action, and must finish before the application
+runtime starts.
+
+FastAPI startup is verify-only. It checks schema compatibility, credential availability, and PostgreSQL authority
+without creating, repairing, granting, or seeding database state. The runtime receives `ADMIN_USERNAME` as the
+operator identity but must not receive `ADMIN_PASSWORD`; its database roles must also lack schema-migration,
+grant-management, ownership, or assumable elevated authority. A failed compatibility or authority check blocks
+startup rather than falling back to mutation.
+
+Provider role creation, secret rotation, and environment-variable cutover remain separate human-controlled
+operations. The migration command succeeding does not prove that hosted runtime credentials are restricted, and a
+runtime startup succeeding does not authorize later migration. Promotion evidence must therefore bind the migration
+action and the restricted-runtime restart to the same isolated target and immutable application artefact without
+recording credential values.
+
+| Role                              | Owns                                                                                                        | Handoff boundary                                                                                                                                                                                                                |
+| --------------------------------- | ----------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Database migration operator       | Runs the explicit migration command with migration-owner authority and bounded bootstrap inputs.            | Hands a successfully migrated and compatibility-verified target to the Secret/config maintainer; does not pass migration-owner credentials or `ADMIN_PASSWORD` to runtime.                                                      |
+| Deploy operator                   | Executes deployment to the target environment.                                                              | Hands to Promotion approver for gate review before staging/production promotion.                                                                                                                                                |
+| Promotion approver                | Confirms promotion gates and durable graph-persistence evidence.                                            | Blocks promotion if durable evidence is incomplete or contradicted.                                                                                                                                                             |
+| Rollback executor                 | Performs Vercel rollback/promotion to a previous known-good deployment.                                     | Hands to Persistence-verification operator after rollback; does not perform data restore by rollback alone.                                                                                                                     |
+| Backup Operator                   | Verifies backup health and performs ad-hoc backups before risky changes.                                    | Hands to Restore Operator when recovery requires restore execution.                                                                                                                                                             |
+| Restore Operator                  | Executes database restore and post-restore verification under the DR runbook.                               | Hands restored environment to Persistence-verification operator and Incident Commander for service verification.                                                                                                                |
+| Secret/config maintainer          | Owns environment variables, secrets, and rotation.                                                          | Confirms runtime database URLs reference restricted roles, keeps migration-owner inputs operator-only, and verifies runtime does not receive `ADMIN_PASSWORD` before promotion or restore verification.                         |
+| Persistence-verification operator | Runs and records durable graph-persistence smoke evidence.                                                  | Hands pass/fail evidence to Promotion approver or Incident Commander.                                                                                                                                                           |
+| Incident Commander                | Escalation point for restore failures, data-loss events, RTO/RPO risk, split-brain, and emergency override. | Coordinates exception approval and closure evidence.                                                                                                                                                                            |
+| Rebuild recovery operator         | Executes or supervises RecoveryGate-approved rebuild recovery actions.                                      | Escalates to Incident Commander when RecoveryGate returns manual, unsafe, split-brain, integrity-compromised, or evaluation-failed plans. This may be the same person as another role, but the responsibility must be explicit. |
+| Exception approver                | Explicit maintainer approval for documented exceptions.                                                     | Approval must be recorded in the PR or incident record and follow the governance exception rules below. This may be the Incident Commander or maintainer, depending on context.                                                 |
 
 One person may hold multiple roles, but the active responsibility must be explicit in the change, incident, or release record.
 
@@ -253,15 +283,15 @@ One person may hold multiple roles, but the active responsibility must be explic
 
 Exception handling must follow the CI-gate exception model in [`docs/GOVERNANCE.md`](../GOVERNANCE.md): an exception must state the affected gate or invariant, reason, risk assessment, expiry or follow-up issue, and explicit maintainer approval. Exceptions must be narrow, time-bound, and visible in the PR, release, or incident record. Permanent policy changes require a normal reviewed PR.
 
-| Exception condition | Required action | Approval / authority | Manual-intervention rule |
-| --- | --- | --- | --- |
-| Suspected split-brain | Block mutation. Preserve evidence. Do not auto-reset. | Incident Commander plus explicit maintainer/Exception approver. | Required. `UNSAFE_SPLIT_BRAIN` must not auto-reset. |
-| Stale ownership | Wait until stale-owner conditions hold, reacquire/prove lock, then allow only RecoveryGate-approved reset semantics. | Rebuild recovery operator may proceed only with RecoveryGate approval; Incident Commander if ambiguous. | Required if multiple running jobs, unknown ownership, or fresh competing heartbeat exists. |
-| Lock loss | Active writer aborts before persistence/commit/success marking; mark failure only through matching owner path where safe. | Rebuild recovery operator; Incident Commander if graph persistence state is ambiguous. | No mutation while lock state is `UNKNOWN` or `LOST`. |
-| Failed restore handoff | Stop promotion/restart closure. Return to DR runbook verification and classify RTO/RPO risk. | Restore Operator plus Incident Commander. | Do not treat Vercel rollback as data restore. Do not clear restored lock/job rows until no live writer remains. |
-| Incomplete durable-persistence evidence | Block staging/production promotion. Rerun durable graph-persistence smoke after rebuild/restart or approved baseline. | Promotion approver. | Basic health is insufficient. Evidence must prove persisted startup source and expected graph counts/sentinels. |
-| Degraded readiness | Classify as bounded health failure or durable graph-persistence failure. Roll back code only when deployment regression is indicated. | Deploy operator and Rollback executor; Incident Commander if service-impacting. | After rollback, durable graph-persistence smoke must be rerun for staging/production. |
-| Emergency override | Record an explicit exception request with affected invariant/gate, reason, risk, expiry/follow-up, and maintainer approval. | Incident Commander plus explicit maintainer/Exception approver. | Override cannot make unsafe mutation safe. It can only authorize a documented manual path with evidence and follow-up. |
+| Exception condition                     | Required action                                                                                                                       | Approval / authority                                                                                    | Manual-intervention rule                                                                                               |
+| --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| Suspected split-brain                   | Block mutation. Preserve evidence. Do not auto-reset.                                                                                 | Incident Commander plus explicit maintainer/Exception approver.                                         | Required. `UNSAFE_SPLIT_BRAIN` must not auto-reset.                                                                    |
+| Stale ownership                         | Wait until stale-owner conditions hold, reacquire/prove lock, then allow only RecoveryGate-approved reset semantics.                  | Rebuild recovery operator may proceed only with RecoveryGate approval; Incident Commander if ambiguous. | Required if multiple running jobs, unknown ownership, or fresh competing heartbeat exists.                             |
+| Lock loss                               | Active writer aborts before persistence/commit/success marking; mark failure only through matching owner path where safe.             | Rebuild recovery operator; Incident Commander if graph persistence state is ambiguous.                  | No mutation while lock state is `UNKNOWN` or `LOST`.                                                                   |
+| Failed restore handoff                  | Stop promotion/restart closure. Return to DR runbook verification and classify RTO/RPO risk.                                          | Restore Operator plus Incident Commander.                                                               | Do not treat Vercel rollback as data restore. Do not clear restored lock/job rows until no live writer remains.        |
+| Incomplete durable-persistence evidence | Block staging/production promotion. Rerun durable graph-persistence smoke after rebuild/restart or approved baseline.                 | Promotion approver.                                                                                     | Basic health is insufficient. Evidence must prove persisted startup source and expected graph counts/sentinels.        |
+| Degraded readiness                      | Classify as bounded health failure or durable graph-persistence failure. Roll back code only when deployment regression is indicated. | Deploy operator and Rollback executor; Incident Commander if service-impacting.                         | After rollback, durable graph-persistence smoke must be rerun for staging/production.                                  |
+| Emergency override                      | Record an explicit exception request with affected invariant/gate, reason, risk, expiry/follow-up, and maintainer approval.           | Incident Commander plus explicit maintainer/Exception approver.                                         | Override cannot make unsafe mutation safe. It can only authorize a documented manual path with evidence and follow-up. |
 
 ## Evidence rules
 

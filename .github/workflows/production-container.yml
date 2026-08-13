@@ -55,12 +55,18 @@ jobs:
           SECRET_KEY: ${{ secrets.CI_SMOKE_TEST_SECRET_KEY || 'ci-smoke-test-key-not-a-real-secret' }}
           ADMIN_USERNAME: ci-admin
           ADMIN_PASSWORD: ci-admin-password
+          NEXT_PUBLIC_API_URL: http://localhost:8000
+          COMPOSE_PROJECT_NAME: fardb-ci
         run: |
           set -euo pipefail
 
-          VOLUME_NAME="fardb-ci-api-data"
+          VOLUME_NAME="${COMPOSE_PROJECT_NAME}_api-data"
           DB_URL="sqlite:////data/fardb.db"
-          docker volume create "$VOLUME_NAME" >/dev/null
+
+          migrate_api() {
+            DATABASE_URL="$DB_URL" ASSET_GRAPH_DATABASE_URL="$DB_URL" \
+              docker compose -f docker-compose.production.yml --profile operator run --rm --build migrate
+          }
 
           start_api() {
             local name="$1"
@@ -71,7 +77,6 @@ jobs:
               -e ASSET_GRAPH_DATABASE_URL="$DB_URL" \
               -e SECRET_KEY="$SECRET_KEY" \
               -e ADMIN_USERNAME="$ADMIN_USERNAME" \
-              -e ADMIN_PASSWORD="$ADMIN_PASSWORD" \
               fardb-api
           }
 
@@ -92,11 +97,12 @@ jobs:
 
           cleanup() {
             docker rm -f api_persist_seed api_persist_reload >/dev/null 2>&1 || true
-            docker volume rm -f "$VOLUME_NAME" >/dev/null 2>&1 || true
+            docker compose -f docker-compose.production.yml --profile operator down --volumes >/dev/null 2>&1 || true
           }
           trap cleanup EXIT
 
-          # Phase A: start, liveness, rebuild+persist onto the volume.
+          # Phase A: migrate with operator authority, then start the restricted runtime.
+          migrate_api
           start_api api_persist_seed
           wait_healthy api_persist_seed
           curl -fsS http://127.0.0.1:8000/api/health >/dev/null
@@ -170,7 +176,7 @@ jobs:
           docker stop api_persist_reload
           docker rm api_persist_reload
           trap - EXIT
-          docker volume rm -f "$VOLUME_NAME" >/dev/null 2>&1 || true
+          docker compose -f docker-compose.production.yml --profile operator down --volumes >/dev/null
 
       - name: Smoke Test Frontend
         run: |
@@ -195,14 +201,12 @@ jobs:
         env:
           SECRET_KEY: ${{ secrets.CI_SMOKE_TEST_SECRET_KEY || 'ci-smoke-test-key-not-a-real-secret' }}
           ADMIN_USERNAME: ci-admin
-          ADMIN_PASSWORD: ci-admin-password
         run: |
           set +e
           timeout 15s docker run --name api_bad_env \
             -e ENV=production \
             -e SECRET_KEY="$SECRET_KEY" \
             -e ADMIN_USERNAME="$ADMIN_USERNAME" \
-            -e ADMIN_PASSWORD="$ADMIN_PASSWORD" \
             -e DATABASE_URL="bad_scheme://bad" \
             fardb-api
           exit_code=$?

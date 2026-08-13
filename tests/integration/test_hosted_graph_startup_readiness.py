@@ -18,7 +18,7 @@ from api.app_factory import create_app
 from api.auth import User, get_current_active_user
 from api.routers import graph_admin
 from src.config.settings import get_settings
-from src.data.database import create_session_factory, init_db
+from src.data.database import SchemaCompatibilityError, create_session_factory, init_db
 from src.data.repository import AssetGraphRepository
 from src.logic.asset_graph import AssetRelationshipGraph
 from src.models.financial_models import AssetClass, Equity, RegulatoryActivity, RegulatoryEvent
@@ -39,6 +39,7 @@ def reset_state(monkeypatch: pytest.MonkeyPatch):
     """Reset graph environment, runtime state, and settings cache."""
     for name in (
         "ASSET_GRAPH_DATABASE_URL",
+        "COORDINATION_DATABASE_URL",
         "GRAPH_CACHE_PATH",
         "REAL_DATA_CACHE_PATH",
         "USE_REAL_DATA_FETCHER",
@@ -115,6 +116,7 @@ def _seeded_hosted_graph() -> AssetRelationshipGraph:
 def _configure_persistence(monkeypatch: pytest.MonkeyPatch, database_url: str) -> None:
     """Configure durable graph persistence URL for startup."""
     monkeypatch.setenv("ASSET_GRAPH_DATABASE_URL", database_url)
+    monkeypatch.setenv("COORDINATION_DATABASE_URL", database_url)
     providers.clear_graph_lifecycle_settings_cache()
     _reset_runtime_graph_state()
 
@@ -435,3 +437,23 @@ def test_unreachable_persistence_fails_startup_with_sanitized_error(
     log_output = " ".join(record.getMessage() for record in caplog.records)
     assert raw_url not in log_output
     assert "secret" not in log_output
+
+
+def test_missing_persistence_schema_fails_without_runtime_repair(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Startup must reject an empty persistence database and leave it unchanged."""
+    from sqlalchemy import inspect
+
+    database_url = _sqlite_url(tmp_path, "missing-schema.db")
+    _configure_persistence(monkeypatch, database_url)
+
+    with pytest.raises(SchemaCompatibilityError, match="missing required tables"), TestClient(create_app()):
+        pass
+
+    engine = providers.create_engine_from_url(database_url)
+    try:
+        assert inspect(engine).get_table_names() == []
+    finally:
+        engine.dispose()

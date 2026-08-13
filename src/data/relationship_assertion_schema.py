@@ -15,6 +15,7 @@ from collections.abc import Mapping
 from sqlalchemy import bindparam, text
 from sqlalchemy.engine import Connection, Engine, make_url
 
+from src.data.check_constraint_normalization import normalize_check_definition
 from src.data.relationship_assertion_db_models import (
     EFFECTIVE_WINDOW_CHECK,
     GRAC_TABLE_NAMES,
@@ -60,6 +61,79 @@ def ensure_relationship_assertion_schema(engine: Engine) -> None:
                 _harden_postgresql_grac_access(connection)
 
 
+def verify_relationship_assertion_schema(engine: Engine) -> None:
+    """Verify GRAC schema and authority invariants without performing repair."""
+    backend = make_url(str(engine.url)).get_backend_name()
+    with engine.connect() as connection:
+        _require_projection_revision_scope_metadata(connection, backend)
+        if backend == "sqlite":
+            _verify_sqlite_grac_schema(connection)
+        elif backend == "postgresql":
+            _verify_postgresql_grac_schema(connection)
+
+
+def _verify_sqlite_grac_schema(connection: Connection) -> None:
+    """Verify SQLite GRAC compatibility and immutability guards."""
+    _require_sqlite_grac_constraints(connection)
+    if not _sqlite_guards_present(connection):
+        raise RuntimeError("SQLite GRAC immutability guards are incomplete")
+
+
+def _verify_postgresql_grac_schema(connection: Connection) -> None:
+    """Verify PostgreSQL GRAC compatibility, guards, and least authority."""
+    if not _postgresql_grac_constraints_present(connection):
+        raise RuntimeError("PostgreSQL GRAC constraints are incomplete or unvalidated")
+    if not _postgresql_guards_present(connection):
+        raise RuntimeError("PostgreSQL GRAC immutability guards are incomplete")
+    roles = _untrusted_database_roles()
+    if _immutability_function_has_untrusted_execute(connection, roles):
+        raise PermissionError("PostgreSQL GRAC immutability function is executable by an untrusted role")
+    if not _postgresql_grac_access_hardened(connection):
+        raise PermissionError("PostgreSQL GRAC RLS/grant posture is incompatible")
+
+
+def _projection_revision_scope_metadata(connection: Connection, backend: str) -> tuple[set[str], set[str]]:
+    """Read projection columns and assertion-event indexes for one backend."""
+    if backend == "sqlite":
+        columns = {row[1] for row in connection.execute(text("PRAGMA table_info(relationship_projection_revisions)"))}
+        indexes = {row[1] for row in connection.execute(text("PRAGMA index_list(relationship_assertion_events)"))}
+        return columns, indexes
+    if backend != "postgresql":
+        raise RuntimeError(f"unsupported database backend for GRAC verification: {backend}")
+
+    columns = {
+        row[0]
+        for row in connection.execute(
+            text(
+                "SELECT column_name FROM information_schema.columns "
+                "WHERE table_schema = current_schema() "
+                "AND table_name = 'relationship_projection_revisions'"
+            )
+        )
+    }
+    indexes = {
+        row[0]
+        for row in connection.execute(
+            text(
+                "SELECT indexname FROM pg_indexes WHERE schemaname = current_schema() "
+                "AND tablename = 'relationship_assertion_events'"
+            )
+        )
+    }
+    return columns, indexes
+
+
+def _require_projection_revision_scope_metadata(connection: Connection, backend: str) -> None:
+    """Require the additive projection column and successor lookup index."""
+    columns, indexes = _projection_revision_scope_metadata(connection, backend)
+
+    if "governed_scopes" not in columns:
+        raise RuntimeError("relationship_projection_revisions.governed_scopes is missing")
+    required_index = "ix_relationship_assertion_events_successor_assertion_id"
+    if required_index not in indexes:
+        raise RuntimeError(f"{required_index} is missing")
+
+
 def _ensure_projection_revision_scope_metadata(connection: Connection, backend: str) -> None:
     """Add durable scope metadata and the successor FK index on upgrade."""
     requires_backfill = False
@@ -82,9 +156,7 @@ def _ensure_projection_revision_scope_metadata(connection: Connection, backend: 
     if "governed_scopes" not in column_names:
         requires_backfill = True
         connection.execute(
-            text(
-                "ALTER TABLE relationship_projection_revisions " "ADD COLUMN governed_scopes TEXT NOT NULL DEFAULT '[]'"
-            )
+            text("ALTER TABLE relationship_projection_revisions ADD COLUMN governed_scopes TEXT NOT NULL DEFAULT '[]'")
         )
     connection.execute(
         text(
@@ -204,6 +276,27 @@ def _ensure_postgresql_grac_constraints(connection: Connection) -> None:
         ("relationship_assertions", "ck_relationship_assertions_effective_window", EFFECTIVE_WINDOW_CHECK),
         ("relationship_projection_edges", "ck_relationship_projection_edges_strength", STRENGTH_DECIMAL_CHECK),
     )
+    existing = _postgresql_constraint_catalog(
+        connection,
+        [name for _table, name, _check in constraints],
+    )
+    for table, name, check in constraints:
+        current = existing.get((table, name))
+        if current is not None and not _postgresql_check_matches(current[0], check):
+            connection.execute(text(f"ALTER TABLE {table} DROP CONSTRAINT {name}"))
+            current = None
+        if current is None:
+            connection.execute(text(f"ALTER TABLE {table} ADD CONSTRAINT {name} CHECK ({check}) NOT VALID"))
+        elif current[1]:
+            continue
+        connection.execute(text(f"ALTER TABLE {table} VALIDATE CONSTRAINT {name}"))
+
+
+def _postgresql_constraint_catalog(
+    connection: Connection,
+    names: list[str],
+) -> dict[tuple[str, str], tuple[str, bool]]:
+    """Return PostgreSQL CHECK definitions and validation state by table/name."""
     rows = connection.execute(
         text(
             "SELECT rel.relname, con.conname, pg_get_constraintdef(con.oid), con.convalidated "
@@ -212,21 +305,35 @@ def _ensure_postgresql_grac_constraints(connection: Connection) -> None:
             "JOIN pg_namespace AS namespace ON namespace.oid = rel.relnamespace "
             "WHERE namespace.nspname = current_schema() AND con.conname IN :names"
         ).bindparams(bindparam("names", expanding=True)),
-        {"names": [name for _table, name, _check in constraints]},
+        {"names": names},
     ).all()
-    existing = {(table, name): (definition, validated) for table, name, definition, validated in rows}
-    for table, name, check in constraints:
-        current = existing.get((table, name))
-        if current is not None and (name.endswith("strength") and "replace" not in current[0]):
-            connection.execute(text(f"ALTER TABLE {table} DROP CONSTRAINT {name}"))
-            current = None
-        if current is None:
-            connection.execute(text(f"ALTER TABLE {table} ADD CONSTRAINT {name} CHECK ({check}) NOT VALID"))
-        connection.execute(text(f"ALTER TABLE {table} VALIDATE CONSTRAINT {name}"))
+    return {(table, name): (definition, validated) for table, name, definition, validated in rows}
+
+
+def _postgresql_check_matches(definition: str, canonical_check: str) -> bool:
+    """Return whether a catalog CHECK matches the repository canonical predicate."""
+    return normalize_check_definition(definition) == normalize_check_definition(canonical_check)
+
+
+def _postgresql_grac_constraints_present(connection: Connection) -> bool:
+    """Return whether the current schema has the validated GRAC compatibility checks."""
+    expected = {
+        ("relationship_assertions", "ck_relationship_assertions_effective_window"): EFFECTIVE_WINDOW_CHECK,
+        ("relationship_projection_edges", "ck_relationship_projection_edges_strength"): STRENGTH_DECIMAL_CHECK,
+    }
+    actual = _postgresql_constraint_catalog(
+        connection,
+        [name for (_table, name), _canonical in expected.items()],
+    )
+    for key, canonical in expected.items():
+        definition, validated = actual.get(key, (None, False))
+        if not validated or definition is None or not _postgresql_check_matches(definition, canonical):
+            return False
+    return True
 
 
 def _harden_postgresql_grac_access(connection: Connection) -> None:
-    """Enable RLS and revoke public/untrusted table grants without adding policies."""
+    """Enable RLS and revoke public/untrusted table grants."""
     roles = _untrusted_database_roles()
     for table_name in GRAC_TABLE_NAMES:
         _require_grac_table(table_name)
@@ -252,7 +359,12 @@ def _postgresql_grac_access_hardened(connection: Connection) -> bool:
 
 
 def _postgresql_grac_access_gaps(connection: Connection, roles: tuple[str, ...]) -> list[str]:
-    """Return GRAC tables without RLS hardening or reachable by an untrusted role."""
+    """Return GRAC tables without RLS hardening or reachable by an untrusted role.
+
+    The exact repository-owned runtime policies are verified separately by the
+    capability contract in ``src.data.database``. This baseline guard remains
+    valid both before capability installation and after policies are present.
+    """
     return list(
         connection.execute(
             text(
@@ -261,14 +373,21 @@ def _postgresql_grac_access_gaps(connection: Connection, roles: tuple[str, ...])
                 "WHERE n.nspname = pg_catalog.current_schema() "
                 "AND c.relname IN :tables "
                 "AND (NOT c.relrowsecurity OR EXISTS ("
-                "SELECT 1 FROM pg_policy AS p WHERE p.polrelid = c.oid) OR EXISTS ("
                 "SELECT 1 FROM aclexplode(COALESCE(c.relacl, acldefault('r', c.relowner))) "
                 "AS acl(grantor, grantee, privilege_type, is_grantable) "
                 "WHERE acl.grantee = 0) OR EXISTS (SELECT 1 FROM pg_roles AS rol "
-                "WHERE rol.rolname IN :roles AND (has_table_privilege(rol.oid, c.oid, "
-                "'SELECT, INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER') "
-                "OR has_any_column_privilege(rol.oid, c.oid, "
-                "'SELECT, INSERT, UPDATE, REFERENCES'))))"
+                "WHERE rol.rolname IN :roles AND ("
+                "has_table_privilege(rol.oid, c.oid, 'SELECT') "
+                "OR has_table_privilege(rol.oid, c.oid, 'INSERT') "
+                "OR has_table_privilege(rol.oid, c.oid, 'UPDATE') "
+                "OR has_table_privilege(rol.oid, c.oid, 'DELETE') "
+                "OR has_table_privilege(rol.oid, c.oid, 'TRUNCATE') "
+                "OR has_table_privilege(rol.oid, c.oid, 'REFERENCES') "
+                "OR has_table_privilege(rol.oid, c.oid, 'TRIGGER') "
+                "OR has_any_column_privilege(rol.oid, c.oid, 'SELECT') "
+                "OR has_any_column_privilege(rol.oid, c.oid, 'INSERT') "
+                "OR has_any_column_privilege(rol.oid, c.oid, 'UPDATE') "
+                "OR has_any_column_privilege(rol.oid, c.oid, 'REFERENCES'))))"
             ).bindparams(
                 bindparam("tables", expanding=True),
                 bindparam("roles", expanding=True),
@@ -546,26 +665,28 @@ def _install_sqlite_immutability_guards(connection: Connection) -> None:
         # nosemgrep: python.sqlalchemy.security.audit.avoid-sqlalchemy-text.avoid-sqlalchemy-text
         connection.execute(text(f"DROP TRIGGER IF EXISTS {update_name}"))
         connection.execute(text(f"DROP TRIGGER IF EXISTS {delete_name}"))
-        connection.execute(text(f"""
+        update_trigger_sql = f"""
                 CREATE TRIGGER {update_name}
                 BEFORE UPDATE ON {table_name}
                 BEGIN
                     SELECT RAISE(ABORT, 'GRAC v1 immutability: UPDATE forbidden on {table_name}');
                 END
-                """))
-        connection.execute(text(f"""
+                """
+        delete_trigger_sql = f"""
                 CREATE TRIGGER {delete_name}
                 BEFORE DELETE ON {table_name}
                 BEGIN
                     SELECT RAISE(ABORT, 'GRAC v1 immutability: DELETE forbidden on {table_name}');
                 END
-                """))
+                """
+        connection.execute(text(update_trigger_sql))
+        connection.execute(text(delete_trigger_sql))
 
 
 def _install_postgresql_immutability_guards(connection: Connection) -> None:
     """Install a shared RAISE function and BEFORE UPDATE/DELETE/TRUNCATE triggers."""
     # nosemgrep: python.sqlalchemy.security.audit.avoid-sqlalchemy-text.avoid-sqlalchemy-text
-    connection.execute(text(f"""
+    function_sql = f"""
             CREATE OR REPLACE FUNCTION {_IMMUTABILITY_FUNCTION}()
             RETURNS trigger
             LANGUAGE plpgsql
@@ -577,7 +698,8 @@ def _install_postgresql_immutability_guards(connection: Connection) -> None:
                     USING ERRCODE = 'integrity_constraint_violation';
             END;
             $$
-            """))
+            """
+    connection.execute(text(function_sql))
     _revoke_immutability_function_execute(connection)
 
     for table_name in GRAC_TABLE_NAMES:
@@ -586,21 +708,24 @@ def _install_postgresql_immutability_guards(connection: Connection) -> None:
         connection.execute(text(f"DROP TRIGGER IF EXISTS {update_name} ON {table_name}"))
         connection.execute(text(f"DROP TRIGGER IF EXISTS {delete_name} ON {table_name}"))
         connection.execute(text(f"DROP TRIGGER IF EXISTS {truncate_name} ON {table_name}"))
-        connection.execute(text(f"""
+        update_trigger_sql = f"""
                 CREATE TRIGGER {update_name}
                 BEFORE UPDATE ON {table_name}
                 FOR EACH ROW
                 EXECUTE FUNCTION {_IMMUTABILITY_FUNCTION}()
-                """))
-        connection.execute(text(f"""
+                """
+        delete_trigger_sql = f"""
                 CREATE TRIGGER {delete_name}
                 BEFORE DELETE ON {table_name}
                 FOR EACH ROW
                 EXECUTE FUNCTION {_IMMUTABILITY_FUNCTION}()
-                """))
-        connection.execute(text(f"""
+                """
+        truncate_trigger_sql = f"""
                 CREATE TRIGGER {truncate_name}
                 BEFORE TRUNCATE ON {table_name}
                 FOR EACH STATEMENT
                 EXECUTE FUNCTION {_IMMUTABILITY_FUNCTION}()
-                """))
+                """
+        connection.execute(text(update_trigger_sql))
+        connection.execute(text(delete_trigger_sql))
+        connection.execute(text(truncate_trigger_sql))

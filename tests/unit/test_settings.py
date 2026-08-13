@@ -201,11 +201,10 @@ class TestSettingsModel:
             ("secret_key", ""),
             ("secret_key", "   "),
             ("admin_username", ""),
-            ("admin_password", ""),
         ],
     )
-    def test_production_rejects_empty_required_secrets(self, field_name: str, field_value: str) -> None:
-        """Test that production rejects missing or empty required secret fields."""
+    def test_production_rejects_empty_required_runtime_values(self, field_name: str, field_value: str) -> None:
+        """Test that production rejects missing required runtime values."""
         values = {
             "env": DeploymentEnvironment.PRODUCTION,
             "secret_key": "secret-key-that-is-at-least-32-bytes",
@@ -224,6 +223,23 @@ class TestSettingsModel:
         assert "admin_password" not in error_message
         assert "secret-key-that-is-at-least-32-bytes" not in error_message
         assert "configured-value" not in error_message
+
+    @patch.dict(
+        os.environ,
+        {
+            "ENV": "production",
+            "SECRET_KEY": "runtime-secret-that-is-at-least-32-bytes",
+            "ADMIN_USERNAME": "admin",
+        },
+        clear=True,
+    )
+    def test_load_settings_allows_runtime_without_admin_password(self) -> None:
+        """Production runtime must not require the migration-only plaintext password."""
+        settings = load_settings()
+
+        assert settings.env == DeploymentEnvironment.PRODUCTION
+        assert settings.admin_username == "admin"
+        assert settings.admin_password is None
 
     def test_production_validates_trimmed_secret_key_length(self) -> None:
         """Test that whitespace padding cannot satisfy production secret length."""

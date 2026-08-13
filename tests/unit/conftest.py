@@ -27,3 +27,7 @@ def _restore_auth_schema_after_database_reload_tests(
 
     if database.DATABASE_TYPE == "sqlite":
         database.initialize_schema()
+        from api.auth import seed_credentials_from_settings, user_repository
+        from src.config.settings import load_settings
+
+        seed_credentials_from_settings(user_repository, load_settings())
