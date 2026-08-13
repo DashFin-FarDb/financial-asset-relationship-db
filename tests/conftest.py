@@ -6,6 +6,7 @@ import importlib.util
 import os
 import sys
 from collections.abc import Callable
+from datetime import timezone
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
@@ -17,9 +18,6 @@ _SCRIPTS_ROOT = Path(__file__).resolve().parents[1] / "scripts"
 if str(_SCRIPTS_ROOT) not in sys.path:
     sys.path.insert(0, str(_SCRIPTS_ROOT))
 
-if TYPE_CHECKING:
-    from src.logic.reconciliation_engine import ReconciliationPlan
-
 # Ensure a clean SQLite database for the authentication layer before any modules import it.
 _db_path = Path(__file__).resolve().parent / "test_auth.db"
 if _db_path.exists():
@@ -28,15 +26,17 @@ if _db_path.exists():
 # Enforce hermeticity for test runs
 os.environ["SECRET_KEY"] = "test-secret-key-at-least-32-bytes-long"
 os.environ["DATABASE_URL"] = f"sqlite:///{_db_path}"
+os.environ["COORDINATION_DATABASE_URL"] = os.environ["DATABASE_URL"]
 os.environ["ADMIN_USERNAME"] = "admin"
 os.environ["ADMIN_PASSWORD"] = os.getenv("TEST_ADMIN_PASSWORD") or "changeme"
 os.environ["ADMIN_EMAIL"] = "admin@example.com"
 os.environ["ADMIN_FULL_NAME"] = "Test Admin"
 os.environ["ADMIN_DISABLED"] = "false"
 
-from datetime import timezone  # noqa: E402
-
-from src.data.database import configure_sqlite_engine  # noqa: E402
+from api.auth import seed_credentials_from_settings, user_repository  # noqa: E402
+from api.database import initialize_schema  # noqa: E402
+from src.config.settings import load_settings  # noqa: E402
+from src.data.database import configure_sqlite_engine, create_engine_from_url, init_db  # noqa: E402
 from src.logic.asset_graph import AssetRelationshipGraph  # noqa: E402
 from src.models.financial_models import (  # noqa: E402
     AssetClass,
@@ -47,6 +47,18 @@ from src.models.financial_models import (  # noqa: E402
     RegulatoryActivity,
     RegulatoryEvent,
 )
+
+if TYPE_CHECKING:
+    from src.logic.reconciliation_engine import ReconciliationPlan
+
+# Test authentication state is created explicitly. Importing the runtime auth
+# module must never create schema or seed credentials.
+_test_settings = load_settings()
+_test_coordination_engine = create_engine_from_url(_test_settings.coordination_database_url)
+init_db(_test_coordination_engine)
+_test_coordination_engine.dispose()
+initialize_schema()
+seed_credentials_from_settings(user_repository, _test_settings)
 
 UTC = timezone.utc
 

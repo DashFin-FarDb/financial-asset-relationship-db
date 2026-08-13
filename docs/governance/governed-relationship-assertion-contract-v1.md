@@ -1,7 +1,10 @@
 # Governed Relationship Assertion Contract v1
 
 **Status:** Frozen normative contract (Accepted via [ADR 0008](../adr/0008-governed-relationship-assertion-contract.md))
-**Claim class for runtime capability:** `NEXT` until exact-SHA staging proof (programme PR 10 / issue #1540)
+**Claim class for runtime capability:** `CURRENT` only for `financial.bond.issuer_reference@1` at exact staging SHA
+`16d0a69c5d6f9bae94b9251991466bacbf15d3f0`, as proved in
+[the #1540 sign-off record](grac-v1-exact-sha-evidence-signoff.md); production certification, capacity, and broader
+generality remain `NEXT`
 **Contract version:** `grac.v1`
 **Baseline:** `main` at `5e45753705c10c2c4f50e0e9bc4d07b823d752ab`
 **Runtime impact of this document:** Documentation only. An empty assertion store must produce zero behavioural change.
@@ -472,6 +475,11 @@ If implementation exposes a semantic flaw in this contract:
 Do not silently rewrite v1 inside schema, projector, API, UI, or staging PRs.
 
 ### Amendment record
+
+- **2026-08-07 claim-status reconciliation:** The frozen normative semantics remain unchanged. PR #1598 / issue
+  #1540 recorded exact-SHA staging proof and named human sign-off, promoting only the evidenced
+  `financial.bond.issuer_reference@1` slice to `CURRENT`. Production certification, capacity, and broader generality
+  remain `NEXT`.
 
 - **2026-07-26 pre-publication amendment:** Against reviewed `main` at
   `0a72dfee67aae4ef7cc44041347474a6a6e234cd`, defined governed-scope establishment, durable carry-forward, and

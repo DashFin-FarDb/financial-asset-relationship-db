@@ -286,6 +286,7 @@ jobs:
           RUN_ID: ${{ github.run_id }}
           REBUILD_JOB_ID: ${{ inputs.rebuild_job_id }}
           EXECUTION_ID: ${{ inputs.execution_id }}
+          PYTHONPATH: .
         run: |
           if [ "$MODE" = "seed_and_publish" ]; then
             if [ "$STRICT_MODE" = "true" ]; then

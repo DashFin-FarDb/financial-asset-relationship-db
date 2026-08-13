@@ -15,12 +15,17 @@ from __future__ import annotations
 import logging
 import sqlite3
 from pathlib import Path
+from typing import Any, cast
 
 from sqlalchemy import inspect, text
 from sqlalchemy.engine import Engine
+from sqlalchemy.engine.interfaces import ReflectedCheckConstraint, ReflectedColumn
+from sqlalchemy.engine.reflection import Inspector
 
 from src.observability.events import ObservabilityEvent
 from src.observability.logger import log_event
+
+from .check_constraint_normalization import normalize_check_definition
 
 logger = logging.getLogger(__name__)
 
@@ -36,6 +41,25 @@ ALLOWED_MIGRATIONS = frozenset(
 )
 
 _REBUILD_JOBS_TABLE_INFO_QUERY = "PRAGMA table_info(rebuild_jobs)"
+REBUILD_JOB_STATUSES = (
+    "pending",
+    "running",
+    "succeeded",
+    "failed",
+    "cancel_requested",
+    "cancelled",
+)
+_REBUILD_JOB_STATUS_LITERALS = ", ".join(f"'{status}'" for status in REBUILD_JOB_STATUSES)
+_REBUILD_JOB_STATUS_PREDICATE = f"status IN ({_REBUILD_JOB_STATUS_LITERALS})"
+_REBUILD_IDENTIFIER_COLUMNS = ("active_worker_id", "execution_id")
+_REBUILD_IDENTIFIER_RECHECK_STATEMENTS = {
+    "active_worker_id": text("SELECT MAX(LENGTH(active_worker_id)) FROM rebuild_jobs"),
+    "execution_id": text("SELECT MAX(LENGTH(execution_id)) FROM rebuild_jobs"),
+}
+_REBUILD_IDENTIFIER_NORMALIZATION_STATEMENTS = {
+    "active_worker_id": text("ALTER TABLE rebuild_jobs ALTER COLUMN active_worker_id TYPE VARCHAR(64)"),
+    "execution_id": text("ALTER TABLE rebuild_jobs ALTER COLUMN execution_id TYPE VARCHAR(64)"),
+}
 
 
 def apply_migrations(db_path: Path | str) -> None:
@@ -186,7 +210,7 @@ def _apply_upgrade_004_cancellation_columns(connection: sqlite3.Connection) -> N
     connection.execute("PRAGMA foreign_keys=OFF")
     try:
         # 1. Create the new table with the updated CHECK constraint
-        connection.execute("""
+        connection.execute(f"""
             CREATE TABLE rebuild_jobs_new (
                 job_id TEXT PRIMARY KEY,
                 status TEXT NOT NULL,
@@ -207,7 +231,7 @@ def _apply_upgrade_004_cancellation_columns(connection: sqlite3.Connection) -> N
                 checkpoint_data TEXT,
                 cancellation_requested_at TEXT,
                 CONSTRAINT ck_rebuild_jobs_status CHECK (
-                    status IN ('pending', 'running', 'succeeded', 'failed', 'cancel_requested', 'cancelled')
+                    {_REBUILD_JOB_STATUS_PREDICATE}
                 )
             )
             """)
@@ -259,31 +283,30 @@ def _apply_upgrade_004_cancellation_columns(connection: sqlite3.Connection) -> N
 # ---------------------------------------------------------------------------
 
 
-def _inspect_rebuild_jobs_columns(inspector) -> tuple[list[str], dict | None]:
+def _inspect_rebuild_jobs_columns(inspector: Inspector) -> tuple[list[str], dict[str, ReflectedColumn]]:
     """
-    Return (add_column_statements, active_worker_col_meta).
+    Return missing-column statements and metadata for bounded identifiers.
 
     Scans rebuild_jobs columns once and produces:
     - The list of ADD COLUMN IF NOT EXISTS statements needed for missing
-      heartbeat columns.
-    - The SQLAlchemy column metadata dict for active_worker_id, or None
-      if the column does not yet exist.
+        heartbeat columns.
+    - The SQLAlchemy column metadata for each bounded rebuild identifier.
 
     Args:
         inspector: SQLAlchemy inspector instance.
 
     Returns:
-        tuple[list[str], dict | None]: A tuple containing the list of SQL statements and
-            optional column metadata.
+        tuple[list[str], dict[str, ReflectedColumn]]: Missing-column SQL
+            statements and reflected identifier metadata.
     """
     columns = inspector.get_columns("rebuild_jobs")
     existing: set[str] = set()
-    active_worker_col = None
+    identifier_columns: dict[str, ReflectedColumn] = {}
     for col in columns:
         name = col["name"]
         existing.add(name)
-        if name == "active_worker_id":
-            active_worker_col = col
+        if name in _REBUILD_IDENTIFIER_COLUMNS:
+            identifier_columns[name] = col
 
     statements: list[str] = []
     if "active_worker_id" not in existing:
@@ -296,58 +319,57 @@ def _inspect_rebuild_jobs_columns(inspector) -> tuple[list[str], dict | None]:
         statements.append("ALTER TABLE rebuild_jobs ADD COLUMN IF NOT EXISTS checkpoint_data TEXT")
     if "cancellation_requested_at" not in existing:
         statements.append("ALTER TABLE rebuild_jobs ADD COLUMN IF NOT EXISTS cancellation_requested_at TIMESTAMPTZ")
-    return statements, active_worker_col
+    return statements, identifier_columns
 
 
-def _active_worker_id_declared_too_wide(active_worker_col: dict | None) -> bool:
-    """Check if active_worker_id column is wider than VARCHAR(64).
+def _identifier_declared_incompatible(column: ReflectedColumn | None) -> bool:
+    """Check whether a present identifier column is unbounded or wider than 64.
 
-    Return True when active_worker_id is wider than VARCHAR(64) and may need
-    narrowing.
+    Return True when the identifier is unbounded or wider than VARCHAR(64).
 
     Safety is determined only by the authoritative in-transaction re-check in
     _apply_normalization_in_transaction(), after taking an exclusive lock.
 
     Args:
-        active_worker_col (dict | None): SQLAlchemy column metadata dict.
+        column (ReflectedColumn | None): SQLAlchemy column metadata.
 
     Returns:
-        bool: True if the column is wider than 64 characters.
+        bool: True if the column is unbounded or wider than 64 characters.
     """
-    if active_worker_col is None:
+    if column is None:
         return False
-    col_length = getattr(active_worker_col.get("type"), "length", None)
-    return isinstance(col_length, int) and col_length > 64
+    column_data = cast(dict[str, Any], column)
+    col_length = getattr(column_data.get("type"), "length", None)
+    return col_length is None or col_length > 64
 
 
-def _apply_normalization_in_transaction(connection, needs_width_normalization: bool) -> None:
+def _apply_normalization_in_transaction(connection, columns_to_normalize: tuple[str, ...]) -> None:
     """
-    Attempt to narrow the `active_worker_id` column to `VARCHAR(64)` within the current transactional connection.
+    Attempt to narrow migration-owned identifier columns to `VARCHAR(64)`.
 
-    If `needs_width_normalization` is True, acquires an exclusive lock on `rebuild_jobs`, re-checks the
-    maximum stored `active_worker_id` length, and alters the column type to `VARCHAR(64)` only when the
-    re-checked maximum is missing or less than or equal to 64. If the re-checked maximum exceeds 64, emits
-    a structured observability event and leaves the column unchanged.
+    Acquires one exclusive lock, re-checks each requested column's maximum
+    stored length, and narrows only columns whose data fits.
 
     Parameters:
         connection: An active SQLAlchemy transactional connection bound to the target PostgreSQL database.
-        needs_width_normalization (bool): When True, attempt the width normalization; when False, do nothing.
+        columns_to_normalize: Trusted migration-owned identifier column names.
     """
-    if not needs_width_normalization:
+    if not columns_to_normalize:
         return
 
     connection.execute(text("LOCK TABLE rebuild_jobs IN ACCESS EXCLUSIVE MODE"))
-    recheck = connection.execute(text("SELECT MAX(LENGTH(active_worker_id)) FROM rebuild_jobs")).scalar()
-    if recheck is None or recheck <= 64:
-        connection.execute(text("ALTER TABLE rebuild_jobs ALTER COLUMN active_worker_id TYPE VARCHAR(64)"))
-    else:
+    for column_name in columns_to_normalize:
+        recheck = connection.execute(_REBUILD_IDENTIFIER_RECHECK_STATEMENTS[column_name]).scalar()
+        if recheck is None or recheck <= 64:
+            connection.execute(_REBUILD_IDENTIFIER_NORMALIZATION_STATEMENTS[column_name])
+            continue
         log_event(
             logger,
             logging.WARNING,
             ObservabilityEvent(
                 event="migration_width_normalization_skipped",
-                message=f"Skipping active_worker_id width normalization: max length={recheck} exceeds 64 (re-check)",
-                metadata={"max_length": recheck},
+                message=(f"Skipping {column_name} width normalization: max length={recheck} exceeds 64 (re-check)"),
+                metadata={"column": column_name, "max_length": recheck},
             ),
         )
 
@@ -363,10 +385,11 @@ def _apply_postgresql_status_constraint_update(connection) -> None:
     connection.execute(text("ALTER TABLE rebuild_jobs DROP CONSTRAINT IF EXISTS ck_rebuild_jobs_status"))
 
     # 2. Add the updated constraint
-    connection.execute(text("""
+    status_constraint_sql = f"""
         ALTER TABLE rebuild_jobs ADD CONSTRAINT ck_rebuild_jobs_status
-            CHECK (status IN ('pending', 'running', 'succeeded', 'failed', 'cancel_requested', 'cancelled'))
-    """))
+            CHECK ({_REBUILD_JOB_STATUS_PREDICATE})
+    """
+    connection.execute(text(status_constraint_sql))
 
 
 # ---------------------------------------------------------------------------
@@ -388,10 +411,14 @@ def apply_postgresql_heartbeat_migration(engine: Engine) -> None:
     if "rebuild_jobs" not in inspector.get_table_names():
         return
 
-    statements, active_worker_col = _inspect_rebuild_jobs_columns(inspector)
-    needs_width_normalization = _active_worker_id_declared_too_wide(active_worker_col)
+    statements, identifier_columns = _inspect_rebuild_jobs_columns(inspector)
+    columns_to_normalize = tuple(
+        column_name
+        for column_name in _REBUILD_IDENTIFIER_COLUMNS
+        if _identifier_declared_incompatible(identifier_columns.get(column_name))
+    )
 
-    if not statements and not needs_width_normalization:
+    if not statements and not columns_to_normalize:
         # Still attempt to update the constraint even if columns are present,
         # as the constraint might be outdated (e.g. from an earlier 5C.X PR).
         with engine.begin() as connection:
@@ -401,5 +428,52 @@ def apply_postgresql_heartbeat_migration(engine: Engine) -> None:
     with engine.begin() as connection:
         for statement in statements:
             connection.execute(text(statement))
-        _apply_normalization_in_transaction(connection, needs_width_normalization)
+        _apply_normalization_in_transaction(connection, columns_to_normalize)
         _apply_postgresql_status_constraint_update(connection)
+
+
+def _status_constraint_is_canonical(constraint: ReflectedCheckConstraint | None) -> bool:
+    """Return whether reflected SQL enforces exactly the supported status domain."""
+    if not constraint:
+        return False
+
+    constraint_data = cast(dict[str, Any], constraint)
+    sql_text = str(constraint_data.get("sqltext", ""))
+    return normalize_check_definition(sql_text) == normalize_check_definition(_REBUILD_JOB_STATUS_PREDICATE)
+
+
+def postgresql_heartbeat_schema_gaps(inspector: Inspector) -> list[str]:
+    """Return PostgreSQL rebuild compatibility gaps without changing the schema."""
+    if "rebuild_jobs" not in inspector.get_table_names():
+        return ["rebuild_jobs table"]
+
+    required_columns = {
+        "active_worker_id",
+        "last_heartbeat_at",
+        "execution_id",
+        "checkpoint_data",
+        "cancellation_requested_at",
+    }
+    columns = {cast(dict[str, Any], column)["name"]: column for column in inspector.get_columns("rebuild_jobs")}
+    gaps = [f"rebuild_jobs.{name}" for name in sorted(required_columns - set(columns))]
+
+    for column_name in _REBUILD_IDENTIFIER_COLUMNS:
+        column = columns.get(column_name)
+        if column is None:
+            continue
+        column_data = cast(dict[str, Any], column)
+        length = getattr(column_data.get("type"), "length", None)
+        if length is None or length > 64:
+            gaps.append(f"rebuild_jobs.{column_name} width <= 64")
+
+    status_constraint = next(
+        (
+            constraint
+            for constraint in inspector.get_check_constraints("rebuild_jobs")
+            if cast(dict[str, Any], constraint).get("name") == "ck_rebuild_jobs_status"
+        ),
+        None,
+    )
+    if not _status_constraint_is_canonical(status_constraint):
+        gaps.append("ck_rebuild_jobs_status")
+    return gaps

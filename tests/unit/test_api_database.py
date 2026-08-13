@@ -25,12 +25,17 @@ from api.database import (
     DATABASE_URL,
     _is_memory_db,
     _resolve_sqlite_path,
+    bind_database_url,
+    ensure_runtime_access,
     execute,
     fetch_one,
     fetch_value,
     get_connection,
     initialize_schema,
+    verify_runtime_authority,
+    verify_schema_compatibility,
 )
+from src.data.database import SchemaCompatibilityError
 
 
 @pytest.fixture(autouse=True)
@@ -56,6 +61,21 @@ class TestDatabaseURLConfiguration:
         """Test that DATABASE_PATH is resolved."""
         assert DATABASE_PATH is not None
         assert isinstance(DATABASE_PATH, str)
+
+    def test_explicit_database_binding_restores_import_time_target(self, tmp_path: Path):
+        """Operator binding must use the requested target and restore module state."""
+        original_target = (database.DATABASE_URL, database.DATABASE_TYPE, database.DATABASE_PATH)
+        requested_path = tmp_path / "explicit-auth.db"
+
+        with bind_database_url(f"sqlite:///{requested_path}"):
+            assert str(requested_path) == database.DATABASE_PATH
+            initialize_schema()
+
+        assert original_target == (database.DATABASE_URL, database.DATABASE_TYPE, database.DATABASE_PATH)
+        with sqlite3.connect(requested_path) as connection:
+            assert connection.execute(
+                "SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = 'user_credentials'"
+            ).fetchone() == (1,)
 
     def test_missing_database_url_raises_error(self):
         """Test that missing DATABASE_URL raises a ValueError."""
@@ -160,6 +180,39 @@ class TestMemoryDatabaseDetection:
 
 class TestConnectionManagement:
     """Test database connection management."""
+
+    def test_postgres_connection_enforces_driver_connect_timeout(self):
+        """PostgreSQL connections must always bound connection establishment."""
+        connection = Mock()
+        assert database._POSTGRES_CONNECT_TIMEOUT_SECONDS == 10  # pylint: disable=protected-access
+        with patch("psycopg2.connect", return_value=connection) as connect:
+            assert database._create_postgres_connection() is connection  # pylint: disable=protected-access
+
+        connect.assert_called_once_with(
+            database.DATABASE_URL,
+            connect_timeout=database._POSTGRES_CONNECT_TIMEOUT_SECONDS,  # pylint: disable=protected-access
+        )
+
+    def test_guarded_postgres_connection_enforces_driver_statement_timeout(self):
+        """Bounded startup verification must apply a driver-level statement timeout."""
+        connection = Mock()
+        operation_guard = database._PostgresOperationGuard()  # pylint: disable=protected-access
+        with (
+            patch("api.database.DATABASE_TYPE", "postgresql"),
+            patch("psycopg2.connect", return_value=connection) as connect,
+            database._bind_postgres_operation_guard(operation_guard),  # pylint: disable=protected-access
+            get_connection(),
+        ):
+            pass
+
+        connect.assert_called_once_with(
+            database.DATABASE_URL,
+            connect_timeout=database._POSTGRES_CONNECT_TIMEOUT_SECONDS,  # pylint: disable=protected-access
+            options=(
+                "-c statement_timeout="
+                f"{database._POSTGRES_STATEMENT_TIMEOUT_MILLISECONDS}"  # pylint: disable=protected-access
+            ),
+        )
 
     def test_get_connection_context_manager(self):
         """Test that get_connection works as context manager."""
@@ -322,6 +375,21 @@ class TestQueryExecution:
 class TestSchemaInitialization:
     """Test schema initialization."""
 
+    @patch.object(database, "DATABASE_TYPE", "postgresql")
+    @patch("api.database.fetch_value", side_effect=[None, 2])
+    @patch("api.database.execute")
+    def test_ensure_runtime_access_installs_read_only_auth_policy(self, mock_execute, _mock_fetch_value):
+        """Auth capability setup must grant SELECT and no mutation privilege."""
+        ensure_runtime_access()
+
+        statements = "\n".join(call.args[0] for call in mock_execute.call_args_list)
+        assert "CREATE ROLE fardb_runtime_auth NOLOGIN" in statements
+        assert "GRANT SELECT ON TABLE user_credentials TO fardb_runtime_auth" in statements
+        assert "FOR SELECT TO fardb_runtime_auth USING (true)" in statements
+        assert "GRANT INSERT" not in statements
+        assert "GRANT UPDATE" not in statements
+        assert "GRANT DELETE" not in statements
+
     @patch("api.database.execute")
     def test_initialize_schema_creates_table(self, mock_execute):
         """Test that initialize_schema creates user_credentials table."""
@@ -353,6 +421,63 @@ class TestSchemaInitialization:
 
         for column in required_columns:
             assert column in sql, f"Missing column: {column}"
+
+    @patch("api.database.fetch_value", side_effect=["disabled,email,full_name,hashed_password,id,username", 1])
+    def test_verify_schema_compatibility_is_read_only(self, mock_fetch_value):
+        """Credential verification should use catalog reads and perform no DDL."""
+        with patch("api.database.execute") as mock_execute:
+            verify_schema_compatibility()
+
+        mock_execute.assert_not_called()
+        assert mock_fetch_value.call_count == 2
+        sqlite_unique_query = mock_fetch_value.call_args_list[1].args[0]
+        assert "COUNT(*) FROM pragma_index_info(indexes.name)" in sqlite_unique_query
+        assert "= 1" in sqlite_unique_query
+        column_query = mock_fetch_value.call_args_list[0].args[0]
+        assert "WHERE name IN" not in column_query
+
+    @patch("api.database.fetch_value", side_effect=[None, 0])
+    def test_verify_schema_compatibility_fails_when_table_is_missing(self, _mock_fetch_value):
+        """Missing credential schema should produce a stable compatibility failure."""
+        with pytest.raises(SchemaCompatibilityError, match="missing required columns"):
+            verify_schema_compatibility()
+
+    @patch("api.database.fetch_value", side_effect=["disabled,email,full_name,id,username", 1])
+    def test_verify_schema_compatibility_fails_when_required_column_is_missing(self, _mock_fetch_value):
+        """Credential verification should compare the returned catalog names against the shared column set."""
+        with pytest.raises(SchemaCompatibilityError, match="missing required columns"):
+            verify_schema_compatibility()
+
+    @patch.object(database, "DATABASE_TYPE", "postgresql")
+    @patch("api.database.fetch_value", return_value=False)
+    def test_verify_runtime_authority_rejects_privileged_postgresql_role(self, _mock_fetch_value):
+        """Auth startup should fail when its PostgreSQL role can migrate schema."""
+        with pytest.raises(SchemaCompatibilityError, match="retains schema-migration authority"):
+            verify_runtime_authority()
+
+    @patch.object(database, "DATABASE_TYPE", "postgresql")
+    @patch("api.database.fetch_value", return_value=True)
+    def test_verify_runtime_authority_accepts_restricted_postgresql_role(self, mock_fetch_value):
+        """Auth startup should accept a PostgreSQL role without migration authority."""
+        verify_runtime_authority()
+        authority_query = mock_fetch_value.call_args_list[0].args[0]
+        assert "current_schema() IS NOT NULL" in authority_query
+        assert "login.rolname = session_user" in authority_query
+        assert "pg_has_role(login.oid, assumable.oid, 'USAGE')" in authority_query
+        assert "pg_has_role(login.oid, assumable.oid, 'SET')" in authority_query
+        assert "ELSE pg_has_role(login.oid, assumable.oid, 'MEMBER') END" in authority_query
+        assert "current_setting('server_version_num')::integer >= 160000" in authority_query
+        assert "assumable.rolreplication" in authority_query
+        assert "has_database_privilege(assumable.oid, current_database(), 'CREATE')" in authority_query
+        assert "has_schema_privilege(assumable.oid, namespace.oid, 'CREATE')" in authority_query
+        assert "has_table_privilege(assumable.oid, 'user_credentials', 'UPDATE')" in authority_query
+        assert "has_any_column_privilege(assumable.oid, 'user_credentials', 'UPDATE')" in authority_query
+        assert (
+            "has_sequence_privilege(assumable.oid, pg_get_serial_sequence('user_credentials', 'id'), 'UPDATE')"
+            in authority_query
+        )
+        assert "namespace.nspowner = assumable.oid" in authority_query
+        assert "database.datdba = assumable.oid" in authority_query
 
 
 class TestEdgeCases:

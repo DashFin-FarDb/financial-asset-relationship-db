@@ -2,8 +2,8 @@
 
 **Repository:** `DashFin-FarDb/financial-asset-relationship-db`
 **Established:** 2026-07-21
-**Repository evidence cutoff:** `main` at `0a72dfee67aae4ef7cc44041347474a6a6e234cd`
-**Continuity status:** Reconciled through the first five GRAC foundation PRs; publication paused for three corrective PRs
+**Repository evidence cutoff:** `main` at `1a49cee56255ec4f50495fa9bdd80ddd3f8f6763`
+**Continuity status:** Reconciled through merged CQ-01/CQ-02; CQ-03 is the next closure dependency
 
 This ledger preserves durable project decisions, plans, milestones, and handoffs across ChatGPT, Codex, and
 repository work. It is an index of authoritative evidence, not a replacement for detailed specifications, issues,
@@ -14,6 +14,8 @@ pull requests, ADRs, runbooks, or release evidence packs.
 - **Verified** means supported by current repository evidence at the stated cutoff.
 - **Implemented** means delivery is evidenced but its full completion criteria or live operating proof are not yet
   independently confirmed.
+- **Satisfied** means the commitment's stated completion test is met by current cited evidence for its declared scope;
+  provider rollout or production qualification remains separate unless the entry explicitly includes it.
 - **Agreed** and **Planned** describe intent, not delivered code.
 - Live release, provider, security, and deployment observations expire; recapture them for the exact artefact being
   promoted.
@@ -37,26 +39,70 @@ recovery evidence.
 
 At the evidence cutoff:
 
-- `main` resolves to `0a72dfee67aae4ef7cc44041347474a6a6e234cd`. GRAC PRs #1541, #1542, #1549, #1550, and #1552 landed in
-  order, providing the contract, conformance gate, additive schema, lifecycle repository, and deterministic
-  candidate projector.
-- The earlier staging database-authorization PASS remains valid for its recorded SHA, but it is not transferable to
-  the expanded schema at this cutoff. Exact-SHA authorization proof must be rerun after hosted-schema correction.
-- GRAC runtime capability remains `NEXT`. Publication issue #1536 is paused until contract, lifecycle, and
-  hosted-schema/PostgreSQL corrective PRs land in order.
-- Production-scale capacity, repeated immutable promotion, and domain-neutral reuse remain unproven.
+- PR [#1608](https://github.com/DashFin-FarDb/financial-asset-relationship-db/pull/1608) merged from final reviewed
+  head `743ce9254ca0fdb20805a789e4082c2891053109` as GitHub-verified squash
+  `1a49cee56255ec4f50495fa9bdd80ddd3f8f6763` on `main`.
+- The final exact-head CI run passed PostgreSQL 16 GRAC/authority, PostgreSQL 15 compatibility, Python 3.10–3.12,
+  and security jobs. The PostgreSQL 16 job executed the membership and authority regressions rather than skipping
+  them.
+- PR #1598 records named human sign-off and exact-SHA staging evidence for candidate
+  `16d0a69c5d6f9bae94b9251991466bacbf15d3f0`.
+- GRAC runtime capability is `CURRENT` only for the evidenced staging slice
+  `financial.bond.issuer_reference@1::financial_graph_current_view`. Production certification, capacity, and
+  broader generality remain `NEXT`.
+- CQ-01/CQ-02 are closed at repository and exact-head CI scope. CQ-03 migration-ledger and drift-gate work is the
+  next closure dependency. Provider rollout, production promotion and recovery evidence remain artefact-specific;
+  production scale, repeated immutable promotion, and domain-neutral reuse remain unproven.
 
 Primary authorities:
 
 - [Enterprise Readiness Index](../enterprise-readiness-index.md)
-- [Current State of FarDB](current-state.md)
+- [Agent Task Entry Route](../agent-task-entry.md)
+- [Historical Current State of FarDB](current-state.md)
 - [Claims and Truth Policy](claims-and-truth-policy.md)
 - [Release Evidence Pack](../release-evidence-pack.md)
 - [State Machine and Operating Authority](../governance/state-machine-and-operating-authority.md)
-- [Governed Relationship Assertion Contract v1](../governance/governed-relationship-assertion-contract-v1.md) (NEXT capability)
+- [Governed Relationship Assertion Contract v1](../governance/governed-relationship-assertion-contract-v1.md)
+- [GRAC v1 exact-SHA staging evidence and sign-off](../governance/grac-v1-exact-sha-evidence-signoff.md)
 - [The Big Read](the-big-read.md)
 
 ## Active commitments
+
+### FPC-2026-08-09-01 — Separate migration and runtime database authority
+
+- **Type:** Security / production qualification blocker
+- **Status:** Satisfied — repository implementation and exact-head PostgreSQL 15/16 evidence; provider rollout and
+  production qualification remain separate
+- **Decision or objective:** Make database mutation and credential bootstrap an explicit operator action, then require
+  verify-only startup under restricted runtime credentials that exclude `ADMIN_PASSWORD` and schema-migration
+  authority.
+- **Rationale and constraints:** ADR 0007 requires distinct application and migration authority. Preserve the custom
+  synchronous migration path and SQLite compatibility; do not introduce Alembic, provider-led schema authority,
+  dependency changes, or implicit startup repair.
+- **Repository scope:** `scripts/migrate_database.py`, startup and database compatibility verification, runtime
+  settings, production/container gates, launchers, focused tests, migration-authority runbooks, and the canonical
+  operating-authority record merged through PR #1608.
+- **Dependencies or blockers:** Repository closure is no longer blocked. Any target-environment rollout still requires
+  the documented superuser-owned capability-role bootstrap, explicit operator migration, restricted login binding,
+  and fresh target-specific startup, authorization, promotion, rollback, and recovery evidence. Repository code does
+  not create provider credentials or mutate provider configuration.
+- **Evidence and provenance:** User ratification on 2026-08-09; merged
+  [PR #1608](https://github.com/DashFin-FarDb/financial-asset-relationship-db/pull/1608), final reviewed head
+  `743ce9254ca0fdb20805a789e4082c2891053109`, and GitHub-verified squash
+  [`1a49cee56255ec4f50495fa9bdd80ddd3f8f6763`](https://github.com/DashFin-FarDb/financial-asset-relationship-db/commit/1a49cee56255ec4f50495fa9bdd80ddd3f8f6763).
+  [Final CI](https://github.com/DashFin-FarDb/financial-asset-relationship-db/actions/runs/31684943008) passed the
+  PostgreSQL 16 GRAC/authority and PostgreSQL 15 compatibility jobs, Python 3.10–3.12, and security jobs. The merged
+  implementation supplies explicit operator migration, superuser-owned capability bootstrap, password-free
+  verify-only runtime startup, restricted capability roles, exact privilege/ownership checks, and production Compose
+  migration packaging.
+- **Post-merge review reference:** Detailed scanner and review-thread dispositions remain in
+  [PR #1608](https://github.com/DashFin-FarDb/financial-asset-relationship-db/pull/1608)'s review record. Issue
+  [#1623](https://github.com/DashFin-FarDb/financial-asset-relationship-db/issues/1623) tracks the only durable
+  follow-up: a bounded P2 server-side statement-timeout improvement for normal PostgreSQL request connections.
+- **Next action and completion test:** Treat CQ-01/CQ-02 as satisfied and begin CQ-03's single PostgreSQL migration
+  ledger and drift gate. Qualify provider rollout and production promotion separately against the exact artefact being
+  deployed. Issue #1623 may proceed as one small P2 PR without displacing CQ-03.
+- **Last updated:** 2026-08-13
 
 ### FPC-2026-07-21-01 — Close the hosted database authorization gate
 
@@ -133,23 +179,23 @@ Primary authorities:
 ### FPC-2026-07-21-04 — Ratify the governed relationship-assertion contract
 
 - **Type:** Product architecture
-- **Status:** Agreed — contract decision ratified (ADR 0008 / contract v1); runtime capability remains `NEXT`
+- **Status:** Verified — bounded exact-SHA staging slice `CURRENT`; broader capability remains `NEXT`
 - **Decision or objective:** Decide and document the lifecycle that distinguishes propositions, evidence, assertions,
   determinations, projections, corrections, supersession, authority, purpose, and time.
-- **Rationale and constraints:** This is the proposed differentiating semantic core. It must not be represented as a
-  current capability merely because the existing graph and governance foundations make it plausible.
-- **Repository scope:** ADR 0008, frozen contract v1, continuity/strategy links; conformance, schema, lifecycle, and
-  candidate projection landed through #1532–#1535; publication, APIs, UI, and staging proof remain #1536–#1540.
-- **Dependencies or blockers:** Three pre-publication corrective PRs: contract amendment; lifecycle/temporal/
-  serialization enforcement; hosted schema plus full PostgreSQL proof. Staging proof remains required before CURRENT.
+- **Rationale and constraints:** This is the differentiating semantic core. It may be represented as current only
+  inside a verified evidence boundary; plausible foundations do not justify transferring or broadening that claim.
+- **Repository scope:** ADR 0008, frozen contract v1, conformance, schema, lifecycle, projection, publication, APIs,
+  UI, staging proof, exact-SHA evidence, and continuity/strategy links delivered through #1532–#1540 and PR #1598.
+- **Dependencies or blockers:** The bounded staging slice is proved. Production certification, capacity, a second
+  predicate, and broader-domain generality remain separate gates.
 - **Evidence and provenance:** User decision 2026-07-25; original contract baseline `5e457537`; reviewed implementation
-  baseline `0a72dfee`; ADR 0008 Accepted; PRs #1541, #1542, #1549, #1550, and #1552 merged in order. Runtime
-  capability remains `NEXT`. Executable conformance and the vertical slice are implemented through candidate
-  projection; publication remains paused.
-- **Next action and completion test:** Land the three corrective PRs in order, then resume #1536–#1540. Complete only
-  when exact-SHA staging proof answers provenance, proposition, evidence, method, confidence, time, authority,
-  supersession, revision, governed-scope continuity, and the pre-correction graph after restart.
-- **Last updated:** 2026-07-26
+  baseline `0a72dfee`; ADR 0008 Accepted; the #1532–#1540 delivery sequence completed; PR #1598 records exact-SHA
+  staging evidence and sign-off for `financial.bond.issuer_reference@1::financial_graph_current_view` at
+  `16d0a69c5d6f9bae94b9251991466bacbf15d3f0`.
+- **Next action and completion test:** Preserve the bounded staging claim while closing the runtime/migration-authority
+  boundary and later qualifying a new exact production candidate. Do not transfer the staging approval to another
+  SHA, predicate, environment, or broader capability.
+- **Last updated:** 2026-08-08
 
 ### FPC-2026-07-21-05 — Prove domain generality without weakening the core
 
@@ -172,7 +218,7 @@ Primary authorities:
 ### FARDB-GRAC-V1 — Governed Relationship Assertion Contract v1
 
 - **Type:** Architecture and product milestone
-- **Status:** Agreed
+- **Status:** Verified — bounded staging slice
 - **Decision:** Make append-only governed assertions the authoritative source
   for relationship provenance, evidence, authority, time, confidence,
   lifecycle and supersession; retain the graph as a deterministic projection.
@@ -183,13 +229,16 @@ Primary authorities:
   no raw evidence blobs, multi-domain expansion or graph-database migration.
 - **Evidence:** User decision dated 2026-07-25; original contract baseline
   `5e45753705c10c2c4f50e0e9bc4d07b823d752ab`; reviewed implementation baseline
-  `0a72dfee67aae4ef7cc44041347474a6a6e234cd`; tracker epic #1530 / children #1531–#1540; merged foundation
-  PRs #1541, #1542, #1549, #1550, and #1552; ADR 0008 Accepted; frozen contract
+  `0a72dfee67aae4ef7cc44041347474a6a6e234cd`; tracker epic #1530 / children #1531–#1540; completed delivery
+  sequence and exact-SHA sign-off in PR #1598; ADR 0008 Accepted; frozen contract
   [governed-relationship-assertion-contract-v1.md](../governance/governed-relationship-assertion-contract-v1.md).
-- **Next action:** Land the three pre-publication corrective PRs, then resume #1536–#1540.
-- **Completion test:** Exact-SHA staging proof of proposal, authorization,
-  publication, supersession, restart and historical reconstruction.
-- **Last updated:** 2026-07-26
+- **Evidence boundary:** The
+  [exact-SHA sign-off record](../governance/grac-v1-exact-sha-evidence-signoff.md) proves only
+  `financial.bond.issuer_reference@1::financial_graph_current_view` in the recorded staging scope at `16d0a69c`.
+- **Next action:** Close runtime/migration authority before a new exact production qualification candidate is selected.
+- **Completion test:** A new candidate preserves the evidenced GRAC invariants while satisfying the separate
+  production authority, recovery, dependency, quality, and promotion gates.
+- **Last updated:** 2026-08-08
 
 ### FPC-2025-10-26-01 — Financial relationship prototype becomes a versioned project
 
@@ -387,8 +436,10 @@ Primary authorities:
    when the next release record is prepared.
 4. **Tracker vs ledger:** Active commitments in this ledger may outlive or precede open GitHub issues/PRs. Empty or
    sparse trackers are not evidence that release gates are satisfied.
-5. **Product category decision:** ADR 0008 Accepted and contract v1 frozen (FARDB-GRAC-V1 Agreed). Runtime governed
-   assertion capability remains `NEXT` until exact-SHA staging proof (#1540); do not treat ratification as CURRENT.
+5. **GRAC claim boundary:** ADR 0008 and the frozen contract define semantics. The
+   [exact-SHA sign-off](../governance/grac-v1-exact-sha-evidence-signoff.md) supersedes earlier all-`NEXT` wording only
+   for `financial.bond.issuer_reference@1::financial_graph_current_view` in the recorded staging scope. Production,
+   capacity, second-predicate, and broader-domain claims remain `NEXT`.
 
 ## Agent-ready handoff
 
@@ -399,10 +450,10 @@ Primary authorities:
 - Durable graph load, startup provenance, promotion checking, recovery control plane, API contracts, governance, DR
   documentation, and release-evidence mechanisms exist in the repository.
 - RC1 has candidate-specific approved hosted and restore evidence.
-- `main` is `0a72dfee67aae4ef7cc44041347474a6a6e234cd` at this cutoff. GRAC foundation PRs #1541, #1542, #1549,
-  #1550, and #1552 are merged.
-- GRAC v1 programme tracker: epic #1530 / children #1531–#1540; publication #1536 is paused for three corrective
-  PRs; capability claim remains `NEXT`.
+- `main` is `1a49cee56255ec4f50495fa9bdd80ddd3f8f6763` at this cutoff.
+- CQ-01/CQ-02 are closed through merged PR #1608 with exact PostgreSQL 15/16 authority evidence. Provider rollout
+  and production qualification remain separate evidence obligations.
+- GRAC v1 is `CURRENT` only for the exact-SHA staging slice recorded by PR #1598; broader claims remain `NEXT`.
 
 ### Governing constraints
 
@@ -416,22 +467,23 @@ Primary authorities:
 
 ### Next highest-value action
 
-Keep #1536 paused. Land, in order: (1) the GRAC scope/publication contract amendment, (2) lifecycle, actor, temporal,
-and supersession-serialization enforcement, and (3) hosted-schema hardening with durable governed scopes and full
-PostgreSQL projection/lifecycle CI. Then rerun exact-SHA database authorization proof and resume #1536–#1540.
-Release repeatability (**FPC-2026-07-21-02**) remains an active parallel commitment.
+Begin CQ-03: reconcile the PostgreSQL schema into one authoritative migration ledger and add a fail-closed drift gate.
+Preserve the explicit operator migration and restricted verify-only runtime boundary merged through PR #1608. Prove a
+fresh rebuild from the ledger and make unrecorded drift fail CI/readiness with a precise diagnostic. Keep provider
+rollout and production qualification artefact-specific. Issue #1623 is eligible as a small P2 reliability PR, but it
+does not displace CQ-03. Release repeatability (**FPC-2026-07-21-02**) remains active.
 
 ### Completion test
 
-The three corrective PRs merge in order; exact-SHA database authorization passes for the corrected schema; and the
-resumed #1536–#1540 sequence proves distinct proposal/determination actors, publication, governed-scope continuity,
-supersession, restart, and historical reconstruction without promoting capability before the staging evidence exists.
+One declared PostgreSQL migration ledger can build a fresh database, adopt the intended live baseline, and detect
+unrecorded schema drift. CI and readiness fail clearly on drift while the restricted application role remains
+verify-only and cannot acquire migration, ownership, grant-management, or implicit credential-bootstrap authority.
 
 ## Backfill coverage and gaps
 
 ### Sources reviewed
 
-- Repository `main` through `0a72dfee67aae4ef7cc44041347474a6a6e234cd` on 2026-07-26.
+- Repository `main` through `1a49cee56255ec4f50495fa9bdd80ddd3f8f6763` on 2026-08-13.
 - Repository agent instructions and production-architecture declaration.
 - Enterprise-readiness index, audit, roadmap, PR board, validation-gap audit, release checklist, release evidence pack,
   hosted staging baseline, operational evidence framework, drill and scale-validation documents, and risk register.
@@ -440,6 +492,7 @@ supersession, restart, and historical reconstruction without promoting capabilit
 - Current-state strategy, claims taxonomy, and Big Read chronology.
 - Merged hardening PRs #1506, #1508, #1509, and #1510 (H-P1-03).
 - Merged GRAC foundation PRs #1541, #1542, #1549, #1550, and #1552.
+- Merged CQ-01/CQ-02 PR #1608, its final exact-head CI, and post-merge review-thread disposition.
 - Available ChatGPT continuity context covering the enterprise-readiness program, PR #1096 onward, RC1 evidence work,
   hosted startup incidents, audit completion, and agreed future-work discussions.
 

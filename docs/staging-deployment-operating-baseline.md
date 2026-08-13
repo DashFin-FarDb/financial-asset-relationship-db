@@ -88,7 +88,9 @@ Before staging promotion, the Secret/config maintainer must confirm:
 - `ASSET_GRAPH_DATABASE_URL` does not point to the same boundary as `DATABASE_URL`, unless an approved exception exists.
 - `COORDINATION_DATABASE_URL` is configured if coordination is separated.
 - If `COORDINATION_DATABASE_URL` is absent, the fallback boundary is documented.
-- `SECRET_KEY`, `ADMIN_USERNAME`, and `ADMIN_PASSWORD` are configured through Vercel environment variables.
+- `SECRET_KEY` and the runtime `ADMIN_USERNAME` operator identity are configured through Vercel environment variables.
+- `ADMIN_PASSWORD` is supplied only to the explicit `python -m scripts.migrate_database` operator execution surface,
+  then removed from the FastAPI runtime environment after initial credential provisioning.
 - No raw secret values are committed or pasted into issues, PRs, logs, or evidence records.
 
 ### H-P0-04 / ADR 0007 GitHub Environment secrets
