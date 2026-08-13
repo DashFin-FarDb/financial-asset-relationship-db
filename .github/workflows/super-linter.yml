@@ -61,8 +61,10 @@ jobs:
           # Super-Linter v7 bundles actionlint 1.7.1, which does not know the
           # newer GitHub Models permission yet.
           # Space-free regex: Super-Linter splits *_COMMAND_ARGS on spaces
-          # without quote handling (AddOptionsToCommand).
-          GITHUB_ACTIONS_COMMAND_ARGS: -ignore unknown.permission.scope..models.
+          # without quote handling (AddOptionsToCommand). Use \s and escaped
+          # quotes so unescaped "." cannot suppress other unknown-scope
+          # diagnostics such as unknown permission scope "modelsx".
+          GITHUB_ACTIONS_COMMAND_ARGS: -ignore unknown\spermission\sscope\s\"models\"
           # YAML_PRETTIER currently flags broad legacy workflow formatting debt.
           # Keep dedicated workflow semantics checks elsewhere until #1496.
           VALIDATE_YAML_PRETTIER: false
