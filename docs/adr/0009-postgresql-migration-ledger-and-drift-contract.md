@@ -162,10 +162,18 @@ hosted-history adoption as separate decisions while preventing a second PostgreS
 
 The six observed provider receipts retain their exact timestamp identities as six immutable ledger entries in
 `supabase/migrations/`. CQ-03B must recover and review the SQL for each receipt; it must not collapse them into one
-synthetic baseline or create placeholder SQL. Schema state not explained by those six entries belongs in a later,
-reviewed reconciliation migration. The existing six receipts need no history repair; only that new reconciliation
-timestamp can become the separately approved Phase C history-only adoption candidate. If any receipt SQL cannot be
-recovered or proven, CQ-03B stops and returns to human decision.
+synthetic baseline. Five receipts contain replayable schema or capability-role SQL. The remaining receipt records a
+separately authorized provider login-membership handoff whose role identities and credential topology are restricted
+operator material. Its public ledger file preserves the exact timestamp, approved purpose, transaction policy, and
+bounded receipt provenance, but contains no executable membership statement, login identity, OID, DSN, or credential.
+This is a sanitized external-action receipt, not placeholder schema SQL: the provider membership remains outside the
+schema ledger, is not run by `db reset`, and is verified only through the existing restricted runtime-authority checks.
+
+Schema state not explained by the replayable receipts belongs in a later, reviewed reconciliation migration. The
+existing six receipts need no history repair; only that new reconciliation timestamp can become the separately
+approved Phase C history-only adoption candidate. If any replayable receipt SQL cannot be recovered or proven, or the
+restricted membership receipt cannot be reconciled by bounded operator evidence, CQ-03B stops and returns to human
+decision.
 
 ### Phase B — prove the repository ledger and drift gate (CQ-03B/C)
 
@@ -204,7 +212,12 @@ already equals the reviewed ledger state.
 - A migration header states its control issue, managed schemas, transaction policy, lock expectation, data/backfill
   behavior, rollback or restore path, and whether a provider capability is required.
 - SQL must be deterministic and must not interpolate secrets or environment-specific object identities.
-- Seed/demo data, live data copies, login roles, passwords, and connection details never enter the ledger.
+- Seed/demo data, live data copies, login roles, role memberships, OIDs, passwords, and connection details never enter
+  executable ledger SQL.
+- A sanitized external-action receipt may preserve an already-recorded provider timestamp only when the action is
+  outside repository schema authority, its executable statement would disclose restricted operator identities, the
+  public file is explicitly non-executable, and restricted verification proves the intended end state. Such a receipt
+  cannot satisfy a schema migration, create a role, grant membership, or authorize provider mutation.
 
 ## Forward and rollback policy
 
