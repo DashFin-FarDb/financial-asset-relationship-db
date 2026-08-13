@@ -44,7 +44,7 @@ permissions:
 
 jobs:
   snyk:
-    if: ${{ github.event_name != 'pull_request' || github.actor != 'dependabot[bot]' }}
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.user.login != 'dependabot[bot]' }}
     permissions:
       contents: read # for actions/checkout to fetch code
       security-events: write # for github/codeql-action/upload-sarif to upload SARIF results
