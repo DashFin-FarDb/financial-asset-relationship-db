@@ -1,0 +1,337 @@
+# ADR 0009: Repository-owned PostgreSQL migration ledger and drift contract
+
+## Status
+
+**Proposed — human ratification required.**
+
+This ADR records a recommendation and implementation boundary. It does not authorize migration implementation,
+Supabase migration-history changes, hosted schema changes, credential changes, or production promotion.
+
+## Date
+
+2026-08-13
+
+## Decision owner and ratifier
+
+- Decision owner: FarDB maintainers
+- Required human ratifier: Mohamed Abdel-Aziz Mohamed
+- Control records: [GitHub #1633](https://github.com/DashFin-FarDb/financial-asset-relationship-db/issues/1633)
+  and [Linear DAS-62](https://linear.app/dashfin/issue/DAS-62/cq-03-establish-postgresql-migration-ledger-and-drift-gate)
+- Setup baseline: `main@5b2685c5ff0635cfd586798cbe2df33a33145216`
+- Model and reasoning: GPT-5.6 Sol / max
+
+## Context
+
+CQ-01/CQ-02 separated runtime and migration authority and made FastAPI startup verify-only. They deliberately did
+not choose a durable PostgreSQL migration ledger or reconcile historical provider state.
+
+Read-only evidence captured on 2026-08-13 shows the scale of the reconciliation problem without publishing live
+object identities:
+
+- the hosted PostgreSQL service is healthy and currently reports PostgreSQL 17;
+- the exposed `public` schema contains 22 tables, all with RLS enabled;
+- the aggregate catalog contains 197 columns, 65 constraints, 71 indexes, 45 policies, 21 user triggers, and
+  2 functions;
+- the provider migration history contains six timestamped records;
+- the repository currently mixes SQLite-oriented SQL files, two PostgreSQL authorization SQL files,
+  SQLAlchemy `create_all`, imperative PostgreSQL repair helpers, and provider-recorded migrations.
+
+Those mechanisms are useful historical inputs, but together they are not one replayable PostgreSQL authority.
+A clean database cannot currently be shown to converge from one declared ledger, and equal migration-history
+timestamps do not by themselves prove equal schema state.
+
+The runtime boundary from ADR 0007 remains fixed: normal FastAPI request handling must not receive DDL, ownership,
+role creation, grant management, migration-history repair, or credential-bootstrap authority.
+
+## Decision proposed for ratification
+
+### 1. One repository authority
+
+Adopt immutable, timestamped PostgreSQL SQL migrations under `supabase/migrations/` as the sole PostgreSQL schema
+ledger.
+
+The repository files are authoritative. The provider table
+`supabase_migrations.schema_migrations` is an execution receipt and synchronization surface, not an independent
+design authority. Dashboard edits, SQL-editor edits, ORM metadata, runtime compatibility checks, generated dumps,
+and a provider's current catalog do not become migrations until reviewed SQL is committed to this ledger.
+
+Use the standard 14-digit UTC timestamp plus a descriptive snake-case name:
+
+```text
+supabase/migrations/YYYYMMDDHHMMSS_descriptive_name.sql
+```
+
+Only the timestamp is the migration identity. Names are explanatory and must not be relied on for ordering.
+
+### 2. Imperative migrations first
+
+Use imperative SQL migrations for adoption and the initial CQ-03 implementation.
+
+Do not introduce a parallel declarative `supabase/schemas/` representation during baseline adoption. Supabase's
+existing-project workflow treats the pulled migration as the baseline; maintaining declarative schemas at the same
+time would create a second representation before the historical ledger is stable.
+
+A later ADR may adopt declarative schema authoring if it proves a net benefit after the ledger, rebuild, and drift
+gate are working.
+
+### 3. Supabase tooling is operator/CI tooling
+
+Use the Supabase CLI to fetch provider-recorded migration files, compare local and remote history, build a fresh
+local Supabase database, preview remote application, and perform an explicitly approved history repair.
+
+It is an operator and CI dependency only. It must not enter the FastAPI runtime dependency set or run during
+application startup.
+
+The controlling commands and their intended roles are:
+
+- `supabase migration fetch` — read provider-recorded migration files into a temporary review workspace;
+- `supabase migration list` — compare repository timestamps with provider receipts;
+- `supabase db pull` — generate a candidate reconciliation migration from read-only hosted state;
+- `supabase db reset` — destructively rebuild only a disposable local database from the ledger;
+- `supabase db push --dry-run` — prove that an approved target has no unexpected pending SQL;
+- `supabase migration repair --status applied <timestamp>` — history-only adoption after separate human approval.
+
+The last command mutates provider migration history and is forbidden in the design PR and all unapproved
+implementation work.
+
+References:
+
+- [Supabase local development workflow](https://supabase.com/docs/guides/local-development/cli-workflows)
+- [Supabase database migrations](https://supabase.com/docs/guides/deployment/database-migrations)
+- [Supabase migration fetch](https://supabase.com/docs/reference/cli/supabase-migration-fetch)
+- [Supabase migration repair](https://supabase.com/docs/reference/cli/supabase-migration-repair)
+
+### 4. Existing migration mechanisms become explicit compatibility boundaries
+
+The target state is:
+
+- `supabase/migrations/` owns PostgreSQL schema evolution.
+- The root `migrations/` files and `src/data/migrations.py` remain a SQLite compatibility track until a separately
+  characterized replacement is safe. They cannot be cited as PostgreSQL history.
+- `Base.metadata.create_all` and imperative PostgreSQL repair helpers cease being production PostgreSQL mutation
+  authority after the ledger is implemented.
+- `scripts/migrate_database.py` remains transitional during CQ-03. Its final responsibility must be narrowed so it
+  cannot create or repair PostgreSQL schema outside the ledger. Credential provisioning and capability verification
+  may remain explicit operator steps, but they cannot silently restore DDL authority.
+- `scripts/bootstrap_database_capability_roles.sql` remains a separately authorized cluster bootstrap because
+  PostgreSQL role creation is cluster-scoped and provider-sensitive. Its fixed `NOLOGIN` capability roles are
+  verified by ADR 0007 tooling; login creation, membership, passwords, and provider configuration remain outside
+  the schema ledger.
+- FastAPI startup and readiness remain read-only consumers of ledger and compatibility state.
+
+There may be more than one executor for disposable testing, but there is only one ordered set of PostgreSQL
+migration files and one migration identity model.
+
+## Baseline adoption protocol
+
+Adoption must be a separate, reviewed implementation and operator sequence.
+
+### Phase A — capture without mutation
+
+1. Freeze schema-changing work for the bounded capture window.
+2. Record the exact repository SHA and read-only provider migration timestamps.
+3. Run `supabase migration fetch` in a temporary workspace to recover the six provider-recorded files.
+4. Compare recovered SQL with repository history and merged PR evidence.
+5. Run `supabase db pull` to generate a candidate reconciliation migration, but decline any prompt to update remote
+   migration history.
+6. Remove provider noise and generated statements outside the managed scope only through explicit review.
+7. Do not copy data, credentials, row counts, live role names, connection details, or restricted authorization
+   evidence into the repository.
+
+### Phase B — prove the repository ledger
+
+1. Replay the complete proposed ledger into a disposable local Supabase database.
+2. Replay the application-owned portable subset against supported plain PostgreSQL versions used by CI.
+3. Run all existing schema-compatibility and ADR 0007 negative-authority tests.
+4. Produce a versioned normalized catalog snapshot and digest.
+5. Compare that digest with a fresh read-only hosted digest under the exclusions below.
+6. Require `supabase migration list` to explain every local/remote timestamp.
+7. Introduce one deliberate history mismatch and one deliberate schema mutation in disposable databases and prove
+   that the correct drift categories fail.
+
+### Phase C — adopt the hosted history
+
+This phase requires a new human approval after Phase B evidence is attached.
+
+1. Reconfirm the target project and exact repository SHA.
+2. Confirm that the reconciliation migration makes no schema change against the hosted target.
+3. Mark only that reviewed reconciliation timestamp as applied with `supabase migration repair`.
+4. Re-run migration-list parity, normalized drift, compatibility, and authorization verification.
+5. Require `supabase db push --dry-run` to report no unexpected pending migration.
+6. Stop immediately if any catalog digest, migration timestamp, privilege boundary, or target identity changed.
+
+History repair is not schema repair. It is permitted only when read-only evidence proves that the hosted schema
+already equals the reviewed ledger state.
+
+## Migration identity and immutability
+
+- Timestamp identities are unique, strictly increasing, and generated in UTC.
+- An applied migration is immutable. Correct it with a later forward migration.
+- CI records SHA-256 for every migration file in a repository manifest.
+- Renaming, reordering, deleting, or editing an applied timestamp fails CI.
+- A migration header states its control issue, managed schemas, transaction policy, lock expectation, data/backfill
+  behavior, rollback or restore path, and whether a provider capability is required.
+- SQL must be deterministic and must not interpolate secrets or environment-specific object identities.
+- Seed/demo data, live data copies, login roles, passwords, and connection details never enter the ledger.
+
+## Forward and rollback policy
+
+PostgreSQL migrations are forward-only.
+
+- A compatible defect is corrected by a later migration.
+- An application rollback is allowed only when the previous application remains compatible with the migrated schema.
+- Destructive or irreversible changes require backup/restore evidence and an explicit operator pause gate.
+- An emergency schema rollback uses the approved restore procedure; it does not edit an applied migration or return
+  DDL authority to runtime.
+- SQLite compatibility may use backend-specific mechanics, but it must preserve equivalent application invariants
+  and must not claim byte-for-byte PostgreSQL parity.
+
+## Managed drift contract
+
+### Included schemas and object classes
+
+The first contract manages application-owned objects in `public`:
+
+- tables, partitioned tables, columns, generated/identity behavior, types, nullability, and normalized defaults;
+- primary, foreign-key, unique, exclusion, and check constraints;
+- indexes, expressions, predicates, uniqueness, and access method;
+- sequences and application-owned sequence relationships;
+- views and materialized views;
+- application-owned functions by identity, language, volatility, security mode, safe configuration, and normalized
+  definition digest;
+- user triggers and normalized trigger definitions;
+- RLS enable/force flags and policies;
+- application-owned grants and default privileges relevant to ADR 0007;
+- application-owned enum, domain, and composite types;
+- explicitly declared extensions required by application objects.
+
+### Exclusions
+
+The first contract excludes:
+
+- provider-managed `auth`, `storage`, `realtime`, `supabase_*`, and internal schemas;
+- provider-maintained extensions and objects not referenced by the application ledger;
+- physical storage details, OIDs, statistics, planner estimates, row counts, data, comments generated by the provider,
+  and ephemeral sequence values;
+- login roles, passwords, connection settings, network controls, project configuration, and secret custody;
+- cluster capability-role creation and provider login membership, which remain separately verified by ADR 0007;
+- ownership or grants that the provider necessarily manages and that are explicitly allowlisted with rationale.
+
+Every exclusion is named and versioned. A wildcard exclusion without a documented provider owner is not acceptable.
+
+### Normalization profile
+
+Define `fardb-pg-catalog-v1` as a versioned catalog normalization profile:
+
+- obtain definitions through PostgreSQL catalog and `pg_get_*def` functions;
+- sort schemas, identities, columns, role sets, policy commands, and ACL items deterministically;
+- discard OIDs and physical/statistical fields;
+- canonicalize equivalent built-in type spellings;
+- normalize whitespace only after PostgreSQL has parsed and deparsed expressions;
+- distinguish absent values from explicit defaults;
+- hash the canonical UTF-8 JSON representation with SHA-256.
+
+Changing the normalization profile is a reviewed contract change and cannot silently rewrite a passing digest.
+
+### Failure categories
+
+The gate emits exactly one primary category per failed boundary:
+
+1. `LEDGER_HISTORY_MISMATCH` — expected timestamp or immutable file receipt is missing, extra, reordered, or changed.
+2. `PROVIDER_SCHEMA_DRIFT` — migration history agrees but the normalized managed catalog differs.
+3. `RUNTIME_COMPATIBILITY_MISMATCH` — the target may match the ledger but fails the existing application-required
+   compatibility or ADR 0007 capability contract.
+
+The public output includes the category, target class, profile version, expected/actual digest, and bounded counts.
+Live object names, data, URLs, raw database errors, and role identities stay in a restricted diagnostic artifact.
+Disposable CI fixtures may name repository-owned objects in test assertions.
+
+## Verification and completion evidence
+
+CQ-03 implementation is complete only when all of the following are attached to the exact reviewed SHA:
+
+- a fresh local Supabase rebuild from the repository ledger;
+- the supported PostgreSQL-version matrix for the application-owned portable subset;
+- migration-history parity and immutable-file checks;
+- a deliberate missing-migration fixture producing `LEDGER_HISTORY_MISMATCH`;
+- a deliberate unrecorded DDL fixture producing `PROVIDER_SCHEMA_DRIFT`;
+- a deliberate required-invariant fixture producing `RUNTIME_COMPATIBILITY_MISMATCH`;
+- proof that startup/readiness performs no DDL or migration-history mutation;
+- negative tests proving restricted runtime cannot create, alter, drop, own, grant, repair history, or bootstrap
+  credentials;
+- a reviewed adoption record showing that any hosted history repair was history-only and separately approved;
+- updated runbook, continuity ledger, roadmap, GitHub issue, Linear issue, and Notion execution authority.
+
+A local rebuild alone does not close CQ-03. A hosted inspection alone does not close CQ-03.
+
+## Implementation sequence after ratification
+
+One PR remains one decision:
+
+1. **CQ-03A — ratify this ADR.** Documentation and evidence inventory only; no provider mutation.
+2. **CQ-03B — materialize the ledger.** Recover history, add reviewed reconciliation SQL, and prove fresh rebuilds
+   without changing hosted state.
+3. **CQ-03C — add the drift gate.** Versioned catalog normalizer, immutable migration manifest, negative fixtures,
+   CI/readiness integration, and sanitized diagnostics.
+4. **CQ-03D — adopt hosted history.** Separate operator approval, history-only reconciliation, read-only equality
+   verification, and evidence attachment.
+
+If a phase cannot preserve the verify-only runtime boundary, it stops and returns to human decision.
+
+## Alternatives considered
+
+### Keep ORM creation and imperative repairs as PostgreSQL authority
+
+Rejected. They describe current desired fragments but do not provide immutable ordered history, remote receipt parity,
+or a reproducible drift boundary.
+
+### Adopt Alembic now
+
+Deferred. Alembic is capable, but it adds a new framework and a second revision/history model beside the provider's
+existing timestamp history. It may be reconsidered only with a separate migration and provider-interoperability case.
+
+### Adopt declarative schema files immediately
+
+Deferred. For this existing project, a pulled imperative baseline is the safer first authority. Declarative schemas
+would add a second representation during the most sensitive reconciliation phase.
+
+### Treat the hosted catalog as authority
+
+Rejected. A mutable provider state cannot explain intent, review, ordering, or whether an unrecorded change is
+legitimate.
+
+## Consequences
+
+Positive consequences:
+
+- one reviewable PostgreSQL history can rebuild clean state;
+- hosted receipts, CI, and repository files use one timestamp identity;
+- drift categories separate history, catalog, and application compatibility failures;
+- runtime remains verify-only;
+- provider adoption is explicit and reversible through evidence/restore procedures rather than implicit repair.
+
+Costs and risks:
+
+- historical SQL must be recovered and reviewed carefully;
+- the operator and CI images need a pinned Supabase CLI;
+- SQLite remains a separate compatibility implementation;
+- the normalized catalog profile must be versioned and tested across PostgreSQL releases;
+- a one-time, separately approved hosted history repair is likely required.
+
+## Ratification gate
+
+No implementation begins until the human ratifier records a decision in GitHub #1633.
+
+- [ ] Approve `supabase/migrations/` as the sole repository PostgreSQL ledger.
+- [ ] Approve imperative timestamped SQL for initial adoption.
+- [ ] Approve Supabase CLI as pinned operator/CI tooling only.
+- [ ] Approve the managed catalog scope, exclusions, and `fardb-pg-catalog-v1` normalization contract.
+- [ ] Approve the three failure categories and sanitized evidence boundary.
+- [ ] Approve forward-only migrations and restore-based destructive rollback.
+- [ ] Approve a later, separately authorized history-only provider adoption step.
+- [ ] Confirm that SQLite compatibility remains separate and cannot claim PostgreSQL authority.
+
+**Decision:** Pending  
+**Ratifier:** Pending  
+**Decision date:** Pending  
+**GitHub evidence link:** Pending
