@@ -28,7 +28,6 @@ from src.data.relationship_assertion_db_models import (
     RelationshipProjectionRevisionORM,
 )
 from src.data.relationship_assertion_schema import (
-    _ensure_postgresql_grac_constraints,
     _postgresql_check_matches,
     ensure_relationship_assertion_schema,
     list_immutability_trigger_names,
@@ -99,29 +98,6 @@ def test_postgresql_rebuild_status_comparison_accepts_catalog_deparse() -> None:
         "'cancelled'::character varying])::text[])))"
     )
     assert _status_constraint_is_canonical({"name": "ck_rebuild_jobs_status", "sqltext": definition})
-
-
-def test_postgresql_grac_migration_skips_already_validated_constraints() -> None:
-    """Repeat operator runs must not rescan matching, validated GRAC constraints."""
-    connection = MagicMock()
-    connection.execute.return_value.all.return_value = [
-        (
-            "relationship_assertions",
-            "ck_relationship_assertions_effective_window",
-            f"CHECK (({EFFECTIVE_WINDOW_CHECK}))",
-            True,
-        ),
-        (
-            "relationship_projection_edges",
-            "ck_relationship_projection_edges_strength",
-            f"CHECK (({STRENGTH_DECIMAL_CHECK}))",
-            True,
-        ),
-    ]
-
-    _ensure_postgresql_grac_constraints(connection)
-
-    assert connection.execute.call_count == 1
 
 
 LEGACY_TABLES = (

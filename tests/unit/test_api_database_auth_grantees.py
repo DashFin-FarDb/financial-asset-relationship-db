@@ -59,8 +59,8 @@ def test_verify_runtime_access_catalog_counts_only_usable_login_grantees(monkeyp
     assert ") <= 1" in safe_role_query
 
 
-def test_verify_runtime_authority_rejects_other_usable_login_grantees(monkeypatch) -> None:
-    """Runtime auth capability must have no other usable or superuser login path."""
+def test_verify_runtime_authority_rejects_unsafe_auth_capability_role(monkeypatch) -> None:
+    """A falsy safe-role catalog result must reject the auth capability contract."""
     fetch_value = MagicMock(side_effect=[True, 1, True, True, False, True, True, True, True])
     monkeypatch.setattr(api_database, "DATABASE_TYPE", "postgresql")
     monkeypatch.setattr(api_database, "fetch_value", fetch_value)

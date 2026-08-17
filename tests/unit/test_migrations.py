@@ -1,4 +1,4 @@
-"""Unit tests for src/data/migrations.py — apply_postgresql_heartbeat_migration."""
+"""Unit tests for the retired PostgreSQL heartbeat-migration entry point."""
 
 from __future__ import annotations
 
@@ -38,7 +38,7 @@ class TestApplyPostgresqlHeartbeatMigration:
         engine = MagicMock()
 
         with pytest.raises(SchemaCompatibilityError, match="profile-scoped Supabase ledger"):
-            apply_postgresql_heartbeat_migration(engine)
+            apply_postgresql_heartbeat_migration(engine=engine)
 
         engine.begin.assert_not_called()
         engine.connect.assert_not_called()

@@ -1,9 +1,9 @@
 """
 SQL migration helpers for rebuild schema compatibility.
 
-This module provides a lightweight migration runner for SQLite databases
-and a targeted compatibility migration for PostgreSQL heartbeat columns.
-For broader cross-backend schema management, use Alembic or a similar tool.
+This module provides a lightweight migration runner for SQLite databases and
+read-only PostgreSQL heartbeat compatibility reporting. PostgreSQL mutation is
+owned by the profile-scoped Supabase ledger.
 
 Security:
     All SQL migrations are read from trusted version-controlled files in the
@@ -12,22 +12,15 @@ Security:
 
 from __future__ import annotations
 
-import logging
 import sqlite3
 from pathlib import Path
 from typing import Any, cast
 
-from sqlalchemy import text
 from sqlalchemy.engine import Engine
-from sqlalchemy.engine.interfaces import ReflectedCheckConstraint, ReflectedColumn
+from sqlalchemy.engine.interfaces import ReflectedCheckConstraint
 from sqlalchemy.engine.reflection import Inspector
 
-from src.observability.events import ObservabilityEvent
-from src.observability.logger import log_event
-
 from .check_constraint_normalization import normalize_check_definition
-
-logger = logging.getLogger(__name__)
 
 # Explicit whitelist of allowed migration files
 # Only migrations listed here can be executed (defense in depth)
@@ -52,14 +45,6 @@ REBUILD_JOB_STATUSES = (
 _REBUILD_JOB_STATUS_LITERALS = ", ".join(f"'{status}'" for status in REBUILD_JOB_STATUSES)
 _REBUILD_JOB_STATUS_PREDICATE = f"status IN ({_REBUILD_JOB_STATUS_LITERALS})"
 _REBUILD_IDENTIFIER_COLUMNS = ("active_worker_id", "execution_id")
-_REBUILD_IDENTIFIER_RECHECK_STATEMENTS = {
-    "active_worker_id": text("SELECT MAX(LENGTH(active_worker_id)) FROM rebuild_jobs"),
-    "execution_id": text("SELECT MAX(LENGTH(execution_id)) FROM rebuild_jobs"),
-}
-_REBUILD_IDENTIFIER_NORMALIZATION_STATEMENTS = {
-    "active_worker_id": text("ALTER TABLE rebuild_jobs ALTER COLUMN active_worker_id TYPE VARCHAR(64)"),
-    "execution_id": text("ALTER TABLE rebuild_jobs ALTER COLUMN execution_id TYPE VARCHAR(64)"),
-}
 
 
 def apply_migrations(db_path: Path | str) -> None:
@@ -279,128 +264,15 @@ def _apply_upgrade_004_cancellation_columns(connection: sqlite3.Connection) -> N
 
 
 # ---------------------------------------------------------------------------
-# Private helpers for apply_postgresql_heartbeat_migration
-# ---------------------------------------------------------------------------
-
-
-def _inspect_rebuild_jobs_columns(inspector: Inspector) -> tuple[list[str], dict[str, ReflectedColumn]]:
-    """
-    Return missing-column statements and metadata for bounded identifiers.
-
-    Scans rebuild_jobs columns once and produces:
-    - The list of ADD COLUMN IF NOT EXISTS statements needed for missing
-        heartbeat columns.
-    - The SQLAlchemy column metadata for each bounded rebuild identifier.
-
-    Args:
-        inspector: SQLAlchemy inspector instance.
-
-    Returns:
-        tuple[list[str], dict[str, ReflectedColumn]]: Missing-column SQL
-            statements and reflected identifier metadata.
-    """
-    columns = inspector.get_columns("rebuild_jobs")
-    existing: set[str] = set()
-    identifier_columns: dict[str, ReflectedColumn] = {}
-    for col in columns:
-        name = col["name"]
-        existing.add(name)
-        if name in _REBUILD_IDENTIFIER_COLUMNS:
-            identifier_columns[name] = col
-
-    statements: list[str] = []
-    if "active_worker_id" not in existing:
-        statements.append("ALTER TABLE rebuild_jobs ADD COLUMN IF NOT EXISTS active_worker_id VARCHAR(64)")
-    if "last_heartbeat_at" not in existing:
-        statements.append("ALTER TABLE rebuild_jobs ADD COLUMN IF NOT EXISTS last_heartbeat_at TIMESTAMPTZ")
-    if "execution_id" not in existing:
-        statements.append("ALTER TABLE rebuild_jobs ADD COLUMN IF NOT EXISTS execution_id VARCHAR(64)")
-    if "checkpoint_data" not in existing:
-        statements.append("ALTER TABLE rebuild_jobs ADD COLUMN IF NOT EXISTS checkpoint_data TEXT")
-    if "cancellation_requested_at" not in existing:
-        statements.append("ALTER TABLE rebuild_jobs ADD COLUMN IF NOT EXISTS cancellation_requested_at TIMESTAMPTZ")
-    return statements, identifier_columns
-
-
-def _identifier_declared_incompatible(column: ReflectedColumn | None) -> bool:
-    """Check whether a present identifier column is unbounded or wider than 64.
-
-    Return True when the identifier is unbounded or wider than VARCHAR(64).
-
-    Safety is determined only by the authoritative in-transaction re-check in
-    _apply_normalization_in_transaction(), after taking an exclusive lock.
-
-    Args:
-        column (ReflectedColumn | None): SQLAlchemy column metadata.
-
-    Returns:
-        bool: True if the column is unbounded or wider than 64 characters.
-    """
-    if column is None:
-        return False
-    column_data = cast(dict[str, Any], column)
-    col_length = getattr(column_data.get("type"), "length", None)
-    return col_length is None or col_length > 64
-
-
-def _apply_normalization_in_transaction(connection, columns_to_normalize: tuple[str, ...]) -> None:
-    """
-    Attempt to narrow migration-owned identifier columns to `VARCHAR(64)`.
-
-    Acquires one exclusive lock, re-checks each requested column's maximum
-    stored length, and narrows only columns whose data fits.
-
-    Parameters:
-        connection: An active SQLAlchemy transactional connection bound to the target PostgreSQL database.
-        columns_to_normalize: Trusted migration-owned identifier column names.
-    """
-    if not columns_to_normalize:
-        return
-
-    connection.execute(text("LOCK TABLE rebuild_jobs IN ACCESS EXCLUSIVE MODE"))
-    for column_name in columns_to_normalize:
-        recheck = connection.execute(_REBUILD_IDENTIFIER_RECHECK_STATEMENTS[column_name]).scalar()
-        if recheck is None or recheck <= 64:
-            connection.execute(_REBUILD_IDENTIFIER_NORMALIZATION_STATEMENTS[column_name])
-            continue
-        log_event(
-            logger,
-            logging.WARNING,
-            ObservabilityEvent(
-                event="migration_width_normalization_skipped",
-                message=(f"Skipping {column_name} width normalization: max length={recheck} exceeds 64 (re-check)"),
-                metadata={"column": column_name, "max_length": recheck},
-            ),
-        )
-
-
-def _apply_postgresql_status_constraint_update(connection) -> None:
-    """
-    Ensure the PostgreSQL status check constraint includes all supported statuses.
-
-    This is necessary because PostgreSQL does not support simple ALTER TABLE
-    to add values to a CHECK constraint. We drop and recreate it.
-    """
-    # 1. Drop existing constraint if it exists
-    connection.execute(text("ALTER TABLE rebuild_jobs DROP CONSTRAINT IF EXISTS ck_rebuild_jobs_status"))
-
-    # 2. Add the updated constraint
-    status_constraint_sql = f"""
-        ALTER TABLE rebuild_jobs ADD CONSTRAINT ck_rebuild_jobs_status
-            CHECK ({_REBUILD_JOB_STATUS_PREDICATE})
-    """
-    connection.execute(text(status_constraint_sql))
-
-
-# ---------------------------------------------------------------------------
 # Public API
 # ---------------------------------------------------------------------------
 
 
-def apply_postgresql_heartbeat_migration(_engine: Engine) -> None:
+def apply_postgresql_heartbeat_migration(engine: Engine) -> None:
     """Reject the retired imperative PostgreSQL compatibility migration."""
     from .database import SchemaCompatibilityError  # pylint: disable=import-outside-toplevel
 
+    del engine
     raise SchemaCompatibilityError("PostgreSQL rebuild schema mutation is owned by the profile-scoped Supabase ledger")
 
 

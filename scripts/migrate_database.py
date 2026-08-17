@@ -12,7 +12,6 @@ from sqlalchemy.engine import Engine, make_url
 from api.auth import seed_credentials_from_settings, user_repository
 from api.database import (
     bind_database_url,
-    ensure_runtime_access,
     fetch_value,
     initialize_schema,
     verify_runtime_access_catalog,
@@ -25,7 +24,6 @@ from scripts.postgresql_ledger import (
     HostedWriteBarrierError,
     LedgerManifest,
     PlannedTarget,
-    SupabaseCliError,
     TargetIdentityError,
     apply_profile_to_database,
     assert_profile_write_allowed,
@@ -75,6 +73,11 @@ def _postgresql_cli_url(value: str) -> str:
     return parsed.set(drivername="postgresql").render_as_string(hide_password=False)
 
 
+def _auth_binding_url(value: str) -> str:
+    """Return a DB-API-compatible auth URL while preserving SQLite targets."""
+    return _postgresql_cli_url(value) if _is_postgresql_url(value) else value
+
+
 def _configured_database_urls(settings: Settings) -> dict[str, str]:
     """Resolve configured logical targets in stable component order."""
     auth_url = settings.database_url
@@ -82,6 +85,11 @@ def _configured_database_urls(settings: Settings) -> dict[str, str]:
         raise RuntimeError("configured auth database is missing")
     graph_url = resolve_hosted_graph_database_url(settings)
     coordination_url = settings.coordination_database_url or graph_url
+    # Settings preserves DATABASE_URL as a local coordination fallback. Without
+    # a graph target that is an implicit auth-only default, not an unsupported
+    # two-component PostgreSQL alias.
+    if graph_url is None and coordination_url == auth_url:
+        coordination_url = None
     configured = {"auth": auth_url}
     if graph_url:
         configured["graph"] = graph_url
@@ -90,7 +98,9 @@ def _configured_database_urls(settings: Settings) -> dict[str, str]:
     return configured
 
 
-def _resolve_postgresql_plan(database_urls: dict[str, str]):
+def _resolve_postgresql_plan(
+    database_urls: dict[str, str],
+) -> tuple[LedgerManifest | None, tuple[PlannedTarget, ...]]:
     """Validate manifest, bindings, identity, and aliases before any execution."""
     postgresql_urls = {
         logical_target: _postgresql_cli_url(database_url)
@@ -154,7 +164,7 @@ def _apply_postgresql_plan(
     for target in plan:
         try:
             apply_profile_to_database(target, manifest)
-        except SupabaseCliError as exc:
+        except Exception as exc:  # noqa: BLE001 - every target failure must retain bounded partial progress
             raise PostgreSQLPlanApplyError(tuple(completed_profiles), target.profile) from exc
         completed_profiles.append(target.profile)
 
@@ -187,7 +197,7 @@ def migrate_configured_databases(
                 init_db(engine)
             verify_database_schema(engine, required_capabilities=capabilities)
 
-        with bind_database_url(auth_url):
+        with bind_database_url(_auth_binding_url(auth_url)):
             if _is_postgresql_url(auth_url):
                 verify_schema_compatibility()
                 verify_runtime_access_catalog()
@@ -195,7 +205,6 @@ def migrate_configured_databases(
                 initialize_schema()
             seed_credentials_from_settings(user_repository, resolved_settings)
             if not _is_postgresql_url(auth_url):
-                ensure_runtime_access()
                 verify_schema_compatibility()
             if not _has_usable_credentials():
                 raise RuntimeError(

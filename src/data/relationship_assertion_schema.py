@@ -1,8 +1,8 @@
 """Dialect-aware GRAC v1 assertion schema helpers.
 
-``Base.metadata.create_all`` creates the seven additive tables. This module
-installs idempotent immutability guards (SQLite + PostgreSQL triggers) that
-reject UPDATE/DELETE (and PostgreSQL TRUNCATE) on all seven append-only tables.
+SQLite retains local additive setup and idempotent immutability guards.
+PostgreSQL mutation belongs exclusively to the profile-scoped ledger; this
+module verifies its constraints, triggers, grants, and policies read-only.
 """
 
 from __future__ import annotations
@@ -34,14 +34,11 @@ _SAFE_ROLE_PATTERN = re.compile(r"^[a-z_][a-z0-9_]*$")
 
 def ensure_relationship_assertion_schema(engine: Engine) -> None:
     """
-    Ensure GRAC assertion tables have dialect-appropriate immutability guards.
+    Ensure local SQLite guards, while rejecting PostgreSQL schema mutation.
 
-    Tables themselves are created by ``Base.metadata.create_all`` after the ORM
-    models are imported. When all guards are already present this skips DDL so a
-    least-privilege runtime role without CREATE rights can restart safely.
-    Privilege repair (REVOKE PUBLIC/untrusted EXECUTE) still runs on PostgreSQL
-    whenever the immutability function exists, and raises if PUBLIC or existing
-    untrusted roles retain EXECUTE.
+    SQLite tables are created by ``Base.metadata.create_all`` before this helper
+    installs or repairs local guards. PostgreSQL callers fail closed and must use
+    :func:`verify_relationship_assertion_schema` for read-only verification.
     """
     backend = make_url(str(engine.url)).get_backend_name()
     if backend == "postgresql":
@@ -49,8 +46,8 @@ def ensure_relationship_assertion_schema(engine: Engine) -> None:
 
         raise SchemaCompatibilityError("PostgreSQL GRAC schema mutation is owned by the profile-scoped Supabase ledger")
     with engine.begin() as connection:
-        _ensure_projection_revision_scope_metadata(connection, backend)
         if backend == "sqlite":
+            _ensure_projection_revision_scope_metadata(connection)
             _require_sqlite_grac_constraints(connection)
             if not _sqlite_guards_present(connection):
                 _install_sqlite_immutability_guards(connection)
@@ -129,25 +126,11 @@ def _require_projection_revision_scope_metadata(connection: Connection, backend:
         raise RuntimeError(f"{required_index} is missing")
 
 
-def _ensure_projection_revision_scope_metadata(connection: Connection, backend: str) -> None:
-    """Add durable scope metadata and the successor FK index on upgrade."""
+def _ensure_projection_revision_scope_metadata(connection: Connection) -> None:
+    """Add durable SQLite scope metadata and the successor FK index on upgrade."""
     requires_backfill = False
-    if backend == "sqlite":
-        rows = connection.execute(text("PRAGMA table_info(relationship_projection_revisions)")).fetchall()
-        column_names = {row[1] for row in rows}
-    elif backend == "postgresql":
-        column_names = {
-            row[0]
-            for row in connection.execute(
-                text(
-                    "SELECT column_name FROM information_schema.columns "
-                    "WHERE table_schema = current_schema() "
-                    "AND table_name = 'relationship_projection_revisions'"
-                )
-            )
-        }
-    else:
-        return
+    rows = connection.execute(text("PRAGMA table_info(relationship_projection_revisions)")).fetchall()
+    column_names = {row[1] for row in rows}
     if "governed_scopes" not in column_names:
         requires_backfill = True
         connection.execute(
@@ -160,10 +143,10 @@ def _ensure_projection_revision_scope_metadata(connection: Connection, backend: 
         )
     )
     if requires_backfill:
-        _backfill_projection_revision_scopes(connection, backend)
+        _backfill_projection_revision_scopes(connection)
 
 
-def _backfill_projection_revision_scopes(connection: Connection, backend: str) -> None:
+def _backfill_projection_revision_scopes(connection: Connection) -> None:
     """Derive canonical metadata for revisions created before governed_scopes existed."""
     rows = connection.execute(
         text(
@@ -213,7 +196,7 @@ def _backfill_projection_revision_scopes(connection: Connection, backend: str) -
     ]
     if not payloads:
         return
-    _allow_projection_revision_backfill(connection, backend)
+    _allow_projection_revision_backfill(connection)
     try:
         connection.execute(
             text(
@@ -223,23 +206,17 @@ def _backfill_projection_revision_scopes(connection: Connection, backend: str) -
             payloads,
         )
     finally:
-        _restore_projection_revision_immutability(connection, backend)
+        _restore_projection_revision_immutability(connection)
 
 
-def _allow_projection_revision_backfill(connection: Connection, backend: str) -> None:
-    """Temporarily disable revision guards inside an owner migration transaction."""
-    if backend == "postgresql":
-        connection.execute(text("ALTER TABLE relationship_projection_revisions DISABLE TRIGGER USER"))
-        return
+def _allow_projection_revision_backfill(connection: Connection) -> None:
+    """Temporarily remove the SQLite revision update guard for backfill."""
     update_name, _delete_name, _truncate_name = list_immutability_trigger_names("relationship_projection_revisions")
     connection.execute(text(f"DROP TRIGGER IF EXISTS {update_name}"))
 
 
-def _restore_projection_revision_immutability(connection: Connection, backend: str) -> None:
-    """Restore the revision immutability guard after controlled metadata backfill."""
-    if backend == "postgresql":
-        connection.execute(text("ALTER TABLE relationship_projection_revisions ENABLE TRIGGER USER"))
-        return
+def _restore_projection_revision_immutability(connection: Connection) -> None:
+    """Restore the SQLite revision immutability guard after controlled backfill."""
     _install_sqlite_immutability_guards(connection)
 
 
@@ -263,28 +240,6 @@ def _require_sqlite_grac_constraints(connection: Connection) -> None:
             + ", ".join(sorted(missing))
             + "; automatic table rebuild is intentionally not performed at application startup"
         )
-
-
-def _ensure_postgresql_grac_constraints(connection: Connection) -> None:
-    """Install and validate new GRAC CHECKs; validation fails closed on invalid history."""
-    constraints = (
-        ("relationship_assertions", "ck_relationship_assertions_effective_window", EFFECTIVE_WINDOW_CHECK),
-        ("relationship_projection_edges", "ck_relationship_projection_edges_strength", STRENGTH_DECIMAL_CHECK),
-    )
-    existing = _postgresql_constraint_catalog(
-        connection,
-        [name for _table, name, _check in constraints],
-    )
-    for table, name, check in constraints:
-        current = existing.get((table, name))
-        if current is not None and not _postgresql_check_matches(current[0], check):
-            connection.execute(text(f"ALTER TABLE {table} DROP CONSTRAINT {name}"))
-            current = None
-        if current is None:
-            connection.execute(text(f"ALTER TABLE {table} ADD CONSTRAINT {name} CHECK ({check}) NOT VALID"))
-        elif current[1]:
-            continue
-        connection.execute(text(f"ALTER TABLE {table} VALIDATE CONSTRAINT {name}"))
 
 
 def _postgresql_constraint_catalog(
@@ -325,27 +280,6 @@ def _postgresql_grac_constraints_present(connection: Connection) -> bool:
         if not validated or definition is None or not _postgresql_check_matches(definition, canonical):
             return False
     return True
-
-
-def _harden_postgresql_grac_access(connection: Connection) -> None:
-    """Enable RLS and revoke public/untrusted table grants."""
-    roles = _untrusted_database_roles()
-    for table_name in GRAC_TABLE_NAMES:
-        _require_grac_table(table_name)
-        connection.execute(text(f"ALTER TABLE {table_name} ENABLE ROW LEVEL SECURITY"))
-        connection.execute(text(f"REVOKE ALL PRIVILEGES ON TABLE {table_name} FROM PUBLIC"))
-        for role in roles:
-            connection.execute(
-                text(
-                    f"DO $revoke$ BEGIN EXECUTE format("
-                    f"'REVOKE ALL PRIVILEGES ON TABLE %I.%I FROM %I', "
-                    f"pg_catalog.current_schema(), '{table_name}', '{role}'); "
-                    f"EXCEPTION WHEN undefined_object THEN NULL; END $revoke$"
-                )
-            )
-    insecure = _postgresql_grac_access_gaps(connection, roles)
-    if insecure:
-        raise PermissionError(f"GRAC RLS/grant hardening failed for tables: {sorted(insecure)}")
 
 
 def _postgresql_grac_access_hardened(connection: Connection) -> bool:
@@ -551,41 +485,6 @@ def _untrusted_database_roles(environment: Mapping[str, str] | None = None) -> t
     return roles
 
 
-def _immutability_revoke_sql(untrusted_roles: tuple[str, ...]) -> str:
-    """Build schema-qualified REVOKE DO-block for PUBLIC and untrusted roles."""
-    role_placeholders = ", ".join("%I" for _ in untrusted_roles)
-    role_format_args = ",\n                        ".join(f"'{role}'" for role in untrusted_roles)
-    return f"""
-            DO $revoke$
-            BEGIN
-                BEGIN
-                    EXECUTE format(
-                        'REVOKE ALL PRIVILEGES ON FUNCTION %I.%I() FROM PUBLIC',
-                        pg_catalog.current_schema(),
-                        '{_IMMUTABILITY_FUNCTION}'
-                    );
-                EXCEPTION
-                    WHEN insufficient_privilege THEN
-                        NULL;
-                END;
-                BEGIN
-                    EXECUTE format(
-                        'REVOKE ALL PRIVILEGES ON FUNCTION %I.%I() FROM {role_placeholders}',
-                        pg_catalog.current_schema(),
-                        '{_IMMUTABILITY_FUNCTION}',
-                        {role_format_args}
-                    );
-                EXCEPTION
-                    WHEN undefined_object THEN
-                        NULL;
-                    WHEN insufficient_privilege THEN
-                        NULL;
-                END;
-            END
-            $revoke$;
-            """
-
-
 def _immutability_function_has_untrusted_execute(
     connection: Connection,
     untrusted_roles: tuple[str, ...],
@@ -632,26 +531,6 @@ def _immutability_function_has_untrusted_execute(
     )
 
 
-def _revoke_immutability_function_execute(connection: Connection) -> None:
-    """Revoke PUBLIC/untrusted EXECUTE on the current-schema raise function; fail if any retain it.
-
-    Scoped to ``pg_catalog.current_schema()`` so a same-named function in another
-    schema with PUBLIC EXECUTE cannot block startup or receive REVOKE.
-    After REVOKE, verify neither PUBLIC nor configured untrusted roles
-    (``FARDB_UNTRUSTED_DATABASE_ROLES``, default ``anon``/``authenticated``)
-    retain EXECUTE — aligned with ``scripts/check_database_authorization.py``.
-    Missing untrusted roles stay non-fatal via ``undefined_object`` suppression.
-    """
-    untrusted_roles = _untrusted_database_roles()
-    # nosemgrep: python.sqlalchemy.security.audit.avoid-sqlalchemy-text.avoid-sqlalchemy-text
-    connection.execute(text(_immutability_revoke_sql(untrusted_roles)))
-    if _immutability_function_has_untrusted_execute(connection, untrusted_roles):
-        raise PermissionError(
-            f"insufficient privilege to revoke PUBLIC/untrusted EXECUTE on {_IMMUTABILITY_FUNCTION}(); "
-            "restart as the function owner or a role that can REVOKE"
-        )
-
-
 def _install_sqlite_immutability_guards(connection: Connection) -> None:
     """Install DROP+CREATE BEFORE UPDATE/DELETE triggers for SQLite."""
     for table_name in GRAC_TABLE_NAMES:
@@ -676,51 +555,3 @@ def _install_sqlite_immutability_guards(connection: Connection) -> None:
                 """
         connection.execute(text(update_trigger_sql))
         connection.execute(text(delete_trigger_sql))
-
-
-def _install_postgresql_immutability_guards(connection: Connection) -> None:
-    """Install a shared RAISE function and BEFORE UPDATE/DELETE/TRUNCATE triggers."""
-    # nosemgrep: python.sqlalchemy.security.audit.avoid-sqlalchemy-text.avoid-sqlalchemy-text
-    function_sql = f"""
-            CREATE OR REPLACE FUNCTION {_IMMUTABILITY_FUNCTION}()
-            RETURNS trigger
-            LANGUAGE plpgsql
-            SET search_path TO pg_catalog
-            AS $$
-            BEGIN
-                RAISE EXCEPTION 'GRAC v1 immutability: % forbidden on %',
-                    TG_OP, TG_TABLE_NAME
-                    USING ERRCODE = 'integrity_constraint_violation';
-            END;
-            $$
-            """
-    connection.execute(text(function_sql))
-    _revoke_immutability_function_execute(connection)
-
-    for table_name in GRAC_TABLE_NAMES:
-        _require_grac_table(table_name)
-        update_name, delete_name, truncate_name = list_immutability_trigger_names(table_name)
-        connection.execute(text(f"DROP TRIGGER IF EXISTS {update_name} ON {table_name}"))
-        connection.execute(text(f"DROP TRIGGER IF EXISTS {delete_name} ON {table_name}"))
-        connection.execute(text(f"DROP TRIGGER IF EXISTS {truncate_name} ON {table_name}"))
-        update_trigger_sql = f"""
-                CREATE TRIGGER {update_name}
-                BEFORE UPDATE ON {table_name}
-                FOR EACH ROW
-                EXECUTE FUNCTION {_IMMUTABILITY_FUNCTION}()
-                """
-        delete_trigger_sql = f"""
-                CREATE TRIGGER {delete_name}
-                BEFORE DELETE ON {table_name}
-                FOR EACH ROW
-                EXECUTE FUNCTION {_IMMUTABILITY_FUNCTION}()
-                """
-        truncate_trigger_sql = f"""
-                CREATE TRIGGER {truncate_name}
-                BEFORE TRUNCATE ON {table_name}
-                FOR EACH STATEMENT
-                EXECUTE FUNCTION {_IMMUTABILITY_FUNCTION}()
-                """
-        connection.execute(text(update_trigger_sql))
-        connection.execute(text(delete_trigger_sql))
-        connection.execute(text(truncate_trigger_sql))

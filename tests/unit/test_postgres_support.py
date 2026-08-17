@@ -304,18 +304,9 @@ class TestInitializeSchemaPostgreSQL:
         """PostgreSQL auth DDL must come only from the profile-scoped ledger."""
         importlib.reload(database)
 
-        mock_conn = Mock()
-        mock_cursor = Mock()
-        mock_cursor_manager = Mock()
-        mock_cursor_manager.__enter__ = Mock(return_value=mock_cursor)
-        mock_cursor_manager.__exit__ = Mock(return_value=None)
-        mock_conn.cursor.return_value = mock_cursor_manager
-        mock_connect.return_value = mock_conn
-
         with pytest.raises(database.SchemaCompatibilityError, match="profile-scoped Supabase ledger"):
             database.initialize_schema()
 
-        mock_cursor.execute.assert_not_called()
         mock_connect.assert_not_called()
 
 

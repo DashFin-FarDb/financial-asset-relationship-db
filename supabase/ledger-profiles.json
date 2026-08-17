@@ -20,7 +20,7 @@
         {
           "timestamp": "20260817153547",
           "filename": "20260817153547_cq_03b_r2_auth_forward_baseline.sql",
-          "sha256": "b09013727ba11bdc108666e9a81a183e4b79ba95576b8d8f91ab1269893a4173"
+          "sha256": "2d79b176720be34e2bd432c5378446ab062e68a2b7ce7eb84661270da119f940"
         }
       ]
     },
@@ -44,7 +44,7 @@
         {
           "timestamp": "20260817153555",
           "filename": "20260817153555_cq_03b_r2_graph_forward_baseline.sql",
-          "sha256": "9a21bbc30e52722959f617cb3cb0cffc07862b0071656b8f54bfcc63c63fb36c"
+          "sha256": "9c52b0cb30b457c3d6b515f79ca3a45dcf59efca693d8ee8101588d297546df7"
         }
       ]
     },

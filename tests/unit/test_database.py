@@ -51,9 +51,11 @@ from api.database import (
     get_connection,
 )
 from src.data.database import (
+    AUTH_RUNTIME_TABLE,
     COORDINATION_RUNTIME_CAPABILITY,
     DEFAULT_DATABASE_URL,
     GRAPH_RUNTIME_CAPABILITY,
+    POSTGRESQL_MANAGED_TABLES,
     Base,
     SchemaCompatibilityError,
     _managed_table_names,
@@ -61,6 +63,7 @@ from src.data.database import (
     _runtime_policy_specs,
     _runtime_table_privileges,
     _verify_runtime_capability_catalog,
+    _verify_runtime_login_relation_grants,
     _verify_table_constraints,
     _verify_table_schema,
     configure_sqlite_engine,
@@ -113,6 +116,22 @@ def test_graph_capability_preserves_grac_immutability_and_locking() -> None:
         assert policies[(table_name, "fardb_graph_lock_v1")] == ("w", "true", "false")
 
 
+def test_no_capability_login_checks_every_present_managed_relation() -> None:
+    """An empty capability profile uses an OID-based deny-all relation query."""
+    connection = MagicMock()
+    connection.execute.return_value.scalar.return_value = "assets"
+
+    with pytest.raises(SchemaCompatibilityError, match="runtime login grants are incompatible on assets"):
+        _verify_runtime_login_relation_grants(connection, ())
+
+    statement = str(connection.execute.call_args.args[0])
+    parameters = connection.execute.call_args.args[1]
+    assert "rel.relkind IN ('r', 'p', 'v', 'm', 'f')" in statement
+    assert "has_any_column_privilege(session_user, rel.oid, 'UPDATE')" in statement
+    assert "has_sequence_privilege(session_user, sequence.oid, 'UPDATE')" in statement
+    assert set(parameters["tables"]) == set(POSTGRESQL_MANAGED_TABLES)
+
+
 def test_runtime_capability_catalog_accepts_exact_graph_contract() -> None:  # noqa: C901
     """The catalog verifier accepts the complete graph role, RLS, and grant matrix."""
     from src.data import relationship_assertion_db_models  # noqa: F401
@@ -143,6 +162,7 @@ def test_runtime_capability_catalog_accepts_exact_graph_contract() -> None:  # n
             assert "dependency.objid = rel.oid" in sql
             assert "dependency.deptype IN ('a', 'i')" in sql
             assert "owning_table.relname IN" in sql
+            assert parameters["auth_table"] == AUTH_RUNTIME_TABLE
             assert set(parameters["tables"]) == managed_tables
             assert set(parameters["sequence_tables"]) == set(parameters["tables"])
             assert "membership.roleid = role.oid" in sql
@@ -751,7 +771,8 @@ class TestDatabaseInitialization:
         assert "has_schema_privilege(assumable.oid, namespace.oid, 'CREATE')" in restricted_query
         assert "namespace.nspowner = assumable.oid" in restricted_query
         assert "database.datdba = assumable.oid" in restricted_query
-        assert "auth_rel.relname = 'user_credentials'" in restricted_query
+        assert "auth_rel.relname = :auth_table" in restricted_query
+        assert connection.execute.call_args_list[0].args[1]["auth_table"] == AUTH_RUNTIME_TABLE
         assert "has_any_column_privilege(assumable.oid, auth_rel.oid, 'SELECT')" in restricted_query
         assert "has_sequence_privilege(assumable.oid, auth_sequence.oid, 'UPDATE')" in restricted_query
         assert "has_function_privilege(assumable.oid, proc.oid, 'EXECUTE')" in restricted_query

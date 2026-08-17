@@ -112,6 +112,7 @@ _LOWER_HEX_DIGEST = re.compile(r"^[0-9a-f]{64}$")
 _SAFE_LOGICAL_TARGET = re.compile(r"^[a-z][a-z0-9_-]*$")
 _SAFE_CLI_ERROR_CODE = re.compile(r"^[A-Za-z][A-Za-z0-9]{0,63}$")
 _POSTGRES_SQLSTATE = re.compile(r"\bSQLSTATE (?P<sqlstate>[0-9A-Z]{5})\b")
+_SQL_DOLLAR_QUOTE = re.compile(r"\$(?:[A-Za-z_][A-Za-z0-9_]*)?\$")
 _HOSTED_DATABASE_SUFFIXES = (".supabase.co", ".supabase.net", ".pooler.supabase.com")
 _HOSTED_DATABASE_HOSTS = frozenset(("pooler.supabase.com",))
 _PROJECTION_FORBIDDEN_PATHS = (
@@ -237,7 +238,7 @@ def _canonical_identity_value(value: object) -> str:
     """Normalize one protected identity input or fail with the public reason code."""
     if not isinstance(value, str) or not value or value != value.strip():
         raise TargetIdentityError()
-    if any(ord(character) < 32 or ord(character) == 127 for character in value):
+    if any(unicodedata.category(character) == "Cc" for character in value):
         raise TargetIdentityError()
     normalized = unicodedata.normalize("NFC", value)
     if not normalized or normalized != normalized.strip():
@@ -357,6 +358,98 @@ def _validated_child_file(directory: Path, filename: str, location: str) -> Path
     return resolved_candidate
 
 
+def _skip_sql_quoted_value(sql_text: str, index: int, quote: str) -> int:
+    """Return the offset after one SQL string or quoted identifier."""
+    cursor = index + 1
+    while cursor < len(sql_text):
+        if sql_text[cursor] == quote:
+            if cursor + 1 < len(sql_text) and sql_text[cursor + 1] == quote:
+                cursor += 2
+                continue
+            return cursor + 1
+        if sql_text[cursor] == "\\" and cursor + 1 < len(sql_text):
+            cursor += 2
+        else:
+            cursor += 1
+    raise LedgerContractError("migration contains an unterminated SQL quoted value")
+
+
+def _skip_sql_block_comment(sql_text: str, index: int) -> int:
+    """Return the offset after one potentially nested PostgreSQL block comment."""
+    depth = 1
+    cursor = index + 2
+    while cursor < len(sql_text) and depth:
+        if sql_text.startswith("/*", cursor):
+            depth += 1
+            cursor += 2
+        elif sql_text.startswith("*/", cursor):
+            depth -= 1
+            cursor += 2
+        else:
+            cursor += 1
+    if depth:
+        raise LedgerContractError("migration contains an unterminated SQL block comment")
+    return cursor
+
+
+def _skip_sql_dollar_quote(sql_text: str, index: int) -> int | None:
+    """Return the offset after a dollar quote, or ``None`` when none starts here."""
+    match = _SQL_DOLLAR_QUOTE.match(sql_text, index)
+    if match is None:
+        return None
+    tag = match.group(0)
+    closing = sql_text.find(tag, match.end())
+    if closing < 0:
+        raise LedgerContractError("migration contains an unterminated SQL dollar quote")
+    return closing + len(tag)
+
+
+def _read_sql_guard_word(sql_text: str, index: int) -> tuple[str | None, int]:
+    """Return one ASCII SQL word token and its end offset when present."""
+    character = sql_text[index]
+    if not character.isascii() or not (character.isalpha() or character == "_"):
+        return None, index
+    end = index + 1
+    while end < len(sql_text) and sql_text[end].isascii() and (sql_text[end].isalnum() or sql_text[end] in ("_", "$")):
+        end += 1
+    return sql_text[index:end].upper(), end
+
+
+def _next_sql_guard_token(sql_text: str, index: int) -> tuple[int, str | None]:
+    """Return the next scanner offset and optional executable SQL token."""
+    if sql_text.startswith("--", index):
+        newline = sql_text.find("\n", index + 2)
+        return (len(sql_text) if newline < 0 else newline + 1), None
+    if sql_text.startswith("/*", index):
+        return _skip_sql_block_comment(sql_text, index), None
+    character = sql_text[index]
+    if character in ("'", '"'):
+        return _skip_sql_quoted_value(sql_text, index, character), None
+    if character == "$" and (dollar_end := _skip_sql_dollar_quote(sql_text, index)) is not None:
+        return dollar_end, None
+    word, word_end = _read_sql_guard_word(sql_text, index)
+    if word is not None:
+        return word_end, word
+    return index + 1, ";" if character == ";" else None
+
+
+def _sql_guard_tokens(sql_text: str) -> tuple[str, ...]:
+    """Tokenize keywords outside comments and quoted values for guardrail checks."""
+    tokens: list[str] = []
+    cursor = 0
+    while cursor < len(sql_text):
+        cursor, token = _next_sql_guard_token(sql_text, cursor)
+        if token is not None:
+            tokens.append(token)
+    return tuple(tokens)
+
+
+def _contains_token_sequence(tokens: tuple[str, ...], expected: tuple[str, ...]) -> bool:
+    """Return whether one exact adjacent token sequence is present."""
+    width = len(expected)
+    return any(tokens[index : index + width] == expected for index in range(len(tokens) - width + 1))
+
+
 def _validate_migration_sql(entry: MigrationEntry, receipt_timestamps: frozenset[str]) -> None:
     """Apply heuristic guardrails; the manifest digest remains the SQL authority."""
     raw_bytes = entry.path.read_bytes()
@@ -366,17 +459,21 @@ def _validate_migration_sql(entry: MigrationEntry, receipt_timestamps: frozenset
         raise LedgerContractError(f"migration is not strict UTF-8: {entry.filename}") from exc
     if sql_text.startswith("\ufeff"):
         raise LedgerContractError(f"migration has a byte-order mark: {entry.filename}")
-    upper_text = sql_text.upper()
-    if "BEGIN;" not in upper_text or "COMMIT;" not in upper_text:
+    tokens = _sql_guard_tokens(sql_text)
+    if not _contains_token_sequence(tokens, ("BEGIN", ";")) or not _contains_token_sequence(tokens, ("COMMIT", ";")):
         raise LedgerContractError(f"migration lacks an explicit transaction: {entry.filename}")
-    forbidden_patterns = (
-        r"\bIF[ \t\r\n]+(?:NOT[ \t\r\n]+)?EXISTS\b",
-        r"\bCREATE[ \t\r\n]+ROLE\b",
-        r"\bALTER[ \t\r\n]+ROLE\b",
-        r"\bDROP[ \t\r\n]+(?:TABLE|SCHEMA|ROLE|POLICY|FUNCTION|TRIGGER|CONSTRAINT)\b",
-        r"\bSUPABASE_MIGRATIONS\b",
+    forbidden_sequences = (
+        ("IF", "EXISTS"),
+        ("IF", "NOT", "EXISTS"),
+        ("CREATE", "ROLE"),
+        ("ALTER", "ROLE"),
+        *(
+            ("DROP", object_type)
+            for object_type in ("TABLE", "SCHEMA", "ROLE", "POLICY", "FUNCTION", "TRIGGER", "CONSTRAINT")
+        ),
+        ("SUPABASE_MIGRATIONS",),
     )
-    if any(re.search(pattern, upper_text) for pattern in forbidden_patterns):
+    if any(_contains_token_sequence(tokens, sequence) for sequence in forbidden_sequences):
         raise LedgerContractError(f"migration contains forbidden conditional or authority SQL: {entry.filename}")
     if entry.timestamp in receipt_timestamps:
         raise LedgerContractError(f"migration reuses a historical provider timestamp: {entry.filename}")
@@ -450,9 +547,18 @@ def _validate_component_migrations(
     migrations_value = component_value.get("migrations")
     if not isinstance(migrations_value, list) or not migrations_value:
         raise LedgerContractError(f"component {component} must declare migrations")
-    migration_directory = manifest_path.parent / "ledgers" / component / "migrations"
-    if migration_directory.is_symlink() or not migration_directory.is_dir():
+    ledger_root = manifest_path.parent / "ledgers"
+    component_directory = ledger_root / component
+    migration_directory = component_directory / "migrations"
+    if (
+        component_directory.is_symlink()
+        or not component_directory.is_dir()
+        or migration_directory.is_symlink()
+        or not migration_directory.is_dir()
+    ):
         raise LedgerContractError(f"component migration directory is invalid: {component}")
+    if component_directory.resolve(strict=True).parent != ledger_root.resolve(strict=True):
+        raise LedgerContractError(f"component migration directory is unsafe: {component}")
 
     entries: list[MigrationEntry] = []
     expected_filenames: set[str] = set()
@@ -547,7 +653,10 @@ def _validated_ledger_root(manifest_path: Path) -> Path:
     ledger_root = supabase_root / "ledgers"
     if ledger_root.is_symlink() or not ledger_root.is_dir():
         raise LedgerContractError("component ledger root is invalid")
-    if {path.name for path in ledger_root.iterdir()} != set(COMPONENT_ORDER):
+    component_entries = tuple(ledger_root.iterdir())
+    if any(path.is_symlink() or not path.is_dir() for path in component_entries):
+        raise LedgerContractError("component ledger root contains an invalid entry")
+    if {path.name for path in component_entries} != set(COMPONENT_ORDER):
         raise LedgerContractError("component ledger directories do not match the manifest")
     return ledger_root
 

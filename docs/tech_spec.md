@@ -12410,8 +12410,10 @@ Notes for PostgreSQL
   - `TIMESTAMPTZ` for timestamp columns (e.g., `last_heartbeat_at`, `cancellation_requested_at`)
   - `VARCHAR(64)` for short identity columns (`execution_id`, `active_worker_id`)
   - `TEXT` for `checkpoint_data`
-- The repository includes an idempotent startup helper that applies Postgres-compatible `ALTER TABLE` statements and enforces the status-check constraint; see:
-  - [migrations/003_add_execution_identity_and_checkpoint_columns.sql](file:///home/mo/projects/financial-asset-relationship-db/migrations/003_add_execution_identity_and_checkpoint_columns.sql)
+- PostgreSQL schema mutation is owned by the profile-scoped Supabase ledger. The retained
+  `apply_postgresql_heartbeat_migration` entry point rejects the retired imperative path; it does not run at startup
+  or apply `ALTER TABLE` statements. See:
+  - [supabase/ledgers/graph/migrations](file:///home/mo/projects/financial-asset-relationship-db/supabase/ledgers/graph/migrations)
   - [src/data/migrations.py](file:///home/mo/projects/financial-asset-relationship-db/src/data/migrations.py) (`apply_postgresql_heartbeat_migration`)
 - Canonical Postgres column examples:
 
@@ -12429,7 +12431,7 @@ Links (point to the canonical files)
 
 - Migration (SQLite canonical): [migrations/001_initial.sql](file:///home/mo/projects/financial-asset-relationship-db/migrations/001_initial.sql)
 - Incremental migration: [migrations/003_add_execution_identity_and_checkpoint_columns.sql](file:///home/mo/projects/financial-asset-relationship-db/migrations/003_add_execution_identity_and_checkpoint_columns.sql)
-- Postgres migration helper and status-constraint update: [src/data/migrations.py](file:///home/mo/projects/financial-asset-relationship-db/src/data/migrations.py)
+- PostgreSQL profile ledger and retired-path rejection: [supabase/ledgers/graph/migrations](file:///home/mo/projects/financial-asset-relationship-db/supabase/ledgers/graph/migrations), [src/data/migrations.py](file:///home/mo/projects/financial-asset-relationship-db/src/data/migrations.py)
 - ORM canonical mapping: [src/data/db_models.py](file:///home/mo/projects/financial-asset-relationship-db/src/data/db_models.py)
 
 ### 14.2.2 Distributed Locks Table Schema (`distributed_locks`)

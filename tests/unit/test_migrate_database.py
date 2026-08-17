@@ -54,7 +54,6 @@ def _stub_auth_success(monkeypatch) -> None:
     monkeypatch.setattr(migrate_database, "initialize_schema", MagicMock())
     monkeypatch.setattr(migrate_database, "verify_schema_compatibility", MagicMock())
     monkeypatch.setattr(migrate_database, "verify_runtime_access_catalog", MagicMock())
-    monkeypatch.setattr(migrate_database, "ensure_runtime_access", MagicMock())
     monkeypatch.setattr(migrate_database, "seed_credentials_from_settings", MagicMock())
     monkeypatch.setattr(migrate_database, "_has_usable_credentials", lambda: True)
 
@@ -66,6 +65,7 @@ def _stub_auth_success(monkeypatch) -> None:
         "postgres://operator@localhost/fardb",
         "postgresql+psycopg2://operator@localhost/fardb",
         "postgres+psycopg2://operator@localhost/fardb",
+        "postgresql+psycopg://operator@localhost/fardb",
     ),
 )
 def test_postgresql_url_detection_accepts_sqlalchemy_driver_suffixes(url: str) -> None:
@@ -80,6 +80,28 @@ def test_postgresql_cli_url_removes_sqlalchemy_driver_suffix() -> None:
     result = migrate_database._postgresql_cli_url(value)  # pylint: disable=protected-access
 
     assert result == "postgresql://operator@localhost/fardb?sslmode=disable"
+
+
+@pytest.mark.parametrize(
+    ("value", "expected"),
+    (
+        ("postgresql+psycopg://operator@localhost/fardb", "postgresql://operator@localhost/fardb"),
+        ("sqlite:///auth.db", "sqlite:///auth.db"),
+    ),
+)
+def test_auth_binding_url_is_dbapi_compatible(value: str, expected: str) -> None:
+    """API auth binding strips PostgreSQL SQLAlchemy drivers and preserves SQLite."""
+    assert migrate_database._auth_binding_url(value) == expected  # pylint: disable=protected-access
+
+
+def test_implicit_coordination_fallback_does_not_create_partial_shared_profile() -> None:
+    """DATABASE_URL alone selects auth instead of an unsupported auth/coordination alias."""
+    database_url = "postgresql://operator@localhost/auth"
+    settings = _settings(database_url=database_url, coordination_database_url=database_url)
+
+    configured = migrate_database._configured_database_urls(settings)  # pylint: disable=protected-access
+
+    assert configured == {"auth": database_url}
 
 
 def test_sqlite_operator_path_preserves_local_initialization(monkeypatch) -> None:
@@ -109,7 +131,6 @@ def test_sqlite_operator_path_preserves_local_initialization(monkeypatch) -> Non
         call(engines["sqlite:///coordination.db"], required_capabilities={"coordination"}),
     ]
     cast(MagicMock, migrate_database.initialize_schema).assert_called_once_with()
-    cast(MagicMock, migrate_database.ensure_runtime_access).assert_called_once_with()
     cast(MagicMock, migrate_database.verify_runtime_access_catalog).assert_not_called()
     for engine in engines.values():
         engine.dispose.assert_called_once_with()
@@ -180,7 +201,6 @@ def test_postgresql_targets_apply_after_global_preflight_and_before_engines(monk
         call(engines[plan[2].database_url], required_capabilities={"coordination"}),
     ]
     cast(MagicMock, migrate_database.initialize_schema).assert_not_called()
-    cast(MagicMock, migrate_database.ensure_runtime_access).assert_not_called()
     cast(MagicMock, migrate_database.verify_runtime_access_catalog).assert_called_once_with()
     cast(MagicMock, migrate_database.verify_schema_compatibility).assert_called_once_with()
 
@@ -264,8 +284,13 @@ def test_all_write_barriers_run_before_first_profile_application(monkeypatch, tm
     engine_factory.assert_not_called()
 
 
-def test_partial_postgresql_apply_reports_bounded_progress(monkeypatch, tmp_path) -> None:
-    """A later CLI failure identifies completed profiles without creating engines or echoing URLs."""
+@pytest.mark.parametrize(
+    "failure",
+    (SupabaseCliError("protected dependency output"), OSError("protected filesystem output")),
+    ids=("cli", "filesystem"),
+)
+def test_partial_postgresql_apply_reports_bounded_progress(monkeypatch, tmp_path, failure: Exception) -> None:
+    """Every later target failure reports bounded progress without creating engines."""
     binding_path = tmp_path / "bindings.json"
     binding_path.write_text("{}", encoding="utf-8")
     binding_path.chmod(0o600)
@@ -281,10 +306,10 @@ def test_partial_postgresql_apply_reports_bounded_progress(monkeypatch, tmp_path
     attempted: list[str] = []
 
     def apply_profile(target: PlannedTarget, _manifest: object) -> None:
-        """Succeed once, then raise the bounded CLI failure used by production."""
+        """Succeed once, then raise one representative target failure."""
         attempted.append(target.profile)
         if target.profile == "graph":
-            raise SupabaseCliError("protected dependency output")
+            raise failure
 
     monkeypatch.setattr(migrate_database, "apply_profile_to_database", apply_profile)
     engine_factory = MagicMock()

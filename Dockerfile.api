@@ -20,12 +20,21 @@ FROM base AS migration
 
 ARG TARGETARCH
 
-RUN test "${TARGETARCH:-amd64}" = "amd64" \
+RUN target_arch="${TARGETARCH:-amd64}" \
+    && case "$target_arch" in \
+      amd64) \
+        supabase_archive="supabase_2.114.0_linux_amd64.tar.gz"; \
+        supabase_sha="f36a33ca867f1cce9ba5efa705863fdc545d1465d3719a721793ea67eb692c5a" ;; \
+      arm64) \
+        supabase_archive="supabase_2.114.0_linux_arm64.tar.gz"; \
+        supabase_sha="7bf55ea89c8ae48a101a9856c1cef22da8e2019ddcd451499249033652cacefa" ;; \
+      *) echo "unsupported migration image architecture: $target_arch" >&2; exit 1 ;; \
+    esac \
     && curl --fail --silent --show-error --location \
       --proto '=https' --proto-redir '=https' --tlsv1.2 \
       --output /tmp/supabase.tar.gz \
-      "https://github.com/supabase/cli/releases/download/v2.114.0/supabase_linux_amd64.tar.gz" \
-    && echo "f36a33ca867f1cce9ba5efa705863fdc545d1465d3719a721793ea67eb692c5a  /tmp/supabase.tar.gz" \
+      "https://github.com/supabase/cli/releases/download/v2.114.0/$supabase_archive" \
+    && echo "$supabase_sha  /tmp/supabase.tar.gz" \
       | sha256sum -c - \
     && tar -xzf /tmp/supabase.tar.gz -C /usr/local/bin supabase \
     && test "$(supabase --version)" = "2.114.0" \

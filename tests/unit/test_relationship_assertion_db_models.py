@@ -28,9 +28,7 @@ from src.data.relationship_assertion_schema import (
     _expected_postgresql_trigger_names,
     _expected_sqlite_trigger_bindings,
     _expected_sqlite_trigger_names,
-    _harden_postgresql_grac_access,
     _postgresql_guards_present,
-    _revoke_immutability_function_execute,
     _sqlite_guards_present,
     _untrusted_database_roles,
 )
@@ -522,53 +520,6 @@ class TestRelationshipAssertionLinksAndEvents:
             db_session.commit()
 
 
-def test_revoke_immutability_execute_raises_when_public_retains_privilege() -> None:
-    """Privilege repair must fail loud if PUBLIC/untrusted EXECUTE cannot be revoked."""
-    connection = MagicMock()
-    connection.execute.return_value.scalar.return_value = True
-    with pytest.raises(PermissionError, match="PUBLIC/untrusted EXECUTE"):
-        _revoke_immutability_function_execute(connection)
-
-
-def test_revoke_immutability_execute_scopes_acl_check_to_current_schema() -> None:
-    """EXECUTE verification must cover PUBLIC and untrusted roles in the current schema only."""
-    connection = MagicMock()
-    connection.execute.return_value.scalar.return_value = False
-
-    _revoke_immutability_function_execute(connection)
-
-    assert connection.execute.call_count == 2
-    revoke_sql = str(connection.execute.call_args_list[0].args[0])
-    acl_sql = str(connection.execute.call_args_list[1].args[0])
-    acl_params = connection.execute.call_args_list[1].args[1]
-    assert "pg_catalog.current_schema()" in revoke_sql
-    assert "%I.%I()" in revoke_sql
-    assert "undefined_object" in revoke_sql
-    assert "'anon'" in revoke_sql
-    assert "'authenticated'" in revoke_sql
-    assert "pg_catalog.current_schema()" in acl_sql
-    assert "pg_namespace" in acl_sql
-    assert "pronargs = 0" in acl_sql
-    assert "acl.grantee = 0" in acl_sql
-    assert "has_function_privilege" in acl_sql
-    assert "pg_roles" in acl_sql
-    assert "rolname IN" in acl_sql
-    assert "roles" in acl_sql
-    assert acl_params["roles"] == ["anon", "authenticated"]
-
-
-def test_table_grant_hardening_does_not_suppress_insufficient_privilege() -> None:
-    """Table grant revocation fails closed when the schema role lacks privilege."""
-    connection = MagicMock()
-    connection.execute.return_value.scalars.return_value.all.return_value = []
-
-    _harden_postgresql_grac_access(connection)
-
-    statements = "\n".join(str(call.args[0]) for call in connection.execute.call_args_list)
-    assert "undefined_object" in statements
-    assert "insufficient_privilege" not in statements
-
-
 def test_postgresql_guards_present_scopes_triggers_to_current_schema() -> None:
     """Guard presence must ignore matching trigger names outside current-schema GRAC tables."""
     connection = MagicMock()
@@ -689,20 +640,9 @@ def test_sqlite_guards_present_requires_correct_event() -> None:
 
 
 def test_untrusted_database_roles_honor_fardb_env(monkeypatch: pytest.MonkeyPatch) -> None:
-    """Schema privilege repair must use FARDB_UNTRUSTED_DATABASE_ROLES when set."""
+    """Read-only PostgreSQL verification uses the configured untrusted roles."""
     monkeypatch.setenv(_UNTRUSTED_DATABASE_ROLES_ENV, "public_reader, api_user")
     assert _untrusted_database_roles() == ("public_reader", "api_user")
-
-    connection = MagicMock()
-    connection.execute.return_value.scalar.return_value = False
-    _revoke_immutability_function_execute(connection)
-
-    revoke_sql = str(connection.execute.call_args_list[0].args[0])
-    acl_params = connection.execute.call_args_list[1].args[1]
-    assert "'public_reader'" in revoke_sql
-    assert "'api_user'" in revoke_sql
-    assert "'anon'" not in revoke_sql
-    assert acl_params["roles"] == ["public_reader", "api_user"]
 
 
 def test_untrusted_database_roles_reject_unsafe_identity() -> None:

@@ -175,7 +175,7 @@ CREATE TABLE public.asset_relationships (
     target_asset_id VARCHAR NOT NULL REFERENCES public.assets (id) ON DELETE CASCADE,
     relationship_type VARCHAR NOT NULL,
     strength DOUBLE PRECISION NOT NULL,
-    bidirectional BOOLEAN NOT NULL,
+    bidirectional BOOLEAN NOT NULL DEFAULT FALSE,
     CONSTRAINT uq_relationship UNIQUE (source_asset_id, target_asset_id, relationship_type)
 );
 

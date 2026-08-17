@@ -110,6 +110,73 @@ def _bind_postgres_operation_guard(guard: _PostgresOperationGuard) -> Iterator[N
         _POSTGRES_OPERATION_GUARD.reset(token)
 
 
+def _cross_profile_authority_sql(role_alias: str) -> str:
+    """Build the shared cross-profile authority checks for one fixed role alias."""
+    role_oid = {"role": "role.oid", "assumable": "assumable.oid"}.get(role_alias)
+    if role_oid is None:
+        raise ValueError("unsupported PostgreSQL role alias")
+    return "".join(
+        (
+            "(EXISTS (SELECT 1 FROM pg_class AS cross_rel "
+            "JOIN pg_namespace AS cross_namespace ON cross_namespace.oid = cross_rel.relnamespace "
+            "WHERE cross_namespace.nspname = current_schema() "
+            "AND cross_rel.relkind IN ('r', 'p', 'v', 'm', 'f') "
+            "AND cross_rel.relname = ANY(%s) AND (cross_rel.relowner = ",
+            role_oid,
+            " OR has_table_privilege(",
+            role_oid,
+            ", cross_rel.oid, 'SELECT') OR has_table_privilege(",
+            role_oid,
+            ", cross_rel.oid, 'INSERT') OR has_table_privilege(",
+            role_oid,
+            ", cross_rel.oid, 'UPDATE') OR has_table_privilege(",
+            role_oid,
+            ", cross_rel.oid, 'DELETE') OR has_table_privilege(",
+            role_oid,
+            ", cross_rel.oid, 'TRUNCATE') OR has_table_privilege(",
+            role_oid,
+            ", cross_rel.oid, 'REFERENCES') OR has_table_privilege(",
+            role_oid,
+            ", cross_rel.oid, 'TRIGGER') OR has_any_column_privilege(",
+            role_oid,
+            ", cross_rel.oid, 'SELECT') OR has_any_column_privilege(",
+            role_oid,
+            ", cross_rel.oid, 'INSERT') OR has_any_column_privilege(",
+            role_oid,
+            ", cross_rel.oid, 'UPDATE') OR has_any_column_privilege(",
+            role_oid,
+            ", cross_rel.oid, 'REFERENCES'))) OR EXISTS (SELECT 1 FROM pg_class AS cross_sequence "
+            "JOIN pg_namespace AS cross_sequence_namespace "
+            "ON cross_sequence_namespace.oid = cross_sequence.relnamespace "
+            "JOIN pg_depend AS cross_dependency ON cross_dependency.objid = cross_sequence.oid "
+            "AND cross_dependency.classid = 'pg_class'::regclass "
+            "AND cross_dependency.refclassid = 'pg_class'::regclass "
+            "AND cross_dependency.deptype IN ('a', 'i') "
+            "JOIN pg_class AS cross_table ON cross_table.oid = cross_dependency.refobjid "
+            "JOIN pg_namespace AS cross_table_namespace ON cross_table_namespace.oid = cross_table.relnamespace "
+            "WHERE cross_sequence.relkind = 'S' AND cross_sequence_namespace.nspname = current_schema() "
+            "AND cross_table_namespace.nspname = current_schema() AND cross_table.relname = ANY(%s) "
+            "AND (cross_sequence.relowner = ",
+            role_oid,
+            " OR has_sequence_privilege(",
+            role_oid,
+            ", cross_sequence.oid, 'USAGE') OR has_sequence_privilege(",
+            role_oid,
+            ", cross_sequence.oid, 'SELECT') OR has_sequence_privilege(",
+            role_oid,
+            ", cross_sequence.oid, 'UPDATE'))) OR EXISTS (SELECT 1 FROM pg_proc AS cross_proc "
+            "JOIN pg_namespace AS cross_proc_namespace ON cross_proc_namespace.oid = cross_proc.pronamespace "
+            "WHERE cross_proc_namespace.nspname = current_schema() "
+            "AND cross_proc.proname = 'grac_v1_reject_mutation' AND cross_proc.pronargs = 0 "
+            "AND (cross_proc.proowner = ",
+            role_oid,
+            " OR has_function_privilege(",
+            role_oid,
+            ", cross_proc.oid, 'EXECUTE'))))",
+        )
+    )
+
+
 _AUTH_SAFE_ROLE_SQL = "".join(
     (
         "SELECT COUNT(*) = 1 FROM pg_roles AS role WHERE role.rolname = %s "
@@ -118,42 +185,9 @@ _AUTH_SAFE_ROLE_SQL = "".join(
         "AND NOT has_database_privilege(role.oid, current_database(), 'CREATE') "
         "AND NOT EXISTS (SELECT 1 FROM pg_namespace AS namespace "
         "WHERE has_schema_privilege(role.oid, namespace.oid, 'CREATE')) "
-        "AND NOT EXISTS (SELECT 1 FROM pg_class AS cross_rel "
-        "JOIN pg_namespace AS cross_namespace ON cross_namespace.oid = cross_rel.relnamespace "
-        "WHERE cross_namespace.nspname = current_schema() AND cross_rel.relkind IN ('r', 'p') "
-        "AND cross_rel.relname = ANY(%s) AND (cross_rel.relowner = role.oid "
-        "OR has_table_privilege(role.oid, cross_rel.oid, 'SELECT') "
-        "OR has_table_privilege(role.oid, cross_rel.oid, 'INSERT') "
-        "OR has_table_privilege(role.oid, cross_rel.oid, 'UPDATE') "
-        "OR has_table_privilege(role.oid, cross_rel.oid, 'DELETE') "
-        "OR has_table_privilege(role.oid, cross_rel.oid, 'TRUNCATE') "
-        "OR has_table_privilege(role.oid, cross_rel.oid, 'REFERENCES') "
-        "OR has_table_privilege(role.oid, cross_rel.oid, 'TRIGGER') "
-        "OR has_any_column_privilege(role.oid, cross_rel.oid, 'SELECT') "
-        "OR has_any_column_privilege(role.oid, cross_rel.oid, 'INSERT') "
-        "OR has_any_column_privilege(role.oid, cross_rel.oid, 'UPDATE') "
-        "OR has_any_column_privilege(role.oid, cross_rel.oid, 'REFERENCES'))) "
-        "AND NOT EXISTS (SELECT 1 FROM pg_class AS cross_sequence "
-        "JOIN pg_namespace AS cross_sequence_namespace "
-        "ON cross_sequence_namespace.oid = cross_sequence.relnamespace "
-        "JOIN pg_depend AS cross_dependency ON cross_dependency.objid = cross_sequence.oid "
-        "AND cross_dependency.classid = 'pg_class'::regclass "
-        "AND cross_dependency.refclassid = 'pg_class'::regclass "
-        "AND cross_dependency.deptype IN ('a', 'i') "
-        "JOIN pg_class AS cross_table ON cross_table.oid = cross_dependency.refobjid "
-        "JOIN pg_namespace AS cross_table_namespace ON cross_table_namespace.oid = cross_table.relnamespace "
-        "WHERE cross_sequence.relkind = 'S' AND cross_sequence_namespace.nspname = current_schema() "
-        "AND cross_table_namespace.nspname = current_schema() AND cross_table.relname = ANY(%s) "
-        "AND (cross_sequence.relowner = role.oid "
-        "OR has_sequence_privilege(role.oid, cross_sequence.oid, 'USAGE') "
-        "OR has_sequence_privilege(role.oid, cross_sequence.oid, 'SELECT') "
-        "OR has_sequence_privilege(role.oid, cross_sequence.oid, 'UPDATE'))) "
-        "AND NOT EXISTS (SELECT 1 FROM pg_proc AS cross_proc "
-        "JOIN pg_namespace AS cross_proc_namespace ON cross_proc_namespace.oid = cross_proc.pronamespace "
-        "WHERE cross_proc_namespace.nspname = current_schema() "
-        "AND cross_proc.proname = 'grac_v1_reject_mutation' AND cross_proc.pronargs = 0 "
-        "AND (cross_proc.proowner = role.oid "
-        "OR has_function_privilege(role.oid, cross_proc.oid, 'EXECUTE'))) "
+        "AND NOT ",
+        _cross_profile_authority_sql("role"),
+        " ",
         "AND NOT EXISTS (SELECT 1 FROM pg_auth_members AS membership WHERE membership.member = role.oid) "
         "AND NOT EXISTS (SELECT 1 FROM pg_auth_members AS membership "
         "WHERE membership.roleid = role.oid AND membership.admin_option) "
@@ -859,19 +893,18 @@ def _parse_catalog_column_names(value: Any) -> set[str]:
 
 def initialize_schema() -> None:
     """
-    Create the `user_credentials` table if it does not already exist.
+    Create the SQLite `user_credentials` table if it does not already exist.
 
-    The table schema is compatible with both SQLite and PostgreSQL:
-    - SQLite uses INTEGER PRIMARY KEY AUTOINCREMENT
-    - PostgreSQL uses SERIAL PRIMARY KEY
+    PostgreSQL schema creation is owned by the profile-scoped Supabase ledger;
+    a PostgreSQL target raises :class:`SchemaCompatibilityError`.
 
     The table has the following columns:
     - `id`: Auto-incrementing primary key
-    - `username`: TEXT/VARCHAR, unique and not null
-    - `email`: TEXT/VARCHAR
-    - `full_name`: TEXT/VARCHAR
-    - `hashed_password`: TEXT/VARCHAR, not null
-    - `disabled`: INTEGER/SMALLINT, not null, defaults to 0
+    - `username`: TEXT, unique and not null
+    - `email`: TEXT
+    - `full_name`: TEXT
+    - `hashed_password`: TEXT, not null
+    - `disabled`: INTEGER, not null, defaults to 0
     """
     if DATABASE_TYPE == "postgresql":
         raise SchemaCompatibilityError("PostgreSQL auth schema mutation is owned by the profile-scoped Supabase ledger")
@@ -996,77 +1029,48 @@ def verify_runtime_authority() -> None:
         return
 
     restricted = fetch_value(
-        "SELECT current_schema() IS NOT NULL AND NOT EXISTS ("
-        "SELECT 1 FROM pg_roles AS assumable "
-        "WHERE (assumable.oid = login.oid "
-        "OR CASE WHEN current_setting('server_version_num')::integer >= 160000 THEN "
-        "(pg_has_role(login.oid, assumable.oid, 'USAGE') "
-        "OR pg_has_role(login.oid, assumable.oid, 'SET')) "
-        "ELSE pg_has_role(login.oid, assumable.oid, 'MEMBER') END) "
-        "AND (assumable.rolsuper OR assumable.rolcreaterole "
-        "OR assumable.rolcreatedb OR assumable.rolbypassrls OR assumable.rolreplication "
-        "OR has_database_privilege(assumable.oid, current_database(), 'CREATE') "
-        "OR EXISTS (SELECT 1 FROM pg_namespace AS namespace "
-        "WHERE has_schema_privilege(assumable.oid, namespace.oid, 'CREATE')) "
-        "OR has_table_privilege(assumable.oid, 'user_credentials', 'INSERT') "
-        "OR has_table_privilege(assumable.oid, 'user_credentials', 'UPDATE') "
-        "OR has_table_privilege(assumable.oid, 'user_credentials', 'DELETE') "
-        "OR has_table_privilege(assumable.oid, 'user_credentials', 'TRUNCATE') "
-        "OR has_table_privilege(assumable.oid, 'user_credentials', 'REFERENCES') "
-        "OR has_table_privilege(assumable.oid, 'user_credentials', 'TRIGGER') "
-        "OR has_any_column_privilege(assumable.oid, 'user_credentials', 'INSERT') "
-        "OR has_any_column_privilege(assumable.oid, 'user_credentials', 'UPDATE') "
-        "OR has_any_column_privilege(assumable.oid, 'user_credentials', 'REFERENCES') "
-        "OR has_sequence_privilege(assumable.oid, pg_get_serial_sequence('user_credentials', 'id'), 'USAGE') "
-        "OR has_sequence_privilege(assumable.oid, pg_get_serial_sequence('user_credentials', 'id'), 'SELECT') "
-        "OR has_sequence_privilege(assumable.oid, pg_get_serial_sequence('user_credentials', 'id'), 'UPDATE') "
-        "OR EXISTS (SELECT 1 FROM pg_class AS cross_rel "
-        "JOIN pg_namespace AS cross_namespace ON cross_namespace.oid = cross_rel.relnamespace "
-        "WHERE cross_namespace.nspname = current_schema() AND cross_rel.relkind IN ('r', 'p') "
-        "AND cross_rel.relname = ANY(%s) AND (cross_rel.relowner = assumable.oid "
-        "OR has_table_privilege(assumable.oid, cross_rel.oid, 'SELECT') "
-        "OR has_table_privilege(assumable.oid, cross_rel.oid, 'INSERT') "
-        "OR has_table_privilege(assumable.oid, cross_rel.oid, 'UPDATE') "
-        "OR has_table_privilege(assumable.oid, cross_rel.oid, 'DELETE') "
-        "OR has_table_privilege(assumable.oid, cross_rel.oid, 'TRUNCATE') "
-        "OR has_table_privilege(assumable.oid, cross_rel.oid, 'REFERENCES') "
-        "OR has_table_privilege(assumable.oid, cross_rel.oid, 'TRIGGER') "
-        "OR has_any_column_privilege(assumable.oid, cross_rel.oid, 'SELECT') "
-        "OR has_any_column_privilege(assumable.oid, cross_rel.oid, 'INSERT') "
-        "OR has_any_column_privilege(assumable.oid, cross_rel.oid, 'UPDATE') "
-        "OR has_any_column_privilege(assumable.oid, cross_rel.oid, 'REFERENCES'))) "
-        "OR EXISTS (SELECT 1 FROM pg_class AS cross_sequence "
-        "JOIN pg_namespace AS cross_sequence_namespace "
-        "ON cross_sequence_namespace.oid = cross_sequence.relnamespace "
-        "JOIN pg_depend AS cross_dependency ON cross_dependency.objid = cross_sequence.oid "
-        "AND cross_dependency.classid = 'pg_class'::regclass "
-        "AND cross_dependency.refclassid = 'pg_class'::regclass "
-        "AND cross_dependency.deptype IN ('a', 'i') "
-        "JOIN pg_class AS cross_table ON cross_table.oid = cross_dependency.refobjid "
-        "JOIN pg_namespace AS cross_table_namespace ON cross_table_namespace.oid = cross_table.relnamespace "
-        "WHERE cross_sequence.relkind = 'S' AND cross_sequence_namespace.nspname = current_schema() "
-        "AND cross_table_namespace.nspname = current_schema() AND cross_table.relname = ANY(%s) "
-        "AND (cross_sequence.relowner = assumable.oid "
-        "OR has_sequence_privilege(assumable.oid, cross_sequence.oid, 'USAGE') "
-        "OR has_sequence_privilege(assumable.oid, cross_sequence.oid, 'SELECT') "
-        "OR has_sequence_privilege(assumable.oid, cross_sequence.oid, 'UPDATE'))) "
-        "OR EXISTS (SELECT 1 FROM pg_proc AS cross_proc "
-        "JOIN pg_namespace AS cross_proc_namespace ON cross_proc_namespace.oid = cross_proc.pronamespace "
-        "WHERE cross_proc_namespace.nspname = current_schema() "
-        "AND cross_proc.proname = 'grac_v1_reject_mutation' AND cross_proc.pronargs = 0 "
-        "AND (cross_proc.proowner = assumable.oid "
-        "OR has_function_privilege(assumable.oid, cross_proc.oid, 'EXECUTE'))) "
-        "OR EXISTS (SELECT 1 FROM pg_namespace AS namespace "
-        "WHERE namespace.nspname = current_schema() "
-        "AND namespace.nspowner = assumable.oid) "
-        "OR EXISTS (SELECT 1 FROM pg_database AS database "
-        "WHERE database.datname = current_database() "
-        "AND database.datdba = assumable.oid) "
-        "OR EXISTS (SELECT 1 FROM pg_class AS rel "
-        "JOIN pg_namespace AS namespace ON namespace.oid = rel.relnamespace "
-        "WHERE namespace.nspname = current_schema() AND rel.relkind IN ('r', 'p', 'S') "
-        "AND rel.relowner = assumable.oid))) "
-        "FROM pg_roles AS login WHERE login.rolname = session_user",
+        "".join(
+            (
+                "SELECT current_schema() IS NOT NULL AND NOT EXISTS ("
+                "SELECT 1 FROM pg_roles AS assumable "
+                "WHERE (assumable.oid = login.oid "
+                "OR CASE WHEN current_setting('server_version_num')::integer >= 160000 THEN "
+                "(pg_has_role(login.oid, assumable.oid, 'USAGE') "
+                "OR pg_has_role(login.oid, assumable.oid, 'SET')) "
+                "ELSE pg_has_role(login.oid, assumable.oid, 'MEMBER') END) "
+                "AND (assumable.rolsuper OR assumable.rolcreaterole "
+                "OR assumable.rolcreatedb OR assumable.rolbypassrls OR assumable.rolreplication "
+                "OR has_database_privilege(assumable.oid, current_database(), 'CREATE') "
+                "OR EXISTS (SELECT 1 FROM pg_namespace AS namespace "
+                "WHERE has_schema_privilege(assumable.oid, namespace.oid, 'CREATE')) "
+                "OR has_table_privilege(assumable.oid, 'user_credentials', 'INSERT') "
+                "OR has_table_privilege(assumable.oid, 'user_credentials', 'UPDATE') "
+                "OR has_table_privilege(assumable.oid, 'user_credentials', 'DELETE') "
+                "OR has_table_privilege(assumable.oid, 'user_credentials', 'TRUNCATE') "
+                "OR has_table_privilege(assumable.oid, 'user_credentials', 'REFERENCES') "
+                "OR has_table_privilege(assumable.oid, 'user_credentials', 'TRIGGER') "
+                "OR has_any_column_privilege(assumable.oid, 'user_credentials', 'INSERT') "
+                "OR has_any_column_privilege(assumable.oid, 'user_credentials', 'UPDATE') "
+                "OR has_any_column_privilege(assumable.oid, 'user_credentials', 'REFERENCES') "
+                "OR has_sequence_privilege(assumable.oid, pg_get_serial_sequence('user_credentials', 'id'), 'USAGE') "
+                "OR has_sequence_privilege(assumable.oid, pg_get_serial_sequence('user_credentials', 'id'), 'SELECT') "
+                "OR has_sequence_privilege(assumable.oid, pg_get_serial_sequence('user_credentials', 'id'), 'UPDATE') "
+                "OR ",
+                _cross_profile_authority_sql("assumable"),
+                " ",
+                "OR EXISTS (SELECT 1 FROM pg_namespace AS namespace "
+                "WHERE namespace.nspname = current_schema() "
+                "AND namespace.nspowner = assumable.oid) "
+                "OR EXISTS (SELECT 1 FROM pg_database AS database "
+                "WHERE database.datname = current_database() "
+                "AND database.datdba = assumable.oid) "
+                "OR EXISTS (SELECT 1 FROM pg_class AS rel "
+                "JOIN pg_namespace AS namespace ON namespace.oid = rel.relnamespace "
+                "WHERE namespace.nspname = current_schema() AND rel.relkind IN ('r', 'p', 'S') "
+                "AND rel.relowner = assumable.oid))) "
+                "FROM pg_roles AS login WHERE login.rolname = session_user",
+            )
+        ),
         (
             list(_NON_AUTH_MANAGED_TABLES),
             list(_NON_AUTH_MANAGED_TABLES),

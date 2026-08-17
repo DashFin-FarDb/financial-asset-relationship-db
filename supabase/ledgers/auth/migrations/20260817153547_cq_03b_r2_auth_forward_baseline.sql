@@ -16,10 +16,10 @@ BEGIN;
 
 CREATE TABLE public.user_credentials (
     id SERIAL PRIMARY KEY,
-    username VARCHAR(255) NOT NULL UNIQUE,
-    email VARCHAR(255),
-    full_name VARCHAR(255),
-    hashed_password VARCHAR(255) NOT NULL,
+    username TEXT NOT NULL UNIQUE,
+    email TEXT,
+    full_name TEXT,
+    hashed_password TEXT NOT NULL,
     disabled SMALLINT NOT NULL DEFAULT 0
 );
 

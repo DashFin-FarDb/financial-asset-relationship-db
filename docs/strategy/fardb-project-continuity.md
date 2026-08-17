@@ -112,10 +112,10 @@ Primary authorities:
   `363b4a880011b969e026f31b41bf1296c5ba95c0`, and merge
   `3e0d54cee0baaae34cf5e99ed76e9ef25e2e4763`; bounded read-only provider receipt recheck on 2026-08-17; current
   Supabase CLI documentation and pinned version review; explicit human ratification; GitHub #1633; Linear DAS-62.
-- **Next action and completion test:** Finish focused validation and independent review, publish the R2 branch, and
-  obtain exact-head PostgreSQL 15/16 proof. R2 closes only when every clean target profile and combined union rebuild
-  on both versions and every hosted-write attempt fails before CQ-03D. CQ-03C adds profile-aware deliberate drift
-  failures; CQ-03D remains separately approved.
+- **Next action and completion test:** Publish the required exact-head PostgreSQL 15/16 validation and independent
+  review evidence for PR #1641. R2 closes only when every clean target profile and combined union rebuild on both
+  versions and every hosted-write attempt fails before CQ-03D. CQ-03C adds profile-aware deliberate drift failures;
+  CQ-03D remains separately approved.
 - **Last updated:** 2026-08-17
 
 ### FPC-2026-08-09-01 — Separate migration and runtime database authority

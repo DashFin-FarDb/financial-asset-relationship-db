@@ -27,6 +27,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Setup Python ${{ matrix.python-version }}
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
@@ -142,6 +144,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Setup Python 3.11
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
@@ -160,7 +164,7 @@ jobs:
       - name: Validate exact component ledger bytes
         run: python -m scripts.postgresql_ledger validate
 
-      - name: Build every profile twice against empty ephemeral PostgreSQL
+      - name: Build every profile twice and prove relationship and authority contracts
         env:
           FARDB_EPHEMERAL_POSTGRES_LEDGER_TESTS: "1"
           FARDB_EPHEMERAL_POSTGRES_URL: postgresql://test:test@127.0.0.1:5432/test_db?sslmode=disable
@@ -175,6 +179,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Build runtime image without migration authority
         run: |
@@ -196,6 +202,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Run CI common for security checks (Python 3.11)
         uses: ./.github/actions/ci-common

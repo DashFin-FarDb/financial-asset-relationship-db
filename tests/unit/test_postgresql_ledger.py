@@ -108,7 +108,7 @@ def test_manifest_and_profile_unions_are_deterministic() -> None:
     """The committed manifest must resolve exact, timestamp-ordered component unions."""
     manifest = ledger.load_and_validate_manifest()
 
-    assert manifest.sha256 == "5f4e1d7b3999ef845dcb4c75deae41c998fa815162ace581a3309d281ce9ec89"
+    assert manifest.sha256 == "e4c747211f77a5229b1aebd390c06d342df65a8f55733ed64aee5895b8395b79"
     assert (
         tuple(
             table_name
@@ -138,7 +138,9 @@ def test_digest_algorithms_have_stable_unicode_vectors() -> None:
     )
 
 
-@pytest.mark.parametrize("value", [None, "", " padded", "padded ", "line\nfeed", "delete\x7f", "\ud800"])
+@pytest.mark.parametrize(
+    "value", [None, "", " padded", "padded ", "line\nfeed", "next\u0085line", "delete\x7f", "\ud800"]
+)
 def test_target_identity_rejects_indeterminate_values(value: object) -> None:
     """Missing, ambiguous, control-bearing, and non-UTF-8 identities fail closed."""
     with pytest.raises(ledger.TargetIdentityError, match=ledger.TARGET_IDENTITY_INDETERMINATE):
@@ -152,6 +154,7 @@ def test_target_identity_rejects_indeterminate_values(value: object) -> None:
         "extra-file",
         "missing-file",
         "symlink",
+        "component-symlink",
         "path-traversal",
         "bad-utf8",
         "forbidden-sql",
@@ -174,6 +177,12 @@ def test_manifest_rejects_migration_tampering(tmp_path: Path, mutation: str) -> 
         external.write_bytes(graph_path.read_bytes())
         graph_path.unlink()
         graph_path.symlink_to(external)
+    elif mutation == "component-symlink":
+        component_directory = graph_path.parents[1]
+        external_component = tmp_path / "external-graph"
+        shutil.copytree(component_directory, external_component)
+        shutil.rmtree(component_directory)
+        component_directory.symlink_to(external_component, target_is_directory=True)
     elif mutation == "path-traversal":
         value = _read_manifest(manifest_path)
         value["components"]["graph"]["migrations"][0]["filename"] = "../escape.sql"
@@ -195,6 +204,42 @@ def test_manifest_rejects_migration_tampering(tmp_path: Path, mutation: str) -> 
         _write_manifest(manifest_path, value)
 
     with pytest.raises(ledger.LedgerContractError):
+        ledger.load_and_validate_manifest(manifest_path)
+
+
+def test_sql_guard_ignores_forbidden_words_in_comments_and_quoted_values(tmp_path: Path) -> None:
+    """Guardrail keywords have authority only when they are executable SQL tokens."""
+    manifest_path = _copy_manifest(tmp_path)
+    _replace_migration_bytes(
+        manifest_path,
+        "graph",
+        b"""BEGIN;
+-- CREATE ROLE ignored_line_comment;
+/* DROP TABLE ignored_block_comment; */
+SELECT 'ALTER ROLE ignored_string; IF EXISTS; supabase_migrations';
+SELECT $$DROP SCHEMA ignored_dollar_quote;$$;
+COMMIT;
+""",
+    )
+
+    ledger.load_and_validate_manifest(manifest_path)
+
+
+def test_sql_guard_rejects_forbidden_keywords_separated_by_comments(tmp_path: Path) -> None:
+    """Comments cannot split a forbidden executable keyword sequence."""
+    manifest_path = _copy_manifest(tmp_path)
+    _replace_migration_bytes(manifest_path, "graph", b"BEGIN;\nCREATE/**/ROLE unsafe;\nCOMMIT;\n")
+
+    with pytest.raises(ledger.LedgerContractError, match="forbidden conditional or authority SQL"):
+        ledger.load_and_validate_manifest(manifest_path)
+
+
+def test_sql_guard_requires_executable_transaction_tokens(tmp_path: Path) -> None:
+    """Transaction words in comments do not satisfy the explicit transaction contract."""
+    manifest_path = _copy_manifest(tmp_path)
+    _replace_migration_bytes(manifest_path, "graph", b"-- BEGIN;\nSELECT 1;\n/* COMMIT; */\n")
+
+    with pytest.raises(ledger.LedgerContractError, match="lacks an explicit transaction"):
         ledger.load_and_validate_manifest(manifest_path)
 
 

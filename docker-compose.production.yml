@@ -62,8 +62,8 @@ services:
       - ADMIN_EMAIL=${ADMIN_EMAIL:-}
       - ADMIN_FULL_NAME=${ADMIN_FULL_NAME:-}
       - ADMIN_DISABLED=${ADMIN_DISABLED:-false}
-      # Non-secret path to an operator-mounted mode-0600 target-binding document.
-      # The document itself must not be committed or embedded in this image.
+      # In-container path supplied with `docker compose run --volume`; see the runbook.
+      # The mode-0600 document itself must not be committed or embedded in this image.
       - FARDB_POSTGRES_TARGET_BINDINGS_FILE=${FARDB_POSTGRES_TARGET_BINDINGS_FILE:-}
     command: ["python", "-m", "scripts.migrate_database"]
 

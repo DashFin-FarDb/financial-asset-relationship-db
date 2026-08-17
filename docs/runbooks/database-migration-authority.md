@@ -174,6 +174,22 @@ capability-role bootstrap, mount the mode-`0600` binding document without baking
 `FARDB_POSTGRES_TARGET_BINDINGS_FILE` to the in-container path, and supply migration-owner URLs. Hosted execution and
 history adoption remain blocked until CQ-03D.
 
+The PostgreSQL rehearsal mount is intentionally supplied at invocation time so the protected document is never a
+default Compose volume. Use an absolute host path outside the repository:
+
+```bash
+: "${FARDB_POSTGRES_TARGET_BINDINGS_HOST_FILE:?set an absolute path to the protected binding document}"
+case "$FARDB_POSTGRES_TARGET_BINDINGS_HOST_FILE" in
+  /*) ;;
+  *) echo "binding document path must be absolute" >&2; exit 1 ;;
+esac
+chmod 0600 "$FARDB_POSTGRES_TARGET_BINDINGS_HOST_FILE"
+docker compose -f docker-compose.production.yml --profile operator run --rm --build \
+  --volume "$FARDB_POSTGRES_TARGET_BINDINGS_HOST_FILE:/run/secrets/fardb-postgres-target-bindings.json:ro" \
+  --env FARDB_POSTGRES_TARGET_BINDINGS_FILE=/run/secrets/fardb-postgres-target-bindings.json \
+  migrate
+```
+
 For an isolated PostgreSQL rehearsal, the opt-in integration contract accepts restricted DSNs only through
 `FARDB_GRAPH_RUNTIME_DATABASE_URL`, `FARDB_COORDINATION_RUNTIME_DATABASE_URL`, and
 `FARDB_AUTH_RUNTIME_DATABASE_URL`, with `RUN_POSTGRES_TESTS=1`. These values are secrets: run the test from an

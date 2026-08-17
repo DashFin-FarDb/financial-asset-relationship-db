@@ -473,7 +473,7 @@ def _runtime_policy_specs(
 
 
 # The explicit capability matrix is intentionally kept together for fail-closed auditability.
-def ensure_runtime_database_capabilities(  # noqa: C901  # skipcq: PY-R1000
+def ensure_runtime_database_capabilities(
     engine: Engine,
     capabilities: tuple[str, ...] | set[str] | frozenset[str],
 ) -> None:
@@ -506,8 +506,9 @@ def _verify_runtime_capability_roles(connection, capabilities: tuple[str, ...], 
                         "WHERE has_schema_privilege(role.oid, namespace.oid, 'CREATE')) "
                         "AND NOT EXISTS (SELECT 1 FROM pg_class AS auth_rel "
                         "JOIN pg_namespace AS auth_namespace ON auth_namespace.oid = auth_rel.relnamespace "
-                        "WHERE auth_namespace.nspname = current_schema() AND auth_rel.relkind IN ('r', 'p') "
-                        "AND auth_rel.relname = 'user_credentials' AND (auth_rel.relowner = role.oid "
+                        "WHERE auth_namespace.nspname = current_schema() "
+                        "AND auth_rel.relkind IN ('r', 'p', 'v', 'm', 'f') "
+                        "AND auth_rel.relname = :auth_table AND (auth_rel.relowner = role.oid "
                         "OR has_table_privilege(role.oid, auth_rel.oid, 'SELECT') "
                         "OR has_table_privilege(role.oid, auth_rel.oid, 'INSERT') "
                         "OR has_table_privilege(role.oid, auth_rel.oid, 'UPDATE') "
@@ -532,7 +533,7 @@ def _verify_runtime_capability_roles(connection, capabilities: tuple[str, ...], 
                         "WHERE auth_sequence.relkind = 'S' "
                         "AND auth_sequence_namespace.nspname = current_schema() "
                         "AND auth_table_namespace.nspname = current_schema() "
-                        "AND auth_table.relname = 'user_credentials' AND (auth_sequence.relowner = role.oid "
+                        "AND auth_table.relname = :auth_table AND (auth_sequence.relowner = role.oid "
                         "OR has_sequence_privilege(role.oid, auth_sequence.oid, 'USAGE') "
                         "OR has_sequence_privilege(role.oid, auth_sequence.oid, 'SELECT') "
                         "OR has_sequence_privilege(role.oid, auth_sequence.oid, 'UPDATE'))) "
@@ -570,7 +571,12 @@ def _verify_runtime_capability_roles(connection, capabilities: tuple[str, ...], 
                 bindparam("tables", expanding=True),
                 bindparam("sequence_tables", expanding=True),
             ),
-            {"role_name": role_name, "tables": managed_tables, "sequence_tables": managed_tables},
+            {
+                "role_name": role_name,
+                "auth_table": AUTH_RUNTIME_TABLE,
+                "tables": managed_tables,
+                "sequence_tables": managed_tables,
+            },
         ).scalar_one()
         if not safe_role:
             raise SchemaCompatibilityError(f"unsafe or missing runtime capability role: {role_name}")
@@ -829,9 +835,56 @@ def _verify_runtime_capability_catalog(connection, capabilities: tuple[str, ...]
     )
 
 
+def _zero_capability_privileged_relation(connection) -> str | None:
+    """Return one managed relation reachable by a login with no capabilities."""
+    managed_tables = list(POSTGRESQL_MANAGED_TABLES)
+    return connection.execute(
+        text(
+            "SELECT relation_name FROM ("
+            "SELECT rel.relname AS relation_name FROM pg_class AS rel "
+            "JOIN pg_namespace AS namespace ON namespace.oid = rel.relnamespace "
+            "WHERE namespace.nspname = current_schema() "
+            "AND rel.relkind IN ('r', 'p', 'v', 'm', 'f') AND rel.relname IN :tables "
+            "AND (has_table_privilege(session_user, rel.oid, 'SELECT') "
+            "OR has_table_privilege(session_user, rel.oid, 'INSERT') "
+            "OR has_table_privilege(session_user, rel.oid, 'UPDATE') "
+            "OR has_table_privilege(session_user, rel.oid, 'DELETE') "
+            "OR has_table_privilege(session_user, rel.oid, 'TRUNCATE') "
+            "OR has_table_privilege(session_user, rel.oid, 'REFERENCES') "
+            "OR has_table_privilege(session_user, rel.oid, 'TRIGGER') "
+            "OR has_any_column_privilege(session_user, rel.oid, 'SELECT') "
+            "OR has_any_column_privilege(session_user, rel.oid, 'INSERT') "
+            "OR has_any_column_privilege(session_user, rel.oid, 'UPDATE') "
+            "OR has_any_column_privilege(session_user, rel.oid, 'REFERENCES')) "
+            "UNION ALL "
+            "SELECT owning_table.relname AS relation_name FROM pg_class AS sequence "
+            "JOIN pg_namespace AS sequence_namespace ON sequence_namespace.oid = sequence.relnamespace "
+            "JOIN pg_depend AS dependency ON dependency.objid = sequence.oid "
+            "AND dependency.classid = 'pg_class'::regclass "
+            "AND dependency.refclassid = 'pg_class'::regclass "
+            "AND dependency.deptype IN ('a', 'i') "
+            "JOIN pg_class AS owning_table ON owning_table.oid = dependency.refobjid "
+            "JOIN pg_namespace AS owning_namespace ON owning_namespace.oid = owning_table.relnamespace "
+            "WHERE sequence.relkind = 'S' AND sequence_namespace.nspname = current_schema() "
+            "AND owning_namespace.nspname = current_schema() AND owning_table.relname IN :tables "
+            "AND (has_sequence_privilege(session_user, sequence.oid, 'USAGE') "
+            "OR has_sequence_privilege(session_user, sequence.oid, 'SELECT') "
+            "OR has_sequence_privilege(session_user, sequence.oid, 'UPDATE'))"
+            ") AS reachable LIMIT 1"
+        ).bindparams(bindparam("tables", expanding=True)),
+        {"tables": managed_tables},
+    ).scalar()
+
+
 def _verify_runtime_login_relation_grants(connection, capabilities: tuple[str, ...]) -> None:
     """Verify effective login relation privileges in two set-based round trips."""
     from .relationship_assertion_db_models import GRAC_TABLE_NAMES
+
+    if not capabilities:
+        relation_name = _zero_capability_privileged_relation(connection)
+        if relation_name is not None:
+            raise SchemaCompatibilityError(f"runtime login grants are incompatible on {relation_name}")
+        return
 
     effective_privileges = _runtime_table_privileges(capabilities)
     grac_tables = frozenset(GRAC_TABLE_NAMES)
@@ -982,7 +1035,9 @@ def verify_runtime_database_authority(  # skipcq: PY-R1000
     normalized_capabilities = _normalized_runtime_capabilities(required_capabilities)
     try:
         managed_tables = (
-            _managed_table_names(normalized_capabilities) if normalized_capabilities else sorted(Base.metadata.tables)
+            _managed_table_names(normalized_capabilities)
+            if normalized_capabilities
+            else list(POSTGRESQL_MANAGED_TABLES)
         )
         with engine.connect() as connection:
             restricted = connection.execute(
@@ -1001,8 +1056,9 @@ def verify_runtime_database_authority(  # skipcq: PY-R1000
                     "WHERE has_schema_privilege(assumable.oid, namespace.oid, 'CREATE')) "
                     "OR EXISTS (SELECT 1 FROM pg_class AS auth_rel "
                     "JOIN pg_namespace AS auth_namespace ON auth_namespace.oid = auth_rel.relnamespace "
-                    "WHERE auth_namespace.nspname = current_schema() AND auth_rel.relkind IN ('r', 'p') "
-                    "AND auth_rel.relname = 'user_credentials' AND (auth_rel.relowner = assumable.oid "
+                    "WHERE auth_namespace.nspname = current_schema() "
+                    "AND auth_rel.relkind IN ('r', 'p', 'v', 'm', 'f') "
+                    "AND auth_rel.relname = :auth_table AND (auth_rel.relowner = assumable.oid "
                     "OR has_table_privilege(assumable.oid, auth_rel.oid, 'SELECT') "
                     "OR has_table_privilege(assumable.oid, auth_rel.oid, 'INSERT') "
                     "OR has_table_privilege(assumable.oid, auth_rel.oid, 'UPDATE') "
@@ -1027,7 +1083,7 @@ def verify_runtime_database_authority(  # skipcq: PY-R1000
                     "WHERE auth_sequence.relkind = 'S' "
                     "AND auth_sequence_namespace.nspname = current_schema() "
                     "AND auth_table_namespace.nspname = current_schema() "
-                    "AND auth_table.relname = 'user_credentials' "
+                    "AND auth_table.relname = :auth_table "
                     "AND (auth_sequence.relowner = assumable.oid "
                     "OR has_sequence_privilege(assumable.oid, auth_sequence.oid, 'USAGE') "
                     "OR has_sequence_privilege(assumable.oid, auth_sequence.oid, 'SELECT') "
@@ -1063,7 +1119,11 @@ def verify_runtime_database_authority(  # skipcq: PY-R1000
                     bindparam("tables", expanding=True),
                     bindparam("sequence_tables", expanding=True),
                 ),
-                {"tables": managed_tables, "sequence_tables": managed_tables},
+                {
+                    "auth_table": AUTH_RUNTIME_TABLE,
+                    "tables": managed_tables,
+                    "sequence_tables": managed_tables,
+                },
             ).scalar_one()
             if not restricted:
                 raise SchemaCompatibilityError(
