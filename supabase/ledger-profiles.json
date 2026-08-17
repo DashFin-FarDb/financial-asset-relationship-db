@@ -6,6 +6,8 @@
     "coordination"
   ],
   "algorithms": {
+    "catalog_normalization": "fardb-pg-catalog-v1",
+    "managed_scope": "fardb-pg-scope-v1",
     "migration_digest": "sha256",
     "provider_statements_digest": "fardb-provider-statements-v1",
     "target_fingerprint": "fardb-target-fingerprint-v1"
@@ -66,24 +68,28 @@
     "auth": {
       "components": [
         "auth"
-      ]
+      ],
+      "catalog_sha256": "0000000000000000000000000000000000000000000000000000000000000000"
     },
     "graph": {
       "components": [
         "graph"
-      ]
+      ],
+      "catalog_sha256": "0000000000000000000000000000000000000000000000000000000000000000"
     },
     "coordination": {
       "components": [
         "coordination"
-      ]
+      ],
+      "catalog_sha256": "0000000000000000000000000000000000000000000000000000000000000000"
     },
     "combined": {
       "components": [
         "auth",
         "graph",
         "coordination"
-      ]
+      ],
+      "catalog_sha256": "0000000000000000000000000000000000000000000000000000000000000000"
     }
   },
   "lineages": {

@@ -32,6 +32,8 @@ TARGET_BINDING_VERSION = "fardb-target-bindings-v1"
 TARGET_FINGERPRINT_ALGORITHM = "fardb-target-fingerprint-v1"
 PROVIDER_STATEMENTS_ALGORITHM = "fardb-provider-statements-v1"
 TARGET_IDENTITY_INDETERMINATE = "TARGET_IDENTITY_INDETERMINATE"
+CATALOG_NORMALIZATION_VERSION = "fardb-pg-catalog-v1"
+MANAGED_SCOPE_VERSION = "fardb-pg-scope-v1"
 PINNED_SUPABASE_CLI_VERSION = "2.114.0"
 DISPOSABLE_CLI_CONFIG = b'project_id = "fardb-ledger-projection"\n'
 
@@ -187,6 +189,12 @@ class LedgerManifest:
             raise LedgerContractError(f"unknown ledger profile: {profile}")
         selected = [migration for migration in self.migrations if migration.component in components]
         return tuple(sorted(selected, key=lambda migration: migration.timestamp))
+
+    def catalog_digest_for_profile(self, profile: str) -> str:
+        """Return the immutable normalized-catalog digest for one build profile."""
+        if profile not in EXPECTED_PROFILES:
+            raise LedgerContractError(f"unknown ledger profile: {profile}")
+        return str(self.data["profiles"][profile]["catalog_sha256"])
 
 
 @dataclass(frozen=True, slots=True)
@@ -641,6 +649,8 @@ def _validate_manifest_header(manifest: Mapping[str, Any]) -> None:
         raise LedgerContractError("component order does not match the ratified order")
     algorithms = manifest["algorithms"]
     if algorithms != {
+        "catalog_normalization": CATALOG_NORMALIZATION_VERSION,
+        "managed_scope": MANAGED_SCOPE_VERSION,
         "migration_digest": "sha256",
         "provider_statements_digest": PROVIDER_STATEMENTS_ALGORITHM,
         "target_fingerprint": TARGET_FINGERPRINT_ALGORITHM,
@@ -725,10 +735,13 @@ def _validate_manifest_profiles(profiles: object) -> None:
         profile_value = profiles[profile]
         if not isinstance(profile_value, dict):
             raise LedgerContractError(f"profile {profile} must be an object")
-        _require_exact_keys(profile_value, {"components"}, f"profiles.{profile}")
+        _require_exact_keys(profile_value, {"components", "catalog_sha256"}, f"profiles.{profile}")
         actual_components = _require_string_list(profile_value["components"], f"profiles.{profile}.components")
         if actual_components != expected_components:
             raise LedgerContractError(f"profile {profile} components do not match the contract")
+        catalog_sha256 = profile_value["catalog_sha256"]
+        if not isinstance(catalog_sha256, str) or not _LOWER_HEX_DIGEST.fullmatch(catalog_sha256):
+            raise LedgerContractError(f"profile {profile} catalog digest is invalid")
 
 
 def load_and_validate_manifest(
