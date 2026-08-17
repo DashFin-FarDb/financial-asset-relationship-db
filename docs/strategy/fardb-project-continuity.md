@@ -2,9 +2,9 @@
 
 **Repository:** `DashFin-FarDb/financial-asset-relationship-db`
 **Established:** 2026-07-21
-**Repository evidence cutoff:** `main` at `3e0d54cee0baaae34cf5e99ed76e9ef25e2e4763`
+**Repository evidence cutoff:** `main` at `ca61a2694c384344ae4a73a4145cd0ff1c8751d4`
 **Ratified setup baseline:** CQ-03B-R1 ratified on 2026-08-17 at `main@76f1194f1f9b83cb9ed8f0bb0083824ededbe0ae`
-**Continuity status:** CQ-03B-R1 merged; CQ-03B-R2 is published for exact-head validation from the authoritative base
+**Continuity status:** CQ-03B-R1 and CQ-03B-R2 merged; CQ-03C awaits a separately ratified exact task brief
 
 This ledger preserves durable project decisions, plans, milestones, and handoffs across ChatGPT, Codex, and
 repository work. It is an index of authoritative evidence, not a replacement for detailed specifications, issues,
@@ -69,7 +69,8 @@ At the evidence cutoff:
   merge commit `3e0d54cee0baaae34cf5e99ed76e9ef25e2e4763`. R2 then merged through PR #1641 from that
   exact base: reviewed head `9d1cdd77d24ecdfefb2c86633342d98c7c9f262e`, authoritative merge commit
   `ca61a2694c384344ae4a73a4145cd0ff1c8751d4`. Exact-head PostgreSQL 15/16 profile rebuilds, the Docker
-  runtime/migration boundary, Sonar, CodeRabbit, Cubic, and Greptile passed with zero unresolved review threads.
+  runtime/migration boundary, Sonar, CodeRabbit, and Cubic passed. Greptile's exact-head check succeeded after its
+  findings were triaged, and GitHub recorded zero unresolved review threads at merge.
   The provider was not mutated.
 
 Primary authorities:
@@ -549,7 +550,7 @@ credential-bootstrap authority.
 
 ### Sources reviewed
 
-- Repository `main` through `3e0d54cee0baaae34cf5e99ed76e9ef25e2e4763` on 2026-08-17.
+- Repository `main` through `ca61a2694c384344ae4a73a4145cd0ff1c8751d4` on 2026-08-17.
 - Repository agent instructions and production-architecture declaration.
 - Enterprise-readiness index, audit, roadmap, PR board, validation-gap audit, release checklist, release evidence pack,
   hosted staging baseline, operational evidence framework, drill and scale-validation documents, and risk register.
