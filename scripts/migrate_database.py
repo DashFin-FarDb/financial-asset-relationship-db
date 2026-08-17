@@ -23,6 +23,8 @@ from scripts.postgresql_ledger import (
     TARGET_BINDINGS_ENV,
     TARGET_IDENTITY_INDETERMINATE,
     HostedWriteBarrierError,
+    LedgerManifest,
+    PlannedTarget,
     SupabaseCliError,
     TargetIdentityError,
     apply_profile_to_database,
@@ -141,6 +143,22 @@ def _has_usable_credentials() -> bool:
     )
 
 
+def _apply_postgresql_plan(
+    manifest: LedgerManifest | None,
+    plan: tuple[PlannedTarget, ...],
+) -> None:
+    """Apply a preflighted plan while retaining only bounded progress metadata."""
+    if manifest is None:
+        return
+    completed_profiles: list[str] = []
+    for target in plan:
+        try:
+            apply_profile_to_database(target, manifest)
+        except SupabaseCliError as exc:
+            raise PostgreSQLPlanApplyError(tuple(completed_profiles), target.profile) from exc
+        completed_profiles.append(target.profile)
+
+
 def migrate_configured_databases(
     settings: Settings | None = None,
     *,
@@ -159,14 +177,7 @@ def migrate_configured_databases(
 
     # This protected gate must complete before engine_factory or the CLI is called.
     manifest, postgresql_plan = _resolve_postgresql_plan(database_urls)
-    if manifest is not None:
-        completed_profiles: list[str] = []
-        for target in postgresql_plan:
-            try:
-                apply_profile_to_database(target, manifest)
-            except SupabaseCliError as exc:
-                raise PostgreSQLPlanApplyError(tuple(completed_profiles), target.profile) from exc
-            completed_profiles.append(target.profile)
+    _apply_postgresql_plan(manifest, postgresql_plan)
 
     _graph_url, engines = _configured_engines(resolved_settings, engine_factory)
 
