@@ -2,11 +2,16 @@
 
 ## Status
 
-**Accepted — ratified through reviewed PR #1634.**
+**Accepted — ratified through reviewed PR #1634; amended by ADR 0010.**
 
 This ADR records the accepted CQ-03 migration and drift boundary. It authorizes the repository-only CQ-03B and
 CQ-03C implementation phases within this contract. It does not authorize Supabase migration-history changes, hosted
 schema changes, credential changes, production promotion, or CQ-03D history adoption without its separate approval.
+
+[ADR 0010](0010-historical-receipt-evidence-and-target-ledger-profiles.md) supersedes this ADR only where this
+record required exact historical receipt replay under provider timestamps, one flat executable ledger for every
+PostgreSQL target, or `supabase db pull` before CQ-03D. The repository-authority, imperative forward-only migration,
+verify-only runtime, drift-status, and rollback clauses below remain accepted.
 
 ## Date
 
@@ -46,10 +51,12 @@ role creation, grant management, migration-history repair, or credential-bootstr
 
 ## Decision
 
-### 1. One repository authority
+### 1. One repository authority, partitioned by target profile
 
-Adopt immutable, timestamped PostgreSQL SQL migrations under `supabase/migrations/` as the sole PostgreSQL schema
-ledger.
+Adopt immutable, timestamped PostgreSQL SQL migrations under `supabase/` as the sole PostgreSQL schema authority.
+ADR 0010 partitions that authority into auth, graph, and coordination component ledgers selected by one profile
+manifest. An explicitly approved shared physical target receives their deterministic `combined` union; distinct
+targets do not receive unrelated components.
 
 The repository files are authoritative. The provider table
 `supabase_migrations.schema_migrations` is an execution receipt and synchronization surface, not an independent
@@ -59,7 +66,7 @@ and a provider's current catalog do not become migrations until reviewed SQL is 
 Use the standard 14-digit UTC timestamp plus a descriptive snake_case name:
 
 ```text
-supabase/migrations/YYYYMMDDHHMMSS_descriptive_name.sql
+supabase/ledgers/<component>/migrations/YYYYMMDDHHMMSS_descriptive_name.sql
 ```
 
 Only the timestamp determines migration identity and execution order. The descriptive filename stem is immutable
@@ -70,9 +77,8 @@ therefore fails the immutable-file check. Physical directory, API, and diff-disp
 
 Use imperative SQL migrations for adoption and the initial CQ-03 implementation.
 
-Do not introduce a parallel declarative `supabase/schemas/` representation during baseline adoption. Supabase's
-existing-project workflow treats the pulled migration as the baseline; maintaining declarative schemas at the same
-time would create a second representation before the historical ledger is stable.
+Do not introduce a parallel declarative `supabase/schemas/` representation during baseline adoption. Maintaining
+declarative schemas at the same time would create a second representation before the historical ledger is stable.
 
 A later ADR may adopt declarative schema authoring if it proves a net benefit after the ledger, rebuild, and drift
 gate are working.
@@ -87,15 +93,16 @@ application startup.
 
 The controlling commands and their intended roles are:
 
-- `supabase migration fetch` — read provider-recorded migration files into a temporary review workspace;
-- `supabase migration list` — compare repository timestamps with provider receipts;
-- `supabase db pull` — generate a candidate reconciliation migration from read-only hosted state;
-- `supabase db reset` — destructively rebuild only a disposable local database from the ledger;
+- `supabase migration fetch` — supplementary receipt capture in a disposable review workspace only; it does not
+  establish a clean-build chain;
+- `supabase migration list` — compare the selected profile and lineage with provider receipts;
+- `supabase db reset` — destructively rebuild only a disposable local database from a generated profile projection;
 - `supabase db push --dry-run` — prove that an approved target has no unexpected pending SQL;
 - `supabase migration repair --status applied <timestamp>` — history-only adoption after separate human approval.
 
-The last command mutates provider migration history and is forbidden in the design PR and all unapproved
-implementation work.
+`supabase db pull` is forbidden in CQ-03B/C because current Supabase workflows can update remote migration history.
+The last two listed commands require the CQ-03D authority defined by ADR 0010 and are forbidden in the design PR and
+all unapproved implementation work.
 
 References:
 
@@ -108,7 +115,7 @@ References:
 
 The target state is:
 
-- `supabase/migrations/` owns PostgreSQL schema evolution.
+- `supabase/ledgers/<component>/migrations/` plus `supabase/ledger-profiles.json` own PostgreSQL schema evolution.
 - The root `migrations/` files and `src/data/migrations.py` remain a SQLite compatibility track until a separately
   characterized replacement is safe. They cannot be cited as PostgreSQL history.
 - `Base.metadata.create_all` and imperative PostgreSQL repair helpers cease being production PostgreSQL mutation
@@ -122,8 +129,9 @@ The target state is:
   the schema ledger.
 - FastAPI startup and readiness remain read-only consumers of ledger and compatibility state.
 
-There may be more than one executor for disposable testing, but there is only one ordered set of PostgreSQL
-migration files and one migration identity model.
+There may be more than one executor for disposable testing, but there is only one repository authority and one
+globally unique migration identity model. Target profiles select immutable component ledgers; generated CLI
+projections are disposable and never become a second schema representation.
 
 ## Baseline adoption protocol
 
@@ -132,9 +140,11 @@ Adoption must be a separate, reviewed implementation and operator sequence.
 The PR mapping and migration-command hand-off are normative:
 
 - CQ-03A ratifies this ADR and changes no migration behavior.
-- CQ-03B performs Phase A and Phase B steps 1–3. It keeps `python -m scripts.migrate_database` and the production
+- CQ-03B performs Phase A and Phase B steps 1–3 as amended by ADR 0010. It keeps
+  `python -m scripts.migrate_database` and the production
   Compose `migrate` service as stable operator entrypoints, but atomically replaces their PostgreSQL schema-mutation
-  internals with delegation to the pinned Supabase CLI ledger executor over `supabase/migrations/`. For PostgreSQL,
+  internals with delegation to the pinned Supabase CLI executor over a disposable projection of the selected
+  component profile. For PostgreSQL,
   the command must no longer call `init_db`, `initialize_schema`, `Base.metadata.create_all`, or imperative schema
   repair helpers. After ledger application it may perform only separately authorized non-schema duties: read-only
   compatibility and capability verification plus explicit credential-data provisioning. Cluster capability-role
@@ -152,38 +162,32 @@ hosted-history adoption as separate decisions while preventing a second PostgreS
 
 1. Freeze schema-changing work for the bounded capture window.
 2. Record the exact repository SHA and read-only provider migration timestamps.
-3. Run `supabase migration fetch` in a temporary workspace to recover the six provider-recorded files.
-4. Compare recovered SQL with repository history and merged PR evidence.
-5. Run `supabase db pull` to generate a candidate reconciliation migration, but decline any prompt to update remote
-   migration history.
-6. Remove provider noise and generated statements outside the managed scope only through explicit review.
+3. Use a dedicated read-only provider credential to capture each exact ordered `statements[]` payload into the
+   classified evidence envelope defined by ADR 0010. Any CLI inspection uses an explicit disposable workspace and
+   leaves no provider link state behind.
+4. Compare the evidence digests and bounded metadata with repository history and merged PR evidence.
+5. Review dependencies and assign desired objects to exactly one auth, graph, or coordination component.
+6. Construct new forward-dated component baselines; never put reconstructed SQL under a historical timestamp.
 7. Do not copy data, credentials, row counts, live role names, connection details, or restricted authorization
    evidence into the repository.
 
-The six observed provider receipts retain their exact timestamp identities as six immutable ledger entries in
-`supabase/migrations/`. CQ-03B must recover and review the SQL for each receipt; it must not collapse them into one
-synthetic baseline. Five receipts contain replayable schema or capability-role SQL. The remaining receipt records a
-separately authorized provider login-membership handoff whose role identities and credential topology are restricted
-operator material. Its public ledger file preserves the exact timestamp, approved purpose, transaction policy, and
-bounded receipt provenance, but contains no executable membership statement, login identity, OID, DSN, or credential.
-This is a sanitized external-action receipt, not placeholder schema SQL: the provider membership remains outside the
-schema ledger; `supabase db reset` processes the comments-only file as a no-op and never executes the omitted provider
-action; the end state is verified only through the existing restricted runtime-authority checks.
+The six provider timestamp identities and exact ordered statement digests are immutable, non-executable
+`hosted-legacy-v1` lineage evidence. They are not canonical migration entries and are never replayed on a fresh
+database. Exact restricted membership SQL remains protected; the public record contains bounded metadata and its
+digest only. Reviewed reconstruction is permitted only in new forward-dated component baselines.
 
-Schema state not explained by the replayable receipts belongs in a later, reviewed reconciliation migration. The
-existing six receipts need no history repair; only that new reconciliation timestamp can become the separately
-approved Phase C history-only adoption candidate. If any replayable receipt SQL cannot be recovered or proven, or the
-restricted membership receipt cannot be reconciled by bounded operator evidence, CQ-03B stops and returns to human
+If exact statement evidence cannot be preserved, a dependency cannot be assigned to one component, a
+cross-component cycle appears, or a clean profile requires target-conditional SQL, CQ-03B stops and returns to human
 decision.
 
 ### Phase B — prove the repository ledger and drift gate (CQ-03B/C)
 
-1. Replay the complete proposed ledger into a disposable local Supabase database.
-2. Replay the application-owned portable subset against supported plain PostgreSQL versions used by CI.
+1. Replay every component profile and the deterministic `combined` union into disposable local databases.
+2. Replay each application-owned portable profile against supported plain PostgreSQL versions used by CI.
 3. Run all existing schema-compatibility and ADR 0007 negative-authority tests.
 4. Produce a versioned normalized catalog snapshot and digest.
 5. Compare that digest with a fresh read-only hosted digest under the exclusions below.
-6. Require `supabase migration list` to explain every local/remote timestamp.
+6. Require profile- and lineage-aware history evaluation to explain every expected and observed timestamp.
 7. Introduce one deliberate history mismatch and one deliberate schema mutation in disposable databases and prove
    that the correct drift categories fail.
 
@@ -192,8 +196,9 @@ decision.
 This phase requires a new human approval after Phase B evidence is attached.
 
 1. Reconfirm the target project and exact repository SHA.
-2. Confirm that the reconciliation migration makes no schema change against the hosted target.
-3. Mark only that reviewed reconciliation timestamp as applied with `supabase migration repair`.
+2. Confirm that the allowlisted forward baseline makes no schema change against the selected hosted target profile.
+3. Under one single-use ADR 0010 adoption permit, mark only its one reviewed timestamp as applied with
+   `supabase migration repair`.
 4. Re-run migration-list parity, normalized drift, compatibility, and authorization verification.
 5. Require `supabase db push --dry-run` to report no unexpected pending migration.
 6. Stop immediately unless every required gate reports `PASS`; any drift category, `EVALUATION_INCOMPLETE`, changed
@@ -204,7 +209,8 @@ already equals the reviewed ledger state.
 
 ## Migration identity and immutability
 
-- Timestamp identities are unique, strictly increasing, and generated in UTC.
+- Canonical timestamp identities are globally unique across component ledgers, strictly increasing, and generated
+  in UTC.
 - An applied migration is immutable. Correct it with a later forward migration.
 - CI records SHA-256 for every migration file in a repository manifest.
 - Renaming an applied file, changing its timestamp or descriptive stem, deleting it, or editing its bytes fails
@@ -215,11 +221,9 @@ already equals the reviewed ledger state.
 - SQL must be deterministic and must not interpolate secrets or environment-specific object identities.
 - Seed/demo data, live data copies, login roles, role memberships, OIDs, passwords, and connection details never enter
   executable ledger SQL.
-- A sanitized external-action receipt may preserve an already-recorded provider timestamp only when the action is
-  outside repository schema authority, its executable statement would disclose restricted operator identities, the
-  public file contains comments only and no executable SQL, and restricted verification proves the intended end
-  state. Such a receipt
-  cannot satisfy a schema migration, create a role, grant membership, or authorize provider mutation.
+- Historical provider receipt identities and exact ordered statement digests live only in the non-executable lineage
+  evidence defined by ADR 0010. They cannot satisfy a schema migration, create a role, grant membership, or authorize
+  provider mutation.
 
 ## Forward and rollback policy
 
@@ -257,7 +261,8 @@ The first contract manages application-owned objects in `public`:
 The `fardb-pg-scope-v1` classifier is total and deterministic. It enumerates every `public` object in the included
 object classes before applying a classification:
 
-- **Application-owned:** the exact object identity is produced by replaying `supabase/migrations/` or is declared in
+- **Application-owned:** the exact object identity is produced by replaying the selected component profile or is
+  declared in
   the versioned application-owned scope manifest with its controlling migration. Columns and other subordinate
   catalog entries inherit their parent only when they have no independent identity; independently addressable
   functions, sequences, policies, triggers, types, indices, and grants are classified separately.
@@ -349,7 +354,7 @@ category has been proven.
 
 CQ-03 implementation is complete only when all of the following are attached to the exact reviewed SHA:
 
-- a fresh local Supabase rebuild from the repository ledger;
+- fresh local Supabase rebuilds for each component profile and the deterministic `combined` union;
 - the supported PostgreSQL-version matrix for the application-owned portable subset;
 - migration-history parity and immutable-file checks;
 - a deliberate missing-migration fixture producing `LEDGER_HISTORY_MISMATCH`;
@@ -371,8 +376,9 @@ A local rebuild alone does not close CQ-03. A hosted inspection alone does not c
 One PR remains one decision:
 
 1. **CQ-03A — ratify this ADR.** Documentation and evidence inventory only; no provider mutation.
-2. **CQ-03B — materialize the ledger.** Recover history, add reviewed reconciliation SQL, and prove fresh rebuilds
-   without changing hosted state.
+2. **CQ-03B — materialize profile-scoped ledgers.** Preserve exact receipt evidence, add new forward-dated component
+   baselines, and prove fresh profile rebuilds without changing hosted state. CQ-03B-R2 is the next bounded unit
+   after ADR 0010 merges.
 3. **CQ-03C — add the drift gate.** Versioned catalog normalizer, immutable migration manifest, negative fixtures,
    CI/readiness integration, and sanitized diagnostics.
 4. **CQ-03D — adopt hosted history.** Separate operator approval, history-only reconciliation, read-only equality
@@ -406,8 +412,8 @@ legitimate.
 
 Positive consequences:
 
-- one reviewable PostgreSQL history can rebuild clean state;
-- hosted receipts, CI, and repository files use one timestamp identity;
+- one reviewable PostgreSQL authority can rebuild clean state for each explicit target profile;
+- hosted receipts retain truthful lineage while canonical files use globally unique forward identities;
 - drift categories separate history, catalog, and application compatibility failures;
 - runtime remains verify-only;
 - provider adoption is explicit and reversible through evidence/restore procedures rather than implicit repair.
@@ -425,9 +431,10 @@ Costs and risks:
 CQ-03A ratification completed when the named human ratifier authorized ready-state review and merge, all
 substantive review and authoritative CI gates cleared, and PR #1634 merged as squash
 `2dd9f64136eb653284b0f5330a16ee99f6b0b491` on 2026-08-13. CQ-03B/C may proceed within this ADR; CQ-03D still
-requires the separate history-adoption approval defined above.
+requires the separate history-adoption approval defined above. ADR 0010 was then ratified on 2026-08-17 and narrows
+CQ-03B/C to profile-scoped forward baselines, non-executable historical evidence, and a hard pre-CQ-03D write barrier.
 
-- [x] Approve `supabase/migrations/` as the sole repository PostgreSQL ledger.
+- [x] Approve `supabase/` as the sole repository PostgreSQL authority, partitioned by ADR 0010 component profiles.
 - [x] Approve imperative timestamped SQL for initial adoption.
 - [x] Approve Supabase CLI as pinned operator/CI tooling only.
 - [x] Approve the atomic `scripts.migrate_database` PostgreSQL ledger hand-off while preserving its SQLite path and

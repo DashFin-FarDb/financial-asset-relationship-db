@@ -19,7 +19,7 @@ STRATEGY_README = REPO_ROOT / "docs" / "strategy" / "README.md"
 
 CONTRACT_BASELINE_SHA = "5e45753705c10c2c4f50e0e9bc4d07b823d752ab"
 EVIDENCE_CUTOFF_SHA = "0a72dfee67aae4ef7cc44041347474a6a6e234cd"
-LIVE_MAIN_CUTOFF_SHA = "2dd9f64136eb653284b0f5330a16ee99f6b0b491"  # DevSkim: ignore all
+LIVE_MAIN_CUTOFF_SHA = "76f1194f1f9b83cb9ed8f0bb0083824ededbe0ae"  # DevSkim: ignore all
 PROVED_STAGING_SHA = "16d0a69c5d6f9bae94b9251991466bacbf15d3f0"
 PROVED_STAGING_PREDICATE = "financial.bond.issuer_reference@1"
 PROVED_STAGING_SIGNOFF = "grac-v1-exact-sha-evidence-signoff.md"
