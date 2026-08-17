@@ -687,9 +687,9 @@ class TestDatabaseInitialization:
             patch("src.data.database.Base.metadata.create_all") as create_all,
             patch("src.data.migrations.apply_migrations") as apply_sqlite_migrations,
             patch("src.data.relationship_assertion_schema.ensure_relationship_assertion_schema") as ensure_grac,
+            pytest.raises(SchemaCompatibilityError, match="profile-scoped Supabase ledger"),
         ):
-            with pytest.raises(SchemaCompatibilityError, match="profile-scoped Supabase ledger"):
-                init_db(engine)
+            init_db(engine)
 
         create_all.assert_not_called()
         apply_sqlite_migrations.assert_not_called()
