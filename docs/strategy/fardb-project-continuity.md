@@ -2,8 +2,8 @@
 
 **Repository:** `DashFin-FarDb/financial-asset-relationship-db`
 **Established:** 2026-07-21
-**Repository evidence cutoff:** `main` at `2dd9f64136eb653284b0f5330a16ee99f6b0b491`
-**Continuity status:** Reconciled through merged CQ-03A; ADR 0009 is accepted and CQ-03B is the next bounded phase
+**Repository evidence cutoff:** `main` at `76f1194f1f9b83cb9ed8f0bb0083824ededbe0ae`
+**Continuity status:** CQ-03B-R1 ratified on 2026-08-17; ADR 0010 records the adjudication and R2 is next after merge
 
 This ledger preserves durable project decisions, plans, milestones, and handoffs across ChatGPT, Codex, and
 repository work. It is an index of authoritative evidence, not a replacement for detailed specifications, issues,
@@ -57,9 +57,11 @@ At the evidence cutoff:
   eligible controlled probe remains an operational evidence item, not a repository blocker.
 - The non-authoritative DeepSource timeout/configuration contexts were explicitly accepted as non-blocking; #1631
   closed as not planned without source repair or threshold weakening.
-- CQ-03A completed through merged PR #1634 and accepted ADR 0009 under GitHub #1633 and Linear DAS-62; CQ-03B is
-  now the next bounded repository-only phase;
-  the controlling commitment is FPC-2026-08-13-01. Provider rollout, production
+- CQ-03A completed through merged PR #1634 and accepted ADR 0009 under GitHub #1633 and Linear DAS-62. The later
+  CQ-03B receipt/dependency conflict was ratified as CQ-03B-R1 on 2026-08-17 and is recorded by ADR 0010: exact
+  provider statements remain immutable evidence, clean builds use new forward-dated component baselines, targets
+  select explicit auth, graph, coordination, or combined profiles, and hosted-history adoption remains blocked until
+  CQ-03D. The controlling commitment is FPC-2026-08-13-01. Provider rollout, production
   promotion and recovery evidence remain artefact-specific; production scale, repeated immutable promotion, and
   domain-neutral reuse remain unproven.
 
@@ -71,35 +73,46 @@ Primary authorities:
 - [Claims and Truth Policy](claims-and-truth-policy.md)
 - [Release Evidence Pack](../release-evidence-pack.md)
 - [State Machine and Operating Authority](../governance/state-machine-and-operating-authority.md)
+- [PostgreSQL migration ledger and drift contract](../adr/0009-postgresql-migration-ledger-and-drift-contract.md)
+- [Historical receipt evidence and target-ledger profiles](../adr/0010-historical-receipt-evidence-and-target-ledger-profiles.md)
 - [Governed Relationship Assertion Contract v1](../governance/governed-relationship-assertion-contract-v1.md)
 - [GRAC v1 exact-SHA staging evidence and sign-off](../governance/grac-v1-exact-sha-evidence-signoff.md)
 - [The Big Read](the-big-read.md)
 
 ## Active commitments
 
-### FPC-2026-08-13-01 — Establish one PostgreSQL migration ledger and drift gate
+### FPC-2026-08-13-01 — Establish one profile-scoped PostgreSQL migration authority and drift gate
 
 - **Type:** Database architecture / production qualification blocker
-- **Status:** Agreed — ADR 0009 accepted through merged PR #1634; CQ-03B next
-- **Decision or objective:** Adopt one repository-owned, immutable PostgreSQL migration ledger; prove a fresh rebuild;
-  detect migration-history, catalog, and runtime-compatibility drift without returning mutation authority to FastAPI.
-- **Rationale and constraints:** Read-only evidence shows 22 RLS-enabled public tables and six provider migration
-  receipts, while repository schema evolution is split across SQL files, ORM creation, imperative repair, and
-  provider history. No hosted schema, migration history, credentials, or production target may change in the design
-  tranche.
-- **Repository scope:** Accepted ADR 0009, merged PR #1634, roadmap/continuity updates, GitHub #1633, and Linear
-  DAS-62. The recommended
-  authority is timestamped imperative SQL under `supabase/migrations/`, with the provider history as an execution
-  receipt rather than an independent design source.
-- **Dependencies or blockers:** CQ-03A ratification is closed. CQ-03B must preserve the accepted ledger, command
-  hand-off, scope, drift, authority, and no-provider-mutation boundaries. CQ-03D retains a separate human approval.
+- **Status:** Agreed — ADR 0009 accepted; CQ-03B-R1 ratified on 2026-08-17 and recorded by ADR 0010; R2 next after
+  this record merges
+- **Decision or objective:** Keep one repository-owned PostgreSQL schema authority while composing immutable auth,
+  graph, and coordination component ledgers through one target-profile manifest. Preserve exact provider
+  `statements[]` as lineage evidence, build clean targets from new forward-dated baselines, and retain ADR 0009's
+  fail-closed drift and verify-only runtime contracts.
+- **Rationale and constraints:** Read-only evidence confirms six provider receipt identities, but later receipts
+  depend on objects not created by the earlier recorded chain. Reusing historical timestamps for reviewed SQL would
+  manufacture provenance; replaying the recorded chain would not build clean state. Distinct database capabilities
+  also must not receive a universal schema. No hosted schema, migration history, credential, provider link state, or
+  production target may change in CQ-03B/C.
+- **Repository scope:** ADR 0009 as amended by ADR 0010, GitHub #1633, Linear DAS-62, and the Notion work programme.
+  Canonical SQL belongs under `supabase/ledgers/<component>/migrations/`; `supabase/ledger-profiles.json` is the sole
+  composition authority. `fresh-v1` and non-executable `hosted-legacy-v1` lineage records explain truthful target
+  history without creating a second schema authority.
+- **Dependencies or blockers:** CQ-03B-R2 may start only after the R1 record merges. It must prove PostgreSQL 15/16
+  profile rebuilds, deterministic combined ordering, identity/hash immutability, target/profile conflict rejection,
+  and negative hosted-write barriers. CQ-03D retains separate human approval and a single-use permit bound to exact
+  SHA, profile, target fingerprint, digest, and one timestamp.
 - **Evidence and provenance:** merged CQ-03A PR #1634 and squash
-  `2dd9f64136eb653284b0f5330a16ee99f6b0b491`; read-only hosted aggregate inventory captured 2026-08-13; GitHub
-  #1633; Linear DAS-62.
-- **Next action and completion test:** Begin CQ-03B from current `main`: recover provider-recorded history without
-  mutation, materialize the reviewed ledger, and prove clean rebuilds. CQ-03C adds deliberate drift failures;
+  `2dd9f64136eb653284b0f5330a16ee99f6b0b491`; merged clarification PR #1636 and exact current
+  `main@76f1194f1f9b83cb9ed8f0bb0083824ededbe0ae`; read-only provider receipt and current Supabase CLI-documentation
+  review; explicit human ratification on 2026-08-17; GitHub #1633; Linear DAS-62.
+- **Next action and completion test:** After this continuity record and ADR 0010 merge, execute CQ-03B-R2 against the
+  ratified decision as one bounded implementation unit. R2 closes only when every clean target profile and combined
+  union rebuild on PostgreSQL 15/16 and hosted-write attempts fail before CQ-03D. CQ-03C adds profile-aware deliberate
+  drift failures;
   CQ-03D remains separately approved.
-- **Last updated:** 2026-08-13
+- **Last updated:** 2026-08-17
 
 ### FPC-2026-08-09-01 — Separate migration and runtime database authority
 
@@ -486,11 +499,12 @@ Primary authorities:
 - Durable graph load, startup provenance, promotion checking, recovery control plane, API contracts, governance, DR
   documentation, and release-evidence mechanisms exist in the repository.
 - RC1 has candidate-specific approved hosted and restore evidence.
-- `main` is `2dd9f64136eb653284b0f5330a16ee99f6b0b491` at this cutoff.
+- `main` is `76f1194f1f9b83cb9ed8f0bb0083824ededbe0ae` at this cutoff.
 - CQ-01/CQ-02 are closed through merged PR #1608 with exact PostgreSQL 15/16 authority evidence. QH-01 is closed
   through merged PR #1632. Provider rollout and production qualification remain separate evidence obligations.
 - CQ-03 is the active critical-path programme. CQ-03A is complete through accepted ADR 0009 and merged PR #1634;
-  follow FPC-2026-08-13-01 and GitHub #1633 for CQ-03B. Provider history adoption remains separately authorized.
+  CQ-03B-R1 is human-ratified and recorded by ADR 0010. Follow FPC-2026-08-13-01 and GitHub #1633 for R2 after the
+  R1 record merges. Provider history adoption remains separately authorized.
 - GRAC v1 is `CURRENT` only for the exact-SHA staging slice recorded by PR #1598; broader claims remain `NEXT`.
 
 ### Governing constraints
@@ -505,23 +519,26 @@ Primary authorities:
 
 ### Next highest-value action
 
-Follow active commitment **FPC-2026-08-13-01**, accepted ADR 0009, and merged PR #1634. Begin CQ-03B's bounded
-repository-ledger materialization without provider mutation, then execute the later evidence sequence recorded in
-that commitment.
+Review and merge the CQ-03B-R1 ADR 0010 record under active commitment **FPC-2026-08-13-01**. Then begin R2's bounded
+component-ledger, target-profile, and forward-baseline materialization without provider mutation. Do not replay or
+reconstruct SQL under historical timestamps, run `supabase db pull` against hosted state, retain provider link state,
+or select `hosted-legacy-v1` as adopted before CQ-03D.
 Issue #1623 remains a small P2 follow-up and does not displace the CQ-03 programme. Release repeatability
 (**FPC-2026-07-21-02**) remains active.
 
 ### Completion test
 
-One declared PostgreSQL migration ledger can build a fresh database, adopt the intended live baseline, and detect
-unrecorded schema drift. CI and readiness fail clearly on drift while the restricted application role remains
-verify-only and cannot acquire migration, ownership, grant-management, or implicit credential-bootstrap authority.
+One declared PostgreSQL authority can build fresh auth, graph, coordination, and explicitly combined profiles from
+new forward migrations, explain approved legacy history without replaying it, and detect profile-specific unrecorded
+drift. CI and readiness fail clearly on drift or an unknown profile/lineage while the restricted application role
+remains verify-only and cannot acquire migration, ownership, grant-management, history-adoption, or implicit
+credential-bootstrap authority.
 
 ## Backfill coverage and gaps
 
 ### Sources reviewed
 
-- Repository `main` through `2dd9f64136eb653284b0f5330a16ee99f6b0b491` on 2026-08-13.
+- Repository `main` through `76f1194f1f9b83cb9ed8f0bb0083824ededbe0ae` on 2026-08-17.
 - Repository agent instructions and production-architecture declaration.
 - Enterprise-readiness index, audit, roadmap, PR board, validation-gap audit, release checklist, release evidence pack,
   hosted staging baseline, operational evidence framework, drill and scale-validation documents, and risk register.
@@ -532,8 +549,9 @@ verify-only and cannot acquire migration, ownership, grant-management, or implic
 - Merged GRAC foundation PRs #1541, #1542, #1549, #1550, and #1552.
 - Merged CQ-01/CQ-02 PR #1608, its final exact-head CI, and post-merge review-thread disposition.
 - Merged QH-01 PR #1632 and Linear DAS-63; closed external-quality record #1631; active CQ-03 programme record #1633,
-  merged CQ-03A PR #1634, accepted ADR 0009, and Linear DAS-62.
-- Read-only Supabase aggregate inventory and migration-history count captured on 2026-08-13; no provider mutation.
+  merged CQ-03A PR #1634, accepted ADR 0009, merged clarification PR #1636, ratified ADR 0010, and Linear DAS-62.
+- Read-only Supabase aggregate inventory and migration history captured on 2026-08-13 and revalidated at bounded
+  identity/status scope on 2026-08-17; current Supabase CLI workflow documentation reviewed; no provider mutation.
 - Available ChatGPT continuity context covering the enterprise-readiness program, PR #1096 onward, RC1 evidence work,
   hosted startup incidents, audit completion, and agreed future-work discussions.
 
@@ -543,7 +561,8 @@ verify-only and cannot acquire migration, ownership, grant-management, or implic
 - The ledger does not reproduce every PR, issue, review comment, CI run, or conversation.
 - Supabase schema and migration history were inspected read-only at aggregate scope; no schema, history, role,
   credential, project, deployment, Vercel, scanner, or authorization mutation was performed.
-- Restricted security and provider evidence was intentionally not accessed or recorded.
+- Restricted provider payload content was used only for bounded classification and adjudication; it was not copied
+  into this public ledger. Exact protected evidence remains outside the repository.
 - RC1 evidence is accepted as a committed candidate-specific record; its live artifacts were not recaptured.
 - Dates for grouped implementation phases are representative ledger anchors; individual PR merge dates remain
   authoritative in GitHub.
