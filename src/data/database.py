@@ -876,15 +876,11 @@ def _zero_capability_privileged_relation(connection) -> str | None:
     ).scalar()
 
 
-def _verify_runtime_login_relation_grants(connection, capabilities: tuple[str, ...]) -> None:
-    """Verify effective login relation privileges in two set-based round trips."""
+def _runtime_login_relation_expectations(
+    capabilities: tuple[str, ...],
+) -> tuple[list[str], dict[tuple, bool], dict[tuple, bool]]:
+    """Build the expected effective login table and column privilege matrices."""
     from .relationship_assertion_db_models import GRAC_TABLE_NAMES
-
-    if not capabilities:
-        relation_name = _zero_capability_privileged_relation(connection)
-        if relation_name is not None:
-            raise SchemaCompatibilityError(f"runtime login grants are incompatible on {relation_name}")
-        return
 
     effective_privileges = _runtime_table_privileges(capabilities)
     grac_tables = frozenset(GRAC_TABLE_NAMES)
@@ -902,13 +898,29 @@ def _verify_runtime_login_relation_grants(connection, capabilities: tuple[str, .
             for capability in capabilities
             for privilege in effective_privileges.get((capability, table_name), frozenset())
         )
-        for privilege in _TABLE_PRIVILEGES:
-            expected_tables[(None, table_name, privilege)] = privilege in expected
-        for column_name in Base.metadata.tables[table_name].columns.keys():
-            for privilege in _COLUMN_PRIVILEGES:
-                expected_columns[(None, table_name, column_name, privilege)] = privilege in expected or (
-                    privilege == "UPDATE" and (table_name, column_name) in graph_lock_columns
-                )
+        expected_tables.update(
+            {(None, table_name, privilege): privilege in expected for privilege in _TABLE_PRIVILEGES}
+        )
+        expected_columns.update(
+            {
+                (None, table_name, column_name, privilege): privilege in expected
+                or (privilege == "UPDATE" and (table_name, column_name) in graph_lock_columns)
+                for column_name in Base.metadata.tables[table_name].columns.keys()
+                for privilege in _COLUMN_PRIVILEGES
+            }
+        )
+    return managed_tables, expected_tables, expected_columns
+
+
+def _verify_runtime_login_relation_grants(connection, capabilities: tuple[str, ...]) -> None:
+    """Verify effective login relation privileges in two set-based round trips."""
+    if not capabilities:
+        relation_name = _zero_capability_privileged_relation(connection)
+        if relation_name is not None:
+            raise SchemaCompatibilityError(f"runtime login grants are incompatible on {relation_name}")
+        return
+
+    managed_tables, expected_tables, expected_columns = _runtime_login_relation_expectations(capabilities)
 
     mismatch = _first_matrix_mismatch(_table_privilege_rows(connection, [None], managed_tables), expected_tables)
     if mismatch is not None:

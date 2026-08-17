@@ -259,8 +259,8 @@ def _verify_graph_data_contract(engine: sqlalchemy.Engine, profile: str) -> None
             {"digest": "a" * 64},
         )
 
-    with pytest.raises(sqlalchemy.exc.DBAPIError):
-        with engine.begin() as connection:
+    with engine.connect() as connection:
+        with pytest.raises(sqlalchemy.exc.DBAPIError):
             connection.execute(
                 sqlalchemy.text("UPDATE relationship_evidence SET source_ref = 'changed' WHERE id = 'RAW_EVIDENCE'")
             )

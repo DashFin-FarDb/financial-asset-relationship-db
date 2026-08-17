@@ -3,6 +3,7 @@
 **Repository:** `DashFin-FarDb/financial-asset-relationship-db`
 **Established:** 2026-07-21
 **Repository evidence cutoff:** `main` at `3e0d54cee0baaae34cf5e99ed76e9ef25e2e4763`
+**Ratified setup baseline:** CQ-03B-R1 ratified on 2026-08-17 at `main@76f1194f1f9b83cb9ed8f0bb0083824ededbe0ae`
 **Continuity status:** CQ-03B-R1 merged; CQ-03B-R2 is published for exact-head validation from the authoritative base
 
 This ledger preserves durable project decisions, plans, milestones, and handoffs across ChatGPT, Codex, and

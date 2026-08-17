@@ -113,7 +113,7 @@ def test_production_compose_declares_persistence_defaults() -> None:
 
 
 def test_production_compose_declares_explicit_operator_migration() -> None:
-    """Migration must be an operator profile sharing the API persistence volume."""
+    """Migration must use an isolated operator image while sharing the persistence volume."""
     compose = yaml.safe_load(COMPOSE_PATH.read_text(encoding="utf-8"))
     api = compose["services"]["api"]
     migration = compose["services"]["migrate"]
@@ -125,8 +125,12 @@ def test_production_compose_declares_explicit_operator_migration() -> None:
     assert "no-new-privileges:true" in migration["security_opt"]
     assert migration["command"] == ["python", "-m", "scripts.migrate_database"]
     assert "api-data:/data" in migration["volumes"]
-    assert migration["image"] == api["image"]
-    assert migration["build"] == api["build"]
+    assert api["image"] == "${FARDB_API_IMAGE:-fardb-api}"
+    assert api["build"]["target"] == "runtime"
+    assert migration["image"] == "${FARDB_MIGRATION_IMAGE:-fardb-migration}"
+    assert migration["build"]["target"] == "migration"
+    assert migration["build"]["context"] == api["build"]["context"]
+    assert migration["build"]["dockerfile"] == api["build"]["dockerfile"]
     assert "command" not in api
     assert "ADMIN_PASSWORD" not in {str(value).split("=", 1)[0] for value in api["environment"]}
     for variable in (
@@ -152,6 +156,7 @@ def test_persistence_smoke_uses_packaged_compose_migration(production_container_
     """CI must exercise the production operator profile without a scripts bind mount."""
     operator_command = "docker compose -f docker-compose.production.yml --profile operator run --rm --build migrate"
     migration_runbook = MIGRATION_RUNBOOK_PATH.read_text(encoding="utf-8")
+    compact_runbook = " ".join(migration_runbook.split())
     assert operator_command in production_container_raw
     assert operator_command in migration_runbook
     assert "export SECRET_KEY=replace" not in migration_runbook
@@ -169,7 +174,7 @@ def test_persistence_smoke_uses_packaged_compose_migration(production_container_
         f"{operator_command}\n"
     )
     assert routine_operator_command in migration_runbook
-    assert "routine migrations must leave that variable unset" in migration_runbook
+    assert "routine migrations must leave that variable unset" in compact_runbook
     assert "scripts:/app/scripts" not in production_container_raw
 
 
