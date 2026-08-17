@@ -131,11 +131,11 @@ def _verify_reconciliation_schemas(engine: Any, coord_engine: Any) -> None:
     graph_capabilities = {GRAPH_RUNTIME_CAPABILITY}
     if coord_engine is engine:
         graph_capabilities.add(COORDINATION_RUNTIME_CAPABILITY)
-    verify_database_schema(engine)
+    verify_database_schema(engine, required_capabilities=graph_capabilities)
     verify_runtime_database_authority(engine, required_capabilities=graph_capabilities)
     if coord_engine is not engine:
         coordination_capabilities = {COORDINATION_RUNTIME_CAPABILITY}
-        verify_database_schema(coord_engine)
+        verify_database_schema(coord_engine, required_capabilities=coordination_capabilities)
         verify_runtime_database_authority(coord_engine, required_capabilities=coordination_capabilities)
 
 

@@ -32,6 +32,7 @@ from api.database import (
     fetch_value,
     get_connection,
     initialize_schema,
+    verify_runtime_access_catalog,
     verify_runtime_authority,
     verify_schema_compatibility,
 )
@@ -376,19 +377,39 @@ class TestSchemaInitialization:
     """Test schema initialization."""
 
     @patch.object(database, "DATABASE_TYPE", "postgresql")
-    @patch("api.database.fetch_value", side_effect=[None, 2])
+    @patch("api.database.fetch_value")
     @patch("api.database.execute")
-    def test_ensure_runtime_access_installs_read_only_auth_policy(self, mock_execute, _mock_fetch_value):
-        """Auth capability setup must grant SELECT and no mutation privilege."""
-        ensure_runtime_access()
+    def test_ensure_runtime_access_rejects_postgresql_mutation(self, mock_execute, mock_fetch_value):
+        """Auth grants and policies must come only from the profile-scoped ledger."""
+        with pytest.raises(SchemaCompatibilityError, match="profile-scoped Supabase ledger"):
+            ensure_runtime_access()
 
-        statements = "\n".join(call.args[0] for call in mock_execute.call_args_list)
-        assert "CREATE ROLE fardb_runtime_auth NOLOGIN" in statements
-        assert "GRANT SELECT ON TABLE user_credentials TO fardb_runtime_auth" in statements
-        assert "FOR SELECT TO fardb_runtime_auth USING (true)" in statements
-        assert "GRANT INSERT" not in statements
-        assert "GRANT UPDATE" not in statements
-        assert "GRANT DELETE" not in statements
+        mock_execute.assert_not_called()
+        mock_fetch_value.assert_not_called()
+
+    @patch.object(database, "DATABASE_TYPE", "postgresql")
+    @patch("api.database.fetch_value", return_value=True)
+    def test_verify_runtime_access_catalog_is_read_only(self, mock_fetch_value):
+        """Operator verification reads role, grant, RLS, and routine catalogs only."""
+        with patch("api.database.execute") as mock_execute:
+            verify_runtime_access_catalog()
+
+        mock_execute.assert_not_called()
+        assert mock_fetch_value.call_count == 5
+        assert "WITH RECURSIVE role_membership" in mock_fetch_value.call_args_list[0].args[0]
+
+    @pytest.mark.parametrize("failing_index", range(5))
+    @patch.object(database, "DATABASE_TYPE", "postgresql")
+    def test_verify_runtime_access_catalog_rejects_each_failed_check(self, failing_index):
+        """Each independent catalog check must fail closed."""
+        results = [True] * 5
+        results[failing_index] = False
+
+        with (
+            patch("api.database.fetch_value", side_effect=results),
+            pytest.raises(SchemaCompatibilityError, match="capability contract is incompatible"),
+        ):
+            verify_runtime_access_catalog()
 
     @patch("api.database.execute")
     def test_initialize_schema_creates_table(self, mock_execute):
@@ -478,6 +499,11 @@ class TestSchemaInitialization:
         )
         assert "namespace.nspowner = assumable.oid" in authority_query
         assert "database.datdba = assumable.oid" in authority_query
+        assert "cross_rel.relname = ANY(%s)" in authority_query
+        assert "cross_rel.relkind IN ('r', 'p', 'v', 'm', 'f')" in authority_query
+        assert "has_any_column_privilege(assumable.oid, cross_rel.oid, 'SELECT')" in authority_query
+        assert "has_sequence_privilege(assumable.oid, cross_sequence.oid, 'UPDATE')" in authority_query
+        assert "has_function_privilege(assumable.oid, cross_proc.oid, 'EXECUTE')" in authority_query
 
 
 class TestEdgeCases:

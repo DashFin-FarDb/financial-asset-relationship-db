@@ -3,252 +3,441 @@
 from __future__ import annotations
 
 from contextlib import contextmanager
+from typing import cast
 from unittest.mock import MagicMock, call
 
 import pytest
+from sqlalchemy.exc import ArgumentError
 
 import scripts.migrate_database as migrate_database
+from scripts.postgresql_ledger import (
+    TARGET_BINDINGS_ENV,
+    TARGET_IDENTITY_INDETERMINATE,
+    HostedWriteBarrierError,
+    PlannedTarget,
+    SupabaseCliError,
+    TargetIdentityError,
+    TargetProfileConflictError,
+)
 from src.config.settings import Settings
-from src.data.database import CapabilityRoleBootstrapRequiredError, SchemaCompatibilityError
+from src.data.database import CapabilityRoleBootstrapRequiredError
 
 pytestmark = pytest.mark.unit
+_TEST_ADMIN_PASSWORD = "strong-test-password"  # nosec B105 - synthetic unit-test value
 
 
-def test_migrate_configured_databases_owns_all_mutating_setup(monkeypatch) -> None:
-    """One command should migrate graph/coordination and provision auth state."""
-    test_password = "-".join(("strong", "test", "password"))
-    settings = Settings(
-        secret_key="s" * 32,
+def _settings(**overrides) -> Settings:
+    """Build minimal operator settings with caller-selected database URLs."""
+    values = {
+        "secret_key": "s" * 32,
+        "database_url": "sqlite:///auth.db",
+    }
+    values.update(overrides)
+    return Settings(**values)
+
+
+def _engine(url: str) -> MagicMock:
+    """Build a disposable engine double with a stable URL string."""
+    engine = MagicMock()
+    engine.url = url
+    return engine
+
+
+@contextmanager
+def _null_binding(_url: str):
+    """Provide a no-op API database binding for unit tests."""
+    yield
+
+
+def _stub_auth_success(monkeypatch) -> None:
+    """Stub credential provisioning while preserving operator call boundaries."""
+    monkeypatch.setattr(migrate_database, "bind_database_url", _null_binding)
+    monkeypatch.setattr(migrate_database, "initialize_schema", MagicMock())
+    monkeypatch.setattr(migrate_database, "verify_schema_compatibility", MagicMock())
+    monkeypatch.setattr(migrate_database, "verify_runtime_access_catalog", MagicMock())
+    monkeypatch.setattr(migrate_database, "seed_credentials_from_settings", MagicMock())
+    monkeypatch.setattr(migrate_database, "_has_usable_credentials", lambda: True)
+
+
+@pytest.mark.parametrize(
+    "url",
+    (
+        "postgresql://operator@localhost/fardb",
+        "postgres://operator@localhost/fardb",
+        "postgresql+psycopg2://operator@localhost/fardb",
+        "postgres+psycopg2://operator@localhost/fardb",
+        "postgresql+psycopg://operator@localhost/fardb",
+    ),
+)
+def test_postgresql_url_detection_accepts_sqlalchemy_driver_suffixes(url: str) -> None:
+    """Driver-qualified SQLAlchemy URLs still select the PostgreSQL operator path."""
+    assert migrate_database._is_postgresql_url(url)  # pylint: disable=protected-access
+
+
+def test_postgresql_cli_url_removes_sqlalchemy_driver_suffix() -> None:
+    """Supabase receives a standard PostgreSQL URL rather than a SQLAlchemy dialect URL."""
+    value = "postgresql+psycopg2://operator@localhost/fardb?sslmode=disable"
+
+    result = migrate_database._postgresql_cli_url(value)  # pylint: disable=protected-access
+
+    assert result == "postgresql://operator@localhost/fardb?sslmode=disable"
+
+
+@pytest.mark.parametrize(
+    ("value", "expected"),
+    (
+        ("postgresql+psycopg://operator@localhost/fardb", "postgresql://operator@localhost/fardb"),
+        ("sqlite:///auth.db", "sqlite:///auth.db"),
+    ),
+)
+def test_auth_binding_url_is_dbapi_compatible(value: str, expected: str) -> None:
+    """API auth binding strips PostgreSQL SQLAlchemy drivers and preserves SQLite."""
+    assert migrate_database._auth_binding_url(value) == expected  # pylint: disable=protected-access
+
+
+def test_implicit_coordination_fallback_does_not_create_partial_shared_profile() -> None:
+    """DATABASE_URL alone selects auth instead of an unsupported auth/coordination alias."""
+    database_url = "postgresql://operator@localhost/auth"
+    settings = _settings(database_url=database_url, coordination_database_url=database_url)
+
+    configured = migrate_database._configured_database_urls(settings)  # pylint: disable=protected-access
+
+    assert configured == {"auth": database_url}
+
+
+def test_sqlite_operator_path_preserves_local_initialization(monkeypatch) -> None:
+    """SQLite targets retain explicit local initialization and stable output order."""
+    settings = _settings(
         asset_graph_database_url="sqlite:///graph.db",
-        database_url="sqlite:///auth.db",
         coordination_database_url="sqlite:///coordination.db",
         admin_username="admin",
-        admin_password=test_password,
+        admin_password=_TEST_ADMIN_PASSWORD,
     )
     engines = {
-        "sqlite:///graph.db": MagicMock(),
-        "sqlite:///coordination.db": MagicMock(),
+        "sqlite:///graph.db": _engine("sqlite:///graph.db"),
+        "sqlite:///coordination.db": _engine("sqlite:///coordination.db"),
     }
-    initialize_schema = MagicMock()
-    seed_credentials = MagicMock()
-    verify_auth = MagicMock()
     init_db = MagicMock()
-    verify_graph = MagicMock()
-    ensure_capabilities = MagicMock()
-    ensure_auth = MagicMock()
-    bound_targets: list[str] = []
-
-    @contextmanager
-    def bind_target(url: str):
-        """Record and yield one temporary API database binding."""
-        bound_targets.append(url)
-        yield
-
-    monkeypatch.setattr(migrate_database, "initialize_schema", initialize_schema)
-    monkeypatch.setattr(migrate_database, "seed_credentials_from_settings", seed_credentials)
-    monkeypatch.setattr(migrate_database, "verify_schema_compatibility", verify_auth)
-    monkeypatch.setattr(migrate_database, "_has_usable_credentials", lambda: True)
+    verify_schema = MagicMock()
+    _stub_auth_success(monkeypatch)
     monkeypatch.setattr(migrate_database, "init_db", init_db)
-    monkeypatch.setattr(migrate_database, "verify_database_schema", verify_graph)
-    monkeypatch.setattr(migrate_database, "ensure_runtime_database_capabilities", ensure_capabilities)
-    monkeypatch.setattr(migrate_database, "ensure_runtime_access", ensure_auth)
-    monkeypatch.setattr(migrate_database, "bind_database_url", bind_target)
+    monkeypatch.setattr(migrate_database, "verify_database_schema", verify_schema)
 
-    migrated = migrate_database.migrate_configured_databases(
-        settings,
-        engine_factory=lambda url: engines[url],
-    )
+    migrated = migrate_database.migrate_configured_databases(settings, engine_factory=lambda url: engines[url])
 
     assert migrated == ("graph", "coordination", "auth")
     assert init_db.call_count == 2
-    assert verify_graph.call_count == 4
-    assert ensure_capabilities.call_count == 2
-    initialize_schema.assert_called_once_with()
-    seed_credentials.assert_called_once_with(migrate_database.user_repository, settings)
-    ensure_auth.assert_called_once_with()
-    verify_auth.assert_called_once_with()
-    assert bound_targets == ["sqlite:///auth.db"]
+    assert verify_schema.call_args_list == [
+        call(engines["sqlite:///graph.db"], required_capabilities={"graph"}),
+        call(engines["sqlite:///coordination.db"], required_capabilities={"coordination"}),
+    ]
+    cast(MagicMock, migrate_database.initialize_schema).assert_called_once_with()
+    cast(MagicMock, migrate_database.verify_runtime_access_catalog).assert_not_called()
     for engine in engines.values():
         engine.dispose.assert_called_once_with()
 
 
-def test_migrate_configured_databases_rejects_incompatible_structure_before_authority(monkeypatch) -> None:
-    """Structural incompatibility must fail before runtime authority can be changed."""
-    graph_url = "sqlite:///graph.db"
-    settings = Settings(
-        secret_key="s" * 32,
-        asset_graph_database_url=graph_url,
-        database_url="sqlite:///auth.db",
+def test_postgresql_targets_apply_after_global_preflight_and_before_engines(monkeypatch, tmp_path) -> None:
+    """All identities and barriers resolve before profile application or connection creation."""
+    settings = _settings(
+        database_url="postgresql://operator@localhost/auth",
+        asset_graph_database_url="postgresql://operator@localhost/graph",
+        coordination_database_url="postgresql://operator@localhost/coordination",
+        admin_username="admin",
+        admin_password=_TEST_ADMIN_PASSWORD,
     )
-    graph_engine = MagicMock()
-    init_db = MagicMock()
-    verify_graph = MagicMock(side_effect=SchemaCompatibilityError("incompatible pre-existing schema"))
-    ensure_capabilities = MagicMock()
-    monkeypatch.setattr(migrate_database, "init_db", init_db)
-    monkeypatch.setattr(migrate_database, "verify_database_schema", verify_graph)
-    monkeypatch.setattr(migrate_database, "ensure_runtime_database_capabilities", ensure_capabilities)
+    binding_path = tmp_path / "bindings.json"
+    binding_path.write_text("{}", encoding="utf-8")
+    binding_path.chmod(0o600)
+    monkeypatch.setenv(TARGET_BINDINGS_ENV, str(binding_path))
+    manifest = object()
+    plan = tuple(
+        PlannedTarget(
+            logical_targets=(component,),
+            profile=component,
+            lineage="fresh-v1",
+            execution_class="loopback",
+            fingerprint=component[0] * 64,
+            database_url=f"postgresql://operator@localhost/{component}",
+        )
+        for component in ("auth", "graph", "coordination")
+    )
+    events: list[str] = []
+    monkeypatch.setattr(migrate_database, "load_and_validate_manifest", lambda: manifest)
+    monkeypatch.setattr(migrate_database, "resolve_target_plan", lambda *_args: plan)
+    monkeypatch.setattr(
+        migrate_database,
+        "assert_profile_write_allowed",
+        lambda target: events.append(f"barrier:{target.profile}"),
+    )
+    monkeypatch.setattr(
+        migrate_database,
+        "apply_profile_to_database",
+        lambda target, _manifest: events.append(f"apply:{target.profile}"),
+    )
+    engines = {
+        plan[1].database_url: _engine(plan[1].database_url),
+        plan[2].database_url: _engine(plan[2].database_url),
+    }
 
-    with pytest.raises(SchemaCompatibilityError, match="incompatible pre-existing schema"):
-        migrate_database.migrate_configured_databases(
-            settings,
-            engine_factory=lambda _url: graph_engine,
+    def engine_factory(url: str) -> MagicMock:
+        """Record engine construction without opening a connection."""
+        events.append(f"engine:{url.rsplit('/', 1)[-1]}")
+        return engines[url]
+
+    _stub_auth_success(monkeypatch)
+    verify_schema = MagicMock()
+    monkeypatch.setattr(migrate_database, "verify_database_schema", verify_schema)
+    monkeypatch.setattr(migrate_database, "init_db", MagicMock())
+
+    migrated = migrate_database.migrate_configured_databases(settings, engine_factory=engine_factory)
+
+    assert migrated == ("graph", "coordination", "auth")
+    assert events[:3] == ["barrier:auth", "barrier:graph", "barrier:coordination"]
+    assert events[3:6] == ["apply:auth", "apply:graph", "apply:coordination"]
+    assert events[6:] == ["engine:graph", "engine:coordination"]
+    cast(MagicMock, migrate_database.init_db).assert_not_called()
+    assert verify_schema.call_args_list == [
+        call(engines[plan[1].database_url], required_capabilities={"graph"}),
+        call(engines[plan[2].database_url], required_capabilities={"coordination"}),
+    ]
+    cast(MagicMock, migrate_database.initialize_schema).assert_not_called()
+    cast(MagicMock, migrate_database.verify_runtime_access_catalog).assert_called_once_with()
+    cast(MagicMock, migrate_database.verify_schema_compatibility).assert_called_once_with()
+
+
+def test_missing_postgresql_binding_fails_before_engine_or_subprocess(monkeypatch) -> None:
+    """PostgreSQL cannot run without a protected target identity document."""
+    monkeypatch.delenv(TARGET_BINDINGS_ENV, raising=False)
+    engine_factory = MagicMock()
+    apply_profile = MagicMock()
+    monkeypatch.setattr(migrate_database, "apply_profile_to_database", apply_profile)
+    settings = _settings(database_url="postgresql://operator@localhost/auth")
+
+    with pytest.raises(TargetIdentityError, match=TARGET_IDENTITY_INDETERMINATE):
+        migrate_database.migrate_configured_databases(settings, engine_factory=engine_factory)
+
+    engine_factory.assert_not_called()
+    apply_profile.assert_not_called()
+
+
+def test_malformed_postgresql_url_fails_with_protected_identity_error(monkeypatch) -> None:
+    """PostgreSQL URL normalization cannot escape the fixed protected diagnostic."""
+    monkeypatch.setenv(TARGET_BINDINGS_ENV, "/operator/bindings.json")
+    load_manifest = MagicMock()
+    monkeypatch.setattr(migrate_database, "load_and_validate_manifest", load_manifest)
+
+    with pytest.raises(TargetIdentityError, match=TARGET_IDENTITY_INDETERMINATE):
+        migrate_database._resolve_postgresql_plan(  # pylint: disable=protected-access
+            {"auth": "postgresql://operator@localhost:invalid/auth"}
         )
 
-    init_db.assert_called_once_with(graph_engine)
-    verify_graph.assert_called_once_with(graph_engine)
-    ensure_capabilities.assert_not_called()
-    graph_engine.dispose.assert_called_once_with()
+    load_manifest.assert_not_called()
 
 
-def test_migrate_configured_databases_requires_provisioned_credentials(monkeypatch) -> None:
-    """An auth-only setup must fail if it cannot establish a usable credential."""
-    settings = Settings(secret_key="s" * 32, database_url="sqlite:///auth.db")
-    monkeypatch.setattr(migrate_database, "initialize_schema", lambda: None)
-    monkeypatch.setattr(migrate_database, "verify_schema_compatibility", lambda: None)
-    monkeypatch.setattr(migrate_database, "ensure_runtime_access", lambda: None)
-    monkeypatch.setattr(migrate_database, "seed_credentials_from_settings", lambda *_args: None)
-    monkeypatch.setattr(migrate_database, "_has_usable_credentials", lambda: False)
-    monkeypatch.setattr(migrate_database, "init_db", lambda _engine: None)
-    monkeypatch.setattr(migrate_database, "verify_database_schema", lambda _engine, **_kwargs: None)
+def test_sqlalchemy_url_parser_error_fails_with_protected_identity_error(monkeypatch) -> None:
+    """SQLAlchemy parser failures cannot escape the fixed protected diagnostic."""
+    monkeypatch.setattr(
+        migrate_database,
+        "_postgresql_cli_url",
+        MagicMock(side_effect=ArgumentError("synthetic parser failure")),
+    )
 
-    with pytest.raises(RuntimeError, match="credential provisioning incomplete"):
-        migrate_database.migrate_configured_databases(settings, engine_factory=lambda _url: MagicMock())
+    with pytest.raises(TargetIdentityError, match=TARGET_IDENTITY_INDETERMINATE):
+        migrate_database._resolve_postgresql_plan(  # pylint: disable=protected-access
+            {"auth": "postgresql://operator@localhost/auth"}
+        )
 
 
-def test_migrate_configured_databases_rejects_missing_auth_before_other_targets(monkeypatch) -> None:
-    """A missing auth target must fail before graph/coordination engines can mutate."""
-    settings = Settings(
-        secret_key="s" * 32,
-        database_url=None,
-        coordination_database_url="sqlite:///coordination.db",
+def test_target_profile_conflict_fails_before_engine_or_subprocess(monkeypatch, tmp_path) -> None:
+    """A resolver conflict cannot be recovered by inferring a broader profile."""
+    binding_path = tmp_path / "bindings.json"
+    binding_path.write_text("{}", encoding="utf-8")
+    binding_path.chmod(0o600)
+    monkeypatch.setenv(TARGET_BINDINGS_ENV, str(binding_path))
+    monkeypatch.setattr(migrate_database, "load_and_validate_manifest", object)
+    monkeypatch.setattr(
+        migrate_database,
+        "resolve_target_plan",
+        MagicMock(side_effect=TargetProfileConflictError("conflicting profiles")),
     )
     engine_factory = MagicMock()
+    apply_profile = MagicMock()
+    monkeypatch.setattr(migrate_database, "apply_profile_to_database", apply_profile)
+    settings = _settings(database_url="postgresql://operator@localhost/auth")
+
+    with pytest.raises(TargetProfileConflictError, match="conflicting profiles"):
+        migrate_database.migrate_configured_databases(settings, engine_factory=engine_factory)
+
+    engine_factory.assert_not_called()
+    apply_profile.assert_not_called()
+
+
+def test_all_write_barriers_run_before_first_profile_application(monkeypatch, tmp_path) -> None:
+    """A later unsafe target cannot leave an earlier target partially applied."""
+    binding_path = tmp_path / "bindings.json"
+    binding_path.write_text("{}", encoding="utf-8")
+    binding_path.chmod(0o600)
+    monkeypatch.setenv(TARGET_BINDINGS_ENV, str(binding_path))
+    safe = PlannedTarget(
+        ("auth",),
+        "auth",
+        "fresh-v1",
+        "loopback",
+        "a" * 64,
+        "postgresql://operator@localhost/auth",
+    )
+    unsafe = PlannedTarget(
+        ("graph",),
+        "graph",
+        "fresh-v1",
+        "hosted",
+        "b" * 64,
+        "postgresql://operator@project.supabase.co/postgres",
+    )
+    monkeypatch.setattr(migrate_database, "load_and_validate_manifest", object)
+    monkeypatch.setattr(migrate_database, "resolve_target_plan", lambda *_args: (safe, unsafe))
+    apply_profile = MagicMock()
+    monkeypatch.setattr(migrate_database, "apply_profile_to_database", apply_profile)
+    engine_factory = MagicMock()
+    settings = _settings(
+        database_url=safe.database_url,
+        asset_graph_database_url=unsafe.database_url,
+        coordination_database_url="sqlite:///coordination.db",
+    )
+
+    with pytest.raises(HostedWriteBarrierError):
+        migrate_database.migrate_configured_databases(settings, engine_factory=engine_factory)
+
+    apply_profile.assert_not_called()
+    engine_factory.assert_not_called()
+
+
+@pytest.mark.parametrize(
+    "failure",
+    (SupabaseCliError("protected dependency output"), OSError("protected filesystem output")),
+    ids=("cli", "filesystem"),
+)
+def test_partial_postgresql_apply_reports_bounded_progress(monkeypatch, tmp_path, failure: Exception) -> None:
+    """Every later target failure reports bounded progress without creating engines."""
+    binding_path = tmp_path / "bindings.json"
+    binding_path.write_text("{}", encoding="utf-8")
+    binding_path.chmod(0o600)
+    monkeypatch.setenv(TARGET_BINDINGS_ENV, str(binding_path))
+    manifest = object()
+    plan = (
+        PlannedTarget(("auth",), "auth", "fresh-v1", "loopback", "a" * 64, "postgresql://operator@localhost/auth"),
+        PlannedTarget(("graph",), "graph", "fresh-v1", "loopback", "b" * 64, "postgresql://operator@localhost/graph"),
+    )
+    monkeypatch.setattr(migrate_database, "load_and_validate_manifest", MagicMock(return_value=manifest))
+    monkeypatch.setattr(migrate_database, "resolve_target_plan", MagicMock(return_value=plan))
+    monkeypatch.setattr(migrate_database, "assert_profile_write_allowed", MagicMock())
+    attempted: list[str] = []
+
+    def apply_profile(target: PlannedTarget, _manifest: object) -> None:
+        """Succeed once, then raise one representative target failure."""
+        attempted.append(target.profile)
+        if target.profile == "graph":
+            raise failure
+
+    monkeypatch.setattr(migrate_database, "apply_profile_to_database", apply_profile)
+    engine_factory = MagicMock()
+    settings = _settings(
+        database_url=plan[0].database_url,
+        asset_graph_database_url=plan[1].database_url,
+        coordination_database_url="sqlite:///coordination.db",
+    )
+
+    with pytest.raises(migrate_database.PostgreSQLPlanApplyError) as captured:
+        migrate_database.migrate_configured_databases(settings, engine_factory=engine_factory)
+
+    assert attempted == ["auth", "graph"]
+    assert captured.value.completed_profiles == ("auth",)
+    assert captured.value.failed_profile == "graph"
+    engine_factory.assert_not_called()
+
+
+def test_shared_sqlite_graph_and_coordination_verify_once_with_union(monkeypatch) -> None:
+    """A shared local target is initialized once with explicit combined capabilities."""
+    shared_url = "sqlite:///shared.db"
+    settings = _settings(asset_graph_database_url=shared_url)
+    shared_engine = _engine(shared_url)
+    _stub_auth_success(monkeypatch)
     init_db = MagicMock()
-    ensure_capabilities = MagicMock()
+    verify_schema = MagicMock()
     monkeypatch.setattr(migrate_database, "init_db", init_db)
-    monkeypatch.setattr(migrate_database, "ensure_runtime_database_capabilities", ensure_capabilities)
+    monkeypatch.setattr(migrate_database, "verify_database_schema", verify_schema)
+
+    migrated = migrate_database.migrate_configured_databases(settings, engine_factory=lambda _url: shared_engine)
+
+    assert migrated == ("graph", "coordination", "auth")
+    init_db.assert_called_once_with(shared_engine)
+    verify_schema.assert_called_once_with(shared_engine, required_capabilities={"graph", "coordination"})
+    shared_engine.dispose.assert_called_once_with()
+
+
+def test_missing_auth_fails_before_other_targets(monkeypatch) -> None:
+    """A missing auth target must fail before any engine or profile execution."""
+    engine_factory = MagicMock()
+    apply_profile = MagicMock()
+    monkeypatch.setattr(migrate_database, "apply_profile_to_database", apply_profile)
+    settings = _settings(database_url=None, coordination_database_url="sqlite:///coordination.db")
 
     with pytest.raises(RuntimeError, match="configured auth database is missing"):
         migrate_database.migrate_configured_databases(settings, engine_factory=engine_factory)
 
     engine_factory.assert_not_called()
-    init_db.assert_not_called()
-    ensure_capabilities.assert_not_called()
+    apply_profile.assert_not_called()
 
 
-def test_configured_engines_disposes_partial_construction_on_factory_failure() -> None:
-    """A later engine-construction failure must dispose already-created engines."""
-    settings = Settings(
-        secret_key="s" * 32,
-        asset_graph_database_url="sqlite:///graph.db",
-        database_url="sqlite:///auth.db",
-        coordination_database_url="sqlite:///coordination.db",
-    )
-    first_engine = MagicMock()
+def test_requires_usable_credentials(monkeypatch) -> None:
+    """Auth provisioning remains incomplete without an enabled supported password hash."""
+    _stub_auth_success(monkeypatch)
+    monkeypatch.setattr(migrate_database, "_has_usable_credentials", lambda: False)
+    settings = _settings()
+
+    with pytest.raises(RuntimeError, match="credential provisioning incomplete"):
+        migrate_database.migrate_configured_databases(settings)
+
+
+def test_configured_engines_disposes_partial_construction_on_failure() -> None:
+    """A later engine-construction failure disposes every earlier engine."""
+    database_urls = {
+        "auth": "sqlite:///auth.db",
+        "graph": "sqlite:///graph.db",
+        "coordination": "sqlite:///coordination.db",
+    }
+    first_engine = _engine("sqlite:///graph.db")
     engine_factory = MagicMock(side_effect=[first_engine, RuntimeError("engine factory failed")])
 
     with pytest.raises(RuntimeError, match="engine factory failed"):
-        migrate_database._configured_engines(settings, engine_factory)  # pylint: disable=protected-access
+        migrate_database._configured_engines(database_urls, engine_factory)  # pylint: disable=protected-access
 
     first_engine.dispose.assert_called_once_with()
 
 
-def test_migrate_configured_databases_migrates_coordination_without_graph(monkeypatch) -> None:
-    """An explicitly configured coordination target must not depend on graph persistence."""
-    settings = Settings(
-        secret_key="s" * 32,
-        database_url="sqlite:///auth.db",
-        coordination_database_url="sqlite:///coordination.db",
-    )
-    coordination_engine = MagicMock()
-    monkeypatch.setattr(migrate_database, "init_db", MagicMock())
-    monkeypatch.setattr(migrate_database, "verify_database_schema", MagicMock())
-    monkeypatch.setattr(migrate_database, "ensure_runtime_database_capabilities", MagicMock())
-    monkeypatch.setattr(migrate_database, "ensure_runtime_access", lambda: None)
-    monkeypatch.setattr(migrate_database, "initialize_schema", lambda: None)
-    monkeypatch.setattr(migrate_database, "verify_schema_compatibility", lambda: None)
-    monkeypatch.setattr(migrate_database, "seed_credentials_from_settings", lambda *_args: None)
-    monkeypatch.setattr(migrate_database, "_has_usable_credentials", lambda: True)
+def test_configured_engines_uses_normalized_target_set() -> None:
+    """An implicit auth-only coordination fallback must not be reintroduced."""
+    engine_factory = MagicMock()
 
-    migrated = migrate_database.migrate_configured_databases(
-        settings,
-        engine_factory=lambda _url: coordination_engine,
+    graph_url, engines = migrate_database._configured_engines(  # pylint: disable=protected-access
+        {"auth": "postgresql://operator@localhost/auth"},
+        engine_factory,
     )
 
-    assert migrated == ("coordination", "auth")
-    coordination_engine.dispose.assert_called_once_with()
-
-
-def test_migrate_configured_databases_combines_shared_graph_and_coordination_capabilities(monkeypatch) -> None:
-    """A shared URL must be migrated once with both required runtime capabilities."""
-    shared_url = "sqlite:///shared.db"
-    settings = Settings(
-        secret_key="s" * 32,
-        database_url="sqlite:///auth.db",
-        asset_graph_database_url=shared_url,
-    )
-    shared_engine = MagicMock()
-    ensure_capabilities = MagicMock()
-    verify_graph = MagicMock()
-    monkeypatch.setattr(migrate_database, "init_db", MagicMock())
-    monkeypatch.setattr(migrate_database, "ensure_runtime_database_capabilities", ensure_capabilities)
-    monkeypatch.setattr(migrate_database, "verify_database_schema", verify_graph)
-    monkeypatch.setattr(migrate_database, "initialize_schema", lambda: None)
-    monkeypatch.setattr(migrate_database, "verify_schema_compatibility", lambda: None)
-    monkeypatch.setattr(migrate_database, "ensure_runtime_access", lambda: None)
-    monkeypatch.setattr(migrate_database, "seed_credentials_from_settings", lambda *_args: None)
-    monkeypatch.setattr(migrate_database, "_has_usable_credentials", lambda: True)
-
-    migrated = migrate_database.migrate_configured_databases(
-        settings,
-        engine_factory=lambda _url: shared_engine,
-    )
-
-    assert migrated == ("graph", "coordination", "auth")
-    capabilities = ensure_capabilities.call_args.args[1]
-    assert capabilities == {
-        migrate_database.GRAPH_RUNTIME_CAPABILITY,
-        migrate_database.COORDINATION_RUNTIME_CAPABILITY,
-    }
-    assert verify_graph.call_args_list == [
-        call(shared_engine),
-        call(shared_engine, required_capabilities=capabilities),
-    ]
-    shared_engine.dispose.assert_called_once_with()
-
-
-def test_migrate_configured_databases_binds_auth_target_at_execution_time(monkeypatch) -> None:
-    """Explicit settings must select auth after the migration module was imported."""
-    settings = Settings(secret_key="s" * 32, database_url="sqlite:///requested.db")
-    bound_targets: list[str] = []
-
-    @contextmanager
-    def bind_target(url: str):
-        """Record and yield the auth target selected at execution time."""
-        bound_targets.append(url)
-        yield
-
-    monkeypatch.setattr(migrate_database, "bind_database_url", bind_target)
-    monkeypatch.setattr(migrate_database, "initialize_schema", lambda: None)
-    monkeypatch.setattr(migrate_database, "verify_schema_compatibility", lambda: None)
-    monkeypatch.setattr(migrate_database, "ensure_runtime_access", lambda: None)
-    monkeypatch.setattr(migrate_database, "seed_credentials_from_settings", lambda *_args: None)
-    monkeypatch.setattr(migrate_database, "_has_usable_credentials", lambda: True)
-
-    assert migrate_database.migrate_configured_databases(settings) == ("auth",)
-    assert bound_targets == ["sqlite:///requested.db"]
+    assert graph_url is None
+    assert engines == {}
+    engine_factory.assert_not_called()
 
 
 def test_main_sanitizes_dependency_errors(monkeypatch, capsys) -> None:
-    """The CLI boundary must not echo driver messages that can contain DSNs."""
-    test_password = "-".join(("not", "a", "credential"))
-    secret_dsn = f"postgresql://operator:{test_password}@database.invalid/fardb"
-
-    def fail_migration():
-        """Raise a DSN-bearing dependency error for CLI redaction coverage."""
-        raise RuntimeError(f"connection failed for {secret_dsn}")
-
-    monkeypatch.setattr(migrate_database, "migrate_configured_databases", fail_migration)
+    """The CLI boundary never echoes a DSN-bearing dependency error."""
+    secret_dsn = "postgresql://operator:not-a-credential@database.invalid/fardb"  # nosec B105
+    monkeypatch.setattr(
+        migrate_database,
+        "migrate_configured_databases",
+        MagicMock(side_effect=RuntimeError(f"connection failed for {secret_dsn}")),
+    )
 
     assert migrate_database.main() == 1
     captured = capsys.readouterr()
@@ -256,8 +445,51 @@ def test_main_sanitizes_dependency_errors(monkeypatch, capsys) -> None:
     assert secret_dsn not in captured.err
 
 
+def test_main_emits_fixed_target_identity_reason(monkeypatch, capsys) -> None:
+    """Indeterminate protected identity has one non-sensitive public diagnostic."""
+    monkeypatch.setattr(
+        migrate_database,
+        "migrate_configured_databases",
+        MagicMock(side_effect=TargetIdentityError()),
+    )
+
+    assert migrate_database.main() == 1
+    captured = capsys.readouterr()
+    assert captured.err.strip() == f"Database migration failed: {TARGET_IDENTITY_INDETERMINATE}"
+
+
+def test_main_emits_bounded_hosted_barrier_reason(monkeypatch, capsys) -> None:
+    """Hosted-write denial does not echo its URL or protected inputs."""
+    monkeypatch.setattr(
+        migrate_database,
+        "migrate_configured_databases",
+        MagicMock(side_effect=HostedWriteBarrierError("secret target detail")),
+    )
+
+    assert migrate_database.main() == 1
+    captured = capsys.readouterr()
+    assert captured.err.strip() == "Database migration failed: PostgreSQL hosted write barrier blocked execution"
+    assert "secret target detail" not in captured.err
+
+
+def test_main_emits_bounded_partial_apply_progress(monkeypatch, capsys) -> None:
+    """Partial-plan diagnostics contain only fixed profile names."""
+    error = migrate_database.PostgreSQLPlanApplyError(("auth",), "graph")
+    monkeypatch.setattr(
+        migrate_database,
+        "migrate_configured_databases",
+        MagicMock(side_effect=error),
+    )
+
+    assert migrate_database.main() == 1
+    captured = capsys.readouterr()
+    assert captured.err.strip() == (
+        "Database migration failed: PostgreSQL profile application incomplete " "(completed=auth; failed=graph)"
+    )
+
+
 def test_main_reports_safe_capability_bootstrap_diagnostic(monkeypatch, capsys) -> None:
-    """The operator sees the repository-owned bootstrap action without DSN details."""
+    """The legacy public exception retains a bounded bootstrap action diagnostic."""
     monkeypatch.setattr(
         migrate_database,
         "migrate_configured_databases",

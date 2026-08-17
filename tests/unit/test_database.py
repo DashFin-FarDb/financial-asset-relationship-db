@@ -51,17 +51,19 @@ from api.database import (
     get_connection,
 )
 from src.data.database import (
+    AUTH_RUNTIME_TABLE,
     COORDINATION_RUNTIME_CAPABILITY,
     DEFAULT_DATABASE_URL,
     GRAPH_RUNTIME_CAPABILITY,
+    POSTGRESQL_MANAGED_TABLES,
     Base,
-    CapabilityRoleBootstrapRequiredError,
     SchemaCompatibilityError,
-    _ensure_capability_role,
+    _managed_table_names,
     _normalize_check_definition,
     _runtime_policy_specs,
     _runtime_table_privileges,
     _verify_runtime_capability_catalog,
+    _verify_runtime_login_relation_grants,
     _verify_table_constraints,
     _verify_table_schema,
     configure_sqlite_engine,
@@ -114,43 +116,20 @@ def test_graph_capability_preserves_grac_immutability_and_locking() -> None:
         assert policies[(table_name, "fardb_graph_lock_v1")] == ("w", "true", "false")
 
 
-def test_capability_role_requires_superuser_bootstrap_when_missing() -> None:
-    """Normal migration authority cannot create a missing cluster capability role."""
-    role_state = MagicMock()
-    role_state.one.return_value = (False, False)
+def test_no_capability_login_checks_every_present_managed_relation() -> None:
+    """An empty capability profile uses an OID-based deny-all relation query."""
     connection = MagicMock()
-    connection.execute.return_value = role_state
+    connection.execute.return_value.scalar.return_value = "assets"
 
-    with pytest.raises(
-        CapabilityRoleBootstrapRequiredError,
-        match="bootstrap_database_capability_roles.sql as a PostgreSQL superuser",
-    ):
-        _ensure_capability_role(connection, "fardb_runtime_graph")
+    with pytest.raises(SchemaCompatibilityError, match="runtime login grants are incompatible on assets"):
+        _verify_runtime_login_relation_grants(connection, ())
 
-    connection.execute.assert_called_once()
-
-
-def test_capability_role_retains_superuser_fallback_creation() -> None:
-    """Disposable superuser setup may still create and strictly validate a missing role."""
-    role_state = MagicMock()
-    role_state.one.return_value = (False, True)
-    connection = MagicMock()
-    connection.execute.side_effect = [role_state, MagicMock()]
-
-    _ensure_capability_role(connection, "fardb_runtime_graph")
-
-    statement = str(connection.execute.call_args_list[1].args[0])
-    assert "CREATE ROLE ' || quote_ident(capability_role)" in statement
-    assert "rolname = CURRENT_USER" in statement
-    assert "rolsuper" in statement
-    assert "membership.roleid = role.oid AND membership.admin_option" in statement
-    assert "has_schema_privilege(role.oid, namespace.oid, 'CREATE')" in statement
-    assert "has_schema_privilege(role.oid, current_schema(), 'CREATE')" not in statement
-    assert "WITH RECURSIVE role_membership(member, roleid, member_is_superuser)" in statement
-    assert "JOIN pg_roles AS member_role ON member_role.oid = role_membership.roleid" in statement
-    assert "role_membership.member_is_superuser OR member_role.rolsuper" in statement
-    assert "SELECT COUNT(*) FROM pg_roles AS grantee WHERE grantee.rolcanlogin" in statement
-    assert "role_membership.roleid = role.oid)) > 1" in statement
+    statement = str(connection.execute.call_args.args[0])
+    parameters = connection.execute.call_args.args[1]
+    assert "rel.relkind IN ('r', 'p', 'v', 'm', 'f')" in statement
+    assert "has_any_column_privilege(session_user, rel.oid, 'UPDATE')" in statement
+    assert "has_sequence_privilege(session_user, sequence.oid, 'UPDATE')" in statement
+    assert set(parameters["tables"]) == set(POSTGRESQL_MANAGED_TABLES)
 
 
 def test_runtime_capability_catalog_accepts_exact_graph_contract() -> None:  # noqa: C901
@@ -159,6 +138,7 @@ def test_runtime_capability_catalog_accepts_exact_graph_contract() -> None:  # n
     from src.data.relationship_assertion_db_models import GRAC_TABLE_NAMES
 
     capabilities = (GRAPH_RUNTIME_CAPABILITY,)
+    managed_tables = set(_managed_table_names(capabilities))
     role_name = "fardb_runtime_graph"
     table_privileges = _runtime_table_privileges(capabilities)
     policy_rows = [
@@ -182,7 +162,8 @@ def test_runtime_capability_catalog_accepts_exact_graph_contract() -> None:  # n
             assert "dependency.objid = rel.oid" in sql
             assert "dependency.deptype IN ('a', 'i')" in sql
             assert "owning_table.relname IN" in sql
-            assert set(parameters["tables"]) == set(Base.metadata.tables)
+            assert parameters["auth_table"] == AUTH_RUNTIME_TABLE
+            assert set(parameters["tables"]) == managed_tables
             assert set(parameters["sequence_tables"]) == set(parameters["tables"])
             assert "membership.roleid = role.oid" in sql
             assert "membership.admin_option" in sql
@@ -204,7 +185,7 @@ def test_runtime_capability_catalog_accepts_exact_graph_contract() -> None:  # n
             assert "has_schema_privilege(:role_name, namespace.oid, 'CREATE')" in sql
             return _CatalogResult(scalar=True)
         if "SELECT COUNT(*) FROM pg_class" in sql:
-            return _CatalogResult(scalar=len(Base.metadata.tables))
+            return _CatalogResult(scalar=len(managed_tables))
         if "FROM pg_policy AS policy" in sql:
             return _CatalogResult(rows=policy_rows)
         if "has_table_privilege" in sql:
@@ -264,53 +245,29 @@ def test_runtime_capability_catalog_accepts_exact_graph_contract() -> None:  # n
     assert connection.execute.call_count == 7
 
 
-def test_runtime_capability_provisioning_applies_exact_matrix(monkeypatch) -> None:
-    """Provisioning must reset and recreate the complete graph/coordination matrix."""
-    from src.data import relationship_assertion_db_models  # noqa: F401
-
-    result = MagicMock()
-    result.scalars.return_value.all.return_value = []
-    connection = MagicMock()
-    connection.execute.return_value = result
-    transaction = MagicMock()
-    transaction.__enter__.return_value = connection
+def test_runtime_capability_provisioning_fails_closed_for_postgresql() -> None:
+    """The retired helper must not retain a second PostgreSQL grant authority."""
     engine = MagicMock()
     engine.url = "postgresql://operator@database.invalid/fardb"
-    engine.begin.return_value = transaction
-    ensure_role = MagicMock()
-    monkeypatch.setattr("src.data.database._ensure_capability_role", ensure_role)
 
-    ensure_runtime_database_capabilities(
-        engine,
-        {GRAPH_RUNTIME_CAPABILITY, COORDINATION_RUNTIME_CAPABILITY},
-    )
+    with pytest.raises(SchemaCompatibilityError, match="profile-scoped Supabase ledger"):
+        ensure_runtime_database_capabilities(
+            engine,
+            {GRAPH_RUNTIME_CAPABILITY, COORDINATION_RUNTIME_CAPABILITY},
+        )
 
-    statements = [str(call.args[0]) for call in connection.execute.call_args_list]
-    assert any("ALTER TABLE assets ENABLE ROW LEVEL SECURITY" in statement for statement in statements)
-    assert any("REVOKE ALL PRIVILEGES ON SEQUENCE" in statement for statement in statements)
-    assert any("GRANT UPDATE (id) ON TABLE relationship_assertions" in statement for statement in statements)
-    assert any("GRANT USAGE, SELECT ON SEQUENCE" in statement for statement in statements)
-    assert any("CREATE POLICY fardb_graph_select_v1" in statement for statement in statements)
-    assert any("CREATE POLICY fardb_coordination_select_v1" in statement for statement in statements)
-    assert ensure_role.call_count == 2
+    engine.begin.assert_not_called()
+    engine.connect.assert_not_called()
 
 
-def test_runtime_capability_provisioning_rejects_unknown_policy() -> None:
-    """Provisioning must fail before mutation when a managed table has an unknown policy."""
-    result = MagicMock()
-    result.scalars.return_value.all.return_value = ["assets.unmanaged_policy"]
-    connection = MagicMock()
-    connection.execute.return_value = result
-    transaction = MagicMock()
-    transaction.__enter__.return_value = connection
+def test_runtime_capability_provisioning_remains_noop_for_sqlite() -> None:
+    """SQLite retains no PostgreSQL role or grant concept."""
     engine = MagicMock()
-    engine.url = "postgresql://operator@database.invalid/fardb"
-    engine.begin.return_value = transaction
+    engine.url = "sqlite:///:memory:"
 
-    with pytest.raises(SchemaCompatibilityError, match="assets.unmanaged_policy"):
-        ensure_runtime_database_capabilities(engine, {GRAPH_RUNTIME_CAPABILITY})
+    ensure_runtime_database_capabilities(engine, {GRAPH_RUNTIME_CAPABILITY})
 
-    connection.execute.assert_called_once()
+    engine.begin.assert_not_called()
 
 
 @pytest.mark.parametrize(
@@ -326,18 +283,19 @@ def test_runtime_capability_catalog_rejects_early_contract_mismatches(checkpoint
     """Each early catalog mismatch fails with its bounded compatibility error."""
     from src.data import relationship_assertion_db_models  # noqa: F401
 
+    managed_table_count = len(_managed_table_names((GRAPH_RUNTIME_CAPABILITY,)))
     catalog_results = {
         "unsafe-role": [_CatalogResult(scalar=False)],
         "schema-grants": [_CatalogResult(scalar=True), _CatalogResult(scalar=False)],
         "rls-disabled": [
             _CatalogResult(scalar=True),
             _CatalogResult(scalar=True),
-            _CatalogResult(scalar=len(Base.metadata.tables) - 1),
+            _CatalogResult(scalar=managed_table_count - 1),
         ],
         "policy-mismatch": [
             _CatalogResult(scalar=True),
             _CatalogResult(scalar=True),
-            _CatalogResult(scalar=len(Base.metadata.tables)),
+            _CatalogResult(scalar=managed_table_count),
             _CatalogResult(rows=[]),
         ],
     }[checkpoint]
@@ -720,23 +678,22 @@ class TestDatabaseInitialization:
             assert result is not None  # nosec B101
             assert result.value == "persisted"  # nosec B101
 
-    def test_init_db_applies_postgres_heartbeat_migration(self) -> None:
-        """init_db should invoke PostgreSQL compatibility migration for postgres engines."""
+    def test_init_db_rejects_postgresql_without_schema_mutation(self) -> None:
+        """PostgreSQL initialization belongs only to the profile-scoped ledger."""
         engine = Mock(spec=Engine)
         engine.url = "postgresql://user:pass@localhost/testdb"
 
         with (
             patch("src.data.database.Base.metadata.create_all") as create_all,
             patch("src.data.migrations.apply_migrations") as apply_sqlite_migrations,
-            patch("src.data.migrations.apply_postgresql_heartbeat_migration") as apply_postgres_migration,
             patch("src.data.relationship_assertion_schema.ensure_relationship_assertion_schema") as ensure_grac,
+            pytest.raises(SchemaCompatibilityError, match="profile-scoped Supabase ledger"),
         ):
             init_db(engine)
 
-        create_all.assert_called_once_with(engine)
-        apply_postgres_migration.assert_called_once_with(engine)
+        create_all.assert_not_called()
         apply_sqlite_migrations.assert_not_called()
-        ensure_grac.assert_called_once_with(engine)
+        ensure_grac.assert_not_called()
 
     def test_runtime_verifier_accepts_initialized_schema(self, engine: Engine) -> None:
         """Explicit migration output should satisfy the read-only runtime verifier."""
@@ -802,7 +759,7 @@ class TestDatabaseInitialization:
             verify_runtime_database_authority(runtime_engine)
 
         verify_relation_grants.assert_called_once_with(connection, ())
-        verify_sequence_grants.assert_called_once_with(connection, ())
+        verify_sequence_grants.assert_not_called()
         restricted_query = str(connection.execute.call_args_list[0].args[0])
         membership_query = str(connection.execute.call_args_list[1].args[0])
         assert "current_schema() IS NOT NULL" in restricted_query
@@ -814,6 +771,11 @@ class TestDatabaseInitialization:
         assert "has_schema_privilege(assumable.oid, namespace.oid, 'CREATE')" in restricted_query
         assert "namespace.nspowner = assumable.oid" in restricted_query
         assert "database.datdba = assumable.oid" in restricted_query
+        assert "auth_rel.relname = :auth_table" in restricted_query
+        assert connection.execute.call_args_list[0].args[1]["auth_table"] == AUTH_RUNTIME_TABLE
+        assert "has_any_column_privilege(assumable.oid, auth_rel.oid, 'SELECT')" in restricted_query
+        assert "has_sequence_privilege(assumable.oid, auth_sequence.oid, 'UPDATE')" in restricted_query
+        assert "has_function_privilege(assumable.oid, proc.oid, 'EXECUTE')" in restricted_query
         assert "pg_has_role(login.oid, assumable.oid, 'USAGE')" in membership_query
         assert "pg_has_role(login.oid, assumable.oid, 'SET')" in membership_query
         assert "ELSE pg_has_role(login.oid, assumable.oid, 'MEMBER') END" in membership_query

@@ -317,18 +317,23 @@ If the restore point predates repository compatibility migrations, first point `
 Coordination targets. Verify each target identity using the provider project/reference and database name without
 printing credentials. Only then run the explicit database migration command, before restarting live traffic.
 
-Current operator migration behavior (evidence: `scripts/migrate_database.py`, `src/data/database.py` `init_db`,
-`src/data/migrations.py`, `src/data/db_models.py` `ck_rebuild_jobs_status`):
+Current operator migration behavior (evidence: `scripts/migrate_database.py`, `scripts/postgresql_ledger.py`,
+`src/data/database.py` `init_db`, `src/data/migrations.py`, and `src/data/db_models.py`
+`ck_rebuild_jobs_status`):
 
-- **Landed:** `Base.metadata.create_all(engine)` creates any missing ORM tables (`src/data/database.py`).
+- **Landed:** For SQLite targets, `Base.metadata.create_all(engine)` creates any missing ORM tables
+  (`src/data/database.py`).
 - **Landed:** On SQLite file databases, `apply_migrations(db_path)` runs repository migration steps `001` through `004` (including execution/checkpoint/cancellation columns) (`src/data/migrations.py`).
-- **Landed:** On PostgreSQL, `apply_postgresql_heartbeat_migration(engine)` applies idempotent compatibility updates to `rebuild_jobs` (`src/data/migrations.py`), including:
+- **Landed:** On PostgreSQL, the selected profile-scoped Supabase ledger owns `rebuild_jobs` and all other schema
+  mutation (`scripts/postgresql_ledger.py`). The retained `apply_postgresql_heartbeat_migration(engine)` entry point
+  rejects the retired imperative path instead of applying DDL (`src/data/migrations.py`). The graph ledger includes:
   - `active_worker_id`
   - `last_heartbeat_at`
   - `execution_id`
   - `checkpoint_data`
   - `cancellation_requested_at`
-  - the status constraint values `('pending', 'running', 'succeeded', 'failed', 'cancel_requested', 'cancelled')` (also declared on the ORM model in `src/data/db_models.py`)
+  - the status constraint values `('pending', 'running', 'succeeded', 'failed', 'cancel_requested', 'cancelled')`
+    (also declared on the ORM model in `src/data/db_models.py`)
 
 For local SQLite validation only (**landed**), use `src.data.migrations.apply_migrations(db_path)` (`src/data/migrations.py`).
 

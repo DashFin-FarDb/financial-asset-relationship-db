@@ -300,26 +300,14 @@ class TestInitializeSchemaPostgreSQL:
 
     @patch.dict("os.environ", {"DATABASE_URL": "postgresql://localhost/test"})
     @patch("psycopg2.connect")
-    def test_initialize_schema_uses_postgres_ddl(self, mock_connect, restore_database_module):
-        """Test that initialize_schema() uses PostgreSQL-compatible DDL."""
+    def test_initialize_schema_rejects_postgres_ddl(self, mock_connect, restore_database_module):
+        """PostgreSQL auth DDL must come only from the profile-scoped ledger."""
         importlib.reload(database)
 
-        mock_conn = Mock()
-        mock_cursor = Mock()
-        mock_cursor_manager = Mock()
-        mock_cursor_manager.__enter__ = Mock(return_value=mock_cursor)
-        mock_cursor_manager.__exit__ = Mock(return_value=None)
-        mock_conn.cursor.return_value = mock_cursor_manager
-        mock_connect.return_value = mock_conn
+        with pytest.raises(database.SchemaCompatibilityError, match="profile-scoped Supabase ledger"):
+            database.initialize_schema()
 
-        database.initialize_schema()
-
-        # Check that execute was called and DDL includes SERIAL (PostgreSQL-specific)
-        assert mock_cursor.execute.called
-        execute_call_args = mock_cursor.execute.call_args[0][0]
-        assert "SERIAL PRIMARY KEY" in execute_call_args
-        assert "VARCHAR" in execute_call_args
-        assert "SMALLINT" in execute_call_args
+        mock_connect.assert_not_called()
 
 
 class TestSQLiteCompatibility:

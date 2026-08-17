@@ -558,7 +558,9 @@ def test_reconciliation_schema_verification_separates_runtime_capabilities(
     )
 
     assert verify_schema.call_args_list[0].args == (graph_engine,)
+    assert verify_schema.call_args_list[0].kwargs["required_capabilities"] == {"graph"}
     assert verify_schema.call_args_list[1].args == (coordination_engine,)
+    assert verify_schema.call_args_list[1].kwargs["required_capabilities"] == {"coordination"}
     assert verify_authority.call_args_list[0].kwargs["required_capabilities"] == {"graph"}
     assert verify_authority.call_args_list[1].kwargs["required_capabilities"] == {"coordination"}
 

@@ -5,79 +5,63 @@ from unittest.mock import MagicMock
 import pytest
 
 from api import database as api_database
-from src.data.database import CapabilityRoleBootstrapRequiredError, SchemaCompatibilityError
+from src.data.database import SchemaCompatibilityError
 from src.data.runtime_role_membership import USABLE_ROLE_MEMBERSHIP_CTE_SQL
 
 pytestmark = pytest.mark.unit
 
 
-def test_ensure_runtime_access_counts_only_usable_login_grantees(monkeypatch) -> None:
-    """Provisioning must reject delegable, usable, and superuser membership paths."""
+def test_ensure_runtime_access_fails_before_catalog_or_ddl(monkeypatch) -> None:
+    """Legacy provisioning cannot inspect or mutate a PostgreSQL target."""
     execute = MagicMock()
     monkeypatch.setattr(api_database, "DATABASE_TYPE", "postgresql")
-    fetch_value = MagicMock(side_effect=[None, 2])
+    fetch_value = MagicMock()
     monkeypatch.setattr(api_database, "fetch_value", fetch_value)
     monkeypatch.setattr(api_database, "execute", execute)
 
-    api_database.ensure_runtime_access()
-
-    authority_ddl = execute.call_args_list[0].args[0]
-    assert USABLE_ROLE_MEMBERSHIP_CTE_SQL in authority_ddl
-    assert "grantee.rolcanlogin" in authority_ddl
-    assert "WITH RECURSIVE role_membership(member, roleid, member_is_superuser)" in authority_ddl
-    assert "to_jsonb(membership) ->> 'inherit_option'" in authority_ddl
-    assert "to_jsonb(membership) ->> 'set_option'" in authority_ddl
-    assert "membership.inherit_option" not in authority_ddl
-    assert "membership.set_option" not in authority_ddl
-    assert authority_ddl.count("::boolean, TRUE)") == 4
-    assert "OR grantee.rolsuper" in authority_ddl
-    assert "membership.roleid = role.oid" in authority_ddl
-    assert "membership.admin_option" in authority_ddl
-    assert "JOIN pg_roles AS member_role ON member_role.oid = role_membership.roleid" in authority_ddl
-    assert "membership.member = role_membership.roleid" in authority_ddl
-    assert "OR role_membership.member_is_superuser OR member_role.rolsuper" in authority_ddl
-    assert "role_membership.member = grantee.oid" in authority_ddl
-    assert "role_membership.roleid = role.oid" in authority_ddl
-    assert "> 1" in authority_ddl
-
-
-def test_ensure_runtime_access_rejects_schema_create_and_owned_relations(monkeypatch) -> None:
-    """Provisioning must reject schema CREATE and migration-authority ownership."""
-    execute = MagicMock()
-    monkeypatch.setattr(api_database, "DATABASE_TYPE", "postgresql")
-    monkeypatch.setattr(api_database, "fetch_value", MagicMock(side_effect=[None, 2]))
-    monkeypatch.setattr(api_database, "execute", execute)
-
-    api_database.ensure_runtime_access()
-
-    authority_ddl = execute.call_args_list[0].args[0]
-    assert "has_schema_privilege(role.oid, namespace.oid, 'CREATE')" in authority_ddl
-    assert "has_schema_privilege(role.oid, current_schema(), 'CREATE')" not in authority_ddl
-    assert "database.datname = current_database() AND database.datdba = role.oid" in authority_ddl
-    assert "namespace.nspname = current_schema() AND namespace.nspowner = role.oid" in authority_ddl
-    assert "rel.relkind IN ('r', 'p', 'S')" in authority_ddl
-    assert "rel.relowner = role.oid" in authority_ddl
-
-
-def test_ensure_runtime_access_requires_bootstrap_for_missing_role(monkeypatch) -> None:
-    """A non-superuser migration owner must not create the auth capability role."""
-    execute = MagicMock()
-    monkeypatch.setattr(api_database, "DATABASE_TYPE", "postgresql")
-    monkeypatch.setattr(api_database, "fetch_value", MagicMock(side_effect=[None, 0]))
-    monkeypatch.setattr(api_database, "execute", execute)
-
-    with pytest.raises(
-        CapabilityRoleBootstrapRequiredError,
-        match="bootstrap_database_capability_roles.sql as a PostgreSQL superuser",
-    ):
+    with pytest.raises(SchemaCompatibilityError, match="profile-scoped Supabase ledger"):
         api_database.ensure_runtime_access()
 
     execute.assert_not_called()
+    fetch_value.assert_not_called()
 
 
-def test_verify_runtime_authority_rejects_other_usable_login_grantees(monkeypatch) -> None:
-    """Runtime auth capability must have no other usable or superuser login path."""
-    fetch_value = MagicMock(side_effect=[True, 1, True, False, True, True, True, True])
+def test_verify_runtime_access_catalog_counts_only_usable_login_grantees(monkeypatch) -> None:
+    """Read-only role verification permits at most one usable runtime login path."""
+    fetch_value = MagicMock(return_value=True)
+    monkeypatch.setattr(api_database, "DATABASE_TYPE", "postgresql")
+    monkeypatch.setattr(api_database, "fetch_value", fetch_value)
+
+    api_database.verify_runtime_access_catalog()
+
+    safe_role_query = fetch_value.call_args_list[0].args[0]
+    assert USABLE_ROLE_MEMBERSHIP_CTE_SQL in safe_role_query
+    assert "has_schema_privilege(role.oid, namespace.oid, 'CREATE')" in safe_role_query
+    assert "WITH RECURSIVE role_membership(member, roleid, member_is_superuser)" in safe_role_query
+    assert "to_jsonb(membership) ->> 'inherit_option'" in safe_role_query
+    assert "to_jsonb(membership) ->> 'set_option'" in safe_role_query
+    assert "membership.inherit_option" not in safe_role_query
+    assert "membership.set_option" not in safe_role_query
+    assert safe_role_query.count("::boolean, TRUE)") == 4
+    assert "OR grantee.rolsuper" in safe_role_query
+    assert "membership.roleid = role.oid" in safe_role_query
+    assert "membership.admin_option" in safe_role_query
+    assert "JOIN pg_roles AS member_role ON member_role.oid = role_membership.roleid" in safe_role_query
+    assert "membership.member = role_membership.roleid" in safe_role_query
+    assert "OR role_membership.member_is_superuser OR member_role.rolsuper" in safe_role_query
+    assert "role_membership.member = grantee.oid" in safe_role_query
+    assert "role_membership.roleid = role.oid" in safe_role_query
+    assert "cross_rel.relname = ANY(%s)" in safe_role_query
+    assert "has_any_column_privilege(role.oid, cross_rel.oid, 'SELECT')" in safe_role_query
+    assert "has_sequence_privilege(role.oid, cross_sequence.oid, 'UPDATE')" in safe_role_query
+    assert "has_function_privilege(role.oid, cross_proc.oid, 'EXECUTE')" in safe_role_query
+    assert fetch_value.call_args_list[0].args[1][1] == list(api_database._NON_AUTH_MANAGED_TABLES)
+    assert ") <= 1" in safe_role_query
+
+
+def test_verify_runtime_authority_rejects_unsafe_auth_capability_role(monkeypatch) -> None:
+    """A falsy safe-role catalog result must reject the auth capability contract."""
+    fetch_value = MagicMock(side_effect=[True, 1, True, True, False, True, True, True, True])
     monkeypatch.setattr(api_database, "DATABASE_TYPE", "postgresql")
     monkeypatch.setattr(api_database, "fetch_value", fetch_value)
 
@@ -90,7 +74,7 @@ def test_verify_runtime_authority_rejects_other_usable_login_grantees(monkeypatc
         assert "pg_has_role(login.oid, assumable.oid, 'SET')" in usable_membership_query
         assert "ELSE pg_has_role(login.oid, assumable.oid, 'MEMBER') END" in usable_membership_query
 
-    safe_role_query = fetch_value.call_args_list[3].args[0]
+    safe_role_query = fetch_value.call_args_list[4].args[0]
     assert USABLE_ROLE_MEMBERSHIP_CTE_SQL in safe_role_query
     assert "has_schema_privilege(role.oid, namespace.oid, 'CREATE')" in safe_role_query
     assert "grantee.rolcanlogin" in safe_role_query
@@ -106,6 +90,7 @@ def test_verify_runtime_authority_rejects_other_usable_login_grantees(monkeypatc
     assert "JOIN pg_roles AS member_role ON member_role.oid = role_membership.roleid" in safe_role_query
     assert "membership.member = role_membership.roleid" in safe_role_query
     assert "OR role_membership.member_is_superuser OR member_role.rolsuper" in safe_role_query
-    assert "grantee.rolname <> session_user" in safe_role_query
+    assert "grantee.rolname <> session_user" not in safe_role_query
     assert "role_membership.member = grantee.oid" in safe_role_query
     assert "role_membership.roleid = role.oid" in safe_role_query
+    assert ") <= 1" in safe_role_query

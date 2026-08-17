@@ -142,14 +142,14 @@ def test_adr_0009_declares_the_narrow_amendment() -> None:
     assert "supabase/ledgers/<component>/migrations/" in original
 
 
-def test_continuity_points_to_r2_without_claiming_delivery() -> None:
-    """The durable handoff must identify R2 as next and keep CQ-03D separately authorized."""
+def test_continuity_points_to_published_r2_without_claiming_delivery() -> None:
+    """The durable handoff must identify published R2 and keep CQ-03D separately authorized."""
     continuity = _load(CONTINUITY)
     header = "\n".join(continuity.splitlines()[:8])
     assert SETUP_BASELINE in header
     assert "CQ-03B-R1 ratified on 2026-08-17" in header
     assert "ADR 0010" in continuity
-    assert "CQ-03B-R2 may start only after the R1 record merges" in continuity
+    assert "R2 is published from that exact base" in continuity
     assert "CQ-03D remains separately approved" in continuity
     assert "No hosted schema, migration history, credential, provider link state" in continuity
-    assert "After this continuity record and ADR 0010 merge" in continuity
+    assert "CQ-03B-R1 merged through PR #1640" in continuity

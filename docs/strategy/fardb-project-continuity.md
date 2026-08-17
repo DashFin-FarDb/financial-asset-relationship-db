@@ -2,8 +2,9 @@
 
 **Repository:** `DashFin-FarDb/financial-asset-relationship-db`
 **Established:** 2026-07-21
-**Repository evidence cutoff:** `main` at `76f1194f1f9b83cb9ed8f0bb0083824ededbe0ae`
-**Continuity status:** CQ-03B-R1 ratified on 2026-08-17; ADR 0010 records the adjudication and R2 is next after merge
+**Repository evidence cutoff:** `main` at `3e0d54cee0baaae34cf5e99ed76e9ef25e2e4763`
+**Ratified setup baseline:** CQ-03B-R1 ratified on 2026-08-17 at `main@76f1194f1f9b83cb9ed8f0bb0083824ededbe0ae`
+**Continuity status:** CQ-03B-R1 merged; CQ-03B-R2 is published for exact-head validation from the authoritative base
 
 This ledger preserves durable project decisions, plans, milestones, and handoffs across ChatGPT, Codex, and
 repository work. It is an index of authoritative evidence, not a replacement for detailed specifications, issues,
@@ -64,6 +65,10 @@ At the evidence cutoff:
   CQ-03D. The controlling commitment is FPC-2026-08-13-01. Provider rollout, production
   promotion and recovery evidence remain artefact-specific; production scale, repeated immutable promotion, and
   domain-neutral reuse remain unproven.
+- CQ-03B-R1 merged through PR #1640: reviewed head `363b4a880011b969e026f31b41bf1296c5ba95c0`, authoritative
+  merge commit `3e0d54cee0baaae34cf5e99ed76e9ef25e2e4763`. R2 is published from that exact base on
+  `codex/cq-03b-r2-component-ledgers` as PR #1641. The provider was inspected read-only and remains unchanged;
+  final exact-head PostgreSQL 15/16 evidence, independent review, and merge are not yet claimed.
 
 Primary authorities:
 
@@ -84,8 +89,8 @@ Primary authorities:
 ### FPC-2026-08-13-01 — Establish one profile-scoped PostgreSQL migration authority and drift gate
 
 - **Type:** Database architecture / production qualification blocker
-- **Status:** Agreed — ADR 0009 accepted; CQ-03B-R1 ratified on 2026-08-17 and recorded by ADR 0010; R2 next after
-  this record merges
+- **Status:** In progress — CQ-03B-R1 merged through PR #1640; R2 PR #1641 was published from exact
+  `main@3e0d54cee0baaae34cf5e99ed76e9ef25e2e4763` and awaits final exact-head validation
 - **Decision or objective:** Keep one repository-owned PostgreSQL schema authority while composing immutable auth,
   graph, and coordination component ledgers through one target-profile manifest. Preserve exact provider
   `statements[]` as lineage evidence, build clean targets from new forward-dated baselines, and retain ADR 0009's
@@ -99,18 +104,18 @@ Primary authorities:
   Canonical SQL belongs under `supabase/ledgers/<component>/migrations/`; `supabase/ledger-profiles.json` is the sole
   composition authority. `fresh-v1` and non-executable `hosted-legacy-v1` lineage records explain truthful target
   history without creating a second schema authority.
-- **Dependencies or blockers:** CQ-03B-R2 may start only after the R1 record merges. It must prove PostgreSQL 15/16
-  profile rebuilds, deterministic combined ordering, identity/hash immutability, target/profile conflict rejection,
-  and negative hosted-write barriers. CQ-03D retains separate human approval and a single-use permit bound to exact
-  SHA, profile, target fingerprint, digest, and one timestamp.
+- **Dependencies or blockers:** R1's merge gate is satisfied. R2 must still prove PostgreSQL 15/16 profile rebuilds,
+  deterministic combined ordering, identity/hash immutability, target/profile conflict rejection, negative
+  hosted-write barriers, and independent review on the published exact head. CQ-03D retains separate human approval
+  and a single-use permit bound to exact SHA, profile, target fingerprint, digest, and one timestamp.
 - **Evidence and provenance:** merged CQ-03A PR #1634 and squash
-  `2dd9f64136eb653284b0f5330a16ee99f6b0b491`; merged clarification PR #1636 and exact current
-  `main@76f1194f1f9b83cb9ed8f0bb0083824ededbe0ae`; read-only provider receipt and current Supabase CLI-documentation
-  review; explicit human ratification on 2026-08-17; GitHub #1633; Linear DAS-62.
-- **Next action and completion test:** After this continuity record and ADR 0010 merge, execute CQ-03B-R2 against the
-  ratified decision as one bounded implementation unit. R2 closes only when every clean target profile and combined
-  union rebuild on PostgreSQL 15/16 and hosted-write attempts fail before CQ-03D. CQ-03C adds profile-aware deliberate
-  drift failures;
+  `2dd9f64136eb653284b0f5330a16ee99f6b0b491`; merged clarification PR #1636; merged R1 PR #1640, reviewed head
+  `363b4a880011b969e026f31b41bf1296c5ba95c0`, and merge
+  `3e0d54cee0baaae34cf5e99ed76e9ef25e2e4763`; bounded read-only provider receipt recheck on 2026-08-17; current
+  Supabase CLI documentation and pinned version review; explicit human ratification; GitHub #1633; Linear DAS-62.
+- **Next action and completion test:** Publish the required exact-head PostgreSQL 15/16 validation and independent
+  review evidence for PR #1641. R2 closes only when every clean target profile and combined union rebuild on both
+  versions and every hosted-write attempt fails before CQ-03D. CQ-03C adds profile-aware deliberate drift failures;
   CQ-03D remains separately approved.
 - **Last updated:** 2026-08-17
 
@@ -499,12 +504,12 @@ Primary authorities:
 - Durable graph load, startup provenance, promotion checking, recovery control plane, API contracts, governance, DR
   documentation, and release-evidence mechanisms exist in the repository.
 - RC1 has candidate-specific approved hosted and restore evidence.
-- `main` is `76f1194f1f9b83cb9ed8f0bb0083824ededbe0ae` at this cutoff.
+- `main` is `3e0d54cee0baaae34cf5e99ed76e9ef25e2e4763` at this cutoff.
 - CQ-01/CQ-02 are closed through merged PR #1608 with exact PostgreSQL 15/16 authority evidence. QH-01 is closed
   through merged PR #1632. Provider rollout and production qualification remain separate evidence obligations.
 - CQ-03 is the active critical-path programme. CQ-03A is complete through accepted ADR 0009 and merged PR #1634;
-  CQ-03B-R1 is human-ratified and recorded by ADR 0010. Follow FPC-2026-08-13-01 and GitHub #1633 for R2 after the
-  R1 record merges. Provider history adoption remains separately authorized.
+  CQ-03B-R1 is human-ratified, recorded by ADR 0010, and merged through PR #1640. R2 PR #1641 is published from that
+  exact merge base and awaits final exact-head validation. Provider history adoption remains separately authorized.
 - GRAC v1 is `CURRENT` only for the exact-SHA staging slice recorded by PR #1598; broader claims remain `NEXT`.
 
 ### Governing constraints
@@ -519,10 +524,10 @@ Primary authorities:
 
 ### Next highest-value action
 
-Review and merge the CQ-03B-R1 ADR 0010 record under active commitment **FPC-2026-08-13-01**. Then begin R2's bounded
-component-ledger, target-profile, and forward-baseline materialization without provider mutation. Do not replay or
+Complete R2's bounded component-ledger, target-profile, forward-baseline, operator hand-off, and PostgreSQL 15/16
+proof under active commitment **FPC-2026-08-13-01**, then complete independent review on PR #1641. Do not replay or
 reconstruct SQL under historical timestamps, run `supabase db pull` against hosted state, retain provider link state,
-or select `hosted-legacy-v1` as adopted before CQ-03D.
+apply to a hosted target, or select `hosted-legacy-v1` as adopted before CQ-03D.
 Issue #1623 remains a small P2 follow-up and does not displace the CQ-03 programme. Release repeatability
 (**FPC-2026-07-21-02**) remains active.
 
@@ -538,7 +543,7 @@ credential-bootstrap authority.
 
 ### Sources reviewed
 
-- Repository `main` through `76f1194f1f9b83cb9ed8f0bb0083824ededbe0ae` on 2026-08-17.
+- Repository `main` through `3e0d54cee0baaae34cf5e99ed76e9ef25e2e4763` on 2026-08-17.
 - Repository agent instructions and production-architecture declaration.
 - Enterprise-readiness index, audit, roadmap, PR board, validation-gap audit, release checklist, release evidence pack,
   hosted staging baseline, operational evidence framework, drill and scale-validation documents, and risk register.
