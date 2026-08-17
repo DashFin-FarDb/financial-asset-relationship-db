@@ -5,9 +5,10 @@
 **Accepted — ratified on 2026-08-17; effective as repository authority when this record merges.**
 
 This ADR is the CQ-03B-R1 adjudication requested after receipt recovery exposed dependency and target-boundary
-conflicts in ADR 0009. It amends only the historical-replay, flat-ledger, and pre-CQ-03D provider-inspection clauses
-of ADR 0009. ADR 0009 remains authoritative for repository ownership, imperative forward-only migrations,
-verify-only runtime behavior, drift categories, rollback policy, and the separate CQ-03D approval boundary.
+conflicts in [ADR 0009](0009-postgresql-migration-ledger-and-drift-contract.md). It amends only ADR 0009's
+historical-replay, flat-ledger, and pre-CQ-03D provider-inspection clauses. ADR 0009 remains authoritative for
+repository ownership, imperative forward-only migrations, verify-only runtime behavior, drift categories, rollback
+policy, and the separate CQ-03D approval boundary.
 
 ## Date
 
@@ -56,6 +57,11 @@ For every provider receipt, preserve the exact provider-recorded payload as an o
 The digest input is `fardb-provider-statements-v1` followed by a zero byte, the statement count as an unsigned
 64-bit big-endian integer, then for each statement its UTF-8 byte length as an unsigned 64-bit big-endian integer and
 its raw bytes. The domain prefix and integer encoding make the evidence digest reproducible and unambiguous.
+
+Every SHA-256 digest persisted or transmitted under this ADR—including evidence, manifest, normalized-catalog, and
+target-fingerprint values wherever recorded in evidence, manifests, or adoption permits—is serialized as exactly 64
+lowercase hexadecimal ASCII characters with no prefix or separators. Raw bytes, uppercase hexadecimal, and alternate
+encodings are invalid persisted representations.
 
 The statement values must not be reformatted, reparsed, reordered, combined, split, or normalized before hashing.
 This preserves exact provider evidence without claiming that the provider retained the original SQL file bytes.
@@ -126,6 +132,20 @@ receives `combined` exactly once. If two configured URLs resolve to the same opa
 different profiles, execution fails unless the operator explicitly selected `combined`; the runner must not infer or
 silently expand a profile.
 
+Target identity uses SHA-256 algorithm version `fardb-target-fingerprint-v1`. The canonical inputs supplied by the
+approved target adapter are its adapter ID, an immutable authority-namespace ID, and an immutable database ID. Each
+input is Unicode-normalized to NFC and encoded as UTF-8 with case preserved; leading or trailing whitespace, control
+characters, missing values, and values that cannot be proven immutable are invalid. The digest input is the ASCII
+algorithm-version prefix, a zero byte, then each canonical input in the stated order prefixed by its unsigned 64-bit
+big-endian byte length. A DSN, hostname, port, mutable project or database name, and catalog contents are not identity
+inputs. Raw identifiers remain protected; only their lowercase-hex fingerprint leaves protected evidence.
+
+The algorithm version is stored with the fingerprint in evidence and manifests; changing it is a reviewed contract
+change. Missing or ambiguous inputs, an observed collision between distinct protected canonical inputs, or any other
+inability to prove target identity produces `TARGET_IDENTITY_INDETERMINATE` and a non-zero result before profile
+selection or SQL execution. The runner must not infer or expand a profile to recover from that result. Explicit
+same-target/profile conflicts remain rejected as described above.
+
 Changing a target's profile, component membership, lineage, dependency order, or manifest digest is a reviewed
 contract change. It cannot be selected from SQL, inferred from the current catalog, or adopted merely because a
 provider target happens to contain additional objects.
@@ -139,7 +159,9 @@ fingerprint and bounded aggregates.
 Before CQ-03D approval, all of the following are forbidden against a hosted target:
 
 - `supabase db pull`, because the current workflow can update remote migration history;
-- `supabase migration repair`, `supabase db push`, and `supabase db reset --linked`;
+- `supabase migration repair` and `supabase db push`;
+- `supabase db reset --linked`;
+- `supabase db reset --db-url <connection-string>`;
 - provider migration APIs, dashboard SQL, or SQL statements that write DDL, DML, grants, roles, or migration history;
 - retained or committed Supabase link state, including a provider project reference; and
 - use of an owner, migration, service, or other credential with provider write authority.
@@ -148,8 +170,8 @@ Any necessary CLI inspection runs only in a disposable, explicitly selected work
 behind. Receipt recovery uses bounded read-only provider queries or APIs and stores evidence outside the executable
 ledger.
 
-CQ-03B-R2 must add a fail-closed command barrier and negative tests for the forbidden operations. A documentation
-warning alone is insufficient.
+CQ-03B-R2 must add a fail-closed command barrier and negative tests for every forbidden operation, including both
+hosted reset variants. A documentation warning alone is insufficient.
 
 CQ-03D is a separate manual workflow. It requires a signed or equivalently protected, single-use adoption permit
 that binds all of the following:
@@ -239,16 +261,14 @@ Costs and risks:
 
 ## Ratification record
 
-The named human ratifier answered **Ratified** on 2026-08-17 after reviewing the CQ-03B-R1 adjudication covering
-receipt fidelity, forward baseline construction, multi-target ledger composition, and the CQ-03D barrier.
-
-- [x] Preserve exact ordered provider statements as evidence without claiming original file bytes.
-- [x] Permit replay-safe reconstruction only under new forward timestamps.
-- [x] Use separate immutable auth, graph, and coordination component ledgers governed by one profile manifest.
-- [x] Require an explicit `combined` profile for a shared physical database.
-- [x] Keep legacy receipt identities non-executable in a target-specific lineage record.
-- [x] Forbid hosted-history-capable commands and credentials before CQ-03D.
-- [x] Require exact-SHA, profile, target, digest, and single-timestamp binding for CQ-03D adoption.
+The named human ratifier answered **Ratified** on 2026-08-17 after reviewing the normative commitments in
+[Decision 1](#1-historical-receipts-are-immutable-evidence-not-clean-build-migrations),
+[Decision 2](#2-new-forward-baselines-establish-dependencies-without-inventing-history),
+[Decision 3](#3-one-repository-authority-contains-separate-immutable-component-ledgers),
+[Decision 4](#4-cq-03bc-cannot-acquire-hosted-history-adoption-authority), and
+[Decision 5](#5-drift-is-evaluated-against-the-targets-explicit-profile-and-lineage). Those numbered sections are the
+single source of truth for receipt fidelity, forward baselines, target-ledger composition, the CQ-03D barrier, and
+profile-aware drift behavior; this record does not restate their commitments.
 
 **Decision:** Accepted
 **Ratifier:** Mohamed Abdel-Aziz Mohamed

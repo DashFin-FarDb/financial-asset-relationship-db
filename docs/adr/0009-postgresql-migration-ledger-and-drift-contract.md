@@ -101,8 +101,9 @@ The controlling commands and their intended roles are:
 - `supabase migration repair --status applied <timestamp>` — history-only adoption after separate human approval.
 
 `supabase db pull` is forbidden in CQ-03B/C because current Supabase workflows can update remote migration history.
-The last two listed commands require the CQ-03D authority defined by ADR 0010 and are forbidden in the design PR and
-all unapproved implementation work.
+`supabase db push --dry-run` and `supabase migration repair --status applied <timestamp>` require the CQ-03D authority
+defined by ADR 0010. The design PR may document those commands but must not execute them, and neither command may run
+in unapproved implementation or operator workflows.
 
 References:
 
@@ -171,10 +172,10 @@ hosted-history adoption as separate decisions while preventing a second PostgreS
 7. Do not copy data, credentials, row counts, live role names, connection details, or restricted authorization
    evidence into the repository.
 
-The six provider timestamp identities and exact ordered statement digests are immutable, non-executable
-`hosted-legacy-v1` lineage evidence. They are not canonical migration entries and are never replayed on a fresh
-database. Exact restricted membership SQL remains protected; the public record contains bounded metadata and its
-digest only. Reviewed reconstruction is permitted only in new forward-dated component baselines.
+[ADR 0010, Decision 1](0010-historical-receipt-evidence-and-target-ledger-profiles.md#1-historical-receipts-are-immutable-evidence-not-clean-build-migrations)
+is the authoritative lineage-evidence contract. It classifies the six provider timestamp identities and ordered
+statement digests as immutable, non-executable `hosted-legacy-v1` lineage evidence and permits replay-safe
+reconstruction only in new forward-dated component baselines; this is the amendment summary for ADR 0009.
 
 If exact statement evidence cannot be preserved, a dependency cannot be assigned to one component, a
 cross-component cycle appears, or a clean profile requires target-conditional SQL, CQ-03B stops and returns to human

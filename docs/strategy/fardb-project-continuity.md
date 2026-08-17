@@ -107,9 +107,10 @@ Primary authorities:
   `2dd9f64136eb653284b0f5330a16ee99f6b0b491`; merged clarification PR #1636 and exact current
   `main@76f1194f1f9b83cb9ed8f0bb0083824ededbe0ae`; read-only provider receipt and current Supabase CLI-documentation
   review; explicit human ratification on 2026-08-17; GitHub #1633; Linear DAS-62.
-- **Next action and completion test:** Review and merge the CQ-03B-R1 record, then execute CQ-03B-R2 as one bounded
-  implementation decision. R2 closes only when every clean target profile and the combined union rebuild on
-  PostgreSQL 15/16 and hosted-write attempts fail before CQ-03D. CQ-03C adds profile-aware deliberate drift failures;
+- **Next action and completion test:** After this continuity record and ADR 0010 merge, execute CQ-03B-R2 against the
+  ratified decision as one bounded implementation unit. R2 closes only when every clean target profile and combined
+  union rebuild on PostgreSQL 15/16 and hosted-write attempts fail before CQ-03D. CQ-03C adds profile-aware deliberate
+  drift failures;
   CQ-03D remains separately approved.
 - **Last updated:** 2026-08-17
 

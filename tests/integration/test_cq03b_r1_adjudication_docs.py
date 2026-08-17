@@ -48,55 +48,86 @@ def test_receipts_preserve_exact_evidence_without_claiming_original_files(adjudi
     assert "deterministic SHA-256 digest" in decision
     assert "`fardb-provider-statements-v1`" in decision
     assert "unsigned 64-bit big-endian integer" in decision
+    assert "serialized as exactly 64 lowercase hexadecimal ASCII characters" in decision
+    assert "with no prefix or separators" in decision
+    assert "wherever recorded in evidence, manifests, or adoption permits" in decision
     assert "protected evidence store" in decision
     assert "never staged into an executable migration directory" in decision
 
 
 def test_reconstructions_are_forward_dated_and_dependency_complete(adjudication: str) -> None:
     """Clean builds must use reviewed forward baselines rather than backdated receipt substitutes."""
-    assert "new forward UTC timestamp" in adjudication
-    assert "must never reuse or backdate a provider timestamp" in adjudication
-    assert "complete,\nreviewed, dependency-ordered state" in adjudication
-    assert "historical receipt markers may not" in adjudication
-    assert "Any actual schema delta stops adoption" in adjudication
+    decision = _compact(adjudication)
+    assert "new forward UTC timestamp" in decision
+    assert "must never reuse or backdate a provider timestamp" in decision
+    assert "complete, reviewed, dependency-ordered state" in decision
+    assert "historical receipt markers may not" in decision
+    assert "Any actual schema delta stops adoption" in decision
 
 
 def test_component_ledgers_are_composed_by_one_manifest(adjudication: str) -> None:
     """Target separation must come from one manifest-governed repository authority."""
+    decision = _compact(adjudication)
     for component in ("auth", "graph", "coordination"):
-        assert f"`{component}`" in adjudication
-    assert "`supabase/ledgers/<component>/migrations/`" in adjudication
-    assert "`supabase/ledger-profiles.json`" in adjudication
-    assert "globally unique and strictly increasing across all component ledgers" in adjudication
-    assert "`combined` selects the deterministic union" in adjudication
-    assert "`fresh-v1`" in adjudication
-    assert "`hosted-legacy-v1`" in adjudication
-    assert "must not infer or\nsilently expand a profile" in adjudication
-    assert "no target-selection SQL" in adjudication
+        assert f"`{component}`" in decision
+    assert "`supabase/ledgers/<component>/migrations/`" in decision
+    assert "`supabase/ledger-profiles.json`" in decision
+    assert "globally unique and strictly increasing across all component ledgers" in decision
+    assert "`combined` selects the deterministic union" in decision
+    assert "`fresh-v1`" in decision
+    assert "`hosted-legacy-v1`" in decision
+    assert "must not infer or silently expand a profile" in decision
+    assert "no target-selection SQL" in decision
+
+
+def test_target_fingerprint_contract_fails_closed(adjudication: str) -> None:
+    """Target identity must be canonical, versioned, collision-aware, and fail closed."""
+    decision = _compact(adjudication)
+    assert "SHA-256 algorithm version `fardb-target-fingerprint-v1`" in decision
+    assert "adapter ID, an immutable authority-namespace ID, and an immutable database ID" in decision
+    assert "Unicode-normalized to NFC and encoded as UTF-8 with case preserved" in decision
+    assert "algorithm version is stored with the fingerprint" in decision
+    assert "observed collision between distinct protected canonical inputs" in decision
+    assert "`TARGET_IDENTITY_INDETERMINATE` and a non-zero result" in decision
+    assert "before profile selection or SQL execution" in decision
 
 
 def test_pre_cq03d_barrier_is_credential_and_command_enforced(adjudication: str) -> None:
     """CQ-03B/C must be unable to mutate hosted schema or history accidentally."""
-    assert "technically unable to write managed\nschemas or `supabase_migrations`" in adjudication
+    decision = _compact(adjudication)
+    assert "technically unable to write managed schemas or `supabase_migrations`" in decision
     for forbidden_command in (
         "`supabase db pull`",
         "`supabase migration repair`",
         "`supabase db push`",
         "`supabase db reset --linked`",
+        "`supabase db reset --db-url <connection-string>`",
     ):
-        assert forbidden_command in adjudication
-    assert "retained or committed Supabase link state" in adjudication
-    assert "fail-closed command barrier and negative tests" in adjudication
+        assert forbidden_command in decision
+    assert "retained or committed Supabase link state" in decision
+    assert "fail-closed command barrier and negative tests" in decision
+    assert "including both hosted reset variants" in decision
 
 
 def test_cq03d_permit_binds_identity_and_one_timestamp(adjudication: str) -> None:
     """Hosted adoption must require one exact, protected, single-use permit."""
-    permit = adjudication.split("CQ-03D is a separate manual workflow.", maxsplit=1)[1]
+    marker = "CQ-03D is a separate manual workflow."
+    end_marker = "### 5. Drift is evaluated against the target's explicit profile and lineage"
+    assert marker in adjudication
+    assert end_marker in adjudication
+    permit = _compact(adjudication.split(marker, maxsplit=1)[1].split(end_marker, maxsplit=1)[0])
     assert "single-use adoption permit" in permit
     assert "exact reviewed repository SHA" in permit
+    assert "build-profile ID" in permit
     assert "manifest digest" in permit
+    assert "lineage-profile ID" in permit
     assert "opaque target fingerprint" in permit
     assert "one allowlisted canonical migration timestamp" in permit
+    assert "passing CQ-03B/C evidence" in permit
+    assert "normalized catalog digests" in permit
+    assert "ratifier" in permit
+    assert "approval time" in permit
+    assert "expiry" in permit
     assert "CQ-03D never applies DDL" in permit
 
 
@@ -106,6 +137,7 @@ def test_adr_0009_declares_the_narrow_amendment() -> None:
     assert "amended by ADR 0010" in original
     assert "0010-historical-receipt-evidence-and-target-ledger-profiles.md" in original
     assert "`supabase db pull` is forbidden in CQ-03B/C" in original
+    assert "`supabase db push --dry-run` and `supabase migration repair --status applied <timestamp>`" in original
     assert "non-executable `hosted-legacy-v1` lineage evidence" in original
     assert "supabase/ledgers/<component>/migrations/" in original
 
@@ -120,3 +152,4 @@ def test_continuity_points_to_r2_without_claiming_delivery() -> None:
     assert "CQ-03B-R2 may start only after the R1 record merges" in continuity
     assert "CQ-03D remains separately approved" in continuity
     assert "No hosted schema, migration history, credential, provider link state" in continuity
+    assert "After this continuity record and ADR 0010 merge" in continuity
