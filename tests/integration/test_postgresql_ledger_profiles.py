@@ -270,7 +270,9 @@ def _verify_profile_drift_contract(
         _verify_operator_contract(engine, target_url, profile)
 
     clean_before = _evaluate_drift(target_url, manifest, profile, runtime_check)
-    assert clean_before.status == PASS, clean_before.as_public_dict()
+    assert clean_before.status == PASS, (
+        f"clean catalog digest for {profile}: {clean_before.actual_catalog_digest}"
+    )
 
     selected = manifest.migrations_for_profile(profile)
     original_version = selected[0].timestamp
