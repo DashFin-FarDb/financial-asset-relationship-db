@@ -19,7 +19,6 @@ ENV PORT=8000
 FROM base AS migration
 
 ARG TARGETARCH
-ENV SUPABASE_HOME=/tmp/fardb-supabase-cli
 
 RUN test "${TARGETARCH:-amd64}" = "amd64" \
     && curl -fsSLo /tmp/supabase.tar.gz \
@@ -29,6 +28,8 @@ RUN test "${TARGETARCH:-amd64}" = "amd64" \
     && tar -xzf /tmp/supabase.tar.gz -C /usr/local/bin supabase \
     && test "$(supabase --version)" = "2.114.0" \
     && rm /tmp/supabase.tar.gz
+
+ENV SUPABASE_HOME=/tmp/fardb-supabase-cli
 
 COPY src/ ./src/
 COPY api/ ./api/
