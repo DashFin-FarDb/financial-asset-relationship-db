@@ -423,8 +423,12 @@ def _next_sql_guard_token(sql_text: str, index: int) -> tuple[int, str | None]:
     if sql_text.startswith("/*", index):
         return _skip_sql_block_comment(sql_text, index), None
     character = sql_text[index]
-    if character in ("'", '"'):
+    if character == "'":
         return _skip_sql_quoted_value(sql_text, index, character), None
+    if character == '"':
+        end = _skip_sql_quoted_value(sql_text, index, character)
+        identifier = sql_text[index + 1 : end - 1].replace('""', '"')
+        return end, "SUPABASE_MIGRATIONS" if identifier == "supabase_migrations" else None
     if character == "$" and (dollar_end := _skip_sql_dollar_quote(sql_text, index)) is not None:
         return dollar_end, None
     word, word_end = _read_sql_guard_word(sql_text, index)

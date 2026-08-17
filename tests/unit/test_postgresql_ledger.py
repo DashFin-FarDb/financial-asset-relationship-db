@@ -225,6 +225,19 @@ COMMIT;
     ledger.load_and_validate_manifest(manifest_path)
 
 
+def test_sql_guard_rejects_quoted_provider_history_identifier(tmp_path: Path) -> None:
+    """Quoting the provider-history schema cannot bypass its write guard."""
+    manifest_path = _copy_manifest(tmp_path)
+    _replace_migration_bytes(
+        manifest_path,
+        "graph",
+        b'BEGIN;\nDELETE FROM "supabase_migrations".schema_migrations;\nCOMMIT;\n',
+    )
+
+    with pytest.raises(ledger.LedgerContractError, match="forbidden conditional or authority SQL"):
+        ledger.load_and_validate_manifest(manifest_path)
+
+
 def test_sql_guard_rejects_forbidden_keywords_separated_by_comments(tmp_path: Path) -> None:
     """Comments cannot split a forbidden executable keyword sequence."""
     manifest_path = _copy_manifest(tmp_path)

@@ -259,11 +259,12 @@ def _verify_graph_data_contract(engine: sqlalchemy.Engine, profile: str) -> None
             {"digest": "a" * 64},
         )
 
+    immutable_evidence_update = sqlalchemy.text(
+        "UPDATE relationship_evidence SET source_ref = 'changed' WHERE id = 'RAW_EVIDENCE'"
+    )
     with engine.connect() as connection:
         with pytest.raises(sqlalchemy.exc.DBAPIError):
-            connection.execute(
-                sqlalchemy.text("UPDATE relationship_evidence SET source_ref = 'changed' WHERE id = 'RAW_EVIDENCE'")
-            )
+            connection.execute(immutable_evidence_update)
 
 
 def _verify_capability_runtime(
@@ -305,6 +306,7 @@ def _verify_capability_runtime(
                 verify_runtime_database_authority(engine, required_capabilities=capabilities)
         finally:
             _set_runtime_table_select(target_url, login_name, "user_credentials", enabled=False)
+        verify_runtime_database_authority(engine, required_capabilities=capabilities)
 
 
 def _verify_zero_capability_runtime(
@@ -332,6 +334,7 @@ def _verify_zero_capability_runtime(
             verify_runtime_database_authority(engine)
     finally:
         _set_runtime_table_select(target_url, login_name, "assets", enabled=False)
+    verify_runtime_database_authority(engine)
 
 
 def _verify_auth_runtime(
@@ -362,6 +365,8 @@ def _verify_auth_runtime(
             verify_runtime_authority()
     finally:
         _set_runtime_schema_create(target_url, login_name, enabled=False)
+    with bind_database_url(runtime_url):
+        verify_runtime_authority()
 
     if profile == "combined":
         _set_runtime_table_select(target_url, login_name, "assets", enabled=True)
@@ -370,6 +375,8 @@ def _verify_auth_runtime(
                 verify_runtime_authority()
         finally:
             _set_runtime_table_select(target_url, login_name, "assets", enabled=False)
+        with bind_database_url(runtime_url):
+            verify_runtime_authority()
     elif profile == "auth":
         _set_auth_cross_profile_view(target_url, login_name, enabled=True)
         try:
@@ -377,6 +384,8 @@ def _verify_auth_runtime(
                 verify_runtime_authority()
         finally:
             _set_auth_cross_profile_view(target_url, login_name, enabled=False)
+        with bind_database_url(runtime_url):
+            verify_runtime_authority()
 
 
 @pytest.mark.parametrize("profile", ["auth", "graph", "coordination", "combined"])

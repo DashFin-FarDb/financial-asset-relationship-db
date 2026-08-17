@@ -373,17 +373,32 @@ def test_requires_usable_credentials(monkeypatch) -> None:
 
 def test_configured_engines_disposes_partial_construction_on_failure() -> None:
     """A later engine-construction failure disposes every earlier engine."""
-    settings = _settings(
-        asset_graph_database_url="sqlite:///graph.db",
-        coordination_database_url="sqlite:///coordination.db",
-    )
+    database_urls = {
+        "auth": "sqlite:///auth.db",
+        "graph": "sqlite:///graph.db",
+        "coordination": "sqlite:///coordination.db",
+    }
     first_engine = _engine("sqlite:///graph.db")
     engine_factory = MagicMock(side_effect=[first_engine, RuntimeError("engine factory failed")])
 
     with pytest.raises(RuntimeError, match="engine factory failed"):
-        migrate_database._configured_engines(settings, engine_factory)  # pylint: disable=protected-access
+        migrate_database._configured_engines(database_urls, engine_factory)  # pylint: disable=protected-access
 
     first_engine.dispose.assert_called_once_with()
+
+
+def test_configured_engines_uses_normalized_target_set() -> None:
+    """An implicit auth-only coordination fallback must not be reintroduced."""
+    engine_factory = MagicMock()
+
+    graph_url, engines = migrate_database._configured_engines(  # pylint: disable=protected-access
+        {"auth": "postgresql://operator@localhost/auth"},
+        engine_factory,
+    )
+
+    assert graph_url is None
+    assert engines == {}
+    engine_factory.assert_not_called()
 
 
 def test_main_sanitizes_dependency_errors(monkeypatch, capsys) -> None:

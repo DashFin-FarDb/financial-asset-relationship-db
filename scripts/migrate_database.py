@@ -120,15 +120,15 @@ def _resolve_postgresql_plan(
 
 
 def _configured_engines(
-    settings: Settings,
+    database_urls: dict[str, str],
     engine_factory: Callable[[str], Engine],
 ) -> tuple[str | None, dict[str, tuple[Engine, set[str]]]]:
     """Resolve each target once and retain every capability required on it."""
-    graph_url = resolve_hosted_graph_database_url(settings)
+    graph_url = database_urls.get("graph")
     configured: dict[str, set[str]] = {}
     if graph_url:
         configured.setdefault(graph_url, set()).add(GRAPH_RUNTIME_CAPABILITY)
-    coordination_url = settings.coordination_database_url or graph_url
+    coordination_url = database_urls.get("coordination")
     if coordination_url:
         configured.setdefault(coordination_url, set()).add(COORDINATION_RUNTIME_CAPABILITY)
 
@@ -189,7 +189,7 @@ def migrate_configured_databases(
     manifest, postgresql_plan = _resolve_postgresql_plan(database_urls)
     _apply_postgresql_plan(manifest, postgresql_plan)
 
-    _graph_url, engines = _configured_engines(resolved_settings, engine_factory)
+    _graph_url, engines = _configured_engines(database_urls, engine_factory)
 
     try:
         for _url, (engine, capabilities) in engines.items():
