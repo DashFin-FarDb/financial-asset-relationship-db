@@ -69,8 +69,8 @@ At the evidence cutoff:
   merge commit `3e0d54cee0baaae34cf5e99ed76e9ef25e2e4763`. R2 then merged through PR #1641 from that
   exact base: reviewed head `9d1cdd77d24ecdfefb2c86633342d98c7c9f262e`, authoritative merge commit
   `ca61a2694c384344ae4a73a4145cd0ff1c8751d4`. Exact-head PostgreSQL 15/16 profile rebuilds, the Docker
-  runtime/migration boundary, Sonar, CodeRabbit, and Cubic passed. Greptile's exact-head check succeeded after its
-  findings were triaged, and GitHub recorded zero unresolved review threads at merge.
+  runtime/migration boundary, Sonar, CodeRabbit, and Cubic passed. Greptile's exact-head output was reviewed and
+  triaged, and GitHub recorded zero unresolved review threads at merge.
   The provider was not mutated.
 
 Primary authorities:
@@ -121,7 +121,10 @@ Primary authorities:
 - **Next action and completion test:** Ratify an exact CQ-03C task brief from
   `main@ca61a2694c384344ae4a73a4145cd0ff1c8751d4`, then add profile-aware deliberate-drift failures without crossing
   the CQ-03D provider-mutation boundary. CQ-03C closes only when each supported profile detects its declared catalog,
-  authority, and history drift classes with deterministic fail-closed diagnostics on PostgreSQL 15 and 16.
+  authority, and history drift classes with deterministic fail-closed diagnostics on PostgreSQL 15 and 16; required
+  unavailable-check fixtures, including an unavailable higher-priority evaluation, return `EVALUATION_INCOMPLETE`;
+  startup and readiness prove they cannot mutate schema or migration history; and negative tests prove the restricted
+  runtime lacks schema, grant, history-repair, and credential-bootstrap authority.
 - **Last updated:** 2026-08-17
 
 ### FPC-2026-08-09-01 — Separate migration and runtime database authority
