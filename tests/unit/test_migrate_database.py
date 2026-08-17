@@ -7,6 +7,7 @@ from typing import cast
 from unittest.mock import MagicMock, call
 
 import pytest
+from sqlalchemy.exc import ArgumentError
 
 import scripts.migrate_database as migrate_database
 from scripts.postgresql_ledger import (
@@ -232,6 +233,20 @@ def test_malformed_postgresql_url_fails_with_protected_identity_error(monkeypatc
         )
 
     load_manifest.assert_not_called()
+
+
+def test_sqlalchemy_url_parser_error_fails_with_protected_identity_error(monkeypatch) -> None:
+    """SQLAlchemy parser failures cannot escape the fixed protected diagnostic."""
+    monkeypatch.setattr(
+        migrate_database,
+        "_postgresql_cli_url",
+        MagicMock(side_effect=ArgumentError("synthetic parser failure")),
+    )
+
+    with pytest.raises(TargetIdentityError, match=TARGET_IDENTITY_INDETERMINATE):
+        migrate_database._resolve_postgresql_plan(  # pylint: disable=protected-access
+            {"auth": "postgresql://operator@localhost/auth"}
+        )
 
 
 def test_target_profile_conflict_fails_before_engine_or_subprocess(monkeypatch, tmp_path) -> None:

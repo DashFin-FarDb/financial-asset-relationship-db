@@ -8,6 +8,7 @@ from collections.abc import Callable
 from pathlib import Path
 
 from sqlalchemy.engine import Engine, make_url
+from sqlalchemy.exc import ArgumentError
 
 from api.auth import seed_credentials_from_settings, user_repository
 from api.database import (
@@ -108,7 +109,7 @@ def _resolve_postgresql_plan(
             for logical_target, database_url in database_urls.items()
             if _is_postgresql_url(database_url)
         }
-    except (TypeError, ValueError) as exc:
+    except (ArgumentError, TypeError, ValueError) as exc:
         raise TargetIdentityError() from exc
     if not postgresql_urls:
         return None, ()
