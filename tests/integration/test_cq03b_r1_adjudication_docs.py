@@ -152,6 +152,6 @@ def test_continuity_records_merged_r2_without_claiming_provider_delivery() -> No
     assert "CQ-03B-R1 and CQ-03B-R2 merged" in header
     assert "R2 then merged through PR #1641" in continuity
     assert "The provider was not mutated" in continuity
-    assert "CQ-03D remains separately approved" in continuity
+    assert "CQ-03D retains separate human approval" in continuity
     assert "No hosted schema, migration history, credential, provider link state" in continuity
     assert "CQ-03B-R1 merged through PR #1640" in continuity
