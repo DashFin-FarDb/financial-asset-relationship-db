@@ -134,6 +134,7 @@ target-version = ["py312"]
 [tool.isort]
 profile = "black"
 line_length = 120
+known_third_party = ["supabase"]
 
 [tool.ruff]
 line-length = 120
@@ -153,6 +154,7 @@ ignore = ["UP006", "UP015", "UP017", "UP035", "UP037", "UP040", "UP041", "UP042"
 
 [tool.ruff.lint.isort]
 known-first-party = ["src"]
+known-third-party = ["supabase"]
 
 [tool.ruff.format]
 quote-style = "double"

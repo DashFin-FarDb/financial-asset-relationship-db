@@ -137,5 +137,8 @@ docs/compound/ledger/*.lock
 # Local SQLite DB artifact (runtime); never commit
 asset_graph.db
 
+# Protected PostgreSQL target-identity bindings; mount into the operator container.
+*.target-bindings.json
+
 # Accidentally committed DeepSource CLI binary
 bin/deepsource

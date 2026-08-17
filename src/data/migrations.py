@@ -17,7 +17,7 @@ import sqlite3
 from pathlib import Path
 from typing import Any, cast
 
-from sqlalchemy import inspect, text
+from sqlalchemy import text
 from sqlalchemy.engine import Engine
 from sqlalchemy.engine.interfaces import ReflectedCheckConstraint, ReflectedColumn
 from sqlalchemy.engine.reflection import Inspector
@@ -397,39 +397,11 @@ def _apply_postgresql_status_constraint_update(connection) -> None:
 # ---------------------------------------------------------------------------
 
 
-def apply_postgresql_heartbeat_migration(engine: Engine) -> None:
-    """
-    Ensure heartbeat columns exist for PostgreSQL rebuild_jobs tables.
+def apply_postgresql_heartbeat_migration(_engine: Engine) -> None:
+    """Reject the retired imperative PostgreSQL compatibility migration."""
+    from .database import SchemaCompatibilityError  # pylint: disable=import-outside-toplevel
 
-    This is an idempotent compatibility migration used during startup for
-    existing PostgreSQL databases that predate heartbeat tracking columns.
-
-    Args:
-        engine: SQLAlchemy Engine instance for the target database.
-    """
-    inspector = inspect(engine)
-    if "rebuild_jobs" not in inspector.get_table_names():
-        return
-
-    statements, identifier_columns = _inspect_rebuild_jobs_columns(inspector)
-    columns_to_normalize = tuple(
-        column_name
-        for column_name in _REBUILD_IDENTIFIER_COLUMNS
-        if _identifier_declared_incompatible(identifier_columns.get(column_name))
-    )
-
-    if not statements and not columns_to_normalize:
-        # Still attempt to update the constraint even if columns are present,
-        # as the constraint might be outdated (e.g. from an earlier 5C.X PR).
-        with engine.begin() as connection:
-            _apply_postgresql_status_constraint_update(connection)
-        return
-
-    with engine.begin() as connection:
-        for statement in statements:
-            connection.execute(text(statement))
-        _apply_normalization_in_transaction(connection, columns_to_normalize)
-        _apply_postgresql_status_constraint_update(connection)
+    raise SchemaCompatibilityError("PostgreSQL rebuild schema mutation is owned by the profile-scoped Supabase ledger")
 
 
 def _status_constraint_is_canonical(constraint: ReflectedCheckConstraint | None) -> bool:

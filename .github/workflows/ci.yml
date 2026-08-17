@@ -116,8 +116,8 @@ jobs:
           verbose: true
         continue-on-error: true
 
-  grac-assertion-schema-postgres:
-    name: GRAC assertion schema (PostgreSQL ${{ matrix.postgres-version }})
+  postgres-ledger-profiles:
+    name: PostgreSQL ledger profiles (${{ matrix.postgres-version }})
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -148,24 +148,45 @@ jobs:
         with:
           python-version: "3.11"
 
+      - name: Setup pinned Supabase CLI
+        uses: supabase/setup-cli@46f7f98c7f948ad727d22c1e67fab04c223a0520 # v3
+        with:
+          version: 2.114.0
+
       - name: Install dependencies
         # pip lives in scripts/ci_install_python_deps.sh (avoids githubactions:S8544 on -r installs).
         run: bash scripts/ci_install_python_deps.sh
 
-      - name: Run PostgreSQL schema and authority tests against ephemeral Postgres
+      - name: Validate exact component ledger bytes
+        run: python -m scripts.postgresql_ledger validate
+
+      - name: Build every profile twice against empty ephemeral PostgreSQL
         env:
-          ASSET_GRAPH_DATABASE_URL: postgresql://test:test@localhost:5432/test_db
-          FARDB_EPHEMERAL_POSTGRES_AUTHORITY_TESTS: "1"
+          FARDB_EPHEMERAL_POSTGRES_LEDGER_TESTS: "1"
           FARDB_EPHEMERAL_POSTGRES_URL: postgresql://test:test@localhost:5432/test_db
           SECRET_KEY: ci-grac-schema-test-key-not-a-real-secret
           DATABASE_URL: sqlite:///./ci-auth.db
-          ADMIN_USERNAME: admin
-          ADMIN_PASSWORD: changeme
+        run: pytest tests/integration/test_postgresql_ledger_profiles.py -v -rs
+
+  postgres-ledger-container-boundary:
+    name: PostgreSQL ledger container boundary
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Build runtime image without migration authority
         run: |
-          pytest tests/integration/test_relationship_assertion_schema.py \
-            tests/integration/test_relationship_assertion_repository.py \
-            tests/integration/test_relationship_projection_persistence.py \
-            tests/integration/test_runtime_authority_postgres.py -v -rs
+          docker build --target runtime --tag fardb-runtime:test --file Dockerfile.api .
+          docker run --rm --entrypoint sh fardb-runtime:test -c \
+            'test ! -e /app/supabase && test ! -e /app/scripts/postgresql_ledger.py && test ! -e /usr/local/bin/supabase'
+
+      - name: Build pinned operator image with exact ledger
+        run: |
+          docker build --target migration --tag fardb-migration:test --file Dockerfile.api .
+          docker run --rm --entrypoint sh fardb-migration:test -c \
+            'test "$(supabase --version)" = "2.114.0" && python -m scripts.postgresql_ledger validate'
 
   security:
     name: Security checks

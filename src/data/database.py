@@ -37,6 +37,27 @@ GRAPH_RUNTIME_CAPABILITY = "graph"
 COORDINATION_RUNTIME_CAPABILITY = "coordination"
 GRAPH_RUNTIME_ROLE = "fardb_runtime_graph"
 COORDINATION_RUNTIME_ROLE = "fardb_runtime_coordination"
+AUTH_RUNTIME_TABLE = "user_credentials"
+GRAPH_RUNTIME_TABLES = (
+    "assets",
+    "asset_relationships",
+    "regulatory_events",
+    "regulatory_event_assets",
+    "rebuild_jobs",
+    "relationship_evidence",
+    "relationship_assertions",
+    "relationship_assertion_evidence",
+    "relationship_assertion_events",
+    "relationship_projection_revisions",
+    "relationship_projection_edges",
+    "relationship_projection_publications",
+)
+COORDINATION_RUNTIME_TABLES = ("distributed_locks",)
+POSTGRESQL_MANAGED_TABLES = (
+    AUTH_RUNTIME_TABLE,
+    *GRAPH_RUNTIME_TABLES,
+    *COORDINATION_RUNTIME_TABLES,
+)
 RUNTIME_CAPABILITY_ROLES = {
     GRAPH_RUNTIME_CAPABILITY: GRAPH_RUNTIME_ROLE,
     COORDINATION_RUNTIME_CAPABILITY: COORDINATION_RUNTIME_ROLE,
@@ -60,7 +81,6 @@ _RLS_COMMANDS = {
     "UPDATE": "w",
     "DELETE": "d",
 }
-_RLS_COMMAND_NAMES = {code: name for name, code in _RLS_COMMANDS.items()}
 _TABLE_PRIVILEGES = (*_RLS_COMMANDS, "TRUNCATE", "REFERENCES", "TRIGGER")
 _COLUMN_PRIVILEGES = ("SELECT", "INSERT", "UPDATE", "REFERENCES")
 _SEQUENCE_PRIVILEGES = ("USAGE", "SELECT", "UPDATE")
@@ -246,9 +266,13 @@ def init_db(engine: Engine) -> None:
     Parameters:
         engine (Engine): SQLAlchemy Engine connected to the target database where tables will be created.
     """
-    # Register GRAC ORM tables on Base.metadata before create_all.
+    backend = make_url(engine.url).get_backend_name()
+    if backend == "postgresql":
+        raise SchemaCompatibilityError("PostgreSQL schema mutation is owned by the profile-scoped Supabase ledger")
+
+    # Register GRAC ORM tables on Base.metadata before SQLite create_all.
     from . import relationship_assertion_db_models as _relationship_assertion_db_models  # noqa: F401
-    from .migrations import apply_migrations, apply_postgresql_heartbeat_migration
+    from .migrations import apply_migrations
     from .relationship_assertion_schema import ensure_relationship_assertion_schema
 
     # Apply SQL migrations (e.g., adding heartbeat columns to rebuild_jobs)
@@ -267,9 +291,6 @@ def init_db(engine: Engine) -> None:
 
     if backend == "sqlite" and url.database and not is_sqlite_memory:
         apply_migrations(url.database)
-    elif backend == "postgresql":
-        apply_postgresql_heartbeat_migration(engine)
-
     ensure_relationship_assertion_schema(engine)
 
 
@@ -397,6 +418,16 @@ def _normalized_runtime_capabilities(capabilities: tuple[str, ...] | set[str] | 
     return tuple(capability for capability in RUNTIME_CAPABILITY_ROLES if capability in capabilities)
 
 
+def _managed_table_names(capabilities: tuple[str, ...]) -> list[str]:
+    """Return profile-scoped SQLAlchemy table names for ordered capabilities."""
+    names: list[str] = []
+    if GRAPH_RUNTIME_CAPABILITY in capabilities:
+        names.extend(GRAPH_RUNTIME_TABLES)
+    if COORDINATION_RUNTIME_CAPABILITY in capabilities:
+        names.extend(COORDINATION_RUNTIME_TABLES)
+    return sorted(names)
+
+
 def _runtime_table_privileges(capabilities: tuple[str, ...]) -> dict[tuple[str, str], frozenset[str]]:
     """Return exact table privileges keyed by capability and table."""
     from .relationship_assertion_db_models import GRAC_TABLE_NAMES
@@ -441,217 +472,22 @@ def _runtime_policy_specs(
     return specs
 
 
-def _ensure_capability_role(connection, role_name: str) -> None:
-    """Require one stable capability role, with superuser-only fallback creation."""
-    role_exists, current_user_is_superuser = connection.execute(
-        text(
-            "SELECT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = :role_name), "
-            "COALESCE((SELECT rolsuper FROM pg_roles WHERE rolname = CURRENT_USER), FALSE)"
-        ),
-        {"role_name": role_name},
-    ).one()
-    if not role_exists and not current_user_is_superuser:
-        raise CapabilityRoleBootstrapRequiredError(role_name)
-
-    bootstrap_message = str(CapabilityRoleBootstrapRequiredError(role_name))
-    connection.execute(
-        text(
-            "".join(
-                (
-                    "DO $fardb$ DECLARE capability_role text := :role_name; BEGIN "
-                    "IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = capability_role) THEN "
-                    "IF NOT COALESCE((SELECT rolsuper FROM pg_roles WHERE rolname = CURRENT_USER), FALSE) THEN "
-                    "RAISE EXCEPTION USING MESSAGE = :bootstrap_message; END IF; "
-                    "EXECUTE 'CREATE ROLE ' || quote_ident(capability_role) || "
-                    "' NOLOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOBYPASSRLS NOREPLICATION'; "
-                    "END IF; "
-                    "IF EXISTS (SELECT 1 FROM pg_roles AS role WHERE role.rolname = capability_role "
-                    "AND (role.rolcanlogin OR role.rolsuper OR role.rolcreatedb "
-                    "OR role.rolcreaterole OR role.rolbypassrls OR role.rolreplication "
-                    "OR has_database_privilege(role.oid, current_database(), 'CREATE') "
-                    "OR EXISTS (SELECT 1 FROM pg_namespace AS namespace "
-                    "WHERE has_schema_privilege(role.oid, namespace.oid, 'CREATE')) "
-                    "OR EXISTS (SELECT 1 FROM pg_proc AS proc "
-                    "JOIN pg_namespace AS namespace ON namespace.oid = proc.pronamespace "
-                    "WHERE namespace.nspname = current_schema() "
-                    "AND proc.proname = 'grac_v1_reject_mutation' AND proc.proowner = role.oid) OR EXISTS ("
-                    "SELECT 1 FROM pg_auth_members AS membership WHERE membership.member = role.oid) OR EXISTS ("
-                    "SELECT 1 FROM pg_auth_members AS membership "
-                    "WHERE membership.roleid = role.oid AND membership.admin_option) OR (",
-                    USABLE_ROLE_MEMBERSHIP_CTE_SQL,
-                    "SELECT COUNT(*) FROM pg_roles AS grantee WHERE grantee.rolcanlogin "
-                    "AND EXISTS (SELECT 1 FROM role_membership WHERE role_membership.member = grantee.oid "
-                    "AND role_membership.roleid = role.oid)) > 1)) "
-                    "THEN RAISE EXCEPTION USING MESSAGE = "
-                    "'unsafe FarDB capability role: ' || capability_role; END IF; END $fardb$",
-                )
-            )
-        ),
-        {"role_name": role_name, "bootstrap_message": bootstrap_message},
-    )
-
-
-def _policy_creation_sql(
-    table_name: str,
-    policy_name: str,
-    role_name: str,
-    command: str,
-    using_expression: str | None,
-    check_expression: str | None,
-) -> str:
-    """Build DDL from repository-owned identifiers and boolean expressions."""
-    parts = ["CREATE POLICY ", policy_name, " ON ", table_name, " FOR ", command, " TO ", role_name]
-    if using_expression is not None:
-        parts.extend((" USING (", using_expression, ")"))
-    if check_expression is not None:
-        parts.extend((" WITH CHECK (", check_expression, ")"))
-    return "".join(parts)
-
-
-def _unknown_runtime_policies(connection, managed_tables: list[str], policy_names: set[str]) -> list[str]:
-    """Return non-contract policies attached to managed tables."""
-    return (
-        connection.execute(
-            text(
-                "SELECT policy.tablename || '.' || policy.policyname "
-                "FROM pg_policies AS policy WHERE policy.schemaname = current_schema() "
-                "AND policy.tablename IN :tables AND policy.policyname NOT IN :policy_names"
-            ).bindparams(
-                bindparam("tables", expanding=True),
-                bindparam("policy_names", expanding=True),
-            ),
-            {"tables": managed_tables, "policy_names": sorted(policy_names)},
-        )
-        .scalars()
-        .all()
-    )
-
-
-# Identifiers are derived only from ORM metadata and repository-owned role/policy constants.
-# bearer:disable python_lang_sql_injection
-def _reset_runtime_table_access(connection, managed_tables: list[str], policy_names: set[str]) -> None:
-    """Reset managed-table grants and contract policy names before provisioning."""
-    for table_name in managed_tables:
-        connection.execute(text(f"ALTER TABLE {table_name} ENABLE ROW LEVEL SECURITY"))
-        connection.execute(text(f"REVOKE ALL PRIVILEGES ON TABLE {table_name} FROM PUBLIC"))
-        for role_name in RUNTIME_CAPABILITY_ROLES.values():
-            connection.execute(text(f"REVOKE ALL PRIVILEGES ON TABLE {table_name} FROM {role_name}"))
-        for policy_name in policy_names:
-            connection.execute(text(f"DROP POLICY IF EXISTS {policy_name} ON {table_name}"))
-
-
-def _reset_runtime_sequence_access(connection) -> None:
-    """Reset graph-sequence grants before provisioning."""
-    for table_name, column_name in _GRAPH_SEQUENCE_TABLE_COLUMNS:
-        connection.execute(
-            text(
-                f"DO $fardb$ DECLARE sequence_name text := "
-                f"pg_get_serial_sequence('{table_name}', '{column_name}'); BEGIN "
-                f"IF sequence_name IS NOT NULL THEN EXECUTE format("
-                f"'REVOKE ALL PRIVILEGES ON SEQUENCE %s FROM PUBLIC', sequence_name); END IF; "
-                f"END $fardb$"
-            )
-        )
-        for role_name in RUNTIME_CAPABILITY_ROLES.values():
-            connection.execute(
-                text(
-                    f"DO $fardb$ DECLARE sequence_name text := "
-                    f"pg_get_serial_sequence('{table_name}', '{column_name}'); BEGIN "
-                    f"IF sequence_name IS NOT NULL THEN EXECUTE format("
-                    f"'REVOKE ALL PRIVILEGES ON SEQUENCE %s FROM {role_name}', sequence_name); END IF; "
-                    f"END $fardb$"
-                )
-            )
-
-
-def _grant_runtime_capability_access(connection, capabilities: tuple[str, ...], table_privileges: dict) -> None:
-    """Grant the exact table, column, and sequence capability matrix."""
-    for capability in capabilities:
-        role_name = RUNTIME_CAPABILITY_ROLES[capability]
-        connection.execute(
-            text(
-                f"DO $fardb$ BEGIN EXECUTE format("
-                f"'GRANT USAGE ON SCHEMA %I TO {role_name}', current_schema()); END $fardb$"
-            )
-        )
-        for (contract_capability, table_name), privileges in table_privileges.items():
-            if contract_capability == capability:
-                connection.execute(text(f"GRANT {', '.join(sorted(privileges))} ON TABLE {table_name} TO {role_name}"))
-        if capability == GRAPH_RUNTIME_CAPABILITY:
-            _grant_graph_runtime_access(connection, role_name)
-
-
-# Identifiers are derived only from GRAC table/sequence constants and the runtime-role map.
-# bearer:disable python_lang_sql_injection
-def _grant_graph_runtime_access(connection, role_name: str) -> None:
-    """Grant graph-only locking columns and sequence access."""
-    from .relationship_assertion_db_models import GRAC_TABLE_NAMES
-
-    for table_name in GRAC_TABLE_NAMES:
-        connection.execute(text(f"GRANT UPDATE (id) ON TABLE {table_name} TO {role_name}"))
-    for table_name, column_name in _GRAPH_SEQUENCE_TABLE_COLUMNS:
-        connection.execute(
-            text(
-                f"DO $fardb$ DECLARE sequence_name text := "
-                f"pg_get_serial_sequence('{table_name}', '{column_name}'); BEGIN "
-                f"IF sequence_name IS NOT NULL THEN EXECUTE format("
-                f"'GRANT USAGE, SELECT ON SEQUENCE %s TO {role_name}', sequence_name); END IF; "
-                f"END $fardb$"
-            )
-        )
-
-
-def _create_runtime_policies(connection, policy_specs: dict) -> None:
-    """Create the exact named RLS policy matrix."""
-    for (table_name, policy_name), (command_code, using_expression, check_expression) in policy_specs.items():
-        capability = policy_name.split("_", 2)[1]
-        connection.execute(
-            text(
-                _policy_creation_sql(
-                    table_name,
-                    policy_name,
-                    RUNTIME_CAPABILITY_ROLES[capability],
-                    _RLS_COMMAND_NAMES[command_code],
-                    using_expression,
-                    check_expression,
-                )
-            )
-        )
-
-
 # The explicit capability matrix is intentionally kept together for fail-closed auditability.
 def ensure_runtime_database_capabilities(  # noqa: C901  # skipcq: PY-R1000
     engine: Engine,
     capabilities: tuple[str, ...] | set[str] | frozenset[str],
 ) -> None:
-    """Install exact PostgreSQL grants and RLS policies for runtime capabilities."""
-    normalized = _normalized_runtime_capabilities(capabilities)
-    if make_url(engine.url).get_backend_name() != "postgresql" or not normalized:
+    """Reject legacy imperative PostgreSQL capability provisioning.
+
+    SQLite does not use PostgreSQL capability roles. PostgreSQL grants, policies,
+    and roles are owned exclusively by the profile-scoped Supabase ledger.
+    """
+    _normalized_runtime_capabilities(capabilities)
+    if make_url(engine.url).get_backend_name() != "postgresql":
         return
-
-    table_privileges = _runtime_table_privileges(normalized)
-    policy_specs = _runtime_policy_specs(normalized)
-    all_policy_names = {
-        f"fardb_{capability}_{command.lower()}_v1"
-        for capability in RUNTIME_CAPABILITY_ROLES
-        for command in _RLS_COMMANDS
-    } | {"fardb_graph_lock_v1"}
-
-    with engine.begin() as connection:
-        managed_tables = sorted(Base.metadata.tables)
-        unknown_policies = _unknown_runtime_policies(connection, managed_tables, all_policy_names)
-        if unknown_policies:
-            raise SchemaCompatibilityError(
-                "managed tables contain unknown RLS policies: " + ", ".join(sorted(unknown_policies))
-            )
-
-        for role_name in RUNTIME_CAPABILITY_ROLES.values():
-            _ensure_capability_role(connection, role_name)
-
-        _reset_runtime_table_access(connection, managed_tables, all_policy_names)
-        _reset_runtime_sequence_access(connection)
-        _grant_runtime_capability_access(connection, normalized, table_privileges)
-        _create_runtime_policies(connection, policy_specs)
+    raise SchemaCompatibilityError(
+        "PostgreSQL runtime capability mutation is owned by the profile-scoped Supabase ledger"
+    )
 
 
 def _verify_runtime_capability_roles(connection, capabilities: tuple[str, ...], managed_tables: list[str]) -> None:
@@ -668,6 +504,38 @@ def _verify_runtime_capability_roles(connection, capabilities: tuple[str, ...], 
                         "AND NOT has_database_privilege(role.oid, current_database(), 'CREATE') "
                         "AND NOT EXISTS (SELECT 1 FROM pg_namespace AS namespace "
                         "WHERE has_schema_privilege(role.oid, namespace.oid, 'CREATE')) "
+                        "AND NOT EXISTS (SELECT 1 FROM pg_class AS auth_rel "
+                        "JOIN pg_namespace AS auth_namespace ON auth_namespace.oid = auth_rel.relnamespace "
+                        "WHERE auth_namespace.nspname = current_schema() AND auth_rel.relkind IN ('r', 'p') "
+                        "AND auth_rel.relname = 'user_credentials' AND (auth_rel.relowner = role.oid "
+                        "OR has_table_privilege(role.oid, auth_rel.oid, 'SELECT') "
+                        "OR has_table_privilege(role.oid, auth_rel.oid, 'INSERT') "
+                        "OR has_table_privilege(role.oid, auth_rel.oid, 'UPDATE') "
+                        "OR has_table_privilege(role.oid, auth_rel.oid, 'DELETE') "
+                        "OR has_table_privilege(role.oid, auth_rel.oid, 'TRUNCATE') "
+                        "OR has_table_privilege(role.oid, auth_rel.oid, 'REFERENCES') "
+                        "OR has_table_privilege(role.oid, auth_rel.oid, 'TRIGGER') "
+                        "OR has_any_column_privilege(role.oid, auth_rel.oid, 'SELECT') "
+                        "OR has_any_column_privilege(role.oid, auth_rel.oid, 'INSERT') "
+                        "OR has_any_column_privilege(role.oid, auth_rel.oid, 'UPDATE') "
+                        "OR has_any_column_privilege(role.oid, auth_rel.oid, 'REFERENCES'))) "
+                        "AND NOT EXISTS (SELECT 1 FROM pg_class AS auth_sequence "
+                        "JOIN pg_namespace AS auth_sequence_namespace "
+                        "ON auth_sequence_namespace.oid = auth_sequence.relnamespace "
+                        "JOIN pg_depend AS auth_dependency ON auth_dependency.objid = auth_sequence.oid "
+                        "AND auth_dependency.classid = 'pg_class'::regclass "
+                        "AND auth_dependency.refclassid = 'pg_class'::regclass "
+                        "AND auth_dependency.deptype IN ('a', 'i') "
+                        "JOIN pg_class AS auth_table ON auth_table.oid = auth_dependency.refobjid "
+                        "JOIN pg_namespace AS auth_table_namespace "
+                        "ON auth_table_namespace.oid = auth_table.relnamespace "
+                        "WHERE auth_sequence.relkind = 'S' "
+                        "AND auth_sequence_namespace.nspname = current_schema() "
+                        "AND auth_table_namespace.nspname = current_schema() "
+                        "AND auth_table.relname = 'user_credentials' AND (auth_sequence.relowner = role.oid "
+                        "OR has_sequence_privilege(role.oid, auth_sequence.oid, 'USAGE') "
+                        "OR has_sequence_privilege(role.oid, auth_sequence.oid, 'SELECT') "
+                        "OR has_sequence_privilege(role.oid, auth_sequence.oid, 'UPDATE'))) "
                         "AND NOT EXISTS (SELECT 1 FROM pg_class AS rel "
                         "JOIN pg_namespace AS namespace ON namespace.oid = rel.relnamespace "
                         "WHERE namespace.nspname = current_schema() "
@@ -685,7 +553,9 @@ def _verify_runtime_capability_roles(connection, capabilities: tuple[str, ...], 
                         "AND NOT EXISTS (SELECT 1 FROM pg_proc AS proc "
                         "JOIN pg_namespace AS namespace ON namespace.oid = proc.pronamespace "
                         "WHERE namespace.nspname = current_schema() "
-                        "AND proc.proname = 'grac_v1_reject_mutation' AND proc.proowner = role.oid) "
+                        "AND proc.proname = 'grac_v1_reject_mutation' AND proc.pronargs = 0 "
+                        "AND (proc.proowner = role.oid "
+                        "OR has_function_privilege(role.oid, proc.oid, 'EXECUTE'))) "
                         "AND NOT EXISTS (SELECT 1 FROM pg_auth_members AS membership "
                         "WHERE membership.member = role.oid) "
                         "AND NOT EXISTS (SELECT 1 FROM pg_auth_members AS membership "
@@ -727,7 +597,7 @@ def _verify_runtime_rls_catalog(connection, managed_tables: list[str], policy_sp
         ).bindparams(bindparam("tables", expanding=True)),
         {"tables": managed_tables},
     ).scalar_one()
-    if rls_table_count != len(Base.metadata.tables):
+    if rls_table_count != len(managed_tables):
         raise SchemaCompatibilityError("managed tables do not all have row-level security enabled")
 
     rows = connection.execute(
@@ -926,17 +796,18 @@ def _verify_runtime_capability_grants(
         raise SchemaCompatibilityError(
             f"runtime column grants do not match {capability_by_role[role_name]} capability on {table_name}"
         )
-    sequence_rows = _sequence_privilege_rows(connection, role_names)
-    missing_sequence = next((row[1] for row in sequence_rows if row[3] is None), None)
-    if missing_sequence is not None:
-        raise SchemaCompatibilityError(f"required runtime sequence is missing for {missing_sequence}")
-    comparable_sequence_rows = [(row[0], row[1], row[2], row[4], row[5]) for row in sequence_rows]
-    mismatch = _first_matrix_mismatch(comparable_sequence_rows, expected_sequences)
-    if mismatch is not None:
-        role_name, table_name, _column_name, _privilege = mismatch
-        raise SchemaCompatibilityError(
-            f"runtime sequence grants do not match {capability_by_role[role_name]} capability on {table_name}"
-        )
+    if GRAPH_RUNTIME_CAPABILITY in capabilities:
+        sequence_rows = _sequence_privilege_rows(connection, role_names)
+        missing_sequence = next((row[1] for row in sequence_rows if row[3] is None), None)
+        if missing_sequence is not None:
+            raise SchemaCompatibilityError(f"required runtime sequence is missing for {missing_sequence}")
+        comparable_sequence_rows = [(row[0], row[1], row[2], row[4], row[5]) for row in sequence_rows]
+        mismatch = _first_matrix_mismatch(comparable_sequence_rows, expected_sequences)
+        if mismatch is not None:
+            role_name, table_name, _column_name, _privilege = mismatch
+            raise SchemaCompatibilityError(
+                f"runtime sequence grants do not match {capability_by_role[role_name]} capability on {table_name}"
+            )
 
 
 # The catalog verifier intentionally exposes each privilege edge in one auditable matrix.
@@ -944,7 +815,7 @@ def _verify_runtime_capability_catalog(connection, capabilities: tuple[str, ...]
     """Verify exact role attributes, table grants, and named RLS policies."""
     from .relationship_assertion_db_models import GRAC_TABLE_NAMES
 
-    managed_tables = sorted(Base.metadata.tables)
+    managed_tables = _managed_table_names(capabilities)
     table_privileges = _runtime_table_privileges(capabilities)
     policy_specs = _runtime_policy_specs(capabilities)
     _verify_runtime_capability_roles(connection, capabilities, managed_tables)
@@ -969,7 +840,7 @@ def _verify_runtime_login_relation_grants(connection, capabilities: tuple[str, .
         if GRAPH_RUNTIME_CAPABILITY in capabilities
         else frozenset()
     )
-    managed_tables = sorted(Base.metadata.tables)
+    managed_tables = _managed_table_names(capabilities)
     expected_tables: dict[tuple, bool] = {}
     expected_columns: dict[tuple, bool] = {}
     for table_name in managed_tables:
@@ -1035,12 +906,17 @@ def verify_database_schema(
     Raises:
         SchemaCompatibilityError: If the schema or authority posture is not compatible.
     """
-    # Register every ORM table on Base.metadata before comparing the live schema.
+    # Register every ORM table on Base.metadata before selecting the profile scope.
     from . import relationship_assertion_db_models as _relationship_assertion_db_models  # noqa: F401
     from .migrations import postgresql_heartbeat_schema_gaps
     from .relationship_assertion_schema import verify_relationship_assertion_schema
 
     backend = make_url(engine.url).get_backend_name()
+    normalized_capabilities = _normalized_runtime_capabilities(required_capabilities)
+    if backend == "postgresql" and not normalized_capabilities:
+        raise SchemaCompatibilityError(
+            "PostgreSQL schema verification requires an explicit non-empty capability profile"
+        )
     if backend == "sqlite":
         # Connection-local UDF/pragma setup is not persistent schema mutation.
         configure_sqlite_engine(engine)
@@ -1048,7 +924,9 @@ def verify_database_schema(
     try:
         inspector = inspect(engine)
         actual_tables = set(inspector.get_table_names())
-        expected_tables = set(Base.metadata.tables)
+        expected_tables = (
+            set(_managed_table_names(normalized_capabilities)) if normalized_capabilities else set(Base.metadata.tables)
+        )
         missing_tables = sorted(expected_tables - actual_tables)
         if missing_tables:
             raise SchemaCompatibilityError(f"database schema missing required tables: {', '.join(missing_tables)}")
@@ -1056,16 +934,16 @@ def verify_database_schema(
         for table_name in sorted(expected_tables):
             _verify_table_schema(inspector, table_name)
 
-        if backend == "postgresql":
+        if backend == "postgresql" and GRAPH_RUNTIME_CAPABILITY in normalized_capabilities:
             heartbeat_gaps = postgresql_heartbeat_schema_gaps(inspector)
             if heartbeat_gaps:
                 raise SchemaCompatibilityError(
                     "database rebuild compatibility requirements are missing: " + ", ".join(heartbeat_gaps)
                 )
 
-        verify_relationship_assertion_schema(engine)
-        normalized_capabilities = _normalized_runtime_capabilities(required_capabilities)
-        if backend == "postgresql" and normalized_capabilities:
+        if GRAPH_RUNTIME_CAPABILITY in normalized_capabilities or (backend == "sqlite" and not normalized_capabilities):
+            verify_relationship_assertion_schema(engine)
+        if backend == "postgresql":
             with engine.connect() as connection:
                 _verify_runtime_capability_catalog(connection, normalized_capabilities)
     except SchemaCompatibilityError:
@@ -1091,7 +969,9 @@ def verify_runtime_database_authority(  # skipcq: PY-R1000
 
     normalized_capabilities = _normalized_runtime_capabilities(required_capabilities)
     try:
-        managed_tables = sorted(Base.metadata.tables)
+        managed_tables = (
+            _managed_table_names(normalized_capabilities) if normalized_capabilities else sorted(Base.metadata.tables)
+        )
         with engine.connect() as connection:
             restricted = connection.execute(
                 text(
@@ -1107,6 +987,39 @@ def verify_runtime_database_authority(  # skipcq: PY-R1000
                     "OR has_database_privilege(assumable.oid, current_database(), 'CREATE') "
                     "OR EXISTS (SELECT 1 FROM pg_namespace AS namespace "
                     "WHERE has_schema_privilege(assumable.oid, namespace.oid, 'CREATE')) "
+                    "OR EXISTS (SELECT 1 FROM pg_class AS auth_rel "
+                    "JOIN pg_namespace AS auth_namespace ON auth_namespace.oid = auth_rel.relnamespace "
+                    "WHERE auth_namespace.nspname = current_schema() AND auth_rel.relkind IN ('r', 'p') "
+                    "AND auth_rel.relname = 'user_credentials' AND (auth_rel.relowner = assumable.oid "
+                    "OR has_table_privilege(assumable.oid, auth_rel.oid, 'SELECT') "
+                    "OR has_table_privilege(assumable.oid, auth_rel.oid, 'INSERT') "
+                    "OR has_table_privilege(assumable.oid, auth_rel.oid, 'UPDATE') "
+                    "OR has_table_privilege(assumable.oid, auth_rel.oid, 'DELETE') "
+                    "OR has_table_privilege(assumable.oid, auth_rel.oid, 'TRUNCATE') "
+                    "OR has_table_privilege(assumable.oid, auth_rel.oid, 'REFERENCES') "
+                    "OR has_table_privilege(assumable.oid, auth_rel.oid, 'TRIGGER') "
+                    "OR has_any_column_privilege(assumable.oid, auth_rel.oid, 'SELECT') "
+                    "OR has_any_column_privilege(assumable.oid, auth_rel.oid, 'INSERT') "
+                    "OR has_any_column_privilege(assumable.oid, auth_rel.oid, 'UPDATE') "
+                    "OR has_any_column_privilege(assumable.oid, auth_rel.oid, 'REFERENCES'))) "
+                    "OR EXISTS (SELECT 1 FROM pg_class AS auth_sequence "
+                    "JOIN pg_namespace AS auth_sequence_namespace "
+                    "ON auth_sequence_namespace.oid = auth_sequence.relnamespace "
+                    "JOIN pg_depend AS auth_dependency ON auth_dependency.objid = auth_sequence.oid "
+                    "AND auth_dependency.classid = 'pg_class'::regclass "
+                    "AND auth_dependency.refclassid = 'pg_class'::regclass "
+                    "AND auth_dependency.deptype IN ('a', 'i') "
+                    "JOIN pg_class AS auth_table ON auth_table.oid = auth_dependency.refobjid "
+                    "JOIN pg_namespace AS auth_table_namespace "
+                    "ON auth_table_namespace.oid = auth_table.relnamespace "
+                    "WHERE auth_sequence.relkind = 'S' "
+                    "AND auth_sequence_namespace.nspname = current_schema() "
+                    "AND auth_table_namespace.nspname = current_schema() "
+                    "AND auth_table.relname = 'user_credentials' "
+                    "AND (auth_sequence.relowner = assumable.oid "
+                    "OR has_sequence_privilege(assumable.oid, auth_sequence.oid, 'USAGE') "
+                    "OR has_sequence_privilege(assumable.oid, auth_sequence.oid, 'SELECT') "
+                    "OR has_sequence_privilege(assumable.oid, auth_sequence.oid, 'UPDATE'))) "
                     "OR EXISTS (SELECT 1 FROM pg_namespace AS namespace "
                     "WHERE namespace.nspname = current_schema() "
                     "AND namespace.nspowner = assumable.oid) "
@@ -1131,7 +1044,8 @@ def verify_runtime_database_authority(  # skipcq: PY-R1000
                     "JOIN pg_namespace AS namespace ON namespace.oid = proc.pronamespace "
                     "WHERE namespace.nspname = current_schema() "
                     "AND proc.proname = 'grac_v1_reject_mutation' "
-                    "AND proc.proowner = assumable.oid))) "
+                    "AND proc.pronargs = 0 AND (proc.proowner = assumable.oid "
+                    "OR has_function_privilege(assumable.oid, proc.oid, 'EXECUTE'))))) "
                     "FROM pg_roles AS login WHERE login.rolname = session_user"
                 ).bindparams(
                     bindparam("tables", expanding=True),
@@ -1140,7 +1054,9 @@ def verify_runtime_database_authority(  # skipcq: PY-R1000
                 {"tables": managed_tables, "sequence_tables": managed_tables},
             ).scalar_one()
             if not restricted:
-                raise SchemaCompatibilityError("runtime database role retains schema-migration authority")
+                raise SchemaCompatibilityError(
+                    "runtime database role retains schema-migration authority or cross-profile authority"
+                )
             expected_roles = {RUNTIME_CAPABILITY_ROLES[name] for name in normalized_capabilities}
             actual_roles = set(
                 connection.execute(
@@ -1162,7 +1078,8 @@ def verify_runtime_database_authority(  # skipcq: PY-R1000
             if normalized_capabilities:
                 _verify_runtime_capability_catalog(connection, normalized_capabilities)
             _verify_runtime_login_relation_grants(connection, normalized_capabilities)
-            _verify_runtime_login_sequence_grants(connection, normalized_capabilities)
+            if GRAPH_RUNTIME_CAPABILITY in normalized_capabilities:
+                _verify_runtime_login_sequence_grants(connection, normalized_capabilities)
     except SchemaCompatibilityError:
         raise
     except Exception as exc:  # noqa: BLE001 - sanitize driver/catalog errors at the runtime boundary

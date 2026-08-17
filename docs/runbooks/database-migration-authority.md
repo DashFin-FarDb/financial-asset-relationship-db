@@ -1,8 +1,8 @@
 # Database migration authority
 
 **Applies to:** current FarDB graph, coordination, GRAC, and API credential schemas.
-**Commands:** superuser role bootstrap, then `python -m scripts.migrate_database`
-**Authority:** two explicit operator executions with separate superuser and migration-owner credentials.
+**Commands:** superuser role bootstrap, ledger validation, then `python -m scripts.migrate_database`
+**Authority:** static cluster-role bootstrap plus one profile-scoped repository SQL ledger.
 
 ## Contract
 
@@ -10,22 +10,26 @@ FastAPI runtime startup is a read-only compatibility boundary. It checks require
 indices, GRAC immutability triggers, PostgreSQL RLS/grant posture, and the API credential schema. It fails closed when
 the configured databases are absent or incompatible and never attempts repair.
 
-The operator workflow is the only supported mutating setup path for this tranche. The superuser-owned bootstrap
-creates the cluster-level capability roles; the normal command wraps the existing custom migration mechanics and owns:
+For PostgreSQL, the only schema authority is the exact SQL under
+`supabase/ledgers/<component>/migrations/`, composed by `supabase/ledger-profiles.json`. The operator validates those
+bytes, validates a protected target-binding document, builds a disposable Supabase CLI projection, and applies one of
+four explicit profiles: `auth`, `graph`, `coordination`, or `combined`. The committed repository never contains a flat
+`supabase/migrations/` directory, provider link state, or generated projection.
 
-- SQLAlchemy ORM table creation;
-- SQLite compatibility migrations;
-- PostgreSQL rebuild-job columns, widths, and status constraint;
-- GRAC projection metadata/backfill, checks, immutable-write triggers, exact named RLS policies, and grant hardening;
-- `user_credentials` table creation and optional initial credential provisioning;
-- exact grants and policies for the pre-provisioned PostgreSQL `NOLOGIN` capability roles:
-  `fardb_runtime_graph`, `fardb_runtime_coordination`, and `fardb_runtime_auth`.
+Each disposable projection contains only the selected, digest-rechecked migration bytes plus a fixed mode-`0600`
+`supabase/config.toml` with the non-secret local project ID required by the pinned CLI. That generated config carries
+no provider reference, target selection, schema definition, seed setting, or executable authority and is deleted with
+the projection.
 
-The normal command does not create a missing capability role when run by a non-superuser migration owner. It fails
-closed and directs the operator to `scripts/bootstrap_database_capability_roles.sql`. A superuser connection retains
-fallback role creation for isolated development and disposable tests. Neither path creates login roles, passwords,
-connection strings, or provider configuration. Runtime login creation, credential custody, role membership, and URL
-replacement remain a separate human-controlled provider operation.
+The custom imperative path remains only for SQLite compatibility. PostgreSQL calls to `init_db`, auth schema setup,
+GRAC repair, rebuild compatibility repair, or runtime grant provisioning fail closed. PostgreSQL credential seeding is
+the sole post-ledger DML performed by the operator command; it runs only after read-only schema and capability-catalog
+verification succeeds.
+
+The static superuser bootstrap creates the three cluster-level capability roles before profile execution. Neither the
+ledger runner nor any runtime process creates roles, login identities, passwords, connection strings, memberships, or
+provider configuration. Runtime login creation, credential custody, role membership, and URL replacement remain a
+separate human-controlled provider operation.
 
 ## Superuser capability-role bootstrap
 
@@ -62,12 +66,42 @@ an update; immutable triggers continue to reject UPDATE, DELETE, and TRUNCATE as
 
 Every runtime login must be `NOSUPERUSER NOCREATEDB NOCREATEROLE NOBYPASSRLS`, own no protected FarDB object, have no
 database/schema `CREATE`, and be a member of exactly the capability roles its URL needs. Do not grant runtime logins
-direct table privileges. A shared graph/coordination URL needs both graph and coordination memberships; separated
-URLs need one each. The auth login needs only auth membership. Startup rejects missing, extra, elevated, or drifted
-capability authority.
+direct table privileges. An explicitly combined physical target still uses scoped logins: the graph/reconciliation
+runtime URL needs graph and coordination memberships, while the auth login needs only auth membership. Separated
+graph and coordination URLs need one membership each. Startup rejects missing, extra, elevated, or drifted authority,
+including direct or inherited access to another component's tables, columns, sequences, or ledger-owned routines on
+a `combined` target.
 
-This command does not establish the durable PostgreSQL migration ledger or historical drift baseline. That remains
-CQ-03. Do not represent a successful command run as CQ-03 closure.
+CQ-03B-R2 materializes the clean-build ledger but does not adopt hosted history or complete the drift gate. CQ-03C
+owns profile-aware deliberate-drift fixtures. CQ-03D remains a separately approved, permit-bound hosted-history
+adoption workflow and never applies DDL.
+
+## Profile manifest and protected target binding
+
+Validate the immutable repository inputs before any execution:
+
+```bash
+python -m scripts.postgresql_ledger validate
+```
+
+Every configured PostgreSQL logical target must have one entry in a mode-`0600` JSON document named by
+`FARDB_POSTGRES_TARGET_BINDINGS_FILE`. The document binds the exact manifest digest, algorithm
+`fardb-target-fingerprint-v1`, logical target, profile, lineage, execution class, and three operator-attested immutable
+identity inputs. Raw identity inputs are protected evidence: they are not a DSN, hostname, port, mutable project name,
+or database name and must never be committed or printed.
+
+Distinct physical targets use their matching single-component profile. Three aliases to one approved shared physical
+target must all select `combined` and carry identical immutable identity inputs. Partial sharing, conflicting profiles,
+different fingerprints for the same URL, one fingerprint for distinct protected inputs, missing values, control
+characters, and a manifest-digest mismatch all stop with `TARGET_IDENTITY_INDETERMINATE` or a bounded profile-conflict
+error before an engine, connection, or subprocess starts.
+
+CQ-03B-R2 executes only `fresh-v1` targets classified `disposable` or `loopback`. It rejects `hosted-legacy-v1`, a
+hosted execution class, known hosted Supabase endpoints, and a non-loopback hostname labelled as loopback. Every DSN
+alias retained for a `combined` target passes that barrier independently before the first execution. Before CQ-03D it
+also forbids `supabase link`, `db pull`, `migration repair`, either linked/URL reset variant, linked/project selection,
+password flags, dry-run substitution, and any command other than the fixed projected `db push` with an explicit
+operator URL. This means the R2 command is not authority to apply or adopt a hosted target.
 
 ## First setup or schema-relevant deployment
 
@@ -76,33 +110,39 @@ CQ-03. Do not represent a successful command run as CQ-03 closure.
    pass/fail evidence; never record the bootstrap URL.
 3. Configure the existing database URL variables with migration-owner credentials for the intended graph,
    coordination, and auth boundaries. Existing URL precedence is unchanged.
-4. Configure `SECRET_KEY`. For initial credential provisioning, also configure `ADMIN_USERNAME`, `ADMIN_PASSWORD`, and
+4. For every PostgreSQL URL, prepare the protected target-binding document described above, set mode `0600`, and set
+   `FARDB_POSTGRES_TARGET_BINDINGS_FILE` to its absolute path. Complete this only for an approved `fresh-v1`
+   disposable or loopback target in R2.
+5. Require the reviewed Supabase CLI version `2.114.0`. The migration container installs an exact checksum-pinned
+   Linux AMD64 binary; a direct operator environment must provide the same version.
+6. Configure `SECRET_KEY`. For initial credential provisioning, also configure `ADMIN_USERNAME`, `ADMIN_PASSWORD`, and
    optional `ADMIN_EMAIL`, `ADMIN_FULL_NAME`, or `ADMIN_DISABLED`.
-5. Run:
+7. Run:
 
    ```bash
    python -m scripts.migrate_database
    ```
 
-6. Require exit status 0 and record only the emitted component names (`graph`, `coordination`, `auth`). Never record
+8. Require exit status 0 and record only the emitted component names (`graph`, `coordination`, `auth`). Never record
    raw database URLs or secrets.
-7. In the provider's protected operator surface, create or select the three restricted login identities and grant
+9. In the protected operator surface, create or select the three restricted login identities and grant
    only the applicable capability membership. For example, the reviewed equivalent of
    `GRANT fardb_runtime_graph TO <graph_login>` belongs on the graph boundary; use both graph and coordination
    memberships only when those boundaries deliberately share one URL. Do not paste login names or commands with
    credentials into public evidence.
-8. Replace migration-owner URLs with the corresponding restricted-login URLs. Remove `ADMIN_PASSWORD` from the
+10. Replace migration-owner URLs with the corresponding restricted-login URLs. Remove `ADMIN_PASSWORD` from the
    runtime environment, but keep `ADMIN_USERNAME` in production runtime configuration.
-9. Start FastAPI. A compatibility failure is a deployment blocker: return to this procedure rather than broadening
+11. Start FastAPI. A compatibility failure is a deployment blocker: return to this procedure rather than broadening
    the app role.
-10. Prove cold start and restart, exercise graph/coordination/auth runtime operations, and run the hosted readiness and
+12. Prove cold start and restart, exercise graph/coordination/auth runtime operations, and run the hosted readiness and
     database-authorization evidence required by the target environment.
 
 ### Production Compose operator path
 
-The production Compose runtime never runs migrations during API startup. For routine schema migrations after an
-enabled administrator credential has been provisioned, leave `ADMIN_PASSWORD` unset so the migration verifies the
-existing credential without replacing it:
+The production Compose runtime never runs migrations during API startup and its `runtime` image contains neither the
+Supabase CLI nor ledger sources. The separate `migration` image contains the checksum-pinned CLI and exact ledger. For
+SQLite, routine schema migrations after an enabled administrator credential has been provisioned leave
+`ADMIN_PASSWORD` unset, so the migration verifies the existing credential without replacing it:
 
 ```bash
 # Obtain SECRET_KEY from the approved operator secret surface.
@@ -127,10 +167,12 @@ unset ADMIN_PASSWORD
 docker compose -f docker-compose.production.yml up -d api frontend
 ```
 
-The `migrate` service has no ports and does not remain running. It receives `ADMIN_PASSWORD` only for the initial
-credential-provisioning invocation; routine migrations must leave that variable unset, and the `api` service never
-receives it. For PostgreSQL, complete the superuser capability-role bootstrap first, then supply migration-owner URLs
-to this command as described above.
+The `migrate` service has no ports, is read-only apart from `/data` and `/tmp`, and does not remain running. It receives
+`ADMIN_PASSWORD` only for the initial credential-provisioning invocation; routine migrations must leave that variable
+unset, and the `api` service never receives it. For a permitted disposable/loopback PostgreSQL rehearsal, complete the
+capability-role bootstrap, mount the mode-`0600` binding document without baking it into the image, set
+`FARDB_POSTGRES_TARGET_BINDINGS_FILE` to the in-container path, and supply migration-owner URLs. Hosted execution and
+history adoption remain blocked until CQ-03D.
 
 For an isolated PostgreSQL rehearsal, the opt-in integration contract accepts restricted DSNs only through
 `FARDB_GRAPH_RUNTIME_DATABASE_URL`, `FARDB_COORDINATION_RUNTIME_DATABASE_URL`, and
@@ -138,10 +180,10 @@ For an isolated PostgreSQL rehearsal, the opt-in integration contract accepts re
 approved operator environment and retain only bounded pass/fail evidence. The test does not create logins, grant
 memberships, or change provider configuration.
 
-When graph and coordination share one URL, the command initializes that engine once. A coordination-only target still
-receives the shared FarDB structural schema; its requested capability set controls the runtime grants and RLS policies,
-not which ORM tables the operator creates. When no durable graph or coordination URL is configured for a local demo,
-the command initializes only the auth database.
+When PostgreSQL graph and coordination are distinct, each receives only its component profile. Sharing is permitted
+only when auth, graph, and coordination are all explicitly bound to one physical target with `combined`; the runner
+never infers that choice. SQLite retains its historical shared local schema behavior. When no durable graph or
+coordination URL is configured for a local demo, the command initializes only the auth database.
 
 ## Local SQLite initial-provisioning example
 
@@ -188,9 +230,13 @@ requires durable graph/reconciliation persistence.
 - A missing-schema or incompatible-schema startup error is evidence that the operator step did not complete against
   the runtime target. Do not retry by granting CREATE, ALTER, TRIGGER, ownership, or grant-management authority to the
   application role.
-- A `required PostgreSQL capability role ... is missing` migration error means the normal migration owner is correctly
-  refusing to create a cluster role. Run the static superuser bootstrap against that cluster, remove the superuser
-  connection from the environment, and rerun the normal migration.
+- A missing PostgreSQL capability role causes the forward migration to fail without creating it. Run the static
+  superuser bootstrap against the disposable/loopback cluster, remove the superuser connection from the environment,
+  and rerun only after all target bindings are revalidated.
+- `TARGET_IDENTITY_INDETERMINATE` means identity evidence, file protection, manifest binding, or alias resolution is
+  incomplete. Do not infer an identity or broaden a profile.
+- A hosted-write-barrier failure is expected for hosted or legacy targets in CQ-03B-R2. Do not bypass it with direct
+  CLI, provider SQL, link state, another credential, or migration-history repair; CQ-03D requires separate approval.
 - If the command fails, retain the target for diagnosis when safe, use the backup/restore procedure for destructive or
   partial migration concerns, and rerun only after the cause is understood.
 - Code rollback may restore the prior application version, but database rollback follows the schema change's reviewed

@@ -1,0 +1,148 @@
+{
+  "manifest_version": "fardb-ledger-profiles-v1",
+  "component_order": [
+    "auth",
+    "graph",
+    "coordination"
+  ],
+  "algorithms": {
+    "migration_digest": "sha256",
+    "provider_statements_digest": "fardb-provider-statements-v1",
+    "target_fingerprint": "fardb-target-fingerprint-v1"
+  },
+  "components": {
+    "auth": {
+      "dependencies": [],
+      "managed_tables": [
+        "user_credentials"
+      ],
+      "migrations": [
+        {
+          "timestamp": "20260817153547",
+          "filename": "20260817153547_cq_03b_r2_auth_forward_baseline.sql",
+          "sha256": "b09013727ba11bdc108666e9a81a183e4b79ba95576b8d8f91ab1269893a4173"
+        }
+      ]
+    },
+    "graph": {
+      "dependencies": [],
+      "managed_tables": [
+        "assets",
+        "asset_relationships",
+        "regulatory_events",
+        "regulatory_event_assets",
+        "rebuild_jobs",
+        "relationship_evidence",
+        "relationship_assertions",
+        "relationship_assertion_evidence",
+        "relationship_assertion_events",
+        "relationship_projection_revisions",
+        "relationship_projection_edges",
+        "relationship_projection_publications"
+      ],
+      "migrations": [
+        {
+          "timestamp": "20260817153555",
+          "filename": "20260817153555_cq_03b_r2_graph_forward_baseline.sql",
+          "sha256": "74ab6e2d8206ccf22b69eebff2c15ba3631fb120a829e121a3a508552e52f980"
+        }
+      ]
+    },
+    "coordination": {
+      "dependencies": [],
+      "managed_tables": [
+        "distributed_locks"
+      ],
+      "migrations": [
+        {
+          "timestamp": "20260817153557",
+          "filename": "20260817153557_cq_03b_r2_coordination_forward_baseline.sql",
+          "sha256": "26595a91c41e3c9da347ebde0c8b901caa07b483407f603d97e19cbf99a9b841"
+        }
+      ]
+    }
+  },
+  "profiles": {
+    "auth": {
+      "components": [
+        "auth"
+      ]
+    },
+    "graph": {
+      "components": [
+        "graph"
+      ]
+    },
+    "coordination": {
+      "components": [
+        "coordination"
+      ]
+    },
+    "combined": {
+      "components": [
+        "auth",
+        "graph",
+        "coordination"
+      ]
+    }
+  },
+  "lineages": {
+    "fresh-v1": {
+      "adoption_state": "canonical-fresh",
+      "receipts": []
+    },
+    "hosted-legacy-v1": {
+      "adoption_state": "not-adopted-before-cq-03d",
+      "receipts": [
+        {
+          "timestamp": "20251019202442",
+          "name": "create_finance_dashboard_tables",
+          "statement_count": 55,
+          "classification": "protected-reviewed-statement-evidence",
+          "statements_sha256": "a0876b49e1715b5d28d1db02e8787d8137d3c8c608e0031ed183df45884d7b66",
+          "provenance": "bounded read-only provider receipt capture on 2026-08-17; exact ordered payload remains outside the repository"
+        },
+        {
+          "timestamp": "20260723074054",
+          "name": "adr0007_public_deny_untrusted_roles",
+          "statement_count": 1,
+          "classification": "protected-reviewed-statement-evidence",
+          "statements_sha256": "1f32791a479a88f25498f2d4a0c7610c8c73fd94ca4520d0d087945900c4aacb",
+          "provenance": "bounded read-only provider receipt capture on 2026-08-17; exact ordered payload remains outside the repository"
+        },
+        {
+          "timestamp": "20260723074126",
+          "name": "adr0007_revoke_public_execute_helper",
+          "statement_count": 1,
+          "classification": "protected-reviewed-statement-evidence",
+          "statements_sha256": "4e6f8153401574850a3d0e41e5c1919a9d076afada6806b7f5b919f3fe62ba18",
+          "provenance": "bounded read-only provider receipt capture on 2026-08-17; exact ordered payload remains outside the repository"
+        },
+        {
+          "timestamp": "20260723092314",
+          "name": "adr0007_default_privileges_for_role_postgres",
+          "statement_count": 1,
+          "classification": "protected-reviewed-statement-evidence",
+          "statements_sha256": "c0d774395ec0599048ade5309b3998795d49a0467596ad26c5728eaa373e9500",
+          "provenance": "bounded read-only provider receipt capture on 2026-08-17; exact ordered payload remains outside the repository"
+        },
+        {
+          "timestamp": "20260809112436",
+          "name": "cq_01_02_runtime_capability_contract",
+          "statement_count": 1,
+          "classification": "protected-reviewed-statement-evidence",
+          "statements_sha256": "7d0cb353bfac38a9077a82ad2b696941332f0ad866514828b1d8fa1a67fe3e4f",
+          "provenance": "bounded read-only provider receipt capture on 2026-08-17; exact ordered payload remains outside the repository"
+        },
+        {
+          "timestamp": "20260809115020",
+          "name": "grant_fardb_runtime_capabilities_to_login_roles",
+          "statement_count": 1,
+          "classification": "protected-restricted-membership-evidence",
+          "statements_sha256": "0dbabd5fd58b8f241a8a12dd73fd2e48f57ae93873aef6c2c45e459f2c201b02",
+          "provenance": "bounded read-only provider receipt capture on 2026-08-17; restricted membership payload remains in the protected evidence store"
+        }
+      ]
+    }
+  }
+}

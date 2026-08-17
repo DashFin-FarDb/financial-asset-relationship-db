@@ -44,21 +44,16 @@ def ensure_relationship_assertion_schema(engine: Engine) -> None:
     untrusted roles retain EXECUTE.
     """
     backend = make_url(str(engine.url)).get_backend_name()
+    if backend == "postgresql":
+        from src.data.database import SchemaCompatibilityError  # pylint: disable=import-outside-toplevel
+
+        raise SchemaCompatibilityError("PostgreSQL GRAC schema mutation is owned by the profile-scoped Supabase ledger")
     with engine.begin() as connection:
         _ensure_projection_revision_scope_metadata(connection, backend)
         if backend == "sqlite":
             _require_sqlite_grac_constraints(connection)
             if not _sqlite_guards_present(connection):
                 _install_sqlite_immutability_guards(connection)
-        elif backend == "postgresql":
-            _ensure_postgresql_grac_constraints(connection)
-            if not _postgresql_guards_present(connection):
-                _install_postgresql_immutability_guards(connection)
-            else:
-                # Upgrade path: earlier installs may have left untrusted EXECUTE.
-                _revoke_immutability_function_execute(connection)
-            if not _postgresql_grac_access_hardened(connection):
-                _harden_postgresql_grac_access(connection)
 
 
 def verify_relationship_assertion_schema(engine: Engine) -> None:

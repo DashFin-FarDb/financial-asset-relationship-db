@@ -71,6 +71,22 @@ The graph persistence store holds durable graph truth. Evidence/metadata persist
 - `ADMIN_USERNAME`: Runtime rebuild-operator identity and the username used by explicit initial provisioning.
 - `ADMIN_PASSWORD`: Initial credential supplied only to `python -m scripts.migrate_database`; it is not a FastAPI
   startup credential and must be removed from the runtime environment after provisioning.
+- `FARDB_POSTGRES_TARGET_BINDINGS_FILE`: Operator-only path to a mode-`0600` protected target-binding document for
+  PostgreSQL ledger execution. It is not a runtime variable. Its raw immutable identity inputs must be mounted from
+  an approved secret/evidence surface and must never be committed, logged, or embedded in an image.
+
+### PostgreSQL migration authority
+
+PostgreSQL schema authority is the component SQL under `supabase/ledgers/`, composed only by
+`supabase/ledger-profiles.json`. FastAPI remains verify-only. The runtime image contains neither the Supabase CLI nor
+ledger sources; a separate operator image contains the checksum-pinned CLI and exact source bytes. SQLite retains its
+explicit custom compatibility path for local and non-durable use.
+
+CQ-03B-R2 permits clean builds only for operator-attested `fresh-v1` disposable or loopback targets. It does not
+authorize hosted DDL or history adoption. `hosted-legacy-v1`, known hosted endpoints, link state, pull, repair, reset,
+and hosted push remain blocked. CQ-03D requires a separate human-approved, single-use adoption permit; it never
+applies DDL. See the [database migration authority runbook](runbooks/database-migration-authority.md) for profiles,
+target bindings, and the fixed command barrier.
 
 ### Rebuild coordination (optional)
 
@@ -243,7 +259,9 @@ A Vercel rollback/promotion can recover a previous application deployment, but i
 - **Production/Staging**: Secrets such as `SECRET_KEY`, migration-time `ADMIN_PASSWORD`, `DATABASE_URL`,
   `POSTGRES_URL`, and `ASSET_GRAPH_DATABASE_URL` must be configured through an approved secret-management surface and
   must never be checked into version control. Migration-owner database URLs and `ADMIN_PASSWORD` belong only to the
-  bounded operator execution; FastAPI receives restricted runtime URLs and no bootstrap password.
+  bounded operator execution; FastAPI receives restricted runtime URLs and no bootstrap password. Protected target
+  bindings are mounted only into the operator image and referenced by path; they are absent from runtime images and
+  environments.
 - **Preview**: Non-production secrets must still be handled through environment-variable management and must not be embedded in code or docs.
 - **Local Development**: Use a local `.env` file or equivalent local environment configuration. Keep it out of version control.
 
