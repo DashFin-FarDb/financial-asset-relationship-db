@@ -7,7 +7,7 @@ import sys
 from collections.abc import Callable
 from pathlib import Path
 
-from sqlalchemy.engine import Engine
+from sqlalchemy.engine import Engine, make_url
 
 from api.auth import seed_credentials_from_settings, user_repository
 from api.database import (
@@ -23,6 +23,7 @@ from scripts.postgresql_ledger import (
     TARGET_BINDINGS_ENV,
     TARGET_IDENTITY_INDETERMINATE,
     HostedWriteBarrierError,
+    SupabaseCliError,
     TargetIdentityError,
     apply_profile_to_database,
     assert_profile_write_allowed,
@@ -40,10 +41,36 @@ from src.data.database import (
 )
 
 
+class PostgreSQLPlanApplyError(RuntimeError):
+    """Report bounded progress when one target in a multi-target plan fails."""
+
+    def __init__(self, completed_profiles: tuple[str, ...], failed_profile: str) -> None:
+        """Retain only reviewed profile names, never URLs or dependency output."""
+        self.completed_profiles = completed_profiles
+        self.failed_profile = failed_profile
+        super().__init__("PostgreSQL profile application did not complete")
+
+
 def _is_postgresql_url(url: str) -> bool:
     """Return whether a configured URL selects PostgreSQL without connecting."""
-    normalized = url.strip().lower()
-    return normalized.startswith("postgresql://") or normalized.startswith("postgres://")
+    scheme, separator, _remainder = url.strip().lower().partition("://")
+    return bool(separator) and (scheme in ("postgres", "postgresql") or scheme.startswith(("postgres+", "postgresql+")))
+
+
+def _operator_binding_path(value: str) -> Path:
+    """Require an explicit absolute, non-symlink operator control-file path."""
+    candidate = Path(value)
+    if not candidate.is_absolute() or candidate.is_symlink() or not candidate.is_file():
+        raise TargetIdentityError()
+    return candidate
+
+
+def _postgresql_cli_url(value: str) -> str:
+    """Strip a SQLAlchemy driver suffix for the Supabase CLI without hiding credentials."""
+    parsed = make_url(value)
+    if parsed.get_backend_name() not in ("postgres", "postgresql"):
+        raise ValueError("configured URL is not PostgreSQL")
+    return parsed.set(drivername="postgresql").render_as_string(hide_password=False)
 
 
 def _configured_database_urls(settings: Settings) -> dict[str, str]:
@@ -64,7 +91,7 @@ def _configured_database_urls(settings: Settings) -> dict[str, str]:
 def _resolve_postgresql_plan(database_urls: dict[str, str]):
     """Validate manifest, bindings, identity, and aliases before any execution."""
     postgresql_urls = {
-        logical_target: database_url
+        logical_target: _postgresql_cli_url(database_url)
         for logical_target, database_url in database_urls.items()
         if _is_postgresql_url(database_url)
     }
@@ -74,7 +101,7 @@ def _resolve_postgresql_plan(database_urls: dict[str, str]):
     if not binding_value:
         raise TargetIdentityError()
     manifest = load_and_validate_manifest()
-    plan = resolve_target_plan(Path(binding_value), manifest, postgresql_urls)
+    plan = resolve_target_plan(_operator_binding_path(binding_value), manifest, postgresql_urls)
     for target in plan:
         assert_profile_write_allowed(target)
     return manifest, plan
@@ -133,8 +160,13 @@ def migrate_configured_databases(
     # This protected gate must complete before engine_factory or the CLI is called.
     manifest, postgresql_plan = _resolve_postgresql_plan(database_urls)
     if manifest is not None:
+        completed_profiles: list[str] = []
         for target in postgresql_plan:
-            apply_profile_to_database(target, manifest)
+            try:
+                apply_profile_to_database(target, manifest)
+            except SupabaseCliError as exc:
+                raise PostgreSQLPlanApplyError(tuple(completed_profiles), target.profile) from exc
+            completed_profiles.append(target.profile)
 
     _graph_url, engines = _configured_engines(resolved_settings, engine_factory)
 
@@ -153,7 +185,7 @@ def migrate_configured_databases(
             seed_credentials_from_settings(user_repository, resolved_settings)
             if not _is_postgresql_url(auth_url):
                 ensure_runtime_access()
-            verify_schema_compatibility()
+                verify_schema_compatibility()
             if not _has_usable_credentials():
                 raise RuntimeError(
                     "credential provisioning incomplete: configure ADMIN_USERNAME and ADMIN_PASSWORD "
@@ -179,10 +211,19 @@ def main() -> int:
     except HostedWriteBarrierError:
         print("Database migration failed: PostgreSQL hosted write barrier blocked execution", file=sys.stderr)
         return 1
+    except PostgreSQLPlanApplyError as exc:
+        completed = ",".join(exc.completed_profiles) if exc.completed_profiles else "none"
+        print(
+            "Database migration failed: PostgreSQL profile application incomplete "
+            f"(completed={completed}; failed={exc.failed_profile})",
+            file=sys.stderr,
+        )
+        return 1
     except CapabilityRoleBootstrapRequiredError as exc:
         print(f"Database migration failed: {exc}", file=sys.stderr)
         return 1
-    except Exception as exc:  # noqa: BLE001 - sanitize dependency and DSN-bearing failures
+    # This boundary sanitizes dependency failures that could contain DSNs.
+    except Exception as exc:  # noqa: BLE001
         print(f"Database migration failed ({type(exc).__name__})", file=sys.stderr)
         return 1
     print("Database migration complete: " + ", ".join(migrated))

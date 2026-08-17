@@ -3,7 +3,7 @@
 **Repository:** `DashFin-FarDb/financial-asset-relationship-db`
 **Established:** 2026-07-21
 **Repository evidence cutoff:** `main` at `3e0d54cee0baaae34cf5e99ed76e9ef25e2e4763`
-**Continuity status:** CQ-03B-R1 merged; CQ-03B-R2 implementation is in progress from the authoritative merge base
+**Continuity status:** CQ-03B-R1 merged; CQ-03B-R2 is published for exact-head validation from the authoritative base
 
 This ledger preserves durable project decisions, plans, milestones, and handoffs across ChatGPT, Codex, and
 repository work. It is an index of authoritative evidence, not a replacement for detailed specifications, issues,
@@ -65,9 +65,9 @@ At the evidence cutoff:
   promotion and recovery evidence remain artefact-specific; production scale, repeated immutable promotion, and
   domain-neutral reuse remain unproven.
 - CQ-03B-R1 merged through PR #1640: reviewed head `363b4a880011b969e026f31b41bf1296c5ba95c0`, authoritative
-  merge commit `3e0d54cee0baaae34cf5e99ed76e9ef25e2e4763`. R2 is being implemented locally from that exact base on
-  `codex/cq-03b-r2-component-ledgers`. The provider was inspected read-only and remains unchanged; publication,
-  PostgreSQL 15/16 CI evidence, review, and merge are not yet claimed.
+  merge commit `3e0d54cee0baaae34cf5e99ed76e9ef25e2e4763`. R2 is published from that exact base on
+  `codex/cq-03b-r2-component-ledgers` as PR #1641. The provider was inspected read-only and remains unchanged;
+  final exact-head PostgreSQL 15/16 evidence, independent review, and merge are not yet claimed.
 
 Primary authorities:
 
@@ -88,8 +88,8 @@ Primary authorities:
 ### FPC-2026-08-13-01 — Establish one profile-scoped PostgreSQL migration authority and drift gate
 
 - **Type:** Database architecture / production qualification blocker
-- **Status:** In progress — CQ-03B-R1 merged through PR #1640; R2 implementation started from exact
-  `main@3e0d54cee0baaae34cf5e99ed76e9ef25e2e4763`
+- **Status:** In progress — CQ-03B-R1 merged through PR #1640; R2 PR #1641 was published from exact
+  `main@3e0d54cee0baaae34cf5e99ed76e9ef25e2e4763` and awaits final exact-head validation
 - **Decision or objective:** Keep one repository-owned PostgreSQL schema authority while composing immutable auth,
   graph, and coordination component ledgers through one target-profile manifest. Preserve exact provider
   `statements[]` as lineage evidence, build clean targets from new forward-dated baselines, and retain ADR 0009's
@@ -507,8 +507,8 @@ Primary authorities:
 - CQ-01/CQ-02 are closed through merged PR #1608 with exact PostgreSQL 15/16 authority evidence. QH-01 is closed
   through merged PR #1632. Provider rollout and production qualification remain separate evidence obligations.
 - CQ-03 is the active critical-path programme. CQ-03A is complete through accepted ADR 0009 and merged PR #1634;
-  CQ-03B-R1 is human-ratified, recorded by ADR 0010, and merged through PR #1640. R2 implementation is in progress
-  from that exact merge base. Provider history adoption remains separately authorized.
+  CQ-03B-R1 is human-ratified, recorded by ADR 0010, and merged through PR #1640. R2 PR #1641 is published from that
+  exact merge base and awaits final exact-head validation. Provider history adoption remains separately authorized.
 - GRAC v1 is `CURRENT` only for the exact-SHA staging slice recorded by PR #1598; broader claims remain `NEXT`.
 
 ### Governing constraints
@@ -524,7 +524,7 @@ Primary authorities:
 ### Next highest-value action
 
 Complete R2's bounded component-ledger, target-profile, forward-baseline, operator hand-off, and PostgreSQL 15/16
-proof under active commitment **FPC-2026-08-13-01**, then publish it for independent review. Do not replay or
+proof under active commitment **FPC-2026-08-13-01**, then complete independent review on PR #1641. Do not replay or
 reconstruct SQL under historical timestamps, run `supabase db pull` against hosted state, retain provider link state,
 apply to a hosted target, or select `hosted-legacy-v1` as adopted before CQ-03D.
 Issue #1623 remains a small P2 follow-up and does not displace the CQ-03 programme. Release repeatability

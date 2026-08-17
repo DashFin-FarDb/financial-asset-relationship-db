@@ -163,7 +163,7 @@ jobs:
       - name: Build every profile twice against empty ephemeral PostgreSQL
         env:
           FARDB_EPHEMERAL_POSTGRES_LEDGER_TESTS: "1"
-          FARDB_EPHEMERAL_POSTGRES_URL: postgresql://test:test@127.0.0.1:5432/test_db
+          FARDB_EPHEMERAL_POSTGRES_URL: postgresql://test:test@127.0.0.1:5432/test_db?sslmode=disable
           SECRET_KEY: ci-grac-schema-test-key-not-a-real-secret
           DATABASE_URL: sqlite:///./ci-auth.db
         run: pytest tests/integration/test_postgresql_ledger_profiles.py -v -rs

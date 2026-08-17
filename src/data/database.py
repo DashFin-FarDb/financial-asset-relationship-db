@@ -889,6 +889,41 @@ def _verify_runtime_login_sequence_grants(
         raise SchemaCompatibilityError(f"runtime login sequence grants are incompatible on {table_name}")
 
 
+def _verify_expected_table_catalog(inspector, capabilities: tuple[str, ...]) -> None:
+    """Verify exactly the tables selected by one runtime capability profile."""
+    actual_tables = set(inspector.get_table_names())
+    expected_tables = set(_managed_table_names(capabilities)) if capabilities else set(Base.metadata.tables)
+    missing_tables = sorted(expected_tables - actual_tables)
+    if missing_tables:
+        raise SchemaCompatibilityError(f"database schema missing required tables: {', '.join(missing_tables)}")
+    for table_name in sorted(expected_tables):
+        _verify_table_schema(inspector, table_name)
+
+
+def _verify_profile_specific_schema(
+    engine: Engine,
+    inspector,
+    backend: str,
+    capabilities: tuple[str, ...],
+) -> None:
+    """Verify graph-only invariants and the PostgreSQL authority catalog."""
+    from .migrations import postgresql_heartbeat_schema_gaps
+    from .relationship_assertion_schema import verify_relationship_assertion_schema
+
+    graph_selected = GRAPH_RUNTIME_CAPABILITY in capabilities
+    if backend == "postgresql" and graph_selected:
+        heartbeat_gaps = postgresql_heartbeat_schema_gaps(inspector)
+        if heartbeat_gaps:
+            raise SchemaCompatibilityError(
+                "database rebuild compatibility requirements are missing: " + ", ".join(heartbeat_gaps)
+            )
+    if graph_selected or (backend == "sqlite" and not capabilities):
+        verify_relationship_assertion_schema(engine)
+    if backend == "postgresql":
+        with engine.connect() as connection:
+            _verify_runtime_capability_catalog(connection, capabilities)
+
+
 def verify_database_schema(
     engine: Engine,
     *,
@@ -908,8 +943,6 @@ def verify_database_schema(
     """
     # Register every ORM table on Base.metadata before selecting the profile scope.
     from . import relationship_assertion_db_models as _relationship_assertion_db_models  # noqa: F401
-    from .migrations import postgresql_heartbeat_schema_gaps
-    from .relationship_assertion_schema import verify_relationship_assertion_schema
 
     backend = make_url(engine.url).get_backend_name()
     normalized_capabilities = _normalized_runtime_capabilities(required_capabilities)
@@ -923,29 +956,8 @@ def verify_database_schema(
 
     try:
         inspector = inspect(engine)
-        actual_tables = set(inspector.get_table_names())
-        expected_tables = (
-            set(_managed_table_names(normalized_capabilities)) if normalized_capabilities else set(Base.metadata.tables)
-        )
-        missing_tables = sorted(expected_tables - actual_tables)
-        if missing_tables:
-            raise SchemaCompatibilityError(f"database schema missing required tables: {', '.join(missing_tables)}")
-
-        for table_name in sorted(expected_tables):
-            _verify_table_schema(inspector, table_name)
-
-        if backend == "postgresql" and GRAPH_RUNTIME_CAPABILITY in normalized_capabilities:
-            heartbeat_gaps = postgresql_heartbeat_schema_gaps(inspector)
-            if heartbeat_gaps:
-                raise SchemaCompatibilityError(
-                    "database rebuild compatibility requirements are missing: " + ", ".join(heartbeat_gaps)
-                )
-
-        if GRAPH_RUNTIME_CAPABILITY in normalized_capabilities or (backend == "sqlite" and not normalized_capabilities):
-            verify_relationship_assertion_schema(engine)
-        if backend == "postgresql":
-            with engine.connect() as connection:
-                _verify_runtime_capability_catalog(connection, normalized_capabilities)
+        _verify_expected_table_catalog(inspector, normalized_capabilities)
+        _verify_profile_specific_schema(engine, inspector, backend, normalized_capabilities)
     except SchemaCompatibilityError:
         raise
     except (PermissionError, RuntimeError) as exc:

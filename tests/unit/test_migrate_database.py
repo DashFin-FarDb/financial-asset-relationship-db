@@ -14,6 +14,7 @@ from scripts.postgresql_ledger import (
     TARGET_IDENTITY_INDETERMINATE,
     HostedWriteBarrierError,
     PlannedTarget,
+    SupabaseCliError,
     TargetIdentityError,
     TargetProfileConflictError,
 )
@@ -21,6 +22,7 @@ from src.config.settings import Settings
 from src.data.database import CapabilityRoleBootstrapRequiredError
 
 pytestmark = pytest.mark.unit
+_TEST_ADMIN_PASSWORD = "strong-test-password"  # nosec B105 - synthetic unit-test value
 
 
 def _settings(**overrides) -> Settings:
@@ -57,13 +59,36 @@ def _stub_auth_success(monkeypatch) -> None:
     monkeypatch.setattr(migrate_database, "_has_usable_credentials", lambda: True)
 
 
+@pytest.mark.parametrize(
+    "url",
+    (
+        "postgresql://operator@localhost/fardb",
+        "postgres://operator@localhost/fardb",
+        "postgresql+psycopg2://operator@localhost/fardb",
+        "postgres+psycopg2://operator@localhost/fardb",
+    ),
+)
+def test_postgresql_url_detection_accepts_sqlalchemy_driver_suffixes(url: str) -> None:
+    """Driver-qualified SQLAlchemy URLs still select the PostgreSQL operator path."""
+    assert migrate_database._is_postgresql_url(url)  # pylint: disable=protected-access
+
+
+def test_postgresql_cli_url_removes_sqlalchemy_driver_suffix() -> None:
+    """Supabase receives a standard PostgreSQL URL rather than a SQLAlchemy dialect URL."""
+    value = "postgresql+psycopg2://operator@localhost/fardb?sslmode=disable"
+
+    result = migrate_database._postgresql_cli_url(value)  # pylint: disable=protected-access
+
+    assert result == "postgresql://operator@localhost/fardb?sslmode=disable"
+
+
 def test_sqlite_operator_path_preserves_local_initialization(monkeypatch) -> None:
     """SQLite targets retain explicit local initialization and stable output order."""
     settings = _settings(
         asset_graph_database_url="sqlite:///graph.db",
         coordination_database_url="sqlite:///coordination.db",
         admin_username="admin",
-        admin_password="strong-test-password",
+        admin_password=_TEST_ADMIN_PASSWORD,
     )
     engines = {
         "sqlite:///graph.db": _engine("sqlite:///graph.db"),
@@ -97,7 +122,7 @@ def test_postgresql_targets_apply_after_global_preflight_and_before_engines(monk
         asset_graph_database_url="postgresql://operator@localhost/graph",
         coordination_database_url="postgresql://operator@localhost/coordination",
         admin_username="admin",
-        admin_password="strong-test-password",
+        admin_password=_TEST_ADMIN_PASSWORD,
     )
     binding_path = tmp_path / "bindings.json"
     binding_path.write_text("{}", encoding="utf-8")
@@ -133,7 +158,8 @@ def test_postgresql_targets_apply_after_global_preflight_and_before_engines(monk
         plan[2].database_url: _engine(plan[2].database_url),
     }
 
-    def engine_factory(url: str):
+    def engine_factory(url: str) -> MagicMock:
+        """Record engine construction without opening a connection."""
         events.append(f"engine:{url.rsplit('/', 1)[-1]}")
         return engines[url]
 
@@ -156,7 +182,7 @@ def test_postgresql_targets_apply_after_global_preflight_and_before_engines(monk
     cast(MagicMock, migrate_database.initialize_schema).assert_not_called()
     cast(MagicMock, migrate_database.ensure_runtime_access).assert_not_called()
     cast(MagicMock, migrate_database.verify_runtime_access_catalog).assert_called_once_with()
-    assert cast(MagicMock, migrate_database.verify_schema_compatibility).call_count == 2
+    cast(MagicMock, migrate_database.verify_schema_compatibility).assert_called_once_with()
 
 
 def test_missing_postgresql_binding_fails_before_engine_or_subprocess(monkeypatch) -> None:
@@ -165,12 +191,10 @@ def test_missing_postgresql_binding_fails_before_engine_or_subprocess(monkeypatc
     engine_factory = MagicMock()
     apply_profile = MagicMock()
     monkeypatch.setattr(migrate_database, "apply_profile_to_database", apply_profile)
+    settings = _settings(database_url="postgresql://operator@localhost/auth")
 
     with pytest.raises(TargetIdentityError, match=TARGET_IDENTITY_INDETERMINATE):
-        migrate_database.migrate_configured_databases(
-            _settings(database_url="postgresql://operator@localhost/auth"),
-            engine_factory=engine_factory,
-        )
+        migrate_database.migrate_configured_databases(settings, engine_factory=engine_factory)
 
     engine_factory.assert_not_called()
     apply_profile.assert_not_called()
@@ -182,7 +206,7 @@ def test_target_profile_conflict_fails_before_engine_or_subprocess(monkeypatch, 
     binding_path.write_text("{}", encoding="utf-8")
     binding_path.chmod(0o600)
     monkeypatch.setenv(TARGET_BINDINGS_ENV, str(binding_path))
-    monkeypatch.setattr(migrate_database, "load_and_validate_manifest", lambda: object())
+    monkeypatch.setattr(migrate_database, "load_and_validate_manifest", object)
     monkeypatch.setattr(
         migrate_database,
         "resolve_target_plan",
@@ -191,12 +215,10 @@ def test_target_profile_conflict_fails_before_engine_or_subprocess(monkeypatch, 
     engine_factory = MagicMock()
     apply_profile = MagicMock()
     monkeypatch.setattr(migrate_database, "apply_profile_to_database", apply_profile)
+    settings = _settings(database_url="postgresql://operator@localhost/auth")
 
     with pytest.raises(TargetProfileConflictError, match="conflicting profiles"):
-        migrate_database.migrate_configured_databases(
-            _settings(database_url="postgresql://operator@localhost/auth"),
-            engine_factory=engine_factory,
-        )
+        migrate_database.migrate_configured_databases(settings, engine_factory=engine_factory)
 
     engine_factory.assert_not_called()
     apply_profile.assert_not_called()
@@ -224,23 +246,60 @@ def test_all_write_barriers_run_before_first_profile_application(monkeypatch, tm
         "b" * 64,
         "postgresql://operator@project.supabase.co/postgres",
     )
-    monkeypatch.setattr(migrate_database, "load_and_validate_manifest", lambda: object())
+    monkeypatch.setattr(migrate_database, "load_and_validate_manifest", object)
     monkeypatch.setattr(migrate_database, "resolve_target_plan", lambda *_args: (safe, unsafe))
     apply_profile = MagicMock()
     monkeypatch.setattr(migrate_database, "apply_profile_to_database", apply_profile)
     engine_factory = MagicMock()
+    settings = _settings(
+        database_url=safe.database_url,
+        asset_graph_database_url=unsafe.database_url,
+        coordination_database_url="sqlite:///coordination.db",
+    )
 
     with pytest.raises(HostedWriteBarrierError):
-        migrate_database.migrate_configured_databases(
-            _settings(
-                database_url=safe.database_url,
-                asset_graph_database_url=unsafe.database_url,
-                coordination_database_url="sqlite:///coordination.db",
-            ),
-            engine_factory=engine_factory,
-        )
+        migrate_database.migrate_configured_databases(settings, engine_factory=engine_factory)
 
     apply_profile.assert_not_called()
+    engine_factory.assert_not_called()
+
+
+def test_partial_postgresql_apply_reports_bounded_progress(monkeypatch, tmp_path) -> None:
+    """A later CLI failure identifies completed profiles without creating engines or echoing URLs."""
+    binding_path = tmp_path / "bindings.json"
+    binding_path.write_text("{}", encoding="utf-8")
+    binding_path.chmod(0o600)
+    monkeypatch.setenv(TARGET_BINDINGS_ENV, str(binding_path))
+    manifest = object()
+    plan = (
+        PlannedTarget(("auth",), "auth", "fresh-v1", "loopback", "a" * 64, "postgresql://operator@localhost/auth"),
+        PlannedTarget(("graph",), "graph", "fresh-v1", "loopback", "b" * 64, "postgresql://operator@localhost/graph"),
+    )
+    monkeypatch.setattr(migrate_database, "load_and_validate_manifest", MagicMock(return_value=manifest))
+    monkeypatch.setattr(migrate_database, "resolve_target_plan", MagicMock(return_value=plan))
+    monkeypatch.setattr(migrate_database, "assert_profile_write_allowed", MagicMock())
+    attempted: list[str] = []
+
+    def apply_profile(target: PlannedTarget, _manifest: object) -> None:
+        """Succeed once, then raise the bounded CLI failure used by production."""
+        attempted.append(target.profile)
+        if target.profile == "graph":
+            raise SupabaseCliError("protected dependency output")
+
+    monkeypatch.setattr(migrate_database, "apply_profile_to_database", apply_profile)
+    engine_factory = MagicMock()
+    settings = _settings(
+        database_url=plan[0].database_url,
+        asset_graph_database_url=plan[1].database_url,
+        coordination_database_url="sqlite:///coordination.db",
+    )
+
+    with pytest.raises(migrate_database.PostgreSQLPlanApplyError) as captured:
+        migrate_database.migrate_configured_databases(settings, engine_factory=engine_factory)
+
+    assert attempted == ["auth", "graph"]
+    assert captured.value.completed_profiles == ("auth",)
+    assert captured.value.failed_profile == "graph"
     engine_factory.assert_not_called()
 
 
@@ -268,12 +327,10 @@ def test_missing_auth_fails_before_other_targets(monkeypatch) -> None:
     engine_factory = MagicMock()
     apply_profile = MagicMock()
     monkeypatch.setattr(migrate_database, "apply_profile_to_database", apply_profile)
+    settings = _settings(database_url=None, coordination_database_url="sqlite:///coordination.db")
 
     with pytest.raises(RuntimeError, match="configured auth database is missing"):
-        migrate_database.migrate_configured_databases(
-            _settings(database_url=None, coordination_database_url="sqlite:///coordination.db"),
-            engine_factory=engine_factory,
-        )
+        migrate_database.migrate_configured_databases(settings, engine_factory=engine_factory)
 
     engine_factory.assert_not_called()
     apply_profile.assert_not_called()
@@ -283,9 +340,10 @@ def test_requires_usable_credentials(monkeypatch) -> None:
     """Auth provisioning remains incomplete without an enabled supported password hash."""
     _stub_auth_success(monkeypatch)
     monkeypatch.setattr(migrate_database, "_has_usable_credentials", lambda: False)
+    settings = _settings()
 
     with pytest.raises(RuntimeError, match="credential provisioning incomplete"):
-        migrate_database.migrate_configured_databases(_settings())
+        migrate_database.migrate_configured_databases(settings)
 
 
 def test_configured_engines_disposes_partial_construction_on_failure() -> None:
@@ -305,7 +363,7 @@ def test_configured_engines_disposes_partial_construction_on_failure() -> None:
 
 def test_main_sanitizes_dependency_errors(monkeypatch, capsys) -> None:
     """The CLI boundary never echoes a DSN-bearing dependency error."""
-    secret_dsn = "postgresql://operator:not-a-credential@database.invalid/fardb"
+    secret_dsn = "postgresql://operator:not-a-credential@database.invalid/fardb"  # nosec B105
     monkeypatch.setattr(
         migrate_database,
         "migrate_configured_databases",
@@ -343,6 +401,22 @@ def test_main_emits_bounded_hosted_barrier_reason(monkeypatch, capsys) -> None:
     captured = capsys.readouterr()
     assert captured.err.strip() == "Database migration failed: PostgreSQL hosted write barrier blocked execution"
     assert "secret target detail" not in captured.err
+
+
+def test_main_emits_bounded_partial_apply_progress(monkeypatch, capsys) -> None:
+    """Partial-plan diagnostics contain only fixed profile names."""
+    error = migrate_database.PostgreSQLPlanApplyError(("auth",), "graph")
+    monkeypatch.setattr(
+        migrate_database,
+        "migrate_configured_databases",
+        MagicMock(side_effect=error),
+    )
+
+    assert migrate_database.main() == 1
+    captured = capsys.readouterr()
+    assert captured.err.strip() == (
+        "Database migration failed: PostgreSQL profile application incomplete " "(completed=auth; failed=graph)"
+    )
 
 
 def test_main_reports_safe_capability_bootstrap_diagnostic(monkeypatch, capsys) -> None:

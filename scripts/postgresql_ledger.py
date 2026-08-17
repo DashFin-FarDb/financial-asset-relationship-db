@@ -107,7 +107,7 @@ _EXPECTED_RECEIPTS = (
     ),
 )
 
-_MIGRATION_FILENAME = re.compile(r"^(?P<timestamp>[0-9]{14})_[a-z0-9_]+[.]sql$")
+_MIGRATION_FILENAME = re.compile(r"^(?P<timestamp>\d{14})_[a-z0-9_]+[.]sql$", re.ASCII)
 _LOWER_HEX_DIGEST = re.compile(r"^[0-9a-f]{64}$")
 _SAFE_LOGICAL_TARGET = re.compile(r"^[a-z][a-z0-9_-]*$")
 _SAFE_CLI_ERROR_CODE = re.compile(r"^[A-Za-z][A-Za-z0-9]{0,63}$")
@@ -285,13 +285,28 @@ def _object_without_duplicate_keys(pairs: list[tuple[str, Any]]) -> dict[str, An
     return result
 
 
+def _validated_control_file(path: Path, *, protected: bool) -> Path:
+    """Resolve an explicit regular control file after rejecting path indirection."""
+    if not path.is_absolute() or ".." in path.parts:
+        raise LedgerContractError("JSON control input path must be absolute and normalized")
+    try:
+        metadata = path.lstat()
+    except OSError as exc:
+        raise LedgerContractError("JSON control input is unavailable") from exc
+    if stat.S_ISLNK(metadata.st_mode) or not stat.S_ISREG(metadata.st_mode):
+        raise LedgerContractError("JSON control input must be a regular non-symlink file")
+    if protected and os.name != "nt" and stat.S_IMODE(metadata.st_mode) & 0o077:
+        raise TargetIdentityError()
+    try:
+        return path.resolve(strict=True)
+    except OSError as exc:
+        raise LedgerContractError("JSON control input is unavailable") from exc
+
+
 def _read_json_object(path: Path, *, protected: bool = False) -> tuple[bytes, dict[str, Any]]:
     """Read strict UTF-8 JSON bytes from a regular non-symlink file."""
-    if path.is_symlink() or not path.is_file():
-        raise LedgerContractError("JSON control input must be a regular non-symlink file")
-    if protected and os.name != "nt" and stat.S_IMODE(path.stat().st_mode) & 0o077:
-        raise TargetIdentityError()
-    raw_bytes = path.read_bytes()
+    control_file = _validated_control_file(path, protected=protected)
+    raw_bytes = control_file.read_bytes()
     try:
         text = raw_bytes.decode("utf-8", errors="strict")
     except UnicodeDecodeError as exc:
@@ -325,8 +340,25 @@ def _require_string_list(value: object, location: str) -> tuple[str, ...]:
     return tuple(value)
 
 
+def _validated_child_file(directory: Path, filename: str, location: str) -> Path:
+    """Resolve one manifest-named file while proving it remains in its directory."""
+    if PurePosixPath(filename).name != filename:
+        raise LedgerContractError(f"{location} path is unsafe")
+    try:
+        resolved_directory = directory.resolve(strict=True)
+        candidate = resolved_directory / filename
+        if candidate.is_symlink() or not candidate.is_file():
+            raise LedgerContractError(f"{location} file is missing")
+        resolved_candidate = candidate.resolve(strict=True)
+    except OSError as exc:
+        raise LedgerContractError(f"{location} file is missing") from exc
+    if resolved_candidate.parent != resolved_directory:
+        raise LedgerContractError(f"{location} path is unsafe")
+    return resolved_candidate
+
+
 def _validate_migration_sql(entry: MigrationEntry, receipt_timestamps: frozenset[str]) -> None:
-    """Enforce forward-only baseline structure without reparsing or rewriting SQL."""
+    """Apply heuristic guardrails; the manifest digest remains the SQL authority."""
     raw_bytes = entry.path.read_bytes()
     try:
         sql_text = raw_bytes.decode("utf-8", errors="strict")
@@ -350,7 +382,65 @@ def _validate_migration_sql(entry: MigrationEntry, receipt_timestamps: frozenset
         raise LedgerContractError(f"migration reuses a historical provider timestamp: {entry.filename}")
 
 
-def _validate_component_migrations(  # noqa: C901
+def _migration_metadata(raw_entry: object, component: str) -> tuple[str, str, str]:
+    """Validate and return one component migration's scalar metadata."""
+    if not isinstance(raw_entry, dict):
+        raise LedgerContractError(f"component {component} migration entry is invalid")
+    _require_exact_keys(raw_entry, {"timestamp", "filename", "sha256"}, f"components.{component}.migration")
+    timestamp = raw_entry["timestamp"]
+    filename = raw_entry["filename"]
+    expected_digest = raw_entry["sha256"]
+    if not all(isinstance(value, str) for value in (timestamp, filename, expected_digest)):
+        raise LedgerContractError(f"component {component} migration metadata must be strings")
+    filename_match = _MIGRATION_FILENAME.fullmatch(filename)
+    if filename_match is None or filename_match.group("timestamp") != timestamp:
+        raise LedgerContractError(f"component {component} migration filename is invalid")
+    try:
+        datetime.strptime(timestamp, "%Y%m%d%H%M%S")
+    except ValueError as exc:
+        raise LedgerContractError(f"component {component} migration timestamp is invalid") from exc
+    if not _LOWER_HEX_DIGEST.fullmatch(expected_digest):
+        raise LedgerContractError(f"component {component} migration digest is invalid")
+    return timestamp, filename, expected_digest
+
+
+def _validated_component_migration(
+    migration_directory: Path,
+    component: str,
+    raw_entry: object,
+    previous_timestamp: str | None,
+    receipt_timestamps: frozenset[str],
+) -> MigrationEntry:
+    """Validate one migration record, source file, digest, order, and SQL contract."""
+    timestamp, filename, expected_digest = _migration_metadata(raw_entry, component)
+    if previous_timestamp is not None and timestamp <= previous_timestamp:
+        raise LedgerContractError(f"component {component} migration timestamps are not strictly increasing")
+    migration_path = _validated_child_file(
+        migration_directory,
+        filename,
+        f"component {component} migration",
+    )
+    if sha256_bytes(migration_path.read_bytes()) != expected_digest:
+        raise LedgerContractError(f"component {component} migration digest does not match")
+    entry = MigrationEntry(component, timestamp, filename, expected_digest, migration_path)
+    _validate_migration_sql(entry, receipt_timestamps)
+    return entry
+
+
+def _validate_component_inventory(
+    migration_directory: Path,
+    component: str,
+    expected_filenames: set[str],
+) -> None:
+    """Require the component directory to contain exactly the manifest-named files."""
+    actual_entries = tuple(migration_directory.iterdir())
+    if any(path.is_symlink() or not path.is_file() for path in actual_entries):
+        raise LedgerContractError(f"component {component} migration directory contains an invalid entry")
+    if {path.name for path in actual_entries} != expected_filenames:
+        raise LedgerContractError(f"component {component} migration directory does not match the manifest")
+
+
+def _validate_component_migrations(
     manifest_path: Path,
     component: str,
     component_value: Mapping[str, Any],
@@ -368,44 +458,42 @@ def _validate_component_migrations(  # noqa: C901
     expected_filenames: set[str] = set()
     previous_timestamp: str | None = None
     for raw_entry in migrations_value:
-        if not isinstance(raw_entry, dict):
-            raise LedgerContractError(f"component {component} migration entry is invalid")
-        _require_exact_keys(raw_entry, {"timestamp", "filename", "sha256"}, f"components.{component}.migration")
-        timestamp = raw_entry["timestamp"]
-        filename = raw_entry["filename"]
-        expected_digest = raw_entry["sha256"]
-        if not all(isinstance(value, str) for value in (timestamp, filename, expected_digest)):
-            raise LedgerContractError(f"component {component} migration metadata must be strings")
-        filename_match = _MIGRATION_FILENAME.fullmatch(filename)
-        if filename_match is None or filename_match.group("timestamp") != timestamp:
-            raise LedgerContractError(f"component {component} migration filename is invalid")
-        try:
-            datetime.strptime(timestamp, "%Y%m%d%H%M%S")
-        except ValueError as exc:
-            raise LedgerContractError(f"component {component} migration timestamp is invalid") from exc
-        if previous_timestamp is not None and timestamp <= previous_timestamp:
-            raise LedgerContractError(f"component {component} migration timestamps are not strictly increasing")
-        previous_timestamp = timestamp
-        if not _LOWER_HEX_DIGEST.fullmatch(expected_digest):
-            raise LedgerContractError(f"component {component} migration digest is invalid")
-        if PurePosixPath(filename).name != filename:
-            raise LedgerContractError(f"component {component} migration path is unsafe")
-        migration_path = migration_directory / filename
-        if migration_path.is_symlink() or not migration_path.is_file():
-            raise LedgerContractError(f"component {component} migration file is missing")
-        if sha256_bytes(migration_path.read_bytes()) != expected_digest:
-            raise LedgerContractError(f"component {component} migration digest does not match")
-        expected_filenames.add(filename)
-        entry = MigrationEntry(component, timestamp, filename, expected_digest, migration_path)
-        _validate_migration_sql(entry, receipt_timestamps)
+        entry = _validated_component_migration(
+            migration_directory,
+            component,
+            raw_entry,
+            previous_timestamp,
+            receipt_timestamps,
+        )
         entries.append(entry)
+        expected_filenames.add(entry.filename)
+        previous_timestamp = entry.timestamp
 
-    actual_entries = tuple(migration_directory.iterdir())
-    if any(path.is_symlink() or not path.is_file() for path in actual_entries):
-        raise LedgerContractError(f"component {component} migration directory contains an invalid entry")
-    if {path.name for path in actual_entries} != expected_filenames:
-        raise LedgerContractError(f"component {component} migration directory does not match the manifest")
+    _validate_component_inventory(migration_directory, component, expected_filenames)
     return tuple(entries)
+
+
+def _validate_hosted_receipt(receipt: object, expected: tuple[str, str, int, str, str]) -> None:
+    """Validate one non-executable historical provider receipt."""
+    if not isinstance(receipt, dict):
+        raise LedgerContractError("hosted-legacy-v1 receipt entry is invalid")
+    _require_exact_keys(
+        receipt,
+        {"timestamp", "name", "statement_count", "classification", "statements_sha256", "provenance"},
+        "lineages.hosted-legacy-v1.receipt",
+    )
+    actual = (
+        receipt["timestamp"],
+        receipt["name"],
+        receipt["statement_count"],
+        receipt["classification"],
+        receipt["statements_sha256"],
+    )
+    if actual != expected:
+        raise LedgerContractError("hosted-legacy-v1 receipt metadata does not match protected evidence")
+    provenance = receipt["provenance"]
+    if not isinstance(provenance, str) or not provenance or "://" in provenance or len(provenance) > 240:
+        raise LedgerContractError("hosted-legacy-v1 provenance is not bounded")
 
 
 def _validate_lineages(lineages: object) -> frozenset[str]:
@@ -426,34 +514,12 @@ def _validate_lineages(lineages: object) -> frozenset[str]:
     if not isinstance(receipts, list) or len(receipts) != len(_EXPECTED_RECEIPTS):
         raise LedgerContractError("hosted-legacy-v1 receipt count is invalid")
     for receipt, expected in zip(receipts, _EXPECTED_RECEIPTS, strict=True):
-        if not isinstance(receipt, dict):
-            raise LedgerContractError("hosted-legacy-v1 receipt entry is invalid")
-        _require_exact_keys(
-            receipt,
-            {"timestamp", "name", "statement_count", "classification", "statements_sha256", "provenance"},
-            "lineages.hosted-legacy-v1.receipt",
-        )
-        actual = (
-            receipt["timestamp"],
-            receipt["name"],
-            receipt["statement_count"],
-            receipt["classification"],
-            receipt["statements_sha256"],
-        )
-        if actual != expected:
-            raise LedgerContractError("hosted-legacy-v1 receipt metadata does not match protected evidence")
-        provenance = receipt["provenance"]
-        if not isinstance(provenance, str) or not provenance or "://" in provenance or len(provenance) > 240:
-            raise LedgerContractError("hosted-legacy-v1 provenance is not bounded")
-    return frozenset(expected[0] for expected in _EXPECTED_RECEIPTS)
+        _validate_hosted_receipt(receipt, expected)
+    return frozenset(receipt[0] for receipt in _EXPECTED_RECEIPTS)
 
 
-def load_and_validate_manifest(  # noqa: C901
-    path: Path | str = DEFAULT_MANIFEST_PATH,
-) -> LedgerManifest:
-    """Load and strictly validate the profile manifest and every referenced byte."""
-    manifest_path = Path(path)
-    raw_bytes, manifest = _read_json_object(manifest_path)
+def _validate_manifest_header(manifest: Mapping[str, Any]) -> None:
+    """Validate the manifest envelope, version, order, and digest algorithms."""
     _require_exact_keys(
         manifest,
         {"manifest_version", "component_order", "algorithms", "components", "profiles", "lineages"},
@@ -471,6 +537,9 @@ def load_and_validate_manifest(  # noqa: C901
     }:
         raise LedgerContractError("manifest algorithms do not match the contract")
 
+
+def _validated_ledger_root(manifest_path: Path) -> Path:
+    """Return the exact component-ledger root after rejecting retained CLI state."""
     supabase_root = manifest_path.parent
     for forbidden_name in ("migrations", "schemas", ".temp", ".branches"):
         if (supabase_root / forbidden_name).exists():
@@ -480,9 +549,15 @@ def load_and_validate_manifest(  # noqa: C901
         raise LedgerContractError("component ledger root is invalid")
     if {path.name for path in ledger_root.iterdir()} != set(COMPONENT_ORDER):
         raise LedgerContractError("component ledger directories do not match the manifest")
+    return ledger_root
 
-    receipt_timestamps = _validate_lineages(manifest["lineages"])
-    components = manifest["components"]
+
+def _validate_manifest_components(
+    manifest_path: Path,
+    components: object,
+    receipt_timestamps: frozenset[str],
+) -> tuple[MigrationEntry, ...]:
+    """Validate component ownership and return every immutable migration entry."""
     if not isinstance(components, dict) or tuple(components) != COMPONENT_ORDER:
         raise LedgerContractError("component declarations do not match the ratified order")
     all_migrations: list[MigrationEntry] = []
@@ -511,14 +586,26 @@ def load_and_validate_manifest(  # noqa: C901
         all_migrations.extend(
             _validate_component_migrations(manifest_path, component, component_value, receipt_timestamps)
         )
+    return tuple(all_migrations)
 
-    timestamps = [migration.timestamp for migration in all_migrations]
+
+def _validate_global_migration_order(
+    migrations: tuple[MigrationEntry, ...],
+    receipt_timestamps: frozenset[str],
+) -> tuple[str, ...]:
+    """Require global uniqueness and forward dating after historical receipts."""
+    timestamps = tuple(migration.timestamp for migration in migrations)
+    if not timestamps:
+        raise LedgerContractError("manifest contains no canonical migrations")
     if len(timestamps) != len(set(timestamps)):
         raise LedgerContractError("migration timestamps are not globally unique")
     if min(timestamps) <= max(receipt_timestamps):
         raise LedgerContractError("canonical baseline is not forward-dated after provider evidence")
+    return timestamps
 
-    profiles = manifest["profiles"]
+
+def _validate_manifest_profiles(profiles: object) -> None:
+    """Validate each profile's exact component composition."""
     if not isinstance(profiles, dict) or tuple(profiles) != tuple(EXPECTED_PROFILES):
         raise LedgerContractError("build profiles do not match the contract")
     for profile, expected_components in EXPECTED_PROFILES.items():
@@ -530,16 +617,29 @@ def load_and_validate_manifest(  # noqa: C901
         if actual_components != expected_components:
             raise LedgerContractError(f"profile {profile} components do not match the contract")
 
-    result = LedgerManifest(manifest_path, raw_bytes, manifest, tuple(all_migrations))
+
+def load_and_validate_manifest(
+    path: Path | str = DEFAULT_MANIFEST_PATH,
+) -> LedgerManifest:
+    """Load and strictly validate the profile manifest and every referenced byte."""
+    manifest_path = _validated_control_file(Path(path), protected=False)
+    raw_bytes, manifest = _read_json_object(manifest_path)
+    _validate_manifest_header(manifest)
+    _validated_ledger_root(manifest_path)
+    receipt_timestamps = _validate_lineages(manifest["lineages"])
+    migrations = _validate_manifest_components(manifest_path, manifest["components"], receipt_timestamps)
+    timestamps = _validate_global_migration_order(migrations, receipt_timestamps)
+    _validate_manifest_profiles(manifest["profiles"])
+
+    result = LedgerManifest(manifest_path, raw_bytes, manifest, migrations)
     combined = result.migrations_for_profile("combined")
     if tuple(migration.timestamp for migration in combined) != tuple(sorted(timestamps)):
         raise LedgerContractError("combined profile is not the deterministic timestamp-sorted union")
     return result
 
 
-def _parse_target_binding_document(path: Path, manifest: LedgerManifest) -> tuple[TargetBinding, ...]:
-    """Parse the protected target-binding file and compute every fingerprint."""
-    _raw_bytes, document = _read_json_object(path, protected=True)
+def _binding_document_targets(document: Mapping[str, Any], manifest: LedgerManifest) -> list[object]:
+    """Validate the binding envelope and return its target records."""
     _require_exact_keys(
         document,
         {"binding_version", "manifest_sha256", "target_fingerprint_algorithm", "targets"},
@@ -554,56 +654,60 @@ def _parse_target_binding_document(path: Path, manifest: LedgerManifest) -> tupl
     targets = document["targets"]
     if not isinstance(targets, list) or not targets:
         raise TargetIdentityError()
+    return targets
 
-    bindings: list[TargetBinding] = []
-    for value in targets:
-        if not isinstance(value, dict):
-            raise TargetIdentityError()
-        _require_exact_keys(
-            value,
-            {
-                "logical_target",
-                "profile",
-                "lineage",
-                "execution_class",
-                "identity_assurance",
-                "adapter_id",
-                "authority_namespace_id",
-                "database_id",
-            },
-            "target binding",
-        )
-        logical_target = value["logical_target"]
-        profile = value["profile"]
-        lineage = value["lineage"]
-        execution_class = value["execution_class"]
-        if not all(isinstance(item, str) for item in (logical_target, profile, lineage, execution_class)):
-            raise TargetIdentityError()
-        if not _SAFE_LOGICAL_TARGET.fullmatch(logical_target) or logical_target not in LOGICAL_TARGET_ORDER:
-            raise TargetIdentityError()
-        if profile not in EXPECTED_PROFILES or lineage not in ("fresh-v1", "hosted-legacy-v1"):
-            raise TargetIdentityError()
-        if execution_class not in ("disposable", "loopback", "hosted"):
-            raise TargetIdentityError()
-        if value["identity_assurance"] != "operator-attested-immutable-v1":
-            raise TargetIdentityError()
-        canonical_identity = canonical_target_identity(
-            value["adapter_id"],
-            value["authority_namespace_id"],
-            value["database_id"],
-        )
-        fingerprint = target_fingerprint(*canonical_identity)
-        bindings.append(
-            TargetBinding(
-                logical_target,
-                profile,
-                lineage,
-                execution_class,
-                fingerprint,
-                canonical_identity,
-            )
-        )
-    return tuple(bindings)
+
+def _parse_target_binding(value: object) -> TargetBinding:
+    """Validate one protected binding and compute its opaque fingerprint."""
+    if not isinstance(value, dict):
+        raise TargetIdentityError()
+    _require_exact_keys(
+        value,
+        {
+            "logical_target",
+            "profile",
+            "lineage",
+            "execution_class",
+            "identity_assurance",
+            "adapter_id",
+            "authority_namespace_id",
+            "database_id",
+        },
+        "target binding",
+    )
+    logical_target = value["logical_target"]
+    profile = value["profile"]
+    lineage = value["lineage"]
+    execution_class = value["execution_class"]
+    if not all(isinstance(item, str) for item in (logical_target, profile, lineage, execution_class)):
+        raise TargetIdentityError()
+    if not _SAFE_LOGICAL_TARGET.fullmatch(logical_target) or logical_target not in LOGICAL_TARGET_ORDER:
+        raise TargetIdentityError()
+    if profile not in EXPECTED_PROFILES or lineage not in ("fresh-v1", "hosted-legacy-v1"):
+        raise TargetIdentityError()
+    if execution_class not in ("disposable", "loopback", "hosted"):
+        raise TargetIdentityError()
+    if value["identity_assurance"] != "operator-attested-immutable-v1":
+        raise TargetIdentityError()
+    canonical_identity = canonical_target_identity(
+        value["adapter_id"],
+        value["authority_namespace_id"],
+        value["database_id"],
+    )
+    return TargetBinding(
+        logical_target,
+        profile,
+        lineage,
+        execution_class,
+        target_fingerprint(*canonical_identity),
+        canonical_identity,
+    )
+
+
+def _parse_target_binding_document(path: Path, manifest: LedgerManifest) -> tuple[TargetBinding, ...]:
+    """Parse the protected target-binding file and compute every fingerprint."""
+    _raw_bytes, document = _read_json_object(path, protected=True)
+    return tuple(_parse_target_binding(value) for value in _binding_document_targets(document, manifest))
 
 
 def _load_target_binding_document(path: Path, manifest: LedgerManifest) -> tuple[TargetBinding, ...]:
@@ -616,71 +720,102 @@ def _load_target_binding_document(path: Path, manifest: LedgerManifest) -> tuple
         raise TargetIdentityError() from exc
 
 
-def resolve_target_plan(
-    binding_path: Path | str,
-    manifest: LedgerManifest,
-    database_urls: Mapping[str, str],
-) -> tuple[PlannedTarget, ...]:
-    """Resolve aliases and profile conflicts before any engine, connection, or SQL execution."""
+def _required_target_names(database_urls: Mapping[str, str]) -> tuple[str, ...]:
+    """Return configured logical targets after validating their names and values."""
     if set(database_urls) - set(LOGICAL_TARGET_ORDER):
         raise TargetIdentityError()
     required_targets = tuple(target for target in LOGICAL_TARGET_ORDER if target in database_urls)
     if not required_targets or any(not isinstance(database_urls[target], str) for target in required_targets):
         raise TargetIdentityError()
-    bindings = _load_target_binding_document(Path(binding_path), manifest)
-    binding_by_target = {binding.logical_target: binding for binding in bindings}
-    if (
-        len(binding_by_target) != len(bindings)
-        or tuple(target for target in LOGICAL_TARGET_ORDER if target in binding_by_target) != required_targets
-    ):
-        raise TargetIdentityError()
+    return required_targets
 
-    url_identities: dict[str, str] = {}
+
+def _binding_index(
+    bindings: tuple[TargetBinding, ...],
+    required_targets: tuple[str, ...],
+) -> dict[str, TargetBinding]:
+    """Index unique bindings, allowing an operator document to contain an unused superset."""
+    binding_by_target = {binding.logical_target: binding for binding in bindings}
+    if len(binding_by_target) != len(bindings) or any(target not in binding_by_target for target in required_targets):
+        raise TargetIdentityError()
     identity_by_fingerprint: dict[str, tuple[str, str, str]] = {}
+    for binding in bindings:
+        previous_identity = identity_by_fingerprint.setdefault(binding.fingerprint, binding.canonical_identity)
+        if previous_identity != binding.canonical_identity:
+            raise TargetIdentityError()
+    return binding_by_target
+
+
+def _group_required_bindings(
+    required_targets: tuple[str, ...],
+    binding_by_target: Mapping[str, TargetBinding],
+    database_urls: Mapping[str, str],
+) -> dict[str, list[TargetBinding]]:
+    """Group configured aliases by protected fingerprint after URL consistency checks."""
+    url_fingerprints: dict[str, str] = {}
     grouped: dict[str, list[TargetBinding]] = defaultdict(list)
     for target in required_targets:
         binding = binding_by_target[target]
         database_url = database_urls[target]
         if not database_url or database_url != database_url.strip():
             raise TargetIdentityError()
-        previous_fingerprint = url_identities.setdefault(database_url, binding.fingerprint)
+        previous_fingerprint = url_fingerprints.setdefault(database_url, binding.fingerprint)
         if previous_fingerprint != binding.fingerprint:
             raise TargetIdentityError()
-        previous_identity = identity_by_fingerprint.setdefault(binding.fingerprint, binding.canonical_identity)
-        if previous_identity != binding.canonical_identity:
-            raise TargetIdentityError()
         grouped[binding.fingerprint].append(binding)
+    return grouped
 
-    planned: list[PlannedTarget] = []
-    for fingerprint, aliases in grouped.items():
-        aliases.sort(key=lambda binding: LOGICAL_TARGET_ORDER.index(binding.logical_target))
-        logical_targets = tuple(binding.logical_target for binding in aliases)
-        profiles = {binding.profile for binding in aliases}
-        lineages = {binding.lineage for binding in aliases}
-        execution_classes = {binding.execution_class for binding in aliases}
-        if len(lineages) != 1 or len(execution_classes) != 1:
-            raise TargetProfileConflictError("aliased target bindings disagree on lineage or execution class")
-        if profiles == {"combined"}:
-            if logical_targets != LOGICAL_TARGET_ORDER:
-                raise TargetProfileConflictError("combined requires explicit auth, graph, and coordination aliases")
-            profile = "combined"
-        elif len(aliases) == 1 and aliases[0].profile == aliases[0].logical_target:
-            profile = aliases[0].profile
-        else:
-            raise TargetProfileConflictError("aliased target bindings require one explicit combined profile")
-        chosen_url = database_urls[logical_targets[0]]
-        alias_urls = tuple(database_urls[logical_target] for logical_target in logical_targets)
-        planned.append(
-            PlannedTarget(
-                logical_targets,
-                profile,
-                next(iter(lineages)),
-                next(iter(execution_classes)),
-                fingerprint,
-                chosen_url,
-                alias_urls,
-            )
-        )
+
+def _profile_for_aliases(aliases: list[TargetBinding]) -> tuple[tuple[str, ...], str, str, str]:
+    """Resolve one alias group's exact profile, lineage, and execution class."""
+    aliases.sort(key=lambda binding: LOGICAL_TARGET_ORDER.index(binding.logical_target))
+    logical_targets = tuple(binding.logical_target for binding in aliases)
+    profiles = {binding.profile for binding in aliases}
+    lineages = {binding.lineage for binding in aliases}
+    execution_classes = {binding.execution_class for binding in aliases}
+    if len(lineages) != 1 or len(execution_classes) != 1:
+        raise TargetProfileConflictError("aliased target bindings disagree on lineage or execution class")
+    if profiles == {"combined"}:
+        if logical_targets != LOGICAL_TARGET_ORDER:
+            raise TargetProfileConflictError("combined requires explicit auth, graph, and coordination aliases")
+        profile = "combined"
+    elif len(aliases) == 1 and aliases[0].profile == aliases[0].logical_target:
+        profile = aliases[0].profile
+    else:
+        raise TargetProfileConflictError("aliased target bindings require one explicit combined profile")
+    return logical_targets, profile, next(iter(lineages)), next(iter(execution_classes))
+
+
+def _planned_target(
+    fingerprint: str,
+    aliases: list[TargetBinding],
+    database_urls: Mapping[str, str],
+) -> PlannedTarget:
+    """Build one deduplicated execution record from a validated alias group."""
+    logical_targets, profile, lineage, execution_class = _profile_for_aliases(aliases)
+    alias_urls = tuple(database_urls[logical_target] for logical_target in logical_targets)
+    return PlannedTarget(
+        logical_targets,
+        profile,
+        lineage,
+        execution_class,
+        fingerprint,
+        alias_urls[0],
+        alias_urls,
+    )
+
+
+def resolve_target_plan(
+    binding_path: Path | str,
+    manifest: LedgerManifest,
+    database_urls: Mapping[str, str],
+) -> tuple[PlannedTarget, ...]:
+    """Resolve aliases and profile conflicts before any engine, connection, or SQL execution."""
+    required_targets = _required_target_names(database_urls)
+    bindings = _load_target_binding_document(Path(binding_path), manifest)
+    binding_by_target = _binding_index(bindings, required_targets)
+    grouped = _group_required_bindings(required_targets, binding_by_target, database_urls)
+    planned = [_planned_target(fingerprint, aliases, database_urls) for fingerprint, aliases in grouped.items()]
     return tuple(sorted(planned, key=lambda item: LOGICAL_TARGET_ORDER.index(item.logical_targets[0])))
 
 
@@ -762,6 +897,13 @@ def _assert_projection_has_no_link_state(workdir: Path) -> None:
             raise HostedWriteBarrierError("disposable Supabase projection retained forbidden link state")
 
 
+def _write_private_file(path: Path, value: bytes) -> None:
+    """Create one exclusive mode-0600 file without a permissive creation window."""
+    descriptor = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+    with os.fdopen(descriptor, "wb") as handle:
+        handle.write(value)
+
+
 @contextmanager
 def disposable_profile_projection(manifest: LedgerManifest, profile: str) -> Iterator[Path]:
     """Yield a mode-0700 CLI workdir containing only exact selected migration bytes."""
@@ -776,9 +918,7 @@ def disposable_profile_projection(manifest: LedgerManifest, profile: str) -> Ite
         migrations_directory.mkdir(parents=True, mode=0o700)
         (workdir / "supabase").chmod(0o700)
         config_path = workdir / "supabase" / "config.toml"
-        with config_path.open("xb") as handle:
-            handle.write(DISPOSABLE_CLI_CONFIG)
-        config_path.chmod(0o600)
+        _write_private_file(config_path, DISPOSABLE_CLI_CONFIG)
         for migration in migrations:
             if migration.path.is_symlink() or not migration.path.is_file():
                 raise LedgerContractError(f"profile source migration is invalid: {migration.filename}")
@@ -786,9 +926,7 @@ def disposable_profile_projection(manifest: LedgerManifest, profile: str) -> Ite
             if sha256_bytes(source_bytes) != migration.sha256:
                 raise LedgerContractError(f"profile source migration digest changed: {migration.filename}")
             destination = migrations_directory / migration.filename
-            with destination.open("xb") as handle:
-                handle.write(source_bytes)
-            destination.chmod(0o600)
+            _write_private_file(destination, source_bytes)
         _assert_projection_has_no_link_state(workdir)
         yield workdir
         _assert_projection_has_no_link_state(workdir)
@@ -914,8 +1052,7 @@ def _build_parser() -> argparse.ArgumentParser:
     """Build the bounded ledger command-line parser."""
     parser = argparse.ArgumentParser(description=__doc__)
     subparsers = parser.add_subparsers(dest="command", required=True)
-    validate = subparsers.add_parser("validate", help="validate the manifest and exact migration bytes")
-    validate.add_argument("--manifest", type=Path, default=DEFAULT_MANIFEST_PATH)
+    subparsers.add_parser("validate", help="validate the repository manifest and exact migration bytes")
     return parser
 
 
@@ -924,10 +1061,11 @@ def main(argv: Sequence[str] | None = None) -> int:
     arguments = _build_parser().parse_args(argv)
     try:
         if arguments.command == "validate":
-            manifest = load_and_validate_manifest(arguments.manifest)
+            manifest = load_and_validate_manifest()
             print(f"PostgreSQL ledger manifest valid: {manifest.sha256}")
             return 0
-    except Exception as exc:  # noqa: BLE001 - never echo paths, SQL, URLs, or protected inputs
+    # The executable boundary deliberately collapses every dependency failure to its type.
+    except Exception as exc:  # noqa: BLE001
         print(f"PostgreSQL ledger validation failed ({type(exc).__name__})", file=sys.stderr)
         return 1
     return 1

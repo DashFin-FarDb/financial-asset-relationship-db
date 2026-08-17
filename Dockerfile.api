@@ -21,7 +21,9 @@ FROM base AS migration
 ARG TARGETARCH
 
 RUN test "${TARGETARCH:-amd64}" = "amd64" \
-    && curl -fsSLo /tmp/supabase.tar.gz \
+    && curl --fail --silent --show-error --location \
+      --proto '=https' --proto-redir '=https' --tlsv1.2 \
+      --output /tmp/supabase.tar.gz \
       "https://github.com/supabase/cli/releases/download/v2.114.0/supabase_linux_amd64.tar.gz" \
     && echo "f36a33ca867f1cce9ba5efa705863fdc545d1465d3719a721793ea67eb692c5a  /tmp/supabase.tar.gz" \
       | sha256sum -c - \

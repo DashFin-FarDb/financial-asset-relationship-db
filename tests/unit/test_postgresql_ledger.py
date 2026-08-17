@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 import os
 import shutil
-import subprocess
+import subprocess  # nosec B404 - test double types for an allowlisted shell-free command
 from pathlib import Path
 
 import pytest
@@ -108,7 +108,7 @@ def test_manifest_and_profile_unions_are_deterministic() -> None:
     """The committed manifest must resolve exact, timestamp-ordered component unions."""
     manifest = ledger.load_and_validate_manifest()
 
-    assert manifest.sha256 == "64cab8bcdf993c8df165ebce182b8e2e87817a56d0adebddf0a66983afddec6a"
+    assert manifest.sha256 == "5f4e1d7b3999ef845dcb4c75deae41c998fa815162ace581a3309d281ce9ec89"
     assert (
         tuple(
             table_name
@@ -229,6 +229,23 @@ def test_separate_target_bindings_resolve_in_stable_order(tmp_path: Path) -> Non
     assert tuple(item.profile for item in plan) == ledger.LOGICAL_TARGET_ORDER
     assert all(item.alias_database_urls == (item.database_url,) for item in plan)
     assert len({item.fingerprint for item in plan}) == 3
+
+
+def test_target_binding_document_may_cover_more_targets_than_the_current_run(tmp_path: Path) -> None:
+    """A protected deployment-wide binding file may be reused for a configured subset."""
+    manifest = ledger.load_and_validate_manifest()
+    targets = [_binding_target(target) for target in ledger.LOGICAL_TARGET_ORDER]
+    binding_path = _write_bindings(tmp_path / "bindings.json", manifest, targets)
+
+    plan = ledger.resolve_target_plan(
+        binding_path,
+        manifest,
+        {"auth": "postgresql://operator@localhost:5432/auth"},
+    )
+
+    assert len(plan) == 1
+    assert plan[0].logical_targets == ("auth",)
+    assert plan[0].profile == "auth"
 
 
 def test_explicit_combined_binding_deduplicates_one_physical_target(tmp_path: Path) -> None:
@@ -357,8 +374,10 @@ def test_hosted_profile_write_barrier_rejects_nonfresh_targets(target: ledger.Pl
 
 def test_profile_write_barrier_requires_explicit_database_name() -> None:
     """A PostgreSQL service URL without a selected database is not executable."""
+    target = _planned_target(database_url="postgresql://operator@localhost/")
+
     with pytest.raises(ledger.HostedWriteBarrierError):
-        ledger.assert_profile_write_allowed(_planned_target(database_url="postgresql://operator@localhost/"))
+        ledger.assert_profile_write_allowed(target)
 
 
 def test_profile_write_barrier_checks_every_combined_alias_url() -> None:
@@ -397,8 +416,10 @@ def test_profile_write_barrier_checks_every_combined_alias_url() -> None:
 )
 def test_every_forbidden_supabase_operation_is_blocked(command: tuple[str, ...]) -> None:
     """The subprocess allowlist rejects every pre-CQ-03D forbidden operation."""
+    target = _planned_target()
+
     with pytest.raises(ledger.HostedWriteBarrierError):
-        ledger.assert_allowed_supabase_command(command, _planned_target())
+        ledger.assert_allowed_supabase_command(command, target)
 
 
 def test_disposable_projection_preserves_exact_bytes_and_cleans_up() -> None:
@@ -423,7 +444,8 @@ def test_disposable_projection_preserves_exact_bytes_and_cleans_up() -> None:
         assert not (workdir / "supabase" / ".temp" / "project-ref").exists()
         assert not (workdir / "supabase" / ".branches").exists()
 
-    assert retained_path is not None and not retained_path.exists()
+    assert retained_path is not None
+    assert not retained_path.exists()
 
 
 def test_projection_rechecks_source_digest_after_manifest_load(tmp_path: Path) -> None:
@@ -432,10 +454,11 @@ def test_projection_rechecks_source_digest_after_manifest_load(tmp_path: Path) -
     manifest = ledger.load_and_validate_manifest(manifest_path)
     graph_path = _migration_path(manifest_path, "graph")
     graph_path.write_bytes(graph_path.read_bytes() + b"\n")
+    projection = ledger.disposable_profile_projection(manifest, "graph")
 
     with pytest.raises(ledger.LedgerContractError, match="source migration digest changed"):
-        with ledger.disposable_profile_projection(manifest, "graph"):
-            pytest.fail("changed migration source reached the projection body")
+        with projection:
+            pass
 
 
 def test_profile_application_uses_pinned_cli_fixed_command_and_clean_environment(
@@ -448,6 +471,7 @@ def test_profile_application_uses_pinned_cli_fixed_command_and_clean_environment
     projected_workdir: Path | None = None
 
     def runner(command, **kwargs):
+        """Capture the fixed child process contract without starting a process."""
         nonlocal projected_workdir
         calls.append((list(command), dict(kwargs["env"])))
         if command[-1] == "--version":
@@ -466,12 +490,14 @@ def test_profile_application_uses_pinned_cli_fixed_command_and_clean_environment
     assert len(calls) == 2
     push_command, child_environment = calls[1]
     assert push_command[-4:] == ["db", "push", "--db-url", target.database_url]
-    assert "--linked" not in push_command and "--project-ref" not in push_command
+    assert "--linked" not in push_command
+    assert "--project-ref" not in push_command
     assert "SUPABASE_ACCESS_TOKEN" not in child_environment
     assert "PGPASSWORD" not in child_environment
     assert "SUPABASE_PROJECT_REF" not in child_environment
     assert child_environment["SUPABASE_TELEMETRY_DISABLED"] == "1"
-    assert projected_workdir is not None and not projected_workdir.exists()
+    assert projected_workdir is not None
+    assert not projected_workdir.exists()
 
 
 def test_profile_application_reports_only_bounded_cli_failure_identifiers(monkeypatch) -> None:
@@ -480,6 +506,7 @@ def test_profile_application_reports_only_bounded_cli_failure_identifiers(monkey
     target = _planned_target(database_url="postgresql://operator:protected@localhost/private_database")
 
     def runner(command, **_kwargs):
+        """Return bounded structured CLI failure output for the executor boundary."""
         if command[-1] == "--version":
             return subprocess.CompletedProcess(command, 0, stdout=f"{ledger.PINNED_SUPABASE_CLI_VERSION}\n", stderr="")
         payload = {

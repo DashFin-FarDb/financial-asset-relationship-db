@@ -130,7 +130,7 @@ CREATE TABLE public.relationship_evidence (
     CONSTRAINT ck_relationship_evidence_sha256_hex CHECK (
         length(content_sha256) = 64
         AND content_sha256 = lower(content_sha256)
-        AND translate(content_sha256, '0123456789abcdef', '') = ''
+        AND translate(content_sha256, '0123456789abcdef', '') = '' -- NOSONAR: immutable CHECK stays self-contained
     )
 );
 
@@ -153,12 +153,12 @@ CREATE TABLE public.relationship_projection_revisions (
     CONSTRAINT ck_relationship_projection_revisions_edge_set_hash_hex CHECK (
         length(edge_set_hash) = 64
         AND edge_set_hash = lower(edge_set_hash)
-        AND translate(edge_set_hash, '0123456789abcdef', '') = ''
+        AND translate(edge_set_hash, '0123456789abcdef', '') = '' -- NOSONAR: immutable CHECK stays self-contained
     ),
     CONSTRAINT ck_relationship_projection_revisions_projection_hash_hex CHECK (
         length(projection_hash) = 64
         AND projection_hash = lower(projection_hash)
-        AND translate(projection_hash, '0123456789abcdef', '') = ''
+        AND translate(projection_hash, '0123456789abcdef', '') = '' -- NOSONAR: immutable CHECK stays self-contained
     )
 );
 
