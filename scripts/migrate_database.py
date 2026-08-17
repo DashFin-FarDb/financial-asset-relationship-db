@@ -102,11 +102,14 @@ def _resolve_postgresql_plan(
     database_urls: dict[str, str],
 ) -> tuple[LedgerManifest | None, tuple[PlannedTarget, ...]]:
     """Validate manifest, bindings, identity, and aliases before any execution."""
-    postgresql_urls = {
-        logical_target: _postgresql_cli_url(database_url)
-        for logical_target, database_url in database_urls.items()
-        if _is_postgresql_url(database_url)
-    }
+    try:
+        postgresql_urls = {
+            logical_target: _postgresql_cli_url(database_url)
+            for logical_target, database_url in database_urls.items()
+            if _is_postgresql_url(database_url)
+        }
+    except (TypeError, ValueError) as exc:
+        raise TargetIdentityError() from exc
     if not postgresql_urls:
         return None, ()
     binding_value = os.environ.get(TARGET_BINDINGS_ENV)

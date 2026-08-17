@@ -220,6 +220,20 @@ def test_missing_postgresql_binding_fails_before_engine_or_subprocess(monkeypatc
     apply_profile.assert_not_called()
 
 
+def test_malformed_postgresql_url_fails_with_protected_identity_error(monkeypatch) -> None:
+    """PostgreSQL URL normalization cannot escape the fixed protected diagnostic."""
+    monkeypatch.setenv(TARGET_BINDINGS_ENV, "/operator/bindings.json")
+    load_manifest = MagicMock()
+    monkeypatch.setattr(migrate_database, "load_and_validate_manifest", load_manifest)
+
+    with pytest.raises(TargetIdentityError, match=TARGET_IDENTITY_INDETERMINATE):
+        migrate_database._resolve_postgresql_plan(  # pylint: disable=protected-access
+            {"auth": "postgresql://operator@localhost:invalid/auth"}
+        )
+
+    load_manifest.assert_not_called()
+
+
 def test_target_profile_conflict_fails_before_engine_or_subprocess(monkeypatch, tmp_path) -> None:
     """A resolver conflict cannot be recovered by inferring a broader profile."""
     binding_path = tmp_path / "bindings.json"
