@@ -229,9 +229,9 @@ def _verify_graph_data_contract(engine: sqlalchemy.Engine, profile: str) -> None
     with engine.begin() as connection:
         connection.execute(
             sqlalchemy.text(
-                "INSERT INTO assets (id, symbol, name, asset_class, price, currency) "
-                "VALUES ('RAW_A', 'RA', 'Raw A', 'equity', 1.0, 'USD'), "
-                "('RAW_B', 'RB', 'Raw B', 'equity', 2.0, 'USD')"
+                "INSERT INTO assets (id, symbol, name, asset_class, sector, price, currency) "
+                "VALUES ('RAW_A', 'RA', 'Raw A', 'equity', 'Test', 1.0, 'USD'), "
+                "('RAW_B', 'RB', 'Raw B', 'equity', 'Test', 2.0, 'USD')"
             )
         )
         connection.execute(

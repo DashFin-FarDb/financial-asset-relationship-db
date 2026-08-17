@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import os
 from datetime import datetime, timezone
-from unittest.mock import MagicMock
 
 import pytest
 from sqlalchemy import create_engine, inspect, text
