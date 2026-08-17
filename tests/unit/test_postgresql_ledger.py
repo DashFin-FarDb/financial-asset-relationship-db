@@ -472,3 +472,35 @@ def test_profile_application_uses_pinned_cli_fixed_command_and_clean_environment
     assert "SUPABASE_PROJECT_REF" not in child_environment
     assert child_environment["SUPABASE_TELEMETRY_DISABLED"] == "1"
     assert projected_workdir is not None and not projected_workdir.exists()
+
+
+def test_profile_application_reports_only_bounded_cli_failure_identifiers(monkeypatch) -> None:
+    """CLI failures expose a safe error class and SQLSTATE without raw target or statement text."""
+    manifest = ledger.load_and_validate_manifest()
+    target = _planned_target(database_url="postgresql://operator:protected@localhost/private_database")
+
+    def runner(command, **_kwargs):
+        if command[-1] == "--version":
+            return subprocess.CompletedProcess(command, 0, stdout=f"{ledger.PINNED_SUPABASE_CLI_VERSION}\n", stderr="")
+        payload = {
+            "error": {
+                "code": "LegacyDbPushApplyError",
+                "message": (
+                    "protected statement failed against operator:protected@localhost/private_database "
+                    "(SQLSTATE 25P01)"
+                ),
+            }
+        }
+        return subprocess.CompletedProcess(command, 1, stdout=json.dumps(payload), stderr="protected stderr")
+
+    monkeypatch.setattr(ledger, "_resolve_supabase_cli", lambda: "/usr/local/bin/supabase")
+
+    with pytest.raises(
+        ledger.SupabaseCliError,
+        match=r"profile application failed \(LegacyDbPushApplyError; SQLSTATE 25P01\)",
+    ) as failure:
+        ledger.apply_profile_to_database(target, manifest, runner=runner)
+
+    public_message = str(failure.value)
+    assert "protected" not in public_message
+    assert "private_database" not in public_message

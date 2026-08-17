@@ -110,6 +110,8 @@ _EXPECTED_RECEIPTS = (
 _MIGRATION_FILENAME = re.compile(r"^(?P<timestamp>[0-9]{14})_[a-z0-9_]+[.]sql$")
 _LOWER_HEX_DIGEST = re.compile(r"^[0-9a-f]{64}$")
 _SAFE_LOGICAL_TARGET = re.compile(r"^[a-z][a-z0-9_-]*$")
+_SAFE_CLI_ERROR_CODE = re.compile(r"^[A-Za-z][A-Za-z0-9]{0,63}$")
+_POSTGRES_SQLSTATE = re.compile(r"\bSQLSTATE (?P<sqlstate>[0-9A-Z]{5})\b")
 _HOSTED_DATABASE_SUFFIXES = (".supabase.co", ".supabase.net", ".pooler.supabase.com")
 _HOSTED_DATABASE_HOSTS = frozenset(("pooler.supabase.com",))
 _PROJECTION_FORBIDDEN_PATHS = (
@@ -840,6 +842,25 @@ def _run_cli(
         raise SupabaseCliError("Supabase CLI execution failed") from exc
 
 
+def _bounded_cli_failure_reason(result: subprocess.CompletedProcess[str]) -> str:
+    """Return only non-sensitive structured failure identifiers from CLI JSON output."""
+    try:
+        payload = json.loads(result.stdout)
+    except (TypeError, json.JSONDecodeError):
+        return "unclassified"
+    error = payload.get("error") if isinstance(payload, dict) else None
+    if not isinstance(error, dict):
+        return "unclassified"
+    identifiers: list[str] = []
+    code = error.get("code")
+    if isinstance(code, str) and _SAFE_CLI_ERROR_CODE.fullmatch(code):
+        identifiers.append(code)
+    message = error.get("message")
+    if isinstance(message, str) and (match := _POSTGRES_SQLSTATE.search(message)) is not None:
+        identifiers.append(f"SQLSTATE {match.group('sqlstate')}")
+    return "; ".join(identifiers) if identifiers else "unclassified"
+
+
 def require_pinned_supabase_cli(
     cli_path: str,
     environment: Mapping[str, str],
@@ -882,7 +903,8 @@ def apply_profile_to_database(
             assert_allowed_supabase_command(command[1:], target)
             result = _run_cli(command, environment, timeout_seconds=300, runner=runner)
             if result.returncode != 0:
-                raise SupabaseCliError("Supabase CLI profile application failed")
+                reason = _bounded_cli_failure_reason(result)
+                raise SupabaseCliError(f"Supabase CLI profile application failed ({reason})")
             _assert_projection_has_no_link_state(workdir)
         finally:
             shutil.rmtree(state_directory)
