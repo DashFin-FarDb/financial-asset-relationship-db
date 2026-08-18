@@ -18,19 +18,20 @@ The remaining roadmap is about release execution: attaching target-environment e
 
 ## Current critical-path programme — CQ-03 PostgreSQL ledger adoption
 
-CQ-03A, CQ-03B-R1/R2, CQ-03C, and the CQ-03D-00 approval-pack preparation are complete at repository scope through
-merged PRs #1634, #1640, #1641, #1643, and #1644. The repository can build the explicit auth, graph, coordination,
-and combined profiles on supported PostgreSQL versions and can evaluate ledger, catalog, and runtime drift read-only.
-This is not hosted adoption evidence.
+CQ-03A, CQ-03B-R1/R2, CQ-03C, CQ-03D-00, and CQ-03D-01 are complete at repository scope through merged PRs #1634,
+with PRs #1640, #1641, #1643, #1644, and #1646 completing the remaining units. The repository can build the explicit
+auth, graph, coordination, and combined profiles on supported PostgreSQL versions and can run a target-bound,
+permit-bound, read-only hosted preflight. This is not hosted adoption evidence: no target or permit has been approved
+and no hosted preflight has been executed.
 
-| Item                                     | Status                                                                                                | Next evidence required                                                                                                 | Non-negotiable boundary                                                                                                                                      |
-| ---------------------------------------- | ----------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| CQ-03D hosted migration-history adoption | Partially satisfied — D-01 contract ratified and implementation in PR #1646; target and permit absent | Merge and exact-head validation of CQ-03D-01, then a separately approved protected permit and passing hosted preflight | History-only reconciliation; no DDL; no DML beyond one permit-bound history marker; no grant, role, credential, deployment, or provider-configuration change |
+| Item                                     | Status                                                                                   | Next evidence required                                                                                                | Non-negotiable boundary                                                                                                                                      |
+| ---------------------------------------- | ---------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| CQ-03D hosted migration-history adoption | Partially satisfied — D-01 merged and verified at repository scope; target/permit absent | D-02: separately approve one target and protected single-use permit, then obtain a passing hosted read-only preflight | History-only reconciliation; no DDL; no DML beyond one permit-bound history marker; no grant, role, credential, deployment, or provider-configuration change |
 
-The CQ-03D-01 target adapter contract was human-ratified on 2026-08-18. PR #1646 implements the target-bound,
-read-only preflight command as a file-bounded unit; it is not available from `main` until reviewed and merged. The
-command may collect only preflight evidence. A target approval, protected single-use permit, connected hosted
-preflight, and the single permitted migration-history marker remain separate later decisions.
+The CQ-03D-01 target adapter contract was human-ratified on 2026-08-18 and merged through PR #1646 at verified squash
+`790274c1b0dbdb43d4bbbbf35c4565dae36c9fe3`. The command may collect only preflight evidence. CQ-03D-02 must
+separately approve one target and a protected single-use permit before a connected hosted preflight. That preflight
+does not authorize the later single migration-history marker, which remains a separate decision.
 
 ## Release Evidence Now
 
@@ -85,12 +86,12 @@ These items are valid but should not be bundled into the release-evidence reconc
 
 ## Proposed Delivery Order
 
-1. CQ-03D-01 target-bound read-only preflight operator command review, merge, and exact-head validation.
-2. Separately approved target, protected single-use permit, and passing hosted read-only preflight.
-3. If separately ratified, exactly one permit-bound migration-history marker and its post-action evidence.
-4. RC1 release evidence capture issue.
-5. Staging deployment operating baseline.
-6. Hosted durable promotion smoke with `--require-persistence`.
-7. DR restore rehearsal and post-restore smoke evidence.
-8. Production-scale validation and operational drill execution.
-9. Multi-region / advanced hosting strategy.
+1. Obtain separate approval for one target and protected single-use permit, then run the CQ-03D-02 hosted read-only
+   preflight to `PASS`.
+2. If separately ratified, exactly one permit-bound migration-history marker and its post-action evidence.
+3. RC1 release evidence capture issue.
+4. Staging deployment operating baseline.
+5. Hosted durable promotion smoke with `--require-persistence`.
+6. DR restore rehearsal and post-restore smoke evidence.
+7. Production-scale validation and operational drill execution.
+8. Multi-region / advanced hosting strategy.
