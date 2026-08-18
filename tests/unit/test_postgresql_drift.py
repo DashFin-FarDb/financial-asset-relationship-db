@@ -26,6 +26,7 @@ from scripts.postgresql_drift import (
     CheckResult,
     RuntimeCheckUnavailable,
     RuntimeCompatibilityMismatch,
+    _acl_without_grantor,
     _catalog_check,
     _history_check,
     _normalize_sql_text,
@@ -106,6 +107,15 @@ def test_catalog_serialization_is_key_order_and_whitespace_stable() -> None:
     assert catalog_digest(left) == catalog_digest(right)
 
 
+def test_catalog_serialization_omits_environment_specific_acl_grantors() -> None:
+    """Equivalent grants remain portable across migration-owner role names."""
+    assert _acl_without_grantor('"role/with/slash"=r*/"owner/one"') == '"role/with/slash"=r*'
+    left = {"acl": ["fardb_runtime_graph=r/test"]}
+    right = {"acl": ["fardb_runtime_graph=r/postgres"]}
+
+    assert canonical_catalog_bytes(left) == canonical_catalog_bytes(right)
+
+
 def test_sql_whitespace_normalization_preserves_quoted_content() -> None:
     """Whitespace inside literals, identifiers, and dollar bodies remains semantic."""
     definition = r"""SELECT  'a  b',  E'c\'d  e',  "quoted  name",  $tag$body  text$tag$"""
@@ -143,12 +153,15 @@ def test_catalog_queries_bind_function_owner_without_binding_default_acl_owner()
     normalized_managed_catalog(cursor, "graph")
     default_acl_queries = [query for query in cursor.queries if "pg_default_acl" in query]
     function_queries = [query for query in cursor.queries if "pg_proc p" in query]
+    table_queries = [query for query in cursor.queries if "c.relrowsecurity" in query]
 
     assert len(default_acl_queries) == 1
     assert "aclexplode(defaults.defaclacl)" in default_acl_queries[0]
     assert "defaults.defaclrole" not in default_acl_queries[0]
     assert len(function_queries) == 1
     assert "owner.rolname AS owner_role" in function_queries[0]
+    assert len(table_queries) == 1
+    assert "owner.rolname AS owner_role" in table_queries[0]
 
 
 def test_expected_managed_tables_are_profile_scoped() -> None:

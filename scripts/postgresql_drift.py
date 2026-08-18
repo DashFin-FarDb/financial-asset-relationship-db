@@ -177,13 +177,38 @@ def _normalized_text(value: object) -> object:
     if isinstance(value, str):
         return value
     if isinstance(value, Mapping):
-        return {str(key): _normalized_text(item) for key, item in value.items()}
+        normalized_mapping: dict[str, object] = {}
+        for key, item in value.items():
+            name = str(key)
+            if name == "acl" and isinstance(item, list):
+                item = [_acl_without_grantor(str(entry)) for entry in item]
+            normalized_mapping[name] = _normalized_text(item)
+        return normalized_mapping
     if isinstance(value, list):
         normalized: list[object] = [_normalized_text(item) for item in value]
         strings = [item for item in normalized if isinstance(item, str)]
         if len(strings) == len(normalized):
             return sorted(strings)
         return normalized
+    return value
+
+
+def _acl_without_grantor(value: str) -> str:
+    """Remove the environment-specific grantor from one PostgreSQL ACL item."""
+    quoted = False
+    privileges = False
+    index = 0
+    while index < len(value):
+        if value[index] == '"':
+            if quoted and index + 1 < len(value) and value[index + 1] == '"':
+                index += 2
+                continue
+            quoted = not quoted
+        elif not quoted and value[index] == "=":
+            privileges = True
+        elif not quoted and privileges and value[index] == "/":
+            return value[:index]
+        index += 1
     return value
 
 
@@ -255,7 +280,7 @@ def _normalize_sql_text(value: str) -> str:
 
 def canonical_catalog_bytes(document: Mapping[str, object]) -> bytes:
     """Serialize one normalized catalog as canonical UTF-8 JSON."""
-    normalized = {key: _normalized_text(value) for key, value in document.items()}
+    normalized = _normalized_text(document)
     return json.dumps(normalized, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode("utf-8")
 
 
@@ -417,12 +442,13 @@ def normalized_managed_catalog(cursor: Cursor, profile: str) -> dict[str, object
         "tables": _rows(
             cursor,
             """
-            SELECT c.relname AS table_name, c.relrowsecurity AS row_security,
+            SELECT c.relname AS table_name, owner.rolname AS owner_role, c.relrowsecurity AS row_security,
                     c.relforcerowsecurity AS force_row_security,
                     COALESCE(ARRAY(SELECT acl::text FROM unnest(c.relacl) acl ORDER BY acl::text), ARRAY[]::text[])
                     AS acl
             FROM pg_catalog.pg_class c
             JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace
+            JOIN pg_catalog.pg_roles owner ON owner.oid = c.relowner
             WHERE n.nspname = 'public' AND c.relkind IN ('r', 'p') AND c.relname = ANY(%s)
             ORDER BY c.relname
             """,
@@ -601,6 +627,20 @@ def normalized_managed_catalog(cursor: Cursor, profile: str) -> dict[str, object
             ([name for name, _arguments in _PUBLIC_FUNCTIONS.get(profile, ())],),
         ),
     }
+    table_rows = document["tables"]
+    owner_roles = (
+        {str(row["owner_role"]) for row in table_rows if isinstance(row, Mapping)}
+        if isinstance(table_rows, list)
+        else set()
+    )
+    managed_owner = sorted(owner_roles)[0] if len(owner_roles) == 1 else None
+    for section in ("tables", "functions"):
+        rows = document[section]
+        if not isinstance(rows, list):
+            continue
+        for row in rows:
+            if isinstance(row, dict) and "owner_role" in row:
+                row["owner_role"] = "managed-owner" if row["owner_role"] == managed_owner else "unexpected-owner"
     return document
 
 
