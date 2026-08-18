@@ -187,34 +187,8 @@ def _normalized_text(value: object) -> object:
     return value
 
 
-def _quoted_sql_token_end(value: str, start: int) -> int | None:
-    """Return the exclusive end of a quoted token using a bounded scan."""
-    delimiter: str | None = None
-    escape_backslashes = False
-    index = start
-    if value.startswith("E'", start):
-        delimiter = "'"
-        escape_backslashes = True
-        index += 2
-    elif value[start] in {"'", '"'}:
-        delimiter = value[start]
-        index += 1
-    elif value[start] == "$":
-        tag_end = start + 1
-        if tag_end < len(value) and value[tag_end] != "$":
-            if not (value[tag_end].isalpha() or value[tag_end] == "_"):
-                return None
-            tag_end += 1
-            while tag_end < len(value) and (value[tag_end].isalnum() or value[tag_end] == "_"):
-                tag_end += 1
-        if tag_end >= len(value) or value[tag_end] != "$":
-            return None
-        dollar_delimiter = value[start : tag_end + 1]
-        closing = value.find(dollar_delimiter, tag_end + 1)
-        return None if closing < 0 else closing + len(dollar_delimiter)
-    else:
-        return None
-
+def _string_token_end(value: str, index: int, delimiter: str, escape_backslashes: bool = False) -> int | None:
+    """Scan one SQL string or identifier without regex backtracking."""
     while index < len(value):
         if escape_backslashes and value[index] == "\\":
             index += 2
@@ -228,6 +202,33 @@ def _quoted_sql_token_end(value: str, start: int) -> int | None:
     return None
 
 
+def _dollar_token_end(value: str, start: int) -> int | None:
+    """Scan one PostgreSQL dollar-quoted body with an identifier tag."""
+    tag_end = start + 1
+    if tag_end < len(value) and value[tag_end] != "$":
+        if not (value[tag_end].isalpha() or value[tag_end] == "_"):
+            return None
+        tag_end += 1
+        while tag_end < len(value) and (value[tag_end].isalnum() or value[tag_end] == "_"):
+            tag_end += 1
+    if tag_end >= len(value) or value[tag_end] != "$":
+        return None
+    delimiter = value[start : tag_end + 1]
+    closing = value.find(delimiter, tag_end + 1)
+    return None if closing < 0 else closing + len(delimiter)
+
+
+def _quoted_sql_token_end(value: str, start: int) -> int | None:
+    """Return the exclusive end of a quoted token using bounded scanners."""
+    if value.startswith("E'", start):
+        return _string_token_end(value, start + 2, "'", True)
+    if value[start] in {"'", '"'}:
+        return _string_token_end(value, start + 1, value[start])
+    if value[start] == "$":
+        return _dollar_token_end(value, start)
+    return None
+
+
 def _normalize_sql_text(value: str) -> str:
     """Collapse deparser whitespace outside quoted SQL tokens and bodies."""
     output: list[str] = []
@@ -236,20 +237,19 @@ def _normalize_sql_text(value: str) -> str:
     while index < len(value):
         token_end = _quoted_sql_token_end(value, index)
         if token_end is not None:
-            if pending_space and output:
-                output.append(" ")
-            output.append(value[index:token_end])
-            pending_space = False
+            fragment = value[index:token_end]
             index = token_end
         elif value[index].isspace():
             pending_space = True
             index += 1
+            continue
         else:
-            if pending_space and output:
-                output.append(" ")
-            output.append(value[index])
-            pending_space = False
+            fragment = value[index]
             index += 1
+        if pending_space and output:
+            output.append(" ")
+        output.append(fragment)
+        pending_space = False
     return "".join(output)
 
 

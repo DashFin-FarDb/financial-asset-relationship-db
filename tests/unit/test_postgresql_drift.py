@@ -131,17 +131,20 @@ def test_catalog_queries_bind_function_owner_without_binding_default_acl_owner()
             self.queries: list[str] = []
 
         def execute(self, query: str, parameters: object | None = None) -> object:
+            """Record one catalog query before returning its empty result."""
             self.queries.append(query)
             return super().execute(query, parameters)
 
     cursor = RecordingCursor()
     normalized_managed_catalog(cursor, "graph")
-    default_acl_query = next(query for query in cursor.queries if "pg_default_acl" in query)
-    function_query = next(query for query in cursor.queries if "pg_proc p" in query)
+    default_acl_queries = [query for query in cursor.queries if "pg_default_acl" in query]
+    function_queries = [query for query in cursor.queries if "pg_proc p" in query]
 
-    assert "aclexplode(defaults.defaclacl)" in default_acl_query
-    assert "defaults.defaclrole" not in default_acl_query
-    assert "owner.rolname AS owner_role" in function_query
+    assert len(default_acl_queries) == 1
+    assert "aclexplode(defaults.defaclacl)" in default_acl_queries[0]
+    assert "defaults.defaclrole" not in default_acl_queries[0]
+    assert len(function_queries) == 1
+    assert "owner.rolname AS owner_role" in function_queries[0]
 
 
 def test_expected_managed_tables_are_profile_scoped() -> None:
