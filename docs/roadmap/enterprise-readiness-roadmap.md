@@ -18,8 +18,7 @@ The remaining roadmap is about release execution: attaching target-environment e
 
 ## Current critical-path programme — CQ-03 PostgreSQL ledger adoption
 
-CQ-03A, CQ-03B-R1/R2, CQ-03C, CQ-03D-00, and CQ-03D-01 are complete at repository scope through merged PRs #1634,
-#1640, #1641, #1643, #1644, and #1646. The repository can build the explicit auth, graph, coordination, and combined
+CQ-03A, CQ-03B-R1/R2, CQ-03C, CQ-03D-00, and CQ-03D-01 are complete at repository scope through merged PRs #1634, #1640, #1641, #1643, #1644, and #1646. The repository can build the explicit auth, graph, coordination, and combined
 profiles on supported PostgreSQL versions and can run a target-bound, permit-bound, read-only hosted preflight. This
 is not hosted adoption evidence: no target or permit has been approved and no hosted preflight has been executed.
 
