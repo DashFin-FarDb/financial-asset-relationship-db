@@ -14,6 +14,20 @@ The repo is no longer in the early enterprise-readiness remediation phase. Obser
 
 The remaining roadmap is about release execution: attaching target-environment evidence, rehearsing restore, and closing bounded follow-up seams without reopening the architecture.
 
+## Current critical-path programme — CQ-03 PostgreSQL ledger adoption
+
+CQ-03A, CQ-03B-R1/R2, and CQ-03C are complete at repository scope through merged PRs #1634, #1640, #1641, and
+#1643. The repository can build the explicit auth, graph, coordination, and combined profiles on supported PostgreSQL
+versions and can evaluate ledger, catalog, and runtime drift read-only. This is not hosted adoption evidence.
+
+| Item | Status | Next evidence required | Non-negotiable boundary |
+| --- | --- | --- | --- |
+| CQ-03D hosted migration-history adoption | Blocked — explicit human approval required | A protected, single-use permit for one target/profile/timestamp and a passing target-bound read-only preflight | History-only reconciliation; no DDL, DML, grant, role, credential, deployment, or provider-configuration change |
+
+The current repository has a tested read-only drift-evaluator API, but not a CQ-03D target-bound operator command.
+Implementing that command is a separate, file-bounded decision after the approval pack is ratified; it must not be
+created ad hoc during a hosted operation.
+
 ## Release Evidence Now
 
 These items must be completed or explicitly attached before treating a staging or production release as enterprise-ready.

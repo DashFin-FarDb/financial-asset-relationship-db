@@ -254,6 +254,83 @@ python -m uvicorn api.main:app --reload --host 127.0.0.1 --port 8000
 Set `ASSET_GRAPH_DATABASE_URL` and, when separated, `COORDINATION_DATABASE_URL` before the command when local work
 requires durable graph/reconciliation persistence.
 
+## CQ-03D approval pack and read-only preflight
+
+CQ-03D is not an extension of the normal PostgreSQL migration command. It is a separate, manual, history-only
+workflow for one selected hosted target after read-only evidence proves that its schema already equals the reviewed
+repository ledger. This section prepares that decision; it does not authorize a connected target operation.
+
+### Approval pack
+
+The ratifier must receive a protected, single-use permit that binds exactly one proposed history marker. Keep the
+permit and its raw target evidence outside the repository and do not place its values in a pull request, issue,
+workflow log, or this runbook.
+
+The permit must contain all of the following:
+
+- exact reviewed repository SHA;
+- `fardb-pg-ledger-v1` manifest SHA-256 and selected build-profile ID;
+- selected lineage-profile ID and opaque `fardb-target-fingerprint-v1` target fingerprint;
+- exactly one allowlisted canonical migration timestamp;
+- the passing CQ-03B/C exact-head evidence references and expected/actual normalized catalog digest;
+- passing history, runtime-compatibility, and runtime-authority evidence references;
+- named ratifier, approval time, expiry, and an unambiguous consumed/revoked state; and
+- an explicit declaration that the proposed action is history-only and must not apply DDL.
+
+Do not issue a permit from an incomplete, stale, or substituted artifact. A changed SHA, manifest, profile, lineage,
+target fingerprint, timestamp, expected or actual catalog digest, runtime authority, approval expiry, or evidence
+status invalidates it before any command is considered.
+
+### Read-only preflight sequence
+
+1. Confirm the checked-out SHA equals the permit SHA and the worktree contains no unreviewed migration, manifest, or
+   normalizer change. Run the repository-only integrity check:
+
+   ```bash
+   python -m scripts.postgresql_ledger validate
+   ```
+
+   The emitted manifest SHA-256 must exactly equal the permit. Any other result stops the workflow.
+2. In the protected operator surface, load the mode-`0600` target-binding document and prove the selected DSN's
+   immutable identity equals the permit's opaque fingerprint. Do not print the DSN or raw immutable identity inputs.
+   Missing, unavailable, or mismatched proof is `TARGET_IDENTITY_INDETERMINATE` and stops the workflow.
+3. Run the reviewed CQ-03D read-only evaluator against that one protected target. It must use a read-only transaction,
+   roll it back, select the permit's profile and lineage, and execute the existing history, normalized-catalog,
+   runtime-compatibility, and ADR 0007 runtime-authority checks. The public record must report `PASS`, zero
+   `not_evaluated_count`, no primary category, and the permit's expected and actual catalog digest. Any
+   `DRIFT_DETECTED`, `EVALUATION_INCOMPLETE`, unavailable check, unknown public object, or mismatched digest stops the
+   workflow.
+4. Run the reviewed read-only migration-list parity check for the same target, profile, lineage, and one timestamp.
+   It must establish that the permit's marker is the only intended history difference. Record only the bounded parity
+   result and timestamp count; do not retain raw provider output.
+5. Recheck the permit bindings immediately before any later history action. A target or evidence change after the
+   earlier read-only checks is not a warning: revoke the permit and begin again with fresh evidence.
+
+The repository currently exposes the tested `evaluate_profile_drift()` API but has no CQ-03D target-bound operator
+command that can perform steps 2–4. No database-connected command is approved by this preparation package. A separate
+implementation decision must add and test that narrow operator interface before preflight execution; it must preserve
+the protected-binding identity proof, read-only transaction, rollback, and sanitized-output contracts above.
+
+### Prohibited actions and future execution boundary
+
+Until a separate permit is ratified and every read-only preflight result is `PASS`, do not run `supabase db pull`,
+`supabase db push`, `supabase db push --dry-run`, `supabase migration repair`, `supabase db reset`, provider SQL,
+dashboard SQL, direct DDL/DML, grants, role changes, credential changes, provider-link operations, or deployment
+actions against the hosted target.
+
+The later CQ-03D execution workspace may perform only the permit's one
+`supabase migration repair --status applied <timestamp>` action after it rechecks every binding. It must immediately
+repeat migration-list parity, normalized drift, runtime compatibility, runtime authority, and the no-unexpected-pending
+`supabase db push --dry-run` verification. It stops on any non-`PASS` result and never applies DDL. The permit is then
+marked consumed outside the repository; it cannot authorize another timestamp or retry.
+
+### Bounded evidence record
+
+Record the exact SHA, manifest SHA-256, profile ID, lineage ID, opaque target fingerprint, one timestamp, ratifier and
+permit lifecycle, public drift status/category/reason codes/counts/digests, bounded parity result, and pass/fail
+outcomes. Exclude raw database URLs, hostnames, project references, credentials, role identities, live object names,
+raw SQL, provider output, and restricted diagnostics.
+
 ## Failure and rollback
 
 - A missing-schema or incompatible-schema startup error is evidence that the operator step did not complete against
