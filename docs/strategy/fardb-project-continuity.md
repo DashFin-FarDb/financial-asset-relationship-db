@@ -5,7 +5,7 @@
 **Repository evidence cutoff:** `main` at `c7db82f58ff5335b644328897e8891559330de7f`
 **Ratified setup baseline:** CQ-03B-R1 ratified on 2026-08-17 at `main@76f1194f1f9b83cb9ed8f0bb0083824ededbe0ae`
 **CQ-03C merge baseline:** `784d092f1204b59e612efd4ff3949f3e3fed12cf`
-**Continuity status:** CQ-03B-R1, CQ-03B-R2, and CQ-03C are merged; CQ-03D-00 is merged; CQ-03D-01's contract is ratified and implementation is in review; CQ-03D remains unexecuted
+**Continuity status:** CQ-03B-R1, CQ-03B-R2, and CQ-03C are merged; CQ-03D-00 is merged; CQ-03D-01's contract is ratified and implementation is in PR #1646; CQ-03D remains unexecuted
 
 This ledger preserves durable project decisions, plans, milestones, and handoffs across ChatGPT, Codex, and
 repository work. It is an index of authoritative evidence, not a replacement for detailed specifications, issues,
@@ -109,8 +109,8 @@ Primary authorities:
 
 - **Type:** Database architecture / production qualification blocker
 - **Status:** In progress — CQ-03B-R1/R2, CQ-03C, and CQ-03D-00 are verified through merged PRs #1640, #1641, #1643,
-  and #1644; CQ-03D-01's production-adapter contract was ratified on 2026-08-18 and its implementation is in review;
-  CQ-03D operational execution remains separately approved and unexecuted
+  and #1644; CQ-03D-01's production-adapter contract was ratified on 2026-08-18 and its implementation is in PR
+  #1646; CQ-03D operational execution remains separately approved and unexecuted
 - **Decision or objective:** Keep one repository-owned PostgreSQL schema authority while composing immutable auth,
   graph, and coordination component ledgers through one target-profile manifest. Preserve exact provider
   `statements[]` as lineage evidence, build clean targets from new forward-dated baselines, and retain ADR 0009's
@@ -141,7 +141,7 @@ Primary authorities:
   `f199c273068fd44df76c6c7b9efac16c3e33c732`, passing PostgreSQL 15/16 and container-boundary gates, and zero
   unresolved review threads; merged progress reconciliation PR #1645 at
   `c7db82f58ff5335b644328897e8891559330de7f`; and human ratification of the CQ-03D-01 production adapter contract on
-  2026-08-18.
+  2026-08-18, implemented for review in PR #1646.
 - **Next action and completion test:** Review, merge, and exact-head validate the narrow CQ-03D-01 target-bound,
   read-only preflight operator command before any hosted invocation. That command stops after read-only evidence
   collection; it does not perform the later history action. A future, separate CQ-03D execution
@@ -542,7 +542,7 @@ Primary authorities:
 - CQ-03 is the active critical-path programme. CQ-03A is complete through accepted ADR 0009 and merged PR #1634;
   CQ-03B-R1 is human-ratified, recorded by ADR 0010, and merged through PR #1640. R2 is verified and merged through
   PR #1641. CQ-03C is verified and merged through PR #1643. CQ-03D-00 is verified and merged through PR #1644.
-  CQ-03D-01's target adapter contract is ratified and its implementation is in review; provider history adoption
+  CQ-03D-01's target adapter contract is ratified and its implementation is in PR #1646; provider history adoption
   remains separately authorized under CQ-03D.
 - GRAC v1 is `CURRENT` only for the exact-SHA staging slice recorded by PR #1598; broader claims remain `NEXT`.
 

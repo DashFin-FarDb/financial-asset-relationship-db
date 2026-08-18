@@ -217,7 +217,7 @@ def test_cq03d_progress_preserves_separate_authority_and_history_only_boundary()
     assert "CQ-03D-01 target-bound, read-only preflight operator command" in continuity
     assert "does not perform the later history action" in continuity
     assert "CQ-03D has no approved target, permit, or hosted preflight evidence" in continuity
-    assert "D-01 contract ratified and implementation in review" in roadmap
+    assert "D-01 contract ratified and implementation in PR #1646" in roadmap
     assert "no DML beyond one permit-bound history marker" in roadmap
     assert "**Publication date:** 2026-06-25" in roadmap
     assert "**Last updated:** 2026-08-18" in roadmap

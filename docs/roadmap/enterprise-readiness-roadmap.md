@@ -25,9 +25,9 @@ This is not hosted adoption evidence.
 
 | Item                                     | Status                                                               | Next evidence required                                                                                                  | Non-negotiable boundary                                                                                                                                      |
 | ---------------------------------------- | -------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| CQ-03D hosted migration-history adoption | In progress — D-01 contract ratified and implementation in review; target and permit absent | Merge and exact-head validation of CQ-03D-01, then a separately approved protected permit and passing hosted preflight | History-only reconciliation; no DDL; no DML beyond one permit-bound history marker; no grant, role, credential, deployment, or provider-configuration change |
+| CQ-03D hosted migration-history adoption | In progress — D-01 contract ratified and implementation in PR #1646; target and permit absent | Merge and exact-head validation of CQ-03D-01, then a separately approved protected permit and passing hosted preflight | History-only reconciliation; no DDL; no DML beyond one permit-bound history marker; no grant, role, credential, deployment, or provider-configuration change |
 
-The CQ-03D-01 target adapter contract was human-ratified on 2026-08-18. This change implements the target-bound,
+The CQ-03D-01 target adapter contract was human-ratified on 2026-08-18. PR #1646 implements the target-bound,
 read-only preflight command as a file-bounded unit; it is not available from `main` until reviewed and merged. The
 command may collect only preflight evidence. A target approval, protected single-use permit, connected hosted
 preflight, and the single permitted migration-history marker remain separate later decisions.
