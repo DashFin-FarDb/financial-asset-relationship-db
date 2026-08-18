@@ -144,9 +144,9 @@ operator URL. This means the R2 command is not authority to apply or adopt a hos
    memberships only when those boundaries deliberately share one URL. Do not paste login names or commands with
    credentials into public evidence.
 10. Replace migration-owner URLs with the corresponding restricted-login URLs. Remove `ADMIN_PASSWORD` from the
-   runtime environment, but keep `ADMIN_USERNAME` in production runtime configuration.
+    runtime environment, but keep `ADMIN_USERNAME` in production runtime configuration.
 11. Start FastAPI. A compatibility failure is a deployment blocker: return to this procedure rather than broadening
-   the app role.
+    the app role.
 12. Prove cold start and restart, exercise graph/coordination/auth runtime operations, and run the hosted readiness and
     database-authorization evidence required by the target environment.
 

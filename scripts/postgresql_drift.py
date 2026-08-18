@@ -211,11 +211,11 @@ def _public_scope(cursor: Cursor, profile: str) -> tuple[int, int, tuple[str, ..
         cursor,
         """
         SELECT c.relname AS name, c.relkind AS kind,
-               owned.relname AS owned_table
+                owned.relname AS owned_table
         FROM pg_catalog.pg_class AS c
         JOIN pg_catalog.pg_namespace AS n ON n.oid = c.relnamespace
         LEFT JOIN pg_catalog.pg_depend AS d
-          ON c.relkind = 'S' AND d.objid = c.oid AND d.deptype IN ('a', 'i')
+            ON c.relkind = 'S' AND d.objid = c.oid AND d.deptype IN ('a', 'i')
         LEFT JOIN pg_catalog.pg_class AS owned ON owned.oid = d.refobjid
         WHERE n.nspname = 'public' AND c.relkind IN ('r', 'p', 'v', 'm', 'S', 'f')
         ORDER BY c.relkind, c.relname
@@ -261,9 +261,9 @@ def normalized_managed_catalog(cursor: Cursor, profile: str) -> dict[str, object
             cursor,
             """
             SELECT c.relname AS table_name, c.relrowsecurity AS row_security,
-                   c.relforcerowsecurity AS force_row_security,
-                   COALESCE(ARRAY(SELECT acl::text FROM unnest(c.relacl) acl ORDER BY acl::text), ARRAY[]::text[])
-                     AS acl
+                    c.relforcerowsecurity AS force_row_security,
+                    COALESCE(ARRAY(SELECT acl::text FROM unnest(c.relacl) acl ORDER BY acl::text), ARRAY[]::text[])
+                    AS acl
             FROM pg_catalog.pg_class c
             JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace
             WHERE n.nspname = 'public' AND c.relkind IN ('r', 'p') AND c.relname = ANY(%s)
@@ -275,18 +275,18 @@ def normalized_managed_catalog(cursor: Cursor, profile: str) -> dict[str, object
             cursor,
             """
             SELECT c.relname AS table_name, a.attnum AS position, a.attname AS column_name,
-                   pg_catalog.format_type(a.atttypid, a.atttypmod) AS data_type,
-                   a.attnotnull AS not_null, a.attidentity AS identity_kind,
-                   a.attgenerated AS generated_kind,
-                   pg_catalog.pg_get_expr(ad.adbin, ad.adrelid) AS default_expression,
-                   COALESCE(ARRAY(SELECT acl::text FROM unnest(a.attacl) acl ORDER BY acl::text), ARRAY[]::text[])
-                     AS acl
+                    pg_catalog.format_type(a.atttypid, a.atttypmod) AS data_type,
+                    a.attnotnull AS not_null, a.attidentity AS identity_kind,
+                    a.attgenerated AS generated_kind,
+                    pg_catalog.pg_get_expr(ad.adbin, ad.adrelid) AS default_expression,
+                    COALESCE(ARRAY(SELECT acl::text FROM unnest(a.attacl) acl ORDER BY acl::text), ARRAY[]::text[])
+                    AS acl
             FROM pg_catalog.pg_attribute a
             JOIN pg_catalog.pg_class c ON c.oid = a.attrelid
             JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace
             LEFT JOIN pg_catalog.pg_attrdef ad ON ad.adrelid = c.oid AND ad.adnum = a.attnum
             WHERE n.nspname = 'public' AND c.relname = ANY(%s)
-              AND a.attnum > 0 AND NOT a.attisdropped
+                AND a.attnum > 0 AND NOT a.attisdropped
             ORDER BY c.relname, a.attnum
             """,
             parameters,
@@ -295,7 +295,7 @@ def normalized_managed_catalog(cursor: Cursor, profile: str) -> dict[str, object
             cursor,
             """
             SELECT c.relname AS table_name, con.conname AS constraint_name, con.contype AS constraint_type,
-                   pg_catalog.pg_get_constraintdef(con.oid, false) AS definition
+                    pg_catalog.pg_get_constraintdef(con.oid, false) AS definition
             FROM pg_catalog.pg_constraint con
             JOIN pg_catalog.pg_class c ON c.oid = con.conrelid
             JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace
@@ -308,7 +308,7 @@ def normalized_managed_catalog(cursor: Cursor, profile: str) -> dict[str, object
             cursor,
             """
             SELECT table_class.relname AS table_name, index_class.relname AS index_name,
-                   pg_catalog.pg_get_indexdef(index_class.oid, 0, false) AS definition
+                    pg_catalog.pg_get_indexdef(index_class.oid, 0, false) AS definition
             FROM pg_catalog.pg_index idx
             JOIN pg_catalog.pg_class table_class ON table_class.oid = idx.indrelid
             JOIN pg_catalog.pg_class index_class ON index_class.oid = idx.indexrelid
@@ -322,11 +322,11 @@ def normalized_managed_catalog(cursor: Cursor, profile: str) -> dict[str, object
             cursor,
             """
             SELECT c.relname AS table_name, pol.polname AS policy_name, pol.polpermissive AS permissive,
-                   pol.polcmd AS command,
-                   ARRAY(SELECT r.rolname FROM unnest(pol.polroles) role_oid
-                         JOIN pg_catalog.pg_roles r ON r.oid = role_oid ORDER BY r.rolname) AS roles,
-                   pg_catalog.pg_get_expr(pol.polqual, pol.polrelid) AS using_expression,
-                   pg_catalog.pg_get_expr(pol.polwithcheck, pol.polrelid) AS check_expression
+                    pol.polcmd AS command,
+                    ARRAY(SELECT r.rolname FROM unnest(pol.polroles) role_oid
+                        JOIN pg_catalog.pg_roles r ON r.oid = role_oid ORDER BY r.rolname) AS roles,
+                    pg_catalog.pg_get_expr(pol.polqual, pol.polrelid) AS using_expression,
+                    pg_catalog.pg_get_expr(pol.polwithcheck, pol.polrelid) AS check_expression
             FROM pg_catalog.pg_policy pol
             JOIN pg_catalog.pg_class c ON c.oid = pol.polrelid
             JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace
@@ -339,7 +339,7 @@ def normalized_managed_catalog(cursor: Cursor, profile: str) -> dict[str, object
             cursor,
             """
             SELECT c.relname AS table_name, t.tgname AS trigger_name,
-                   pg_catalog.pg_get_triggerdef(t.oid, false) AS definition
+                    pg_catalog.pg_get_triggerdef(t.oid, false) AS definition
             FROM pg_catalog.pg_trigger t
             JOIN pg_catalog.pg_class c ON c.oid = t.tgrelid
             JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace
@@ -352,12 +352,12 @@ def normalized_managed_catalog(cursor: Cursor, profile: str) -> dict[str, object
             cursor,
             """
             SELECT seq.relname AS sequence_name, owned.relname AS owned_table,
-                   attr.attname AS owned_column, pg_catalog.format_type(s.seqtypid, NULL) AS data_type,
-                   s.seqstart AS start_value, s.seqincrement AS increment_by,
-                   s.seqmin AS min_value, s.seqmax AS max_value, s.seqcache AS cache_size,
-                   s.seqcycle AS cycle,
-                   COALESCE(ARRAY(SELECT acl::text FROM unnest(seq.relacl) acl ORDER BY acl::text), ARRAY[]::text[])
-                     AS acl
+                    attr.attname AS owned_column, pg_catalog.format_type(s.seqtypid, NULL) AS data_type,
+                    s.seqstart AS start_value, s.seqincrement AS increment_by,
+                    s.seqmin AS min_value, s.seqmax AS max_value, s.seqcache AS cache_size,
+                    s.seqcycle AS cycle,
+                    COALESCE(ARRAY(SELECT acl::text FROM unnest(seq.relacl) acl ORDER BY acl::text), ARRAY[]::text[])
+                    AS acl
             FROM pg_catalog.pg_class seq
             JOIN pg_catalog.pg_namespace n ON n.oid = seq.relnamespace
             JOIN pg_catalog.pg_sequence s ON s.seqrelid = seq.oid
@@ -373,10 +373,10 @@ def normalized_managed_catalog(cursor: Cursor, profile: str) -> dict[str, object
             cursor,
             """
             SELECT p.proname AS function_name,
-                   pg_catalog.pg_get_function_identity_arguments(p.oid) AS identity_arguments,
-                   pg_catalog.pg_get_functiondef(p.oid) AS definition,
-                   COALESCE(ARRAY(SELECT acl::text FROM unnest(p.proacl) acl ORDER BY acl::text), ARRAY[]::text[])
-                     AS acl
+                    pg_catalog.pg_get_function_identity_arguments(p.oid) AS identity_arguments,
+                    pg_catalog.pg_get_functiondef(p.oid) AS definition,
+                    COALESCE(ARRAY(SELECT acl::text FROM unnest(p.proacl) acl ORDER BY acl::text), ARRAY[]::text[])
+                    AS acl
             FROM pg_catalog.pg_proc p
             JOIN pg_catalog.pg_namespace n ON n.oid = p.pronamespace
             WHERE n.nspname = 'public' AND p.proname = ANY(%s)
