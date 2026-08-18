@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
 from collections.abc import Callable, Iterator, Mapping, Sequence
 from contextlib import contextmanager
 from dataclasses import dataclass
@@ -69,6 +70,10 @@ _APPLICATION_EXTENSIONS: Mapping[str, tuple[str, ...]] = {
     "combined": (),
 }
 _SQL_TEXT_COLUMNS = frozenset({"check_expression", "default_expression", "definition", "using_expression"})
+_SQL_QUOTED_TOKEN = re.compile(
+    r"""(?:E'(?:''|\\.|[^'])*'|'(?:''|[^'])*'|"(?:""|[^"])*"|(?P<tag>\$(?:[A-Za-z_][A-Za-z0-9_]*)?\$).*?(?P=tag))""",
+    re.DOTALL,
+)
 
 
 class Cursor(Protocol):
@@ -190,56 +195,11 @@ def _normalized_text(value: object) -> object:
 def _normalize_sql_text(value: str) -> str:
     """Collapse deparser whitespace outside quoted SQL tokens and bodies."""
     output: list[str] = []
-    index = 0
-    quote: str | None = None
-    dollar_tag: str | None = None
-    while index < len(value):
-        if dollar_tag is not None:
-            end = value.find(dollar_tag, index)
-            if end < 0:
-                output.append(value[index:])
-                break
-            output.append(value[index : end + len(dollar_tag)])
-            index = end + len(dollar_tag)
-            dollar_tag = None
-            continue
-        character = value[index]
-        if quote is not None:
-            output.append(character)
-            if character == quote:
-                if index + 1 < len(value) and value[index + 1] == quote:
-                    output.append(quote)
-                    index += 2
-                    continue
-                quote = None
-            elif character == "\\" and index + 1 < len(value):
-                output.append(value[index + 1])
-                index += 2
-                continue
-            index += 1
-            continue
-        if character in ("'", '"'):
-            quote = character
-            output.append(character)
-            index += 1
-            continue
-        if character == "$":
-            end = value.find("$", index + 1)
-            if end >= 0:
-                candidate = value[index : end + 1]
-                tag_body = candidate[1:-1]
-                if not tag_body or tag_body.replace("_", "a").isalnum():
-                    dollar_tag = candidate
-                    output.append(candidate)
-                    index = end + 1
-                    continue
-        if character.isspace():
-            if output and output[-1] != " ":
-                output.append(" ")
-            index += 1
-            continue
-        output.append(character)
-        index += 1
+    start = 0
+    for token in _SQL_QUOTED_TOKEN.finditer(value):
+        output.extend((re.sub(r"\s+", " ", value[start : token.start()]), token.group(0)))
+        start = token.end()
+    output.append(re.sub(r"\s+", " ", value[start:]))
     return "".join(output).strip()
 
 

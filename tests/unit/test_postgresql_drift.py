@@ -103,8 +103,8 @@ def test_catalog_serialization_is_key_order_and_whitespace_stable() -> None:
 
 def test_sql_whitespace_normalization_preserves_quoted_content() -> None:
     """Whitespace inside literals, identifiers, and dollar bodies remains semantic."""
-    definition = "SELECT  'a  b',  \"quoted  name\",  $$body  text$$"
-    assert _normalize_sql_text(definition) == "SELECT 'a  b', \"quoted  name\", $$body  text$$"
+    definition = r"""SELECT  'a  b',  E'c\'d  e',  "quoted  name",  $tag$body  text$tag$"""
+    assert _normalize_sql_text(definition) == (r"""SELECT 'a  b', E'c\'d  e', "quoted  name", $tag$body  text$tag$""")
 
 
 def test_expected_managed_tables_are_profile_scoped() -> None:
