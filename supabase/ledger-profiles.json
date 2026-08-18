@@ -59,19 +59,19 @@
   "profiles": {
     "auth": {
       "components": ["auth"],
-      "catalog_sha256": "d042c4d06334924814de8309fcc21490ff0fc601906fcf5d1f517e4a380de417"
+      "catalog_sha256": "8cf750958f0414126bf4055338bd98ede48bfb0ddea8e38233820bc5d4fa7228"
     },
     "graph": {
       "components": ["graph"],
-      "catalog_sha256": "c078f0a53bfd4c8020f52b0bdae93ecffcc0b9d2cc6811314cc4c77c95f43984"
+      "catalog_sha256": "93254e29061138714545b99b36c57ccfc449a88056aabf458ebd5ffe439385ad"
     },
     "coordination": {
       "components": ["coordination"],
-      "catalog_sha256": "b31375cc83226cf3d6e427f4e851f3f20f82cbcb5c6c44cf7acea17a3590c7dd"
+      "catalog_sha256": "2a9f1fb391f2817cf6ed66eea0c6c94bbe631ffd9979c79fbe82e949c5d22832"
     },
     "combined": {
       "components": ["auth", "graph", "coordination"],
-      "catalog_sha256": "47c7e00c80131c66366e376cda441574ec359b5eeb22f65d492c328921a6d529"
+      "catalog_sha256": "1b6f76bf6548ca5ceecfa835be2d46f79c7d71ca40d45256781cedd2259bec7b"
     }
   },
   "lineages": {
