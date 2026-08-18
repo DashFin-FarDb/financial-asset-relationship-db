@@ -140,12 +140,12 @@ Primary authorities:
   evidence; CQ-03D-00 PR #1644, reviewed head `cd976126ffe448aa2748df060128fb227b3b13d5`, merge
   `f199c273068fd44df76c6c7b9efac16c3e33c732`, passing PostgreSQL 15/16 and container-boundary gates, and zero
   unresolved review threads.
-- **Next action and completion test:** Implement and review the narrow CQ-03D target-bound, read-only operator command
-  as a separate file-bounded unit before any hosted preflight. A future CQ-03D execution decision closes only after a
-  protected, single-use permit is bound to the
+- **Next action and completion test:** Separately scope, ratify, implement, and review the narrow CQ-03D target-bound,
+  read-only operator command as a file-bounded unit before any hosted preflight. A future CQ-03D execution decision
+  closes only after a protected, single-use permit is bound to the
   selected target and one timestamp; every required history, catalog, compatibility, and authorization check reports
-  `PASS`; and the history-only action plus post-action evidence are attached without DDL, DML, role, grant, credential,
-  or provider-configuration change.
+  `PASS`; and the history-only action plus post-action evidence are attached without DDL, DML beyond exactly one
+  permit-bound migration-history marker, role, grant, credential, or provider-configuration change.
 - **Last updated:** 2026-08-18
 
 ### FPC-2026-08-09-01 — Separate migration and runtime database authority
@@ -533,7 +533,7 @@ Primary authorities:
 - Durable graph load, startup provenance, promotion checking, recovery control plane, API contracts, governance, DR
   documentation, and release-evidence mechanisms exist in the repository.
 - RC1 has candidate-specific approved hosted and restore evidence.
-- `main` is `784d092f1204b59e612efd4ff3949f3e3fed12cf` at this cutoff.
+- `main` is `f199c273068fd44df76c6c7b9efac16c3e33c732` at this cutoff.
 - CQ-01/CQ-02 are closed through merged PR #1608 with exact PostgreSQL 15/16 authority evidence. QH-01 is closed
   through merged PR #1632. Provider rollout and production qualification remain separate evidence obligations.
 - CQ-03 is the active critical-path programme. CQ-03A is complete through accepted ADR 0009 and merged PR #1634;
@@ -554,9 +554,9 @@ Primary authorities:
 
 ### Next highest-value action
 
-Implement and review the CQ-03D target-bound, read-only operator command as a separate file-bounded unit under active
-commitment **FPC-2026-08-13-01**. Only after that unit is merged may a separate decision consider authorizing a
-target-bound hosted preflight. Do not replay or reconstruct SQL under historical timestamps, run
+Separately scope, ratify, implement, and review the CQ-03D target-bound, read-only operator command as a file-bounded
+unit under active commitment **FPC-2026-08-13-01**. Only after that unit is merged may a separate decision consider
+authorizing a target-bound hosted preflight. Do not replay or reconstruct SQL under historical timestamps, run
 `supabase db pull` against hosted state, retain provider link state, apply to a hosted target, or select
 `hosted-legacy-v1` as adopted before a single-use CQ-03D permit exists.
 Issue #1623 remains a small P2 follow-up and does not displace the CQ-03 programme. Release repeatability

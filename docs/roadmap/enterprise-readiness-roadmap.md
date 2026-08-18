@@ -22,12 +22,12 @@ merged PRs #1634, #1640, #1641, #1643, and #1644. The repository can build the e
 and combined profiles on supported PostgreSQL versions and can evaluate ledger, catalog, and runtime drift read-only.
 This is not hosted adoption evidence.
 
-| Item                                     | Status                                                        | Next evidence required                                                                                       | Non-negotiable boundary                                                                                         |
-| ---------------------------------------- | ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------- |
-| CQ-03D hosted migration-history adoption | Blocked — D-00 complete; operator command and approval absent | A reviewed target-bound operator command, then a protected single-use permit and passing read-only preflight | History-only reconciliation; no DDL, DML, grant, role, credential, deployment, or provider-configuration change |
+| Item                                     | Status                                                               | Next evidence required                                                                                       | Non-negotiable boundary                                                                                                                                      |
+| ---------------------------------------- | -------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| CQ-03D hosted migration-history adoption | Blocked — D-00 complete; operator command, target, and permit absent | A reviewed target-bound operator command, then a protected single-use permit and passing read-only preflight | History-only reconciliation; no DDL; no DML beyond one permit-bound history marker; no grant, role, credential, deployment, or provider-configuration change |
 
-The current repository has a tested read-only drift-evaluator API and a ratified preparation contract, but not a
-CQ-03D target-bound operator command. Implementing that command is the next separate, file-bounded decision; it must
+The current repository has a tested read-only drift-evaluator API and a merged, reviewed preparation contract, but not
+a CQ-03D target-bound operator command. Implementing that command requires a separate, file-bounded decision; it must
 not be created ad hoc during a hosted operation.
 
 ## Release Evidence Now
