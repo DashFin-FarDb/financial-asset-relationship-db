@@ -1,0 +1,25 @@
+docs/roadmap/enterprise-readiness-roadmap.md
+  s_be9336e6a7ef93::t_a80ff5cccf6473 17-30
+tests/integration/test_cq03b_r1_adjudication_docs.py
+  s_be9336e6a7ef93::t_a80ff5cccf6473 13,15,154,164-190
+docs/runbooks/database-migration-authority.md
+  s_be9336e6a7ef93::t_a80ff5cccf6473 257-333
+docs/strategy/fardb-project-continuity.md
+  s_be9336e6a7ef93::t_a80ff5cccf6473 5,7,75-82,103-104,118-122,130-137,525,530-531,546-549
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "fa0fd0fa24457cf65a406ed8acb49eda51e48c1d",
+  "prompts": {},
+  "sessions": {
+    "s_be9336e6a7ef93": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a00ab5-c133-7341-a8fb-d721eda1afd8",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}
