@@ -37,6 +37,7 @@ from scripts.postgresql_ledger import (
     EXPECTED_PROFILES,
     LOGICAL_TARGET_ORDER,
     LedgerManifest,
+    MigrationEntry,
     PlannedTarget,
     apply_profile_to_database,
     load_and_validate_manifest,
@@ -338,18 +339,12 @@ def _verify_hosted_adoption_prefix(
     runtime_check: Callable[[], None],
 ) -> None:
     """Prove every canonical marker accepts only its exact preceding hosted prefix."""
-    selected = manifest.migrations_for_profile(profile)
-    history_before = _migration_history(target_url)
-    receipts = tuple(
-        (str(receipt["timestamp"]), str(receipt["name"]))
-        for receipt in manifest.data["lineages"]["hosted-legacy-v1"]["receipts"]
-    )
-    adopted_history = receipts
-    _replace_migration_history(target_url, adopted_history)
-    connection = psycopg2.connect(target_url)
-    try:
-        for marker in selected:
-            adoption = evaluate_profile_drift(
+
+    def evaluate_marker(marker: MigrationEntry) -> DriftReport:
+        """Evaluate one marker through a fresh read-only connection."""
+        connection = psycopg2.connect(target_url)
+        try:
+            return evaluate_profile_drift(
                 connection,
                 manifest,
                 profile,
@@ -358,25 +353,36 @@ def _verify_hosted_adoption_prefix(
                 runtime_check=runtime_check,
                 adoption_timestamp=marker.timestamp,
             )
+        finally:
+            connection.close()
+
+    selected = manifest.migrations_for_profile(profile)
+    history_before = _migration_history(target_url)
+    receipts = tuple(
+        (str(receipt["timestamp"]), str(receipt["name"]))
+        for receipt in manifest.data["lineages"]["hosted-legacy-v1"]["receipts"]
+    )
+    adopted_history = receipts
+    _replace_migration_history(target_url, adopted_history)
+    try:
+        for marker in selected:
+            adoption = evaluate_marker(marker)
             assert adoption.status == PASS, adoption.as_public_dict()
             assert _migration_history(target_url) == adopted_history
             adopted_history += ((marker.timestamp, marker.filename[15:-4]),)
             _replace_migration_history(target_url, adopted_history)
     finally:
-        try:
-            connection.close()
-        finally:
-            _replace_migration_history(target_url, history_before)
+        _replace_migration_history(target_url, history_before)
     assert _migration_history(target_url) == history_before
 
 
-def _verify_history_drift(
+def _verify_history_and_catalog_drift(
     target_url: str,
     manifest: LedgerManifest,
     profile: str,
     runtime_check: Callable[[], None],
 ) -> None:
-    """Prove provider-history mismatch classification and restore the fixture."""
+    """Prove provider-history/catalog classification and unavailable priority."""
     selected = manifest.migrations_for_profile(profile)
     original_version = selected[0].timestamp
     changed_version = "20991231235959"
@@ -396,14 +402,6 @@ def _verify_history_drift(
             (original_version, changed_version),
         )
 
-
-def _verify_catalog_drift(
-    target_url: str,
-    manifest: LedgerManifest,
-    profile: str,
-    runtime_check: Callable[[], None],
-) -> None:
-    """Prove managed-catalog drift and higher-priority unavailable history."""
     table_name = sorted(_expected_tables(profile))[0]
     _execute_operator_sql(
         target_url,
@@ -435,13 +433,27 @@ def _verify_catalog_drift(
         )
 
 
-def _verify_graph_owner_drift(
+def _verify_profile_drift_contract(
+    engine: sqlalchemy.Engine,
     target_url: str,
     manifest: LedgerManifest,
     profile: str,
-    runtime_check: Callable[[], None],
 ) -> None:
-    """Prove managed function ownership drift for graph-bearing profiles."""
+    """Prove clean, primary-category, incomplete, and no-mutation behavior."""
+
+    def runtime_check() -> None:
+        """Convert completed compatibility failures to the drift callback contract."""
+        try:
+            _verify_operator_contract(engine, target_url, profile)
+        except SchemaCompatibilityError as exc:
+            raise RuntimeCompatibilityMismatch from exc
+
+    clean_before = _evaluate_drift(target_url, manifest, profile, runtime_check)
+    assert clean_before.status == PASS, f"clean catalog digest for {profile}: {clean_before.actual_catalog_digest}"
+    history_before = _migration_history(target_url)
+
+    _verify_history_and_catalog_drift(target_url, manifest, profile, runtime_check)
+
     if "graph" in EXPECTED_PROFILES[profile]:
         owner_role = f"cq03c_owner_{uuid4().hex[:12]}"
         _execute_operator_sql(target_url, sql.SQL("CREATE ROLE {} NOLOGIN").format(sql.Identifier(owner_role)))
@@ -464,10 +476,6 @@ def _verify_graph_owner_drift(
             finally:
                 _execute_operator_sql(target_url, sql.SQL("DROP ROLE {}").format(sql.Identifier(owner_role)))
 
-
-def _verify_runtime_drift(target_url: str, manifest: LedgerManifest, profile: str) -> None:
-    """Prove completed runtime incompatibility is classified as drift."""
-
     def incompatible_runtime() -> None:
         """Represent one completed required-invariant mismatch."""
         raise RuntimeCompatibilityMismatch
@@ -476,14 +484,6 @@ def _verify_runtime_drift(target_url: str, manifest: LedgerManifest, profile: st
     assert runtime_drift.status == DRIFT_DETECTED
     assert runtime_drift.primary_category == RUNTIME_COMPATIBILITY_MISMATCH
 
-
-def _verify_unknown_scope(
-    target_url: str,
-    manifest: LedgerManifest,
-    profile: str,
-    runtime_check: Callable[[], None],
-) -> None:
-    """Prove unmanaged catalog objects make the bounded evaluation incomplete."""
     _execute_operator_sql(target_url, "CREATE TABLE public.cq03c_unknown_scope (id INTEGER PRIMARY KEY)")
     try:
         incomplete = _evaluate_drift(target_url, manifest, profile, runtime_check)
@@ -492,32 +492,6 @@ def _verify_unknown_scope(
         assert incomplete.unknown_count == 3
     finally:
         _execute_operator_sql(target_url, "DROP TABLE public.cq03c_unknown_scope")
-
-
-def _verify_profile_drift_contract(
-    engine: sqlalchemy.Engine,
-    target_url: str,
-    manifest: LedgerManifest,
-    profile: str,
-) -> None:
-    """Prove clean, primary-category, incomplete, and no-mutation behavior."""
-
-    def runtime_check() -> None:
-        """Convert completed compatibility failures to the drift callback contract."""
-        try:
-            _verify_operator_contract(engine, target_url, profile)
-        except SchemaCompatibilityError as exc:
-            raise RuntimeCompatibilityMismatch from exc
-
-    clean_before = _evaluate_drift(target_url, manifest, profile, runtime_check)
-    assert clean_before.status == PASS, f"clean catalog digest for {profile}: {clean_before.actual_catalog_digest}"
-    history_before = _migration_history(target_url)
-
-    _verify_history_drift(target_url, manifest, profile, runtime_check)
-    _verify_catalog_drift(target_url, manifest, profile, runtime_check)
-    _verify_graph_owner_drift(target_url, manifest, profile, runtime_check)
-    _verify_runtime_drift(target_url, manifest, profile)
-    _verify_unknown_scope(target_url, manifest, profile, runtime_check)
 
     clean_after = _evaluate_drift(target_url, manifest, profile, runtime_check)
     assert clean_after.status == PASS, clean_after.as_public_dict()
