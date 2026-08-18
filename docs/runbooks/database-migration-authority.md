@@ -291,6 +291,7 @@ status invalidates it before any command is considered.
    ```
 
    The emitted manifest SHA-256 must exactly equal the permit. Any other result stops the workflow.
+
 2. In the protected operator surface, load the mode-`0600` target-binding document and prove the selected DSN's
    immutable identity equals the permit's opaque fingerprint. Do not print the DSN or raw immutable identity inputs.
    Missing, unavailable, or mismatched proof is `TARGET_IDENTITY_INDETERMINATE` and stops the workflow.
