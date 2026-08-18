@@ -181,12 +181,15 @@ def test_cq03d_runbook_is_preparation_not_connected_execution() -> None:
     assert "protected, single-use permit" in runbook
     assert "exact reviewed repository SHA" in runbook
     assert "opaque `fardb-target-fingerprint-v1` target fingerprint" in runbook
+    assert "`fardb-ledger-profiles-v1` manifest SHA-256" in runbook
     assert "exactly one allowlisted canonical migration timestamp" in runbook
     assert "python -m scripts.postgresql_ledger validate" in runbook
     assert "TARGET_IDENTITY_INDETERMINATE" in runbook
     assert "The repository currently exposes the tested `evaluate_profile_drift()` API" in runbook
     assert "No database-connected command is approved by this preparation package" in runbook
     assert "`--db-url <permit-bound-dsn>` argument" in runbook
+    assert "reject a missing, caller-substituted, or differently targeted check" in runbook
+    assert "separate bounded `runtime_compatibility` and `runtime_authority` results" in runbook
     assert "`supabase migration repair <timestamp> --status applied --db-url <permit-bound-dsn>`" in runbook
     assert "reject an operator-supplied target override, `--linked`, `--project-ref`, `--local`" in runbook
     assert "`supabase db push --dry-run --db-url <permit-bound-dsn>`" in runbook

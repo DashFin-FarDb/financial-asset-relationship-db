@@ -76,10 +76,12 @@ At the evidence cutoff:
   `784d092f1204b59e612efd4ff3949f3e3fed12cf` on 2026-08-18. Its read-only evaluator binds profile-specific
   normalized catalog digests, enforces ADR 0009 precedence, distinguishes mismatch from unavailable evaluation, and
   adds disposable PostgreSQL 15/16 deliberate-drift and no-history-mutation fixtures. The authoritative exact-head
-  PostgreSQL 15/16, Python, and security evidence passed; required unavailable-check fixtures, including an
-  unavailable higher-priority evaluation, return `EVALUATION_INCOMPLETE`; startup and readiness prove they cannot
-  mutate schema or migration history; and restricted-runtime tests retain the credential-bootstrap authority boundary.
-  Review closure was completed before merge. No hosted target was queried or mutated.
+  PostgreSQL 15/16 and Python evidence passed. DevSkim, Semgrep, Snyk, CodeQL, Pyre/Pysa, Bandit, and Bearer passed;
+  Aikido returned no result after three bounded waits and was not claimed as passing. Required unavailable-check
+  fixtures, including an unavailable higher-priority evaluation, return `EVALUATION_INCOMPLETE`; startup and
+  readiness prove they cannot mutate schema or migration history; and restricted-runtime tests retain the
+  credential-bootstrap authority boundary. Review closure was completed before merge. No hosted target was queried
+  or mutated.
 
 Primary authorities:
 
@@ -562,7 +564,7 @@ credential-bootstrap authority.
 
 ### Sources reviewed
 
-- Repository `main` through `1b180001b15473953d89a1b8d59a6127ab568095` on 2026-08-18.
+- Repository `main` through `784d092f1204b59e612efd4ff3949f3e3fed12cf` on 2026-08-18.
 - Repository agent instructions and production-architecture declaration.
 - Enterprise-readiness index, audit, roadmap, PR board, validation-gap audit, release checklist, release evidence pack,
   hosted staging baseline, operational evidence framework, drill and scale-validation documents, and risk register.

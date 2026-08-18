@@ -269,7 +269,7 @@ workflow log, or this runbook.
 The permit must contain all of the following:
 
 - exact reviewed repository SHA;
-- `fardb-pg-ledger-v1` manifest SHA-256 and selected build-profile ID;
+- `fardb-ledger-profiles-v1` manifest SHA-256 and selected build-profile ID;
 - selected lineage-profile ID and opaque `fardb-target-fingerprint-v1` target fingerprint;
 - exactly one allowlisted canonical migration timestamp;
 - the passing CQ-03B/C exact-head evidence references and expected/actual normalized catalog digest;
@@ -297,10 +297,12 @@ status invalidates it before any command is considered.
    Missing, unavailable, or mismatched proof is `TARGET_IDENTITY_INDETERMINATE` and stops the workflow.
 3. Run the reviewed CQ-03D read-only evaluator against that one protected target. It must use a read-only transaction,
    roll it back, select the permit's profile and lineage, and execute the existing history, normalized-catalog,
-   runtime-compatibility, and ADR 0007 runtime-authority checks. The public record must report `PASS`, zero
-   `not_evaluated_count`, no primary category, and the permit's expected and actual catalog digest. Any
-   `DRIFT_DETECTED`, `EVALUATION_INCOMPLETE`, unavailable check, unknown public object, or mismatched digest stops the
-   workflow.
+   runtime-compatibility, and ADR 0007 runtime-authority checks. The operator interface must construct the authority
+   check internally, bind it to the same identity-verified permit DSN, and reject a missing, caller-substituted, or
+   differently targeted check before evaluation. The public record must report separate bounded
+   `runtime_compatibility` and `runtime_authority` results, overall `PASS`, zero `not_evaluated_count`, no primary
+   category, and the permit's expected and actual catalog digest. Any `DRIFT_DETECTED`, `EVALUATION_INCOMPLETE`,
+   unavailable check, unknown public object, or mismatched digest stops the workflow.
 4. Run the reviewed read-only migration-list parity check for the same target, profile, lineage, and one timestamp.
    The future operator interface must select the identity-verified target through an explicit
    `--db-url <permit-bound-dsn>` argument and reject `--linked`, `--project-ref`, and retained CLI link or branch state
@@ -312,7 +314,8 @@ status invalidates it before any command is considered.
 The repository currently exposes the tested `evaluate_profile_drift()` API but has no CQ-03D target-bound operator
 command that can perform steps 2–4. No database-connected command is approved by this preparation package. A separate
 implementation decision must add and test that narrow operator interface before preflight execution; it must preserve
-the protected-binding identity proof, read-only transaction, rollback, and sanitized-output contracts above.
+the protected-binding identity proof, non-substitutable target-bound ADR 0007 authority check, separate bounded
+authority result, read-only transaction, rollback, and sanitized-output contracts above.
 
 ### Prohibited actions and future execution boundary
 
