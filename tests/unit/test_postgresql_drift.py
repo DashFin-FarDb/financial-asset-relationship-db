@@ -107,6 +107,13 @@ def test_sql_whitespace_normalization_preserves_quoted_content() -> None:
     assert _normalize_sql_text(definition) == (r"""SELECT 'a  b', E'c\'d  e', "quoted  name", $tag$body  text$tag$""")
 
 
+def test_sql_whitespace_normalization_handles_long_unclosed_tokens_without_regex() -> None:
+    """Malformed long tokens cannot trigger regex backtracking during evaluation."""
+    definition = "SELECT  $tag$" + ("x " * 20_000)
+
+    assert _normalize_sql_text(definition) == "SELECT $tag$" + ("x " * 19_999) + "x"
+
+
 def test_expected_managed_tables_are_profile_scoped() -> None:
     """A component target must not silently inherit another component's tables."""
     assert expected_managed_tables("auth") == ("user_credentials",)

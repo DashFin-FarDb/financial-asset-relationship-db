@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import hashlib
 import json
-import re
 from collections.abc import Callable, Iterator, Mapping, Sequence
 from contextlib import contextmanager
 from dataclasses import dataclass
@@ -70,10 +69,6 @@ _APPLICATION_EXTENSIONS: Mapping[str, tuple[str, ...]] = {
     "combined": (),
 }
 _SQL_TEXT_COLUMNS = frozenset({"check_expression", "default_expression", "definition", "using_expression"})
-_SQL_QUOTED_TOKEN = re.compile(
-    r"""(?:E'(?:''|\\.|[^'])*'|'(?:''|[^'])*'|"(?:""|[^"])*"|(?P<tag>\$(?:[A-Za-z_][A-Za-z0-9_]*)?\$).*?(?P=tag))""",
-    re.DOTALL,
-)
 
 
 class Cursor(Protocol):
@@ -192,15 +187,74 @@ def _normalized_text(value: object) -> object:
     return value
 
 
+def _quoted_sql_token_end(value: str, start: int) -> int | None:
+    """Return the exclusive end of a quoted token using a bounded scan."""
+    delimiter: str | None = None
+    escape_backslashes = False
+    index = start
+    if value.startswith("E'", start):
+        delimiter = "'"
+        escape_backslashes = True
+        index += 2
+    elif value[start] in {"'", '"'}:
+        delimiter = value[start]
+        index += 1
+    elif value[start] == "$":
+        tag_end = start + 1
+        if tag_end < len(value) and value[tag_end] != "$":
+            if not (value[tag_end].isascii() and (value[tag_end].isalpha() or value[tag_end] == "_")):
+                return None
+            tag_end += 1
+            while (
+                tag_end < len(value)
+                and value[tag_end].isascii()
+                and (value[tag_end].isalnum() or value[tag_end] == "_")
+            ):
+                tag_end += 1
+        if tag_end >= len(value) or value[tag_end] != "$":
+            return None
+        dollar_delimiter = value[start : tag_end + 1]
+        closing = value.find(dollar_delimiter, tag_end + 1)
+        return None if closing < 0 else closing + len(dollar_delimiter)
+    else:
+        return None
+
+    while index < len(value):
+        if escape_backslashes and value[index] == "\\":
+            index += 2
+            continue
+        if value[index] == delimiter:
+            if index + 1 < len(value) and value[index + 1] == delimiter:
+                index += 2
+                continue
+            return index + 1
+        index += 1
+    return None
+
+
 def _normalize_sql_text(value: str) -> str:
     """Collapse deparser whitespace outside quoted SQL tokens and bodies."""
     output: list[str] = []
-    start = 0
-    for token in _SQL_QUOTED_TOKEN.finditer(value):
-        output.extend((re.sub(r"\s+", " ", value[start : token.start()]), token.group(0)))
-        start = token.end()
-    output.append(re.sub(r"\s+", " ", value[start:]))
-    return "".join(output).strip()
+    pending_space = False
+    index = 0
+    while index < len(value):
+        token_end = _quoted_sql_token_end(value, index)
+        if token_end is not None:
+            if pending_space and output:
+                output.append(" ")
+            output.append(value[index:token_end])
+            pending_space = False
+            index = token_end
+        elif value[index].isspace():
+            pending_space = True
+            index += 1
+        else:
+            if pending_space and output:
+                output.append(" ")
+            output.append(value[index])
+            pending_space = False
+            index += 1
+    return "".join(output)
 
 
 def canonical_catalog_bytes(document: Mapping[str, object]) -> bytes:
