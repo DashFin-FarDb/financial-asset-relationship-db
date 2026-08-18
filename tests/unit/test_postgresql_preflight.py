@@ -128,9 +128,10 @@ def test_permit_rejects_duplicate_raw_json_keys(tmp_path: Path) -> None:
     path = tmp_path / "permit.json"
     path.write_text('{"version":"first","version":"second"}', encoding="utf-8")
     path.chmod(0o600)
+    manifest = load_and_validate_manifest()
 
     with pytest.raises(preflight.PreflightContractError, match=preflight.PERMIT_INVALID):
-        preflight.load_preflight_permit(path, load_and_validate_manifest())
+        preflight.load_preflight_permit(path, manifest)
 
 
 def test_permit_descriptor_closes_when_handle_creation_fails(tmp_path: Path, monkeypatch) -> None:
@@ -140,6 +141,7 @@ def test_permit_descriptor_closes_when_handle_creation_fails(tmp_path: Path, mon
     real_close = preflight.os.close
 
     def close(fd: int) -> None:
+        """Record and close the descriptor opened by the production helper."""
         closed.append(fd)
         real_close(fd)
 
@@ -236,6 +238,7 @@ def test_runtime_route_incompatibility_propagates_as_drift_signal(tmp_path: Path
     }
 
     def check_route(_route, component: str) -> None:
+        """Model one component-specific runtime incompatibility."""
         if component == "graph":
             raise RuntimeCompatibilityMismatch()
 
@@ -256,8 +259,10 @@ def test_runtime_route_incompatibility_propagates_as_drift_signal(tmp_path: Path
 )
 def test_supabase_adapter_rejects_unapproved_routing_or_tls(tmp_path: Path, mutation) -> None:
     """Transaction pooling, weak TLS, caller options, and unknown hosts fail identity."""
+    candidate = mutation(_database_url(tmp_path))
+
     with pytest.raises(TargetIdentityError):
-        preflight._supabase_route_identity(mutation(_database_url(tmp_path)))
+        preflight._supabase_route_identity(candidate)
 
 
 def test_live_database_oid_is_bound_to_the_protected_fingerprint(tmp_path: Path, monkeypatch) -> None:
@@ -358,14 +363,16 @@ def test_live_database_oid_mismatch_fails_before_checks(tmp_path: Path, monkeypa
     connection.cursor = Cursor  # type: ignore[attr-defined]
     monkeypatch.setitem(sys.modules, "psycopg2", SimpleNamespace(connect=lambda *_args, **_kwargs: connection))
     route = preflight._supabase_route_identity(_database_url(tmp_path))
+    target = _target(route.database_url)
 
     with pytest.raises(TargetIdentityError, match=preflight.TARGET_IDENTITY_INDETERMINATE):
-        preflight._connect_verified(route, _target(route.database_url))
+        preflight._connect_verified(route, target)
 
 
 def test_runtime_route_cleanup_failure_is_incomplete(tmp_path: Path, monkeypatch) -> None:
     """A route whose verified connection cannot close never counts as proved."""
     route = preflight._supabase_route_identity(_database_url(tmp_path))
+    target = _target(route.database_url)
 
     class Connection:
         """Expose one deterministic close failure."""
@@ -377,7 +384,7 @@ def test_runtime_route_cleanup_failure_is_incomplete(tmp_path: Path, monkeypatch
     monkeypatch.setattr(preflight, "_connect_verified", lambda *_args: Connection())
 
     with pytest.raises(preflight.PreflightContractError, match=preflight.EVALUATION_INCOMPLETE):
-        preflight._prove_route(route, _target(route.database_url))
+        preflight._prove_route(route, target)
 
 
 def test_preflight_cli_allowlist_is_migration_list_only(tmp_path: Path) -> None:

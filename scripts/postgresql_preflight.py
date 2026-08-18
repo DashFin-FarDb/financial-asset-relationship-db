@@ -85,7 +85,7 @@ _DIRECT_HOST = re.compile(r"^db[.](?P<ref>[a-z0-9]{20})[.]supabase[.]co$", re.AS
 _POOLER_HOST = re.compile(r"^[a-z0-9-]+[.]pooler[.]supabase[.]com$", re.ASCII)
 _LOWER_HEX_40 = re.compile(r"^[0-9a-f]{40}$", re.ASCII)
 _LOWER_HEX_64 = re.compile(r"^[0-9a-f]{64}$", re.ASCII)
-_TIMESTAMP = re.compile(r"^[0-9]{14}$", re.ASCII)
+_TIMESTAMP = re.compile(r"^\d{14}$", re.ASCII)
 _PERMIT_KEYS = {
     "version",
     "state",
