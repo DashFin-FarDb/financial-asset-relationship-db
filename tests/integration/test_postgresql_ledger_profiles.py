@@ -396,11 +396,13 @@ def _verify_profile_drift_contract(
             assert owner_drift.status == DRIFT_DETECTED
             assert owner_drift.primary_category == PROVIDER_SCHEMA_DRIFT
         finally:
-            _execute_operator_sql(
-                target_url,
-                sql.SQL("ALTER FUNCTION public.grac_v1_reject_mutation() OWNER TO CURRENT_USER"),
-            )
-            _execute_operator_sql(target_url, sql.SQL("DROP ROLE {}").format(sql.Identifier(owner_role)))
+            try:
+                _execute_operator_sql(
+                    target_url,
+                    sql.SQL("ALTER FUNCTION public.grac_v1_reject_mutation() OWNER TO CURRENT_USER"),
+                )
+            finally:
+                _execute_operator_sql(target_url, sql.SQL("DROP ROLE {}").format(sql.Identifier(owner_role)))
 
     def incompatible_runtime() -> None:
         """Represent one completed required-invariant mismatch."""
