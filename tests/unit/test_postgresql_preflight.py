@@ -136,7 +136,6 @@ def test_permit_rejects_duplicate_raw_json_keys(tmp_path: Path) -> None:
 def test_permit_descriptor_closes_when_handle_creation_fails(tmp_path: Path, monkeypatch) -> None:
     """A failed descriptor-to-handle transfer cannot leak the protected permit FD."""
     path = _write_permit(tmp_path, _permit_document("1" * 40))
-    descriptor = preflight.os.open(path, preflight.os.O_RDONLY)
     closed: list[int] = []
     real_close = preflight.os.close
 
@@ -152,9 +151,9 @@ def test_permit_descriptor_closes_when_handle_creation_fails(tmp_path: Path, mon
     monkeypatch.setattr(preflight.os, "close", close)
 
     with pytest.raises(preflight.PreflightContractError, match=preflight.PERMIT_INVALID):
-        preflight._decode_permit_document(descriptor)
+        preflight._open_permit_handle(path)
 
-    assert closed == [descriptor]
+    assert len(closed) == 1
 
 
 @pytest.mark.parametrize("case", ["mode", "symlink", "symlink-loop", "expired", "ddl", "evidence", "marker"])

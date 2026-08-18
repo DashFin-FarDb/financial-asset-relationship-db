@@ -16,6 +16,7 @@ from contextlib import suppress
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
+from typing import BinaryIO
 from urllib.parse import SplitResult, parse_qsl, quote, unquote, urlencode, urlsplit, urlunsplit
 
 from scripts.postgresql_drift import (
@@ -224,7 +225,7 @@ def _resolved_permit_path(path: Path) -> Path:
         raise PreflightContractError(PERMIT_INVALID) from exc
 
 
-def _open_permit_descriptor(path: Path) -> int:
+def _open_permit_handle(path: Path) -> BinaryIO:
     """Open and attest one owner-only regular permit without following links."""
     descriptor = -1
     try:
@@ -235,7 +236,9 @@ def _open_permit_descriptor(path: Path) -> int:
             raise PreflightContractError(PERMIT_INVALID)
         if os.name != "nt" and (stat.S_IMODE(metadata.st_mode) != 0o600 or metadata.st_uid != os.geteuid()):
             raise PreflightContractError(PERMIT_INVALID)
-        return descriptor
+        handle = os.fdopen(descriptor, "rb")
+        descriptor = -1
+        return handle
     except PreflightContractError:
         if descriptor >= 0:
             with suppress(OSError):
@@ -248,13 +251,10 @@ def _open_permit_descriptor(path: Path) -> int:
         raise PreflightContractError(PERMIT_INVALID) from exc
 
 
-def _decode_permit_document(descriptor: int) -> Mapping[str, object]:
-    """Decode one bounded strict-UTF-8 permit object and consume its descriptor."""
+def _decode_permit_document(handle: BinaryIO) -> Mapping[str, object]:
+    """Decode one bounded strict-UTF-8 permit object from an owned handle."""
     try:
-        handle = os.fdopen(descriptor, "rb")
-        descriptor = -1
-        with handle:
-            raw_bytes = handle.read(65_537)
+        raw_bytes = handle.read(65_537)
         if len(raw_bytes) > 65_536:
             raise PreflightContractError(PERMIT_INVALID)
         text = raw_bytes.decode("utf-8", errors="strict")
@@ -265,10 +265,6 @@ def _decode_permit_document(descriptor: int) -> Mapping[str, object]:
         raise
     except (OSError, UnicodeError, json.JSONDecodeError, TypeError) as exc:
         raise PreflightContractError(PERMIT_INVALID) from exc
-    finally:
-        if descriptor >= 0:
-            with suppress(OSError):
-                os.close(descriptor)
     if not isinstance(document, dict):
         raise PreflightContractError(PERMIT_INVALID)
     return document
@@ -277,7 +273,8 @@ def _decode_permit_document(descriptor: int) -> Mapping[str, object]:
 def _protected_permit_document(path: Path) -> Mapping[str, object]:
     """Read one absolute, owner-only, non-symlink permit file."""
     resolved_path = _resolved_permit_path(path)
-    return _decode_permit_document(_open_permit_descriptor(resolved_path))
+    with _open_permit_handle(resolved_path) as handle:
+        return _decode_permit_document(handle)
 
 
 def _utc_timestamp(value: object) -> datetime:
