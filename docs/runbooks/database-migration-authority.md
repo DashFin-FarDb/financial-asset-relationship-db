@@ -1,7 +1,8 @@
 # Database migration authority
 
 **Applies to:** current FarDB graph, coordination, GRAC, and API credential schemas.
-**Commands:** superuser role bootstrap, ledger validation, then `python -m scripts.migrate_database`
+**Commands:** superuser role bootstrap, ledger validation, `python -m scripts.migrate_database`, and the separately
+approved `python -m scripts.postgresql_preflight`
 **Authority:** static cluster-role bootstrap plus one profile-scoped repository SQL ledger.
 
 ## Contract
@@ -292,30 +293,46 @@ status invalidates it before any command is considered.
 
    The emitted manifest SHA-256 must exactly equal the permit. Any other result stops the workflow.
 
-2. In the protected operator surface, load the mode-`0600` target-binding document and prove the selected DSN's
-   immutable identity equals the permit's opaque fingerprint. Do not print the DSN or raw immutable identity inputs.
-   Missing, unavailable, or mismatched proof is `TARGET_IDENTITY_INDETERMINATE` and stops the workflow.
-3. Run the reviewed CQ-03D read-only evaluator against that one protected target. It must use a read-only transaction,
-   roll it back, select the permit's profile and lineage, and execute the existing history, normalized-catalog,
-   runtime-compatibility, and ADR 0007 runtime-authority checks. The operator interface must construct the authority
-   check internally, bind it to the same identity-verified permit DSN, and reject a missing, caller-substituted, or
-   differently targeted check before evaluation. The public record must report separate bounded
-   `runtime_compatibility` and `runtime_authority` results, overall `PASS`, zero `not_evaluated_count`, no primary
-   category, and the permit's expected and actual catalog digest. Any `DRIFT_DETECTED`, `EVALUATION_INCOMPLETE`,
-   unavailable check, unknown public object, or mismatched digest stops the workflow.
-4. Run the reviewed read-only migration-list parity check for the same target, profile, lineage, and one timestamp.
-   The future operator interface must select the identity-verified target through an explicit
-   `--db-url <permit-bound-dsn>` argument and reject `--linked`, `--project-ref`, and retained CLI link or branch state
-   before the subprocess starts. It must establish that the permit's marker is the only intended history difference.
-   Record only the bounded parity result and timestamp count; do not retain raw provider output.
-5. Recheck the permit bindings immediately before any later history action. A target or evidence change after the
+2. In the protected operator surface, prepare the mode-`0600` target-binding and permit documents. The selected
+   bindings use adapter ID `supabase-postgresql-routing-v1`, the protected Supabase project reference as
+   `authority_namespace_id`, and the live positive `pg_database.oid` as `database_id`. The permit uses version
+   `fardb-cq03d-preflight-permit-v1`, state `approved`, `history_only: true`, and `ddl_authorized: false`; it contains
+   exactly the bindings listed in the approval pack plus non-empty `cq03b`, `cq03c`, `history`,
+   `runtime_compatibility`, and `runtime_authority` evidence references.
+3. Load the inspection and required restricted-runtime DSNs from the approved secret surface. Each must be a
+   documented Supabase direct or port-5432 session-pooler route with `sslmode=verify-full` and an explicit trust-root
+   file. The command rejects transaction pooling, unknown routing, caller PostgreSQL options, and weak TLS. Set only
+   the variables required by the selected profile:
+
+   ```bash
+   : "${FARDB_POSTGRES_TARGET_BINDINGS_FILE:?protected binding path required}"
+   : "${FARDB_CQ03D_INSPECTION_DATABASE_URL:?protected inspection DSN required}"
+   : "${FARDB_CQ03D_PERMIT_FILE:?protected permit path required}"
+   # Set FARDB_AUTH_RUNTIME_DATABASE_URL, FARDB_GRAPH_RUNTIME_DATABASE_URL,
+   # and/or FARDB_COORDINATION_RUNTIME_DATABASE_URL for the permit profile.
+   python -m scripts.postgresql_preflight --permit-file "$FARDB_CQ03D_PERMIT_FILE"
+   ```
+
+4. The command proves every DSN's protected project reference and live database OID against the same target
+   fingerprint in a read-only transaction, then rolls back. It internally runs the profile's history,
+   normalized-catalog, runtime-compatibility, and ADR 0007 runtime-authority checks with forced read-only helper
+   connections. Missing, unavailable, or mismatched identity proof is `TARGET_IDENTITY_INDETERMINATE`; a caller
+   cannot substitute a connector, runtime check, target, or subprocess runner.
+5. For `hosted-legacy-v1`, the actual history must be the six reviewed receipts plus already adopted canonical
+   markers strictly before the permit timestamp. The permit timestamp must be the next canonical marker. Only after
+   all earlier checks pass, pinned Supabase CLI `2.114.0` runs read-only `migration list` against a disposable
+   projection containing that one marker and an explicit permit-bound `--db-url`. The allowlist rejects `--linked`,
+   `--project-ref`, `--local`, password flags, dry-run, repair, push, reset, pull, and retained link or branch state.
+6. Require overall `PASS`, equal required/evaluated counts, separate `PASSED` results for identity, history, catalog,
+   runtime compatibility, runtime authority, and migration parity, and matching expected/actual catalog digests.
+   Record only the bounded JSON result and timestamp count; discard raw provider output. Any non-pass result stops.
+7. Recheck the permit bindings immediately before any later history action. A target or evidence change after the
    earlier read-only checks is not a warning: revoke the permit and begin again with fresh evidence.
 
-The repository currently exposes the tested `evaluate_profile_drift()` API but has no CQ-03D target-bound operator
-command that can perform steps 2–4. No database-connected command is approved by this preparation package. A separate
-implementation decision must add and test that narrow operator interface before preflight execution; it must preserve
-the protected-binding identity proof, non-substitutable target-bound ADR 0007 authority check, separate bounded
-authority result, read-only transaction, rollback, and sanitized-output contracts above.
+The CQ-03D-01 operator command is a reviewed repository capability only after its implementing change merges and
+passes exact-head gates. Its contract ratification is not a target approval: no database-connected invocation is
+authorized until a separate protected permit and target decision exist. It stops after evidence collection and does
+not perform the later history action.
 
 ### Prohibited actions and future execution boundary
 

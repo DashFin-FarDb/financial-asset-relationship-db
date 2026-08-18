@@ -25,12 +25,12 @@ This is not hosted adoption evidence.
 
 | Item                                     | Status                                                               | Next evidence required                                                                                                  | Non-negotiable boundary                                                                                                                                      |
 | ---------------------------------------- | -------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| CQ-03D hosted migration-history adoption | Blocked — D-00 complete; operator command, target, and permit absent | A reviewed CQ-03D-01 target-bound read-only preflight command, then a protected single-use permit and passing preflight | History-only reconciliation; no DDL; no DML beyond one permit-bound history marker; no grant, role, credential, deployment, or provider-configuration change |
+| CQ-03D hosted migration-history adoption | In progress — D-01 contract ratified and implementation in review; target and permit absent | Merge and exact-head validation of CQ-03D-01, then a separately approved protected permit and passing hosted preflight | History-only reconciliation; no DDL; no DML beyond one permit-bound history marker; no grant, role, credential, deployment, or provider-configuration change |
 
-The current repository has a tested read-only drift-evaluator API and a merged, reviewed preparation contract, but not
-a CQ-03D-01 target-bound, read-only preflight operator command. Implementing that command requires a separate,
-file-bounded decision; it must not be created ad hoc during a hosted operation. The command may collect only preflight
-evidence; the single permitted migration-history marker remains a later, separately authorized CQ-03D execution step.
+The CQ-03D-01 target adapter contract was human-ratified on 2026-08-18. This change implements the target-bound,
+read-only preflight command as a file-bounded unit; it is not available from `main` until reviewed and merged. The
+command may collect only preflight evidence. A target approval, protected single-use permit, connected hosted
+preflight, and the single permitted migration-history marker remain separate later decisions.
 
 ## Release Evidence Now
 
@@ -85,7 +85,7 @@ These items are valid but should not be bundled into the release-evidence reconc
 
 ## Proposed Delivery Order
 
-1. CQ-03D-01 target-bound read-only preflight operator command implementation and review.
+1. CQ-03D-01 target-bound read-only preflight operator command review, merge, and exact-head validation.
 2. Separately approved target, protected single-use permit, and passing hosted read-only preflight.
 3. If separately ratified, exactly one permit-bound migration-history marker and its post-action evidence.
 4. RC1 release evidence capture issue.

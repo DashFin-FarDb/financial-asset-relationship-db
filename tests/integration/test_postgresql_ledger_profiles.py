@@ -314,6 +314,22 @@ def _execute_operator_sql(target_url: str, statement: object, parameters: tuple[
         connection.close()
 
 
+def _replace_migration_history(target_url: str, history: tuple[tuple[str, str], ...]) -> None:
+    """Replace only disposable provider-history rows for adoption-prefix calibration."""
+    connection = psycopg2.connect(target_url)
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute("DELETE FROM supabase_migrations.schema_migrations")
+            cursor.executemany(
+                "INSERT INTO supabase_migrations.schema_migrations (version, statements, name) "
+                "VALUES (%s, ARRAY[]::text[], %s)",
+                history,
+            )
+        connection.commit()
+    finally:
+        connection.close()
+
+
 def _verify_profile_drift_contract(
     engine: sqlalchemy.Engine,
     target_url: str,
@@ -425,6 +441,35 @@ def _verify_profile_drift_contract(
     assert clean_after.status == PASS, clean_after.as_public_dict()
     assert clean_after.expected_catalog_digest == clean_before.expected_catalog_digest
     assert clean_after.actual_catalog_digest == clean_before.actual_catalog_digest
+    assert _migration_history(target_url) == history_before
+
+    receipts = tuple(
+        (str(receipt["timestamp"]), str(receipt["name"]))
+        for receipt in manifest.data["lineages"]["hosted-legacy-v1"]["receipts"]
+    )
+    adopted_history = receipts
+    _replace_migration_history(target_url, adopted_history)
+    try:
+        for marker in selected:
+            connection = psycopg2.connect(target_url)
+            try:
+                adoption = evaluate_profile_drift(
+                    connection,
+                    manifest,
+                    profile,
+                    "hosted-legacy-v1",
+                    "hosted",
+                    runtime_check=runtime_check,
+                    adoption_timestamp=marker.timestamp,
+                )
+            finally:
+                connection.close()
+            assert adoption.status == PASS, adoption.as_public_dict()
+            assert _migration_history(target_url) == adopted_history
+            adopted_history += ((marker.timestamp, marker.filename[15:-4]),)
+            _replace_migration_history(target_url, adopted_history)
+    finally:
+        _replace_migration_history(target_url, history_before)
     assert _migration_history(target_url) == history_before
 
 

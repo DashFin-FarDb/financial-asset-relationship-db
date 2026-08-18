@@ -286,6 +286,10 @@ def test_separate_target_bindings_resolve_in_stable_order(tmp_path: Path) -> Non
     assert tuple(item.logical_targets[0] for item in plan) == ledger.LOGICAL_TARGET_ORDER
     assert tuple(item.profile for item in plan) == ledger.LOGICAL_TARGET_ORDER
     assert all(item.alias_database_urls == (item.database_url,) for item in plan)
+    assert {item.canonical_identity for item in plan} == {
+        ("postgresql-test-adapter-v1", f"namespace-{target}", f"database-{target}")
+        for target in ledger.LOGICAL_TARGET_ORDER
+    }
     assert len({item.fingerprint for item in plan}) == 3
 
 
@@ -504,6 +508,18 @@ def test_disposable_projection_preserves_exact_bytes_and_cleans_up() -> None:
 
     assert retained_path is not None
     assert not retained_path.exists()
+
+
+def test_disposable_migration_projection_contains_only_one_permitted_marker() -> None:
+    """The CQ-03D parity projection cannot inherit other profile migrations."""
+    manifest = ledger.load_and_validate_manifest()
+    selected = manifest.migrations_for_profile("combined")[1]
+
+    with ledger.disposable_migration_projection((selected,)) as workdir:
+        projected = tuple((workdir / "supabase" / "migrations").iterdir())
+
+        assert tuple(path.name for path in projected) == (selected.filename,)
+        assert projected[0].read_bytes() == selected.path.read_bytes()
 
 
 def test_projection_rechecks_source_digest_after_manifest_load(tmp_path: Path) -> None:

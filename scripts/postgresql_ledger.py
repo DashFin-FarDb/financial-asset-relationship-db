@@ -220,6 +220,7 @@ class PlannedTarget:
     fingerprint: str
     database_url: str = field(repr=False)
     alias_database_urls: tuple[str, ...] = field(default=(), repr=False)
+    canonical_identity: tuple[str, str, str] | tuple[()] = field(default=(), repr=False)
 
 
 def sha256_bytes(value: bytes) -> str:
@@ -846,6 +847,11 @@ def _load_target_binding_document(path: Path, manifest: LedgerManifest) -> tuple
         raise TargetIdentityError() from exc
 
 
+def load_target_bindings(path: Path | str, manifest: LedgerManifest) -> tuple[TargetBinding, ...]:
+    """Load one protected binding document for a target-bound operator workflow."""
+    return _load_target_binding_document(Path(path), manifest)
+
+
 def _required_target_names(database_urls: Mapping[str, str]) -> tuple[str, ...]:
     """Return configured logical targets after validating their names and values."""
     if set(database_urls) - set(LOGICAL_TARGET_ORDER):
@@ -920,6 +926,9 @@ def _planned_target(
     """Build one deduplicated execution record from a validated alias group."""
     logical_targets, profile, lineage, execution_class = _profile_for_aliases(aliases)
     alias_urls = tuple(database_urls[logical_target] for logical_target in logical_targets)
+    canonical_identity = aliases[0].canonical_identity
+    if any(binding.canonical_identity != canonical_identity for binding in aliases):
+        raise TargetIdentityError()
     return PlannedTarget(
         logical_targets,
         profile,
@@ -928,6 +937,7 @@ def _planned_target(
         fingerprint,
         alias_urls[0],
         alias_urls,
+        canonical_identity,
     )
 
 
@@ -1031,11 +1041,10 @@ def _write_private_file(path: Path, value: bytes) -> None:
 
 
 @contextmanager
-def disposable_profile_projection(manifest: LedgerManifest, profile: str) -> Iterator[Path]:
+def disposable_migration_projection(migrations: Sequence[MigrationEntry]) -> Iterator[Path]:
     """Yield a mode-0700 CLI workdir containing only exact selected migration bytes."""
-    migrations = manifest.migrations_for_profile(profile)
     if not migrations:
-        raise LedgerContractError(f"profile has no migrations: {profile}")
+        raise LedgerContractError("migration projection is empty")
     temporary_directory = tempfile.TemporaryDirectory(prefix="fardb-ledger-projection-")
     workdir = Path(temporary_directory.name)
     try:
@@ -1058,6 +1067,16 @@ def disposable_profile_projection(manifest: LedgerManifest, profile: str) -> Ite
         _assert_projection_has_no_link_state(workdir)
     finally:
         temporary_directory.cleanup()
+
+
+@contextmanager
+def disposable_profile_projection(manifest: LedgerManifest, profile: str) -> Iterator[Path]:
+    """Yield a mode-0700 CLI workdir containing one exact profile projection."""
+    migrations = manifest.migrations_for_profile(profile)
+    if not migrations:
+        raise LedgerContractError(f"profile has no migrations: {profile}")
+    with disposable_migration_projection(migrations) as workdir:
+        yield workdir
 
 
 def _sanitized_cli_environment(state_directory: Path, environment: Mapping[str, str] | None = None) -> dict[str, str]:

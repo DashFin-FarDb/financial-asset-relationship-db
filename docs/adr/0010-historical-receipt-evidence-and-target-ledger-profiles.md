@@ -146,6 +146,30 @@ inability to prove target identity produces `TARGET_IDENTITY_INDETERMINATE` and 
 selection or SQL execution. The runner must not infer or expand a profile to recover from that result. Explicit
 same-target/profile conflicts remain rejected as described above.
 
+#### CQ-03D-01 production target adapter
+
+The human ratifier approved the bounded CQ-03D-01 production adapter contract on 2026-08-18. The adapter ID is
+`supabase-postgresql-routing-v1`. Its immutable authority-namespace ID is the protected Supabase project reference,
+and its immutable database ID is the live positive `pg_database.oid` for the connected database. The adapter accepts
+only a documented Supabase direct route or port-5432 session-pooler route with `sslmode=verify-full` and an explicit
+trust-root path. Transaction-pooler routing, unknown hosts, caller-supplied PostgreSQL `options`, weak TLS, or an
+unavailable trust root fails closed.
+
+Before any drift or parity check, the adapter starts a read-only transaction on the inspection DSN and every required
+runtime DSN, reads the current database OID from `pg_catalog.pg_database`, compares the resulting canonical identity
+and fingerprint with the protected binding, and rolls the transaction back. Missing, unavailable, or mismatched
+proof is `TARGET_IDENTITY_INDETERMINATE`. Raw project references, OIDs, DSNs, login names, SQL, and provider output
+remain protected and do not enter public evidence.
+
+CQ-03D-01 evaluates `hosted-legacy-v1` as a strict ordered adoption prefix: the actual history must equal all six
+reviewed hosted receipts plus any earlier canonical profile markers, and the permit must name exactly the next
+canonical marker. Its only Supabase subprocess is pinned version `2.114.0` `migration list` against a disposable
+projection containing that one marker and an explicit permit-bound `--db-url`. CQ-03D-01 does not run
+`db push --dry-run`, repair history, apply DDL or DML, consume the permit, deploy, or mutate provider configuration.
+
+This ratification authorizes repository implementation and review of that read-only preflight contract. It does not
+approve a hosted target, issue a permit, authorize a connected preflight, or authorize the later history action.
+
 Changing a target's profile, component membership, lineage, dependency order, or manifest digest is a reviewed
 contract change. It cannot be selected from SQL, inferred from the current catalog, or adopted merely because a
 provider target happens to contain additional objects.

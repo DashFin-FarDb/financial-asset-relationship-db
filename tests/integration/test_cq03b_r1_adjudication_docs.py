@@ -96,6 +96,21 @@ def test_target_fingerprint_contract_fails_closed(adjudication: str) -> None:
     assert "before profile selection or SQL execution" in decision
 
 
+def test_cq03d01_target_adapter_is_ratified_but_not_execution_authority(adjudication: str) -> None:
+    """The production adapter must bind live identity without approving a hosted action."""
+    decision = _compact(adjudication)
+    assert "CQ-03D-01 production target adapter" in decision
+    assert "`supabase-postgresql-routing-v1`" in decision
+    assert "protected Supabase project reference" in decision
+    assert "live positive `pg_database.oid`" in decision
+    assert "port-5432 session-pooler route" in decision
+    assert "`sslmode=verify-full`" in decision
+    assert "strict ordered adoption prefix" in decision
+    assert "pinned version `2.114.0` `migration list`" in decision
+    assert "does not run `db push --dry-run`" in decision
+    assert "does not approve a hosted target" in decision
+
+
 def test_pre_cq03d_barrier_is_credential_and_command_enforced(adjudication: str) -> None:
     """CQ-03B/C must be unable to mutate hosted schema or history accidentally."""
     decision = _compact(adjudication)
@@ -173,7 +188,7 @@ def test_continuity_records_merged_cq03c_without_claiming_hosted_adoption() -> N
     assert "CQ-03C is implemented in draft PR #1643" not in continuity
     assert "CQ-03C was human-ratified" in continuity
     assert "CQ-03D has no approved target, permit, or hosted preflight evidence" in _compact(continuity)
-    assert "CQ-03D remains unapproved and unexecuted" in header
+    assert "CQ-03D remains unexecuted" in header
 
 
 def test_continuity_current_main_cutoffs_agree() -> None:
@@ -198,25 +213,25 @@ def test_cq03d_progress_preserves_separate_authority_and_history_only_boundary()
     """D-00 completion must not imply D-01 or hosted execution authority."""
     continuity = _compact(_load(CONTINUITY))
     roadmap = _compact(_load(ROADMAP))
-    assert "Separately scope, ratify, implement, and review" in continuity
+    assert "Review, merge, and exact-head validate" in continuity
     assert "CQ-03D-01 target-bound, read-only preflight operator command" in continuity
     assert "does not perform the later history action" in continuity
     assert "CQ-03D has no approved target, permit, or hosted preflight evidence" in continuity
-    assert "merged, reviewed preparation contract" in roadmap
+    assert "D-01 contract ratified and implementation in review" in roadmap
     assert "no DML beyond one permit-bound history marker" in roadmap
     assert "**Publication date:** 2026-06-25" in roadmap
     assert "**Last updated:** 2026-08-18" in roadmap
 
     delivery_order = roadmap.split("## Proposed Delivery Order", maxsplit=1)[1]
     assert delivery_order.lstrip().startswith(
-        "1. CQ-03D-01 target-bound read-only preflight operator command implementation and review."
+        "1. CQ-03D-01 target-bound read-only preflight operator command review, merge, and exact-head validation."
     )
     assert "Source-of-truth reconciliation after PR #1287-#1301" not in delivery_order
     assert "truncation signal PR completed" not in delivery_order
 
 
-def test_cq03d_runbook_is_preparation_not_connected_execution() -> None:
-    """The approval package must bind future adoption while withholding an ad hoc executor."""
+def test_cq03d_runbook_documents_preflight_without_authorizing_execution() -> None:
+    """The operator contract must be executable only after separate target and permit approval."""
     runbook = _compact(_load(MIGRATION_RUNBOOK))
     assert "CQ-03D is not an extension of the normal PostgreSQL migration command" in runbook
     assert "protected, single-use permit" in runbook
@@ -225,12 +240,14 @@ def test_cq03d_runbook_is_preparation_not_connected_execution() -> None:
     assert "`fardb-ledger-profiles-v1` manifest SHA-256" in runbook
     assert "exactly one allowlisted canonical migration timestamp" in runbook
     assert "python -m scripts.postgresql_ledger validate" in runbook
+    assert "python -m scripts.postgresql_preflight --permit-file" in runbook
+    assert "`supabase-postgresql-routing-v1`" in runbook
+    assert "live positive `pg_database.oid`" in runbook
     assert "TARGET_IDENTITY_INDETERMINATE" in runbook
-    assert "The repository currently exposes the tested `evaluate_profile_drift()` API" in runbook
-    assert "No database-connected command is approved by this preparation package" in runbook
-    assert "`--db-url <permit-bound-dsn>` argument" in runbook
-    assert "reject a missing, caller-substituted, or differently targeted check" in runbook
-    assert "separate bounded `runtime_compatibility` and `runtime_authority` results" in runbook
+    assert "Its contract ratification is not a target approval" in runbook
+    assert "cannot substitute a connector, runtime check, target, or subprocess runner" in runbook
+    assert "separate `PASSED` results" in runbook
+    assert "pinned Supabase CLI `2.114.0` runs read-only `migration list`" in runbook
     assert "`supabase migration repair <timestamp> --status applied --db-url <permit-bound-dsn>`" in runbook
     assert "reject an operator-supplied target override, `--linked`, `--project-ref`, `--local`" in runbook
     assert "`supabase db push --dry-run --db-url <permit-bound-dsn>`" in runbook

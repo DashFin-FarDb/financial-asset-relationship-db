@@ -36,6 +36,7 @@ from scripts.postgresql_drift import (
     canonical_catalog_bytes,
     catalog_digest,
     evaluate_profile_drift,
+    expected_adoption_history,
     expected_managed_tables,
     normalized_managed_catalog,
     select_public_status,
@@ -243,6 +244,23 @@ def test_history_and_catalog_helpers_cover_pass_and_unknown_scope(monkeypatch) -
     assert incomplete.state == NOT_EVALUATED
     assert incomplete.reason_code == OUTSIDE_MANAGED_SCOPE
     assert unknown == 1
+
+
+def test_hosted_adoption_history_requires_the_next_profile_marker() -> None:
+    """Each permit must bind the exact legacy-plus-canonical prefix before its marker."""
+    manifest = load_and_validate_manifest()
+    migrations = manifest.migrations_for_profile("combined")
+    receipts = tuple(
+        (str(receipt["timestamp"]), str(receipt["name"]))
+        for receipt in manifest.data["lineages"]["hosted-legacy-v1"]["receipts"]
+    )
+
+    first = expected_adoption_history(manifest, "combined", "hosted-legacy-v1", migrations[0].timestamp)
+    second = expected_adoption_history(manifest, "combined", "hosted-legacy-v1", migrations[1].timestamp)
+
+    assert first == receipts
+    assert second == receipts + ((migrations[0].timestamp, migrations[0].filename[15:-4]),)
+    assert expected_adoption_history(manifest, "combined", "hosted-legacy-v1", "0" * 14) is None
 
 
 def test_evaluator_enforces_read_only_transaction_and_rollback(monkeypatch) -> None:
