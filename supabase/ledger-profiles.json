@@ -1,11 +1,9 @@
 {
   "manifest_version": "fardb-ledger-profiles-v1",
-  "component_order": [
-    "auth",
-    "graph",
-    "coordination"
-  ],
+  "component_order": ["auth", "graph", "coordination"],
   "algorithms": {
+    "catalog_normalization": "fardb-pg-catalog-v1",
+    "managed_scope": "fardb-pg-scope-v1",
     "migration_digest": "sha256",
     "provider_statements_digest": "fardb-provider-statements-v1",
     "target_fingerprint": "fardb-target-fingerprint-v1"
@@ -13,9 +11,7 @@
   "components": {
     "auth": {
       "dependencies": [],
-      "managed_tables": [
-        "user_credentials"
-      ],
+      "managed_tables": ["user_credentials"],
       "migrations": [
         {
           "timestamp": "20260817153547",
@@ -50,9 +46,7 @@
     },
     "coordination": {
       "dependencies": [],
-      "managed_tables": [
-        "distributed_locks"
-      ],
+      "managed_tables": ["distributed_locks"],
       "migrations": [
         {
           "timestamp": "20260817153557",
@@ -64,26 +58,20 @@
   },
   "profiles": {
     "auth": {
-      "components": [
-        "auth"
-      ]
+      "components": ["auth"],
+      "catalog_sha256": "e3eed4d9506f6737b888e8d8182964bf2952635316fde33ff203c7d22010be2e"
     },
     "graph": {
-      "components": [
-        "graph"
-      ]
+      "components": ["graph"],
+      "catalog_sha256": "2b51bc8d8c42a07a4bf82dcd415e4190750850e7339ce2a2fd8bb969ef53258b"
     },
     "coordination": {
-      "components": [
-        "coordination"
-      ]
+      "components": ["coordination"],
+      "catalog_sha256": "475c75ae7b9a78f3e528cbab80ff06278383c805ddba774ab7683fef0069217a"
     },
     "combined": {
-      "components": [
-        "auth",
-        "graph",
-        "coordination"
-      ]
+      "components": ["auth", "graph", "coordination"],
+      "catalog_sha256": "aa32325705c5bca2b51ea41a1e044d0bb12f6e2fbbf480e95bc37a25c6c84a0b"
     }
   },
   "lineages": {

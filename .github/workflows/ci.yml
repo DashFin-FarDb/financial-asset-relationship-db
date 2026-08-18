@@ -164,7 +164,7 @@ jobs:
       - name: Validate exact component ledger bytes
         run: python -m scripts.postgresql_ledger validate
 
-      - name: Build every profile twice and prove relationship and authority contracts
+      - name: Build every profile twice and prove drift, relationship, and authority contracts
         env:
           FARDB_EPHEMERAL_POSTGRES_LEDGER_TESTS: "1"
           FARDB_EPHEMERAL_POSTGRES_URL: postgresql://test:test@127.0.0.1:5432/test_db?sslmode=disable

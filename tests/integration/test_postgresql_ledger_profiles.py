@@ -19,6 +19,18 @@ from api.database import (
     verify_runtime_authority,
     verify_schema_compatibility,
 )
+from scripts.postgresql_drift import (
+    DRIFT_DETECTED,
+    EVALUATION_INCOMPLETE,
+    HIGHER_PRIORITY_CHECK_NOT_EVALUATED,
+    LEDGER_HISTORY_MISMATCH,
+    PASS,
+    PROVIDER_SCHEMA_DRIFT,
+    RUNTIME_COMPATIBILITY_MISMATCH,
+    DriftReport,
+    RuntimeCompatibilityMismatch,
+    evaluate_profile_drift,
+)
 from scripts.postgresql_ledger import (
     EXPECTED_MANAGED_TABLES,
     EXPECTED_PROFILES,
@@ -222,6 +234,200 @@ def _verify_operator_contract(engine: sqlalchemy.Engine, target_url: str, profil
             verify_runtime_access_catalog()
 
 
+def _evaluate_drift(target_url: str, manifest: LedgerManifest, profile: str, runtime_check) -> DriftReport:
+    """Run the read-only profile drift gate with an explicit compatibility check."""
+    connection = psycopg2.connect(target_url)
+    try:
+        return evaluate_profile_drift(
+            connection,
+            manifest,
+            profile,
+            "fresh-v1",
+            "loopback",
+            runtime_check=runtime_check,
+        )
+    finally:
+        connection.close()
+
+
+class _HistoryUnavailableCursor:
+    """Proxy one real disposable cursor while denying the required history read."""
+
+    def __init__(self, cursor: object) -> None:
+        self._cursor = cursor
+
+    def __enter__(self) -> _HistoryUnavailableCursor:
+        self._cursor.__enter__()  # type: ignore[attr-defined]
+        return self
+
+    def __exit__(self, *args: object) -> object:
+        return self._cursor.__exit__(*args)  # type: ignore[attr-defined,no-any-return]
+
+    def execute(self, query: object, parameters: object = None) -> object:
+        """Deny only the provider-history read and delegate every catalog query."""
+        if isinstance(query, str) and "supabase_migrations.schema_migrations" in query:
+            raise psycopg2.OperationalError("deliberate unavailable history fixture")
+        return self._cursor.execute(query, parameters)  # type: ignore[attr-defined,no-any-return]
+
+    def __getattr__(self, name: str) -> object:
+        return getattr(self._cursor, name)
+
+
+class _HistoryUnavailableConnection:
+    """Expose a real catalog while proving unavailable history fails closed."""
+
+    def __init__(self, connection: object) -> None:
+        self._connection = connection
+
+    def cursor(self) -> _HistoryUnavailableCursor:
+        """Return a cursor that makes the required history check unavailable."""
+        return _HistoryUnavailableCursor(self._connection.cursor())  # type: ignore[attr-defined]
+
+    def set_session(self, *, readonly: bool, autocommit: bool) -> None:
+        """Delegate the evaluator's read-only transaction posture."""
+        self._connection.set_session(readonly=readonly, autocommit=autocommit)  # type: ignore[attr-defined]
+
+    def rollback(self) -> None:
+        """Delegate evaluator transaction cleanup."""
+        self._connection.rollback()  # type: ignore[attr-defined]
+
+
+def _migration_history(target_url: str) -> tuple[tuple[str, str], ...]:
+    """Read the exact disposable provider history for no-mutation comparison."""
+    connection = psycopg2.connect(target_url)
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT version, name FROM supabase_migrations.schema_migrations ORDER BY version")
+            return tuple((str(version), str(name)) for version, name in cursor.fetchall())
+    finally:
+        connection.close()
+
+
+def _execute_operator_sql(target_url: str, statement: object, parameters: tuple[object, ...] = ()) -> None:
+    """Apply or restore one deliberate disposable drift fixture."""
+    connection = psycopg2.connect(target_url)
+    connection.autocommit = True
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute(statement, parameters)  # type: ignore[arg-type]
+    finally:
+        connection.close()
+
+
+def _verify_profile_drift_contract(
+    engine: sqlalchemy.Engine,
+    target_url: str,
+    manifest: LedgerManifest,
+    profile: str,
+) -> None:
+    """Prove clean, primary-category, incomplete, and no-mutation behavior."""
+
+    def runtime_check() -> None:
+        """Convert completed compatibility failures to the drift callback contract."""
+        try:
+            _verify_operator_contract(engine, target_url, profile)
+        except SchemaCompatibilityError as exc:
+            raise RuntimeCompatibilityMismatch from exc
+
+    clean_before = _evaluate_drift(target_url, manifest, profile, runtime_check)
+    assert clean_before.status == PASS, f"clean catalog digest for {profile}: {clean_before.actual_catalog_digest}"
+    history_before = _migration_history(target_url)
+
+    selected = manifest.migrations_for_profile(profile)
+    original_version = selected[0].timestamp
+    changed_version = "20991231235959"
+    _execute_operator_sql(
+        target_url,
+        "UPDATE supabase_migrations.schema_migrations SET version = %s WHERE version = %s",
+        (changed_version, original_version),
+    )
+    try:
+        history_drift = _evaluate_drift(target_url, manifest, profile, runtime_check)
+        assert history_drift.status == DRIFT_DETECTED
+        assert history_drift.primary_category == LEDGER_HISTORY_MISMATCH
+    finally:
+        _execute_operator_sql(
+            target_url,
+            "UPDATE supabase_migrations.schema_migrations SET version = %s WHERE version = %s",
+            (original_version, changed_version),
+        )
+
+    table_name = sorted(_expected_tables(profile))[0]
+    _execute_operator_sql(
+        target_url,
+        sql.SQL("ALTER TABLE {} ADD COLUMN cq03c_unrecorded INTEGER").format(sql.Identifier("public", table_name)),
+    )
+    try:
+        catalog_drift = _evaluate_drift(target_url, manifest, profile, runtime_check)
+        assert catalog_drift.status == DRIFT_DETECTED
+        assert catalog_drift.primary_category == PROVIDER_SCHEMA_DRIFT
+        connection = psycopg2.connect(target_url)
+        try:
+            incomplete_history = evaluate_profile_drift(
+                _HistoryUnavailableConnection(connection),  # type: ignore[arg-type]
+                manifest,
+                profile,
+                "fresh-v1",
+                "loopback",
+                runtime_check=runtime_check,
+            )
+        finally:
+            connection.close()
+        assert incomplete_history.status == EVALUATION_INCOMPLETE
+        assert incomplete_history.primary_category is None
+        assert HIGHER_PRIORITY_CHECK_NOT_EVALUATED in incomplete_history.reason_codes
+    finally:
+        _execute_operator_sql(
+            target_url,
+            sql.SQL("ALTER TABLE {} DROP COLUMN cq03c_unrecorded").format(sql.Identifier("public", table_name)),
+        )
+
+    if "graph" in EXPECTED_PROFILES[profile]:
+        owner_role = f"cq03c_owner_{uuid4().hex[:12]}"
+        _execute_operator_sql(target_url, sql.SQL("CREATE ROLE {} NOLOGIN").format(sql.Identifier(owner_role)))
+        try:
+            _execute_operator_sql(
+                target_url,
+                sql.SQL("ALTER FUNCTION public.grac_v1_reject_mutation() OWNER TO {}").format(
+                    sql.Identifier(owner_role)
+                ),
+            )
+            owner_drift = _evaluate_drift(target_url, manifest, profile, runtime_check)
+            assert owner_drift.status == DRIFT_DETECTED
+            assert owner_drift.primary_category == PROVIDER_SCHEMA_DRIFT
+        finally:
+            try:
+                _execute_operator_sql(
+                    target_url,
+                    sql.SQL("ALTER FUNCTION public.grac_v1_reject_mutation() OWNER TO CURRENT_USER"),
+                )
+            finally:
+                _execute_operator_sql(target_url, sql.SQL("DROP ROLE {}").format(sql.Identifier(owner_role)))
+
+    def incompatible_runtime() -> None:
+        """Represent one completed required-invariant mismatch."""
+        raise RuntimeCompatibilityMismatch
+
+    runtime_drift = _evaluate_drift(target_url, manifest, profile, incompatible_runtime)
+    assert runtime_drift.status == DRIFT_DETECTED
+    assert runtime_drift.primary_category == RUNTIME_COMPATIBILITY_MISMATCH
+
+    _execute_operator_sql(target_url, "CREATE TABLE public.cq03c_unknown_scope (id INTEGER PRIMARY KEY)")
+    try:
+        incomplete = _evaluate_drift(target_url, manifest, profile, runtime_check)
+        assert incomplete.status == EVALUATION_INCOMPLETE
+        assert incomplete.primary_category is None
+        assert incomplete.unknown_count == 3
+    finally:
+        _execute_operator_sql(target_url, "DROP TABLE public.cq03c_unknown_scope")
+
+    clean_after = _evaluate_drift(target_url, manifest, profile, runtime_check)
+    assert clean_after.status == PASS, clean_after.as_public_dict()
+    assert clean_after.expected_catalog_digest == clean_before.expected_catalog_digest
+    assert clean_after.actual_catalog_digest == clean_before.actual_catalog_digest
+    assert _migration_history(target_url) == history_before
+
+
 def _verify_graph_data_contract(engine: sqlalchemy.Engine, profile: str) -> None:
     """Exercise raw-writer defaults and append-only GRAC guards on ledger-built PostgreSQL."""
     if "graph" not in EXPECTED_PROFILES[profile]:
@@ -417,6 +623,7 @@ def test_clean_profile_build_and_history(profile: str) -> None:
         operator_engine = sqlalchemy.create_engine(target_url, future=True)
         _assert_profile_catalog(operator_engine, manifest, profile)
         _verify_operator_contract(operator_engine, target_url, profile)
+        _verify_profile_drift_contract(operator_engine, target_url, manifest, profile)
         _verify_graph_data_contract(operator_engine, profile)
         password = f"cq03b-{uuid4().hex}"
         _verify_capability_runtime(
