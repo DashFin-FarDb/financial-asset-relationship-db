@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from pathlib import Path
 
 import pytest
@@ -10,6 +11,7 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 ADR_0009 = REPO_ROOT / "docs" / "adr" / "0009-postgresql-migration-ledger-and-drift-contract.md"
 ADR_0010 = REPO_ROOT / "docs" / "adr" / "0010-historical-receipt-evidence-and-target-ledger-profiles.md"
 CONTINUITY = REPO_ROOT / "docs" / "strategy" / "fardb-project-continuity.md"
+ROADMAP = REPO_ROOT / "docs" / "roadmap" / "enterprise-readiness-roadmap.md"
 MIGRATION_RUNBOOK = REPO_ROOT / "docs" / "runbooks" / "database-migration-authority.md"
 SETUP_BASELINE = "76f1194f1f9b83cb9ed8f0bb0083824ededbe0ae"  # DevSkim: ignore all
 CQ03C_MERGE = "784d092f1204b59e612efd4ff3949f3e3fed12cf"  # DevSkim: ignore all
@@ -172,6 +174,45 @@ def test_continuity_records_merged_cq03c_without_claiming_hosted_adoption() -> N
     assert "CQ-03C was human-ratified" in continuity
     assert "CQ-03D has no approved target, permit, or hosted preflight evidence" in _compact(continuity)
     assert "CQ-03D remains unapproved and unexecuted" in header
+
+
+def test_continuity_current_main_cutoffs_agree() -> None:
+    """Current-state cutoff claims must identify one identical repository SHA."""
+    continuity = _load(CONTINUITY)
+    patterns = {
+        "header": r"^\*\*Repository evidence cutoff:\*\* `main` at `([0-9a-f]{40})`$",
+        "handoff": r"^- `main` is `([0-9a-f]{40})` at this cutoff\.$",
+        "sources": (r"^- Repository `main` through `([0-9a-f]{40})` " r"on \d{4}-\d{2}-\d{2}\.$"),
+    }
+
+    cutoffs = {}
+    for label, pattern in patterns.items():
+        matches = re.findall(pattern, continuity, flags=re.MULTILINE)
+        assert len(matches) == 1, f"expected exactly one {label} cutoff, found {matches}"
+        cutoffs[label] = matches[0]
+
+    assert len(set(cutoffs.values())) == 1, f"current-main cutoffs disagree: {cutoffs}"
+
+
+def test_cq03d_progress_preserves_separate_authority_and_history_only_boundary() -> None:
+    """D-00 completion must not imply D-01 or hosted execution authority."""
+    continuity = _compact(_load(CONTINUITY))
+    roadmap = _compact(_load(ROADMAP))
+    assert "Separately scope, ratify, implement, and review" in continuity
+    assert "CQ-03D-01 target-bound, read-only preflight operator command" in continuity
+    assert "does not perform the later history action" in continuity
+    assert "CQ-03D has no approved target, permit, or hosted preflight evidence" in continuity
+    assert "merged, reviewed preparation contract" in roadmap
+    assert "no DML beyond one permit-bound history marker" in roadmap
+    assert "**Publication date:** 2026-06-25" in roadmap
+    assert "**Last updated:** 2026-08-18" in roadmap
+
+    delivery_order = roadmap.split("## Proposed Delivery Order", maxsplit=1)[1]
+    assert delivery_order.lstrip().startswith(
+        "1. CQ-03D-01 target-bound read-only preflight operator command implementation and review."
+    )
+    assert "Source-of-truth reconciliation after PR #1287-#1301" not in delivery_order
+    assert "truncation signal PR completed" not in delivery_order
 
 
 def test_cq03d_runbook_is_preparation_not_connected_execution() -> None:
