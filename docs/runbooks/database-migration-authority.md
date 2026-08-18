@@ -301,8 +301,10 @@ status invalidates it before any command is considered.
    `DRIFT_DETECTED`, `EVALUATION_INCOMPLETE`, unavailable check, unknown public object, or mismatched digest stops the
    workflow.
 4. Run the reviewed read-only migration-list parity check for the same target, profile, lineage, and one timestamp.
-   It must establish that the permit's marker is the only intended history difference. Record only the bounded parity
-   result and timestamp count; do not retain raw provider output.
+   The future operator interface must select the identity-verified target through an explicit
+   `--db-url <permit-bound-dsn>` argument and reject `--linked`, `--project-ref`, and retained CLI link or branch state
+   before the subprocess starts. It must establish that the permit's marker is the only intended history difference.
+   Record only the bounded parity result and timestamp count; do not retain raw provider output.
 5. Recheck the permit bindings immediately before any later history action. A target or evidence change after the
    earlier read-only checks is not a warning: revoke the permit and begin again with fresh evidence.
 
@@ -318,11 +320,15 @@ Until a separate permit is ratified and every read-only preflight result is `PAS
 dashboard SQL, direct DDL/DML, grants, role changes, credential changes, provider-link operations, or deployment
 actions against the hosted target.
 
-The later CQ-03D execution workspace may perform only the permit's one
-`supabase migration repair --status applied <timestamp>` action after it rechecks every binding. It must immediately
-repeat migration-list parity, normalized drift, runtime compatibility, runtime authority, and the no-unexpected-pending
-`supabase db push --dry-run` verification. It stops on any non-`PASS` result and never applies DDL. The permit is then
-marked consumed outside the repository; it cannot authorize another timestamp or retry.
+The later CQ-03D execution workspace may perform only a fixed argument-array equivalent of
+`supabase migration repair <timestamp> --status applied --db-url <permit-bound-dsn>` after it rechecks every binding.
+The operator interface must obtain that DSN from the protected binding whose immutable identity matches the permit;
+it must reject an operator-supplied target override, `--linked`, `--project-ref`, `--local`, and retained CLI link or
+branch state before the subprocess starts. It must immediately repeat migration-list parity, normalized drift, runtime
+compatibility, runtime authority, and the no-unexpected-pending
+`supabase db push --dry-run --db-url <permit-bound-dsn>` verification against that same enforced target. It stops on
+any non-`PASS` result and never applies DDL. The permit is then marked consumed outside the repository; it cannot
+authorize another timestamp or retry.
 
 ### Bounded evidence record
 
