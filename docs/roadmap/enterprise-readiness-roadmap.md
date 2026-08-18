@@ -2,7 +2,8 @@
 
 For the broader enterprise-readiness index, see [docs/enterprise-readiness-index.md](../enterprise-readiness-index.md).
 
-**Date:** 2026-06-25
+**Publication date:** 2026-06-25
+**Last updated:** 2026-08-18
 **Format:** Release evidence / Target-environment proof / Follow-up hardening
 **Purpose:** Sequence the remaining work after the PR #1287-#1301 enterprise-readiness reconciliation point
 
