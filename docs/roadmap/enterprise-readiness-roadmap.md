@@ -86,7 +86,8 @@ These items are valid but should not be bundled into the release-evidence reconc
 
 ## Proposed Delivery Order
 
-1. CQ-03D-02 separately approved target, protected single-use permit, and passing hosted read-only preflight.
+1. Obtain separate approval for one target and protected single-use permit, then run the CQ-03D-02 hosted read-only
+   preflight to `PASS`.
 2. If separately ratified, exactly one permit-bound migration-history marker and its post-action evidence.
 3. RC1 release evidence capture issue.
 4. Staging deployment operating baseline.

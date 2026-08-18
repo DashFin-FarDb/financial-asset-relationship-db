@@ -5,7 +5,7 @@
 **Repository evidence cutoff:** `main` at `790274c1b0dbdb43d4bbbbf35c4565dae36c9fe3`
 **Ratified setup baseline:** CQ-03B-R1 ratified on 2026-08-17 at `main@76f1194f1f9b83cb9ed8f0bb0083824ededbe0ae`
 **CQ-03C merge baseline:** `784d092f1204b59e612efd4ff3949f3e3fed12cf`
-**Continuity status:** CQ-03B-R1, CQ-03B-R2, CQ-03C, CQ-03D-00, and CQ-03D-01 are merged; CQ-03D-02 target/permit approval and hosted preflight remain unexecuted
+**Continuity status:** CQ-03B-R1, CQ-03B-R2, CQ-03C, CQ-03D-00, and CQ-03D-01 are merged; no CQ-03D-02 target or permit is approved, and no hosted preflight has been executed
 
 This ledger preserves durable project decisions, plans, milestones, and handoffs across ChatGPT, Codex, and
 repository work. It is an index of authoritative evidence, not a replacement for detailed specifications, issues,
@@ -109,8 +109,8 @@ Primary authorities:
 
 - **Type:** Database architecture / production qualification blocker
 - **Status:** In progress — CQ-03B-R1/R2, CQ-03C, CQ-03D-00, and CQ-03D-01 are verified through merged PRs #1640,
-  #1641, #1643, #1644, and #1646; CQ-03D-02 target/permit approval and hosted preflight remain unexecuted and require
-  separate approval
+  #1641, #1643, #1644, and #1646; CQ-03D-02 has no approved target or permit and no hosted preflight evidence;
+  separate approval is required before execution
 - **Decision or objective:** Keep one repository-owned PostgreSQL schema authority while composing immutable auth,
   graph, and coordination component ledgers through one target-profile manifest. Preserve exact provider
   `statements[]` as lineage evidence, build clean targets from new forward-dated baselines, and retain ADR 0009's
@@ -144,12 +144,12 @@ Primary authorities:
   2026-08-18; and CQ-03D-01 PR #1646, reviewed head `31229b2455b8e9962030d71a9a7dcf477c0e5f55`, verified squash
   `790274c1b0dbdb43d4bbbbf35c4565dae36c9fe3`, passing exact-head Python 3.10-3.12, PostgreSQL 15/16,
   container-boundary, security, Sonar, and independent-review gates, and zero unresolved review threads.
-- **Next action and completion test:** CQ-03D-02 separately approves one target and a protected single-use permit,
-  then runs the target-bound hosted preflight from the reviewed repository SHA. Every required identity, history,
-  catalog, compatibility, authorization, and parity check must report `PASS`, with bounded redacted evidence
-  attached. This step stops after read-only evidence collection and does not authorize the later history action. Any
-  single migration-history marker remains a future, separate decision with no DDL, DML beyond exactly that
-  permit-bound marker, role, grant, credential, deployment, or provider-configuration change.
+- **Next action and completion test:** Before CQ-03D-02 execution, separately approve one target and a protected
+  single-use permit; only then run the target-bound hosted preflight from the reviewed repository SHA. Every required
+  identity, history, catalog, compatibility, authorization, and parity check must report `PASS`, with bounded redacted
+  evidence attached. This step stops after read-only evidence collection and does not authorize the later history
+  action. Any single migration-history marker remains a future, separate decision with no DDL, DML beyond exactly
+  that permit-bound marker, role, grant, credential, deployment, or provider-configuration change.
 - **Last updated:** 2026-08-18
 
 ### FPC-2026-08-09-01 — Separate migration and runtime database authority
@@ -543,8 +543,8 @@ Primary authorities:
 - CQ-03 is the active critical-path programme. CQ-03A is complete through accepted ADR 0009 and merged PR #1634;
   CQ-03B-R1 is human-ratified, recorded by ADR 0010, and merged through PR #1640. R2 is verified and merged through
   PR #1641. CQ-03C is verified and merged through PR #1643. CQ-03D-00 is verified and merged through PR #1644.
-  CQ-03D-01 is ratified, verified, and merged through PR #1646. CQ-03D-02 target/permit approval and hosted
-  preflight, and any later provider history adoption, remain separately authorized under CQ-03D.
+  CQ-03D-01 is ratified, verified, and merged through PR #1646. No CQ-03D-02 target or permit is approved; the hosted
+  preflight and any later provider history adoption remain pending separate authorization under CQ-03D.
 - GRAC v1 is `CURRENT` only for the exact-SHA staging slice recorded by PR #1598; broader claims remain `NEXT`.
 
 ### Governing constraints
@@ -559,9 +559,9 @@ Primary authorities:
 
 ### Next highest-value action
 
-Execute CQ-03D-02 as a separately ratified, target-bound hosted preflight under active commitment
-**FPC-2026-08-13-01**: approve one target and protected single-use permit, bind both to the reviewed repository SHA,
-and collect only the bounded read-only evidence. Do not authorize the later migration-history marker in this step.
+Before executing CQ-03D-02 under active commitment **FPC-2026-08-13-01**, obtain separate approval for one target
+and protected single-use permit. After approval, bind both to the reviewed repository SHA and collect only the
+bounded read-only hosted-preflight evidence. Do not authorize the later migration-history marker in this step.
 Do not replay or reconstruct SQL under historical timestamps, run `supabase db pull` against hosted state, retain
 provider link state, apply DDL, or select `hosted-legacy-v1` as adopted before the separate history-action decision.
 Issue #1623 remains a small P2 follow-up and does not displace the CQ-03 programme. Release repeatability

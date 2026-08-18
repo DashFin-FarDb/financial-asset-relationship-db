@@ -197,7 +197,8 @@ def test_continuity_records_merged_cq03c_without_claiming_hosted_adoption() -> N
     assert "CQ-03C is implemented in draft PR #1643" not in continuity
     assert "CQ-03C was human-ratified" in continuity
     assert "CQ-03D has no approved target, permit, or hosted preflight evidence" in _compact(continuity)
-    assert "CQ-03D-02 target/permit approval and hosted preflight remain unexecuted" in header
+    assert "no CQ-03D-02 target or permit is approved" in header
+    assert "no hosted preflight has been executed" in header
 
 
 def test_continuity_current_main_cutoffs_agree() -> None:
@@ -223,18 +224,22 @@ def test_cq03d_progress_preserves_separate_authority_and_history_only_boundary()
     continuity = _compact(_load(CONTINUITY))
     roadmap = _compact(_load(ROADMAP))
     assert "CQ-03D-01 is ratified, verified, and merged through PR #1646" in continuity
-    assert "CQ-03D-02 separately approves one target and a protected single-use permit" in continuity
+    assert "Before CQ-03D-02 execution, separately approve one target" in continuity
     assert "does not authorize the later history action" in continuity
     assert "CQ-03D has no approved target, permit, or hosted preflight evidence" in continuity
     assert "D-01 merged and verified at repository scope; target/permit absent" in roadmap
     assert "D-02: separately approve one target and protected single-use permit" in roadmap
+    assert "No CQ-03D-02 target or permit is approved" in continuity
+    assert "separately approved target" not in roadmap
+    assert "separately ratified, target-bound hosted preflight" not in continuity
+    assert "target/permit approval and hosted preflight remain unexecuted" not in continuity
     assert "no DML beyond one permit-bound history marker" in roadmap
     assert "**Publication date:** 2026-06-25" in roadmap
     assert "**Last updated:** 2026-08-18" in roadmap
 
     delivery_order = roadmap.split("## Proposed Delivery Order", maxsplit=1)[1]
     assert delivery_order.lstrip().startswith(
-        "1. CQ-03D-02 separately approved target, protected single-use permit, and passing hosted read-only preflight."
+        "1. Obtain separate approval for one target and protected single-use permit, then run the CQ-03D-02 hosted"
     )
     assert "Source-of-truth reconciliation after PR #1287-#1301" not in delivery_order
     assert "truncation signal PR completed" not in delivery_order
