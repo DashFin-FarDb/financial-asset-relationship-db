@@ -34,6 +34,7 @@ from scripts.postgresql_drift import (
     catalog_digest,
     evaluate_profile_drift,
     expected_managed_tables,
+    normalized_managed_catalog,
     select_public_status,
 )
 from scripts.postgresql_ledger import load_and_validate_manifest
@@ -112,6 +113,35 @@ def test_sql_whitespace_normalization_handles_long_unclosed_tokens_without_regex
     definition = "SELECT  $tag$" + ("x " * 20_000)
 
     assert _normalize_sql_text(definition) == "SELECT $tag$" + ("x " * 19_999) + "x"
+
+
+def test_sql_whitespace_normalization_preserves_unicode_dollar_tags() -> None:
+    """PostgreSQL permits identifier letters beyond ASCII in dollar-quote tags."""
+    assert _normalize_sql_text("SELECT  $café$body  text$café$") == "SELECT $café$body  text$café$"
+
+
+def test_catalog_queries_bind_function_owner_without_binding_default_acl_owner() -> None:
+    """Ownership drift is evidence while equivalent migration-role names are portable."""
+
+    class RecordingCursor(StubCursor):
+        """Record catalog SQL while returning empty result sets."""
+
+        def __init__(self) -> None:
+            super().__init__([((), ())] * 12)
+            self.queries: list[str] = []
+
+        def execute(self, query: str, parameters: object | None = None) -> object:
+            self.queries.append(query)
+            return super().execute(query, parameters)
+
+    cursor = RecordingCursor()
+    normalized_managed_catalog(cursor, "graph")
+    default_acl_query = next(query for query in cursor.queries if "pg_default_acl" in query)
+    function_query = next(query for query in cursor.queries if "pg_proc p" in query)
+
+    assert "aclexplode(defaults.defaclacl)" in default_acl_query
+    assert "defaults.defaclrole" not in default_acl_query
+    assert "owner.rolname AS owner_role" in function_query
 
 
 def test_expected_managed_tables_are_profile_scoped() -> None:

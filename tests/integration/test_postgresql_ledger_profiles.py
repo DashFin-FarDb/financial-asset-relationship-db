@@ -382,6 +382,26 @@ def _verify_profile_drift_contract(
             sql.SQL("ALTER TABLE {} DROP COLUMN cq03c_unrecorded").format(sql.Identifier("public", table_name)),
         )
 
+    if "graph" in EXPECTED_PROFILES[profile]:
+        owner_role = f"cq03c_owner_{uuid4().hex[:12]}"
+        _execute_operator_sql(target_url, sql.SQL("CREATE ROLE {} NOLOGIN").format(sql.Identifier(owner_role)))
+        try:
+            _execute_operator_sql(
+                target_url,
+                sql.SQL("ALTER FUNCTION public.grac_v1_reject_mutation() OWNER TO {}").format(
+                    sql.Identifier(owner_role)
+                ),
+            )
+            owner_drift = _evaluate_drift(target_url, manifest, profile, runtime_check)
+            assert owner_drift.status == DRIFT_DETECTED
+            assert owner_drift.primary_category == PROVIDER_SCHEMA_DRIFT
+        finally:
+            _execute_operator_sql(
+                target_url,
+                sql.SQL("ALTER FUNCTION public.grac_v1_reject_mutation() OWNER TO CURRENT_USER"),
+            )
+            _execute_operator_sql(target_url, sql.SQL("DROP ROLE {}").format(sql.Identifier(owner_role)))
+
     def incompatible_runtime() -> None:
         """Represent one completed required-invariant mismatch."""
         raise RuntimeCompatibilityMismatch

@@ -202,14 +202,10 @@ def _quoted_sql_token_end(value: str, start: int) -> int | None:
     elif value[start] == "$":
         tag_end = start + 1
         if tag_end < len(value) and value[tag_end] != "$":
-            if not (value[tag_end].isascii() and (value[tag_end].isalpha() or value[tag_end] == "_")):
+            if not (value[tag_end].isalpha() or value[tag_end] == "_"):
                 return None
             tag_end += 1
-            while (
-                tag_end < len(value)
-                and value[tag_end].isascii()
-                and (value[tag_end].isalnum() or value[tag_end] == "_")
-            ):
+            while tag_end < len(value) and (value[tag_end].isalnum() or value[tag_end] == "_"):
                 tag_end += 1
         if tag_end >= len(value) or value[tag_end] != "$":
             return None
@@ -570,28 +566,35 @@ def normalized_managed_catalog(cursor: Cursor, profile: str) -> dict[str, object
         "default_privileges": _rows(
             cursor,
             """
-            SELECT owner.rolname AS owner_role, COALESCE(namespace.nspname, '') AS schema_name,
-                defaults.defaclobjtype AS object_type,
+            SELECT COALESCE(namespace.nspname, '') AS schema_name, defaults.defaclobjtype AS object_type,
                 COALESCE(ARRAY(
-                    SELECT acl::text FROM unnest(defaults.defaclacl) acl ORDER BY acl::text
+                    SELECT pg_catalog.format(
+                        '%s=%s%s',
+                        CASE WHEN expanded.grantee = 0 THEN 'PUBLIC' ELSE grantee.rolname END,
+                        expanded.privilege_type,
+                        CASE WHEN expanded.is_grantable THEN ':grantable' ELSE '' END
+                    )
+                    FROM pg_catalog.aclexplode(defaults.defaclacl) AS expanded
+                    LEFT JOIN pg_catalog.pg_roles AS grantee ON grantee.oid = expanded.grantee
+                    ORDER BY 1
                 ), ARRAY[]::text[]) AS acl
             FROM pg_catalog.pg_default_acl AS defaults
-            JOIN pg_catalog.pg_roles AS owner ON owner.oid = defaults.defaclrole
             LEFT JOIN pg_catalog.pg_namespace AS namespace ON namespace.oid = defaults.defaclnamespace
             WHERE namespace.nspname = 'public' OR defaults.defaclnamespace = 0
-            ORDER BY 1, 2, 3, 4
+            ORDER BY 1, 2, 3
             """,
         ),
         "functions": _rows(
             cursor,
             """
-            SELECT p.proname AS function_name,
+            SELECT p.proname AS function_name, owner.rolname AS owner_role,
                     pg_catalog.pg_get_function_identity_arguments(p.oid) AS identity_arguments,
                     pg_catalog.pg_get_functiondef(p.oid) AS definition,
                     COALESCE(ARRAY(SELECT acl::text FROM unnest(p.proacl) acl ORDER BY acl::text), ARRAY[]::text[])
                     AS acl
             FROM pg_catalog.pg_proc p
             JOIN pg_catalog.pg_namespace n ON n.oid = p.pronamespace
+            JOIN pg_catalog.pg_roles owner ON owner.oid = p.proowner
             WHERE n.nspname = 'public' AND p.proname = ANY(%s)
             ORDER BY p.proname, pg_catalog.pg_get_function_identity_arguments(p.oid)
             """,
