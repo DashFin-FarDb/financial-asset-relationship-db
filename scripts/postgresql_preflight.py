@@ -637,7 +637,9 @@ def _import_api_database(read_only_url: str) -> ModuleType:
     from src.config.settings import get_settings
 
     previous_database_url = os.environ.get("DATABASE_URL")
+    previous_environment = os.environ.get("ENV")
     os.environ["DATABASE_URL"] = read_only_url
+    os.environ["ENV"] = "test"
     get_settings.cache_clear()
     try:
         return importlib.import_module("api.database")
@@ -646,6 +648,10 @@ def _import_api_database(read_only_url: str) -> ModuleType:
             os.environ.pop("DATABASE_URL", None)
         else:
             os.environ["DATABASE_URL"] = previous_database_url
+        if previous_environment is None:
+            os.environ.pop("ENV", None)
+        else:
+            os.environ["ENV"] = previous_environment
         get_settings.cache_clear()
 
 

@@ -230,13 +230,19 @@ def test_runtime_helpers_force_read_only_and_check_every_credential(tmp_path: Pa
     assert [component for component, _url in calls] == ["auth", "graph", "coordination"]
 
 
-def test_auth_helper_import_uses_and_restores_standalone_route(tmp_path: Path) -> None:
-    """Standalone preflight can import auth helpers without application URL state."""
+def test_auth_helper_import_isolated_from_production_application_settings(tmp_path: Path) -> None:
+    """Standalone auth checks do not require unrelated production credentials."""
     read_only_url = preflight._read_only_url(preflight._supabase_route_identity(_database_url(tmp_path)))
     environment = dict(preflight.os.environ)
-    for name in ("DATABASE_URL", "POSTGRES_URL", "COORDINATION_DATABASE_URL"):
+    for name in (
+        "DATABASE_URL",
+        "POSTGRES_URL",
+        "COORDINATION_DATABASE_URL",
+        "SECRET_KEY",
+        "ADMIN_USERNAME",
+    ):
         environment.pop(name, None)
-    environment["ENV"] = "test"
+    environment["ENV"] = "production"
     environment["FARDB_AUTH_RUNTIME_DATABASE_URL"] = read_only_url
     program = """
 import os
@@ -246,6 +252,7 @@ read_only_url = os.environ["FARDB_AUTH_RUNTIME_DATABASE_URL"]
 api_database = preflight._import_api_database(read_only_url)
 assert api_database.DATABASE_URL == read_only_url
 assert "DATABASE_URL" not in os.environ
+assert os.environ["ENV"] == "production"
 """
 
     result = subprocess.run(  # noqa: S603  # nosec B603 - fixed interpreter and repository-owned import
