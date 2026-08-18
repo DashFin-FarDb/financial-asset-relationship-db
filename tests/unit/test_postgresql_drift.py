@@ -3,7 +3,11 @@
 from __future__ import annotations
 
 import json
+import re
+from collections.abc import Sequence
+from typing import Any
 
+import scripts.postgresql_drift as drift
 from scripts.postgresql_drift import (
     CHECK_DRIFT,
     CHECK_PASSED,
@@ -17,6 +21,13 @@ from scripts.postgresql_drift import (
     REQUIRED_CHECK_NOT_EVALUATED,
     RUNTIME_COMPATIBILITY_MISMATCH,
     CheckResult,
+    RuntimeCheckUnavailable,
+    RuntimeCompatibilityMismatch,
+    _catalog_check,
+    _history_check,
+    _public_scope,
+    _rows,
+    _runtime_check,
     canonical_catalog_bytes,
     catalog_digest,
     evaluate_profile_drift,
@@ -26,7 +37,57 @@ from scripts.postgresql_drift import (
 from scripts.postgresql_ledger import load_and_validate_manifest
 
 
+class StubCursor:
+    """Return deterministic DB-API result sets without PostgreSQL."""
+
+    def __init__(self, responses: Sequence[tuple[Sequence[str], Sequence[tuple[Any, ...]]]]) -> None:
+        self._responses = iter(responses)
+        self.description: Sequence[Sequence[Any]] | None = None
+        self._current: list[tuple[Any, ...]] = []
+
+    def execute(self, query: str, parameters: object | None = None) -> object:
+        """Advance to the next prepared result set."""
+        del query, parameters
+        columns, rows = next(self._responses)
+        self.description = [(column,) for column in columns]
+        self._current = list(rows)
+        return None
+
+    def fetchall(self) -> list[tuple[Any, ...]]:
+        """Return the current prepared rows."""
+        return self._current
+
+    def __enter__(self) -> StubCursor:
+        """Enter the fake cursor context."""
+        return self
+
+    def __exit__(self, exc_type: object, exc: object, traceback: object) -> None:
+        """Exit the fake cursor context."""
+
+
+class StubConnection:
+    """Record evaluator transaction posture around one fake cursor."""
+
+    def __init__(self, cursor: StubCursor) -> None:
+        self._cursor = cursor
+        self.session: tuple[bool, bool] | None = None
+        self.rolled_back = False
+
+    def cursor(self) -> StubCursor:
+        """Return the prepared fake cursor."""
+        return self._cursor
+
+    def set_session(self, *, readonly: bool, autocommit: bool) -> None:
+        """Record the requested transaction posture."""
+        self.session = (readonly, autocommit)
+
+    def rollback(self) -> None:
+        """Record mandatory evaluator cleanup."""
+        self.rolled_back = True
+
+
 def _check(category: str, state: str, reason: str | None = None) -> CheckResult:
+    """Build one concise status-selection fixture."""
     return CheckResult(category.lower(), category, state, reason)
 
 
@@ -45,6 +106,118 @@ def test_expected_managed_tables_are_profile_scoped() -> None:
     assert "distributed_locks" not in expected_managed_tables("graph")
     assert set(expected_managed_tables("combined")) > set(expected_managed_tables("graph"))
     assert expected_managed_tables("unknown") == ()
+
+
+def test_rows_and_public_scope_classify_without_a_live_database() -> None:
+    """Cursor mapping and scope classification handle managed and unknown objects."""
+    row_cursor = StubCursor([(("name", "kind"), (("user_credentials", "r"),))])
+    assert _rows(row_cursor, "SELECT") == [{"name": "user_credentials", "kind": "r"}]
+
+    scope_cursor = StubCursor(
+        [
+            (
+                ("name", "kind", "owned_table"),
+                (
+                    ("user_credentials", "r", None),
+                    ("user_credentials_id_seq", "S", "user_credentials"),
+                    ("unmanaged_view", "v", None),
+                ),
+            ),
+            (("name",), (("unmanaged_function",),)),
+        ]
+    )
+    application, provider, unknown = _public_scope(scope_cursor, "auth")
+    assert (application, provider) == (2, 0)
+    assert len(unknown) == 2
+
+
+def test_history_and_catalog_helpers_cover_pass_and_unknown_scope(monkeypatch) -> None:
+    """Core checks compare exact history and stop catalog comparison on unknown scope."""
+    manifest = load_and_validate_manifest()
+    migration = manifest.migrations_for_profile("auth")[0]
+    migration_name = migration.filename[len(migration.timestamp) + 1 : -4]
+    history_cursor = StubCursor([(("version", "name"), ((migration.timestamp, migration_name),))])
+    assert _history_check(history_cursor, manifest, "auth", "fresh-v1").state == CHECK_PASSED
+
+    expected = manifest.catalog_digest_for_profile("auth")
+    monkeypatch.setattr(drift, "_public_scope", lambda cursor, profile: (1, 0, ()))
+    monkeypatch.setattr(drift, "normalized_managed_catalog", lambda cursor, profile: {"profile": profile})
+    monkeypatch.setattr(drift, "catalog_digest", lambda document: expected)
+    catalog, application, provider, unknown = _catalog_check(StubCursor([]), manifest, "auth")
+    assert catalog.state == CHECK_PASSED
+    assert (application, provider, unknown) == (1, 0, 0)
+
+    monkeypatch.setattr(drift, "_public_scope", lambda cursor, profile: (1, 0, ("restricted-name",)))
+    monkeypatch.setattr(
+        drift,
+        "normalized_managed_catalog",
+        lambda cursor, profile: (_ for _ in ()).throw(AssertionError("unknown scope must not be compared")),
+    )
+    incomplete, _application, _provider, unknown = _catalog_check(StubCursor([]), manifest, "auth")
+    assert incomplete.state == NOT_EVALUATED
+    assert incomplete.reason_code == drift.OUTSIDE_MANAGED_SCOPE
+    assert unknown == 1
+
+
+def test_evaluator_enforces_read_only_transaction_and_rollback(monkeypatch) -> None:
+    """Known-profile evaluation must force read-only access and clean up its snapshot."""
+    monkeypatch.setattr(
+        drift,
+        "_history_check",
+        lambda cursor, manifest, profile, lineage: _check(LEDGER_HISTORY_MISMATCH, CHECK_PASSED),
+    )
+    monkeypatch.setattr(
+        drift,
+        "_catalog_check",
+        lambda cursor, manifest, profile: (_check(PROVIDER_SCHEMA_DRIFT, CHECK_PASSED), 1, 0, 0),
+    )
+    connection = StubConnection(StubCursor([]))
+    report = evaluate_profile_drift(
+        connection,
+        load_and_validate_manifest(),
+        "auth",
+        "fresh-v1",
+        "loopback",
+        runtime_check=lambda: None,
+    )
+    assert report.status == PASS
+    assert connection.session == (True, False)
+    assert connection.rolled_back is True
+
+
+def test_evaluator_fails_closed_when_transaction_cleanup_is_unavailable(monkeypatch) -> None:
+    """A failed rollback cannot leave a successful public evaluation."""
+
+    class CleanupUnavailable(StubConnection):
+        """Simulate a connection failure while releasing the read-only snapshot."""
+
+        def rollback(self) -> None:
+            """Record cleanup and then make its completion unknowable."""
+            super().rollback()
+            raise ConnectionError("cleanup unavailable")
+
+    monkeypatch.setattr(
+        drift,
+        "_history_check",
+        lambda cursor, manifest, profile, lineage: _check(LEDGER_HISTORY_MISMATCH, CHECK_PASSED),
+    )
+    monkeypatch.setattr(
+        drift,
+        "_catalog_check",
+        lambda cursor, manifest, profile: (_check(PROVIDER_SCHEMA_DRIFT, CHECK_PASSED), 1, 0, 0),
+    )
+    connection = CleanupUnavailable(StubCursor([]))
+    report = evaluate_profile_drift(
+        connection,
+        load_and_validate_manifest(),
+        "auth",
+        "fresh-v1",
+        "loopback",
+        runtime_check=lambda: None,
+    )
+    assert report.status == EVALUATION_INCOMPLETE
+    assert report.primary_category is None
+    assert connection.rolled_back is True
 
 
 def test_clean_required_checks_pass() -> None:
@@ -101,7 +274,10 @@ def test_unknown_profile_fails_closed_without_connecting() -> None:
     """Unknown profile selection must produce bounded incomplete diagnostics."""
 
     class NoConnection:
+        """Reject accidental database access for invalid selectors."""
+
         def cursor(self) -> object:
+            """Fail if selector validation does not short-circuit."""
             raise AssertionError("unknown profile must fail before database access")
 
     report = evaluate_profile_drift(
@@ -137,5 +313,36 @@ def test_public_report_contains_no_restricted_details() -> None:
 def test_manifest_records_versioned_profile_catalog_digests() -> None:
     """The immutable profile manifest must bind every expected catalog digest."""
     manifest = load_and_validate_manifest()
+    digests: dict[str, str] = {}
     for profile in ("auth", "graph", "coordination", "combined"):
-        assert len(manifest.catalog_digest_for_profile(profile)) == 64
+        digest = manifest.catalog_digest_for_profile(profile)
+        assert re.fullmatch(r"[0-9a-f]{64}", digest), profile
+        assert digest != "0" * 64, f"{profile} catalog digest is not calibrated"
+        digests[profile] = digest
+    assert len(set(digests.values())) == len(digests), "profile catalog digests are not distinct"
+
+
+def test_runtime_check_distinguishes_mismatch_from_unavailable() -> None:
+    """Only an explicit completed compatibility failure is runtime drift."""
+
+    def mismatch() -> None:
+        raise RuntimeCompatibilityMismatch
+
+    def unavailable() -> None:
+        raise RuntimeCheckUnavailable
+
+    assert _runtime_check(mismatch).state == CHECK_DRIFT
+    unavailable_result = _runtime_check(unavailable)
+    assert unavailable_result.state == NOT_EVALUATED
+    assert unavailable_result.reason_code == REQUIRED_CHECK_NOT_EVALUATED
+
+
+def test_unknown_runtime_callback_failure_is_unavailable() -> None:
+    """Driver-like callback failures must not be mislabeled as proven drift."""
+
+    def driver_failure() -> None:
+        raise ConnectionError("database unavailable")
+
+    result = _runtime_check(driver_failure)
+    assert result.state == NOT_EVALUATED
+    assert result.reason_code == REQUIRED_CHECK_NOT_EVALUATED

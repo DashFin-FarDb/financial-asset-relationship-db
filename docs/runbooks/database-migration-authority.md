@@ -72,9 +72,22 @@ graph and coordination URLs need one membership each. Startup rejects missing, e
 including direct or inherited access to another component's tables, columns, sequences, or ledger-owned routines on
 a `combined` target.
 
-CQ-03B-R2 materializes the clean-build ledger but does not adopt hosted history or complete the drift gate. CQ-03C
-owns profile-aware deliberate-drift fixtures. CQ-03D remains a separately approved, permit-bound hosted-history
-adoption workflow and never applies DDL.
+CQ-03C evaluates `fresh-v1` targets through the read-only
+`fardb-pg-catalog-v1+fardb-pg-scope-v1` gate. It compares exact ordered migration identities, the selected profile's
+normalized catalog digest, and an explicit runtime-compatibility callback. The evaluator forces a read-only database
+transaction, rolls it back after catalog access, and exposes only bounded counts, digests, status, category, and
+reason codes. It never repairs schema or migration history.
+
+The public result is `PASS`, `DRIFT_DETECTED`, or `EVALUATION_INCOMPLETE`. A detected primary category follows this
+fixed precedence: `LEDGER_HISTORY_MISMATCH`, `PROVIDER_SCHEMA_DRIFT`, then `RUNTIME_COMPATIBILITY_MISMATCH`. An
+unavailable check at the same or higher precedence, an unknown `public` object, an unknown profile, or an unadopted
+lineage produces `EVALUATION_INCOMPLETE` with a null primary category. Treat either non-pass result as a deployment
+blocker; do not broaden scope, infer ownership, or mutate the target to make the gate pass.
+
+The profile digests in `supabase/ledger-profiles.json` are calibrated from identical clean results on disposable
+PostgreSQL 15 and 16 builds. Changing a managed migration, catalog normalization, scope classifier, or profile
+composition requires a reviewed manifest and digest update. CQ-03D remains a separately approved, permit-bound
+hosted-history adoption workflow and never applies DDL.
 
 ## Profile manifest and protected target binding
 

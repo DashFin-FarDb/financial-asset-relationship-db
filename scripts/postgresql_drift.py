@@ -4,14 +4,18 @@ from __future__ import annotations
 
 import hashlib
 import json
-from collections.abc import Callable, Mapping, Sequence
+from collections.abc import Callable, Iterator, Mapping, Sequence
+from contextlib import contextmanager
 from dataclasses import dataclass
 from typing import Any, Protocol
 
-from scripts.postgresql_ledger import EXPECTED_MANAGED_TABLES, EXPECTED_PROFILES, LedgerManifest
-
-CATALOG_NORMALIZATION_VERSION = "fardb-pg-catalog-v1"
-MANAGED_SCOPE_VERSION = "fardb-pg-scope-v1"
+from scripts.postgresql_ledger import (
+    CATALOG_NORMALIZATION_VERSION,
+    EXPECTED_MANAGED_TABLES,
+    EXPECTED_PROFILES,
+    MANAGED_SCOPE_VERSION,
+    LedgerManifest,
+)
 
 PASS = "PASS"
 DRIFT_DETECTED = "DRIFT_DETECTED"
@@ -50,15 +54,19 @@ class Cursor(Protocol):
 
     def execute(self, query: str, parameters: object | None = None) -> object:
         """Execute one read-only catalog query."""
+        ...
 
     def fetchall(self) -> list[tuple[Any, ...]]:
         """Return all rows from the current query."""
+        ...
 
     def __enter__(self) -> Cursor:
         """Enter the cursor context."""
+        ...
 
     def __exit__(self, exc_type: object, exc: object, traceback: object) -> None:
         """Exit the cursor context."""
+        ...
 
 
 class Connection(Protocol):
@@ -66,6 +74,23 @@ class Connection(Protocol):
 
     def cursor(self) -> Cursor:
         """Return a cursor context manager."""
+        ...
+
+    def set_session(self, *, readonly: bool, autocommit: bool) -> None:
+        """Set the transaction safety posture before catalog access."""
+        ...
+
+    def rollback(self) -> None:
+        """Close the evaluator transaction without preserving any effects."""
+        ...
+
+
+class RuntimeCompatibilityMismatch(Exception):
+    """Signal a completed runtime check whose required invariant failed."""
+
+
+class RuntimeCheckUnavailable(Exception):
+    """Signal that runtime compatibility could not be evaluated."""
 
 
 @dataclass(frozen=True, slots=True)
@@ -130,9 +155,10 @@ def _normalized_text(value: object) -> object:
     if isinstance(value, Mapping):
         return {str(key): _normalized_text(item) for key, item in value.items()}
     if isinstance(value, list):
-        normalized = [_normalized_text(item) for item in value]
-        if all(isinstance(item, str) for item in normalized):
-            return sorted(normalized)
+        normalized: list[object] = [_normalized_text(item) for item in value]
+        strings = [item for item in normalized if isinstance(item, str)]
+        if len(strings) == len(normalized):
+            return sorted(strings)
         return normalized
     return value
 
@@ -169,6 +195,15 @@ def expected_managed_tables(profile: str) -> tuple[str, ...]:
     return tuple(sorted(table for component in components for table in EXPECTED_MANAGED_TABLES[component]))
 
 
+def _is_application_relation(relation: Mapping[str, object], managed_tables: tuple[str, ...]) -> bool:
+    """Return whether one public relation belongs to the selected profile."""
+    kind = str(relation["kind"])
+    name = str(relation["name"])
+    if kind in ("r", "p"):
+        return name in managed_tables
+    return kind == "S" and relation["owned_table"] in managed_tables
+
+
 def _public_scope(cursor: Cursor, profile: str) -> tuple[int, int, tuple[str, ...]]:
     """Classify public relations/functions without publishing their names."""
     managed_tables = expected_managed_tables(profile)
@@ -189,13 +224,10 @@ def _public_scope(cursor: Cursor, profile: str) -> tuple[int, int, tuple[str, ..
     application_count = 0
     unknown: list[str] = []
     for relation in relations:
-        name = str(relation["name"])
-        kind = str(relation["kind"])
-        owned_table = relation["owned_table"]
-        if (kind in ("r", "p") and name in managed_tables) or (kind == "S" and owned_table in managed_tables):
+        if _is_application_relation(relation, managed_tables):
             application_count += 1
         else:
-            unknown.append(f"relation:{kind}:{name}")
+            unknown.append(f"relation:{relation['kind']}:{relation['name']}")
 
     functions = _rows(
         cursor,
@@ -360,7 +392,10 @@ def _history_check(cursor: Cursor, manifest: LedgerManifest, profile: str, linea
     """Compare exact ordered migration identities for an adopted lineage."""
     if lineage != "fresh-v1":
         return CheckResult("history", LEDGER_HISTORY_MISMATCH, NOT_EVALUATED, LINEAGE_NOT_ADOPTED)
-    expected = [(entry.timestamp, entry.filename[15:-4]) for entry in manifest.migrations_for_profile(profile)]
+    expected = [
+        (entry.timestamp, entry.filename[len(entry.timestamp) + 1 : -4])
+        for entry in manifest.migrations_for_profile(profile)
+    ]
     try:
         cursor.execute("SELECT version, name FROM supabase_migrations.schema_migrations ORDER BY version")
         actual = [(str(version), str(name)) for version, name in cursor.fetchall()]
@@ -386,7 +421,7 @@ def _catalog_check(
             provider_count,
             len(unknown),
         )
-    expected = manifest.data["profiles"][profile]["catalog_sha256"]
+    expected = manifest.catalog_digest_for_profile(profile)
     actual = catalog_digest(normalized_managed_catalog(cursor, profile))
     state = CHECK_PASSED if actual == expected else CHECK_DRIFT
     return (
@@ -408,9 +443,34 @@ def _runtime_check(check: Callable[[], None] | None) -> CheckResult:
         )
     try:
         check()
-    except Exception:  # noqa: BLE001 - public diagnostics expose only the bounded category
+    except RuntimeCompatibilityMismatch:
         return CheckResult("runtime_compatibility", RUNTIME_COMPATIBILITY_MISMATCH, CHECK_DRIFT)
+    except RuntimeCheckUnavailable:
+        return CheckResult(
+            "runtime_compatibility",
+            RUNTIME_COMPATIBILITY_MISMATCH,
+            NOT_EVALUATED,
+            REQUIRED_CHECK_NOT_EVALUATED,
+        )
+    except Exception:  # noqa: BLE001 - unknown callback failures are unavailable, not proven drift
+        return CheckResult(
+            "runtime_compatibility",
+            RUNTIME_COMPATIBILITY_MISMATCH,
+            NOT_EVALUATED,
+            REQUIRED_CHECK_NOT_EVALUATED,
+        )
     return CheckResult("runtime_compatibility", RUNTIME_COMPATIBILITY_MISMATCH, CHECK_PASSED)
+
+
+@contextmanager
+def _read_only_cursor(connection: Connection) -> Iterator[Cursor]:
+    """Enforce a read-only transaction and always release its snapshot."""
+    connection.set_session(readonly=True, autocommit=False)
+    try:
+        with connection.cursor() as cursor:
+            yield cursor
+    finally:
+        connection.rollback()
 
 
 def select_public_status(checks: Sequence[CheckResult]) -> tuple[str, str | None, tuple[str, ...]]:
@@ -472,12 +532,14 @@ def evaluate_profile_drift(
         )
 
     application_count = provider_count = unknown_count = 0
-    with connection.cursor() as cursor:
-        history = _history_check(cursor, manifest, profile, lineage)
-        try:
+    history = CheckResult("history", LEDGER_HISTORY_MISMATCH, NOT_EVALUATED, REQUIRED_CHECK_NOT_EVALUATED)
+    catalog = CheckResult("catalog", PROVIDER_SCHEMA_DRIFT, NOT_EVALUATED, REQUIRED_CHECK_NOT_EVALUATED)
+    try:
+        with _read_only_cursor(connection) as cursor:
+            history = _history_check(cursor, manifest, profile, lineage)
             catalog, application_count, provider_count, unknown_count = _catalog_check(cursor, manifest, profile)
-        except Exception:  # noqa: BLE001 - unavailable catalog is a bounded required-check result
-            catalog = CheckResult("catalog", PROVIDER_SCHEMA_DRIFT, NOT_EVALUATED, REQUIRED_CHECK_NOT_EVALUATED)
+    except Exception:  # noqa: BLE001 - transaction/catalog unavailability is a bounded required-check result
+        catalog = CheckResult("catalog", PROVIDER_SCHEMA_DRIFT, NOT_EVALUATED, REQUIRED_CHECK_NOT_EVALUATED)
     runtime = _runtime_check(runtime_check)
     checks = (history, catalog, runtime)
     status, primary, reasons = select_public_status(checks)
