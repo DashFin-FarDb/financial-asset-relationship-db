@@ -32,6 +32,7 @@ from scripts.postgresql_drift import (
     expected_adoption_history,
 )
 from scripts.postgresql_ledger import (
+    COMPONENT_ORDER,
     EXPECTED_PROFILES,
     REPOSITORY_ROOT,
     TARGET_BINDINGS_ENV,
@@ -59,11 +60,17 @@ PREFLIGHT_PERMIT_VERSION = "fardb-cq03d-preflight-permit-v1"
 TARGET_ADAPTER_ID = "supabase-postgresql-routing-v1"
 INSPECTION_DATABASE_URL_ENV = "FARDB_CQ03D_INSPECTION_DATABASE_URL"
 PERMIT_FILE_ENV = "FARDB_CQ03D_PERMIT_FILE"
-RUNTIME_DATABASE_URL_ENVS: Mapping[str, str] = {
-    "auth": "FARDB_AUTH_RUNTIME_DATABASE_URL",
-    "graph": "FARDB_GRAPH_RUNTIME_DATABASE_URL",
-    "coordination": "FARDB_COORDINATION_RUNTIME_DATABASE_URL",
-}
+RUNTIME_DATABASE_URL_ENVS: Mapping[str, str] = dict(
+    zip(
+        COMPONENT_ORDER,
+        (
+            "FARDB_AUTH_RUNTIME_DATABASE_URL",
+            "FARDB_GRAPH_RUNTIME_DATABASE_URL",
+            "FARDB_COORDINATION_RUNTIME_DATABASE_URL",
+        ),
+        strict=True,
+    )
+)
 
 PERMIT_INVALID = "PREFLIGHT_PERMIT_INVALID"
 REPOSITORY_HEAD_MISMATCH = "REPOSITORY_HEAD_MISMATCH"
@@ -203,15 +210,23 @@ def _object_without_duplicate_keys(pairs: list[tuple[str, object]]) -> dict[str,
 
 def _protected_permit_document(path: Path) -> Mapping[str, object]:
     """Read one absolute, owner-only, non-symlink permit file."""
+    descriptor = -1
     try:
         if not path.is_absolute() or ".." in path.parts:
             raise PreflightContractError(PERMIT_INVALID)
-        metadata = path.lstat()
-        if stat.S_ISLNK(metadata.st_mode) or not stat.S_ISREG(metadata.st_mode):
+        resolved_path = path.resolve(strict=True)
+        if resolved_path != path:
+            raise PreflightContractError(PERMIT_INVALID)
+        flags = os.O_RDONLY | getattr(os, "O_CLOEXEC", 0) | getattr(os, "O_NOFOLLOW", 0)
+        descriptor = os.open(resolved_path, flags)  # NOSONAR - normalized owner-only control file, never exposed
+        metadata = os.fstat(descriptor)
+        if not stat.S_ISREG(metadata.st_mode):
             raise PreflightContractError(PERMIT_INVALID)
         if os.name != "nt" and (stat.S_IMODE(metadata.st_mode) != 0o600 or metadata.st_uid != os.geteuid()):
             raise PreflightContractError(PERMIT_INVALID)
-        raw_bytes = path.read_bytes()
+        with os.fdopen(descriptor, "rb") as handle:
+            descriptor = -1
+            raw_bytes = handle.read(65_537)
         if len(raw_bytes) > 65_536:
             raise PreflightContractError(PERMIT_INVALID)
         text = raw_bytes.decode("utf-8", errors="strict")
@@ -222,6 +237,9 @@ def _protected_permit_document(path: Path) -> Mapping[str, object]:
         raise
     except (OSError, UnicodeError, json.JSONDecodeError, TypeError) as exc:
         raise PreflightContractError(PERMIT_INVALID) from exc
+    finally:
+        if descriptor >= 0:
+            os.close(descriptor)
     if not isinstance(document, dict):
         raise PreflightContractError(PERMIT_INVALID)
     return document
@@ -594,7 +612,6 @@ def _migration_parity(
     with disposable_migration_projection((migration,)) as workdir:
         state_directory = Path(tempfile.mkdtemp(prefix="fardb-cq03d-supabase-home-"))
         try:
-            state_directory.chmod(0o700)
             environment = _sanitized_cli_environment(state_directory)
             require_pinned_supabase_cli(cli_path, environment)
             command = (

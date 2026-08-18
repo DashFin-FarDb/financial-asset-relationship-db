@@ -115,7 +115,7 @@ def test_permit_binds_one_current_marker_and_exact_repository_state(tmp_path: Pa
     assert permit.lineage == "hosted-legacy-v1"
 
 
-@pytest.mark.parametrize("case", ["mode", "expired", "ddl", "evidence", "marker"])
+@pytest.mark.parametrize("case", ["mode", "symlink", "expired", "ddl", "evidence", "marker"])
 def test_permit_fails_closed_on_ambiguous_or_excess_authority(tmp_path: Path, case: str) -> None:
     """Permissions, validity, authority, evidence, and marker ambiguity all use one code."""
     manifest = load_and_validate_manifest()
@@ -134,6 +134,10 @@ def test_permit_fails_closed_on_ambiguous_or_excess_authority(tmp_path: Path, ca
     path = _write_permit(tmp_path, document)
     if case == "mode":
         path.chmod(0o644)
+    elif case == "symlink":
+        target = tmp_path / "permit-target.json"
+        path.rename(target)
+        path.symlink_to(target)
 
     with pytest.raises(preflight.PreflightContractError, match=preflight.PERMIT_INVALID):
         preflight.load_preflight_permit(path, manifest, now=now)
