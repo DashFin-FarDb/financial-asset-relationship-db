@@ -301,8 +301,9 @@ status invalidates it before any command is considered.
    `runtime_compatibility`, and `runtime_authority` evidence references.
 3. Load the inspection and required restricted-runtime DSNs from the approved secret surface. Each must be a
    documented Supabase direct or port-5432 session-pooler route with `sslmode=verify-full` and an explicit trust-root
-   file. The command rejects transaction pooling, unknown routing, caller PostgreSQL options, and weak TLS. Set only
-   the variables required by the selected profile:
+   file whose file and parent directory are not group/other-writable. The command rejects transaction pooling,
+   unknown routing, caller PostgreSQL options, weak TLS, and replaceable trust roots. Set only the variables required
+   by the selected profile:
 
    ```bash
    : "${FARDB_POSTGRES_TARGET_BINDINGS_FILE:?protected binding path required}"
@@ -315,9 +316,10 @@ status invalidates it before any command is considered.
 
 4. The command proves every DSN's protected project reference and live database OID against the same target
    fingerprint in a read-only transaction, then rolls back. It internally runs the profile's history,
-   normalized-catalog, runtime-compatibility, and ADR 0007 runtime-authority checks with forced read-only helper
-   connections. Missing, unavailable, or mismatched identity proof is `TARGET_IDENTITY_INDETERMINATE`; a caller
-   cannot substitute a connector, runtime check, target, or subprocess runner.
+   normalized-catalog, and ADR 0007 runtime-authority checks with forced read-only helper connections, and runs each
+   component's compatibility checks through that component's restricted runtime DSN. Missing, unavailable, or
+   mismatched identity proof is `TARGET_IDENTITY_INDETERMINATE`; a caller cannot substitute a connector, runtime
+   check, target, or subprocess runner.
 5. For `hosted-legacy-v1`, the actual history must be the six reviewed receipts plus already adopted canonical
    markers strictly before the permit timestamp. The permit timestamp must be the next canonical marker. Only after
    all earlier checks pass, pinned Supabase CLI `2.114.0` runs read-only `migration list` against a disposable

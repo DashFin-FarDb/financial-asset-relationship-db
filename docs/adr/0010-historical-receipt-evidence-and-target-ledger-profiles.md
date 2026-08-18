@@ -2,7 +2,7 @@
 
 ## Status
 
-**Accepted — ratified on 2026-08-17; effective as repository authority when this record merges.**
+**Accepted — ratified on 2026-08-17; CQ-03D-01 adapter amendment ratified on 2026-08-18.**
 
 This ADR is the CQ-03B-R1 adjudication requested after receipt recovery exposed dependency and target-boundary
 conflicts in [ADR 0009](0009-postgresql-migration-ledger-and-drift-contract.md). It amends only ADR 0009's
@@ -13,6 +13,8 @@ policy, and the separate CQ-03D approval boundary.
 ## Date
 
 2026-08-17
+
+CQ-03D-01 adapter amendment: 2026-08-18
 
 ## Decision owner and ratifier
 
@@ -150,16 +152,20 @@ same-target/profile conflicts remain rejected as described above.
 
 The human ratifier approved the bounded CQ-03D-01 production adapter contract on 2026-08-18. The adapter ID is
 `supabase-postgresql-routing-v1`. Its immutable authority-namespace ID is the protected Supabase project reference,
-and its immutable database ID is the live positive `pg_database.oid` for the connected database. The adapter accepts
+and its database-instance ID is the live positive `pg_database.oid` for the connected database. For this adapter,
+the OID is immutable only for the lifetime of that live database instance: a drop/recreate, restore into another
+database, or any other OID change invalidates the protected binding and fails closed as
+`TARGET_IDENTITY_INDETERMINATE` until a separately reviewed binding is issued. The adapter accepts
 only a documented Supabase direct route or port-5432 session-pooler route with `sslmode=verify-full` and an explicit
-trust-root path. Transaction-pooler routing, unknown hosts, caller-supplied PostgreSQL `options`, weak TLS, or an
-unavailable trust root fails closed.
+trust-root path whose file and parent directory are not group/other-writable. Transaction-pooler routing, unknown
+hosts, caller-supplied PostgreSQL `options`, weak TLS, or an unavailable or replaceable trust root fails closed.
 
 Before any drift or parity check, the adapter starts a read-only transaction on the inspection DSN and every required
 runtime DSN, reads the current database OID from `pg_catalog.pg_database`, compares the resulting canonical identity
 and fingerprint with the protected binding, and rolls the transaction back. Missing, unavailable, or mismatched
 proof is `TARGET_IDENTITY_INDETERMINATE`. Raw project references, OIDs, DSNs, login names, SQL, and provider output
-remain protected and do not enter public evidence.
+remain protected and do not enter public evidence. Runtime compatibility is then evaluated separately through every
+profile-required restricted runtime credential; a passing inspection credential cannot substitute for that proof.
 
 CQ-03D-01 evaluates `hosted-legacy-v1` as a strict ordered adoption prefix: the actual history must equal all six
 reviewed hosted receipts plus any earlier canonical profile markers, and the permit must name exactly the next
@@ -294,6 +300,11 @@ The named human ratifier answered **Ratified** on 2026-08-17 after reviewing the
 single source of truth for receipt fidelity, forward baselines, target-ledger composition, the CQ-03D barrier, and
 profile-aware drift behavior; this record does not restate their commitments.
 
+The same human ratifier answered **Ratified** on 2026-08-18 for the bounded
+[CQ-03D-01 production target adapter](#cq-03d-01-production-target-adapter) amendment. That second approval adds the
+adapter-specific, live database-instance identity proof and read-only preflight contract without authorizing a
+hosted target, issuing a permit, or authorizing any provider mutation.
+
 **Decision:** Accepted
 **Ratifier:** Mohamed Abdel-Aziz Mohamed
-**Decision date:** 2026-08-17
+**Decision dates:** 2026-08-17 (core decisions); 2026-08-18 (CQ-03D-01 adapter amendment)

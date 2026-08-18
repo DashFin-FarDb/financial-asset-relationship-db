@@ -11,9 +11,17 @@ from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
+from psycopg2.extensions import parse_dsn
 
 from scripts import postgresql_preflight as preflight
-from scripts.postgresql_drift import CHECK_DRIFT, CHECK_PASSED, DRIFT_DETECTED, EVALUATION_INCOMPLETE, PASS
+from scripts.postgresql_drift import (
+    CHECK_DRIFT,
+    CHECK_PASSED,
+    DRIFT_DETECTED,
+    EVALUATION_INCOMPLETE,
+    PASS,
+    RuntimeCompatibilityMismatch,
+)
 from scripts.postgresql_ledger import (
     TARGET_FINGERPRINT_ALGORITHM,
     PlannedTarget,
@@ -115,7 +123,41 @@ def test_permit_binds_one_current_marker_and_exact_repository_state(tmp_path: Pa
     assert permit.lineage == "hosted-legacy-v1"
 
 
-@pytest.mark.parametrize("case", ["mode", "symlink", "expired", "ddl", "evidence", "marker"])
+def test_permit_rejects_duplicate_raw_json_keys(tmp_path: Path) -> None:
+    """A protected JSON parser cannot silently accept the last duplicate value."""
+    path = tmp_path / "permit.json"
+    path.write_text('{"version":"first","version":"second"}', encoding="utf-8")
+    path.chmod(0o600)
+
+    with pytest.raises(preflight.PreflightContractError, match=preflight.PERMIT_INVALID):
+        preflight.load_preflight_permit(path, load_and_validate_manifest())
+
+
+def test_permit_descriptor_closes_when_handle_creation_fails(tmp_path: Path, monkeypatch) -> None:
+    """A failed descriptor-to-handle transfer cannot leak the protected permit FD."""
+    path = _write_permit(tmp_path, _permit_document("1" * 40))
+    descriptor = preflight.os.open(path, preflight.os.O_RDONLY)
+    closed: list[int] = []
+    real_close = preflight.os.close
+
+    def close(fd: int) -> None:
+        closed.append(fd)
+        real_close(fd)
+
+    def fail_fdopen(*_args, **_kwargs):
+        """Model failure before ownership transfers to a file handle."""
+        raise OSError("fdopen")
+
+    monkeypatch.setattr(preflight.os, "fdopen", fail_fdopen)
+    monkeypatch.setattr(preflight.os, "close", close)
+
+    with pytest.raises(preflight.PreflightContractError, match=preflight.PERMIT_INVALID):
+        preflight._decode_permit_document(descriptor)
+
+    assert closed == [descriptor]
+
+
+@pytest.mark.parametrize("case", ["mode", "symlink", "symlink-loop", "expired", "ddl", "evidence", "marker"])
 def test_permit_fails_closed_on_ambiguous_or_excess_authority(tmp_path: Path, case: str) -> None:
     """Permissions, validity, authority, evidence, and marker ambiguity all use one code."""
     manifest = load_and_validate_manifest()
@@ -138,6 +180,9 @@ def test_permit_fails_closed_on_ambiguous_or_excess_authority(tmp_path: Path, ca
         target = tmp_path / "permit-target.json"
         path.rename(target)
         path.symlink_to(target)
+    elif case == "symlink-loop":
+        path.unlink()
+        path.symlink_to(path)
 
     with pytest.raises(preflight.PreflightContractError, match=preflight.PERMIT_INVALID):
         preflight.load_preflight_permit(path, manifest, now=now)
@@ -151,6 +196,54 @@ def test_supabase_adapter_accepts_only_direct_or_session_pooler_verify_full(tmp_
     assert direct.project_ref == PROJECT_REF
     assert pooler.project_ref == PROJECT_REF
     assert direct.database_url.startswith("postgresql://")
+
+
+def test_supabase_adapter_rejects_replaceable_trust_root(tmp_path: Path) -> None:
+    """A group/other-writable CA file cannot anchor a protected route."""
+    database_url = _database_url(tmp_path)
+    (tmp_path / "root.crt").chmod(0o666)
+
+    with pytest.raises(TargetIdentityError):
+        preflight._supabase_route_identity(database_url)
+
+
+def test_runtime_helpers_force_read_only_and_check_every_credential(tmp_path: Path, monkeypatch) -> None:
+    """Compatibility uses each runtime route and preserves the libpq options space."""
+    routes = {
+        component: preflight._supabase_route_identity(_database_url(tmp_path, pooler=component != "auth"))
+        for component in ("auth", "graph", "coordination")
+    }
+    calls: list[tuple[str, str]] = []
+    monkeypatch.setattr(
+        preflight,
+        "_runtime_compatibility",
+        lambda route, component: calls.append((component, route.database_url)),
+    )
+
+    preflight._runtime_routes_compatible(routes)
+
+    read_only_url = preflight._read_only_url(routes["auth"])
+    assert "options=-c%20default_transaction_read_only%3Don" in read_only_url
+    assert "options=-c+default_transaction_read_only%3Don" not in read_only_url
+    assert parse_dsn(read_only_url)["options"] == "-c default_transaction_read_only=on"
+    assert [component for component, _url in calls] == ["auth", "graph", "coordination"]
+
+
+def test_runtime_route_incompatibility_propagates_as_drift_signal(tmp_path: Path, monkeypatch) -> None:
+    """One incompatible runtime credential stops the aggregate compatibility callback."""
+    routes = {
+        component: preflight._supabase_route_identity(_database_url(tmp_path, pooler=component != "auth"))
+        for component in ("auth", "graph", "coordination")
+    }
+
+    def check_route(_route, component: str) -> None:
+        if component == "graph":
+            raise RuntimeCompatibilityMismatch()
+
+    monkeypatch.setattr(preflight, "_runtime_compatibility", check_route)
+
+    with pytest.raises(RuntimeCompatibilityMismatch):
+        preflight._runtime_routes_compatible(routes)
 
 
 @pytest.mark.parametrize(
@@ -258,6 +351,23 @@ def test_live_database_oid_mismatch_fails_before_checks(tmp_path: Path, monkeypa
         preflight._connect_verified(route, _target(route.database_url))
 
 
+def test_runtime_route_cleanup_failure_is_incomplete(tmp_path: Path, monkeypatch) -> None:
+    """A route whose verified connection cannot close never counts as proved."""
+    route = preflight._supabase_route_identity(_database_url(tmp_path))
+
+    class Connection:
+        """Expose one deterministic close failure."""
+
+        def close(self) -> None:
+            """Fail the required cleanup invariant."""
+            raise OSError("close failed")
+
+    monkeypatch.setattr(preflight, "_connect_verified", lambda *_args: Connection())
+
+    with pytest.raises(preflight.PreflightContractError, match=preflight.EVALUATION_INCOMPLETE):
+        preflight._prove_route(route, _target(route.database_url))
+
+
 def test_preflight_cli_allowlist_is_migration_list_only(tmp_path: Path) -> None:
     """No dry-run, repair, push, reset, link, or implicit target command is accepted."""
     route = preflight._supabase_route_identity(_database_url(tmp_path))
@@ -279,6 +389,20 @@ def test_preflight_cli_allowlist_is_migration_list_only(tmp_path: Path) -> None:
         preflight.assert_allowed_preflight_command(
             allowed[:-4] + ("db", "push", "--db-url", target.database_url), target
         )
+
+
+@pytest.mark.parametrize(
+    "stdout",
+    (
+        "not-json",
+        '{"data":{"migrations":{}}}',
+        '{"data":{"migrations":[{"local":"1","remote":"","extra":""}]}}',
+        '{"data":{"migrations":[{"local":1,"remote":"","time":""}]}}',
+    ),
+)
+def test_migration_list_parser_rejects_unbounded_or_malformed_rows(stdout: str) -> None:
+    """Unexpected provider output is unavailable evidence, never partial parity proof."""
+    assert preflight._migration_list_rows(stdout) is None
 
 
 def test_migration_parity_projects_only_permit_and_requires_exact_remote_prefix(tmp_path: Path, monkeypatch) -> None:
@@ -313,6 +437,42 @@ def test_migration_parity_projects_only_permit_and_requires_exact_remote_prefix(
     assert "--dry-run" not in commands[0]
 
 
+def test_migration_parity_cleanup_failure_is_incomplete(tmp_path: Path, monkeypatch) -> None:
+    """A CLI state directory that cannot be cleaned up prevents a passing result."""
+    route = preflight._supabase_route_identity(_database_url(tmp_path))
+    target = _target(route.database_url)
+    manifest = load_and_validate_manifest()
+    migration = manifest.migrations_for_profile("graph")[0]
+    expected_history = tuple(
+        (str(receipt["timestamp"]), str(receipt["name"]))
+        for receipt in manifest.data["lineages"]["hosted-legacy-v1"]["receipts"]
+    )
+    rows = [{"local": "", "remote": timestamp, "time": ""} for timestamp, _name in expected_history]
+    rows.append({"local": migration.timestamp, "remote": "", "time": ""})
+    real_rmtree = preflight.shutil.rmtree
+
+    monkeypatch.setattr(preflight, "_resolve_supabase_cli", lambda: "/bin/supabase")
+    monkeypatch.setattr(preflight, "require_pinned_supabase_cli", lambda *_args, **_kwargs: None)
+    monkeypatch.setattr(
+        preflight,
+        "_run_cli",
+        lambda command, _environment, *, timeout_seconds: subprocess.CompletedProcess(
+            command, 0, stdout=json.dumps({"data": {"migrations": rows}}), stderr=""
+        ),
+    )
+
+    def cleanup_then_fail(path: Path, *args, **kwargs) -> None:
+        """Remove the fixture while modeling an operator-visible cleanup failure."""
+        real_rmtree(path, *args, **kwargs)
+        if "fardb-cq03d-supabase-home-" in str(path):
+            raise OSError("cleanup failed")
+
+    monkeypatch.setattr(preflight.shutil, "rmtree", cleanup_then_fail)
+
+    with pytest.raises(preflight.PreflightContractError, match=preflight.EVALUATION_INCOMPLETE):
+        preflight._migration_parity(target, migration, expected_history)
+
+
 def test_preflight_status_and_public_surface_fail_closed() -> None:
     """The public runner exposes no connector/runner override and preserves gate order."""
     assert tuple(inspect.signature(preflight.run_preflight).parameters) == ("permit_path",)
@@ -339,3 +499,22 @@ def test_repository_state_rejects_unreviewed_worktree_changes(monkeypatch) -> No
 
     with pytest.raises(preflight.PreflightContractError, match=preflight.REPOSITORY_HEAD_MISMATCH):
         preflight._repository_sha()
+
+
+def test_repository_state_ignores_caller_git_indirection(monkeypatch) -> None:
+    """Permit SHA proof cannot be redirected through inherited Git control variables."""
+    monkeypatch.setenv("GIT_DIR", "/attacker/repository/.git")
+    results = iter(
+        (
+            subprocess.CompletedProcess(("git",), 0, stdout="1" * 40 + "\n", stderr=""),
+            subprocess.CompletedProcess(("git",), 0, stdout="", stderr=""),
+        )
+    )
+
+    def run(*_args, **kwargs):
+        assert "GIT_DIR" not in kwargs["env"]
+        return next(results)
+
+    monkeypatch.setattr(preflight.subprocess, "run", run)
+
+    assert preflight._repository_sha() == "1" * 40

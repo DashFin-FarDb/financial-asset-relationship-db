@@ -150,6 +150,15 @@ def test_cq03d_permit_binds_identity_and_one_timestamp(adjudication: str) -> Non
     assert "CQ-03D never applies DDL" in permit
 
 
+def test_cq03d_adapter_amendment_records_instance_identity_and_ratification(adjudication: str) -> None:
+    """The adapter amendment must state the OID lifecycle and its distinct approval record."""
+    compact = _compact(adjudication)
+    assert "CQ-03D-01 adapter amendment ratified on 2026-08-18" in compact
+    assert "OID is immutable only for the lifetime of that live database instance" in compact
+    assert "OID change invalidates the protected binding" in compact
+    assert "**Decision dates:** 2026-08-17 (core decisions); 2026-08-18" in compact
+
+
 def test_adr_0009_declares_the_narrow_amendment() -> None:
     """ADR 0009 must route conflicting historical-replay clauses to ADR 0010."""
     original = _compact(_load(ADR_0009))
@@ -244,6 +253,8 @@ def test_cq03d_runbook_documents_preflight_without_authorizing_execution() -> No
     assert "`supabase-postgresql-routing-v1`" in runbook
     assert "live positive `pg_database.oid`" in runbook
     assert "TARGET_IDENTITY_INDETERMINATE" in runbook
+    assert "replaceable trust roots" in runbook
+    assert "each component's compatibility checks through that component's restricted runtime DSN" in runbook
     assert "Its contract ratification is not a target approval" in runbook
     assert "cannot substitute a connector, runtime check, target, or subprocess runner" in runbook
     assert "separate `PASSED` results" in runbook
