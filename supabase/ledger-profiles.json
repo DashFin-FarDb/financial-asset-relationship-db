@@ -63,7 +63,7 @@
     },
     "graph": {
       "components": ["graph"],
-      "catalog_sha256": "93254e29061138714545b99b36c57ccfc449a88056aabf458ebd5ffe439385ad"
+      "catalog_sha256": "2fc7c5550e7f670acda49890f0668be3224dfafa9a9a221aa1e15e7404dc8c76"
     },
     "coordination": {
       "components": ["coordination"],
@@ -71,7 +71,7 @@
     },
     "combined": {
       "components": ["auth", "graph", "coordination"],
-      "catalog_sha256": "1b6f76bf6548ca5ceecfa835be2d46f79c7d71ca40d45256781cedd2259bec7b"
+      "catalog_sha256": "6247ec15a8163cf156c2d4885f2c17ebcf72ae5e79f64ad9f9bf7432521d48d9"
     }
   },
   "lineages": {
