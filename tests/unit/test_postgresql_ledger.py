@@ -287,8 +287,9 @@ def test_separate_target_bindings_resolve_in_stable_order(tmp_path: Path) -> Non
     assert tuple(item.profile for item in plan) == ledger.LOGICAL_TARGET_ORDER
     assert all(item.alias_database_urls == (item.database_url,) for item in plan)
     assert {item.canonical_identity for item in plan} == {
-        ("postgresql-test-adapter-v1", f"namespace-{target}", f"database-{target}")
-        for target in ledger.LOGICAL_TARGET_ORDER
+        ("postgresql-test-adapter-v1", "namespace-auth", "database-auth"),
+        ("postgresql-test-adapter-v1", "namespace-graph", "database-graph"),
+        ("postgresql-test-adapter-v1", "namespace-coordination", "database-coordination"),
     }
     assert len({item.fingerprint for item in plan}) == 3
 

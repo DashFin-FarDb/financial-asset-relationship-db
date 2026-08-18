@@ -8,7 +8,7 @@ import os
 import re
 import shutil
 import stat
-import subprocess
+import subprocess  # nosec B404 - fixed shell-free Git and pinned Supabase commands only
 import sys
 import tempfile
 from collections.abc import Mapping, Sequence
@@ -396,7 +396,7 @@ def _repository_sha() -> str:
     """Return the exact checked-out repository head only from a clean worktree."""
     git_environment = {name: value for name, value in os.environ.items() if not name.startswith("GIT_")}
     try:
-        head_result = subprocess.run(
+        head_result = subprocess.run(  # nosec B603 - fixed Git argument array
             ("git", "rev-parse", "--verify", "HEAD"),
             cwd=REPOSITORY_ROOT,
             check=False,
@@ -405,7 +405,7 @@ def _repository_sha() -> str:
             timeout=15,
             env=git_environment,
         )
-        status_result = subprocess.run(
+        status_result = subprocess.run(  # nosec B603 - fixed Git argument array
             ("git", "status", "--porcelain=v1", "--untracked-files=all", "--ignore-submodules=none"),
             cwd=REPOSITORY_ROOT,
             check=False,

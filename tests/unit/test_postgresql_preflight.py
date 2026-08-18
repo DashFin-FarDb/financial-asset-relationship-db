@@ -268,15 +268,19 @@ def test_live_database_oid_is_bound_to_the_protected_fingerprint(tmp_path: Path,
         """Return one immutable database OID."""
 
         def __enter__(self):
+            """Enter the cursor fixture."""
             return self
 
         def __exit__(self, *_args):
+            """Leave the cursor fixture without suppressing errors."""
             return None
 
         def execute(self, query: str) -> None:
+            """Record the immutable catalog query."""
             assert "pg_catalog.pg_database" in query
 
         def fetchall(self):
+            """Return one positive database OID."""
             return [(DATABASE_ID,)]
 
     class Connection:
@@ -288,15 +292,19 @@ def test_live_database_oid_is_bound_to_the_protected_fingerprint(tmp_path: Path,
             self.closed = False
 
         def set_session(self, *, readonly: bool, autocommit: bool) -> None:
+            """Record the required read-only transaction posture."""
             self.session = (readonly, autocommit)
 
         def cursor(self):
+            """Open the catalog cursor fixture."""
             return Cursor()
 
         def rollback(self) -> None:
+            """Record transaction rollback."""
             self.rollbacks += 1
 
         def close(self) -> None:
+            """Record connection close."""
             self.closed = True
 
     connection = Connection()
@@ -314,36 +322,41 @@ def test_live_database_oid_mismatch_fails_before_checks(tmp_path: Path, monkeypa
     """An attested binding for another database cannot authorize this route."""
 
     class Connection:
-        def set_session(self, **_kwargs) -> None:
-            pass
+        """Provide the minimum mismatched identity connection surface."""
 
-        def cursor(self):
-            return SimpleNamespace(
-                __enter__=lambda self: self,
-                __exit__=lambda self, *_args: None,
-            )
+        def set_session(self, **_kwargs) -> None:
+            """Accept the read-only session request."""
+            return None
 
         def rollback(self) -> None:
-            pass
+            """Model rollback after rejected identity."""
+            return None
 
         def close(self) -> None:
-            pass
+            """Model close after rejected identity."""
+            return None
 
     class Cursor:
+        """Return a live OID that mismatches the protected binding."""
+
         def __enter__(self):
+            """Enter the cursor fixture."""
             return self
 
         def __exit__(self, *_args):
+            """Leave the cursor fixture without suppressing errors."""
             return None
 
         def execute(self, _query: str) -> None:
-            pass
+            """Accept the fixed catalog query."""
+            return None
 
         def fetchall(self):
+            """Return the mismatched database OID."""
             return [("99999",)]
 
     connection = Connection()
-    connection.cursor = lambda: Cursor()  # type: ignore[method-assign]
+    connection.cursor = Cursor  # type: ignore[attr-defined]
     monkeypatch.setitem(sys.modules, "psycopg2", SimpleNamespace(connect=lambda *_args, **_kwargs: connection))
     route = preflight._supabase_route_identity(_database_url(tmp_path))
 
@@ -423,6 +436,7 @@ def test_migration_parity_projects_only_permit_and_requires_exact_remote_prefix(
     monkeypatch.setattr(preflight, "require_pinned_supabase_cli", lambda *_args, **_kwargs: None)
 
     def run_cli(command, _environment, *, timeout_seconds):
+        """Return the bounded pinned-CLI history fixture."""
         commands.append(tuple(command))
         assert timeout_seconds == 60
         return subprocess.CompletedProcess(command, 0, stdout=json.dumps({"data": {"migrations": rows}}), stderr="")
@@ -489,13 +503,16 @@ def test_preflight_status_and_public_surface_fail_closed() -> None:
 
 def test_repository_state_rejects_unreviewed_worktree_changes(monkeypatch) -> None:
     """An exact HEAD cannot authorize locally modified or untracked preflight code."""
-    results = iter(
-        (
-            subprocess.CompletedProcess(("git",), 0, stdout="1" * 40 + "\n", stderr=""),
-            subprocess.CompletedProcess(("git",), 0, stdout="?? scripts/substitute.py\n", stderr=""),
-        )
-    )
-    monkeypatch.setattr(preflight.subprocess, "run", lambda *_args, **_kwargs: next(results))
+    results = [
+        subprocess.CompletedProcess(("git",), 0, stdout="1" * 40 + "\n", stderr=""),
+        subprocess.CompletedProcess(("git",), 0, stdout="?? scripts/substitute.py\n", stderr=""),
+    ]
+
+    def run(*_args, **_kwargs):
+        """Return the next deterministic Git result."""
+        return results.pop(0)
+
+    monkeypatch.setattr(preflight.subprocess, "run", run)
 
     with pytest.raises(preflight.PreflightContractError, match=preflight.REPOSITORY_HEAD_MISMATCH):
         preflight._repository_sha()
@@ -504,16 +521,15 @@ def test_repository_state_rejects_unreviewed_worktree_changes(monkeypatch) -> No
 def test_repository_state_ignores_caller_git_indirection(monkeypatch) -> None:
     """Permit SHA proof cannot be redirected through inherited Git control variables."""
     monkeypatch.setenv("GIT_DIR", "/attacker/repository/.git")
-    results = iter(
-        (
-            subprocess.CompletedProcess(("git",), 0, stdout="1" * 40 + "\n", stderr=""),
-            subprocess.CompletedProcess(("git",), 0, stdout="", stderr=""),
-        )
-    )
+    results = [
+        subprocess.CompletedProcess(("git",), 0, stdout="1" * 40 + "\n", stderr=""),
+        subprocess.CompletedProcess(("git",), 0, stdout="", stderr=""),
+    ]
 
     def run(*_args, **kwargs):
+        """Return clean Git results after asserting environment sanitization."""
         assert "GIT_DIR" not in kwargs["env"]
-        return next(results)
+        return results.pop(0)
 
     monkeypatch.setattr(preflight.subprocess, "run", run)
 

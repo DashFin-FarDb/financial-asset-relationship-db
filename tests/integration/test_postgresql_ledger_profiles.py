@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+from collections.abc import Callable
 from pathlib import Path
 from urllib.parse import urlsplit, urlunsplit
 from uuid import uuid4
@@ -36,6 +37,7 @@ from scripts.postgresql_ledger import (
     EXPECTED_PROFILES,
     LOGICAL_TARGET_ORDER,
     LedgerManifest,
+    MigrationEntry,
     PlannedTarget,
     apply_profile_to_database,
     load_and_validate_manifest,
@@ -330,6 +332,45 @@ def _replace_migration_history(target_url: str, history: tuple[tuple[str, str], 
         connection.close()
 
 
+def _verify_hosted_adoption_prefix(
+    target_url: str,
+    manifest: LedgerManifest,
+    profile: str,
+    selected: tuple[MigrationEntry, ...],
+    runtime_check: Callable[[], None],
+    history_before: tuple[tuple[str, str], ...],
+) -> None:
+    """Prove every canonical marker accepts only its exact preceding hosted prefix."""
+    receipts = tuple(
+        (str(receipt["timestamp"]), str(receipt["name"]))
+        for receipt in manifest.data["lineages"]["hosted-legacy-v1"]["receipts"]
+    )
+    adopted_history = receipts
+    _replace_migration_history(target_url, adopted_history)
+    try:
+        for marker in selected:
+            connection = psycopg2.connect(target_url)
+            try:
+                adoption = evaluate_profile_drift(
+                    connection,
+                    manifest,
+                    profile,
+                    "hosted-legacy-v1",
+                    "hosted",
+                    runtime_check=runtime_check,
+                    adoption_timestamp=marker.timestamp,
+                )
+            finally:
+                connection.close()
+            assert adoption.status == PASS, adoption.as_public_dict()
+            assert _migration_history(target_url) == adopted_history
+            adopted_history += ((marker.timestamp, marker.filename[15:-4]),)
+            _replace_migration_history(target_url, adopted_history)
+    finally:
+        _replace_migration_history(target_url, history_before)
+    assert _migration_history(target_url) == history_before
+
+
 def _verify_profile_drift_contract(
     engine: sqlalchemy.Engine,
     target_url: str,
@@ -443,34 +484,7 @@ def _verify_profile_drift_contract(
     assert clean_after.actual_catalog_digest == clean_before.actual_catalog_digest
     assert _migration_history(target_url) == history_before
 
-    receipts = tuple(
-        (str(receipt["timestamp"]), str(receipt["name"]))
-        for receipt in manifest.data["lineages"]["hosted-legacy-v1"]["receipts"]
-    )
-    adopted_history = receipts
-    _replace_migration_history(target_url, adopted_history)
-    try:
-        for marker in selected:
-            connection = psycopg2.connect(target_url)
-            try:
-                adoption = evaluate_profile_drift(
-                    connection,
-                    manifest,
-                    profile,
-                    "hosted-legacy-v1",
-                    "hosted",
-                    runtime_check=runtime_check,
-                    adoption_timestamp=marker.timestamp,
-                )
-            finally:
-                connection.close()
-            assert adoption.status == PASS, adoption.as_public_dict()
-            assert _migration_history(target_url) == adopted_history
-            adopted_history += ((marker.timestamp, marker.filename[15:-4]),)
-            _replace_migration_history(target_url, adopted_history)
-    finally:
-        _replace_migration_history(target_url, history_before)
-    assert _migration_history(target_url) == history_before
+    _verify_hosted_adoption_prefix(target_url, manifest, profile, selected, runtime_check, history_before)
 
 
 def _verify_graph_data_contract(engine: sqlalchemy.Engine, profile: str) -> None:
