@@ -199,9 +199,18 @@ def test_cq03d_progress_preserves_separate_authority_and_history_only_boundary()
     continuity = _compact(_load(CONTINUITY))
     roadmap = _compact(_load(ROADMAP))
     assert "Separately scope, ratify, implement, and review" in continuity
+    assert "CQ-03D-01 target-bound, read-only preflight operator command" in continuity
+    assert "does not perform the later history action" in continuity
     assert "CQ-03D has no approved target, permit, or hosted preflight evidence" in continuity
     assert "merged, reviewed preparation contract" in roadmap
     assert "no DML beyond one permit-bound history marker" in roadmap
+
+    delivery_order = roadmap.split("## Proposed Delivery Order", maxsplit=1)[1]
+    assert delivery_order.lstrip().startswith(
+        "1. CQ-03D-01 target-bound read-only preflight operator command implementation and review."
+    )
+    assert "Source-of-truth reconciliation after PR #1287-#1301" not in delivery_order
+    assert "truncation signal PR completed" not in delivery_order
 
 
 def test_cq03d_runbook_is_preparation_not_connected_execution() -> None:

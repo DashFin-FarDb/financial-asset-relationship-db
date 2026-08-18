@@ -126,8 +126,8 @@ Primary authorities:
 - **Dependencies or blockers:** CQ-03B-R1/R2, CQ-03C, and CQ-03D-00 merge gates are satisfied. CQ-03D has no approved target,
   permit, or hosted preflight evidence. CQ-03D retains separate human approval and a single-use permit bound to exact SHA,
   profile, target fingerprint, digest, and one timestamp. The current repository exposes a tested read-only evaluator
-  API but not a CQ-03D target-bound operator command; a later, separately scoped implementation decision is required
-  before any hosted preflight.
+  API but not a CQ-03D-01 target-bound, read-only preflight operator command; a later, separately scoped implementation
+  decision is required before any hosted preflight.
 - **Evidence and provenance:** merged CQ-03A PR #1634 and squash
   `2dd9f64136eb653284b0f5330a16ee99f6b0b491`; merged clarification PR #1636; merged R1 PR #1640, reviewed head
   `363b4a880011b969e026f31b41bf1296c5ba95c0`, and merge
@@ -140,12 +140,13 @@ Primary authorities:
   evidence; CQ-03D-00 PR #1644, reviewed head `cd976126ffe448aa2748df060128fb227b3b13d5`, merge
   `f199c273068fd44df76c6c7b9efac16c3e33c732`, passing PostgreSQL 15/16 and container-boundary gates, and zero
   unresolved review threads.
-- **Next action and completion test:** Separately scope, ratify, implement, and review the narrow CQ-03D target-bound,
-  read-only operator command as a file-bounded unit before any hosted preflight. A future CQ-03D execution decision
-  closes only after a protected, single-use permit is bound to the
-  selected target and one timestamp; every required history, catalog, compatibility, and authorization check reports
-  `PASS`; and the history-only action plus post-action evidence are attached without DDL, DML beyond exactly one
-  permit-bound migration-history marker, role, grant, credential, or provider-configuration change.
+- **Next action and completion test:** Separately scope, ratify, implement, and review the narrow CQ-03D-01 target-bound,
+  read-only preflight operator command as a file-bounded unit before any hosted preflight. That command stops after
+  read-only evidence collection; it does not perform the later history action. A future, separate CQ-03D execution
+  decision closes only after a protected, single-use permit is bound to the selected target and one timestamp; every
+  required history, catalog, compatibility, and authorization check reports `PASS`; and the history-only action plus
+  post-action evidence are attached without DDL, DML beyond exactly one permit-bound migration-history marker, role,
+  grant, credential, or provider-configuration change.
 - **Last updated:** 2026-08-18
 
 ### FPC-2026-08-09-01 — Separate migration and runtime database authority
@@ -554,9 +555,10 @@ Primary authorities:
 
 ### Next highest-value action
 
-Separately scope, ratify, implement, and review the CQ-03D target-bound, read-only operator command as a file-bounded
-unit under active commitment **FPC-2026-08-13-01**. Only after that unit is merged may a separate decision consider
-authorizing a target-bound hosted preflight. Do not replay or reconstruct SQL under historical timestamps, run
+Separately scope, ratify, implement, and review the CQ-03D-01 target-bound, read-only preflight operator command as a
+file-bounded unit under active commitment **FPC-2026-08-13-01**. That unit stops after read-only evidence collection.
+Only after it is merged may a separate decision consider authorizing a target-bound hosted preflight and, later, the
+single permit-bound migration-history marker. Do not replay or reconstruct SQL under historical timestamps, run
 `supabase db pull` against hosted state, retain provider link state, apply to a hosted target, or select
 `hosted-legacy-v1` as adopted before a single-use CQ-03D permit exists.
 Issue #1623 remains a small P2 follow-up and does not displace the CQ-03 programme. Release repeatability

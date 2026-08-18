@@ -22,13 +22,14 @@ merged PRs #1634, #1640, #1641, #1643, and #1644. The repository can build the e
 and combined profiles on supported PostgreSQL versions and can evaluate ledger, catalog, and runtime drift read-only.
 This is not hosted adoption evidence.
 
-| Item                                     | Status                                                               | Next evidence required                                                                                       | Non-negotiable boundary                                                                                                                                      |
-| ---------------------------------------- | -------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| CQ-03D hosted migration-history adoption | Blocked — D-00 complete; operator command, target, and permit absent | A reviewed target-bound operator command, then a protected single-use permit and passing read-only preflight | History-only reconciliation; no DDL; no DML beyond one permit-bound history marker; no grant, role, credential, deployment, or provider-configuration change |
+| Item                                     | Status                                                               | Next evidence required                                                                                                  | Non-negotiable boundary                                                                                                                                      |
+| ---------------------------------------- | -------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| CQ-03D hosted migration-history adoption | Blocked — D-00 complete; operator command, target, and permit absent | A reviewed CQ-03D-01 target-bound read-only preflight command, then a protected single-use permit and passing preflight | History-only reconciliation; no DDL; no DML beyond one permit-bound history marker; no grant, role, credential, deployment, or provider-configuration change |
 
 The current repository has a tested read-only drift-evaluator API and a merged, reviewed preparation contract, but not
-a CQ-03D target-bound operator command. Implementing that command requires a separate, file-bounded decision; it must
-not be created ad hoc during a hosted operation.
+a CQ-03D-01 target-bound, read-only preflight operator command. Implementing that command requires a separate,
+file-bounded decision; it must not be created ad hoc during a hosted operation. The command may collect only preflight
+evidence; the single permitted migration-history marker remains a later, separately authorized CQ-03D execution step.
 
 ## Release Evidence Now
 
@@ -83,12 +84,12 @@ These items are valid but should not be bundled into the release-evidence reconc
 
 ## Proposed Delivery Order
 
-1. Source-of-truth reconciliation after PR #1287-#1301.
-2. RC1 release evidence capture issue.
-3. Staging deployment operating baseline.
-4. Hosted durable promotion smoke with `--require-persistence`.
-5. DR restore rehearsal and post-restore smoke evidence.
-6. Dedicated `RebuildJobListResponse` truncation signal PR completed.
-7. Strict stale-owner restart composition test completed.
+1. CQ-03D-01 target-bound read-only preflight operator command implementation and review.
+2. Separately approved target, protected single-use permit, and passing hosted read-only preflight.
+3. If separately ratified, exactly one permit-bound migration-history marker and its post-action evidence.
+4. RC1 release evidence capture issue.
+5. Staging deployment operating baseline.
+6. Hosted durable promotion smoke with `--require-persistence`.
+7. DR restore rehearsal and post-restore smoke evidence.
 8. Production-scale validation and operational drill execution.
 9. Multi-region / advanced hosting strategy.
