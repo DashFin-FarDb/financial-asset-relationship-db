@@ -230,6 +230,60 @@ def test_runtime_helpers_force_read_only_and_check_every_credential(tmp_path: Pa
     assert [component for component, _url in calls] == ["auth", "graph", "coordination"]
 
 
+def test_auth_helper_import_uses_and_restores_standalone_route(tmp_path: Path) -> None:
+    """Standalone preflight can import auth helpers without application URL state."""
+    read_only_url = preflight._read_only_url(preflight._supabase_route_identity(_database_url(tmp_path)))
+    environment = dict(preflight.os.environ)
+    for name in ("DATABASE_URL", "POSTGRES_URL", "COORDINATION_DATABASE_URL"):
+        environment.pop(name, None)
+    environment["ENV"] = "test"
+    environment["FARDB_AUTH_RUNTIME_DATABASE_URL"] = read_only_url
+    program = """
+import os
+from scripts import postgresql_preflight as preflight
+
+read_only_url = os.environ["FARDB_AUTH_RUNTIME_DATABASE_URL"]
+api_database = preflight._import_api_database(read_only_url)
+assert api_database.DATABASE_URL == read_only_url
+assert "DATABASE_URL" not in os.environ
+"""
+
+    result = subprocess.run(  # noqa: S603  # nosec B603 - fixed interpreter and repository-owned import
+        [sys.executable, "-c", program],
+        check=False,
+        capture_output=True,
+        text=True,
+        env=environment,
+        cwd=preflight.REPOSITORY_ROOT,
+    )
+
+    assert result.returncode == 0, result.stderr
+
+
+def test_graph_checks_do_not_import_auth_database(tmp_path: Path, monkeypatch) -> None:
+    """Graph compatibility and authority have no API import-time dependency."""
+    from src.data import database as data_database
+
+    class Engine:
+        """Minimal disposable graph engine fixture."""
+
+        def dispose(self) -> None:
+            """Model successful engine cleanup."""
+
+    monkeypatch.setattr(data_database, "create_engine_from_url", lambda _url: Engine())
+    monkeypatch.setattr(data_database, "verify_database_schema", lambda _engine, **_kwargs: None)
+    monkeypatch.setattr(data_database, "verify_runtime_database_authority", lambda _engine, **_kwargs: None)
+    monkeypatch.setattr(
+        preflight.importlib,
+        "import_module",
+        lambda _name: pytest.fail("graph compatibility imported auth database helpers"),
+    )
+
+    route = preflight._supabase_route_identity(_database_url(tmp_path, pooler=True))
+    preflight._runtime_compatibility(route, "graph")
+    assert preflight._runtime_authority({"graph": route}) == CHECK_PASSED
+
+
 def test_runtime_route_incompatibility_propagates_as_drift_signal(tmp_path: Path, monkeypatch) -> None:
     """One incompatible runtime credential stops the aggregate compatibility callback."""
     routes = {

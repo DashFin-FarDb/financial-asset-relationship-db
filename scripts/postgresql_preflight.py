@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import importlib
 import json
 import os
 import re
@@ -16,6 +17,7 @@ from contextlib import suppress
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
+from types import ModuleType
 from typing import BinaryIO
 from urllib.parse import SplitResult, parse_qsl, quote, unquote, urlencode, urlsplit, urlunsplit
 
@@ -626,9 +628,29 @@ def _prove_route(route: RouteIdentity, target: PlannedTarget) -> None:
         raise PreflightContractError(EVALUATION_INCOMPLETE) from exc
 
 
+def _import_api_database(read_only_url: str) -> ModuleType:
+    """Load auth helpers when standalone preflight has no application URL."""
+    imported = sys.modules.get("api.database")
+    if isinstance(imported, ModuleType):
+        return imported
+
+    from src.config.settings import get_settings
+
+    previous_database_url = os.environ.get("DATABASE_URL")
+    os.environ["DATABASE_URL"] = read_only_url
+    get_settings.cache_clear()
+    try:
+        return importlib.import_module("api.database")
+    finally:
+        if previous_database_url is None:
+            os.environ.pop("DATABASE_URL", None)
+        else:
+            os.environ["DATABASE_URL"] = previous_database_url
+        get_settings.cache_clear()
+
+
 def _runtime_compatibility(route: RouteIdentity, component: str) -> None:
     """Run one component runtime's schema/catalog checks through its own credential."""
-    from api.database import bind_database_url, verify_runtime_access_catalog, verify_schema_compatibility
     from src.data.database import SchemaCompatibilityError, create_engine_from_url, verify_database_schema
 
     engine = None
@@ -638,9 +660,10 @@ def _runtime_compatibility(route: RouteIdentity, component: str) -> None:
             engine = create_engine_from_url(read_only_url)
             verify_database_schema(engine, required_capabilities={component})
         elif component == "auth":
-            with bind_database_url(read_only_url):
-                verify_schema_compatibility()
-                verify_runtime_access_catalog()
+            api_database = _import_api_database(read_only_url)
+            with api_database.bind_database_url(read_only_url):
+                api_database.verify_schema_compatibility()
+                api_database.verify_runtime_access_catalog()
         else:
             raise RuntimeCheckUnavailable()
     except SchemaCompatibilityError as exc:
@@ -679,7 +702,6 @@ def _group_non_auth_routes(
 
 def _runtime_authority(routes: Mapping[str, RouteIdentity]) -> str:
     """Verify each configured runtime login has only its required capability."""
-    from api.database import bind_database_url, verify_runtime_authority
     from src.data.database import (
         SchemaCompatibilityError,
         create_engine_from_url,
@@ -689,8 +711,10 @@ def _runtime_authority(routes: Mapping[str, RouteIdentity]) -> str:
     try:
         auth_route = routes.get("auth")
         if auth_route is not None:
-            with bind_database_url(_read_only_url(auth_route)):
-                verify_runtime_authority()
+            read_only_url = _read_only_url(auth_route)
+            api_database = _import_api_database(read_only_url)
+            with api_database.bind_database_url(read_only_url):
+                api_database.verify_runtime_authority()
         for route, capabilities in _group_non_auth_routes(routes):
             read_only_url = _read_only_url(route)
             engine = create_engine_from_url(read_only_url)
