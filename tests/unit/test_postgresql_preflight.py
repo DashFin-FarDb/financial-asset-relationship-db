@@ -6,7 +6,7 @@ import inspect
 import json
 import subprocess  # nosec B404 - fixed-command test doubles only
 import sys
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -115,7 +115,7 @@ def test_permit_binds_one_current_marker_and_exact_repository_state(tmp_path: Pa
     permit = preflight.load_preflight_permit(
         _write_permit(tmp_path, document),
         manifest,
-        now=datetime(2026, 8, 18, 10, tzinfo=UTC),
+        now=datetime(2026, 8, 18, 10, tzinfo=timezone.utc),
     )
 
     assert permit.repository_sha == "1" * 40
@@ -162,9 +162,9 @@ def test_permit_fails_closed_on_ambiguous_or_excess_authority(tmp_path: Path, ca
     """Permissions, validity, authority, evidence, and marker ambiguity all use one code."""
     manifest = load_and_validate_manifest()
     document = _permit_document("1" * 40)
-    now = datetime(2026, 8, 18, 10, tzinfo=UTC)
+    now = datetime(2026, 8, 18, 10, tzinfo=timezone.utc)
     if case == "expired":
-        now = datetime(2026, 8, 18, 12, tzinfo=UTC)
+        now = datetime(2026, 8, 18, 12, tzinfo=timezone.utc)
     elif case == "ddl":
         document["ddl_authorized"] = True
     elif case == "evidence":

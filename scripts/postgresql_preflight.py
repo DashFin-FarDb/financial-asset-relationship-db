@@ -14,7 +14,7 @@ import tempfile
 from collections.abc import Mapping, Sequence
 from contextlib import suppress
 from dataclasses import dataclass
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from urllib.parse import SplitResult, parse_qsl, quote, unquote, urlencode, urlsplit, urlunsplit
 
@@ -285,7 +285,7 @@ def _utc_timestamp(value: object) -> datetime:
     if not isinstance(value, str):
         raise PreflightContractError(PERMIT_INVALID)
     try:
-        return datetime.strptime(value, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=UTC)
+        return datetime.strptime(value, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
     except ValueError as exc:
         raise PreflightContractError(PERMIT_INVALID) from exc
 
@@ -317,10 +317,10 @@ def _validate_permit_window(document: Mapping[str, object], now: datetime | None
     """Require a timezone-aware instant inside the permit's UTC validity window."""
     approved_at = _utc_timestamp(document["approved_at"])
     expires_at = _utc_timestamp(document["expires_at"])
-    current_time = now or datetime.now(UTC)
+    current_time = now or datetime.now(timezone.utc)
     if current_time.tzinfo is None:
         raise PreflightContractError(PERMIT_INVALID)
-    if not approved_at <= current_time.astimezone(UTC) < expires_at:
+    if not approved_at <= current_time.astimezone(timezone.utc) < expires_at:
         raise PreflightContractError(PERMIT_INVALID)
 
 
