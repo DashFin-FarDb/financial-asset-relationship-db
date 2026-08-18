@@ -4,10 +4,10 @@ from __future__ import annotations
 
 import json
 import re
+from collections import deque
 from collections.abc import Sequence
 from typing import Any
 
-import scripts.postgresql_drift as drift
 from scripts.postgresql_drift import (
     CHECK_DRIFT,
     CHECK_PASSED,
@@ -16,6 +16,7 @@ from scripts.postgresql_drift import (
     HIGHER_PRIORITY_CHECK_NOT_EVALUATED,
     LEDGER_HISTORY_MISMATCH,
     NOT_EVALUATED,
+    OUTSIDE_MANAGED_SCOPE,
     PASS,
     PROVIDER_SCHEMA_DRIFT,
     REQUIRED_CHECK_NOT_EVALUATED,
@@ -25,6 +26,7 @@ from scripts.postgresql_drift import (
     RuntimeCompatibilityMismatch,
     _catalog_check,
     _history_check,
+    _normalize_sql_text,
     _public_scope,
     _rows,
     _runtime_check,
@@ -41,14 +43,13 @@ class StubCursor:
     """Return deterministic DB-API result sets without PostgreSQL."""
 
     def __init__(self, responses: Sequence[tuple[Sequence[str], Sequence[tuple[Any, ...]]]]) -> None:
-        self._responses = iter(responses)
+        self._responses = deque(responses)
         self.description: Sequence[Sequence[Any]] | None = None
         self._current: list[tuple[Any, ...]] = []
 
     def execute(self, query: str, parameters: object | None = None) -> object:
         """Advance to the next prepared result set."""
-        del query, parameters
-        columns, rows = next(self._responses)
+        columns, rows = self._responses.popleft()
         self.description = [(column,) for column in columns]
         self._current = list(rows)
         return None
@@ -93,11 +94,17 @@ def _check(category: str, state: str, reason: str | None = None) -> CheckResult:
 
 def test_catalog_serialization_is_key_order_and_whitespace_stable() -> None:
     """Equivalent deparsed whitespace and mapping order must produce one digest."""
-    left = {"z": "CHECK  ( value > 0 )", "a": [{"roles": ["b", "a"]}]}
-    right = {"a": [{"roles": ["a", "b"]}], "z": "CHECK ( value > 0 )"}
+    left = {"z": _normalize_sql_text("CHECK  ( value > 0 )"), "a": [{"roles": ["b", "a"]}]}
+    right = {"a": [{"roles": ["a", "b"]}], "z": _normalize_sql_text("CHECK ( value > 0 )")}
 
     assert canonical_catalog_bytes(left) == canonical_catalog_bytes(right)
     assert catalog_digest(left) == catalog_digest(right)
+
+
+def test_sql_whitespace_normalization_preserves_quoted_content() -> None:
+    """Whitespace inside literals, identifiers, and dollar bodies remains semantic."""
+    definition = "SELECT  'a  b',  \"quoted  name\",  $$body  text$$"
+    assert _normalize_sql_text(definition) == "SELECT 'a  b', \"quoted  name\", $$body  text$$"
 
 
 def test_expected_managed_tables_are_profile_scoped() -> None:
@@ -116,18 +123,39 @@ def test_rows_and_public_scope_classify_without_a_live_database() -> None:
     scope_cursor = StubCursor(
         [
             (
-                ("name", "kind", "owned_table"),
+                ("object_type", "name", "kind", "parent_table", "identity_arguments"),
                 (
-                    ("user_credentials", "r", None),
-                    ("user_credentials_id_seq", "S", "user_credentials"),
-                    ("unmanaged_view", "v", None),
+                    ("relation", "user_credentials", "r", None, None),
+                    ("relation", "user_credentials_id_seq", "S", "user_credentials", None),
+                    ("relation", "unmanaged_view", "v", None, None),
                 ),
             ),
-            (("name",), (("unmanaged_function",),)),
+            (("name", "system_schema"), (("pg_catalog", True), ("supabase_migrations", False))),
+            (("name",), (("plpgsql",),)),
         ]
     )
     application, provider, unknown = _public_scope(scope_cursor, "auth")
-    assert (application, provider) == (2, 0)
+    assert (application, provider) == (2, 3)
+    assert len(unknown) == 1
+
+
+def test_public_scope_requires_exact_function_identity_and_known_schema() -> None:
+    """An overload or unclassified namespace makes the total scope incomplete."""
+    cursor = StubCursor(
+        [
+            (
+                ("object_type", "name", "kind", "parent_table", "identity_arguments"),
+                (
+                    ("function", "grac_v1_reject_mutation", None, None, ""),
+                    ("function", "grac_v1_reject_mutation", None, None, "integer"),
+                ),
+            ),
+            (("name", "system_schema"), (("private_extension", False),)),
+            (("name",), (("plpgsql",),)),
+        ]
+    )
+    application, provider, unknown = _public_scope(cursor, "graph")
+    assert (application, provider) == (1, 1)
     assert len(unknown) == 2
 
 
@@ -140,35 +168,34 @@ def test_history_and_catalog_helpers_cover_pass_and_unknown_scope(monkeypatch) -
     assert _history_check(history_cursor, manifest, "auth", "fresh-v1").state == CHECK_PASSED
 
     expected = manifest.catalog_digest_for_profile("auth")
-    monkeypatch.setattr(drift, "_public_scope", lambda cursor, profile: (1, 0, ()))
-    monkeypatch.setattr(drift, "normalized_managed_catalog", lambda cursor, profile: {"profile": profile})
-    monkeypatch.setattr(drift, "catalog_digest", lambda document: expected)
+    monkeypatch.setattr("scripts.postgresql_drift._public_scope", lambda cursor, profile: (1, 0, ()))
+    monkeypatch.setattr(
+        "scripts.postgresql_drift.normalized_managed_catalog", lambda cursor, profile: {"profile": profile}
+    )
+    monkeypatch.setattr("scripts.postgresql_drift.catalog_digest", lambda document: expected)
     catalog, application, provider, unknown = _catalog_check(StubCursor([]), manifest, "auth")
     assert catalog.state == CHECK_PASSED
     assert (application, provider, unknown) == (1, 0, 0)
 
-    monkeypatch.setattr(drift, "_public_scope", lambda cursor, profile: (1, 0, ("restricted-name",)))
+    monkeypatch.setattr("scripts.postgresql_drift._public_scope", lambda cursor, profile: (1, 0, ("restricted-name",)))
     monkeypatch.setattr(
-        drift,
-        "normalized_managed_catalog",
+        "scripts.postgresql_drift.normalized_managed_catalog",
         lambda cursor, profile: (_ for _ in ()).throw(AssertionError("unknown scope must not be compared")),
     )
     incomplete, _application, _provider, unknown = _catalog_check(StubCursor([]), manifest, "auth")
     assert incomplete.state == NOT_EVALUATED
-    assert incomplete.reason_code == drift.OUTSIDE_MANAGED_SCOPE
+    assert incomplete.reason_code == OUTSIDE_MANAGED_SCOPE
     assert unknown == 1
 
 
 def test_evaluator_enforces_read_only_transaction_and_rollback(monkeypatch) -> None:
     """Known-profile evaluation must force read-only access and clean up its snapshot."""
     monkeypatch.setattr(
-        drift,
-        "_history_check",
+        "scripts.postgresql_drift._history_check",
         lambda cursor, manifest, profile, lineage: _check(LEDGER_HISTORY_MISMATCH, CHECK_PASSED),
     )
     monkeypatch.setattr(
-        drift,
-        "_catalog_check",
+        "scripts.postgresql_drift._catalog_check",
         lambda cursor, manifest, profile: (_check(PROVIDER_SCHEMA_DRIFT, CHECK_PASSED), 1, 0, 0),
     )
     connection = StubConnection(StubCursor([]))
@@ -197,13 +224,11 @@ def test_evaluator_fails_closed_when_transaction_cleanup_is_unavailable(monkeypa
             raise ConnectionError("cleanup unavailable")
 
     monkeypatch.setattr(
-        drift,
-        "_history_check",
+        "scripts.postgresql_drift._history_check",
         lambda cursor, manifest, profile, lineage: _check(LEDGER_HISTORY_MISMATCH, CHECK_PASSED),
     )
     monkeypatch.setattr(
-        drift,
-        "_catalog_check",
+        "scripts.postgresql_drift._catalog_check",
         lambda cursor, manifest, profile: (_check(PROVIDER_SCHEMA_DRIFT, CHECK_PASSED), 1, 0, 0),
     )
     connection = CleanupUnavailable(StubCursor([]))
@@ -326,9 +351,11 @@ def test_runtime_check_distinguishes_mismatch_from_unavailable() -> None:
     """Only an explicit completed compatibility failure is runtime drift."""
 
     def mismatch() -> None:
+        """Signal a completed invariant mismatch."""
         raise RuntimeCompatibilityMismatch
 
     def unavailable() -> None:
+        """Signal explicit evaluator unavailability."""
         raise RuntimeCheckUnavailable
 
     assert _runtime_check(mismatch).state == CHECK_DRIFT
@@ -341,6 +368,7 @@ def test_unknown_runtime_callback_failure_is_unavailable() -> None:
     """Driver-like callback failures must not be mislabeled as proven drift."""
 
     def driver_failure() -> None:
+        """Represent an unexpected driver failure."""
         raise ConnectionError("database unavailable")
 
     result = _runtime_check(driver_failure)

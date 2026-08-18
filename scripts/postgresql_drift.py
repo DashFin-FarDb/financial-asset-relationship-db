@@ -39,12 +39,36 @@ _CATEGORY_ORDER = (
     PROVIDER_SCHEMA_DRIFT,
     RUNTIME_COMPATIBILITY_MISMATCH,
 )
-_PUBLIC_FUNCTIONS: Mapping[str, tuple[str, ...]] = {
+_PUBLIC_FUNCTIONS: Mapping[str, tuple[tuple[str, str], ...]] = {
     "auth": (),
-    "graph": ("grac_v1_reject_mutation",),
+    "graph": (("grac_v1_reject_mutation", ""),),
     "coordination": (),
-    "combined": ("grac_v1_reject_mutation",),
+    "combined": (("grac_v1_reject_mutation", ""),),
 }
+_PROVIDER_SCHEMAS = frozenset(
+    {
+        "auth",
+        "extensions",
+        "graphql",
+        "graphql_public",
+        "net",
+        "pgbouncer",
+        "pgmq",
+        "realtime",
+        "storage",
+        "supabase_functions",
+        "supabase_migrations",
+        "vault",
+    }
+)
+_PROVIDER_EXTENSIONS = frozenset({"plpgsql"})
+_APPLICATION_EXTENSIONS: Mapping[str, tuple[str, ...]] = {
+    "auth": (),
+    "graph": (),
+    "coordination": (),
+    "combined": (),
+}
+_SQL_TEXT_COLUMNS = frozenset({"check_expression", "default_expression", "definition", "using_expression"})
 
 
 class Cursor(Protocol):
@@ -54,19 +78,19 @@ class Cursor(Protocol):
 
     def execute(self, query: str, parameters: object | None = None) -> object:
         """Execute one read-only catalog query."""
-        ...
+        raise NotImplementedError
 
     def fetchall(self) -> list[tuple[Any, ...]]:
         """Return all rows from the current query."""
-        ...
+        raise NotImplementedError
 
     def __enter__(self) -> Cursor:
         """Enter the cursor context."""
-        ...
+        raise NotImplementedError
 
     def __exit__(self, exc_type: object, exc: object, traceback: object) -> None:
         """Exit the cursor context."""
-        ...
+        raise NotImplementedError
 
 
 class Connection(Protocol):
@@ -74,15 +98,15 @@ class Connection(Protocol):
 
     def cursor(self) -> Cursor:
         """Return a cursor context manager."""
-        ...
+        raise NotImplementedError
 
     def set_session(self, *, readonly: bool, autocommit: bool) -> None:
         """Set the transaction safety posture before catalog access."""
-        ...
+        raise NotImplementedError
 
     def rollback(self) -> None:
         """Close the evaluator transaction without preserving any effects."""
-        ...
+        raise NotImplementedError
 
 
 class RuntimeCompatibilityMismatch(Exception):
@@ -149,9 +173,9 @@ class DriftReport:
 
 
 def _normalized_text(value: object) -> object:
-    """Normalize PostgreSQL-deparsed text without rewriting parsed semantics."""
+    """Sort order-insensitive arrays while preserving identifiers exactly."""
     if isinstance(value, str):
-        return " ".join(value.split())
+        return value
     if isinstance(value, Mapping):
         return {str(key): _normalized_text(item) for key, item in value.items()}
     if isinstance(value, list):
@@ -161,6 +185,62 @@ def _normalized_text(value: object) -> object:
             return sorted(strings)
         return normalized
     return value
+
+
+def _normalize_sql_text(value: str) -> str:
+    """Collapse deparser whitespace outside quoted SQL tokens and bodies."""
+    output: list[str] = []
+    index = 0
+    quote: str | None = None
+    dollar_tag: str | None = None
+    while index < len(value):
+        if dollar_tag is not None:
+            end = value.find(dollar_tag, index)
+            if end < 0:
+                output.append(value[index:])
+                break
+            output.append(value[index : end + len(dollar_tag)])
+            index = end + len(dollar_tag)
+            dollar_tag = None
+            continue
+        character = value[index]
+        if quote is not None:
+            output.append(character)
+            if character == quote:
+                if index + 1 < len(value) and value[index + 1] == quote:
+                    output.append(quote)
+                    index += 2
+                    continue
+                quote = None
+            elif character == "\\" and index + 1 < len(value):
+                output.append(value[index + 1])
+                index += 2
+                continue
+            index += 1
+            continue
+        if character in ("'", '"'):
+            quote = character
+            output.append(character)
+            index += 1
+            continue
+        if character == "$":
+            end = value.find("$", index + 1)
+            if end >= 0:
+                candidate = value[index : end + 1]
+                tag_body = candidate[1:-1]
+                if not tag_body or tag_body.replace("_", "a").isalnum():
+                    dollar_tag = candidate
+                    output.append(candidate)
+                    index = end + 1
+                    continue
+        if character.isspace():
+            if output and output[-1] != " ":
+                output.append(" ")
+            index += 1
+            continue
+        output.append(character)
+        index += 1
+    return "".join(output).strip()
 
 
 def canonical_catalog_bytes(document: Mapping[str, object]) -> bytes:
@@ -184,7 +264,15 @@ def _rows(cursor: Cursor, query: str, parameters: object | None = None) -> list[
     """Execute one SELECT and map its rows to deterministically keyed objects."""
     cursor.execute(query, parameters)
     columns = tuple(str(column[0]) for column in (cursor.description or ()))
-    return [dict(zip(columns, row, strict=True)) for row in cursor.fetchall()]
+    rows: list[dict[str, object]] = []
+    for row in cursor.fetchall():
+        mapped = dict(zip(columns, row, strict=True))
+        for column in _SQL_TEXT_COLUMNS.intersection(mapped):
+            value = mapped[column]
+            if isinstance(value, str):
+                mapped[column] = _normalize_sql_text(value)
+        rows.append(mapped)
+    return rows
 
 
 def expected_managed_tables(profile: str) -> tuple[str, ...]:
@@ -195,58 +283,107 @@ def expected_managed_tables(profile: str) -> tuple[str, ...]:
     return tuple(sorted(table for component in components for table in EXPECTED_MANAGED_TABLES[component]))
 
 
-def _is_application_relation(relation: Mapping[str, object], managed_tables: tuple[str, ...]) -> bool:
-    """Return whether one public relation belongs to the selected profile."""
-    kind = str(relation["kind"])
-    name = str(relation["name"])
-    if kind in ("r", "p"):
-        return name in managed_tables
-    return kind == "S" and relation["owned_table"] in managed_tables
+def _classify_public_object(item: Mapping[str, object], managed_tables: tuple[str, ...], profile: str) -> bool:
+    """Return whether one independently addressable public object is profile-owned."""
+    object_type = str(item["object_type"])
+    name = str(item["name"])
+    parent = item.get("parent_table")
+    if object_type == "relation":
+        kind = str(item["kind"])
+        if kind in ("r", "p"):
+            return name in managed_tables
+        if kind in ("S", "i", "I"):
+            return parent in managed_tables
+        return False
+    if object_type in ("policy", "trigger", "type"):
+        return parent in managed_tables
+    if object_type == "function":
+        return (name, str(item["identity_arguments"])) in _PUBLIC_FUNCTIONS.get(profile, ())
+    return False
 
 
 def _public_scope(cursor: Cursor, profile: str) -> tuple[int, int, tuple[str, ...]]:
-    """Classify public relations/functions without publishing their names."""
+    """Totally classify contracted schemas and independently addressable objects."""
     managed_tables = expected_managed_tables(profile)
-    relations = _rows(
+    objects = _rows(
         cursor,
         """
-        SELECT c.relname AS name, c.relkind AS kind,
-                owned.relname AS owned_table
+        SELECT 'relation' AS object_type, c.relname AS name, c.relkind AS kind,
+            COALESCE(owned.relname, indexed.relname) AS parent_table,
+            NULL::text AS identity_arguments
         FROM pg_catalog.pg_class AS c
         JOIN pg_catalog.pg_namespace AS n ON n.oid = c.relnamespace
         LEFT JOIN pg_catalog.pg_depend AS d
             ON c.relkind = 'S' AND d.objid = c.oid AND d.deptype IN ('a', 'i')
         LEFT JOIN pg_catalog.pg_class AS owned ON owned.oid = d.refobjid
-        WHERE n.nspname = 'public' AND c.relkind IN ('r', 'p', 'v', 'm', 'S', 'f')
-        ORDER BY c.relkind, c.relname
-        """,
-    )
-    application_count = 0
-    unknown: list[str] = []
-    for relation in relations:
-        if _is_application_relation(relation, managed_tables):
-            application_count += 1
-        else:
-            unknown.append(f"relation:{relation['kind']}:{relation['name']}")
-
-    functions = _rows(
-        cursor,
-        """
-        SELECT p.proname AS name
+        LEFT JOIN pg_catalog.pg_index AS idx ON idx.indexrelid = c.oid
+        LEFT JOIN pg_catalog.pg_class AS indexed ON indexed.oid = idx.indrelid
+        WHERE n.nspname = 'public' AND c.relkind IN ('r', 'p', 'v', 'm', 'S', 'f', 'i', 'I')
+        UNION ALL
+        SELECT 'function', p.proname, NULL, NULL,
+            pg_catalog.pg_get_function_identity_arguments(p.oid)
         FROM pg_catalog.pg_proc AS p
         JOIN pg_catalog.pg_namespace AS n ON n.oid = p.pronamespace
         WHERE n.nspname = 'public'
-        ORDER BY p.proname, pg_catalog.pg_get_function_identity_arguments(p.oid)
+        UNION ALL
+        SELECT 'policy', pol.polname, NULL, c.relname, NULL
+        FROM pg_catalog.pg_policy AS pol
+        JOIN pg_catalog.pg_class AS c ON c.oid = pol.polrelid
+        JOIN pg_catalog.pg_namespace AS n ON n.oid = c.relnamespace
+        WHERE n.nspname = 'public'
+        UNION ALL
+        SELECT 'trigger', t.tgname, NULL, c.relname, NULL
+        FROM pg_catalog.pg_trigger AS t
+        JOIN pg_catalog.pg_class AS c ON c.oid = t.tgrelid
+        JOIN pg_catalog.pg_namespace AS n ON n.oid = c.relnamespace
+        WHERE n.nspname = 'public' AND NOT t.tgisinternal
+        UNION ALL
+        SELECT 'type', typ.typname, NULL, relation.relname, NULL
+        FROM pg_catalog.pg_type AS typ
+        JOIN pg_catalog.pg_namespace AS n ON n.oid = typ.typnamespace
+        LEFT JOIN pg_catalog.pg_class AS relation ON relation.oid = typ.typrelid
+        WHERE n.nspname = 'public' AND typ.typtype IN ('c', 'd', 'e')
+        ORDER BY 1, 2, 5
         """,
     )
-    expected_functions = set(_PUBLIC_FUNCTIONS.get(profile, ()))
-    for function in functions:
-        name = str(function["name"])
-        if name in expected_functions:
-            application_count += 1
+    schemas = _rows(
+        cursor,
+        """
+        SELECT n.nspname AS name,
+            n.nspname IN ('pg_catalog', 'information_schema', 'pg_toast')
+                OR pg_catalog.pg_is_other_temp_schema(n.oid)
+                OR n.oid = pg_catalog.pg_my_temp_schema() AS system_schema
+        FROM pg_catalog.pg_namespace AS n
+        WHERE n.nspname <> 'public'
+        ORDER BY n.nspname
+        """,
+    )
+    extensions = _rows(
+        cursor,
+        """
+        SELECT ext.extname AS name
+        FROM pg_catalog.pg_extension AS ext
+        ORDER BY ext.extname
+        """,
+    )
+    application_count = sum(_classify_public_object(item, managed_tables, profile) for item in objects)
+    unknown = [
+        f"{item['object_type']}:{item['name']}"
+        for item in objects
+        if not _classify_public_object(item, managed_tables, profile)
+    ]
+    provider_count = 0
+    for schema in schemas:
+        if bool(schema["system_schema"]) or schema["name"] in _PROVIDER_SCHEMAS:
+            provider_count += 1
         else:
-            unknown.append(f"function:{name}")
-    return application_count, 0, tuple(unknown)
+            unknown.append(f"schema:{schema['name']}")
+    for extension in extensions:
+        if extension["name"] in _PROVIDER_EXTENSIONS:
+            provider_count += 1
+        else:
+            unknown.append(f"extension:{extension['name']}")
+    return application_count, provider_count, tuple(unknown)
 
 
 def normalized_managed_catalog(cursor: Cursor, profile: str) -> dict[str, object]:
@@ -257,6 +394,16 @@ def normalized_managed_catalog(cursor: Cursor, profile: str) -> dict[str, object
         "normalization_profile": CATALOG_NORMALIZATION_VERSION,
         "managed_scope_version": MANAGED_SCOPE_VERSION,
         "profile": profile,
+        "schemas": _rows(
+            cursor,
+            """
+            SELECT n.nspname AS schema_name,
+                COALESCE(ARRAY(SELECT acl::text FROM unnest(n.nspacl) acl ORDER BY acl::text), ARRAY[]::text[]) AS acl
+            FROM pg_catalog.pg_namespace AS n
+            WHERE n.nspname = 'public'
+            ORDER BY n.nspname
+            """,
+        ),
         "tables": _rows(
             cursor,
             """
@@ -369,6 +516,58 @@ def normalized_managed_catalog(cursor: Cursor, profile: str) -> dict[str, object
             """,
             parameters,
         ),
+        "types": _rows(
+            cursor,
+            """
+            SELECT typ.typname AS type_name, typ.typtype AS type_kind,
+                relation.relname AS relation_name,
+                pg_catalog.format_type(typ.typbasetype, typ.typtypmod) AS base_type,
+                typ.typnotnull AS not_null,
+                typ.typdefault AS default_expression,
+                COALESCE(ARRAY(
+                    SELECT enum.enumlabel FROM pg_catalog.pg_enum AS enum
+                    WHERE enum.enumtypid = typ.oid ORDER BY enum.enumsortorder
+                ), ARRAY[]::text[]) AS enum_labels,
+                COALESCE(ARRAY(
+                    SELECT acl::text FROM unnest(typ.typacl) acl ORDER BY acl::text
+                ), ARRAY[]::text[]) AS acl
+            FROM pg_catalog.pg_type AS typ
+            JOIN pg_catalog.pg_namespace AS n ON n.oid = typ.typnamespace
+            LEFT JOIN pg_catalog.pg_class AS relation ON relation.oid = typ.typrelid
+            WHERE n.nspname = 'public'
+                AND typ.typtype IN ('c', 'd', 'e')
+                AND (relation.relname = ANY(%s) OR typ.typtype IN ('d', 'e'))
+            ORDER BY typ.typname
+            """,
+            parameters,
+        ),
+        "extensions": _rows(
+            cursor,
+            """
+            SELECT ext.extname AS extension_name, ext.extversion AS extension_version,
+                namespace.nspname AS schema_name
+            FROM pg_catalog.pg_extension AS ext
+            JOIN pg_catalog.pg_namespace AS namespace ON namespace.oid = ext.extnamespace
+            WHERE ext.extname = ANY(%s)
+            ORDER BY ext.extname
+            """,
+            (list(_APPLICATION_EXTENSIONS.get(profile, ())),),
+        ),
+        "default_privileges": _rows(
+            cursor,
+            """
+            SELECT owner.rolname AS owner_role, COALESCE(namespace.nspname, '') AS schema_name,
+                defaults.defaclobjtype AS object_type,
+                COALESCE(ARRAY(
+                    SELECT acl::text FROM unnest(defaults.defaclacl) acl ORDER BY acl::text
+                ), ARRAY[]::text[]) AS acl
+            FROM pg_catalog.pg_default_acl AS defaults
+            JOIN pg_catalog.pg_roles AS owner ON owner.oid = defaults.defaclrole
+            LEFT JOIN pg_catalog.pg_namespace AS namespace ON namespace.oid = defaults.defaclnamespace
+            WHERE namespace.nspname = 'public' OR defaults.defaclnamespace = 0
+            ORDER BY 1, 2, 3, 4
+            """,
+        ),
         "functions": _rows(
             cursor,
             """
@@ -382,7 +581,7 @@ def normalized_managed_catalog(cursor: Cursor, profile: str) -> dict[str, object
             WHERE n.nspname = 'public' AND p.proname = ANY(%s)
             ORDER BY p.proname, pg_catalog.pg_get_function_identity_arguments(p.oid)
             """,
-            (list(_PUBLIC_FUNCTIONS.get(profile, ())),),
+            ([name for name, _arguments in _PUBLIC_FUNCTIONS.get(profile, ())],),
         ),
     }
     return document
@@ -533,7 +732,6 @@ def evaluate_profile_drift(
 
     application_count = provider_count = unknown_count = 0
     history = CheckResult("history", LEDGER_HISTORY_MISMATCH, NOT_EVALUATED, REQUIRED_CHECK_NOT_EVALUATED)
-    catalog = CheckResult("catalog", PROVIDER_SCHEMA_DRIFT, NOT_EVALUATED, REQUIRED_CHECK_NOT_EVALUATED)
     try:
         with _read_only_cursor(connection) as cursor:
             history = _history_check(cursor, manifest, profile, lineage)

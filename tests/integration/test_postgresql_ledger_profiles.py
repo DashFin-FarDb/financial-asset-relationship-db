@@ -264,6 +264,7 @@ class _HistoryUnavailableCursor:
         return self._cursor.__exit__(*args)  # type: ignore[attr-defined,no-any-return]
 
     def execute(self, query: object, parameters: object = None) -> object:
+        """Deny only the provider-history read and delegate every catalog query."""
         if isinstance(query, str) and "supabase_migrations.schema_migrations" in query:
             raise psycopg2.OperationalError("deliberate unavailable history fixture")
         return self._cursor.execute(query, parameters)  # type: ignore[attr-defined,no-any-return]
@@ -279,6 +280,7 @@ class _HistoryUnavailableConnection:
         self._connection = connection
 
     def cursor(self) -> _HistoryUnavailableCursor:
+        """Return a cursor that makes the required history check unavailable."""
         return _HistoryUnavailableCursor(self._connection.cursor())  # type: ignore[attr-defined]
 
     def set_session(self, *, readonly: bool, autocommit: bool) -> None:
@@ -393,7 +395,7 @@ def _verify_profile_drift_contract(
         incomplete = _evaluate_drift(target_url, manifest, profile, runtime_check)
         assert incomplete.status == EVALUATION_INCOMPLETE
         assert incomplete.primary_category is None
-        assert incomplete.unknown_count == 1
+        assert incomplete.unknown_count == 3
     finally:
         _execute_operator_sql(target_url, "DROP TABLE public.cq03c_unknown_scope")
 
