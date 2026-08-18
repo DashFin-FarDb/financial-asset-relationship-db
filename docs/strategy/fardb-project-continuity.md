@@ -129,7 +129,7 @@ Primary authorities:
   unavailable-check fixtures, including an unavailable higher-priority evaluation, return `EVALUATION_INCOMPLETE`;
   startup and readiness prove they cannot mutate schema or migration history; and negative tests prove the restricted
   runtime lacks schema, grant, history-repair, and credential-bootstrap authority.
-- **Last updated:** 2026-08-17
+- **Last updated:** 2026-08-18
 
 ### FPC-2026-08-09-01 — Separate migration and runtime database authority
 
