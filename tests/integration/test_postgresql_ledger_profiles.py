@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+from collections.abc import Callable
 from pathlib import Path
 from urllib.parse import urlsplit, urlunsplit
 from uuid import uuid4
@@ -36,6 +37,7 @@ from scripts.postgresql_ledger import (
     EXPECTED_PROFILES,
     LOGICAL_TARGET_ORDER,
     LedgerManifest,
+    MigrationEntry,
     PlannedTarget,
     apply_profile_to_database,
     load_and_validate_manifest,
@@ -314,25 +316,73 @@ def _execute_operator_sql(target_url: str, statement: object, parameters: tuple[
         connection.close()
 
 
-def _verify_profile_drift_contract(
-    engine: sqlalchemy.Engine,
+def _replace_migration_history(target_url: str, history: tuple[tuple[str, str], ...]) -> None:
+    """Replace only disposable provider-history rows for adoption-prefix calibration."""
+    connection = psycopg2.connect(target_url)
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute("DELETE FROM supabase_migrations.schema_migrations")
+            cursor.executemany(
+                "INSERT INTO supabase_migrations.schema_migrations (version, statements, name) "
+                "VALUES (%s, ARRAY[]::text[], %s)",
+                history,
+            )
+        connection.commit()
+    finally:
+        connection.close()
+
+
+def _verify_hosted_adoption_prefix(
     target_url: str,
     manifest: LedgerManifest,
     profile: str,
+    runtime_check: Callable[[], None],
 ) -> None:
-    """Prove clean, primary-category, incomplete, and no-mutation behavior."""
+    """Prove every canonical marker accepts only its exact preceding hosted prefix."""
 
-    def runtime_check() -> None:
-        """Convert completed compatibility failures to the drift callback contract."""
+    def evaluate_marker(marker: MigrationEntry) -> DriftReport:
+        """Evaluate one marker through a fresh read-only connection."""
+        connection = psycopg2.connect(target_url)
         try:
-            _verify_operator_contract(engine, target_url, profile)
-        except SchemaCompatibilityError as exc:
-            raise RuntimeCompatibilityMismatch from exc
+            return evaluate_profile_drift(
+                connection,
+                manifest,
+                profile,
+                "hosted-legacy-v1",
+                "hosted",
+                runtime_check=runtime_check,
+                adoption_timestamp=marker.timestamp,
+            )
+        finally:
+            connection.close()
 
-    clean_before = _evaluate_drift(target_url, manifest, profile, runtime_check)
-    assert clean_before.status == PASS, f"clean catalog digest for {profile}: {clean_before.actual_catalog_digest}"
+    selected = manifest.migrations_for_profile(profile)
     history_before = _migration_history(target_url)
+    receipts = tuple(
+        (str(receipt["timestamp"]), str(receipt["name"]))
+        for receipt in manifest.data["lineages"]["hosted-legacy-v1"]["receipts"]
+    )
+    adopted_history = receipts
+    _replace_migration_history(target_url, adopted_history)
+    try:
+        for marker in selected:
+            adoption = evaluate_marker(marker)
+            assert adoption.status == PASS, adoption.as_public_dict()
+            assert _migration_history(target_url) == adopted_history
+            adopted_history += ((marker.timestamp, marker.filename[15:-4]),)
+            _replace_migration_history(target_url, adopted_history)
+    finally:
+        _replace_migration_history(target_url, history_before)
+    assert _migration_history(target_url) == history_before
 
+
+def _verify_history_and_catalog_drift(
+    target_url: str,
+    manifest: LedgerManifest,
+    profile: str,
+    runtime_check: Callable[[], None],
+) -> None:
+    """Prove provider-history/catalog classification and unavailable priority."""
     selected = manifest.migrations_for_profile(profile)
     original_version = selected[0].timestamp
     changed_version = "20991231235959"
@@ -382,6 +432,28 @@ def _verify_profile_drift_contract(
             sql.SQL("ALTER TABLE {} DROP COLUMN cq03c_unrecorded").format(sql.Identifier("public", table_name)),
         )
 
+
+def _verify_profile_drift_contract(
+    engine: sqlalchemy.Engine,
+    target_url: str,
+    manifest: LedgerManifest,
+    profile: str,
+) -> None:
+    """Prove clean, primary-category, incomplete, and no-mutation behavior."""
+
+    def runtime_check() -> None:
+        """Convert completed compatibility failures to the drift callback contract."""
+        try:
+            _verify_operator_contract(engine, target_url, profile)
+        except SchemaCompatibilityError as exc:
+            raise RuntimeCompatibilityMismatch from exc
+
+    clean_before = _evaluate_drift(target_url, manifest, profile, runtime_check)
+    assert clean_before.status == PASS, f"clean catalog digest for {profile}: {clean_before.actual_catalog_digest}"
+    history_before = _migration_history(target_url)
+
+    _verify_history_and_catalog_drift(target_url, manifest, profile, runtime_check)
+
     if "graph" in EXPECTED_PROFILES[profile]:
         owner_role = f"cq03c_owner_{uuid4().hex[:12]}"
         _execute_operator_sql(target_url, sql.SQL("CREATE ROLE {} NOLOGIN").format(sql.Identifier(owner_role)))
@@ -426,6 +498,8 @@ def _verify_profile_drift_contract(
     assert clean_after.expected_catalog_digest == clean_before.expected_catalog_digest
     assert clean_after.actual_catalog_digest == clean_before.actual_catalog_digest
     assert _migration_history(target_url) == history_before
+
+    _verify_hosted_adoption_prefix(target_url, manifest, profile, runtime_check)
 
 
 def _verify_graph_data_contract(engine: sqlalchemy.Engine, profile: str) -> None:

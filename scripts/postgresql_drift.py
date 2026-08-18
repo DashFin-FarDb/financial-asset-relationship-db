@@ -15,6 +15,7 @@ from scripts.postgresql_ledger import (
     EXPECTED_PROFILES,
     MANAGED_SCOPE_VERSION,
     LedgerManifest,
+    MigrationEntry,
 )
 
 PASS = "PASS"
@@ -33,6 +34,7 @@ HIGHER_PRIORITY_CHECK_NOT_EVALUATED = "HIGHER_PRIORITY_CHECK_NOT_EVALUATED"
 REQUIRED_CHECK_NOT_EVALUATED = "REQUIRED_CHECK_NOT_EVALUATED"
 OUTSIDE_MANAGED_SCOPE = "OUTSIDE_MANAGED_SCOPE"
 LINEAGE_NOT_ADOPTED = "LINEAGE_NOT_ADOPTED"
+ADOPTION_MARKER_INVALID = "ADOPTION_MARKER_INVALID"
 
 _CATEGORY_ORDER = (
     LEDGER_HISTORY_MISMATCH,
@@ -141,6 +143,9 @@ class DriftReport:
     lineage: str
     normalization_profile: str
     managed_scope_version: str
+    history: str
+    catalog: str
+    runtime_compatibility: str
     required_check_count: int
     evaluated_check_count: int
     not_evaluated_count: int
@@ -161,6 +166,9 @@ class DriftReport:
             "lineage": self.lineage,
             "normalization_profile": self.normalization_profile,
             "managed_scope_version": self.managed_scope_version,
+            "history": self.history,
+            "catalog": self.catalog,
+            "runtime_compatibility": self.runtime_compatibility,
             "required_check_count": self.required_check_count,
             "evaluated_check_count": self.evaluated_check_count,
             "not_evaluated_count": self.not_evaluated_count,
@@ -644,17 +652,71 @@ def normalized_managed_catalog(cursor: Cursor, profile: str) -> dict[str, object
     return document
 
 
-def _history_check(cursor: Cursor, manifest: LedgerManifest, profile: str, lineage: str) -> CheckResult:
-    """Compare exact ordered migration identities for an adopted lineage."""
-    if lineage != "fresh-v1":
-        return CheckResult("history", LEDGER_HISTORY_MISMATCH, NOT_EVALUATED, LINEAGE_NOT_ADOPTED)
-    expected = [
-        (entry.timestamp, entry.filename[len(entry.timestamp) + 1 : -4])
-        for entry in manifest.migrations_for_profile(profile)
-    ]
+def _migration_identity(entry: MigrationEntry) -> tuple[str, str]:
+    """Return one validated manifest migration's provider history identity."""
+    timestamp = entry.timestamp
+    filename = entry.filename
+    return timestamp, filename[len(timestamp) + 1 : -4]
+
+
+def _fresh_adoption_history(
+    migrations: tuple[MigrationEntry, ...], adoption_timestamp: str | None
+) -> tuple[tuple[str, str], ...] | None:
+    """Return complete fresh history only when no adoption marker is requested."""
+    if adoption_timestamp is not None:
+        return None
+    return tuple(_migration_identity(entry) for entry in migrations)
+
+
+def _hosted_adoption_history(
+    manifest: LedgerManifest,
+    migrations: tuple[MigrationEntry, ...],
+    adoption_timestamp: str | None,
+) -> tuple[tuple[str, str], ...] | None:
+    """Return the reviewed hosted receipts plus canonical markers before one marker."""
+    if adoption_timestamp is None:
+        return None
+    selected_timestamps = tuple(entry.timestamp for entry in migrations)
+    try:
+        marker_index = selected_timestamps.index(adoption_timestamp)
+    except ValueError:
+        return None
+    receipts = manifest.data["lineages"]["hosted-legacy-v1"]["receipts"]
+    expected = [(str(receipt["timestamp"]), str(receipt["name"])) for receipt in receipts]
+    expected.extend(_migration_identity(entry) for entry in migrations[:marker_index])
+    return tuple(sorted(expected))
+
+
+def expected_adoption_history(
+    manifest: LedgerManifest,
+    profile: str,
+    lineage: str,
+    adoption_timestamp: str | None,
+) -> tuple[tuple[str, str], ...] | None:
+    """Resolve exact fresh history or the strict prefix before one hosted marker."""
+    migrations = manifest.migrations_for_profile(profile)
+    if lineage == "fresh-v1":
+        return _fresh_adoption_history(migrations, adoption_timestamp)
+    if lineage == "hosted-legacy-v1":
+        return _hosted_adoption_history(manifest, migrations, adoption_timestamp)
+    return None
+
+
+def _history_check(
+    cursor: Cursor,
+    manifest: LedgerManifest,
+    profile: str,
+    lineage: str,
+    adoption_timestamp: str | None = None,
+) -> CheckResult:
+    """Compare exact history or the ordered prefix before one hosted marker."""
+    expected = expected_adoption_history(manifest, profile, lineage, adoption_timestamp)
+    if expected is None:
+        reason = ADOPTION_MARKER_INVALID if adoption_timestamp is not None else LINEAGE_NOT_ADOPTED
+        return CheckResult("history", LEDGER_HISTORY_MISMATCH, NOT_EVALUATED, reason)
     try:
         cursor.execute("SELECT version, name FROM supabase_migrations.schema_migrations ORDER BY version")
-        actual = [(str(version), str(name)) for version, name in cursor.fetchall()]
+        actual = tuple((str(version), str(name)) for version, name in cursor.fetchall())
     except Exception:  # noqa: BLE001 - unavailable history is a bounded required-check result
         return CheckResult("history", LEDGER_HISTORY_MISMATCH, NOT_EVALUATED, REQUIRED_CHECK_NOT_EVALUATED)
     expected_digest = hashlib.sha256(canonical_catalog_bytes({"history": expected})).hexdigest()
@@ -746,6 +808,64 @@ def select_public_status(checks: Sequence[CheckResult]) -> tuple[str, str | None
     return PASS, None, reasons
 
 
+def _incomplete_profile_report(target_class: str, profile: str, lineage: str) -> DriftReport:
+    """Return the bounded result for an unknown profile or lineage contract."""
+    checks = (
+        CheckResult("history", LEDGER_HISTORY_MISMATCH, NOT_EVALUATED, REQUIRED_CHECK_NOT_EVALUATED),
+        CheckResult("catalog", PROVIDER_SCHEMA_DRIFT, NOT_EVALUATED, REQUIRED_CHECK_NOT_EVALUATED),
+        CheckResult(
+            "runtime_compatibility",
+            RUNTIME_COMPATIBILITY_MISMATCH,
+            NOT_EVALUATED,
+            REQUIRED_CHECK_NOT_EVALUATED,
+        ),
+    )
+    status, primary, reasons = select_public_status(checks)
+    return DriftReport(
+        status,
+        primary,
+        reasons,
+        target_class,
+        profile,
+        lineage,
+        CATALOG_NORMALIZATION_VERSION,
+        MANAGED_SCOPE_VERSION,
+        NOT_EVALUATED,
+        NOT_EVALUATED,
+        NOT_EVALUATED,
+        3,
+        0,
+        3,
+        0,
+        0,
+        0,
+        None,
+        None,
+    )
+
+
+def _profile_catalog_checks(
+    connection: Connection,
+    manifest: LedgerManifest,
+    profile: str,
+    lineage: str,
+    adoption_timestamp: str | None,
+) -> tuple[CheckResult, CheckResult, int, int, int]:
+    """Evaluate history and catalog in one always-rolled-back read-only snapshot."""
+    history = CheckResult("history", LEDGER_HISTORY_MISMATCH, NOT_EVALUATED, REQUIRED_CHECK_NOT_EVALUATED)
+    application_count = provider_count = unknown_count = 0
+    try:
+        with _read_only_cursor(connection) as cursor:
+            if adoption_timestamp is None:
+                history = _history_check(cursor, manifest, profile, lineage)
+            else:
+                history = _history_check(cursor, manifest, profile, lineage, adoption_timestamp)
+            catalog, application_count, provider_count, unknown_count = _catalog_check(cursor, manifest, profile)
+    except Exception:  # noqa: BLE001 - transaction/catalog unavailability is a bounded required-check result
+        catalog = CheckResult("catalog", PROVIDER_SCHEMA_DRIFT, NOT_EVALUATED, REQUIRED_CHECK_NOT_EVALUATED)
+    return history, catalog, application_count, provider_count, unknown_count
+
+
 def evaluate_profile_drift(
     connection: Connection,
     manifest: LedgerManifest,
@@ -754,47 +874,15 @@ def evaluate_profile_drift(
     target_class: str,
     *,
     runtime_check: Callable[[], None] | None,
+    adoption_timestamp: str | None = None,
 ) -> DriftReport:
     """Evaluate all safe required checks and return only bounded public diagnostics."""
     if profile not in EXPECTED_PROFILES or lineage not in ("fresh-v1", "hosted-legacy-v1"):
-        checks = (
-            CheckResult("history", LEDGER_HISTORY_MISMATCH, NOT_EVALUATED, REQUIRED_CHECK_NOT_EVALUATED),
-            CheckResult("catalog", PROVIDER_SCHEMA_DRIFT, NOT_EVALUATED, REQUIRED_CHECK_NOT_EVALUATED),
-            CheckResult(
-                "runtime_compatibility",
-                RUNTIME_COMPATIBILITY_MISMATCH,
-                NOT_EVALUATED,
-                REQUIRED_CHECK_NOT_EVALUATED,
-            ),
-        )
-        status, primary, reasons = select_public_status(checks)
-        return DriftReport(
-            status,
-            primary,
-            reasons,
-            target_class,
-            profile,
-            lineage,
-            CATALOG_NORMALIZATION_VERSION,
-            MANAGED_SCOPE_VERSION,
-            3,
-            0,
-            3,
-            0,
-            0,
-            0,
-            None,
-            None,
-        )
+        return _incomplete_profile_report(target_class, profile, lineage)
 
-    application_count = provider_count = unknown_count = 0
-    history = CheckResult("history", LEDGER_HISTORY_MISMATCH, NOT_EVALUATED, REQUIRED_CHECK_NOT_EVALUATED)
-    try:
-        with _read_only_cursor(connection) as cursor:
-            history = _history_check(cursor, manifest, profile, lineage)
-            catalog, application_count, provider_count, unknown_count = _catalog_check(cursor, manifest, profile)
-    except Exception:  # noqa: BLE001 - transaction/catalog unavailability is a bounded required-check result
-        catalog = CheckResult("catalog", PROVIDER_SCHEMA_DRIFT, NOT_EVALUATED, REQUIRED_CHECK_NOT_EVALUATED)
+    history, catalog, application_count, provider_count, unknown_count = _profile_catalog_checks(
+        connection, manifest, profile, lineage, adoption_timestamp
+    )
     runtime = _runtime_check(runtime_check)
     checks = (history, catalog, runtime)
     status, primary, reasons = select_public_status(checks)
@@ -808,6 +896,9 @@ def evaluate_profile_drift(
         lineage,
         CATALOG_NORMALIZATION_VERSION,
         MANAGED_SCOPE_VERSION,
+        history.state,
+        catalog.state,
+        runtime.state,
         len(checks),
         len(checks) - not_evaluated,
         not_evaluated,
