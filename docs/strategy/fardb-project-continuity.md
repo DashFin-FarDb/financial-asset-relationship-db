@@ -109,8 +109,8 @@ Primary authorities:
 
 - **Type:** Database architecture / production qualification blocker
 - **Status:** In progress — CQ-03B-R1/R2, CQ-03C, CQ-03D-00, and CQ-03D-01 are verified through merged PRs #1640,
-  #1641, #1643, #1644, and #1646; CQ-03D-02 target/permit approval and hosted preflight remain separately approved
-  and unexecuted
+  #1641, #1643, #1644, and #1646; CQ-03D-02 target/permit approval and hosted preflight remain unexecuted and require
+  separate approval
 - **Decision or objective:** Keep one repository-owned PostgreSQL schema authority while composing immutable auth,
   graph, and coordination component ledgers through one target-profile manifest. Preserve exact provider
   `statements[]` as lineage evidence, build clean targets from new forward-dated baselines, and retain ADR 0009's
