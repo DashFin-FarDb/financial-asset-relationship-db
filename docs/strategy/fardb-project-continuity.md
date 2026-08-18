@@ -2,9 +2,9 @@
 
 **Repository:** `DashFin-FarDb/financial-asset-relationship-db`
 **Established:** 2026-07-21
-**Repository evidence cutoff:** `main` at `1b180001b15473953d89a1b8d59a6127ab568095`
+**Repository evidence cutoff:** `main` at `784d092f1204b59e612efd4ff3949f3e3fed12cf`
 **Ratified setup baseline:** CQ-03B-R1 ratified on 2026-08-17 at `main@76f1194f1f9b83cb9ed8f0bb0083824ededbe0ae`
-**Continuity status:** CQ-03B-R1 and CQ-03B-R2 merged; CQ-03C is implemented in draft PR #1643 pending exact-head gates
+**Continuity status:** CQ-03B-R1, CQ-03B-R2, and CQ-03C are merged; CQ-03D remains unapproved and unexecuted
 
 This ledger preserves durable project decisions, plans, milestones, and handoffs across ChatGPT, Codex, and
 repository work. It is an index of authoritative evidence, not a replacement for detailed specifications, issues,
@@ -72,11 +72,16 @@ At the evidence cutoff:
   runtime/migration boundary, Sonar, CodeRabbit, and Cubic passed. Greptile's exact-head output was reviewed and
   triaged, and GitHub recorded zero unresolved review threads at merge.
   The provider was not mutated.
-- CQ-03C was human-ratified from `main@1b180001b15473953d89a1b8d59a6127ab568095` and is implemented in draft PR
-  #1643. Its read-only evaluator binds profile-specific normalized catalog digests, enforces ADR 0009 precedence,
-  distinguishes mismatch from unavailable evaluation, and adds disposable PostgreSQL 15/16 deliberate-drift and
-  no-history-mutation fixtures. Exact-head CI and review closure remain pending; no hosted target was queried or
-  mutated.
+- CQ-03C was human-ratified from `main@1b180001b15473953d89a1b8d59a6127ab568095` and merged through PR #1643 as
+  `784d092f1204b59e612efd4ff3949f3e3fed12cf` on 2026-08-18. Its read-only evaluator binds profile-specific
+  normalized catalog digests, enforces ADR 0009 precedence, distinguishes mismatch from unavailable evaluation, and
+  adds disposable PostgreSQL 15/16 deliberate-drift and no-history-mutation fixtures. The authoritative exact-head
+  PostgreSQL 15/16 and Python evidence passed. DevSkim, Semgrep, Snyk, CodeQL, Pyre/Pysa, Bandit, and Bearer passed;
+  Aikido returned no result after three bounded waits and was not claimed as passing. Required unavailable-check
+  fixtures, including an unavailable higher-priority evaluation, return `EVALUATION_INCOMPLETE`; startup and
+  readiness prove they cannot mutate schema or migration history; and restricted-runtime tests retain the
+  credential-bootstrap authority boundary. Review closure was completed before merge. No hosted target was queried
+  or mutated.
 
 Primary authorities:
 
@@ -97,8 +102,8 @@ Primary authorities:
 ### FPC-2026-08-13-01 — Establish one profile-scoped PostgreSQL migration authority and drift gate
 
 - **Type:** Database architecture / production qualification blocker
-- **Status:** In progress — CQ-03B-R1 and R2 are verified through merged PRs #1640 and #1641; ratified CQ-03C is in
-  draft PR #1643 pending exact-head verification and review closure
+- **Status:** In progress — CQ-03B-R1, R2, and CQ-03C are verified through merged PRs #1640, #1641, and #1643;
+  CQ-03D requires separate approval before its operational phase
 - **Decision or objective:** Keep one repository-owned PostgreSQL schema authority while composing immutable auth,
   graph, and coordination component ledgers through one target-profile manifest. Preserve exact provider
   `statements[]` as lineage evidence, build clean targets from new forward-dated baselines, and retain ADR 0009's
@@ -112,9 +117,11 @@ Primary authorities:
   Canonical SQL belongs under `supabase/ledgers/<component>/migrations/`; `supabase/ledger-profiles.json` is the sole
   composition authority. `fresh-v1` and non-executable `hosted-legacy-v1` lineage records explain truthful target
   history without creating a second schema authority.
-- **Dependencies or blockers:** R1 and R2 merge gates are satisfied. CQ-03C requires its PostgreSQL 15/16,
-  no-mutation, quality, and review gates at the final exact head. CQ-03D retains separate human approval and a
-  single-use permit bound to exact SHA, profile, target fingerprint, digest, and one timestamp.
+- **Dependencies or blockers:** CQ-03B-R1/R2 and CQ-03C merge gates are satisfied. CQ-03D has no approved target,
+  permit, or hosted preflight evidence. CQ-03D retains separate human approval and a single-use permit bound to exact SHA,
+  profile, target fingerprint, digest, and one timestamp. The current repository exposes a tested read-only evaluator
+  API but not a CQ-03D target-bound operator command; a later, separately scoped implementation decision is required
+  before any hosted preflight.
 - **Evidence and provenance:** merged CQ-03A PR #1634 and squash
   `2dd9f64136eb653284b0f5330a16ee99f6b0b491`; merged clarification PR #1636; merged R1 PR #1640, reviewed head
   `363b4a880011b969e026f31b41bf1296c5ba95c0`, and merge
@@ -122,13 +129,14 @@ Primary authorities:
   Supabase CLI documentation and pinned version review; explicit human ratification; GitHub #1633; Linear DAS-62;
   R2 PR #1641, reviewed head `9d1cdd77d24ecdfefb2c86633342d98c7c9f262e`, merge
   `ca61a2694c384344ae4a73a4145cd0ff1c8751d4`, exact-head PostgreSQL 15/16 and Docker-boundary CI, passing
-  independent reviews, and zero unresolved review threads.
-- **Next action and completion test:** Complete exact-head CQ-03C CI and independent review on PR #1643 without
-  crossing the CQ-03D provider-mutation boundary. CQ-03C closes only when each supported profile detects its catalog,
-  authority, and history drift classes with deterministic fail-closed diagnostics on PostgreSQL 15 and 16; required
-  unavailable-check fixtures, including an unavailable higher-priority evaluation, return `EVALUATION_INCOMPLETE`;
-  startup and readiness prove they cannot mutate schema or migration history; and negative tests prove the restricted
-  runtime lacks schema, grant, history-repair, and credential-bootstrap authority.
+  independent reviews, and zero unresolved review threads; CQ-03C PR #1643 merge
+  `784d092f1204b59e612efd4ff3949f3e3fed12cf` with its exact-head PostgreSQL 15/16, Python, security, and review
+  evidence.
+- **Next action and completion test:** Review and separately ratify a CQ-03D approval pack before any target-bound
+  preflight. A future CQ-03D execution decision closes only after a protected, single-use permit is bound to the
+  selected target and one timestamp; every required history, catalog, compatibility, and authorization check reports
+  `PASS`; and the history-only action plus post-action evidence are attached without DDL, DML, role, grant, credential,
+  or provider-configuration change.
 - **Last updated:** 2026-08-18
 
 ### FPC-2026-08-09-01 — Separate migration and runtime database authority
@@ -516,13 +524,13 @@ Primary authorities:
 - Durable graph load, startup provenance, promotion checking, recovery control plane, API contracts, governance, DR
   documentation, and release-evidence mechanisms exist in the repository.
 - RC1 has candidate-specific approved hosted and restore evidence.
-- `main` is `1b180001b15473953d89a1b8d59a6127ab568095` at this cutoff.
+- `main` is `784d092f1204b59e612efd4ff3949f3e3fed12cf` at this cutoff.
 - CQ-01/CQ-02 are closed through merged PR #1608 with exact PostgreSQL 15/16 authority evidence. QH-01 is closed
   through merged PR #1632. Provider rollout and production qualification remain separate evidence obligations.
 - CQ-03 is the active critical-path programme. CQ-03A is complete through accepted ADR 0009 and merged PR #1634;
   CQ-03B-R1 is human-ratified, recorded by ADR 0010, and merged through PR #1640. R2 is verified and merged through
-  PR #1641. CQ-03C is ratified and implemented in draft PR #1643 pending exact-head gates; provider history adoption
-  remains separately authorized under CQ-03D.
+  PR #1641. CQ-03C is verified and merged through PR #1643. Provider history adoption remains unapproved and
+  separately authorized under CQ-03D.
 - GRAC v1 is `CURRENT` only for the exact-SHA staging slice recorded by PR #1598; broader claims remain `NEXT`.
 
 ### Governing constraints
@@ -537,10 +545,10 @@ Primary authorities:
 
 ### Next highest-value action
 
-Complete exact-head PostgreSQL 15/16, no-mutation, quality, and review gates for CQ-03C draft PR #1643 under active
-commitment **FPC-2026-08-13-01**, then return CQ-03D to separate human decision. Do not replay or reconstruct SQL under
-historical timestamps, run `supabase db pull` against hosted state, retain provider link state, apply to a hosted
-target, or select `hosted-legacy-v1` as adopted before CQ-03D.
+Review the CQ-03D approval pack and separately decide whether to authorize a target-bound, read-only preflight under
+active commitment **FPC-2026-08-13-01**. Do not replay or reconstruct SQL under historical timestamps, run
+`supabase db pull` against hosted state, retain provider link state, apply to a hosted target, or select
+`hosted-legacy-v1` as adopted before a single-use CQ-03D permit exists.
 Issue #1623 remains a small P2 follow-up and does not displace the CQ-03 programme. Release repeatability
 (**FPC-2026-07-21-02**) remains active.
 
@@ -556,7 +564,7 @@ credential-bootstrap authority.
 
 ### Sources reviewed
 
-- Repository `main` through `1b180001b15473953d89a1b8d59a6127ab568095` on 2026-08-18.
+- Repository `main` through `784d092f1204b59e612efd4ff3949f3e3fed12cf` on 2026-08-18.
 - Repository agent instructions and production-architecture declaration.
 - Enterprise-readiness index, audit, roadmap, PR board, validation-gap audit, release checklist, release evidence pack,
   hosted staging baseline, operational evidence framework, drill and scale-validation documents, and risk register.

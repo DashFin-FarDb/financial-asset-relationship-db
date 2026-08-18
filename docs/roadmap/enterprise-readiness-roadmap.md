@@ -10,9 +10,24 @@ Status legend follows the [Release Evidence Pack](../release-evidence-pack.md): 
 
 ## Summary
 
-The repo is no longer in the early enterprise-readiness remediation phase. Observability, rebuild coordination, operator authorization, durable persistence, startup/reload integration, durable promotion checks, API contract cleanup, distributed hosting semantics, governance authority, security/governance documentation, DR documentation, and the release evidence pack now exist in the repository baseline.
+The repository is no longer in the early enterprise-readiness remediation phase. Observability, rebuild coordination, operator authorization, durable persistence, startup/reload integration, durable promotion checks, API contract cleanup, distributed hosting semantics, governance authority, security/governance documentation, and DR documentation now exist in the repository baseline.
+The release evidence pack also exists and governs release-proof capture.
 
 The remaining roadmap is about release execution: attaching target-environment evidence, rehearsing restore, and closing bounded follow-up seams without reopening the architecture.
+
+## Current critical-path programme — CQ-03 PostgreSQL ledger adoption
+
+CQ-03A, CQ-03B-R1/R2, and CQ-03C are complete at repository scope through merged PRs #1634, #1640, #1641, and #1643.
+The repository can build the explicit auth, graph, coordination, and combined profiles on supported PostgreSQL versions
+and can evaluate ledger, catalog, and runtime drift read-only. This is not hosted adoption evidence.
+
+| Item                                     | Status                                     | Next evidence required                                                                                         | Non-negotiable boundary                                                                                         |
+| ---------------------------------------- | ------------------------------------------ | -------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| CQ-03D hosted migration-history adoption | Blocked — explicit human approval required | A protected, single-use permit for one target/profile/timestamp and a passing target-bound read-only preflight | History-only reconciliation; no DDL, DML, grant, role, credential, deployment, or provider-configuration change |
+
+The current repository has a tested read-only drift-evaluator API, but not a CQ-03D target-bound operator command.
+Implementing that command is a separate, file-bounded decision after the approval pack is ratified; it must not be
+created ad hoc during a hosted operation.
 
 ## Release Evidence Now
 
@@ -63,7 +78,7 @@ These items are valid but should not be bundled into the release-evidence reconc
 - If hosted promotion evidence is not attached, repository tests may be mistaken for target-environment durable graph proof.
 - If restore rehearsal slips, the DR gate remains manual-documentation complete but operationally unproven.
 - If stale status language remains in canonical docs, future PRs will plan against obsolete roadmap assumptions.
-- If follow-up contract or scale work is bundled into release evidence capture, the repo may reintroduce broad, multi-decision PRs.
+- If follow-up contract or scale work is bundled into release evidence capture, the repository may reintroduce broad, multi-decision PRs.
 
 ## Proposed Delivery Order
 

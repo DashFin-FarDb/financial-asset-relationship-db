@@ -10,7 +10,9 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 ADR_0009 = REPO_ROOT / "docs" / "adr" / "0009-postgresql-migration-ledger-and-drift-contract.md"
 ADR_0010 = REPO_ROOT / "docs" / "adr" / "0010-historical-receipt-evidence-and-target-ledger-profiles.md"
 CONTINUITY = REPO_ROOT / "docs" / "strategy" / "fardb-project-continuity.md"
+MIGRATION_RUNBOOK = REPO_ROOT / "docs" / "runbooks" / "database-migration-authority.md"
 SETUP_BASELINE = "76f1194f1f9b83cb9ed8f0bb0083824ededbe0ae"  # DevSkim: ignore all
+CQ03C_MERGE = "784d092f1204b59e612efd4ff3949f3e3fed12cf"  # DevSkim: ignore all
 
 
 def _load(path: Path) -> str:
@@ -149,7 +151,7 @@ def test_continuity_records_merged_r2_without_claiming_provider_delivery() -> No
     assert SETUP_BASELINE in header
     assert "CQ-03B-R1 ratified on 2026-08-17" in header
     assert "ADR 0010" in continuity
-    assert "CQ-03B-R1 and CQ-03B-R2 merged" in header
+    assert "CQ-03B-R1, CQ-03B-R2, and CQ-03C are merged" in header
     assert "R2 then merged through PR #1641" in continuity
     assert "The provider was not mutated" in continuity
     assert "unavailable higher-priority evaluation" in continuity
@@ -159,3 +161,37 @@ def test_continuity_records_merged_r2_without_claiming_provider_delivery() -> No
     assert "CQ-03D retains separate human approval" in continuity
     assert "No hosted schema, migration history, credential, provider link state" in continuity
     assert "CQ-03B-R1 merged through PR #1640" in continuity
+
+
+def test_continuity_records_merged_cq03c_without_claiming_hosted_adoption() -> None:
+    """The handoff must advance CQ-03C but retain CQ-03D's separate authority."""
+    continuity = _load(CONTINUITY)
+    header = "\n".join(continuity.splitlines()[:8])
+    assert CQ03C_MERGE in header
+    assert "CQ-03C is implemented in draft PR #1643" not in continuity
+    assert "CQ-03C was human-ratified" in continuity
+    assert "CQ-03D has no approved target, permit, or hosted preflight evidence" in _compact(continuity)
+    assert "CQ-03D remains unapproved and unexecuted" in header
+
+
+def test_cq03d_runbook_is_preparation_not_connected_execution() -> None:
+    """The approval package must bind future adoption while withholding an ad hoc executor."""
+    runbook = _compact(_load(MIGRATION_RUNBOOK))
+    assert "CQ-03D is not an extension of the normal PostgreSQL migration command" in runbook
+    assert "protected, single-use permit" in runbook
+    assert "exact reviewed repository SHA" in runbook
+    assert "opaque `fardb-target-fingerprint-v1` target fingerprint" in runbook
+    assert "`fardb-ledger-profiles-v1` manifest SHA-256" in runbook
+    assert "exactly one allowlisted canonical migration timestamp" in runbook
+    assert "python -m scripts.postgresql_ledger validate" in runbook
+    assert "TARGET_IDENTITY_INDETERMINATE" in runbook
+    assert "The repository currently exposes the tested `evaluate_profile_drift()` API" in runbook
+    assert "No database-connected command is approved by this preparation package" in runbook
+    assert "`--db-url <permit-bound-dsn>` argument" in runbook
+    assert "reject a missing, caller-substituted, or differently targeted check" in runbook
+    assert "separate bounded `runtime_compatibility` and `runtime_authority` results" in runbook
+    assert "`supabase migration repair <timestamp> --status applied --db-url <permit-bound-dsn>`" in runbook
+    assert "reject an operator-supplied target override, `--linked`, `--project-ref`, `--local`" in runbook
+    assert "`supabase db push --dry-run --db-url <permit-bound-dsn>`" in runbook
+    assert "It must immediately repeat migration-list parity, normalized drift" in runbook
+    assert "never applies DDL" in runbook
