@@ -8,6 +8,8 @@ from collections import deque
 from collections.abc import Sequence
 from typing import Any
 
+import pytest
+
 from scripts.postgresql_drift import (
     CHECK_DRIFT,
     CHECK_PASSED,
@@ -38,6 +40,8 @@ from scripts.postgresql_drift import (
     select_public_status,
 )
 from scripts.postgresql_ledger import load_and_validate_manifest
+
+pytestmark = pytest.mark.unit
 
 
 class StubCursor:
