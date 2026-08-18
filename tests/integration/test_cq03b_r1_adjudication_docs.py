@@ -182,10 +182,7 @@ def test_continuity_current_main_cutoffs_agree() -> None:
     patterns = {
         "header": r"^\*\*Repository evidence cutoff:\*\* `main` at `([0-9a-f]{40})`$",
         "handoff": r"^- `main` is `([0-9a-f]{40})` at this cutoff\.$",
-        "sources": (
-            r"^- Repository `main` through `([0-9a-f]{40})` "
-            r"on \d{4}-\d{2}-\d{2}\.$"
-        ),
+        "sources": (r"^- Repository `main` through `([0-9a-f]{40})` " r"on \d{4}-\d{2}-\d{2}\.$"),
     }
 
     cutoffs = {}
