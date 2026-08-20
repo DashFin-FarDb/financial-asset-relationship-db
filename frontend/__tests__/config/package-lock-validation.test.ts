@@ -194,6 +194,23 @@ describe("Package-lock.json Validation", () => {
     });
   });
 
+  describe("Nanoid Lock Security Upgrade", () => {
+    it("resolves nanoid to 3.3.18 without making it a direct dependency", () => {
+      const nanoidLock = packageLock.packages?.["node_modules/nanoid"];
+
+      expect(nanoidLock?.version).toBe("3.3.18");
+      expect(packageJson.dependencies).not.toHaveProperty("nanoid");
+      expect(packageJson.devDependencies).not.toHaveProperty("nanoid");
+    });
+
+    it("preserves the PostCSS parent relationship", () => {
+      const postcssLock = packageLock.packages?.["node_modules/postcss"];
+
+      expect(postcssLock?.version).toBe("8.5.23");
+      expect(postcssLock?.dependencies?.nanoid).toBe("^3.3.16");
+    });
+  });
+
   describe("Dependency Tree Integrity", () => {
     it("should have packages field", () => {
       expect(packageLock.packages).toBeDefined();
