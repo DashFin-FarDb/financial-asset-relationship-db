@@ -13,6 +13,7 @@ CONTINUITY = REPO_ROOT / "docs" / "strategy" / "fardb-project-continuity.md"
 ADR_0007 = REPO_ROOT / "docs" / "adr" / "0007-database-authorization-boundary.md"
 EVIDENCE_PACK = REPO_ROOT / "docs" / "release-evidence-pack.md"
 PR_BOARD = REPO_ROOT / "docs" / "roadmap" / "enterprise-readiness-pr-board.md"
+ENTERPRISE_INDEX = REPO_ROOT / "docs" / "enterprise-readiness-index.md"
 ENV_EXAMPLE = REPO_ROOT / ".env.example"
 EVIDENCE_RECORD = REPO_ROOT / "docs" / "evidence-records" / "hp004-db-authz-pass-29991d03.md"
 
@@ -42,6 +43,26 @@ def test_adr0007_closure_runbook_exists() -> None:
     assert "full" in text.lower() and "inventoried" in text.lower()
     assert "hardening_tier=P0" in text
     assert "repository root" in text.lower()
+    assert "H-P0-04 closure is target-bound" in text
+    assert "Staging is Satisfied" in text
+    assert "docs/evidence-records/hp004-db-authz-pass-29991d03.md" in text
+    assert "db_authz: PASS|run-30002002715" in text
+    assert "Until staging closure evidence and named sign-off are attached" not in text
+
+
+def test_enterprise_readiness_index_does_not_reopen_satisfied_gates() -> None:
+    """The current index must preserve target proof without reopening repository or staging closure."""
+    text = ENTERPRISE_INDEX.read_text(encoding="utf-8")
+    satisfied_automated = _markdown_row_containing(text, "| Satisfied - automated")
+    partially_satisfied = _markdown_row_containing(text, "| Partially satisfied")
+    blocked = _markdown_row_containing(text, "| Blocked")
+
+    assert "db_authz: PASS|run-30002002715" in text
+    assert "strict stale-owner restart composition" in satisfied_automated.lower()
+    assert "stale-owner" not in partially_satisfied.lower()
+    assert "release-blocking database authorization closure" not in text.lower()
+    assert "database authorization closure remains release-blocking" not in blocked.lower()
+    assert "target-specific database authorization evidence" in blocked.lower()
 
 
 def test_adr0007_evidence_templates_exist() -> None:

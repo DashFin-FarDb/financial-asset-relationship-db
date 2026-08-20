@@ -1,6 +1,7 @@
 # Enterprise Readiness Index
 
-**Date:** 2026-07-15
+**Publication date:** 2026-07-15
+**Last reconciled:** 2026-08-21
 **Purpose:** Single entry point for enterprise-readiness audit, roadmap, PR plan, release criteria, and release evidence
 
 ## What To Read
@@ -38,15 +39,17 @@ and mirrored on the [enterprise-readiness PR board](roadmap/enterprise-readiness
 RC dispatch defaults to `hardening_tier=P0` (strict hosted readiness). Soft rehearsal uses `hardening_tier=none`.
 Workflow input currently implements only those two values; P1–P3 remain backlog IDs until tier-specific checks land.
 
+Staging H-P0-04 is Satisfied by the SHA-bound record `db_authz: PASS|run-30002002715`, and strict stale-owner
+restart composition is Satisfied - automated. Neither result is inherited by a later hosted target or release SHA.
+
 The remaining work is no longer primarily architectural. It is concentrated in live release evidence and bounded follow-up hardening:
 
-- release-blocking database authorization closure with restricted live evidence and public redacted proof;
+- fresh SHA-bound database authorization evidence when a production artefact is selected for promotion;
 - hosted promotion evidence showing durable graph truth in the target environment (coordinated via
   `.github/workflows/release-evidence-verify.yml` and attached target-environment outputs);
 - DR restore rehearsal evidence against the documented backup/restore process;
 - release-commit security scanner review and named operator sign-off (captured/reviewed via
   `.github/workflows/release-evidence-verify.yml` plus scanner workflows);
-- strict stale-owner restart composition testing;
 - the operational evidence-capture framework and drill pack for classifying operational proof;
 - the operational drill and scale-validation pack for observability and runbook proof;
 - production-scale validation and evidence-capture discipline for operational drills that stays bounded outside normal CI.
@@ -57,13 +60,13 @@ The DR documentation gap is closed at the strategy and runbook level through [AD
 
 Status legend follows the [Release Evidence Pack](release-evidence-pack.md): **Satisfied - automated**, **Satisfied - documented**, **Satisfied - manual evidence required**, **Partially satisfied**, and **Blocked**.
 
-| Status                               | Current items                                                                                                                                                                                                                                                                                                            |
-| ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Satisfied - automated                | PR 1 durable graph persistence; PR 2 startup load/save integration; PR 4 core density, asset pagination, and frontend/backend contract seams; PR 5 RecoveryGate/reconciliation control-plane path; PR 7 CI-bounded failure-mode and representative-scale validation where covered                                        |
-| Satisfied - documented               | PR 6 distributed hosting semantics; PR C governance/state-machine authority; production architecture and deployment operating model                                                                                                                                                                                      |
-| Satisfied - manual evidence required | PR 3 hosted durable promotion proof for the target environment; PR 8 security scanner summary, exception review, and release sign-off; PR 9 restore rehearsal and post-restore smoke evidence                                                                                                                            |
-| Partially satisfied                  | Strict stale-owner restart composition is covered by integration tests; the operational evidence-capture framework and drill pack are documented; production-scale validation remains future operating-maturity work                                                                                                     |
-| Blocked                              | Database authorization closure remains release-blocking. Enterprise release sign-off also requires hosted promotion evidence, release-commit security scanner/exception review (via `.github/workflows/release-evidence-verify.yml` plus source workflows), and named operator sign-off + DR restore rehearsal evidence. |
+| Status                               | Current items                                                                                                                                                                                                                                                                                                                                                         |
+| ------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Satisfied - automated                | PR 1 durable graph persistence; PR 2 startup load/save integration; PR 4 core density, asset pagination, and frontend/backend contract seams; PR 5 RecoveryGate/reconciliation control-plane path; PR 7 CI-bounded failure-mode and representative-scale validation where covered; strict stale-owner restart composition |
+| Satisfied - documented               | PR 6 distributed hosting semantics; PR C governance/state-machine authority; production architecture and deployment operating model                                                                                                                                                                                                                                   |
+| Satisfied - manual evidence required | PR 3 hosted durable promotion proof for the target environment; fresh SHA-bound production database authorization evidence when that target is promoted; PR 8 security scanner summary, exception review, and release sign-off; PR 9 restore rehearsal and post-restore smoke evidence                                                                                |
+| Partially satisfied                  | The operational evidence-capture framework and drill pack are documented; production-scale validation remains future operating-maturity work                                                                                                                                                                                                                          |
+| Blocked                              | Enterprise release sign-off for a selected target still requires hosted promotion evidence, target-specific database authorization evidence where applicable, release-commit security scanner/exception review (via `.github/workflows/release-evidence-verify.yml` plus source workflows), named operator sign-off, and DR restore rehearsal evidence.                  |
 
 ## Recommended Reading Order
 
