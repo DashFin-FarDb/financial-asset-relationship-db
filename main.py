@@ -24,12 +24,9 @@ def _load_supabase_client_factory() -> Callable[..., Any] | None:
     return candidate if callable(candidate) else None
 
 
-CREATE_SUPABASE_CLIENT = _load_supabase_client_factory()
-
-
 def _create_configured_supabase_client(url: str | None, key: str | None) -> Any:
     """Create the optional client after validating its runtime boundary."""
-    client_factory = CREATE_SUPABASE_CLIENT
+    client_factory = _load_supabase_client_factory()
     if client_factory is None:
         raise RuntimeError("optional Supabase client API is unavailable")
     missing_variables = tuple(name for name, value in (("SUPABASE_URL", url), ("SUPABASE_KEY", key)) if not value)
@@ -69,7 +66,7 @@ def _test_supabase_api(url: str | None, key: str | None) -> None:
         supabase = _create_configured_supabase_client(url, key)
         print("✅ Supabase client initialized successfully!")
         _query_supabase_api(supabase)
-    except (RuntimeError, ValueError, TypeError, OSError) as error:
+    except (ImportError, RuntimeError, ValueError, TypeError, OSError) as error:
         print(f"❌ Failed to initialize Supabase client: {error}")
 
 
