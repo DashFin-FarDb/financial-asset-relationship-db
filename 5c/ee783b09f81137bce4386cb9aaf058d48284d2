@@ -1,0 +1,23 @@
+frontend/__tests__/config/package-integration.test.ts
+  s_33a25107973364::t_2d71a175d30bc3 70
+frontend/__tests__/config/package-validation.test.ts
+  s_33a25107973364::t_ea3d7930732849 253,266-269
+frontend/__tests__/config/package-lock-validation.test.ts
+  s_33a25107973364::t_ea3d7930732849 584
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "5cee783b09f81137bce4386cb9aaf058d48284d2",
+  "prompts": {},
+  "sessions": {
+    "s_33a25107973364": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a01ef3-688c-7872-bea6-edcd50fdb7a5",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}
