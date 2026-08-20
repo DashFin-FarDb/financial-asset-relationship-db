@@ -116,16 +116,16 @@ describe("Package-lock.json Validation", () => {
       expect(axiosLock).toBeDefined();
     });
 
-    it("should have axios version 1.18.1", () => {
+    it("should have axios version 1.19.0", () => {
       const axiosLock = packageLock.packages?.["node_modules/axios"];
-      expect(axiosLock?.version).toBe("1.18.1");
+      expect(axiosLock?.version).toBe("1.19.0");
     });
 
     it("axios should have resolved URL pointing to registry", () => {
       const axiosLock = packageLock.packages?.["node_modules/axios"];
       expect(axiosLock?.resolved).toBeDefined();
       expect(axiosLock?.resolved).toContain("registry.npmjs.org");
-      expect(axiosLock?.resolved).toContain("axios-1.18.1.tgz");
+      expect(axiosLock?.resolved).toContain("axios-1.19.0.tgz");
     });
 
     it("axios should have integrity hash", () => {
@@ -563,7 +563,7 @@ describe("Package-lock.json Validation", () => {
 
       // Should only have one version of axios
       expect(axiosVersions.size).toBe(1);
-      expect(axiosVersions.has("1.18.1")).toBeTruthy();
+      expect(axiosVersions.has("1.19.0")).toBeTruthy();
     });
 
     it("axios dependencies should be compatible versions", () => {
@@ -581,11 +581,11 @@ describe("Package-lock.json Validation", () => {
   });
 
   describe("Backwards Compatibility", () => {
-    it("axios 1.18.1 should be compatible with existing code", () => {
+    it("axios 1.19.0 should be compatible with existing code", () => {
       const axiosLock = packageLock.packages?.["node_modules/axios"];
       const version = axiosLock?.version;
 
-      expect(version).toBe("1.18.1");
+      expect(version).toBe("1.19.0");
 
       // Major version should be 1 for backward compatibility
       if (version == null) {
