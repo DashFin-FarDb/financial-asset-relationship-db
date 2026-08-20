@@ -25,6 +25,17 @@ def _load_supabase_client_factory() -> Callable[..., Any] | None:
 
 CREATE_SUPABASE_CLIENT = _load_supabase_client_factory()
 
+
+def _create_configured_supabase_client(url: str | None, key: str | None) -> Any:
+    """Create the optional client after validating its runtime boundary."""
+    client_factory = CREATE_SUPABASE_CLIENT
+    if client_factory is None:
+        raise RuntimeError("optional Supabase client API is unavailable")
+    if not url or not key:
+        raise RuntimeError("missing required environment variables: SUPABASE_URL and/or SUPABASE_KEY")
+    return client_factory(url, key)
+
+
 # Load environment variables from .env
 load_dotenv()
 
@@ -49,10 +60,8 @@ print("Certificate path:", CERT_PATH)
 # Try Supabase API connection
 try:
     print("\n--- Testing Supabase API Connection with New Credentials ---")
-    if CREATE_SUPABASE_CLIENT is None:
-        raise RuntimeError("optional Supabase client API is unavailable")
     # Initialize Supabase client
-    supabase = CREATE_SUPABASE_CLIENT(SUPABASE_URL, SUPABASE_KEY)
+    supabase = _create_configured_supabase_client(SUPABASE_URL, SUPABASE_KEY)
     print("✅ Supabase client initialized successfully!")
 
     try:
