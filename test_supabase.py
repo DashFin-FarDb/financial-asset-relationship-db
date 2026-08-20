@@ -19,6 +19,7 @@ from __future__ import annotations
 import importlib
 import os
 from collections.abc import Callable
+from importlib.util import find_spec
 from typing import Any, Final
 
 import pytest
@@ -26,10 +27,10 @@ import pytest
 
 def _load_supabase_client_factory() -> Callable[..., Any] | None:
     """Return the optional Supabase client factory when its API is available."""
-    try:
-        supabase_module = importlib.import_module("supabase")
-    except ImportError:
+    module_spec = find_spec("supabase")
+    if module_spec is None or module_spec.loader is None:
         return None
+    supabase_module = importlib.import_module("supabase")
     candidate = getattr(supabase_module, "create_client", None)
     return candidate if callable(candidate) else None
 

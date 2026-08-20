@@ -7,6 +7,7 @@ import importlib
 import os
 import socket
 from collections.abc import Callable
+from importlib.util import find_spec
 from typing import Any
 
 import psycopg2  # pyright: ignore[reportMissingTypeStubs]
@@ -15,10 +16,10 @@ from dotenv import load_dotenv
 
 def _load_supabase_client_factory() -> Callable[..., Any] | None:
     """Return the optional Supabase client factory when its API is available."""
-    try:
-        supabase_module = importlib.import_module("supabase")
-    except ImportError:
+    module_spec = find_spec("supabase")
+    if module_spec is None or module_spec.loader is None:
         return None
+    supabase_module = importlib.import_module("supabase")
     candidate = getattr(supabase_module, "create_client", None)
     return candidate if callable(candidate) else None
 
@@ -37,33 +38,37 @@ def _create_configured_supabase_client(url: str | None, key: str | None) -> Any:
     return client_factory(url, key)
 
 
+def _query_supabase_api(supabase: Any) -> None:
+    """Run the manual Supabase smoke queries with bounded diagnostics."""
+    try:
+        print("Attempting to execute query via Supabase API...")
+        response = supabase.table("transactions").select("*").limit(1).execute()
+        print(f"✅ Query successful! Found {len(response.data)} records.")
+        if response.data:
+            print("Sample data:", response.data[0])
+        else:
+            print("No records found in the 'transactions' table.")
+
+        print("\nTrying to list available tables...")
+        response = supabase.rpc("get_tables").execute()
+        if hasattr(response, "data") and response.data:
+            print("Available tables:", response.data)
+        else:
+            print("Could not retrieve table list.")
+    except socket.gaierror:
+        print("⚠️ Network connection issue: Unable to reach Supabase API servers.")
+        print("This is expected in test environments with network restrictions.")
+    except (RuntimeError, ValueError, TypeError) as query_error:
+        print(f"⚠️ Query error: {query_error}")
+
+
 def _test_supabase_api(url: str | None, key: str | None) -> None:
     """Run the optional Supabase portion of the manual connectivity diagnostic."""
     try:
         print("\n--- Testing Supabase API Connection with New Credentials ---")
         supabase = _create_configured_supabase_client(url, key)
         print("✅ Supabase client initialized successfully!")
-
-        try:
-            print("Attempting to execute query via Supabase API...")
-            response = supabase.table("transactions").select("*").limit(1).execute()
-            print(f"✅ Query successful! Found {len(response.data)} records.")
-            if response.data:
-                print("Sample data:", response.data[0])
-            else:
-                print("No records found in the 'transactions' table.")
-
-            print("\nTrying to list available tables...")
-            response = supabase.rpc("get_tables").execute()
-            if hasattr(response, "data") and response.data:
-                print("Available tables:", response.data)
-            else:
-                print("Could not retrieve table list.")
-        except socket.gaierror:
-            print("⚠️ Network connection issue: Unable to reach Supabase API servers.")
-            print("This is expected in test environments with network restrictions.")
-        except (RuntimeError, ValueError, TypeError) as query_error:
-            print(f"⚠️ Query error: {query_error}")
+        _query_supabase_api(supabase)
     except (RuntimeError, ValueError, TypeError, OSError) as error:
         print(f"❌ Failed to initialize Supabase client: {error}")
 
