@@ -12,6 +12,7 @@ ADR_0009 = REPO_ROOT / "docs" / "adr" / "0009-postgresql-migration-ledger-and-dr
 ADR_0010 = REPO_ROOT / "docs" / "adr" / "0010-historical-receipt-evidence-and-target-ledger-profiles.md"
 CONTINUITY = REPO_ROOT / "docs" / "strategy" / "fardb-project-continuity.md"
 ROADMAP = REPO_ROOT / "docs" / "roadmap" / "enterprise-readiness-roadmap.md"
+HISTORICAL_ROADMAP = REPO_ROOT / "ROADMAP_STATUS.md"
 MIGRATION_RUNBOOK = REPO_ROOT / "docs" / "runbooks" / "database-migration-authority.md"
 SETUP_BASELINE = "76f1194f1f9b83cb9ed8f0bb0083824ededbe0ae"  # DevSkim: ignore all
 CQ03C_MERGE = "784d092f1204b59e612efd4ff3949f3e3fed12cf"  # DevSkim: ignore all
@@ -168,6 +169,21 @@ def test_adr_0009_declares_the_narrow_amendment() -> None:
     assert "`supabase db push --dry-run` and `supabase migration repair --status applied <timestamp>`" in original
     assert "non-executable `hosted-legacy-v1` lineage evidence" in original
     assert "supabase/ledgers/<component>/migrations/" in original
+
+
+def test_historical_roadmap_cannot_select_current_work() -> None:
+    """The frozen roadmap must route agents to current authority without rewriting its evidence."""
+    roadmap = _load(HISTORICAL_ROADMAP)
+    authority_notice = roadmap.split("**Repository evidence cutoff:**", maxsplit=1)[0]
+
+    assert "**Historical snapshot:**" in authority_notice
+    assert "not current task authority" in authority_notice
+    assert "[Agent Task Entry Route](docs/agent-task-entry.md)" in authority_notice
+    assert "[FarDB Project Continuity Ledger](docs/strategy/fardb-project-continuity.md)" in authority_notice
+    assert "## Historical programme checkpoint — 2026-08-13" in authority_notice
+    assert "## Current programme checkpoint" not in roadmap
+    assert "ADR ratified; CQ-03B next" in roadmap
+    assert "CQ-03B is now the next bounded phase" in roadmap
 
 
 def test_continuity_records_merged_r2_without_claiming_provider_delivery() -> None:
