@@ -17,6 +17,10 @@ describe("Next.js TypeScript configuration", () => {
   const nextConfig = jest.requireActual<NextConfigContract>(
     join(frontendRoot, "next.config.js"),
   );
+  const tsconfigPath = join(
+    frontendRoot,
+    nextConfig.typescript?.tsconfigPath ?? "",
+  );
 
   it("uses the production TypeScript project", () => {
     expect(nextConfig.typescript?.tsconfigPath).toBe(
@@ -29,19 +33,10 @@ describe("Next.js TypeScript configuration", () => {
   });
 
   it("references an existing TypeScript project", () => {
-    const tsconfigPath = join(
-      frontendRoot,
-      nextConfig.typescript?.tsconfigPath ?? "",
-    );
-
     expect(existsSync(tsconfigPath)).toBe(true);
   });
 
   it("keeps Jest sources outside the production typecheck", () => {
-    const tsconfigPath = join(
-      frontendRoot,
-      nextConfig.typescript?.tsconfigPath ?? "",
-    );
     const tsconfig = JSON.parse(
       readFileSync(tsconfigPath, "utf8"),
     ) as TypeScriptConfigContract;
