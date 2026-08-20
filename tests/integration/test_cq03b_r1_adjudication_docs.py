@@ -174,7 +174,9 @@ def test_adr_0009_declares_the_narrow_amendment() -> None:
 def test_historical_roadmap_cannot_select_current_work() -> None:
     """The frozen roadmap must route agents to current authority without rewriting its evidence."""
     roadmap = _load(HISTORICAL_ROADMAP)
-    authority_notice = roadmap.split("**Repository evidence cutoff:**", maxsplit=1)[0]
+    cutoff_marker = "**Repository evidence cutoff:**"
+    assert cutoff_marker in roadmap
+    authority_notice = roadmap.split(cutoff_marker, maxsplit=1)[0]
 
     assert "**Historical snapshot:**" in authority_notice
     assert "not current task authority" in authority_notice
