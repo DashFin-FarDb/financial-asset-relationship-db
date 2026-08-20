@@ -249,9 +249,9 @@ class TestConnectionManagement:
             patch("api.database.get_settings", return_value=settings),
             patch("psycopg2.connect", return_value=connection),
             pytest.raises(QueryCanceled) as exc_info,
+            get_connection(),
         ):
-            with get_connection():
-                raise query_cancelled
+            raise query_cancelled
 
         assert exc_info.value is query_cancelled
         connection.close.assert_called_once_with()

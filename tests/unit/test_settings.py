@@ -394,13 +394,15 @@ class TestLoadSettings:
         """Explicit PostgreSQL request timeouts must be positive integer milliseconds."""
         from pydantic import ValidationError
 
-        with patch.dict(
-            os.environ,
-            {"POSTGRES_REQUEST_STATEMENT_TIMEOUT_MILLISECONDS": value},
-            clear=True,
+        with (
+            patch.dict(
+                os.environ,
+                {"POSTGRES_REQUEST_STATEMENT_TIMEOUT_MILLISECONDS": value},
+                clear=True,
+            ),
+            pytest.raises(ValidationError, match="postgres_request_statement_timeout_milliseconds"),
         ):
-            with pytest.raises(ValidationError, match="postgres_request_statement_timeout_milliseconds"):
-                load_settings()
+            load_settings()
 
     @patch.dict(os.environ, {"ENV": "PRODUCTION"})
     def test_load_settings_env_lowercase(self) -> None:

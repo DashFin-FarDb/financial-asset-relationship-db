@@ -129,30 +129,31 @@ class Settings(BaseModel):
     def parse_env_vars(cls, value: Any, info: ValidationInfo) -> Any:
         """Parse typed environment values and apply each field's empty-value policy."""
         field_name = info.field_name or "rebuild_lock_ttl_seconds"
-        if (
-            field_name == "postgres_request_statement_timeout_milliseconds"
-            and isinstance(value, str)
-            and not value.strip()
-        ):
-            raise ValueError(
-                "Invalid integer for environment variable POSTGRES_REQUEST_STATEMENT_TIMEOUT_MILLISECONDS: empty value"
-            )
-        if value is None or (isinstance(value, str) and not value.strip()):
-            field_info = cls.model_fields.get(field_name)
-            default = getattr(field_info, "default", 300)
+        field_info = cls.model_fields.get(field_name)
+        default = getattr(field_info, "default", 300)
+        if value is None:
             return default
-        if field_name in (
+        if not isinstance(value, str):
+            return value
+        if not value.strip():
+            if field_name == "postgres_request_statement_timeout_milliseconds":
+                raise ValueError(
+                    "Invalid integer for environment variable "
+                    "POSTGRES_REQUEST_STATEMENT_TIMEOUT_MILLISECONDS: empty value"
+                )
+            return default
+        integer_fields = (
             "rebuild_lock_ttl_seconds",
             "slo_rebuild_duration_max_seconds",
             "gradio_port",
             "postgres_request_statement_timeout_milliseconds",
-        ) and isinstance(value, str):
-            try:
-                return int(value)
-            except ValueError:
-                raise ValueError(f"Invalid integer for environment variable {field_name.upper()}: {value!r}") from None
-        # For other fields or non-string inputs, Pydantic will handle the type coercion
-        return value
+        )
+        if field_name not in integer_fields:
+            return value
+        try:
+            return int(value)
+        except ValueError:
+            raise ValueError(f"Invalid integer for environment variable {field_name.upper()}: {value!r}") from None
 
     @field_validator("secret_key")
     @classmethod

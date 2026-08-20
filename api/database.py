@@ -701,13 +701,10 @@ def get_connection() -> Iterator[Any]:
         # PostgreSQL: create new connection, close on exit
         operation_guard = _POSTGRES_OPERATION_GUARD.get()
         if operation_guard is None:
-            connection = _create_postgres_connection(
-                statement_timeout_milliseconds=get_settings().postgres_request_statement_timeout_milliseconds
-            )
+            statement_timeout_milliseconds = get_settings().postgres_request_statement_timeout_milliseconds
         else:
-            connection = _create_postgres_connection(
-                statement_timeout_milliseconds=_POSTGRES_STATEMENT_TIMEOUT_MILLISECONDS
-            )
+            statement_timeout_milliseconds = _POSTGRES_STATEMENT_TIMEOUT_MILLISECONDS
+        connection = _create_postgres_connection(statement_timeout_milliseconds=statement_timeout_milliseconds)
         if operation_guard is not None:
             operation_guard.register(connection)
         try:
