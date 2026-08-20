@@ -85,6 +85,12 @@ class Settings(BaseModel):
     database_url: str | None = Field(default=None)
     coordination_database_url: str | None = Field(default=None)
     postgres_url: str | None = Field(default=None)
+    postgres_request_statement_timeout_milliseconds: int = Field(
+        default=120_000,
+        gt=0,
+        le=2_147_483_647,
+        description="Server-side statement timeout for ordinary PostgreSQL request connections",
+    )
 
     # UI Configuration
     gradio_host: str = Field(default="127.0.0.1")
@@ -116,19 +122,31 @@ class Settings(BaseModel):
         "slo_error_rate_threshold",
         "slo_evaluation_interval_seconds",
         "gradio_port",
+        "postgres_request_statement_timeout_milliseconds",
         mode="before",
     )
     @classmethod
     def parse_env_vars(cls, value: Any, info: ValidationInfo) -> Any:
-        """Coerce empty strings or None to the field default."""
+        """Parse typed environment values and apply each field's empty-value policy."""
         field_name = info.field_name or "rebuild_lock_ttl_seconds"
+        if (
+            field_name == "postgres_request_statement_timeout_milliseconds"
+            and isinstance(value, str)
+            and not value.strip()
+        ):
+            raise ValueError(
+                "Invalid integer for environment variable POSTGRES_REQUEST_STATEMENT_TIMEOUT_MILLISECONDS: empty value"
+            )
         if value is None or (isinstance(value, str) and not value.strip()):
             field_info = cls.model_fields.get(field_name)
             default = getattr(field_info, "default", 300)
             return default
-        if field_name in ("rebuild_lock_ttl_seconds", "slo_rebuild_duration_max_seconds", "gradio_port") and isinstance(
-            value, str
-        ):
+        if field_name in (
+            "rebuild_lock_ttl_seconds",
+            "slo_rebuild_duration_max_seconds",
+            "gradio_port",
+            "postgres_request_statement_timeout_milliseconds",
+        ) and isinstance(value, str):
             try:
                 return int(value)
             except ValueError:
@@ -192,7 +210,8 @@ def load_settings() -> Settings:
     Load runtime settings from environment variables and return a configured Settings instance.
 
     Reads environment variables (for example: ENV, VERCEL_ENV, LOG_LEVEL, SECRET_KEY, DATABASE_URL,
-    POSTGRES_URL, COORDINATION_DATABASE_URL, ALLOWED_ORIGINS, REBUILD_LOCK_TTL_SECONDS)
+    POSTGRES_URL, COORDINATION_DATABASE_URL, POSTGRES_REQUEST_STATEMENT_TIMEOUT_MILLISECONDS, ALLOWED_ORIGINS,
+    REBUILD_LOCK_TTL_SECONDS)
     and maps them to Settings fields, delegating type coercion and validation to Pydantic.
     REBUILD_LOCK_TTL_SECONDS is passed unchanged for field-level parsing. DATABASE_URL
     falls back to POSTGRES_URL when unset; COORDINATION_DATABASE_URL falls back to
@@ -225,6 +244,9 @@ def load_settings() -> Settings:
         database_url=os.getenv("DATABASE_URL") or postgres_url,
         coordination_database_url=os.getenv("COORDINATION_DATABASE_URL") or os.getenv("DATABASE_URL") or postgres_url,
         postgres_url=postgres_url,
+        postgres_request_statement_timeout_milliseconds=os.getenv(
+            "POSTGRES_REQUEST_STATEMENT_TIMEOUT_MILLISECONDS"
+        ),  # type: ignore[arg-type]
         gradio_host=os.getenv("GRADIO_HOST", "127.0.0.1"),
         gradio_port=os.getenv("GRADIO_SERVER_PORT", os.getenv("GRADIO_PORT", "7860")),  # type: ignore[arg-type]
         frontend_port=os.getenv("FRONTEND_PORT", "3000"),  # type: ignore[arg-type]

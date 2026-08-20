@@ -194,12 +194,32 @@ class TestConnectionManagement:
             connect_timeout=database._POSTGRES_CONNECT_TIMEOUT_SECONDS,  # pylint: disable=protected-access
         )
 
+    def test_ordinary_postgres_connection_enforces_configured_statement_timeout(self):
+        """Ordinary request connections must apply the configured server-side statement timeout."""
+        connection = Mock()
+        settings = Mock(postgres_request_statement_timeout_milliseconds=321_000)
+        with (
+            patch("api.database.DATABASE_TYPE", "postgresql"),
+            patch("api.database.get_settings", return_value=settings),
+            patch("psycopg2.connect", return_value=connection) as connect,
+            get_connection(),
+        ):
+            pass
+
+        connect.assert_called_once_with(
+            database.DATABASE_URL,
+            connect_timeout=database._POSTGRES_CONNECT_TIMEOUT_SECONDS,  # pylint: disable=protected-access
+            options="-c statement_timeout=321000",
+        )
+        connection.close.assert_called_once_with()
+
     def test_guarded_postgres_connection_enforces_driver_statement_timeout(self):
         """Bounded startup verification must apply a driver-level statement timeout."""
         connection = Mock()
         operation_guard = database._PostgresOperationGuard()  # pylint: disable=protected-access
         with (
             patch("api.database.DATABASE_TYPE", "postgresql"),
+            patch("api.database.get_settings") as get_runtime_settings,
             patch("psycopg2.connect", return_value=connection) as connect,
             database._bind_postgres_operation_guard(operation_guard),  # pylint: disable=protected-access
             get_connection(),
@@ -214,6 +234,41 @@ class TestConnectionManagement:
                 f"{database._POSTGRES_STATEMENT_TIMEOUT_MILLISECONDS}"  # pylint: disable=protected-access
             ),
         )
+        get_runtime_settings.assert_not_called()
+
+    def test_postgres_query_timeout_propagates_and_closes_connection(self):
+        """Driver query cancellation must propagate unchanged while closing the request connection."""
+        from psycopg2.errors import QueryCanceled
+
+        connection = Mock()
+        query_cancelled = QueryCanceled("canceling statement due to statement timeout")
+        settings = Mock(postgres_request_statement_timeout_milliseconds=120_000)
+
+        with (
+            patch("api.database.DATABASE_TYPE", "postgresql"),
+            patch("api.database.get_settings", return_value=settings),
+            patch("psycopg2.connect", return_value=connection),
+            pytest.raises(QueryCanceled) as exc_info,
+        ):
+            with get_connection():
+                raise query_cancelled
+
+        assert exc_info.value is query_cancelled
+        connection.close.assert_called_once_with()
+
+    def test_sqlite_connection_does_not_apply_postgres_timeout(self):
+        """SQLite connections must not read or apply the PostgreSQL request timeout."""
+        with (
+            patch("api.database.DATABASE_TYPE", "sqlite"),
+            patch("api.database.DATABASE_PATH", ":memory:"),
+            patch("api.database.get_settings") as get_runtime_settings,
+            patch("api.database._create_postgres_connection") as create_postgres_connection,
+            get_connection() as connection,
+        ):
+            assert isinstance(connection, sqlite3.Connection)
+
+        get_runtime_settings.assert_not_called()
+        create_postgres_connection.assert_not_called()
 
     def test_get_connection_context_manager(self):
         """Test that get_connection works as context manager."""

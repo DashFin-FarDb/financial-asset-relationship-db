@@ -73,6 +73,16 @@ graph and coordination URLs need one membership each. Startup rejects missing, e
 including direct or inherited access to another component's tables, columns, sequences, or ledger-owned routines on
 a `combined` target.
 
+Ordinary PostgreSQL API request connections apply a bounded server-side `statement_timeout`, configured by
+`POSTGRES_REQUEST_STATEMENT_TIMEOUT_MILLISECONDS` and defaulting to `120000` (120 seconds). The value must be an
+integer from `1` through PostgreSQL's `2147483647` millisecond maximum; zero, negative, over-limit, empty, and
+non-integer explicit values fail settings validation. Lower values release locks and connections sooner but may
+cancel legitimate long-running graph or administrative statements; higher values allow more work but retain blocked
+resources longer. The read-only startup verifier keeps its independent 15-second bound and overrides the request
+setting while its operation guard is active. A PostgreSQL query-cancellation exception propagates through the
+existing DB-API boundary and the connection is closed; this setting adds no new HTTP status or protected diagnostic
+contract. SQLite and explicit migration connections retain their existing behavior.
+
 CQ-03C evaluates `fresh-v1` targets through the read-only
 `fardb-pg-catalog-v1+fardb-pg-scope-v1` gate. It compares exact ordered migration identities, the selected profile's
 normalized catalog digest, and an explicit runtime-compatibility callback. The evaluator forces a read-only database
