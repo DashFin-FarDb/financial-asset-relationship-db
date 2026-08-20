@@ -3,12 +3,27 @@
 # mypy: disable-error-code=import-untyped
 # pyright: reportMissingImports=false
 
+import importlib
 import os
 import socket
+from collections.abc import Callable
+from typing import Any
 
 import psycopg2  # pyright: ignore[reportMissingTypeStubs]
 from dotenv import load_dotenv
-from supabase import Client, create_client  # pylint: disable=import-error
+
+
+def _load_supabase_client_factory() -> Callable[..., Any] | None:
+    """Return the optional Supabase client factory when its API is available."""
+    try:
+        supabase_module = importlib.import_module("supabase")
+    except ImportError:
+        return None
+    candidate = getattr(supabase_module, "create_client", None)
+    return candidate if callable(candidate) else None
+
+
+CREATE_SUPABASE_CLIENT = _load_supabase_client_factory()
 
 # Load environment variables from .env
 load_dotenv()
@@ -34,8 +49,10 @@ print("Certificate path:", CERT_PATH)
 # Try Supabase API connection
 try:
     print("\n--- Testing Supabase API Connection with New Credentials ---")
+    if CREATE_SUPABASE_CLIENT is None:
+        raise RuntimeError("optional Supabase client API is unavailable")
     # Initialize Supabase client
-    supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+    supabase = CREATE_SUPABASE_CLIENT(SUPABASE_URL, SUPABASE_KEY)
     print("✅ Supabase client initialized successfully!")
 
     try:

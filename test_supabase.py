@@ -16,20 +16,29 @@ Notes:
 
 from __future__ import annotations
 
+import importlib
 import os
+from collections.abc import Callable
 from typing import Any, Final
 
 import pytest
 
-pytest.importorskip("supabase")
 
-# pylint: disable=wrong-import-position
-from supabase import (  # noqa: E402  # pyright: ignore[reportMissingImports]; type: ignore[import-not-found]
-    Client,
-    create_client,
+def _load_supabase_client_factory() -> Callable[..., Any] | None:
+    """Return the optional Supabase client factory when its API is available."""
+    try:
+        supabase_module = importlib.import_module("supabase")
+    except ImportError:
+        return None
+    candidate = getattr(supabase_module, "create_client", None)
+    return candidate if callable(candidate) else None
+
+
+CREATE_SUPABASE_CLIENT = _load_supabase_client_factory()
+pytestmark = pytest.mark.skipif(
+    CREATE_SUPABASE_CLIENT is None,
+    reason="optional Supabase client API is unavailable",
 )
-
-# pylint: enable=wrong-import-position
 
 PLACEHOLDER_TOKENS: Final[tuple[str, ...]] = (
     "[YOUR-KEY]",
@@ -84,10 +93,14 @@ def _read_supabase_credentials() -> tuple[str, str]:
     return supabase_url, supabase_key
 
 
-def _create_supabase_client(url: str, key: str) -> Client:
+def _create_supabase_client(url: str, key: str) -> Any:
     """Create Supabase client or fail the test with a redacted message."""
+    client_factory = CREATE_SUPABASE_CLIENT
+    if client_factory is None:
+        pytest.skip("optional Supabase client API is unavailable")
+        raise RuntimeError("pytest.skip returned unexpectedly")
     try:
-        return create_client(url, key)
+        return client_factory(url, key)
     except Exception as exc:  # noqa: BLE001
         pytest.fail(f"Failed to initialize Supabase client (url={_redact(url)}): {exc}")
         # pytest.fail is expected to raise and not return, but add an explicit
@@ -95,7 +108,7 @@ def _create_supabase_client(url: str, key: str) -> Client:
         raise AssertionError(f"Failed to initialize Supabase client (url={_redact(url)}): {exc}") from exc
 
 
-def _execute_smoke_query(client: Client, url: str) -> Any:
+def _execute_smoke_query(client: Any, url: str) -> Any:
     """Execute a lightweight query and return response payload."""
     try:
         return client.table("assets").select("id").limit(1).execute()
