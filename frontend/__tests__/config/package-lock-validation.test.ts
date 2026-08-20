@@ -153,6 +153,47 @@ describe("Package-lock.json Validation", () => {
     });
   });
 
+  describe("Next.js Runtime Security Upgrade", () => {
+    it("pins Next.js 16.3.0 in the manifest and lockfile", () => {
+      const nextLock = packageLock.packages?.["node_modules/next"];
+
+      expect(packageJson.dependencies.next).toBe("16.3.0");
+      expect(nextLock?.version).toBe("16.3.0");
+    });
+
+    it("resolves the Next.js PostCSS runtime to 8.5.23", () => {
+      const nextLock = packageLock.packages?.["node_modules/next"];
+      const nestedPostcss =
+        packageLock.packages?.["node_modules/next/node_modules/postcss"];
+      const hoistedPostcss = packageLock.packages?.["node_modules/postcss"];
+
+      expect(nextLock?.dependencies?.postcss).toBe("8.5.23");
+      expect(nestedPostcss).toBeUndefined();
+      expect(hoistedPostcss?.version).toBe("8.5.23");
+    });
+
+    it("resolves the optional Sharp runtime to 0.35.3", () => {
+      const nextLock = packageLock.packages?.["node_modules/next"];
+      const sharpLock = packageLock.packages?.["node_modules/sharp"];
+
+      expect(nextLock?.optionalDependencies?.sharp).toBe("^0.35.3");
+      expect(sharpLock?.version).toBe("0.35.3");
+    });
+
+    it("does not retain the vulnerable PostCSS or Sharp runtime versions", () => {
+      const packageEntries = Object.entries(packageLock.packages ?? {});
+      const postcssVersions = packageEntries
+        .filter(([path]) => path.endsWith("node_modules/postcss"))
+        .map(([, pkg]) => pkg.version);
+      const sharpVersions = packageEntries
+        .filter(([path]) => path.endsWith("node_modules/sharp"))
+        .map(([, pkg]) => pkg.version);
+
+      expect(postcssVersions).not.toContain("8.4.31");
+      expect(sharpVersions).not.toContain("0.34.5");
+    });
+  });
+
   describe("Dependency Tree Integrity", () => {
     it("should have packages field", () => {
       expect(packageLock.packages).toBeDefined();
