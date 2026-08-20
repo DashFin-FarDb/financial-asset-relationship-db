@@ -1,0 +1,24 @@
+docs/enterprise-readiness-index.md
+  s_33a25107973364::t_999b7d37c6474f 3-4,42-44,47,63-69
+tests/integration/test_adr0007_closure_setup.py
+  s_33a25107973364::t_999b7d37c6474f 16,46-47,50-65
+  s_33a25107973364::t_55ce5a28588554 48-49
+docs/runbooks/database-authorization-closure.md
+  s_33a25107973364::t_999b7d37c6474f 146-149
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "483fdaaba84792d5f547d511e641bb24e92b3180",
+  "prompts": {},
+  "sessions": {
+    "s_33a25107973364": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a01ef3-688c-7872-bea6-edcd50fdb7a5",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}
