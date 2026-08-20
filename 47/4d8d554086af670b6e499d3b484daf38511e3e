@@ -1,0 +1,19 @@
+main.py
+  s_33a25107973364::t_6ead26ba46e942 28-38,64
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "474d8d554086af670b6e499d3b484daf38511e3e",
+  "prompts": {},
+  "sessions": {
+    "s_33a25107973364": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a01ef3-688c-7872-bea6-edcd50fdb7a5",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}
