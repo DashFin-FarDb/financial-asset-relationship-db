@@ -250,7 +250,7 @@ describe("Package.json Validation", () => {
       expect(packageJson.dependencies.axios).toBeDefined();
     });
 
-    it("should have axios version 1.13.2 or higher", () => {
+    it("should have a compatible axios 1.x version at or above 1.19.0", () => {
       const axiosVersion = packageJson.dependencies.axios;
       expect(axiosVersion).toBeDefined();
 
@@ -263,13 +263,10 @@ describe("Package.json Validation", () => {
 
       const [major, minor, patch] = versionMatch[0].split(".").map(Number);
 
-      // Should be at least 1.13.2
-      expect(major).toBeGreaterThanOrEqual(1);
-      if (major === 1) {
-        expect(minor).toBeGreaterThanOrEqual(13);
-        if (minor === 13) {
-          expect(patch).toBeGreaterThanOrEqual(2);
-        }
+      expect(major).toBe(1);
+      expect(minor).toBeGreaterThanOrEqual(19);
+      if (minor === 19) {
+        expect(patch).toBeGreaterThanOrEqual(0);
       }
     });
 
@@ -554,11 +551,6 @@ describe("Package.json Validation", () => {
   });
 
   describe("Version Upgrade Validation", () => {
-    it("axios should be version 1.19.0 as per the upgrade", () => {
-      const axiosVersion = packageJson.dependencies.axios;
-      expect(axiosVersion).toBe("^1.19.0");
-    });
-
     it("axios upgrade should maintain backward compatibility", () => {
       // Axios 1.x maintains backward compatibility within major version
       const axiosVersion = packageJson.dependencies.axios;

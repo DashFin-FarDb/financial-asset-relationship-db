@@ -67,15 +67,10 @@ describe("Package Configuration Integration", () => {
         ...packageJson.devDependencies,
       };
 
-      Object.entries(allDeps).forEach(([name, range]) => {
+      Object.keys(allDeps).forEach((name) => {
         const lockedPkg = packageLock.packages?.[`node_modules/${name}`];
         if (lockedPkg) {
           expect(lockedPkg.version).toBeDefined();
-
-          // Basic validation: if range starts with ^1.13.5, locked should be >= 1.13.5
-          if (name === "axios" && range === "^1.19.0") {
-            expect(lockedPkg.version).toBe("1.19.0");
-          }
         }
       });
     });

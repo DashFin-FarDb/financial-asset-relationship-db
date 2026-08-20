@@ -581,7 +581,7 @@ describe("Package-lock.json Validation", () => {
   });
 
   describe("Backwards Compatibility", () => {
-    it("axios 1.19.0 should be compatible with existing code", () => {
+    it("axios should remain on the locked 1.x version", () => {
       const axiosLock = packageLock.packages?.["node_modules/axios"];
       const version = axiosLock?.version;
 
