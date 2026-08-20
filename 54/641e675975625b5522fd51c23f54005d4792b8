@@ -1,0 +1,22 @@
+ROADMAP_STATUS.md
+  s_33a25107973364::t_2c00205158e54e 3-7,9
+tests/integration/test_cq03b_r1_adjudication_docs.py
+  s_33a25107973364::t_2c00205158e54e 15,174-186
+  s_33a25107973364::t_9ec6c7c52656c3 187-188
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "54641e675975625b5522fd51c23f54005d4792b8",
+  "prompts": {},
+  "sessions": {
+    "s_33a25107973364": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a01ef3-688c-7872-bea6-edcd50fdb7a5",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}
