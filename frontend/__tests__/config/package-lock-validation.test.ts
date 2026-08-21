@@ -217,6 +217,53 @@ describe("Package-lock.json Validation", () => {
     });
   });
 
+  describe("Root js-yaml Lock Security Upgrade", () => {
+    it("resolves the shared js-yaml node to 4.3.1", () => {
+      const jsYamlLock = packageLock.packages?.["node_modules/js-yaml"];
+
+      expect(jsYamlLock?.version).toBe("4.3.1");
+      expect(packageJson.dependencies).not.toHaveProperty("js-yaml");
+      expect(packageJson.devDependencies).not.toHaveProperty("js-yaml");
+    });
+
+    it("preserves the current ESLint js-yaml parent range", () => {
+      const eslintConfig =
+        packageLock.packages?.["node_modules/@eslint/eslintrc"];
+
+      expect(eslintConfig?.dependencies?.["js-yaml"]).toBe("^4.3.0");
+    });
+
+    it("preserves the legacy ESLint config js-yaml parent range", () => {
+      const legacyEslintConfig =
+        packageLock.packages?.[
+          "node_modules/@microsoft/eslint-formatter-sarif/node_modules/@eslint/eslintrc"
+        ];
+
+      expect(legacyEslintConfig?.dependencies?.["js-yaml"]).toBe("^4.1.0");
+    });
+
+    it("preserves the legacy ESLint js-yaml parent range", () => {
+      const legacyEslint =
+        packageLock.packages?.[
+          "node_modules/@microsoft/eslint-formatter-sarif/node_modules/eslint"
+        ];
+
+      expect(legacyEslint?.dependencies?.["js-yaml"]).toBe("^4.1.0");
+    });
+
+    it("keeps the nested js-yaml 3.x resolver boundary separate", () => {
+      const loadNycConfig =
+        packageLock.packages?.["node_modules/@istanbuljs/load-nyc-config"];
+      const nestedJsYaml =
+        packageLock.packages?.[
+          "node_modules/@istanbuljs/load-nyc-config/node_modules/js-yaml"
+        ];
+
+      expect(loadNycConfig?.dependencies?.["js-yaml"]).toBe("^3.13.1");
+      expect(nestedJsYaml?.version).toBe("3.15.0");
+    });
+  });
+
   describe("Dependency Tree Integrity", () => {
     it("should have packages field", () => {
       expect(packageLock.packages).toBeDefined();
