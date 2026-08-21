@@ -201,6 +201,12 @@ describe("Package-lock.json Validation", () => {
       expect(nanoidLock?.version).toBe("3.3.18");
       expect(packageJson.dependencies).not.toHaveProperty("nanoid");
       expect(packageJson.devDependencies).not.toHaveProperty("nanoid");
+      expect(packageJson.optionalDependencies?.nanoid).toBeUndefined();
+      expect(packageJson.peerDependencies?.nanoid).toBeUndefined();
+      expect(packageJson.bundleDependencies?.includes("nanoid")).not.toBe(true);
+      expect(packageJson.bundledDependencies?.includes("nanoid")).not.toBe(
+        true,
+      );
     });
 
     it("preserves the PostCSS parent relationship", () => {
