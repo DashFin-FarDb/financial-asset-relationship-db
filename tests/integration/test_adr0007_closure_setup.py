@@ -31,7 +31,10 @@ def _markdown_row_with_cell(text: str, value: str) -> str:
 
 def _roadmap_status_row(text: str, status: str) -> str:
     """Return the row for ``status`` from the roadmap status table."""
-    section = text.split("## Roadmap Status Snapshot", 1)[1].split("\n## ", 1)[0]
+    marker = "## Roadmap Status Snapshot"
+    _, separator, remainder = text.partition(marker)
+    assert separator, f"missing {marker!r} section"
+    section = remainder.split("\n## ", 1)[0]
     return _markdown_row_with_cell(section, status)
 
 
