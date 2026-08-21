@@ -220,20 +220,28 @@ describe("Package-lock.json Validation", () => {
       expect(packageJson.devDependencies).not.toHaveProperty("js-yaml");
     });
 
-    it("preserves the root js-yaml parent relationships", () => {
+    it("preserves the current ESLint js-yaml parent range", () => {
       const eslintConfig =
         packageLock.packages?.["node_modules/@eslint/eslintrc"];
+
+      expect(eslintConfig?.dependencies?.["js-yaml"]).toBe("^4.3.0");
+    });
+
+    it("preserves the legacy ESLint config js-yaml parent range", () => {
       const legacyEslintConfig =
         packageLock.packages?.[
           "node_modules/@microsoft/eslint-formatter-sarif/node_modules/@eslint/eslintrc"
         ];
+
+      expect(legacyEslintConfig?.dependencies?.["js-yaml"]).toBe("^4.1.0");
+    });
+
+    it("preserves the legacy ESLint js-yaml parent range", () => {
       const legacyEslint =
         packageLock.packages?.[
           "node_modules/@microsoft/eslint-formatter-sarif/node_modules/eslint"
         ];
 
-      expect(eslintConfig?.dependencies?.["js-yaml"]).toBe("^4.3.0");
-      expect(legacyEslintConfig?.dependencies?.["js-yaml"]).toBe("^4.1.0");
       expect(legacyEslint?.dependencies?.["js-yaml"]).toBe("^4.1.0");
     });
 
