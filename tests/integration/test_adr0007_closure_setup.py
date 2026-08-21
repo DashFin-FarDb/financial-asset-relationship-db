@@ -18,12 +18,21 @@ ENV_EXAMPLE = REPO_ROOT / ".env.example"
 EVIDENCE_RECORD = REPO_ROOT / "docs" / "evidence-records" / "hp004-db-authz-pass-29991d03.md"
 
 
-def _markdown_row_containing(text: str, needle: str) -> str:
-    """Return the first markdown table row that contains ``needle``."""
+def _markdown_row_with_cell(text: str, value: str) -> str:
+    """Return the first markdown table row with a cell exactly equal to ``value``."""
     for line in text.splitlines():
-        if needle in line and line.lstrip().startswith("|"):
+        if not line.lstrip().startswith("|"):
+            continue
+        cells = [cell.strip() for cell in line.strip().strip("|").split("|")]
+        if value in cells:
             return line
-    raise AssertionError(f"no markdown table row containing {needle!r}")
+    raise AssertionError(f"no markdown table row with cell {value!r}")
+
+
+def _roadmap_status_row(text: str, status: str) -> str:
+    """Return the row for ``status`` from the roadmap status table."""
+    section = text.split("## Roadmap Status Snapshot", 1)[1].split("\n## ", 1)[0]
+    return _markdown_row_with_cell(section, status)
 
 
 def test_adr0007_closure_runbook_exists() -> None:
@@ -53,9 +62,9 @@ def test_adr0007_closure_runbook_exists() -> None:
 def test_enterprise_readiness_index_does_not_reopen_satisfied_gates() -> None:
     """The current index must preserve target proof without reopening repository or staging closure."""
     text = ENTERPRISE_INDEX.read_text(encoding="utf-8")
-    satisfied_automated = _markdown_row_containing(text, "| Satisfied - automated")
-    partially_satisfied = _markdown_row_containing(text, "| Partially satisfied")
-    blocked = _markdown_row_containing(text, "| Blocked")
+    satisfied_automated = _roadmap_status_row(text, "Satisfied - automated")
+    partially_satisfied = _roadmap_status_row(text, "Partially satisfied")
+    blocked = _roadmap_status_row(text, "Blocked")
 
     assert "db_authz: PASS|run-30002002715" in text
     assert "strict stale-owner restart composition" in satisfied_automated.lower()
@@ -134,11 +143,11 @@ def test_adr0007_wired_into_existing_authorities() -> None:
     assert "sign-off open" not in evidence_pack.lower()
     assert "live redacted pass is required" not in pr_board.lower()
 
-    hp004_pack_row = _markdown_row_containing(evidence_pack, "| H-P0-04 |")
+    hp004_pack_row = _markdown_row_with_cell(evidence_pack, "H-P0-04")
     assert "Satisfied - manual evidence" in hp004_pack_row
     assert "run-30002002715" in hp004_pack_row
 
-    hp004_board_row = _markdown_row_containing(pr_board, "| H-P0-04")
+    hp004_board_row = _markdown_row_with_cell(pr_board, "H-P0-04")
     assert "Satisfied - manual evidence" in hp004_board_row
     assert "operator closure runbook" in pr_board.lower() or "run-30002002715" in hp004_board_row
 
