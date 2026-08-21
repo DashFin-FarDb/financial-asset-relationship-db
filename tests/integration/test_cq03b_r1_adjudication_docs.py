@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+from hashlib import sha256
 from pathlib import Path
 
 import pytest
@@ -16,6 +17,7 @@ HISTORICAL_ROADMAP = REPO_ROOT / "ROADMAP_STATUS.md"
 MIGRATION_RUNBOOK = REPO_ROOT / "docs" / "runbooks" / "database-migration-authority.md"
 SETUP_BASELINE = "76f1194f1f9b83cb9ed8f0bb0083824ededbe0ae"  # DevSkim: ignore all
 CQ03C_MERGE = "784d092f1204b59e612efd4ff3949f3e3fed12cf"  # DevSkim: ignore all
+FROZEN_ROADMAP_BODY_SHA256 = "b5f590f8fa72413b43a165566e4274a5ad2db8f58d93d8ef7a8e1d24ccbf67ae"
 
 
 def _load(path: Path) -> str:
@@ -177,6 +179,7 @@ def test_historical_roadmap_cannot_select_current_work() -> None:
     cutoff_marker = "**Repository evidence cutoff:**"
     assert cutoff_marker in roadmap
     authority_notice = roadmap.split(cutoff_marker, maxsplit=1)[0]
+    frozen_snapshot = roadmap[roadmap.index(cutoff_marker) :]
 
     assert "**Historical snapshot:**" in authority_notice
     assert "not current task authority" in authority_notice
@@ -184,8 +187,7 @@ def test_historical_roadmap_cannot_select_current_work() -> None:
     assert "[FarDB Project Continuity Ledger](docs/strategy/fardb-project-continuity.md)" in authority_notice
     assert "## Historical programme checkpoint — 2026-08-13" in authority_notice
     assert "## Current programme checkpoint" not in roadmap
-    assert "ADR ratified; CQ-03B next" in roadmap
-    assert "CQ-03B is now the next bounded phase" in roadmap
+    assert sha256(frozen_snapshot.encode("utf-8")).hexdigest() == FROZEN_ROADMAP_BODY_SHA256
 
 
 def test_continuity_records_merged_r2_without_claiming_provider_delivery() -> None:
