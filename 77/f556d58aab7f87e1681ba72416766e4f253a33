@@ -1,0 +1,19 @@
+tests/unit/test_api_database.py
+  s_33a25107973364::t_9d1d0cd3a83cec 252-254
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "77f556d58aab7f87e1681ba72416766e4f253a33",
+  "prompts": {},
+  "sessions": {
+    "s_33a25107973364": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a01ef3-688c-7872-bea6-edcd50fdb7a5",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}
