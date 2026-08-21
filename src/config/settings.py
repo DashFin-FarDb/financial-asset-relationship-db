@@ -27,15 +27,24 @@ _INTEGER_ENV_FIELDS = frozenset(
 )
 
 
-def _validate_postgres_request_statement_timeout(value: Any) -> Any:
+def _validate_postgres_request_statement_timeout(value: Any) -> None:
     """Reject numeric PostgreSQL request timeouts outside the positive 32-bit range."""
     try:
         outside_postgres_range = value <= 0 or value > _POSTGRES_REQUEST_STATEMENT_TIMEOUT_MAXIMUM
     except TypeError:
-        return value
+        return
     if outside_postgres_range:
         raise ValueError("PostgreSQL request statement timeout must be between 1 and 2147483647 milliseconds")
-    return value
+
+
+def _normalize_postgres_request_statement_timeout(value: Any) -> Any:
+    """Normalize byte-encoded integer input that Pydantic would otherwise coerce later."""
+    if not isinstance(value, (bytes, bytearray)):
+        return value
+    try:
+        return int(value)
+    except (ValueError, OverflowError):
+        return value
 
 
 def _empty_env_value(field_name: str, default: Any) -> Any:
@@ -54,7 +63,7 @@ def _parse_integer_env_value(value: str, field_name: str) -> int:
     except ValueError:
         raise ValueError(f"Invalid integer for environment variable {field_name.upper()}: {value!r}") from None
     if field_name == _POSTGRES_REQUEST_STATEMENT_TIMEOUT_FIELD:
-        return _validate_postgres_request_statement_timeout(parsed_value)
+        _validate_postgres_request_statement_timeout(parsed_value)
     return parsed_value
 
 
@@ -175,7 +184,8 @@ class Settings(BaseModel):
             return default
         if not isinstance(value, str):
             if field_name == _POSTGRES_REQUEST_STATEMENT_TIMEOUT_FIELD:
-                return _validate_postgres_request_statement_timeout(value)
+                value = _normalize_postgres_request_statement_timeout(value)
+                _validate_postgres_request_statement_timeout(value)
             return value
         if not value.strip():
             return _empty_env_value(field_name, default)
