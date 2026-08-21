@@ -87,8 +87,6 @@ class Settings(BaseModel):
     postgres_url: str | None = Field(default=None)
     postgres_request_statement_timeout_milliseconds: int = Field(
         default=120_000,
-        gt=0,
-        le=2_147_483_647,
         description="Server-side statement timeout for ordinary PostgreSQL request connections",
     )
 
@@ -154,6 +152,14 @@ class Settings(BaseModel):
             return int(value)
         except ValueError:
             raise ValueError(f"Invalid integer for environment variable {field_name.upper()}: {value!r}") from None
+
+    @field_validator("postgres_request_statement_timeout_milliseconds")
+    @classmethod
+    def validate_postgres_request_statement_timeout_milliseconds(cls, value: int) -> int:
+        """Keep PostgreSQL's statement timeout inside its positive 32-bit range."""
+        if value <= 0 or value > 2_147_483_647:
+            raise ValueError("PostgreSQL request statement timeout must be between 1 and 2147483647 milliseconds")
+        return value
 
     @field_validator("secret_key")
     @classmethod
@@ -222,6 +228,7 @@ def load_settings() -> Settings:
         Settings: A Settings instance populated from the current environment.
     """
     postgres_url = os.getenv("POSTGRES_URL")
+    postgres_request_statement_timeout_milliseconds: Any = os.getenv("POSTGRES_REQUEST_STATEMENT_TIMEOUT_MILLISECONDS")
 
     return Settings(
         env=os.getenv("ENV", "development").strip().lower(),  # type: ignore[arg-type]
@@ -245,9 +252,7 @@ def load_settings() -> Settings:
         database_url=os.getenv("DATABASE_URL") or postgres_url,
         coordination_database_url=os.getenv("COORDINATION_DATABASE_URL") or os.getenv("DATABASE_URL") or postgres_url,
         postgres_url=postgres_url,
-        postgres_request_statement_timeout_milliseconds=os.getenv(
-            "POSTGRES_REQUEST_STATEMENT_TIMEOUT_MILLISECONDS"
-        ),  # type: ignore[arg-type]
+        postgres_request_statement_timeout_milliseconds=postgres_request_statement_timeout_milliseconds,
         gradio_host=os.getenv("GRADIO_HOST", "127.0.0.1"),
         gradio_port=os.getenv("GRADIO_SERVER_PORT", os.getenv("GRADIO_PORT", "7860")),  # type: ignore[arg-type]
         frontend_port=os.getenv("FRONTEND_PORT", "3000"),  # type: ignore[arg-type]
