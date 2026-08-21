@@ -132,6 +132,15 @@ class Settings(BaseModel):
         if value is None:
             return default
         if not isinstance(value, str):
+            if field_name == "postgres_request_statement_timeout_milliseconds":
+                try:
+                    outside_postgres_range = value <= 0 or value > 2_147_483_647
+                except TypeError:
+                    return value
+                if outside_postgres_range:
+                    raise ValueError(
+                        "PostgreSQL request statement timeout must be between 1 and 2147483647 milliseconds"
+                    )
             return value
         if not value.strip():
             if field_name == "postgres_request_statement_timeout_milliseconds":
@@ -149,17 +158,12 @@ class Settings(BaseModel):
         if field_name not in integer_fields:
             return value
         try:
-            return int(value)
+            parsed_value = int(value)
         except ValueError:
             raise ValueError(f"Invalid integer for environment variable {field_name.upper()}: {value!r}") from None
-
-    @field_validator("postgres_request_statement_timeout_milliseconds")
-    @classmethod
-    def validate_postgres_request_statement_timeout_milliseconds(cls, value: int) -> int:
-        """Keep PostgreSQL's statement timeout inside its positive 32-bit range."""
-        if value <= 0 or value > 2_147_483_647:
+        if field_name == "postgres_request_statement_timeout_milliseconds" and not 1 <= parsed_value <= 2_147_483_647:
             raise ValueError("PostgreSQL request statement timeout must be between 1 and 2147483647 milliseconds")
-        return value
+        return parsed_value
 
     @field_validator("secret_key")
     @classmethod

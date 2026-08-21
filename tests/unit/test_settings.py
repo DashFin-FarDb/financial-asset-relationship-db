@@ -171,6 +171,14 @@ class TestSettingsModel:
         assert settings.asset_graph_database_url == "postgresql://fardb_user:example_value@localhost/fardb"
         assert settings.postgres_request_statement_timeout_milliseconds == 321_000
 
+    @pytest.mark.parametrize("value", [0, -1, 2_147_483_648])
+    def test_settings_rejects_invalid_explicit_postgres_request_statement_timeout(self, value: int) -> None:
+        """Direct model construction must enforce the PostgreSQL timeout bounds."""
+        from pydantic import ValidationError
+
+        with pytest.raises(ValidationError, match="postgres_request_statement_timeout_milliseconds"):
+            Settings(postgres_request_statement_timeout_milliseconds=value)
+
     def test_settings_allowed_origins_property(self) -> None:
         """Test that allowed_origins property correctly parses CSV."""
         settings = Settings(allowed_origins_raw="https://example.com,https://example.org")
