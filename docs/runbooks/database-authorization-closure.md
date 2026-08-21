@@ -143,10 +143,10 @@ From ADR 0007:
 - Credential review, rollback evidence, and redacted operator sign-off are complete.
 - Public marker `db_authz: PASS|<opaque-ref>` is attached for the exact artefact under promotion.
 
-Until staging closure evidence and named sign-off are attached, H-P0-04 / FPC-2026-07-21-01 remain
-**Partially satisfied / Blocked**. Staging is Satisfied as of the SHA-bound record
-`docs/evidence-records/hp004-db-authz-pass-29991d03.md` (`db_authz: PASS|run-30002002715`). Production still
-requires its own SHA-bound marker when that target is under promotion.
+H-P0-04 closure is target-bound. Staging is Satisfied as of the SHA-bound record
+`docs/evidence-records/hp004-db-authz-pass-29991d03.md` (`db_authz: PASS|run-30002002715`). Any other target without
+its own closure evidence and named sign-off remains **Partially satisfied / Blocked** for that target. Production
+still requires its own SHA-bound marker when that target is under promotion.
 
 ## Related documents
 
