@@ -15,6 +15,57 @@ from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationInfo, field_validator
 
+_POSTGRES_REQUEST_STATEMENT_TIMEOUT_FIELD = "postgres_request_statement_timeout_milliseconds"
+_POSTGRES_REQUEST_STATEMENT_TIMEOUT_MAXIMUM = 2_147_483_647
+_INTEGER_ENV_FIELDS = frozenset(
+    {
+        "rebuild_lock_ttl_seconds",
+        "slo_rebuild_duration_max_seconds",
+        "gradio_port",
+        _POSTGRES_REQUEST_STATEMENT_TIMEOUT_FIELD,
+    }
+)
+
+
+def _validate_postgres_request_statement_timeout(value: Any) -> None:
+    """Reject numeric PostgreSQL request timeouts outside the positive 32-bit range."""
+    try:
+        outside_postgres_range = value <= 0 or value > _POSTGRES_REQUEST_STATEMENT_TIMEOUT_MAXIMUM
+    except TypeError:
+        return
+    if outside_postgres_range:
+        raise ValueError("PostgreSQL request statement timeout must be between 1 and 2147483647 milliseconds")
+
+
+def _normalize_postgres_request_statement_timeout(value: Any) -> Any:
+    """Normalize byte-encoded integer input that Pydantic would otherwise coerce later."""
+    if not isinstance(value, (bytes, bytearray)):
+        return value
+    try:
+        return int(value)
+    except (ValueError, OverflowError):
+        return value
+
+
+def _empty_env_value(field_name: str, default: Any) -> Any:
+    """Apply the field-specific policy for an explicitly empty environment value."""
+    if field_name == _POSTGRES_REQUEST_STATEMENT_TIMEOUT_FIELD:
+        raise ValueError(
+            "Invalid integer for environment variable POSTGRES_REQUEST_STATEMENT_TIMEOUT_MILLISECONDS: empty value"
+        )
+    return default
+
+
+def _parse_integer_env_value(value: str, field_name: str) -> int:
+    """Parse one integer environment value and apply field-specific bounds."""
+    try:
+        parsed_value = int(value)
+    except ValueError:
+        raise ValueError(f"Invalid integer for environment variable {field_name.upper()}: {value!r}") from None
+    if field_name == _POSTGRES_REQUEST_STATEMENT_TIMEOUT_FIELD:
+        _validate_postgres_request_statement_timeout(parsed_value)
+    return parsed_value
+
 
 def _parse_bool_env(value: str | None) -> bool:
     """Parse a boolean environment variable value.
@@ -85,6 +136,10 @@ class Settings(BaseModel):
     database_url: str | None = Field(default=None)
     coordination_database_url: str | None = Field(default=None)
     postgres_url: str | None = Field(default=None)
+    postgres_request_statement_timeout_milliseconds: int = Field(
+        default=120_000,
+        description="Server-side statement timeout for ordinary PostgreSQL request connections",
+    )
 
     # UI Configuration
     gradio_host: str = Field(default="127.0.0.1")
@@ -116,25 +171,27 @@ class Settings(BaseModel):
         "slo_error_rate_threshold",
         "slo_evaluation_interval_seconds",
         "gradio_port",
+        "postgres_request_statement_timeout_milliseconds",
         mode="before",
     )
     @classmethod
     def parse_env_vars(cls, value: Any, info: ValidationInfo) -> Any:
-        """Coerce empty strings or None to the field default."""
+        """Parse typed environment values and apply each field's empty-value policy."""
         field_name = info.field_name or "rebuild_lock_ttl_seconds"
-        if value is None or (isinstance(value, str) and not value.strip()):
-            field_info = cls.model_fields.get(field_name)
-            default = getattr(field_info, "default", 300)
+        field_info = cls.model_fields.get(field_name)
+        default = getattr(field_info, "default", 300)
+        if value is None:
             return default
-        if field_name in ("rebuild_lock_ttl_seconds", "slo_rebuild_duration_max_seconds", "gradio_port") and isinstance(
-            value, str
-        ):
-            try:
-                return int(value)
-            except ValueError:
-                raise ValueError(f"Invalid integer for environment variable {field_name.upper()}: {value!r}") from None
-        # For other fields or non-string inputs, Pydantic will handle the type coercion
-        return value
+        if not isinstance(value, str):
+            if field_name == _POSTGRES_REQUEST_STATEMENT_TIMEOUT_FIELD:
+                value = _normalize_postgres_request_statement_timeout(value)
+                _validate_postgres_request_statement_timeout(value)
+            return value
+        if not value.strip():
+            return _empty_env_value(field_name, default)
+        if field_name not in _INTEGER_ENV_FIELDS:
+            return value
+        return _parse_integer_env_value(value, field_name)
 
     @field_validator("secret_key")
     @classmethod
@@ -192,7 +249,8 @@ def load_settings() -> Settings:
     Load runtime settings from environment variables and return a configured Settings instance.
 
     Reads environment variables (for example: ENV, VERCEL_ENV, LOG_LEVEL, SECRET_KEY, DATABASE_URL,
-    POSTGRES_URL, COORDINATION_DATABASE_URL, ALLOWED_ORIGINS, REBUILD_LOCK_TTL_SECONDS)
+    POSTGRES_URL, COORDINATION_DATABASE_URL, POSTGRES_REQUEST_STATEMENT_TIMEOUT_MILLISECONDS, ALLOWED_ORIGINS,
+    REBUILD_LOCK_TTL_SECONDS)
     and maps them to Settings fields, delegating type coercion and validation to Pydantic.
     REBUILD_LOCK_TTL_SECONDS is passed unchanged for field-level parsing. DATABASE_URL
     falls back to POSTGRES_URL when unset; COORDINATION_DATABASE_URL falls back to
@@ -202,6 +260,7 @@ def load_settings() -> Settings:
         Settings: A Settings instance populated from the current environment.
     """
     postgres_url = os.getenv("POSTGRES_URL")
+    postgres_request_statement_timeout_milliseconds: Any = os.getenv("POSTGRES_REQUEST_STATEMENT_TIMEOUT_MILLISECONDS")
 
     return Settings(
         env=os.getenv("ENV", "development").strip().lower(),  # type: ignore[arg-type]
@@ -225,6 +284,7 @@ def load_settings() -> Settings:
         database_url=os.getenv("DATABASE_URL") or postgres_url,
         coordination_database_url=os.getenv("COORDINATION_DATABASE_URL") or os.getenv("DATABASE_URL") or postgres_url,
         postgres_url=postgres_url,
+        postgres_request_statement_timeout_milliseconds=postgres_request_statement_timeout_milliseconds,
         gradio_host=os.getenv("GRADIO_HOST", "127.0.0.1"),
         gradio_port=os.getenv("GRADIO_SERVER_PORT", os.getenv("GRADIO_PORT", "7860")),  # type: ignore[arg-type]
         frontend_port=os.getenv("FRONTEND_PORT", "3000"),  # type: ignore[arg-type]

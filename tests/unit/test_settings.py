@@ -129,6 +129,7 @@ class TestSettingsModel:
         assert settings.use_real_data_fetcher is False
         assert settings.database_url is None
         assert settings.asset_graph_database_url is None
+        assert settings.postgres_request_statement_timeout_milliseconds == 120_000
         assert settings.gradio_host == "127.0.0.1"
         assert settings.gradio_port == 7860
         assert settings.rebuild_lock_ttl_seconds == 300
@@ -149,6 +150,7 @@ class TestSettingsModel:
             use_real_data_fetcher=True,
             database_url="sqlite:///runtime.db",
             asset_graph_database_url="postgresql://fardb_user:example_value@localhost/fardb",
+            postgres_request_statement_timeout_milliseconds=321_000,
             gradio_host="127.0.0.2",
             gradio_port=8080,
             rebuild_lock_ttl_seconds=600,
@@ -167,6 +169,21 @@ class TestSettingsModel:
         assert settings.database_url == "sqlite:///runtime.db"
         assert settings.rebuild_lock_ttl_seconds == 600
         assert settings.asset_graph_database_url == "postgresql://fardb_user:example_value@localhost/fardb"
+        assert settings.postgres_request_statement_timeout_milliseconds == 321_000
+
+    @pytest.mark.parametrize("value", [0, -1, 2_147_483_648, b"2147483648"])
+    def test_settings_rejects_invalid_explicit_postgres_request_statement_timeout(self, value: Any) -> None:
+        """Direct model construction must enforce the PostgreSQL timeout bounds."""
+        from pydantic import ValidationError
+
+        with pytest.raises(ValidationError, match="postgres_request_statement_timeout_milliseconds"):
+            Settings(postgres_request_statement_timeout_milliseconds=value)
+
+    def test_settings_accepts_valid_byte_encoded_postgres_request_statement_timeout(self) -> None:
+        """Direct model construction may preserve Pydantic's supported byte-to-integer coercion."""
+        value: Any = b"321000"
+        settings = Settings(postgres_request_statement_timeout_milliseconds=value)
+        assert settings.postgres_request_statement_timeout_milliseconds == 321_000
 
     def test_settings_allowed_origins_property(self) -> None:
         """Test that allowed_origins property correctly parses CSV."""
@@ -281,6 +298,7 @@ class TestLoadSettings:
         assert settings.real_data_cache_path is None
         assert settings.use_real_data_fetcher is False
         assert settings.database_url is None
+        assert settings.postgres_request_statement_timeout_milliseconds == 120_000
         assert settings.rebuild_lock_ttl_seconds == 300
         assert settings.asset_graph_database_url is None
 
@@ -301,6 +319,7 @@ class TestLoadSettings:
             "USE_REAL_DATA_FETCHER": "true",
             "DATABASE_URL": "sqlite:///env.db",
             "ASSET_GRAPH_DATABASE_URL": "postgresql://localhost/db",
+            "POSTGRES_REQUEST_STATEMENT_TIMEOUT_MILLISECONDS": "321000",
             "GRADIO_HOST": "127.0.0.2",
             "GRADIO_PORT": "8080",
         },
@@ -322,6 +341,7 @@ class TestLoadSettings:
         assert settings.use_real_data_fetcher is True
         assert settings.database_url == "sqlite:///env.db"
         assert settings.asset_graph_database_url == "postgresql://localhost/db"
+        assert settings.postgres_request_statement_timeout_milliseconds == 321_000
         assert settings.gradio_host == "127.0.0.2"
         assert settings.gradio_port == 8080
         assert settings.rebuild_lock_ttl_seconds == 300  # Default when not set
@@ -380,6 +400,21 @@ class TestLoadSettings:
         with pytest.raises(
             ValueError,
             match=r"REBUILD_LOCK_TTL_SECONDS|invalid literal|could not convert",
+        ):
+            load_settings()
+
+    @pytest.mark.parametrize("value", ["0", "-1", "2147483648", "not-an-integer", ""])
+    def test_load_settings_rejects_invalid_postgres_request_statement_timeout(self, value: str) -> None:
+        """Explicit PostgreSQL request timeouts must be positive integer milliseconds."""
+        from pydantic import ValidationError
+
+        with (
+            patch.dict(
+                os.environ,
+                {"POSTGRES_REQUEST_STATEMENT_TIMEOUT_MILLISECONDS": value},
+                clear=True,
+            ),
+            pytest.raises(ValidationError, match="postgres_request_statement_timeout_milliseconds"),
         ):
             load_settings()
 
