@@ -1,10 +1,12 @@
 # Roadmap Status
 
-> Historical stage ledger. Current programme authority is the
-> [FarDB Project Continuity Ledger](docs/strategy/fardb-project-continuity.md); dated strategy snapshots and generated
-> memory do not override it.
+> **Historical snapshot:** This stage ledger is frozen at its 13 August 2026 evidence cutoff. Any `current` or `next`
+> wording below describes that dated checkpoint and is not current task authority. Start with the
+> [Agent Task Entry Route](docs/agent-task-entry.md), then reconcile the
+> [FarDB Project Continuity Ledger](docs/strategy/fardb-project-continuity.md) against current `main`; dated strategy
+> snapshots and generated memory do not override it.
 
-## Current programme checkpoint — 2026-08-13
+## Historical programme checkpoint — 2026-08-13
 
 **Repository evidence cutoff:** `main@2dd9f64136eb653284b0f5330a16ee99f6b0b491`
 
