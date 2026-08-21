@@ -213,8 +213,8 @@ class TestConnectionManagement:
         )
         connection.close.assert_called_once_with()
 
-    def test_guarded_postgres_connection_enforces_driver_statement_timeout(self):
-        """Bounded startup verification must apply a driver-level statement timeout."""
+    def test_guarded_postgres_connection_enforces_server_statement_timeout(self):
+        """Bounded startup verification must apply PostgreSQL's server-side statement timeout."""
         connection = Mock()
         operation_guard = database._PostgresOperationGuard()  # pylint: disable=protected-access
         with (
