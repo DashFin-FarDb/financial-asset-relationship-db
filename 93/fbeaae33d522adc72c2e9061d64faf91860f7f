@@ -1,0 +1,20 @@
+tests/integration/test_adr0007_closure_setup.py
+  s_33a25107973364::t_0aad79b86d9080 21-22,24-27,29-31,35,146,150
+  s_33a25107973364::t_f1155e0f82b92c 32-34,65-67
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "93fbeaae33d522adc72c2e9061d64faf91860f7f",
+  "prompts": {},
+  "sessions": {
+    "s_33a25107973364": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a01ef3-688c-7872-bea6-edcd50fdb7a5",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}
