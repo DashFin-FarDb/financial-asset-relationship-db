@@ -15,6 +15,48 @@ from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationInfo, field_validator
 
+_POSTGRES_REQUEST_STATEMENT_TIMEOUT_FIELD = "postgres_request_statement_timeout_milliseconds"
+_POSTGRES_REQUEST_STATEMENT_TIMEOUT_MAXIMUM = 2_147_483_647
+_INTEGER_ENV_FIELDS = frozenset(
+    {
+        "rebuild_lock_ttl_seconds",
+        "slo_rebuild_duration_max_seconds",
+        "gradio_port",
+        _POSTGRES_REQUEST_STATEMENT_TIMEOUT_FIELD,
+    }
+)
+
+
+def _validate_postgres_request_statement_timeout(value: Any) -> Any:
+    """Reject numeric PostgreSQL request timeouts outside the positive 32-bit range."""
+    try:
+        outside_postgres_range = value <= 0 or value > _POSTGRES_REQUEST_STATEMENT_TIMEOUT_MAXIMUM
+    except TypeError:
+        return value
+    if outside_postgres_range:
+        raise ValueError("PostgreSQL request statement timeout must be between 1 and 2147483647 milliseconds")
+    return value
+
+
+def _empty_env_value(field_name: str, default: Any) -> Any:
+    """Apply the field-specific policy for an explicitly empty environment value."""
+    if field_name == _POSTGRES_REQUEST_STATEMENT_TIMEOUT_FIELD:
+        raise ValueError(
+            "Invalid integer for environment variable POSTGRES_REQUEST_STATEMENT_TIMEOUT_MILLISECONDS: empty value"
+        )
+    return default
+
+
+def _parse_integer_env_value(value: str, field_name: str) -> int:
+    """Parse one integer environment value and apply field-specific bounds."""
+    try:
+        parsed_value = int(value)
+    except ValueError:
+        raise ValueError(f"Invalid integer for environment variable {field_name.upper()}: {value!r}") from None
+    if field_name == _POSTGRES_REQUEST_STATEMENT_TIMEOUT_FIELD:
+        return _validate_postgres_request_statement_timeout(parsed_value)
+    return parsed_value
+
 
 def _parse_bool_env(value: str | None) -> bool:
     """Parse a boolean environment variable value.
@@ -132,38 +174,14 @@ class Settings(BaseModel):
         if value is None:
             return default
         if not isinstance(value, str):
-            if field_name == "postgres_request_statement_timeout_milliseconds":
-                try:
-                    outside_postgres_range = value <= 0 or value > 2_147_483_647
-                except TypeError:
-                    return value
-                if outside_postgres_range:
-                    raise ValueError(
-                        "PostgreSQL request statement timeout must be between 1 and 2147483647 milliseconds"
-                    )
+            if field_name == _POSTGRES_REQUEST_STATEMENT_TIMEOUT_FIELD:
+                return _validate_postgres_request_statement_timeout(value)
             return value
         if not value.strip():
-            if field_name == "postgres_request_statement_timeout_milliseconds":
-                raise ValueError(
-                    "Invalid integer for environment variable "
-                    "POSTGRES_REQUEST_STATEMENT_TIMEOUT_MILLISECONDS: empty value"
-                )
-            return default
-        integer_fields = (
-            "rebuild_lock_ttl_seconds",
-            "slo_rebuild_duration_max_seconds",
-            "gradio_port",
-            "postgres_request_statement_timeout_milliseconds",
-        )
-        if field_name not in integer_fields:
+            return _empty_env_value(field_name, default)
+        if field_name not in _INTEGER_ENV_FIELDS:
             return value
-        try:
-            parsed_value = int(value)
-        except ValueError:
-            raise ValueError(f"Invalid integer for environment variable {field_name.upper()}: {value!r}") from None
-        if field_name == "postgres_request_statement_timeout_milliseconds" and not 1 <= parsed_value <= 2_147_483_647:
-            raise ValueError("PostgreSQL request statement timeout must be between 1 and 2147483647 milliseconds")
-        return parsed_value
+        return _parse_integer_env_value(value, field_name)
 
     @field_validator("secret_key")
     @classmethod
