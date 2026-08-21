@@ -568,9 +568,9 @@ describe("Package.json Validation", () => {
       }
       const [major, minor] = versionMatch[0].split(".").map(Number);
 
-      // 1.13.2 has security fixes and improvements
+      // The governed Axios floor is 1.19.0.
       expect(major).toBe(1);
-      expect(minor).toBeGreaterThanOrEqual(13);
+      expect(minor).toBeGreaterThanOrEqual(19);
     });
   });
 
