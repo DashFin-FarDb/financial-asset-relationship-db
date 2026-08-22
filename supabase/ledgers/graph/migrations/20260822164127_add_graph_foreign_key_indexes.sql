@@ -3,6 +3,7 @@
 -- Lock expectation: ordinary CREATE INDEX locks; apply only through the reviewed operator path.
 -- Data/backfill behavior: index construction only; no application rows are changed.
 -- Rollback/restore: forward-only; a later reviewed migration may drop these indexes if required.
+-- Provider capability: none.
 
 BEGIN;
 
