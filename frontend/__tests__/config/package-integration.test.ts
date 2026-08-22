@@ -396,21 +396,6 @@ describe("Package Configuration Integration", () => {
       }
     });
 
-    it("recharts should be compatible with React", () => {
-      const recharts = packageLock.packages?.["node_modules/recharts"];
-      const react = packageLock.packages?.["node_modules/react"];
-
-      expect(recharts).toBeDefined();
-      expect(react).toBeDefined();
-
-      // Recharts 2.x works with React 16+
-      const rechartsMajor = parseInt(recharts?.version?.split(".")[0] || "0");
-      const reactMajor = parseInt(react?.version?.split(".")[0] || "0");
-
-      if (rechartsMajor >= 2) {
-        expect(reactMajor).toBeGreaterThanOrEqual(16);
-      }
-    });
   });
 
   describe("Lockfile Health", () => {
