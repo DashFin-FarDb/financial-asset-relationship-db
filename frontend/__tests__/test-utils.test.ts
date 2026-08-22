@@ -436,7 +436,9 @@ describe("test-utils Mock Data Validation", () => {
     });
 
     it("should have unique node IDs", () => {
-      const ids = mockVisualizationData.nodes.map((n: VisualizationNode) => n.id);
+      const ids = mockVisualizationData.nodes.map(
+        (n: VisualizationNode) => n.id,
+      );
       const uniqueIds = new Set(ids);
       expect(uniqueIds.size).toBe(ids.length);
     });
