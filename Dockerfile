@@ -45,7 +45,8 @@ WORKDIR /app
 # No apt packages in the runtime stage: compilers stay in the builder, and a
 # pure-Python HEALTHCHECK avoids curl (and its gnutls/krb5/openldap deps).
 COPY --from=builder /opt/venv /opt/venv
-COPY . .
+COPY app.py ./
+COPY src/ ./src/
 
 RUN useradd -m -u 1000 appuser && \
     chown -R appuser:appuser /app
