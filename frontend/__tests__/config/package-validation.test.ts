@@ -152,13 +152,10 @@ describe("Package.json Validation", () => {
       expect(packageJson.dependencies.axios).toBeDefined();
     });
 
-    it("should have visualization libraries", () => {
+    it("should have only the active visualization libraries", () => {
       expect(packageJson.dependencies["plotly.js"]).toBeDefined();
       expect(packageJson.dependencies["react-plotly.js"]).toBeDefined();
-    });
-
-    it("should have recharts for charts", () => {
-      expect(packageJson.dependencies.recharts).toBeDefined();
+      expect(packageJson.dependencies.recharts).toBeUndefined();
     });
   });
 
@@ -505,10 +502,6 @@ describe("Package.json Validation", () => {
       expect(packageJson.dependencies["react-plotly.js"]).toBeDefined();
     });
 
-    it("should have recharts for dashboard charts", () => {
-      expect(packageJson.dependencies.recharts).toBeDefined();
-    });
-
     it("should have type definitions for plotly", () => {
       // react-plotly.js >=4 ships its own TypeScript declarations; do not
       // also require @types/react-plotly.js (DefinitelyTyped) or types diverge.
@@ -657,7 +650,7 @@ describe("Package.json Validation", () => {
 
   describe("Financial Application Specific Dependencies", () => {
     it("should have visualization libraries for financial data", () => {
-      const vizLibs = ["plotly.js", "react-plotly.js", "recharts"];
+      const vizLibs = ["plotly.js", "react-plotly.js"];
 
       vizLibs.forEach((lib) => {
         expect(packageJson.dependencies[lib]).toBeDefined();
