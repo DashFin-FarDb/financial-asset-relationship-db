@@ -155,7 +155,17 @@ describe("Package.json Validation", () => {
     it("should use the active Plotly stack without Recharts", () => {
       expect(packageJson.dependencies["plotly.js"]).toBeDefined();
       expect(packageJson.dependencies["react-plotly.js"]).toBeDefined();
-      expect(packageJson.dependencies.recharts).toBeUndefined();
+
+      const rechartsDeclarationPaths = [
+        "dependencies.recharts",
+        "devDependencies.recharts",
+        "optionalDependencies.recharts",
+        "peerDependencies.recharts",
+      ];
+
+      rechartsDeclarationPaths.forEach((path) => {
+        expect(packageJson).not.toHaveProperty(path);
+      });
     });
   });
 
