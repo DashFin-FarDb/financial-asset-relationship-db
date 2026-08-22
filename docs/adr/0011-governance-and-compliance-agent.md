@@ -1,7 +1,15 @@
 # ADR 0011: Governance and Compliance agent
 
-- Status: Accepted for Phase 1 specification and offline replay only
-- Date: 2026-08-22
+## Status
+
+**Accepted for Phase 1 specification and offline replay only.**
+
+## Date
+
+2026-08-22
+
+## Authority
+
 - Parent programme: GitHub issue #1557
 - Phase contract: `gnc.phase1@v1`, defined by the linked
   [normative contract](../governance/governance-and-compliance-agent-v1.md)
