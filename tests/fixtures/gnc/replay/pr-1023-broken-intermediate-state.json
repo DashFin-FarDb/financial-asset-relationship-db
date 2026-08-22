@@ -1,0 +1,47 @@
+{
+  "scenario_id": "pr-1023-broken-intermediate-state",
+  "source_refs": ["github:pr/1023", "github:issue/1557"],
+  "contract": {
+    "schema_version": 1,
+    "contract_id": "replay.pr-1023",
+    "version": 1,
+    "parent_issue": 1557,
+    "objective": "Preserve the declared production architecture while restoring a damaged document.",
+    "base_sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "policy_sha": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "risk_class": "high",
+    "allowed_paths": ["docs/adr/0001-production-architecture.md"],
+    "forbidden_paths": ["api", "frontend", ".github/workflows"],
+    "rules": [{"rule_id": "restore.complete-source", "type": "mandatory_invariant", "statement": "Restore from a complete authoritative source before editing."}],
+    "required_evidence": ["document-structure"],
+    "merge_criteria": ["The complete architecture declaration remains present."],
+    "stop_conditions": ["The source document is truncated or provenance is unknown."],
+    "approved_by": "maintainer",
+    "approved_at": "2026-07-27T00:00:00Z"
+  },
+  "review_run": {
+    "run_id": "run.pr-1023",
+    "head_sha": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+    "merge_base_sha": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+    "contract_hash": "ec2f15b6cc48d8aaa8997325d3028b162dcc41fa0c95f70c7b817f7cbea32b87",
+    "policy_sha": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "evaluator_version": "gnc-phase1",
+    "target": "repository",
+    "review_mode": "full",
+    "verdict": "block",
+    "analyzed_blobs": {"docs/adr/0001-production-architecture.md": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"}
+  },
+  "evidence": [],
+  "findings": [{
+    "finding_id": "finding.structural-gap",
+    "rule_id": "restore.complete-source",
+    "subject": "docs/adr/0001-production-architecture.md",
+    "failure_mode": "Intermediate damaged state was treated as authoritative.",
+    "expected_outcome": "Restore the complete source before applying changes.",
+    "origin": "deterministic",
+    "state": "open",
+    "head_sha": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+    "blocking_basis": "deterministic_rule"
+  }],
+  "expected": {"verdict": "block", "finding_ids": ["finding.structural-gap"]}
+}

@@ -225,6 +225,28 @@ Automated linters must:
 
 ## Review and Override
 
+### Governance and Compliance review
+
+The repository-local Governance and Compliance (GNC) agent is a read-only
+reviewer and evidence governor. It evaluates an exact pushed head against a
+human-approved, versioned contract and the target branch's policy and ADRs.
+It may emit structured candidate findings, but it may not change code, expand
+scope, approve amendments, resolve or waive its own findings, or merge a PR.
+
+GNC uses the following authority order when inputs conflict: target-branch
+policy and accepted ADRs; the approved contract; approved amendments; exact-
+head code and executed evidence; review claims; and finally model inference.
+Only approved mandatory invariants and fixed decisions are eligible to block.
+Model inference, preferred patterns, examples, and semantic similarity remain
+advisory until a human or deterministic rule confirms them.
+
+Skipped, canceled, unavailable, stale-SHA, and wrong-target results do not
+satisfy mandatory evidence. A resolved conversation thread is not evidence
+that the underlying finding was fixed. See
+[`docs/adr/0011-governance-and-compliance-agent.md`](../docs/adr/0011-governance-and-compliance-agent.md)
+and the normative
+[`GNC v1 contract`](../docs/governance/governance-and-compliance-agent-v1.md).
+
 ### Human Override Authority
 
 Any human contributor with write access may override this policy for specific PRs by:

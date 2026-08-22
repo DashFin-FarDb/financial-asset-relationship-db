@@ -102,6 +102,22 @@ Only when **all three** conditions hold:
 
 ## High-risk change control
 
+### GNC self-review and evidence boundary
+
+Governance and Compliance (GNC) review never authorizes an agent to widen a
+task. Agents responding to GNC findings must validate each claim against the
+current head and record one disposition: `resolved`, `deferred_out_of_scope`,
+`rejected_speculative`, `duplicate_of`, `waived`, or
+`reopened_as_recurrence`. Out-of-scope findings require a follow-up issue or
+explicit human decision; they are not silently implemented.
+
+GNC policy, contract, evaluator, and skill changes cannot approve or waive
+themselves. A model-origin finding is advisory unless it maps to a human-
+confirmed or deterministic blocking basis. Evidence satisfies a mandatory
+requirement only when it was executed successfully for the exact head SHA and
+target. A skipped, canceled, unavailable, stale, or wrong-target check fails
+closed for that requirement.
+
 Database, authentication, deployment, CI/CD, security scanner configuration, persistence, and migration work require low-autonomy, file-bounded implementation contracts.
 
 ### Low-autonomy areas

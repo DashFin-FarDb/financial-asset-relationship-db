@@ -1,0 +1,17 @@
+{
+  "scenario_id": "pr-1096-high-risk-contract-drift",
+  "source_refs": ["github:pr/1096", "github:issue/1557"],
+  "contract": {
+    "schema_version": 1, "contract_id": "replay.pr-1096", "version": 1, "parent_issue": 1557,
+    "objective": "Keep a database change within an approved file-bounded contract.",
+    "base_sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "policy_sha": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "risk_class": "high",
+    "allowed_paths": ["src/data/database.py"], "forbidden_paths": [".github/workflows", "frontend"],
+    "rules": [{"rule_id": "scope.no-expansion", "type": "mandatory_invariant", "statement": "Do not add unapproved database decisions."}],
+    "required_evidence": ["database-contract"], "merge_criteria": ["Only the approved database seam changes."], "stop_conditions": ["A new driver, pool, or precedence decision appears."],
+    "approved_by": "maintainer", "approved_at": "2026-07-27T00:00:00Z"
+  },
+  "review_run": {"run_id": "run.pr-1096", "head_sha": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc", "merge_base_sha": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd", "contract_hash": "5d6f2f3865ba6600e4f6f520b68a922d83c1862d7d9ec9d100e2564214d987f7", "policy_sha": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "evaluator_version": "gnc-phase1", "target": "repository", "review_mode": "full", "verdict": "block", "analyzed_blobs": {"src/data/database.py": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"}},
+  "evidence": [],
+  "findings": [{"finding_id": "finding.scope-drift", "rule_id": "scope.no-expansion", "subject": "database connection policy", "failure_mode": "Unapproved pooling and precedence choices entered the change.", "expected_outcome": "Stop and ratify each new architectural decision.", "origin": "deterministic", "state": "open", "head_sha": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc", "blocking_basis": "deterministic_rule"}],
+  "expected": {"verdict": "block", "finding_ids": ["finding.scope-drift"]}
+}
