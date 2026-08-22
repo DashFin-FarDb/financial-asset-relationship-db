@@ -23,6 +23,7 @@ Claims are labeled landed vs provisional. ADRs/policy are not rewritten.
 - [provisional] **pr:1652**: x()     
 
 ### api
+- [provisional] **pr:1716**: ()   -    y w  
 - [provisional] **pr:1715**: (vy)  -  y
 - [provisional] **pr:1680**: ()    ..
 - [provisional] **pr:1714**: ()   -    y w  
@@ -37,7 +38,6 @@ Claims are labeled landed vs provisional. ADRs/policy are not rewritten.
 - [landed] **pr:1666**: x()   -y 
 - [provisional] **pr:1662**: x()   y   ..
 - [landed] **pr:1658**: x()  x.  y   ..
-- [landed] **pr:1656**:    y   x. 
 
 ### persistence
 - [landed] **pr:1641**: --  -  
