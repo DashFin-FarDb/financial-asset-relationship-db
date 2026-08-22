@@ -900,7 +900,7 @@ Provides intuitive visual exploration of complex relationship networks that woul
 
 **Technical Context:**
 
-Implemented in `src/visualizations/graph_visuals.py` with Plotly ≥6.0.0 (backend) and plotly.js ^2.27.0 (frontend). Nodes are color-coded by asset class: Blue (Equity), Green (Fixed Income), Orange (Commodity), Red (Currency), Purple (Derivative). Edge colors vary by relationship type. Deterministic layouts use seed=42. Frontend guardrails limit rendering to MAX_NODES (default 500) and MAX_EDGES (default 2000).
+Implemented in `src/visualizations/graph_visuals.py` with Plotly ≥6.0.0 (backend) and plotly.js ^3.7.0 (frontend). Nodes are color-coded by asset class: Blue (Equity), Green (Fixed Income), Orange (Commodity), Red (Currency), Purple (Derivative). Edge colors vary by relationship type. Deterministic layouts use seed=42. Frontend guardrails limit rendering to MAX_NODES (default 500) and MAX_EDGES (default 2000).
 
 **Dependencies:**
 
@@ -1253,7 +1253,7 @@ Provides production-ready web interface suitable for enterprise deployment with 
 
 **Technical Context:**
 
-Implemented in `frontend/` using Next.js 14.2.x, React 18.2.0, TypeScript, and Tailwind CSS 3.3.0. API communication via Axios. 3D visualization with react-plotly.js ^2.6.0. Components in `frontend/app/components/` include NetworkVisualization, MetricsDashboard, and AssetList.
+Implemented in `frontend/` using Next.js 14.2.x, React 18.2.0, TypeScript, and Tailwind CSS 3.3.0. API communication via Axios. 3D visualization with react-plotly.js ^4.0.0. Components in `frontend/app/components/` include NetworkVisualization, MetricsDashboard, and AssetList.
 
 **Dependencies:**
 
@@ -1975,7 +1975,7 @@ flowchart TB
 
     subgraph Visualization["Visualization Layer"]
         PlotlyPy["Plotly ≥6.0.0<br/>Server-side"]
-        PlotlyJS["plotly.js ^2.27.0<br/>Client-side"]
+        PlotlyJS["plotly.js ^3.7.0<br/>Client-side"]
     end
 
     subgraph Data["Data Layer"]
@@ -2253,8 +2253,8 @@ Tailwind CSS provides:
 | Context              | Package         | Version |
 | -------------------- | --------------- | ------- |
 | **Backend (Python)** | plotly          | >=6.0.0 |
-| **Frontend (React)** | react-plotly.js | ^2.6.0  |
-| **Frontend (Core)**  | plotly.js       | ^2.27.0 |
+| **Frontend (React)** | react-plotly.js | ^4.0.0  |
+| **Frontend (Core)**  | plotly.js       | ^3.7.0  |
 
 **Library Constraint:**
 
@@ -4156,7 +4156,7 @@ The Next.js frontend provides a modern, responsive user interface for exploring 
 | React        | 18.2.0  | UI component library                 |
 | TypeScript   | ^5.3.0  | Type safety                          |
 | Tailwind CSS | Latest  | Utility-first styling                |
-| Plotly.js    | ^2.27.0 | Client-side 3D rendering             |
+| Plotly.js    | ^3.7.0  | Client-side 3D rendering             |
 | Axios        | Latest  | HTTP client                          |
 
 #### Key Components
@@ -6983,7 +6983,7 @@ The integration architecture is designed to meet specific service level objectiv
 | React        | 18.2.0  | UI library      |
 | TypeScript   | ^5.3.0  | Type safety     |
 | Axios        | Latest  | HTTP client     |
-| Plotly.js    | ^2.27.0 | Visualization   |
+| Plotly.js    | ^3.7.0  | Visualization   |
 | Tailwind CSS | Latest  | Styling         |
 
 ---
@@ -9466,8 +9466,8 @@ The modern frontend is built on an enterprise-grade React framework stack optimi
 | **React**           | 18.2.0  | UI component library                 | `frontend/package.json`       |
 | **TypeScript**      | ^5.3.0  | Static type checking                 | `frontend/tsconfig.json`      |
 | **Tailwind CSS**    | 3.3.0   | Utility-first CSS framework          | `frontend/tailwind.config.js` |
-| **Plotly.js**       | ^2.27.0 | 3D visualization rendering           | `frontend/package.json`       |
-| **react-plotly.js** | ^2.6.0  | React Plotly wrapper                 | `frontend/package.json`       |
+| **Plotly.js**       | ^3.7.0  | 3D visualization rendering           | `frontend/package.json`       |
+| **react-plotly.js** | ^4.0.0  | React Plotly wrapper                 | `frontend/package.json`       |
 | **Axios**           | Latest  | HTTP client for API communication    | `frontend/package.json`       |
 
 #### Framework Selection Rationale
@@ -9514,7 +9514,7 @@ flowchart LR
     end
 
     subgraph ClientSide[Client-Side - Next.js]
-        PlotlyJS[Plotly.js ^2.27.0]
+        PlotlyJS[Plotly.js ^3.7.0]
         ReactPlotly[react-plotly.js]
     end
 
@@ -11116,7 +11116,7 @@ flowchart TB
 | `next`       | ^14.2.35 | React framework |
 | `react`      | ^18.2.0  | UI library      |
 | `axios`      | ^1.6.0   | HTTP client     |
-| `plotly.js`  | ^2.27.0  | Visualization   |
+| `plotly.js`  | ^3.7.0   | Visualization   |
 | `jest`       | ^29.7.0  | Test runner     |
 | `typescript` | ^5.3.0   | Type checking   |
 

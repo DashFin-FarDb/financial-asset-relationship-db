@@ -411,6 +411,10 @@ describe("Package Configuration Integration", () => {
   });
 
   describe("Lockfile Health", () => {
+    it("should not resolve Recharts", () => {
+      expect(packageLock.packages["node_modules/recharts"]).toBeUndefined();
+    });
+
     it("should not have missing dependencies", () => {
       let missingCount = 0;
       const packagePaths = Object.keys(packageLock.packages);
