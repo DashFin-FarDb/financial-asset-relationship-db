@@ -281,10 +281,7 @@ class TestWorkflowSupplyChainSecurity:
     @staticmethod
     def test_third_party_actions_pinned_to_commit_sha(all_workflows):
         """Verify third-party actions are pinned to a full commit SHA."""
-        # Actions that are permitted to use non-SHA version references
-        sha_exempt_actions = {
-            "pypa/gh-action-pypi-publish",
-        }
+        sha_exempt_actions = set()
         for workflow in all_workflows:
             TestWorkflowSupplyChainSecurity._validate_workflow_job_steps(workflow, sha_exempt_actions)
 
