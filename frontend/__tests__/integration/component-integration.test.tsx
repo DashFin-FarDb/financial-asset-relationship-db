@@ -11,6 +11,12 @@ import { render, screen, waitFor, fireEvent } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import Home from "../../app/page";
 import { api } from "../../app/lib/api";
+import type {
+  Metrics,
+  PublishedEdgeExplanationResponse,
+  PublishedProjectionContextResponse,
+  VisualizationData,
+} from "../../app/types/api";
 import {
   mockAssets,
   mockMetrics,
@@ -21,7 +27,7 @@ import {
 
 jest.mock("../../app/lib/api");
 jest.mock("../../app/components/NetworkVisualization", () => {
-  return function MockVisualization({ data }: { data: unknown }) {
+  return function MockVisualization({ data }: { data: VisualizationData }) {
     return (
       <div data-testid="network-visualization">
         <div data-testid="viz-node-count">{data?.nodes?.length || 0}</div>
@@ -31,7 +37,7 @@ jest.mock("../../app/components/NetworkVisualization", () => {
   };
 });
 jest.mock("../../app/components/MetricsDashboard", () => {
-  return function MockMetrics({ metrics }: { metrics: unknown }) {
+  return function MockMetrics({ metrics }: { metrics: Metrics }) {
     return (
       <div data-testid="metrics-dashboard">
         <div data-testid="total-assets">{metrics?.total_assets || 0}</div>
@@ -243,6 +249,7 @@ describe("Component Integration Tests", () => {
       mockedApi.getVisualizationData.mockResolvedValue({
         nodes: [],
         edges: [],
+        network_density: 0,
       });
 
       render(<Home />);
@@ -278,7 +285,7 @@ describe("Component Integration Tests", () => {
     });
 
     it("should handle very large datasets", async () => {
-      const largeData = {
+      const largeData: VisualizationData = {
         nodes: Array.from({ length: 500 }, (_, i) => ({
           id: `N${i}`,
           name: `Node ${i}`,
@@ -291,11 +298,13 @@ describe("Component Integration Tests", () => {
           size: 5,
         })),
         edges: Array.from({ length: 2000 }, (_, i) => ({
+          edge_id: `edge-${i}`,
           source: `N${i % 500}`,
           target: `N${(i + 1) % 500}`,
           relationship_type: "TEST",
           strength: 0.5,
         })),
+        network_density: 0.016,
       };
 
       mockedApi.getVisualizationData.mockResolvedValue(largeData);
@@ -313,20 +322,21 @@ describe("Component Integration Tests", () => {
 
   describe("Concurrent Component Rendering", () => {
     it("should handle simultaneous API calls without race conditions", async () => {
-      let metricsResolve: ((value: unknown) => void) | null = null;
-      let vizResolve: ((value: unknown) => void) | null = null;
+      const createDeferred = <T,>() => {
+        let resolvePromise: (value: T) => void = () => {
+          throw new Error("Deferred promise was not initialized");
+        };
+        const promise = new Promise<T>((resolve) => {
+          resolvePromise = resolve;
+        });
+        return { promise, resolve: resolvePromise };
+      };
+      const metricsDeferred = createDeferred<Metrics>();
+      const visualizationDeferred = createDeferred<VisualizationData>();
 
-      mockedApi.getMetrics.mockImplementation(
-        () =>
-          new Promise((resolve) => {
-            metricsResolve = resolve;
-          }),
-      );
+      mockedApi.getMetrics.mockImplementation(() => metricsDeferred.promise);
       mockedApi.getVisualizationData.mockImplementation(
-        () =>
-          new Promise((resolve) => {
-            vizResolve = resolve;
-          }),
+        () => visualizationDeferred.promise,
       );
 
       render(<Home />);
@@ -334,20 +344,9 @@ describe("Component Integration Tests", () => {
       expect(screen.getByText("Loading data...")).toBeInTheDocument();
 
       // Resolve in reverse order
-      await waitFor(() => {
-        expect(vizResolve).not.toBeNull();
-        expect(metricsResolve).not.toBeNull();
-      });
-
-      if (!vizResolve) {
-        throw new Error("vizResolve is null");
-      }
-      vizResolve(mockVisualizationData);
+      visualizationDeferred.resolve(mockVisualizationData);
       await new Promise((resolve) => setTimeout(resolve, 10));
-      if (!metricsResolve) {
-        throw new Error("metricsResolve is null");
-      }
-      metricsResolve(mockMetrics);
+      metricsDeferred.resolve(mockMetrics);
 
       await waitFor(() => {
         expect(screen.queryByText("Loading data...")).not.toBeInTheDocument();
@@ -361,7 +360,7 @@ describe("Component Integration Tests", () => {
       "../../app/components/NetworkVisualization",
     ).default;
 
-    const publicationA = {
+    const publicationA: PublishedProjectionContextResponse = {
       publication_id: "pub-A",
       revision_id: "rev-A",
       rebuild_job_id: "job-100",
@@ -390,7 +389,7 @@ describe("Component Integration Tests", () => {
       projection_hash: "hash-proj-B",
     };
 
-    const dataA = {
+    const dataA: VisualizationData = {
       nodes: [
         {
           id: "A1",
@@ -433,7 +432,7 @@ describe("Component Integration Tests", () => {
       publication: publicationA,
     };
 
-    const dataB = {
+    const dataB: VisualizationData = {
       nodes: [
         {
           id: "A1",
@@ -476,7 +475,7 @@ describe("Component Integration Tests", () => {
       publication: publicationB,
     };
 
-    const explanationA = {
+    const explanationA: PublishedEdgeExplanationResponse = {
       publication: publicationA,
       edge: {
         projection_edge_id: "pedge-A",
@@ -521,7 +520,7 @@ describe("Component Integration Tests", () => {
       },
     };
 
-    const explanationB = {
+    const explanationB: PublishedEdgeExplanationResponse = {
       publication: publicationB,
       edge: {
         projection_edge_id: "pedge-B",

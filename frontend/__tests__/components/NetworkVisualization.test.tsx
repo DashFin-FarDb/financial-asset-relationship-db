@@ -7,7 +7,10 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import "@testing-library/jest-dom";
 import NetworkVisualization from "../../app/components/NetworkVisualization";
-import type { VisualizationData } from "../../app/types/api";
+import type {
+  PublishedEdgeExplanationResponse,
+  VisualizationData,
+} from "../../app/types/api";
 import { mockVisualizationData } from "../test-utils";
 import { api } from "../../app/lib/api";
 
@@ -45,7 +48,11 @@ jest.mock("react-plotly.js", () => {
 
 describe("NetworkVisualization Component", () => {
   it("should show empty data message when nodes are missing", () => {
-    render(<NetworkVisualization data={{ nodes: [], edges: [] }} />);
+    render(
+      <NetworkVisualization
+        data={{ nodes: [], edges: [], network_density: 0 }}
+      />,
+    );
     expect(
       screen.getByText("Visualization data is missing nodes."),
     ).toBeInTheDocument();
@@ -55,6 +62,7 @@ describe("NetworkVisualization Component", () => {
     const nodeOnlyData: VisualizationData = {
       nodes: mockVisualizationData.nodes,
       edges: [],
+      network_density: 0,
     };
 
     render(<NetworkVisualization data={nodeOnlyData} />);
@@ -126,6 +134,7 @@ describe("NetworkVisualization Component", () => {
         size: 5,
       })),
       edges: Array.from({ length: 2001 }, (_, index) => ({
+        edge_id: `edge-${index}`,
         source: "NODE_0",
         target: `NODE_${(index % 599) + 1}`,
         relationship_type: "TEST",
