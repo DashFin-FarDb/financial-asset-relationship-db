@@ -12,6 +12,34 @@ Focus areas:
 import re
 
 
+def _github_expressions(run_command):
+    """Yield each complete GitHub expression from a shell command."""
+    expression_start = run_command.find("${{")
+    while expression_start != -1:
+        expression_end = run_command.find("}}", expression_start + 3)
+        assert expression_end != -1, "Unterminated GitHub expression"
+        yield run_command[expression_start + 3 : expression_end]
+        expression_start = run_command.find("${{", expression_end + 2)
+
+
+def _run_steps(workflow):
+    """Yield identifying information for each shell step in a workflow."""
+    for job_name, job_config in workflow["content"].get("jobs", {}).items():
+        for step_idx, step in enumerate(job_config.get("steps", [])):
+            if "run" in step:
+                yield job_name, step_idx, step["run"]
+
+
+def _assert_context_not_interpolated(run_command, forbidden_context, location):
+    """Reject direct dot or bracket access to a context in shell text."""
+    for expression in _github_expressions(run_command):
+        compact_expression = "".join(expression.split())
+        direct_access = f"{forbidden_context}." in compact_expression or f"{forbidden_context}[" in compact_expression
+        assert not direct_access, (
+            f"Direct {forbidden_context} context interpolation in {location}: " f"${{{{ {expression.strip()} }}}}"
+        )
+
+
 class TestWorkflowInjectionPrevention:
     """Tests for preventing injection attacks in workflows."""
 
@@ -52,6 +80,25 @@ class TestWorkflowInjectionPrevention:
                                     f"Unquoted context variable in {workflow['path']} "
                                     f"job '{job_name}' step {step_idx}: {match}"
                                 )
+
+    @staticmethod
+    def test_target_workflows_do_not_interpolate_untrusted_context_in_run(all_workflows):
+        """Keep untrusted inputs and secrets out of shell command text."""
+        guarded_contexts = {"manual.yml": "inputs", "veracode.yml": "secrets"}
+        checked_workflows = set()
+
+        for workflow in all_workflows:
+            workflow_name = workflow["path"].name
+            if workflow_name not in guarded_contexts:
+                continue
+
+            checked_workflows.add(workflow_name)
+            forbidden_context = guarded_contexts[workflow_name]
+            for job_name, step_idx, run_command in _run_steps(workflow):
+                location = f"{workflow['path']} job '{job_name}' step {step_idx}"
+                _assert_context_not_interpolated(run_command, forbidden_context, location)
+
+        assert checked_workflows == set(guarded_contexts), "Expected guarded workflows were not loaded"
 
     @staticmethod
     def test_no_eval_with_user_input(all_workflows):
