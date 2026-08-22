@@ -152,7 +152,7 @@ describe("Package.json Validation", () => {
       expect(packageJson.dependencies.axios).toBeDefined();
     });
 
-    it("should have only the active visualization libraries", () => {
+    it("should use the active Plotly stack without Recharts", () => {
       expect(packageJson.dependencies["plotly.js"]).toBeDefined();
       expect(packageJson.dependencies["react-plotly.js"]).toBeDefined();
       expect(packageJson.dependencies.recharts).toBeUndefined();
