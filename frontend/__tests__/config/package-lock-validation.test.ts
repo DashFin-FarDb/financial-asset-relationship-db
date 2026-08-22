@@ -161,15 +161,15 @@ describe("Package-lock.json Validation", () => {
       expect(nextLock?.version).toBe("16.3.0");
     });
 
-    it("resolves the Next.js PostCSS runtime to 8.5.23", () => {
+    it("keeps the Next.js PostCSS runtime separate from the root toolchain", () => {
       const nextLock = packageLock.packages?.["node_modules/next"];
       const nestedPostcss =
         packageLock.packages?.["node_modules/next/node_modules/postcss"];
       const hoistedPostcss = packageLock.packages?.["node_modules/postcss"];
 
       expect(nextLock?.dependencies?.postcss).toBe("8.5.23");
-      expect(nestedPostcss).toBeUndefined();
-      expect(hoistedPostcss?.version).toBe("8.5.23");
+      expect(nestedPostcss?.version).toBe("8.5.23");
+      expect(hoistedPostcss?.version).toBe("8.5.26");
     });
 
     it("resolves the optional Sharp runtime to 0.35.3", () => {
@@ -212,8 +212,8 @@ describe("Package-lock.json Validation", () => {
     it("preserves the PostCSS parent relationship", () => {
       const postcssLock = packageLock.packages?.["node_modules/postcss"];
 
-      expect(postcssLock?.version).toBe("8.5.23");
-      expect(postcssLock?.dependencies?.nanoid).toBe("^3.3.16");
+      expect(postcssLock?.version).toBe("8.5.26");
+      expect(postcssLock?.dependencies?.nanoid).toBe("^3.3.17");
     });
   });
 
