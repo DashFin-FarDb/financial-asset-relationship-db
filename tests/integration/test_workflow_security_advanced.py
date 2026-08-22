@@ -40,6 +40,19 @@ def _assert_context_not_interpolated(run_command, forbidden_context, location):
         )
 
 
+def _find_run_step(workflows, command_fragment):
+    """Find the single workflow step whose shell command contains a stable marker."""
+    matches = [
+        step
+        for workflow in workflows
+        for job in workflow["content"].get("jobs", {}).values()
+        for step in job.get("steps", [])
+        if command_fragment in step.get("run", "")
+    ]
+    assert len(matches) == 1, f"Expected one run step containing {command_fragment!r}, found {len(matches)}"
+    return matches[0]
+
+
 class TestWorkflowInjectionPrevention:
     """Tests for preventing injection attacks in workflows."""
 
@@ -123,6 +136,28 @@ class TestWorkflowInjectionPrevention:
 
 class TestWorkflowSecretHandling:
     """Tests for proper secret handling in workflows."""
+
+    @staticmethod
+    def test_veracode_credentials_do_not_reach_scanner_arguments_or_environment(all_workflows):
+        """Keep Veracode HMAC credentials in a protected, temporary credentials file."""
+        scan_step = _find_run_step(all_workflows, "pipeline-scan.jar")
+        run_command = scan_step["run"]
+
+        assert scan_step["env"] == {
+            "VERACODE_API_ID": "${{ secrets.VERACODE_API_ID }}",
+            "VERACODE_API_KEY": "${{ secrets.VERACODE_API_KEY }}",
+        }
+        assert "--veracode_api_id" not in run_command
+        assert "--veracode_api_key" not in run_command
+        assert "umask 077" in run_command
+        assert 'chmod 600 "$credentials_file"' in run_command
+        assert "trap 'rm -f \"$credentials_file\"' EXIT" in run_command
+        unset_command = "unset VERACODE_API_ID VERACODE_API_KEY"
+        assert unset_command in run_command
+
+        post_unset = run_command[run_command.index(unset_command) + len(unset_command) :]
+        assert "VERACODE_API" not in post_unset
+        assert "java -jar pipeline-scan.jar" in post_unset
 
     @staticmethod
     def test_secrets_not_echoed_in_logs(all_workflows):
