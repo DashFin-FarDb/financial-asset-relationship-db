@@ -6,6 +6,7 @@ Claims are labeled landed vs provisional. ADRs/policy are not rewritten.
 ## Seam movement by domain
 
 ### architecture
+- [provisional] **pr:1673**: (v)       y 
 - [provisional] **pr:1672**: () x   y
 - [landed] **pr:1649**: x()    
 - [landed] **sha:8b755727bfb1b52c9b0ef09ef12e03bbf3b06084**: Merge/push to main 8b755727bfb1b52c9b0ef09ef12e03bbf3b06084
@@ -20,7 +21,6 @@ Claims are labeled landed vs provisional. ADRs/policy are not rewritten.
 - [landed] **pr:1647**: (-)  -  
 - [landed] **sha:25fddc814087428bf5fa8c240cbee29c7b5f55eb**: Merge/push to main 25fddc814087428bf5fa8c240cbee29c7b5f55eb
 - [landed] **pr:1646**: ()  - - 
-- [landed] **sha:790274c1b0dbdb43d4bbbbf35c4565dae36c9fe3**: Merge/push to main 790274c1b0dbdb43d4bbbbf35c4565dae36c9fe3
 
 ### api
 - [landed] **pr:1649**: x()    
@@ -57,6 +57,7 @@ Claims are labeled landed vs provisional. ADRs/policy are not rewritten.
 - [provisional] **pr:1584**: x   x   
 
 ### ci-guardrails
+- [provisional] **pr:1673**: (v)       y 
 - [landed] **pr:1643**: ()  - -w  
 - [provisional] **pr:1638**: ()   -    y w  
 - [landed] **pr:1641**: --  -  
@@ -71,7 +72,6 @@ Claims are labeled landed vs provisional. ADRs/policy are not rewritten.
 - [provisional] **pr:1616**: x   y 
 - [provisional] **pr:1615**: x     y 
 - [provisional] **pr:1614**: x   v    y
-- [provisional] **pr:1613**: x       
 
 ### rebuild-reconciliation
 - [landed] **pr:1455**: x    y 
