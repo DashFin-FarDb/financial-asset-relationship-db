@@ -389,31 +389,33 @@ describe("Component Integration Tests", () => {
       projection_hash: "hash-proj-B",
     };
 
+    const visualizationNodes: VisualizationData["nodes"] = [
+      {
+        id: "A1",
+        name: "Asset 1",
+        symbol: "A1",
+        asset_class: "EQUITY",
+        x: 1,
+        y: 1,
+        z: 1,
+        color: "red",
+        size: 1,
+      },
+      {
+        id: "A2",
+        name: "Asset 2",
+        symbol: "A2",
+        asset_class: "EQUITY",
+        x: 2,
+        y: 2,
+        z: 2,
+        color: "blue",
+        size: 1,
+      },
+    ];
+
     const dataA: VisualizationData = {
-      nodes: [
-        {
-          id: "A1",
-          name: "Asset 1",
-          symbol: "A1",
-          asset_class: "EQUITY",
-          x: 1,
-          y: 1,
-          z: 1,
-          color: "red",
-          size: 1,
-        },
-        {
-          id: "A2",
-          name: "Asset 2",
-          symbol: "A2",
-          asset_class: "EQUITY",
-          x: 2,
-          y: 2,
-          z: 2,
-          color: "blue",
-          size: 1,
-        },
-      ],
+      nodes: visualizationNodes,
       edges: [
         {
           edge_id: "edge-A",
@@ -433,30 +435,7 @@ describe("Component Integration Tests", () => {
     };
 
     const dataB: VisualizationData = {
-      nodes: [
-        {
-          id: "A1",
-          name: "Asset 1",
-          symbol: "A1",
-          asset_class: "EQUITY",
-          x: 1,
-          y: 1,
-          z: 1,
-          color: "red",
-          size: 1,
-        },
-        {
-          id: "A2",
-          name: "Asset 2",
-          symbol: "A2",
-          asset_class: "EQUITY",
-          x: 2,
-          y: 2,
-          z: 2,
-          color: "blue",
-          size: 1,
-        },
-      ],
+      nodes: visualizationNodes,
       edges: [
         {
           edge_id: "edge-B",
