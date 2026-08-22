@@ -3,7 +3,10 @@
 - Status: Accepted for Phase 1 specification and offline replay only
 - Date: 2026-08-22
 - Parent programme: GitHub issue #1557
-- Phase authority: GitHub issue #1558 and its approved amendments
+- Phase contract: `gnc.phase1@v1`, defined by the linked
+  [normative contract](../governance/governance-and-compliance-agent-v1.md)
+- Execution authorization: issue #1558 at base `8b755727`, including amendment
+  `gnc.phase1.amendment-1` for the ADR 0011 path
 
 ## Context
 

@@ -39,9 +39,11 @@ Rule types are:
 ## 3. Review runs and invalidation
 
 A `ReviewRun` binds run ID, head and merge-base SHA, contract and policy hash,
-evaluator version, target, mode, analyzed blob hashes, and verdict. A cached
-file verdict is reusable only when its blob, contract, policy, evaluator, and
-relevant context digest are unchanged.
+`context_digest`, evaluator version, target, mode, analyzed blob hashes, and
+verdict. `context_digest` is the canonical SHA-256 hash of the ordered set of
+cross-file inputs relevant to the run: each item contains its repository path
+and blob SHA. A cached file verdict is reusable only when its blob, contract,
+policy, evaluator, and context digest are unchanged.
 
 Force-push, rebase, merge-base movement, policy or contract amendment,
 evaluator change, truncation, or a high-risk shared-contract change requires a
@@ -94,9 +96,15 @@ inputs, redact secrets, pin policy/model/evaluator versions, reject stale runs,
 and never execute PR code with privileged `pull_request_target` or
 `workflow_run` credentials.
 
-Phase 1 replay fixtures store sanitized facts and source references only. They
-reject credential, token, password, private-key, raw-evidence, transcript,
-patch, diff, script, and secret-like material. Fixtures are data, not commands.
+Phase 1 replay fixtures store sanitized facts and source references only. The
+canonical validator in `scripts/gnc/schema.py` case-folds object keys and
+rejects these exact names: `credential`, `credentials`, `diff`,
+`evidence_body`, `patch`, `password`, `private_key`, `raw_evidence`,
+`review_transcript`, `script`, `secret`, and `token`. String values are scanned
+case-insensitively for PEM private-key headers and common token prefixes
+`ghp_`, `gho_`, `ghu_`, `ghs_`, `ghr_`, `sk_live_`, and `xox*-`. The schema
+validator is authoritative so fixture producers cannot redefine this list or
+pattern. Fixtures are data, not commands.
 
 ## 8. Phase boundaries and merge policy
 

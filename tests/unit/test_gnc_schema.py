@@ -83,6 +83,33 @@ class TestCanonicalContract:
         with pytest.raises(GncSchemaError, match="overlap"):
             validate_contract(contract)
 
+    @pytest.mark.parametrize("path", ["C:/outside/file.py", "C:\\outside\\file.py", "//server/share/file.py"])
+    def test_contract_rejects_drive_qualified_and_unc_paths(self, path: str) -> None:
+        contract = _contract()
+        contract["allowed_paths"] = [path]
+        with pytest.raises(GncSchemaError, match="repository-relative"):
+            validate_contract(contract)
+
+    def test_review_run_binds_context_digest(self) -> None:
+        contract = validate_contract(_contract())
+        record = validate_record(
+            {
+                "record_type": "review_run",
+                "run_id": "run.context",
+                "head_sha": SHA_A,
+                "merge_base_sha": SHA_B,
+                "contract_hash": canonical_hash(contract),
+                "policy_sha": SHA_B,
+                "context_digest": SHA_A,
+                "evaluator_version": "gnc-phase1",
+                "target": "repository",
+                "review_mode": "full",
+                "verdict": "pass",
+                "analyzed_blobs": {},
+            }
+        )
+        assert record["context_digest"] == SHA_A
+
 
 @pytest.mark.unit
 class TestOperationalRecords:

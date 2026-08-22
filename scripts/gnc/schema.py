@@ -88,13 +88,17 @@ def _mapping(value: Any, field: str) -> Mapping[str, Any]:
 
 
 def _string(value: Any, field: str, *, nonempty: bool = True) -> str:
-    if not isinstance(value, str) or (nonempty and not value.strip()):
-        raise _error(field, "must be a non-empty string" if nonempty else "must be a string")
+    if not isinstance(value, str):
+        raise _error(field, "must be a string")
+    if nonempty and not value.strip():
+        raise _error(field, "must be a non-empty string")
     return value.strip() if nonempty else value
 
 
 def _integer(value: Any, field: str, *, minimum: int = 1) -> int:
-    if isinstance(value, bool) or not isinstance(value, int) or value < minimum:
+    if isinstance(value, bool) or not isinstance(value, int):
+        raise _error(field, f"must be an integer >= {minimum}")
+    if value < minimum:
         raise _error(field, f"must be an integer >= {minimum}")
     return value
 
@@ -114,7 +118,7 @@ def _identifier(value: Any, field: str) -> str:
 
 
 def _string_list(value: Any, field: str, *, nonempty: bool = False) -> list[str]:
-    if not isinstance(value, Sequence) or isinstance(value, (str, bytes, bytearray)):
+    if isinstance(value, (str, bytes, bytearray)) or not isinstance(value, Sequence):
         raise _error(field, "must be a list of strings")
     result = [_string(item, f"{field}[{index}]") for index, item in enumerate(value)]
     if nonempty and not result:
@@ -127,8 +131,13 @@ def _string_list(value: Any, field: str, *, nonempty: bool = False) -> list[str]
 def _repo_paths(value: Any, field: str) -> list[str]:
     paths = _string_list(value, field)
     for index, path in enumerate(paths):
-        pure = PurePosixPath(path.replace("\\", "/"))
-        if pure.is_absolute() or ".." in pure.parts or not pure.parts:
+        normalized = path.replace("\\", "/")
+        pure = PurePosixPath(normalized)
+        is_drive_qualified = re.match(r"^[A-Za-z]:", normalized) is not None
+        is_unc = normalized.startswith("//")
+        if pure.is_absolute() or is_drive_qualified or is_unc:
+            raise _error(f"{field}[{index}]", "must be a repository-relative path, not an absolute path")
+        if ".." in pure.parts or not pure.parts:
             raise _error(f"{field}[{index}]", "must be a safe repository-relative path")
     return paths
 
@@ -139,6 +148,19 @@ def _require_keys(data: Mapping[str, Any], required: set[str], field: str) -> No
         raise _error(field, f"missing required fields: {', '.join(missing)}")
 
 
+def _json_mapping(value: Mapping[Any, Any], field: str) -> dict[str, Any]:
+    result: dict[str, Any] = {}
+    for key, item in value.items():
+        if not isinstance(key, str):
+            raise _error(field, "object keys must be strings")
+        result[key] = _json_value(item, f"{field}.{key}")
+    return result
+
+
+def _json_sequence(value: Sequence[Any], field: str) -> list[Any]:
+    return [_json_value(item, f"{field}[{index}]") for index, item in enumerate(value)]
+
+
 def _json_value(value: Any, field: str) -> Any:
     """Normalize JSON data and reject ambiguous/non-canonical types."""
     if value is None or isinstance(value, (str, bool, int)):
@@ -146,14 +168,9 @@ def _json_value(value: Any, field: str) -> Any:
     if isinstance(value, float):
         raise _error(field, "floating-point values are not canonical")
     if isinstance(value, Mapping):
-        result: dict[str, Any] = {}
-        for key, item in value.items():
-            if not isinstance(key, str):
-                raise _error(field, "object keys must be strings")
-            result[key] = _json_value(item, f"{field}.{key}")
-        return result
+        return _json_mapping(value, field)
     if isinstance(value, Sequence) and not isinstance(value, (str, bytes, bytearray)):
-        return [_json_value(item, f"{field}[{index}]") for index, item in enumerate(value)]
+        return _json_sequence(value, field)
     raise _error(field, f"unsupported canonical JSON type: {type(value).__name__}")
 
 
@@ -184,6 +201,34 @@ def _validate_rule(value: Any, index: int) -> dict[str, Any]:
     }
 
 
+def _validate_rules(value: Any) -> list[dict[str, Any]]:
+    if not isinstance(value, Sequence) or isinstance(value, (str, bytes, bytearray)):
+        raise _error("contract.rules", "must be a list")
+    rules = [_validate_rule(rule, index) for index, rule in enumerate(value)]
+    if not rules:
+        raise _error("contract.rules", "must not be empty")
+    rule_ids = [rule["rule_id"] for rule in rules]
+    if len(rule_ids) != len(set(rule_ids)):
+        raise _error("contract.rules", "rule_id values must be unique")
+    return rules
+
+
+def _validate_contract_paths(data: Mapping[str, Any]) -> tuple[list[str], list[str]]:
+    allowed_paths = _repo_paths(data["allowed_paths"], "contract.allowed_paths")
+    forbidden_paths = _repo_paths(data["forbidden_paths"], "contract.forbidden_paths")
+    overlap = set(allowed_paths) & set(forbidden_paths)
+    if overlap:
+        raise _error("contract.paths", f"allowed and forbidden paths overlap: {', '.join(sorted(overlap))}")
+    return allowed_paths, forbidden_paths
+
+
+def _add_amendment_fields(normalized: dict[str, Any], data: Mapping[str, Any], version: int) -> None:
+    if version == 1:
+        return
+    normalized["previous_contract_hash"] = _sha(data.get("previous_contract_hash"), "contract.previous_contract_hash")
+    normalized["amendment_reason"] = _string(data.get("amendment_reason"), "contract.amendment_reason")
+
+
 def validate_contract(value: Any) -> dict[str, Any]:
     """Validate and normalize one frozen PR implementation contract."""
     data = _mapping(value, "contract")
@@ -209,17 +254,8 @@ def validate_contract(value: Any) -> dict[str, Any]:
     version = _integer(data["version"], "contract.version")
     if data["schema_version"] != SCHEMA_VERSION:
         raise _error("contract.schema_version", f"must equal {SCHEMA_VERSION}")
-    rules_value = data["rules"]
-    if not isinstance(rules_value, Sequence) or isinstance(rules_value, (str, bytes, bytearray)):
-        raise _error("contract.rules", "must be a list")
-    rules = [_validate_rule(rule, index) for index, rule in enumerate(rules_value)]
-    if not rules:
-        raise _error("contract.rules", "must not be empty")
-    rule_ids = [rule["rule_id"] for rule in rules]
-    if len(rule_ids) != len(set(rule_ids)):
-        raise _error("contract.rules", "rule_id values must be unique")
-    allowed_paths = _repo_paths(data["allowed_paths"], "contract.allowed_paths")
-    forbidden_paths = _repo_paths(data["forbidden_paths"], "contract.forbidden_paths")
+    rules = _validate_rules(data["rules"])
+    allowed_paths, forbidden_paths = _validate_contract_paths(data)
     normalized = {
         "schema_version": SCHEMA_VERSION,
         "contract_id": _identifier(data["contract_id"], "contract.contract_id"),
@@ -238,14 +274,7 @@ def validate_contract(value: Any) -> dict[str, Any]:
         "approved_by": _string(data["approved_by"], "contract.approved_by"),
         "approved_at": _string(data["approved_at"], "contract.approved_at"),
     }
-    overlap = set(allowed_paths) & set(forbidden_paths)
-    if overlap:
-        raise _error("contract.paths", f"allowed and forbidden paths overlap: {', '.join(sorted(overlap))}")
-    if version > 1:
-        normalized["previous_contract_hash"] = _sha(
-            data.get("previous_contract_hash"), "contract.previous_contract_hash"
-        )
-        normalized["amendment_reason"] = _string(data.get("amendment_reason"), "contract.amendment_reason")
+    _add_amendment_fields(normalized, data, version)
     return normalized
 
 
@@ -293,8 +322,27 @@ def evidence_satisfies(value: Any, *, head_sha: str, target: str) -> bool:
     )
 
 
+def _finding_state(data: Mapping[str, Any]) -> FindingState:
+    try:
+        return FindingState(_string(data["state"], "finding.state"))
+    except ValueError as exc:
+        raise _error("finding.state", "is not a supported finding state") from exc
+
+
+def _validate_duplicate_relation(state: FindingState, duplicate_of: Any) -> None:
+    if state is FindingState.DUPLICATE_OF and not duplicate_of:
+        raise _error("finding.duplicate_of", "is required for duplicate_of state")
+    if state is not FindingState.DUPLICATE_OF and duplicate_of is not None:
+        raise _error("finding.duplicate_of", "is only valid for duplicate_of state")
+
+
+def _validate_blocking_basis(origin: str, blocking_basis: Any) -> None:
+    allowed = {None, "human_confirmed", "deterministic_rule"}
+    if origin == "model" and blocking_basis not in allowed:
+        raise _error("finding.blocking_basis", "model findings cannot block without deterministic or human basis")
+
+
 def _validate_finding(data: Mapping[str, Any]) -> dict[str, Any]:
-    field = "finding"
     required = {
         "finding_id",
         "rule_id",
@@ -305,20 +353,13 @@ def _validate_finding(data: Mapping[str, Any]) -> dict[str, Any]:
         "state",
         "head_sha",
     }
-    _require_keys(data, required, field)
-    try:
-        state = FindingState(_string(data["state"], f"{field}.state"))
-    except ValueError as exc:
-        raise _error(f"{field}.state", "is not a supported finding state") from exc
+    _require_keys(data, required, "finding")
+    state = _finding_state(data)
     duplicate_of = data.get("duplicate_of")
-    if state is FindingState.DUPLICATE_OF and not duplicate_of:
-        raise _error("finding.duplicate_of", "is required for duplicate_of state")
-    if state is not FindingState.DUPLICATE_OF and duplicate_of is not None:
-        raise _error("finding.duplicate_of", "is only valid for duplicate_of state")
+    _validate_duplicate_relation(state, duplicate_of)
     origin = _string(data["origin"], "finding.origin")
     blocking_basis = data.get("blocking_basis")
-    if origin == "model" and blocking_basis not in (None, "human_confirmed", "deterministic_rule"):
-        raise _error("finding.blocking_basis", "model findings cannot block without deterministic or human basis")
+    _validate_blocking_basis(origin, blocking_basis)
     result = {
         "record_type": "finding",
         "finding_id": _identifier(data["finding_id"], "finding.finding_id"),
@@ -351,6 +392,7 @@ def _validate_review_run(data: Mapping[str, Any]) -> dict[str, Any]:
         "merge_base_sha",
         "contract_hash",
         "policy_sha",
+        "context_digest",
         "evaluator_version",
         "target",
         "review_mode",
@@ -366,6 +408,7 @@ def _validate_review_run(data: Mapping[str, Any]) -> dict[str, Any]:
         "merge_base_sha": _sha(data["merge_base_sha"], f"{field}.merge_base_sha"),
         "contract_hash": _sha(data["contract_hash"], f"{field}.contract_hash"),
         "policy_sha": _sha(data["policy_sha"], f"{field}.policy_sha"),
+        "context_digest": _sha(data["context_digest"], f"{field}.context_digest"),
         "evaluator_version": _string(data["evaluator_version"], f"{field}.evaluator_version"),
         "target": _string(data["target"], f"{field}.target"),
         "review_mode": _string(data["review_mode"], f"{field}.review_mode"),
@@ -410,17 +453,27 @@ def validate_record(value: Any) -> dict[str, Any]:
         raise _error("record.record_type", f"unsupported type {record_type!r}") from exc
 
 
+def _assert_sanitized_mapping(value: Mapping[Any, Any], field: str) -> None:
+    for key, item in value.items():
+        normalized_key = str(key).casefold()
+        if normalized_key in _FORBIDDEN_REPLAY_KEYS:
+            raise _error(f"{field}.{key}", "raw, secret, transcript, or executable content is forbidden")
+        _assert_sanitized(item, f"{field}.{key}")
+
+
+def _assert_sanitized_sequence(value: Sequence[Any], field: str) -> None:
+    for index, item in enumerate(value):
+        _assert_sanitized(item, f"{field}[{index}]")
+
+
 def _assert_sanitized(value: Any, field: str = "fixture") -> None:
     if isinstance(value, Mapping):
-        for key, item in value.items():
-            normalized_key = str(key).casefold()
-            if normalized_key in _FORBIDDEN_REPLAY_KEYS:
-                raise _error(f"{field}.{key}", "raw, secret, transcript, or executable content is forbidden")
-            _assert_sanitized(item, f"{field}.{key}")
-    elif isinstance(value, Sequence) and not isinstance(value, (str, bytes, bytearray)):
-        for index, item in enumerate(value):
-            _assert_sanitized(item, f"{field}[{index}]")
-    elif isinstance(value, str) and _SECRET_TEXT.search(value):
+        _assert_sanitized_mapping(value, field)
+        return
+    if isinstance(value, Sequence) and not isinstance(value, (str, bytes, bytearray)):
+        _assert_sanitized_sequence(value, field)
+        return
+    if isinstance(value, str) and _SECRET_TEXT.search(value):
         raise _error(field, "secret-like material is forbidden")
 
 

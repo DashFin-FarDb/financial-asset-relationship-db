@@ -25,6 +25,7 @@
     "merge_base_sha": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
     "contract_hash": "ec2f15b6cc48d8aaa8997325d3028b162dcc41fa0c95f70c7b817f7cbea32b87",
     "policy_sha": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "context_digest": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
     "evaluator_version": "gnc-phase1",
     "target": "repository",
     "review_mode": "full",
