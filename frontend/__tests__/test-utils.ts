@@ -8,7 +8,7 @@ import type {
   PublishedProjectionEdgeResponse,
   PublishedAssertionBundleResponse,
   PublishedEdgeExplanationResponse,
-} from "../../app/types/api";
+} from "../app/types/api";
 
 export const mockAssets: Asset[] = [
   {
