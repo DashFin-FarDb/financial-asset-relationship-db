@@ -2376,8 +2376,8 @@ Per project coding standards, yfinance is the **only approved finance data API**
 | **react**           | ^18.2.0 | UI component library              |
 | **react-dom**       | ^18.2.0 | React DOM renderer                |
 | **axios**           | ^1.13.2 | HTTP client for API communication |
-| **plotly.js**       | ^2.27.0 | 3D visualization engine           |
-| **react-plotly.js** | ^2.6.0  | React Plotly wrapper component    |
+| **plotly.js**       | ^3.7.0  | 3D visualization engine           |
+| **react-plotly.js** | ^4.0.0  | React Plotly wrapper component    |
 
 ### 3.4.4 Frontend Development Dependencies
 

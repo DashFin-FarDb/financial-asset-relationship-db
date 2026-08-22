@@ -152,21 +152,24 @@ describe("Package.json Validation", () => {
       expect(packageJson.dependencies.axios).toBeDefined();
     });
 
-    it("should use the active Plotly stack without Recharts", () => {
+    it("should use the active Plotly stack", () => {
       expect(packageJson.dependencies["plotly.js"]).toBeDefined();
       expect(packageJson.dependencies["react-plotly.js"]).toBeDefined();
-
-      const rechartsDeclarationPaths = [
-        "dependencies.recharts",
-        "devDependencies.recharts",
-        "optionalDependencies.recharts",
-        "peerDependencies.recharts",
-      ];
-
-      rechartsDeclarationPaths.forEach((path) => {
-        expect(packageJson).not.toHaveProperty(path);
-      });
     });
+
+    const rechartsDeclarationPaths = [
+      "dependencies.recharts",
+      "devDependencies.recharts",
+      "optionalDependencies.recharts",
+      "peerDependencies.recharts",
+    ];
+
+    it.each(rechartsDeclarationPaths)(
+      "should not declare Recharts at %s",
+      (path) => {
+        expect(packageJson).not.toHaveProperty(path);
+      },
+    );
   });
 
   describe("Development Dependencies", () => {
