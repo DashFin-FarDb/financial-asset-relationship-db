@@ -55,7 +55,8 @@ verdict.
 
 Each checklist requirement has a stable ID, current state, evidence references,
 and last evaluated head. `Evidence` binds requirement, head, target, execution
-state, result, and run reference.
+state, result, and run reference. Contract `required_evidence` entries and
+`Evidence.requirement_id` use the same lowercase stable-identifier syntax.
 
 Only `state=executed`, `result=pass`, exact-head, exact-target evidence
 satisfies a mandatory item. `skipped`, `canceled`, `unavailable`, `stale_sha`,
@@ -79,7 +80,11 @@ thread is not proof of remediation.
 
 Model-origin claims, preferred patterns, probable duplicates, speculative
 improvements, and architectural alternatives stay advisory until confirmed.
-Out-of-scope findings record a rationale and follow-up issue or human decision.
+A `human_confirmed` blocking basis binds a non-empty `confirmed_by` actor. A
+`deterministic_rule` blocking basis binds `blocking_rule_id`, which must equal
+the finding's `rule_id`; the approved contract determines whether that rule is
+blocking-eligible. A basis label without that linkage is invalid. Out-of-scope
+findings record a rationale and follow-up issue or human decision.
 
 ## 6. Waivers
 

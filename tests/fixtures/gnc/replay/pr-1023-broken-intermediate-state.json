@@ -42,7 +42,8 @@
     "origin": "deterministic",
     "state": "open",
     "head_sha": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
-    "blocking_basis": "deterministic_rule"
+    "blocking_basis": "deterministic_rule",
+    "blocking_rule_id": "restore.complete-source"
   }],
   "expected": {"verdict": "block", "finding_ids": ["finding.structural-gap"]}
 }

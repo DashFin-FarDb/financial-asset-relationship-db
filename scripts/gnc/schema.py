@@ -118,7 +118,7 @@ def _identifier(value: Any, field: str) -> str:
 
 
 def _string_list(value: Any, field: str, *, nonempty: bool = False) -> list[str]:
-    if isinstance(value, (str, bytes, bytearray)) or not isinstance(value, Sequence):
+    if not _is_sequence(value):
         raise _error(field, "must be a list of strings")
     result = [_string(item, f"{field}[{index}]") for index, item in enumerate(value)]
     if nonempty and not result:
@@ -128,18 +128,27 @@ def _string_list(value: Any, field: str, *, nonempty: bool = False) -> list[str]
     return result
 
 
+def _is_sequence(value: Any) -> bool:
+    return isinstance(value, Sequence) and not isinstance(value, (str, bytes, bytearray))
+
+
+def _canonical_repo_path(path: str, field: str) -> str:
+    normalized = path.replace("\\", "/")
+    pure = PurePosixPath(normalized)
+    is_drive_qualified = re.match(r"^[A-Za-z]:", normalized) is not None
+    if pure.is_absolute() or is_drive_qualified or normalized.startswith("//"):
+        raise _error(field, "must be a repository-relative path, not an absolute path")
+    if ".." in pure.parts or not pure.parts:
+        raise _error(field, "must be a safe repository-relative path")
+    return pure.as_posix()
+
+
 def _repo_paths(value: Any, field: str) -> list[str]:
     paths = _string_list(value, field)
-    for index, path in enumerate(paths):
-        normalized = path.replace("\\", "/")
-        pure = PurePosixPath(normalized)
-        is_drive_qualified = re.match(r"^[A-Za-z]:", normalized) is not None
-        is_unc = normalized.startswith("//")
-        if pure.is_absolute() or is_drive_qualified or is_unc:
-            raise _error(f"{field}[{index}]", "must be a repository-relative path, not an absolute path")
-        if ".." in pure.parts or not pure.parts:
-            raise _error(f"{field}[{index}]", "must be a safe repository-relative path")
-    return paths
+    canonical = [_canonical_repo_path(path, f"{field}[{index}]") for index, path in enumerate(paths)]
+    if len(canonical) != len(set(canonical)):
+        raise _error(field, "must not contain equivalent paths")
+    return canonical
 
 
 def _require_keys(data: Mapping[str, Any], required: set[str], field: str) -> None:
@@ -169,7 +178,7 @@ def _json_value(value: Any, field: str) -> Any:
         raise _error(field, "floating-point values are not canonical")
     if isinstance(value, Mapping):
         return _json_mapping(value, field)
-    if isinstance(value, Sequence) and not isinstance(value, (str, bytes, bytearray)):
+    if _is_sequence(value):
         return _json_sequence(value, field)
     raise _error(field, f"unsupported canonical JSON type: {type(value).__name__}")
 
@@ -213,10 +222,22 @@ def _validate_rules(value: Any) -> list[dict[str, Any]]:
     return rules
 
 
+def _path_scopes_overlap(first: str, second: str) -> bool:
+    first_parts = PurePosixPath(first).parts
+    second_parts = PurePosixPath(second).parts
+    shared = min(len(first_parts), len(second_parts))
+    return first_parts[:shared] == second_parts[:shared]
+
+
 def _validate_contract_paths(data: Mapping[str, Any]) -> tuple[list[str], list[str]]:
     allowed_paths = _repo_paths(data["allowed_paths"], "contract.allowed_paths")
     forbidden_paths = _repo_paths(data["forbidden_paths"], "contract.forbidden_paths")
-    overlap = set(allowed_paths) & set(forbidden_paths)
+    overlap = {
+        f"{allowed} <-> {forbidden}"
+        for allowed in allowed_paths
+        for forbidden in forbidden_paths
+        if _path_scopes_overlap(allowed, forbidden)
+    }
     if overlap:
         raise _error("contract.paths", f"allowed and forbidden paths overlap: {', '.join(sorted(overlap))}")
     return allowed_paths, forbidden_paths
@@ -268,7 +289,7 @@ def validate_contract(value: Any) -> dict[str, Any]:
         "allowed_paths": allowed_paths,
         "forbidden_paths": forbidden_paths,
         "rules": rules,
-        "required_evidence": _string_list(data["required_evidence"], "contract.required_evidence", nonempty=True),
+        "required_evidence": _identifier_list(data["required_evidence"], "contract.required_evidence", nonempty=True),
         "merge_criteria": _string_list(data["merge_criteria"], "contract.merge_criteria", nonempty=True),
         "stop_conditions": _string_list(data["stop_conditions"], "contract.stop_conditions", nonempty=True),
         "approved_by": _string(data["approved_by"], "contract.approved_by"),
@@ -336,10 +357,27 @@ def _validate_duplicate_relation(state: FindingState, duplicate_of: Any) -> None
         raise _error("finding.duplicate_of", "is only valid for duplicate_of state")
 
 
-def _validate_blocking_basis(origin: str, blocking_basis: Any) -> None:
+def _identifier_list(value: Any, field: str, *, nonempty: bool = False) -> list[str]:
+    identifiers = _string_list(value, field, nonempty=nonempty)
+    return [_identifier(item, f"{field}[{index}]") for index, item in enumerate(identifiers)]
+
+
+def _validate_blocking_basis(data: Mapping[str, Any], origin: str, rule_id: str) -> dict[str, str]:
+    blocking_basis = data.get("blocking_basis")
     allowed = {None, "human_confirmed", "deterministic_rule"}
     if origin == "model" and blocking_basis not in allowed:
         raise _error("finding.blocking_basis", "model findings cannot block without deterministic or human basis")
+    if blocking_basis == "human_confirmed":
+        return {
+            "blocking_basis": blocking_basis,
+            "confirmed_by": _string(data.get("confirmed_by"), "finding.confirmed_by"),
+        }
+    if blocking_basis == "deterministic_rule":
+        linked_rule = _identifier(data.get("blocking_rule_id"), "finding.blocking_rule_id")
+        if linked_rule != rule_id:
+            raise _error("finding.blocking_rule_id", "must match finding.rule_id")
+        return {"blocking_basis": blocking_basis, "blocking_rule_id": linked_rule}
+    return {}
 
 
 def _validate_finding(data: Mapping[str, Any]) -> dict[str, Any]:
@@ -358,12 +396,12 @@ def _validate_finding(data: Mapping[str, Any]) -> dict[str, Any]:
     duplicate_of = data.get("duplicate_of")
     _validate_duplicate_relation(state, duplicate_of)
     origin = _string(data["origin"], "finding.origin")
-    blocking_basis = data.get("blocking_basis")
-    _validate_blocking_basis(origin, blocking_basis)
+    rule_id = _identifier(data["rule_id"], "finding.rule_id")
+    blocking = _validate_blocking_basis(data, origin, rule_id)
     result = {
         "record_type": "finding",
         "finding_id": _identifier(data["finding_id"], "finding.finding_id"),
-        "rule_id": _identifier(data["rule_id"], "finding.rule_id"),
+        "rule_id": rule_id,
         "subject": _string(data["subject"], "finding.subject"),
         "failure_mode": _string(data["failure_mode"], "finding.failure_mode"),
         "expected_outcome": _string(data["expected_outcome"], "finding.expected_outcome"),
@@ -379,8 +417,7 @@ def _validate_finding(data: Mapping[str, Any]) -> dict[str, Any]:
     )
     if duplicate_of is not None:
         result["duplicate_of"] = _identifier(duplicate_of, "finding.duplicate_of")
-    if blocking_basis is not None:
-        result["blocking_basis"] = _string(blocking_basis, "finding.blocking_basis")
+    result.update(blocking)
     return result
 
 
@@ -470,7 +507,7 @@ def _assert_sanitized(value: Any, field: str = "fixture") -> None:
     if isinstance(value, Mapping):
         _assert_sanitized_mapping(value, field)
         return
-    if isinstance(value, Sequence) and not isinstance(value, (str, bytes, bytearray)):
+    if _is_sequence(value):
         _assert_sanitized_sequence(value, field)
         return
     if isinstance(value, str) and _SECRET_TEXT.search(value):
@@ -492,6 +529,9 @@ def validate_replay_fixture(value: Any) -> dict[str, Any]:
     findings = [_validate_finding(_mapping(item, "fixture.findings[]")) for item in data["findings"]]
     expected = _mapping(data["expected"], "fixture.expected")
     expected_ids = _string_list(expected.get("finding_ids"), "fixture.expected.finding_ids")
+    expected_verdict = _string(expected.get("verdict"), "fixture.expected.verdict")
+    if expected_verdict != run["verdict"]:
+        raise _error("fixture.expected.verdict", "must exactly match review_run.verdict")
     actual_ids = [finding["finding_id"] for finding in findings]
     if expected_ids != actual_ids:
         raise _error("fixture.expected.finding_ids", "must exactly match findings in stable order")
@@ -503,7 +543,7 @@ def validate_replay_fixture(value: Any) -> dict[str, Any]:
         "evidence": evidence,
         "findings": findings,
         "expected": {
-            "verdict": _string(expected.get("verdict"), "fixture.expected.verdict"),
+            "verdict": expected_verdict,
             "finding_ids": expected_ids,
         },
     }

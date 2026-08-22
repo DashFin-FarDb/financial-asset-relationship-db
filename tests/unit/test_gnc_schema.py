@@ -83,6 +83,20 @@ class TestCanonicalContract:
         with pytest.raises(GncSchemaError, match="overlap"):
             validate_contract(contract)
 
+    def test_contract_paths_are_canonical_and_directory_scopes_cannot_overlap(self) -> None:
+        contract = _contract()
+        contract["allowed_paths"] = ["src\\governance\\schema.py"]
+        assert validate_contract(contract)["allowed_paths"] == ["src/governance/schema.py"]
+        contract["forbidden_paths"] = ["src"]
+        with pytest.raises(GncSchemaError, match="overlap"):
+            validate_contract(contract)
+
+    def test_required_evidence_uses_stable_identifiers(self) -> None:
+        contract = _contract()
+        contract["required_evidence"] = ["Pytest report"]
+        with pytest.raises(GncSchemaError, match="stable lowercase identifier"):
+            validate_contract(contract)
+
     @pytest.mark.parametrize("path", ["C:/outside/file.py", "C:\\outside\\file.py", "//server/share/file.py"])
     def test_contract_rejects_drive_qualified_and_unc_paths(self, path: str) -> None:
         contract = _contract()
@@ -177,6 +191,26 @@ class TestOperationalRecords:
         assert duplicate["state"] == "duplicate_of"
         assert recurrence["state"] == "reopened_as_recurrence"
 
+    def test_blocking_basis_requires_auditable_linkage(self) -> None:
+        finding = {
+            "record_type": "finding",
+            "finding_id": "finding.model",
+            "rule_id": "scope.allowlist",
+            "subject": "src/example.py",
+            "failure_mode": "Outside approved scope",
+            "expected_outcome": "Remain within scope",
+            "origin": "model",
+            "state": "open",
+            "head_sha": SHA_A,
+            "blocking_basis": "deterministic_rule",
+        }
+        with pytest.raises(GncSchemaError, match="blocking_rule_id"):
+            validate_record(finding)
+        linked = validate_record(dict(finding, blocking_rule_id="scope.allowlist"))
+        assert linked["blocking_rule_id"] == "scope.allowlist"
+        confirmed = validate_record(dict(finding, blocking_basis="human_confirmed", confirmed_by="maintainer"))
+        assert confirmed["confirmed_by"] == "maintainer"
+
     def test_waiver_binds_actor_scope_head_contract_and_expiry(self) -> None:
         waiver = validate_record(
             {
@@ -215,4 +249,10 @@ class TestReplayCorpus:
         raw = json.loads(next(FIXTURE_ROOT.glob("*.json")).read_text(encoding="utf-8"))
         raw["expected"]["finding_ids"] = []
         with pytest.raises(GncSchemaError, match="exactly match"):
+            validate_replay_fixture(raw)
+
+    def test_expected_verdict_must_match_recorded_review_run(self) -> None:
+        raw = json.loads(next(FIXTURE_ROOT.glob("*.json")).read_text(encoding="utf-8"))
+        raw["expected"]["verdict"] = "pass"
+        with pytest.raises(GncSchemaError, match="review_run.verdict"):
             validate_replay_fixture(raw)
