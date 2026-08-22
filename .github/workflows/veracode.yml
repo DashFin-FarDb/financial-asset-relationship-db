@@ -92,7 +92,19 @@ jobs:
         env:
           VERACODE_API_ID: ${{ secrets.VERACODE_API_ID }}
           VERACODE_API_KEY: ${{ secrets.VERACODE_API_KEY }}
-        run: java -jar pipeline-scan.jar --veracode_api_id "$VERACODE_API_ID" --veracode_api_key "$VERACODE_API_KEY" --fail_on_severity="Very High, High" --file veracode-scan-target.zip
+        shell: bash
+        run: |
+          credentials_dir="$HOME/.veracode"
+          credentials_file="$credentials_dir/credentials"
+          umask 077
+          mkdir -p "$credentials_dir"
+          chmod 700 "$credentials_dir"
+          trap 'rm -f "$credentials_file"' EXIT
+          printf '[default]\nveracode_api_key_id = %s\nveracode_api_key_secret = %s\n' \
+            "$VERACODE_API_ID" "$VERACODE_API_KEY" > "$credentials_file"
+          chmod 600 "$credentials_file"
+          unset VERACODE_API_ID VERACODE_API_KEY
+          java -jar pipeline-scan.jar --fail_on_severity="Very High, High" --file veracode-scan-target.zip
         continue-on-error: true
       - name: Convert pipeline scan output to SARIF format
         id: convert
