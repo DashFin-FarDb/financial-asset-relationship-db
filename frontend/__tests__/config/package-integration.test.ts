@@ -12,25 +12,46 @@
 import { readFileSync } from "fs";
 import { join } from "path";
 
+type DependencyMap = Record<string, string>;
+
+interface PackageManifest {
+  name: string;
+  version: string;
+  dependencies?: DependencyMap;
+  devDependencies?: DependencyMap;
+}
+
+interface PackageLockEntry {
+  version?: string;
+  resolved?: string;
+  integrity?: string;
+  link?: boolean;
+  dependencies?: DependencyMap;
+  devDependencies?: DependencyMap;
+  peerDependencies?: DependencyMap;
+  peerDependenciesMeta?: Record<string, { optional?: boolean }>;
+}
+
+interface PackageLock {
+  name: string;
+  version: string;
+  lockfileVersion: number;
+  packages: Record<string, PackageLockEntry>;
+}
+
+function requiredDependencies(manifest: PackageManifest): DependencyMap {
+  expect(manifest.dependencies).toBeDefined();
+  if (!manifest.dependencies) {
+    throw new Error("Expected package dependencies to be defined");
+  }
+  return manifest.dependencies;
+}
+
 describe("Package Configuration Integration", () => {
   const packageJsonPath = join(process.cwd(), "package.json");
   const packageLockPath = join(process.cwd(), "package-lock.json");
-  let packageJson: {
-    name: string;
-    version: string;
-    dependencies?: Record<string, string>;
-    devDependencies?: Record<string, string>;
-  };
-  let packageLock: {
-    name: string;
-    version: string;
-    packages?: {
-      "": {
-        dependencies?: Record<string, string>;
-        devDependencies?: Record<string, string>;
-      };
-    };
-  };
+  let packageJson: PackageManifest;
+  let packageLock: PackageLock;
 
   beforeAll(() => {
     packageJson = JSON.parse(readFileSync(packageJsonPath, "utf-8"));
@@ -78,7 +99,7 @@ describe("Package Configuration Integration", () => {
 
   describe("Axios Upgrade Integration", () => {
     it("axios in package.json should match lock version constraint", () => {
-      const axiosRange = packageJson.dependencies.axios;
+      const axiosRange = requiredDependencies(packageJson).axios;
       const axiosLocked = packageLock.packages?.["node_modules/axios"];
 
       expect(axiosRange).toBe("^1.19.0");
@@ -136,18 +157,16 @@ describe("Package Configuration Integration", () => {
     it("no dependency should have conflicting version requirements", () => {
       const versionRequirements = new Map<string, Set<string>>();
 
-      Object.entries(packageLock.packages).forEach(
-        ([_path, pkg]: [string, { dependencies?: Record<string, string> }]) => {
-          if (pkg.dependencies) {
-            Object.entries(pkg.dependencies).forEach(([dep, version]) => {
-              if (!versionRequirements.has(dep)) {
-                versionRequirements.set(dep, new Set());
-              }
-              versionRequirements.get(dep)?.add(version as string);
-            });
-          }
-        },
-      );
+      Object.entries(packageLock.packages).forEach(([_path, pkg]) => {
+        if (pkg.dependencies) {
+          Object.entries(pkg.dependencies).forEach(([dep, version]) => {
+            if (!versionRequirements.has(dep)) {
+              versionRequirements.set(dep, new Set());
+            }
+            versionRequirements.get(dep)?.add(version);
+          });
+        }
+      });
 
       // Check for excessive version diversity
       versionRequirements.forEach((versions, pkg) => {
@@ -160,20 +179,20 @@ describe("Package Configuration Integration", () => {
     });
 
     it("all transitive dependencies should be resolved", () => {
-      Object.entries(packageLock.packages).forEach(
-        ([, pkg]: [string, { dependencies?: Record<string, unknown> }]) => {
-          if (pkg.dependencies) {
-            Object.keys(pkg.dependencies).forEach((dep) => {
-              // Dependency should exist somewhere in the tree
-              const depExists = Object.keys(packageLock.packages).some(
-                (p) => p.endsWith(`/${dep}`) || p === `node_modules/${dep}`,
-              );
+      const packagePaths = Object.keys(packageLock.packages);
 
-              expect(depExists).toBeTruthy();
-            });
-          }
-        },
-      );
+      Object.entries(packageLock.packages).forEach(([, pkg]) => {
+        if (pkg.dependencies) {
+          Object.keys(pkg.dependencies).forEach((dep) => {
+            // Dependency should exist somewhere in the tree
+            const depExists = packagePaths.some(
+              (p) => p.endsWith(`/${dep}`) || p === `node_modules/${dep}`,
+            );
+
+            expect(depExists).toBeTruthy();
+          });
+        }
+      });
     });
 
     it("React ecosystem should be internally consistent", () => {
@@ -229,23 +248,18 @@ describe("Package Configuration Integration", () => {
     it("all packages should have integrity hashes", () => {
       let packagesWithoutIntegrity = 0;
 
-      Object.entries(packageLock.packages).forEach(
-        ([path, pkg]: [
-          string,
-          { resolved: string; link?: boolean; integrity?: string },
-        ]) => {
-          if (
-            path !== "" &&
-            pkg.resolved &&
-            !pkg.resolved.startsWith("file:") &&
-            !pkg.link
-          ) {
-            if (!pkg.integrity) {
-              packagesWithoutIntegrity++;
-            }
+      Object.entries(packageLock.packages).forEach(([path, pkg]) => {
+        if (
+          path !== "" &&
+          pkg.resolved &&
+          !pkg.resolved.startsWith("file:") &&
+          !pkg.link
+        ) {
+          if (!pkg.integrity) {
+            packagesWithoutIntegrity++;
           }
-        },
-      );
+        }
+      });
 
       expect(packagesWithoutIntegrity).toBe(0);
     });
@@ -258,22 +272,20 @@ describe("Package Configuration Integration", () => {
     });
 
     it("no packages should use insecure protocols", () => {
-      Object.entries(packageLock.packages).forEach(
-        ([_path, pkg]: [string, { resolved?: string }]) => {
-          if (pkg.resolved) {
-            expect(pkg.resolved).not.toMatch(/^http:/);
-            expect(pkg.resolved).not.toMatch(/^git:/);
-            expect(pkg.resolved).not.toMatch(/^ftp:/);
-          }
-        },
-      );
+      Object.entries(packageLock.packages).forEach(([_path, pkg]) => {
+        if (pkg.resolved) {
+          expect(pkg.resolved).not.toMatch(/^http:/);
+          expect(pkg.resolved).not.toMatch(/^git:/);
+          expect(pkg.resolved).not.toMatch(/^ftp:/);
+        }
+      });
     });
   });
 
   describe("Version Range Satisfaction", () => {
     it("caret ranges should be satisfied correctly", () => {
       // ^1.13.5 should resolve to 1.13.5 or compatible
-      const axiosRange = packageJson.dependencies.axios;
+      const axiosRange = requiredDependencies(packageJson).axios;
       const axiosVersion =
         packageLock.packages?.["node_modules/axios"]?.version;
 
@@ -416,23 +428,22 @@ describe("Package Configuration Integration", () => {
   describe("Lockfile Health", () => {
     it("should not have missing dependencies", () => {
       let missingCount = 0;
+      const packagePaths = Object.keys(packageLock.packages);
 
-      Object.entries(packageLock.packages).forEach(
-        ([path, pkg]: [string, { dependencies?: Record<string, string> }]) => {
-          if (pkg.dependencies) {
-            Object.keys(pkg.dependencies).forEach((dep) => {
-              const depExists = Object.keys(packageLock.packages).some(
-                (p) => p.includes(`/${dep}`) || p === `node_modules/${dep}`,
-              );
+      Object.entries(packageLock.packages).forEach(([path, pkg]) => {
+        if (pkg.dependencies) {
+          Object.keys(pkg.dependencies).forEach((dep) => {
+            const depExists = packagePaths.some(
+              (p) => p.includes(`/${dep}`) || p === `node_modules/${dep}`,
+            );
 
-              if (!depExists) {
-                missingCount++;
-                console.error(`Missing dependency: ${dep} required by ${path}`);
-              }
-            });
-          }
-        },
-      );
+            if (!depExists) {
+              missingCount++;
+              console.error(`Missing dependency: ${dep} required by ${path}`);
+            }
+          });
+        }
+      });
 
       expect(missingCount).toBe(0);
     });
