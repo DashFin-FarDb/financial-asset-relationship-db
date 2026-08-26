@@ -154,11 +154,11 @@ describe("Package-lock.json Validation", () => {
   });
 
   describe("Next.js Runtime Security Upgrade", () => {
-    it("pins Next.js 16.3.0 in the manifest and lockfile", () => {
+    it("pins Next.js 16.3.3 in the manifest and lockfile", () => {
       const nextLock = packageLock.packages?.["node_modules/next"];
 
-      expect(packageJson.dependencies.next).toBe("16.3.0");
-      expect(nextLock?.version).toBe("16.3.0");
+      expect(packageJson.dependencies.next).toBe("16.3.3");
+      expect(nextLock?.version).toBe("16.3.3");
     });
 
     it("keeps the Next.js PostCSS runtime separate from the root toolchain", () => {
