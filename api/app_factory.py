@@ -25,6 +25,7 @@ from src.observability.context import async_trace_context, get_span_id, get_trac
 from src.observability.events import ObservabilityEvent
 from src.observability.logger import log_event
 from src.observability.logging import setup_logging
+from src.observability.sentry import initialize_sentry
 
 from .cors_policy import configure_cors
 from .graph_lifecycle import (
@@ -668,6 +669,7 @@ async def _slo_evaluation_loop() -> None:
 def create_app() -> FastAPI:
     """Create and configure the FastAPI application instance."""
     setup_logging()
+    initialize_sentry()
     app = FastAPI(
         title="Financial Asset Relationship API",
         description="REST API for Financial Asset Relationship Database",

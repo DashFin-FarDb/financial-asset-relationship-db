@@ -1,8 +1,26 @@
-# Observability README
+# Observability readme
 
 For the broader enterprise-readiness audit and rollout plan, see [docs/enterprise-readiness-index.md](./enterprise-readiness-index.md).
 
-This short README links to the tracing middleware example, shows how to enable it in a FastAPI app, and details our key observability metrics and PromQL best practices.
+This short readme links to the tracing middleware example, shows how to enable it in a FastAPI app, and details our key observability metrics and PromQL best practices.
+
+## Optional FastAPI error reporting
+
+The production FastAPI application initializes the Sentry SDK only when an operator provides a non-empty
+`SENTRY_DSN`. When the variable is missing or blank, initialization is skipped and application creation continues
+normally. The DSN is never logged or returned by the application.
+
+The fixed SDK privacy profile is:
+
+- `send_default_pii=False`
+- `traces_sample_rate=0.0`
+- `profiles_sample_rate=0.0`
+- `environment` from `SENTRY_ENVIRONMENT`, falling back to the existing `ENV`
+- optional `release` from `SENTRY_RELEASE`
+
+This integration applies only to the FastAPI backend. It does not add frontend or Gradio instrumentation, a public
+crash route, a runtime Sentry auth token, or any startup test event. Provider-side verification must use synthetic
+data and is a separate operator action.
 
 ## Tracing middleware example
 
