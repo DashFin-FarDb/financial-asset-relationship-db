@@ -9,6 +9,7 @@ from unittest.mock import patch
 import pytest
 from sentry_sdk.utils import BadDsn
 
+import api
 from src.config.settings import DeploymentEnvironment, Settings, get_settings, load_settings
 from src.observability.sentry import initialize_sentry
 
@@ -130,6 +131,7 @@ def test_create_app_succeeds_without_sentry_dsn(monkeypatch: pytest.MonkeyPatch)
     monkeypatch.delenv("SENTRY_DSN", raising=False)
     get_settings.cache_clear()
     monkeypatch.delitem(sys.modules, "api.app_factory", raising=False)
+    monkeypatch.delattr(api, "app_factory", raising=False)
 
     try:
         with patch("sentry_sdk.init") as mock_init:
@@ -149,6 +151,7 @@ def test_create_app_succeeds_with_malformed_sentry_dsn(monkeypatch: pytest.Monke
     monkeypatch.setenv("SENTRY_DSN", "synthetic-malformed-dsn")
     get_settings.cache_clear()
     monkeypatch.delitem(sys.modules, "api.app_factory", raising=False)
+    monkeypatch.delattr(api, "app_factory", raising=False)
 
     try:
         with patch("sentry_sdk.init", side_effect=BadDsn("invalid synthetic DSN")) as mock_init:
@@ -164,6 +167,7 @@ def test_create_app_succeeds_with_malformed_sentry_dsn(monkeypatch: pytest.Monke
 def test_create_app_invokes_sentry_initializer(monkeypatch: pytest.MonkeyPatch) -> None:
     """The production FastAPI factory must invoke the isolated initialization seam."""
     monkeypatch.delitem(sys.modules, "api.app_factory", raising=False)
+    monkeypatch.delattr(api, "app_factory", raising=False)
     with patch("src.observability.sentry.initialize_sentry") as mock_initialize:
         app_factory = importlib.import_module("api.app_factory")
         mock_initialize.reset_mock()
