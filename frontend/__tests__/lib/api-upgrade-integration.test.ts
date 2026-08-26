@@ -26,29 +26,24 @@ import {
 jest.mock("axios");
 
 describe("Axios Upgrade Integration Tests", () => {
-  let currentAxios: jest.Mocked<typeof axios>;
+  let currentAxios: jest.MockedFunctionDeep<typeof axios>;
   let mockAxiosInstance: AxiosInstance;
+  let mockGet: jest.SpiedFunction<AxiosInstance["get"]>;
   let api: (typeof import("../../app/lib/api"))["api"];
 
   beforeEach(async () => {
     jest.resetModules();
 
-    mockAxiosInstance = {
-      get: jest.fn(),
-      post: jest.fn(),
-      put: jest.fn(),
-      delete: jest.fn(),
-      defaults: {
-        baseURL: "http://localhost:8000",
-        headers: { common: {}, get: {}, post: {}, put: {}, delete: {} },
-      },
-      interceptors: {
-        request: { use: jest.fn(), eject: jest.fn(), clear: jest.fn() },
-        response: { use: jest.fn(), eject: jest.fn(), clear: jest.fn() },
-      },
-    };
+    const actualAxios = jest.requireActual<typeof import("axios")>("axios");
+    mockAxiosInstance = actualAxios.default.create({
+      baseURL: "http://localhost:8000",
+    });
+    mockGet = jest.spyOn(mockAxiosInstance, "get");
+    mockGet.mockImplementation(() => {
+      throw new Error("Unexpected unmocked Axios GET request");
+    });
 
-    currentAxios = (await import("axios")).default as jest.Mocked<typeof axios>;
+    currentAxios = jest.mocked((await import("axios")).default);
     currentAxios.create.mockReturnValue(mockAxiosInstance);
 
     const apiModule = await import("../../app/lib/api");
@@ -62,7 +57,7 @@ describe("Axios Upgrade Integration Tests", () => {
   describe("Production Usage Patterns", () => {
     it("should handle typical dashboard data fetching flow", async () => {
       // Simulate loading dashboard: metrics + visualization
-      mockAxiosInstance.get
+      mockGet
         .mockResolvedValueOnce({ data: mockMetrics })
         .mockResolvedValueOnce({ data: mockVizData });
 
@@ -77,7 +72,7 @@ describe("Axios Upgrade Integration Tests", () => {
     });
 
     it("should handle asset search with filters pattern", async () => {
-      mockAxiosInstance.get.mockResolvedValue({ data: mockAssetsPage });
+      mockGet.mockResolvedValue({ data: mockAssetsPage });
 
       // User applies filters
       const filters = { asset_class: "EQUITY", sector: "Technology" };
@@ -94,7 +89,7 @@ describe("Axios Upgrade Integration Tests", () => {
 
     it("should handle detail view navigation pattern", async () => {
       // User clicks asset -> fetch detail + relationships
-      mockAxiosInstance.get
+      mockGet
         .mockResolvedValueOnce({ data: mockAsset })
         .mockResolvedValueOnce({ data: [] });
 
@@ -123,7 +118,7 @@ describe("Axios Upgrade Integration Tests", () => {
         hasMore: true,
       };
 
-      mockAxiosInstance.get
+      mockGet
         .mockResolvedValueOnce({ data: page1 })
         .mockResolvedValueOnce({ data: page2 });
 
@@ -137,7 +132,7 @@ describe("Axios Upgrade Integration Tests", () => {
 
   describe("Error Recovery Patterns", () => {
     it("should allow retry after network error", async () => {
-      mockAxiosInstance.get
+      mockGet
         .mockRejectedValueOnce(new Error("Network Error"))
         .mockResolvedValueOnce({ data: mockMetrics });
 
@@ -150,7 +145,7 @@ describe("Axios Upgrade Integration Tests", () => {
     });
 
     it("should handle partial failure in concurrent requests", async () => {
-      mockAxiosInstance.get
+      mockGet
         .mockResolvedValueOnce({ data: mockMetrics })
         .mockRejectedValueOnce(new Error("API Error"));
 
@@ -173,7 +168,7 @@ describe("Axios Upgrade Integration Tests", () => {
         hasMore: false,
       };
 
-      mockAxiosInstance.get
+      mockGet
         .mockRejectedValueOnce({ response: { status: 404 } })
         .mockResolvedValueOnce({ data: emptyPage });
 
@@ -199,7 +194,7 @@ describe("Axios Upgrade Integration Tests", () => {
     });
 
     it("should properly sanitize user input in URLs", async () => {
-      mockAxiosInstance.get.mockResolvedValue({ data: mockAsset });
+      mockGet.mockResolvedValue({ data: mockAsset });
 
       // Attempt with potentially malicious input
       const maliciousId = "'; DROP TABLE assets; --";
@@ -216,13 +211,15 @@ describe("Axios Upgrade Integration Tests", () => {
       const config = currentAxios.create.mock.calls[0]?.[0];
 
       // Prevents some types of injection attacks
-      expect(config?.headers?.["Content-Type"]).toBe("application/json");
+      expect(config?.headers).toEqual(
+        expect.objectContaining({ "Content-Type": "application/json" }),
+      );
     });
   });
 
   describe("Breaking Change Detection", () => {
     it("should NOT break: response.data extraction", async () => {
-      mockAxiosInstance.get.mockResolvedValue({ data: mockAsset });
+      mockGet.mockResolvedValue({ data: mockAsset });
 
       const result = await api.getAssetDetail("ASSET_1");
 
@@ -240,7 +237,7 @@ describe("Axios Upgrade Integration Tests", () => {
         },
       };
 
-      mockAxiosInstance.get.mockRejectedValue(error);
+      mockGet.mockRejectedValue(error);
 
       await expect(api.getAssetDetail("NONEXISTENT")).rejects.toMatchObject({
         response: {
@@ -251,7 +248,7 @@ describe("Axios Upgrade Integration Tests", () => {
     });
 
     it("should NOT break: query parameter handling", async () => {
-      mockAxiosInstance.get.mockResolvedValue({
+      mockGet.mockResolvedValue({
         data: { items: [], total: 0, page: 1, per_page: 50, hasMore: false },
       });
 
@@ -265,7 +262,7 @@ describe("Axios Upgrade Integration Tests", () => {
     });
 
     it("should NOT break: Promise-based API", async () => {
-      mockAxiosInstance.get.mockResolvedValue({ data: mockAsset });
+      mockGet.mockResolvedValue({ data: mockAsset });
 
       // Should still return Promise
       const promise = api.getAssetDetail("ASSET_1");
@@ -278,7 +275,7 @@ describe("Axios Upgrade Integration Tests", () => {
 
   describe("Performance Validation", () => {
     it("should complete simple GET request in reasonable time", async () => {
-      mockAxiosInstance.get.mockResolvedValue({ data: mockAsset });
+      mockGet.mockResolvedValue({ data: mockAsset });
 
       const start = Date.now();
       await api.getAssetDetail("ASSET_1");
@@ -289,7 +286,7 @@ describe("Axios Upgrade Integration Tests", () => {
     });
 
     it("should handle multiple rapid requests efficiently", async () => {
-      mockAxiosInstance.get.mockResolvedValue({ data: mockAsset });
+      mockGet.mockResolvedValue({ data: mockAsset });
 
       const start = Date.now();
       const promises = Array.from({ length: 50 }, (_, i) =>
@@ -304,7 +301,7 @@ describe("Axios Upgrade Integration Tests", () => {
     });
 
     it("should not leak memory with many requests", async () => {
-      mockAxiosInstance.get.mockResolvedValue({ data: mockAsset });
+      mockGet.mockResolvedValue({ data: mockAsset });
 
       // Make many requests to check for leaks
       for (let i = 0; i < 100; i++) {
@@ -341,7 +338,7 @@ describe("Axios Upgrade Integration Tests", () => {
     });
 
     it("should allow mock assertions", async () => {
-      mockAxiosInstance.get.mockResolvedValue({ data: mockAsset });
+      mockGet.mockResolvedValue({ data: mockAsset });
 
       await api.getAssetDetail("ASSET_1");
 
@@ -354,7 +351,7 @@ describe("Axios Upgrade Integration Tests", () => {
 
     it("should support mock implementation changes", async () => {
       // Change mock behavior mid-test
-      mockAxiosInstance.get
+      mockGet
         .mockResolvedValueOnce({ data: mockAsset })
         .mockResolvedValueOnce({ data: { ...mockAsset, id: "ASSET_2" } });
 
@@ -368,7 +365,7 @@ describe("Axios Upgrade Integration Tests", () => {
 
   describe("Real-World Edge Cases", () => {
     it("should handle slow API responses gracefully", async () => {
-      mockAxiosInstance.get.mockImplementation(
+      mockGet.mockImplementation(
         () =>
           new Promise((resolve) =>
             setTimeout(() => resolve({ data: mockAsset }), 100),
@@ -386,7 +383,7 @@ describe("Axios Upgrade Integration Tests", () => {
         another_field: 123,
       };
 
-      mockAxiosInstance.get.mockResolvedValue({ data: extraFields });
+      mockGet.mockResolvedValue({ data: extraFields });
 
       const result = await api.getAssetDetail("ASSET_1");
       expect(result).toEqual(extraFields);
@@ -404,7 +401,7 @@ describe("Axios Upgrade Integration Tests", () => {
         additional_fields: {},
       };
 
-      mockAxiosInstance.get.mockResolvedValue({ data: minimal });
+      mockGet.mockResolvedValue({ data: minimal });
 
       const result = await api.getAssetDetail("ASSET_1");
       expect(result).toEqual(minimal);
@@ -417,7 +414,7 @@ describe("Axios Upgrade Integration Tests", () => {
         market_cap: 999999999999999,
       };
 
-      mockAxiosInstance.get.mockResolvedValue({ data: largeValues });
+      mockGet.mockResolvedValue({ data: largeValues });
 
       const result = await api.getAssetDetail("ASSET_1");
       expect(result.price).toBe(Number.MAX_SAFE_INTEGER);
@@ -430,7 +427,7 @@ describe("Axios Upgrade Integration Tests", () => {
         symbol: "UNICODE",
       };
 
-      mockAxiosInstance.get.mockResolvedValue({ data: unicode });
+      mockGet.mockResolvedValue({ data: unicode });
 
       const result = await api.getAssetDetail("ASSET_1");
       expect(result.name).toBe("日本株式会社 🚀");
