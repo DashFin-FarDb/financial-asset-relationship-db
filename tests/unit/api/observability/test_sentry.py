@@ -50,6 +50,22 @@ def test_initialize_sentry_uses_fixed_privacy_profile() -> None:
     )
 
 
+def test_initialize_sentry_skips_reinitialization_when_client_is_active() -> None:
+    """Repeated application-factory calls must not initialize the process-wide SDK twice."""
+    settings = Settings(sentry_dsn=_SYNTHETIC_DSN)
+
+    with (
+        patch("src.observability.sentry.sentry_sdk.get_client") as mock_get_client,
+        patch("src.observability.sentry.sentry_sdk.init") as mock_init,
+    ):
+        mock_get_client.return_value.is_active.return_value = True
+        initialized = initialize_sentry(settings)
+
+    assert initialized is True
+    mock_get_client.return_value.is_active.assert_called_once_with()
+    mock_init.assert_not_called()
+
+
 @pytest.mark.parametrize("release", [None, "", "   "])
 def test_initialize_sentry_omits_unconfigured_release(release: str | None) -> None:
     """An unset or blank release must not be passed to the SDK."""

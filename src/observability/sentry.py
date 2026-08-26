@@ -25,6 +25,9 @@ def initialize_sentry(settings: Settings | None = None) -> bool:
     if dsn is None:
         return False
 
+    if sentry_sdk.get_client().is_active():
+        return True
+
     environment = _configured_value(current_settings.sentry_environment) or current_settings.env.value
     options: dict[str, Any] = {
         "dsn": dsn,
