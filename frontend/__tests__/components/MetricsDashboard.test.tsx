@@ -174,7 +174,8 @@ describe("Data Formatting and Display", () => {
   it("should display asset class counts as integers", () => {
     render(<MetricsDashboard metrics={mockMetrics} />);
 
-    Object.values(mockMetrics.asset_classes).forEach((count) => {
+    const assetClasses: Metrics["asset_classes"] = mockMetrics.asset_classes;
+    Object.values(assetClasses).forEach((count) => {
       expect(screen.getByText(count.toString())).toBeInTheDocument();
     });
   });

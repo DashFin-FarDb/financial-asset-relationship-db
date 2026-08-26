@@ -7,6 +7,7 @@ import { render, screen, waitFor, fireEvent } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import Home from "../../app/page";
 import { api } from "../../app/lib/api";
+import type { VisualizationData } from "../../app/types/api";
 import { mockMetrics, mockVisualizationData } from "../test-utils";
 
 jest.mock("../../app/lib/api");
@@ -286,7 +287,7 @@ describe("Tab Navigation and State Management", () => {
 
 describe("Component Integration", () => {
   it("should pass correct props to NetworkVisualization", async () => {
-    const customVizData = {
+    const customVizData: VisualizationData = {
       nodes: [
         {
           id: "TEST",
@@ -301,6 +302,7 @@ describe("Component Integration", () => {
         },
       ],
       edges: [],
+      network_density: 0,
     };
     mockedApi.getVisualizationData.mockResolvedValue(customVizData);
 

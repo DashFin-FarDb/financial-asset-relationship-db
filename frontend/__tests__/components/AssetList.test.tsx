@@ -241,6 +241,9 @@ describe("AssetList Component", () => {
     const abortSignals: AbortSignal[] = [];
 
     mockedApi.getAssets.mockImplementation((_params, signal) => {
+      if (!signal) {
+        throw new Error("Expected AssetList to provide an abort signal");
+      }
       abortSignals.push(signal);
       return abortSignals.length === 1
         ? firstResponse.promise
