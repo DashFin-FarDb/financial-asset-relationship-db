@@ -3,6 +3,8 @@
 from dataclasses import dataclass, field
 from typing import Any
 
+APPLICATION_STARTUP_FAILED_EVENT = "startup_failed"
+
 
 @dataclass(frozen=True)
 class ObservabilityEvent:

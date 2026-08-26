@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import importlib
 import sys
+from typing import Any
 from unittest.mock import patch
 
 import pytest
@@ -11,7 +12,8 @@ from sentry_sdk.utils import BadDsn
 
 import api
 from src.config.settings import DeploymentEnvironment, Settings, get_settings, load_settings
-from src.observability.sentry import initialize_sentry
+from src.observability.events import APPLICATION_STARTUP_FAILED_EVENT
+from src.observability.sentry import _filter_duplicate_startup_log_event, initialize_sentry
 
 pytestmark = pytest.mark.unit
 
@@ -48,7 +50,41 @@ def test_initialize_sentry_uses_fixed_privacy_profile() -> None:
         send_default_pii=False,
         traces_sample_rate=0.0,
         profiles_sample_rate=0.0,
+        before_send=_filter_duplicate_startup_log_event,
     )
+
+
+def test_filter_duplicate_startup_log_event_drops_top_level_log_precursor() -> None:
+    """The top-level startup log is redundant because its exception is immediately re-raised."""
+    event = {
+        "logger": "api.app_factory",
+        "logentry": {"message": "synthetic startup failure"},
+        "extra": {"event": APPLICATION_STARTUP_FAILED_EVENT},
+    }
+
+    assert _filter_duplicate_startup_log_event(event, {}) is None
+
+
+@pytest.mark.parametrize(
+    "event",
+    [
+        {
+            "logger": "api.app_factory",
+            "logentry": {},
+            "extra": {"event": "startup_reconciliation_failed"},
+        },
+        {"logger": "api.app_factory", "logentry": {}, "extra": {"event": "api_get_assets_failed"}},
+        {
+            "logger": "api.app_factory",
+            "logentry": {},
+            "exception": {"values": [{"type": "SyntheticError"}]},
+            "extra": {"event": APPLICATION_STARTUP_FAILED_EVENT},
+        },
+    ],
+)
+def test_filter_duplicate_startup_log_event_preserves_other_error_events(event: dict[str, Any]) -> None:
+    """Handled application errors and exception-bearing events must remain reportable."""
+    assert _filter_duplicate_startup_log_event(event, {}) is event
 
 
 def test_initialize_sentry_skips_reinitialization_when_client_is_active() -> None:
