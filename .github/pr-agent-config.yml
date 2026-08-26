@@ -83,7 +83,7 @@ quality:
     min_coverage: 75
 
   general:
-    max_line_length: 88
+    max_line_length: 120
     require_tests: true
     require_docs: false
     conventional_commits: true

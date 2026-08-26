@@ -829,7 +829,7 @@ class TestPrAgentWorkflowAdvanced:
             return
         assert "flake8" in python_lint["run"]
         assert "black" in python_lint["run"]
-        assert "--max-line-length=88" in python_lint["run"]
+        assert "--max-line-length=120" in python_lint["run"]
         assert "api/" in python_lint["run"] and "src/" in python_lint["run"]
 
     def test_pr_agent_testing_steps(self, pr_agent_workflow: dict[str, Any]):
