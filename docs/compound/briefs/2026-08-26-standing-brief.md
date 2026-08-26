@@ -23,6 +23,7 @@ Claims are labeled landed vs provisional. ADRs/policy are not rewritten.
 - [landed] **sha:8b755727bfb1b52c9b0ef09ef12e03bbf3b06084**: Merge/push to main 8b755727bfb1b52c9b0ef09ef12e03bbf3b06084
 
 ### api
+- [landed] **pr:1706**: ()  x   y
 - [provisional] **pr:1724**: x()     y
 - [landed] **pr:1702**: () y  y 
 - [provisional] **pr:1722**:  y/ .. → .. ()
@@ -37,7 +38,6 @@ Claims are labeled landed vs provisional. ADRs/policy are not rewritten.
 - [provisional] **pr:1674**: ()    ..
 - [provisional] **pr:1711**: ()   -   / w  
 - [provisional] **pr:1694**: () v  
-- [provisional] **pr:1695**: ()   y 
 
 ### persistence
 - [landed] **pr:1641**: --  -  
