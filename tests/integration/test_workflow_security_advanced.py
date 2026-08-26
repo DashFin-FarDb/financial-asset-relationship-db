@@ -10,6 +10,67 @@ Focus areas:
 """
 
 import re
+from pathlib import Path
+
+import pytest
+
+
+def _updated_quote(character, next_character, quote):
+    """Return the next quote state and whether a doubled quote was consumed."""
+    if quote is None:
+        return (character, False) if character in {"'", '"'} else (None, False)
+    if character != quote:
+        return quote, False
+    if next_character == quote:
+        return quote, True
+    return None, False
+
+
+def _github_expression_end(run_command, expression_start):
+    """Locate an expression terminator while ignoring quoted literal braces."""
+    quote = None
+    index = expression_start + 3
+    while index < len(run_command):
+        next_character = run_command[index + 1 : index + 2]
+        quote, consumed_next = _updated_quote(run_command[index], next_character, quote)
+        if consumed_next:
+            index += 2
+            continue
+        if quote is None and run_command.startswith("}}", index):
+            return index
+        index += 1
+    raise AssertionError("Unterminated GitHub expression")
+
+
+def _github_expressions(run_command):
+    """Yield each complete GitHub expression from a shell command."""
+    expression_start = run_command.find("${{")
+    while expression_start != -1:
+        expression_end = _github_expression_end(run_command, expression_start)
+        yield run_command[expression_start + 3 : expression_end]
+        expression_start = run_command.find("${{", expression_end + 2)
+
+
+def _run_steps(workflow):
+    """Yield identifying information for each shell step in a workflow."""
+    for job_name, job_config in workflow["content"].get("jobs", {}).items():
+        for step_idx, step in enumerate(job_config.get("steps", [])):
+            if "run" in step:
+                yield job_name, step_idx, step["run"]
+
+
+def _assert_context_not_interpolated(run_command, forbidden_context, location):
+    """Reject direct dot or bracket access to a context in shell text."""
+    for expression in _github_expressions(run_command):
+        compact_expression = "".join(expression.split())
+        direct_access = re.search(
+            rf"(?<![A-Za-z0-9_]){re.escape(forbidden_context)}(?:\.|\[)",
+            compact_expression,
+        )
+        if direct_access:
+            raise AssertionError(
+                f"Direct {forbidden_context} context interpolation in {location}: " f"${{{{ {expression.strip()} }}}}"
+            )
 
 
 class TestWorkflowInjectionPrevention:
@@ -52,6 +113,41 @@ class TestWorkflowInjectionPrevention:
                                     f"Unquoted context variable in {workflow['path']} "
                                     f"job '{job_name}' step {step_idx}: {match}"
                                 )
+
+    @staticmethod
+    def test_target_workflows_do_not_interpolate_untrusted_context_in_run(all_workflows):
+        """Keep untrusted inputs and secrets out of shell command text."""
+        guarded_contexts = {"manual.yml": "inputs", "veracode.yml": "secrets"}
+        checked_workflows = set()
+
+        for workflow in all_workflows:
+            workflow_name = Path(workflow["path"]).name
+            if workflow_name not in guarded_contexts:
+                continue
+
+            checked_workflows.add(workflow_name)
+            forbidden_context = guarded_contexts[workflow_name]
+            for job_name, step_idx, run_command in _run_steps(workflow):
+                location = f"{workflow['path']} job '{job_name}' step {step_idx}"
+                _assert_context_not_interpolated(run_command, forbidden_context, location)
+
+        assert checked_workflows == set(guarded_contexts), "Expected guarded workflows were not loaded"
+
+    @staticmethod
+    def test_context_interpolation_guard_handles_literals_and_identifier_boundaries():
+        """Parse literal braces and reject only the named context."""
+        safe_command = "echo \"${{ format('}}') }} ${{ env.user_inputs.value }}\""
+        _assert_context_not_interpolated(safe_command, "inputs", "test fixture")
+
+        with pytest.raises(AssertionError, match="Direct inputs context interpolation"):
+            _assert_context_not_interpolated(
+                f"{safe_command} ${{{{ inputs.name }}}}",
+                "inputs",
+                "test fixture",
+            )
+
+        with pytest.raises(AssertionError, match="Unterminated GitHub expression"):
+            list(_github_expressions("echo '${{ inputs.name'"))
 
     @staticmethod
     def test_no_eval_with_user_input(all_workflows):
