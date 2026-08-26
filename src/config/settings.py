@@ -107,6 +107,11 @@ class Settings(BaseModel):
     # Logging configuration
     log_level: str = Field(default="INFO")
 
+    # Error monitoring configuration
+    sentry_dsn: str | None = Field(default=None, repr=False, exclude=True)
+    sentry_environment: str | None = Field(default=None)
+    sentry_release: str | None = Field(default=None)
+
     # CORS configuration
     allowed_origins_raw: str = Field(default="")
 
@@ -248,7 +253,8 @@ def load_settings() -> Settings:
     """
     Load runtime settings from environment variables and return a configured Settings instance.
 
-    Reads environment variables (for example: ENV, VERCEL_ENV, LOG_LEVEL, SECRET_KEY, DATABASE_URL,
+    Reads environment variables (for example: ENV, VERCEL_ENV, LOG_LEVEL, SENTRY_DSN, SENTRY_ENVIRONMENT,
+    SENTRY_RELEASE, SECRET_KEY, DATABASE_URL,
     POSTGRES_URL, COORDINATION_DATABASE_URL, POSTGRES_REQUEST_STATEMENT_TIMEOUT_MILLISECONDS, ALLOWED_ORIGINS,
     REBUILD_LOCK_TTL_SECONDS)
     and maps them to Settings fields, delegating type coercion and validation to Pydantic.
@@ -266,6 +272,9 @@ def load_settings() -> Settings:
         env=os.getenv("ENV", "development").strip().lower(),  # type: ignore[arg-type]
         vercel_env=os.getenv("VERCEL_ENV"),  # type: ignore[arg-type]
         log_level=os.getenv("LOG_LEVEL", "INFO").strip().upper(),
+        sentry_dsn=os.getenv("SENTRY_DSN"),
+        sentry_environment=os.getenv("SENTRY_ENVIRONMENT"),
+        sentry_release=os.getenv("SENTRY_RELEASE"),
         allowed_origins_raw=os.getenv("ALLOWED_ORIGINS", ""),
         secret_key=os.getenv("SECRET_KEY"),
         admin_username=os.getenv("ADMIN_USERNAME"),
