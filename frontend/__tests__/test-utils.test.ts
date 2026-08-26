@@ -21,6 +21,8 @@ import type {
   Relationship,
   Metrics,
   VisualizationData,
+  VisualizationEdge,
+  VisualizationNode,
 } from "../app/types/api";
 
 describe("test-utils Mock Data Validation", () => {
@@ -361,7 +363,7 @@ describe("test-utils Mock Data Validation", () => {
     });
 
     it("should have asset class counts sum less than or equal to total assets", () => {
-      const sum = Object.values(mockMetrics.asset_classes).reduce(
+      const sum = Object.values<number>(mockMetrics.asset_classes).reduce(
         (a, b) => a + b,
         0,
       );
@@ -394,7 +396,7 @@ describe("test-utils Mock Data Validation", () => {
     });
 
     it("should have nodes with all required properties", () => {
-      mockVisualizationData.nodes.forEach((node) => {
+      mockVisualizationData.nodes.forEach((node: VisualizationNode) => {
         expect(node).toHaveProperty("id");
         expect(node).toHaveProperty("name");
         expect(node).toHaveProperty("symbol");
@@ -408,7 +410,7 @@ describe("test-utils Mock Data Validation", () => {
     });
 
     it("should have nodes with valid data types", () => {
-      mockVisualizationData.nodes.forEach((node) => {
+      mockVisualizationData.nodes.forEach((node: VisualizationNode) => {
         expect(typeof node.id).toBe("string");
         expect(typeof node.name).toBe("string");
         expect(typeof node.symbol).toBe("string");
@@ -422,25 +424,27 @@ describe("test-utils Mock Data Validation", () => {
     });
 
     it("should have nodes with valid color hex codes", () => {
-      mockVisualizationData.nodes.forEach((node) => {
+      mockVisualizationData.nodes.forEach((node: VisualizationNode) => {
         expect(node.color).toMatch(/^#[0-9a-fA-F]{6}$/);
       });
     });
 
     it("should have nodes with positive size values", () => {
-      mockVisualizationData.nodes.forEach((node) => {
+      mockVisualizationData.nodes.forEach((node: VisualizationNode) => {
         expect(node.size).toBeGreaterThan(0);
       });
     });
 
     it("should have unique node IDs", () => {
-      const ids = mockVisualizationData.nodes.map((n) => n.id);
+      const ids = mockVisualizationData.nodes.map(
+        (n: VisualizationNode) => n.id,
+      );
       const uniqueIds = new Set(ids);
       expect(uniqueIds.size).toBe(ids.length);
     });
 
     it("should have edges with all required properties", () => {
-      mockVisualizationData.edges.forEach((edge) => {
+      mockVisualizationData.edges.forEach((edge: VisualizationEdge) => {
         expect(edge).toHaveProperty("source");
         expect(edge).toHaveProperty("target");
         expect(edge).toHaveProperty("relationship_type");
@@ -449,7 +453,7 @@ describe("test-utils Mock Data Validation", () => {
     });
 
     it("should have edges with valid data types", () => {
-      mockVisualizationData.edges.forEach((edge) => {
+      mockVisualizationData.edges.forEach((edge: VisualizationEdge) => {
         expect(typeof edge.edge_id).toBe("string");
         expect(edge.edge_id.trim().length).toBeGreaterThan(0);
         expect(typeof edge.source).toBe("string");
@@ -460,22 +464,24 @@ describe("test-utils Mock Data Validation", () => {
     });
 
     it("should have edges with valid strength values", () => {
-      mockVisualizationData.edges.forEach((edge) => {
+      mockVisualizationData.edges.forEach((edge: VisualizationEdge) => {
         expect(edge.strength).toBeGreaterThan(0);
         expect(edge.strength).toBeLessThanOrEqual(1);
       });
     });
 
     it("should have edges referencing existing nodes", () => {
-      const nodeIds = mockVisualizationData.nodes.map((n) => n.id);
-      mockVisualizationData.edges.forEach((edge) => {
+      const nodeIds = mockVisualizationData.nodes.map(
+        (n: VisualizationNode) => n.id,
+      );
+      mockVisualizationData.edges.forEach((edge: VisualizationEdge) => {
         expect(nodeIds).toContain(edge.source);
         expect(nodeIds).toContain(edge.target);
       });
     });
 
     it("should have edges with different source and target", () => {
-      mockVisualizationData.edges.forEach((edge) => {
+      mockVisualizationData.edges.forEach((edge: VisualizationEdge) => {
         expect(edge.source).not.toBe(edge.target);
       });
     });
@@ -492,7 +498,7 @@ describe("test-utils Mock Data Validation", () => {
     });
 
     it("should have valid node structure", () => {
-      mockVizData.nodes.forEach((node) => {
+      mockVizData.nodes.forEach((node: VisualizationNode) => {
         expect(typeof node.id).toBe("string");
         expect(typeof node.name).toBe("string");
         expect(typeof node.symbol).toBe("string");
@@ -506,7 +512,7 @@ describe("test-utils Mock Data Validation", () => {
     });
 
     it("should have valid edge structure", () => {
-      mockVizData.edges.forEach((edge) => {
+      mockVizData.edges.forEach((edge: VisualizationEdge) => {
         expect(typeof edge.edge_id).toBe("string");
         expect(edge.edge_id.trim().length).toBeGreaterThan(0);
         expect(typeof edge.source).toBe("string");
@@ -517,8 +523,8 @@ describe("test-utils Mock Data Validation", () => {
     });
 
     it("should have edges referencing existing nodes", () => {
-      const nodeIds = mockVizData.nodes.map((n) => n.id);
-      mockVizData.edges.forEach((edge) => {
+      const nodeIds = mockVizData.nodes.map((n: VisualizationNode) => n.id);
+      mockVizData.edges.forEach((edge: VisualizationEdge) => {
         expect(nodeIds).toContain(edge.source);
         expect(nodeIds).toContain(edge.target);
       });
@@ -529,7 +535,9 @@ describe("test-utils Mock Data Validation", () => {
     });
 
     it("should have nodes with different asset classes", () => {
-      const assetClasses = mockVizData.nodes.map((n) => n.asset_class);
+      const assetClasses = mockVizData.nodes.map(
+        (n: VisualizationNode) => n.asset_class,
+      );
       const uniqueClasses = new Set(assetClasses);
       expect(uniqueClasses.size).toBeGreaterThan(1);
     });
@@ -548,9 +556,11 @@ describe("test-utils Mock Data Validation", () => {
     });
 
     it("should have visualization nodes matching assets", () => {
-      const vizNodeIds = mockVisualizationData.nodes.map((n) => n.id);
+      const vizNodeIds = mockVisualizationData.nodes.map(
+        (n: VisualizationNode) => n.id,
+      );
       const assetIds = mockAssets.map((a) => a.id);
-      vizNodeIds.forEach((id) => {
+      vizNodeIds.forEach((id: string) => {
         expect(assetIds).toContain(id);
       });
     });
@@ -560,8 +570,8 @@ describe("test-utils Mock Data Validation", () => {
       const allAssetIds = [
         ...mockAssets.map((a) => a.id),
         mockAsset.id,
-        ...mockVisualizationData.nodes.map((n) => n.id),
-        ...mockVizData.nodes.map((n) => n.id),
+        ...mockVisualizationData.nodes.map((n: VisualizationNode) => n.id),
+        ...mockVizData.nodes.map((n: VisualizationNode) => n.id),
       ];
       allAssetIds.forEach((id) => {
         expect(id).toMatch(/^ASSET_\d+$/);
@@ -682,7 +692,7 @@ describe("test-utils Mock Data Validation", () => {
 
         const allStrings = [
           ...mockAssets.flatMap((a) => [a.name, a.symbol]),
-          ...mockVisualizationData.nodes.map((n) => n.name),
+          ...mockVisualizationData.nodes.map((n: VisualizationNode) => n.name),
         ];
 
         allStrings.forEach((str) => {
@@ -745,7 +755,7 @@ describe("test-utils Mock Data Validation", () => {
       });
 
       it("should have sum of asset class counts equal total assets", () => {
-        const sum = Object.values(mockMetrics.asset_classes).reduce(
+        const sum = Object.values<number>(mockMetrics.asset_classes).reduce(
           (a, b) => a + b,
           0,
         );
@@ -800,7 +810,7 @@ describe("test-utils Mock Data Validation", () => {
 
     describe("Visualization Data Constraints", () => {
       it("should have 3D coordinates within reasonable bounds", () => {
-        mockVisualizationData.nodes.forEach((node) => {
+        mockVisualizationData.nodes.forEach((node: VisualizationNode) => {
           expect(Math.abs(node.x)).toBeLessThan(100);
           expect(Math.abs(node.y)).toBeLessThan(100);
           expect(Math.abs(node.z)).toBeLessThan(100);
@@ -808,27 +818,27 @@ describe("test-utils Mock Data Validation", () => {
       });
 
       it("should have node sizes that are positive and reasonable", () => {
-        mockVisualizationData.nodes.forEach((node) => {
+        mockVisualizationData.nodes.forEach((node: VisualizationNode) => {
           expect(node.size).toBeGreaterThan(0);
           expect(node.size).toBeLessThan(100);
         });
       });
 
       it("should have colors in valid hex format", () => {
-        mockVisualizationData.nodes.forEach((node) => {
+        mockVisualizationData.nodes.forEach((node: VisualizationNode) => {
           expect(node.color).toMatch(/^#[0-9A-Fa-f]{6}$/);
         });
       });
 
       it("should not have self-referencing edges", () => {
-        mockVisualizationData.edges.forEach((edge) => {
+        mockVisualizationData.edges.forEach((edge: VisualizationEdge) => {
           expect(edge.source).not.toBe(edge.target);
         });
       });
 
       it("should have bidirectional edge consistency", () => {
         const edgeMap = new Map<string, Set<string>>();
-        mockVisualizationData.edges.forEach((edge) => {
+        mockVisualizationData.edges.forEach((edge: VisualizationEdge) => {
           if (!edgeMap.has(edge.source)) {
             edgeMap.set(edge.source, new Set());
           }
@@ -837,8 +847,8 @@ describe("test-utils Mock Data Validation", () => {
 
         // If edge A->B exists with high strength, check for reasonable reciprocity
         mockVisualizationData.edges
-          .filter((e) => e.strength > 0.8)
-          .forEach((edge) => {
+          .filter((e: VisualizationEdge) => e.strength > 0.8)
+          .forEach((edge: VisualizationEdge) => {
             const hasReverse = edgeMap.get(edge.target)?.has(edge.source);
             // At least some high-strength edges should be bidirectional
             if (hasReverse) {
@@ -998,7 +1008,7 @@ describe("test-utils Mock Data Validation", () => {
 
       it("should handle nodes at coordinate origin", () => {
         const originNode = mockVisualizationData.nodes.find(
-          (n) => n.x === 0 && n.y === 0 && n.z === 0,
+          (n: VisualizationNode) => n.x === 0 && n.y === 0 && n.z === 0,
         );
         if (originNode) {
           expect(originNode.x).toBe(0);
@@ -1050,7 +1060,7 @@ describe("test-utils Mock Data Validation", () => {
       });
 
       it("should have consistent type across all mock visualization data nodes", () => {
-        mockVisualizationData.nodes.forEach((node) => {
+        mockVisualizationData.nodes.forEach((node: VisualizationNode) => {
           expect(typeof node.id).toBe("string");
           expect(typeof node.name).toBe("string");
           expect(typeof node.symbol).toBe("string");
