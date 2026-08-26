@@ -15,33 +15,40 @@ from pathlib import Path
 import pytest
 
 
+def _updated_quote(character, next_character, quote):
+    """Return the next quote state and whether a doubled quote was consumed."""
+    if quote is None:
+        return (character, False) if character in {"'", '"'} else (None, False)
+    if character != quote:
+        return quote, False
+    if next_character == quote:
+        return quote, True
+    return None, False
+
+
+def _github_expression_end(run_command, expression_start):
+    """Locate an expression terminator while ignoring quoted literal braces."""
+    quote = None
+    index = expression_start + 3
+    while index < len(run_command):
+        next_character = run_command[index + 1 : index + 2]
+        quote, consumed_next = _updated_quote(run_command[index], next_character, quote)
+        if consumed_next:
+            index += 2
+            continue
+        if quote is None and run_command.startswith("}}", index):
+            return index
+        index += 1
+    raise AssertionError("Unterminated GitHub expression")
+
+
 def _github_expressions(run_command):
     """Yield each complete GitHub expression from a shell command."""
-    search_from = 0
-    while True:
-        expression_start = run_command.find("${{", search_from)
-        if expression_start == -1:
-            return
-
-        quote = None
-        index = expression_start + 3
-        while index < len(run_command):
-            character = run_command[index]
-            if quote:
-                if character == quote:
-                    if index + 1 < len(run_command) and run_command[index + 1] == quote:
-                        index += 1
-                    else:
-                        quote = None
-            elif character in {"'", '"'}:
-                quote = character
-            elif run_command.startswith("}}", index):
-                yield run_command[expression_start + 3 : index]
-                search_from = index + 2
-                break
-            index += 1
-        else:
-            raise AssertionError("Unterminated GitHub expression")
+    expression_start = run_command.find("${{")
+    while expression_start != -1:
+        expression_end = _github_expression_end(run_command, expression_start)
+        yield run_command[expression_start + 3 : expression_end]
+        expression_start = run_command.find("${{", expression_end + 2)
 
 
 def _run_steps(workflow):
