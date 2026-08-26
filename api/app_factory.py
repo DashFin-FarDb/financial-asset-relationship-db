@@ -22,7 +22,7 @@ from sqlalchemy.exc import SQLAlchemyError
 
 from src.data.database import SchemaCompatibilityError
 from src.observability.context import async_trace_context, get_span_id, get_trace_id
-from src.observability.events import ObservabilityEvent
+from src.observability.events import APPLICATION_STARTUP_FAILED_EVENT, ObservabilityEvent
 from src.observability.logger import log_event
 from src.observability.logging import setup_logging
 from src.observability.sentry import initialize_sentry
@@ -369,7 +369,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
                     logger,
                     logging.CRITICAL,
                     ObservabilityEvent(
-                        event="startup_failed",
+                        event=APPLICATION_STARTUP_FAILED_EVENT,
                         message=f"Application startup failed: {type(exc).__name__}",
                         metadata={
                             "error": type(exc).__name__,
