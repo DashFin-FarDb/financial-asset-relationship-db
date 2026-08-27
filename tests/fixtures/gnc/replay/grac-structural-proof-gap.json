@@ -1,0 +1,72 @@
+{
+  "scenario_id": "grac-structural-proof-gap",
+  "source_refs": ["github:issue/1557", "programme:grac", "execution:local"],
+  "contract": {
+    "schema_version": 1,
+    "contract_id": "replay.grac-proof",
+    "version": 1,
+    "parent_issue": 1557,
+    "objective": "Do not substitute structural checks for runtime proof.",
+    "base_sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "policy_sha": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "risk_class": "high",
+    "allowed_paths": ["src/governance"],
+    "forbidden_paths": [".github/workflows"],
+    "rules": [
+      {
+        "rule_id": "evidence.behavioral",
+        "type": "mandatory_invariant",
+        "statement": "Behavioral claims require executed behavioral evidence."
+      }
+    ],
+    "required_evidence": ["runtime-behavior"],
+    "merge_criteria": ["Required behavioral proof passes at the exact head."],
+    "stop_conditions": ["Only structural evidence is available."],
+    "approved_by": "maintainer",
+    "approved_at": "2026-07-27T00:00:00Z"
+  },
+  "review_run": {
+    "record_type": "review_run",
+    "run_id": "run.grac-proof",
+    "head_sha": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+    "merge_base_sha": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+    "contract_hash": "9180b7f6199f3fd0610e3e93fa1a891256e54c22b91c2e0f7eb77a664364e906",
+    "policy_sha": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "context_digest": "2c34ffa7f96c9f08d6189fde8273c99b42d4019a1380d76c6882e65605a0e98d",
+    "evaluator_version": "gnc-phase1",
+    "target": "linux",
+    "review_mode": "full",
+    "verdict": "block",
+    "analyzed_blobs": {
+      "src/governance/model.py": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+    }
+  },
+  "evidence": [
+    {
+      "record_type": "evidence",
+      "evidence_id": "evidence.runtime",
+      "requirement_id": "runtime-behavior",
+      "head_sha": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "target": "linux",
+      "state": "skipped",
+      "result": "not_run",
+      "run_ref": "local"
+    }
+  ],
+  "findings": [
+    {
+      "record_type": "finding",
+      "finding_id": "finding.proof-gap",
+      "rule_id": "evidence.behavioral",
+      "subject": "runtime behavior claim",
+      "failure_mode": "Structural validation was presented as runtime proof.",
+      "expected_outcome": "Execute the required behavioral test at the exact head and target.",
+      "origin": "deterministic",
+      "state": "open",
+      "head_sha": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "blocking_basis": "deterministic_rule",
+      "blocking_rule_id": "evidence.behavioral"
+    }
+  ],
+  "expected": { "verdict": "block", "finding_ids": ["finding.proof-gap"] }
+}

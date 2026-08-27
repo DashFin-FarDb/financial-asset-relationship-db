@@ -1,0 +1,72 @@
+{
+  "scenario_id": "grac-supersession-concurrency-gap",
+  "source_refs": ["github:issue/1557", "programme:grac", "execution:local"],
+  "contract": {
+    "schema_version": 1,
+    "contract_id": "replay.grac-concurrency",
+    "version": 1,
+    "parent_issue": 1557,
+    "objective": "Require supersession and concurrency proof.",
+    "base_sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "policy_sha": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "risk_class": "high",
+    "allowed_paths": ["src/governance"],
+    "forbidden_paths": [".github/workflows"],
+    "rules": [
+      {
+        "rule_id": "state.supersession",
+        "type": "mandatory_invariant",
+        "statement": "Concurrent supersession must preserve one authoritative state."
+      }
+    ],
+    "required_evidence": ["concurrency"],
+    "merge_criteria": ["Concurrency proof passes."],
+    "stop_conditions": ["Supersession semantics are undecided."],
+    "approved_by": "maintainer",
+    "approved_at": "2026-07-27T00:00:00Z"
+  },
+  "review_run": {
+    "record_type": "review_run",
+    "run_id": "run.grac-concurrency",
+    "head_sha": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+    "merge_base_sha": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+    "contract_hash": "5414aa9835bdf2f8ab6de97df6d5e186510e91af8048927d68d61b39ba223801",
+    "policy_sha": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "context_digest": "1d7c96a861f34af28430b3373f6af07fe6e7503481cfc79f310ea4c43326b8d3",
+    "evaluator_version": "gnc-phase1",
+    "target": "postgresql",
+    "review_mode": "full",
+    "verdict": "block",
+    "analyzed_blobs": {
+      "src/governance/state.py": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+    }
+  },
+  "evidence": [
+    {
+      "record_type": "evidence",
+      "evidence_id": "evidence.concurrency",
+      "requirement_id": "concurrency",
+      "head_sha": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "target": "postgresql",
+      "state": "unavailable",
+      "result": "not_run",
+      "run_ref": "local"
+    }
+  ],
+  "findings": [
+    {
+      "record_type": "finding",
+      "finding_id": "finding.concurrency-gap",
+      "rule_id": "state.supersession",
+      "subject": "supersession state",
+      "failure_mode": "Concurrent updates have no executed proof.",
+      "expected_outcome": "Prove deterministic supersession under concurrency.",
+      "origin": "deterministic",
+      "state": "open",
+      "head_sha": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "blocking_basis": "deterministic_rule",
+      "blocking_rule_id": "state.supersession"
+    }
+  ],
+  "expected": { "verdict": "block", "finding_ids": ["finding.concurrency-gap"] }
+}

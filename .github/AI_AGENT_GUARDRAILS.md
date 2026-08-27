@@ -72,7 +72,7 @@ Open a follow-up PR instead of continuing when:
 
 For dependency-related changes, the PR should report the relevant commands that were actually run, not generic placeholders.
 
-## Regex safety (Sonar S5852 / ReDoS)
+## Regular expression safety (Sonar S5852 / ReDoS)
 
 **Hard rule: do not use `re.DOTALL` together with lazy or greedy quantifiers (`.*`, `.*?`, `.+`, `.+?`) in a single pattern that spans unbounded input.**
 
@@ -101,6 +101,22 @@ Only when **all three** conditions hold:
 ---
 
 ## High-risk change control
+
+### GNC self-review and evidence boundary
+
+Governance and Compliance (GNC) review never authorizes an agent to widen a
+task. Agents responding to GNC findings must validate each claim against the
+current head and record one disposition: `resolved`, `deferred_out_of_scope`,
+`rejected_speculative`, `duplicate_of`, `waived`, or
+`reopened_as_recurrence`. Out-of-scope findings require a follow-up issue or
+explicit human decision; they are not silently implemented.
+
+GNC policy, contract, evaluator, and skill changes cannot approve or waive
+themselves. A model-origin finding is advisory unless it maps to a human-
+confirmed or deterministic blocking basis. Evidence satisfies a mandatory
+requirement only when it was executed successfully for the exact head SHA and
+target. A skipped, canceled, unavailable, `stale_sha`, or `wrong_target` check fails
+closed for that requirement.
 
 Database, authentication, deployment, CI/CD, security scanner configuration, persistence, and migration work require low-autonomy, file-bounded implementation contracts.
 
@@ -189,4 +205,7 @@ If not specified in the prompt, stop and ask for the decision.
 
 ### Lesson from PR #1096
 
-PR #1096 (PostgreSQL support for API auth database) demonstrated the risk of autonomous implementation across database boundaries. The PR added PostgreSQL support but initially drifted into broader scope (connection pooling, async driver selection, environment-variable precedence) without explicit contracts. This showed the need for file-bounded implementation contracts in high-risk areas. Future database/auth/deployment work should specify allowed files, fixed decisions, and stop conditions before coding begins.
+PR #1096 (PostgreSQL support for API auth database) demonstrated the risk of autonomous implementation across database boundaries.
+The PR added PostgreSQL support but initially drifted into broader scope (connection pooling, async driver selection, environment-variable precedence) without explicit contracts.
+This showed the need for file-bounded implementation contracts in high-risk areas.
+Future database/auth/deployment work should specify allowed files, fixed decisions, and stop conditions before coding begins.
