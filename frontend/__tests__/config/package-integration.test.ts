@@ -284,7 +284,7 @@ describe("Package Configuration Integration", () => {
 
   describe("Version Range Satisfaction", () => {
     it("caret ranges should be satisfied correctly", () => {
-      // ^1.13.5 should resolve to 1.13.5 or compatible
+      // ^1.20.0 should resolve to 1.20.0 or compatible
       const axiosRange = requiredDependencies(packageJson).axios;
       const axiosVersion =
         packageLock.packages?.["node_modules/axios"]?.version;
@@ -407,7 +407,6 @@ describe("Package Configuration Integration", () => {
         }
       }
     });
-
   });
 
   describe("Lockfile Health", () => {
