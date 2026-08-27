@@ -608,7 +608,7 @@ def _trusted_https_url(value: Any, code: str, *, allow_query: bool) -> str:
     safe_suffix = not parsed.fragment and (allow_query or not parsed.query)
     if not safe_origin or not safe_path or not safe_suffix:
         raise AdvisoryInputError(code)
-    return urllib.parse.urlunsplit(parsed)
+    return url
 
 
 def _trusted_api_path(value: Any) -> str:
@@ -674,7 +674,8 @@ class GitHubMetadataClient:
     def _request(self, url: str, *, payload: Mapping[str, Any] | None = None) -> tuple[Any, Mapping[str, str]]:
         url = _trusted_https_url(url, _API_URL_INVALID, allow_query=True)
         parsed = urllib.parse.urlsplit(url)
-        if parsed.hostname is None:
+        hostname = parsed.hostname
+        if hostname is None:
             raise AdvisoryInputError(_API_URL_INVALID)
         body = canonical_json_bytes(payload) if payload is not None else None
         headers = {
@@ -684,7 +685,7 @@ class GitHubMetadataClient:
             "X-GitHub-Api-Version": "2022-11-28",
         }
         target = urllib.parse.urlunsplit(("", "", parsed.path, parsed.query, ""))
-        connection = http.client.HTTPSConnection(parsed.hostname, port=parsed.port, timeout=30)
+        connection = http.client.HTTPSConnection(hostname, port=parsed.port, timeout=30)
         try:
             connection.request("POST" if payload is not None else "GET", target, body=body, headers=headers)
             response = connection.getresponse()
