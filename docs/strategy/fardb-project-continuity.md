@@ -42,7 +42,17 @@ recovery evidence.
 
 At the evidence cutoff:
 
-- GNC Phase 1 is complete through issue [#1558](https://github.com/DashFin-FarDb/financial-asset-relationship-db/issues/1558) and merged PR [#1673](https://github.com/DashFin-FarDb/financial-asset-relationship-db/pull/1673). The approved exact head was `dde4427ebfc6807519a9fedf01e182ca43ee70d9`; the merge commit is `bca812c83bd8def01587dc2c050f8c8bc37ad1fc`. All 107 review threads were resolved and the 90-test Phase 1 suite passed. The landed capability remains repository-local, deterministic, read-only, and replay-only. It adds no live workflow, model call, blocking check, ruleset, provider mutation, auto-action, or merge enforcement. Any Phase 2 work requires a separately approved child issue under [#1557](https://github.com/DashFin-FarDb/financial-asset-relationship-db/issues/1557), a then-current exact base, an exact file allowlist, named human review, and no auto-merge.
+- GNC Phase 1 is complete through issue
+  [#1558](https://github.com/DashFin-FarDb/financial-asset-relationship-db/issues/1558) and merged PR
+  [#1673](https://github.com/DashFin-FarDb/financial-asset-relationship-db/pull/1673).
+- Completion evidence is recorded by
+  [FPC-2026-08-27-01](#fpc-2026-08-27-01--govern-gnc-after-phase-1) and
+  [ADR 0011](../adr/0011-governance-and-compliance-agent.md).
+- Capability boundary: repository-local, deterministic, read-only, and replay-only; no live workflow, model call,
+  blocking check, ruleset, provider mutation, auto-action, or merge enforcement.
+- Phase 2 prerequisite: a separately approved child issue under
+  [#1557](https://github.com/DashFin-FarDb/financial-asset-relationship-db/issues/1557), a then-current exact base, an
+  exact file allowlist, named human review, and no auto-merge.
 - Governance-document consolidation remains separate under [#1692](https://github.com/DashFin-FarDb/financial-asset-relationship-db/issues/1692); this continuity reconciliation does not authorise that refactor or change policy semantics.
 - PR [#1608](https://github.com/DashFin-FarDb/financial-asset-relationship-db/pull/1608) merged from final reviewed
   head `743ce9254ca0fdb20805a789e4082c2891053109` as GitHub-verified squash
@@ -562,7 +572,8 @@ Primary authorities:
   CQ-03D-01 is ratified, verified, and merged through PR #1646. No CQ-03D-02 target or permit is approved; the hosted
   preflight and any later provider history adoption remain pending separate authorization under CQ-03D.
 - GRAC v1 is `CURRENT` only for the exact-SHA staging slice recorded by PR #1598; broader claims remain `NEXT`.
-- GNC Phase 1 is complete through PR #1673 and ADR 0011. Phase 2, live enforcement, and any workflow/model/ruleset/provider integration remain unauthorised and unimplemented.
+- GNC Phase 1 is complete through PR #1673 and ADR 0011. Phase 2, live enforcement, and any
+  workflow/model/ruleset/provider integration remain unauthorised and unimplemented.
 
 ### Governing constraints
 
@@ -576,12 +587,16 @@ Primary authorities:
 
 ### Next highest-value action
 
-The database lane under **FPC-2026-08-13-01** remains externally gated by the approved target-bound maintenance-window contract, Supabase support, IPv6-capable connectivity, one approved target, and a protected single-use permit. Before CQ-03D-02, obtain separate approval for one target
-and protected single-use permit. After approval, bind both to the reviewed repository SHA and collect only the
-bounded read-only hosted-preflight evidence. Do not authorize the later migration-history marker in this step.
+The database lane under **FPC-2026-08-13-01** remains externally gated by the approved target-bound
+maintenance-window contract, Supabase support, IPv6-capable connectivity, one approved target, and a protected
+single-use permit. Before CQ-03D-02, obtain separate approval for a permit that already binds the one approved target
+to the exact reviewed repository SHA. Only after that approval, collect the bounded read-only hosted-preflight
+evidence. Do not authorize the later migration-history marker in this step.
 Do not replay or reconstruct SQL under historical timestamps, run `supabase db pull` against hosted state, retain
 provider link state, apply DDL, or select `hosted-legacy-v1` as adopted before the separate history-action decision.
-Issue #1623 remains a small P2 follow-up and does not displace the CQ-03 programme. In parallel with the provider wait, the next repository-governance decision is whether to approve a bounded GNC Phase 2 child contract under **FPC-2026-08-27-01**; do not begin implementation from this ledger alone. Release repeatability
+Issue #1623 remains a small P2 follow-up and does not displace the CQ-03 programme. In parallel with the provider
+wait, the next repository-governance decision is whether to approve a bounded GNC Phase 2 child contract under
+**FPC-2026-08-27-01**; do not begin implementation from this ledger alone. Release repeatability
 (**FPC-2026-07-21-02**) remains active.
 
 ### Completion test
@@ -596,7 +611,7 @@ credential-bootstrap authority.
 
 ### Sources reviewed
 
-- Repository `main` through `790274c1b0dbdb43d4bbbbf35c4565dae36c9fe3` on 2026-08-18.
+- Repository `main` through the declared cutoff `bca812c83bd8def01587dc2c050f8c8bc37ad1fc` on 2026-08-27.
 - Repository agent instructions and production-architecture declaration.
 - Enterprise-readiness index, audit, roadmap, PR board, validation-gap audit, release checklist, release evidence pack,
   hosted staging baseline, operational evidence framework, drill and scale-validation documents, and risk register.
