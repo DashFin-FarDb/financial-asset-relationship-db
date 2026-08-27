@@ -614,12 +614,18 @@ def _assert_sanitized_sequence(value: Sequence[Any], field: str) -> None:
         _assert_sanitized(item, f"{field}[{index}]")
 
 
+def _assert_sanitized_string(value: str, field: str) -> None:
+    if _SECRET_TEXT.search(value):
+        raise _error(field, "secret-like material is forbidden")
+
+
 def _assert_sanitized_scalar(value: Any, field: str) -> None:
     if isinstance(value, float):
         raise _error(field, "floating-point values are forbidden")
-    if isinstance(value, str) and _SECRET_TEXT.search(value):
-        raise _error(field, "secret-like material is forbidden")
-    if value is None or isinstance(value, (str, bool, int)):
+    if isinstance(value, str):
+        _assert_sanitized_string(value, field)
+        return
+    if value is None or isinstance(value, (bool, int)):
         return
     raise _error(field, f"unsupported JSON value type: {type(value).__name__}")
 
