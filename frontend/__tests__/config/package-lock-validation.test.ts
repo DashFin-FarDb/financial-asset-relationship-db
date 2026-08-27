@@ -24,11 +24,11 @@ interface PackageManifest {
   version?: string;
   dependencies: DependencyMap;
   devDependencies: DependencyMap;
-  optionalDependencies: DependencyMap;
-  peerDependencies: DependencyMap;
+  optionalDependencies?: DependencyMap;
+  peerDependencies?: DependencyMap;
   bundledDependencies?: string[];
   bundleDependencies?: string[];
-  engines: { node?: string };
+  engines?: { node?: string };
 }
 
 interface LockPackage {
