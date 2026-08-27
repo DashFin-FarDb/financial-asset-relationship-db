@@ -26,7 +26,7 @@ interface PackageManifest {
   scripts: Record<string, string>;
   dependencies: DependencyMap;
   devDependencies: DependencyMap;
-  peerDependencies: DependencyMap;
+  peerDependencies?: DependencyMap;
   homepage?: string;
   repository?: string | { url?: string };
   bugs?: string | { url?: string };
