@@ -109,18 +109,18 @@ existing symlinks and parent directories are resolved before any read or write.
 
 ## Fixed bounds
 
-| Input or output | Bound |
-| --- | ---: |
-| PR body | 128 KiB |
-| Extracted contract JSON | 64 KiB |
-| Changed-file records | 500 |
-| One normalized path | 512 UTF-8 bytes |
-| Aggregate normalized path data | 256 KiB |
-| Reviews plus review threads | 1,000 records |
-| Check, status, Actions, and normalized evidence records | 1,000 records |
-| Human-readable job summary | 64 KiB |
-| Normalized artifact | 1 MiB |
-| Artifact retention | 30 days |
+| Input or output                                         |           Bound |
+| ------------------------------------------------------- | --------------: |
+| PR body                                                 |         128 KiB |
+| Extracted contract JSON                                 |          64 KiB |
+| Changed-file records                                    |             500 |
+| One normalized path                                     | 512 UTF-8 bytes |
+| Aggregate normalized path data                          |         256 KiB |
+| Reviews plus review threads                             |   1,000 records |
+| Check, status, Actions, and normalized evidence records |   1,000 records |
+| Human-readable job summary                              |          64 KiB |
+| Normalized artifact                                     |           1 MiB |
+| Artifact retention                                      |         30 days |
 
 An exceeded or truncated bound produces a sanitized `needs-human` result. A trusted runtime failure remains a visible
 failed workflow when no bounded artifact can be produced; it is never converted into a passing advisory.

@@ -730,17 +730,17 @@ class GitHubMetadataClient:
         """Fetch bounded unresolved-thread metadata without comment bodies."""
         query = """
         query($owner:String!,$name:String!,$number:Int!,$cursor:String) {
-          repository(owner:$owner,name:$name) {
-            pullRequest(number:$number) {
-              reviewThreads(first:100,after:$cursor) {
-                pageInfo { hasNextPage endCursor }
-                nodes {
-                  isResolved isOutdated path
-                  comments(first:100) { totalCount nodes { pullRequestReview { state } } }
+            repository(owner:$owner,name:$name) {
+                pullRequest(number:$number) {
+                    reviewThreads(first:100,after:$cursor) {
+                        pageInfo { hasNextPage endCursor }
+                        nodes {
+                            isResolved isOutdated path
+                            comments(first:100) { totalCount nodes { pullRequestReview { state } } }
+                        }
+                    }
                 }
-              }
             }
-          }
         }
         """
         cursor: str | None = None
