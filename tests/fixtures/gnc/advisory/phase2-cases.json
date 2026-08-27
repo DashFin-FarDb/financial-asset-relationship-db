@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "cases": [
+    {
+      "case_id": "exact-approved-head",
+      "mutation": "none",
+      "expected_state": "pass",
+      "expected_code": null
+    },
+    {
+      "case_id": "forbidden-path",
+      "mutation": "forbidden_path",
+      "expected_state": "block",
+      "expected_code": "paths.forbidden"
+    },
+    {
+      "case_id": "superseded-head",
+      "mutation": "superseded_head",
+      "expected_state": "needs-human",
+      "expected_code": "refs.superseded-head"
+    },
+    {
+      "case_id": "missing-approval",
+      "mutation": "missing_approval",
+      "expected_state": "needs-human",
+      "expected_code": "approval.missing-or-invalid"
+    },
+    {
+      "case_id": "failed-evidence",
+      "mutation": "failed_evidence",
+      "expected_state": "block",
+      "expected_code": "evidence.failed"
+    }
+  ]
+}

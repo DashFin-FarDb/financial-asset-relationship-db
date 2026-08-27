@@ -1,0 +1,57 @@
+name: GNC Phase 2 advisory
+
+"on":
+  pull_request_target:
+    branches: [main]
+    types: [opened, reopened, edited, synchronize, ready_for_review]
+
+permissions:
+  actions: read
+  checks: read
+  contents: read
+  issues: read
+  pull-requests: read
+  statuses: read
+
+concurrency:
+  group: gnc-advisory-pr-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  advisory:
+    name: Deterministic exact-head advisory
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout trusted pull-request base
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+          ref: ${{ github.event.pull_request.base.sha }}
+
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+
+      - name: Evaluate bounded read-only metadata
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        shell: bash
+        run: >-
+          python -m scripts.gnc.advisory
+          --event "$GITHUB_EVENT_PATH"
+          --output "$RUNNER_TEMP/gnc-advisory.json"
+          --summary "$GITHUB_STEP_SUMMARY"
+          --repository "$GITHUB_REPOSITORY"
+          --token-env GITHUB_TOKEN
+
+      - name: Upload bounded normalized advisory
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: gnc-advisory-${{ github.event.pull_request.number }}-${{ github.event.pull_request.head.sha }}
+          path: ${{ runner.temp }}/gnc-advisory.json
+          if-no-files-found: error
+          retention-days: 30
