@@ -3,10 +3,9 @@
 **Repository:** `DashFin-FarDb/financial-asset-relationship-db`
 **Established:** 2026-07-21
 **Repository evidence cutoff:** `main` at `bca812c83bd8def01587dc2c050f8c8bc37ad1fc`
-**GNC Phase 1 merge baseline:** PR #1673, approved head `dde4427ebfc6807519a9fedf01e182ca43ee70d9`, merge commit `bca812c83bd8def01587dc2c050f8c8bc37ad1fc`
 **Ratified setup baseline:** CQ-03B-R1 ratified on 2026-08-17 at `main@76f1194f1f9b83cb9ed8f0bb0083824ededbe0ae`
 **CQ-03C merge baseline:** `784d092f1204b59e612efd4ff3949f3e3fed12cf`
-**Continuity status:** GNC Phase 1 and CQ-03B-R1, CQ-03B-R2, CQ-03C, CQ-03D-00, and CQ-03D-01 are merged; GNC Phase 2 is not authorised; no CQ-03D-02 target or permit is approved, and no hosted preflight has been executed
+**Continuity status:** CQ-03B-R1, CQ-03B-R2, CQ-03C, CQ-03D-00, and CQ-03D-01 are merged; GNC Phase 1 is merged; GNC Phase 2 is not authorised; no CQ-03D-02 target or permit is approved, and no hosted preflight has been executed
 
 This ledger preserves durable project decisions, plans, milestones, and handoffs across ChatGPT, Codex, and
 repository work. It is an index of authoritative evidence, not a replacement for detailed specifications, issues,
@@ -611,7 +610,7 @@ credential-bootstrap authority.
 
 ### Sources reviewed
 
-- Repository `main` through the declared cutoff `bca812c83bd8def01587dc2c050f8c8bc37ad1fc` on 2026-08-27.
+- Repository `main` through `bca812c83bd8def01587dc2c050f8c8bc37ad1fc` on 2026-08-27.
 - Repository agent instructions and production-architecture declaration.
 - Enterprise-readiness index, audit, roadmap, PR board, validation-gap audit, release checklist, release evidence pack,
   hosted staging baseline, operational evidence framework, drill and scale-validation documents, and risk register.
