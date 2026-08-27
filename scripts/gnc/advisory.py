@@ -506,11 +506,55 @@ def _evaluate_evidence(
             builder.findings.append(finding)
 
 
-def _evaluate_review_thread(builder: AdvisoryBuilder, raw: Any) -> None:
+def _latest_decisive_reviews(reviews: Sequence[Any]) -> dict[str, Mapping[str, Any]]:
+    latest: dict[str, Mapping[str, Any]] = {}
+    latest_order: dict[str, tuple[str, int]] = {}
+    decisive_states = frozenset(("APPROVED", "CHANGES_REQUESTED", "DISMISSED"))
+    for raw in reviews:
+        item = _mapping(raw, "reviews.record-invalid")
+        user = item.get("user")
+        login = user.get("login") if isinstance(user, Mapping) else None
+        state = item.get("state")
+        if not isinstance(login, str) or state not in decisive_states:
+            continue
+        order = _review_order(item)
+        if login not in latest_order or order > latest_order[login]:
+            latest[login] = item
+            latest_order[login] = order
+    return latest
+
+
+def _thread_has_effective_changes_request(
+    thread_reviews: Sequence[Any], latest_reviews: Mapping[str, Mapping[str, Any]]
+) -> bool:
+    for raw in thread_reviews:
+        item = _mapping(raw, "reviews.thread-review-invalid")
+        if item.get("state") != "CHANGES_REQUESTED":
+            continue
+        user = item.get("user")
+        login = user.get("login") if isinstance(user, Mapping) else None
+        latest = latest_reviews.get(login) if isinstance(login, str) else None
+        if latest is None or latest.get("state") == "CHANGES_REQUESTED":
+            return True
+    return False
+
+
+def _evaluate_review_thread(
+    builder: AdvisoryBuilder,
+    raw: Any,
+    latest_reviews: Mapping[str, Mapping[str, Any]],
+) -> None:
     thread = _mapping(raw, "reviews.thread-invalid")
     if thread.get("is_resolved") is True or thread.get("is_outdated") is True:
         return
     path = _sanitize_text(thread.get("path", "review-thread"), maximum=MAX_PATH_BYTES)
+    if "reviews" in thread:
+        thread_reviews = _sequence(thread.get("reviews"), "reviews.thread-reviews-invalid")
+        if _thread_has_effective_changes_request(thread_reviews, latest_reviews):
+            builder.add("reviews.unresolved-blocker", "block", path)
+            return
+        builder.add("reviews.unresolved-advisory", "advisory", path)
+        return
     raw_states = thread.get("review_states", [thread.get("review_state")])
     review_states = _sequence(raw_states, "reviews.thread-states-invalid")
     if "CHANGES_REQUESTED" in review_states:
@@ -524,10 +568,9 @@ def _evaluate_reviews(builder: AdvisoryBuilder, reviews: Any, threads: Any) -> N
     thread_values = _sequence(threads, "reviews.threads-invalid")
     if len(review_values) + len(thread_values) > MAX_REVIEW_RECORDS:
         raise AdvisoryInputError(_REVIEWS_TOO_MANY)
-    for raw in review_values:
-        _mapping(raw, "reviews.record-invalid")
+    latest_reviews = _latest_decisive_reviews(review_values)
     for raw in thread_values:
-        _evaluate_review_thread(builder, raw)
+        _evaluate_review_thread(builder, raw, latest_reviews)
 
 
 def evaluate_advisory(snapshot: Any) -> dict[str, Any]:
@@ -622,19 +665,55 @@ def _trusted_api_path(value: Any) -> str:
     return path
 
 
-def _review_threads_connection(data: Any) -> tuple[Sequence[Any], Mapping[str, Any]]:
+def _pull_request_connection(data: Any, connection_name: str) -> tuple[Sequence[Any], Mapping[str, Any], int]:
     if not isinstance(data, Mapping) or data.get("errors"):
         raise AdvisoryInputError("api.graphql-failed")
     try:
-        connection = data["data"]["repository"]["pullRequest"]["reviewThreads"]
+        connection = data["data"]["repository"]["pullRequest"][connection_name]
         nodes = _sequence(connection["nodes"], _API_SHAPE_INVALID)
         page_info = _mapping(connection["pageInfo"], _API_SHAPE_INVALID)
+        total_count = connection["totalCount"]
     except (KeyError, TypeError) as exc:
         raise AdvisoryInputError(_API_SHAPE_INVALID) from exc
-    return nodes, page_info
+    if isinstance(total_count, bool) or not isinstance(total_count, int) or total_count < 0:
+        raise AdvisoryInputError(_API_SHAPE_INVALID)
+    return nodes, page_info, total_count
 
 
-def _review_states(node: Mapping[str, Any]) -> list[str]:
+def _graphql_review_record(value: Any) -> dict[str, Any]:
+    review = _mapping(value, "api.review-invalid")
+    commit = _mapping(review.get("commit"), "api.review-invalid")
+    author = _mapping(review.get("author"), "api.review-invalid")
+    return {
+        "commit_id": _oid(commit.get("oid"), "api.review-invalid"),
+        "id": _integer(review.get("databaseId"), "api.review-invalid"),
+        "state": _string(review.get("state"), "api.review-invalid"),
+        "submitted_at": _string(review.get("submittedAt"), "api.review-invalid"),
+        "user": {"login": _string(author.get("login"), "api.review-invalid")},
+    }
+
+
+def _graphql_changed_file_record(value: Any) -> dict[str, Any]:
+    node = _mapping(value, "api.changed-file-invalid")
+    change_type = node.get("changeType")
+    statuses = {
+        "ADDED": "added",
+        "CHANGED": "changed",
+        "COPIED": "copied",
+        "DELETED": "removed",
+        "MODIFIED": "modified",
+        "RENAMED": "renamed",
+    }
+    if not isinstance(change_type, str) or change_type not in statuses:
+        raise AdvisoryInputError("api.changed-file-invalid")
+    return {
+        "filename": _string(node.get("path"), "api.changed-file-invalid"),
+        "previous_filename": None,
+        "status": statuses[change_type],
+    }
+
+
+def _thread_review_records(node: Mapping[str, Any]) -> list[dict[str, Any]]:
     try:
         comments = _mapping(node["comments"], _API_THREAD_COMMENTS_INVALID)
         nodes = _sequence(comments["nodes"], _API_THREAD_COMMENTS_INVALID)
@@ -643,13 +722,17 @@ def _review_states(node: Mapping[str, Any]) -> list[str]:
         raise AdvisoryInputError(_API_THREAD_COMMENTS_INVALID) from exc
     if isinstance(total_count, bool) or not isinstance(total_count, int) or total_count != len(nodes):
         raise AdvisoryInputError("api.thread-comments-truncated")
-    states: list[str] = []
+    reviews: dict[int, dict[str, Any]] = {}
     for value in nodes:
         comment = _mapping(value, "api.thread-comment-invalid")
         review = comment.get("pullRequestReview")
-        if isinstance(review, Mapping) and isinstance(review.get("state"), str):
-            states.append(review["state"])
-    return sorted(set(states))
+        if isinstance(review, Mapping):
+            record = _graphql_review_record(review)
+            review_id = record.get("id")
+            if not isinstance(review_id, int) or isinstance(review_id, bool):
+                raise AdvisoryInputError("api.review-invalid")
+            reviews[review_id] = record
+    return [reviews[key] for key in sorted(reviews)]
 
 
 def _review_thread_record(value: Any) -> dict[str, Any]:
@@ -658,7 +741,7 @@ def _review_thread_record(value: Any) -> dict[str, Any]:
         "is_outdated": node.get("isOutdated"),
         "is_resolved": node.get("isResolved"),
         "path": node.get("path", "review-thread"),
-        "review_states": _review_states(node),
+        "reviews": _thread_review_records(node),
     }
 
 
@@ -726,6 +809,83 @@ class GitHubMetadataClient:
                 return records
             page += 1
 
+    def _graphql_pages(
+        self,
+        *,
+        query: str,
+        variables: Mapping[str, Any],
+        connection_name: str,
+        limit: int,
+    ) -> list[Any]:
+        """Fetch one minimal GraphQL connection or fail if completeness is unproven."""
+        cursor: str | None = None
+        result: list[Any] = []
+        while True:
+            payload = {"query": query, "variables": {**variables, "cursor": cursor}}
+            data, _ = self._request(self._graphql_url, payload=payload)
+            nodes, page_info, total_count = _pull_request_connection(data, connection_name)
+            result.extend(nodes)
+            has_next = page_info.get("hasNextPage")
+            if not isinstance(has_next, bool):
+                raise AdvisoryInputError(_API_SHAPE_INVALID)
+            if total_count > limit or len(result) > limit or (len(result) == limit and has_next):
+                raise AdvisoryInputError("api.record-bound-exceeded")
+            if not has_next:
+                if len(result) != total_count:
+                    raise AdvisoryInputError("api.pagination-incomplete")
+                return result
+            cursor = page_info.get("endCursor")
+            if not isinstance(cursor, str) or not cursor:
+                raise AdvisoryInputError("api.pagination-incomplete")
+
+    def changed_files(self, owner: str, name: str, number: int) -> list[dict[str, Any]]:
+        """Fetch only changed-path metadata; rename origins fail closed downstream."""
+        query = """
+        query($owner:String!,$name:String!,$number:Int!,$cursor:String) {
+            repository(owner:$owner,name:$name) {
+                pullRequest(number:$number) {
+                    files(first:100,after:$cursor) {
+                        totalCount pageInfo { hasNextPage endCursor }
+                        nodes { path changeType }
+                    }
+                }
+            }
+        }
+        """
+        nodes = self._graphql_pages(
+            query=query,
+            variables={"name": name, "number": number, "owner": owner},
+            connection_name="files",
+            limit=MAX_CHANGED_PATHS,
+        )
+        return [_graphql_changed_file_record(node) for node in nodes]
+
+    def reviews(self, owner: str, name: str, number: int) -> list[dict[str, Any]]:
+        """Fetch only bounded review-state metadata, never review bodies."""
+        query = """
+        query($owner:String!,$name:String!,$number:Int!,$cursor:String) {
+            repository(owner:$owner,name:$name) {
+                pullRequest(number:$number) {
+                    reviews(first:100,after:$cursor) {
+                        totalCount pageInfo { hasNextPage endCursor }
+                        nodes {
+                            databaseId state submittedAt
+                            commit { oid }
+                            author { login }
+                        }
+                    }
+                }
+            }
+        }
+        """
+        nodes = self._graphql_pages(
+            query=query,
+            variables={"name": name, "number": number, "owner": owner},
+            connection_name="reviews",
+            limit=MAX_REVIEW_RECORDS,
+        )
+        return [_graphql_review_record(node) for node in nodes]
+
     def review_threads(self, owner: str, name: str, number: int) -> list[dict[str, Any]]:
         """Fetch bounded unresolved-thread metadata without comment bodies."""
         query = """
@@ -733,33 +893,32 @@ class GitHubMetadataClient:
             repository(owner:$owner,name:$name) {
                 pullRequest(number:$number) {
                     reviewThreads(first:100,after:$cursor) {
-                        pageInfo { hasNextPage endCursor }
+                        totalCount pageInfo { hasNextPage endCursor }
                         nodes {
                             isResolved isOutdated path
-                            comments(first:100) { totalCount nodes { pullRequestReview { state } } }
+                            comments(first:100) {
+                                totalCount
+                                nodes {
+                                    pullRequestReview {
+                                        databaseId state submittedAt
+                                        commit { oid }
+                                        author { login }
+                                    }
+                                }
+                            }
                         }
                     }
                 }
             }
         }
         """
-        cursor: str | None = None
-        result: list[dict[str, Any]] = []
-        while True:
-            payload = {
-                "query": query,
-                "variables": {"cursor": cursor, "name": name, "number": number, "owner": owner},
-            }
-            data, _ = self._request(self._graphql_url, payload=payload)
-            nodes, page_info = _review_threads_connection(data)
-            result.extend(_review_thread_record(node) for node in nodes)
-            if len(result) > MAX_REVIEW_RECORDS:
-                raise AdvisoryInputError(_REVIEWS_TOO_MANY)
-            if not page_info.get("hasNextPage"):
-                return result
-            cursor = page_info.get("endCursor")
-            if not isinstance(cursor, str) or not cursor:
-                raise AdvisoryInputError("api.pagination-incomplete")
+        nodes = self._graphql_pages(
+            query=query,
+            variables={"name": name, "number": number, "owner": owner},
+            connection_name="reviewThreads",
+            limit=MAX_REVIEW_RECORDS,
+        )
+        return [_review_thread_record(node) for node in nodes]
 
 
 def _pr_metadata(pr: Mapping[str, Any], *, merge_base_sha: str | None = None) -> dict[str, Any]:
@@ -881,7 +1040,11 @@ def _normalize_evidence(sources: GitHubEvidenceSnapshot) -> list[dict[str, Any]]
 
 
 def _collect_pr_and_paths(
-    client: GitHubMetadataClient, repository_name: str, pr_number: int
+    client: GitHubMetadataClient,
+    repository_name: str,
+    owner: str,
+    name: str,
+    pr_number: int,
 ) -> tuple[dict[str, Any], list[dict[str, Any]]]:
     current_raw = _mapping(client.get(f"/repos/{repository_name}/pulls/{pr_number}"), _API_PR_SHAPE_INVALID)
     current = _pr_metadata(current_raw)
@@ -894,16 +1057,7 @@ def _collect_pr_and_paths(
     )
     merge_base = _mapping(comparison.get("merge_base_commit"), "api.merge-base-unavailable").get("sha")
     current["merge_base_sha"] = _oid(merge_base, "api.merge-base-unavailable")
-    changed = client.pages(f"/repos/{repository_name}/pulls/{pr_number}/files?", key=None, limit=MAX_CHANGED_PATHS)
-    changed_files = [
-        {
-            "filename": item.get("filename"),
-            "previous_filename": item.get("previous_filename"),
-            "status": item.get("status"),
-        }
-        for item in changed
-        if isinstance(item, Mapping)
-    ]
+    changed_files = client.changed_files(owner, name, pr_number)
     return current, changed_files
 
 
@@ -935,9 +1089,9 @@ def _collect_contract_metadata(
 
 
 def _collect_reviews(
-    client: GitHubMetadataClient, repository_name: str, owner: str, name: str, pr_number: int
+    client: GitHubMetadataClient, owner: str, name: str, pr_number: int
 ) -> tuple[list[Any], list[dict[str, Any]]]:
-    reviews = client.pages(f"/repos/{repository_name}/pulls/{pr_number}/reviews?", key=None, limit=MAX_REVIEW_RECORDS)
+    reviews = client.reviews(owner, name, pr_number)
     threads = client.review_threads(owner, name, pr_number)
     if len(reviews) + len(threads) > MAX_REVIEW_RECORDS:
         raise AdvisoryInputError(_REVIEWS_TOO_MANY)
@@ -985,9 +1139,9 @@ def collect_github_snapshot(event: Mapping[str, Any], client: GitHubMetadataClie
     event_raw_pr = _mapping(event.get("pull_request"), "event.pr-invalid")
     pr_number = _integer(event_raw_pr.get("number"), "event.pr-number-invalid")
     event_pr = _pr_metadata(event_raw_pr)
-    current, changed_files = _collect_pr_and_paths(client, repository_name, pr_number)
+    current, changed_files = _collect_pr_and_paths(client, repository_name, owner, name, pr_number)
     comments = _collect_contract_metadata(client, repository_name, current)
-    reviews, threads = _collect_reviews(client, repository_name, owner, name, pr_number)
+    reviews, threads = _collect_reviews(client, owner, name, pr_number)
     evidence = _collect_evidence(client, repository_name, current, reviews)
     final_raw = _mapping(client.get(f"/repos/{repository_name}/pulls/{pr_number}"), _API_PR_SHAPE_INVALID)
     final_pr = _pr_metadata(final_raw)
@@ -1003,7 +1157,7 @@ def collect_github_snapshot(event: Mapping[str, Any], client: GitHubMetadataClie
         "pr_number": pr_number,
         "repository": repository_name,
         "review_threads": threads,
-        "reviews": [{"state": item.get("state")} for item in reviews if isinstance(item, Mapping)],
+        "reviews": reviews,
     }
 
 

@@ -587,9 +587,10 @@ class _PagedClient(GitHubMetadataClient):
             graphql_url="https://example.invalid/graphql",
         )
         self.responses = responses
+        self.requests: list[tuple[str, Mapping[str, Any] | None]] = []
 
     def _request(self, url: str, *, payload: Mapping[str, Any] | None = None) -> tuple[Any, Mapping[str, str]]:
-        del url, payload
+        self.requests.append((url, payload))
         return self.responses.pop(0)
 
 
@@ -622,32 +623,36 @@ class _SnapshotClient(GitHubMetadataClient):
     def pages(self, path: str, *, key: str | None, limit: int) -> list[Any]:
         del key, limit
         assert "&&" not in path
-        if "/files?" in path:
-            return [{"filename": "src/allowed.py", "status": "modified"}]
         if "/issues/1739/comments?" in path:
             return [_approval(self.contract)]
-        if "/reviews?" in path:
-            return [
-                {
-                    "commit_id": SHA_A,
-                    "id": 1,
-                    "state": "CHANGES_REQUESTED",
-                    "submitted_at": "2026-08-27T20:00:00Z",
-                    "user": {"login": "mohavro"},
-                },
-                {
-                    "commit_id": SHA_A,
-                    "id": 2,
-                    "state": "APPROVED",
-                    "submitted_at": "2026-08-27T21:00:00Z",
-                    "user": {"login": "mohavro"},
-                },
-            ]
         if "/check-runs?" in path:
             return [{"conclusion": "success", "head_sha": SHA_A, "name": "ci", "status": "completed"}]
         if "/statuses?" in path or "/actions/runs?" in path:
             return []
         raise AssertionError(f"unexpected paged path: {path}")
+
+    def changed_files(self, owner: str, name: str, number: int) -> list[dict[str, Any]]:
+        assert (owner, name, number) == ("owner", "repo", 42)
+        return [{"filename": "src/allowed.py", "previous_filename": None, "status": "modified"}]
+
+    def reviews(self, owner: str, name: str, number: int) -> list[dict[str, Any]]:
+        assert (owner, name, number) == ("owner", "repo", 42)
+        return [
+            {
+                "commit_id": SHA_A,
+                "id": 1,
+                "state": "CHANGES_REQUESTED",
+                "submitted_at": "2026-08-27T20:00:00Z",
+                "user": {"login": "mohavro"},
+            },
+            {
+                "commit_id": SHA_A,
+                "id": 2,
+                "state": "APPROVED",
+                "submitted_at": "2026-08-27T21:00:00Z",
+                "user": {"login": "mohavro"},
+            },
+        ]
 
     def review_threads(self, owner: str, name: str, number: int) -> list[dict[str, Any]]:
         assert (owner, name, number) == ("owner", "repo", 42)
@@ -679,12 +684,105 @@ class TestPaginationProof:
         with pytest.raises(AdvisoryInputError, match="api.path-invalid"):
             client.get(path)
 
+    def test_changed_files_graphql_selects_metadata_without_patches(self) -> None:
+        response = {
+            "data": {
+                "repository": {
+                    "pullRequest": {
+                        "files": {
+                            "nodes": [{"changeType": "MODIFIED", "path": "src/allowed.py"}],
+                            "pageInfo": {"endCursor": None, "hasNextPage": False},
+                            "totalCount": 1,
+                        }
+                    }
+                }
+            }
+        }
+        client = _PagedClient([(response, {})])
+        assert client.changed_files("owner", "repo", 42) == [
+            {"filename": "src/allowed.py", "previous_filename": None, "status": "modified"}
+        ]
+        payload = client.requests[0][1]
+        assert payload is not None
+        query = str(payload["query"]).casefold()
+        assert "patch" not in query
+        assert "path changetype" in " ".join(query.split())
+
+    def test_reviews_graphql_selects_state_without_bodies(self) -> None:
+        response = {
+            "data": {
+                "repository": {
+                    "pullRequest": {
+                        "reviews": {
+                            "nodes": [
+                                {
+                                    "author": {"login": "mohavro"},
+                                    "commit": {"oid": SHA_A},
+                                    "databaseId": 9,
+                                    "state": "APPROVED",
+                                    "submittedAt": "2026-08-27T21:00:00Z",
+                                }
+                            ],
+                            "pageInfo": {"endCursor": None, "hasNextPage": False},
+                            "totalCount": 1,
+                        }
+                    }
+                }
+            }
+        }
+        client = _PagedClient([(response, {})])
+        assert client.reviews("owner", "repo", 42) == [
+            {
+                "commit_id": SHA_A,
+                "id": 9,
+                "state": "APPROVED",
+                "submitted_at": "2026-08-27T21:00:00Z",
+                "user": {"login": "mohavro"},
+            }
+        ]
+        payload = client.requests[0][1]
+        assert payload is not None
+        assert "body" not in str(payload["query"]).casefold()
+
+    def test_graphql_total_count_mismatch_fails_closed(self) -> None:
+        response = {
+            "data": {
+                "repository": {
+                    "pullRequest": {
+                        "files": {
+                            "nodes": [{"changeType": "MODIFIED", "path": "src/allowed.py"}],
+                            "pageInfo": {"endCursor": None, "hasNextPage": False},
+                            "totalCount": 2,
+                        }
+                    }
+                }
+            }
+        }
+        client = _PagedClient([(response, {})])
+        with pytest.raises(AdvisoryInputError, match="api.pagination-incomplete"):
+            client.changed_files("owner", "repo", 42)
+
     def test_all_thread_comment_review_states_are_collected(self) -> None:
+        change_request = {
+            "author": {"login": "reviewer"},
+            "commit": {"oid": SHA_A},
+            "databaseId": 7,
+            "state": "CHANGES_REQUESTED",
+            "submittedAt": "2026-08-27T20:00:00Z",
+        }
         node = {
             "comments": {
                 "nodes": [
-                    {"pullRequestReview": {"state": "COMMENTED"}},
-                    {"pullRequestReview": {"state": "CHANGES_REQUESTED"}},
+                    {
+                        "pullRequestReview": {
+                            "author": {"login": "reviewer"},
+                            "commit": {"oid": SHA_A},
+                            "databaseId": 6,
+                            "state": "COMMENTED",
+                            "submittedAt": "2026-08-27T19:00:00Z",
+                        }
+                    },
+                    {"pullRequestReview": change_request},
                 ],
                 "totalCount": 2,
             },
@@ -699,6 +797,7 @@ class TestPaginationProof:
                         "reviewThreads": {
                             "nodes": [node],
                             "pageInfo": {"endCursor": None, "hasNextPage": False},
+                            "totalCount": 1,
                         }
                     }
                 }
@@ -706,10 +805,44 @@ class TestPaginationProof:
         }
         client = _PagedClient([(response, {})])
         records = client.review_threads("owner", "repo", 42)
-        assert records[0]["review_states"] == ["CHANGES_REQUESTED", "COMMENTED"]
+        assert [review["state"] for review in records[0]["reviews"]] == ["COMMENTED", "CHANGES_REQUESTED"]
+        payload = client.requests[0][1]
+        assert payload is not None
+        assert "body" not in str(payload["query"]).casefold()
         snapshot = _snapshot()
         snapshot["review_threads"] = records
         assert "reviews.unresolved-blocker" in _codes(evaluate_advisory(snapshot))
+
+    def test_later_decisive_review_supersedes_thread_change_request(self) -> None:
+        change_request = {
+            "commit_id": SHA_A,
+            "id": 7,
+            "state": "CHANGES_REQUESTED",
+            "submitted_at": "2026-08-27T20:00:00Z",
+            "user": {"login": "reviewer"},
+        }
+        snapshot = _snapshot()
+        snapshot["reviews"] = [
+            change_request,
+            {
+                **change_request,
+                "id": 8,
+                "state": "APPROVED",
+                "submitted_at": "2026-08-27T21:00:00Z",
+            },
+        ]
+        snapshot["review_threads"] = [
+            {
+                "is_outdated": False,
+                "is_resolved": False,
+                "path": "src/allowed.py",
+                "reviews": [change_request],
+            }
+        ]
+        report = evaluate_advisory(snapshot)
+        assert report["state"] == "pass"
+        assert "reviews.unresolved-blocker" not in _codes(report)
+        assert "reviews.unresolved-advisory" in _codes(report)
 
     def test_truncated_thread_comment_connection_fails_closed(self) -> None:
         response = {
@@ -726,6 +859,7 @@ class TestPaginationProof:
                                 }
                             ],
                             "pageInfo": {"endCursor": None, "hasNextPage": False},
+                            "totalCount": 1,
                         }
                     }
                 }

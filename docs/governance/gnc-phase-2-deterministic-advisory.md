@@ -70,10 +70,12 @@ head binding remains unavailable rather than inheriting the current head.
 The adapter may read only:
 
 - the triggering event and current/final PR identity;
-- complete paginated changed-file metadata, without patches;
+- complete paginated changed-file path and change-type metadata selected through GraphQL, without patches; a rename
+  needs human attention because GraphQL does not expose the previous path needed to prove both sides of the boundary;
 - the merge base and existence of the landed Phase 1 schema at the exact policy SHA;
 - top-level parent-issue comments needed for approval proof;
-- review state and unresolved-thread metadata, without review bodies;
+- review state, reviewer, commit, submission-order, and unresolved-thread metadata selected through GraphQL, without
+  review bodies;
 - exact-head check-run, commit-status, Actions-run, and named-review metadata.
 
 It never reads a raw patch, review transcript, log body, artifact body, executable PR content, or external provider.
@@ -95,11 +97,12 @@ same head supersedes that reviewer's earlier state. Approval is passing and a cu
 blocking; pending, dismissed, unavailable, stale-head, wrong-target, unknown state, missing evidence, and an
 unapproved evidence source need human attention.
 
-An unresolved thread with any attached `CHANGES_REQUESTED` review state is a deterministic blocker. Every attached
-review state is inspected within the bounded GraphQL connection. Other unresolved, non-outdated threads are
-advisory-only observations. Raw thread content is never ingested. The evaluator re-fetches PR identity after all other
-metadata and suppresses a result if the head, target SHA, or target changed. PR-scoped concurrency cancels superseded
-runs.
+An unresolved thread attached to a reviewer's current effective `CHANGES_REQUESTED` state is a deterministic blocker.
+A later decisive review from that reviewer supersedes their earlier approval or changes request; `COMMENTED` does not.
+Every attached review reference is inspected within the bounded GraphQL connection. Other unresolved, non-outdated
+threads are advisory-only observations. Raw thread content is never ingested. The evaluator re-fetches PR identity
+after all other metadata and suppresses a result if the head, target SHA, or target changed. PR-scoped concurrency
+cancels superseded runs.
 
 The normalized artifact is canonical JSON with no timestamp or run-specific field, so the same snapshot emits
 byte-identical output. Findings and evidence are sorted. Secret-like values, control characters, workflow-command
