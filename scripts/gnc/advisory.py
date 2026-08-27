@@ -291,7 +291,10 @@ def _changed_record_paths(raw_record: Any) -> tuple[str, list[str]]:
         raise AdvisoryInputError("paths.status-invalid")
     paths = [_canonical_repo_path(record.get("filename"))]
     if status == "renamed":
-        paths.append(_canonical_repo_path(record.get("previous_filename")))
+        previous_filename = record.get("previous_filename")
+        if previous_filename is None:
+            raise AdvisoryInputError("paths.rename-origin-unavailable")
+        paths.append(_canonical_repo_path(previous_filename))
     return status, paths
 
 
@@ -579,6 +582,7 @@ def evaluate_advisory(snapshot: Any) -> dict[str, Any]:
     """Evaluate one bounded metadata snapshot without raising on untrusted input."""
     repository = _UNKNOWN_REPOSITORY
     pr_number = 1
+    builder: AdvisoryBuilder | None = None
     try:
         data = _mapping(snapshot, "snapshot.invalid")
         repository = _string(data.get("repository"), "snapshot.repository-invalid")
@@ -610,11 +614,13 @@ def evaluate_advisory(snapshot: Any) -> dict[str, Any]:
         _evaluate_reviews(builder, data.get("reviews"), data.get("review_threads"))
         return builder.build()
     except AdvisoryInputError as exc:
-        builder = AdvisoryBuilder(repository=repository, pr_number=pr_number)
+        if builder is None:
+            builder = AdvisoryBuilder(repository=repository, pr_number=pr_number)
         builder.add(exc.code, "needs-human")
         return builder.build()
     except (KeyError, TypeError, ValueError) as exc:
-        builder = AdvisoryBuilder(repository=repository, pr_number=pr_number)
+        if builder is None:
+            builder = AdvisoryBuilder(repository=repository, pr_number=pr_number)
         builder.add("metadata.invalid", "needs-human", type(exc).__name__)
         return builder.build()
 

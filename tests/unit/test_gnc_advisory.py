@@ -291,6 +291,14 @@ class TestChangedPaths:
         deleted["changed_files"] = [{"filename": "src/allowed.py", "status": "removed"}]
         assert evaluate_advisory(deleted)["state"] == "pass"
 
+        origin_unavailable = _snapshot()
+        origin_unavailable["changed_files"] = [
+            {"filename": "src/allowed.py", "previous_filename": None, "status": "renamed"}
+        ]
+        report = evaluate_advisory(origin_unavailable)
+        assert "paths.rename-origin-unavailable" in _codes(report)
+        assert report["bindings"]["head_sha"] == SHA_A
+
     def test_path_canonicalization_and_component_scopes_are_deterministic(self) -> None:
         contract = _contract(allowed_paths=["src"], forbidden_paths=["frontend"])
         snapshot = _snapshot(contract)
@@ -315,7 +323,9 @@ class TestChangedPaths:
             {"filename": "src/allowed.py", "status": "modified"},
             {"filename": "src/./allowed.py", "status": "modified"},
         ]
-        assert "paths.duplicate" in _codes(evaluate_advisory(duplicate))
+        duplicate_report = evaluate_advisory(duplicate)
+        assert "paths.duplicate" in _codes(duplicate_report)
+        assert duplicate_report["bindings"]["contract_id"] == "gnc.test-phase2"
 
         too_many = _snapshot()
         too_many["changed_files"] = [
