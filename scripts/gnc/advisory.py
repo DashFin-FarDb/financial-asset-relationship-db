@@ -962,7 +962,7 @@ def _collect_evidence(
         limit=MAX_EVIDENCE_RECORDS,
     )
     runs = client.pages(
-        f"/repos/{repository_name}/actions/runs?event=pull_request&head_sha={head_sha}&",
+        f"/repos/{repository_name}/actions/runs?event=pull_request&head_sha={head_sha}",
         key="workflow_runs",
         limit=MAX_EVIDENCE_RECORDS,
     )
@@ -1108,6 +1108,7 @@ def _event_identity(event: Mapping[str, Any], fallback_repository: str) -> tuple
         try:
             pr_number = _integer(event_pr.get("number"), "event.pr-number-invalid")
         except AdvisoryInputError:
+            # Keep the bounded fallback identity so runtime failures still emit a safe report.
             pass
     return repository, pr_number
 

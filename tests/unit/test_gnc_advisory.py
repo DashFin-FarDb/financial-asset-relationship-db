@@ -621,6 +621,7 @@ class _SnapshotClient(GitHubMetadataClient):
 
     def pages(self, path: str, *, key: str | None, limit: int) -> list[Any]:
         del key, limit
+        assert "&&" not in path
         if "/files?" in path:
             return [{"filename": "src/allowed.py", "status": "modified"}]
         if "/issues/1739/comments?" in path:
