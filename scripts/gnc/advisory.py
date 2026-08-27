@@ -26,6 +26,7 @@ CONTRACT_END = "<!-- gnc-contract:end -->"
 APPROVAL_MARKER = "<!-- gnc-approval:v1 -->"
 AUTHORIZED_APPROVERS = frozenset(("mohavro",))
 ALLOWED_EVIDENCE_SOURCES = frozenset(("actions_run", "check_run", "commit_status", "review"))
+DECISIVE_REVIEW_STATES = frozenset(("APPROVED", "CHANGES_REQUESTED", "DISMISSED"))
 
 MAX_PR_BODY_BYTES = 128 * 1024
 MAX_CONTRACT_BYTES = 64 * 1024
@@ -149,6 +150,8 @@ class GitHubEvidenceSnapshot:
     """Bounded GitHub evidence collections for one exact head and target."""
 
     checks: Sequence[Any]
+    head_sha: str
+    pr_number: int
     statuses: Sequence[Any]
     runs: Sequence[Any]
     reviews: Sequence[Any]
@@ -514,13 +517,12 @@ def _evaluate_evidence(
 def _latest_decisive_reviews(reviews: Sequence[Any]) -> dict[str, Mapping[str, Any]]:
     latest: dict[str, Mapping[str, Any]] = {}
     latest_order: dict[str, tuple[str, int]] = {}
-    decisive_states = frozenset(("APPROVED", "CHANGES_REQUESTED", "DISMISSED"))
     for raw in reviews:
         item = _mapping(raw, "reviews.record-invalid")
         user = item.get("user")
         login = user.get("login") if isinstance(user, Mapping) else None
         state = item.get("state")
-        if not isinstance(login, str) or state not in decisive_states:
+        if not isinstance(login, str) or state not in DECISIVE_REVIEW_STATES:
             continue
         order = _review_order(item)
         if login not in latest_order or order > latest_order[login]:
@@ -634,7 +636,7 @@ def _slug(value: Any) -> str:
 def _evidence_state(status: Any, conclusion: Any) -> str:
     if status not in ("completed", "success", "failure", "error"):
         return "pending"
-    if conclusion in ("success", "neutral") or status == "success":
+    if conclusion == "success" or status == "success":
         return "passed"
     if conclusion in ("failure", "timed_out", "action_required", "startup_failure") or status in (
         "failure",
@@ -944,6 +946,19 @@ def _pr_metadata(pr: Mapping[str, Any], *, merge_base_sha: str | None = None) ->
     return result
 
 
+def _evidence_pull_request_target(item: Mapping[str, Any], sources: GitHubEvidenceSnapshot, code: str) -> str:
+    pull_requests = _sequence(item.get("pull_requests"), code)
+    targets: list[str] = []
+    for raw in pull_requests:
+        pull_request = _mapping(raw, code)
+        head = _mapping(pull_request.get("head"), code)
+        if pull_request.get("number") != sources.pr_number or head.get("sha") != sources.head_sha:
+            continue
+        base = _mapping(pull_request.get("base"), code)
+        targets.append(_string(base.get("ref"), code))
+    return targets[0] if len(targets) == 1 else "unavailable"
+
+
 def _normalize_check_evidence(sources: GitHubEvidenceSnapshot) -> list[dict[str, Any]]:
     records: list[dict[str, Any]] = []
     for raw in sources.checks:
@@ -954,7 +969,7 @@ def _normalize_check_evidence(sources: GitHubEvidenceSnapshot) -> list[dict[str,
                 "requirement_id": _slug(item.get("name")),
                 "source": "check_run",
                 "state": _evidence_state(item.get("status"), item.get("conclusion")),
-                "target": sources.target,
+                "target": _evidence_pull_request_target(item, sources, "api.check-target-invalid"),
             }
         )
     return records
@@ -966,11 +981,11 @@ def _normalize_status_evidence(sources: GitHubEvidenceSnapshot) -> list[dict[str
         item = _mapping(raw, "api.status-invalid")
         records.append(
             {
-                "head_sha": item.get("sha"),
+                "head_sha": item.get("sha") or sources.head_sha,
                 "requirement_id": _slug(item.get("context")),
                 "source": "commit_status",
                 "state": _evidence_state(item.get("state"), item.get("state")),
-                "target": sources.target,
+                "target": "unavailable",
             }
         )
     return records
@@ -986,7 +1001,7 @@ def _normalize_run_evidence(sources: GitHubEvidenceSnapshot) -> list[dict[str, A
                 "requirement_id": _slug(item.get("name")),
                 "source": "actions_run",
                 "state": _evidence_state(item.get("status"), item.get("conclusion")),
-                "target": sources.target,
+                "target": _evidence_pull_request_target(item, sources, "api.run-target-invalid"),
             }
         )
     return records
@@ -1007,7 +1022,8 @@ def _latest_authorized_reviews(reviews: Sequence[Any]) -> dict[tuple[str, str], 
         user = item.get("user")
         login = user.get("login") if isinstance(user, Mapping) else None
         commit_id = item.get("commit_id")
-        if login not in AUTHORIZED_APPROVERS or not isinstance(commit_id, str):
+        state = item.get("state")
+        if login not in AUTHORIZED_APPROVERS or not isinstance(commit_id, str) or state not in DECISIVE_REVIEW_STATES:
             continue
         order = _review_order(item)
         key = (login, commit_id)
@@ -1109,6 +1125,7 @@ def _collect_reviews(
 def _collect_evidence(
     client: GitHubMetadataClient,
     repository_name: str,
+    pr_number: int,
     current: Mapping[str, Any],
     reviews: Sequence[Any],
 ) -> list[dict[str, Any]]:
@@ -1131,6 +1148,8 @@ def _collect_evidence(
     return _normalize_evidence(
         GitHubEvidenceSnapshot(
             checks=checks,
+            head_sha=head_sha,
+            pr_number=pr_number,
             statuses=statuses,
             runs=runs,
             reviews=reviews,
@@ -1150,7 +1169,7 @@ def collect_github_snapshot(event: Mapping[str, Any], client: GitHubMetadataClie
     current, changed_files = _collect_pr_and_paths(client, repository_name, owner, name, pr_number)
     comments = _collect_contract_metadata(client, repository_name, current)
     reviews, threads = _collect_reviews(client, owner, name, pr_number)
-    evidence = _collect_evidence(client, repository_name, current, reviews)
+    evidence = _collect_evidence(client, repository_name, pr_number, current, reviews)
     final_raw = _mapping(client.get(f"/repos/{repository_name}/pulls/{pr_number}"), _API_PR_SHAPE_INVALID)
     final_pr = _pr_metadata(final_raw)
     return {

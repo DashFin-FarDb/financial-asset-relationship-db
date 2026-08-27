@@ -605,13 +605,22 @@ class _PagedClient(GitHubMetadataClient):
 
 
 class _SnapshotClient(GitHubMetadataClient):
-    def __init__(self, contract: dict, *, policy_available: bool = True) -> None:
+    def __init__(
+        self,
+        contract: dict,
+        *,
+        check_conclusion: str = "success",
+        check_target: str = "main",
+        policy_available: bool = True,
+    ) -> None:
         super().__init__(
             token=type(self).__name__,
             api_url="https://example.invalid",
             graphql_url="https://example.invalid/graphql",
         )
         self.contract = contract
+        self.check_conclusion = check_conclusion
+        self.check_target = check_target
         self.policy_available = policy_available
         self.pr = {
             "body": _body(contract),
@@ -636,7 +645,21 @@ class _SnapshotClient(GitHubMetadataClient):
         if "/issues/1739/comments?" in path:
             return [_approval(self.contract)]
         if "/check-runs?" in path:
-            return [{"conclusion": "success", "head_sha": SHA_A, "name": "ci", "status": "completed"}]
+            return [
+                {
+                    "conclusion": self.check_conclusion,
+                    "head_sha": SHA_A,
+                    "name": "ci",
+                    "pull_requests": [
+                        {
+                            "base": {"ref": self.check_target},
+                            "head": {"sha": SHA_A},
+                            "number": 42,
+                        }
+                    ],
+                    "status": "completed",
+                }
+            ]
         if "/statuses?" in path or "/actions/runs?" in path:
             return []
         raise AssertionError(f"unexpected paged path: {path}")
@@ -660,6 +683,13 @@ class _SnapshotClient(GitHubMetadataClient):
                 "id": 2,
                 "state": "APPROVED",
                 "submitted_at": "2026-08-27T21:00:00Z",
+                "user": {"login": "mohavro"},
+            },
+            {
+                "commit_id": SHA_A,
+                "id": 3,
+                "state": "COMMENTED",
+                "submitted_at": "2026-08-27T22:00:00Z",
                 "user": {"login": "mohavro"},
             },
         ]
@@ -894,6 +924,29 @@ class TestPaginationProof:
             {"filename": "src/allowed.py", "previous_filename": None, "status": "modified"}
         ]
         assert [record["state"] for record in snapshot["evidence"] if record["source"] == "review"] == ["passed"]
+
+    @pytest.mark.parametrize(
+        "check_conclusion,check_target,code",
+        [
+            ("neutral", "main", "evidence.unavailable"),
+            ("success", "release", "evidence.wrong-target"),
+        ],
+    )
+    def test_check_evidence_requires_success_and_its_own_target(
+        self, check_conclusion: str, check_target: str, code: str
+    ) -> None:
+        contract = _contract(required_evidence=["ci"])
+        client = _SnapshotClient(contract, check_conclusion=check_conclusion, check_target=check_target)
+        snapshot = collect_github_snapshot(
+            {
+                "pull_request": {"number": 42, **client.pr},
+                "repository": {"full_name": "owner/repo"},
+            },
+            client,
+        )
+        report = evaluate_advisory(snapshot)
+        assert report["state"] == "needs-human"
+        assert code in _codes(report)
 
     def test_policy_lookup_failure_becomes_a_specific_advisory_finding(self) -> None:
         contract = _contract()

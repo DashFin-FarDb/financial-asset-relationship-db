@@ -76,7 +76,8 @@ The adapter may read only:
 - top-level parent-issue comments needed for approval proof;
 - review state, reviewer, commit, submission-order, and unresolved-thread metadata selected through GraphQL, without
   review bodies;
-- exact-head check-run, commit-status, Actions-run, and named-review metadata.
+- exact-head check-run, commit-status, Actions-run, and named-review metadata, including each check/run's own PR target
+  association when GitHub supplies one.
 
 It never reads a raw patch, review transcript, log body, artifact body, executable PR content, or external provider.
 All pages must be proven complete. API, identity, pagination, rate-limit, bound, or shape ambiguity fails safely to
@@ -93,9 +94,11 @@ The final state has fail-safe precedence:
 
 Required-evidence identifiers match a stable lowercase identifier derived from a GitHub check, status, or Actions run
 name. `named-human-review` is supplied only by the latest exact-head review from `mohavro`; a later review on the
-same head supersedes that reviewer's earlier state. Approval is passing and a current changes-requested state is
-blocking; pending, dismissed, unavailable, stale-head, wrong-target, unknown state, missing evidence, and an
-unapproved evidence source need human attention.
+same head supersedes that reviewer's earlier decisive state, while a later `COMMENTED` review does not. Approval is
+passing and a current changes-requested state is blocking; neutral, pending, dismissed, unavailable, stale-head,
+wrong-target, unknown state, missing evidence, and an unapproved evidence source need human attention. A check or
+Actions run can satisfy target-bound evidence only when its own PR association proves the PR number, head, and target;
+commit statuses without a PR target association remain unavailable for that purpose.
 
 An unresolved thread attached to a reviewer's current effective `CHANGES_REQUESTED` state is a deterministic blocker.
 A later decisive review from that reviewer supersedes their earlier approval or changes request; `COMMENTED` does not.
