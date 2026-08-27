@@ -96,7 +96,8 @@ and `wrong_target` cannot pass. Structural, SQLite, local, or documentation
 evidence cannot satisfy a PostgreSQL, restart, concurrency, hosted, or
 behavioral requirement unless the approved contract explicitly says it can.
 A replay verdict of `pass` is valid only when every contract
-`required_evidence` entry has at least one satisfying evidence record.
+`required_evidence` entry has at least one satisfying evidence record and no
+`open` or `reopened_as_recurrence` finding has an active blocking basis.
 
 ## 5. Findings, duplicates, and recurrence
 
@@ -132,7 +133,10 @@ A `Waiver` binds waiver and finding IDs, authorized actor, reason, exact scope,
 head SHA, contract hash, and expiry. A waiver for another head, contract, scope,
 or expired period is invalid. GNC cannot issue, approve, or extend its own
 waiver. Waiver validation requires an explicit timezone-aware `as_of` timestamp;
-it never depends on the evaluator's wall clock.
+it never depends on the evaluator's wall clock. Record validation establishes
+that the waiver is well formed and unexpired. Applicability is a separate,
+fail-closed check that requires exact matches for finding ID, head SHA, contract
+hash, and scope.
 
 ## 7. Threat model and sanitization
 

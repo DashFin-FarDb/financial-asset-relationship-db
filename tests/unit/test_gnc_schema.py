@@ -18,6 +18,7 @@ from scripts.gnc.schema import (
     validate_contract,
     validate_record,
     validate_replay_fixture,
+    waiver_applies,
 )
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -402,6 +403,26 @@ class TestOperationalRecords:
         waiver = validate_record(_waiver(), as_of="2026-08-22T00:00:00Z")
         assert waiver["scope"] == "src/example.py"
 
+    def test_waiver_applies_only_to_its_exact_current_context(self) -> None:
+        context = {
+            "as_of": "2026-08-22T00:00:00Z",
+            "finding_id": "finding.one",
+            "head_sha": SHA_A,
+            "contract_hash": SHA_B,
+            "scope": "src/example.py",
+        }
+        assert waiver_applies(_waiver(), **context)
+
+        mismatches = {
+            "finding_id": "finding.two",
+            "head_sha": SHA_B,
+            "contract_hash": SHA_A,
+            "scope": "src/another.py",
+        }
+        for field, value in mismatches.items():
+            mismatched_context = dict(context, **{field: value})
+            assert not waiver_applies(_waiver(), **mismatched_context)
+
     @pytest.mark.parametrize("expires_at", ["not-a-date", "2026-08-23T00:00:00"])
     def test_waiver_expiry_must_be_timezone_aware_iso_8601(self, expires_at: str) -> None:
         waiver = _waiver(expires_at=expires_at)
@@ -635,6 +656,20 @@ class TestReplayCorpus:
         raw["findings"] = []
         raw["expected"] = {"verdict": "pass", "finding_ids": []}
         assert validate_replay_fixture(raw)["review_run"]["verdict"] == "pass"
+
+    @pytest.mark.parametrize("state", ["open", "reopened_as_recurrence"])
+    def test_passing_replay_rejects_active_blocking_findings(self, state: str) -> None:
+        raw = _replay_fixture()
+        raw["review_run"]["verdict"] = "pass"
+        raw["evidence"][0].update(
+            head_sha=raw["review_run"]["head_sha"],
+            state="executed",
+            result="pass",
+        )
+        raw["findings"][0]["state"] = state
+        raw["expected"]["verdict"] = "pass"
+        with pytest.raises(GncSchemaError, match="cannot pass with active blocking findings"):
+            validate_replay_fixture(raw)
 
     def test_replay_stale_evidence_must_differ_only_by_head(self) -> None:
         path = FIXTURE_ROOT / "grac-durable-scope-gap.json"
