@@ -8,13 +8,12 @@ checks out, imports, or executes pull-request-head content.
 from __future__ import annotations
 
 import argparse
+import http.client
 import json
 import os
 import re
 import sys
-import urllib.error
 import urllib.parse
-import urllib.request
 from dataclasses import dataclass, field
 from pathlib import Path, PurePosixPath
 from typing import Any, Mapping, Sequence
@@ -41,6 +40,7 @@ MAX_ARTIFACT_BYTES = 1024 * 1024
 
 _GIT_OBJECT_ID = re.compile(r"^(?:[0-9a-f]{40}|[0-9a-f]{64})$")
 _IDENTIFIER = re.compile(r"^[a-z0-9][a-z0-9._:-]{0,127}$")
+_REPOSITORY = re.compile(r"^[A-Za-z0-9](?:[A-Za-z0-9_.-]{0,99})/[A-Za-z0-9_.-]{1,100}$")
 _SECRET_TEXT = re.compile(
     r"-----BEGIN [A-Z ]+PRIVATE KEY-----|(?<![A-Z0-9])(?:github_pat_|gh[opusr]_|sk_live_|xox[a-z0-9]*-)[A-Z0-9_-]+",
     re.IGNORECASE,
@@ -130,6 +130,17 @@ class AdvisoryBuilder:
         }
 
 
+@dataclass(frozen=True)
+class GitHubEvidenceSnapshot:
+    """Bounded GitHub evidence collections for one exact head and target."""
+
+    checks: Sequence[Any]
+    statuses: Sequence[Any]
+    runs: Sequence[Any]
+    reviews: Sequence[Any]
+    target: str
+
+
 def _is_sequence(value: Any) -> bool:
     return isinstance(value, Sequence) and not isinstance(value, (str, bytes, bytearray))
 
@@ -167,9 +178,18 @@ def _oid(value: Any, code: str) -> str:
 
 
 def _integer(value: Any, code: str) -> int:
-    if isinstance(value, bool) or not isinstance(value, int) or value < 1:
+    if isinstance(value, bool) or not isinstance(value, int):
+        raise AdvisoryInputError(code)
+    if value < 1:
         raise AdvisoryInputError(code)
     return value
+
+
+def _repository(value: Any, code: str) -> str:
+    name = _string(value, code)
+    if _REPOSITORY.fullmatch(name) is None:
+        raise AdvisoryInputError(code)
+    return name
 
 
 def _sanitize_text(value: Any, *, maximum: int) -> str:
@@ -201,12 +221,13 @@ def _sanitize_json(value: Any, *, key: str = "record") -> Any:
     return "[unsupported-value]"
 
 
-def _contract_from_body(body: Any) -> tuple[dict[str, Any], str]:
+def _extract_contract_text(body: Any) -> str:
     if not isinstance(body, str):
         raise AdvisoryInputError("contract.body-invalid")
     if len(body.encode("utf-8")) > MAX_PR_BODY_BYTES:
         raise AdvisoryInputError("contract.body-oversized")
-    if body.count(CONTRACT_START) != 1 or body.count(CONTRACT_END) != 1:
+    markers_are_unique = body.count(CONTRACT_START) == 1 and body.count(CONTRACT_END) == 1
+    if not markers_are_unique:
         raise AdvisoryInputError("contract.markers-invalid")
     start = body.index(CONTRACT_START) + len(CONTRACT_START)
     end = body.index(CONTRACT_END)
@@ -215,6 +236,11 @@ def _contract_from_body(body: Any) -> tuple[dict[str, Any], str]:
     raw_contract = body[start:end].strip()
     if len(raw_contract.encode("utf-8")) > MAX_CONTRACT_BYTES:
         raise AdvisoryInputError("contract.oversized")
+    return raw_contract
+
+
+def _contract_from_body(body: Any) -> tuple[dict[str, Any], str]:
+    raw_contract = _extract_contract_text(body)
     try:
         parsed = json.loads(raw_contract)
         normalized = validate_contract(parsed)
@@ -238,7 +264,42 @@ def _canonical_repo_path(value: Any) -> str:
 def _path_in_scope(path: str, scope: str) -> bool:
     path_parts = PurePosixPath(path).parts
     scope_parts = PurePosixPath(scope).parts
-    return len(path_parts) >= len(scope_parts) and path_parts[: len(scope_parts)] == scope_parts
+    if len(path_parts) < len(scope_parts):
+        return False
+    return path_parts[: len(scope_parts)] == scope_parts
+
+
+def _changed_record_paths(raw_record: Any) -> tuple[str, list[str]]:
+    record = _mapping(raw_record, "paths.record-invalid")
+    status = _string(record.get("status"), "paths.status-invalid").casefold()
+    allowed_statuses = frozenset(("added", "changed", "copied", "modified", "removed", "renamed"))
+    if status not in allowed_statuses:
+        raise AdvisoryInputError("paths.status-invalid")
+    paths = [_canonical_repo_path(record.get("filename"))]
+    if status == "renamed":
+        paths.append(_canonical_repo_path(record.get("previous_filename")))
+    return status, paths
+
+
+def _append_changed_path(
+    inventory: list[dict[str, str]],
+    scoped_paths: list[str],
+    seen: set[str],
+    *,
+    aggregate: int,
+    path: str,
+    role: str,
+    status: str,
+) -> int:
+    aggregate += len(path.encode("utf-8"))
+    if aggregate > MAX_AGGREGATE_PATH_BYTES:
+        raise AdvisoryInputError("paths.aggregate-oversized")
+    if path in seen:
+        raise AdvisoryInputError("paths.duplicate")
+    seen.add(path)
+    scoped_paths.append(path)
+    inventory.append({"path": _sanitize_text(path, maximum=MAX_PATH_BYTES), "role": role, "status": status})
+    return aggregate
 
 
 def _changed_path_inventory(records: Any) -> tuple[list[dict[str, str]], list[str]]:
@@ -249,29 +310,17 @@ def _changed_path_inventory(records: Any) -> tuple[list[dict[str, str]], list[st
     scoped_paths: list[str] = []
     aggregate = 0
     seen: set[str] = set()
-    allowed_statuses = frozenset(("added", "changed", "copied", "modified", "removed", "renamed"))
     for raw_record in values:
-        record = _mapping(raw_record, "paths.record-invalid")
-        status = _string(record.get("status"), "paths.status-invalid").casefold()
-        if status not in allowed_statuses:
-            raise AdvisoryInputError("paths.status-invalid")
-        paths = [_canonical_repo_path(record.get("filename"))]
-        if status == "renamed":
-            paths.append(_canonical_repo_path(record.get("previous_filename")))
+        status, paths = _changed_record_paths(raw_record)
         for index, path in enumerate(paths):
-            aggregate += len(path.encode("utf-8"))
-            if aggregate > MAX_AGGREGATE_PATH_BYTES:
-                raise AdvisoryInputError("paths.aggregate-oversized")
-            if path in seen:
-                raise AdvisoryInputError("paths.duplicate")
-            seen.add(path)
-            scoped_paths.append(path)
-            inventory.append(
-                {
-                    "path": _sanitize_text(path, maximum=MAX_PATH_BYTES),
-                    "role": "previous" if index else "current",
-                    "status": status,
-                }
+            aggregate = _append_changed_path(
+                inventory,
+                scoped_paths,
+                seen,
+                aggregate=aggregate,
+                path=path,
+                role="previous" if index else "current",
+                status=status,
             )
     return inventory, scoped_paths
 
@@ -292,31 +341,29 @@ def _approval_payload(body: Any) -> Mapping[str, Any] | None:
     return parsed if set(parsed) == required else None
 
 
+def _comment_matches_approval(raw_comment: Any, expected: Mapping[str, Any]) -> bool:
+    try:
+        comment = _mapping(raw_comment, "approval.comment-invalid")
+        approval = _approval_payload(comment.get("body"))
+        if approval is None:
+            return False
+        user = _mapping(comment.get("user"), "approval.user-invalid")
+        login = _string(user.get("login"), "approval.user-invalid")
+        actor = _string(approval.get("actor"), "approval.actor-invalid")
+        created_at = _string(comment.get("created_at"), "approval.created-at-invalid")
+        updated_at = _string(comment.get("updated_at"), "approval.updated-at-invalid")
+        actor_is_authorized = actor in AUTHORIZED_APPROVERS and login == actor
+        comment_is_unedited = created_at == updated_at
+        return actor_is_authorized and comment_is_unedited and approval == expected
+    except AdvisoryInputError:
+        return False
+
+
 def _approval_is_valid(comments: Any, expected: Mapping[str, Any]) -> bool:
     values = _sequence(comments, "approval.comments-invalid")
     if len(values) > MAX_APPROVAL_COMMENTS:
         raise AdvisoryInputError("approval.comments-oversized")
-    matches = 0
-    for raw_comment in values:
-        comment = _mapping(raw_comment, "approval.comment-invalid")
-        approval = _approval_payload(comment.get("body"))
-        if approval is None:
-            continue
-        try:
-            user = _mapping(comment.get("user"), "approval.user-invalid")
-            login = _string(user.get("login"), "approval.user-invalid")
-            actor = _string(approval.get("actor"), "approval.actor-invalid")
-            valid = (
-                actor in AUTHORIZED_APPROVERS
-                and login == actor
-                and comment.get("created_at") == comment.get("updated_at")
-                and approval == expected
-            )
-        except AdvisoryInputError:
-            valid = False
-        if valid:
-            matches += 1
-    return matches == 1
+    return sum(_comment_matches_approval(comment, expected) for comment in values) == 1
 
 
 def _evaluate_bindings(
@@ -386,53 +433,78 @@ def _evaluate_paths(builder: AdvisoryBuilder, contract: Mapping[str, Any], chang
             builder.add("paths.expected-missing", "block", scope)
 
 
+def _normalize_evidence_record(raw: Any) -> tuple[dict[str, str], dict[str, str]]:
+    record = _mapping(raw, "evidence.record-invalid")
+    output = {
+        "requirement_id": _identifier(record.get("requirement_id"), "evidence.requirement-invalid"),
+        "source": _string(record.get("source"), "evidence.source-invalid"),
+        "state": _string(record.get("state"), "evidence.state-invalid"),
+    }
+    bound = {
+        **output,
+        "head_sha": _oid(record.get("head_sha"), "evidence.head-invalid"),
+        "target": _string(record.get("target"), "evidence.target-invalid"),
+    }
+    return bound, output
+
+
+def _missing_current_evidence_code(matching: Sequence[Mapping[str, str]], refs: Mapping[str, str]) -> str:
+    if all(record["head_sha"] != refs["head_sha"] for record in matching):
+        return "evidence.stale-sha"
+    return "evidence.wrong-target"
+
+
+def _requirement_finding(
+    requirement_id: str, matching: Sequence[Mapping[str, str]], refs: Mapping[str, str]
+) -> Finding | None:
+    if not matching:
+        return Finding("evidence.missing", "needs-human", requirement_id)
+    if any(record["source"] not in ALLOWED_EVIDENCE_SOURCES for record in matching):
+        return Finding("evidence.source-unapproved", "needs-human", requirement_id)
+    current = [
+        record for record in matching if record["head_sha"] == refs["head_sha"] and record["target"] == refs["target"]
+    ]
+    if not current:
+        return Finding(_missing_current_evidence_code(matching, refs), "needs-human", requirement_id)
+    valid_states = frozenset(("passed", "failed", "pending", "skipped", "canceled", "unavailable"))
+    if any(record["state"] not in valid_states for record in current):
+        return Finding("evidence.state-invalid", "needs-human", requirement_id)
+    if any(record["state"] == "failed" for record in current):
+        return Finding("evidence.failed", "block", requirement_id)
+    if any(record["state"] == "passed" for record in current):
+        return None
+    return Finding("evidence.unavailable", "needs-human", requirement_id)
+
+
 def _evaluate_evidence(
     builder: AdvisoryBuilder, contract: Mapping[str, Any], raw_evidence: Any, refs: Mapping[str, str]
 ) -> None:
     values = _sequence(raw_evidence, "evidence.invalid")
     if len(values) > MAX_EVIDENCE_RECORDS:
         raise AdvisoryInputError("evidence.too-many")
-    evidence: list[dict[str, str]] = []
-    for raw in values:
-        record = _mapping(raw, "evidence.record-invalid")
-        requirement_id = _identifier(record.get("requirement_id"), "evidence.requirement-invalid")
-        source = _string(record.get("source"), "evidence.source-invalid")
-        state = _string(record.get("state"), "evidence.state-invalid")
-        head_sha = _oid(record.get("head_sha"), "evidence.head-invalid")
-        target = _string(record.get("target"), "evidence.target-invalid")
-        normalized = {"requirement_id": requirement_id, "source": source, "state": state}
-        evidence.append({**normalized, "head_sha": head_sha, "target": target})
-        builder.evidence.append(normalized)
-    valid_states = frozenset(("passed", "failed", "pending", "skipped", "canceled", "unavailable"))
+    normalized = [_normalize_evidence_record(raw) for raw in values]
+    evidence = [record for record, _ in normalized]
+    builder.evidence.extend(output for _, output in normalized)
+    by_requirement: dict[str, list[dict[str, str]]] = {}
+    for record in evidence:
+        by_requirement.setdefault(record["requirement_id"], []).append(record)
     for requirement_id in contract["required_evidence"]:
-        matching = [record for record in evidence if record["requirement_id"] == requirement_id]
-        if not matching:
-            builder.add("evidence.missing", "needs-human", requirement_id)
-            continue
-        if any(record["source"] not in ALLOWED_EVIDENCE_SOURCES for record in matching):
-            builder.add("evidence.source-unapproved", "needs-human", requirement_id)
-            continue
-        current = [
-            record
-            for record in matching
-            if record["head_sha"] == refs["head_sha"] and record["target"] == refs["target"]
-        ]
-        if not current:
-            code = (
-                "evidence.stale-sha"
-                if all(record["head_sha"] != refs["head_sha"] for record in matching)
-                else "evidence.wrong-target"
-            )
-            builder.add(code, "needs-human", requirement_id)
-            continue
-        if any(record["state"] not in valid_states for record in current):
-            builder.add("evidence.state-invalid", "needs-human", requirement_id)
-        elif any(record["state"] == "passed" for record in current):
-            continue
-        elif any(record["state"] == "failed" for record in current):
-            builder.add("evidence.failed", "block", requirement_id)
-        else:
-            builder.add("evidence.unavailable", "needs-human", requirement_id)
+        finding = _requirement_finding(requirement_id, by_requirement.get(requirement_id, []), refs)
+        if finding is not None:
+            builder.findings.append(finding)
+
+
+def _evaluate_review_thread(builder: AdvisoryBuilder, raw: Any) -> None:
+    thread = _mapping(raw, "reviews.thread-invalid")
+    if thread.get("is_resolved") is True or thread.get("is_outdated") is True:
+        return
+    path = _sanitize_text(thread.get("path", "review-thread"), maximum=MAX_PATH_BYTES)
+    raw_states = thread.get("review_states", [thread.get("review_state")])
+    review_states = _sequence(raw_states, "reviews.thread-states-invalid")
+    if "CHANGES_REQUESTED" in review_states:
+        builder.add("reviews.unresolved-blocker", "block", path)
+        return
+    builder.add("reviews.unresolved-advisory", "advisory", path)
 
 
 def _evaluate_reviews(builder: AdvisoryBuilder, reviews: Any, threads: Any) -> None:
@@ -441,18 +513,9 @@ def _evaluate_reviews(builder: AdvisoryBuilder, reviews: Any, threads: Any) -> N
     if len(review_values) + len(thread_values) > MAX_REVIEW_RECORDS:
         raise AdvisoryInputError("reviews.too-many")
     for raw in review_values:
-        review = _mapping(raw, "reviews.record-invalid")
-        if review.get("state") == "CHANGES_REQUESTED":
-            builder.add("reviews.changes-requested", "block")
+        _mapping(raw, "reviews.record-invalid")
     for raw in thread_values:
-        thread = _mapping(raw, "reviews.thread-invalid")
-        if thread.get("is_resolved") is True or thread.get("is_outdated") is True:
-            continue
-        path = _sanitize_text(thread.get("path", "review-thread"), maximum=MAX_PATH_BYTES)
-        if thread.get("review_state") == "CHANGES_REQUESTED":
-            builder.add("reviews.unresolved-blocker", "block", path)
-        else:
-            builder.add("reviews.unresolved-advisory", "advisory", path)
+        _evaluate_review_thread(builder, raw)
 
 
 def evaluate_advisory(snapshot: Any) -> dict[str, Any]:
@@ -522,48 +585,120 @@ def _evidence_state(status: Any, conclusion: Any) -> str:
     return "unavailable"
 
 
+def _trusted_https_url(value: Any, code: str, *, allow_query: bool) -> str:
+    url = _string(value, code)
+    parsed = urllib.parse.urlsplit(url)
+    decoded_path = urllib.parse.unquote(parsed.path)
+    safe_origin = (
+        parsed.scheme == "https" and bool(parsed.hostname) and parsed.username is None and parsed.password is None
+    )
+    safe_path = "\\" not in decoded_path and ".." not in PurePosixPath(decoded_path).parts
+    safe_suffix = not parsed.fragment and (allow_query or not parsed.query)
+    if not safe_origin or not safe_path or not safe_suffix:
+        raise AdvisoryInputError(code)
+    return urllib.parse.urlunsplit(parsed)
+
+
+def _trusted_api_path(value: Any) -> str:
+    path = _string(value, "api.path-invalid")
+    parsed = urllib.parse.urlsplit(path)
+    decoded_path = urllib.parse.unquote(parsed.path)
+    if parsed.scheme or parsed.netloc or not decoded_path.startswith("/"):
+        raise AdvisoryInputError("api.path-invalid")
+    if "\\" in decoded_path or ".." in PurePosixPath(decoded_path).parts or parsed.fragment:
+        raise AdvisoryInputError("api.path-invalid")
+    return path
+
+
+def _review_threads_connection(data: Any) -> tuple[Sequence[Any], Mapping[str, Any]]:
+    if not isinstance(data, Mapping) or data.get("errors"):
+        raise AdvisoryInputError("api.graphql-failed")
+    try:
+        connection = data["data"]["repository"]["pullRequest"]["reviewThreads"]
+        nodes = _sequence(connection["nodes"], "api.shape-invalid")
+        page_info = _mapping(connection["pageInfo"], "api.shape-invalid")
+    except (KeyError, TypeError) as exc:
+        raise AdvisoryInputError("api.shape-invalid") from exc
+    return nodes, page_info
+
+
+def _review_states(node: Mapping[str, Any]) -> list[str]:
+    try:
+        comments = _mapping(node["comments"], "api.thread-comments-invalid")
+        nodes = _sequence(comments["nodes"], "api.thread-comments-invalid")
+        total_count = comments["totalCount"]
+    except (KeyError, TypeError) as exc:
+        raise AdvisoryInputError("api.thread-comments-invalid") from exc
+    if isinstance(total_count, bool) or not isinstance(total_count, int) or total_count != len(nodes):
+        raise AdvisoryInputError("api.thread-comments-truncated")
+    states: list[str] = []
+    for value in nodes:
+        comment = _mapping(value, "api.thread-comment-invalid")
+        review = comment.get("pullRequestReview")
+        if isinstance(review, Mapping) and isinstance(review.get("state"), str):
+            states.append(review["state"])
+    return sorted(set(states))
+
+
+def _review_thread_record(value: Any) -> dict[str, Any]:
+    node = _mapping(value, "api.thread-invalid")
+    return {
+        "is_outdated": node.get("isOutdated"),
+        "is_resolved": node.get("isResolved"),
+        "path": node.get("path", "review-thread"),
+        "review_states": _review_states(node),
+    }
+
+
 class GitHubMetadataClient:
     """Minimal read-only GitHub JSON client with proven pagination."""
 
     def __init__(self, *, token: str, api_url: str, graphql_url: str) -> None:
         """Initialize a client with the automatic read-only workflow token."""
         self._token = token
-        self._api_url = api_url.rstrip("/")
-        self._graphql_url = graphql_url
+        self._api_url = _trusted_https_url(api_url, "api.url-invalid", allow_query=False).rstrip("/")
+        self._graphql_url = _trusted_https_url(graphql_url, "api.graphql-url-invalid", allow_query=False)
 
     def _request(self, url: str, *, payload: Mapping[str, Any] | None = None) -> tuple[Any, Mapping[str, str]]:
+        url = _trusted_https_url(url, "api.url-invalid", allow_query=True)
+        parsed = urllib.parse.urlsplit(url)
+        if parsed.hostname is None:
+            raise AdvisoryInputError("api.url-invalid")
         body = canonical_json_bytes(payload) if payload is not None else None
-        request = urllib.request.Request(
-            url,
-            data=body,
-            method="POST" if payload is not None else "GET",
-            headers={
-                "Accept": "application/vnd.github+json",
-                "Authorization": f"Bearer {self._token}",
-                "User-Agent": "fardb-gnc-advisory",
-                "X-GitHub-Api-Version": "2022-11-28",
-            },
-        )
+        headers = {
+            "Accept": "application/vnd.github+json",
+            "Authorization": f"Bearer {self._token}",
+            "User-Agent": "fardb-gnc-advisory",
+            "X-GitHub-Api-Version": "2022-11-28",
+        }
+        target = urllib.parse.urlunsplit(("", "", parsed.path, parsed.query, ""))
+        connection = http.client.HTTPSConnection(parsed.hostname, port=parsed.port, timeout=30)
         try:
-            with urllib.request.urlopen(request, timeout=30) as response:
-                raw = response.read(MAX_ARTIFACT_BYTES + 1)
-                if len(raw) > MAX_ARTIFACT_BYTES:
-                    raise AdvisoryInputError("api.response-oversized")
-                return json.loads(raw), response.headers
-        except urllib.error.HTTPError as exc:
-            code = "api.rate-limited" if exc.code in (403, 429) else "api.request-failed"
-            raise AdvisoryInputError(code) from exc
-        except (urllib.error.URLError, TimeoutError, json.JSONDecodeError) as exc:
+            connection.request("POST" if payload is not None else "GET", target, body=body, headers=headers)
+            response = connection.getresponse()
+            raw = response.read(MAX_ARTIFACT_BYTES + 1)
+            if response.status >= 400:
+                code = "api.rate-limited" if response.status in (403, 429) else "api.request-failed"
+                raise AdvisoryInputError(code)
+            if response.status >= 300:
+                raise AdvisoryInputError("api.redirect-rejected")
+            if len(raw) > MAX_ARTIFACT_BYTES:
+                raise AdvisoryInputError("api.response-oversized")
+            return json.loads(raw), dict(response.getheaders())
+        except (OSError, TimeoutError, http.client.HTTPException, json.JSONDecodeError) as exc:
             raise AdvisoryInputError("api.unavailable") from exc
+        finally:
+            connection.close()
 
     def get(self, path: str) -> Any:
         """Fetch one REST JSON resource."""
-        data, _ = self._request(f"{self._api_url}{path}")
+        data, _ = self._request(f"{self._api_url}{_trusted_api_path(path)}")
         return data
 
     def pages(self, path: str, *, key: str | None, limit: int) -> list[Any]:
         """Fetch every REST page or fail closed when completeness is unprovable."""
         records: list[Any] = []
+        path = _trusted_api_path(path)
         separator = "&" if "?" in path else "?"
         page = 1
         while True:
@@ -588,7 +723,7 @@ class GitHubMetadataClient:
                 pageInfo { hasNextPage endCursor }
                 nodes {
                   isResolved isOutdated path
-                  comments(first:1) { nodes { pullRequestReview { state } } }
+                  comments(first:100) { totalCount nodes { pullRequestReview { state } } }
                 }
               }
             }
@@ -603,30 +738,8 @@ class GitHubMetadataClient:
                 "variables": {"cursor": cursor, "name": name, "number": number, "owner": owner},
             }
             data, _ = self._request(self._graphql_url, payload=payload)
-            if not isinstance(data, Mapping) or data.get("errors"):
-                raise AdvisoryInputError("api.graphql-failed")
-            try:
-                connection = data["data"]["repository"]["pullRequest"]["reviewThreads"]
-                nodes = connection["nodes"]
-                page_info = connection["pageInfo"]
-            except (KeyError, TypeError) as exc:
-                raise AdvisoryInputError("api.shape-invalid") from exc
-            if not _is_sequence(nodes):
-                raise AdvisoryInputError("api.shape-invalid")
-            for node in nodes:
-                review_state = None
-                try:
-                    review_state = node["comments"]["nodes"][0]["pullRequestReview"]["state"]
-                except (KeyError, IndexError, TypeError):
-                    pass
-                result.append(
-                    {
-                        "is_outdated": node.get("isOutdated"),
-                        "is_resolved": node.get("isResolved"),
-                        "path": node.get("path", "review-thread"),
-                        "review_state": review_state,
-                    }
-                )
+            nodes, page_info = _review_threads_connection(data)
+            result.extend(_review_thread_record(node) for node in nodes)
             if len(result) > MAX_REVIEW_RECORDS:
                 raise AdvisoryInputError("reviews.too-many")
             if not page_info.get("hasNextPage"):
@@ -651,79 +764,82 @@ def _pr_metadata(pr: Mapping[str, Any], *, merge_base_sha: str | None = None) ->
     return result
 
 
-def _normalize_evidence(
-    *,
-    checks: Sequence[Any],
-    statuses: Sequence[Any],
-    runs: Sequence[Any],
-    reviews: Sequence[Any],
-    head_sha: str,
-    target: str,
-) -> list[dict[str, str]]:
-    records: list[dict[str, str]] = []
-    for raw in checks:
+def _normalize_evidence(sources: GitHubEvidenceSnapshot) -> list[dict[str, Any]]:
+    records: list[dict[str, Any]] = []
+    for raw in sources.checks:
         item = _mapping(raw, "api.check-invalid")
         records.append(
             {
-                "head_sha": item.get("head_sha", head_sha),
+                "head_sha": item.get("head_sha"),
                 "requirement_id": _slug(item.get("name")),
                 "source": "check_run",
                 "state": _evidence_state(item.get("status"), item.get("conclusion")),
-                "target": target,
+                "target": sources.target,
             }
         )
-    for raw in statuses:
+    for raw in sources.statuses:
         item = _mapping(raw, "api.status-invalid")
         records.append(
             {
-                "head_sha": item.get("sha", head_sha),
+                "head_sha": item.get("sha"),
                 "requirement_id": _slug(item.get("context")),
                 "source": "commit_status",
                 "state": _evidence_state(item.get("state"), item.get("state")),
-                "target": target,
+                "target": sources.target,
             }
         )
-    for raw in runs:
+    for raw in sources.runs:
         item = _mapping(raw, "api.run-invalid")
         records.append(
             {
-                "head_sha": item.get("head_sha", head_sha),
+                "head_sha": item.get("head_sha"),
                 "requirement_id": _slug(item.get("name")),
                 "source": "actions_run",
                 "state": _evidence_state(item.get("status"), item.get("conclusion")),
-                "target": target,
+                "target": sources.target,
             }
         )
-    for raw in reviews:
+    latest_reviews: dict[tuple[str, str], Mapping[str, Any]] = {}
+    latest_review_order: dict[tuple[str, str], tuple[str, int]] = {}
+    for raw in sources.reviews:
         item = _mapping(raw, "api.review-invalid")
         user = item.get("user")
         login = user.get("login") if isinstance(user, Mapping) else None
-        if login == "mohavro":
-            records.append(
-                {
-                    "head_sha": item.get("commit_id") or head_sha,
-                    "requirement_id": "named-human-review",
-                    "source": "review",
-                    "state": "passed" if item.get("state") == "APPROVED" else "failed",
-                    "target": target,
-                }
-            )
+        commit_id = item.get("commit_id")
+        if login not in AUTHORIZED_APPROVERS or not isinstance(commit_id, str):
+            continue
+        review_id = item.get("id")
+        numeric_id = review_id if isinstance(review_id, int) and not isinstance(review_id, bool) else -1
+        submitted_at = item.get("submitted_at")
+        order = (submitted_at if isinstance(submitted_at, str) else "", numeric_id)
+        key = (login, commit_id)
+        if key not in latest_review_order or order > latest_review_order[key]:
+            latest_reviews[key] = item
+            latest_review_order[key] = order
+    for key in sorted(latest_reviews):
+        item = latest_reviews[key]
+        state = "unavailable"
+        if item.get("state") == "APPROVED":
+            state = "passed"
+        elif item.get("state") == "CHANGES_REQUESTED":
+            state = "failed"
+        records.append(
+            {
+                "head_sha": item.get("commit_id"),
+                "requirement_id": "named-human-review",
+                "source": "review",
+                "state": state,
+                "target": sources.target,
+            }
+        )
     if len(records) > MAX_EVIDENCE_RECORDS:
         raise AdvisoryInputError("evidence.too-many")
     return records
 
 
-def collect_github_snapshot(event: Mapping[str, Any], client: GitHubMetadataClient) -> dict[str, Any]:
-    """Collect the bounded, read-only metadata snapshot for one PR event."""
-    repository = _mapping(event.get("repository"), "event.repository-invalid")
-    repository_name = _string(repository.get("full_name"), "event.repository-invalid")
-    if "/" not in repository_name:
-        raise AdvisoryInputError("event.repository-invalid")
-    owner, name = repository_name.split("/", 1)
-    event_raw_pr = _mapping(event.get("pull_request"), "event.pr-invalid")
-    pr_number = _integer(event_raw_pr.get("number"), "event.pr-number-invalid")
-    event_pr = _pr_metadata(event_raw_pr)
-
+def _collect_pr_and_paths(
+    client: GitHubMetadataClient, repository_name: str, pr_number: int
+) -> tuple[dict[str, Any], list[dict[str, Any]]]:
     current_raw = _mapping(client.get(f"/repos/{repository_name}/pulls/{pr_number}"), "api.pr-shape-invalid")
     current = _pr_metadata(current_raw)
     comparison = _mapping(
@@ -736,68 +852,106 @@ def collect_github_snapshot(event: Mapping[str, Any], client: GitHubMetadataClie
     merge_base = _mapping(comparison.get("merge_base_commit"), "api.merge-base-unavailable").get("sha")
     current["merge_base_sha"] = _oid(merge_base, "api.merge-base-unavailable")
     changed = client.pages(f"/repos/{repository_name}/pulls/{pr_number}/files?", key=None, limit=MAX_CHANGED_PATHS)
+    changed_files = [
+        {
+            "filename": item.get("filename"),
+            "previous_filename": item.get("previous_filename"),
+            "status": item.get("status"),
+        }
+        for item in changed
+        if isinstance(item, Mapping)
+    ]
+    return current, changed_files
 
+
+def _collect_contract_metadata(
+    client: GitHubMetadataClient, repository_name: str, current: dict[str, Any]
+) -> list[Any]:
     comments: list[Any] = []
-    policy_present = False
     try:
         contract, _ = _contract_from_body(current["body"])
     except AdvisoryInputError:
         contract = None
-    if contract is not None:
-        comments = client.pages(
-            f"/repos/{repository_name}/issues/{contract['parent_issue']}/comments?",
-            key=None,
-            limit=MAX_APPROVAL_COMMENTS,
-        )
+    if contract is None:
+        current["policy_file_present"] = False
+        return comments
+    comments = client.pages(
+        f"/repos/{repository_name}/issues/{contract['parent_issue']}/comments?",
+        key=None,
+        limit=MAX_APPROVAL_COMMENTS,
+    )
+    try:
         client.get(
             f"/repos/{repository_name}/contents/scripts/gnc/schema.py?ref="
             f"{urllib.parse.quote(contract['policy_sha'], safe='')}"
         )
-        policy_present = True
-    current["policy_file_present"] = policy_present
+        current["policy_file_present"] = True
+    except AdvisoryInputError:
+        current["policy_file_present"] = False
+    return comments
 
+
+def _collect_reviews(
+    client: GitHubMetadataClient, repository_name: str, owner: str, name: str, pr_number: int
+) -> tuple[list[Any], list[dict[str, Any]]]:
     reviews = client.pages(f"/repos/{repository_name}/pulls/{pr_number}/reviews?", key=None, limit=MAX_REVIEW_RECORDS)
     threads = client.review_threads(owner, name, pr_number)
     if len(reviews) + len(threads) > MAX_REVIEW_RECORDS:
         raise AdvisoryInputError("reviews.too-many")
+    return reviews, threads
+
+
+def _collect_evidence(
+    client: GitHubMetadataClient,
+    repository_name: str,
+    current: Mapping[str, Any],
+    reviews: Sequence[Any],
+) -> list[dict[str, Any]]:
+    head_sha = current["head_sha"]
     checks = client.pages(
-        f"/repos/{repository_name}/commits/{current['head_sha']}/check-runs?",
+        f"/repos/{repository_name}/commits/{head_sha}/check-runs?",
         key="check_runs",
         limit=MAX_EVIDENCE_RECORDS,
     )
     statuses = client.pages(
-        f"/repos/{repository_name}/commits/{current['head_sha']}/statuses?",
+        f"/repos/{repository_name}/commits/{head_sha}/statuses?",
         key=None,
         limit=MAX_EVIDENCE_RECORDS,
     )
     runs = client.pages(
-        f"/repos/{repository_name}/actions/runs?event=pull_request&head_sha={current['head_sha']}&",
+        f"/repos/{repository_name}/actions/runs?event=pull_request&head_sha={head_sha}&",
         key="workflow_runs",
         limit=MAX_EVIDENCE_RECORDS,
     )
-    evidence = _normalize_evidence(
-        checks=checks,
-        statuses=statuses,
-        runs=runs,
-        reviews=reviews,
-        head_sha=current["head_sha"],
-        target=current["target"],
+    return _normalize_evidence(
+        GitHubEvidenceSnapshot(
+            checks=checks,
+            statuses=statuses,
+            runs=runs,
+            reviews=reviews,
+            target=current["target"],
+        )
     )
 
+
+def collect_github_snapshot(event: Mapping[str, Any], client: GitHubMetadataClient) -> dict[str, Any]:
+    """Collect the bounded, read-only metadata snapshot for one PR event."""
+    repository = _mapping(event.get("repository"), "event.repository-invalid")
+    repository_name = _repository(repository.get("full_name"), "event.repository-invalid")
+    owner, name = repository_name.split("/", 1)
+    event_raw_pr = _mapping(event.get("pull_request"), "event.pr-invalid")
+    pr_number = _integer(event_raw_pr.get("number"), "event.pr-number-invalid")
+    event_pr = _pr_metadata(event_raw_pr)
+    current, changed_files = _collect_pr_and_paths(client, repository_name, pr_number)
+    comments = _collect_contract_metadata(client, repository_name, current)
+    reviews, threads = _collect_reviews(client, repository_name, owner, name, pr_number)
+    evidence = _collect_evidence(client, repository_name, current, reviews)
     final_raw = _mapping(client.get(f"/repos/{repository_name}/pulls/{pr_number}"), "api.pr-shape-invalid")
     final_pr = _pr_metadata(final_raw)
     return {
         "api_errors": [],
         "approval_comments": comments,
-        "changed_files": [
-            {
-                "filename": item.get("filename"),
-                "previous_filename": item.get("previous_filename"),
-                "status": item.get("status"),
-            }
-            for item in changed
-            if isinstance(item, Mapping)
-        ],
+        "changed_files": changed_files,
         "current_pr": current,
         "event_pr": event_pr,
         "evidence": evidence,
@@ -859,8 +1013,24 @@ def render_summary(report: Mapping[str, Any]) -> str:
     return summary
 
 
-def write_outputs(report: Mapping[str, Any], *, artifact_path: Path, summary_path: Path) -> None:
+def _bounded_runtime_path(path: Path, runtime_root: Path, code: str) -> Path:
+    try:
+        root = runtime_root.resolve(strict=True)
+        resolved = path.resolve(strict=False)
+        resolved.relative_to(root)
+    except (OSError, ValueError) as exc:
+        raise AdvisoryInputError(code) from exc
+    if resolved == root or not resolved.parent.is_dir():
+        raise AdvisoryInputError(code)
+    return resolved
+
+
+def write_outputs(report: Mapping[str, Any], *, artifact_path: Path, summary_path: Path, runtime_root: Path) -> None:
     """Write exactly one bounded artifact and one bounded job summary."""
+    artifact_path = _bounded_runtime_path(artifact_path, runtime_root, "output.artifact-path-invalid")
+    summary_path = _bounded_runtime_path(summary_path, runtime_root, "output.summary-path-invalid")
+    if artifact_path == summary_path:
+        raise AdvisoryInputError("output.paths-overlap")
     artifact = canonical_json_bytes(report) + b"\n"
     if len(artifact) > MAX_ARTIFACT_BYTES:
         minimal = failure_report(
@@ -870,19 +1040,66 @@ def write_outputs(report: Mapping[str, Any], *, artifact_path: Path, summary_pat
         )
         artifact = canonical_json_bytes(minimal) + b"\n"
         report = minimal
-    artifact_path.parent.mkdir(parents=True, exist_ok=True)
     artifact_path.write_bytes(artifact)
     summary = render_summary(report)
-    summary_path.parent.mkdir(parents=True, exist_ok=True)
     summary_path.write_text(summary, encoding="utf-8", newline="\n")
 
 
-def _read_event(path: Path) -> Mapping[str, Any]:
+def _read_event(path: Path, runtime_root: Path) -> Mapping[str, Any]:
+    path = _bounded_runtime_path(path, runtime_root, "event.path-invalid")
     raw = path.read_bytes()
     if len(raw) > MAX_ARTIFACT_BYTES:
         raise AdvisoryInputError("event.oversized")
     parsed = json.loads(raw)
     return _mapping(parsed, "event.invalid")
+
+
+def _event_identity(event: Mapping[str, Any], fallback_repository: str) -> tuple[str, int]:
+    repository = fallback_repository
+    pr_number = 1
+    event_repository = event.get("repository")
+    event_pr = event.get("pull_request")
+    if isinstance(event_repository, Mapping) and isinstance(event_repository.get("full_name"), str):
+        repository = event_repository["full_name"]
+    if isinstance(event_pr, Mapping):
+        try:
+            pr_number = _integer(event_pr.get("number"), "event.pr-number-invalid")
+        except AdvisoryInputError:
+            pass
+    return repository, pr_number
+
+
+def _live_report(event: Mapping[str, Any], token_env: str, expected_repository: str) -> dict[str, Any]:
+    event_repository = _mapping(event.get("repository"), "event.repository-invalid")
+    actual_repository = _repository(event_repository.get("full_name"), "event.repository-invalid")
+    if actual_repository != _repository(expected_repository, "event.expected-repository-invalid"):
+        raise AdvisoryInputError("event.repository-mismatch")
+    token = os.environ.get(token_env)
+    if not token:
+        raise AdvisoryInputError("api.token-unavailable")
+    client = GitHubMetadataClient(
+        token=token,
+        api_url=os.environ.get("GITHUB_API_URL", "https://api.github.com"),
+        graphql_url=os.environ.get("GITHUB_GRAPHQL_URL", "https://api.github.com/graphql"),
+    )
+    return evaluate_advisory(collect_github_snapshot(event, client))
+
+
+def _evaluate_cli(args: argparse.Namespace) -> dict[str, Any]:
+    repository = args.repository
+    pr_number = 1
+    try:
+        if args.input is not None:
+            return evaluate_advisory(_read_event(args.input, args.runtime_root))
+        if args.event is None:
+            raise AdvisoryInputError("event.missing")
+        event = _read_event(args.event, args.runtime_root)
+        repository, pr_number = _event_identity(event, repository)
+        return _live_report(event, args.token_env, args.repository)
+    except AdvisoryInputError as exc:
+        return failure_report(repository=repository, pr_number=pr_number, code=exc.code)
+    except (OSError, json.JSONDecodeError):
+        return failure_report(repository=repository, pr_number=pr_number, code="runtime.unavailable")
 
 
 def main(argv: Sequence[str] | None = None) -> int:
@@ -892,43 +1109,17 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser.add_argument("--input", type=Path)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--summary", type=Path, required=True)
+    parser.add_argument("--runtime-root", type=Path, required=True)
     parser.add_argument("--repository", default=os.environ.get("GITHUB_REPOSITORY", "unknown/unknown"))
     parser.add_argument("--token-env", default="GITHUB_TOKEN")
     args = parser.parse_args(argv)
-    repository = args.repository
-    pr_number = 1
-    try:
-        if args.input is not None:
-            report = evaluate_advisory(_read_event(args.input))
-        else:
-            if args.event is None:
-                raise AdvisoryInputError("event.missing")
-            event = _read_event(args.event)
-            event_repository = event.get("repository")
-            event_pr = event.get("pull_request")
-            if isinstance(event_repository, Mapping) and isinstance(event_repository.get("full_name"), str):
-                repository = event_repository["full_name"]
-            if (
-                isinstance(event_pr, Mapping)
-                and isinstance(event_pr.get("number"), int)
-                and not isinstance(event_pr.get("number"), bool)
-                and event_pr["number"] > 0
-            ):
-                pr_number = event_pr["number"]
-            token = os.environ.get(args.token_env)
-            if not token:
-                raise AdvisoryInputError("api.token-unavailable")
-            client = GitHubMetadataClient(
-                token=token,
-                api_url=os.environ.get("GITHUB_API_URL", "https://api.github.com"),
-                graphql_url=os.environ.get("GITHUB_GRAPHQL_URL", "https://api.github.com/graphql"),
-            )
-            report = evaluate_advisory(collect_github_snapshot(event, client))
-    except AdvisoryInputError as exc:
-        report = failure_report(repository=repository, pr_number=pr_number, code=exc.code)
-    except (OSError, json.JSONDecodeError):
-        report = failure_report(repository=repository, pr_number=pr_number, code="runtime.unavailable")
-    write_outputs(report, artifact_path=args.output, summary_path=args.summary)
+    report = _evaluate_cli(args)
+    write_outputs(
+        report,
+        artifact_path=args.output,
+        summary_path=args.summary,
+        runtime_root=args.runtime_root,
+    )
     return 0
 
 

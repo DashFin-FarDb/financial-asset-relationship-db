@@ -44,6 +44,7 @@ jobs:
           --event "$GITHUB_EVENT_PATH"
           --output "$RUNNER_TEMP/gnc-advisory.json"
           --summary "$GITHUB_STEP_SUMMARY"
+          --runtime-root "$RUNNER_TEMP"
           --repository "$GITHUB_REPOSITORY"
           --token-env GITHUB_TOKEN
 

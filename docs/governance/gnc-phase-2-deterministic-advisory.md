@@ -63,6 +63,10 @@ Permissions are explicit reads for Actions, checks, contents, issues, pull reque
 issued read-only `github.token` is used only for bounded GitHub metadata calls; there is no repository secret input.
 Forks follow the same path and receive no PR-head execution or secret access.
 
+The adapter requires the event repository to equal `GITHUB_REPOSITORY`, accepts only syntactically bounded repository
+identities, and permits only validated HTTPS API origins and non-traversing API paths. Evidence without its own exact
+head binding remains unavailable rather than inheriting the current head.
+
 The adapter may read only:
 
 - the triggering event and current/final PR identity;
@@ -86,18 +90,22 @@ The final state has fail-safe precedence:
 3. otherwise the result is `pass` (possibly with advisory-only observations).
 
 Required-evidence identifiers match a stable lowercase identifier derived from a GitHub check, status, or Actions run
-name. `named-human-review` is supplied only by an exact-head review from `mohavro`. Success/neutral is passing;
-failure/error is blocking; pending, skipped, cancelled, unavailable, stale-head, wrong-target, unknown state, missing
-evidence, and an unapproved evidence source need human attention.
+name. `named-human-review` is supplied only by the latest exact-head review from `mohavro`; a later review on the
+same head supersedes that reviewer's earlier state. Approval is passing and a current changes-requested state is
+blocking; pending, dismissed, unavailable, stale-head, wrong-target, unknown state, missing evidence, and an
+unapproved evidence source need human attention.
 
-An unresolved thread attached to a `CHANGES_REQUESTED` review is a deterministic blocker. Other unresolved,
-non-outdated threads are advisory-only observations. Raw thread content is never ingested. The evaluator re-fetches PR
-identity after all other metadata and suppresses a result if the head, target SHA, or target changed. PR-scoped
-concurrency cancels superseded runs.
+An unresolved thread with any attached `CHANGES_REQUESTED` review state is a deterministic blocker. Every attached
+review state is inspected within the bounded GraphQL connection. Other unresolved, non-outdated threads are
+advisory-only observations. Raw thread content is never ingested. The evaluator re-fetches PR identity after all other
+metadata and suppresses a result if the head, target SHA, or target changed. PR-scoped concurrency cancels superseded
+runs.
 
 The normalized artifact is canonical JSON with no timestamp or run-specific field, so the same snapshot emits
 byte-identical output. Findings and evidence are sorted. Secret-like values, control characters, workflow-command
 sequences, forbidden fields, and overlong text are sanitized before output.
+The event, artifact, and summary paths are resolved and required to remain inside the trusted runner temporary root;
+existing symlinks and parent directories are resolved before any read or write.
 
 ## Fixed bounds
 

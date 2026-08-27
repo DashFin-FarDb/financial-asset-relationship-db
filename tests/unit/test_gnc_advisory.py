@@ -28,6 +28,7 @@ from scripts.gnc.advisory import (
     AdvisoryInputError,
     GitHubMetadataClient,
     canonical_json_bytes,
+    collect_github_snapshot,
     evaluate_advisory,
     failure_report,
     main,
@@ -180,6 +181,10 @@ class TestContractAndApproval:
         edited = _snapshot()
         edited["approval_comments"][0]["updated_at"] = "2026-08-27T21:00:01Z"
         assert "approval.missing-or-invalid" in _codes(evaluate_advisory(edited))
+
+        missing_timestamp = _snapshot()
+        missing_timestamp["approval_comments"][0].pop("created_at")
+        assert "approval.missing-or-invalid" in _codes(evaluate_advisory(missing_timestamp))
 
         changed = _snapshot()
         changed_contract = _contract(objective="Changed after approval.")
@@ -365,6 +370,10 @@ class TestEvidenceAndReviews:
         stale["evidence"][0]["head_sha"] = SHA_C
         assert "evidence.stale-sha" in _codes(evaluate_advisory(stale))
 
+        missing_head = _snapshot()
+        missing_head["evidence"][0]["head_sha"] = None
+        assert evaluate_advisory(missing_head)["state"] == "needs-human"
+
         wrong_target = _snapshot()
         wrong_target["evidence"][0]["target"] = "release"
         assert "evidence.wrong-target" in _codes(evaluate_advisory(wrong_target))
@@ -372,6 +381,13 @@ class TestEvidenceAndReviews:
         unapproved = _snapshot()
         unapproved["evidence"][0]["source"] = "external-artifact"
         assert "evidence.source-unapproved" in _codes(evaluate_advisory(unapproved))
+
+    def test_failed_exact_head_evidence_cannot_be_masked_by_a_pass(self) -> None:
+        snapshot = _snapshot()
+        snapshot["evidence"].append({**snapshot["evidence"][0], "state": "failed"})
+        report = evaluate_advisory(snapshot)
+        assert report["state"] == "block"
+        assert "evidence.failed" in _codes(report)
 
     def test_unresolved_deterministic_blocker_and_advisory_only_thread_are_distinct(self) -> None:
         blocked = _snapshot()
@@ -489,10 +505,20 @@ class TestFailuresBoundsAndDeterminism:
         oversized = dict(large_report, payload="z" * (MAX_ARTIFACT_BYTES + 1))
         artifact = tmp_path / "advisory.json"
         summary = tmp_path / "summary.md"
-        write_outputs(oversized, artifact_path=artifact, summary_path=summary)
+        write_outputs(oversized, artifact_path=artifact, summary_path=summary, runtime_root=tmp_path)
         written = json.loads(artifact.read_text(encoding="utf-8"))
         assert written["state"] == "needs-human"
         assert "artifact.bound-exceeded" in _codes(written)
+
+    def test_output_paths_cannot_escape_the_runtime_root(self, tmp_path: Path) -> None:
+        report = failure_report(repository="owner/repo", pr_number=1, code="synthetic.failure")
+        with pytest.raises(AdvisoryInputError, match="output.artifact-path-invalid"):
+            write_outputs(
+                report,
+                artifact_path=tmp_path.parent / "outside.json",
+                summary_path=tmp_path / "summary.md",
+                runtime_root=tmp_path,
+            )
 
     def test_live_adapter_failure_preserves_event_identity(
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
@@ -510,21 +536,121 @@ class TestFailuresBoundsAndDeterminism:
         )
         output = tmp_path / "advisory.json"
         summary = tmp_path / "summary.md"
-        assert main(["--event", str(event), "--output", str(output), "--summary", str(summary)]) == 0
+        assert (
+            main(
+                [
+                    "--event",
+                    str(event),
+                    "--output",
+                    str(output),
+                    "--summary",
+                    str(summary),
+                    "--runtime-root",
+                    str(tmp_path),
+                    "--repository",
+                    "owner/repo",
+                ]
+            )
+            == 0
+        )
         report = json.loads(output.read_text(encoding="utf-8"))
         assert report["repository"] == "owner/repo"
         assert report["pr_number"] == 77
         assert "api.token-unavailable" in _codes(report)
 
+        mismatch_output = tmp_path / "mismatch.json"
+        assert (
+            main(
+                [
+                    "--event",
+                    str(event),
+                    "--output",
+                    str(mismatch_output),
+                    "--summary",
+                    str(summary),
+                    "--runtime-root",
+                    str(tmp_path),
+                    "--repository",
+                    "other/repo",
+                ]
+            )
+            == 0
+        )
+        assert "event.repository-mismatch" in _codes(json.loads(mismatch_output.read_text(encoding="utf-8")))
+
 
 class _PagedClient(GitHubMetadataClient):
     def __init__(self, responses: list[tuple[object, dict[str, str]]]) -> None:
-        super().__init__(token="synthetic", api_url="https://example.invalid", graphql_url="https://example.invalid")
+        super().__init__(
+            token=type(self).__name__,
+            api_url="https://example.invalid",
+            graphql_url="https://example.invalid/graphql",
+        )
         self.responses = responses
 
     def _request(self, url: str, *, payload: Mapping[str, Any] | None = None) -> tuple[Any, Mapping[str, str]]:
         del url, payload
         return self.responses.pop(0)
+
+
+class _SnapshotClient(GitHubMetadataClient):
+    def __init__(self, contract: dict, *, policy_available: bool = True) -> None:
+        super().__init__(
+            token=type(self).__name__,
+            api_url="https://example.invalid",
+            graphql_url="https://example.invalid/graphql",
+        )
+        self.contract = contract
+        self.policy_available = policy_available
+        self.pr = {
+            "body": _body(contract),
+            "head": {"sha": SHA_A},
+            "base": {"ref": "main", "sha": SHA_B},
+        }
+
+    def get(self, path: str) -> Any:
+        if path.endswith("/pulls/42"):
+            return self.pr
+        if "/compare/" in path:
+            return {"merge_base_commit": {"sha": SHA_B}}
+        if "/contents/scripts/gnc/schema.py" in path:
+            if not self.policy_available:
+                raise AdvisoryInputError("api.request-failed")
+            return {"sha": SHA_B}
+        raise AssertionError(f"unexpected GET path: {path}")
+
+    def pages(self, path: str, *, key: str | None, limit: int) -> list[Any]:
+        del key, limit
+        if "/files?" in path:
+            return [{"filename": "src/allowed.py", "status": "modified"}]
+        if "/issues/1739/comments?" in path:
+            return [_approval(self.contract)]
+        if "/reviews?" in path:
+            return [
+                {
+                    "commit_id": SHA_A,
+                    "id": 1,
+                    "state": "CHANGES_REQUESTED",
+                    "submitted_at": "2026-08-27T20:00:00Z",
+                    "user": {"login": "mohavro"},
+                },
+                {
+                    "commit_id": SHA_A,
+                    "id": 2,
+                    "state": "APPROVED",
+                    "submitted_at": "2026-08-27T21:00:00Z",
+                    "user": {"login": "mohavro"},
+                },
+            ]
+        if "/check-runs?" in path:
+            return [{"conclusion": "success", "head_sha": SHA_A, "name": "ci", "status": "completed"}]
+        if "/statuses?" in path or "/actions/runs?" in path:
+            return []
+        raise AssertionError(f"unexpected paged path: {path}")
+
+    def review_threads(self, owner: str, name: str, number: int) -> list[dict[str, Any]]:
+        assert (owner, name, number) == ("owner", "repo", 42)
+        return []
 
 
 @pytest.mark.unit
@@ -537,6 +663,102 @@ class TestPaginationProof:
         client = _PagedClient([([{"id": 1}], {"Link": '<next>; rel="next"'})])
         with pytest.raises(AdvisoryInputError, match="api.record-bound-exceeded"):
             client.pages("/records?", key=None, limit=1)
+
+    @pytest.mark.parametrize("url", ["file:///tmp/data", "http://api.github.com", "https://user@example.com"])
+    def test_client_rejects_non_https_or_credentialed_origins(self, url: str) -> None:
+        with pytest.raises(AdvisoryInputError, match="api.url-invalid"):
+            GitHubMetadataClient(token=url, api_url=url, graphql_url="https://api.github.com/graphql")
+
+    @pytest.mark.parametrize("path", ["/repos/owner/repo/../secret", "file:///tmp/data", "//example.com/data"])
+    def test_client_rejects_traversing_or_absolute_api_paths(self, path: str) -> None:
+        client = _PagedClient([])
+        with pytest.raises(AdvisoryInputError, match="api.path-invalid"):
+            client.get(path)
+
+    def test_all_thread_comment_review_states_are_collected(self) -> None:
+        node = {
+            "comments": {
+                "nodes": [
+                    {"pullRequestReview": {"state": "COMMENTED"}},
+                    {"pullRequestReview": {"state": "CHANGES_REQUESTED"}},
+                ],
+                "totalCount": 2,
+            },
+            "isOutdated": False,
+            "isResolved": False,
+            "path": "src/allowed.py",
+        }
+        response = {
+            "data": {
+                "repository": {
+                    "pullRequest": {
+                        "reviewThreads": {
+                            "nodes": [node],
+                            "pageInfo": {"endCursor": None, "hasNextPage": False},
+                        }
+                    }
+                }
+            }
+        }
+        client = _PagedClient([(response, {})])
+        records = client.review_threads("owner", "repo", 42)
+        assert records[0]["review_states"] == ["CHANGES_REQUESTED", "COMMENTED"]
+        snapshot = _snapshot()
+        snapshot["review_threads"] = records
+        assert "reviews.unresolved-blocker" in _codes(evaluate_advisory(snapshot))
+
+    def test_truncated_thread_comment_connection_fails_closed(self) -> None:
+        response = {
+            "data": {
+                "repository": {
+                    "pullRequest": {
+                        "reviewThreads": {
+                            "nodes": [
+                                {
+                                    "comments": {"nodes": [{}], "totalCount": 2},
+                                    "isOutdated": False,
+                                    "isResolved": False,
+                                    "path": "src/allowed.py",
+                                }
+                            ],
+                            "pageInfo": {"endCursor": None, "hasNextPage": False},
+                        }
+                    }
+                }
+            }
+        }
+        client = _PagedClient([(response, {})])
+        with pytest.raises(AdvisoryInputError, match="api.thread-comments-truncated"):
+            client.review_threads("owner", "repo", 42)
+
+    def test_live_snapshot_shapes_metadata_and_latest_review_wins(self) -> None:
+        contract = _contract(required_evidence=["ci", "named-human-review"])
+        snapshot = collect_github_snapshot(
+            {
+                "pull_request": {"number": 42, **_SnapshotClient(contract).pr},
+                "repository": {"full_name": "owner/repo"},
+            },
+            _SnapshotClient(contract),
+        )
+        report = evaluate_advisory(snapshot)
+        assert report["state"] == "pass"
+        assert snapshot["changed_files"] == [
+            {"filename": "src/allowed.py", "previous_filename": None, "status": "modified"}
+        ]
+        assert [record["state"] for record in snapshot["evidence"] if record["source"] == "review"] == ["passed"]
+
+    def test_policy_lookup_failure_becomes_a_specific_advisory_finding(self) -> None:
+        contract = _contract()
+        client = _SnapshotClient(contract, policy_available=False)
+        snapshot = collect_github_snapshot(
+            {
+                "pull_request": {"number": 42, **client.pr},
+                "repository": {"full_name": "owner/repo"},
+            },
+            client,
+        )
+        assert snapshot["current_pr"]["policy_file_present"] is False
+        assert "refs.policy-unavailable" in _codes(evaluate_advisory(snapshot))
 
 
 @pytest.mark.unit
@@ -568,6 +790,7 @@ class TestWorkflowStaticContract:
         text = WORKFLOW.read_text(encoding="utf-8")
         assert text.count("actions/upload-artifact@") == 1
         assert text.count("--summary") == 1
+        assert text.count("--runtime-root") == 1
         assert "gnc-advisory.json" in text
 
     def test_runtime_module_imports_only_the_standard_library_and_landed_schema(self) -> None:
@@ -582,6 +805,7 @@ class TestWorkflowStaticContract:
             "__future__",
             "argparse",
             "dataclasses",
+            "http",
             "json",
             "os",
             "pathlib",
