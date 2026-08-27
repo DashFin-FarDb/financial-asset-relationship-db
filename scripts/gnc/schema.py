@@ -591,26 +591,6 @@ def _validate_waiver(data: Mapping[str, Any], as_of: str | None) -> dict[str, An
     }
 
 
-def waiver_applies(
-    value: Any,
-    *,
-    as_of: str,
-    finding_id: str,
-    head_sha: str,
-    contract_hash: str,
-    scope: str,
-) -> bool:
-    """Return whether a valid waiver binds the exact current context."""
-    record = _validate_waiver(_mapping(value, "waiver"), as_of)
-    expected = {
-        "finding_id": _identifier(finding_id, "finding_id"),
-        "head_sha": _git_object_id(head_sha, "head_sha"),
-        "contract_hash": _sha256(contract_hash, "contract_hash"),
-        "scope": _string(scope, "scope"),
-    }
-    return all(record[field] == expected_value for field, expected_value in expected.items())
-
-
 def validate_record(value: Any, *, as_of: str | None = None) -> dict[str, Any]:
     """Validate a review-run, evidence, finding, waiver, or contract record."""
     data = _mapping(value, "record")
@@ -764,20 +744,12 @@ def _validate_replay_finding_bindings(
         if finding["head_sha"] != run["head_sha"]:
             raise _error(f"{field}.head_sha", "does not match review_run.head_sha")
         _validate_replay_rule_binding(finding, rules)
-
-
-def _validate_passing_replay_findings(run: Mapping[str, Any], findings: Sequence[Mapping[str, Any]]) -> None:
-    if run["verdict"] != _SUCCESS_OUTCOME:
-        return
-    active_states = {FindingState.OPEN.value, FindingState.REOPENED_AS_RECURRENCE.value}
-    active_blockers = [
-        finding["finding_id"]
+    if run["verdict"] == _SUCCESS_OUTCOME and any(
+        finding.get("blocking_basis") is not None
+        and finding["state"] in (FindingState.OPEN.value, FindingState.REOPENED_AS_RECURRENCE.value)
         for finding in findings
-        if finding["state"] in active_states and finding.get("blocking_basis") is not None
-    ]
-    if active_blockers:
-        blockers = ", ".join(active_blockers)
-        raise _error("fixture.review_run.verdict", f"cannot pass with active blocking findings: {blockers}")
+    ):
+        raise _error("fixture.review_run.verdict", "cannot pass with active blocking findings")
 
 
 def _validate_replay_contract_bindings(
@@ -827,7 +799,6 @@ def validate_replay_fixture(value: Any) -> dict[str, Any]:
     _validate_replay_contract_bindings(contract, run, evidence, source_refs)
     rules = {rule["rule_id"]: rule for rule in contract["rules"]}
     _validate_replay_finding_bindings(rules, run, findings)
-    _validate_passing_replay_findings(run, findings)
     expected = _validate_replay_expected(data["expected"], run, findings)
     return {
         "scenario_id": _identifier(data["scenario_id"], "fixture.scenario_id"),

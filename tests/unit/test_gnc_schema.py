@@ -8,6 +8,7 @@ from pathlib import Path
 
 import pytest
 
+from scripts.gnc import waiver_applies
 from scripts.gnc.schema import (
     GncSchemaError,
     RuleType,
@@ -18,7 +19,6 @@ from scripts.gnc.schema import (
     validate_contract,
     validate_record,
     validate_replay_fixture,
-    waiver_applies,
 )
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -405,13 +405,12 @@ class TestOperationalRecords:
 
     def test_waiver_applies_only_to_its_exact_current_context(self) -> None:
         context = {
-            "as_of": "2026-08-22T00:00:00Z",
             "finding_id": "finding.one",
             "head_sha": SHA_A,
             "contract_hash": SHA_B,
             "scope": "src/example.py",
         }
-        assert waiver_applies(_waiver(), **context)
+        assert waiver_applies(_waiver(), as_of="2026-08-22T00:00:00Z", context=context)
 
         mismatches = {
             "finding_id": "finding.two",
@@ -421,7 +420,7 @@ class TestOperationalRecords:
         }
         for field, value in mismatches.items():
             mismatched_context = dict(context, **{field: value})
-            assert not waiver_applies(_waiver(), **mismatched_context)
+            assert not waiver_applies(_waiver(), as_of="2026-08-22T00:00:00Z", context=mismatched_context)
 
     @pytest.mark.parametrize("expires_at", ["not-a-date", "2026-08-23T00:00:00"])
     def test_waiver_expiry_must_be_timezone_aware_iso_8601(self, expires_at: str) -> None:
