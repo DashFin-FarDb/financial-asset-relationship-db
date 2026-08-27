@@ -17,9 +17,28 @@
 import { readFileSync, existsSync } from "fs";
 import { join } from "path";
 
+type DependencyMap = Record<string, string>;
+
+interface PackageManifest {
+  name: string;
+  version: string;
+  private: boolean;
+  scripts: Record<string, string>;
+  dependencies: DependencyMap;
+  devDependencies: DependencyMap;
+  peerDependencies?: DependencyMap;
+  homepage?: string;
+  repository?: string | { url?: string };
+  bugs?: string | { url?: string };
+  description?: string;
+  keywords?: string[];
+  author?: string;
+  license?: string;
+}
+
 describe("Package.json Validation", () => {
   const packageJsonPath = join(process.cwd(), "package.json");
-  let packageJson: unknown;
+  let packageJson: PackageManifest;
 
   beforeAll(() => {
     if (!existsSync(packageJsonPath)) {
@@ -470,7 +489,11 @@ describe("Package.json Validation", () => {
     });
 
     it("should use HTTPS in any URL fields", () => {
-      const urlFields = ["homepage", "repository", "bugs"];
+      const urlFields: Array<"homepage" | "repository" | "bugs"> = [
+        "homepage",
+        "repository",
+        "bugs",
+      ];
 
       urlFields.forEach((field) => {
         if (packageJson[field]) {
@@ -582,7 +605,9 @@ describe("Package.json Validation", () => {
 
   describe("Edge Cases and Error Handling", () => {
     it("should handle empty optional fields gracefully", () => {
-      const optionalFields = [
+      const optionalFields: Array<
+        "description" | "keywords" | "author" | "license" | "repository"
+      > = [
         "description",
         "keywords",
         "author",
