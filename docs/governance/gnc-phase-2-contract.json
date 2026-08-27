@@ -1,0 +1,85 @@
+{
+  "schema_version": 1,
+  "contract_id": "gnc.phase2-deterministic-advisory",
+  "version": 1,
+  "parent_issue": 1739,
+  "objective": "Add one deterministic, read-only, non-blocking exact-head advisory for pull requests targeting main.",
+  "base_sha": "9cbb4493cc5f1701c6c7789c9cc076fba57d82ca",
+  "policy_sha": "9cbb4493cc5f1701c6c7789c9cc076fba57d82ca",
+  "risk_class": "high",
+  "allowed_paths": [
+    ".github/workflows/gnc-advisory.yml",
+    "scripts/gnc/advisory.py",
+    "scripts/gnc/__init__.py",
+    "tests/unit/test_gnc_advisory.py",
+    "tests/fixtures/gnc/advisory/phase2-cases.json",
+    "docs/governance/gnc-phase-2-deterministic-advisory.md",
+    "docs/governance/gnc-phase-2-contract.json"
+  ],
+  "forbidden_paths": [
+    ".github/workflows/production-promotion.yml",
+    ".github/workflows/relationship-assertion-staging-proof.yml",
+    "docs/adr/0011-governance-and-compliance-agent.md",
+    "docs/governance/governance-and-compliance-agent-v1.md",
+    "frontend",
+    "pyproject.toml",
+    "requirements.txt",
+    "src"
+  ],
+  "rules": [
+    {
+      "rule_id": "scope.exact-allowlist",
+      "type": "mandatory_invariant",
+      "statement": "The implementation diff changes exactly the seven approved paths and no other path."
+    },
+    {
+      "rule_id": "bindings.exact-head",
+      "type": "fixed_decision",
+      "statement": "The advisory binds contract, approval, base, merge base, policy, target, and evidence to the latest exact head."
+    },
+    {
+      "rule_id": "trust.base-only",
+      "type": "mandatory_invariant",
+      "statement": "Only evaluator code from the exact trusted pull-request base is checked out or executed."
+    },
+    {
+      "rule_id": "permissions.read-only",
+      "type": "mandatory_invariant",
+      "statement": "The workflow has explicit minimum read permissions and no write permission or external secret input."
+    },
+    {
+      "rule_id": "output.deterministic-bounded",
+      "type": "fixed_decision",
+      "statement": "Repeated evaluation of the same bounded metadata emits byte-identical sanitized output."
+    },
+    {
+      "rule_id": "authority.advisory-only",
+      "type": "mandatory_invariant",
+      "statement": "Pass, block, and needs-human remain non-required report states with no repository or provider mutation."
+    }
+  ],
+  "required_evidence": [
+    "focused-tests",
+    "python-compile",
+    "pre-commit",
+    "workflow-static",
+    "secret-scan",
+    "exact-head-checks",
+    "named-human-review"
+  ],
+  "merge_criteria": [
+    "The branch remains based on the ratified exact base.",
+    "The canonical contract hash and exact head have one new unedited approval comment on issue 1739.",
+    "Focused tests, compile validation, exact-file pre-commit, workflow static checks, secret scanning, and exact-head checks pass.",
+    "No substantive review thread remains unresolved.",
+    "A separate explicit maintainer merge decision is recorded and auto-merge remains disabled."
+  ],
+  "stop_conditions": [
+    "Any file outside the seven-path allowlist is required.",
+    "Any dependency, write permission, secret, PR-head execution, unpinned action, or raw patch, log, transcript, or artifact ingestion is required.",
+    "Any ruleset, branch-protection, bypass, auto-merge, provider, deployment, database, staging, IPv6, Supabase, Vercel, Sentry, Grafana, or observability change is required.",
+    "The result cannot remain deterministic, bounded, sanitized, latest-head-only, and non-blocking."
+  ],
+  "approved_by": "mohavro",
+  "approved_at": "2026-08-27T20:21:28Z"
+}
