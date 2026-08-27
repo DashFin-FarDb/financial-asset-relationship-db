@@ -33,7 +33,7 @@
     "record_type": "review_run",
     "run_id": "run.pr-1023",
     "head_sha": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
-    "merge_base_sha": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+    "merge_base_sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
     "contract_hash": "ec2f15b6cc48d8aaa8997325d3028b162dcc41fa0c95f70c7b817f7cbea32b87",
     "policy_sha": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
     "context_digest": "63a1bbe65ce076c06ec452c047ad6e0f29858f0bd95c579e4fbaf989a0ea08a4",

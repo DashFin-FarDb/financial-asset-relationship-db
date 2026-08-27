@@ -29,7 +29,7 @@
     "record_type": "review_run",
     "run_id": "run.grac-concurrency",
     "head_sha": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
-    "merge_base_sha": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+    "merge_base_sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
     "contract_hash": "5414aa9835bdf2f8ab6de97df6d5e186510e91af8048927d68d61b39ba223801",
     "policy_sha": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
     "context_digest": "1d7c96a861f34af28430b3373f6af07fe6e7503481cfc79f310ea4c43326b8d3",

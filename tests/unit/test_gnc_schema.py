@@ -536,6 +536,12 @@ class TestReplayCorpus:
         with pytest.raises(GncSchemaError, match="contract.policy_sha"):
             validate_replay_fixture(raw)
 
+    def test_replay_run_merge_base_must_match_contract(self) -> None:
+        raw = _replay_fixture()
+        raw["review_run"]["merge_base_sha"] = SHA_B
+        with pytest.raises(GncSchemaError, match="contract.base_sha"):
+            validate_replay_fixture(raw)
+
     def test_replay_findings_must_bind_to_run_head_and_contract_rule(self) -> None:
         raw = _replay_fixture()
         raw["findings"][0]["head_sha"] = SHA_A

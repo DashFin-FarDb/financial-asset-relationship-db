@@ -29,7 +29,7 @@
     "record_type": "review_run",
     "run_id": "run.grac-proof",
     "head_sha": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
-    "merge_base_sha": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+    "merge_base_sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
     "contract_hash": "9180b7f6199f3fd0610e3e93fa1a891256e54c22b91c2e0f7eb77a664364e906",
     "policy_sha": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
     "context_digest": "2c34ffa7f96c9f08d6189fde8273c99b42d4019a1380d76c6882e65605a0e98d",

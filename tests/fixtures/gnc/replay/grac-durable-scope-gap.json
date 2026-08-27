@@ -33,7 +33,7 @@
     "record_type": "review_run",
     "run_id": "run.grac-durable",
     "head_sha": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
-    "merge_base_sha": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+    "merge_base_sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
     "contract_hash": "6caf128a41f4e27aaf33df5bf8db250fcb02a03317a8d07b3956525fd9780c14",
     "policy_sha": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
     "context_digest": "1ffa8bde5f25827efa511ac4ba13106cd0b845435ed00483cec03e76d185453c",

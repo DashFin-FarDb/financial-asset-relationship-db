@@ -723,6 +723,8 @@ def _validate_replay_contract_bindings(
     evidence: Sequence[Mapping[str, Any]],
     source_refs: Sequence[str],
 ) -> None:
+    if run["merge_base_sha"] != contract["base_sha"]:
+        raise _error("fixture.review_run.merge_base_sha", "does not match contract.base_sha")
     if run["policy_sha"] != contract["policy_sha"]:
         raise _error("fixture.review_run.policy_sha", "does not match contract.policy_sha")
     _validate_replay_evidence_bindings(set(contract["required_evidence"]), run, evidence, set(source_refs))
