@@ -17,11 +17,48 @@
 import { readFileSync, existsSync } from "fs";
 import { join } from "path";
 
+type DependencyMap = Record<string, string>;
+
+interface PackageManifest {
+  name?: string;
+  version?: string;
+  dependencies: DependencyMap;
+  devDependencies: DependencyMap;
+  optionalDependencies?: DependencyMap;
+  peerDependencies?: DependencyMap;
+  bundledDependencies?: string[];
+  bundleDependencies?: string[];
+  engines?: { node?: string };
+}
+
+interface LockPackage {
+  name?: string;
+  version?: string;
+  resolved?: string;
+  integrity?: string;
+  license?: string;
+  link?: boolean;
+  dev?: boolean;
+  dependencies?: DependencyMap;
+  devDependencies?: DependencyMap;
+  optionalDependencies?: DependencyMap;
+  peerDependencies?: DependencyMap;
+  peerDependenciesMeta?: Record<string, { optional?: boolean }>;
+}
+
+interface PackageLock {
+  name?: string;
+  version?: string;
+  lockfileVersion?: number;
+  requires?: boolean;
+  packages: Record<string, LockPackage>;
+}
+
 describe("Package-lock.json Validation", () => {
   const packageJsonPath = join(process.cwd(), "package.json");
   const packageLockPath = join(process.cwd(), "package-lock.json");
-  let packageJson: unknown;
-  let packageLock: unknown;
+  let packageJson: PackageManifest;
+  let packageLock: PackageLock;
 
   beforeAll(() => {
     if (!existsSync(packageJsonPath)) {
@@ -276,7 +313,7 @@ describe("Package-lock.json Validation", () => {
 
     it("all packages should have version or link", () => {
       Object.entries(packageLock.packages).forEach(
-        ([path, pkg]: [string, { version?: string; link?: string }]) => {
+        ([path, pkg]: [string, { version?: string; link?: boolean }]) => {
           if (path !== "") {
             expect(pkg.version || pkg.link).toBeDefined();
           }
@@ -557,7 +594,8 @@ describe("Package-lock.json Validation", () => {
     it("should use registry.npmjs.org or known registries", () => {
       Object.entries(packageLock.packages).forEach(
         ([_path, pkg]: [string, { resolved?: string }]) => {
-          if (pkg.resolved && !pkg.resolved.startsWith("file:")) {
+          const resolved = pkg.resolved;
+          if (resolved && !resolved.startsWith("file:")) {
             const validRegistries = [
               "registry.npmjs.org",
               "registry.yarnpkg.com",
@@ -565,7 +603,7 @@ describe("Package-lock.json Validation", () => {
             ];
 
             const usesKnownRegistry = validRegistries.some((registry) =>
-              pkg.resolved.includes(registry),
+              resolved.includes(registry),
             );
 
             expect(usesKnownRegistry).toBeTruthy();
@@ -579,11 +617,12 @@ describe("Package-lock.json Validation", () => {
     it("should not have GPL-licensed dependencies (if policy requires)", () => {
       // This is optional - some projects restrict GPL
       Object.entries(packageLock.packages).forEach(
-        ([path, pkg]: [string, unknown]) => {
-          if (pkg.license) {
+        ([path, pkg]: [string, LockPackage]) => {
+          const license = pkg.license;
+          if (license) {
             const gplLicenses = ["GPL", "AGPL", "LGPL"];
             const isGPL = gplLicenses.some((gpl) =>
-              (pkg.license as string).toUpperCase().includes(gpl),
+              license.toUpperCase().includes(gpl),
             );
 
             // Log if GPL found (not failing, just checking)
@@ -607,7 +646,7 @@ describe("Package-lock.json Validation", () => {
       const versionMap = new Map<string, Set<string>>();
 
       Object.entries(packageLock.packages).forEach(
-        ([path, pkg]: [string, { version: string }]) => {
+        ([path, pkg]: [string, { version?: string }]) => {
           if (path && pkg.version) {
             const parts = path.split("node_modules/").pop()?.split("/");
             // Correctly handle scoped packages (e.g. @types/react -> @types/react)
@@ -665,7 +704,7 @@ describe("Package-lock.json Validation", () => {
       const axiosVersions = new Set<string>();
 
       Object.entries(packageLock.packages).forEach(
-        ([path, pkg]: [string, { version: string }]) => {
+        ([path, pkg]: [string, { version?: string }]) => {
           if (path.endsWith("node_modules/axios") && pkg.version) {
             axiosVersions.add(pkg.version);
           }
