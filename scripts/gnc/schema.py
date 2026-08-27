@@ -21,6 +21,7 @@ _IDENTIFIER = re.compile(r"^[a-z0-9][a-z0-9._:-]{0,127}$")
 _ABSOLUTE_PATH_ERROR = "must be a repository-relative path, not an absolute path"
 _CONTRACT_RULES_FIELD = "contract.rules"
 _FIXTURE_FINDINGS_FIELD = "fixture.findings"
+_PASS_OUTCOME = "pass"
 _SECRET_TEXT = re.compile(
     r"-----BEGIN [A-Z ]+PRIVATE KEY-----|\b(?:github_pat_|gh[opusr]_|sk_live_|xox[a-z0-9]*-)[A-Z0-9_-]+",
     re.IGNORECASE,
@@ -367,7 +368,7 @@ def _validate_evidence(data: Mapping[str, Any], field: str = "evidence") -> dict
     except ValueError as exc:
         raise _error(f"{field}.state", "is not a supported evidence state") from exc
     result = _string(data["result"], f"{field}.result")
-    if state is not EvidenceState.EXECUTED and result == "pass":
+    if state is not EvidenceState.EXECUTED and result == _PASS_OUTCOME:
         raise _error(f"{field}.result", "non-executed evidence cannot pass")
     run_ref = _external_run_ref(data["run_ref"], f"{field}.run_ref")
     return {
@@ -387,7 +388,7 @@ def evidence_satisfies(value: Any, *, head_sha: str, target: str) -> bool:
     record = _validate_evidence(_mapping(value, "evidence"))
     return (
         record["state"] == EvidenceState.EXECUTED.value
-        and record["result"] == "pass"
+        and record["result"] == _PASS_OUTCOME
         and record["head_sha"] == _git_object_id(head_sha, "head_sha")
         and record["target"] == _string(target, "target")
     )
@@ -706,16 +707,23 @@ def _validate_replay_evidence_bindings(
         run_ref = record["run_ref"]
         if f"execution:{run_ref}" not in source_refs:
             raise _error(f"{field}.run_ref", "has no matching execution source in fixture.source_refs")
-    if run["verdict"] == "pass":
-        satisfying_requirements = {
-            record["requirement_id"]
-            for record in evidence
-            if evidence_satisfies(record, head_sha=run["head_sha"], target=run["target"])
-        }
-        missing_requirements = sorted(requirements - satisfying_requirements)
-        if missing_requirements:
-            missing = ", ".join(missing_requirements)
-            raise _error("fixture.evidence", f"passing review_run lacks satisfying required evidence: {missing}")
+    _validate_passing_replay_evidence(requirements, run, evidence)
+
+
+def _validate_passing_replay_evidence(
+    requirements: set[str], run: Mapping[str, Any], evidence: Sequence[Mapping[str, Any]]
+) -> None:
+    if run["verdict"] != _PASS_OUTCOME:
+        return
+    satisfying_requirements = {
+        record["requirement_id"]
+        for record in evidence
+        if evidence_satisfies(record, head_sha=run["head_sha"], target=run["target"])
+    }
+    missing_requirements = sorted(requirements - satisfying_requirements)
+    if missing_requirements:
+        missing = ", ".join(missing_requirements)
+        raise _error("fixture.evidence", f"passing review_run lacks satisfying required evidence: {missing}")
 
 
 def _validate_replay_finding_bindings(
