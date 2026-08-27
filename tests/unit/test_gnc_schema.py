@@ -215,14 +215,16 @@ class TestCanonicalContract:
 
     def test_review_run_rejects_unbound_context_digest(self) -> None:
         contract = validate_contract(_contract())
+        run = _review_run(canonical_hash(contract), SHA_A, {"src/example.py": SHA_B})
         with pytest.raises(GncSchemaError, match="canonical analyzed_blobs"):
-            validate_record(_review_run(canonical_hash(contract), SHA_A, {"src/example.py": SHA_B}))
+            validate_record(run)
 
     @pytest.mark.parametrize("path", ["/outside.py", "../outside.py", "C:/outside.py", "//server/share.py"])
     def test_review_run_rejects_unsafe_analyzed_blob_paths(self, path: str) -> None:
         contract_hash = canonical_hash(validate_contract(_contract()))
+        run = _review_run(contract_hash, SHA_A, {path: SHA_B})
         with pytest.raises(GncSchemaError, match="repository-relative") as exc_info:
-            validate_record(_review_run(contract_hash, SHA_A, {path: SHA_B}))
+            validate_record(run)
         assert repr(path) in str(exc_info.value)
 
     @pytest.mark.parametrize("path", ["src\\example.py", "src/./example.py"])
@@ -235,8 +237,9 @@ class TestCanonicalContract:
     def test_review_run_rejects_equivalent_analyzed_blob_paths(self) -> None:
         contract_hash = canonical_hash(validate_contract(_contract()))
         blobs = {"src/example.py": SHA_B, "src/./example.py": SHA_B}
+        run = _review_run(contract_hash, SHA_A, blobs)
         with pytest.raises(GncSchemaError, match="equivalent repository paths"):
-            validate_record(_review_run(contract_hash, SHA_A, blobs))
+            validate_record(run)
 
     def test_review_run_accepts_sha1_git_references_but_requires_sha256_canonical_hashes(self) -> None:
         contract_input = _contract()
@@ -344,8 +347,9 @@ class TestOperationalRecords:
         assert recurrence["state"] == "reopened_as_recurrence"
 
     def test_non_duplicate_finding_rejects_an_explicit_null_duplicate_target(self) -> None:
+        finding = _finding(duplicate_of=None)
         with pytest.raises(GncSchemaError, match=r"finding\.duplicate_of.*only valid"):
-            validate_record(_finding(duplicate_of=None))
+            validate_record(finding)
 
     def test_blocking_basis_requires_auditable_linkage(self) -> None:
         finding = _finding(finding_id="finding.model", origin="model", blocking_basis="deterministic_rule")
@@ -374,8 +378,9 @@ class TestOperationalRecords:
         ],
     )
     def test_blocking_linkage_fields_require_their_matching_basis(self, linkage: dict[str, object]) -> None:
+        finding = _finding(**linkage)
         with pytest.raises(GncSchemaError, match="blocking_rule_id|confirmed_by"):
-            validate_record(_finding(**linkage))
+            validate_record(finding)
 
     @pytest.mark.parametrize("origin,basis", [("deterministic", "unknown"), ("model", ["deterministic_rule"])])
     def test_blocking_basis_rejects_every_unsupported_value(self, origin: str, basis: object) -> None:
@@ -389,14 +394,17 @@ class TestOperationalRecords:
 
     @pytest.mark.parametrize("expires_at", ["not-a-date", "2026-08-23T00:00:00"])
     def test_waiver_expiry_must_be_timezone_aware_iso_8601(self, expires_at: str) -> None:
+        waiver = _waiver(expires_at=expires_at)
         with pytest.raises(GncSchemaError, match="waiver.expires_at"):
-            validate_record(_waiver(expires_at=expires_at), as_of="2026-08-22T00:00:00Z")
+            validate_record(waiver, as_of="2026-08-22T00:00:00Z")
 
     def test_waiver_requires_explicit_as_of_and_rejects_expired_records(self) -> None:
+        waiver = _waiver()
         with pytest.raises(GncSchemaError, match="record.as_of"):
-            validate_record(_waiver())
+            validate_record(waiver)
+        expired_waiver = _waiver()
         with pytest.raises(GncSchemaError, match="waiver is expired"):
-            validate_record(_waiver(), as_of="2026-08-23T00:00:00Z")
+            validate_record(expired_waiver, as_of="2026-08-23T00:00:00Z")
 
 
 @pytest.mark.unit

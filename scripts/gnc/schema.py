@@ -18,8 +18,11 @@ SCHEMA_VERSION = 1
 _SHA256 = re.compile(r"^[0-9a-f]{64}$")
 _GIT_OBJECT_ID = re.compile(r"^(?:[0-9a-f]{40}|[0-9a-f]{64})$")
 _IDENTIFIER = re.compile(r"^[a-z0-9][a-z0-9._:-]{0,127}$")
+_ABSOLUTE_PATH_ERROR = "must be a repository-relative path, not an absolute path"
+_CONTRACT_RULES_FIELD = "contract.rules"
+_FIXTURE_FINDINGS_FIELD = "fixture.findings"
 _SECRET_TEXT = re.compile(
-    r"-----BEGIN [A-Z ]+PRIVATE KEY-----|\b(?:github_pat_|gh[opusr]_|sk_live_|xox[a-z0-9]*-)[A-Za-z0-9_-]+",
+    r"-----BEGIN [A-Z ]+PRIVATE KEY-----|\b(?:github_pat_|gh[opusr]_|sk_live_|xox[a-z0-9]*-)[A-Z0-9_-]+",
     re.IGNORECASE,
 )
 _FORBIDDEN_REPLAY_KEYS = {
@@ -162,11 +165,11 @@ def _canonical_repo_path(path: str, field: str) -> str:
     normalized = path.replace("\\", "/")
     pure = PurePosixPath(normalized)
     if pure.is_absolute():
-        raise _error(field, "must be a repository-relative path, not an absolute path")
+        raise _error(field, _ABSOLUTE_PATH_ERROR)
     if re.match(r"^[A-Za-z]:", normalized) is not None:
-        raise _error(field, "must be a repository-relative path, not an absolute path")
+        raise _error(field, _ABSOLUTE_PATH_ERROR)
     if normalized.startswith("//"):
-        raise _error(field, "must be a repository-relative path, not an absolute path")
+        raise _error(field, _ABSOLUTE_PATH_ERROR)
     if ".." in pure.parts or not pure.parts:
         raise _error(field, "must be a safe repository-relative path")
     return pure.as_posix()
@@ -224,7 +227,7 @@ def canonical_hash(value: Any) -> str:
 
 
 def _validate_rule(value: Any, index: int) -> dict[str, Any]:
-    field = f"contract.rules[{index}]"
+    field = f"{_CONTRACT_RULES_FIELD}[{index}]"
     data = _mapping(value, field)
     _require_keys(data, {"rule_id", "type", "statement"}, field)
     try:
@@ -240,13 +243,13 @@ def _validate_rule(value: Any, index: int) -> dict[str, Any]:
 
 
 def _validate_rules(value: Any) -> list[dict[str, Any]]:
-    values = _sequence(value, "contract.rules")
+    values = _sequence(value, _CONTRACT_RULES_FIELD)
     rules = [_validate_rule(rule, index) for index, rule in enumerate(values)]
     if not rules:
-        raise _error("contract.rules", "must not be empty")
+        raise _error(_CONTRACT_RULES_FIELD, "must not be empty")
     rule_ids = [rule["rule_id"] for rule in rules]
     if len(rule_ids) != len(set(rule_ids)):
-        raise _error("contract.rules", "rule_id values must be unique")
+        raise _error(_CONTRACT_RULES_FIELD, "rule_id values must be unique")
     return rules
 
 
@@ -649,9 +652,9 @@ def _validate_evidence_list(value: Any) -> list[dict[str, Any]]:
 
 
 def _validate_finding_list(value: Any) -> list[dict[str, Any]]:
-    records = _sequence(value, "fixture.findings")
+    records = _sequence(value, _FIXTURE_FINDINGS_FIELD)
     return [
-        _validate_finding(_mapping(item, f"fixture.findings[{index}]"), f"fixture.findings[{index}]")
+        _validate_finding(_mapping(item, f"{_FIXTURE_FINDINGS_FIELD}[{index}]"), f"{_FIXTURE_FINDINGS_FIELD}[{index}]")
         for index, item in enumerate(records)
     ]
 
@@ -684,9 +687,9 @@ def _validate_replay_rule_binding(finding: Mapping[str, Any], rules: Mapping[str
     rule_id = finding["rule_id"]
     rule = rules.get(rule_id)
     if rule is None:
-        raise _error("fixture.findings", f"rule_id {rule_id!r} does not exist in the contract")
+        raise _error(_FIXTURE_FINDINGS_FIELD, f"rule_id {rule_id!r} does not exist in the contract")
     if finding.get("blocking_basis") is not None and not rule["blocking_eligible"]:
-        raise _error("fixture.findings", f"rule_id {rule_id!r} is not blocking-eligible")
+        raise _error(_FIXTURE_FINDINGS_FIELD, f"rule_id {rule_id!r} is not blocking-eligible")
 
 
 def _validate_replay_evidence_bindings(
@@ -711,7 +714,7 @@ def _validate_replay_finding_bindings(
     findings: Sequence[Mapping[str, Any]],
 ) -> None:
     for index, finding in enumerate(findings):
-        field = f"fixture.findings[{index}]"
+        field = f"{_FIXTURE_FINDINGS_FIELD}[{index}]"
         if finding["head_sha"] != run["head_sha"]:
             raise _error(f"{field}.head_sha", "does not match review_run.head_sha")
         _validate_replay_rule_binding(finding, rules)
