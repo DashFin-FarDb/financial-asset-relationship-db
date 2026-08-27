@@ -706,6 +706,16 @@ def _validate_replay_evidence_bindings(
         run_ref = record["run_ref"]
         if f"execution:{run_ref}" not in source_refs:
             raise _error(f"{field}.run_ref", "has no matching execution source in fixture.source_refs")
+    if run["verdict"] == "pass":
+        satisfying_requirements = {
+            record["requirement_id"]
+            for record in evidence
+            if evidence_satisfies(record, head_sha=run["head_sha"], target=run["target"])
+        }
+        missing_requirements = sorted(requirements - satisfying_requirements)
+        if missing_requirements:
+            missing = ", ".join(missing_requirements)
+            raise _error("fixture.evidence", f"passing review_run lacks satisfying required evidence: {missing}")
 
 
 def _validate_replay_finding_bindings(

@@ -596,6 +596,27 @@ class TestReplayCorpus:
         with pytest.raises(GncSchemaError, match=r"fixture\.evidence\[0\]\.run_ref.*not a GNC review-run ID"):
             validate_replay_fixture(raw)
 
+    def test_passing_replay_requires_every_required_evidence_item(self) -> None:
+        raw = _replay_fixture()
+        raw["review_run"]["verdict"] = "pass"
+        raw["evidence"] = []
+        raw["findings"] = []
+        raw["expected"] = {"verdict": "pass", "finding_ids": []}
+        with pytest.raises(GncSchemaError, match="lacks satisfying required evidence: restart"):
+            validate_replay_fixture(raw)
+
+    def test_passing_replay_accepts_exact_head_executed_evidence(self) -> None:
+        raw = _replay_fixture()
+        raw["review_run"]["verdict"] = "pass"
+        raw["evidence"][0].update(
+            head_sha=raw["review_run"]["head_sha"],
+            state="executed",
+            result="pass",
+        )
+        raw["findings"] = []
+        raw["expected"] = {"verdict": "pass", "finding_ids": []}
+        assert validate_replay_fixture(raw)["review_run"]["verdict"] == "pass"
+
     def test_replay_stale_evidence_must_differ_only_by_head(self) -> None:
         path = FIXTURE_ROOT / "grac-durable-scope-gap.json"
 

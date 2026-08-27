@@ -26,8 +26,9 @@ order.
 A `ContractVersion` includes its stable ID and version; parent issue;
 objective; base and policy SHA; risk; allowed and forbidden paths; typed rules;
 required evidence; merge criteria; stop conditions; approving actor and time.
-The approval time is a timezone-aware ISO 8601 timestamp and is preserved as
-supplied in normalized data.
+The approval time is a timezone-aware ISO 8601 timestamp. Surrounding
+whitespace is removed during normalization; the timestamp text is otherwise
+preserved as supplied.
 Version 2 or later also binds the previous contract hash and an amendment
 rationale. Editing prose does not mutate a frozen version.
 
@@ -92,6 +93,8 @@ satisfies a mandatory item. `skipped`, `canceled`, `unavailable`, `stale_sha`,
 and `wrong_target` cannot pass. Structural, SQLite, local, or documentation
 evidence cannot satisfy a PostgreSQL, restart, concurrency, hosted, or
 behavioral requirement unless the approved contract explicitly says it can.
+A replay verdict of `pass` is valid only when every contract
+`required_evidence` entry has at least one satisfying evidence record.
 
 ## 5. Findings, duplicates, and recurrence
 
