@@ -447,6 +447,13 @@ class TestReplayCorpus:
         with pytest.raises(GncSchemaError, match="floating-point values are forbidden"):
             validate_replay_fixture(raw)
 
+    @pytest.mark.parametrize("invalid_value", [{"not", "json"}, b"not-json", object()])
+    def test_replay_rejects_non_json_values_in_ignored_nested_metadata(self, invalid_value: object) -> None:
+        raw = _replay_fixture()
+        raw["metadata"] = {"invalid_value": invalid_value}
+        with pytest.raises(GncSchemaError, match="unsupported JSON value type"):
+            validate_replay_fixture(raw)
+
     @pytest.mark.parametrize("field", ["evidence", "findings"])
     def test_replay_record_collections_must_be_lists(self, field: str) -> None:
         raw = _replay_fixture()

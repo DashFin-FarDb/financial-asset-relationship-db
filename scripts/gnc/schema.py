@@ -625,6 +625,9 @@ def _assert_sanitized(value: Any, field: str = "fixture") -> None:
         raise _error(field, "floating-point values are forbidden")
     if isinstance(value, str) and _SECRET_TEXT.search(value):
         raise _error(field, "secret-like material is forbidden")
+    if value is None or isinstance(value, (str, bool, int)):
+        return
+    raise _error(field, f"unsupported JSON value type: {type(value).__name__}")
 
 
 def _validate_evidence_list(value: Any) -> list[dict[str, Any]]:
