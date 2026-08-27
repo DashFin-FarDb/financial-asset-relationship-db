@@ -15,7 +15,48 @@
  */
 
 import { readFileSync, existsSync } from "fs";
-import { join } from "path";
+import { isAbsolute, join, relative, resolve, sep } from "path";
+
+const approvedRegistryHosts = new Set([
+  "registry.npmjs.org",
+  "registry.yarnpkg.com",
+  "npm.pkg.github.com",
+]);
+
+function isPermittedResolvedSource(
+  resolvedSource: string,
+  frontendDirectory: string,
+): boolean {
+  if (resolvedSource.startsWith("file:")) {
+    const localSource = resolvedSource.slice("file:".length);
+
+    if (
+      !localSource ||
+      localSource.startsWith("//") ||
+      isAbsolute(localSource)
+    ) {
+      return false;
+    }
+
+    const projectRoot = resolve(frontendDirectory, "..");
+    const localPath = resolve(frontendDirectory, localSource);
+    const relativePath = relative(projectRoot, localPath);
+
+    return (
+      relativePath === "" ||
+      (!relativePath.startsWith(`..${sep}`) &&
+        relativePath !== ".." &&
+        !isAbsolute(relativePath))
+    );
+  }
+
+  try {
+    const url = new URL(resolvedSource);
+    return url.protocol === "https:" && approvedRegistryHosts.has(url.hostname);
+  } catch {
+    return false;
+  }
+}
 
 type DependencyMap = Record<string, string>;
 
@@ -595,21 +636,37 @@ describe("Package-lock.json Validation", () => {
       Object.entries(packageLock.packages).forEach(
         ([_path, pkg]: [string, { resolved?: string }]) => {
           const resolved = pkg.resolved;
-          if (resolved && !resolved.startsWith("file:")) {
-            const validRegistries = [
-              "registry.npmjs.org",
-              "registry.yarnpkg.com",
-              "npm.pkg.github.com",
-            ];
-
-            const usesKnownRegistry = validRegistries.some((registry) =>
-              resolved.includes(registry),
-            );
-
-            expect(usesKnownRegistry).toBeTruthy();
+          if (resolved) {
+            expect(
+              isPermittedResolvedSource(resolved, process.cwd()),
+            ).toBeTruthy();
           }
         },
       );
+    });
+
+    it("should reject unapproved registry hosts and local path escapes", () => {
+      expect(
+        isPermittedResolvedSource(
+          "https://registry.npmjs.org/example/-/example-1.0.0.tgz",
+          process.cwd(),
+        ),
+      ).toBe(true);
+      expect(
+        isPermittedResolvedSource(
+          "https://registry.npmjs.org.attacker.example/example.tgz",
+          process.cwd(),
+        ),
+      ).toBe(false);
+      expect(
+        isPermittedResolvedSource("file:../shared-package", process.cwd()),
+      ).toBe(true);
+      expect(
+        isPermittedResolvedSource("file:../../outside-project", process.cwd()),
+      ).toBe(false);
+      expect(
+        isPermittedResolvedSource("file:///outside-project", process.cwd()),
+      ).toBe(false);
     });
   });
 
