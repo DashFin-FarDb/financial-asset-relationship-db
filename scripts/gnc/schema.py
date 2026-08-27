@@ -614,13 +614,7 @@ def _assert_sanitized_sequence(value: Sequence[Any], field: str) -> None:
         _assert_sanitized(item, f"{field}[{index}]")
 
 
-def _assert_sanitized(value: Any, field: str = "fixture") -> None:
-    if isinstance(value, Mapping):
-        _assert_sanitized_mapping(value, field)
-        return
-    if _is_sequence(value):
-        _assert_sanitized_sequence(value, field)
-        return
+def _assert_sanitized_scalar(value: Any, field: str) -> None:
     if isinstance(value, float):
         raise _error(field, "floating-point values are forbidden")
     if isinstance(value, str) and _SECRET_TEXT.search(value):
@@ -628,6 +622,16 @@ def _assert_sanitized(value: Any, field: str = "fixture") -> None:
     if value is None or isinstance(value, (str, bool, int)):
         return
     raise _error(field, f"unsupported JSON value type: {type(value).__name__}")
+
+
+def _assert_sanitized(value: Any, field: str = "fixture") -> None:
+    if isinstance(value, Mapping):
+        _assert_sanitized_mapping(value, field)
+        return
+    if _is_sequence(value):
+        _assert_sanitized_sequence(value, field)
+        return
+    _assert_sanitized_scalar(value, field)
 
 
 def _validate_evidence_list(value: Any) -> list[dict[str, Any]]:
