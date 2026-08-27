@@ -1,0 +1,10 @@
+---
+interface:
+  display_name: "Governance and Compliance"
+  short_description: "Review exact-head PR scope and evidence"
+  default_prompt: >-
+    Use $governance-compliance to review this exact PR head against its
+    approved contract and evidence.
+
+policy:
+  allow_implicit_invocation: true

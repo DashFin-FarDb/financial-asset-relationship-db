@@ -1,0 +1,76 @@
+{
+  "scenario_id": "grac-durable-scope-gap",
+  "source_refs": [
+    "github:issue/1557",
+    "programme:grac",
+    "execution:prior-head"
+  ],
+  "contract": {
+    "schema_version": 1,
+    "contract_id": "replay.grac-durable",
+    "version": 1,
+    "parent_issue": 1557,
+    "objective": "Preserve governed scope across restart.",
+    "base_sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "policy_sha": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "risk_class": "high",
+    "allowed_paths": ["src/governance"],
+    "forbidden_paths": [".github/workflows"],
+    "rules": [
+      {
+        "rule_id": "state.durable-scope",
+        "type": "mandatory_invariant",
+        "statement": "An empty edge set must retain governed scope after restart."
+      }
+    ],
+    "required_evidence": ["restart"],
+    "merge_criteria": ["Restart proof retains governed scope."],
+    "stop_conditions": ["Persistence authority is ambiguous."],
+    "approved_by": "maintainer",
+    "approved_at": "2026-07-27T00:00:00Z"
+  },
+  "review_run": {
+    "record_type": "review_run",
+    "run_id": "run.grac-durable",
+    "head_sha": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+    "merge_base_sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "contract_hash": "6caf128a41f4e27aaf33df5bf8db250fcb02a03317a8d07b3956525fd9780c14",
+    "policy_sha": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "context_digest": "1ffa8bde5f25827efa511ac4ba13106cd0b845435ed00483cec03e76d185453c",
+    "evaluator_version": "gnc-phase1",
+    "target": "restart",
+    "review_mode": "full",
+    "verdict": "block",
+    "analyzed_blobs": {
+      "src/governance/persistence.py": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+    }
+  },
+  "evidence": [
+    {
+      "record_type": "evidence",
+      "evidence_id": "evidence.restart",
+      "requirement_id": "restart",
+      "head_sha": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+      "target": "restart",
+      "state": "stale_sha",
+      "result": "not_run",
+      "run_ref": "prior-head"
+    }
+  ],
+  "findings": [
+    {
+      "record_type": "finding",
+      "finding_id": "finding.persistence-gap",
+      "rule_id": "state.durable-scope",
+      "subject": "empty edge scope",
+      "failure_mode": "Restart can lose governed scope when no edge is materialized.",
+      "expected_outcome": "Persist and restore governed scope independently of edge count.",
+      "origin": "deterministic",
+      "state": "open",
+      "head_sha": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "blocking_basis": "deterministic_rule",
+      "blocking_rule_id": "state.durable-scope"
+    }
+  ],
+  "expected": { "verdict": "block", "finding_ids": ["finding.persistence-gap"] }
+}
