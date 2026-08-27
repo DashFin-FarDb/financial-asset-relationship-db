@@ -40,7 +40,9 @@ MAX_ARTIFACT_BYTES = 1024 * 1024
 
 _API_PATH_INVALID = "api.path-invalid"
 _API_PR_SHAPE_INVALID = "api.pr-shape-invalid"
+_API_REVIEW_INVALID = "api.review-invalid"
 _API_SHAPE_INVALID = "api.shape-invalid"
+_API_CHANGED_FILE_INVALID = "api.changed-file-invalid"
 _API_THREAD_COMMENTS_INVALID = "api.thread-comments-invalid"
 _API_URL_INVALID = "api.url-invalid"
 _EVENT_REPOSITORY_INVALID = "event.repository-invalid"
@@ -681,20 +683,20 @@ def _pull_request_connection(data: Any, connection_name: str) -> tuple[Sequence[
 
 
 def _graphql_review_record(value: Any) -> dict[str, Any]:
-    review = _mapping(value, "api.review-invalid")
-    commit = _mapping(review.get("commit"), "api.review-invalid")
-    author = _mapping(review.get("author"), "api.review-invalid")
+    review = _mapping(value, _API_REVIEW_INVALID)
+    commit = _mapping(review.get("commit"), _API_REVIEW_INVALID)
+    author = _mapping(review.get("author"), _API_REVIEW_INVALID)
     return {
-        "commit_id": _oid(commit.get("oid"), "api.review-invalid"),
-        "id": _integer(review.get("databaseId"), "api.review-invalid"),
-        "state": _string(review.get("state"), "api.review-invalid"),
-        "submitted_at": _string(review.get("submittedAt"), "api.review-invalid"),
-        "user": {"login": _string(author.get("login"), "api.review-invalid")},
+        "commit_id": _oid(commit.get("oid"), _API_REVIEW_INVALID),
+        "id": _integer(review.get("databaseId"), _API_REVIEW_INVALID),
+        "state": _string(review.get("state"), _API_REVIEW_INVALID),
+        "submitted_at": _string(review.get("submittedAt"), _API_REVIEW_INVALID),
+        "user": {"login": _string(author.get("login"), _API_REVIEW_INVALID)},
     }
 
 
 def _graphql_changed_file_record(value: Any) -> dict[str, Any]:
-    node = _mapping(value, "api.changed-file-invalid")
+    node = _mapping(value, _API_CHANGED_FILE_INVALID)
     change_type = node.get("changeType")
     statuses = {
         "ADDED": "added",
@@ -705,9 +707,9 @@ def _graphql_changed_file_record(value: Any) -> dict[str, Any]:
         "RENAMED": "renamed",
     }
     if not isinstance(change_type, str) or change_type not in statuses:
-        raise AdvisoryInputError("api.changed-file-invalid")
+        raise AdvisoryInputError(_API_CHANGED_FILE_INVALID)
     return {
-        "filename": _string(node.get("path"), "api.changed-file-invalid"),
+        "filename": _string(node.get("path"), _API_CHANGED_FILE_INVALID),
         "previous_filename": None,
         "status": statuses[change_type],
     }
@@ -730,7 +732,7 @@ def _thread_review_records(node: Mapping[str, Any]) -> list[dict[str, Any]]:
             record = _graphql_review_record(review)
             review_id = record.get("id")
             if not isinstance(review_id, int) or isinstance(review_id, bool):
-                raise AdvisoryInputError("api.review-invalid")
+                raise AdvisoryInputError(_API_REVIEW_INVALID)
             reviews[review_id] = record
     return [reviews[key] for key in sorted(reviews)]
 
@@ -995,7 +997,7 @@ def _latest_authorized_reviews(reviews: Sequence[Any]) -> dict[tuple[str, str], 
     latest_reviews: dict[tuple[str, str], Mapping[str, Any]] = {}
     latest_review_order: dict[tuple[str, str], tuple[str, int]] = {}
     for raw in reviews:
-        item = _mapping(raw, "api.review-invalid")
+        item = _mapping(raw, _API_REVIEW_INVALID)
         user = item.get("user")
         login = user.get("login") if isinstance(user, Mapping) else None
         commit_id = item.get("commit_id")
