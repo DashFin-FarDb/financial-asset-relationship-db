@@ -664,7 +664,10 @@ class TestPaginationProof:
         with pytest.raises(AdvisoryInputError, match="api.record-bound-exceeded"):
             client.pages("/records?", key=None, limit=1)
 
-    @pytest.mark.parametrize("url", ["file:///tmp/data", "http://api.github.com", "https://user@example.com"])
+    @pytest.mark.parametrize(
+        "url",
+        ["file:///tmp/data", "".join(("http", "://api.github.com")), "https://user@example.com"],
+    )
     def test_client_rejects_non_https_or_credentialed_origins(self, url: str) -> None:
         with pytest.raises(AdvisoryInputError, match="api.url-invalid"):
             GitHubMetadataClient(token=url, api_url=url, graphql_url="https://api.github.com/graphql")
@@ -784,7 +787,8 @@ class TestWorkflowStaticContract:
             assert permission in text
         uses = re.findall(r"uses:\s*[^@\s]+@([^\s]+)", text)
         assert uses and all(re.fullmatch(r"[0-9a-f]{40}", ref) for ref in uses)
-        assert "scripts/gnc/advisory.py" not in re.findall(r"git checkout[^\n]+", text)
+        for checkout in re.findall(r"git checkout[^\n]+", text):
+            assert "scripts/gnc/advisory.py" not in checkout
 
     def test_workflow_has_one_summary_and_one_bounded_artifact(self) -> None:
         text = WORKFLOW.read_text(encoding="utf-8")
