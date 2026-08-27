@@ -23,6 +23,7 @@ _CONTRACT_RULES_FIELD = "contract.rules"
 _FIXTURE_FINDINGS_FIELD = "fixture.findings"
 _SUCCESS_OUTCOME = "pass"
 _REVIEW_VERDICTS = frozenset(("block", _SUCCESS_OUTCOME))
+_ACTIVE_BLOCKING_STATES = frozenset(("open", "reopened_as_recurrence"))
 _SECRET_TEXT = re.compile(
     r"-----BEGIN [A-Z ]+PRIVATE KEY-----|\b(?:github_pat_|gh[opusr]_|sk_live_|xox[a-z0-9]*-)[A-Z0-9_-]+",
     re.IGNORECASE,
@@ -600,11 +601,7 @@ def validate_record(value: Any, *, as_of: str | None = None) -> dict[str, Any]:
         return {"record_type": record_type, "contract": contract, "contract_hash": canonical_hash(contract)}
     if record_type == "waiver":
         return _validate_waiver(data, as_of)
-    validators = {
-        "review_run": _validate_review_run,
-        "evidence": _validate_evidence,
-        "finding": _validate_finding,
-    }
+    validators = {"review_run": _validate_review_run, "evidence": _validate_evidence, "finding": _validate_finding}
     try:
         return validators[record_type](data)
     except KeyError as exc:
@@ -701,6 +698,10 @@ def _validate_replay_rule_binding(finding: Mapping[str, Any], rules: Mapping[str
         raise _error(_FIXTURE_FINDINGS_FIELD, f"rule_id {rule_id!r} is not blocking-eligible")
 
 
+def _is_active_blocker(finding: Mapping[str, Any]) -> bool:
+    return finding.get("blocking_basis") is not None and finding["state"] in _ACTIVE_BLOCKING_STATES
+
+
 def _validate_replay_evidence_bindings(
     requirements: set[str],
     run: Mapping[str, Any],
@@ -744,11 +745,9 @@ def _validate_replay_finding_bindings(
         if finding["head_sha"] != run["head_sha"]:
             raise _error(f"{field}.head_sha", "does not match review_run.head_sha")
         _validate_replay_rule_binding(finding, rules)
-    if run["verdict"] == _SUCCESS_OUTCOME and any(
-        finding.get("blocking_basis") is not None
-        and finding["state"] in (FindingState.OPEN.value, FindingState.REOPENED_AS_RECURRENCE.value)
-        for finding in findings
-    ):
+    if run["verdict"] != _SUCCESS_OUTCOME:
+        return
+    if any(map(_is_active_blocker, findings)):
         raise _error("fixture.review_run.verdict", "cannot pass with active blocking findings")
 
 
