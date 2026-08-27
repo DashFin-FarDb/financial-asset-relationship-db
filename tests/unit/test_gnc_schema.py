@@ -466,6 +466,13 @@ class TestReplayCorpus:
         with pytest.raises(GncSchemaError, match="secret-like"):
             validate_replay_fixture(raw)
 
+    @pytest.mark.parametrize("secret_like", ["env_github_pat_replay-token", "env_xoxb-replay-token"])
+    def test_replay_rejects_secret_prefixes_after_underscores(self, secret_like: str) -> None:
+        raw = _replay_fixture()
+        raw["source_refs"].append(secret_like)
+        with pytest.raises(GncSchemaError, match="secret-like"):
+            validate_replay_fixture(raw)
+
     @pytest.mark.parametrize("key", [" secret ", "PATCH "])
     def test_replay_forbidden_keys_ignore_case_and_surrounding_whitespace(self, key: str) -> None:
         raw = _replay_fixture()

@@ -25,7 +25,7 @@ _SUCCESS_OUTCOME = "pass"
 _REVIEW_VERDICTS = frozenset(("block", _SUCCESS_OUTCOME))
 _ACTIVE_BLOCKING_STATES = frozenset(("open", "reopened_as_recurrence"))
 _SECRET_TEXT = re.compile(
-    r"-----BEGIN [A-Z ]+PRIVATE KEY-----|\b(?:github_pat_|gh[opusr]_|sk_live_|xox[a-z0-9]*-)[A-Z0-9_-]+",
+    r"-----BEGIN [A-Z ]+PRIVATE KEY-----|(?<![A-Z0-9])(?:github_pat_|gh[opusr]_|sk_live_|xox[a-z0-9]*-)[A-Z0-9_-]+",
     re.IGNORECASE,
 )
 _FORBIDDEN_REPLAY_KEYS = {
