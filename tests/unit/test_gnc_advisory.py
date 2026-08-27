@@ -786,7 +786,8 @@ class TestWorkflowStaticContract:
         for permission in ("actions: read", "checks: read", "contents: read", "issues: read", "pull-requests: read"):
             assert permission in text
         uses = re.findall(r"uses:\s*[^@\s]+@([^\s]+)", text)
-        assert uses and all(re.fullmatch(r"[0-9a-f]{40}", ref) for ref in uses)
+        assert uses
+        assert all(re.fullmatch(r"[0-9a-f]{40}", ref) for ref in uses)
         for checkout in re.findall(r"git checkout[^\n]+", text):
             assert "scripts/gnc/advisory.py" not in checkout
 

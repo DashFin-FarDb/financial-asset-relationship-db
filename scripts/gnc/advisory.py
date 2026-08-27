@@ -18,7 +18,7 @@ from dataclasses import dataclass, field
 from pathlib import Path, PurePosixPath
 from typing import Any, Mapping, Sequence
 
-from .schema import GncSchemaError, canonical_hash, canonical_json_bytes, validate_contract
+from .schema import canonical_hash, canonical_json_bytes, validate_contract
 
 ADVISORY_VERSION = "gnc-phase2.v1"
 CONTRACT_START = "<!-- gnc-contract:start -->"
@@ -38,9 +38,17 @@ MAX_APPROVAL_COMMENTS = 1_000
 MAX_SUMMARY_BYTES = 64 * 1024
 MAX_ARTIFACT_BYTES = 1024 * 1024
 
+_API_PATH_INVALID = "api.path-invalid"
+_API_PR_SHAPE_INVALID = "api.pr-shape-invalid"
+_API_SHAPE_INVALID = "api.shape-invalid"
+_API_THREAD_COMMENTS_INVALID = "api.thread-comments-invalid"
+_API_URL_INVALID = "api.url-invalid"
+_EVENT_REPOSITORY_INVALID = "event.repository-invalid"
+_REVIEWS_TOO_MANY = "reviews.too-many"
+_UNKNOWN_REPOSITORY = "unknown/unknown"
 _GIT_OBJECT_ID = re.compile(r"^(?:[0-9a-f]{40}|[0-9a-f]{64})$")
 _IDENTIFIER = re.compile(r"^[a-z0-9][a-z0-9._:-]{0,127}$")
-_REPOSITORY = re.compile(r"^[A-Za-z0-9](?:[A-Za-z0-9_.-]{0,99})/[A-Za-z0-9_.-]{1,100}$")
+_REPOSITORY = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.-]{0,99}/[A-Za-z0-9_.-]{1,100}$")
 _SECRET_TEXT = re.compile(
     r"-----BEGIN [A-Z ]+PRIVATE KEY-----|(?<![A-Z0-9])(?:github_pat_|gh[opusr]_|sk_live_|xox[a-z0-9]*-)[A-Z0-9_-]+",
     re.IGNORECASE,
@@ -113,7 +121,11 @@ class AdvisoryBuilder:
         )
         normalized_evidence = [_sanitize_json(item) for item in self.evidence]
         kinds = {item["kind"] for item in normalized_findings}
-        state = "needs-human" if "needs-human" in kinds else "block" if "block" in kinds else "pass"
+        state = "pass"
+        if "needs-human" in kinds:
+            state = "needs-human"
+        elif "block" in kinds:
+            state = "block"
         return {
             "advisory_version": ADVISORY_VERSION,
             "bindings": _sanitize_json(self.bindings),
@@ -244,7 +256,7 @@ def _contract_from_body(body: Any) -> tuple[dict[str, Any], str]:
     try:
         parsed = json.loads(raw_contract)
         normalized = validate_contract(parsed)
-    except (json.JSONDecodeError, GncSchemaError, TypeError, ValueError) as exc:
+    except (TypeError, ValueError) as exc:
         raise AdvisoryInputError("contract.malformed") from exc
     return normalized, canonical_hash(normalized)
 
@@ -511,7 +523,7 @@ def _evaluate_reviews(builder: AdvisoryBuilder, reviews: Any, threads: Any) -> N
     review_values = _sequence(reviews, "reviews.invalid")
     thread_values = _sequence(threads, "reviews.threads-invalid")
     if len(review_values) + len(thread_values) > MAX_REVIEW_RECORDS:
-        raise AdvisoryInputError("reviews.too-many")
+        raise AdvisoryInputError(_REVIEWS_TOO_MANY)
     for raw in review_values:
         _mapping(raw, "reviews.record-invalid")
     for raw in thread_values:
@@ -520,7 +532,7 @@ def _evaluate_reviews(builder: AdvisoryBuilder, reviews: Any, threads: Any) -> N
 
 def evaluate_advisory(snapshot: Any) -> dict[str, Any]:
     """Evaluate one bounded metadata snapshot without raising on untrusted input."""
-    repository = "unknown/unknown"
+    repository = _UNKNOWN_REPOSITORY
     pr_number = 1
     try:
         data = _mapping(snapshot, "snapshot.invalid")
@@ -600,13 +612,13 @@ def _trusted_https_url(value: Any, code: str, *, allow_query: bool) -> str:
 
 
 def _trusted_api_path(value: Any) -> str:
-    path = _string(value, "api.path-invalid")
+    path = _string(value, _API_PATH_INVALID)
     parsed = urllib.parse.urlsplit(path)
     decoded_path = urllib.parse.unquote(parsed.path)
     if parsed.scheme or parsed.netloc or not decoded_path.startswith("/"):
-        raise AdvisoryInputError("api.path-invalid")
+        raise AdvisoryInputError(_API_PATH_INVALID)
     if "\\" in decoded_path or ".." in PurePosixPath(decoded_path).parts or parsed.fragment:
-        raise AdvisoryInputError("api.path-invalid")
+        raise AdvisoryInputError(_API_PATH_INVALID)
     return path
 
 
@@ -615,20 +627,20 @@ def _review_threads_connection(data: Any) -> tuple[Sequence[Any], Mapping[str, A
         raise AdvisoryInputError("api.graphql-failed")
     try:
         connection = data["data"]["repository"]["pullRequest"]["reviewThreads"]
-        nodes = _sequence(connection["nodes"], "api.shape-invalid")
-        page_info = _mapping(connection["pageInfo"], "api.shape-invalid")
+        nodes = _sequence(connection["nodes"], _API_SHAPE_INVALID)
+        page_info = _mapping(connection["pageInfo"], _API_SHAPE_INVALID)
     except (KeyError, TypeError) as exc:
-        raise AdvisoryInputError("api.shape-invalid") from exc
+        raise AdvisoryInputError(_API_SHAPE_INVALID) from exc
     return nodes, page_info
 
 
 def _review_states(node: Mapping[str, Any]) -> list[str]:
     try:
-        comments = _mapping(node["comments"], "api.thread-comments-invalid")
-        nodes = _sequence(comments["nodes"], "api.thread-comments-invalid")
+        comments = _mapping(node["comments"], _API_THREAD_COMMENTS_INVALID)
+        nodes = _sequence(comments["nodes"], _API_THREAD_COMMENTS_INVALID)
         total_count = comments["totalCount"]
     except (KeyError, TypeError) as exc:
-        raise AdvisoryInputError("api.thread-comments-invalid") from exc
+        raise AdvisoryInputError(_API_THREAD_COMMENTS_INVALID) from exc
     if isinstance(total_count, bool) or not isinstance(total_count, int) or total_count != len(nodes):
         raise AdvisoryInputError("api.thread-comments-truncated")
     states: list[str] = []
@@ -656,14 +668,14 @@ class GitHubMetadataClient:
     def __init__(self, *, token: str, api_url: str, graphql_url: str) -> None:
         """Initialize a client with the automatic read-only workflow token."""
         self._token = token
-        self._api_url = _trusted_https_url(api_url, "api.url-invalid", allow_query=False).rstrip("/")
+        self._api_url = _trusted_https_url(api_url, _API_URL_INVALID, allow_query=False).rstrip("/")
         self._graphql_url = _trusted_https_url(graphql_url, "api.graphql-url-invalid", allow_query=False)
 
     def _request(self, url: str, *, payload: Mapping[str, Any] | None = None) -> tuple[Any, Mapping[str, str]]:
-        url = _trusted_https_url(url, "api.url-invalid", allow_query=True)
+        url = _trusted_https_url(url, _API_URL_INVALID, allow_query=True)
         parsed = urllib.parse.urlsplit(url)
         if parsed.hostname is None:
-            raise AdvisoryInputError("api.url-invalid")
+            raise AdvisoryInputError(_API_URL_INVALID)
         body = canonical_json_bytes(payload) if payload is not None else None
         headers = {
             "Accept": "application/vnd.github+json",
@@ -685,7 +697,7 @@ class GitHubMetadataClient:
             if len(raw) > MAX_ARTIFACT_BYTES:
                 raise AdvisoryInputError("api.response-oversized")
             return json.loads(raw), dict(response.getheaders())
-        except (OSError, TimeoutError, http.client.HTTPException, json.JSONDecodeError) as exc:
+        except (OSError, http.client.HTTPException, json.JSONDecodeError) as exc:
             raise AdvisoryInputError("api.unavailable") from exc
         finally:
             connection.close()
@@ -704,7 +716,7 @@ class GitHubMetadataClient:
         while True:
             data, headers = self._request(f"{self._api_url}{path}{separator}per_page=100&page={page}")
             values = data.get(key) if key is not None and isinstance(data, Mapping) else data
-            records.extend(_sequence(values, "api.shape-invalid"))
+            records.extend(_sequence(values, _API_SHAPE_INVALID))
             link = headers.get("Link", "")
             has_next = 'rel="next"' in link
             if len(records) > limit or (len(records) == limit and has_next):
@@ -741,7 +753,7 @@ class GitHubMetadataClient:
             nodes, page_info = _review_threads_connection(data)
             result.extend(_review_thread_record(node) for node in nodes)
             if len(result) > MAX_REVIEW_RECORDS:
-                raise AdvisoryInputError("reviews.too-many")
+                raise AdvisoryInputError(_REVIEWS_TOO_MANY)
             if not page_info.get("hasNextPage"):
                 return result
             cursor = page_info.get("endCursor")
@@ -758,13 +770,13 @@ def _pr_metadata(pr: Mapping[str, Any], *, merge_base_sha: str | None = None) ->
             "target_sha": pr["base"]["sha"],
         }
     except (KeyError, TypeError) as exc:
-        raise AdvisoryInputError("api.pr-shape-invalid") from exc
+        raise AdvisoryInputError(_API_PR_SHAPE_INVALID) from exc
     if merge_base_sha is not None:
         result["merge_base_sha"] = merge_base_sha
     return result
 
 
-def _normalize_evidence(sources: GitHubEvidenceSnapshot) -> list[dict[str, Any]]:
+def _normalize_check_evidence(sources: GitHubEvidenceSnapshot) -> list[dict[str, Any]]:
     records: list[dict[str, Any]] = []
     for raw in sources.checks:
         item = _mapping(raw, "api.check-invalid")
@@ -777,6 +789,11 @@ def _normalize_evidence(sources: GitHubEvidenceSnapshot) -> list[dict[str, Any]]
                 "target": sources.target,
             }
         )
+    return records
+
+
+def _normalize_status_evidence(sources: GitHubEvidenceSnapshot) -> list[dict[str, Any]]:
+    records: list[dict[str, Any]] = []
     for raw in sources.statuses:
         item = _mapping(raw, "api.status-invalid")
         records.append(
@@ -788,6 +805,11 @@ def _normalize_evidence(sources: GitHubEvidenceSnapshot) -> list[dict[str, Any]]
                 "target": sources.target,
             }
         )
+    return records
+
+
+def _normalize_run_evidence(sources: GitHubEvidenceSnapshot) -> list[dict[str, Any]]:
+    records: list[dict[str, Any]] = []
     for raw in sources.runs:
         item = _mapping(raw, "api.run-invalid")
         records.append(
@@ -799,39 +821,59 @@ def _normalize_evidence(sources: GitHubEvidenceSnapshot) -> list[dict[str, Any]]
                 "target": sources.target,
             }
         )
+    return records
+
+
+def _review_order(item: Mapping[str, Any]) -> tuple[str, int]:
+    review_id = item.get("id")
+    numeric_id = review_id if isinstance(review_id, int) and not isinstance(review_id, bool) else -1
+    submitted_at = item.get("submitted_at")
+    return submitted_at if isinstance(submitted_at, str) else "", numeric_id
+
+
+def _latest_authorized_reviews(reviews: Sequence[Any]) -> dict[tuple[str, str], Mapping[str, Any]]:
     latest_reviews: dict[tuple[str, str], Mapping[str, Any]] = {}
     latest_review_order: dict[tuple[str, str], tuple[str, int]] = {}
-    for raw in sources.reviews:
+    for raw in reviews:
         item = _mapping(raw, "api.review-invalid")
         user = item.get("user")
         login = user.get("login") if isinstance(user, Mapping) else None
         commit_id = item.get("commit_id")
         if login not in AUTHORIZED_APPROVERS or not isinstance(commit_id, str):
             continue
-        review_id = item.get("id")
-        numeric_id = review_id if isinstance(review_id, int) and not isinstance(review_id, bool) else -1
-        submitted_at = item.get("submitted_at")
-        order = (submitted_at if isinstance(submitted_at, str) else "", numeric_id)
+        order = _review_order(item)
         key = (login, commit_id)
         if key not in latest_review_order or order > latest_review_order[key]:
             latest_reviews[key] = item
             latest_review_order[key] = order
-    for key in sorted(latest_reviews):
-        item = latest_reviews[key]
-        state = "unavailable"
-        if item.get("state") == "APPROVED":
-            state = "passed"
-        elif item.get("state") == "CHANGES_REQUESTED":
-            state = "failed"
-        records.append(
-            {
-                "head_sha": item.get("commit_id"),
-                "requirement_id": "named-human-review",
-                "source": "review",
-                "state": state,
-                "target": sources.target,
-            }
-        )
+    return latest_reviews
+
+
+def _review_evidence_record(item: Mapping[str, Any], target: str) -> dict[str, Any]:
+    states = {"APPROVED": "passed", "CHANGES_REQUESTED": "failed"}
+    raw_state = item.get("state")
+    state = states.get(raw_state, "unavailable") if isinstance(raw_state, str) else "unavailable"
+    return {
+        "head_sha": item.get("commit_id"),
+        "requirement_id": "named-human-review",
+        "source": "review",
+        "state": state,
+        "target": target,
+    }
+
+
+def _normalize_review_evidence(sources: GitHubEvidenceSnapshot) -> list[dict[str, Any]]:
+    latest_reviews = _latest_authorized_reviews(sources.reviews)
+    return [_review_evidence_record(latest_reviews[key], sources.target) for key in sorted(latest_reviews)]
+
+
+def _normalize_evidence(sources: GitHubEvidenceSnapshot) -> list[dict[str, Any]]:
+    records = [
+        *_normalize_check_evidence(sources),
+        *_normalize_status_evidence(sources),
+        *_normalize_run_evidence(sources),
+        *_normalize_review_evidence(sources),
+    ]
     if len(records) > MAX_EVIDENCE_RECORDS:
         raise AdvisoryInputError("evidence.too-many")
     return records
@@ -840,7 +882,7 @@ def _normalize_evidence(sources: GitHubEvidenceSnapshot) -> list[dict[str, Any]]
 def _collect_pr_and_paths(
     client: GitHubMetadataClient, repository_name: str, pr_number: int
 ) -> tuple[dict[str, Any], list[dict[str, Any]]]:
-    current_raw = _mapping(client.get(f"/repos/{repository_name}/pulls/{pr_number}"), "api.pr-shape-invalid")
+    current_raw = _mapping(client.get(f"/repos/{repository_name}/pulls/{pr_number}"), _API_PR_SHAPE_INVALID)
     current = _pr_metadata(current_raw)
     comparison = _mapping(
         client.get(
@@ -897,7 +939,7 @@ def _collect_reviews(
     reviews = client.pages(f"/repos/{repository_name}/pulls/{pr_number}/reviews?", key=None, limit=MAX_REVIEW_RECORDS)
     threads = client.review_threads(owner, name, pr_number)
     if len(reviews) + len(threads) > MAX_REVIEW_RECORDS:
-        raise AdvisoryInputError("reviews.too-many")
+        raise AdvisoryInputError(_REVIEWS_TOO_MANY)
     return reviews, threads
 
 
@@ -936,8 +978,8 @@ def _collect_evidence(
 
 def collect_github_snapshot(event: Mapping[str, Any], client: GitHubMetadataClient) -> dict[str, Any]:
     """Collect the bounded, read-only metadata snapshot for one PR event."""
-    repository = _mapping(event.get("repository"), "event.repository-invalid")
-    repository_name = _repository(repository.get("full_name"), "event.repository-invalid")
+    repository = _mapping(event.get("repository"), _EVENT_REPOSITORY_INVALID)
+    repository_name = _repository(repository.get("full_name"), _EVENT_REPOSITORY_INVALID)
     owner, name = repository_name.split("/", 1)
     event_raw_pr = _mapping(event.get("pull_request"), "event.pr-invalid")
     pr_number = _integer(event_raw_pr.get("number"), "event.pr-number-invalid")
@@ -946,7 +988,7 @@ def collect_github_snapshot(event: Mapping[str, Any], client: GitHubMetadataClie
     comments = _collect_contract_metadata(client, repository_name, current)
     reviews, threads = _collect_reviews(client, repository_name, owner, name, pr_number)
     evidence = _collect_evidence(client, repository_name, current, reviews)
-    final_raw = _mapping(client.get(f"/repos/{repository_name}/pulls/{pr_number}"), "api.pr-shape-invalid")
+    final_raw = _mapping(client.get(f"/repos/{repository_name}/pulls/{pr_number}"), _API_PR_SHAPE_INVALID)
     final_pr = _pr_metadata(final_raw)
     return {
         "api_errors": [],
@@ -1034,7 +1076,7 @@ def write_outputs(report: Mapping[str, Any], *, artifact_path: Path, summary_pat
     artifact = canonical_json_bytes(report) + b"\n"
     if len(artifact) > MAX_ARTIFACT_BYTES:
         minimal = failure_report(
-            repository=str(report.get("repository", "unknown/unknown")),
+            repository=str(report.get("repository", _UNKNOWN_REPOSITORY)),
             pr_number=report.get("pr_number", 1) if isinstance(report.get("pr_number"), int) else 1,
             code="artifact.bound-exceeded",
         )
@@ -1070,8 +1112,8 @@ def _event_identity(event: Mapping[str, Any], fallback_repository: str) -> tuple
 
 
 def _live_report(event: Mapping[str, Any], token_env: str, expected_repository: str) -> dict[str, Any]:
-    event_repository = _mapping(event.get("repository"), "event.repository-invalid")
-    actual_repository = _repository(event_repository.get("full_name"), "event.repository-invalid")
+    event_repository = _mapping(event.get("repository"), _EVENT_REPOSITORY_INVALID)
+    actual_repository = _repository(event_repository.get("full_name"), _EVENT_REPOSITORY_INVALID)
     if actual_repository != _repository(expected_repository, "event.expected-repository-invalid"):
         raise AdvisoryInputError("event.repository-mismatch")
     token = os.environ.get(token_env)
@@ -1110,7 +1152,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--summary", type=Path, required=True)
     parser.add_argument("--runtime-root", type=Path, required=True)
-    parser.add_argument("--repository", default=os.environ.get("GITHUB_REPOSITORY", "unknown/unknown"))
+    parser.add_argument("--repository", default=os.environ.get("GITHUB_REPOSITORY", _UNKNOWN_REPOSITORY))
     parser.add_argument("--token-env", default="GITHUB_TOKEN")
     args = parser.parse_args(argv)
     report = _evaluate_cli(args)
