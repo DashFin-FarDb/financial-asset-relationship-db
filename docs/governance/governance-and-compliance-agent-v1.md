@@ -53,10 +53,12 @@ Rule types are:
 
 A `ReviewRun` binds run ID, head and merge-base SHA, contract and policy hash,
 `context_digest`, evaluator version, target, mode, analyzed blob hashes, and
-verdict. `context_digest` is the canonical SHA-256 hash of the ordered set of
-cross-file inputs relevant to the run: each item contains its repository path
-and blob SHA. The validator canonicalizes those repository paths, sorts items
-by path, recomputes the digest from `[{"path": ..., "blob_sha": ...}]`, and
+verdict. The verdict is exactly `pass` or `block`; other or differently cased
+values fail closed. `context_digest` is the canonical SHA-256 hash of the
+ordered set of cross-file inputs relevant to the run: each item contains its
+repository path and blob SHA. The validator canonicalizes those repository
+paths, sorts items by path, recomputes the digest from
+`[{"path": ..., "blob_sha": ...}]`, and
 rejects a supplied digest that does not match. A cached file verdict is
 reusable only when its blob, contract, policy, evaluator, and context digest
 are unchanged.

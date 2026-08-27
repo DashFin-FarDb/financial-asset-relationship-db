@@ -219,6 +219,16 @@ class TestCanonicalContract:
         with pytest.raises(GncSchemaError, match="canonical analyzed_blobs"):
             validate_record(run)
 
+    @pytest.mark.parametrize("verdict", ["PASS", "success"])
+    def test_review_run_rejects_unsupported_verdicts(self, verdict: str) -> None:
+        contract = validate_contract(_contract())
+        analyzed_blobs = {"src/example.py": SHA_B}
+        digest = canonical_hash([{"path": "src/example.py", "blob_sha": SHA_B}])
+        run = _review_run(canonical_hash(contract), digest, analyzed_blobs)
+        run["verdict"] = verdict
+        with pytest.raises(GncSchemaError, match="must be 'pass' or 'block'"):
+            validate_record(run)
+
     @pytest.mark.parametrize("path", ["/outside.py", "../outside.py", "C:/outside.py", "//server/share.py"])
     def test_review_run_rejects_unsafe_analyzed_blob_paths(self, path: str) -> None:
         contract_hash = canonical_hash(validate_contract(_contract()))
@@ -603,6 +613,15 @@ class TestReplayCorpus:
         raw["findings"] = []
         raw["expected"] = {"verdict": "pass", "finding_ids": []}
         with pytest.raises(GncSchemaError, match="lacks satisfying required evidence: restart"):
+            validate_replay_fixture(raw)
+
+    def test_replay_rejects_unsupported_pass_like_verdict(self) -> None:
+        raw = _replay_fixture()
+        raw["review_run"]["verdict"] = "PASS"
+        raw["evidence"] = []
+        raw["findings"] = []
+        raw["expected"] = {"verdict": "PASS", "finding_ids": []}
+        with pytest.raises(GncSchemaError, match="must be 'pass' or 'block'"):
             validate_replay_fixture(raw)
 
     def test_passing_replay_accepts_exact_head_executed_evidence(self) -> None:

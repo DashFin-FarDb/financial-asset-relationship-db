@@ -21,7 +21,8 @@ _IDENTIFIER = re.compile(r"^[a-z0-9][a-z0-9._:-]{0,127}$")
 _ABSOLUTE_PATH_ERROR = "must be a repository-relative path, not an absolute path"
 _CONTRACT_RULES_FIELD = "contract.rules"
 _FIXTURE_FINDINGS_FIELD = "fixture.findings"
-_PASS_OUTCOME = "pass"
+_SUCCESS_OUTCOME = "pass"
+_REVIEW_VERDICTS = frozenset(("block", _SUCCESS_OUTCOME))
 _SECRET_TEXT = re.compile(
     r"-----BEGIN [A-Z ]+PRIVATE KEY-----|\b(?:github_pat_|gh[opusr]_|sk_live_|xox[a-z0-9]*-)[A-Z0-9_-]+",
     re.IGNORECASE,
@@ -140,6 +141,13 @@ def _identifier(value: Any, field: str) -> str:
     if not _IDENTIFIER.fullmatch(text):
         raise _error(field, "must be a stable lowercase identifier")
     return text
+
+
+def _review_verdict(value: Any, field: str) -> str:
+    verdict = _string(value, field)
+    if verdict not in _REVIEW_VERDICTS:
+        raise _error(field, "must be 'pass' or 'block'")
+    return verdict
 
 
 def _string_list(value: Any, field: str, *, nonempty: bool = False) -> list[str]:
@@ -368,7 +376,7 @@ def _validate_evidence(data: Mapping[str, Any], field: str = "evidence") -> dict
     except ValueError as exc:
         raise _error(f"{field}.state", "is not a supported evidence state") from exc
     result = _string(data["result"], f"{field}.result")
-    if state is not EvidenceState.EXECUTED and result == _PASS_OUTCOME:
+    if state is not EvidenceState.EXECUTED and result == _SUCCESS_OUTCOME:
         raise _error(f"{field}.result", "non-executed evidence cannot pass")
     run_ref = _external_run_ref(data["run_ref"], f"{field}.run_ref")
     return {
@@ -388,7 +396,7 @@ def evidence_satisfies(value: Any, *, head_sha: str, target: str) -> bool:
     record = _validate_evidence(_mapping(value, "evidence"))
     return (
         record["state"] == EvidenceState.EXECUTED.value
-        and record["result"] == _PASS_OUTCOME
+        and record["result"] == _SUCCESS_OUTCOME
         and record["head_sha"] == _git_object_id(head_sha, "head_sha")
         and record["target"] == _string(target, "target")
     )
@@ -556,7 +564,7 @@ def _validate_review_run(data: Mapping[str, Any], field: str = "review_run") -> 
         "evaluator_version": _string(data["evaluator_version"], f"{field}.evaluator_version"),
         "target": _string(data["target"], f"{field}.target"),
         "review_mode": _string(data["review_mode"], f"{field}.review_mode"),
-        "verdict": _string(data["verdict"], f"{field}.verdict"),
+        "verdict": _review_verdict(data["verdict"], f"{field}.verdict"),
         "analyzed_blobs": blobs,
     }
 
@@ -713,7 +721,7 @@ def _validate_replay_evidence_bindings(
 def _validate_passing_replay_evidence(
     requirements: set[str], run: Mapping[str, Any], evidence: Sequence[Mapping[str, Any]]
 ) -> None:
-    if run["verdict"] != _PASS_OUTCOME:
+    if run["verdict"] != _SUCCESS_OUTCOME:
         return
     satisfying_requirements = {
         record["requirement_id"]
@@ -759,7 +767,7 @@ def _validate_replay_expected(
     expected = _mapping(value, "fixture.expected")
     _require_keys(expected, {"finding_ids", "verdict"}, "fixture.expected")
     expected_ids = _identifier_list(expected.get("finding_ids"), "fixture.expected.finding_ids")
-    expected_verdict = _string(expected.get("verdict"), "fixture.expected.verdict")
+    expected_verdict = _review_verdict(expected.get("verdict"), "fixture.expected.verdict")
     if expected_verdict != run["verdict"]:
         raise _error("fixture.expected.verdict", "must exactly match review_run.verdict")
     actual_ids = [finding["finding_id"] for finding in findings]
