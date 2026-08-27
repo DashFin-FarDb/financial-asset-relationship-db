@@ -2,10 +2,10 @@
 
 **Repository:** `DashFin-FarDb/financial-asset-relationship-db`
 **Established:** 2026-07-21
-**Repository evidence cutoff:** `main` at `790274c1b0dbdb43d4bbbbf35c4565dae36c9fe3`
+**Repository evidence cutoff:** `main` at `bca812c83bd8def01587dc2c050f8c8bc37ad1fc`
 **Ratified setup baseline:** CQ-03B-R1 ratified on 2026-08-17 at `main@76f1194f1f9b83cb9ed8f0bb0083824ededbe0ae`
 **CQ-03C merge baseline:** `784d092f1204b59e612efd4ff3949f3e3fed12cf`
-**Continuity status:** CQ-03B-R1, CQ-03B-R2, CQ-03C, CQ-03D-00, and CQ-03D-01 are merged; no CQ-03D-02 target or permit is approved, and no hosted preflight has been executed
+**Continuity status:** CQ-03B-R1, CQ-03B-R2, CQ-03C, CQ-03D-00, and CQ-03D-01 are merged; GNC Phase 1 is merged; GNC Phase 2 is not authorised; no CQ-03D-02 target or permit is approved, and no hosted preflight has been executed
 
 This ledger preserves durable project decisions, plans, milestones, and handoffs across ChatGPT, Codex, and
 repository work. It is an index of authoritative evidence, not a replacement for detailed specifications, issues,
@@ -41,6 +41,18 @@ recovery evidence.
 
 At the evidence cutoff:
 
+- GNC Phase 1 is complete through issue
+  [#1558](https://github.com/DashFin-FarDb/financial-asset-relationship-db/issues/1558) and merged PR
+  [#1673](https://github.com/DashFin-FarDb/financial-asset-relationship-db/pull/1673).
+- Completion evidence is recorded by
+  [FPC-2026-08-27-01](#fpc-2026-08-27-01--govern-gnc-after-phase-1) and
+  [ADR 0011](../adr/0011-governance-and-compliance-agent.md).
+- Capability boundary: repository-local, deterministic, read-only, and replay-only; no live workflow, model call,
+  blocking check, ruleset, provider mutation, auto-action, or merge enforcement.
+- Phase 2 prerequisite: a separately approved child issue under
+  [#1557](https://github.com/DashFin-FarDb/financial-asset-relationship-db/issues/1557), a then-current exact base, an
+  exact file allowlist, named human review, and no auto-merge.
+- Governance-document consolidation remains separate under [#1692](https://github.com/DashFin-FarDb/financial-asset-relationship-db/issues/1692); this continuity reconciliation does not authorise that refactor or change policy semantics.
 - PR [#1608](https://github.com/DashFin-FarDb/financial-asset-relationship-db/pull/1608) merged from final reviewed
   head `743ce9254ca0fdb20805a789e4082c2891053109` as GitHub-verified squash
   `1a49cee56255ec4f50495fa9bdd80ddd3f8f6763` on `main`.
@@ -99,11 +111,24 @@ Primary authorities:
 - [State Machine and Operating Authority](../governance/state-machine-and-operating-authority.md)
 - [PostgreSQL migration ledger and drift contract](../adr/0009-postgresql-migration-ledger-and-drift-contract.md)
 - [Historical receipt evidence and target-ledger profiles](../adr/0010-historical-receipt-evidence-and-target-ledger-profiles.md)
+- [Governance and Compliance agent](../adr/0011-governance-and-compliance-agent.md)
 - [Governed Relationship Assertion Contract v1](../governance/governed-relationship-assertion-contract-v1.md)
 - [GRAC v1 exact-SHA staging evidence and sign-off](../governance/grac-v1-exact-sha-evidence-signoff.md)
 - [The Big Read](the-big-read.md)
 
 ## Active commitments
+
+### FPC-2026-08-27-01 — Govern GNC after Phase 1
+
+- **Type:** Repository governance / exact-head evidence
+- **Status:** Phase 1 satisfied; Phase 2 not authorised
+- **Decision or objective:** Preserve the landed offline, deterministic, repository-local, read-only replay contract and require every later phase to proceed through a separately approved exact-base child issue and one bounded PR.
+- **Rationale and constraints:** Phase 1 proves schemas, canonical evidence rules, finding lifecycle, and sanitised historical replay without increasing runtime or agent autonomy. It does not justify a live workflow, model-only blocker, ruleset, provider action, auto-resolution, or merge enforcement.
+- **Repository scope:** ADR 0011, issue #1557, completed issue #1558, merged PR #1673, and any future separately approved child contract.
+- **Dependencies or blockers:** A Phase 2 child issue, exact current base, exact allowed and forbidden files, replay and shadow-mode acceptance criteria, rollback, merge criteria, stop conditions, and named human review.
+- **Evidence and provenance:** PR #1673 approved head `dde4427ebfc6807519a9fedf01e182ca43ee70d9`, merge commit `bca812c83bd8def01587dc2c050f8c8bc37ad1fc`, 107 resolved review threads, and the passing 90-test Phase 1 suite.
+- **Next action and completion test:** Reconcile and approve a Phase 2 child contract before implementation. Completion requires exact-head, deterministic, non-noisy shadow evidence without privileged execution or any increase in write/merge autonomy.
+- **Last updated:** 2026-08-27
 
 ### FPC-2026-08-13-01 — Establish one profile-scoped PostgreSQL migration authority and drift gate
 
@@ -537,7 +562,7 @@ Primary authorities:
 - Durable graph load, startup provenance, promotion checking, recovery control plane, API contracts, governance, DR
   documentation, and release-evidence mechanisms exist in the repository.
 - RC1 has candidate-specific approved hosted and restore evidence.
-- `main` is `790274c1b0dbdb43d4bbbbf35c4565dae36c9fe3` at this cutoff.
+- `main` is `bca812c83bd8def01587dc2c050f8c8bc37ad1fc` at this cutoff.
 - CQ-01/CQ-02 are closed through merged PR #1608 with exact PostgreSQL 15/16 authority evidence. QH-01 is closed
   through merged PR #1632. Provider rollout and production qualification remain separate evidence obligations.
 - CQ-03 is the active critical-path programme. CQ-03A is complete through accepted ADR 0009 and merged PR #1634;
@@ -546,6 +571,8 @@ Primary authorities:
   CQ-03D-01 is ratified, verified, and merged through PR #1646. No CQ-03D-02 target or permit is approved; the hosted
   preflight and any later provider history adoption remain pending separate authorization under CQ-03D.
 - GRAC v1 is `CURRENT` only for the exact-SHA staging slice recorded by PR #1598; broader claims remain `NEXT`.
+- GNC Phase 1 is complete through PR #1673 and ADR 0011. Phase 2, live enforcement, and any
+  workflow/model/ruleset/provider integration remain unauthorised and unimplemented.
 
 ### Governing constraints
 
@@ -559,12 +586,16 @@ Primary authorities:
 
 ### Next highest-value action
 
-Before executing CQ-03D-02 under active commitment **FPC-2026-08-13-01**, obtain separate approval for one target
-and protected single-use permit. After approval, bind both to the reviewed repository SHA and collect only the
-bounded read-only hosted-preflight evidence. Do not authorize the later migration-history marker in this step.
+The database lane under **FPC-2026-08-13-01** remains externally gated by the approved target-bound
+maintenance-window contract, Supabase support, IPv6-capable connectivity, one approved target, and a protected
+single-use permit. Before CQ-03D-02, obtain separate approval for a permit that already binds the one approved target
+to the exact reviewed repository SHA. Only after that approval, collect the bounded read-only hosted-preflight
+evidence. Do not authorize the later migration-history marker in this step.
 Do not replay or reconstruct SQL under historical timestamps, run `supabase db pull` against hosted state, retain
 provider link state, apply DDL, or select `hosted-legacy-v1` as adopted before the separate history-action decision.
-Issue #1623 remains a small P2 follow-up and does not displace the CQ-03 programme. Release repeatability
+Issue #1623 remains a small P2 follow-up and does not displace the CQ-03 programme. In parallel with the provider
+wait, the next repository-governance decision is whether to approve a bounded GNC Phase 2 child contract under
+**FPC-2026-08-27-01**; do not begin implementation from this ledger alone. Release repeatability
 (**FPC-2026-07-21-02**) remains active.
 
 ### Completion test
@@ -579,7 +610,7 @@ credential-bootstrap authority.
 
 ### Sources reviewed
 
-- Repository `main` through `790274c1b0dbdb43d4bbbbf35c4565dae36c9fe3` on 2026-08-18.
+- Repository `main` through `bca812c83bd8def01587dc2c050f8c8bc37ad1fc` on 2026-08-27.
 - Repository agent instructions and production-architecture declaration.
 - Enterprise-readiness index, audit, roadmap, PR board, validation-gap audit, release checklist, release evidence pack,
   hosted staging baseline, operational evidence framework, drill and scale-validation documents, and risk register.
@@ -592,6 +623,7 @@ credential-bootstrap authority.
 - Merged QH-01 PR #1632 and Linear DAS-63; closed external-quality record #1631; active CQ-03 programme record #1633,
   merged CQ-03A PR #1634, accepted ADR 0009, merged clarification PR #1636, ratified ADR 0010, merged CQ-03D-01 PR
   #1646, and Linear DAS-62.
+- GNC programme issue #1557, completed Phase 1 issue #1558, accepted ADR 0011, merged PR #1673, approved exact head `dde4427ebfc6807519a9fedf01e182ca43ee70d9`, and merge commit `bca812c83bd8def01587dc2c050f8c8bc37ad1fc`.
 - Read-only Supabase aggregate inventory and migration history captured on 2026-08-13 and revalidated at bounded
   identity/status scope on 2026-08-17; current Supabase CLI workflow documentation reviewed; no provider mutation.
 - Available ChatGPT continuity context covering the enterprise-readiness program, PR #1096 onward, RC1 evidence work,
