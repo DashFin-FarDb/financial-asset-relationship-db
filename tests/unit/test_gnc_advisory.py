@@ -802,11 +802,15 @@ class TestWorkflowStaticContract:
     def test_runtime_module_imports_only_the_standard_library_and_landed_schema(self) -> None:
         tree = ast.parse((REPO_ROOT / "scripts" / "gnc" / "advisory.py").read_text(encoding="utf-8"))
         roots: set[str] = set()
+        relative_imports: set[tuple[int, str | None]] = set()
         for node in ast.walk(tree):
             if isinstance(node, ast.Import):
                 roots.update(alias.name.split(".")[0] for alias in node.names)
-            elif isinstance(node, ast.ImportFrom) and node.level == 0 and node.module:
-                roots.add(node.module.split(".")[0])
+            elif isinstance(node, ast.ImportFrom):
+                if node.level == 0 and node.module:
+                    roots.add(node.module.split(".")[0])
+                else:
+                    relative_imports.add((node.level, node.module))
         assert roots <= {
             "__future__",
             "argparse",
@@ -820,3 +824,4 @@ class TestWorkflowStaticContract:
             "typing",
             "urllib",
         }
+        assert relative_imports == {(1, "schema")}
