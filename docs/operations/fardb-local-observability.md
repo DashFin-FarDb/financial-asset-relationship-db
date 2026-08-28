@@ -30,12 +30,18 @@ The selected distribution must already contain:
 - `$HOME/.config/fardb-observability/runtime.env`;
 - `$HOME/.local/share/fardb-observability/venv/bin/python` with the FarDb backend dependencies;
 - npm at `/usr/local/bin/npm` or `/usr/bin/npm`; and
-- the checkout's existing `frontend/node_modules` directory.
+- the checkout's existing `frontend/node_modules` directory and its npm installation manifest.
 
 Windows Git must be available on `PATH`. The launcher derives the backend and frontend working directories from its
 own repository checkout. It never prints the contents of `runtime.env`; it combines a one-way file digest with the
-current Git revision, tracked changes, and untracked-file digests into a second one-way runtime fingerprint. Only that
-final fingerprint is placed in the local unit description. Credential values must not be placed in command arguments.
+current Git revision, tracked changes, untracked-file digests, the installed npm manifest, a bounded `npm ls` inventory,
+and a bounded Python `pip list` inventory into a second one-way runtime fingerprint. The dependency inventories are
+limited to 4 MiB each and their raw package details are never printed. Only the final fingerprint is placed in the local
+unit description. Credential values must not be placed in command arguments.
+
+`npm ls` exit code 1 is accepted only as inventory material because npm uses it for a valid JSON tree that records
+existing invalid/extraneous package problems; that exact problem state is hashed as well. Other npm failures, malformed
+or empty output, and every failed Python inventory remain fail-closed.
 
 The Supabase scrape is selected by the generic Prometheus job prefix `integrations/supabase/`; no provider
 instance identifier is embedded in the launcher. If a local Prometheus configuration uses another label, set the
@@ -84,14 +90,14 @@ $env:FARDB_SUPABASE_PROMETHEUS_JOB_PREFIX = 'integrations/supabase/'
 & .\scripts\observability\fardb-observability.ps1 -Action Stop -StopInfrastructure
 ```
 
-`Start` is fail-closed and never replaces an active application unit. The ignored `frontend/node_modules` tree and the
-external Python environment cannot be compared byte-for-byte within a bounded launcher invocation, so a repeated
-`Start` requires an explicit `-Action Stop` followed by `-Action Start`, even when the command, working directory,
-environment-file path, and fingerprinted repository/runtime inputs match. Use `-Action Status` for a read-only repeat
-check. This prevents an active process with changed installed dependencies from being silently reused. `Stop` targets
-only the two exact transient application units unless `-StopInfrastructure` is supplied. Launcher actions are
-serialized per WSL distribution; a concurrent invocation fails without changing services. Listening-process cgroups
-must also match the expected exact units.
+`Start` is idempotent and never replaces an active application unit implicitly. A matching active unit is reused only
+when its command, working directory, environment-file path, fingerprinted repository/runtime inputs, installed npm
+manifest, complete npm package inventory, and Python package inventory still match. A repeated `Start` is therefore a
+healthy no-op for the same managed dependency state. A dependency install, removal, or version/layout change makes the
+identity differ, so Start fails without touching the active unit and requires an explicit `-Action Stop` followed by
+`-Action Start`. `Stop` targets only the two exact transient application units unless `-StopInfrastructure` is supplied.
+Launcher actions are serialized per WSL distribution; a concurrent invocation fails without changing services.
+Listening-process cgroups must also match the expected exact units.
 
 ## Readiness contract
 

@@ -194,6 +194,7 @@ function Initialize-LauncherPath {
     Assert-WslAbsolutePath -Path $script:WslHome -Label 'WSL home'
 
     $script:FrontendRootWsl = "$($script:RepoRootWsl)/frontend"
+    $script:FrontendInstallManifestPath = "$($script:FrontendRootWsl)/node_modules/.package-lock.json"
     $script:RuntimeEnvPath = "$($script:WslHome)/.config/fardb-observability/runtime.env"
     $script:PythonPath = "$($script:WslHome)/.local/share/fardb-observability/venv/bin/python"
     $script:NpmPath = Resolve-WslExecutablePath -Candidates @('/usr/local/bin/npm', '/usr/bin/npm') -Label 'npm'
@@ -311,6 +312,22 @@ function Get-WslFileSha256 {
     return $Matches[1].ToLowerInvariant()
 }
 
+function Get-WslCommandOutputSha256 {
+    param(
+        [Parameter(Mandatory)][string[]]$Arguments,
+        [Parameter(Mandatory)][string]$FailureMessage,
+        [int[]]$AllowedExitCodes = @(0)
+    )
+
+    $result = Invoke-WslCommand -Arguments $Arguments -Capture
+    if ($result.ExitCode -notin $AllowedExitCodes) { Write-SafeError $FailureMessage }
+    $output = @($result.Output) -join "`n"
+    if ([string]::IsNullOrWhiteSpace($output) -or $output.Length -gt (4 * 1024 * 1024)) {
+        Write-SafeError $FailureMessage
+    }
+    return Get-StringSha256 -Value $output
+}
+
 function Get-LocalFileSha256 {
     param([Parameter(Mandatory)][string]$Path)
 
@@ -412,8 +429,17 @@ function Get-RepositoryRuntimeFingerprint {
 function Initialize-RuntimeInputFingerprint {
     $environmentFingerprint = Get-WslFileSha256 -Path $script:RuntimeEnvPath
     $repositoryFingerprint = Get-RepositoryRuntimeFingerprint
+    $frontendManifestFingerprint = Get-WslFileSha256 -Path $script:FrontendInstallManifestPath
+    $frontendInventoryFingerprint = Get-WslCommandOutputSha256 -Arguments @(
+        $script:NpmPath, '--prefix', $script:FrontendRootWsl, 'ls', '--all', '--json'
+    ) -FailureMessage 'The installed frontend dependency state could not be fingerprinted safely.' `
+        -AllowedExitCodes @(0, 1)
+    $pythonInventoryFingerprint = Get-WslCommandOutputSha256 -Arguments @(
+        $script:PythonPath, '-I', '-m', 'pip', 'list', '--format=json', '--disable-pip-version-check'
+    ) -FailureMessage 'The installed Python dependency state could not be fingerprinted safely.'
     $script:RuntimeInputFingerprint = Get-StringSha256 -Value (
-        "$environmentFingerprint`0$repositoryFingerprint"
+        "$environmentFingerprint`0$repositoryFingerprint`0$frontendManifestFingerprint`0" +
+        "$frontendInventoryFingerprint`0$pythonInventoryFingerprint"
     )
 }
 
@@ -463,6 +489,8 @@ function Assert-Prerequisite {
         Assert-WslPathAvailable -Kind 'executable' -Path $requirement.Path -Label $requirement.Label
     }
     Assert-WslPathAvailable -Kind 'file' -Path $script:RuntimeEnvPath -Label 'the existing FarDb runtime.env file'
+    Assert-WslPathAvailable -Kind 'file' -Path $script:FrontendInstallManifestPath `
+        -Label 'the installed frontend dependency manifest'
     Assert-WslPathAvailable -Kind 'directory' -Path "$($script:FrontendRootWsl)/node_modules" `
         -Label 'the existing frontend dependencies'
     foreach ($unit in @($script:PrometheusUnit, $script:PdcUnit)) {
@@ -605,14 +633,11 @@ function Test-ActiveTransientUnitReusable {
     )
 
     if ((Get-UnitState -Unit $Unit -Scope 'user') -ne 'active') { return $false }
-    if (-not (Test-ActiveTransientUnitMatch -Unit $Unit -WorkingDirectory $WorkingDirectory -Command $Command)) {
-        Write-SafeError (
-            "The active transient unit was started from different runtime inputs: $Unit. " +
-            'Run -Action Stop, then run -Action Start; the active unit was not changed.'
-        )
+    if (Test-ActiveTransientUnitMatch -Unit $Unit -WorkingDirectory $WorkingDirectory -Command $Command) {
+        return $true
     }
     Write-SafeError (
-        "The installed dependency bytes cannot be compared safely while the application unit is active: $Unit. " +
+        "The active transient unit was started from different runtime inputs or installed dependency state: $Unit. " +
         'Run -Action Stop, then run -Action Start; the active unit was not changed.'
     )
 }
