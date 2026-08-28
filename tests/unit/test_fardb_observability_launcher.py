@@ -185,6 +185,7 @@ def test_start_safety_covers_concurrency_identity_port_ownership_and_rollback() 
         "Get-BackendStartSpec",
         "Get-FrontendStartSpec",
         "The active transient unit was started from different runtime inputs",
+        "The installed dependency bytes cannot be compared safely while the application unit is active",
         "the active unit was not changed",
         "The inactive transient application unit did not stop cleanly",
         "Get-ReadinessSecondsRemaining",

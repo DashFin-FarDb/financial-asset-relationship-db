@@ -84,11 +84,12 @@ $env:FARDB_SUPABASE_PROMETHEUS_JOB_PREFIX = 'integrations/supabase/'
 & .\scripts\observability\fardb-observability.ps1 -Action Stop -StopInfrastructure
 ```
 
-`Start` is idempotent. When an owned transient application unit is already active, it is left running only when its
-command, working directory, environment-file path, and runtime-input fingerprint still match. If code or `runtime.env`
-changed, Start fails without touching the active unit; run `-Action Stop` and then `-Action Start` to make that explicit
-replacement. `Stop`
-targets only the two exact transient application units unless `-StopInfrastructure` is supplied. Launcher actions are
+`Start` is fail-closed and never replaces an active application unit. The ignored `frontend/node_modules` tree and the
+external Python environment cannot be compared byte-for-byte within a bounded launcher invocation, so a repeated
+`Start` requires an explicit `-Action Stop` followed by `-Action Start`, even when the command, working directory,
+environment-file path, and fingerprinted repository/runtime inputs match. Use `-Action Status` for a read-only repeat
+check. This prevents an active process with changed installed dependencies from being silently reused. `Stop` targets
+only the two exact transient application units unless `-StopInfrastructure` is supplied. Launcher actions are
 serialized per WSL distribution; a concurrent invocation fails without changing services. Listening-process cgroups
 must also match the expected exact units.
 

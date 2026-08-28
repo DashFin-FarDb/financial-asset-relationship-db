@@ -605,11 +605,14 @@ function Test-ActiveTransientUnitReusable {
     )
 
     if ((Get-UnitState -Unit $Unit -Scope 'user') -ne 'active') { return $false }
-    if (Test-ActiveTransientUnitMatch -Unit $Unit -WorkingDirectory $WorkingDirectory -Command $Command) {
-        return $true
+    if (-not (Test-ActiveTransientUnitMatch -Unit $Unit -WorkingDirectory $WorkingDirectory -Command $Command)) {
+        Write-SafeError (
+            "The active transient unit was started from different runtime inputs: $Unit. " +
+            'Run -Action Stop, then run -Action Start; the active unit was not changed.'
+        )
     }
     Write-SafeError (
-        "The active transient unit was started from different runtime inputs: $Unit. " +
+        "The installed dependency bytes cannot be compared safely while the application unit is active: $Unit. " +
         'Run -Action Stop, then run -Action Start; the active unit was not changed.'
     )
 }
