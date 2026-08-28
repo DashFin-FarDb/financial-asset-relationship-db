@@ -35,6 +35,11 @@ The selected distribution must already contain:
 The launcher derives the backend and frontend working directories from its own repository checkout. It never reads
 or prints the contents of `runtime.env`, and credential values must not be placed in command arguments.
 
+The Supabase scrape is selected by the generic Prometheus job pattern `integrations/supabase/.+`; no provider
+instance identifier is embedded in the launcher. If a local Prometheus configuration uses another label, set the
+non-secret Windows environment variable `FARDB_SUPABASE_PROMETHEUS_JOB_PATTERN` before running the script. The
+value is limited to a bounded set of job-label and regular-expression characters.
+
 ## One-time migration from legacy user units
 
 The launcher owns only transient user units named `fardb-backend.service` and `fardb-frontend.service`. It refuses to
@@ -62,6 +67,10 @@ Run these commands from the repository root in Windows PowerShell:
 # Start the full supported path and wait for both scrape targets.
 & .\scripts\observability\fardb-observability.ps1 -Action Start
 
+# Optional: override the non-secret Supabase Prometheus job-label pattern.
+$env:FARDB_SUPABASE_PROMETHEUS_JOB_PATTERN = 'integrations/supabase/.+'
+& .\scripts\observability\fardb-observability.ps1 -Action Start
+
 # Also open four visible Windows Terminal log views.
 & .\scripts\observability\fardb-observability.ps1 -Action Start -ShowLogs
 
@@ -86,7 +95,7 @@ targets only the two exact transient application units unless `-StopInfrastructu
 | Prometheus | `prometheus.service` | HTTP 200 from `/-/ready` on port 9090 |
 | Grafana PDC | `grafana-pdc-agent.service` | HTTP 200 from its loopback metrics endpoint |
 | Application scrape | `job="fardb_fastapi"` | Prometheus reports `up == 1` |
-| Database scrape | `job="integrations/supabase/2758727-metrics-endpoint-Fardb"` | Prometheus reports `up == 1` |
+| Database scrape | `job=~"integrations/supabase/.+"` by default | Prometheus reports every match as `up == 1` |
 
 Status output is bounded to component names, unit/target states, and HTTP status codes. Command stderr and response
 bodies are not relayed, so secrets and sensitive payloads are not printed.

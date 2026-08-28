@@ -5,6 +5,8 @@ param(
 
     [string]$Distribution = 'Ubuntu-26.04',
 
+    [string]$SupabasePrometheusJobPattern = $env:FARDB_SUPABASE_PROMETHEUS_JOB_PATTERN,
+
     [switch]$ShowLogs,
 
     [switch]$StopInfrastructure
@@ -30,8 +32,7 @@ $script:FastApiTargetUrl = (
     'up%7Bjob%3D%22fardb_fastapi%22%7D'
 )
 $script:SupabaseTargetUrl = (
-    'http://127.0.0.1:9090/api/v1/query?query=' +
-    'up%7Bjob%3D%22integrations%2Fsupabase%2F2758727-metrics-endpoint-Fardb%22%7D'
+    'http://127.0.0.1:9090/api/v1/query?query='
 )
 
 function Throw-SafeError {
@@ -60,66 +61,41 @@ function Assert-DistributionInstalled {
     }
 }
 
-function Invoke-WslCapture {
-    param([Parameter(Mandatory)][string[]]$Arguments)
+function Invoke-WslCommand {
+    param(
+        [Parameter(Mandatory)][string[]]$Arguments,
+        [ValidateSet('user', 'root')][string]$Identity = 'user',
+        [switch]$Capture
+    )
 
     $local:ErrorActionPreference = 'Continue'
+    $wslArguments = @('-d', $Distribution)
+    if ($Identity -eq 'root') { $wslArguments += @('-u', 'root') }
+    $wslArguments += @('--') + $Arguments
+
     try {
-        $captured = @(& wsl.exe -d $Distribution -- @Arguments 2>$null)
-        $exitCode = $LASTEXITCODE
-    } catch {
-        $captured = @()
-        $exitCode = 1
-    }
-    return [pscustomobject]@{
-        ExitCode = $exitCode
-        Output = $captured
-    }
-}
-
-function Invoke-WslRootCapture {
-    param([Parameter(Mandatory)][string[]]$Arguments)
-
-    $local:ErrorActionPreference = 'Continue'
-    try {
-        $captured = @(& wsl.exe -d $Distribution -u root -- @Arguments 2>$null)
-        $exitCode = $LASTEXITCODE
-    } catch {
-        $captured = @()
-        $exitCode = 1
-    }
-    return [pscustomobject]@{
-        ExitCode = $exitCode
-        Output = $captured
-    }
-}
-
-function Invoke-WslDiscard {
-    param([Parameter(Mandatory)][string[]]$Arguments)
-
-    $local:ErrorActionPreference = 'Continue'
-    try {
-        & wsl.exe -d $Distribution -- @Arguments 1>$null 2>$null
+        if ($Capture) {
+            $captured = @(& wsl.exe @wslArguments 2>$null)
+            return [pscustomobject]@{
+                ExitCode = $LASTEXITCODE
+                Output = $captured
+            }
+        }
+        & wsl.exe @wslArguments 1>$null 2>$null
         return $LASTEXITCODE
     } catch {
-        return 1
-    }
-}
-
-function Invoke-WslRootDiscard {
-    param([Parameter(Mandatory)][string[]]$Arguments)
-
-    $local:ErrorActionPreference = 'Continue'
-    try {
-        & wsl.exe -d $Distribution -u root -- @Arguments 1>$null 2>$null
-        return $LASTEXITCODE
-    } catch {
+        if ($Capture) {
+            return [pscustomobject]@{
+                ExitCode = 1
+                Output = @()
+            }
+        }
         return 1
     }
 }
 
 function Assert-WslProcessHealthy {
-    if ((Invoke-WslDiscard -Arguments @('/bin/true')) -ne 0) {
+    if ((Invoke-WslCommand -Arguments @('/bin/true')) -ne 0) {
         Throw-SafeError (
             'WSL cannot create a process in the selected distribution. ' +
             'Run wsl --shutdown, repair or restart WSL, and retry; no services were changed.'
@@ -133,7 +109,7 @@ function Get-SingleWslValue {
         [Parameter(Mandatory)][string]$FailureMessage
     )
 
-    $result = Invoke-WslCapture -Arguments $Arguments
+    $result = Invoke-WslCommand -Arguments $Arguments -Capture
     $values = @($result.Output | ForEach-Object { $_.Trim() } | Where-Object { $_ })
     if ($result.ExitCode -ne 0 -or $values.Count -ne 1) {
         Throw-SafeError $FailureMessage
@@ -175,6 +151,20 @@ function Initialize-LauncherPaths {
     $script:NpmPath = '/usr/local/bin/npm'
 }
 
+function Initialize-PrometheusTargetUrls {
+    if ([string]::IsNullOrWhiteSpace($SupabasePrometheusJobPattern)) {
+        $SupabasePrometheusJobPattern = 'integrations/supabase/.+'
+    }
+    if (
+        $SupabasePrometheusJobPattern.Length -gt 128 -or
+        $SupabasePrometheusJobPattern -notmatch '^[A-Za-z0-9_./:+*?-]+$'
+    ) {
+        Throw-SafeError 'The Supabase Prometheus job pattern contains unsupported characters.'
+    }
+    $query = 'up{{job=~"{0}"}}' -f $SupabasePrometheusJobPattern
+    $script:SupabaseTargetUrl += [uri]::EscapeDataString($query)
+}
+
 function Test-WslPath {
     param(
         [Parameter(Mandatory)][ValidateSet('file', 'directory', 'executable')][string]$Kind,
@@ -186,49 +176,37 @@ function Test-WslPath {
         'directory' { '-d' }
         'executable' { '-x' }
     }
-    return (Invoke-WslDiscard -Arguments @('/usr/bin/test', $testFlag, $Path)) -eq 0
+    return (Invoke-WslCommand -Arguments @('/usr/bin/test', $testFlag, $Path)) -eq 0
 }
 
-function Get-UserUnitProperty {
+function Get-UnitProperty {
     param(
         [Parameter(Mandatory)][string]$Unit,
-        [Parameter(Mandatory)][string]$Property
+        [Parameter(Mandatory)][string]$Property,
+        [Parameter(Mandatory)][ValidateSet('user', 'system')][string]$Scope
     )
 
-    $result = Invoke-WslCapture -Arguments @(
-        '/usr/bin/systemctl', '--user', 'show', $Unit, "--property=$Property", '--value', '--no-pager'
-    )
+    $arguments = @('/usr/bin/systemctl')
+    if ($Scope -eq 'user') { $arguments += @('--user') }
+    $arguments += @('show', $Unit, "--property=$Property", '--value', '--no-pager')
+    $identity = if ($Scope -eq 'system') { 'root' } else { 'user' }
+    $result = Invoke-WslCommand -Arguments $arguments -Identity $identity -Capture
     if ($result.ExitCode -ne 0) { return '' }
     return (@($result.Output) | Select-Object -First 1).Trim()
 }
 
-function Get-SystemUnitProperty {
+function Get-UnitState {
     param(
         [Parameter(Mandatory)][string]$Unit,
-        [Parameter(Mandatory)][string]$Property
+        [Parameter(Mandatory)][ValidateSet('user', 'system')][string]$Scope
     )
 
-    $result = Invoke-WslRootCapture -Arguments @(
-        '/usr/bin/systemctl', 'show', $Unit, "--property=$Property", '--value', '--no-pager'
-    )
-    if ($result.ExitCode -ne 0) { return '' }
-    return (@($result.Output) | Select-Object -First 1).Trim()
-}
-
-function Get-UserUnitState {
-    param([Parameter(Mandatory)][string]$Unit)
-
-    if ((Get-UserUnitProperty -Unit $Unit -Property 'LoadState') -ne 'loaded') { return 'inactive' }
-    $state = Get-UserUnitProperty -Unit $Unit -Property 'ActiveState'
-    if (-not $state) { return 'inactive' }
-    return $state
-}
-
-function Get-SystemUnitState {
-    param([Parameter(Mandatory)][string]$Unit)
-
-    if ((Get-SystemUnitProperty -Unit $Unit -Property 'LoadState') -ne 'loaded') { return 'unavailable' }
-    $state = Get-SystemUnitProperty -Unit $Unit -Property 'ActiveState'
+    $loadState = Get-UnitProperty -Unit $Unit -Property 'LoadState' -Scope $Scope
+    if ($loadState -ne 'loaded') {
+        if ($Scope -eq 'system') { return 'unavailable' }
+        return 'inactive'
+    }
+    $state = Get-UnitProperty -Unit $Unit -Property 'ActiveState' -Scope $Scope
     if (-not $state) { return 'inactive' }
     return $state
 }
@@ -236,12 +214,12 @@ function Get-SystemUnitState {
 function Assert-TransientUnitCompatible {
     param([Parameter(Mandatory)][string]$Unit)
 
-    $loadState = Get-UserUnitProperty -Unit $Unit -Property 'LoadState'
+    $loadState = Get-UnitProperty -Unit $Unit -Property 'LoadState' -Scope 'user'
     if (-not $loadState -or $loadState -eq 'not-found') { return }
     if ($loadState -ne 'loaded') {
         Throw-SafeError "The application unit is not in a usable state: $Unit"
     }
-    if ((Get-UserUnitProperty -Unit $Unit -Property 'Transient') -ne 'yes') {
+    if ((Get-UnitProperty -Unit $Unit -Property 'Transient' -Scope 'user') -ne 'yes') {
         Throw-SafeError (
             "A persistent legacy unit conflicts with the required transient unit: $Unit. " +
             'Follow the documented reversible migration before retrying.'
@@ -259,30 +237,43 @@ function Assert-Prerequisites {
         @{ Path = $script:NpmPath; Label = 'the existing npm installation' }
     )
     foreach ($requirement in $requiredExecutables) {
-        if (-not (Test-WslPath -Kind 'executable' -Path $requirement.Path)) {
-            Throw-SafeError "Required prerequisite is unavailable: $($requirement.Label)."
-        }
+        Assert-WslPathAvailable -Kind 'executable' -Path $requirement.Path -Label $requirement.Label
     }
-    if (-not (Test-WslPath -Kind 'file' -Path $script:RuntimeEnvPath)) {
-        Throw-SafeError 'The existing FarDb runtime.env file is unavailable.'
-    }
-    if (-not (Test-WslPath -Kind 'directory' -Path "$($script:FrontendRootWsl)/node_modules")) {
-        Throw-SafeError 'The existing frontend dependencies are unavailable.'
-    }
+    Assert-WslPathAvailable -Kind 'file' -Path $script:RuntimeEnvPath -Label 'the existing FarDb runtime.env file'
+    Assert-WslPathAvailable -Kind 'directory' -Path "$($script:FrontendRootWsl)/node_modules" `
+        -Label 'the existing frontend dependencies'
     foreach ($unit in @($script:PrometheusUnit, $script:PdcUnit)) {
-        if ((Get-SystemUnitProperty -Unit $unit -Property 'LoadState') -ne 'loaded') {
-            Throw-SafeError "Required infrastructure unit is unavailable: $unit"
-        }
+        Assert-SystemUnitAvailable -Unit $unit
+    }
+}
+
+function Assert-WslPathAvailable {
+    param(
+        [Parameter(Mandatory)][ValidateSet('file', 'directory', 'executable')][string]$Kind,
+        [Parameter(Mandatory)][string]$Path,
+        [Parameter(Mandatory)][string]$Label
+    )
+
+    if (-not (Test-WslPath -Kind $Kind -Path $Path)) {
+        Throw-SafeError "Required prerequisite is unavailable: $Label."
+    }
+}
+
+function Assert-SystemUnitAvailable {
+    param([Parameter(Mandatory)][string]$Unit)
+
+    if ((Get-UnitProperty -Unit $Unit -Property 'LoadState' -Scope 'system') -ne 'loaded') {
+        Throw-SafeError "Required infrastructure unit is unavailable: $Unit"
     }
 }
 
 function Get-HttpStatus {
     param([Parameter(Mandatory)][string]$Url)
 
-    $result = Invoke-WslCapture -Arguments @(
+    $result = Invoke-WslCommand -Arguments @(
         '/usr/bin/curl', '--silent', '--show-error', '--output', '/dev/null',
         '--max-time', '3', '--write-out', '%{http_code}', $Url
-    )
+    ) -Capture
     if ($result.ExitCode -ne 0) { return 0 }
     $rawStatus = (@($result.Output) -join '').Trim()
     $status = 0
@@ -293,7 +284,7 @@ function Get-HttpStatus {
 function Test-WslPortListening {
     param([Parameter(Mandatory)][int]$Port)
 
-    $result = Invoke-WslCapture -Arguments @('/usr/bin/ss', '-H', '-ltn', "sport = :$Port")
+    $result = Invoke-WslCommand -Arguments @('/usr/bin/ss', '-H', '-ltn', "sport = :$Port") -Capture
     return $result.ExitCode -eq 0 -and @($result.Output | Where-Object { $_.Trim() }).Count -gt 0
 }
 
@@ -307,9 +298,9 @@ function Assert-PortOwnedByUnit {
 
     if (-not (Test-WslPortListening -Port $Port)) { return }
     $unitState = if ($Scope -eq 'user') {
-        Get-UserUnitState -Unit $Unit
+        Get-UnitState -Unit $Unit -Scope 'user'
     } else {
-        Get-SystemUnitState -Unit $Unit
+        Get-UnitState -Unit $Unit -Scope 'system'
     }
     if ($unitState -ne 'active') {
         Throw-SafeError $RecoveryMessage
@@ -317,9 +308,9 @@ function Assert-PortOwnedByUnit {
 }
 
 function Start-Infrastructure {
-    $exitCode = Invoke-WslRootDiscard -Arguments @(
+    $exitCode = Invoke-WslCommand -Arguments @(
         '/usr/bin/systemctl', 'start', $script:PrometheusUnit, $script:PdcUnit
-    )
+    ) -Identity 'root'
     if ($exitCode -ne 0) {
         Throw-SafeError 'Prometheus or Grafana PDC failed to start; inspect the exact system units locally.'
     }
@@ -329,7 +320,7 @@ function Wait-TransientUnitUnloaded {
     param([Parameter(Mandatory)][string]$Unit)
 
     for ($attempt = 1; $attempt -le 20; $attempt++) {
-        $loadState = Get-UserUnitProperty -Unit $Unit -Property 'LoadState'
+        $loadState = Get-UnitProperty -Unit $Unit -Property 'LoadState' -Scope 'user'
         if (-not $loadState -or $loadState -eq 'not-found') { return }
         Start-Sleep -Milliseconds 100
     }
@@ -343,11 +334,11 @@ function Start-TransientUserUnit {
         [Parameter(Mandatory)][string[]]$Command
     )
 
-    if ((Get-UserUnitState -Unit $Unit) -eq 'active') { return }
+    if ((Get-UnitState -Unit $Unit -Scope 'user') -eq 'active') { return }
 
-    $loadState = Get-UserUnitProperty -Unit $Unit -Property 'LoadState'
+    $loadState = Get-UnitProperty -Unit $Unit -Property 'LoadState' -Scope 'user'
     if ($loadState -eq 'loaded') {
-        [void](Invoke-WslDiscard -Arguments @('/usr/bin/systemctl', '--user', 'reset-failed', $Unit))
+        [void](Invoke-WslCommand -Arguments @('/usr/bin/systemctl', '--user', 'reset-failed', $Unit))
         Wait-TransientUnitUnloaded -Unit $Unit
     }
 
@@ -356,13 +347,13 @@ function Start-TransientUserUnit {
         '--property=Type=simple', "--property=WorkingDirectory=$WorkingDirectory",
         "--property=EnvironmentFile=$($script:RuntimeEnvPath)", '--'
     ) + $Command
-    if ((Invoke-WslDiscard -Arguments $arguments) -ne 0) {
+    if ((Invoke-WslCommand -Arguments $arguments) -ne 0) {
         Throw-SafeError "The transient application unit failed to start: $Unit"
     }
 }
 
 function Start-Application {
-    $backendWasActive = (Get-UserUnitState -Unit $script:BackendUnit) -eq 'active'
+    $backendWasActive = (Get-UnitState -Unit $script:BackendUnit -Scope 'user') -eq 'active'
     $backendStart = @{
         Unit = $script:BackendUnit
         WorkingDirectory = $script:RepoRootWsl
@@ -384,7 +375,7 @@ function Start-Application {
         Start-TransientUserUnit @frontendStart
     } catch {
         if (-not $backendWasActive) {
-            [void](Invoke-WslDiscard -Arguments @('/usr/bin/systemctl', '--user', 'stop', $script:BackendUnit))
+            [void](Invoke-WslCommand -Arguments @('/usr/bin/systemctl', '--user', 'stop', $script:BackendUnit))
         }
         throw
     }
@@ -407,7 +398,9 @@ function Wait-HttpReady {
 function Test-PrometheusTargetUp {
     param([Parameter(Mandatory)][string]$QueryUrl)
 
-    $result = Invoke-WslCapture -Arguments @('/usr/bin/curl', '--silent', '--show-error', '--max-time', '3', $QueryUrl)
+    $result = Invoke-WslCommand -Arguments @(
+        '/usr/bin/curl', '--silent', '--show-error', '--max-time', '3', $QueryUrl
+    ) -Capture
     if ($result.ExitCode -ne 0) { return $false }
     try {
         $document = ((@($result.Output) -join "`n") | ConvertFrom-Json -ErrorAction Stop)
@@ -445,35 +438,26 @@ function Write-StatusRow {
 }
 
 function Show-Status {
-    $backendStatus = @{
-        Component = 'FarDb backend'
-        State = Get-UserUnitState -Unit $script:BackendUnit
-        HttpStatus = Get-HttpStatus -Url $script:BackendHealthUrl
+    $components = @(
+        @{ Component = 'FarDb backend'; Unit = $script:BackendUnit; Scope = 'user'; Url = $script:BackendHealthUrl },
+        @{ Component = 'FarDb frontend'; Unit = $script:FrontendUnit; Scope = 'user'; Url = $script:FrontendHealthUrl },
+        @{ Component = 'Prometheus'; Unit = $script:PrometheusUnit; Scope = 'system'; Url = $script:PrometheusHealthUrl },
+        @{ Component = 'Grafana PDC'; Unit = $script:PdcUnit; Scope = 'system'; Url = $script:PdcHealthUrl }
+    )
+    foreach ($component in $components) {
+        $state = Get-UnitState -Unit $component.Unit -Scope $component.Scope
+        $httpStatus = Get-HttpStatus -Url $component.Url
+        Write-StatusRow -Component $component.Component -State $state -HttpStatus $httpStatus
     }
-    $frontendStatus = @{
-        Component = 'FarDb frontend'
-        State = Get-UserUnitState -Unit $script:FrontendUnit
-        HttpStatus = Get-HttpStatus -Url $script:FrontendHealthUrl
-    }
-    $prometheusStatus = @{
-        Component = 'Prometheus'
-        State = Get-SystemUnitState -Unit $script:PrometheusUnit
-        HttpStatus = Get-HttpStatus -Url $script:PrometheusHealthUrl
-    }
-    $pdcStatus = @{
-        Component = 'Grafana PDC'
-        State = Get-SystemUnitState -Unit $script:PdcUnit
-        HttpStatus = Get-HttpStatus -Url $script:PdcHealthUrl
-    }
-    Write-StatusRow @backendStatus
-    Write-StatusRow @frontendStatus
-    Write-StatusRow @prometheusStatus
-    Write-StatusRow @pdcStatus
 
-    $fastApiState = if (Test-PrometheusTargetUp -QueryUrl $script:FastApiTargetUrl) { 'up' } else { 'down' }
-    $supabaseState = if (Test-PrometheusTargetUp -QueryUrl $script:SupabaseTargetUrl) { 'up' } else { 'down' }
-    Write-StatusRow -Component 'Prometheus target fardb_fastapi' -State $fastApiState -HttpStatus 'n/a'
-    Write-StatusRow -Component 'Prometheus target Supabase' -State $supabaseState -HttpStatus 'n/a'
+    $targets = @(
+        @{ Component = 'Prometheus target fardb_fastapi'; Url = $script:FastApiTargetUrl },
+        @{ Component = 'Prometheus target Supabase'; Url = $script:SupabaseTargetUrl }
+    )
+    foreach ($target in $targets) {
+        $state = if (Test-PrometheusTargetUp -QueryUrl $target.Url) { 'up' } else { 'down' }
+        Write-StatusRow -Component $target.Component -State $state -HttpStatus 'n/a'
+    }
 }
 
 function Open-LogWindows {
@@ -557,10 +541,10 @@ function Start-Observability {
 function Stop-TransientUserUnit {
     param([Parameter(Mandatory)][string]$Unit)
 
-    $loadState = Get-UserUnitProperty -Unit $Unit -Property 'LoadState'
+    $loadState = Get-UnitProperty -Unit $Unit -Property 'LoadState' -Scope 'user'
     if (-not $loadState -or $loadState -eq 'not-found') { return }
     Assert-TransientUnitCompatible -Unit $Unit
-    if ((Invoke-WslDiscard -Arguments @('/usr/bin/systemctl', '--user', 'stop', $Unit)) -ne 0) {
+    if ((Invoke-WslCommand -Arguments @('/usr/bin/systemctl', '--user', 'stop', $Unit)) -ne 0) {
         Throw-SafeError "The transient application unit did not stop cleanly: $Unit"
     }
 }
@@ -570,9 +554,9 @@ function Stop-Observability {
     Stop-TransientUserUnit -Unit $script:BackendUnit
 
     if ($StopInfrastructure) {
-        if ((Invoke-WslRootDiscard -Arguments @(
+        if ((Invoke-WslCommand -Arguments @(
             '/usr/bin/systemctl', 'stop', $script:PdcUnit, $script:PrometheusUnit
-        )) -ne 0) {
+        ) -Identity 'root') -ne 0) {
             Throw-SafeError 'Prometheus or Grafana PDC did not stop cleanly.'
         }
     }
@@ -584,6 +568,7 @@ try {
     Assert-DistributionInstalled
     Assert-WslProcessHealthy
     Initialize-LauncherPaths
+    Initialize-PrometheusTargetUrls
 
     switch ($Action) {
         'Start' { Start-Observability }

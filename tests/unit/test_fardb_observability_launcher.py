@@ -140,10 +140,12 @@ def test_health_contract_covers_components_and_both_targets() -> None:
         "http://127.0.0.1:9090/-/ready",
         "http://127.0.0.1:8090/metrics",
         "fardb_fastapi",
-        "integrations%2Fsupabase%2F2758727-metrics-endpoint-Fardb",
+        "FARDB_SUPABASE_PROMETHEUS_JOB_PATTERN",
+        "integrations/supabase/.+",
         "Wait-PrometheusTargetUp",
     ):
         assert expected in text
+    assert "2758727-metrics-endpoint-Fardb" not in text
 
 
 def test_log_views_are_explicit_and_visible_only_on_request() -> None:
