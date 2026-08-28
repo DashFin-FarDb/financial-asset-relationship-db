@@ -193,11 +193,13 @@ function Initialize-LauncherPath {
     Assert-WslAbsolutePath -Path $script:RepoRootWsl -Label 'Repository root'
     Assert-WslAbsolutePath -Path $script:WslHome -Label 'WSL home'
 
+    $script:FrontendRootWindows = Join-Path $script:RepoRootWindows 'frontend'
     $script:FrontendRootWsl = "$($script:RepoRootWsl)/frontend"
     $script:FrontendInstallManifestPath = "$($script:FrontendRootWsl)/node_modules/.package-lock.json"
     $script:RuntimeEnvPath = "$($script:WslHome)/.config/fardb-observability/runtime.env"
     $script:PythonPath = "$($script:WslHome)/.local/share/fardb-observability/venv/bin/python"
     $script:NpmPath = Resolve-WslExecutablePath -Candidates @('/usr/local/bin/npm', '/usr/bin/npm') -Label 'npm'
+    $script:WindowsTarPath = Join-Path $env:SystemRoot 'System32\tar.exe'
 }
 
 function Initialize-PrometheusTargetSetting {
@@ -293,6 +295,91 @@ function Get-StringSha256 {
         $algorithm.Dispose()
     }
     return ([BitConverter]::ToString($digest)).Replace('-', '').ToLowerInvariant()
+}
+
+function ConvertTo-NativeQuotedArgument {
+    param([Parameter(Mandatory)][AllowEmptyString()][string]$Value)
+
+    if ($Value.Length -gt 0 -and $Value -notmatch '[\s"]') { return $Value }
+    $builder = [Text.StringBuilder]::new()
+    [void]$builder.Append('"')
+    $backslashCount = 0
+    foreach ($character in $Value.ToCharArray()) {
+        if ($character -eq '\') {
+            $backslashCount++
+            continue
+        }
+        if ($character -eq '"') {
+            if ($backslashCount -gt 0) {
+                [void]$builder.Append((('\' * (2 * $backslashCount)) -join ''))
+                $backslashCount = 0
+            }
+            [void]$builder.Append('\')
+            [void]$builder.Append('"')
+            continue
+        }
+        if ($backslashCount -gt 0) {
+            [void]$builder.Append((('\' * $backslashCount) -join ''))
+            $backslashCount = 0
+        }
+        [void]$builder.Append($character)
+    }
+    if ($backslashCount -gt 0) {
+        [void]$builder.Append((('\' * (2 * $backslashCount)) -join ''))
+    }
+    [void]$builder.Append('"')
+    return $builder.ToString()
+}
+
+function Get-NativeStreamSha256 {
+    param(
+        [Parameter(Mandatory)][string]$FilePath,
+        [Parameter(Mandatory)][AllowEmptyCollection()][string[]]$Arguments,
+        [Parameter(Mandatory)][string]$FailureMessage,
+        [ValidateRange(1, 120)][int]$TimeoutSeconds = 60
+    )
+
+    $startInfo = [Diagnostics.ProcessStartInfo]::new()
+    $startInfo.FileName = $FilePath
+    $startInfo.Arguments = (@($Arguments | ForEach-Object { ConvertTo-NativeQuotedArgument -Value $_ }) -join ' ')
+    $startInfo.UseShellExecute = $false
+    $startInfo.CreateNoWindow = $true
+    $startInfo.RedirectStandardOutput = $true
+    $startInfo.RedirectStandardError = $true
+
+    $process = [Diagnostics.Process]::new()
+    $process.StartInfo = $startInfo
+    $algorithm = [Security.Cryptography.SHA256]::Create()
+    $cryptoStream = $null
+    try {
+        if (-not $process.Start()) { Write-SafeError $FailureMessage }
+        $cryptoStream = [Security.Cryptography.CryptoStream]::new(
+            [IO.Stream]::Null,
+            $algorithm,
+            [Security.Cryptography.CryptoStreamMode]::Write
+        )
+        $copyTask = $process.StandardOutput.BaseStream.CopyToAsync($cryptoStream)
+        $errorTask = $process.StandardError.ReadToEndAsync()
+        $timedOut = -not $process.WaitForExit($TimeoutSeconds * 1000)
+        if ($timedOut) {
+            try { $process.Kill() } catch { }
+            $process.WaitForExit()
+        }
+        try {
+            $copyTask.GetAwaiter().GetResult()
+            [void]$errorTask.GetAwaiter().GetResult()
+        } catch {
+            Write-SafeError $FailureMessage
+        }
+        if ($timedOut -or $process.ExitCode -ne 0) { Write-SafeError $FailureMessage }
+        $cryptoStream.FlushFinalBlock()
+        if ($null -eq $algorithm.Hash -or $algorithm.Hash.Length -ne 32) { Write-SafeError $FailureMessage }
+        return ([BitConverter]::ToString($algorithm.Hash)).Replace('-', '').ToLowerInvariant()
+    } finally {
+        if ($null -ne $cryptoStream) { $cryptoStream.Dispose() }
+        $algorithm.Dispose()
+        $process.Dispose()
+    }
 }
 
 function Get-WslFileSha256 {
@@ -437,9 +524,18 @@ function Initialize-RuntimeInputFingerprint {
     $pythonInventoryFingerprint = Get-WslCommandOutputSha256 -Arguments @(
         $script:PythonPath, '-I', '-m', 'pip', 'list', '--format=json', '--disable-pip-version-check'
     ) -FailureMessage 'The installed Python dependency state could not be fingerprinted safely.'
+    $frontendBytesFingerprint = Get-NativeStreamSha256 -FilePath $script:WindowsTarPath -Arguments @(
+        '-cf', '-', '--exclude=*/.bin', '-C', $script:FrontendRootWindows, 'node_modules'
+    ) -FailureMessage 'The installed frontend dependency bytes could not be fingerprinted safely.'
+    $pythonBytesFingerprint = Get-NativeStreamSha256 -FilePath 'wsl.exe' -Arguments @(
+        '-d', $Distribution, '--', '/usr/bin/tar', '--sort=name', '--mtime=@0', '--owner=0', '--group=0',
+        '--numeric-owner', '--exclude=__pycache__', '--exclude=*.pyc', '--exclude=*.pyo', '-cf', '-',
+        '-C', "$($script:WslHome)/.local/share/fardb-observability", 'venv'
+    ) -FailureMessage 'The installed Python dependency bytes could not be fingerprinted safely.'
     $script:RuntimeInputFingerprint = Get-StringSha256 -Value (
         "$environmentFingerprint`0$repositoryFingerprint`0$frontendManifestFingerprint`0" +
-        "$frontendInventoryFingerprint`0$pythonInventoryFingerprint"
+        "$frontendInventoryFingerprint`0$pythonInventoryFingerprint`0" +
+        "$frontendBytesFingerprint`0$pythonBytesFingerprint"
     )
 }
 
@@ -476,12 +572,16 @@ function Assert-TransientUnitCompatible {
 }
 
 function Assert-Prerequisite {
+    if (-not [IO.File]::Exists($script:WindowsTarPath)) {
+        Write-SafeError 'Required prerequisite is unavailable: Windows tar for dependency fingerprinting.'
+    }
     $requiredExecutables = @(
         @{ Path = '/usr/bin/curl'; Label = 'curl' },
         @{ Path = '/usr/bin/sha256sum'; Label = 'sha256sum' },
         @{ Path = '/usr/bin/ss'; Label = 'ss' },
         @{ Path = '/usr/bin/systemctl'; Label = 'systemctl' },
         @{ Path = '/usr/bin/systemd-run'; Label = 'systemd-run' },
+        @{ Path = '/usr/bin/tar'; Label = 'tar for dependency fingerprinting' },
         @{ Path = $script:PythonPath; Label = 'the existing FarDb Python environment' },
         @{ Path = $script:NpmPath; Label = 'the existing npm installation' }
     )

@@ -25,19 +25,27 @@ distribution with the same prerequisites.
 The selected distribution must already contain:
 
 - working WSL process creation and systemd user sessions;
-- `/usr/bin/systemctl`, `/usr/bin/systemd-run`, `/usr/bin/curl`, `/usr/bin/sha256sum`, and `/usr/bin/ss`;
+- `/usr/bin/systemctl`, `/usr/bin/systemd-run`, `/usr/bin/curl`, `/usr/bin/sha256sum`, `/usr/bin/tar`, and
+  `/usr/bin/ss`;
 - system units `prometheus.service` and `grafana-pdc-agent.service`;
 - `$HOME/.config/fardb-observability/runtime.env`;
 - `$HOME/.local/share/fardb-observability/venv/bin/python` with the FarDb backend dependencies;
 - npm at `/usr/local/bin/npm` or `/usr/bin/npm`; and
 - the checkout's existing `frontend/node_modules` directory and its npm installation manifest.
 
+Windows must also provide the built-in `%SystemRoot%\System32\tar.exe`. The launcher streams both dependency trees
+through SHA-256 without creating an archive or consuming temporary disk space. Each byte scan has a 60-second ceiling.
+Generated Python bytecode/cache files are excluded because ordinary execution changes them while their source package
+files are included. npm `.bin` link farms are excluded from the Windows archive because their target package files are
+included, and the npm inventory separately fingerprints the installed package layout.
+
 Windows Git must be available on `PATH`. The launcher derives the backend and frontend working directories from its
 own repository checkout. It never prints the contents of `runtime.env`; it combines a one-way file digest with the
 current Git revision, tracked changes, untracked-file digests, the installed npm manifest, a bounded `npm ls` inventory,
-and a bounded Python `pip list` inventory into a second one-way runtime fingerprint. The dependency inventories are
-limited to 4 MiB each and their raw package details are never printed. Only the final fingerprint is placed in the local
-unit description. Credential values must not be placed in command arguments.
+a bounded Python `pip list` inventory, and streaming byte digests of both installed dependency trees into a second
+one-way runtime fingerprint. The dependency inventories are limited to 4 MiB each and their raw package details are
+never printed. Only the final fingerprint is placed in the local unit description. Credential values must not be placed
+in command arguments.
 
 `npm ls` exit code 1 is accepted only as inventory material because npm uses it for a valid JSON tree that records
 existing invalid/extraneous package problems; that exact problem state is hashed as well. Other npm failures, malformed
@@ -92,10 +100,11 @@ $env:FARDB_SUPABASE_PROMETHEUS_JOB_PREFIX = 'integrations/supabase/'
 
 `Start` is idempotent and never replaces an active application unit implicitly. A matching active unit is reused only
 when its command, working directory, environment-file path, fingerprinted repository/runtime inputs, installed npm
-manifest, complete npm package inventory, and Python package inventory still match. A repeated `Start` is therefore a
-healthy no-op for the same managed dependency state. A dependency install, removal, or version/layout change makes the
-identity differ, so Start fails without touching the active unit and requires an explicit `-Action Stop` followed by
-`-Action Start`. `Stop` targets only the two exact transient application units unless `-StopInfrastructure` is supplied.
+manifest, complete npm package inventory, Python package inventory, and installed dependency bytes still match. A
+repeated `Start` is therefore a healthy no-op for the same dependency state. A dependency install, removal,
+version/layout change, or in-place file change makes the identity differ, so Start fails without touching the active unit
+and requires an explicit `-Action Stop` followed by `-Action Start`. `Stop` targets only the two exact transient
+application units unless `-StopInfrastructure` is supplied.
 Launcher actions are serialized per WSL distribution; a concurrent invocation fails without changing services.
 Listening-process cgroups must also match the expected exact units.
 
