@@ -198,6 +198,7 @@ function Initialize-LauncherPath {
     $script:RuntimeEnvPath = "$($script:WslHome)/.config/fardb-observability/runtime.env"
     $script:PythonPath = "$($script:WslHome)/.local/share/fardb-observability/venv/bin/python"
     $script:NpmPath = Resolve-WslExecutablePath -Candidates @('/usr/local/bin/npm', '/usr/bin/npm') -Label 'npm'
+    $script:NodePath = Resolve-WslExecutablePath -Candidates @('/usr/local/bin/node', '/usr/bin/node') -Label 'Node.js'
 }
 
 function Initialize-PrometheusTargetSetting {
@@ -553,10 +554,14 @@ function Initialize-RuntimeInputFingerprint {
         '--numeric-owner', '--exclude=__pycache__', '--exclude=*.pyc', '--exclude=*.pyo', '-cf', '-',
         '-C', "$($script:WslHome)/.local/share/fardb-observability", 'venv'
     ) -FailureMessage 'The installed Python dependency bytes could not be fingerprinted safely.'
+    $pythonRuntimeFingerprint = Get-WslFileSha256 -Path $script:PythonPath
+    $npmRuntimeFingerprint = Get-WslFileSha256 -Path $script:NpmPath
+    $nodeRuntimeFingerprint = Get-WslFileSha256 -Path $script:NodePath
     $script:RuntimeInputFingerprint = Get-StringSha256 -Value (
         "$environmentFingerprint`0$repositoryFingerprint`0$frontendManifestFingerprint`0" +
         "$frontendInventoryFingerprint`0$pythonInventoryFingerprint`0" +
-        "$frontendBytesFingerprint`0$pythonBytesFingerprint"
+        "$frontendBytesFingerprint`0$pythonBytesFingerprint`0$pythonRuntimeFingerprint`0" +
+        "$npmRuntimeFingerprint`0$nodeRuntimeFingerprint"
     )
 }
 
@@ -601,7 +606,8 @@ function Assert-Prerequisite {
         @{ Path = '/usr/bin/systemd-run'; Label = 'systemd-run' },
         @{ Path = '/usr/bin/tar'; Label = 'tar for dependency fingerprinting' },
         @{ Path = $script:PythonPath; Label = 'the existing FarDb Python environment' },
-        @{ Path = $script:NpmPath; Label = 'the existing npm installation' }
+        @{ Path = $script:NpmPath; Label = 'the existing npm installation' },
+        @{ Path = $script:NodePath; Label = 'the existing Node.js runtime' }
     )
     foreach ($requirement in $requiredExecutables) {
         Assert-WslPathAvailable -Kind 'executable' -Path $requirement.Path -Label $requirement.Label

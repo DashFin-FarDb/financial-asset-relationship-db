@@ -30,7 +30,7 @@ The selected distribution must already contain:
 - system units `prometheus.service` and `grafana-pdc-agent.service`;
 - `$HOME/.config/fardb-observability/runtime.env`;
 - `$HOME/.local/share/fardb-observability/venv/bin/python` with the FarDb backend dependencies;
-- npm at `/usr/local/bin/npm` or `/usr/bin/npm`; and
+- npm and Node.js at `/usr/local/bin` or `/usr/bin`; and
 - the checkout's existing `frontend/node_modules` directory and its npm installation manifest.
 
 The launcher streams both dependency trees through normalized WSL tar archives and SHA-256 without creating an archive
@@ -43,9 +43,10 @@ Windows Git must be available on `PATH`. The launcher derives the backend and fr
 own repository checkout. It never prints the contents of `runtime.env`; it combines a one-way file digest with the
 current Git revision, tracked changes, untracked-file digests, the installed npm manifest, a bounded `npm ls` inventory,
 a bounded Python `pip list` inventory, and streaming byte digests of both installed dependency trees into a second
-one-way runtime fingerprint. The dependency inventories are limited to 4 MiB each and their raw package details are
-never printed. Only the final fingerprint is placed in the local unit description. Credential values must not be placed
-in command arguments.
+one-way runtime fingerprint. Direct file digests of the resolved venv Python interpreter, npm executable, and Node.js
+runtime also bind external runtime upgrades to that identity. The dependency inventories are limited to 4 MiB each and
+their raw package details are never printed. Only the final fingerprint is placed in the local unit description.
+Credential values must not be placed in command arguments.
 
 `npm ls` exit code 1 is accepted only as inventory material because npm uses it for a valid JSON tree that records
 existing invalid/extraneous package problems; that exact problem state is hashed as well. Other npm failures, malformed
