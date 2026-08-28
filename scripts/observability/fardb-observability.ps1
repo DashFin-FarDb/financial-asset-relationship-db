@@ -5,7 +5,7 @@ param(
 
     [string]$Distribution = 'Ubuntu-26.04',
 
-    [string]$SupabasePrometheusJobPattern = $env:FARDB_SUPABASE_PROMETHEUS_JOB_PATTERN,
+    [string]$SupabasePrometheusJobPrefix = $env:FARDB_SUPABASE_PROMETHEUS_JOB_PREFIX,
 
     [ValidateRange(5, 300)][int]$ReadinessTimeoutSeconds = 75,
 
@@ -30,7 +30,7 @@ $script:FrontendHealthUrl = 'http://127.0.0.1:3000/'
 $script:PrometheusHealthUrl = 'http://127.0.0.1:9090/-/ready'
 $script:PdcHealthUrl = 'http://127.0.0.1:8090/metrics'
 $script:PrometheusTargetsUrl = 'http://127.0.0.1:9090/api/v1/targets?state=active'
-$script:FastApiTargetPattern = '^fardb_fastapi$'
+$script:FastApiTargetJob = 'fardb_fastapi'
 $script:LauncherMutex = $null
 $script:LauncherMutexOwned = $false
 
@@ -142,6 +142,18 @@ function Get-SingleWslValue {
     return $values[0]
 }
 
+function Resolve-WslExecutablePath {
+    param(
+        [Parameter(Mandatory)][string[]]$Candidates,
+        [Parameter(Mandatory)][string]$Label
+    )
+
+    foreach ($candidate in $Candidates) {
+        if (Test-WslPath -Kind 'executable' -Path $candidate) { return $candidate }
+    }
+    Throw-SafeError "Required prerequisite is unavailable: $Label."
+}
+
 function Assert-WslAbsolutePath {
     param(
         [Parameter(Mandatory)][string]$Path,
@@ -176,20 +188,20 @@ function Initialize-LauncherPaths {
     $script:FrontendRootWsl = "$($script:RepoRootWsl)/frontend"
     $script:RuntimeEnvPath = "$($script:WslHome)/.config/fardb-observability/runtime.env"
     $script:PythonPath = "$($script:WslHome)/.local/share/fardb-observability/venv/bin/python"
-    $script:NpmPath = '/usr/local/bin/npm'
+    $script:NpmPath = Resolve-WslExecutablePath -Candidates @('/usr/local/bin/npm', '/usr/bin/npm') -Label 'npm'
 }
 
 function Initialize-PrometheusTargetSettings {
-    if ([string]::IsNullOrWhiteSpace($SupabasePrometheusJobPattern)) {
-        $SupabasePrometheusJobPattern = 'integrations/supabase/.+'
+    if ([string]::IsNullOrWhiteSpace($SupabasePrometheusJobPrefix)) {
+        $SupabasePrometheusJobPrefix = 'integrations/supabase/'
     }
     if (
-        $SupabasePrometheusJobPattern.Length -gt 128 -or
-        $SupabasePrometheusJobPattern -notmatch '^[A-Za-z0-9_./:+*?-]+$'
+        $SupabasePrometheusJobPrefix.Length -gt 128 -or
+        $SupabasePrometheusJobPrefix -notmatch '^[A-Za-z0-9_./:-]+$'
     ) {
-        Throw-SafeError 'The Supabase Prometheus job pattern contains unsupported characters.'
+        Throw-SafeError 'The Supabase Prometheus job prefix contains unsupported characters.'
     }
-    $script:SupabaseTargetPattern = $SupabasePrometheusJobPattern
+    $script:SupabaseTargetJobPrefix = $SupabasePrometheusJobPrefix
 }
 
 function Test-WslPath {
@@ -247,19 +259,35 @@ function Assert-ActiveTransientUnitMatches {
 
     $actualDirectory = Get-UnitProperty -Unit $Unit -Property 'WorkingDirectory' -Scope 'user'
     $actualEnvironment = Get-UnitProperty -Unit $Unit -Property 'EnvironmentFiles' -Scope 'user'
-    $actualCommand = Get-UnitProperty -Unit $Unit -Property 'ExecStart' -Scope 'user'
+    $actualDescription = Get-UnitProperty -Unit $Unit -Property 'Description' -Scope 'user'
     $expectedEnvironment = "$($script:RuntimeEnvPath) (ignore_errors=no)"
-    $expectedArgv = [regex]::Escape(($Command -join ' '))
-    $commandMatches = $actualCommand -match ("argv\[\]=" + $expectedArgv + ' ;')
+    $expectedDescription = Get-TransientUnitIdentity -WorkingDirectory $WorkingDirectory -Command $Command
     if ($actualDirectory -ne $WorkingDirectory) {
         Throw-SafeError "The active transient unit belongs to another launcher configuration: $Unit"
     }
     if ($actualEnvironment -ne $expectedEnvironment) {
         Throw-SafeError "The active transient unit belongs to another launcher configuration: $Unit"
     }
-    if (-not $commandMatches) {
+    if ($actualDescription -ne $expectedDescription) {
         Throw-SafeError "The active transient unit belongs to another launcher configuration: $Unit"
     }
+}
+
+function Get-TransientUnitIdentity {
+    param(
+        [Parameter(Mandatory)][string]$WorkingDirectory,
+        [Parameter(Mandatory)][string[]]$Command
+    )
+
+    $identityMaterial = (@($WorkingDirectory, $script:RuntimeEnvPath) + $Command) -join "`0"
+    $algorithm = [Security.Cryptography.SHA256]::Create()
+    try {
+        $digest = $algorithm.ComputeHash([Text.Encoding]::UTF8.GetBytes($identityMaterial))
+    } finally {
+        $algorithm.Dispose()
+    }
+    $fingerprint = ([BitConverter]::ToString($digest)).Replace('-', '').ToLowerInvariant()
+    return "FarDb observability launcher $fingerprint"
 }
 
 function Assert-TransientUnitCompatible {
@@ -425,7 +453,8 @@ function Start-TransientUserUnit {
     $arguments = @(
         '/usr/bin/systemd-run', '--user', "--unit=$Unit", '--collect', '--quiet',
         '--property=Type=simple', "--property=WorkingDirectory=$WorkingDirectory",
-        "--property=EnvironmentFile=$($script:RuntimeEnvPath)", '--'
+        "--property=EnvironmentFile=$($script:RuntimeEnvPath)",
+        "--property=Description=$(Get-TransientUnitIdentity -WorkingDirectory $WorkingDirectory -Command $Command)", '--'
     ) + $Command
     if ((Invoke-WslCommand -Arguments $arguments) -ne 0) {
         Throw-SafeError "The transient application unit failed to start: $Unit"
@@ -493,16 +522,30 @@ function Get-PrometheusActiveTargets {
 function Test-PrometheusTargetSetUp {
     param(
         [Parameter(Mandatory)][object[]]$Targets,
-        [Parameter(Mandatory)][string]$JobPattern,
+        [Parameter(Mandatory)][string]$JobSelector,
+        [Parameter(Mandatory)][ValidateSet('exact', 'prefix')][string]$MatchMode,
         [datetimeoffset]$NotBefore = [datetimeoffset]::MinValue
     )
 
-    $matchingTargets = @($Targets | Where-Object { "$($_.labels.job)" -match $JobPattern })
+    $matchingTargets = @($Targets | Where-Object {
+        Test-PrometheusJobMatch -Job "$($_.labels.job)" -Selector $JobSelector -MatchMode $MatchMode
+    })
     if ($matchingTargets.Count -eq 0) { return $false }
     $unhealthyTargets = @($matchingTargets | Where-Object {
         -not (Test-PrometheusTargetFreshAndHealthy -Target $_ -NotBefore $NotBefore)
     })
     return $unhealthyTargets.Count -eq 0
+}
+
+function Test-PrometheusJobMatch {
+    param(
+        [Parameter(Mandatory)][string]$Job,
+        [Parameter(Mandatory)][string]$Selector,
+        [Parameter(Mandatory)][ValidateSet('exact', 'prefix')][string]$MatchMode
+    )
+
+    if ($MatchMode -eq 'exact') { return $Job -eq $Selector }
+    return $Job.StartsWith($Selector, [StringComparison]::Ordinal)
 }
 
 function Test-PrometheusTargetFreshAndHealthy {
@@ -525,14 +568,15 @@ function Wait-PrometheusTargetsUp {
     )
 
     $definitions = @(
-        @{ Name = 'FastAPI'; Pattern = $script:FastApiTargetPattern },
-        @{ Name = 'Supabase'; Pattern = $script:SupabaseTargetPattern }
+        @{ Name = 'FastAPI'; Selector = $script:FastApiTargetJob; MatchMode = 'exact' },
+        @{ Name = 'Supabase'; Selector = $script:SupabaseTargetJobPrefix; MatchMode = 'prefix' }
     )
     $timer = [Diagnostics.Stopwatch]::StartNew()
     while ($timer.Elapsed.TotalSeconds -lt $TimeoutSeconds) {
         $targets = @(Get-PrometheusActiveTargets)
         $pending = @($definitions | Where-Object {
-            -not (Test-PrometheusTargetSetUp -Targets $targets -JobPattern $_.Pattern -NotBefore $NotBefore)
+            -not (Test-PrometheusTargetSetUp -Targets $targets -JobSelector $_.Selector `
+                -MatchMode $_.MatchMode -NotBefore $NotBefore)
         })
         if ($pending.Count -eq 0) { return }
         if ($timer.Elapsed.TotalSeconds -lt $TimeoutSeconds) { Start-Sleep -Milliseconds 500 }
@@ -566,11 +610,12 @@ function Show-Status {
 
     $activeTargets = @(Get-PrometheusActiveTargets)
     $targetDefinitions = @(
-        @{ Component = 'Prometheus target fardb_fastapi'; Pattern = $script:FastApiTargetPattern },
-        @{ Component = 'Prometheus target Supabase'; Pattern = $script:SupabaseTargetPattern }
+        @{ Component = 'Prometheus target fardb_fastapi'; Selector = $script:FastApiTargetJob; MatchMode = 'exact' },
+        @{ Component = 'Prometheus target Supabase'; Selector = $script:SupabaseTargetJobPrefix; MatchMode = 'prefix' }
     )
     foreach ($target in $targetDefinitions) {
-        $state = if (Test-PrometheusTargetSetUp -Targets $activeTargets -JobPattern $target.Pattern) {
+        $state = if (Test-PrometheusTargetSetUp -Targets $activeTargets -JobSelector $target.Selector `
+                -MatchMode $target.MatchMode) {
             'up'
         } else {
             'down'
