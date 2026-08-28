@@ -201,7 +201,7 @@ function Initialize-PrometheusTargetSetting {
         $SupabasePrometheusJobPrefix = 'integrations/supabase/'
     }
     if ($SupabasePrometheusJobPrefix.Length -gt 128) {
-        Write-SafeError 'The Supabase Prometheus job prefix contains unsupported characters.'
+        Write-SafeError 'The Supabase Prometheus job prefix exceeds 128 characters.'
     }
     if ($SupabasePrometheusJobPrefix -notmatch '^[A-Za-z0-9_./:-]+$') {
         Write-SafeError 'The Supabase Prometheus job prefix contains unsupported characters.'
