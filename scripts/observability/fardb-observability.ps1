@@ -632,7 +632,14 @@ function Test-ActiveTransientUnitReusable {
         [Parameter(Mandatory)][string[]]$Command
     )
 
-    if ((Get-UnitState -Unit $Unit -Scope 'user') -ne 'active') { return $false }
+    $unitState = Get-UnitState -Unit $Unit -Scope 'user'
+    if ($unitState -eq 'inactive') { return $false }
+    if ($unitState -ne 'active') {
+        Write-SafeError (
+            "The transient application unit is in a pre-existing non-startable state: $Unit. " +
+            'Wait for it to settle or recover it explicitly; the unit was not changed.'
+        )
+    }
     if (Test-ActiveTransientUnitMatch -Unit $Unit -WorkingDirectory $WorkingDirectory -Command $Command) {
         return $true
     }
@@ -970,8 +977,8 @@ function Restore-InitialInfrastructureState {
     param([Parameter(Mandatory)][hashtable]$InitialStates)
 
     $systemUnits = @()
-    if ($InitialStates.Pdc -ne 'active') { $systemUnits += $script:PdcUnit }
-    if ($InitialStates.Prometheus -ne 'active') { $systemUnits += $script:PrometheusUnit }
+    if ($InitialStates.Pdc -eq 'inactive') { $systemUnits += $script:PdcUnit }
+    if ($InitialStates.Prometheus -eq 'inactive') { $systemUnits += $script:PrometheusUnit }
     if ($systemUnits.Count -eq 0) { return }
     if ((Invoke-WslCommand -Arguments (@('/usr/bin/systemctl', 'stop') + $systemUnits) -Identity 'root') -ne 0) {
         Write-Error (
@@ -987,7 +994,7 @@ function Restore-InitialApplicationUnitState {
         [Parameter(Mandatory)][string]$Label
     )
 
-    if ($InitialState -eq 'active') { return }
+    if ($InitialState -ne 'inactive') { return }
     if ((Invoke-WslCommand -Arguments @('/usr/bin/systemctl', '--user', 'stop', $Unit)) -ne 0) {
         Write-Error "Rollback cleanup could not stop the newly started $Label unit: $Unit" -ErrorAction Continue
     }
