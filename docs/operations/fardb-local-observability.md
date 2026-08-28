@@ -85,8 +85,9 @@ $env:FARDB_SUPABASE_PROMETHEUS_JOB_PREFIX = 'integrations/supabase/'
 ```
 
 `Start` is idempotent. When an owned transient application unit is already active, it is left running only when its
-command, working directory, environment-file path, and runtime-input fingerprint still match. A code or `runtime.env`
-change causes the launcher to replace that exact transient unit before checking readiness. `Stop`
+command, working directory, environment-file path, and runtime-input fingerprint still match. If code or `runtime.env`
+changed, Start fails without touching the active unit; run `-Action Stop` and then `-Action Start` to make that explicit
+replacement. `Stop`
 targets only the two exact transient application units unless `-StopInfrastructure` is supplied. Launcher actions are
 serialized per WSL distribution; a concurrent invocation fails without changing services. Listening-process cgroups
 must also match the expected exact units.
@@ -116,9 +117,8 @@ Status output is bounded to component names, unit/target states, and HTTP status
 bodies are not relayed, so secrets and sensitive payloads are not printed.
 
 If a Start fails after changing service state, it stops only the exact application or infrastructure units that were
-inactive when that invocation began. If replacement of a stale active application unit fails, rollback makes a
-best-effort attempt to restore that same exact unit from the current validated inputs and reports a bounded warning if
-restoration itself is impossible.
+inactive when that invocation began. Services active at the initial snapshot are preserved because changed-input
+replacement is never implicit.
 
 ## Port conflicts
 

@@ -176,18 +176,16 @@ def test_start_safety_covers_concurrency_identity_port_ownership_and_rollback() 
         "ControlGroup",
         '"/proc/$listenerPid/cgroup"',
         "Restore-InitialServiceState",
-        "Restore-InitialApplicationUnitState",
         "Restore-InitialInfrastructureState",
         "Get-BackendStartParameters",
         "Get-FrontendStartParameters",
-        'Write-Warning "Rollback could not restore the previously active $Label unit."',
+        "The active transient unit was started from different runtime inputs",
+        "the active unit was not changed",
         "Get-ReadinessSecondsRemaining",
         "$readinessDeadline",
         "ReadinessTimeoutSeconds",
     ):
         assert expected in text
-    assert "-StartParameters $backendStart -Label 'backend'" in text
-    assert "-StartParameters $frontendStart -Label 'frontend'" in text
 
 
 def test_log_views_are_explicit_and_visible_only_on_request() -> None:

@@ -176,15 +176,16 @@ function Initialize-LauncherPath {
         Write-SafeError 'The launcher must be run from its script file.'
     }
     $repoRootWindows = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..\..'))
-    if ($repoRootWindows -notmatch '^([A-Za-z]):\\(.+)$') {
+    $pathMatch = [regex]::Match($repoRootWindows, '^([A-Za-z]):\\(.+)$')
+    if (-not $pathMatch.Success) {
         Write-SafeError 'The repository is not on a supported local Windows drive.'
     }
     $homePathRequest = @{
         Arguments = @('/usr/bin/printenv', 'HOME')
         FailureMessage = 'The WSL user home directory could not be resolved.'
     }
-    $drive = $Matches[1].ToLowerInvariant()
-    $relativePath = $Matches[2].Replace('\', '/')
+    $drive = $pathMatch.Groups[1].Value.ToLowerInvariant()
+    $relativePath = $pathMatch.Groups[2].Value.Replace('\', '/')
     $script:RepoRootWindows = $repoRootWindows
     $script:RepoRootWsl = "/mnt/$drive/$relativePath"
     $script:WslHome = Get-SingleWslValue @homePathRequest
@@ -607,10 +608,10 @@ function Invoke-TransientUserUnitStart {
         if (Test-ActiveTransientUnitMatch -Unit $Unit -WorkingDirectory $WorkingDirectory -Command $Command) {
             return
         }
-        if ((Invoke-WslCommand -Arguments @('/usr/bin/systemctl', '--user', 'stop', $Unit)) -ne 0) {
-            Write-SafeError "The stale transient application unit did not stop cleanly: $Unit"
-        }
-        Wait-TransientUnitUnloaded -Unit $Unit
+        Write-SafeError (
+            "The active transient unit was started from different runtime inputs: $Unit. " +
+            'Run -Action Stop, then run -Action Start; the active unit was not changed.'
+        )
     }
 
     $loadState = Get-UnitProperty -Unit $Unit -Property 'LoadState' -Scope 'user'
@@ -919,26 +920,6 @@ function Invoke-ObservabilityStart {
     }
 }
 
-function Restore-InitialApplicationUnitState {
-    param(
-        [Parameter(Mandatory)][string]$InitialState,
-        [Parameter(Mandatory)][string]$Unit,
-        [Parameter(Mandatory)][hashtable]$StartParameters,
-        [Parameter(Mandatory)][string]$Label
-    )
-
-    if ($InitialState -ne 'active') {
-        [void](Invoke-WslCommand -Arguments @('/usr/bin/systemctl', '--user', 'stop', $Unit))
-        return
-    }
-    if ((Get-UnitState -Unit $Unit -Scope 'user') -eq 'active') { return }
-    try {
-        Invoke-TransientUserUnitStart @StartParameters
-    } catch {
-        Write-Warning "Rollback could not restore the previously active $Label unit."
-    }
-}
-
 function Restore-InitialInfrastructureState {
     param([Parameter(Mandatory)][hashtable]$InitialStates)
 
@@ -953,12 +934,12 @@ function Restore-InitialInfrastructureState {
 function Restore-InitialServiceState {
     param([Parameter(Mandatory)][hashtable]$InitialStates)
 
-    $frontendStart = Get-FrontendStartParameters
-    Restore-InitialApplicationUnitState -InitialState $InitialStates.Frontend `
-        -Unit $script:FrontendUnit -StartParameters $frontendStart -Label 'frontend'
-    $backendStart = Get-BackendStartParameters
-    Restore-InitialApplicationUnitState -InitialState $InitialStates.Backend `
-        -Unit $script:BackendUnit -StartParameters $backendStart -Label 'backend'
+    if ($InitialStates.Frontend -ne 'active') {
+        [void](Invoke-WslCommand -Arguments @('/usr/bin/systemctl', '--user', 'stop', $script:FrontendUnit))
+    }
+    if ($InitialStates.Backend -ne 'active') {
+        [void](Invoke-WslCommand -Arguments @('/usr/bin/systemctl', '--user', 'stop', $script:BackendUnit))
+    }
     Restore-InitialInfrastructureState -InitialStates $InitialStates
 }
 
