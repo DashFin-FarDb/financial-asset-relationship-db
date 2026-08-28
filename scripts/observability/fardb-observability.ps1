@@ -944,20 +944,32 @@ function Restore-InitialInfrastructureState {
     $systemUnits = @()
     if ($InitialStates.Pdc -ne 'active') { $systemUnits += $script:PdcUnit }
     if ($InitialStates.Prometheus -ne 'active') { $systemUnits += $script:PrometheusUnit }
-    if ($systemUnits.Count -gt 0) {
-        [void](Invoke-WslCommand -Arguments (@('/usr/bin/systemctl', 'stop') + $systemUnits) -Identity 'root')
+    if ($systemUnits.Count -eq 0) { return }
+    if ((Invoke-WslCommand -Arguments (@('/usr/bin/systemctl', 'stop') + $systemUnits) -Identity 'root') -ne 0) {
+        Write-Warning 'Rollback could not stop one or more newly started infrastructure units.'
+    }
+}
+
+function Restore-InitialApplicationUnitState {
+    param(
+        [Parameter(Mandatory)][string]$InitialState,
+        [Parameter(Mandatory)][string]$Unit,
+        [Parameter(Mandatory)][string]$Label
+    )
+
+    if ($InitialState -eq 'active') { return }
+    if ((Invoke-WslCommand -Arguments @('/usr/bin/systemctl', '--user', 'stop', $Unit)) -ne 0) {
+        Write-Warning "Rollback could not stop the newly started $Label unit."
     }
 }
 
 function Restore-InitialServiceState {
     param([Parameter(Mandatory)][hashtable]$InitialStates)
 
-    if ($InitialStates.Frontend -ne 'active') {
-        [void](Invoke-WslCommand -Arguments @('/usr/bin/systemctl', '--user', 'stop', $script:FrontendUnit))
-    }
-    if ($InitialStates.Backend -ne 'active') {
-        [void](Invoke-WslCommand -Arguments @('/usr/bin/systemctl', '--user', 'stop', $script:BackendUnit))
-    }
+    Restore-InitialApplicationUnitState -InitialState $InitialStates.Frontend `
+        -Unit $script:FrontendUnit -Label 'frontend'
+    Restore-InitialApplicationUnitState -InitialState $InitialStates.Backend `
+        -Unit $script:BackendUnit -Label 'backend'
     Restore-InitialInfrastructureState -InitialStates $InitialStates
 }
 

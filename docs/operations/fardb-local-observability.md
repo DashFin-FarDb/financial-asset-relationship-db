@@ -118,7 +118,8 @@ bodies are not relayed, so secrets and sensitive payloads are not printed.
 
 If a Start fails after changing service state, it stops only the exact application or infrastructure units that were
 not active when that invocation began. Services active at the initial snapshot are preserved because changed-input
-replacement is never implicit.
+replacement is never implicit. Rollback stops are best-effort; an exact bounded warning reports any cleanup stop that
+does not succeed, while the original Start failure remains the primary error.
 
 ## Port conflicts
 
