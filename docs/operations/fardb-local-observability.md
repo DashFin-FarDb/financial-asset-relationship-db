@@ -38,7 +38,8 @@ or prints the contents of `runtime.env`, and credential values must not be place
 The Supabase scrape is selected by the generic Prometheus job prefix `integrations/supabase/`; no provider
 instance identifier is embedded in the launcher. If a local Prometheus configuration uses another label, set the
 non-secret Windows environment variable `FARDB_SUPABASE_PROMETHEUS_JOB_PREFIX` before running the script. The
-value is limited to a bounded set of literal job-label characters; it is not evaluated as a regular expression.
+value is limited to a bounded set of literal job-label characters, must end with `/`, and is not evaluated as a
+regular expression.
 
 ## One-time migration from legacy user units
 

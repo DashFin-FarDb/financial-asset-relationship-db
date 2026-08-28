@@ -195,11 +195,14 @@ function Initialize-PrometheusTargetSettings {
     if ([string]::IsNullOrWhiteSpace($SupabasePrometheusJobPrefix)) {
         $SupabasePrometheusJobPrefix = 'integrations/supabase/'
     }
-    if (
-        $SupabasePrometheusJobPrefix.Length -gt 128 -or
-        $SupabasePrometheusJobPrefix -notmatch '^[A-Za-z0-9_./:-]+$'
-    ) {
+    if ($SupabasePrometheusJobPrefix.Length -gt 128) {
         Throw-SafeError 'The Supabase Prometheus job prefix contains unsupported characters.'
+    }
+    if ($SupabasePrometheusJobPrefix -notmatch '^[A-Za-z0-9_./:-]+$') {
+        Throw-SafeError 'The Supabase Prometheus job prefix contains unsupported characters.'
+    }
+    if (-not $SupabasePrometheusJobPrefix.EndsWith('/')) {
+        Throw-SafeError 'The Supabase Prometheus job prefix must end with a path separator.'
     }
     $script:SupabaseTargetJobPrefix = $SupabasePrometheusJobPrefix
 }

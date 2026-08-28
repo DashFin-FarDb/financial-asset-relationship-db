@@ -32,6 +32,7 @@ def test_powershell_parser_accepts_launcher() -> None:
     executable = shutil.which("pwsh") or shutil.which("powershell")
     if executable is None:
         pytest.skip("PowerShell is unavailable on this runner")
+    assert executable is not None
 
     escaped_path = str(SCRIPT_PATH).replace("'", "''")
     parser_command = (
@@ -143,6 +144,7 @@ def test_health_contract_covers_components_and_both_targets() -> None:
         "fardb_fastapi",
         "FARDB_SUPABASE_PROMETHEUS_JOB_PREFIX",
         "integrations/supabase/",
+        "SupabasePrometheusJobPrefix.EndsWith('/')",
         "Wait-PrometheusTargetsUp",
         "lastScrape",
         "PrometheusTargetsUrl",
