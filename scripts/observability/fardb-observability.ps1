@@ -631,7 +631,7 @@ function Invoke-TransientUserUnitStart {
     }
 }
 
-function Get-BackendStartParameters {
+function Get-BackendStartSpec {
     return @{
         Unit = $script:BackendUnit
         WorkingDirectory = $script:RepoRootWsl
@@ -642,7 +642,7 @@ function Get-BackendStartParameters {
     }
 }
 
-function Get-FrontendStartParameters {
+function Get-FrontendStartSpec {
     return @{
         Unit = $script:FrontendUnit
         WorkingDirectory = $script:FrontendRootWsl
@@ -655,10 +655,10 @@ function Get-FrontendStartParameters {
 
 function Invoke-ApplicationStart {
     $backendWasActive = (Get-UnitState -Unit $script:BackendUnit -Scope 'user') -eq 'active'
-    $backendStart = Get-BackendStartParameters
+    $backendStart = Get-BackendStartSpec
     Invoke-TransientUserUnitStart @backendStart
     try {
-        $frontendStart = Get-FrontendStartParameters
+        $frontendStart = Get-FrontendStartSpec
         Invoke-TransientUserUnitStart @frontendStart
     } catch {
         if (-not $backendWasActive) {
