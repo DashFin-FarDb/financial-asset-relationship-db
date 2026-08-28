@@ -44,9 +44,10 @@ own repository checkout. It never prints the contents of `runtime.env`; it combi
 current Git revision, tracked changes, untracked-file digests, the installed npm manifest, a bounded `npm ls` inventory,
 a bounded Python `pip list` inventory, and streaming byte digests of both installed dependency trees into a second
 one-way runtime fingerprint. Direct file digests of the resolved venv Python interpreter, npm executable, and Node.js
-runtime also bind external runtime upgrades to that identity. The dependency inventories are limited to 4 MiB each and
-their raw package details are never printed. Only the final fingerprint is placed in the local unit description.
-Credential values must not be placed in command arguments.
+runtime bind external runtime upgrades to that identity. A normalized streaming digest of the complete npm
+implementation tree also covers implementation files loaded by the npm entry point. The dependency inventories are
+limited to 4 MiB each and their raw package details are never printed. Only the final fingerprint is placed in the local
+unit description. Credential values must not be placed in command arguments.
 
 `npm ls` exit code 1 is accepted only as inventory material because npm uses it for a valid JSON tree that records
 existing invalid/extraneous package problems; that exact problem state is hashed as well. Other npm failures, malformed

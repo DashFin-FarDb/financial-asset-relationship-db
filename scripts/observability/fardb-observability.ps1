@@ -419,6 +419,18 @@ function Get-WslFileSha256 {
     return $Matches[1].ToLowerInvariant()
 }
 
+function Get-WslNpmImplementationRoot {
+    $result = Invoke-WslCommand -Arguments @('/usr/bin/readlink', '-f', '--', $script:NpmPath) -Capture
+    $lines = @($result.Output | ForEach-Object { $_.Trim() } | Where-Object { $_ })
+    if ($result.ExitCode -ne 0 -or $lines.Count -ne 1) {
+        Write-SafeError 'The npm implementation path could not be fingerprinted safely.'
+    }
+    if ($lines[0] -notmatch '^(/.+)/bin/npm-cli\.js$') {
+        Write-SafeError 'The npm implementation path could not be fingerprinted safely.'
+    }
+    return $Matches[1]
+}
+
 function Get-WslCommandOutputSha256 {
     param(
         [Parameter(Mandatory)][string[]]$Arguments,
@@ -556,12 +568,17 @@ function Initialize-RuntimeInputFingerprint {
     ) -FailureMessage 'The installed Python dependency bytes could not be fingerprinted safely.'
     $pythonRuntimeFingerprint = Get-WslFileSha256 -Path $script:PythonPath
     $npmRuntimeFingerprint = Get-WslFileSha256 -Path $script:NpmPath
+    $npmImplementationRoot = Get-WslNpmImplementationRoot
+    $npmImplementationFingerprint = Get-NativeStreamSha256 -FilePath 'wsl.exe' -Arguments @(
+        '-d', $Distribution, '--', '/usr/bin/tar', '--sort=name', '--mtime=@0', '--owner=0', '--group=0',
+        '--numeric-owner', '-cf', '-', '-C', $npmImplementationRoot, '.'
+    ) -FailureMessage 'The installed npm implementation bytes could not be fingerprinted safely.'
     $nodeRuntimeFingerprint = Get-WslFileSha256 -Path $script:NodePath
     $script:RuntimeInputFingerprint = Get-StringSha256 -Value (
         "$environmentFingerprint`0$repositoryFingerprint`0$frontendManifestFingerprint`0" +
         "$frontendInventoryFingerprint`0$pythonInventoryFingerprint`0" +
         "$frontendBytesFingerprint`0$pythonBytesFingerprint`0$pythonRuntimeFingerprint`0" +
-        "$npmRuntimeFingerprint`0$nodeRuntimeFingerprint"
+        "$npmRuntimeFingerprint`0$npmImplementationFingerprint`0$nodeRuntimeFingerprint"
     )
 }
 
