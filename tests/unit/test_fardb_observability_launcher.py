@@ -185,6 +185,8 @@ def test_start_safety_covers_concurrency_identity_port_ownership_and_rollback() 
         "ReadinessTimeoutSeconds",
     ):
         assert expected in text
+    assert text.count("Invoke-TransientUserUnitStart @backendStart") >= 2
+    assert text.count("Invoke-TransientUserUnitStart @frontendStart") >= 2
 
 
 def test_log_views_are_explicit_and_visible_only_on_request() -> None:
