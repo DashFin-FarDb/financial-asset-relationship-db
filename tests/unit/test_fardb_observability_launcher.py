@@ -159,8 +159,14 @@ def test_start_safety_covers_concurrency_identity_port_ownership_and_rollback() 
     text = _script()
     for expected in (
         "Enter-LauncherMutex",
-        "Assert-ActiveTransientUnitMatch",
+        "Test-ActiveTransientUnitMatch",
         "Get-TransientUnitIdentity",
+        "Initialize-RuntimeInputFingerprint",
+        "Get-RepositoryRuntimeFingerprint",
+        "'/usr/bin/sha256sum'",
+        "Invoke-LocalGit",
+        "'--no-textconv', '--binary', 'HEAD'",
+        "'ls-files', '--others', '--exclude-standard'",
         "--property=Description=",
         "Test-WslPortOwnedByUnit",
         "ControlGroup",

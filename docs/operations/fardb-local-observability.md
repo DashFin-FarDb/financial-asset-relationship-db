@@ -25,15 +25,17 @@ distribution with the same prerequisites.
 The selected distribution must already contain:
 
 - working WSL process creation and systemd user sessions;
-- `/usr/bin/systemctl`, `/usr/bin/systemd-run`, `/usr/bin/curl`, and `/usr/bin/ss`;
+- `/usr/bin/systemctl`, `/usr/bin/systemd-run`, `/usr/bin/curl`, `/usr/bin/sha256sum`, and `/usr/bin/ss`;
 - system units `prometheus.service` and `grafana-pdc-agent.service`;
 - `$HOME/.config/fardb-observability/runtime.env`;
 - `$HOME/.local/share/fardb-observability/venv/bin/python` with the FarDb backend dependencies;
 - npm at `/usr/local/bin/npm` or `/usr/bin/npm`; and
 - the checkout's existing `frontend/node_modules` directory.
 
-The launcher derives the backend and frontend working directories from its own repository checkout. It never reads
-or prints the contents of `runtime.env`, and credential values must not be placed in command arguments.
+Windows Git must be available on `PATH`. The launcher derives the backend and frontend working directories from its
+own repository checkout. It never prints the contents of `runtime.env`; it combines a one-way file digest with the
+current Git revision, tracked changes, and untracked-file digests into a second one-way runtime fingerprint. Only that
+final fingerprint is placed in the local unit description. Credential values must not be placed in command arguments.
 
 The Supabase scrape is selected by the generic Prometheus job prefix `integrations/supabase/`; no provider
 instance identifier is embedded in the launcher. If a local Prometheus configuration uses another label, set the
@@ -82,11 +84,12 @@ $env:FARDB_SUPABASE_PROMETHEUS_JOB_PREFIX = 'integrations/supabase/'
 & .\scripts\observability\fardb-observability.ps1 -Action Stop -StopInfrastructure
 ```
 
-`Start` is idempotent. When an owned transient application unit is already active, it is left running. `Stop`
+`Start` is idempotent. When an owned transient application unit is already active, it is left running only when its
+command, working directory, environment-file path, and runtime-input fingerprint still match. A code or `runtime.env`
+change causes the launcher to replace that exact transient unit before checking readiness. `Stop`
 targets only the two exact transient application units unless `-StopInfrastructure` is supplied. Launcher actions are
-serialized per WSL distribution; a concurrent invocation fails without changing services. An active application unit
-is reused only when its command, working directory, environment-file path, and listening-process cgroup match this
-checkout.
+serialized per WSL distribution; a concurrent invocation fails without changing services. Listening-process cgroups
+must also match the expected exact units.
 
 ## Readiness contract
 

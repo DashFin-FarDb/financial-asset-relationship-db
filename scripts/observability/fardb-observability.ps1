@@ -38,6 +38,7 @@ $script:PrometheusTargetsUrl = 'http://127.0.0.1:9090/api/v1/targets?state=activ
 $script:FastApiTargetJob = 'fardb_fastapi'
 $script:LauncherMutex = $null
 $script:LauncherMutexOwned = $false
+$script:RuntimeInputFingerprint = ''
 
 function Write-SafeError {
     param([Parameter(Mandatory)][string]$Message)
@@ -184,6 +185,7 @@ function Initialize-LauncherPath {
     }
     $drive = $Matches[1].ToLowerInvariant()
     $relativePath = $Matches[2].Replace('\', '/')
+    $script:RepoRootWindows = $repoRootWindows
     $script:RepoRootWsl = "/mnt/$drive/$relativePath"
     $script:WslHome = Get-SingleWslValue @homePathRequest
 
@@ -258,7 +260,7 @@ function Get-UnitState {
     return $state
 }
 
-function Assert-ActiveTransientUnitMatch {
+function Test-ActiveTransientUnitMatch {
     param(
         [Parameter(Mandatory)][string]$Unit,
         [Parameter(Mandatory)][string]$WorkingDirectory,
@@ -276,9 +278,107 @@ function Assert-ActiveTransientUnitMatch {
     if ($actualEnvironment -ne $expectedEnvironment) {
         Write-SafeError "The active transient unit belongs to another launcher configuration: $Unit"
     }
-    if ($actualDescription -ne $expectedDescription) {
-        Write-SafeError "The active transient unit belongs to another launcher configuration: $Unit"
+    return $actualDescription -eq $expectedDescription
+}
+
+function Get-StringSha256 {
+    param([Parameter(Mandatory)][string]$Value)
+
+    $algorithm = [Security.Cryptography.SHA256]::Create()
+    try {
+        $digest = $algorithm.ComputeHash([Text.Encoding]::UTF8.GetBytes($Value))
+    } finally {
+        $algorithm.Dispose()
     }
+    return ([BitConverter]::ToString($digest)).Replace('-', '').ToLowerInvariant()
+}
+
+function Get-WslFileSha256 {
+    param([Parameter(Mandatory)][string]$Path)
+
+    $result = Invoke-WslCommand -Arguments @('/usr/bin/sha256sum', '--', $Path) -Capture
+    $lines = @($result.Output | ForEach-Object { $_.Trim() } | Where-Object { $_ })
+    if ($result.ExitCode -ne 0 -or $lines.Count -ne 1 -or $lines[0] -notmatch '^([0-9A-Fa-f]{64})\s') {
+        Write-SafeError 'A required runtime input could not be fingerprinted safely.'
+    }
+    return $Matches[1].ToLowerInvariant()
+}
+
+function Get-LocalFileSha256 {
+    param([Parameter(Mandatory)][string]$Path)
+
+    $algorithm = [Security.Cryptography.SHA256]::Create()
+    $stream = $null
+    try {
+        $stream = [IO.File]::OpenRead($Path)
+        $digest = $algorithm.ComputeHash($stream)
+    } catch {
+        Write-SafeError 'An untracked runtime input could not be fingerprinted safely.'
+    } finally {
+        if ($null -ne $stream) { $stream.Dispose() }
+        $algorithm.Dispose()
+    }
+    return ([BitConverter]::ToString($digest)).Replace('-', '').ToLowerInvariant()
+}
+
+function Invoke-LocalGit {
+    param([Parameter(Mandatory)][string[]]$Arguments)
+
+    $local:ErrorActionPreference = 'Continue'
+    try {
+        $captured = @(& git.exe -C $script:RepoRootWindows -c core.quotepath=false @Arguments 2>$null)
+        return [pscustomobject]@{ ExitCode = $LASTEXITCODE; Output = $captured }
+    } catch {
+        return [pscustomobject]@{ ExitCode = 1; Output = @() }
+    }
+}
+
+function Get-RepositoryRuntimeFingerprint {
+    $headResult = Invoke-LocalGit -Arguments @('rev-parse', '--verify', 'HEAD')
+    $headValues = @($headResult.Output | ForEach-Object { $_.Trim() } | Where-Object { $_ })
+    if ($headResult.ExitCode -ne 0 -or $headValues.Count -ne 1) {
+        Write-SafeError 'The repository revision could not be fingerprinted safely.'
+    }
+    $head = $headValues[0]
+    if ($head -notmatch '^[0-9A-Fa-f]{40,64}$') {
+        Write-SafeError 'The repository revision could not be fingerprinted safely.'
+    }
+
+    $diff = Invoke-LocalGit -Arguments @('diff', '--no-ext-diff', '--no-textconv', '--binary', 'HEAD', '--')
+    if ($diff.ExitCode -ne 0) {
+        Write-SafeError 'The repository changes could not be fingerprinted safely.'
+    }
+
+    $untracked = Invoke-LocalGit -Arguments @('ls-files', '--others', '--exclude-standard')
+    if ($untracked.ExitCode -ne 0) {
+        Write-SafeError 'The repository changes could not be fingerprinted safely.'
+    }
+
+    $repoRootPrefix = $script:RepoRootWindows.TrimEnd('\') + '\'
+    $untrackedMaterial = @()
+    foreach ($relativePath in @($untracked.Output | Where-Object { $_ })) {
+        if ([IO.Path]::IsPathRooted($relativePath) -or $relativePath.IndexOfAny([char[]]"`0`r`n") -ge 0 -or
+            @($relativePath.Split('/') | Where-Object { $_ -eq '..' }).Count -gt 0) {
+            Write-SafeError 'An untracked runtime input path could not be fingerprinted safely.'
+        }
+        $filePath = [IO.Path]::GetFullPath((Join-Path $script:RepoRootWindows $relativePath))
+        if (-not $filePath.StartsWith($repoRootPrefix, [StringComparison]::OrdinalIgnoreCase) -or
+            -not [IO.File]::Exists($filePath)) {
+            Write-SafeError 'An untracked runtime input could not be fingerprinted safely.'
+        }
+        $untrackedMaterial += "$relativePath`0$(Get-LocalFileSha256 -Path $filePath)"
+    }
+
+    $material = @($head.ToLowerInvariant(), (@($diff.Output) -join "`n")) + $untrackedMaterial
+    return Get-StringSha256 -Value ($material -join "`0")
+}
+
+function Initialize-RuntimeInputFingerprint {
+    $environmentFingerprint = Get-WslFileSha256 -Path $script:RuntimeEnvPath
+    $repositoryFingerprint = Get-RepositoryRuntimeFingerprint
+    $script:RuntimeInputFingerprint = Get-StringSha256 -Value (
+        "$environmentFingerprint`0$repositoryFingerprint"
+    )
 }
 
 function Get-TransientUnitIdentity {
@@ -287,14 +387,13 @@ function Get-TransientUnitIdentity {
         [Parameter(Mandatory)][string[]]$Command
     )
 
-    $identityMaterial = (@($WorkingDirectory, $script:RuntimeEnvPath) + $Command) -join "`0"
-    $algorithm = [Security.Cryptography.SHA256]::Create()
-    try {
-        $digest = $algorithm.ComputeHash([Text.Encoding]::UTF8.GetBytes($identityMaterial))
-    } finally {
-        $algorithm.Dispose()
+    if (-not $script:RuntimeInputFingerprint) {
+        Write-SafeError 'The runtime inputs were not fingerprinted before service identity validation.'
     }
-    $fingerprint = ([BitConverter]::ToString($digest)).Replace('-', '').ToLowerInvariant()
+    $identityMaterial = (
+        @($WorkingDirectory, $script:RuntimeEnvPath, $script:RuntimeInputFingerprint) + $Command
+    ) -join "`0"
+    $fingerprint = Get-StringSha256 -Value $identityMaterial
     return "FarDb observability launcher $fingerprint"
 }
 
@@ -317,6 +416,7 @@ function Assert-TransientUnitCompatible {
 function Assert-Prerequisite {
     $requiredExecutables = @(
         @{ Path = '/usr/bin/curl'; Label = 'curl' },
+        @{ Path = '/usr/bin/sha256sum'; Label = 'sha256sum' },
         @{ Path = '/usr/bin/ss'; Label = 'ss' },
         @{ Path = '/usr/bin/systemctl'; Label = 'systemctl' },
         @{ Path = '/usr/bin/systemd-run'; Label = 'systemd-run' },
@@ -448,8 +548,13 @@ function Invoke-TransientUserUnitStart {
     )
 
     if ((Get-UnitState -Unit $Unit -Scope 'user') -eq 'active') {
-        Assert-ActiveTransientUnitMatch -Unit $Unit -WorkingDirectory $WorkingDirectory -Command $Command
-        return
+        if (Test-ActiveTransientUnitMatch -Unit $Unit -WorkingDirectory $WorkingDirectory -Command $Command) {
+            return
+        }
+        if ((Invoke-WslCommand -Arguments @('/usr/bin/systemctl', '--user', 'stop', $Unit)) -ne 0) {
+            Write-SafeError "The stale transient application unit did not stop cleanly: $Unit"
+        }
+        Wait-TransientUnitUnloaded -Unit $Unit
     }
 
     $loadState = Get-UnitProperty -Unit $Unit -Property 'LoadState' -Scope 'user'
@@ -662,6 +767,7 @@ function Open-LogWindows {
 
 function Invoke-ObservabilityStart {
     Assert-Prerequisite
+    Initialize-RuntimeInputFingerprint
     Assert-TransientUnitCompatible -Unit $script:BackendUnit
     Assert-TransientUnitCompatible -Unit $script:FrontendUnit
 
