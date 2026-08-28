@@ -117,7 +117,7 @@ Status output is bounded to component names, unit/target states, and HTTP status
 bodies are not relayed, so secrets and sensitive payloads are not printed.
 
 If a Start fails after changing service state, it stops only the exact application or infrastructure units that were
-inactive when that invocation began. Services active at the initial snapshot are preserved because changed-input
+not active when that invocation began. Services active at the initial snapshot are preserved because changed-input
 replacement is never implicit.
 
 ## Port conflicts
