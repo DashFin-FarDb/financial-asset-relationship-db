@@ -181,6 +181,7 @@ def test_start_safety_covers_concurrency_identity_port_ownership_and_rollback() 
         "Get-FrontendStartSpec",
         "The active transient unit was started from different runtime inputs",
         "the active unit was not changed",
+        "The inactive transient application unit did not stop cleanly",
         "Get-ReadinessSecondsRemaining",
         "$readinessDeadline",
         "ReadinessTimeoutSeconds",

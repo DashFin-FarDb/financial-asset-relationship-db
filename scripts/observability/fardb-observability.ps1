@@ -616,6 +616,9 @@ function Invoke-TransientUserUnitStart {
 
     $loadState = Get-UnitProperty -Unit $Unit -Property 'LoadState' -Scope 'user'
     if ($loadState -eq 'loaded') {
+        if ((Invoke-WslCommand -Arguments @('/usr/bin/systemctl', '--user', 'stop', $Unit)) -ne 0) {
+            Write-SafeError "The inactive transient application unit did not stop cleanly: $Unit"
+        }
         [void](Invoke-WslCommand -Arguments @('/usr/bin/systemctl', '--user', 'reset-failed', $Unit))
         Wait-TransientUnitUnloaded -Unit $Unit
     }
