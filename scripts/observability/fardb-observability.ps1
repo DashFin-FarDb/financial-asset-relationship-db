@@ -946,7 +946,9 @@ function Restore-InitialInfrastructureState {
     if ($InitialStates.Prometheus -ne 'active') { $systemUnits += $script:PrometheusUnit }
     if ($systemUnits.Count -eq 0) { return }
     if ((Invoke-WslCommand -Arguments (@('/usr/bin/systemctl', 'stop') + $systemUnits) -Identity 'root') -ne 0) {
-        Write-Warning 'Rollback could not stop one or more newly started infrastructure units.'
+        Write-Error (
+            'Rollback cleanup could not stop exact infrastructure units: ' + ($systemUnits -join ', ')
+        ) -ErrorAction Continue
     }
 }
 
@@ -959,7 +961,7 @@ function Restore-InitialApplicationUnitState {
 
     if ($InitialState -eq 'active') { return }
     if ((Invoke-WslCommand -Arguments @('/usr/bin/systemctl', '--user', 'stop', $Unit)) -ne 0) {
-        Write-Warning "Rollback could not stop the newly started $Label unit."
+        Write-Error "Rollback cleanup could not stop the newly started $Label unit: $Unit" -ErrorAction Continue
     }
 }
 
