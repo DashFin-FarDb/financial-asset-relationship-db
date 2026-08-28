@@ -116,7 +116,9 @@ Status output is bounded to component names, unit/target states, and HTTP status
 bodies are not relayed, so secrets and sensitive payloads are not printed.
 
 If a Start fails after changing service state, it stops only the exact application or infrastructure units that were
-inactive when that invocation began. Services that were already active are preserved.
+inactive when that invocation began. If replacement of a stale active application unit fails, rollback makes a
+best-effort attempt to restore that same exact unit from the current validated inputs and reports a bounded warning if
+restoration itself is impossible.
 
 ## Port conflicts
 

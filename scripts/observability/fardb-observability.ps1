@@ -630,9 +630,8 @@ function Invoke-TransientUserUnitStart {
     }
 }
 
-function Invoke-ApplicationStart {
-    $backendWasActive = (Get-UnitState -Unit $script:BackendUnit -Scope 'user') -eq 'active'
-    $backendStart = @{
+function Get-BackendStartParameters {
+    return @{
         Unit = $script:BackendUnit
         WorkingDirectory = $script:RepoRootWsl
         Command = @(
@@ -640,16 +639,25 @@ function Invoke-ApplicationStart {
             '--host', '127.0.0.1', '--port', "$($script:BackendPort)"
         )
     }
+}
+
+function Get-FrontendStartParameters {
+    return @{
+        Unit = $script:FrontendUnit
+        WorkingDirectory = $script:FrontendRootWsl
+        Command = @(
+            $script:NpmPath, 'run', 'dev', '--',
+            '--hostname', '127.0.0.1', '--port', "$($script:FrontendPort)"
+        )
+    }
+}
+
+function Invoke-ApplicationStart {
+    $backendWasActive = (Get-UnitState -Unit $script:BackendUnit -Scope 'user') -eq 'active'
+    $backendStart = Get-BackendStartParameters
     Invoke-TransientUserUnitStart @backendStart
     try {
-        $frontendStart = @{
-            Unit = $script:FrontendUnit
-            WorkingDirectory = $script:FrontendRootWsl
-            Command = @(
-                $script:NpmPath, 'run', 'dev', '--',
-                '--hostname', '127.0.0.1', '--port', "$($script:FrontendPort)"
-            )
-        }
+        $frontendStart = Get-FrontendStartParameters
         Invoke-TransientUserUnitStart @frontendStart
     } catch {
         if (-not $backendWasActive) {
@@ -914,10 +922,28 @@ function Invoke-ObservabilityStart {
 function Restore-InitialServiceState {
     param([Parameter(Mandatory)][hashtable]$InitialStates)
 
-    if ($InitialStates.Frontend -ne 'active') {
+    if ($InitialStates.Frontend -eq 'active') {
+        if ((Get-UnitState -Unit $script:FrontendUnit -Scope 'user') -ne 'active') {
+            try {
+                $frontendStart = Get-FrontendStartParameters
+                Invoke-TransientUserUnitStart @frontendStart
+            } catch {
+                Write-Warning 'Rollback could not restore the previously active frontend unit.'
+            }
+        }
+    } else {
         [void](Invoke-WslCommand -Arguments @('/usr/bin/systemctl', '--user', 'stop', $script:FrontendUnit))
     }
-    if ($InitialStates.Backend -ne 'active') {
+    if ($InitialStates.Backend -eq 'active') {
+        if ((Get-UnitState -Unit $script:BackendUnit -Scope 'user') -ne 'active') {
+            try {
+                $backendStart = Get-BackendStartParameters
+                Invoke-TransientUserUnitStart @backendStart
+            } catch {
+                Write-Warning 'Rollback could not restore the previously active backend unit.'
+            }
+        }
+    } else {
         [void](Invoke-WslCommand -Arguments @('/usr/bin/systemctl', '--user', 'stop', $script:BackendUnit))
     }
 
