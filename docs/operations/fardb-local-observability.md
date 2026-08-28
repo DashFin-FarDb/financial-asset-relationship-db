@@ -82,11 +82,16 @@ $env:FARDB_SUPABASE_PROMETHEUS_JOB_PATTERN = 'integrations/supabase/.+'
 ```
 
 `Start` is idempotent. When an owned transient application unit is already active, it is left running. `Stop`
-targets only the two exact transient application units unless `-StopInfrastructure` is supplied.
+targets only the two exact transient application units unless `-StopInfrastructure` is supplied. Launcher actions are
+serialized per WSL distribution; a concurrent invocation fails without changing services. An active application unit
+is reused only when its command, working directory, environment-file path, and listening-process cgroup match this
+checkout.
 
 ## Readiness contract
 
-`Start` succeeds only when all four components and both required Prometheus targets are healthy:
+`Start` succeeds only when all four components and both required Prometheus targets are healthy. The default
+readiness deadline is 75 seconds because the database target has a one-minute scrape interval; use
+`-ReadinessTimeoutSeconds` only to choose another bounded 5–300 second window.
 
 | Component | Unit | Readiness |
 | --- | --- | --- |
@@ -94,11 +99,14 @@ targets only the two exact transient application units unless `-StopInfrastructu
 | Next.js | transient `fardb-frontend.service` | HTTP 200 on port 3000 |
 | Prometheus | `prometheus.service` | HTTP 200 from `/-/ready` on port 9090 |
 | Grafana PDC | `grafana-pdc-agent.service` | HTTP 200 from its loopback metrics endpoint |
-| Application scrape | `job="fardb_fastapi"` | Prometheus reports `up == 1` |
-| Database scrape | `job=~"integrations/supabase/.+"` by default | Prometheus reports every match as `up == 1` |
+| Application scrape | `job="fardb_fastapi"` | Targets API reports a healthy scrape made during this Start |
+| Database scrape | `job=~"integrations/supabase/.+"` by default | Targets API reports every match healthy and freshly scraped |
 
 Status output is bounded to component names, unit/target states, and HTTP status codes. Command stderr and response
 bodies are not relayed, so secrets and sensitive payloads are not printed.
+
+If a Start fails after changing service state, it stops only the exact application or infrastructure units that were
+inactive when that invocation began. Services that were already active are preserved.
 
 ## Port conflicts
 

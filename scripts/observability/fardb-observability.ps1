@@ -7,6 +7,8 @@ param(
 
     [string]$SupabasePrometheusJobPattern = $env:FARDB_SUPABASE_PROMETHEUS_JOB_PATTERN,
 
+    [ValidateRange(5, 300)][int]$ReadinessTimeoutSeconds = 75,
+
     [switch]$ShowLogs,
 
     [switch]$StopInfrastructure
@@ -27,13 +29,10 @@ $script:BackendHealthUrl = 'http://127.0.0.1:8000/api/health'
 $script:FrontendHealthUrl = 'http://127.0.0.1:3000/'
 $script:PrometheusHealthUrl = 'http://127.0.0.1:9090/-/ready'
 $script:PdcHealthUrl = 'http://127.0.0.1:8090/metrics'
-$script:FastApiTargetUrl = (
-    'http://127.0.0.1:9090/api/v1/query?query=' +
-    'up%7Bjob%3D%22fardb_fastapi%22%7D'
-)
-$script:SupabaseTargetUrl = (
-    'http://127.0.0.1:9090/api/v1/query?query='
-)
+$script:PrometheusTargetsUrl = 'http://127.0.0.1:9090/api/v1/targets?state=active'
+$script:FastApiTargetPattern = '^fardb_fastapi$'
+$script:LauncherMutex = $null
+$script:LauncherMutexOwned = $false
 
 function Throw-SafeError {
     param([Parameter(Mandatory)][string]$Message)
@@ -44,6 +43,32 @@ function Throw-SafeError {
 function Assert-DistributionNameSafe {
     if ($Distribution -notmatch '^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$') {
         Throw-SafeError 'The WSL distribution name contains unsupported characters.'
+    }
+}
+
+function Enter-LauncherMutex {
+    $mutexName = "Local\FarDb-Observability-$Distribution"
+    $script:LauncherMutex = [Threading.Mutex]::new($false, $mutexName)
+    try {
+        $script:LauncherMutexOwned = $script:LauncherMutex.WaitOne(0)
+    } catch [Threading.AbandonedMutexException] {
+        $script:LauncherMutexOwned = $true
+    }
+    if (-not $script:LauncherMutexOwned) {
+        $script:LauncherMutex.Dispose()
+        $script:LauncherMutex = $null
+        Throw-SafeError 'Another FarDb observability launcher invocation is already active.'
+    }
+}
+
+function Exit-LauncherMutex {
+    if ($script:LauncherMutexOwned) {
+        $script:LauncherMutex.ReleaseMutex()
+        $script:LauncherMutexOwned = $false
+    }
+    if ($null -ne $script:LauncherMutex) {
+        $script:LauncherMutex.Dispose()
+        $script:LauncherMutex = $null
     }
 }
 
@@ -129,6 +154,9 @@ function Assert-WslAbsolutePath {
 }
 
 function Initialize-LauncherPaths {
+    if ([string]::IsNullOrWhiteSpace($PSScriptRoot)) {
+        Throw-SafeError 'The launcher must be run from its script file.'
+    }
     $repoRootWindows = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..\..'))
     if ($repoRootWindows -notmatch '^([A-Za-z]):\\(.+)$') {
         Throw-SafeError 'The repository is not on a supported local Windows drive.'
@@ -151,7 +179,7 @@ function Initialize-LauncherPaths {
     $script:NpmPath = '/usr/local/bin/npm'
 }
 
-function Initialize-PrometheusTargetUrls {
+function Initialize-PrometheusTargetSettings {
     if ([string]::IsNullOrWhiteSpace($SupabasePrometheusJobPattern)) {
         $SupabasePrometheusJobPattern = 'integrations/supabase/.+'
     }
@@ -161,8 +189,7 @@ function Initialize-PrometheusTargetUrls {
     ) {
         Throw-SafeError 'The Supabase Prometheus job pattern contains unsupported characters.'
     }
-    $query = 'up{{job=~"{0}"}}' -f $SupabasePrometheusJobPattern
-    $script:SupabaseTargetUrl += [uri]::EscapeDataString($query)
+    $script:SupabaseTargetPattern = $SupabasePrometheusJobPattern
 }
 
 function Test-WslPath {
@@ -209,6 +236,28 @@ function Get-UnitState {
     $state = Get-UnitProperty -Unit $Unit -Property 'ActiveState' -Scope $Scope
     if (-not $state) { return 'inactive' }
     return $state
+}
+
+function Assert-ActiveTransientUnitMatches {
+    param(
+        [Parameter(Mandatory)][string]$Unit,
+        [Parameter(Mandatory)][string]$WorkingDirectory,
+        [Parameter(Mandatory)][string[]]$Command
+    )
+
+    $actualDirectory = Get-UnitProperty -Unit $Unit -Property 'WorkingDirectory' -Scope 'user'
+    $actualEnvironment = Get-UnitProperty -Unit $Unit -Property 'EnvironmentFiles' -Scope 'user'
+    $actualCommand = Get-UnitProperty -Unit $Unit -Property 'ExecStart' -Scope 'user'
+    $expectedEnvironment = "$($script:RuntimeEnvPath) (ignore_errors=no)"
+    $expectedArgv = [regex]::Escape(($Command -join ' '))
+    $commandMatches = $actualCommand -match ("argv\[\]=" + $expectedArgv + ' ;')
+    if (
+        $actualDirectory -ne $WorkingDirectory -or
+        $actualEnvironment -ne $expectedEnvironment -or
+        -not $commandMatches
+    ) {
+        Throw-SafeError "The active transient unit belongs to another launcher configuration: $Unit"
+    }
 }
 
 function Assert-TransientUnitCompatible {
@@ -272,7 +321,7 @@ function Get-HttpStatus {
 
     $result = Invoke-WslCommand -Arguments @(
         '/usr/bin/curl', '--silent', '--show-error', '--output', '/dev/null',
-        '--max-time', '3', '--write-out', '%{http_code}', $Url
+        '--max-time', '1', '--write-out', '%{http_code}', $Url
     ) -Capture
     if ($result.ExitCode -ne 0) { return 0 }
     $rawStatus = (@($result.Output) -join '').Trim()
@@ -286,6 +335,33 @@ function Test-WslPortListening {
 
     $result = Invoke-WslCommand -Arguments @('/usr/bin/ss', '-H', '-ltn', "sport = :$Port") -Capture
     return $result.ExitCode -eq 0 -and @($result.Output | Where-Object { $_.Trim() }).Count -gt 0
+}
+
+function Test-WslPortOwnedByUnit {
+    param(
+        [Parameter(Mandatory)][int]$Port,
+        [Parameter(Mandatory)][string]$Unit,
+        [Parameter(Mandatory)][ValidateSet('user', 'system')][string]$Scope
+    )
+
+    $controlGroup = Get-UnitProperty -Unit $Unit -Property 'ControlGroup' -Scope $Scope
+    if (-not $controlGroup) { return $false }
+    $listeners = Invoke-WslCommand -Arguments @(
+        '/usr/bin/ss', '-H', '-ltnp', "sport = :$Port"
+    ) -Identity 'root' -Capture
+    if ($listeners.ExitCode -ne 0) { return $false }
+    $pidMatches = [regex]::Matches((@($listeners.Output) -join "`n"), 'pid=(\d+)')
+    $listenerPids = @($pidMatches | ForEach-Object { $_.Groups[1].Value } | Sort-Object -Unique)
+    if ($listenerPids.Count -eq 0) { return $false }
+
+    foreach ($listenerPid in $listenerPids) {
+        $cgroup = Invoke-WslCommand -Arguments @('/usr/bin/cat', "/proc/$listenerPid/cgroup") `
+            -Identity 'root' -Capture
+        if ($cgroup.ExitCode -ne 0) { return $false }
+        $owned = @($cgroup.Output | Where-Object { $_.Trim().EndsWith($controlGroup) }).Count -gt 0
+        if (-not $owned) { return $false }
+    }
+    return $true
 }
 
 function Assert-PortOwnedByUnit {
@@ -302,9 +378,8 @@ function Assert-PortOwnedByUnit {
     } else {
         Get-UnitState -Unit $Unit -Scope 'system'
     }
-    if ($unitState -ne 'active') {
-        Throw-SafeError $RecoveryMessage
-    }
+    if ($unitState -eq 'active' -and (Test-WslPortOwnedByUnit -Port $Port -Unit $Unit -Scope $Scope)) { return }
+    Throw-SafeError $RecoveryMessage
 }
 
 function Start-Infrastructure {
@@ -334,7 +409,10 @@ function Start-TransientUserUnit {
         [Parameter(Mandatory)][string[]]$Command
     )
 
-    if ((Get-UnitState -Unit $Unit -Scope 'user') -eq 'active') { return }
+    if ((Get-UnitState -Unit $Unit -Scope 'user') -eq 'active') {
+        Assert-ActiveTransientUnitMatches -Unit $Unit -WorkingDirectory $WorkingDirectory -Command $Command
+        return
+    }
 
     $loadState = Get-UnitProperty -Unit $Unit -Property 'LoadState' -Scope 'user'
     if ($loadState -eq 'loaded') {
@@ -385,46 +463,72 @@ function Wait-HttpReady {
     param(
         [Parameter(Mandatory)][string]$Name,
         [Parameter(Mandatory)][string]$Url,
-        [int]$Attempts = 30
+        [int]$TimeoutSeconds = 30
     )
 
-    for ($attempt = 1; $attempt -le $Attempts; $attempt++) {
+    $timer = [Diagnostics.Stopwatch]::StartNew()
+    while ($timer.Elapsed.TotalSeconds -lt $TimeoutSeconds) {
         if ((Get-HttpStatus -Url $Url) -eq 200) { return }
-        Start-Sleep -Seconds 1
+        if ($timer.Elapsed.TotalSeconds -lt $TimeoutSeconds) { Start-Sleep -Milliseconds 500 }
     }
-    Throw-SafeError "$Name did not become ready within $Attempts seconds."
+    Throw-SafeError "$Name did not become ready within $TimeoutSeconds seconds."
 }
 
-function Test-PrometheusTargetUp {
-    param([Parameter(Mandatory)][string]$QueryUrl)
-
+function Get-PrometheusActiveTargets {
     $result = Invoke-WslCommand -Arguments @(
-        '/usr/bin/curl', '--silent', '--show-error', '--max-time', '3', $QueryUrl
+        '/usr/bin/curl', '--silent', '--show-error', '--max-time', '1', $script:PrometheusTargetsUrl
     ) -Capture
-    if ($result.ExitCode -ne 0) { return $false }
+    if ($result.ExitCode -ne 0) { return @() }
     try {
         $document = ((@($result.Output) -join "`n") | ConvertFrom-Json -ErrorAction Stop)
-        $series = @($document.data.result)
-        return $document.status -eq 'success' -and $series.Count -gt 0 -and @(
-            $series | Where-Object { @($_.value).Count -lt 2 -or "$($_.value[1])" -ne '1' }
-        ).Count -eq 0
+        if ($document.status -ne 'success') { return @() }
+        return @($document.data.activeTargets)
     } catch {
-        return $false
+        return @()
     }
 }
 
-function Wait-PrometheusTargetUp {
+function Test-PrometheusTargetSetUp {
     param(
-        [Parameter(Mandatory)][string]$Name,
-        [Parameter(Mandatory)][string]$QueryUrl,
-        [int]$Attempts = 30
+        [Parameter(Mandatory)][object[]]$Targets,
+        [Parameter(Mandatory)][string]$JobPattern,
+        [datetimeoffset]$NotBefore = [datetimeoffset]::MinValue
     )
 
-    for ($attempt = 1; $attempt -le $Attempts; $attempt++) {
-        if (Test-PrometheusTargetUp -QueryUrl $QueryUrl) { return }
-        Start-Sleep -Seconds 1
+    $matchingTargets = @($Targets | Where-Object { "$($_.labels.job)" -match $JobPattern })
+    if ($matchingTargets.Count -eq 0) { return $false }
+    foreach ($target in $matchingTargets) {
+        if ("$($target.health)" -ne 'up') { return $false }
+        if ($NotBefore -ne [datetimeoffset]::MinValue) {
+            $lastScrape = [datetimeoffset]::MinValue
+            if (-not [datetimeoffset]::TryParse("$($target.lastScrape)", [ref]$lastScrape)) { return $false }
+            if ($lastScrape -lt $NotBefore) { return $false }
+        }
     }
-    Throw-SafeError "$Name did not report up within $Attempts seconds."
+    return $true
+}
+
+function Wait-PrometheusTargetsUp {
+    param(
+        [Parameter(Mandatory)][datetimeoffset]$NotBefore,
+        [Parameter(Mandatory)][int]$TimeoutSeconds
+    )
+
+    $definitions = @(
+        @{ Name = 'FastAPI'; Pattern = $script:FastApiTargetPattern },
+        @{ Name = 'Supabase'; Pattern = $script:SupabaseTargetPattern }
+    )
+    $timer = [Diagnostics.Stopwatch]::StartNew()
+    while ($timer.Elapsed.TotalSeconds -lt $TimeoutSeconds) {
+        $targets = @(Get-PrometheusActiveTargets)
+        $pending = @($definitions | Where-Object {
+            -not (Test-PrometheusTargetSetUp -Targets $targets -JobPattern $_.Pattern -NotBefore $NotBefore)
+        })
+        if ($pending.Count -eq 0) { return }
+        if ($timer.Elapsed.TotalSeconds -lt $TimeoutSeconds) { Start-Sleep -Milliseconds 500 }
+    }
+    $pendingNames = @($pending | ForEach-Object { $_.Name }) -join ' and '
+    Throw-SafeError "$pendingNames Prometheus target did not report a fresh healthy scrape within $TimeoutSeconds seconds."
 }
 
 function Write-StatusRow {
@@ -450,12 +554,17 @@ function Show-Status {
         Write-StatusRow -Component $component.Component -State $state -HttpStatus $httpStatus
     }
 
-    $targets = @(
-        @{ Component = 'Prometheus target fardb_fastapi'; Url = $script:FastApiTargetUrl },
-        @{ Component = 'Prometheus target Supabase'; Url = $script:SupabaseTargetUrl }
+    $activeTargets = @(Get-PrometheusActiveTargets)
+    $targetDefinitions = @(
+        @{ Component = 'Prometheus target fardb_fastapi'; Pattern = $script:FastApiTargetPattern },
+        @{ Component = 'Prometheus target Supabase'; Pattern = $script:SupabaseTargetPattern }
     )
-    foreach ($target in $targets) {
-        $state = if (Test-PrometheusTargetUp -QueryUrl $target.Url) { 'up' } else { 'down' }
+    foreach ($target in $targetDefinitions) {
+        $state = if (Test-PrometheusTargetSetUp -Targets $activeTargets -JobPattern $target.Pattern) {
+            'up'
+        } else {
+            'down'
+        }
         Write-StatusRow -Component $target.Component -State $state -HttpStatus 'n/a'
     }
 }
@@ -524,18 +633,51 @@ function Start-Observability {
     Assert-PortOwnedByUnit @prometheusPortCheck
     Assert-PortOwnedByUnit @pdcPortCheck
 
-    Start-Infrastructure
-    Start-Application
+    $initialStates = @{
+        Backend = Get-UnitState -Unit $script:BackendUnit -Scope 'user'
+        Frontend = Get-UnitState -Unit $script:FrontendUnit -Scope 'user'
+        Prometheus = Get-UnitState -Unit $script:PrometheusUnit -Scope 'system'
+        Pdc = Get-UnitState -Unit $script:PdcUnit -Scope 'system'
+    }
+    $freshScrapeAfter = [datetimeoffset]::UtcNow
+    try {
+        Start-Infrastructure
+        Start-Application
 
-    Wait-HttpReady -Name 'Prometheus' -Url $script:PrometheusHealthUrl
-    Wait-HttpReady -Name 'FarDb backend' -Url $script:BackendHealthUrl
-    Wait-HttpReady -Name 'FarDb frontend' -Url $script:FrontendHealthUrl
-    Wait-HttpReady -Name 'Grafana PDC' -Url $script:PdcHealthUrl
-    Wait-PrometheusTargetUp -Name 'The FastAPI Prometheus target' -QueryUrl $script:FastApiTargetUrl
-    Wait-PrometheusTargetUp -Name 'The Supabase Prometheus target' -QueryUrl $script:SupabaseTargetUrl
+        Wait-HttpReady -Name 'Prometheus' -Url $script:PrometheusHealthUrl `
+            -TimeoutSeconds $ReadinessTimeoutSeconds
+        Wait-HttpReady -Name 'FarDb backend' -Url $script:BackendHealthUrl `
+            -TimeoutSeconds $ReadinessTimeoutSeconds
+        Wait-HttpReady -Name 'FarDb frontend' -Url $script:FrontendHealthUrl `
+            -TimeoutSeconds $ReadinessTimeoutSeconds
+        Wait-HttpReady -Name 'Grafana PDC' -Url $script:PdcHealthUrl `
+            -TimeoutSeconds $ReadinessTimeoutSeconds
+        Wait-PrometheusTargetsUp -NotBefore $freshScrapeAfter -TimeoutSeconds $ReadinessTimeoutSeconds
 
-    Show-Status
-    if ($ShowLogs) { Open-LogWindows }
+        Show-Status
+        if ($ShowLogs) { Open-LogWindows }
+    } catch {
+        Rollback-NewlyStartedServices -InitialStates $initialStates
+        throw
+    }
+}
+
+function Rollback-NewlyStartedServices {
+    param([Parameter(Mandatory)][hashtable]$InitialStates)
+
+    if ($InitialStates.Frontend -ne 'active') {
+        [void](Invoke-WslCommand -Arguments @('/usr/bin/systemctl', '--user', 'stop', $script:FrontendUnit))
+    }
+    if ($InitialStates.Backend -ne 'active') {
+        [void](Invoke-WslCommand -Arguments @('/usr/bin/systemctl', '--user', 'stop', $script:BackendUnit))
+    }
+
+    $systemUnits = @()
+    if ($InitialStates.Pdc -ne 'active') { $systemUnits += $script:PdcUnit }
+    if ($InitialStates.Prometheus -ne 'active') { $systemUnits += $script:PrometheusUnit }
+    if ($systemUnits.Count -gt 0) {
+        [void](Invoke-WslCommand -Arguments (@('/usr/bin/systemctl', 'stop') + $systemUnits) -Identity 'root')
+    }
 }
 
 function Stop-TransientUserUnit {
@@ -563,12 +705,14 @@ function Stop-Observability {
     Show-Status
 }
 
+$launcherExitCode = 0
 try {
     Assert-DistributionNameSafe
+    Enter-LauncherMutex
     Assert-DistributionInstalled
     Assert-WslProcessHealthy
     Initialize-LauncherPaths
-    Initialize-PrometheusTargetUrls
+    Initialize-PrometheusTargetSettings
 
     switch ($Action) {
         'Start' { Start-Observability }
@@ -576,6 +720,9 @@ try {
         'Stop' { Stop-Observability }
     }
 } catch {
-    Write-Error ("FarDb observability launcher: {0}" -f $_.Exception.Message)
-    exit 1
+    Write-Error ("FarDb observability launcher: {0}" -f $_.Exception.Message) -ErrorAction Continue
+    $launcherExitCode = 1
+} finally {
+    Exit-LauncherMutex
 }
+exit $launcherExitCode

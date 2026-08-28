@@ -142,10 +142,28 @@ def test_health_contract_covers_components_and_both_targets() -> None:
         "fardb_fastapi",
         "FARDB_SUPABASE_PROMETHEUS_JOB_PATTERN",
         "integrations/supabase/.+",
-        "Wait-PrometheusTargetUp",
+        "Wait-PrometheusTargetsUp",
+        "lastScrape",
+        "PrometheusTargetsUrl",
     ):
         assert expected in text
     assert "2758727-metrics-endpoint-Fardb" not in text
+
+
+def test_start_safety_covers_concurrency_identity_port_ownership_and_rollback() -> None:
+    """Start must fail closed around concurrent, stale, conflicting, or partial state."""
+
+    text = _script()
+    for expected in (
+        "Enter-LauncherMutex",
+        "Assert-ActiveTransientUnitMatches",
+        "Test-WslPortOwnedByUnit",
+        "ControlGroup",
+        '"/proc/$listenerPid/cgroup"',
+        "Rollback-NewlyStartedServices",
+        "ReadinessTimeoutSeconds",
+    ):
+        assert expected in text
 
 
 def test_log_views_are_explicit_and_visible_only_on_request() -> None:
