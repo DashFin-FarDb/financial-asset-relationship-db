@@ -327,7 +327,7 @@ function ConvertTo-NativeQuotedArgument {
     return '"' + [regex]::Replace($Value, '\\+$', '$0$0') + '"'
 }
 
-function Stop-ExactFingerprintProcess {
+function Invoke-ExactFingerprintProcessTermination {
     param([Parameter(Mandatory)][Diagnostics.Process]$Process)
 
     try {
@@ -342,7 +342,7 @@ function Complete-NativeHashProcess {
 
     $timedOut = -not $Context.Process.WaitForExit($Context.TimeoutSeconds * 1000)
     if ($timedOut) {
-        Stop-ExactFingerprintProcess -Process $Context.Process
+        Invoke-ExactFingerprintProcessTermination -Process $Context.Process
         $Context.Process.WaitForExit()
     }
     try {

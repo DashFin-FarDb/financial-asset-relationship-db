@@ -178,7 +178,7 @@ def test_start_safety_covers_concurrency_identity_port_ownership_and_rollback() 
         "Get-NativeStreamSha256",
         "ConvertTo-NativeQuotedArgument",
         "Complete-NativeHashProcess",
-        "Stop-ExactFingerprintProcess",
+        "Invoke-ExactFingerprintProcessTermination",
         "-TimeoutSeconds 120",
         "'--exclude=__pycache__'",
         "[ValidateRange(1, 120)][int]$TimeoutSeconds = 60",
