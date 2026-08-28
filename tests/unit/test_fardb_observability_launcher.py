@@ -137,7 +137,11 @@ def test_health_contract_covers_components_and_both_targets() -> None:
 
     text = _script()
     for expected in (
-        "http://127.0.0.1:8000/api/health",
+        "http://127.0.0.1:8000/api/health/detailed",
+        "Test-FastApiReady",
+        "$document.graph_persistence_configured -eq $true",
+        "$document.graph.persistence_enabled -eq $true",
+        "$document.database.reachable -eq $true",
         "http://127.0.0.1:3000/",
         "http://127.0.0.1:9090/-/ready",
         "http://127.0.0.1:8090/metrics",
@@ -172,6 +176,8 @@ def test_start_safety_covers_concurrency_identity_port_ownership_and_rollback() 
         "ControlGroup",
         '"/proc/$listenerPid/cgroup"',
         "Restore-InitialServiceState",
+        "Get-ReadinessSecondsRemaining",
+        "$readinessDeadline",
         "ReadinessTimeoutSeconds",
     ):
         assert expected in text

@@ -30,7 +30,7 @@ $script:BackendPort = 8000
 $script:FrontendPort = 3000
 $script:PrometheusPort = 9090
 $script:PdcMetricsPort = 8090
-$script:BackendHealthUrl = 'http://127.0.0.1:8000/api/health'
+$script:BackendHealthUrl = 'http://127.0.0.1:8000/api/health/detailed'
 $script:FrontendHealthUrl = 'http://127.0.0.1:3000/'
 $script:PrometheusHealthUrl = 'http://127.0.0.1:9090/-/ready'
 $script:PdcHealthUrl = 'http://127.0.0.1:8090/metrics'
@@ -298,7 +298,13 @@ function Get-WslFileSha256 {
 
     $result = Invoke-WslCommand -Arguments @('/usr/bin/sha256sum', '--', $Path) -Capture
     $lines = @($result.Output | ForEach-Object { $_.Trim() } | Where-Object { $_ })
-    if ($result.ExitCode -ne 0 -or $lines.Count -ne 1 -or $lines[0] -notmatch '^([0-9A-Fa-f]{64})\s') {
+    if ($result.ExitCode -ne 0) {
+        Write-SafeError 'A required runtime input could not be fingerprinted safely.'
+    }
+    if ($lines.Count -ne 1) {
+        Write-SafeError 'A required runtime input could not be fingerprinted safely.'
+    }
+    if ($lines[0] -notmatch '^([0-9A-Fa-f]{64})\s') {
         Write-SafeError 'A required runtime input could not be fingerprinted safely.'
     }
     return $Matches[1].ToLowerInvariant()
@@ -333,43 +339,72 @@ function Invoke-LocalGit {
     }
 }
 
-function Get-RepositoryRuntimeFingerprint {
-    $headResult = Invoke-LocalGit -Arguments @('rev-parse', '--verify', 'HEAD')
-    $headValues = @($headResult.Output | ForEach-Object { $_.Trim() } | Where-Object { $_ })
-    if ($headResult.ExitCode -ne 0 -or $headValues.Count -ne 1) {
+function Get-LocalGitOutput {
+    param(
+        [Parameter(Mandatory)][string[]]$Arguments,
+        [Parameter(Mandatory)][string]$FailureMessage
+    )
+
+    $result = Invoke-LocalGit -Arguments $Arguments
+    if ($result.ExitCode -ne 0) { Write-SafeError $FailureMessage }
+    return @($result.Output)
+}
+
+function Get-RepositoryRevision {
+    $values = @(Get-LocalGitOutput -Arguments @('rev-parse', '--verify', 'HEAD') `
+        -FailureMessage 'The repository revision could not be fingerprinted safely.' |
+        ForEach-Object { $_.Trim() } | Where-Object { $_ })
+    if ($values.Count -ne 1) {
         Write-SafeError 'The repository revision could not be fingerprinted safely.'
     }
-    $head = $headValues[0]
-    if ($head -notmatch '^[0-9A-Fa-f]{40,64}$') {
+    if ($values[0] -notmatch '^[0-9A-Fa-f]{40,64}$') {
         Write-SafeError 'The repository revision could not be fingerprinted safely.'
     }
+    return $values[0].ToLowerInvariant()
+}
 
-    $diff = Invoke-LocalGit -Arguments @('diff', '--no-ext-diff', '--no-textconv', '--binary', 'HEAD', '--')
-    if ($diff.ExitCode -ne 0) {
-        Write-SafeError 'The repository changes could not be fingerprinted safely.'
-    }
+function Assert-UntrackedRuntimePathSafe {
+    param([Parameter(Mandatory)][string]$RelativePath)
 
-    $untracked = Invoke-LocalGit -Arguments @('ls-files', '--others', '--exclude-standard')
-    if ($untracked.ExitCode -ne 0) {
-        Write-SafeError 'The repository changes could not be fingerprinted safely.'
+    if ([IO.Path]::IsPathRooted($RelativePath)) {
+        Write-SafeError 'An untracked runtime input path could not be fingerprinted safely.'
     }
+    if ($RelativePath.IndexOfAny([char[]]"`0`r`n") -ge 0) {
+        Write-SafeError 'An untracked runtime input path could not be fingerprinted safely.'
+    }
+    if (@($RelativePath.Split('/') | Where-Object { $_ -eq '..' }).Count -gt 0) {
+        Write-SafeError 'An untracked runtime input path could not be fingerprinted safely.'
+    }
+}
+
+function Get-UntrackedRuntimeMaterial {
+    param([Parameter(Mandatory)][AllowEmptyCollection()][string[]]$RelativePaths)
 
     $repoRootPrefix = $script:RepoRootWindows.TrimEnd('\') + '\'
-    $untrackedMaterial = @()
-    foreach ($relativePath in @($untracked.Output | Where-Object { $_ })) {
-        if ([IO.Path]::IsPathRooted($relativePath) -or $relativePath.IndexOfAny([char[]]"`0`r`n") -ge 0 -or
-            @($relativePath.Split('/') | Where-Object { $_ -eq '..' }).Count -gt 0) {
-            Write-SafeError 'An untracked runtime input path could not be fingerprinted safely.'
-        }
+    $material = @()
+    foreach ($relativePath in @($RelativePaths | Where-Object { $_ })) {
+        Assert-UntrackedRuntimePathSafe -RelativePath $relativePath
         $filePath = [IO.Path]::GetFullPath((Join-Path $script:RepoRootWindows $relativePath))
-        if (-not $filePath.StartsWith($repoRootPrefix, [StringComparison]::OrdinalIgnoreCase) -or
-            -not [IO.File]::Exists($filePath)) {
+        if (-not $filePath.StartsWith($repoRootPrefix, [StringComparison]::OrdinalIgnoreCase)) {
             Write-SafeError 'An untracked runtime input could not be fingerprinted safely.'
         }
-        $untrackedMaterial += "$relativePath`0$(Get-LocalFileSha256 -Path $filePath)"
+        if (-not [IO.File]::Exists($filePath)) {
+            Write-SafeError 'An untracked runtime input could not be fingerprinted safely.'
+        }
+        $material += "$relativePath`0$(Get-LocalFileSha256 -Path $filePath)"
     }
+    return $material
+}
 
-    $material = @($head.ToLowerInvariant(), (@($diff.Output) -join "`n")) + $untrackedMaterial
+function Get-RepositoryRuntimeFingerprint {
+    $head = Get-RepositoryRevision
+    $diff = @(Get-LocalGitOutput `
+        -Arguments @('diff', '--no-ext-diff', '--no-textconv', '--binary', 'HEAD', '--') `
+        -FailureMessage 'The repository changes could not be fingerprinted safely.')
+    $untracked = @(Get-LocalGitOutput -Arguments @('ls-files', '--others', '--exclude-standard') `
+        -FailureMessage 'The repository changes could not be fingerprinted safely.')
+    $untrackedMaterial = @(Get-UntrackedRuntimeMaterial -RelativePaths $untracked)
+    $material = @($head, ($diff -join "`n")) + $untrackedMaterial
     return Get-StringSha256 -Value ($material -join "`0")
 }
 
@@ -466,6 +501,27 @@ function Get-HttpStatus {
     $status = 0
     if (-not [int]::TryParse($rawStatus, [ref]$status)) { return 0 }
     return $status
+}
+
+function Test-FastApiReady {
+    $result = Invoke-WslCommand -Arguments @(
+        '/usr/bin/curl', '--silent', '--show-error', '--max-time', '1', '--max-filesize', '16384',
+        $script:BackendHealthUrl
+    ) -Capture
+    if ($result.ExitCode -ne 0) { return $false }
+    try {
+        $document = ((@($result.Output) -join "`n") | ConvertFrom-Json -ErrorAction Stop)
+        return (
+            $document.status -eq 'healthy' -and
+            $document.graph_persistence_configured -eq $true -and
+            $document.graph.available -eq $true -and
+            $document.graph.persistence_enabled -eq $true -and
+            $document.database.configured -eq $true -and
+            $document.database.reachable -eq $true
+        )
+    } catch {
+        return $false
+    }
 }
 
 function Test-WslPortListening {
@@ -616,6 +672,27 @@ function Wait-HttpReady {
         if ($timer.Elapsed.TotalSeconds -lt $TimeoutSeconds) { Start-Sleep -Milliseconds 500 }
     }
     Write-SafeError "$Name did not become ready within $TimeoutSeconds seconds."
+}
+
+function Wait-FastApiReady {
+    param([int]$TimeoutSeconds = 30)
+
+    $timer = [Diagnostics.Stopwatch]::StartNew()
+    while ($timer.Elapsed.TotalSeconds -lt $TimeoutSeconds) {
+        if (Test-FastApiReady) { return }
+        if ($timer.Elapsed.TotalSeconds -lt $TimeoutSeconds) { Start-Sleep -Milliseconds 500 }
+    }
+    Write-SafeError "FarDb backend did not satisfy detailed readiness within $TimeoutSeconds seconds."
+}
+
+function Get-ReadinessSecondsRemaining {
+    param([Parameter(Mandatory)][datetimeoffset]$Deadline)
+
+    $remaining = [int][Math]::Ceiling(($Deadline - [datetimeoffset]::UtcNow).TotalSeconds)
+    if ($remaining -le 0) {
+        Write-SafeError "The complete Start action exceeded its $ReadinessTimeoutSeconds-second readiness deadline."
+    }
+    return $remaining
 }
 
 function Get-PrometheusActiveTarget {
@@ -810,19 +887,21 @@ function Invoke-ObservabilityStart {
         Pdc = Get-UnitState -Unit $script:PdcUnit -Scope 'system'
     }
     $freshScrapeAfter = [datetimeoffset]::UtcNow
+    $readinessDeadline = $freshScrapeAfter.AddSeconds($ReadinessTimeoutSeconds)
     try {
         Invoke-InfrastructureStart
         Invoke-ApplicationStart
 
         Wait-HttpReady -Name 'Prometheus' -Url $script:PrometheusHealthUrl `
-            -TimeoutSeconds $ReadinessTimeoutSeconds
-        Wait-HttpReady -Name 'FarDb backend' -Url $script:BackendHealthUrl `
-            -TimeoutSeconds $ReadinessTimeoutSeconds
+            -TimeoutSeconds (Get-ReadinessSecondsRemaining -Deadline $readinessDeadline)
+        Wait-FastApiReady `
+            -TimeoutSeconds (Get-ReadinessSecondsRemaining -Deadline $readinessDeadline)
         Wait-HttpReady -Name 'FarDb frontend' -Url $script:FrontendHealthUrl `
-            -TimeoutSeconds $ReadinessTimeoutSeconds
+            -TimeoutSeconds (Get-ReadinessSecondsRemaining -Deadline $readinessDeadline)
         Wait-HttpReady -Name 'Grafana PDC' -Url $script:PdcHealthUrl `
-            -TimeoutSeconds $ReadinessTimeoutSeconds
-        Wait-PrometheusTargetsUp -NotBefore $freshScrapeAfter -TimeoutSeconds $ReadinessTimeoutSeconds
+            -TimeoutSeconds (Get-ReadinessSecondsRemaining -Deadline $readinessDeadline)
+        Wait-PrometheusTargetsUp -NotBefore $freshScrapeAfter `
+            -TimeoutSeconds (Get-ReadinessSecondsRemaining -Deadline $readinessDeadline)
 
         Show-Status
         if ($ShowLogs) { Open-LogWindows }

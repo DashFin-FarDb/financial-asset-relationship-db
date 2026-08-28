@@ -99,12 +99,18 @@ readiness deadline is 75 seconds because the database target has a one-minute sc
 
 | Component          | Unit                                                  | Readiness                                                   |
 | ------------------ | ----------------------------------------------------- | ----------------------------------------------------------- |
-| FastAPI            | transient `fardb-backend.service`                     | HTTP 200 from `/api/health` on port 8000                    |
+| FastAPI            | transient `fardb-backend.service`                     | Detailed graph/database readiness on port 8000              |
 | Next.js            | transient `fardb-frontend.service`                    | HTTP 200 on port 3000                                       |
 | Prometheus         | `prometheus.service`                                  | HTTP 200 from `/-/ready` on port 9090                       |
 | Grafana PDC        | `grafana-pdc-agent.service`                           | HTTP 200 from its loopback metrics endpoint                 |
 | Application scrape | `job="fardb_fastapi"`                                 | Targets API reports a healthy scrape made during this Start |
 | Database scrape    | `job` starts with `integrations/supabase/` by default | Targets API reports every match healthy and freshly scraped |
+
+FastAPI readiness uses `/api/health/detailed` and requires a healthy status, an available graph, configured durable
+graph persistence, persistence enabled for the running graph, and a configured, reachable database. It does not
+require `startup_source="persisted"` or `persistence_loaded=true`; the current approved local staging state may use the
+documented empty-persistence fallback while the separate target-bound database proof is pending. The one configured
+readiness timeout is a deadline for the complete Start action, not a fresh allowance for each sequential check.
 
 Status output is bounded to component names, unit/target states, and HTTP status codes. Command stderr and response
 bodies are not relayed, so secrets and sensitive payloads are not printed.
