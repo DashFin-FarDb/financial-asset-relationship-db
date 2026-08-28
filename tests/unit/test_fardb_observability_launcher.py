@@ -164,6 +164,8 @@ def test_start_safety_covers_concurrency_identity_port_ownership_and_rollback() 
     for expected in (
         "Enter-LauncherMutex",
         "Test-ActiveTransientUnitMatch",
+        "Test-ActiveTransientUnitReusable",
+        "Clear-InactiveTransientUnit",
         "Get-TransientUnitIdentity",
         "Initialize-RuntimeInputFingerprint",
         "Get-RepositoryRuntimeFingerprint",
