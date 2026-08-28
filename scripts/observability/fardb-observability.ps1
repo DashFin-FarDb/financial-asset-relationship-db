@@ -790,4 +790,3 @@ try {
     Exit-LauncherMutex
 }
 exit $launcherExitCode
-
