@@ -251,11 +251,13 @@ function Assert-ActiveTransientUnitMatches {
     $expectedEnvironment = "$($script:RuntimeEnvPath) (ignore_errors=no)"
     $expectedArgv = [regex]::Escape(($Command -join ' '))
     $commandMatches = $actualCommand -match ("argv\[\]=" + $expectedArgv + ' ;')
-    if (
-        $actualDirectory -ne $WorkingDirectory -or
-        $actualEnvironment -ne $expectedEnvironment -or
-        -not $commandMatches
-    ) {
+    if ($actualDirectory -ne $WorkingDirectory) {
+        Throw-SafeError "The active transient unit belongs to another launcher configuration: $Unit"
+    }
+    if ($actualEnvironment -ne $expectedEnvironment) {
+        Throw-SafeError "The active transient unit belongs to another launcher configuration: $Unit"
+    }
+    if (-not $commandMatches) {
         Throw-SafeError "The active transient unit belongs to another launcher configuration: $Unit"
     }
 }
@@ -497,15 +499,23 @@ function Test-PrometheusTargetSetUp {
 
     $matchingTargets = @($Targets | Where-Object { "$($_.labels.job)" -match $JobPattern })
     if ($matchingTargets.Count -eq 0) { return $false }
-    foreach ($target in $matchingTargets) {
-        if ("$($target.health)" -ne 'up') { return $false }
-        if ($NotBefore -ne [datetimeoffset]::MinValue) {
-            $lastScrape = [datetimeoffset]::MinValue
-            if (-not [datetimeoffset]::TryParse("$($target.lastScrape)", [ref]$lastScrape)) { return $false }
-            if ($lastScrape -lt $NotBefore) { return $false }
-        }
-    }
-    return $true
+    $unhealthyTargets = @($matchingTargets | Where-Object {
+        -not (Test-PrometheusTargetFreshAndHealthy -Target $_ -NotBefore $NotBefore)
+    })
+    return $unhealthyTargets.Count -eq 0
+}
+
+function Test-PrometheusTargetFreshAndHealthy {
+    param(
+        [Parameter(Mandatory)]$Target,
+        [Parameter(Mandatory)][datetimeoffset]$NotBefore
+    )
+
+    if ("$($Target.health)" -ne 'up') { return $false }
+    if ($NotBefore -eq [datetimeoffset]::MinValue) { return $true }
+    $lastScrape = [datetimeoffset]::MinValue
+    if (-not [datetimeoffset]::TryParse("$($Target.lastScrape)", [ref]$lastScrape)) { return $false }
+    return $lastScrape -ge $NotBefore
 }
 
 function Wait-PrometheusTargetsUp {
