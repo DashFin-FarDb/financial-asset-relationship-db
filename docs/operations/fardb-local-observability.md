@@ -130,7 +130,8 @@ FastAPI readiness uses `/api/health/detailed` and requires a healthy status, an 
 graph persistence, persistence enabled for the running graph, and a configured, reachable database. It does not
 require `startup_source="persisted"` or `persistence_loaded=true`; the current approved local staging state may use the
 documented empty-persistence fallback while the separate target-bound database proof is pending. The one configured
-readiness timeout is a deadline for the complete Start action, not a fresh allowance for each sequential check.
+readiness timeout is a shared deadline for the post-start service and scrape-target checks, not a fresh allowance for
+each sequential check. Prerequisite validation and runtime fingerprinting occur before that readiness phase begins.
 
 Status output is bounded to component names, unit/target states, and HTTP status codes. Command stderr and response
 bodies are not relayed, so secrets and sensitive payloads are not printed.

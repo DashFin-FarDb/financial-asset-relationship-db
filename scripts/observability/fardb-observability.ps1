@@ -885,7 +885,7 @@ function Get-ReadinessSecondsRemaining {
 
     $remaining = [int][Math]::Ceiling(($Deadline - [datetimeoffset]::UtcNow).TotalSeconds)
     if ($remaining -le 0) {
-        Write-SafeError "The complete Start action exceeded its $ReadinessTimeoutSeconds-second readiness deadline."
+        Write-SafeError "The service readiness phase exceeded its $ReadinessTimeoutSeconds-second shared deadline."
     }
     return $remaining
 }

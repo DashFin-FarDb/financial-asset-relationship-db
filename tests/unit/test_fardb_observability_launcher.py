@@ -219,6 +219,7 @@ def test_start_safety_covers_concurrency_identity_port_ownership_and_rollback() 
         "Get-ReadinessSecondsRemaining",
         "$readinessDeadline",
         "ReadinessTimeoutSeconds",
+        "The service readiness phase exceeded its",
     ):
         assert expected in text
 
