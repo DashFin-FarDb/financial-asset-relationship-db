@@ -300,35 +300,44 @@ function Get-StringSha256 {
 function ConvertTo-NativeQuotedArgument {
     param([Parameter(Mandatory)][AllowEmptyString()][string]$Value)
 
-    if ($Value.Length -gt 0 -and $Value -notmatch '[\s"]') { return $Value }
-    $builder = [Text.StringBuilder]::new()
-    [void]$builder.Append('"')
-    $backslashCount = 0
-    foreach ($character in $Value.ToCharArray()) {
-        if ($character -eq '\') {
-            $backslashCount++
-            continue
-        }
-        if ($character -eq '"') {
-            if ($backslashCount -gt 0) {
-                [void]$builder.Append((('\' * (2 * $backslashCount)) -join ''))
-                $backslashCount = 0
-            }
-            [void]$builder.Append('\')
-            [void]$builder.Append('"')
-            continue
-        }
-        if ($backslashCount -gt 0) {
-            [void]$builder.Append((('\' * $backslashCount) -join ''))
-            $backslashCount = 0
-        }
-        [void]$builder.Append($character)
+    if ($Value -match '[\x00\r\n"]') {
+        Write-SafeError 'A dependency fingerprint command argument contains unsupported characters.'
     }
-    if ($backslashCount -gt 0) {
-        [void]$builder.Append((('\' * (2 * $backslashCount)) -join ''))
+    if ($Value -notmatch '\s') { return $Value }
+    return '"' + [regex]::Replace($Value, '\\+$', '$0$0') + '"'
+}
+
+function Stop-ExactFingerprintProcess {
+    param([Parameter(Mandatory)][Diagnostics.Process]$Process)
+
+    try {
+        $Process.Kill()
+    } catch {
+        Write-Warning 'The exact timed-out dependency fingerprint helper could not be stopped.'
     }
-    [void]$builder.Append('"')
-    return $builder.ToString()
+}
+
+function Complete-NativeHashProcess {
+    param(
+        [Parameter(Mandatory)][Diagnostics.Process]$Process,
+        [Parameter(Mandatory)][Threading.Tasks.Task]$CopyTask,
+        [Parameter(Mandatory)][Threading.Tasks.Task]$ErrorTask,
+        [Parameter(Mandatory)][string]$FailureMessage,
+        [Parameter(Mandatory)][int]$TimeoutSeconds
+    )
+
+    $timedOut = -not $Process.WaitForExit($TimeoutSeconds * 1000)
+    if ($timedOut) {
+        Stop-ExactFingerprintProcess -Process $Process
+        $Process.WaitForExit()
+    }
+    try {
+        $CopyTask.GetAwaiter().GetResult()
+        [void]$ErrorTask.GetAwaiter().GetResult()
+    } catch {
+        Write-SafeError $FailureMessage
+    }
+    if ($timedOut -or $Process.ExitCode -ne 0) { Write-SafeError $FailureMessage }
 }
 
 function Get-NativeStreamSha256 {
@@ -360,18 +369,8 @@ function Get-NativeStreamSha256 {
         )
         $copyTask = $process.StandardOutput.BaseStream.CopyToAsync($cryptoStream)
         $errorTask = $process.StandardError.ReadToEndAsync()
-        $timedOut = -not $process.WaitForExit($TimeoutSeconds * 1000)
-        if ($timedOut) {
-            try { $process.Kill() } catch { }
-            $process.WaitForExit()
-        }
-        try {
-            $copyTask.GetAwaiter().GetResult()
-            [void]$errorTask.GetAwaiter().GetResult()
-        } catch {
-            Write-SafeError $FailureMessage
-        }
-        if ($timedOut -or $process.ExitCode -ne 0) { Write-SafeError $FailureMessage }
+        Complete-NativeHashProcess -Process $process -CopyTask $copyTask -ErrorTask $errorTask `
+            -FailureMessage $FailureMessage -TimeoutSeconds $TimeoutSeconds
         $cryptoStream.FlushFinalBlock()
         if ($null -eq $algorithm.Hash -or $algorithm.Hash.Length -ne 32) { Write-SafeError $FailureMessage }
         return ([BitConverter]::ToString($algorithm.Hash)).Replace('-', '').ToLowerInvariant()

@@ -174,6 +174,8 @@ def test_start_safety_covers_concurrency_identity_port_ownership_and_rollback() 
         "Get-WslCommandOutputSha256",
         "Get-NativeStreamSha256",
         "ConvertTo-NativeQuotedArgument",
+        "Complete-NativeHashProcess",
+        "Stop-ExactFingerprintProcess",
         "System32\\tar.exe",
         "'--exclude=*/.bin'",
         "'--exclude=__pycache__'",
