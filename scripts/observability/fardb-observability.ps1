@@ -590,7 +590,8 @@ function Wait-PrometheusTargetsUp {
         if ($timer.Elapsed.TotalSeconds -lt $TimeoutSeconds) { Start-Sleep -Milliseconds 500 }
     }
     $pendingNames = @($pending | ForEach-Object { $_.Name }) -join ' and '
-    Write-SafeError "$pendingNames Prometheus target did not report a fresh healthy scrape within $TimeoutSeconds seconds."
+    $targetNoun = if ($pending.Count -eq 1) { 'target' } else { 'targets' }
+    Write-SafeError "$pendingNames Prometheus $targetNoun did not report a fresh healthy scrape within $TimeoutSeconds seconds."
 }
 
 function Write-StatusRow {
@@ -789,3 +790,4 @@ try {
     Exit-LauncherMutex
 }
 exit $launcherExitCode
+
