@@ -344,7 +344,7 @@ function Complete-NativeHashProcess {
     $timedOut = -not $Context.Process.WaitForExit($Context.TimeoutSeconds * 1000)
     if ($timedOut) {
         Invoke-ExactFingerprintProcessTermination -Process $Context.Process
-        $Context.Process.WaitForExit()
+        if (-not $Context.Process.WaitForExit(5000)) { Write-SafeError $Context.FailureMessage }
     }
     try {
         $Context.CopyTask.GetAwaiter().GetResult()
