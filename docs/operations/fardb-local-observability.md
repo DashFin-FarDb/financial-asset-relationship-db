@@ -33,11 +33,11 @@ The selected distribution must already contain:
 - npm at `/usr/local/bin/npm` or `/usr/bin/npm`; and
 - the checkout's existing `frontend/node_modules` directory and its npm installation manifest.
 
-Windows must also provide the built-in `%SystemRoot%\System32\tar.exe`. The launcher streams both dependency trees
-through SHA-256 without creating an archive or consuming temporary disk space. Each byte scan has a 60-second ceiling.
-Generated Python bytecode/cache files are excluded because ordinary execution changes them while their source package
-files are included. npm `.bin` link farms are excluded from the Windows archive because their target package files are
-included, and the npm inventory separately fingerprints the installed package layout.
+The launcher streams both dependency trees through normalized WSL tar archives and SHA-256 without creating an archive
+or consuming temporary disk space. The larger Windows-mounted frontend scan has a 120-second ceiling; the Python scan
+has a 60-second ceiling. Stable path order, timestamps, and ownership are forced in both streams. The frontend scan
+includes npm `.bin` shims and link targets. Generated Python bytecode/cache files are excluded because ordinary
+execution changes them while their source package files are included.
 
 Windows Git must be available on `PATH`. The launcher derives the backend and frontend working directories from its
 own repository checkout. It never prints the contents of `runtime.env`; it combines a one-way file digest with the
@@ -106,7 +106,8 @@ version/layout change, or in-place file change makes the identity differ, so Sta
 and requires an explicit `-Action Stop` followed by `-Action Start`. `Stop` targets only the two exact transient
 application units unless `-StopInfrastructure` is supplied.
 Launcher actions are serialized per WSL distribution; a concurrent invocation fails without changing services.
-Listening-process cgroups must also match the expected exact units.
+Listening-process cgroups and the active units' canonical systemd `ExecStart` paths/argument vectors must also match the
+expected exact units and commands.
 
 ## Readiness contract
 

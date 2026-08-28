@@ -193,13 +193,11 @@ function Initialize-LauncherPath {
     Assert-WslAbsolutePath -Path $script:RepoRootWsl -Label 'Repository root'
     Assert-WslAbsolutePath -Path $script:WslHome -Label 'WSL home'
 
-    $script:FrontendRootWindows = Join-Path $script:RepoRootWindows 'frontend'
     $script:FrontendRootWsl = "$($script:RepoRootWsl)/frontend"
     $script:FrontendInstallManifestPath = "$($script:FrontendRootWsl)/node_modules/.package-lock.json"
     $script:RuntimeEnvPath = "$($script:WslHome)/.config/fardb-observability/runtime.env"
     $script:PythonPath = "$($script:WslHome)/.local/share/fardb-observability/venv/bin/python"
     $script:NpmPath = Resolve-WslExecutablePath -Candidates @('/usr/local/bin/npm', '/usr/bin/npm') -Label 'npm'
-    $script:WindowsTarPath = Join-Path $env:SystemRoot 'System32\tar.exe'
 }
 
 function Initialize-PrometheusTargetSetting {
@@ -282,7 +280,29 @@ function Test-ActiveTransientUnitMatch {
     if ($actualEnvironment -ne $expectedEnvironment) {
         Write-SafeError "The active transient unit belongs to another launcher configuration: $Unit"
     }
-    return $actualDescription -eq $expectedDescription
+    if ($actualDescription -ne $expectedDescription) { return $false }
+    return Test-ActiveUnitExecStartMatch -Unit $Unit -Command $Command
+}
+
+function Test-ActiveUnitExecStartMatch {
+    param(
+        [Parameter(Mandatory)][string]$Unit,
+        [Parameter(Mandatory)][string[]]$Command
+    )
+
+    if (@($Command | Where-Object { $_ -match '[\s;]' }).Count -gt 0) {
+        Write-SafeError 'The requested application command cannot be compared to systemd ExecStart safely.'
+    }
+    $actual = Get-UnitProperty -Unit $Unit -Property 'ExecStart' -Scope 'user'
+    $commandMatch = [regex]::Match(
+        $actual,
+        '^\{\s*path=(?<path>[^;]+?)\s*;\s*argv\[\]=(?<argv>.*?)\s*;\s*ignore_errors='
+    )
+    if (-not $commandMatch.Success) { return $false }
+    return (
+        $commandMatch.Groups['path'].Value -eq $Command[0] -and
+        $commandMatch.Groups['argv'].Value -eq ($Command -join ' ')
+    )
 }
 
 function Get-StringSha256 {
@@ -318,26 +338,20 @@ function Stop-ExactFingerprintProcess {
 }
 
 function Complete-NativeHashProcess {
-    param(
-        [Parameter(Mandatory)][Diagnostics.Process]$Process,
-        [Parameter(Mandatory)][Threading.Tasks.Task]$CopyTask,
-        [Parameter(Mandatory)][Threading.Tasks.Task]$ErrorTask,
-        [Parameter(Mandatory)][string]$FailureMessage,
-        [Parameter(Mandatory)][int]$TimeoutSeconds
-    )
+    param([Parameter(Mandatory)][pscustomobject]$Context)
 
-    $timedOut = -not $Process.WaitForExit($TimeoutSeconds * 1000)
+    $timedOut = -not $Context.Process.WaitForExit($Context.TimeoutSeconds * 1000)
     if ($timedOut) {
-        Stop-ExactFingerprintProcess -Process $Process
-        $Process.WaitForExit()
+        Stop-ExactFingerprintProcess -Process $Context.Process
+        $Context.Process.WaitForExit()
     }
     try {
-        $CopyTask.GetAwaiter().GetResult()
-        [void]$ErrorTask.GetAwaiter().GetResult()
+        $Context.CopyTask.GetAwaiter().GetResult()
+        [void]$Context.ErrorTask.GetAwaiter().GetResult()
     } catch {
-        Write-SafeError $FailureMessage
+        Write-SafeError $Context.FailureMessage
     }
-    if ($timedOut -or $Process.ExitCode -ne 0) { Write-SafeError $FailureMessage }
+    if ($timedOut -or $Context.Process.ExitCode -ne 0) { Write-SafeError $Context.FailureMessage }
 }
 
 function Get-NativeStreamSha256 {
@@ -369,8 +383,14 @@ function Get-NativeStreamSha256 {
         )
         $copyTask = $process.StandardOutput.BaseStream.CopyToAsync($cryptoStream)
         $errorTask = $process.StandardError.ReadToEndAsync()
-        Complete-NativeHashProcess -Process $process -CopyTask $copyTask -ErrorTask $errorTask `
-            -FailureMessage $FailureMessage -TimeoutSeconds $TimeoutSeconds
+        $completionContext = [pscustomobject]@{
+            Process = $process
+            CopyTask = $copyTask
+            ErrorTask = $errorTask
+            FailureMessage = $FailureMessage
+            TimeoutSeconds = $TimeoutSeconds
+        }
+        Complete-NativeHashProcess -Context $completionContext
         $cryptoStream.FlushFinalBlock()
         if ($null -eq $algorithm.Hash -or $algorithm.Hash.Length -ne 32) { Write-SafeError $FailureMessage }
         return ([BitConverter]::ToString($algorithm.Hash)).Replace('-', '').ToLowerInvariant()
@@ -523,9 +543,11 @@ function Initialize-RuntimeInputFingerprint {
     $pythonInventoryFingerprint = Get-WslCommandOutputSha256 -Arguments @(
         $script:PythonPath, '-I', '-m', 'pip', 'list', '--format=json', '--disable-pip-version-check'
     ) -FailureMessage 'The installed Python dependency state could not be fingerprinted safely.'
-    $frontendBytesFingerprint = Get-NativeStreamSha256 -FilePath $script:WindowsTarPath -Arguments @(
-        '-cf', '-', '--exclude=*/.bin', '-C', $script:FrontendRootWindows, 'node_modules'
-    ) -FailureMessage 'The installed frontend dependency bytes could not be fingerprinted safely.'
+    $frontendBytesFingerprint = Get-NativeStreamSha256 -FilePath 'wsl.exe' -Arguments @(
+        '-d', $Distribution, '--', '/usr/bin/tar', '--sort=name', '--mtime=@0', '--owner=0', '--group=0',
+        '--numeric-owner', '-cf', '-', '-C', $script:FrontendRootWsl, 'node_modules'
+    ) -FailureMessage 'The installed frontend dependency bytes could not be fingerprinted safely.' `
+        -TimeoutSeconds 120
     $pythonBytesFingerprint = Get-NativeStreamSha256 -FilePath 'wsl.exe' -Arguments @(
         '-d', $Distribution, '--', '/usr/bin/tar', '--sort=name', '--mtime=@0', '--owner=0', '--group=0',
         '--numeric-owner', '--exclude=__pycache__', '--exclude=*.pyc', '--exclude=*.pyo', '-cf', '-',
@@ -571,9 +593,6 @@ function Assert-TransientUnitCompatible {
 }
 
 function Assert-Prerequisite {
-    if (-not [IO.File]::Exists($script:WindowsTarPath)) {
-        Write-SafeError 'Required prerequisite is unavailable: Windows tar for dependency fingerprinting.'
-    }
     $requiredExecutables = @(
         @{ Path = '/usr/bin/curl'; Label = 'curl' },
         @{ Path = '/usr/bin/sha256sum'; Label = 'sha256sum' },
