@@ -919,33 +919,28 @@ function Invoke-ObservabilityStart {
     }
 }
 
-function Restore-InitialServiceState {
-    param([Parameter(Mandatory)][hashtable]$InitialStates)
+function Restore-InitialApplicationUnitState {
+    param(
+        [Parameter(Mandatory)][string]$InitialState,
+        [Parameter(Mandatory)][string]$Unit,
+        [Parameter(Mandatory)][hashtable]$StartParameters,
+        [Parameter(Mandatory)][string]$Label
+    )
 
-    if ($InitialStates.Frontend -eq 'active') {
-        if ((Get-UnitState -Unit $script:FrontendUnit -Scope 'user') -ne 'active') {
-            try {
-                $frontendStart = Get-FrontendStartParameters
-                Invoke-TransientUserUnitStart @frontendStart
-            } catch {
-                Write-Warning 'Rollback could not restore the previously active frontend unit.'
-            }
-        }
-    } else {
-        [void](Invoke-WslCommand -Arguments @('/usr/bin/systemctl', '--user', 'stop', $script:FrontendUnit))
+    if ($InitialState -ne 'active') {
+        [void](Invoke-WslCommand -Arguments @('/usr/bin/systemctl', '--user', 'stop', $Unit))
+        return
     }
-    if ($InitialStates.Backend -eq 'active') {
-        if ((Get-UnitState -Unit $script:BackendUnit -Scope 'user') -ne 'active') {
-            try {
-                $backendStart = Get-BackendStartParameters
-                Invoke-TransientUserUnitStart @backendStart
-            } catch {
-                Write-Warning 'Rollback could not restore the previously active backend unit.'
-            }
-        }
-    } else {
-        [void](Invoke-WslCommand -Arguments @('/usr/bin/systemctl', '--user', 'stop', $script:BackendUnit))
+    if ((Get-UnitState -Unit $Unit -Scope 'user') -eq 'active') { return }
+    try {
+        Invoke-TransientUserUnitStart @StartParameters
+    } catch {
+        Write-Warning "Rollback could not restore the previously active $Label unit."
     }
+}
+
+function Restore-InitialInfrastructureState {
+    param([Parameter(Mandatory)][hashtable]$InitialStates)
 
     $systemUnits = @()
     if ($InitialStates.Pdc -ne 'active') { $systemUnits += $script:PdcUnit }
@@ -953,6 +948,18 @@ function Restore-InitialServiceState {
     if ($systemUnits.Count -gt 0) {
         [void](Invoke-WslCommand -Arguments (@('/usr/bin/systemctl', 'stop') + $systemUnits) -Identity 'root')
     }
+}
+
+function Restore-InitialServiceState {
+    param([Parameter(Mandatory)][hashtable]$InitialStates)
+
+    $frontendStart = Get-FrontendStartParameters
+    Restore-InitialApplicationUnitState -InitialState $InitialStates.Frontend `
+        -Unit $script:FrontendUnit -StartParameters $frontendStart -Label 'frontend'
+    $backendStart = Get-BackendStartParameters
+    Restore-InitialApplicationUnitState -InitialState $InitialStates.Backend `
+        -Unit $script:BackendUnit -StartParameters $backendStart -Label 'backend'
+    Restore-InitialInfrastructureState -InitialStates $InitialStates
 }
 
 function Invoke-TransientUserUnitStop {
