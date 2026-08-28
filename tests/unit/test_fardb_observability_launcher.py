@@ -79,7 +79,7 @@ def test_both_production_application_sides_are_transient_and_required() -> None:
     assert '"--property=EnvironmentFile=$($script:RuntimeEnvPath)"' in text
     assert "'uvicorn', 'api.main:app'" in text
     assert "'run', 'dev', '--'" in text
-    assert "Start-TransientUserUnit" in text
+    assert "Invoke-TransientUserUnitStart" in text
 
 
 def test_existing_local_prerequisites_are_fail_closed() -> None:
@@ -93,7 +93,7 @@ def test_existing_local_prerequisites_are_fail_closed() -> None:
         "/usr/bin/npm",
         '"$($script:FrontendRootWsl)/node_modules"',
         "Assert-WslProcessHealthy",
-        "Assert-Prerequisites",
+        "Assert-Prerequisite",
     ):
         assert expected in text
 
@@ -126,8 +126,8 @@ def test_stop_boundaries_never_use_broad_process_termination() -> None:
     lowered = text.lower()
     for marker in ("stop-process", "taskkill", "pkill", "killall", "get-process"):
         assert marker not in lowered
-    assert "Stop-TransientUserUnit -Unit $script:FrontendUnit" in text
-    assert "Stop-TransientUserUnit -Unit $script:BackendUnit" in text
+    assert "Invoke-TransientUserUnitStop -Unit $script:FrontendUnit" in text
+    assert "Invoke-TransientUserUnitStop -Unit $script:BackendUnit" in text
     assert "if ($StopInfrastructure)" in text
     assert re.search(r"'stop',\s*\$script:PdcUnit,\s*\$script:PrometheusUnit", text)
 
@@ -159,13 +159,13 @@ def test_start_safety_covers_concurrency_identity_port_ownership_and_rollback() 
     text = _script()
     for expected in (
         "Enter-LauncherMutex",
-        "Assert-ActiveTransientUnitMatches",
+        "Assert-ActiveTransientUnitMatch",
         "Get-TransientUnitIdentity",
         "--property=Description=",
         "Test-WslPortOwnedByUnit",
         "ControlGroup",
         '"/proc/$listenerPid/cgroup"',
-        "Rollback-NewlyStartedServices",
+        "Restore-InitialServiceState",
         "ReadinessTimeoutSeconds",
     ):
         assert expected in text

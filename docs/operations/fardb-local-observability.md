@@ -94,14 +94,14 @@ checkout.
 readiness deadline is 75 seconds because the database target has a one-minute scrape interval; use
 `-ReadinessTimeoutSeconds` only to choose another bounded 5–300 second window.
 
-| Component | Unit | Readiness |
-| --- | --- | --- |
-| FastAPI | transient `fardb-backend.service` | HTTP 200 from `/api/health` on port 8000 |
-| Next.js | transient `fardb-frontend.service` | HTTP 200 on port 3000 |
-| Prometheus | `prometheus.service` | HTTP 200 from `/-/ready` on port 9090 |
-| Grafana PDC | `grafana-pdc-agent.service` | HTTP 200 from its loopback metrics endpoint |
-| Application scrape | `job="fardb_fastapi"` | Targets API reports a healthy scrape made during this Start |
-| Database scrape | `job` starts with `integrations/supabase/` by default | Targets API reports every match healthy and freshly scraped |
+| Component          | Unit                                                  | Readiness                                                   |
+| ------------------ | ----------------------------------------------------- | ----------------------------------------------------------- |
+| FastAPI            | transient `fardb-backend.service`                     | HTTP 200 from `/api/health` on port 8000                    |
+| Next.js            | transient `fardb-frontend.service`                    | HTTP 200 on port 3000                                       |
+| Prometheus         | `prometheus.service`                                  | HTTP 200 from `/-/ready` on port 9090                       |
+| Grafana PDC        | `grafana-pdc-agent.service`                           | HTTP 200 from its loopback metrics endpoint                 |
+| Application scrape | `job="fardb_fastapi"`                                 | Targets API reports a healthy scrape made during this Start |
+| Database scrape    | `job` starts with `integrations/supabase/` by default | Targets API reports every match healthy and freshly scraped |
 
 Status output is bounded to component names, unit/target states, and HTTP status codes. Command stderr and response
 bodies are not relayed, so secrets and sensitive payloads are not printed.

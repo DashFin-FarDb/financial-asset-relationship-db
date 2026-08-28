@@ -1,3 +1,8 @@
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute(
+    'PSReviewUnusedParameter',
+    '',
+    Justification = 'Script parameters are consumed by nested orchestration functions.'
+)]
 [CmdletBinding()]
 param(
     [ValidateSet('Start', 'Status', 'Stop')]
@@ -34,7 +39,7 @@ $script:FastApiTargetJob = 'fardb_fastapi'
 $script:LauncherMutex = $null
 $script:LauncherMutexOwned = $false
 
-function Throw-SafeError {
+function Write-SafeError {
     param([Parameter(Mandatory)][string]$Message)
 
     throw [System.InvalidOperationException]::new($Message)
@@ -42,7 +47,7 @@ function Throw-SafeError {
 
 function Assert-DistributionNameSafe {
     if ($Distribution -notmatch '^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$') {
-        Throw-SafeError 'The WSL distribution name contains unsupported characters.'
+        Write-SafeError 'The WSL distribution name contains unsupported characters.'
     }
 }
 
@@ -57,7 +62,7 @@ function Enter-LauncherMutex {
     if (-not $script:LauncherMutexOwned) {
         $script:LauncherMutex.Dispose()
         $script:LauncherMutex = $null
-        Throw-SafeError 'Another FarDb observability launcher invocation is already active.'
+        Write-SafeError 'Another FarDb observability launcher invocation is already active.'
     }
 }
 
@@ -79,10 +84,10 @@ function Assert-DistributionInstalled {
             ForEach-Object { ($_ -replace "`0", '').Trim() } |
             Where-Object { $_ }
     } catch {
-        Throw-SafeError 'The installed WSL distributions could not be inspected.'
+        Write-SafeError 'The installed WSL distributions could not be inspected.'
     }
     if ($Distribution -notin $installed) {
-        Throw-SafeError "Required WSL distribution is unavailable: $Distribution"
+        Write-SafeError "Required WSL distribution is unavailable: $Distribution"
     }
 }
 
@@ -121,7 +126,7 @@ function Invoke-WslCommand {
 
 function Assert-WslProcessHealthy {
     if ((Invoke-WslCommand -Arguments @('/bin/true')) -ne 0) {
-        Throw-SafeError (
+        Write-SafeError (
             'WSL cannot create a process in the selected distribution. ' +
             'Run wsl --shutdown, repair or restart WSL, and retry; no services were changed.'
         )
@@ -137,7 +142,7 @@ function Get-SingleWslValue {
     $result = Invoke-WslCommand -Arguments $Arguments -Capture
     $values = @($result.Output | ForEach-Object { $_.Trim() } | Where-Object { $_ })
     if ($result.ExitCode -ne 0 -or $values.Count -ne 1) {
-        Throw-SafeError $FailureMessage
+        Write-SafeError $FailureMessage
     }
     return $values[0]
 }
@@ -151,7 +156,7 @@ function Resolve-WslExecutablePath {
     foreach ($candidate in $Candidates) {
         if (Test-WslPath -Kind 'executable' -Path $candidate) { return $candidate }
     }
-    Throw-SafeError "Required prerequisite is unavailable: $Label."
+    Write-SafeError "Required prerequisite is unavailable: $Label."
 }
 
 function Assert-WslAbsolutePath {
@@ -161,17 +166,17 @@ function Assert-WslAbsolutePath {
     )
 
     if (-not $Path.StartsWith('/') -or $Path.IndexOfAny([char[]]"`0`r`n") -ge 0) {
-        Throw-SafeError "$Label did not resolve to a safe absolute WSL path."
+        Write-SafeError "$Label did not resolve to a safe absolute WSL path."
     }
 }
 
-function Initialize-LauncherPaths {
+function Initialize-LauncherPath {
     if ([string]::IsNullOrWhiteSpace($PSScriptRoot)) {
-        Throw-SafeError 'The launcher must be run from its script file.'
+        Write-SafeError 'The launcher must be run from its script file.'
     }
     $repoRootWindows = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..\..'))
     if ($repoRootWindows -notmatch '^([A-Za-z]):\\(.+)$') {
-        Throw-SafeError 'The repository is not on a supported local Windows drive.'
+        Write-SafeError 'The repository is not on a supported local Windows drive.'
     }
     $homePathRequest = @{
         Arguments = @('/usr/bin/printenv', 'HOME')
@@ -191,18 +196,18 @@ function Initialize-LauncherPaths {
     $script:NpmPath = Resolve-WslExecutablePath -Candidates @('/usr/local/bin/npm', '/usr/bin/npm') -Label 'npm'
 }
 
-function Initialize-PrometheusTargetSettings {
+function Initialize-PrometheusTargetSetting {
     if ([string]::IsNullOrWhiteSpace($SupabasePrometheusJobPrefix)) {
         $SupabasePrometheusJobPrefix = 'integrations/supabase/'
     }
     if ($SupabasePrometheusJobPrefix.Length -gt 128) {
-        Throw-SafeError 'The Supabase Prometheus job prefix contains unsupported characters.'
+        Write-SafeError 'The Supabase Prometheus job prefix contains unsupported characters.'
     }
     if ($SupabasePrometheusJobPrefix -notmatch '^[A-Za-z0-9_./:-]+$') {
-        Throw-SafeError 'The Supabase Prometheus job prefix contains unsupported characters.'
+        Write-SafeError 'The Supabase Prometheus job prefix contains unsupported characters.'
     }
     if (-not $SupabasePrometheusJobPrefix.EndsWith('/')) {
-        Throw-SafeError 'The Supabase Prometheus job prefix must end with a path separator.'
+        Write-SafeError 'The Supabase Prometheus job prefix must end with a path separator.'
     }
     $script:SupabaseTargetJobPrefix = $SupabasePrometheusJobPrefix
 }
@@ -253,7 +258,7 @@ function Get-UnitState {
     return $state
 }
 
-function Assert-ActiveTransientUnitMatches {
+function Assert-ActiveTransientUnitMatch {
     param(
         [Parameter(Mandatory)][string]$Unit,
         [Parameter(Mandatory)][string]$WorkingDirectory,
@@ -266,13 +271,13 @@ function Assert-ActiveTransientUnitMatches {
     $expectedEnvironment = "$($script:RuntimeEnvPath) (ignore_errors=no)"
     $expectedDescription = Get-TransientUnitIdentity -WorkingDirectory $WorkingDirectory -Command $Command
     if ($actualDirectory -ne $WorkingDirectory) {
-        Throw-SafeError "The active transient unit belongs to another launcher configuration: $Unit"
+        Write-SafeError "The active transient unit belongs to another launcher configuration: $Unit"
     }
     if ($actualEnvironment -ne $expectedEnvironment) {
-        Throw-SafeError "The active transient unit belongs to another launcher configuration: $Unit"
+        Write-SafeError "The active transient unit belongs to another launcher configuration: $Unit"
     }
     if ($actualDescription -ne $expectedDescription) {
-        Throw-SafeError "The active transient unit belongs to another launcher configuration: $Unit"
+        Write-SafeError "The active transient unit belongs to another launcher configuration: $Unit"
     }
 }
 
@@ -299,17 +304,17 @@ function Assert-TransientUnitCompatible {
     $loadState = Get-UnitProperty -Unit $Unit -Property 'LoadState' -Scope 'user'
     if (-not $loadState -or $loadState -eq 'not-found') { return }
     if ($loadState -ne 'loaded') {
-        Throw-SafeError "The application unit is not in a usable state: $Unit"
+        Write-SafeError "The application unit is not in a usable state: $Unit"
     }
     if ((Get-UnitProperty -Unit $Unit -Property 'Transient' -Scope 'user') -ne 'yes') {
-        Throw-SafeError (
+        Write-SafeError (
             "A persistent legacy unit conflicts with the required transient unit: $Unit. " +
             'Follow the documented reversible migration before retrying.'
         )
     }
 }
 
-function Assert-Prerequisites {
+function Assert-Prerequisite {
     $requiredExecutables = @(
         @{ Path = '/usr/bin/curl'; Label = 'curl' },
         @{ Path = '/usr/bin/ss'; Label = 'ss' },
@@ -337,7 +342,7 @@ function Assert-WslPathAvailable {
     )
 
     if (-not (Test-WslPath -Kind $Kind -Path $Path)) {
-        Throw-SafeError "Required prerequisite is unavailable: $Label."
+        Write-SafeError "Required prerequisite is unavailable: $Label."
     }
 }
 
@@ -345,7 +350,7 @@ function Assert-SystemUnitAvailable {
     param([Parameter(Mandatory)][string]$Unit)
 
     if ((Get-UnitProperty -Unit $Unit -Property 'LoadState' -Scope 'system') -ne 'loaded') {
-        Throw-SafeError "Required infrastructure unit is unavailable: $Unit"
+        Write-SafeError "Required infrastructure unit is unavailable: $Unit"
     }
 }
 
@@ -412,15 +417,15 @@ function Assert-PortOwnedByUnit {
         Get-UnitState -Unit $Unit -Scope 'system'
     }
     if ($unitState -eq 'active' -and (Test-WslPortOwnedByUnit -Port $Port -Unit $Unit -Scope $Scope)) { return }
-    Throw-SafeError $RecoveryMessage
+    Write-SafeError $RecoveryMessage
 }
 
-function Start-Infrastructure {
+function Invoke-InfrastructureStart {
     $exitCode = Invoke-WslCommand -Arguments @(
         '/usr/bin/systemctl', 'start', $script:PrometheusUnit, $script:PdcUnit
     ) -Identity 'root'
     if ($exitCode -ne 0) {
-        Throw-SafeError 'Prometheus or Grafana PDC failed to start; inspect the exact system units locally.'
+        Write-SafeError 'Prometheus or Grafana PDC failed to start; inspect the exact system units locally.'
     }
 }
 
@@ -432,10 +437,10 @@ function Wait-TransientUnitUnloaded {
         if (-not $loadState -or $loadState -eq 'not-found') { return }
         Start-Sleep -Milliseconds 100
     }
-    Throw-SafeError "The prior transient unit did not unload cleanly: $Unit"
+    Write-SafeError "The prior transient unit did not unload cleanly: $Unit"
 }
 
-function Start-TransientUserUnit {
+function Invoke-TransientUserUnitStart {
     param(
         [Parameter(Mandatory)][string]$Unit,
         [Parameter(Mandatory)][string]$WorkingDirectory,
@@ -443,7 +448,7 @@ function Start-TransientUserUnit {
     )
 
     if ((Get-UnitState -Unit $Unit -Scope 'user') -eq 'active') {
-        Assert-ActiveTransientUnitMatches -Unit $Unit -WorkingDirectory $WorkingDirectory -Command $Command
+        Assert-ActiveTransientUnitMatch -Unit $Unit -WorkingDirectory $WorkingDirectory -Command $Command
         return
     }
 
@@ -460,11 +465,11 @@ function Start-TransientUserUnit {
         "--property=Description=$(Get-TransientUnitIdentity -WorkingDirectory $WorkingDirectory -Command $Command)", '--'
     ) + $Command
     if ((Invoke-WslCommand -Arguments $arguments) -ne 0) {
-        Throw-SafeError "The transient application unit failed to start: $Unit"
+        Write-SafeError "The transient application unit failed to start: $Unit"
     }
 }
 
-function Start-Application {
+function Invoke-ApplicationStart {
     $backendWasActive = (Get-UnitState -Unit $script:BackendUnit -Scope 'user') -eq 'active'
     $backendStart = @{
         Unit = $script:BackendUnit
@@ -474,7 +479,7 @@ function Start-Application {
             '--host', '127.0.0.1', '--port', "$($script:BackendPort)"
         )
     }
-    Start-TransientUserUnit @backendStart
+    Invoke-TransientUserUnitStart @backendStart
     try {
         $frontendStart = @{
             Unit = $script:FrontendUnit
@@ -484,7 +489,7 @@ function Start-Application {
                 '--hostname', '127.0.0.1', '--port', "$($script:FrontendPort)"
             )
         }
-        Start-TransientUserUnit @frontendStart
+        Invoke-TransientUserUnitStart @frontendStart
     } catch {
         if (-not $backendWasActive) {
             [void](Invoke-WslCommand -Arguments @('/usr/bin/systemctl', '--user', 'stop', $script:BackendUnit))
@@ -505,10 +510,10 @@ function Wait-HttpReady {
         if ((Get-HttpStatus -Url $Url) -eq 200) { return }
         if ($timer.Elapsed.TotalSeconds -lt $TimeoutSeconds) { Start-Sleep -Milliseconds 500 }
     }
-    Throw-SafeError "$Name did not become ready within $TimeoutSeconds seconds."
+    Write-SafeError "$Name did not become ready within $TimeoutSeconds seconds."
 }
 
-function Get-PrometheusActiveTargets {
+function Get-PrometheusActiveTarget {
     $result = Invoke-WslCommand -Arguments @(
         '/usr/bin/curl', '--silent', '--show-error', '--max-time', '1', $script:PrometheusTargetsUrl
     ) -Capture
@@ -576,7 +581,7 @@ function Wait-PrometheusTargetsUp {
     )
     $timer = [Diagnostics.Stopwatch]::StartNew()
     while ($timer.Elapsed.TotalSeconds -lt $TimeoutSeconds) {
-        $targets = @(Get-PrometheusActiveTargets)
+        $targets = @(Get-PrometheusActiveTarget)
         $pending = @($definitions | Where-Object {
             -not (Test-PrometheusTargetSetUp -Targets $targets -JobSelector $_.Selector `
                 -MatchMode $_.MatchMode -NotBefore $NotBefore)
@@ -585,7 +590,7 @@ function Wait-PrometheusTargetsUp {
         if ($timer.Elapsed.TotalSeconds -lt $TimeoutSeconds) { Start-Sleep -Milliseconds 500 }
     }
     $pendingNames = @($pending | ForEach-Object { $_.Name }) -join ' and '
-    Throw-SafeError "$pendingNames Prometheus target did not report a fresh healthy scrape within $TimeoutSeconds seconds."
+    Write-SafeError "$pendingNames Prometheus target did not report a fresh healthy scrape within $TimeoutSeconds seconds."
 }
 
 function Write-StatusRow {
@@ -611,7 +616,7 @@ function Show-Status {
         Write-StatusRow -Component $component.Component -State $state -HttpStatus $httpStatus
     }
 
-    $activeTargets = @(Get-PrometheusActiveTargets)
+    $activeTargets = @(Get-PrometheusActiveTarget)
     $targetDefinitions = @(
         @{ Component = 'Prometheus target fardb_fastapi'; Selector = $script:FastApiTargetJob; MatchMode = 'exact' },
         @{ Component = 'Prometheus target Supabase'; Selector = $script:SupabaseTargetJobPrefix; MatchMode = 'prefix' }
@@ -654,8 +659,8 @@ function Open-LogWindows {
     }
 }
 
-function Start-Observability {
-    Assert-Prerequisites
+function Invoke-ObservabilityStart {
+    Assert-Prerequisite
     Assert-TransientUnitCompatible -Unit $script:BackendUnit
     Assert-TransientUnitCompatible -Unit $script:FrontendUnit
 
@@ -699,8 +704,8 @@ function Start-Observability {
     }
     $freshScrapeAfter = [datetimeoffset]::UtcNow
     try {
-        Start-Infrastructure
-        Start-Application
+        Invoke-InfrastructureStart
+        Invoke-ApplicationStart
 
         Wait-HttpReady -Name 'Prometheus' -Url $script:PrometheusHealthUrl `
             -TimeoutSeconds $ReadinessTimeoutSeconds
@@ -715,12 +720,12 @@ function Start-Observability {
         Show-Status
         if ($ShowLogs) { Open-LogWindows }
     } catch {
-        Rollback-NewlyStartedServices -InitialStates $initialStates
+        Restore-InitialServiceState -InitialStates $initialStates
         throw
     }
 }
 
-function Rollback-NewlyStartedServices {
+function Restore-InitialServiceState {
     param([Parameter(Mandatory)][hashtable]$InitialStates)
 
     if ($InitialStates.Frontend -ne 'active') {
@@ -738,26 +743,26 @@ function Rollback-NewlyStartedServices {
     }
 }
 
-function Stop-TransientUserUnit {
+function Invoke-TransientUserUnitStop {
     param([Parameter(Mandatory)][string]$Unit)
 
     $loadState = Get-UnitProperty -Unit $Unit -Property 'LoadState' -Scope 'user'
     if (-not $loadState -or $loadState -eq 'not-found') { return }
     Assert-TransientUnitCompatible -Unit $Unit
     if ((Invoke-WslCommand -Arguments @('/usr/bin/systemctl', '--user', 'stop', $Unit)) -ne 0) {
-        Throw-SafeError "The transient application unit did not stop cleanly: $Unit"
+        Write-SafeError "The transient application unit did not stop cleanly: $Unit"
     }
 }
 
-function Stop-Observability {
-    Stop-TransientUserUnit -Unit $script:FrontendUnit
-    Stop-TransientUserUnit -Unit $script:BackendUnit
+function Invoke-ObservabilityStop {
+    Invoke-TransientUserUnitStop -Unit $script:FrontendUnit
+    Invoke-TransientUserUnitStop -Unit $script:BackendUnit
 
     if ($StopInfrastructure) {
         if ((Invoke-WslCommand -Arguments @(
             '/usr/bin/systemctl', 'stop', $script:PdcUnit, $script:PrometheusUnit
         ) -Identity 'root') -ne 0) {
-            Throw-SafeError 'Prometheus or Grafana PDC did not stop cleanly.'
+            Write-SafeError 'Prometheus or Grafana PDC did not stop cleanly.'
         }
     }
     Show-Status
@@ -769,13 +774,13 @@ try {
     Enter-LauncherMutex
     Assert-DistributionInstalled
     Assert-WslProcessHealthy
-    Initialize-LauncherPaths
-    Initialize-PrometheusTargetSettings
+    Initialize-LauncherPath
+    Initialize-PrometheusTargetSetting
 
     switch ($Action) {
-        'Start' { Start-Observability }
+        'Start' { Invoke-ObservabilityStart }
         'Status' { Show-Status }
-        'Stop' { Stop-Observability }
+        'Stop' { Invoke-ObservabilityStop }
     }
 } catch {
     Write-Error ("FarDb observability launcher: {0}" -f $_.Exception.Message) -ErrorAction Continue
