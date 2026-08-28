@@ -421,8 +421,9 @@ function Get-WslFileSha256 {
 
 function Get-WslNpmImplementationRoot {
     $result = Invoke-WslCommand -Arguments @('/usr/bin/readlink', '-f', '--', $script:NpmPath) -Capture
-    $lines = @($result.Output | ForEach-Object { $_.Trim() } | Where-Object { $_ })
-    if ($result.ExitCode -ne 0 -or $lines.Count -ne 1 -or $lines[0] -notmatch '^(/.+)/bin/npm-cli\.js$') { Write-SafeError 'The npm implementation path could not be fingerprinted safely.' }
+    $resolvedPath = @($result.Output) -join "`n"
+    if ($result.ExitCode -ne 0) { Write-SafeError 'The npm implementation path could not be fingerprinted safely.' }
+    if ($resolvedPath -notmatch '^(/.+)/bin/npm-cli\.js$') { Write-SafeError 'The npm implementation path could not be fingerprinted safely.' }
     return $Matches[1]
 }
 
