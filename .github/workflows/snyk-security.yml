@@ -57,7 +57,7 @@ jobs:
         if: ${{ steps.snyk-token.outputs.available == 'true' }}
         # Snyk can be used to break the build when it detects security issues.
         # In this case we want to upload the SAST issues to GitHub Code Scanning
-        uses: snyk/actions/setup@8e119fbb6c251787721d34ba683ed48eba792766
+        uses: snyk/actions/setup@12140f4059e244892ae643824a95459a102120dd
 
         # For Snyk Open Source you must first set up the development environment for your application's dependencies
         # For example for Node
@@ -110,6 +110,6 @@ jobs:
         # Push the Snyk Code results into GitHub Code Scanning tab
       - name: Upload result to GitHub Code Scanning
         if: ${{ always() && steps.snyk-token.outputs.available == 'true' && steps.sarif.outputs.present == 'true' }}
-        uses: github/codeql-action/upload-sarif@ff2f1c621b7f889edc0d3c761ac2e6a3f8cdb0dd # v4.37.7
+        uses: github/codeql-action/upload-sarif@cdf488f595d80d6e07e03d4674febd5ab45fa938 # v4.37.9
         with:
           sarif_file: snyk-code.sarif
