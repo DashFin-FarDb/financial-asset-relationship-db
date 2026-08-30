@@ -51,7 +51,7 @@ def test_pr_copilot_publishes_read_only_exact_head_status():
     status_job = workflow_text.split("  status-update:", 1)[1].split("  review-handler:", 1)[0]
 
     assert "@pr-copilot status update" in workflow_text
-    assert workflow["permissions"] == {}
+    assert workflow["permissions"] == {"contents": "none"}
     assert workflow["jobs"]["status-update"]["permissions"] == {
         "contents": "read",
         "pull-requests": "read",

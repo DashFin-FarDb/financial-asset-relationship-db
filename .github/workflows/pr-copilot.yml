@@ -12,7 +12,8 @@ name: PR Copilot Agent
         required: true
         type: string
 
-permissions: {}
+permissions:
+  contents: none
 
 concurrency:
   group: pr-copilot-${{ github.event_name }}-${{ inputs.pr_number || github.event.issue.number || github.ref }}
