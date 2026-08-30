@@ -1195,7 +1195,7 @@ def test_main_requires_expected_head_sha(capsys):
         assert exc_info.value.code == 1
 
     captured = capsys.readouterr()
-    assert "EXPECTED_HEAD_SHA" in captured.err
+    assert generate_status.PINNED_HEAD_ENV in captured.err
 
 
 def test_main_invalid_pr_number(capsys):
@@ -1205,7 +1205,7 @@ def test_main_invalid_pr_number(capsys):
         "PR_NUMBER": "not-a-number",
         "REPO_OWNER": "owner",
         "REPO_NAME": "repo",
-        "EXPECTED_HEAD_SHA": "abc123",
+        generate_status.PINNED_HEAD_ENV: "abc123",
     }
 
     with patch.dict(os.environ, env, clear=True):
@@ -1225,7 +1225,7 @@ def test_main_github_api_error(capsys):
         "PR_NUMBER": "123",
         "REPO_OWNER": "owner",
         "REPO_NAME": "repo",
-        "EXPECTED_HEAD_SHA": "abc123",
+        generate_status.PINNED_HEAD_ENV: "abc123",
     }
 
     with patch.dict(os.environ, env, clear=True), patch("generate_status.Github") as mock_github_class:
@@ -1249,7 +1249,7 @@ def test_main_success_flow(mock_pr, mock_review_approved, mock_check_run_success
         "PR_NUMBER": "123",
         "REPO_OWNER": "owner",
         "REPO_NAME": "repo",
-        "EXPECTED_HEAD_SHA": "abc123",
+        generate_status.PINNED_HEAD_ENV: "abc123",
     }
 
     with (
@@ -1289,7 +1289,7 @@ def test_main_generic_exception(capsys):
         "PR_NUMBER": "123",
         "REPO_OWNER": "owner",
         "REPO_NAME": "repo",
-        "EXPECTED_HEAD_SHA": "abc123",
+        generate_status.PINNED_HEAD_ENV: "abc123",
     }
 
     with (

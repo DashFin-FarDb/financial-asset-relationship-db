@@ -63,6 +63,7 @@ def test_pr_copilot_publishes_read_only_exact_head_status():
     }
     gate = str(status_job["if"])
     assert "github.event_name == 'workflow_dispatch'" in gate
+    assert "github.event_name == 'issue_comment'" in gate
     assert "github.event.issue.pull_request" in gate
     for association in ("OWNER", "MEMBER", "COLLABORATOR"):
         assert f"github.event.comment.author_association == '{association}'" in gate
@@ -85,20 +86,23 @@ def test_pr_copilot_publishes_read_only_exact_head_status():
     capture_step = steps[capture_index]
     generate_step = steps[generate_index]
     publish_step = steps[publish_index]
+    capture_run = capture_step["run"]
+    publish_run = publish_step["run"]
     pr_number_expression = "${{ inputs.pr_number || github.event.issue.number }}"
     assert capture_step["env"]["PR_NUMBER"] == pr_number_expression
     assert generate_step["env"]["PR_NUMBER"] == pr_number_expression
     assert generate_step["env"]["EXPECTED_HEAD_SHA"] == "${{ steps.pr_head.outputs.sha }}"  # DevSkim: ignore all
     assert publish_step["env"]["PR_NUMBER"] == pr_number_expression
-    assert 'echo "sha=${HEAD_SHA}" >> "$GITHUB_OUTPUT"' in capture_step["run"]
+    assert 'pulls/${PR_NUMBER}" --jq .head.sha' in capture_run
+    assert 'echo "sha=${HEAD_SHA}" >> "$GITHUB_OUTPUT"' in capture_run
     assert publish_step["env"]["EXPECTED_HEAD_SHA"] == "${{ steps.pr_head.outputs.sha }}"  # DevSkim: ignore all
-    assert "CURRENT_HEAD_SHA=$(gh api" in publish_step["run"]
-    assert '"${CURRENT_HEAD_SHA}" != "${EXPECTED_HEAD_SHA}"' in publish_step["run"]  # DevSkim: ignore all
-    assert "refusing to publish stale status" in publish_step["run"]
-    assert r"Exact-head advisory snapshot for \`${EXPECTED_HEAD_SHA}\`" in publish_step["run"]  # DevSkim: ignore all
+    assert "CURRENT_HEAD_SHA=$(gh api" in publish_run
+    assert 'pulls/${PR_NUMBER}" --jq .head.sha' in publish_run
+    assert '"${CURRENT_HEAD_SHA}" != "${EXPECTED_HEAD_SHA}"' in publish_run  # DevSkim: ignore all
+    assert "refusing to publish stale status" in publish_run
+    assert r"Exact-head advisory snapshot for \`${EXPECTED_HEAD_SHA}\`" in publish_run  # DevSkim: ignore all
     assert "GITHUB_STEP_SUMMARY" in serialized_status_job
     assert "actions/upload-artifact@" in serialized_status_job
-    assert "--jq .head.sha" in workflow_text
     assert "retention-days: 7" in serialized_status_job
     assert "createComment" not in serialized_status_job
     assert "updateComment" not in serialized_status_job

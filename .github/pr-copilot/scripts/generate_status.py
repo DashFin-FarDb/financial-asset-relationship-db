@@ -17,10 +17,12 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 
 UTC = timezone.utc
+PINNED_HEAD_ENV = "EXPECTED_HEAD_SHA"  # DevSkim: ignore all -- environment key, not a hard-coded TLS version.
 
 try:
     from github import Github, GithubException
     from github.PullRequest import PullRequest  # noqa: F401
+    from github.Repository import Repository
 
     _PYGITHUB_AVAILABLE = True
 except ImportError:
@@ -67,6 +69,73 @@ class PRStatus:
     check_runs: list[CheckRunInfo]
 
 
+@dataclass(frozen=True)
+class PRReportRequest:
+    """Validated inputs needed to generate one exact-head PR report."""
+
+    token: str
+    repo_full_name: str
+    pr_num: int
+    expected_head_sha: str
+
+
+def _validate_pr_head(pr: PullRequest, expected_head_sha: str) -> None:
+    """Fail closed before reading status data when the captured PR head is stale."""
+    if pr.head.sha != expected_head_sha:
+        raise RuntimeError(
+            "PR head changed before report generation: "
+            f"expected {expected_head_sha}, found {pr.head.sha}; refusing to read stale status data"
+        )
+
+
+def _summarize_reviews(pr: PullRequest) -> dict[str, int]:
+    """Count review states for the PR status report."""
+    reviews = list(pr.get_reviews())
+    return {
+        "approved": sum(review.state == "APPROVED" for review in reviews),
+        "changes_requested": sum(review.state == "CHANGES_REQUESTED" for review in reviews),
+        "commented": sum(review.state == "COMMENTED" for review in reviews),
+        "total": len(reviews),
+    }
+
+
+def _collect_check_runs(repo: Repository, expected_head_sha: str) -> list[CheckRunInfo]:
+    """Collect check runs from the captured head commit, never from a moving ref."""
+    head_commit = repo.get_commit(expected_head_sha)
+    return [
+        CheckRunInfo(name=run.name, status=run.status, conclusion=run.conclusion)
+        for run in head_commit.get_check_runs()
+    ]
+
+
+def _build_pr_status(
+    pr: PullRequest,
+    review_stats: dict[str, int],
+    open_thread_count: int,
+    check_runs: list[CheckRunInfo],
+) -> PRStatus:
+    """Build the immutable report model from already-fetched exact-head data."""
+    return PRStatus(
+        number=pr.number,
+        title=pr.title,
+        author=pr.user.login,
+        base_ref=pr.base.ref,
+        head_ref=pr.head.ref,
+        is_draft=pr.draft,
+        url=pr.html_url,
+        commit_count=pr.commits,
+        file_count=pr.changed_files,
+        additions=pr.additions,
+        deletions=pr.deletions,
+        labels=[label.name for label in pr.labels],
+        mergeable=pr.mergeable,
+        mergeable_state=pr.mergeable_state or "unknown",
+        review_stats=review_stats,
+        open_thread_count=open_thread_count,
+        check_runs=check_runs,
+    )
+
+
 def fetch_pr_status(g: Github, repo_name: str, pr_num: int, expected_head_sha: str) -> PRStatus:
     """
     Retrieve aggregated metadata, review statistics, mergeability, and CI check-run summaries for a pull request.
@@ -87,63 +156,13 @@ def fetch_pr_status(g: Github, repo_name: str, pr_num: int, expected_head_sha: s
     """
     repo = g.get_repo(repo_name)
     pr = repo.get_pull(pr_num)
+    _validate_pr_head(pr, expected_head_sha)
 
-    if pr.head.sha != expected_head_sha:
-        raise RuntimeError(
-            "PR head changed before report generation: "
-            f"expected {expected_head_sha}, found {pr.head.sha}; refusing to read stale status data"
-        )
-
-    # 1. Reviews (Must iterate to classify)
-    reviews = list(pr.get_reviews())
-    review_stats = {
-        "approved": len([r for r in reviews if r.state == "APPROVED"]),
-        "changes_requested": len([r for r in reviews if r.state == "CHANGES_REQUESTED"]),
-        "commented": len([r for r in reviews if r.state == "COMMENTED"]),
-        "total": len(reviews),
-    }
-
-    # 2. Review Threads
-    # Note: get_review_comments returns individual comments.
-    # Grouping by position/path is complex; counting total comments
-    # is a decent proxy for "activity".
-    # For distinct threads, we'd need to map reply_to_id.
-    # Sticking to simple count for performance.
-    open_threads = pr.get_review_comments().totalCount
-
-    # 3. Check Runs
-    # Optimization: Get runs directly from commit, skipping Suite iteration
-    head_commit = repo.get_commit(expected_head_sha)
-    check_runs_data = []
-
-    # We use list() here because we need to inspect properties
-    for run in head_commit.get_check_runs():
-        check_runs_data.append(
-            CheckRunInfo(
-                name=run.name,
-                status=run.status,
-                conclusion=run.conclusion,
-            )
-        )
-
-    return PRStatus(
-        number=pr.number,
-        title=pr.title,
-        author=pr.user.login,
-        base_ref=pr.base.ref,
-        head_ref=pr.head.ref,
-        is_draft=pr.draft,
-        url=pr.html_url,
-        commit_count=pr.commits,  # API Attribute (Fast)
-        file_count=pr.changed_files,  # API Attribute (Fast)
-        additions=pr.additions,
-        deletions=pr.deletions,
-        labels=[label.name for label in pr.labels],
-        mergeable=pr.mergeable,
-        mergeable_state=pr.mergeable_state or "unknown",
-        review_stats=review_stats,
-        open_thread_count=open_threads,
-        check_runs=check_runs_data,
+    return _build_pr_status(
+        pr,
+        _summarize_reviews(pr),
+        pr.get_review_comments().totalCount,
+        _collect_check_runs(repo, expected_head_sha),
     )
 
 
@@ -344,7 +363,7 @@ def _validate_environment() -> dict[str, str]:
     Exits:
         Exits with status 1 if any required variables are missing.
     """
-    required = ["GITHUB_TOKEN", "PR_NUMBER", "REPO_OWNER", "REPO_NAME", "EXPECTED_HEAD_SHA"]
+    required = ["GITHUB_TOKEN", "PR_NUMBER", "REPO_OWNER", "REPO_NAME", PINNED_HEAD_ENV]
     env = {var: os.environ.get(var) for var in required}
 
     if not all(env.values()):
@@ -379,29 +398,22 @@ def _parse_pr_number(pr_number_str: str) -> int:
         sys.exit(1)
 
 
-def _fetch_and_generate_report(
-    token: str, repo_owner: str, repo_name: str, pr_num: int, expected_head_sha: str
-) -> None:
+def _fetch_and_generate_report(request: PRReportRequest) -> None:
     """
     Connect to GitHub, fetch PR status, generate report, and write output.
 
     Args:
-        token: GitHub authentication token.
-        repo_owner: Repository owner name.
-        repo_name: Repository name.
-        pr_num: Pull request number.
-        expected_head_sha: Exact PR head SHA captured before report generation.
+        request: Validated authentication, repository, PR, and captured-head inputs.
 
     Exits:
         Exits with status 0 on success, status 1 on any error.
     """
     try:
-        g = Github(token)
-        repo_full_name = f"{repo_owner}/{repo_name}"
+        g = Github(request.token)
 
-        print(f"Fetching status for PR #{pr_num}...", file=sys.stderr)
+        print(f"Fetching status for PR #{request.pr_num}...", file=sys.stderr)
 
-        status = fetch_pr_status(g, repo_full_name, pr_num, expected_head_sha)
+        status = fetch_pr_status(g, request.repo_full_name, request.pr_num, request.expected_head_sha)
         report = generate_markdown(status)
         write_output(report)
 
@@ -421,8 +433,7 @@ def _fetch_and_generate_report(
 def main():
     """Validate environment, fetch PR status, generate Markdown report, and write outputs.
 
-    Requires the environment variables GITHUB_TOKEN, PR_NUMBER, REPO_OWNER, REPO_NAME,
-    and EXPECTED_HEAD_SHA.
+    Requires the GitHub token, PR identity, repository identity, and captured-head environment variables.
     Exits with status code 0 on success and with status code 1 on any validation, API, or runtime error;
     prints error details to stderr before exiting.
     """
@@ -436,11 +447,12 @@ def main():
     env = _validate_environment()
     pr_num = _parse_pr_number(env["PR_NUMBER"])
     _fetch_and_generate_report(
-        env["GITHUB_TOKEN"],
-        env["REPO_OWNER"],
-        env["REPO_NAME"],
-        pr_num,
-        env["EXPECTED_HEAD_SHA"],
+        PRReportRequest(
+            token=env["GITHUB_TOKEN"],
+            repo_full_name=f'{env["REPO_OWNER"]}/{env["REPO_NAME"]}',
+            pr_num=pr_num,
+            expected_head_sha=env[PINNED_HEAD_ENV],
+        )
     )
 
 
