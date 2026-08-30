@@ -48,23 +48,38 @@ def test_pr_agent_cannot_make_automatic_merge_claims():
 def test_pr_copilot_publishes_read_only_exact_head_status():
     workflow = _load_yaml(".github/workflows/pr-copilot.yml")
     workflow_text = (ROOT / ".github/workflows/pr-copilot.yml").read_text(encoding="utf-8")
-    status_job = workflow_text.split("  status-update:", 1)[1].split("  review-handler:", 1)[0]
+    status_job = workflow["jobs"]["status-update"]
+    serialized_status_job = yaml.safe_dump(status_job)
 
     assert "@pr-copilot status update" in workflow_text
     assert workflow["permissions"] == {"contents": "none"}
-    assert workflow["jobs"]["status-update"]["permissions"] == {
+    assert set(workflow["jobs"]) == {"status-update"}
+    assert status_job["permissions"] == {
         "contents": "read",
         "pull-requests": "read",
         "issues": "read",
         "checks": "read",
         "statuses": "read",
     }
-    assert "github.event.issue.pull_request" in str(workflow["jobs"]["detect-trigger"]["if"])
-    assert "GITHUB_STEP_SUMMARY" in status_job
-    assert "actions/upload-artifact@" in status_job
-    assert "--jq .head.sha" in status_job
-    assert "createComment" not in status_job
-    assert "updateComment" not in status_job
+    gate = str(status_job["if"])
+    assert "github.event.issue.pull_request" in gate
+    for command in (
+        "@pr-copilot status update",
+        "@pr-copilot progress report",
+        "@pr-copilot show status",
+        "@pr_copilot status update",
+        "@pr_copilot progress report",
+        "@pr_copilot show status",
+    ):
+        assert f"github.event.comment.body == '{command}'" in gate
+    assert gate.count("github.event.comment.body ==") == 6
+    assert "contains(" not in gate
+    assert "GITHUB_STEP_SUMMARY" in serialized_status_job
+    assert "actions/upload-artifact@" in serialized_status_job
+    assert "--jq .head.sha" in workflow_text
+    assert "retention-days: 7" in serialized_status_job
+    assert "createComment" not in serialized_status_job
+    assert "updateComment" not in serialized_status_job
 
 
 def test_circleci_python_pilot_is_two_way_and_timing_balanced():

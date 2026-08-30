@@ -344,7 +344,7 @@ def synchronize_runtime_graph(
             _transition_lifecycle_state(GraphRuntimeLifecycleState.READY)
 
         api_main = sys.modules.get("api.main")
-        if api_main is not None and hasattr(api_main, "graph"):
+        if api_main is not None:
             setattr(api_main, "graph", graph_instance)
         return True
 
