@@ -3,7 +3,18 @@
 **Authority:** issue #1739, ratified 2026-08-27 at base
 `9cbb4493cc5f1701c6c7789c9cc076fba57d82ca`
 **Phase 1 prerequisite:** issue #1558 and merged PR #1673
-**Status:** implementation contract; live completion still requires the controlled-draft proof described below
+**Status:** implementation merged; the ratified post-merge enrolled controlled-draft proof remains open; Phase 3 and
+enforcement are not authorised
+
+**Implementation evidence:** PR #1740 merged from exact signed head `272eb82ccadf2542bc67ffb93202db9ca18c3a7a` as
+merge commit `755814d7d226808051d16f9d17f80342326e6a2a`.
+
+**Partial live evidence:** unenrolled draft PR #1742 exercised the merged advisory at final head
+`02964c13633c3c2440684bc574b58e528b1e4618`. Runs `33156842234` and `33156897196` produced byte-identical
+296-byte artifacts with SHA-256 `bef922ef5862e14a984972a54568fbe2526338b4fd3f246406624ec3a6dfb469` and the expected fail-safe
+`needs-human` / `contract.markers-invalid` result for unenrolled input. This proves bounded deterministic failure
+behavior, but not the contract, approval, refs, paths, and evidence bindings required below. Issue #1739 remains open
+until one enrolled controlled draft satisfies every post-merge completion criterion.
 
 ## Purpose and authority boundary
 
