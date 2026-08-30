@@ -26,7 +26,7 @@ jobs:
           persist-credentials: false
 
       - name: Run opencode
-        uses: anomalyco/opencode/github@7902e04c3a67f7c69726bc955efb46e29214c797 # v1.18.10  # guardrails-disable-line
+        uses: anomalyco/opencode/github@826d9ad46a22bef0294998e08daa3c4904fea28f # v1.18.10  # guardrails-disable-line
         env:
           OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
         with:
