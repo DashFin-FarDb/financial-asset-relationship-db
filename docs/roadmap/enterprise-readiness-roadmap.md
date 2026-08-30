@@ -3,7 +3,7 @@
 For the broader enterprise-readiness index, see [docs/enterprise-readiness-index.md](../enterprise-readiness-index.md).
 
 **Publication date:** 2026-06-25
-**Last updated:** 2026-08-30
+**Last updated:** 2026-08-18
 **Format:** Release evidence / Target-environment proof / Follow-up hardening
 **Purpose:** Sequence the remaining work after the PR #1287-#1301 enterprise-readiness reconciliation point
 
@@ -19,8 +19,9 @@ The remaining roadmap is about release execution: attaching target-environment e
 ## Current execution checkpoint — 2026-08-30
 
 Current `main@f919a4237b4c7ce56fed7af92cee7f0938f3dcba` includes GNC Phase 2's deterministic non-blocking
-advisory (PR #1740), the safe local WSL observability launcher and its controlled-draft proof (PR #1742), and
-native-Windows-safe SQLite CI paths (PR #1748). GNC Phase 3 and enforcement are not authorised.
+advisory implementation (PR #1740), the safe local WSL observability launcher and a partial unenrolled-input proof
+(PR #1742), and native-Windows-safe SQLite CI paths (PR #1748). The enrolled controlled-draft proof required by
+#1739 remains open; GNC Phase 3 and enforcement are not authorised.
 
 The critical database lane remains CQ-03D-02. A target-bound database maintenance window is approved in principle,
 but Supabase support, IPv6-capable connectivity, and an exact-SHA/target protected single-use permit still have to be
@@ -42,7 +43,7 @@ no hosted preflight has been executed.
 
 | Item                                     | Status                                                                                   | Next evidence required                                                                                                | Non-negotiable boundary                                                                                                                                      |
 | ---------------------------------------- | ---------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| CQ-03D hosted migration-history adoption | Partially satisfied — D-01 merged; maintenance window approved in principle; connectivity/support/permit unresolved | D-02: reconcile Supabase support and IPv6, bind one target and reviewed SHA in a protected single-use permit, then obtain a passing hosted read-only preflight | History-only reconciliation; no DDL; no DML beyond one permit-bound history marker; no grant, role, credential, deployment, or provider-configuration change |
+| CQ-03D hosted migration-history adoption | Partially satisfied — D-01 merged and verified at repository scope; target/permit absent; maintenance window approved in principle | D-02: separately approve one target and protected single-use permit after reconciling Supabase support and IPv6, bind the reviewed SHA, then obtain a passing hosted read-only preflight | History-only reconciliation; no DDL; no DML beyond one permit-bound history marker; no grant, role, credential, deployment, or provider-configuration change |
 
 The CQ-03D-01 target adapter contract was human-ratified on 2026-08-18 and merged through PR #1646 at verified squash
 `790274c1b0dbdb43d4bbbbf35c4565dae36c9fe3`. The command may collect only preflight evidence. CQ-03D-02 must

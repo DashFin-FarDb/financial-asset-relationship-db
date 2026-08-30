@@ -5,10 +5,7 @@
 **Repository evidence cutoff:** `main` at `f919a4237b4c7ce56fed7af92cee7f0938f3dcba`
 **Ratified setup baseline:** CQ-03B-R1 ratified on 2026-08-17 at `main@76f1194f1f9b83cb9ed8f0bb0083824ededbe0ae`
 **CQ-03C merge baseline:** `784d092f1204b59e612efd4ff3949f3e3fed12cf`
-**Continuity status:** CQ-03B-R1, CQ-03B-R2, CQ-03C, CQ-03D-00, and CQ-03D-01 are merged; GNC Phases 1 and 2 are
-complete; the local observability launcher and Windows-safe SQLite CI path are merged; CQ-03D-02 remains blocked on
-Supabase support, IPv6-capable connectivity, and an executable target/permit packet, and no hosted preflight has been
-executed
+**Continuity status:** CQ-03B-R1, CQ-03B-R2, CQ-03C, CQ-03D-00, and CQ-03D-01 are merged; GNC Phase 1 is complete; Phase 2 implementation is merged but its enrolled controlled-draft proof remains open; no CQ-03D-02 target or permit is approved, and no hosted preflight has been executed
 
 This ledger preserves durable project decisions, plans, milestones, and handoffs across ChatGPT, Codex, and
 repository work. It is an index of authoritative evidence, not a replacement for detailed specifications, issues,
@@ -47,14 +44,16 @@ At the evidence cutoff:
 - GNC Phase 1 is complete through issue
   [#1558](https://github.com/DashFin-FarDb/financial-asset-relationship-db/issues/1558) and merged PR
   [#1673](https://github.com/DashFin-FarDb/financial-asset-relationship-db/pull/1673).
-- GNC Phase 2 is complete through closed issue
-  [#1739](https://github.com/DashFin-FarDb/financial-asset-relationship-db/issues/1739) and merged PR
-  [#1740](https://github.com/DashFin-FarDb/financial-asset-relationship-db/pull/1740). Its controlled-draft proof used
-  PR #1742 and produced byte-identical, fail-safe `needs-human` artifacts for unenrolled input without executing PR
-  code or mutating repository/provider state.
-- Completion evidence for both phases is recorded by
-  [FPC-2026-08-27-01](#fpc-2026-08-27-01--govern-gnc-after-phases-1-and-2) and
-  [ADR 0011](../adr/0011-governance-and-compliance-agent.md).
+- GNC Phase 2 implementation is merged through PR
+  [#1740](https://github.com/DashFin-FarDb/financial-asset-relationship-db/pull/1740), but issue
+  [#1739](https://github.com/DashFin-FarDb/financial-asset-relationship-db/issues/1739) remains open pending the
+  ratified enrolled controlled-draft proof. PR #1742 produced byte-identical, fail-safe `needs-human` artifacts for
+  unenrolled input without executing PR code or mutating repository/provider state; it did not exercise approved
+  contract, approval, ref, path, and evidence bindings.
+- Phase 1 authority and completion evidence are recorded by
+  [ADR 0011](../adr/0011-governance-and-compliance-agent.md). Phase 2 implementation and remaining proof authority are
+  recorded by [FPC-2026-08-27-01](#fpc-2026-08-27-01--govern-gnc-after-phase-2-implementation) and
+  [the dedicated Phase 2 governance document](../governance/gnc-phase-2-deterministic-advisory.md).
 - Capability boundary: Phase 2 adds a trusted-target, deterministic, non-blocking exact-head advisory. It adds no
   semantic model call, required check, ruleset, provider mutation, PR-code execution, auto-action, or merge
   enforcement. Phase 3 and every later phase require a new child contract and explicit ratification under
@@ -125,16 +124,16 @@ Primary authorities:
 
 ## Active commitments
 
-### FPC-2026-08-27-01 — Govern GNC after Phases 1 and 2
+### FPC-2026-08-27-01 — Govern GNC after Phase 2 implementation
 
 - **Type:** Repository governance / exact-head evidence
-- **Status:** Phases 1 and 2 satisfied; Phase 3 not authorised
+- **Status:** Phase 1 satisfied; Phase 2 implementation merged but live completion proof pending; Phase 3 not authorised
 - **Decision or objective:** Preserve the landed offline replay contract and the deterministic, trusted-target, non-blocking exact-head advisory; require every later phase to proceed through a separately approved exact-base child issue and one bounded PR.
-- **Rationale and constraints:** Phase 2 proves bounded advisory output, latest-head handling, stale-run suppression, and fail-safe `needs-human` behavior. It does not justify semantic/model review, a required check, ruleset change, provider action, PR-code execution, auto-resolution, or merge enforcement.
-- **Repository scope:** ADR 0011, parent issue #1557, completed issues #1558 and #1739, merged PRs #1673 and #1740, controlled-draft proof through PR #1742, and any future separately approved child contract.
-- **Dependencies or blockers:** Phase 3 requires a new exact-base child contract, explicit ratification, a bounded shadow-mode corpus and measurement plan, exact allowed and forbidden files, rollback, merge criteria, stop conditions, and named human review.
+- **Rationale and constraints:** Phase 2 implementation plus PR #1742 prove bounded deterministic fail-safe output and stale-run suppression for unenrolled input. They do not yet prove the approved contract, approval, ref, path, and evidence bindings required for live completion, nor justify semantic/model review, a required check, ruleset change, provider action, PR-code execution, auto-resolution, or merge enforcement.
+- **Repository scope:** ADR 0011, parent issue #1557, completed Phase 1 issue #1558, open Phase 2 issue #1739, merged PRs #1673 and #1740, partial live evidence through PR #1742, and any future separately approved child contract.
+- **Dependencies or blockers:** Phase 2 needs one enrolled controlled draft satisfying every post-merge criterion in #1739. Phase 3 additionally requires a new exact-base child contract, explicit ratification, a bounded shadow-mode corpus and measurement plan, exact allowed and forbidden files, rollback, merge criteria, stop conditions, and named human review.
 - **Evidence and provenance:** Phase 1: PR #1673 approved head `dde4427ebfc6807519a9fedf01e182ca43ee70d9`, merge commit `bca812c83bd8def01587dc2c050f8c8bc37ad1fc`, 107 resolved review threads, and 90 passing focused tests. Phase 2: PR #1740 approved head `272eb82ccadf2542bc67ffb93202db9ca18c3a7a`, merge commit `755814d7d226808051d16f9d17f80342326e6a2a`, 91 resolved review threads, 156 focused tests, and the exact controlled-draft evidence recorded in #1739.
-- **Next action and completion test:** Keep Phase 2 advisory-only while repository and provider work proceeds. Do not begin Phase 3 until its precision, appeal/override, recurrence, and stale-head measurement contract is separately ratified.
+- **Next action and completion test:** Exercise one harmless enrolled controlled draft and bind its exact head, approved contract, approval, refs, paths, and evidence. Keep Phase 2 advisory-only and do not begin Phase 3 until Phase 2 closes and the later precision, appeal/override, recurrence, and stale-head measurement contract is separately ratified.
 - **Last updated:** 2026-08-30
 
 ### FPC-2026-08-13-01 — Establish one profile-scoped PostgreSQL migration authority and drift gate
@@ -578,10 +577,11 @@ Primary authorities:
   CQ-03D-01 is ratified, verified, and merged through PR #1646. No CQ-03D-02 target or permit is approved; the hosted
   preflight and any later provider history adoption remain pending separate authorization under CQ-03D.
 - GRAC v1 is `CURRENT` only for the exact-SHA staging slice recorded by PR #1598; broader claims remain `NEXT`.
-- GNC Phases 1 and 2 are complete through PRs #1673 and #1740. Phase 2 is a deterministic, non-blocking,
-  trusted-target advisory only. Phase 3, live enforcement, semantic-model review, ruleset/provider integration, and
-  any increase in write or merge authority remain unauthorised and unimplemented.
-- PR #1742 added the safe local WSL observability launcher and supplied the controlled-draft Phase 2 proof. PR #1748
+- GNC Phase 1 is complete through PR #1673. Phase 2 implementation is merged through PR #1740, but its enrolled
+  controlled-draft completion proof remains open. Phase 2 is a deterministic, non-blocking, trusted-target advisory
+  only. Phase 3, live enforcement, semantic-model review, ruleset/provider integration, and any increase in write or
+  merge authority remain unauthorised and unimplemented.
+- PR #1742 added the safe local WSL observability launcher and supplied partial unenrolled-input Phase 2 evidence. PR #1748
   fixed native-Windows SQLite path resolution and passed the exact-head Windows Python 3.10/3.12 dependency matrix.
 
 ### Governing constraints
@@ -604,7 +604,8 @@ evidence. Do not authorize the later migration-history marker in this step.
 Do not replay or reconstruct SQL under historical timestamps, run `supabase db pull` against hosted state, retain
 provider link state, apply DDL, or select `hosted-legacy-v1` as adopted before the separate history-action decision.
 Issue #1623 remains a small P2 follow-up and does not displace the CQ-03 programme. In parallel with the provider
-wait, keep GNC Phase 2 advisory-only and reconcile the open automated dependency PRs as one overlap/drift inventory
+wait, complete the enrolled Phase 2 controlled-draft proof, keep the advisory non-blocking, and reconcile the open
+automated dependency PRs as one overlap/drift inventory
 before selecting any merge order: Depfu #1741, #1743, and #1744; Dependabot #1745, #1746, and #1747. This listing is
 not a readiness or merge decision. Release repeatability (**FPC-2026-07-21-02**) remains active.
 
@@ -620,7 +621,7 @@ credential-bootstrap authority.
 
 ### Sources reviewed
 
-- Repository `main` through `bca812c83bd8def01587dc2c050f8c8bc37ad1fc` on 2026-08-27.
+- Repository `main` through `f919a4237b4c7ce56fed7af92cee7f0938f3dcba` on 2026-08-30.
 - Repository agent instructions and production-architecture declaration.
 - Enterprise-readiness index, audit, roadmap, PR board, validation-gap audit, release checklist, release evidence pack,
   hosted staging baseline, operational evidence framework, drill and scale-validation documents, and risk register.
