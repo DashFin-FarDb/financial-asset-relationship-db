@@ -127,6 +127,14 @@ class TestSQLitePathResolution:
         assert path.startswith("/")
         assert "test.db" in path
 
+    def test_resolve_native_absolute_path(self, tmp_path):
+        """Resolve an absolute pathlib path without corrupting its platform syntax."""
+        database_path = tmp_path / "test.db"
+
+        path = _resolve_sqlite_path(f"sqlite:{database_path}")
+
+        assert Path(path) == database_path.resolve()
+
     def test_resolve_with_query_params(self):
         """Test resolution with query parameters."""
         url = "sqlite:///test.db?mode=ro"

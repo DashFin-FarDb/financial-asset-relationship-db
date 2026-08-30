@@ -25,8 +25,12 @@ if _db_path.exists():
 
 # Enforce hermeticity for test runs
 os.environ["SECRET_KEY"] = "test-secret-key-at-least-32-bytes-long"
-os.environ["DATABASE_URL"] = f"sqlite:///{_db_path}"
-os.environ["COORDINATION_DATABASE_URL"] = os.environ["DATABASE_URL"]
+# Use the resolver's path form directly. Building a three-slash URL from a
+# WindowsPath preserves backslashes and makes the drive-relative path invalid.
+os.environ["DATABASE_URL"] = f"sqlite:{_db_path}"
+# SQLAlchemy expects its standard slash form; as_posix() keeps Windows drive
+# paths parseable while retaining the extra leading slash required on POSIX.
+os.environ["COORDINATION_DATABASE_URL"] = f"sqlite:///{_db_path.as_posix()}"
 os.environ["ADMIN_USERNAME"] = "admin"
 os.environ["ADMIN_PASSWORD"] = os.getenv("TEST_ADMIN_PASSWORD") or "changeme"
 os.environ["ADMIN_EMAIL"] = "admin@example.com"
