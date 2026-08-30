@@ -1,3 +1,6 @@
+# Dependabot is FarDB's sole dependency-update source.
+# Keep version-update PRs reviewable: patch updates may group, while minor and
+# major updates remain isolated. Security updates remain unaffected.
 version: 2
 updates:
   - package-ecosystem: "pip"
@@ -5,24 +8,33 @@ updates:
     schedule:
       interval: "weekly"
     groups:
-      python-dependencies:
+      python-patches:
+        applies-to: version-updates
         patterns:
           - "*"
+        update-types:
+          - "patch"
 
   - package-ecosystem: "npm"
     directory: "/frontend"
     schedule:
       interval: "weekly"
     groups:
-      npm-dependencies:
+      npm-patches:
+        applies-to: version-updates
         patterns:
           - "*"
+        update-types:
+          - "patch"
 
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "weekly"
     groups:
-      actions-dependencies:
+      actions-patches:
+        applies-to: version-updates
         patterns:
           - "*"
+        update-types:
+          - "patch"
