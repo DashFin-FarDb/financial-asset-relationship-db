@@ -128,10 +128,11 @@ class TestSQLitePathResolution:
         assert "test.db" in path
 
     def test_resolve_native_absolute_path(self, tmp_path):
-        """Resolve an absolute pathlib path without corrupting its platform syntax."""
+        """Resolve a canonical absolute path without corrupting its drive."""
         database_path = tmp_path / "test.db"
+        database_url = f"sqlite:///{database_path.as_posix()}"
 
-        path = _resolve_sqlite_path(f"sqlite:{database_path}")
+        path = _resolve_sqlite_path(database_url)
 
         assert Path(path) == database_path.resolve()
 
