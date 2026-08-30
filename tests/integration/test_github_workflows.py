@@ -312,10 +312,10 @@ class TestPrAgentWorkflow:
     def test_pr_agent_is_mention_driven(self, pr_agent_workflow: dict[str, Any]):
         """PR Agent runs only for explicit issue-comment commands."""
         triggers = pr_agent_workflow.get("on", {})
-        assert "issue_comment" in triggers
-        assert "pull_request" not in triggers
-        assert "pull_request_review" not in triggers
-        assert "check_suite" not in triggers
+        assert set(triggers) == {"issue_comment"}
+        assert triggers["issue_comment"]["types"] == ["created"]
+        job_condition = str(pr_agent_workflow["jobs"]["pr-agent-action"]["if"])
+        assert "github.event.issue.pull_request" in job_condition
 
     def test_pr_agent_has_review_job(self, pr_agent_workflow: dict[str, Any]):
         """Test that pr-agent workflow has a review job."""

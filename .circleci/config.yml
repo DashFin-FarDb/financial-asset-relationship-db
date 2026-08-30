@@ -49,11 +49,11 @@ jobs:
           command: |
             mkdir -p test-results/pytest
             circleci tests glob \
-              "tests/unit/test_*.py" \
-              "tests/integration/test_*.py" \
-              "tests/reports/test_*.py" \
+              "tests/**/test_*.py" \
+              "tests/**/*_test.py" \
+              | grep -v '^tests/benchmarks/' \
               | circleci tests run \
-                  --command="xargs python -m pytest --durations=25 --junitxml=test-results/pytest/results-${CIRCLE_NODE_INDEX}.xml" \
+                  --command="xargs -r python -m pytest --durations=25 --junitxml=test-results/pytest/results-${CIRCLE_NODE_INDEX}.xml" \
                   --split-by=timings \
                   --timings-type=file
       - store_test_results:

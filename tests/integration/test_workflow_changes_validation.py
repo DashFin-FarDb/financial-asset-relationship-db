@@ -103,12 +103,10 @@ class TestPRAgentWorkflowChanges:
         assert "jobs" in pr_agent_workflow
 
     def test_pr_agent_has_required_triggers(self, pr_agent_workflow):
-        """Verify PR agent responds to correct events."""
+        """Verify PR agent responds only to newly created issue comments."""
         triggers = pr_agent_workflow["on"]
-        assert "issue_comment" in triggers
-        assert "pull_request" not in triggers
-        assert "pull_request_review" not in triggers
-        assert "check_suite" not in triggers
+        assert set(triggers) == {"issue_comment"}
+        assert triggers["issue_comment"]["types"] == ["created"]
 
     def test_pr_agent_python_setup_simplified(self, pr_agent_workflow):
         """

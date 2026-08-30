@@ -12,7 +12,12 @@ Use `@copilot check ci` only when an explicit snapshot is wanted. Routine status
 
 PR Copilot binds the report to the current head commit and publishes it in the workflow summary with a short-lived artifact. It does not write PR comments. Its report is advisory: it does not replace review-thread reconciliation, provider-failure classification, dependency-overlap checks, human approval, or explicit merge authorization.
 
-## Historical overview
+## Archived legacy reference (inactive)
+
+> Everything below this point describes the retired implementation. None of its
+> automatic review, change, status, approval, or merge behavior is supported by
+> the current workflow. It is retained only as migration history and must not be
+> used as an operating guide.
 
 The PR Management Agent is an automated system designed to streamline the pull request workflow by automatically handling review comments, implementing fixes, and managing the PR lifecycle.
 

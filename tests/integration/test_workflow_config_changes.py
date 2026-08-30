@@ -56,7 +56,7 @@ class TestPRAgentWorkflowChanges:
 
     def test_workflow_triggers_are_configured(self, pr_agent_workflow):
         """
-        Assert that the parsed pr-agent workflow config includes pull request triggers.
+        Assert that the PR agent uses only the explicit comment trigger.
 
         Parameters:
             pr_agent_workflow (dict): Parsed YAML of .github/workflows/pr-agent.yml
@@ -65,10 +65,8 @@ class TestPRAgentWorkflowChanges:
         triggers = pr_agent_workflow.get("on") or pr_agent_workflow.get('"on"')
         assert triggers is not None
 
-        assert "issue_comment" in triggers
-        assert "pull_request" not in triggers
-        assert "pull_request_review" not in triggers
-        assert "check_suite" not in triggers
+        assert set(triggers) == {"issue_comment"}
+        assert triggers["issue_comment"]["types"] == ["created"]
 
     def test_python_dependencies_installation(self, pr_agent_workflow):
         """Verify Python dependencies are properly installed."""

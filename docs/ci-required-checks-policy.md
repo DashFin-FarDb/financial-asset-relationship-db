@@ -69,7 +69,7 @@ Hardening backlog IDs: [Release Evidence Pack](release-evidence-pack.md#hardenin
 
 - We use GitHub Actions as the primary CI.
 - CircleCI is a short-term secondary feedback lane, not the canonical merge or deployment gate.
-- Its `python-test` job runs the ordinary pytest suite across two timing-balanced executors and publishes JUnit results for failure and duration insights.
+- Its `python-test` job uses two timing-balanced shards of the same executor to run every recursively discovered unit, integration, and report test module except benchmarks. It publishes JUnit results for failure and duration insights.
 - Coverage, multi-version compatibility, lint, security, container, release, and deployment authority remain in GitHub Actions. The other CircleCI job names are compatibility stubs and must not be treated as validation evidence.
 - Do not duplicate further GitHub Actions jobs in CircleCI. Remove the pilot when its queue-time benefit no longer justifies its credits or maintenance cost.
 

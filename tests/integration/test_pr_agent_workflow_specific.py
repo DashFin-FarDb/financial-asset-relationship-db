@@ -133,7 +133,8 @@ class TestPRAgentWorkflowStructureValidation:
     def test_does_not_trigger_on_pr_events(self, workflow_content: dict[str, Any]):
         """The retired automatic agent must not fan out on every PR update."""
         triggers = workflow_content.get("on", {})
-        assert "pull_request" not in triggers
+        assert set(triggers) == {"issue_comment"}
+        assert triggers["issue_comment"]["types"] == ["created"]
 
     def test_does_not_trigger_on_pr_review(self, workflow_content: dict[str, Any]):
         """Review activity must not start duplicated CI or post acknowledgements."""

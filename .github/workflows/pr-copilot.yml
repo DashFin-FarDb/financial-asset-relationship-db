@@ -12,12 +12,7 @@ name: PR Copilot Agent
         required: true
         type: string
 
-permissions:
-  contents: read
-  pull-requests: read
-  issues: read
-  checks: read
-  statuses: read
+permissions: {}
 
 concurrency:
   group: pr-copilot-${{ github.event_name }}-${{ inputs.pr_number || github.event.issue.number || github.ref }}
@@ -30,8 +25,22 @@ jobs:
     runs-on: ubuntu-latest
     if: |
       github.event_name == 'workflow_dispatch' ||
-      (github.event_name == 'issue_comment' && github.event.issue.pull_request)
+      (
+        github.event_name == 'issue_comment' &&
+        github.event.issue.pull_request &&
+        (
+          contains(github.event.comment.body, '@pr-copilot status update') ||
+          contains(github.event.comment.body, '@pr-copilot progress report') ||
+          contains(github.event.comment.body, '@pr-copilot show status') ||
+          contains(github.event.comment.body, '@pr_copilot status update') ||
+          contains(github.event.comment.body, '@pr_copilot progress report') ||
+          contains(github.event.comment.body, '@pr_copilot show status')
+        )
+      )
     outputs:
+      # Only pr_number and should_status_update are active. The other outputs and
+      # their downstream jobs are retained as inert migration placeholders and
+      # cannot become true under the supported triggers above.
       trigger_type: ${{ steps.detect.outputs.trigger_type }}
       pr_number: ${{ steps.detect.outputs.pr_number }}
       should_welcome: ${{ steps.detect.outputs.should_welcome }}
@@ -82,6 +91,8 @@ jobs:
                 }
 
               }
+            // The branches below are inactive migration reference. The workflow
+            // has no pull-request or review triggers, so they cannot execute.
             } else if (eventName === 'pull_request') {
               const action = context.payload.action;
 
@@ -257,6 +268,12 @@ jobs:
     needs: detect-trigger
     runs-on: ubuntu-latest
     if: needs.detect-trigger.outputs.should_status_update == 'true' && needs.detect-trigger.outputs.pr_number != ''
+    permissions:
+      contents: read
+      pull-requests: read
+      issues: read
+      checks: read
+      statuses: read
 
     steps:
       - name: Checkout code
@@ -264,7 +281,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0  # guardrails-disable-line
         with:
-          python-version: '3.11'
+          python-version: "3.11"
 
       - name: Generate status report
         id: status

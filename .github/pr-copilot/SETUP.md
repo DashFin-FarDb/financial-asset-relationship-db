@@ -25,10 +25,11 @@ Before enabling PR Copilot, ensure:
 2. Under "Actions permissions", select:
    - ✅ **Allow all actions and reusable workflows** (or)
    - ✅ **Allow [organization] and select non-[organization] actions and reusable workflows**
-3. Under "Workflow permissions", select:
-   - ✅ **Read and write permissions**
-4. Enable:
-   - ✅ **Allow GitHub Actions to create and approve pull requests**
+3. Under "Workflow permissions", select **Read repository contents**.
+4. Leave **Allow GitHub Actions to create and approve pull requests** disabled.
+
+The workflow declares no global token permissions. Its active status job grants
+only the read permissions required to inspect the pull request and its checks.
 
 ### Step 2: Verify Workflow File
 
@@ -44,15 +45,16 @@ Verify it's present:
 ls -la .github/workflows/pr-copilot.yml
 ```
 
-### Step 3: Verify Configuration File
+### Step 3: Verify Optional Helper Configuration
 
-The configuration file should exist at:
+The helper-script configuration file should exist at:
 
 ```text
 .github/pr-copilot-config.yml
 ```
 
-Verify it's present and valid:
+This file does not control workflow triggers or permissions. Verify only that it
+is present and valid for optional local helper scripts:
 
 ```bash
 # Check existence
@@ -70,7 +72,13 @@ Create a test PR or comment on an existing PR:
 @pr-copilot help
 ```
 
-The agent should respond within 1-2 minutes.
+The job should publish a workflow summary and seven-day artifact. It must not
+post or update a pull-request comment.
+
+> **Archived material begins below.** The remaining permissions,
+> configuration, message-customization, rollback, and tuning sections describe
+> retired capabilities. They are retained temporarily for migration history and
+> are not instructions for the current read-only workflow.
 
 ## 🔐 GitHub Token Permissions
 

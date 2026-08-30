@@ -2,11 +2,15 @@
 
 from pathlib import Path
 
+import pytest
 import yaml
+
+pytestmark = pytest.mark.unit
+ROOT = Path(__file__).resolve().parents[2]
 
 
 def _load_yaml(path: str) -> dict:
-    return yaml.safe_load(Path(path).read_text(encoding="utf-8"))
+    return yaml.safe_load((ROOT / path).read_text(encoding="utf-8"))
 
 
 def test_pr_agents_do_not_fan_out_on_check_suites_or_commits():
@@ -42,10 +46,20 @@ def test_pr_agent_cannot_make_automatic_merge_claims():
 
 
 def test_pr_copilot_publishes_read_only_exact_head_status():
-    workflow_text = Path(".github/workflows/pr-copilot.yml").read_text(encoding="utf-8")
+    workflow = _load_yaml(".github/workflows/pr-copilot.yml")
+    workflow_text = (ROOT / ".github/workflows/pr-copilot.yml").read_text(encoding="utf-8")
     status_job = workflow_text.split("  status-update:", 1)[1].split("  review-handler:", 1)[0]
 
     assert "@pr-copilot status update" in workflow_text
+    assert workflow["permissions"] == {}
+    assert workflow["jobs"]["status-update"]["permissions"] == {
+        "contents": "read",
+        "pull-requests": "read",
+        "issues": "read",
+        "checks": "read",
+        "statuses": "read",
+    }
+    assert "github.event.issue.pull_request" in str(workflow["jobs"]["detect-trigger"]["if"])
     assert "GITHUB_STEP_SUMMARY" in status_job
     assert "actions/upload-artifact@" in status_job
     assert "--jq .head.sha" in status_job
@@ -68,10 +82,20 @@ def test_circleci_python_pilot_is_two_way_and_timing_balanced():
     assert "--split-by=timings" in commands
     assert "--timings-type=file" in commands
     assert "--junitxml=" in commands
+    assert '"tests/**/test_*.py"' in commands
+    assert '"tests/**/*_test.py"' in commands
+    assert "grep -v '^tests/benchmarks/'" in commands
 
 
 def test_circleci_pilot_does_not_claim_other_stub_jobs_are_real_checks():
     config = _load_yaml(".circleci/config.yml")
+    assert config["commands"]["dummy-step"]["steps"] == [
+        {
+            "run": (
+                'echo "CI migrated to GitHub Actions. This is a dummy job ' 'retained for legacy status compatibility."'
+            )
+        }
+    ]
     for job_name in (
         "python-lint",
         "python-security",

@@ -6,7 +6,14 @@ An on-demand, exact-head PR status reporter for the DashFin/financial-asset-rela
 
 PR Copilot provides a current status snapshot without reacting automatically to commits, reviews, or completed check suites. It publishes a workflow summary and short-lived artifact rather than adding PR timeline messages.
 
-## ✨ Features
+Supported commands are `@pr-copilot status update`, `@pr-copilot progress report`, and `@pr-copilot show status` (with the same phrases accepted for the `@pr_copilot` alias). Other comments do not start a runner. The token is read-only, and the output is advisory rather than merge authorization.
+
+## Archived legacy reference (inactive)
+
+> Everything below this point describes the retired implementation. Welcome
+> messages, scope warnings, automatic review handling, comment updates,
+> auto-merge checks, and conflict notifications are not active. This material is
+> retained only as migration history and must not be used as an operating guide.
 
 ### 1. **Welcome & Introduction**
 

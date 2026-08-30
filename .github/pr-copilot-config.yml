@@ -1,5 +1,6 @@
-# PR Copilot Agent Configuration
-# On-demand PR status reporting
+# Optional helper-script configuration.
+# The active workflow does not load this file. Commands, permissions, and
+# read-only behavior are defined only in .github/workflows/pr-copilot.yml.
 
 # Agent behavior settings
 agent:
@@ -7,30 +8,6 @@ agent:
   enabled: true
   version: "1.0.0"
   description: "On-demand exact-head PR status reporter"
-
-# Trigger configurations
-triggers:
-  # Enable/disable trigger types
-  help_wanted_label: false
-  mention: true
-  pr_opened: false
-  pr_labeled: false
-  pr_synchronize: false
-  review_submitted: false
-  review_comment: false
-  status_check_completion: false
-
-  # Keywords for status updates
-  status_keywords:
-    - "status update"
-    - "progress report"
-    - "show status"
-    - "pr status"
-
-  # Mention patterns to trigger the agent
-  mention_patterns:
-    - "@pr-copilot"
-    - "@pr_copilot"
 
 # PR scope validation rules
 scope:
@@ -56,42 +33,8 @@ scope:
 
     Current title length: {title_length} characters (recommended: <72)
 
-# Auto-merge settings
-auto_merge:
-  enabled: false
-  require_reviews: 1
-  require_checks: true
-  allow_draft: false
-  delete_branch: true
-  merge_method: "squash"  # Options: squash, merge, rebase
-
-  # Conditions for auto-merge
-  conditions:
-    all_checks_pass: true
-    no_merge_conflicts: true
-    has_approval: true
-    not_draft: true
-    branch_up_to_date: true
-
-  # Auto-merge confirmation message
-  confirmation_message: |
-    🚀 **Auto-Merge Eligible**
-
-    This PR meets all criteria for auto-merge:
-    ✅ All checks passed
-    ✅ Approved by reviewer(s)
-    ✅ No merge conflicts
-    ✅ Branch is up to date
-
-    Ready to merge with method: {merge_method}
-
-# Review comment handling
+# Optional local review-analysis helper settings
 review_handling:
-  enabled: false
-  auto_acknowledge: false
-  track_actionable: true
-
-  # Keywords that indicate actionable feedback
   actionable_keywords:
     - "please"
     - "should"
@@ -105,15 +48,8 @@ review_handling:
     - "add"
     - "remove"
 
-  # Acknowledgment message template
-  acknowledgment_message: |
-    👋 **Review Feedback Received**
-
-    Thank you for the review! I've identified the following actionable items:
-    {action_items}
-
-    Tracking these items for resolution.
-
+# Archived legacy reference below. No active workflow or helper consumes these
+# settings; they are retained temporarily for migration history only.
 # Status reporting configuration
 status:
   enabled: true
@@ -239,16 +175,16 @@ commands:
 
 # Security and permissions
 security:
-  allowed_users: []  # Empty means all users; specify GitHub usernames to restrict
-  allowed_teams: []  # Specify GitHub team slugs
-  require_write_access: false  # Require write access to repo
+  allowed_users: [] # Empty means all users; specify GitHub usernames to restrict
+  allowed_teams: [] # Specify GitHub team slugs
+  require_write_access: false # Require write access to repo
 
 # Rate limiting and resource management
 limits:
   max_status_updates_per_hour: 10
   max_comment_length: 65536
   max_files_to_analyze: 100
-  status_cache_ttl: 300  # 5 minutes
+  status_cache_ttl: 300 # 5 minutes
 
 # Integration with existing workflows
 integration:
