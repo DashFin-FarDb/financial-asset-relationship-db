@@ -129,22 +129,15 @@ class TestPRAgentWorkflowStructureValidation:
         """Test that workflow has the dependency-update job."""
         assert "dependency-update" in workflow_content.get("jobs", {}), "Workflow should have 'dependency-update' job"
 
-    def test_trigger_on_pr_events(self, workflow_content: dict[str, Any]):
-        """Test that workflow triggers on appropriate PR events."""
+    def test_does_not_trigger_on_pr_events(self, workflow_content: dict[str, Any]):
+        """The retired automatic agent must not fan out on every PR update."""
         triggers = workflow_content.get("on", {})
+        assert "pull_request" not in triggers
 
-        assert "pull_request" in triggers, "Workflow should trigger on pull_request events"
-
-        if isinstance(triggers.get("pull_request"), dict):
-            pr_types = triggers["pull_request"].get("types", [])
-            expected_types = ["opened", "synchronize", "reopened"]
-            for expected in expected_types:
-                assert expected in pr_types, f"pull_request trigger should include '{expected}' type"
-
-    def test_trigger_on_pr_review(self, workflow_content: dict[str, Any]):
-        """Test that workflow triggers on PR review events."""
+    def test_does_not_trigger_on_pr_review(self, workflow_content: dict[str, Any]):
+        """Review activity must not start duplicated CI or post acknowledgements."""
         triggers = workflow_content.get("on", {})
-        assert "pull_request_review" in triggers, "Workflow should trigger on pull_request_review events"
+        assert "pull_request_review" not in triggers
 
     def test_trigger_on_issue_comment(self, workflow_content: dict[str, Any]):
         """

@@ -1,6 +1,18 @@
 # PR Management Agent
 
-## Overview
+## Current operating mode
+
+The PR Agent is now on-demand only. Automatic `check_suite` fan-out and dependency approval are disabled because repeated status comments and title/author-only dependency approvals did not provide reliable merge-readiness evidence.
+
+Use `@copilot check ci` only when an explicit snapshot is wanted. Routine status reporting is consolidated under:
+
+```text
+@pr-copilot status update
+```
+
+PR Copilot updates one existing marker-bound comment and binds the report to the current head commit. Its report is advisory: it does not replace review-thread reconciliation, provider-failure classification, dependency-overlap checks, human approval, or explicit merge authorization.
+
+## Historical overview
 
 The PR Management Agent is an automated system designed to streamline the pull request workflow by automatically handling review comments, implementing fixes, and managing the PR lifecycle.
 

@@ -309,10 +309,13 @@ class TestPrAgentWorkflow:
         """
         assert "pr agent" in pr_agent_workflow["name"].lower()
 
-    def test_pr_agent_triggers_on_pull_request(self, pr_agent_workflow: dict[str, Any]):
-        """Test that pr-agent workflow triggers on pull request events."""
+    def test_pr_agent_is_mention_driven(self, pr_agent_workflow: dict[str, Any]):
+        """PR Agent runs only for explicit issue-comment commands."""
         triggers = pr_agent_workflow.get("on", {})
-        assert "pull_request" in triggers, "pr-agent workflow should trigger on pull_request events"
+        assert "issue_comment" in triggers
+        assert "pull_request" not in triggers
+        assert "pull_request_review" not in triggers
+        assert "check_suite" not in triggers
 
     def test_pr_agent_has_review_job(self, pr_agent_workflow: dict[str, Any]):
         """Test that pr-agent workflow has a review job."""
@@ -718,8 +721,8 @@ class TestPrAgentWorkflowAdvanced:
         Checks performed:
         - Top-level `permissions.contents` equals "read".
         - `pr-agent-action` job has `permissions.issues` set to "write".
-        - `auto-merge-check` job has `permissions.issues` and `permissions.pull-requests` set to "write".
-        - `dependency-update` job has `permissions.pull-requests` set to "write".
+        - disabled `auto-merge-check` job has read-only contents permission.
+        - disabled `dependency-update` job has read-only contents permission.
 
         Parameters:
             pr_agent_workflow (Dict[str, Any]): Parsed workflow dictionary for the pr-agent workflow.
@@ -734,21 +737,19 @@ class TestPrAgentWorkflowAdvanced:
         assert jobs["pr-agent-action"]["permissions"]["issues"] == "write"
 
         assert "permissions" in jobs["auto-merge-check"]
-        assert jobs["auto-merge-check"]["permissions"]["issues"] == "write"
-        assert jobs["auto-merge-check"]["permissions"]["pull-requests"] == "write"
+        assert jobs["auto-merge-check"]["permissions"] == {"contents": "read"}
 
         assert "permissions" in jobs["dependency-update"]
-        assert jobs["dependency-update"]["permissions"]["pull-requests"] == "write"
+        assert jobs["dependency-update"]["permissions"] == {"contents": "read"}
 
     def test_pr_agent_trigger_has_conditional(self, pr_agent_workflow: dict[str, Any]):
         """Test that pr-agent-action job has proper conditional logic."""
         job = pr_agent_workflow["jobs"]["pr-agent-action"]
         assert "if" in job, "pr-agent-action should have conditional execution"
         conditional = job["if"]
-        assert "pull_request_review" in conditional
-        assert "changes_requested" in conditional
         assert "issue_comment" in conditional
         assert "@copilot" in conditional
+        assert "pull_request_review" not in conditional
 
     def test_pr_agent_install_steps_validate_files(self, pr_agent_workflow: dict[str, Any]):
         """
@@ -882,51 +883,34 @@ class TestPrAgentWorkflowAdvanced:
             step_with = step.get("with", {})
             assert step_with.get("node-version") == "18", "Node.js version should be 18 (current configuration)"
 
-    def test_auto_merge_check_logic(self, pr_agent_workflow: dict[str, Any]):
-        """Test auto-merge-check job conditional logic."""
+    def test_auto_merge_check_is_disabled(self, pr_agent_workflow: dict[str, Any]):
+        """The compatibility job cannot make automatic readiness claims."""
         job = pr_agent_workflow["jobs"]["auto-merge-check"]
-        assert "if" in job
-        conditional = job["if"]
+        assert str(job.get("if")).strip().lower() in {"false", "${{ false }}"}
 
-        # Should check for pull_request synchronize, approved review, and check_suite success
-        assert "pull_request" in conditional
-        assert "synchronize" in conditional
-        assert "pull_request_review" in conditional
-        assert "approved" in conditional
-        assert "check_suite" in conditional
-        assert "success" in conditional
-
-    def test_auto_merge_check_uses_github_script(self, pr_agent_workflow: dict[str, Any]):
-        """Ensure the `auto-merge-check` job contains a single step that uses `actions/github-script`."""
+    def test_auto_merge_check_has_no_writeback_script(self, pr_agent_workflow: dict[str, Any]):
+        """Disabled merge automation must not retain a PR write-back path."""
         job = pr_agent_workflow["jobs"]["auto-merge-check"]
         steps = job.get("steps", [])
 
         assert len(steps) == 1
-        assert "actions/github-script" in steps[0]["uses"]
-        assert "script" in steps[0]["with"]
+        serialized = yaml.safe_dump(steps)
+        assert "github-script" not in serialized
+        assert "Ready for Merge" not in serialized
 
-    def test_dependency_update_conditional(self, pr_agent_workflow: dict[str, Any]):
-        """Test dependency-update job triggers only for dependency PRs."""
+    def test_dependency_update_is_disabled(self, pr_agent_workflow: dict[str, Any]):
+        """Dependency updates must never be approved from title and author alone."""
         job = pr_agent_workflow["jobs"]["dependency-update"]
-        assert "if" in job
-        conditional = job["if"]
+        assert str(job.get("if")).strip().lower() in {"false", "${{ false }}"}
 
-        assert "pull_request" in conditional
-        assert "deps" in conditional
-
-    def test_dependency_update_auto_approve_logic(self, pr_agent_workflow: dict[str, Any]):
-        """Test dependency-update job auto-approves trusted bot updates."""
+    def test_dependency_update_has_no_auto_approve_logic(self, pr_agent_workflow: dict[str, Any]):
+        """The disabled compatibility job must not contain review write-back code."""
         job = pr_agent_workflow["jobs"]["dependency-update"]
         steps = job.get("steps", [])
-
-        step = steps[0]
-        script = step["with"]["script"]
-
-        # Should check for dependabot and renovate
-        assert "dependabot[bot]" in script
-        assert "renovate[bot]" in script
-        assert "bump" in script.lower() or "update" in script.lower()
-        assert "APPROVE" in script
+        serialized = yaml.safe_dump(steps)
+        assert "createReview" not in serialized
+        assert "APPROVE" not in serialized
+        assert "auto-approve" not in serialized.lower()
 
 
 class TestAutoAssignWorkflow:

@@ -1,10 +1,10 @@
 # PR Copilot Agent
 
-An automated PR management, maintenance, and completion agent for the DashFin/financial-asset-relationship-db repository.
+An on-demand, exact-head PR status reporter for the DashFin/financial-asset-relationship-db repository.
 
 ## 🎯 Purpose
 
-PR Copilot automates common PR management tasks, provides status visibility, tracks review feedback, and helps maintain high-quality pull requests throughout their lifecycle.
+PR Copilot provides a current status snapshot without reacting automatically to commits, reviews, or completed check suites. It updates one existing comment rather than adding repeated timeline messages.
 
 ## ✨ Features
 
@@ -81,17 +81,9 @@ Show available commands and features.
 
 Get guidance on resolving merge conflicts.
 
-### Automatic Triggers
+### Trigger
 
-The agent activates automatically on:
-
-- **PR opened** - Posts welcome, checks scope
-- **Label added** - `help wanted` triggers welcome
-- **PR synchronized** - Checks for conflicts and merge eligibility
-- **Review submitted** - Tracks actionable feedback, checks merge status
-- **Review comment created** - Identifies and acknowledges actionable items
-- **Status check completed** - Evaluates merge readiness
-- **@pr-copilot mention** - Responds to direct mentions
+The agent runs only when a PR comment contains `@pr-copilot status update`. The resulting snapshot is advisory and is not merge authorization.
 
 ## 📋 Command Reference
 

@@ -65,9 +65,10 @@ class TestPRAgentWorkflowChanges:
         triggers = pr_agent_workflow.get("on") or pr_agent_workflow.get('"on"')
         assert triggers is not None
 
-        # Should trigger on PR events
-        assert "pull_request" in triggers
-        assert "pull_request_review" in triggers
+        assert "issue_comment" in triggers
+        assert "pull_request" not in triggers
+        assert "pull_request_review" not in triggers
+        assert "check_suite" not in triggers
 
     def test_python_dependencies_installation(self, pr_agent_workflow):
         """Verify Python dependencies are properly installed."""

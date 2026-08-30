@@ -1,23 +1,14 @@
 name: PR Copilot Agent
 
-# Comprehensive PR management, maintenance, and completion workflows
-# Triggered by PR mentions, labels, events, and status checks
+# On-demand PR status reporting. No commit, review, or check-suite fan-out.
 
 "on":
-  pull_request:
-    types: [opened, labeled, synchronize]
-  pull_request_review:
-    types: [submitted]
-  pull_request_review_comment:
-    types: [created]
   issue_comment:
     types: [created]
-  check_suite:
-    types: [completed]
 
 permissions:
   contents: read
-  pull-requests: write
+  pull-requests: read
   issues: write
   checks: read
   statuses: read
@@ -32,11 +23,7 @@ jobs:
     name: Detect Trigger
     runs-on: ubuntu-latest
     if: |
-      (github.event_name == 'issue_comment' && github.event.issue.pull_request) ||
-      github.event_name == 'pull_request' ||
-      github.event_name == 'pull_request_review' ||
-      github.event_name == 'pull_request_review_comment' ||
-      github.event_name == 'check_suite'
+      github.event_name == 'issue_comment' && github.event.issue.pull_request
     outputs:
       trigger_type: ${{ steps.detect.outputs.trigger_type }}
       pr_number: ${{ steps.detect.outputs.pr_number }}
@@ -68,17 +55,6 @@ jobs:
               prNumber = context.issue.number;
             } else if (eventName === 'pull_request' || eventName === 'pull_request_review' || eventName === 'pull_request_review_comment') {
               prNumber = context.payload.pull_request.number;
-            } else if (eventName === 'check_suite') {
-              // Get PR number from check suite
-              const { data: pulls } = await github.rest.pulls.list({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                head: context.payload.check_suite.head_branch,
-                state: 'open'
-              });
-              if (pulls.length > 0) {
-                prNumber = pulls[0].number;
-              }
             }
 
             // Detect trigger type and set appropriate flags
@@ -93,21 +69,6 @@ jobs:
                   shouldStatusUpdate = true;
                 }
 
-                // Check if this is first mention - trigger welcome
-                const { data: comments } = await github.rest.issues.listComments({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  issue_number: prNumber
-                });
-
-                const prCopilotComments = comments.filter(c =>
-                  c.user.login === 'github-actions[bot]' &&
-                  c.body.includes('PR Copilot')
-                );
-
-                if (prCopilotComments.length === 0) {
-                  shouldWelcome = true;
-                }
               }
             } else if (eventName === 'pull_request') {
               const action = context.payload.action;
@@ -124,21 +85,12 @@ jobs:
                 }
               } else if (action === 'synchronize') {
                 triggerType = 'pr_synchronize';
-                shouldCheckAutomerge = true;
                 shouldCheckConflicts = true;
               }
             } else if (eventName === 'pull_request_review') {
               triggerType = 'review_submitted';
-              shouldHandleReview = true;
-              shouldCheckAutomerge = true;
             } else if (eventName === 'pull_request_review_comment') {
               triggerType = 'review_comment';
-              shouldHandleReview = true;
-            } else if (eventName === 'check_suite') {
-              if (context.payload.check_suite.conclusion === 'success') {
-                triggerType = 'checks_completed';
-                shouldCheckAutomerge = true;
-              }
             }
 
             // Set outputs
@@ -319,6 +271,7 @@ jobs:
           script: |
             const fs = require('fs');
             const prNumber = ${{ needs.detect-trigger.outputs.pr_number }};
+            const marker = '<!-- pr-copilot-status:v2 -->';
 
             // Read status report from file
             let statusReport = '';
@@ -374,12 +327,36 @@ jobs:
             *Last updated: ${new Date().toISOString()}*`.replace(/\n {12}/g, '\n');
             }
 
-            await github.rest.issues.createComment({
+            const { data: pr } = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: prNumber
+            });
+            const body = `${marker}\n> Exact-head advisory snapshot for \`${pr.head.sha}\`. This is not merge authorization; unresolved threads, provider failures, dependency overlap, and maintainer approval still require reconciliation.\n\n${statusReport}`;
+            const comments = await github.paginate(github.rest.issues.listComments, {
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: prNumber,
-              body: statusReport
+              per_page: 100
             });
+            const existing = comments.find(comment =>
+              comment.user.login === 'github-actions[bot]' && comment.body.includes(marker)
+            );
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNumber,
+                body
+              });
+            }
 
   # Job 5: Handle review comments
   review-handler:

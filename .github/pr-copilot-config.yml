@@ -1,24 +1,24 @@
 # PR Copilot Agent Configuration
-# Automated PR management, maintenance, and completion workflows
+# On-demand PR status reporting
 
 # Agent behavior settings
 agent:
   name: "pr-copilot"
   enabled: true
   version: "1.0.0"
-  description: "Automated PR management and completion agent"
+  description: "On-demand exact-head PR status reporter"
 
 # Trigger configurations
 triggers:
   # Enable/disable trigger types
-  help_wanted_label: true
+  help_wanted_label: false
   mention: true
-  pr_opened: true
-  pr_labeled: true
-  pr_synchronize: true
-  review_submitted: true
-  review_comment: true
-  status_check_completion: true
+  pr_opened: false
+  pr_labeled: false
+  pr_synchronize: false
+  review_submitted: false
+  review_comment: false
+  status_check_completion: false
 
   # Keywords for status updates
   status_keywords:
@@ -58,7 +58,7 @@ scope:
 
 # Auto-merge settings
 auto_merge:
-  enabled: true
+  enabled: false
   require_reviews: 1
   require_checks: true
   allow_draft: false
@@ -87,8 +87,8 @@ auto_merge:
 
 # Review comment handling
 review_handling:
-  enabled: true
-  auto_acknowledge: true
+  enabled: false
+  auto_acknowledge: false
   track_actionable: true
 
   # Keywords that indicate actionable feedback
@@ -150,9 +150,9 @@ status:
 
 # Welcome message configuration
 welcome:
-  enabled: true
-  on_help_wanted: true
-  on_first_mention: true
+  enabled: false
+  on_help_wanted: false
+  on_first_mention: false
 
   # Welcome message template
   message: |
@@ -180,8 +180,8 @@ welcome:
 
 # Merge conflict detection
 merge_conflicts:
-  enabled: true
-  auto_detect: true
+  enabled: false
+  auto_detect: false
 
   # Conflict notification message
   notification_message: |
