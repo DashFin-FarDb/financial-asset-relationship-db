@@ -127,17 +127,17 @@ merge_conflicts:
 
     **Resolution Steps:**
     1. Update your local branch:
-       ```bash
-       git checkout {branch}
-       git pull origin {base_branch}
-       ```
+        ```bash
+        git checkout {branch}
+        git pull origin {base_branch}
+        ```
     2. Resolve conflicts in affected files
     3. Commit the resolution:
-       ```bash
-       git add .
-       git commit -m "Resolve merge conflicts"
-       git push
-       ```
+        ```bash
+        git add .
+        git commit -m "Resolve merge conflicts"
+        git push
+        ```
 
     **Affected Files:**
     {conflicted_files}
