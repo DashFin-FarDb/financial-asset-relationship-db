@@ -83,7 +83,7 @@ Get guidance on resolving merge conflicts.
 
 ### Trigger
 
-The agent runs only when a PR comment contains `@pr-copilot status update`. The resulting snapshot is advisory and is not merge authorization.
+The agent runs only when a PR comment contains `@pr-copilot status update`, or when a maintainer manually dispatches the workflow with a PR number. The resulting snapshot is advisory and is not merge authorization.
 
 ## 📋 Command Reference
 

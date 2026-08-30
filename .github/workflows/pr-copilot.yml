@@ -5,6 +5,12 @@ name: PR Copilot Agent
 "on":
   issue_comment:
     types: [created]
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: Pull request number to inspect
+        required: true
+        type: string
 
 permissions:
   contents: read
@@ -14,7 +20,7 @@ permissions:
   statuses: read
 
 concurrency:
-  group: pr-copilot-${{ github.event.pull_request.number || github.event.issue.number || github.ref }}
+  group: pr-copilot-${{ inputs.pr_number || github.event.issue.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -23,7 +29,8 @@ jobs:
     name: Detect Trigger
     runs-on: ubuntu-latest
     if: |
-      github.event_name == 'issue_comment' && github.event.issue.pull_request
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'issue_comment' && github.event.issue.pull_request)
     outputs:
       trigger_type: ${{ steps.detect.outputs.trigger_type }}
       pr_number: ${{ steps.detect.outputs.pr_number }}
@@ -51,14 +58,19 @@ jobs:
             let shouldCheckConflicts = false;
 
             // Determine PR number based on event type
-            if (eventName === 'issue_comment') {
+            if (eventName === 'workflow_dispatch') {
+              prNumber = Number(context.payload.inputs.pr_number);
+            } else if (eventName === 'issue_comment') {
               prNumber = context.issue.number;
             } else if (eventName === 'pull_request' || eventName === 'pull_request_review' || eventName === 'pull_request_review_comment') {
               prNumber = context.payload.pull_request.number;
             }
 
             // Detect trigger type and set appropriate flags
-            if (eventName === 'issue_comment') {
+            if (eventName === 'workflow_dispatch') {
+              triggerType = 'manual_status';
+              shouldStatusUpdate = true;
+            } else if (eventName === 'issue_comment') {
               const comment = context.payload.comment.body.toLowerCase();
 
               if (comment.includes('@pr-copilot') || comment.includes('@pr_copilot')) {

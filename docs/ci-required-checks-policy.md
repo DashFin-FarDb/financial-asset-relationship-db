@@ -76,7 +76,7 @@ Hardening backlog IDs: [Release Evidence Pack](release-evidence-pack.md#hardenin
 ## PR status automation
 
 - The legacy PR Agent no longer responds automatically to completed check suites and cannot approve dependency updates.
-- PR Copilot status reporting runs only for an explicit `@pr-copilot status update` request.
+- PR Copilot status reporting runs only for an explicit `@pr-copilot status update` request or a manual dispatch with a PR number.
 - It updates one marker-bound comment instead of appending a new status comment after each request.
 - Its report is an exact-head advisory snapshot, not merge authorization. Maintainers must still reconcile unresolved threads, provider failures, dependency overlap, base drift, and the applicable human-approval rule.
 

@@ -14,7 +14,8 @@ def test_pr_agents_do_not_fan_out_on_check_suites_or_commits():
     pr_copilot = _load_yaml(".github/workflows/pr-copilot.yml")
 
     assert set(pr_agent["on"]) == {"issue_comment"}
-    assert set(pr_copilot["on"]) == {"issue_comment"}
+    assert set(pr_copilot["on"]) == {"issue_comment", "workflow_dispatch"}
+    assert pr_copilot["on"]["workflow_dispatch"]["inputs"]["pr_number"]["required"] is True
 
 
 def test_dependency_auto_approval_is_disabled():
