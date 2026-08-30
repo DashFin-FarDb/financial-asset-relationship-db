@@ -1,4 +1,5 @@
-# Dependabot is FarDB's sole dependency-update source.
+# Repository policy: Dependabot is FarDB's sole dependency-update source.
+# Depfu access is disabled separately from this file.
 # Keep version-update PRs reviewable: patch updates may group, while minor and
 # major updates remain isolated. Security updates remain unaffected.
 version: 2
@@ -7,6 +8,8 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
+    cooldown:
+      default-days: 7
     groups:
       python-patches:
         applies-to: version-updates
@@ -19,6 +22,8 @@ updates:
     directory: "/frontend"
     schedule:
       interval: "weekly"
+    cooldown:
+      default-days: 7
     groups:
       npm-patches:
         applies-to: version-updates
@@ -31,6 +36,8 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
+    cooldown:
+      default-days: 7
     groups:
       actions-patches:
         applies-to: version-updates
