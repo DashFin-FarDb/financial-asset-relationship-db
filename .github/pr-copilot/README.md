@@ -4,7 +4,7 @@ An on-demand, exact-head PR status reporter for the DashFin/financial-asset-rela
 
 ## 🎯 Purpose
 
-PR Copilot provides a current status snapshot without reacting automatically to commits, reviews, or completed check suites. It updates one existing comment rather than adding repeated timeline messages.
+PR Copilot provides a current status snapshot without reacting automatically to commits, reviews, or completed check suites. It publishes a workflow summary and short-lived artifact rather than adding PR timeline messages.
 
 ## ✨ Features
 

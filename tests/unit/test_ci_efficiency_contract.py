@@ -41,13 +41,16 @@ def test_pr_agent_cannot_make_automatic_merge_claims():
     assert "Ready for Merge" not in serialized
 
 
-def test_pr_copilot_updates_one_exact_head_status_comment():
+def test_pr_copilot_publishes_read_only_exact_head_status():
     workflow_text = Path(".github/workflows/pr-copilot.yml").read_text(encoding="utf-8")
+    status_job = workflow_text.split("  status-update:", 1)[1].split("  review-handler:", 1)[0]
 
     assert "@pr-copilot status update" in workflow_text
-    assert "<!-- pr-copilot-status:v2 -->" in workflow_text
-    assert "updateComment" in workflow_text
-    assert "pr.head.sha" in workflow_text
+    assert "GITHUB_STEP_SUMMARY" in status_job
+    assert "actions/upload-artifact@" in status_job
+    assert "--jq .head.sha" in status_job
+    assert "createComment" not in status_job
+    assert "updateComment" not in status_job
 
 
 def test_circleci_python_pilot_is_two_way_and_timing_balanced():

@@ -15,7 +15,7 @@ name: PR Copilot Agent
 permissions:
   contents: read
   pull-requests: read
-  issues: write
+  issues: read
   checks: read
   statuses: read
 
@@ -277,98 +277,24 @@ jobs:
           pip install -r .github/pr-copilot/scripts/requirements.txt
           python .github/pr-copilot/scripts/generate_status.py
 
-      - name: Post status update
-        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0  # guardrails-disable-line
+      - name: Publish exact-head workflow summary
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ needs.detect-trigger.outputs.pr_number }}
+        run: |
+          HEAD_SHA=$(gh api "repos/${{ github.repository }}/pulls/${PR_NUMBER}" --jq .head.sha)
+          {
+            echo "> Exact-head advisory snapshot for \`${HEAD_SHA}\`. This is not merge authorization; unresolved threads, provider failures, dependency overlap, and maintainer approval still require reconciliation."
+            echo
+            cat /tmp/pr_status_report.md
+          } | tee pr-copilot-status.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload short-lived status report
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          script: |
-            const fs = require('fs');
-            const prNumber = ${{ needs.detect-trigger.outputs.pr_number }};
-            const marker = '<!-- pr-copilot-status:v2 -->';
-
-            // Read status report from file
-            let statusReport = '';
-            try {
-              statusReport = fs.readFileSync('/tmp/pr_status_report.md', 'utf8');
-            } catch (error) {
-              // Fallback to basic status if script failed
-              const { data: pr } = await github.rest.pulls.get({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                pull_number: prNumber
-              });
-
-              const { data: reviews } = await github.rest.pulls.listReviews({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                pull_number: prNumber
-              });
-
-              const { data: checks } = await github.rest.checks.listForRef({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                ref: pr.head.sha
-              });
-
-              const approvedReviews = reviews.filter(r => r.state === 'APPROVED').length;
-              const changesRequestedReviews = reviews.filter(r => r.state === 'CHANGES_REQUESTED').length;
-              const passedChecks = checks.check_runs.filter(c => c.conclusion === 'success').length;
-              const failedChecks = checks.check_runs.filter(c => c.conclusion === 'failure').length;
-
-              statusReport = `📊 **PR Status Report**
-            **PR Information:**
-            - **Author:** @${pr.user.login}
-            - **Title:** ${pr.title}
-            - **Commits:** ${pr.commits}
-            - **Files Changed:** ${pr.changed_files}
-            - **Additions:** +${pr.additions} / **Deletions:** -${pr.deletions}
-
-            **Review Status:**
-            - ✅ Approved: ${approvedReviews}
-            - 🔄 Changes Requested: ${changesRequestedReviews}
-            - 📋 Total Reviews: ${reviews.length}
-
-            **CI/Check Status:**
-            - ✅ Passed: ${passedChecks}
-            - ❌ Failed: ${failedChecks}
-            - 📊 Total Checks: ${checks.check_runs.length}
-
-            **Merge Status:**
-            - Mergeable: ${pr.mergeable ? '✅ Yes' : '❌ No'}
-            - Draft: ${pr.draft ? '📝 Yes' : '✅ No'}
-
-            *Last updated: ${new Date().toISOString()}*`.replace(/\n {12}/g, '\n');
-            }
-
-            const { data: pr } = await github.rest.pulls.get({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              pull_number: prNumber
-            });
-            const body = `${marker}\n> Exact-head advisory snapshot for \`${pr.head.sha}\`. This is not merge authorization; unresolved threads, provider failures, dependency overlap, and maintainer approval still require reconciliation.\n\n${statusReport}`;
-            const comments = await github.paginate(github.rest.issues.listComments, {
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: prNumber,
-              per_page: 100
-            });
-            const existing = comments.find(comment =>
-              comment.user.login === 'github-actions[bot]' && comment.body.includes(marker)
-            );
-            if (existing) {
-              await github.rest.issues.updateComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                comment_id: existing.id,
-                body
-              });
-            } else {
-              await github.rest.issues.createComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                issue_number: prNumber,
-                body
-              });
-            }
+          name: pr-copilot-status-${{ needs.detect-trigger.outputs.pr_number }}-${{ github.run_id }}
+          path: pr-copilot-status.md
+          retention-days: 7
 
   # Job 5: Handle review comments
   review-handler:

@@ -210,7 +210,7 @@ merge_conflicts:
 
 # Notification settings
 notifications:
-  github_comments: true
+  github_comments: false
   use_reactions: true
 
   # Reaction emojis for different events

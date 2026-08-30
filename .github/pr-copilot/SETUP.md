@@ -3,8 +3,8 @@
 > **Current mode:** mention-driven status reporting only. Automatic PR-open,
 > synchronize, review, review-comment, and check-suite triggers are disabled.
 > Historical sections below describe capabilities retained in the workflow but
-> not activated. Use `@pr-copilot status update`; the agent updates one
-> exact-head advisory comment and never authorizes a merge.
+> not activated. Use `@pr-copilot status update`; the agent publishes an
+> exact-head workflow summary and short-lived artifact and never authorizes a merge.
 
 Administrator and maintainer guide for configuring and deploying the PR Copilot agent.
 

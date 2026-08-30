@@ -10,7 +10,7 @@ Use `@copilot check ci` only when an explicit snapshot is wanted. Routine status
 @pr-copilot status update
 ```
 
-PR Copilot updates one existing marker-bound comment and binds the report to the current head commit. Its report is advisory: it does not replace review-thread reconciliation, provider-failure classification, dependency-overlap checks, human approval, or explicit merge authorization.
+PR Copilot binds the report to the current head commit and publishes it in the workflow summary with a short-lived artifact. It does not write PR comments. Its report is advisory: it does not replace review-thread reconciliation, provider-failure classification, dependency-overlap checks, human approval, or explicit merge authorization.
 
 ## Historical overview
 
