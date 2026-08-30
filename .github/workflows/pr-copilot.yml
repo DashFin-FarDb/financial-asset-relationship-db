@@ -73,6 +73,7 @@ jobs:
           PR_NUMBER: ${{ inputs.pr_number || github.event.issue.number }}
           REPO_OWNER: ${{ github.repository_owner }}
           REPO_NAME: ${{ github.event.repository.name }}
+          EXPECTED_HEAD_SHA: ${{ steps.pr_head.outputs.sha }}
         run: |
           pip install -r .github/pr-copilot/scripts/requirements.txt
           python .github/pr-copilot/scripts/generate_status.py

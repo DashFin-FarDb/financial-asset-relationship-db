@@ -83,10 +83,12 @@ def test_pr_copilot_publishes_read_only_exact_head_status():
     publish_index = next(i for i, step in enumerate(steps) if step.get("name") == "Publish exact-head workflow summary")
     assert capture_index < generate_index < publish_index
     capture_step = steps[capture_index]
+    generate_step = steps[generate_index]
     publish_step = steps[publish_index]
     pr_number_expression = "${{ inputs.pr_number || github.event.issue.number }}"
     assert capture_step["env"]["PR_NUMBER"] == pr_number_expression
-    assert status_job["steps"][generate_index]["env"]["PR_NUMBER"] == pr_number_expression
+    assert generate_step["env"]["PR_NUMBER"] == pr_number_expression
+    assert generate_step["env"]["EXPECTED_HEAD_SHA"] == "${{ steps.pr_head.outputs.sha }}"  # DevSkim: ignore all
     assert publish_step["env"]["PR_NUMBER"] == pr_number_expression
     assert 'echo "sha=${HEAD_SHA}" >> "$GITHUB_OUTPUT"' in capture_step["run"]
     assert publish_step["env"]["EXPECTED_HEAD_SHA"] == "${{ steps.pr_head.outputs.sha }}"  # DevSkim: ignore all

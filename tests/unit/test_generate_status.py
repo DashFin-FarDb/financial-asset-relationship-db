@@ -246,7 +246,7 @@ def test_fetch_pr_status_basic(mock_pr, mock_review_approved, mock_check_run_suc
     mock_commit.get_check_runs.return_value = [mock_check_run_success]
 
     # Execute
-    status = generate_status.fetch_pr_status(mock_github, "owner/repo", 123)
+    status = generate_status.fetch_pr_status(mock_github, "owner/repo", 123, "abc123")
 
     # Verify
     assert status.number == 123
@@ -259,6 +259,22 @@ def test_fetch_pr_status_basic(mock_pr, mock_review_approved, mock_check_run_suc
     assert status.review_stats["approved"] == 1
     assert status.open_thread_count == 2
     assert len(status.check_runs) == 1
+    mock_repo.get_commit.assert_called_once_with("abc123")
+
+
+def test_fetch_pr_status_rejects_changed_head_before_status_reads(mock_pr):
+    """Reject a stale captured head before reading reviews, comments, or checks."""
+    mock_github = Mock()
+    mock_repo = Mock()
+    mock_github.get_repo.return_value = mock_repo
+    mock_repo.get_pull.return_value = mock_pr
+
+    with pytest.raises(RuntimeError, match="PR head changed before report generation"):
+        generate_status.fetch_pr_status(mock_github, "owner/repo", 123, "different-head")
+
+    mock_pr.get_reviews.assert_not_called()
+    mock_pr.get_review_comments.assert_not_called()
+    mock_repo.get_commit.assert_not_called()
 
 
 def test_fetch_pr_status_with_multiple_reviews(
@@ -286,7 +302,7 @@ def test_fetch_pr_status_with_multiple_reviews(
 
     mock_commit.get_check_runs.return_value = []
 
-    status = generate_status.fetch_pr_status(mock_github, "owner/repo", 123)
+    status = generate_status.fetch_pr_status(mock_github, "owner/repo", 123, "abc123")
 
     assert status.review_stats["approved"] == 1
     assert status.review_stats["changes_requested"] == 1
@@ -315,7 +331,7 @@ def test_fetch_pr_status_with_labels(mock_pr):
     mock_pr.get_review_comments.return_value = Mock(totalCount=0)
     mock_commit.get_check_runs.return_value = []
 
-    status = generate_status.fetch_pr_status(mock_github, "owner/repo", 123)
+    status = generate_status.fetch_pr_status(mock_github, "owner/repo", 123, "abc123")
 
     assert len(status.labels) == 2
     assert "bug" in status.labels
@@ -338,7 +354,7 @@ def test_fetch_pr_status_draft_pr(mock_pr):
     mock_pr.get_review_comments.return_value = Mock(totalCount=0)
     mock_commit.get_check_runs.return_value = []
 
-    status = generate_status.fetch_pr_status(mock_github, "owner/repo", 123)
+    status = generate_status.fetch_pr_status(mock_github, "owner/repo", 123, "abc123")
 
     assert status.is_draft is True
 
@@ -360,7 +376,7 @@ def test_fetch_pr_status_mergeable_none(mock_pr):
     mock_pr.get_review_comments.return_value = Mock(totalCount=0)
     mock_commit.get_check_runs.return_value = []
 
-    status = generate_status.fetch_pr_status(mock_github, "owner/repo", 123)
+    status = generate_status.fetch_pr_status(mock_github, "owner/repo", 123, "abc123")
 
     assert status.mergeable is None
     assert status.mergeable_state == "unknown"
@@ -386,7 +402,7 @@ def test_fetch_pr_status_with_multiple_check_runs(
         mock_check_run_pending,
     ]
 
-    status = generate_status.fetch_pr_status(mock_github, "owner/repo", 123)
+    status = generate_status.fetch_pr_status(mock_github, "owner/repo", 123, "abc123")
 
     assert len(status.check_runs) == 3
     assert status.check_runs[0].conclusion == "success"
@@ -1163,6 +1179,25 @@ def test_main_missing_env_vars(capsys):
     assert "Missing environment variables" in captured.err
 
 
+def test_main_requires_expected_head_sha(capsys):
+    """Test main fails closed when the captured PR head SHA is absent."""
+    env = {
+        "GITHUB_TOKEN": "token",
+        "PR_NUMBER": "123",
+        "REPO_OWNER": "owner",
+        "REPO_NAME": "repo",
+    }
+
+    with patch.dict(os.environ, env, clear=True):
+        with pytest.raises(SystemExit) as exc_info:
+            generate_status.main()
+
+        assert exc_info.value.code == 1
+
+    captured = capsys.readouterr()
+    assert "EXPECTED_HEAD_SHA" in captured.err
+
+
 def test_main_invalid_pr_number(capsys):
     """Test main exits with error when PR_NUMBER is not an integer."""
     env = {
@@ -1170,6 +1205,7 @@ def test_main_invalid_pr_number(capsys):
         "PR_NUMBER": "not-a-number",
         "REPO_OWNER": "owner",
         "REPO_NAME": "repo",
+        "EXPECTED_HEAD_SHA": "abc123",
     }
 
     with patch.dict(os.environ, env, clear=True):
@@ -1189,6 +1225,7 @@ def test_main_github_api_error(capsys):
         "PR_NUMBER": "123",
         "REPO_OWNER": "owner",
         "REPO_NAME": "repo",
+        "EXPECTED_HEAD_SHA": "abc123",
     }
 
     with patch.dict(os.environ, env, clear=True), patch("generate_status.Github") as mock_github_class:
@@ -1212,6 +1249,7 @@ def test_main_success_flow(mock_pr, mock_review_approved, mock_check_run_success
         "PR_NUMBER": "123",
         "REPO_OWNER": "owner",
         "REPO_NAME": "repo",
+        "EXPECTED_HEAD_SHA": "abc123",
     }
 
     with (
@@ -1251,6 +1289,7 @@ def test_main_generic_exception(capsys):
         "PR_NUMBER": "123",
         "REPO_OWNER": "owner",
         "REPO_NAME": "repo",
+        "EXPECTED_HEAD_SHA": "abc123",
     }
 
     with (
@@ -1378,7 +1417,7 @@ def test_fetch_pr_status_empty_reviews():
     mock_pr.get_review_comments.return_value = Mock(totalCount=0)
     mock_commit.get_check_runs.return_value = []
 
-    status = generate_status.fetch_pr_status(mock_github, "owner/repo", 1)
+    status = generate_status.fetch_pr_status(mock_github, "owner/repo", 1, "abc")
 
     assert status.review_stats["approved"] == 0
     assert status.review_stats["changes_requested"] == 0
@@ -1487,7 +1526,7 @@ def test_fetch_pr_status_label_extraction_uses_name_attribute():
     mock_pr.get_review_comments.return_value = Mock(totalCount=0)
     mock_commit.get_check_runs.return_value = []
 
-    status = generate_status.fetch_pr_status(mock_github, "owner/repo", 42)
+    status = generate_status.fetch_pr_status(mock_github, "owner/repo", 42, "deadbeef")
 
     # All three label names must be present and in the correct order
     assert status.labels == ["bug", "enhancement", "help wanted"]
@@ -1523,7 +1562,7 @@ def test_fetch_pr_status_empty_labels_list():
     mock_pr.get_review_comments.return_value = Mock(totalCount=0)
     mock_commit.get_check_runs.return_value = []
 
-    status = generate_status.fetch_pr_status(mock_github, "owner/repo", 1)
+    status = generate_status.fetch_pr_status(mock_github, "owner/repo", 1, "abc")
 
     assert status.labels == []
 

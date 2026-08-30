@@ -67,7 +67,7 @@ class PRStatus:
     check_runs: list[CheckRunInfo]
 
 
-def fetch_pr_status(g: Github, repo_name: str, pr_num: int) -> PRStatus:
+def fetch_pr_status(g: Github, repo_name: str, pr_num: int, expected_head_sha: str) -> PRStatus:
     """
     Retrieve aggregated metadata, review statistics, mergeability, and CI check-run summaries for a pull request.
 
@@ -79,6 +79,7 @@ def fetch_pr_status(g: Github, repo_name: str, pr_num: int) -> PRStatus:
     Parameters:
         repo_name (str): Repository identifier in "owner/name" form.
         pr_num (int): Pull request number.
+        expected_head_sha (str): Exact PR head SHA captured before report generation.
 
     Returns:
         PRStatus: Aggregated PR information populated with metadata, stats, review summary,
@@ -86,6 +87,12 @@ def fetch_pr_status(g: Github, repo_name: str, pr_num: int) -> PRStatus:
     """
     repo = g.get_repo(repo_name)
     pr = repo.get_pull(pr_num)
+
+    if pr.head.sha != expected_head_sha:
+        raise RuntimeError(
+            "PR head changed before report generation: "
+            f"expected {expected_head_sha}, found {pr.head.sha}; refusing to read stale status data"
+        )
 
     # 1. Reviews (Must iterate to classify)
     reviews = list(pr.get_reviews())
@@ -106,7 +113,7 @@ def fetch_pr_status(g: Github, repo_name: str, pr_num: int) -> PRStatus:
 
     # 3. Check Runs
     # Optimization: Get runs directly from commit, skipping Suite iteration
-    head_commit = repo.get_commit(pr.head.sha)
+    head_commit = repo.get_commit(expected_head_sha)
     check_runs_data = []
 
     # We use list() here because we need to inspect properties
@@ -337,7 +344,7 @@ def _validate_environment() -> dict[str, str]:
     Exits:
         Exits with status 1 if any required variables are missing.
     """
-    required = ["GITHUB_TOKEN", "PR_NUMBER", "REPO_OWNER", "REPO_NAME"]
+    required = ["GITHUB_TOKEN", "PR_NUMBER", "REPO_OWNER", "REPO_NAME", "EXPECTED_HEAD_SHA"]
     env = {var: os.environ.get(var) for var in required}
 
     if not all(env.values()):
@@ -372,7 +379,9 @@ def _parse_pr_number(pr_number_str: str) -> int:
         sys.exit(1)
 
 
-def _fetch_and_generate_report(token: str, repo_owner: str, repo_name: str, pr_num: int) -> None:
+def _fetch_and_generate_report(
+    token: str, repo_owner: str, repo_name: str, pr_num: int, expected_head_sha: str
+) -> None:
     """
     Connect to GitHub, fetch PR status, generate report, and write output.
 
@@ -381,6 +390,7 @@ def _fetch_and_generate_report(token: str, repo_owner: str, repo_name: str, pr_n
         repo_owner: Repository owner name.
         repo_name: Repository name.
         pr_num: Pull request number.
+        expected_head_sha: Exact PR head SHA captured before report generation.
 
     Exits:
         Exits with status 0 on success, status 1 on any error.
@@ -391,7 +401,7 @@ def _fetch_and_generate_report(token: str, repo_owner: str, repo_name: str, pr_n
 
         print(f"Fetching status for PR #{pr_num}...", file=sys.stderr)
 
-        status = fetch_pr_status(g, repo_full_name, pr_num)
+        status = fetch_pr_status(g, repo_full_name, pr_num, expected_head_sha)
         report = generate_markdown(status)
         write_output(report)
 
@@ -411,7 +421,8 @@ def _fetch_and_generate_report(token: str, repo_owner: str, repo_name: str, pr_n
 def main():
     """Validate environment, fetch PR status, generate Markdown report, and write outputs.
 
-    Requires the environment variables GITHUB_TOKEN, PR_NUMBER, REPO_OWNER, and REPO_NAME.
+    Requires the environment variables GITHUB_TOKEN, PR_NUMBER, REPO_OWNER, REPO_NAME,
+    and EXPECTED_HEAD_SHA.
     Exits with status code 0 on success and with status code 1 on any validation, API, or runtime error;
     prints error details to stderr before exiting.
     """
@@ -424,7 +435,13 @@ def main():
 
     env = _validate_environment()
     pr_num = _parse_pr_number(env["PR_NUMBER"])
-    _fetch_and_generate_report(env["GITHUB_TOKEN"], env["REPO_OWNER"], env["REPO_NAME"], pr_num)
+    _fetch_and_generate_report(
+        env["GITHUB_TOKEN"],
+        env["REPO_OWNER"],
+        env["REPO_NAME"],
+        pr_num,
+        env["EXPECTED_HEAD_SHA"],
+    )
 
 
 if __name__ == "__main__":
