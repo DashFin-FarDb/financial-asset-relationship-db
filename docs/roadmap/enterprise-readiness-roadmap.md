@@ -3,7 +3,7 @@
 For the broader enterprise-readiness index, see [docs/enterprise-readiness-index.md](../enterprise-readiness-index.md).
 
 **Publication date:** 2026-06-25
-**Last updated:** 2026-08-18
+**Last updated:** 2026-08-30
 **Format:** Release evidence / Target-environment proof / Follow-up hardening
 **Purpose:** Sequence the remaining work after the PR #1287-#1301 enterprise-readiness reconciliation point
 
@@ -16,17 +16,33 @@ The release evidence pack also exists and governs release-proof capture.
 
 The remaining roadmap is about release execution: attaching target-environment evidence, rehearsing restore, and closing bounded follow-up seams without reopening the architecture.
 
+## Current execution checkpoint — 2026-08-30
+
+Current `main@f919a4237b4c7ce56fed7af92cee7f0938f3dcba` includes GNC Phase 2's deterministic non-blocking
+advisory (PR #1740), the safe local WSL observability launcher and its controlled-draft proof (PR #1742), and
+native-Windows-safe SQLite CI paths (PR #1748). GNC Phase 3 and enforcement are not authorised.
+
+The critical database lane remains CQ-03D-02. A target-bound database maintenance window is approved in principle,
+but Supabase support, IPv6-capable connectivity, and an exact-SHA/target protected single-use permit still have to be
+reconciled before the read-only hosted preflight. The later history marker remains a separate decision.
+
+While that external gate remains, the next repository lane is dependency reconciliation—not immediate merging.
+Depfu PRs #1741, #1743, and #1744 and Dependabot PRs #1745, #1746, and #1747 must be compared for package, manifest,
+lockfile, workflow, and transitive overlap before choosing an order. This checkpoint makes no merge-readiness claim
+for them.
+
 ## Current critical-path programme — CQ-03 PostgreSQL ledger adoption
 
 CQ-03A, CQ-03B-R1/R2, CQ-03C, CQ-03D-00, and CQ-03D-01 are complete at repository scope through merged PRs #1634,
 with PRs #1640, #1641, #1643, #1644, and #1646 completing the remaining units. The repository can build the explicit
 auth, graph, coordination, and combined profiles on supported PostgreSQL versions and can run a target-bound,
-permit-bound, read-only hosted preflight. This is not hosted adoption evidence: no target or permit has been approved
-and no hosted preflight has been executed.
+permit-bound, read-only hosted preflight. This is not hosted adoption evidence: the maintenance window is approved
+in principle, but Supabase support, IPv6 connectivity, and the executable exact-target permit remain unresolved, and
+no hosted preflight has been executed.
 
 | Item                                     | Status                                                                                   | Next evidence required                                                                                                | Non-negotiable boundary                                                                                                                                      |
 | ---------------------------------------- | ---------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| CQ-03D hosted migration-history adoption | Partially satisfied — D-01 merged and verified at repository scope; target/permit absent | D-02: separately approve one target and protected single-use permit, then obtain a passing hosted read-only preflight | History-only reconciliation; no DDL; no DML beyond one permit-bound history marker; no grant, role, credential, deployment, or provider-configuration change |
+| CQ-03D hosted migration-history adoption | Partially satisfied — D-01 merged; maintenance window approved in principle; connectivity/support/permit unresolved | D-02: reconcile Supabase support and IPv6, bind one target and reviewed SHA in a protected single-use permit, then obtain a passing hosted read-only preflight | History-only reconciliation; no DDL; no DML beyond one permit-bound history marker; no grant, role, credential, deployment, or provider-configuration change |
 
 The CQ-03D-01 target adapter contract was human-ratified on 2026-08-18 and merged through PR #1646 at verified squash
 `790274c1b0dbdb43d4bbbbf35c4565dae36c9fe3`. The command may collect only preflight evidence. CQ-03D-02 must
