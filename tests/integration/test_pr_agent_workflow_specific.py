@@ -106,7 +106,8 @@ class TestPRAgentWorkflowStructureValidation:
         Load and parse the repository's pr-agent GitHub Actions workflow YAML.
 
         Returns:
-            dict: The workflow content parsed from .github/workflows/pr-agent.yml as a mapping of YAML keys to Python objects.
+            dict: The workflow content parsed from .github/workflows/pr-agent.yml
+            as a mapping of YAML keys to Python objects.
         """
         with open(".github/workflows/pr-agent.yml", encoding="utf-8") as f:
             return yaml.safe_load(f)
@@ -181,7 +182,8 @@ class TestPRAgentWorkflowSetupSteps:
         Assert the job contains exactly one step named "Setup Python".
 
         Parameters:
-            pr_agent_job (Dict[str, Any]): Parsed job configuration from the workflow YAML; expected to include a 'steps' list.
+            pr_agent_job (Dict[str, Any]): Parsed job configuration from the
+            workflow YAML; expected to include a 'steps' list.
         """
         steps = pr_agent_job.get("steps", [])
         python_steps = [step for step in steps if step.get("name") == "Setup Python"]

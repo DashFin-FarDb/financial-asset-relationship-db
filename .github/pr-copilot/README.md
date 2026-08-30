@@ -9,6 +9,7 @@ PR Copilot provides a current status snapshot without reacting automatically to 
 ## ✨ Features
 
 ### 1. **Welcome & Introduction**
+
 - Automatically greets contributors on first interaction
 - Explains available features and commands
 - Activates when:
@@ -17,12 +18,14 @@ PR Copilot provides a current status snapshot without reacting automatically to 
   - First `@pr-copilot` mention
 
 ### 2. **PR Scope Validation**
+
 - Warns when PR titles suggest multiple changes
 - Detects long titles (>72 characters)
 - Identifies keywords like "and", "or", commas that indicate scope creep
 - Helps maintain focused, reviewable PRs
 
 ### 3. **Status Updates**
+
 - Comprehensive PR status on demand
 - Includes:
   - PR metadata (author, commits, files changed)
@@ -33,6 +36,7 @@ PR Copilot provides a current status snapshot without reacting automatically to 
 - Updates automatically or on request
 
 ### 4. **Review Comment Handling**
+
 - Automatically detects actionable feedback
 - Tracks comments with keywords like:
   - "please", "should", "could you"
@@ -42,6 +46,7 @@ PR Copilot provides a current status snapshot without reacting automatically to 
 - Helps ensure no feedback is missed
 
 ### 5. **Auto-Merge Eligibility**
+
 - Evaluates when PRs are ready to merge
 - Checks:
   - All CI checks pass
@@ -52,6 +57,7 @@ PR Copilot provides a current status snapshot without reacting automatically to 
 - Notifies when ready or lists blockers
 
 ### 6. **Merge Conflict Detection**
+
 - Automatically detects merge conflicts
 - Provides resolution guidance
 - Shows affected files
@@ -63,19 +69,19 @@ PR Copilot provides a current status snapshot without reacting automatically to 
 
 Trigger the agent by mentioning it in PR comments:
 
-```
+```text
 @pr-copilot status update
 ```
 
 Get detailed status of the current PR.
 
-```
+```text
 @pr-copilot help
 ```
 
 Show available commands and features.
 
-```
+```text
 @pr-copilot help conflicts
 ```
 
@@ -87,13 +93,14 @@ The agent runs only when a PR comment contains `@pr-copilot status update`, or w
 
 ## 📋 Command Reference
 
-| Command | Description | Example |
-|---------|-------------|---------|
-| `@pr-copilot status update` | Get comprehensive PR status | `@pr-copilot status update` |
-| `@pr-copilot help` | Show available commands | `@pr-copilot help` |
+| Command                      | Description                    | Example                      |
+| ---------------------------- | ------------------------------ | ---------------------------- |
+| `@pr-copilot status update`  | Get comprehensive PR status    | `@pr-copilot status update`  |
+| `@pr-copilot help`           | Show available commands        | `@pr-copilot help`           |
 | `@pr-copilot help conflicts` | Merge conflict resolution help | `@pr-copilot help conflicts` |
 
 **Aliases:**
+
 - Status: `status update`, `progress report`, `show status`, `pr status`
 - Help: `help`, `commands`, `usage`
 
@@ -180,6 +187,7 @@ python .github/pr-copilot/scripts/analyze_pr.py
 ```
 
 **Provides:**
+
 - Complexity score (0-100)
 - Risk level assessment
 - File type breakdown
@@ -195,6 +203,7 @@ python .github/pr-copilot/scripts/generate_status.py
 ```
 
 **Includes:**
+
 - Complete PR metadata
 - Review aggregation
 - Check status summary
@@ -210,18 +219,20 @@ python .github/pr-copilot/scripts/suggest_fixes.py
 ```
 
 **Extracts:**
+
 - Actionable items from reviews
 - Code suggestions
 - Priority categorization
 - Fix proposals
 
-*Note: These scripts are used internally by the workflow but can be run manually.*
+_Note: These scripts are used internally by the workflow but can be run manually._
 
 ## 📊 Status Report Format
 
 Status updates include:
 
 **PR Information:**
+
 - Author, title, number
 - Branch information
 - Commit count
@@ -230,23 +241,27 @@ Status updates include:
 - Labels
 
 **Review Status:**
+
 - Approvals
 - Changes requested
 - Comments
 - Total reviews
 
 **CI/Check Status:**
+
 - Passed checks
 - Failed checks
 - Pending checks
 - Individual check details
 
 **Merge Status:**
+
 - Mergeable state
 - Draft status
 - Conflict detection
 
 **Task Checklist:**
+
 - Ready for review
 - Has approval
 - Checks passing
@@ -279,14 +294,16 @@ These are configured in the workflow file and use the default `GITHUB_TOKEN`.
 ### Agent Not Responding
 
 **Check:**
+
 1. Is the workflow enabled in repository settings?
-2. Are GitHub Actions enabled for this repo?
+2. Are GitHub Actions enabled for this repository?
 3. Is the PR in a fork? (Agent may have limited permissions)
 4. Check workflow runs in Actions tab for errors
 
 ### Incorrect Status Information
 
 **Try:**
+
 1. Wait a few seconds and request status again
 2. Check if GitHub API is experiencing issues
 3. Verify PR has loaded all data (checks, reviews)
@@ -294,6 +311,7 @@ These are configured in the workflow file and use the default `GITHUB_TOKEN`.
 ### Missing Notifications
 
 **Verify:**
+
 1. Configuration file is valid YAML
 2. Trigger keywords are correct
 3. Notifications are enabled in config
@@ -302,6 +320,7 @@ These are configured in the workflow file and use the default `GITHUB_TOKEN`.
 ### Scope Warnings Incorrect
 
 **Adjust:**
+
 - Edit `.github/pr-copilot-config.yml`
 - Modify `scope.warn_on_long_title` value
 - Adjust `scope.multiple_change_keywords` list

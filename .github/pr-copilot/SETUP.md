@@ -33,11 +33,13 @@ Before enabling PR Copilot, ensure:
 ### Step 2: Verify Workflow File
 
 The workflow file should exist at:
-```
+
+```text
 .github/workflows/pr-copilot.yml
 ```
 
 Verify it's present:
+
 ```bash
 ls -la .github/workflows/pr-copilot.yml
 ```
@@ -45,11 +47,13 @@ ls -la .github/workflows/pr-copilot.yml
 ### Step 3: Verify Configuration File
 
 The configuration file should exist at:
-```
+
+```text
 .github/pr-copilot-config.yml
 ```
 
 Verify it's present and valid:
+
 ```bash
 # Check existence
 ls -la .github/pr-copilot-config.yml
@@ -61,7 +65,8 @@ python -c "import yaml; yaml.safe_load(open('.github/pr-copilot-config.yml'))"
 ### Step 4: Test the Agent
 
 Create a test PR or comment on an existing PR:
-```
+
+```text
 @pr-copilot help
 ```
 
@@ -71,13 +76,13 @@ The agent should respond within 1-2 minutes.
 
 PR Copilot uses the default `GITHUB_TOKEN` provided by GitHub Actions. Required permissions:
 
-| Permission | Access Level | Purpose |
-|------------|--------------|---------|
-| `contents` | `read` | Read repository files and configuration |
-| `pull-requests` | `write` | Post comments on PRs, update PR status |
-| `issues` | `write` | Comment on issues (PRs are issues) |
-| `checks` | `read` | Read check run status and results |
-| `statuses` | `read` | Read commit status checks |
+| Permission      | Access Level | Purpose                                 |
+| --------------- | ------------ | --------------------------------------- |
+| `contents`      | `read`       | Read repository files and configuration |
+| `pull-requests` | `write`      | Post comments on PRs, update PR status  |
+| `issues`        | `write`      | Comment on issues (PRs are issues)      |
+| `checks`        | `read`       | Read check run status and results       |
+| `statuses`      | `read`       | Read commit status checks               |
 
 These permissions are configured in the workflow file:
 
@@ -103,7 +108,7 @@ If the agent fails with permission errors:
 
 For best results with auto-merge features, configure branch protection:
 
-### Recommended Settings for `main` branch:
+### Recommended Settings for `main` branch
 
 1. Navigate to **Settings** → **Branches** → **Branch protection rules**
 2. Add rule for `main` (or your default branch)
@@ -127,45 +132,45 @@ Edit `.github/pr-copilot-config.yml` to customize behavior:
 
 ```yaml
 agent:
-  enabled: true  # Master enable/disable switch
+  enabled: true # Master enable/disable switch
 
 triggers:
-  help_wanted_label: true  # Respond to "help wanted" label
-  mention: true            # Respond to @pr-copilot mentions
+  help_wanted_label: true # Respond to "help wanted" label
+  mention: true # Respond to @pr-copilot mentions
 
 scope:
-  warn_on_long_title: 72          # Character limit for title warning
-  warn_on_multiple_changes: true  # Warn on "and", "or" in titles
+  warn_on_long_title: 72 # Character limit for title warning
+  warn_on_multiple_changes: true # Warn on "and", "or" in titles
 
 auto_merge:
-  enabled: true              # Enable auto-merge checking
-  require_reviews: 1         # Minimum required approvals
-  merge_method: "squash"     # Options: squash, merge, rebase
+  enabled: true # Enable auto-merge checking
+  require_reviews: 1 # Minimum required approvals
+  merge_method: "squash" # Options: squash, merge, rebase
 ```
 
 ### Advanced Settings
 
 ```yaml
 review_handling:
-  auto_acknowledge: true      # Auto-respond to review feedback
-  track_actionable: true      # Track actionable review comments
-  actionable_keywords:        # Keywords indicating actionable feedback
+  auto_acknowledge: true # Auto-respond to review feedback
+  track_actionable: true # Track actionable review comments
+  actionable_keywords: # Keywords indicating actionable feedback
     - "please"
     - "fix"
     - "change"
 
 status:
-  include_commits: true       # Include commit count in status
+  include_commits: true # Include commit count in status
   include_files_changed: true # Include file count in status
-  include_reviews: true       # Include review status
-  include_checks: true        # Include CI check status
+  include_reviews: true # Include review status
+  include_checks: true # Include CI check status
 
 notifications:
-  github_comments: true       # Post as GitHub comments
-  use_reactions: true         # Use emoji reactions
+  github_comments: true # Post as GitHub comments
+  use_reactions: true # Use emoji reactions
 
 security:
-  allowed_users: []           # Empty = all users, or list specific users
+  allowed_users: [] # Empty = all users, or list specific users
   require_write_access: false # Require contributor write access
 ```
 
@@ -232,6 +237,7 @@ merge_conflicts:
 #### Issue: Agent not responding
 
 **Diagnosis:**
+
 ```bash
 # Check if workflow file is valid
 yamllint .github/workflows/pr-copilot.yml
@@ -241,6 +247,7 @@ gh run list --workflow=pr-copilot.yml --limit 5
 ```
 
 **Solutions:**
+
 - Verify GitHub Actions are enabled
 - Check workflow permissions
 - Review workflow run logs for errors
@@ -250,11 +257,13 @@ gh run list --workflow=pr-copilot.yml --limit 5
 
 **Diagnosis:**
 Check workflow run logs for errors like:
-```
+
+```text
 Error: Resource not accessible by integration
 ```
 
 **Solutions:**
+
 - Enable "Read and write permissions" in repository settings
 - Verify `permissions` block in workflow file
 - Check organization-level restrictions
@@ -265,16 +274,19 @@ Error: Resource not accessible by integration
 Multiple workflow instances may be running.
 
 **Solutions:**
+
 - Add `concurrency` group to workflow:
-  ```yaml
-  concurrency:
-    group: pr-copilot-${{ github.event.pull_request.number }}
-    cancel-in-progress: true
-  ```
+
+```yaml
+concurrency:
+  group: pr-copilot-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+```
 
 #### Issue: Status updates are slow
 
 **Solutions:**
+
 - Reduce scope of status checks
 - Adjust GitHub API rate limits awareness
 - Consider caching status data
@@ -298,11 +310,13 @@ Before deploying to production:
 ### Test PR Template
 
 Create a test PR with:
+
 - Title: "Test PR for PR Copilot Agent - Add feature and fix bug"
 - Changes: 2-3 small files
 - Description: "Testing @pr-copilot functionality"
 
 Then test:
+
 1. Scope warning should appear (title >72 chars + "and")
 2. Comment: `@pr-copilot status update`
 3. Submit review with: "Please fix the typo in line 10"
@@ -315,6 +329,7 @@ If issues occur, disable the agent:
 ### Method 1: Configuration File (Temporary)
 
 Edit `.github/pr-copilot-config.yml`:
+
 ```yaml
 agent:
   enabled: false
@@ -361,21 +376,23 @@ concurrency:
 
 jobs:
   detect-trigger:
-    timeout-minutes: 5  # Prevent runaway jobs
+    timeout-minutes: 5 # Prevent runaway jobs
 ```
 
 ### Reduce API Calls
 
 Configure status update frequency:
+
 ```yaml
 limits:
   max_status_updates_per_hour: 10
-  status_cache_ttl: 300  # 5 minutes
+  status_cache_ttl: 300 # 5 minutes
 ```
 
 ### Optimize Python Scripts
 
 Install dependencies only once:
+
 ```yaml
 - name: Cache Python dependencies
   uses: actions/cache@v3
@@ -429,6 +446,7 @@ This adds detailed logging to workflow runs.
 ### Contact Information
 
 For issues specific to this repository:
+
 - Open a GitHub Issue
 - Tag maintainers in PR comments
 - Refer to repository CONTRIBUTING.md

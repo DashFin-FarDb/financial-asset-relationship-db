@@ -19,24 +19,28 @@ The PR Management Agent is an automated system designed to streamline the pull r
 ## Features
 
 ### 🤖 Automated Review Response
+
 - Monitors PR comments and reviews in real-time
 - Parses feedback and creates actionable items
 - Acknowledges reviewer comments automatically
 - Prioritizes issues by severity and impact
 
 ### 🔧 Intelligent Change Implementation
+
 - Implements code fixes based on review feedback
 - Maintains code quality standards
 - Runs tests before committing changes
 - Creates focused, logical commits
 
 ### 📊 Quality Assurance
+
 - Enforces coding standards (Python: Black, Flake8; TypeScript: ESLint, Prettier)
 - Maintains test coverage requirements (Python: 80%, TypeScript: 75%)
 - Validates CI/CD pipeline success
 - Prevents breaking changes without approval
 
 ### 🚀 Workflow Automation
+
 - Auto-rebases branches when needed
 - Manages merge conflicts
 - Requests re-reviews after changes
@@ -51,45 +55,55 @@ Mention the agent in PR comments to trigger actions:
 ```markdown
 @copilot fix this
 ```
+
 Implements the specific fix suggested in the comment context.
 
 ```markdown
 @copilot address review
 ```
+
 Processes all outstanding review comments and implements fixes.
 
 ```markdown
 @copilot update tests
 ```
+
 Adds or updates test coverage for modified code.
 
 ```markdown
 @copilot check ci
 ```
+
 Investigates CI failures and attempts to resolve them.
 
 ### Advanced Usage
 
 #### Bulk Operations
+
 ```markdown
 @copilot address review --priority high
 ```
+
 Only addresses high-priority review comments.
 
 ```markdown
 @copilot fix this --with-tests
 ```
+
 Implements fix and adds corresponding test coverage.
 
 #### Status Queries
+
 ```markdown
 @copilot status
 ```
+
 Provides current status of PR and pending actions.
 
 ```markdown
 @copilot summary
 ```
+
 Generates summary of changes made by the agent.
 
 ## Configuration
@@ -101,14 +115,14 @@ The agent behavior is controlled by `.github/pr-agent-config.yml`:
 ```yaml
 # Key settings
 actions:
-  auto_acknowledge: true    # Auto-respond to reviews
-  auto_implement: true      # Auto-implement fixes
-  auto_test: true          # Auto-run tests
-  max_changes_per_pr: 10   # Safety limit
+  auto_acknowledge: true # Auto-respond to reviews
+  auto_implement: true # Auto-implement fixes
+  auto_test: true # Auto-run tests
+  max_changes_per_pr: 10 # Safety limit
 
 quality:
   python:
-    min_coverage: 80       # Minimum test coverage
+    min_coverage: 80 # Minimum test coverage
   typescript:
     min_coverage: 75
 ```
@@ -146,9 +160,11 @@ Works with existing CI/CD tools:
 ### Example 1: Fixing Type Errors
 
 **Reviewer Comment:**
+
 > The `AssetGraph` class needs proper TypeScript interfaces for the props.
 
 **Agent Response:**
+
 1. ✅ Acknowledges comment
 2. 🔧 Adds TypeScript interfaces
 3. 🧪 Updates tests
@@ -158,9 +174,11 @@ Works with existing CI/CD tools:
 ### Example 2: Adding Test Coverage
 
 **Reviewer Comment:**
+
 > This function needs unit tests to cover edge cases.
 
 **Agent Response:**
+
 1. ✅ Acknowledges comment
 2. 🧪 Analyzes function for edge cases
 3. ✏️ Writes comprehensive tests
@@ -170,9 +188,11 @@ Works with existing CI/CD tools:
 ### Example 3: CI Failure Resolution
 
 **CI Failure:**
+
 > Python linting failed: line too long in asset_graph.py:42
 
 **Agent Response:**
+
 1. 🔍 Analyzes CI logs
 2. 🔧 Fixes line length issue
 3. ✅ Runs linter locally
@@ -204,19 +224,22 @@ Automated reports include:
 ### Common Issues
 
 #### Agent Not Responding
+
 - Check if agent is enabled in config
 - Verify GitHub Actions are running
 - Ensure proper permissions are set
 
 #### Changes Not Applied
+
 - Review safety limits in configuration
 - Check if files are in restricted list
 - Verify CI checks are passing
 
 #### Quality Checks Failing
+
 - Review code standards in config
 - Check test coverage requirements
-- Verify linting rules are up to date
+- Verify linter rules are up to date
 
 ### Getting Help
 
@@ -262,5 +285,5 @@ The agent operates with limited permissions:
 
 ---
 
-*For technical details, see `.github/copilot-pr-agent.md`*
-*For configuration options, see `.github/pr-agent-config.yml`*
+_For technical details, see `.github/copilot-pr-agent.md`_
+_For configuration options, see `.github/pr-agent-config.yml`_
