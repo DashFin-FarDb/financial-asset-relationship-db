@@ -89,11 +89,11 @@ def test_pr_copilot_publishes_read_only_exact_head_status():
     assert status_job["steps"][generate_index]["env"]["PR_NUMBER"] == pr_number_expression
     assert publish_step["env"]["PR_NUMBER"] == pr_number_expression
     assert 'echo "sha=${HEAD_SHA}" >> "$GITHUB_OUTPUT"' in capture_step["run"]
-    assert publish_step["env"]["EXPECTED_HEAD_SHA"] == "${{ steps.pr_head.outputs.sha }}"
+    assert publish_step["env"]["EXPECTED_HEAD_SHA"] == "${{ steps.pr_head.outputs.sha }}"  # DevSkim: ignore all
     assert "CURRENT_HEAD_SHA=$(gh api" in publish_step["run"]
-    assert '"${CURRENT_HEAD_SHA}" != "${EXPECTED_HEAD_SHA}"' in publish_step["run"]
+    assert '"${CURRENT_HEAD_SHA}" != "${EXPECTED_HEAD_SHA}"' in publish_step["run"]  # DevSkim: ignore all
     assert "refusing to publish stale status" in publish_step["run"]
-    assert r"Exact-head advisory snapshot for \`${EXPECTED_HEAD_SHA}\`" in publish_step["run"]
+    assert r"Exact-head advisory snapshot for \`${EXPECTED_HEAD_SHA}\`" in publish_step["run"]  # DevSkim: ignore all
     assert "GITHUB_STEP_SUMMARY" in serialized_status_job
     assert "actions/upload-artifact@" in serialized_status_job
     assert "--jq .head.sha" in workflow_text
