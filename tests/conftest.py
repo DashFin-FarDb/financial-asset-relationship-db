@@ -25,8 +25,11 @@ if _db_path.exists():
 
 # Enforce hermeticity for test runs
 os.environ["SECRET_KEY"] = "test-secret-key-at-least-32-bytes-long"
-os.environ["DATABASE_URL"] = f"sqlite:///{_db_path}"
-os.environ["COORDINATION_DATABASE_URL"] = os.environ["DATABASE_URL"]
+# Keep both consumers on the same canonical SQLAlchemy URL. Forward slashes
+# preserve the Windows drive while the API resolver removes its URL prefix.
+_db_url = f"sqlite:///{_db_path.as_posix()}"
+os.environ["DATABASE_URL"] = _db_url
+os.environ["COORDINATION_DATABASE_URL"] = _db_url
 os.environ["ADMIN_USERNAME"] = "admin"
 os.environ["ADMIN_PASSWORD"] = os.getenv("TEST_ADMIN_PASSWORD") or "changeme"
 os.environ["ADMIN_EMAIL"] = "admin@example.com"

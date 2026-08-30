@@ -311,7 +311,8 @@ def _resolve_file_path(path: str) -> str:
     """
     Convert a normalized SQLite file path component into an absolute filesystem path.
 
-    Handles three forms:
+    Handles four forms:
+    - Windows drive paths prefixed by URL parsing with a slash (e.g., "/C:/foo") drop that slash.
     - Absolute paths starting with a single leading slash (e.g., "/foo") are resolved as-is.
     - UNC-like paths starting with two leading slashes (e.g., "//server/path") drop the first slash and are resolved.
     - Rootless or relative-looking paths have any leading slashes removed and are resolved
@@ -323,6 +324,9 @@ def _resolve_file_path(path: str) -> str:
     Returns:
         str: The resolved absolute filesystem path.
     """
+    windows_path = Path(path[1:]) if path.startswith("/") else None
+    if windows_path is not None and windows_path.drive:
+        return str(windows_path.resolve())
     if path.startswith("/") and not path.startswith("//"):
         return str(Path(path).resolve())
     if path.startswith("//"):
