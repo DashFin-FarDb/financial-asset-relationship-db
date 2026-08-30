@@ -3,6 +3,7 @@ Comprehensive tests specifically for pr-agent.yml workflow.
 Tests the duplicate key fix and PR Agent-specific functionality.
 """
 
+import json
 import re
 from pathlib import Path
 from typing import Any
@@ -150,6 +151,33 @@ class TestPRAgentWorkflowStructureValidation:
         """
         triggers = workflow_content.get("on", {})
         assert "issue_comment" in triggers, "Workflow should trigger on issue_comment events for @copilot mentions"
+
+    def test_active_job_requires_trusted_pr_commenter(self, workflow_content: dict[str, Any]):
+        """Only trusted repository roles may invoke the explicit PR command."""
+        job = workflow_content["jobs"]["pr-agent-action"]
+        condition = job["if"]
+
+        assert "github.event.issue.pull_request" in condition
+        assert "contains(github.event.comment.body, '@copilot')" in condition
+
+        association_gate = re.search(
+            r"contains\(fromJSON\('([^']+)'\),\s*github\.event\.comment\.author_association\)",
+            condition,
+        )
+        assert association_gate is not None, "PR Agent must gate commands by author association"
+        assert set(json.loads(association_gate.group(1))) == {
+            "OWNER",
+            "MEMBER",
+            "COLLABORATOR",
+        }
+
+    def test_active_job_keeps_minimum_permissions(self, workflow_content: dict[str, Any]):
+        """The trusted-commenter gate must not expand the active job's authority."""
+        assert workflow_content["jobs"]["pr-agent-action"]["permissions"] == {
+            "contents": "read",
+            "pull-requests": "read",
+            "issues": "write",
+        }
 
 
 class TestPRAgentWorkflowSetupSteps:

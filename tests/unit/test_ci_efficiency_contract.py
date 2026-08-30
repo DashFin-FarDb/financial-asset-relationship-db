@@ -62,7 +62,10 @@ def test_pr_copilot_publishes_read_only_exact_head_status():
         "statuses": "read",
     }
     gate = str(status_job["if"])
+    assert "github.event_name == 'workflow_dispatch'" in gate
     assert "github.event.issue.pull_request" in gate
+    for association in ("OWNER", "MEMBER", "COLLABORATOR"):
+        assert f"github.event.comment.author_association == '{association}'" in gate
     for command in (
         "@pr-copilot status update",
         "@pr-copilot progress report",
@@ -74,6 +77,23 @@ def test_pr_copilot_publishes_read_only_exact_head_status():
         assert f"github.event.comment.body == '{command}'" in gate
     assert gate.count("github.event.comment.body ==") == 6
     assert "contains(" not in gate
+    steps = status_job["steps"]
+    capture_index = next(i for i, step in enumerate(steps) if step.get("id") == "pr_head")
+    generate_index = next(i for i, step in enumerate(steps) if step.get("id") == "status")
+    publish_index = next(i for i, step in enumerate(steps) if step.get("name") == "Publish exact-head workflow summary")
+    assert capture_index < generate_index < publish_index
+    capture_step = steps[capture_index]
+    publish_step = steps[publish_index]
+    pr_number_expression = "${{ inputs.pr_number || github.event.issue.number }}"
+    assert capture_step["env"]["PR_NUMBER"] == pr_number_expression
+    assert status_job["steps"][generate_index]["env"]["PR_NUMBER"] == pr_number_expression
+    assert publish_step["env"]["PR_NUMBER"] == pr_number_expression
+    assert 'echo "sha=${HEAD_SHA}" >> "$GITHUB_OUTPUT"' in capture_step["run"]
+    assert publish_step["env"]["EXPECTED_HEAD_SHA"] == "${{ steps.pr_head.outputs.sha }}"
+    assert "CURRENT_HEAD_SHA=$(gh api" in publish_step["run"]
+    assert '"${CURRENT_HEAD_SHA}" != "${EXPECTED_HEAD_SHA}"' in publish_step["run"]
+    assert "refusing to publish stale status" in publish_step["run"]
+    assert r"Exact-head advisory snapshot for \`${EXPECTED_HEAD_SHA}\`" in publish_step["run"]
     assert "GITHUB_STEP_SUMMARY" in serialized_status_job
     assert "actions/upload-artifact@" in serialized_status_job
     assert "--jq .head.sha" in workflow_text

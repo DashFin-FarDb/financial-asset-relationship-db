@@ -29,6 +29,11 @@ jobs:
         github.event_name == 'issue_comment' &&
         github.event.issue.pull_request &&
         (
+          github.event.comment.author_association == 'OWNER' ||
+          github.event.comment.author_association == 'MEMBER' ||
+          github.event.comment.author_association == 'COLLABORATOR'
+        ) &&
+        (
           github.event.comment.body == '@pr-copilot status update' ||
           github.event.comment.body == '@pr-copilot progress report' ||
           github.event.comment.body == '@pr-copilot show status' ||
@@ -52,6 +57,15 @@ jobs:
         with:
           python-version: "3.11"
 
+      - name: Capture PR head before report generation
+        id: pr_head
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ inputs.pr_number || github.event.issue.number }}
+        run: |
+          HEAD_SHA=$(gh api "repos/${{ github.repository }}/pulls/${PR_NUMBER}" --jq .head.sha)
+          echo "sha=${HEAD_SHA}" >> "$GITHUB_OUTPUT"
+
       - name: Generate status report
         id: status
         env:
@@ -67,10 +81,16 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_NUMBER: ${{ inputs.pr_number || github.event.issue.number }}
+          EXPECTED_HEAD_SHA: ${{ steps.pr_head.outputs.sha }}
         run: |
-          HEAD_SHA=$(gh api "repos/${{ github.repository }}/pulls/${PR_NUMBER}" --jq .head.sha)
+          CURRENT_HEAD_SHA=$(gh api "repos/${{ github.repository }}/pulls/${PR_NUMBER}" --jq .head.sha)
+          if [ "${CURRENT_HEAD_SHA}" != "${EXPECTED_HEAD_SHA}" ]; then
+            echo "> Stale report discarded: PR head changed from \`${EXPECTED_HEAD_SHA}\` to \`${CURRENT_HEAD_SHA}\` during generation." >> "$GITHUB_STEP_SUMMARY"
+            echo "PR head changed during report generation; refusing to publish stale status." >&2
+            exit 1
+          fi
           {
-            echo "> Exact-head advisory snapshot for \`${HEAD_SHA}\`. This is not merge authorization; unresolved threads, provider failures, dependency overlap, and maintainer approval still require reconciliation."
+            echo "> Exact-head advisory snapshot for \`${EXPECTED_HEAD_SHA}\`. This is not merge authorization; unresolved threads, provider failures, dependency overlap, and maintainer approval still require reconciliation."
             echo
             cat /tmp/pr_status_report.md
           } | tee pr-copilot-status.md >> "$GITHUB_STEP_SUMMARY"
