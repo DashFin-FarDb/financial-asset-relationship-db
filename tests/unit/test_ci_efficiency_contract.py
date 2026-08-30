@@ -16,6 +16,7 @@ def test_pr_agents_do_not_fan_out_on_check_suites_or_commits():
     assert set(pr_agent["on"]) == {"issue_comment"}
     assert set(pr_copilot["on"]) == {"issue_comment", "workflow_dispatch"}
     assert pr_copilot["on"]["workflow_dispatch"]["inputs"]["pr_number"]["required"] is True
+    assert "github.event_name" in pr_copilot["concurrency"]["group"]
 
 
 def test_dependency_auto_approval_is_disabled():
