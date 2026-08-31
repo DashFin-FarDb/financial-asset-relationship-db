@@ -291,6 +291,50 @@ class TestGitHubWorkflows:
 class TestSpecificWorkflows:
     """Test specific workflow configurations."""
 
+    def test_ci_security_scanners_use_isolated_environment(self):
+        """Safety and Bandit must not share the installed runtime environment."""
+        workflow_path = PROJECT_ROOT / ".github" / "workflows" / "ci.yml"
+        with open(workflow_path, encoding="utf-8") as f:
+            config = yaml.safe_load(f)
+
+        assert isinstance(config, dict), "ci.yml should parse to a mapping/dict"
+        jobs = config.get("jobs")
+        assert isinstance(jobs, dict), "ci.yml jobs should be a mapping/dict"
+        security_job = jobs.get("security")
+        assert isinstance(security_job, dict), "ci.yml should define the security job"
+        steps = security_job.get("steps")
+        assert isinstance(steps, list), "security job should define steps"
+
+        ci_common_steps = [
+            step for step in steps if isinstance(step, dict) and step.get("uses") == "./.github/actions/ci-common"
+        ]
+        assert len(ci_common_steps) == 1, "security job should invoke CI common exactly once"
+        inputs = ci_common_steps[0].get("with")
+        assert isinstance(inputs, dict), "security CI common step should define inputs"
+        install = inputs.get("install")
+        test = inputs.get("test")
+        assert isinstance(install, str)
+        assert isinstance(test, str)
+
+        runtime_install = "pip install -r requirements.txt"
+        runtime_freeze = "pip freeze > .ci-runtime-freeze.txt"
+        scanner_venv = 'python -m venv "$RUNNER_TEMP/fardb-security-venv"'
+        scanner_install = '"$RUNNER_TEMP/fardb-security-venv/bin/python" -m pip install safety bandit'
+        assert install.index(runtime_install) < install.index(runtime_freeze) < install.index(scanner_venv)
+        assert install.index(scanner_venv) < install.index(scanner_install)
+        assert "--system-site-packages" not in install
+        assert "\npip install safety bandit" not in install
+
+        assert (
+            '"$RUNNER_TEMP/fardb-security-venv/bin/safety" \\\n'
+            "  check -r .ci-runtime-freeze.txt --policy-file .safety-policy.json --json"
+        ) in test
+        assert '"$RUNNER_TEMP/fardb-security-venv/bin/bandit" -r src/ -ll' in test
+        assert security_job.get("continue-on-error") is not True
+        assert ci_common_steps[0].get("continue-on-error") is not True
+        assert "|| true" not in install
+        assert "|| true" not in test
+
     def test_ci_workflow_python_versions(self):
         """CI workflow tests multiple Python versions."""
         workflow_path = PROJECT_ROOT / ".github" / "workflows" / "ci.yml"
