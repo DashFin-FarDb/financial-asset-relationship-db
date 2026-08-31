@@ -13,7 +13,7 @@ from typing import cast
 import pytest
 from fastapi.testclient import TestClient
 
-from api.main import app
+from api.main import app, reset_graph
 from api.routers import graph_admin
 from api.routers import relationships as relationships_router
 from api.routers import visualization as visualization_router
@@ -50,12 +50,12 @@ _ = (configure_graph_persistence, initialize_assertion_store, seed_users)
 @pytest.fixture
 def client() -> Iterator[TestClient]:
     """Return a lifespan-managed client with isolated graph lifecycle state."""
-    from api.graph_lifecycle import reset_graph
-
     reset_graph()
-    with TestClient(app) as test_client:
-        yield test_client
-    reset_graph()
+    try:
+        with TestClient(app) as test_client:
+            yield test_client
+    finally:
+        reset_graph()
 
 
 @dataclass(frozen=True)
