@@ -14,6 +14,7 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session, sessionmaker
 
 import api.routers.graph_admin as graph_admin
+from api.main import reset_graph
 from src.data.database import create_engine_from_url, create_session_factory, init_db
 from src.data.db_models import RebuildJobORM, RebuildJobStatus
 from src.data.relationship_assertion_db_models import (
@@ -39,11 +40,13 @@ pytestmark = pytest.mark.integration
 @pytest.fixture
 def publication_session_factory(tmp_path: Path) -> Iterator[sessionmaker]:
     """Create one durable SQLite database for publication/restart proof."""
+    reset_graph()
     engine = create_engine_from_url(f"sqlite:///{tmp_path / 'grac-publication.db'}")
     init_db(engine)
     try:
         yield create_session_factory(engine)
     finally:
+        reset_graph()
         engine.dispose()
 
 
