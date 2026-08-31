@@ -101,6 +101,7 @@ def test_pr_copilot_publishes_read_only_exact_head_status():
     assert '"${CURRENT_HEAD_SHA}" != "${EXPECTED_HEAD_SHA}"' in publish_run  # DevSkim: ignore all
     assert "refusing to publish stale status" in publish_run
     assert r"Exact-head advisory snapshot for \`${EXPECTED_HEAD_SHA}\`" in publish_run  # DevSkim: ignore all
+    assert all("GITHUB_STEP_SUMMARY" not in str(step.get("run", "")) for step in steps[:publish_index])
     assert "GITHUB_STEP_SUMMARY" in serialized_status_job
     assert "actions/upload-artifact@" in serialized_status_job
     assert "retention-days: 7" in serialized_status_job
@@ -123,6 +124,7 @@ def test_circleci_python_pilot_is_two_way_and_timing_balanced():
     assert "--split-by=timings" in commands
     assert "--timings-type=file" in commands
     assert "--junitxml=" in commands
+    assert "-o junit_family=legacy" in commands
     assert '"tests/**/test_*.py"' in commands
     assert '"tests/**/*_test.py"' in commands
     assert "grep -v '^tests/benchmarks/'" in commands

@@ -277,6 +277,43 @@ def test_fetch_pr_status_rejects_changed_head_before_status_reads(mock_pr):
     mock_repo.get_commit.assert_not_called()
 
 
+def test_fetch_and_generate_report_rejects_changed_head_after_status_reads(
+    mock_pr, mock_review_approved, mock_check_run_success
+):
+    """Do not write a report if the PR head changes while status data is collected."""
+    mock_github = Mock()
+    mock_repo = Mock()
+    mock_commit = Mock()
+    changed_pr = Mock()
+    changed_pr.head = Mock(sha="changed-head")
+
+    mock_github.get_repo.return_value = mock_repo
+    mock_repo.get_pull.side_effect = [mock_pr, changed_pr]
+    mock_repo.get_commit.return_value = mock_commit
+    mock_pr.get_reviews.return_value = [mock_review_approved]
+    mock_pr.get_review_comments.return_value = Mock(totalCount=0)
+    mock_commit.get_check_runs.return_value = [mock_check_run_success]
+    request = generate_status.PRReportRequest(
+        token="token",
+        repo_full_name="owner/repo",
+        pr_num=123,
+        expected_head_sha="abc123",
+    )
+
+    with (
+        patch("generate_status.Github", return_value=mock_github),
+        patch("generate_status.generate_markdown") as mock_generate_markdown,
+        patch("generate_status.write_output") as mock_write_output,
+        pytest.raises(SystemExit) as exc_info,
+    ):
+        generate_status._fetch_and_generate_report(request)
+
+    assert exc_info.value.code == 1
+    assert mock_repo.get_pull.call_count == 2
+    mock_generate_markdown.assert_not_called()
+    mock_write_output.assert_not_called()
+
+
 def test_fetch_pr_status_with_multiple_reviews(
     mock_pr, mock_review_approved, mock_review_changes_requested, mock_review_commented
 ):
@@ -1115,8 +1152,8 @@ def test_write_output_to_temp_file():
         handle.write.assert_called_once_with(content)
 
 
-def test_write_output_to_github_step_summary():
-    """Test write_output writes to GITHUB_STEP_SUMMARY."""
+def test_write_output_leaves_github_step_summary_for_post_validation_publish():
+    """Do not publish the report before the workflow's final exact-head check."""
     content = "Test report"
     summary_file = "fake_tmp/github_summary.md"
 
@@ -1128,9 +1165,7 @@ def test_write_output_to_github_step_summary():
         with patch("builtins.open", m):
             generate_status.write_output(content)
 
-        # Check that summary file was opened in append mode
-        calls = m.call_args_list
-        assert any(summary_file in str(call) for call in calls)
+        m.assert_called_once_with(os.path.join("fake_tmp", "pr_status_report.md"), "w", encoding="utf-8")
 
 
 def test_write_output_handles_io_error_temp_file(capsys):
@@ -1146,22 +1181,6 @@ def test_write_output_handles_io_error_temp_file(capsys):
 
     captured = capsys.readouterr()
     assert "Error writing to temp file" in captured.err
-
-
-def test_write_output_handles_io_error_github_summary(capsys):
-    """Test write_output handles IOError for GitHub summary."""
-    content = "Test content"
-    summary_file = "fake_tmp/summary.md"
-
-    with (
-        patch.dict(os.environ, {"GITHUB_STEP_SUMMARY": summary_file}),
-        patch("tempfile.gettempdir", return_value="fake_tmp"),
-        patch("builtins.open", side_effect=OSError("Permission denied")),
-    ):
-        generate_status.write_output(content)
-
-    captured = capsys.readouterr()
-    assert "Warning: Could not write to GITHUB_STEP_SUMMARY" in captured.err
 
 
 # --- Test main Function ---

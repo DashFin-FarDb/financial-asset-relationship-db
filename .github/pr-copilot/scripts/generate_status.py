@@ -158,12 +158,14 @@ def fetch_pr_status(g: Github, repo_name: str, pr_num: int, expected_head_sha: s
     pr = repo.get_pull(pr_num)
     _validate_pr_head(pr, expected_head_sha)
 
-    return _build_pr_status(
+    status = _build_pr_status(
         pr,
         _summarize_reviews(pr),
         pr.get_review_comments().totalCount,
         _collect_check_runs(repo, expected_head_sha),
     )
+    _validate_pr_head(repo.get_pull(pr_num), expected_head_sha)
+    return status
 
 
 def format_checklist(status: PRStatus) -> str:
@@ -306,38 +308,16 @@ def generate_markdown(status: PRStatus) -> str:
 
 def write_output(content: str) -> None:
     """
-    Write the PR Markdown report to summary, temp file, and stdout.
+    Write the PR Markdown report to a temporary file and stdout.
 
-    If the GITHUB_STEP_SUMMARY environment variable is set and resolves inside the system
-    temporary directory, append content to that file; otherwise skip the step-summary write
-    and emit a warning to stderr. Overwrite the file named "pr_status_report.md" in the system
-    temporary directory and print its path to stderr on success. All I/O and path-related errors
-    are caught and reported to stderr; the function does not raise exceptions.
+    Overwrite the file named "pr_status_report.md" in the system temporary directory and
+    print its path to stderr on success. The workflow publishes that file only after its final
+    exact-head validation. File I/O errors are reported to stderr and do not raise exceptions.
 
     Parameters:
         content (str): The Markdown report content to write.
     """
-    # 1. GitHub Step Summary (Native integration)
-    gh_summary = os.environ.get("GITHUB_STEP_SUMMARY")
-    if gh_summary:
-        try:
-            summary_path = os.path.realpath(gh_summary)
-            temp_root = os.path.realpath(tempfile.gettempdir())
-            if os.path.commonpath([summary_path, temp_root]) != temp_root:
-                print(
-                    "Warning: Ignoring GITHUB_STEP_SUMMARY outside temp dir",
-                    file=sys.stderr,
-                )
-            else:
-                with open(summary_path, "a", encoding="utf-8") as f:
-                    f.write(content)
-        except (OSError, ValueError) as e:
-            print(
-                f"Warning: Could not write to GITHUB_STEP_SUMMARY: {e}",
-                file=sys.stderr,
-            )
-
-    # 2. Standard Temp File
+    # 1. Standard Temp File
     # We use a standard temp path.
     # We do not crash if it exists; we overwrite.
     output_path = os.path.join(tempfile.gettempdir(), "pr_status_report.md")
@@ -349,7 +329,7 @@ def write_output(content: str) -> None:
     except OSError as e:
         print(f"Error writing to temp file: {e}", file=sys.stderr)
 
-    # 3. Stdout
+    # 2. Stdout
     print(content)
 
 

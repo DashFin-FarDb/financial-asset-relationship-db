@@ -53,7 +53,7 @@ jobs:
               "tests/**/*_test.py" \
               | grep -v '^tests/benchmarks/' \
               | circleci tests run \
-                  --command="xargs -r python -m pytest --durations=25 --junitxml=test-results/pytest/results-${CIRCLE_NODE_INDEX}.xml" \
+                  --command="xargs -r python -m pytest --durations=25 --junitxml=test-results/pytest/results-${CIRCLE_NODE_INDEX}.xml -o junit_family=legacy" \
                   --split-by=timings \
                   --timings-type=file
       - store_test_results:
