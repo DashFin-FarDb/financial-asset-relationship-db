@@ -324,9 +324,9 @@ def test_cache_primed_read_is_refreshed_after_admin_publication(
         assert second_visualization.json()["edges"][0]["assertion_id"] == "assertion-v2"
         assert second_visualization.json()["edges"][0]["revision_id"] == "revision-v2"
     finally:
-        from api.graph_lifecycle import graph_state
+        from api.graph_lifecycle import reset_graph
 
-        graph_state.last_synced_job_id = None
+        reset_graph()
 
 
 @pytest.mark.unit

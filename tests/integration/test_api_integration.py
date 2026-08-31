@@ -8,6 +8,7 @@ This module tests the full API integration including:
 """
 
 import os
+from collections.abc import Iterator
 
 import pytest
 from fastapi.testclient import TestClient
@@ -16,9 +17,19 @@ from api.main import app
 
 
 @pytest.fixture
-def client():
-    """Create a test client for integration tests."""
-    return TestClient(app)
+def client() -> Iterator[TestClient]:
+    """Create an isolated test client with a clean graph and auth state."""
+    from api import database
+    from api.auth import seed_credentials_from_settings, user_repository
+    from api.graph_lifecycle import reset_graph
+    from src.config.settings import load_settings
+
+    reset_graph()
+    database.initialize_schema()
+    seed_credentials_from_settings(user_repository, load_settings())
+    with TestClient(app) as c:
+        yield c
+    reset_graph()
 
 
 def asset_items(page: dict) -> list[dict]:
