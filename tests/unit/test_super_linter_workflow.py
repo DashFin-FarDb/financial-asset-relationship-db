@@ -27,8 +27,28 @@ def _super_linter_step() -> dict[str, object]:
     return next(step for step in steps if step.get("name") == "Lint Code Base")
 
 
+def _checkout_step() -> dict[str, object]:
+    workflow = _load_workflow(SUPER_LINTER_WORKFLOW)
+    jobs = workflow["jobs"]
+    assert isinstance(jobs, dict)
+    run_lint = jobs["run-lint"]
+    assert isinstance(run_lint, dict)
+    steps = run_lint["steps"]
+    assert isinstance(steps, list)
+    return next(step for step in steps if step.get("name") == "Checkout code")
+
+
 def test_super_linter_uses_reviewed_v8_release_by_exact_commit() -> None:
     assert _super_linter_step()["uses"] == SUPER_LINTER_USE
+
+
+def test_checkout_does_not_persist_github_credentials() -> None:
+    checkout = _checkout_step()
+    options = checkout["with"]
+    assert isinstance(options, dict)
+
+    assert options["fetch-depth"] == 0
+    assert options["persist-credentials"] is False
 
 
 def test_v8_validator_ownership_replaces_retired_flags() -> None:
