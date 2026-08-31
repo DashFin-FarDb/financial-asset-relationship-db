@@ -20,6 +20,8 @@ from packaging.version import Version
 
 # Path to requirements.txt file (production dependencies)
 REQUIREMENTS_FILE = Path(__file__).parent.parent.parent / "requirements.txt"
+API_REQUIREMENTS_FILE = Path(__file__).parent.parent.parent / "requirements-api.txt"
+PYPROJECT_FILE = Path(__file__).parent.parent.parent / "pyproject.toml"
 
 
 def parse_requirements(file_path: Path) -> list[tuple[str, str]]:
@@ -232,7 +234,9 @@ class TestVersionSpecifications:
 
     def test_uses_minimum_versions(self, requirements: list[tuple[str, str]]):
         """Test that most packages use >= for version specifications."""
-        specs_using_gte = [ver for pkg, ver in requirements if ver.startswith(">=")]
+        specs_using_gte = [
+            ver for _, ver in requirements if any(spec.strip().startswith(">=") for spec in ver.split(","))
+        ]
         all_with_versions = [ver for pkg, ver in requirements if ver]
         # At least 70% should use >= for flexibility
         assert len(specs_using_gte) >= len(all_with_versions) * 0.7
@@ -251,6 +255,33 @@ class TestVersionSpecifications:
             # Check if there's a comment on the same line or nearby
             has_comment = any("#" in line for line in pkg_lines)
             assert has_comment, f"Exact pin for {pkg} should have a comment explaining why"
+
+
+class TestMcpCompatibleMajorBounds:
+    """Keep MCP dependencies on the API line used by mcp_server.py."""
+
+    @staticmethod
+    @pytest.mark.parametrize(
+        ("package", "expected_bounds"),
+        [
+            ("mcp", ">=1.23.0,<2.0.0"),
+            ("fastmcp", ">=3.4.7,<4.0.0"),
+        ],
+    )
+    def test_runtime_and_project_bounds_are_identical(package: str, expected_bounds: str):
+        """Require identical security floors and compatible-major ceilings in every manifest."""
+        runtime_requirements = dict(parse_requirements(REQUIREMENTS_FILE))
+        api_requirements = dict(parse_requirements(API_REQUIREMENTS_FILE))
+        project_lines = {line.strip() for line in PYPROJECT_FILE.read_text(encoding="utf-8").splitlines()}
+        expected_specifiers = set(expected_bounds.split(","))
+
+        runtime_specifiers = set(runtime_requirements[package].split(","))
+        api_specifiers = set(api_requirements[package].split(","))
+
+        assert runtime_specifiers == expected_specifiers
+        assert api_specifiers == expected_specifiers
+        assert runtime_specifiers == api_specifiers
+        assert f'"{package}{expected_bounds}",' in project_lines
 
 
 class TestPackageConsistency:
