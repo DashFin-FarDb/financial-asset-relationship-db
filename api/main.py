@@ -82,6 +82,9 @@ ENV = get_settings().env
 # Backward compatibility graph reference for older tests that patch api.main.graph.
 # Keep this lazy so importing api.main does not force graph initialization before
 # the FastAPI lifespan has a chance to handle hosted startup degradation.
+# importlib.reload() retains names in the existing module dictionary, so clear a
+# previously materialized compatibility binding before restoring lazy lookup.
+globals().pop("graph", None)
 graph: AssetRelationshipGraph | None
 
 

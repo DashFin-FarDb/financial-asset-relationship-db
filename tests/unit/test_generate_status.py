@@ -14,7 +14,7 @@ import importlib.util
 import os
 import sys
 from datetime import datetime, timezone
-from unittest.mock import Mock, mock_open, patch
+from unittest.mock import Mock, mock_open, patch, sentinel
 
 import pytest
 
@@ -246,7 +246,7 @@ def test_fetch_pr_status_basic(mock_pr, mock_review_approved, mock_check_run_suc
     mock_commit.get_check_runs.return_value = [mock_check_run_success]
 
     # Execute
-    status = generate_status.fetch_pr_status(mock_github, "owner/repo", 123)
+    status = generate_status.fetch_pr_status(mock_github, "owner/repo", 123, "abc123")
 
     # Verify
     assert status.number == 123
@@ -259,6 +259,59 @@ def test_fetch_pr_status_basic(mock_pr, mock_review_approved, mock_check_run_suc
     assert status.review_stats["approved"] == 1
     assert status.open_thread_count == 2
     assert len(status.check_runs) == 1
+    mock_repo.get_commit.assert_called_once_with("abc123")
+
+
+def test_fetch_pr_status_rejects_changed_head_before_status_reads(mock_pr):
+    """Reject a stale captured head before reading reviews, comments, or checks."""
+    mock_github = Mock()
+    mock_repo = Mock()
+    mock_github.get_repo.return_value = mock_repo
+    mock_repo.get_pull.return_value = mock_pr
+
+    with pytest.raises(RuntimeError, match="PR head changed before report generation"):
+        generate_status.fetch_pr_status(mock_github, "owner/repo", 123, "different-head")
+
+    mock_pr.get_reviews.assert_not_called()
+    mock_pr.get_review_comments.assert_not_called()
+    mock_repo.get_commit.assert_not_called()
+
+
+def test_fetch_and_generate_report_rejects_changed_head_after_status_reads(
+    mock_pr, mock_review_approved, mock_check_run_success
+):
+    """Do not write a report if the PR head changes while status data is collected."""
+    mock_github = Mock()
+    mock_repo = Mock()
+    mock_commit = Mock()
+    changed_pr = Mock()
+    changed_pr.head = Mock(sha="changed-head")
+
+    mock_github.get_repo.return_value = mock_repo
+    mock_repo.get_pull.side_effect = [mock_pr, changed_pr]
+    mock_repo.get_commit.return_value = mock_commit
+    mock_pr.get_reviews.return_value = [mock_review_approved]
+    mock_pr.get_review_comments.return_value = Mock(totalCount=0)
+    mock_commit.get_check_runs.return_value = [mock_check_run_success]
+    request = generate_status.PRReportRequest(
+        token=str(sentinel.github_token),
+        repo_full_name="owner/repo",
+        pr_num=123,
+        expected_head_sha="abc123",
+    )
+
+    with (
+        patch("generate_status.Github", return_value=mock_github),
+        patch("generate_status.generate_markdown") as mock_generate_markdown,
+        patch("generate_status.write_output") as mock_write_output,
+        pytest.raises(SystemExit) as exc_info,
+    ):
+        generate_status._fetch_and_generate_report(request)
+
+    assert exc_info.value.code == 1
+    assert mock_repo.get_pull.call_count == 2
+    mock_generate_markdown.assert_not_called()
+    mock_write_output.assert_not_called()
 
 
 def test_fetch_pr_status_with_multiple_reviews(
@@ -286,7 +339,7 @@ def test_fetch_pr_status_with_multiple_reviews(
 
     mock_commit.get_check_runs.return_value = []
 
-    status = generate_status.fetch_pr_status(mock_github, "owner/repo", 123)
+    status = generate_status.fetch_pr_status(mock_github, "owner/repo", 123, "abc123")
 
     assert status.review_stats["approved"] == 1
     assert status.review_stats["changes_requested"] == 1
@@ -315,7 +368,7 @@ def test_fetch_pr_status_with_labels(mock_pr):
     mock_pr.get_review_comments.return_value = Mock(totalCount=0)
     mock_commit.get_check_runs.return_value = []
 
-    status = generate_status.fetch_pr_status(mock_github, "owner/repo", 123)
+    status = generate_status.fetch_pr_status(mock_github, "owner/repo", 123, "abc123")
 
     assert len(status.labels) == 2
     assert "bug" in status.labels
@@ -338,7 +391,7 @@ def test_fetch_pr_status_draft_pr(mock_pr):
     mock_pr.get_review_comments.return_value = Mock(totalCount=0)
     mock_commit.get_check_runs.return_value = []
 
-    status = generate_status.fetch_pr_status(mock_github, "owner/repo", 123)
+    status = generate_status.fetch_pr_status(mock_github, "owner/repo", 123, "abc123")
 
     assert status.is_draft is True
 
@@ -360,7 +413,7 @@ def test_fetch_pr_status_mergeable_none(mock_pr):
     mock_pr.get_review_comments.return_value = Mock(totalCount=0)
     mock_commit.get_check_runs.return_value = []
 
-    status = generate_status.fetch_pr_status(mock_github, "owner/repo", 123)
+    status = generate_status.fetch_pr_status(mock_github, "owner/repo", 123, "abc123")
 
     assert status.mergeable is None
     assert status.mergeable_state == "unknown"
@@ -386,7 +439,7 @@ def test_fetch_pr_status_with_multiple_check_runs(
         mock_check_run_pending,
     ]
 
-    status = generate_status.fetch_pr_status(mock_github, "owner/repo", 123)
+    status = generate_status.fetch_pr_status(mock_github, "owner/repo", 123, "abc123")
 
     assert len(status.check_runs) == 3
     assert status.check_runs[0].conclusion == "success"
@@ -1099,8 +1152,8 @@ def test_write_output_to_temp_file():
         handle.write.assert_called_once_with(content)
 
 
-def test_write_output_to_github_step_summary():
-    """Test write_output writes to GITHUB_STEP_SUMMARY."""
+def test_write_output_leaves_github_step_summary_for_post_validation_publish():
+    """Do not publish the report before the workflow's final exact-head check."""
     content = "Test report"
     summary_file = "fake_tmp/github_summary.md"
 
@@ -1112,9 +1165,7 @@ def test_write_output_to_github_step_summary():
         with patch("builtins.open", m):
             generate_status.write_output(content)
 
-        # Check that summary file was opened in append mode
-        calls = m.call_args_list
-        assert any(summary_file in str(call) for call in calls)
+        m.assert_called_once_with(os.path.join("fake_tmp", "pr_status_report.md"), "w", encoding="utf-8")
 
 
 def test_write_output_handles_io_error_temp_file(capsys):
@@ -1132,22 +1183,6 @@ def test_write_output_handles_io_error_temp_file(capsys):
     assert "Error writing to temp file" in captured.err
 
 
-def test_write_output_handles_io_error_github_summary(capsys):
-    """Test write_output handles IOError for GitHub summary."""
-    content = "Test content"
-    summary_file = "fake_tmp/summary.md"
-
-    with (
-        patch.dict(os.environ, {"GITHUB_STEP_SUMMARY": summary_file}),
-        patch("tempfile.gettempdir", return_value="fake_tmp"),
-        patch("builtins.open", side_effect=OSError("Permission denied")),
-    ):
-        generate_status.write_output(content)
-
-    captured = capsys.readouterr()
-    assert "Warning: Could not write to GITHUB_STEP_SUMMARY" in captured.err
-
-
 # --- Test main Function ---
 
 
@@ -1163,6 +1198,25 @@ def test_main_missing_env_vars(capsys):
     assert "Missing environment variables" in captured.err
 
 
+def test_main_requires_expected_head_sha(capsys):
+    """Test main fails closed when the captured PR head SHA is absent."""
+    env = {
+        "GITHUB_TOKEN": "token",
+        "PR_NUMBER": "123",
+        "REPO_OWNER": "owner",
+        "REPO_NAME": "repo",
+    }
+
+    with patch.dict(os.environ, env, clear=True):
+        with pytest.raises(SystemExit) as exc_info:
+            generate_status.main()
+
+        assert exc_info.value.code == 1
+
+    captured = capsys.readouterr()
+    assert generate_status.PINNED_HEAD_ENV in captured.err
+
+
 def test_main_invalid_pr_number(capsys):
     """Test main exits with error when PR_NUMBER is not an integer."""
     env = {
@@ -1170,6 +1224,7 @@ def test_main_invalid_pr_number(capsys):
         "PR_NUMBER": "not-a-number",
         "REPO_OWNER": "owner",
         "REPO_NAME": "repo",
+        generate_status.PINNED_HEAD_ENV: "abc123",
     }
 
     with patch.dict(os.environ, env, clear=True):
@@ -1189,6 +1244,7 @@ def test_main_github_api_error(capsys):
         "PR_NUMBER": "123",
         "REPO_OWNER": "owner",
         "REPO_NAME": "repo",
+        generate_status.PINNED_HEAD_ENV: "abc123",
     }
 
     with patch.dict(os.environ, env, clear=True), patch("generate_status.Github") as mock_github_class:
@@ -1212,6 +1268,7 @@ def test_main_success_flow(mock_pr, mock_review_approved, mock_check_run_success
         "PR_NUMBER": "123",
         "REPO_OWNER": "owner",
         "REPO_NAME": "repo",
+        generate_status.PINNED_HEAD_ENV: "abc123",
     }
 
     with (
@@ -1251,6 +1308,7 @@ def test_main_generic_exception(capsys):
         "PR_NUMBER": "123",
         "REPO_OWNER": "owner",
         "REPO_NAME": "repo",
+        generate_status.PINNED_HEAD_ENV: "abc123",
     }
 
     with (
@@ -1378,7 +1436,7 @@ def test_fetch_pr_status_empty_reviews():
     mock_pr.get_review_comments.return_value = Mock(totalCount=0)
     mock_commit.get_check_runs.return_value = []
 
-    status = generate_status.fetch_pr_status(mock_github, "owner/repo", 1)
+    status = generate_status.fetch_pr_status(mock_github, "owner/repo", 1, "abc")
 
     assert status.review_stats["approved"] == 0
     assert status.review_stats["changes_requested"] == 0
@@ -1487,7 +1545,7 @@ def test_fetch_pr_status_label_extraction_uses_name_attribute():
     mock_pr.get_review_comments.return_value = Mock(totalCount=0)
     mock_commit.get_check_runs.return_value = []
 
-    status = generate_status.fetch_pr_status(mock_github, "owner/repo", 42)
+    status = generate_status.fetch_pr_status(mock_github, "owner/repo", 42, "deadbeef")
 
     # All three label names must be present and in the correct order
     assert status.labels == ["bug", "enhancement", "help wanted"]
@@ -1523,7 +1581,7 @@ def test_fetch_pr_status_empty_labels_list():
     mock_pr.get_review_comments.return_value = Mock(totalCount=0)
     mock_commit.get_check_runs.return_value = []
 
-    status = generate_status.fetch_pr_status(mock_github, "owner/repo", 1)
+    status = generate_status.fetch_pr_status(mock_github, "owner/repo", 1, "abc")
 
     assert status.labels == []
 

@@ -622,6 +622,9 @@ def test_api_main_and_router_helper_compatibility(
     import api.main as api_main  # pylint: disable=import-outside-toplevel
     import api.router_helpers as router_helpers  # pylint: disable=import-outside-toplevel
 
+    # Reload must discard an older materialized compatibility binding instead
+    # of letting it diverge from graph_lifecycle.graph_state.
+    api_main.graph = AssetRelationshipGraph()
     api_main = importlib.reload(api_main)
     try:
         loaded = api_main.get_graph()

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import sys
+import types
 from typing import cast
 
 import pytest  # pylint: disable=import-error
@@ -42,6 +43,32 @@ def test_synchronize_runtime_graph_updates_both_mirrors() -> None:
 
     assert graph_lifecycle.graph_state.graph is graph_instance
     assert api_main.graph is graph_instance
+
+
+def test_synchronize_runtime_graph_does_not_resolve_lazy_graph_mirror() -> None:
+    """Runtime sync should publish the compatibility mirror without lazy lookup."""
+    api_main = types.ModuleType("api.main")
+
+    def fail_lazy_lookup(name: str) -> None:
+        raise AssertionError(f"unexpected lazy compatibility lookup: {name}")
+
+    setattr(api_main, "__getattr__", fail_lazy_lookup)
+    saved_api_main = sys.modules.get("api.main")
+    sys.modules["api.main"] = api_main
+    graph_instance = cast(
+        graph_lifecycle.AssetRelationshipGraph,
+        object(),
+    )
+
+    try:
+        graph_lifecycle.synchronize_runtime_graph(graph_instance)
+    finally:
+        if saved_api_main is None:
+            sys.modules.pop("api.main", None)
+        else:
+            sys.modules["api.main"] = saved_api_main
+
+    assert vars(api_main)["graph"] is graph_instance
 
 
 def test_synchronize_runtime_graph_preserves_rebuild_until_completion() -> None:

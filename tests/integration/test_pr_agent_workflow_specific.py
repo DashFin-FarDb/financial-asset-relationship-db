@@ -3,6 +3,7 @@ Comprehensive tests specifically for pr-agent.yml workflow.
 Tests the duplicate key fix and PR Agent-specific functionality.
 """
 
+import json
 import re
 from pathlib import Path
 from typing import Any
@@ -106,7 +107,8 @@ class TestPRAgentWorkflowStructureValidation:
         Load and parse the repository's pr-agent GitHub Actions workflow YAML.
 
         Returns:
-            dict: The workflow content parsed from .github/workflows/pr-agent.yml as a mapping of YAML keys to Python objects.
+            dict: The workflow content parsed from .github/workflows/pr-agent.yml
+            as a mapping of YAML keys to Python objects.
         """
         with open(".github/workflows/pr-agent.yml", encoding="utf-8") as f:
             return yaml.safe_load(f)
@@ -129,22 +131,16 @@ class TestPRAgentWorkflowStructureValidation:
         """Test that workflow has the dependency-update job."""
         assert "dependency-update" in workflow_content.get("jobs", {}), "Workflow should have 'dependency-update' job"
 
-    def test_trigger_on_pr_events(self, workflow_content: dict[str, Any]):
-        """Test that workflow triggers on appropriate PR events."""
+    def test_does_not_trigger_on_pr_events(self, workflow_content: dict[str, Any]):
+        """The retired automatic agent must not fan out on every PR update."""
         triggers = workflow_content.get("on", {})
+        assert set(triggers) == {"issue_comment"}
+        assert triggers["issue_comment"]["types"] == ["created"]
 
-        assert "pull_request" in triggers, "Workflow should trigger on pull_request events"
-
-        if isinstance(triggers.get("pull_request"), dict):
-            pr_types = triggers["pull_request"].get("types", [])
-            expected_types = ["opened", "synchronize", "reopened"]
-            for expected in expected_types:
-                assert expected in pr_types, f"pull_request trigger should include '{expected}' type"
-
-    def test_trigger_on_pr_review(self, workflow_content: dict[str, Any]):
-        """Test that workflow triggers on PR review events."""
+    def test_does_not_trigger_on_pr_review(self, workflow_content: dict[str, Any]):
+        """Review activity must not start duplicated CI or post acknowledgements."""
         triggers = workflow_content.get("on", {})
-        assert "pull_request_review" in triggers, "Workflow should trigger on pull_request_review events"
+        assert "pull_request_review" not in triggers
 
     def test_trigger_on_issue_comment(self, workflow_content: dict[str, Any]):
         """
@@ -155,6 +151,33 @@ class TestPRAgentWorkflowStructureValidation:
         """
         triggers = workflow_content.get("on", {})
         assert "issue_comment" in triggers, "Workflow should trigger on issue_comment events for @copilot mentions"
+
+    def test_active_job_requires_trusted_pr_commenter(self, workflow_content: dict[str, Any]):
+        """Only trusted repository roles may invoke the explicit PR command."""
+        job = workflow_content["jobs"]["pr-agent-action"]
+        condition = job["if"]
+
+        assert "github.event.issue.pull_request" in condition
+        assert "contains(github.event.comment.body, '@copilot')" in condition
+
+        association_gate = re.search(
+            r"contains\(fromJSON\('([^']+)'\),\s*github\.event\.comment\.author_association\)",
+            condition,
+        )
+        assert association_gate is not None, "PR Agent must gate commands by author association"
+        assert set(json.loads(association_gate.group(1))) == {
+            "OWNER",
+            "MEMBER",
+            "COLLABORATOR",
+        }
+
+    def test_active_job_keeps_minimum_permissions(self, workflow_content: dict[str, Any]):
+        """The trusted-commenter gate must not expand the active job's authority."""
+        assert workflow_content["jobs"]["pr-agent-action"]["permissions"] == {
+            "contents": "read",
+            "pull-requests": "read",
+            "issues": "write",
+        }
 
 
 class TestPRAgentWorkflowSetupSteps:
@@ -188,7 +211,8 @@ class TestPRAgentWorkflowSetupSteps:
         Assert the job contains exactly one step named "Setup Python".
 
         Parameters:
-            pr_agent_job (Dict[str, Any]): Parsed job configuration from the workflow YAML; expected to include a 'steps' list.
+            pr_agent_job (Dict[str, Any]): Parsed job configuration from the
+            workflow YAML; expected to include a 'steps' list.
         """
         steps = pr_agent_job.get("steps", [])
         python_steps = [step for step in steps if step.get("name") == "Setup Python"]

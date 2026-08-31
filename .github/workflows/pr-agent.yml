@@ -4,24 +4,21 @@ permissions:
   contents: read
 
 "on":
-  pull_request:
-    types: [opened, synchronize, reopened]
-  pull_request_review:
-    types: [submitted]
   issue_comment:
     types: [created]
-  check_suite:
-    types: [completed]
 
 jobs:
   pr-agent-action:
     permissions:
+      contents: read
+      pull-requests: read
       issues: write
     if: |
-      (github.event_name == 'pull_request_review' && github.event.review.state == 'changes_requested') ||
-      (github.event_name == 'issue_comment' && contains(github.event.comment.body, '@copilot'))
+      github.event_name == 'issue_comment' &&
+      github.event.issue.pull_request &&
+      contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.comment.author_association) &&
+      contains(github.event.comment.body, '@copilot')
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1  # guardrails-disable-line
@@ -94,85 +91,30 @@ jobs:
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0  # guardrails-disable-line
         with:
           script: |
+            const workflowStatus = '${{ job.status }}';
             await github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.issue.number,
-              body: '🤖 PR Agent Status Update\n\n**Review Analysis Complete**\n- ✅ Code quality checks passed\n- ✅ Tests are running\n\n*Automated by PR Agent Workflow*'
+              body: `🤖 PR Agent on-demand run finished with workflow status: **${workflowStatus}**.\n\nThis result is advisory and does not assert merge readiness.`
             });
 
   auto-merge-check:
     permissions:
-      issues: write
-      pull-requests: write
-    if: |
-      (github.event_name == 'pull_request' && github.event.action == 'synchronize') ||
-      (github.event_name == 'pull_request_review' && github.event.review.state == 'approved') ||
-      (github.event_name == 'check_suite' && github.event.check_suite.conclusion == 'success')
+      contents: read
+    if: ${{ false }}
     runs-on: ubuntu-latest
 
     steps:
-      - name: Check if PR is ready for auto-merge
-        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0  # guardrails-disable-line
-        with:
-          script: |
-            const { data: pr } = await github.rest.pulls.get({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              pull_number: context.issue.number,
-            });
-
-            const { data: reviews } = await github.rest.pulls.listReviews({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              pull_number: context.issue.number,
-            });
-
-            const { data: checks } = await github.rest.checks.listForRef({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              ref: pr.head.sha,
-            });
-
-            const allChecksPassed = checks.check_runs.every(check =>
-              check.status === 'completed' && check.conclusion === 'success'
-            );
-
-            const hasApproval = reviews.some(review =>
-              review.state === 'APPROVED'
-            );
-
-            if (allChecksPassed && hasApproval && pr.draft === false) {
-              await github.rest.issues.createComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                issue_number: context.issue.number,
-                body: '🚀 **PR Ready for Merge**\n\n✅ All checks passed\n✅ Approved by reviewer\n\nThis PR is ready to be merged!'
-              });
-            }
+      - name: Explain disabled merge automation
+        run: echo "Use the exact-head PR Copilot status report and maintainer reconciliation; automatic merge claims are disabled."
 
   dependency-update:
     permissions:
-      pull-requests: write
-    if: github.event_name == 'pull_request' && contains(github.event.pull_request.title, 'deps')
+      contents: read
+    if: ${{ false }}
     runs-on: ubuntu-latest
 
     steps:
-      - name: Auto-approve dependency updates
-        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0  # guardrails-disable-line
-        with:
-          script: |
-            const title = context.payload.pull_request.title.toLowerCase();
-            const author = context.payload.pull_request.user.login;
-
-            if ((title.includes('bump') || title.includes('update')) &&
-                (author === 'dependabot[bot]' || author === 'renovate[bot]')) {
-
-              await github.rest.pulls.createReview({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                pull_number: context.issue.number,
-                event: 'APPROVE',
-                body: '🤖 Auto-approved dependency update'
-              });
-            }
+      - name: Explain disabled dependency automation
+        run: echo "Dependency updates require compatibility, overlap, and exact-head review; automatic approval is disabled."

@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
-import os
+from collections.abc import Iterator
 from datetime import datetime, timezone
+from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
@@ -17,6 +18,7 @@ from api.services import relationship_index as relationship_index_service
 from src.data.database import create_engine_from_url, init_db
 
 UTC = timezone.utc
+_assertion_database_url: str | None = None
 
 
 def _iso_now() -> str:
@@ -65,13 +67,33 @@ def _assert_error_response(response: Response, status_code: int, detail: str) ->
     assert response.json() == {"detail": detail}
 
 
+def _reset_assertion_persistence_runtime() -> None:
+    """Discard the process-wide cached assertion engine between test modules."""
+    with assertions_router._assertion_persistence_lock:
+        runtime = assertions_router._assertion_persistence_runtime
+        engine = runtime.engine
+        runtime.url = None
+        runtime.engine = None
+        runtime.session_factory = None
+        if engine is not None:
+            engine.dispose()
+
+
 @pytest.fixture(scope="module", autouse=True)
-def initialize_assertion_store() -> None:
-    """Initialize the assertion schema once, matching application startup."""
-    engine = create_engine_from_url(os.environ["DATABASE_URL"])
+def initialize_assertion_store(tmp_path_factory: pytest.TempPathFactory) -> Iterator[None]:
+    """Initialize a module-isolated assertion store matching application startup."""
+    global _assertion_database_url
+
+    database_path: Path = tmp_path_factory.mktemp("assertion-store") / "assertions.db"
+    _assertion_database_url = f"sqlite:///{database_path.as_posix()}"
+    _reset_assertion_persistence_runtime()
+    engine = create_engine_from_url(_assertion_database_url)
     try:
         init_db(engine)
+        yield
     finally:
+        _reset_assertion_persistence_runtime()
+        _assertion_database_url = None
         engine.dispose()
 
 
@@ -81,7 +103,9 @@ def configure_graph_persistence(monkeypatch: pytest.MonkeyPatch) -> None:
     relationship_index_service._load_contract_predicates.cache_clear()
     relationship_index_service.invalidate_governed_relationship_index_cache()
 
-    database_url = os.environ["DATABASE_URL"]
+    if _assertion_database_url is None:
+        raise RuntimeError("isolated assertion store is not initialized")
+    database_url = _assertion_database_url
     settings = SimpleNamespace(
         asset_graph_database_url=database_url,
         database_url=None,

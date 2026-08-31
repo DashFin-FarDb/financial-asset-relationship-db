@@ -68,7 +68,17 @@ Hardening backlog IDs: [Release Evidence Pack](release-evidence-pack.md#hardenin
 ## Platform Deduplication
 
 - We use GitHub Actions as the primary CI.
-- CircleCI Python and Frontend lint/test/build duplication has been minimized or shifted purely to GitHub Actions.
+- CircleCI is a short-term secondary feedback lane, not the canonical merge or deployment gate.
+- Its `python-test` job uses two timing-balanced shards of the same executor to run every recursively discovered unit, integration, and report test module except benchmarks. It publishes legacy-family JUnit results so CircleCI's file-based timing split receives pytest's file metadata for failure and duration insights.
+- Coverage, multi-version compatibility, lint, security, container, release, and deployment authority remain in GitHub Actions. The other CircleCI job names are compatibility stubs and must not be treated as validation evidence.
+- Do not duplicate further GitHub Actions jobs in CircleCI. Remove the pilot when its queue-time benefit no longer justifies its credits or maintenance cost.
+
+## PR status automation
+
+- The legacy PR Agent no longer responds automatically to completed check suites and cannot approve dependency updates.
+- PR Copilot status reporting runs only for an explicit `@pr-copilot status update` request or a manual dispatch with a PR number.
+- Repository policy caps the workflow token at read-only access, so the report is published to the workflow summary and a seven-day artifact rather than writing PR comments.
+- Its report is an exact-head advisory snapshot, not merge authorization. Maintainers must still reconcile unresolved threads, provider failures, dependency overlap, base drift, and the applicable human-approval rule.
 
 ## Follow-up Actions for Maintainers
 

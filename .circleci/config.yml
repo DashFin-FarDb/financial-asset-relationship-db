@@ -4,19 +4,60 @@ executors:
   dummy-executor:
     docker:
       - image: cimg/base:stable
+  python-test-executor:
+    docker:
+      - image: cimg/python:3.12
+    resource_class: medium
+    environment:
+      PIP_DISABLE_PIP_VERSION_CHECK: "1"
+      PYTHONDONTWRITEBYTECODE: "1"
+      PYTHONUNBUFFERED: "1"
 
 commands:
   dummy-step:
     steps:
-      - run: echo "CI migrated to GitHub Actions. This is a dummy job to satisfy legacy branch protection requirements."
+      - run: echo "CI migrated to GitHub Actions. This is a dummy job retained for legacy status compatibility."
 
 jobs:
   python-lint:
     executor: dummy-executor
     steps: [dummy-step]
+
+  # Short-term secondary signal only. GitHub Actions remains the canonical gate
+  # and coverage source; CircleCI supplies faster sharded pytest feedback and
+  # JUnit timing/failure insights.
   python-test:
-    executor: dummy-executor
-    steps: [dummy-step]
+    executor: python-test-executor
+    parallelism: 2
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - python-test-v1-{{ checksum "requirements.txt" }}-{{ checksum "requirements-dev.txt" }}
+            - python-test-v1-
+      - run:
+          name: Install Python test dependencies
+          command: |
+            python -m pip install --upgrade pip
+            python -m pip install -r requirements.txt -r requirements-dev.txt
+      - save_cache:
+          key: python-test-v1-{{ checksum "requirements.txt" }}-{{ checksum "requirements-dev.txt" }}
+          paths:
+            - ~/.cache/pip
+      - run:
+          name: Run timing-balanced pytest shard
+          command: |
+            mkdir -p test-results/pytest
+            circleci tests glob \
+              "tests/**/test_*.py" \
+              "tests/**/*_test.py" \
+              | grep -v '^tests/benchmarks/' \
+              | circleci tests run \
+                  --command="xargs -r python -m pytest --durations=25 --junitxml=test-results/pytest/results-${CIRCLE_NODE_INDEX}.xml -o junit_family=legacy" \
+                  --split-by=timings \
+                  --timings-type=file
+      - store_test_results:
+          path: test-results/pytest
   python-security:
     executor: dummy-executor
     steps: [dummy-step]
