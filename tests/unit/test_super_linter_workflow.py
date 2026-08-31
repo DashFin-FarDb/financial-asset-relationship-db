@@ -24,7 +24,9 @@ def _super_linter_step() -> dict[str, object]:
     assert isinstance(run_lint, dict)
     steps = run_lint["steps"]
     assert isinstance(steps, list)
-    return next(step for step in steps if step.get("name") == "Lint Code Base")
+    step = next((step for step in steps if step.get("name") == "Lint Code Base"), None)
+    assert step is not None, "Lint Code Base step is missing"
+    return step
 
 
 def _checkout_step() -> dict[str, object]:
@@ -35,7 +37,9 @@ def _checkout_step() -> dict[str, object]:
     assert isinstance(run_lint, dict)
     steps = run_lint["steps"]
     assert isinstance(steps, list)
-    return next(step for step in steps if step.get("name") == "Checkout code")
+    step = next((step for step in steps if step.get("name") == "Checkout code"), None)
+    assert step is not None, "Checkout code step is missing"
+    return step
 
 
 def test_super_linter_uses_reviewed_v8_release_by_exact_commit() -> None:
