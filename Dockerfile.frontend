@@ -31,7 +31,7 @@ USER node
 
 EXPOSE ${PORT}
 
-# Use the runtime's built-in Node fetch support so the image stays free of an
+# Use Node's built-in http module so the image stays free of an
 # extra curl package and reports whether the Next.js server is accepting HTTP.
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
     CMD node -e "require('http').get({host:'127.0.0.1',port:process.env.PORT||3000,path:'/'},r=>process.exit(r.statusCode>=200&&r.statusCode<400?0:1)).on('error',()=>process.exit(1))"
