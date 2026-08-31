@@ -1,0 +1,10 @@
+# CI-only security scanner roots. Dependabot owns dependency updates for this
+# root-level pip manifest; do not add application runtime dependencies here.
+#
+# Regenerate on Linux x86_64 with Python 3.11, matching the ubuntu-latest CI
+# job. Omit --upgrade to preserve existing transitive versions:
+#   uvx --from pip-tools==7.6.1 --python 3.11 pip-compile --generate-hashes \
+#     --resolver=backtracking --strip-extras \
+#     --output-file=requirements-ci-security.txt requirements-ci-security.in
+bandit==1.9.4
+safety==3.8.1
