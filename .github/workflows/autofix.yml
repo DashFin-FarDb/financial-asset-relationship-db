@@ -17,7 +17,7 @@ jobs:
         with:
           version: "0.4.15"
       # Keep import sorting aligned with pre-commit (ruff I-only).
-      - run: uvx ruff@0.15.20 check --fix-only --select I .
+      - run: uvx ruff@0.16.5 check --fix-only --select I .
       # Format with Black to match CI (`black --check`) and pre-commit.
       # Do not use `ruff format` here — it conflicts with Black's assert wrapping.
       - run: uvx black@26.5.1 .
