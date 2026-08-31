@@ -76,14 +76,10 @@ Automated tools creating or modifying pull requests must adhere to scope guardra
 
 ### Required PR Sections
 
-All automated PRs must include:
-
-1. **Primary Objective**: The single main decision or change
-2. **In Scope**: What this PR does
-3. **Out of Scope**: What this PR explicitly does not do
-4. **Files Expected to Change**: List of files and why they belong together
-5. **Validation Commands**: Commands to verify the changes
-6. **Merge Criteria**: Specific conditions for merge approval
+The canonical section names and scope requirements are defined in
+[PR Scope Guardrails](../docs/PR_SCOPE_GUARDRAILS.md) and implemented by the
+[pull-request template](pull_request_template.md). Automated PRs must provide all six canonical fields; selecting a
+specialized template does not relax that obligation. This policy does not maintain a second copy of the section list.
 
 ### Prohibited Scope Expansion
 
@@ -116,53 +112,10 @@ Dependency bots and automated updates must:
 
 ## Security Scanning
 
-### Scope of Automated Fixes
-
-Security scanners may automatically:
-
-1. Report vulnerabilities in production and non-production code
-2. Suggest version bumps for vulnerable dependencies
-3. Flag insecure code patterns
-
-Security scanners must not automatically:
-
-1. Refactor large code sections to fix vulnerabilities without review
-2. Remove features to eliminate security surface without approval
-3. Change authentication or authorization models
-4. Modify API contracts to fix security issues
-
-For detailed scanner finding rules and suppression guidance, see the "High-risk change control" section in [AI_AGENT_GUARDRAILS.md](AI_AGENT_GUARDRAILS.md).
-
-### Prioritization
-
-Security issues in the **production architecture** (FastAPI + Next.js) take priority over issues in the **non-production** Gradio UI.
-
-### Scanner Scope Control
-
-Automated security and quality scanners must:
-
-1. Focus primary analysis on production architecture (FastAPI + Next.js)
-2. Clearly distinguish production findings from non-production findings
-3. Not auto-enable analysis for unused language ecosystems or package managers
-4. Not use broad auto-detection flags (e.g., `--all-projects`) without explicit documentation of intended scope
-
-Scanners must not:
-
-1. Expand PR scope from "fix specific vulnerability" to "fix all scanner findings" without approval
-2. Fail CI based solely on findings in non-production code paths
-3. Drive implementation decisions (e.g., suggesting architecture changes to satisfy scanner rules)
-4. Override documented dependency source-of-truth (requirements.txt) based on scanner assumptions
-
-### Scanner Findings and PR Scope
-
-If a scanner identifies issues in non-production code (Gradio UI, demo scripts, test utilities):
-
-1. Report the finding with context (production vs. non-production)
-2. Prioritize production issues first
-3. Do not automatically create PRs to fix non-production issues
-4. Do not widen an existing PR to include non-production fixes
-
-Scanner noise (false positives, low-priority warnings, non-production findings) should not block PRs or drive scope expansion.
+Scanner configuration is low-autonomy work. The complete rules for automated findings, production prioritization,
+false positives, suppressions, non-production findings, and PR scope are maintained in
+[High-Risk Change Guardrails](../docs/HIGH_RISK_CHANGE_GUARDRAILS.md). Automation must apply that canonical contract;
+this policy does not maintain a second scanner rule set.
 
 ## Testing and CI/CD
 
@@ -291,6 +244,7 @@ Repository maintainers will:
 ## Related Documents
 
 - [Production architecture ADR](../docs/adr/0001-production-architecture.md)
+- [High-risk change guardrails](../docs/HIGH_RISK_CHANGE_GUARDRAILS.md)
 - [PR scope guardrails](../docs/PR_SCOPE_GUARDRAILS.md)
 - [Dependency policy](../docs/DEPENDENCY_POLICY.md)
 - [Contributing guidelines](../CONTRIBUTING.md)
@@ -298,8 +252,9 @@ Repository maintainers will:
 
 ## Version
 
-- **Version**: 1.2
+- **Version**: 1.3
 - **Effective Date**: 2026-04-17
-- **Last Updated**: 2026-04-29
-- **Next Review**: 2026-07-17 (3 months)
-- **Changes in 1.2**: Added scanner scope control guardrails (2026-04-29)
+- **Last Updated**: 2026-08-31
+- **Next Review**: 2026-11-30 (3 months)
+- **Changes in 1.3**: Consolidated scanner and PR-scope requirements behind their canonical documents without
+  changing policy semantics (2026-08-31)

@@ -79,5 +79,6 @@
 
 **Related Documentation**:
 
+- [High-Risk Change Guardrails](../docs/HIGH_RISK_CHANGE_GUARDRAILS.md)
 - [PR Scope Guardrails](../docs/PR_SCOPE_GUARDRAILS.md)
 - [Automation Scope Policy](./AUTOMATION_SCOPE_POLICY.md)

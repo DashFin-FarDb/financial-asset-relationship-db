@@ -149,30 +149,21 @@ class TestAutomationScopePolicy:
     def test_references_adr_0001(self, content: str) -> None:
         assert "0001-production-architecture.md" in content
 
-    def test_required_pr_sections_lists_primary_objective(self, content: str) -> None:
-        pr_sections = content.split("### Required PR Sections")[1].split("###")[0]
-        assert "Primary Objective" in pr_sections
+    def test_pr_scope_boundaries_references_pr_scope_guardrails(self, content: str) -> None:
+        pr_scope_block = content.split("## PR Scope Boundaries")[1].split("\n## ")[0]
+        assert "[PR Scope Guardrails](../docs/PR_SCOPE_GUARDRAILS.md)" in pr_scope_block
 
-    def test_required_pr_sections_lists_in_scope(self, content: str) -> None:
-        pr_sections = content.split("### Required PR Sections")[1].split("###")[0]
-        assert "In Scope" in pr_sections
+    def test_pr_scope_boundaries_references_pull_request_template(self, content: str) -> None:
+        pr_scope_block = content.split("## PR Scope Boundaries")[1].split("\n## ")[0]
+        assert "[pull-request template](pull_request_template.md)" in pr_scope_block
+        assert "Automated PRs must provide all six canonical fields" in pr_scope_block
+        assert "specialized template does not relax that obligation" in " ".join(pr_scope_block.split())
 
-    def test_required_pr_sections_lists_out_of_scope(self, content: str) -> None:
-        pr_sections = content.split("### Required PR Sections")[1].split("###")[0]
-        assert "Out of Scope" in pr_sections
-
-    def test_required_pr_sections_lists_validation_commands(self, content: str) -> None:
-        pr_sections = content.split("### Required PR Sections")[1].split("###")[0]
-        assert "Validation Commands" in pr_sections
-
-    def test_required_pr_sections_lists_merge_criteria(self, content: str) -> None:
-        pr_sections = content.split("### Required PR Sections")[1].split("###")[0]
-        assert "Merge Criteria" in pr_sections
-
-    def test_required_pr_sections_has_six_items(self, content: str) -> None:
-        pr_sections = content.split("### Required PR Sections")[1].split("###")[0]
-        numbered_items = re.findall(r"^\d+\.", pr_sections, re.MULTILINE)
-        assert len(numbered_items) == 6, f"Required PR sections must list 6 items, found {len(numbered_items)}"
+    def test_pr_scope_boundaries_does_not_restate_required_sections(self, content: str) -> None:
+        pr_scope_block = content.split("## PR Scope Boundaries")[1].split("\n## ")[0]
+        required_section = pr_scope_block.split("### Required PR Sections")[1].split("###")[0]
+        assert not re.search(r"^\d+\.\s+\*\*", required_section, re.MULTILINE)
+        assert "does not maintain a second copy" in " ".join(required_section.split())
 
     def test_prohibited_scope_expansion_has_items(self, content: str) -> None:
         prohibited_section = content.split("### Prohibited Scope Expansion")[1].split("###")[0]
@@ -1073,11 +1064,16 @@ class TestProductionArchitectureDocumentationConsistency:
     def test_policy_and_pr_template_agree_on_required_sections(
         self, policy_content: str, pr_template_content: str
     ) -> None:
-        """Required PR sections in the policy must correspond to actual sections in the PR template."""
-        # Policy says PRs must have these sections
-        required_in_policy = ["Primary Objective", "In Scope", "Out of Scope", "Validation Commands", "Merge Criteria"]
-        # PR template must actually contain these sections
-        for section in required_in_policy:
-            assert (
-                section in pr_template_content
-            ), f"PR template must contain the '{section}' section mandated by AUTOMATION_SCOPE_POLICY.md"
+        """The policy delegates its section list while the linked template implements every canonical section."""
+        pr_scope_block = policy_content.split("## PR Scope Boundaries")[1].split("\n## ")[0]
+        assert "[PR Scope Guardrails](../docs/PR_SCOPE_GUARDRAILS.md)" in pr_scope_block
+        assert "[pull-request template](pull_request_template.md)" in pr_scope_block
+        for section in [
+            "Primary Objective",
+            "In Scope",
+            "Out of Scope",
+            "Files Expected to Change",
+            "Validation Commands",
+            "Merge Criteria",
+        ]:
+            assert section in pr_template_content, f"PR template must contain the canonical '{section}' section"

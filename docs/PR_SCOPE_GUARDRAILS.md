@@ -141,12 +141,29 @@ If that cannot be answered in three sentences, the change is not ready.
 
 ## Required PR description sections
 
+### Automated and agent-authored PRs
+
+All automated and agent-authored PRs must complete the repository
+[pull-request template](../.github/pull_request_template.md), including:
+
+1. **Primary Objective**: the single decision this PR makes
+2. **In Scope**: what the PR does
+3. **Out of Scope**: what the PR explicitly does not do
+4. **Files Expected to Change**: why every touched file belongs to the same decision
+5. **Validation Commands**: the commands actually run to verify the change
+6. **Merge Criteria**: the specific conditions for merge approval
+
+### General non-trivial PRs
+
 Every non-trivial PR should state:
 
 - what decision this PR makes
 - what it explicitly does not do
 - why the touched files belong in the same PR
 - what commands were run locally
+
+These are the canonical obligation levels and policy list. Other policies should link here instead of maintaining a
+second copy.
 
 ## Reviewer checklist
 
