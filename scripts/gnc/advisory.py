@@ -1063,11 +1063,12 @@ def _normalize_evidence(sources: GitHubEvidenceSnapshot) -> list[dict[str, Any]]
     unique_records: list[dict[str, Any]] = []
     seen: set[bytes] = set()
     for record in records:
-        identity = canonical_json_bytes(record)
+        validated, _ = _normalize_evidence_record(record)
+        identity = canonical_json_bytes(validated)
         if identity in seen:
             continue
         seen.add(identity)
-        unique_records.append(record)
+        unique_records.append(validated)
     return unique_records
 
 

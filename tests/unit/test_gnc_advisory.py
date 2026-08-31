@@ -671,6 +671,7 @@ class _SnapshotClient(GitHubMetadataClient):
         contract: dict,
         *,
         check_conclusion: str = "success",
+        check_head_sha: Any = SHA_A,
         check_target: str = "main",
         policy_available: bool = True,
     ) -> None:
@@ -681,6 +682,7 @@ class _SnapshotClient(GitHubMetadataClient):
         )
         self.contract = contract
         self.check_conclusion = check_conclusion
+        self.check_head_sha = check_head_sha
         self.check_target = check_target
         self.policy_available = policy_available
         self.pr = {
@@ -709,7 +711,7 @@ class _SnapshotClient(GitHubMetadataClient):
             return [
                 {
                     "conclusion": self.check_conclusion,
-                    "head_sha": SHA_A,
+                    "head_sha": self.check_head_sha,
                     "name": "ci",
                     "pull_requests": [
                         {
@@ -985,6 +987,47 @@ class TestPaginationProof:
             {"filename": "src/allowed.py", "previous_filename": None, "status": "modified"}
         ]
         assert [record["state"] for record in snapshot["evidence"] if record["source"] == "review"] == ["passed"]
+
+    def test_noncanonical_live_evidence_emits_a_bounded_failure_artifact(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        contract = _contract(required_evidence=["ci"])
+        client = _SnapshotClient(contract, check_head_sha=1.5)
+        monkeypatch.setenv("GITHUB_TOKEN", "test-token")
+        monkeypatch.setattr("scripts.gnc.advisory.GitHubMetadataClient", lambda **_: client)
+        event = tmp_path / "event.json"
+        event.write_text(
+            json.dumps(
+                {
+                    "pull_request": {"number": 42, **client.pr},
+                    "repository": {"full_name": "owner/repo"},
+                }
+            ),
+            encoding="utf-8",
+        )
+        output = tmp_path / "advisory.json"
+        summary = tmp_path / "summary.md"
+
+        assert (
+            main(
+                [
+                    "--event",
+                    str(event),
+                    "--output",
+                    str(output),
+                    "--summary",
+                    str(summary),
+                    "--runtime-root",
+                    str(tmp_path),
+                    "--repository",
+                    "owner/repo",
+                ]
+            )
+            == 0
+        )
+        report = json.loads(output.read_text(encoding="utf-8"))
+        assert report["state"] == "needs-human"
+        assert "evidence.head-invalid" in _codes(report)
 
     @pytest.mark.parametrize(
         "check_conclusion,check_target,code",
