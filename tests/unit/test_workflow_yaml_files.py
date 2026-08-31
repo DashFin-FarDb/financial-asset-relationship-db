@@ -320,10 +320,14 @@ class TestSpecificWorkflows:
         runtime_freeze = "pip freeze > .ci-runtime-freeze.txt"
         scanner_venv = 'python -m venv "$RUNNER_TEMP/fardb-security-venv"'
         scanner_install = '"$RUNNER_TEMP/fardb-security-venv/bin/python" -m pip install safety bandit'
-        assert install.index(runtime_install) < install.index(runtime_freeze) < install.index(scanner_venv)
-        assert install.index(scanner_venv) < install.index(scanner_install)
+        install_lines = [
+            line.strip() for line in install.splitlines() if line.strip() and not line.lstrip().startswith("#")
+        ]
+        assert install_lines.index(runtime_install) < install_lines.index(runtime_freeze)
+        assert install_lines.index(runtime_freeze) < install_lines.index(scanner_venv)
+        assert install_lines.index(scanner_venv) < install_lines.index(scanner_install)
         assert "--system-site-packages" not in install
-        assert "\npip install safety bandit" not in install
+        assert "pip install safety bandit" not in install_lines
 
         assert (
             '"$RUNNER_TEMP/fardb-security-venv/bin/safety" \\\n'
