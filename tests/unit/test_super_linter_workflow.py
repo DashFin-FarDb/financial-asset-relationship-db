@@ -16,7 +16,7 @@ def _load_workflow(path: Path) -> dict[str, object]:
     return workflow
 
 
-def _super_linter_step() -> dict[str, object]:
+def _workflow_step(name: str) -> dict[str, object]:
     workflow = _load_workflow(SUPER_LINTER_WORKFLOW)
     jobs = workflow["jobs"]
     assert isinstance(jobs, dict)
@@ -24,30 +24,17 @@ def _super_linter_step() -> dict[str, object]:
     assert isinstance(run_lint, dict)
     steps = run_lint["steps"]
     assert isinstance(steps, list)
-    step = next((step for step in steps if step.get("name") == "Lint Code Base"), None)
-    assert step is not None, "Lint Code Base step is missing"
-    return step
-
-
-def _checkout_step() -> dict[str, object]:
-    workflow = _load_workflow(SUPER_LINTER_WORKFLOW)
-    jobs = workflow["jobs"]
-    assert isinstance(jobs, dict)
-    run_lint = jobs["run-lint"]
-    assert isinstance(run_lint, dict)
-    steps = run_lint["steps"]
-    assert isinstance(steps, list)
-    step = next((step for step in steps if step.get("name") == "Checkout code"), None)
-    assert step is not None, "Checkout code step is missing"
+    step = next((step for step in steps if step.get("name") == name), None)
+    assert step is not None, f"{name} step is missing"
     return step
 
 
 def test_super_linter_uses_reviewed_v8_release_by_exact_commit() -> None:
-    assert _super_linter_step()["uses"] == SUPER_LINTER_USE
+    assert _workflow_step("Lint Code Base")["uses"] == SUPER_LINTER_USE
 
 
 def test_checkout_does_not_persist_github_credentials() -> None:
-    checkout = _checkout_step()
+    checkout = _workflow_step("Checkout code")
     options = checkout["with"]
     assert isinstance(options, dict)
 
@@ -56,7 +43,7 @@ def test_checkout_does_not_persist_github_credentials() -> None:
 
 
 def test_v8_validator_ownership_replaces_retired_flags() -> None:
-    env = _super_linter_step()["env"]
+    env = _workflow_step("Lint Code Base")["env"]
     assert isinstance(env, dict)
 
     retired = {
@@ -76,7 +63,7 @@ def test_v8_validator_ownership_replaces_retired_flags() -> None:
 
 
 def test_actions_and_checkov_validators_remain_enabled() -> None:
-    env = _super_linter_step()["env"]
+    env = _workflow_step("Lint Code Base")["env"]
     assert isinstance(env, dict)
 
     assert "VALIDATE_GITHUB_ACTIONS" not in env
