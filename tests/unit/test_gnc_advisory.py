@@ -26,7 +26,9 @@ from scripts.gnc.advisory import (
     MAX_REVIEW_RECORDS,
     MAX_SUMMARY_BYTES,
     AdvisoryInputError,
+    GitHubEvidenceSnapshot,
     GitHubMetadataClient,
+    _normalize_evidence,
     canonical_json_bytes,
     collect_github_snapshot,
     evaluate_advisory,
@@ -475,6 +477,65 @@ class TestFailuresBoundsAndDeterminism:
             assert first["state"] == case["expected_state"]
             if case["expected_code"] is not None:
                 assert case["expected_code"] in _codes(first)
+
+    def test_exact_duplicate_normalized_evidence_is_idempotent(self) -> None:
+        check = {
+            "conclusion": "success",
+            "head_sha": SHA_A,
+            "name": "Deterministic exact-head advisory",
+            "pull_requests": [{"base": {"ref": "main"}, "head": {"sha": SHA_A}, "number": 42}],
+            "status": "completed",
+        }
+        single = GitHubEvidenceSnapshot(
+            checks=[check], head_sha=SHA_A, pr_number=42, statuses=[], runs=[], reviews=[], target="main"
+        )
+        repeated = GitHubEvidenceSnapshot(
+            checks=[check, copy.deepcopy(check)],
+            head_sha=SHA_A,
+            pr_number=42,
+            statuses=[],
+            runs=[],
+            reviews=[],
+            target="main",
+        )
+
+        assert canonical_json_bytes(_normalize_evidence(single)) == canonical_json_bytes(_normalize_evidence(repeated))
+
+    def test_normalized_evidence_with_a_different_state_remains_distinct(self) -> None:
+        check = {
+            "conclusion": "success",
+            "head_sha": SHA_A,
+            "name": "Deterministic exact-head advisory",
+            "pull_requests": [{"base": {"ref": "main"}, "head": {"sha": SHA_A}, "number": 42}],
+            "status": "completed",
+        }
+        pending = {**check, "conclusion": None, "status": "in_progress"}
+        sources = GitHubEvidenceSnapshot(
+            checks=[check, pending], head_sha=SHA_A, pr_number=42, statuses=[], runs=[], reviews=[], target="main"
+        )
+
+        assert {record["state"] for record in _normalize_evidence(sources)} == {"passed", "pending"}
+
+    def test_duplicate_normalized_evidence_does_not_bypass_the_input_bound(self) -> None:
+        check = {
+            "conclusion": "success",
+            "head_sha": SHA_A,
+            "name": "ci",
+            "pull_requests": [{"base": {"ref": "main"}, "head": {"sha": SHA_A}, "number": 42}],
+            "status": "completed",
+        }
+        sources = GitHubEvidenceSnapshot(
+            checks=[check] * (MAX_EVIDENCE_RECORDS + 1),
+            head_sha=SHA_A,
+            pr_number=42,
+            statuses=[],
+            runs=[],
+            reviews=[],
+            target="main",
+        )
+
+        with pytest.raises(AdvisoryInputError, match="evidence.too-many"):
+            _normalize_evidence(sources)
 
     def test_output_sanitizes_secret_like_and_workflow_command_text(self) -> None:
         snapshot = _snapshot(_contract(allowed_paths=["src"], forbidden_paths=["blocked"]))

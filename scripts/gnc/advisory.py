@@ -1060,7 +1060,15 @@ def _normalize_evidence(sources: GitHubEvidenceSnapshot) -> list[dict[str, Any]]
     ]
     if len(records) > MAX_EVIDENCE_RECORDS:
         raise AdvisoryInputError("evidence.too-many")
-    return records
+    unique_records: list[dict[str, Any]] = []
+    seen: set[bytes] = set()
+    for record in records:
+        identity = canonical_json_bytes(record)
+        if identity in seen:
+            continue
+        seen.add(identity)
+        unique_records.append(record)
+    return unique_records
 
 
 def _collect_pr_and_paths(
