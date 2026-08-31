@@ -330,8 +330,10 @@ class TestSpecificWorkflows:
             "  check -r .ci-runtime-freeze.txt --policy-file .safety-policy.json --json"
         ) in test
         assert '"$RUNNER_TEMP/fardb-security-venv/bin/bandit" -r src/ -ll' in test
-        assert security_job.get("continue-on-error") is not True
-        assert ci_common_steps[0].get("continue-on-error") is not True
+        job_continue_on_error = security_job.get("continue-on-error")
+        step_continue_on_error = ci_common_steps[0].get("continue-on-error")
+        assert job_continue_on_error is None or job_continue_on_error is False
+        assert step_continue_on_error is None or step_continue_on_error is False
         assert "|| true" not in install
         assert "|| true" not in test
 
