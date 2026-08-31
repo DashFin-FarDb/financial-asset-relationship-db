@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import threading
+from collections.abc import Iterator
 from contextlib import contextmanager
 from dataclasses import dataclass
 from datetime import datetime, timezone
@@ -47,9 +48,14 @@ _ = (configure_graph_persistence, initialize_assertion_store, seed_users)
 
 
 @pytest.fixture
-def client() -> TestClient:
-    """Return a FastAPI test client."""
-    return TestClient(app)
+def client() -> Iterator[TestClient]:
+    """Return a lifespan-managed client with isolated graph lifecycle state."""
+    from api.graph_lifecycle import reset_graph
+
+    reset_graph()
+    with TestClient(app) as test_client:
+        yield test_client
+    reset_graph()
 
 
 @dataclass(frozen=True)
