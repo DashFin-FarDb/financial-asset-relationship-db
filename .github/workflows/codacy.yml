@@ -102,12 +102,13 @@ jobs:
           max-allowed-issues: 2147483647
 
       - name: Validate SARIF results file
+        id: validate_sarif
         if: hashFiles('results.sarif') != ''
         run: python -m json.tool results.sarif > /dev/null
 
       # Upload the SARIF file generated in the previous step
       - name: Upload SARIF results file
-        if: hashFiles('results.sarif') != ''
+        if: hashFiles('results.sarif') != '' && steps.validate_sarif.outcome == 'success'
         uses: github/codeql-action/upload-sarif@ff2f1c621b7f889edc0d3c761ac2e6a3f8cdb0dd # v4.37.7
         with:
           sarif_file: results.sarif
