@@ -168,6 +168,21 @@ def _locked_requirement_blocks(lock_lines: list[str]) -> list[str]:
     return ["\n".join(lock_lines[start:end]) for start, end in zip(requirement_starts, block_ends, strict=True)]
 
 
+def _assert_requirement_block_hashes(requirement_block: str, requirement_line: str) -> None:
+    """Require every non-comment continuation option to be a valid SHA-256 hash."""
+    hash_lines = [
+        line.strip()
+        for line in requirement_block.splitlines()[1:]
+        if line.strip() and not line.lstrip().startswith("#")
+    ]
+    assert hash_lines, f"lock entry must include a SHA-256 hash: {requirement_line}"
+    for hash_line in hash_lines:
+        normalized_hash = hash_line.removesuffix("\\").rstrip()
+        assert re.fullmatch(
+            r"--hash=sha256:[0-9a-f]{64}", normalized_hash
+        ), f"lock continuation must be a SHA-256 hash: {hash_line}"
+
+
 def _scanner_lock_versions(lock_path: Path) -> dict[str, str]:
     """Read exact package versions while enforcing a hash for every lock block."""
     lock_text = lock_path.read_text(encoding="utf-8")
@@ -180,8 +195,7 @@ def _scanner_lock_versions(lock_path: Path) -> dict[str, str]:
         assert requirement_line.endswith("\\"), f"lock entry must continue to hashes: {requirement_line}"
         exact_requirement = requirement_line[:-1].strip().split(" ; ", maxsplit=1)[0]
         package_name, version = _parse_exact_pin(exact_requirement, "lock entry")
-        hashes = re.findall(r"--hash=sha256:[0-9a-f]{64}", requirement_block)
-        assert hashes, f"lock entry must include a SHA-256 hash: {requirement_line}"
+        _assert_requirement_block_hashes(requirement_block, requirement_line)
         versions[package_name] = version
     return versions
 
@@ -408,6 +422,12 @@ class TestSpecificWorkflows:
         locked_versions = _scanner_lock_versions(lock_path)
         assert locked_versions["bandit"] == source_versions["bandit"]
         assert locked_versions["safety"] == source_versions["safety"]
+
+    def test_ci_security_scanner_hash_validation_rejects_comment_only_hash(self):
+        """A hash-shaped comment must not satisfy pip hash verification."""
+        comment_only_block = "example==1.0 \\\n    # --hash=sha256:" + ("0" * 64)
+        with pytest.raises(AssertionError, match="must include a SHA-256 hash"):
+            _assert_requirement_block_hashes(comment_only_block, "example==1.0 \\")
 
     def test_ci_workflow_python_versions(self):
         """CI workflow tests multiple Python versions."""
