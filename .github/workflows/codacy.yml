@@ -81,8 +81,8 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Run Codacy Analysis CLI
         # Codacy CLI can still crash in SARIF post-process (MalformedInputException)
-        # even on a clean UTF-8 tree; keep continue-on-error so upload can still run
-        # when a partial SARIF was written, then fail visibly if nothing was produced.
+        # even on a clean UTF-8 tree. Continue to the validation/upload boundary so
+        # useful SARIF can still be published, then fail closed on any scan error.
         id: codacy
         continue-on-error: true
         # Keep pinned to the last policy-compatible release: newer upstream revisions
@@ -101,16 +101,25 @@ jobs:
           # This will handover control about PR rejection to the GitHub side
           max-allowed-issues: 2147483647
 
+      - name: Validate SARIF results file
+        if: hashFiles('results.sarif') != ''
+        run: python -m json.tool results.sarif > /dev/null
+
       # Upload the SARIF file generated in the previous step
       - name: Upload SARIF results file
         if: hashFiles('results.sarif') != ''
-        continue-on-error: true
         uses: github/codeql-action/upload-sarif@ff2f1c621b7f889edc0d3c761ac2e6a3f8cdb0dd # v4.37.7
         with:
           sarif_file: results.sarif
 
       - name: Fail when Codacy produced no SARIF
-        if: steps.codacy.outcome == 'failure' && hashFiles('results.sarif') == ''
+        if: always() && hashFiles('results.sarif') == ''
         run: |
-          echo "::error::Codacy analysis failed without producing results.sarif"
+          echo "::error::Codacy produced no results.sarif"
+          exit 1
+
+      - name: Fail when Codacy analysis failed
+        if: always() && steps.codacy.outcome == 'failure'
+        run: |
+          echo "::error::Codacy analysis exited non-zero"
           exit 1
