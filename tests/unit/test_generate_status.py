@@ -14,7 +14,7 @@ import importlib.util
 import os
 import sys
 from datetime import datetime, timezone
-from unittest.mock import Mock, mock_open, patch
+from unittest.mock import Mock, mock_open, patch, sentinel
 
 import pytest
 
@@ -294,7 +294,7 @@ def test_fetch_and_generate_report_rejects_changed_head_after_status_reads(
     mock_pr.get_review_comments.return_value = Mock(totalCount=0)
     mock_commit.get_check_runs.return_value = [mock_check_run_success]
     request = generate_status.PRReportRequest(
-        token="token",
+        token=str(sentinel.github_token),
         repo_full_name="owner/repo",
         pr_num=123,
         expected_head_sha="abc123",
