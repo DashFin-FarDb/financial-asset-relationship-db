@@ -671,7 +671,6 @@ class _SnapshotClient(GitHubMetadataClient):
         contract: dict,
         *,
         check_conclusion: str = "success",
-        check_head_sha: Any = SHA_A,
         check_target: str = "main",
         policy_available: bool = True,
     ) -> None:
@@ -682,7 +681,7 @@ class _SnapshotClient(GitHubMetadataClient):
         )
         self.contract = contract
         self.check_conclusion = check_conclusion
-        self.check_head_sha = check_head_sha
+        self.check_head_sha: Any = SHA_A
         self.check_target = check_target
         self.policy_available = policy_available
         self.pr = {
@@ -992,7 +991,8 @@ class TestPaginationProof:
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         contract = _contract(required_evidence=["ci"])
-        client = _SnapshotClient(contract, check_head_sha=1.5)
+        client = _SnapshotClient(contract)
+        client.check_head_sha = 1.5
         monkeypatch.setenv("GITHUB_TOKEN", "test-token")
         monkeypatch.setattr("scripts.gnc.advisory.GitHubMetadataClient", lambda **_: client)
         event = tmp_path / "event.json"
@@ -1028,6 +1028,8 @@ class TestPaginationProof:
         report = json.loads(output.read_text(encoding="utf-8"))
         assert report["state"] == "needs-human"
         assert "evidence.head-invalid" in _codes(report)
+        assert output.stat().st_size <= MAX_ARTIFACT_BYTES
+        assert summary.stat().st_size <= MAX_SUMMARY_BYTES
 
     @pytest.mark.parametrize(
         "check_conclusion,check_target,code",
