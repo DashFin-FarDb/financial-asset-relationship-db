@@ -26,7 +26,9 @@ from scripts.gnc.advisory import (
     MAX_REVIEW_RECORDS,
     MAX_SUMMARY_BYTES,
     AdvisoryInputError,
+    GitHubEvidenceSnapshot,
     GitHubMetadataClient,
+    _normalize_evidence,
     canonical_json_bytes,
     collect_github_snapshot,
     evaluate_advisory,
@@ -476,6 +478,65 @@ class TestFailuresBoundsAndDeterminism:
             if case["expected_code"] is not None:
                 assert case["expected_code"] in _codes(first)
 
+    def test_exact_duplicate_normalized_evidence_is_idempotent(self) -> None:
+        check = {
+            "conclusion": "success",
+            "head_sha": SHA_A,
+            "name": "Deterministic exact-head advisory",
+            "pull_requests": [{"base": {"ref": "main"}, "head": {"sha": SHA_A}, "number": 42}],
+            "status": "completed",
+        }
+        single = GitHubEvidenceSnapshot(
+            checks=[check], head_sha=SHA_A, pr_number=42, statuses=[], runs=[], reviews=[], target="main"
+        )
+        repeated = GitHubEvidenceSnapshot(
+            checks=[check, copy.deepcopy(check)],
+            head_sha=SHA_A,
+            pr_number=42,
+            statuses=[],
+            runs=[],
+            reviews=[],
+            target="main",
+        )
+
+        assert canonical_json_bytes(_normalize_evidence(single)) == canonical_json_bytes(_normalize_evidence(repeated))
+
+    def test_normalized_evidence_with_a_different_state_remains_distinct(self) -> None:
+        check = {
+            "conclusion": "success",
+            "head_sha": SHA_A,
+            "name": "Deterministic exact-head advisory",
+            "pull_requests": [{"base": {"ref": "main"}, "head": {"sha": SHA_A}, "number": 42}],
+            "status": "completed",
+        }
+        pending = {**check, "conclusion": None, "status": "in_progress"}
+        sources = GitHubEvidenceSnapshot(
+            checks=[check, pending], head_sha=SHA_A, pr_number=42, statuses=[], runs=[], reviews=[], target="main"
+        )
+
+        assert {record["state"] for record in _normalize_evidence(sources)} == {"passed", "pending"}
+
+    def test_duplicate_normalized_evidence_does_not_bypass_the_input_bound(self) -> None:
+        check = {
+            "conclusion": "success",
+            "head_sha": SHA_A,
+            "name": "ci",
+            "pull_requests": [{"base": {"ref": "main"}, "head": {"sha": SHA_A}, "number": 42}],
+            "status": "completed",
+        }
+        sources = GitHubEvidenceSnapshot(
+            checks=[check] * (MAX_EVIDENCE_RECORDS + 1),
+            head_sha=SHA_A,
+            pr_number=42,
+            statuses=[],
+            runs=[],
+            reviews=[],
+            target="main",
+        )
+
+        with pytest.raises(AdvisoryInputError, match="evidence.too-many"):
+            _normalize_evidence(sources)
+
     def test_output_sanitizes_secret_like_and_workflow_command_text(self) -> None:
         snapshot = _snapshot(_contract(allowed_paths=["src"], forbidden_paths=["blocked"]))
         secret_prefix = "_".join(("github", "pat"))
@@ -620,6 +681,7 @@ class _SnapshotClient(GitHubMetadataClient):
         )
         self.contract = contract
         self.check_conclusion = check_conclusion
+        self.check_head_sha: Any = SHA_A
         self.check_target = check_target
         self.policy_available = policy_available
         self.pr = {
@@ -648,7 +710,7 @@ class _SnapshotClient(GitHubMetadataClient):
             return [
                 {
                     "conclusion": self.check_conclusion,
-                    "head_sha": SHA_A,
+                    "head_sha": self.check_head_sha,
                     "name": "ci",
                     "pull_requests": [
                         {
@@ -924,6 +986,50 @@ class TestPaginationProof:
             {"filename": "src/allowed.py", "previous_filename": None, "status": "modified"}
         ]
         assert [record["state"] for record in snapshot["evidence"] if record["source"] == "review"] == ["passed"]
+
+    def test_noncanonical_live_evidence_emits_a_bounded_failure_artifact(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        contract = _contract(required_evidence=["ci"])
+        client = _SnapshotClient(contract)
+        client.check_head_sha = 1.5
+        monkeypatch.setenv("GITHUB_TOKEN", "test-token")
+        monkeypatch.setattr("scripts.gnc.advisory.GitHubMetadataClient", lambda **_: client)
+        event = tmp_path / "event.json"
+        event.write_text(
+            json.dumps(
+                {
+                    "pull_request": {"number": 42, **client.pr},
+                    "repository": {"full_name": "owner/repo"},
+                }
+            ),
+            encoding="utf-8",
+        )
+        output = tmp_path / "advisory.json"
+        summary = tmp_path / "summary.md"
+
+        assert (
+            main(
+                [
+                    "--event",
+                    str(event),
+                    "--output",
+                    str(output),
+                    "--summary",
+                    str(summary),
+                    "--runtime-root",
+                    str(tmp_path),
+                    "--repository",
+                    "owner/repo",
+                ]
+            )
+            == 0
+        )
+        report = json.loads(output.read_text(encoding="utf-8"))
+        assert report["state"] == "needs-human"
+        assert "evidence.head-invalid" in _codes(report)
+        assert output.stat().st_size <= MAX_ARTIFACT_BYTES
+        assert summary.stat().st_size <= MAX_SUMMARY_BYTES
 
     @pytest.mark.parametrize(
         "check_conclusion,check_target,code",
