@@ -6,6 +6,7 @@ from collections.abc import Iterator
 from datetime import datetime, timezone
 from pathlib import Path
 from types import SimpleNamespace
+from typing import cast
 
 import pytest
 from fastapi.testclient import TestClient
@@ -131,12 +132,32 @@ def client() -> TestClient:
 
 
 @pytest.fixture(autouse=True)
-def seed_users() -> None:
+def seed_users() -> Iterator[None]:
     """Create the principals used by protected assertion API tests."""
     repository = UserRepository()
+    existing_admin = repository.get_user("admin")
     for username in ("admin", "proposer_a", "proposer_b"):
         repository.create_or_update_user(
             username=username,
             hashed_password=get_password_hash(f"{username}-pw"),
             user_profile={"is_disabled": False},
         )
+    yield
+    if existing_admin is not None:
+        repository.create_or_update_user(
+            username="admin",
+            hashed_password=existing_admin.hashed_password,
+            user_profile=cast(
+                UserRepository.UserProfile,
+                {
+                    "user_email": existing_admin.email,
+                    "user_full_name": existing_admin.full_name,
+                    "is_disabled": existing_admin.disabled,
+                },
+            ),
+        )
+    else:
+        from api.auth import seed_credentials_from_settings
+        from src.config.settings import load_settings
+
+        seed_credentials_from_settings(repository, load_settings())
