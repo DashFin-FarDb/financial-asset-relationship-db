@@ -20,6 +20,7 @@ from packaging.version import Version
 
 # Path to requirements.txt file (production dependencies)
 REQUIREMENTS_FILE = Path(__file__).parent.parent.parent / "requirements.txt"
+API_REQUIREMENTS_FILE = Path(__file__).parent.parent.parent / "requirements-api.txt"
 PYPROJECT_FILE = Path(__file__).parent.parent.parent / "pyproject.toml"
 
 
@@ -264,18 +265,22 @@ class TestMcpCompatibleMajorBounds:
         ("package", "expected_bounds"),
         [
             ("mcp", ">=1.23.0,<2.0.0"),
-            ("fastmcp", ">=0.1.0,<4.0.0"),
+            ("fastmcp", ">=3.4.7,<4.0.0"),
         ],
     )
     def test_runtime_and_project_bounds_are_identical(package: str, expected_bounds: str):
-        """Require the security floors and compatible-major ceilings in both declarations."""
+        """Require identical security floors and compatible-major ceilings in every manifest."""
         runtime_requirements = dict(parse_requirements(REQUIREMENTS_FILE))
+        api_requirements = dict(parse_requirements(API_REQUIREMENTS_FILE))
         project_lines = {line.strip() for line in PYPROJECT_FILE.read_text(encoding="utf-8").splitlines()}
         expected_specifiers = set(expected_bounds.split(","))
 
         runtime_specifiers = set(runtime_requirements[package].split(","))
+        api_specifiers = set(api_requirements[package].split(","))
 
         assert runtime_specifiers == expected_specifiers
+        assert api_specifiers == expected_specifiers
+        assert runtime_specifiers == api_specifiers
         assert f'"{package}{expected_bounds}",' in project_lines
 
 
