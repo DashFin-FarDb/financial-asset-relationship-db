@@ -22,9 +22,8 @@ Stop conditions:
 Completion evidence:
 ```
 
-If the brief is absent, contradictory, or does not bound a high-risk task, stop and obtain a corrected brief. Follow
-the additional low-autonomy contract in [AI Agent Guardrails](../.github/AI_AGENT_GUARDRAILS.md) for database,
-authentication, deployment, CI, security, persistence, migration, and recovery work.
+If the brief is absent, contradictory, or does not bound a high-risk task, stop and obtain a corrected brief. Apply
+the canonical [High-Risk Change Guardrails](HIGH_RISK_CHANGE_GUARDRAILS.md) before any low-autonomy implementation.
 
 ## 2. Apply authority in order
 
