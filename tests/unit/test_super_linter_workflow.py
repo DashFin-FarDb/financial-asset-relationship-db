@@ -70,3 +70,12 @@ def test_models_read_permission_remains_in_motivating_workflow() -> None:
     assert isinstance(permissions, dict)
 
     assert permissions["models"] == "read"
+
+
+def test_frontend_runtime_has_dependency_free_healthcheck() -> None:
+    dockerfile = (PROJECT_ROOT / "Dockerfile.frontend").read_text(encoding="utf-8")
+
+    assert "HEALTHCHECK --interval=30s --timeout=5s" in dockerfile
+    assert "node -e" in dockerfile
+    assert "require('http').get" in dockerfile
+    assert "process.env.PORT||3000" in dockerfile
