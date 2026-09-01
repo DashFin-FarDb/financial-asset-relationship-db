@@ -22,14 +22,17 @@ UNTRUSTED_ASSOCIATIONS = {
 
 
 def _load_workflow() -> dict[str, Any]:
+    """Load the OpenCode workflow as parsed YAML."""
     return yaml.safe_load(WORKFLOW_PATH.read_text(encoding="utf-8"))
 
 
 def _opencode_job() -> dict[str, Any]:
+    """Return the single secret-bearing OpenCode job configuration."""
     return _load_workflow()["jobs"]["opencode"]
 
 
 def test_opencode_triggers_only_on_new_comments() -> None:
+    """Keep OpenCode limited to newly created issue and review comments."""
     workflow = _load_workflow()
 
     assert set(workflow["on"]) == {"issue_comment", "pull_request_review_comment"}
@@ -38,6 +41,7 @@ def test_opencode_triggers_only_on_new_comments() -> None:
 
 
 def test_opencode_job_requires_the_exact_trusted_association_set() -> None:
+    """Require the approved trusted roles and exclude every untrusted role."""
     condition = str(_opencode_job()["if"])
     match = re.search(
         r"contains\(fromJSON\('([^']+)'\),\s*github\.event\.comment\.author_association\)",
@@ -51,6 +55,7 @@ def test_opencode_job_requires_the_exact_trusted_association_set() -> None:
 
 
 def test_opencode_command_gate_remains_bounded() -> None:
+    """Preserve the four supported command positions behind the trust gate."""
     condition = str(_opencode_job()["if"])
     commands = {
         "contains(github.event.comment.body, ' /oc')",
@@ -65,6 +70,7 @@ def test_opencode_command_gate_remains_bounded() -> None:
 
 
 def test_opencode_job_retains_only_required_token_permissions() -> None:
+    """Allow only private checkout and the pinned action's OIDC exchange."""
     assert _opencode_job()["permissions"] == {
         "id-token": "write",
         "contents": "read",
@@ -72,6 +78,7 @@ def test_opencode_job_retains_only_required_token_permissions() -> None:
 
 
 def test_opencode_secret_step_stays_behind_the_job_gate() -> None:
+    """Keep pinned checkout and secret-bearing action steps under the job gate."""
     steps = _opencode_job()["steps"]
     assert len(steps) == 2
 
