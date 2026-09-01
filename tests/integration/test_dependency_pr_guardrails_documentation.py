@@ -11,6 +11,8 @@ from pathlib import Path
 
 import pytest
 
+from tests.integration.pr_guardrails_test_support import markdown_section
+
 REPO_ROOT = Path(__file__).parent.parent.parent
 
 
@@ -98,11 +100,26 @@ class TestDependencyChangePRTemplate:
 
     def test_validation_section_includes_full_dev_install_command(self, content: str) -> None:
         """Validation section must contain the exact full dev install command from the policy doc."""
-        validation_section = content.split("## Validation run locally")[1].split("##")[0]
+        validation_section = markdown_section(content, "## Validation run locally")
         assert "pip install -r requirements.txt -r requirements-dev.txt" in validation_section, (
             "Validation section must include the canonical full dev command: "
             "'pip install -r requirements.txt -r requirements-dev.txt'"
         )
+
+    def test_validation_section_lists_canonical_core_dev_tools(self, content: str) -> None:
+        """Template lists every canonical core-dev tool check in policy order."""
+        validation_section = markdown_section(content, "## Validation run locally")
+        commands = self._checkbox_commands(validation_section)
+        expected = [
+            "pytest --version",
+            "flake8 --version",
+            "pylint --version",
+            "mypy --version",
+            "black --version",
+            "isort --version",
+            "ruff --version",
+        ]
+        assert commands[-len(expected) :] == expected
 
     def test_validation_section_pip_check_paired_after_each_install(self, content: str) -> None:
         """Every install command must be immediately followed by a pip check line."""
@@ -240,13 +257,20 @@ class TestDependencyPolicyDoc:
     def test_file_roles_covers_requirements_dev_txt_subsection(self, content: str) -> None:
         assert "### `requirements-dev.txt`" in content
 
-    def test_order_of_operations_has_five_steps(self, content: str) -> None:
-        order_section = content.split("## Dependency change order of operations")[1].split("##")[0]
-        numbered = re.findall(r"^\d+\.", order_section, re.MULTILINE)
-        assert len(numbered) == 5, f"Order of operations must have exactly 5 steps, found {len(numbered)}"
+    def test_order_of_operations_has_exact_canonical_steps(self, content: str) -> None:
+        """Dependency operations retain their exact order, uniqueness, and meaning."""
+        order_section = markdown_section(content, "## Dependency change order of operations")
+        numbered = re.findall(r"^(\d+)\.\s+(.+)$", order_section, re.MULTILINE)
+        assert numbered == [
+            ("1", "Update `requirements.txt`"),
+            ("2", "Align `pyproject.toml` to the intended runtime policy"),
+            ("3", "Adjust `requirements-dev.txt` only if dev/test tooling is affected"),
+            ("4", "Update validators, workflows, and docs to match"),
+            ("5", "Run the validation commands below"),
+        ]
 
     def test_order_of_operations_step_one_is_requirements_txt(self, content: str) -> None:
-        order_section = content.split("## Dependency change order of operations")[1].split("##")[0]
+        order_section = markdown_section(content, "## Dependency change order of operations")
         lines = [line.strip() for line in order_section.splitlines() if line.strip().startswith("1.")]
         assert lines, "Step 1 must exist"
         assert "requirements.txt" in lines[0], "Step 1 must reference requirements.txt"
@@ -336,5 +360,5 @@ class TestDependencyPolicyDoc:
         assert "requirements.txt" in pyproject_section
 
     def test_requirements_dev_txt_is_not_runtime_source_of_truth(self, content: str) -> None:
-        dev_section = content.split("### `requirements-dev.txt`")[1].split("###")[0]
-        assert "not the runtime source of truth" in dev_section or "not" in dev_section.lower()
+        dev_section = markdown_section(content, "### `requirements-dev.txt`")
+        assert "`requirements-dev.txt` is not the runtime source of truth" in dev_section
