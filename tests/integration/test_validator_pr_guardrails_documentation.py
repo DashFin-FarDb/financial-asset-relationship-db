@@ -28,6 +28,26 @@ def _lines(content: str) -> list[str]:
 VALIDATOR_FOLLOWUP_TEMPLATE = REPO_ROOT / ".github" / "PULL_REQUEST_TEMPLATE" / "validator-follow-up.md"
 PR_SCOPE_GUARDRAILS_FILE = REPO_ROOT / "docs" / "PR_SCOPE_GUARDRAILS.md"
 
+EXPECTED_AUTOMATED_PR_FIELDS = [
+    ("1", "Primary Objective"),
+    ("2", "In Scope"),
+    ("3", "Out of Scope"),
+    ("4", "Files Expected to Change"),
+    ("5", "Validation Commands"),
+    ("6", "Merge Criteria"),
+]
+
+
+def _assert_canonical_automated_pr_fields(section: str) -> None:
+    """Require every numbered entry to be one canonical formatted field."""
+    entries = re.findall(r"^(\d+)\.\s+(.+)$", section, re.MULTILINE)
+    fields: list[tuple[str, str]] = []
+    for number, entry in entries:
+        field = re.fullmatch(r"\*\*([^*]+)\*\*:\s+.+", entry)
+        assert field is not None, f"Automated PR field {number} must use '**Name**: description'"
+        fields.append((number, field.group(1)))
+    assert fields == EXPECTED_AUTOMATED_PR_FIELDS
+
 
 @pytest.mark.integration
 class TestMarkdownSectionHelper:
@@ -38,6 +58,15 @@ class TestMarkdownSectionHelper:
         content = "# Document\n## Target\nalpha\n### Nested\nbeta\n## Next\ngamma\n"
         assert markdown_section(content, "## Target") == "alpha\n### Nested\nbeta"
 
+    def test_recognizes_indented_atx_headings(self) -> None:
+        """Rendered headings with up to three leading spaces remain boundaries."""
+        content = "# Document\n  ## Target\nalpha\n   ## Next\nbeta\n"
+        assert markdown_section(content, "## Target") == "alpha"
+
+        duplicate = "# Document\n## Target\none\n  ## Target\ntwo\n"
+        with pytest.raises(AssertionError, match="must appear exactly once"):
+            markdown_section(duplicate, "## Target")
+
     @pytest.mark.parametrize(
         ("opening", "closing"),
         [("```markdown", "```"), ("~~~markdown", "~~~"), ("   ```markdown", "   ```")],
@@ -47,6 +76,22 @@ class TestMarkdownSectionHelper:
         content = f"# Document\n## Target\nbefore\n{opening}\n## Target\n## Next\n{closing}\nafter\n## Next\nend\n"
         expected = f"before\n{opening}\n## Target\n## Next\n{closing}\nafter"
         assert markdown_section(content, "## Target") == expected
+
+    def test_rejects_backticks_in_backtick_fence_info_string(self) -> None:
+        """An invalid backtick opener cannot hide subsequent live headings."""
+        content = "# Document\n## Target\nbefore\n```bad`info\n## Next\nafter\n"
+        assert markdown_section(content, "## Target") == "before\n```bad`info"
+
+    @pytest.mark.parametrize(
+        "invalid_closer",
+        ["", "~~~\n", "``\n", "``` trailing\n"],
+        ids=["missing", "wrong-marker", "too-short", "trailing-text"],
+    )
+    def test_rejects_unterminated_fenced_code(self, invalid_closer: str) -> None:
+        """Ambiguous Markdown fences fail closed instead of masking headings."""
+        content = f"# Document\n## Target\nbefore\n```\n## Target\n{invalid_closer}"
+        with pytest.raises(AssertionError, match="Unterminated Markdown fenced code block"):
+            markdown_section(content, "## Target")
 
     @pytest.mark.parametrize(
         "content",
@@ -269,15 +314,19 @@ class TestPRScopeGuardrailsDoc:
 
     def test_required_pr_description_sections_lists_six_canonical_items(self, content: str) -> None:
         automated_section = markdown_section(content, "### Automated and agent-authored PRs")
-        numbered = re.findall(r"^(\d+)\. \*\*([^*]+)\*\*:", automated_section, re.MULTILINE)
-        assert numbered == [
-            ("1", "Primary Objective"),
-            ("2", "In Scope"),
-            ("3", "Out of Scope"),
-            ("4", "Files Expected to Change"),
-            ("5", "Validation Commands"),
-            ("6", "Merge Criteria"),
-        ]
+        _assert_canonical_automated_pr_fields(automated_section)
+
+    @pytest.mark.parametrize(
+        "extra_field",
+        ["7. Security Notes", "7. **Security Notes**: an unapproved seventh field"],
+        ids=["malformed", "well-formed"],
+    )
+    def test_required_pr_description_sections_rejects_additional_numbered_items(
+        self, content: str, extra_field: str
+    ) -> None:
+        automated_section = markdown_section(content, "### Automated and agent-authored PRs")
+        with pytest.raises(AssertionError):
+            _assert_canonical_automated_pr_fields(f"{automated_section}\n{extra_field}")
 
     def test_required_pr_sections_preserve_actor_strength_and_local_evidence(self, content: str) -> None:
         pr_desc_section = content.split("## Required PR description sections")[1].split("\n## ", maxsplit=1)[0]
