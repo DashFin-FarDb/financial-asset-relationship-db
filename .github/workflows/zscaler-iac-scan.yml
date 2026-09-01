@@ -36,6 +36,8 @@ jobs:
     steps:
       - name: Code Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       - name: Zscaler IAC Scan
         uses: ZscalerCWP/Zscaler-IaC-Action@df1ce913b51df9f5e42eca910f0b6b5e8ad61945
         id: zscaler-iac-scan

@@ -47,7 +47,6 @@ name: Gradio Docker Build and Test (non-production)
 
 permissions:
   contents: read
-  packages: write
 
 concurrency:
   group: docker-workflow-${{ github.workflow }}-${{ github.ref }}
@@ -61,6 +60,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e # v4.3.0
 
@@ -120,11 +121,15 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       - name: Build Docker image for scanning
         run: docker build -t financial-asset-db:scan .
 
       - name: Install Trivy
         uses: aquasecurity/setup-trivy@81e514348e19b6112ce2a7e3ecbafe19c1e1f567 # v0.3.1
+        with:
+          version: v0.74.0
 
       - name: Run Trivy vulnerability scanner
         run: |
