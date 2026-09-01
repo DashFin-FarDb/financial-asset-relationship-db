@@ -64,7 +64,7 @@ jobs:
 
       - name: Install Pyre and dependencies
         run: |
-          python -m pip install --upgrade pip
+          python -m pip --version
           python -m pip install pyre-check
           if [ -f requirements.txt ]; then
             python -m pip install -r requirements.txt
