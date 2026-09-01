@@ -22,8 +22,9 @@ Stop conditions:
 Completion evidence:
 ```
 
-If the brief is absent, contradictory, or does not bound a high-risk task, stop and obtain a corrected brief. Apply
-the canonical [High-Risk Change Guardrails](HIGH_RISK_CHANGE_GUARDRAILS.md) before any low-autonomy implementation.
+Stop and obtain a corrected brief if the brief is absent or contradictory. For any high-risk or low-autonomy task,
+also stop if the brief does not explicitly bound the work. Apply the canonical
+[High-Risk Change Guardrails](HIGH_RISK_CHANGE_GUARDRAILS.md) before any low-autonomy implementation.
 
 ## 2. Apply authority in order
 
