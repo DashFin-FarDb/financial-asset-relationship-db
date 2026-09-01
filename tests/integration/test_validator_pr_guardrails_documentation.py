@@ -40,11 +40,11 @@ EXPECTED_AUTOMATED_PR_FIELDS = [
 
 def _assert_canonical_automated_pr_fields(section: str) -> None:
     """Require every numbered entry to be one canonical formatted field."""
-    entries = re.findall(r"^(\d+)\.\s+(.+)$", section, re.MULTILINE)
+    entries = re.findall(r"^(\d+)\.(.*)$", section, re.MULTILINE)
     fields: list[tuple[str, str]] = []
     for number, entry in entries:
-        field = re.fullmatch(r"\*\*([^*]+)\*\*:\s+.+", entry)
-        assert field is not None, f"Automated PR field {number} must use '**Name**: description'"
+        field = re.fullmatch(r" \*\*([^*]+)\*\*: .+", entry)
+        assert field is not None, f"Automated PR field {number} must use 'N. **Name**: description'"
         fields.append((number, field.group(1)))
     assert fields == EXPECTED_AUTOMATED_PR_FIELDS
 
@@ -318,12 +318,17 @@ class TestPRScopeGuardrailsDoc:
 
     @pytest.mark.parametrize(
         "extra_field",
-        ["7. Security Notes", "7. **Security Notes**: an unapproved seventh field"],
-        ids=["malformed", "well-formed"],
+        [
+            "7. Security Notes",
+            "7.**Security Notes**: missing separator space",
+            "7. **Security Notes**: an unapproved seventh field",
+        ],
+        ids=["malformed", "missing-space", "well-formed"],
     )
     def test_required_pr_description_sections_rejects_additional_numbered_items(
         self, content: str, extra_field: str
     ) -> None:
+        """A seventh numbered entry cannot evade the exact six-field contract."""
         automated_section = markdown_section(content, "### Automated and agent-authored PRs")
         with pytest.raises(AssertionError):
             _assert_canonical_automated_pr_fields(f"{automated_section}\n{extra_field}")
