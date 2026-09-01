@@ -212,6 +212,7 @@ jobs:
           python-version: "3.11"
           dependency-paths: |
             requirements.txt
+            requirements-ci-security.txt
           install: |
             python -m pip install --upgrade pip
             pip install -r requirements.txt
@@ -222,8 +223,8 @@ jobs:
             # Keep the scanners in an isolated environment so their transitive
             # dependencies cannot collide with the installed runtime set.
             python -m venv "$RUNNER_TEMP/fardb-security-venv"
-            "$RUNNER_TEMP/fardb-security-venv/bin/python" -m pip install --upgrade pip
-            "$RUNNER_TEMP/fardb-security-venv/bin/python" -m pip install safety bandit
+            "$RUNNER_TEMP/fardb-security-venv/bin/python" -m pip install \
+              --require-hashes -r requirements-ci-security.txt
           test: |
             echo "===== Safety ====="
             "$RUNNER_TEMP/fardb-security-venv/bin/safety" \
