@@ -2,6 +2,7 @@
 Validation tests for configuration files modified in the current branch.
 
 Tests cover:
+- .deepsource.toml
 - .github/pr-agent-config.yml
 - .github/workflows/*.yml
 - requirements-dev.txt
@@ -13,6 +14,37 @@ from typing import Any
 
 import pytest
 import yaml
+
+
+class TestDeepSourceFormatterOwnership:
+    """Keep the repository formatter inventory aligned with dashboard policy."""
+
+    @pytest.fixture
+    @staticmethod
+    def formatter_names() -> list[str]:
+        """Return configured DeepSource formatter names from parsed TOML."""
+        try:
+            import tomllib  # type: ignore[import]
+        except ImportError:
+            import tomli as tomllib  # type: ignore[import,no-redef]
+
+        config_path = Path(__file__).parent.parent.parent / ".deepsource.toml"
+        with open(config_path, "rb") as config_file:
+            config_data = tomllib.load(config_file)
+        return [formatter["name"] for formatter in config_data.get("code_formatters", [])]
+
+    def test_ruff_formatter_is_removed_without_changing_other_owners(self, formatter_names: list[str]) -> None:
+        """Reject Ruff while preserving the retained formatter list."""
+        expected_formatters = {
+            "black",
+            "autopep8",
+            "isort",
+            "standardjs",
+            "prettier",
+        }
+
+        assert len(formatter_names) == len(set(formatter_names)), "formatter entries must be unique"
+        assert set(formatter_names) == expected_formatters
 
 
 class TestPRAgentConfigChanges:
