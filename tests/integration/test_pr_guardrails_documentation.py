@@ -18,6 +18,7 @@ import pytest
 REPO_ROOT = Path(__file__).parent.parent.parent
 
 AI_GUARDRAILS_FILE = REPO_ROOT / ".github" / "AI_AGENT_GUARDRAILS.md"
+AGENT_TASK_ENTRY_FILE = REPO_ROOT / "docs" / "agent-task-entry.md"
 HIGH_RISK_GUARDRAILS_FILE = REPO_ROOT / "docs" / "HIGH_RISK_CHANGE_GUARDRAILS.md"
 DEPENDENCY_CHANGE_TEMPLATE = REPO_ROOT / ".github" / "PULL_REQUEST_TEMPLATE" / "dependency-change.md"
 VALIDATOR_FOLLOWUP_TEMPLATE = REPO_ROOT / ".github" / "PULL_REQUEST_TEMPLATE" / "validator-follow-up.md"
@@ -163,6 +164,28 @@ class TestAIAgentGuardrails:
     def test_delegates_high_risk_rules_to_canonical_document(self, content: str) -> None:
         assert "../docs/HIGH_RISK_CHANGE_GUARDRAILS.md" in content
         assert "does not restate or narrow those requirements" in content
+
+
+# ---------------------------------------------------------------------------
+# docs/agent-task-entry.md
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+class TestAgentTaskEntryRoute:
+    """Validate the task-entry stop boundary."""
+
+    def test_distinguishes_universal_and_risk_bounded_stop_conditions(self) -> None:
+        """Keep universal brief failures separate from risk-bounded failures."""
+        content = " ".join(_load(AGENT_TASK_ENTRY_FILE).split())
+        expected = (
+            "Stop and obtain a corrected brief if the brief is absent or contradictory. For any high-risk or "
+            "low-autonomy task, also stop if the brief does not explicitly bound the work. Apply the canonical "
+            "[High-Risk Change Guardrails](HIGH_RISK_CHANGE_GUARDRAILS.md) before any low-autonomy implementation."
+        )
+
+        assert expected in content
+        assert "If the brief is absent, contradictory, or does not bound a high-risk task" not in content
 
 
 # ---------------------------------------------------------------------------
