@@ -48,6 +48,11 @@ GitHubActionsYamlLoader.add_implicit_resolver(
 WORKFLOWS_DIR = Path(__file__).parent.parent.parent / ".github" / "workflows"
 
 
+def read_text_utf8(file_path: Path) -> str:
+    """Read repository text deterministically instead of using the process locale."""
+    return file_path.read_text(encoding="utf-8")
+
+
 def get_workflow_files() -> list[Path]:
     """
     List workflow YAML files in the repository's .github/workflows directory.
@@ -131,6 +136,14 @@ def check_duplicate_keys(file_path: Path) -> list[str]:
 
 class TestWorkflowSyntax:
     """Test suite for GitHub Actions workflow YAML syntax validation."""
+
+    def test_utf8_reader_decodes_non_ascii_workflow_text(self, tmp_path: Path):
+        """The shared text boundary decodes non-ASCII workflow content on every OS."""
+        expected = 'name: "🐍 UTF-8 workflow"\n'
+        workflow_file = tmp_path / "workflow.yml"
+        workflow_file.write_bytes(expected.encode("utf-8"))
+
+        assert read_text_utf8(workflow_file) == expected
 
     @pytest.mark.parametrize("workflow_file", get_workflow_files())
     def test_workflow_valid_yaml_syntax(self, workflow_file: Path):
@@ -1300,7 +1313,7 @@ class TestAutoAssignWorkflowAdvanced:
         workflow_path = WORKFLOWS_DIR / "auto-assign.yml"
         if not workflow_path.exists():
             pytest.skip("auto-assign.yml not found")
-        return workflow_path.read_text()
+        return read_text_utf8(workflow_path)
 
     # YAML & Syntax Validation
     def test_auto_assign_yaml_syntax_valid(self, auto_assign_yaml_content: str):
@@ -1572,21 +1585,21 @@ class TestAutoAssignDocumentation:
         """Test that test summary has substantial content."""
         if not summary_file.exists():
             pytest.skip("Summary file not found")
-        content = summary_file.read_text()
+        content = read_text_utf8(summary_file)
         assert len(content) > 500, "Summary should have substantial content (>500 chars)"
 
     def test_final_report_not_empty(self, final_report_file: Path):
         """Test that final report has substantial content."""
         if not final_report_file.exists():
             pytest.skip("Final report file not found")
-        content = final_report_file.read_text()
+        content = read_text_utf8(final_report_file)
         assert len(content) > 1000, "Final report should have substantial content (>1000 chars)"
 
     def test_auto_assign_summary_has_proper_markdown(self, summary_file: Path):
         """Test that summary uses proper Markdown syntax."""
         if not summary_file.exists():
             pytest.skip("Summary file not found")
-        content = summary_file.read_text()
+        content = read_text_utf8(summary_file)
 
         # Check for code blocks
         code_block_count = content.count("```")
@@ -1599,7 +1612,7 @@ class TestAutoAssignDocumentation:
         """Test that summary documents the number of tests."""
         if not summary_file.exists():
             pytest.skip("Summary file not found")
-        content = summary_file.read_text()
+        content = read_text_utf8(summary_file)
 
         # Should mention test counts
         test_count_patterns = [
@@ -1615,7 +1628,7 @@ class TestAutoAssignDocumentation:
         """Test that summary includes test execution instructions."""
         if not summary_file.exists():
             pytest.skip("Summary file not found")
-        content = summary_file.read_text()
+        content = read_text_utf8(summary_file)
 
         # Should include pytest commands
         assert "pytest" in content.lower(), "Should include pytest execution instructions"
@@ -1624,7 +1637,7 @@ class TestAutoAssignDocumentation:
         """Test that final report has an executive summary section."""
         if not final_report_file.exists():
             pytest.skip("Final report file not found")
-        content = final_report_file.read_text()
+        content = read_text_utf8(final_report_file)
 
         # Check for executive summary or overview
         has_summary = any(keyword in content.lower() for keyword in ["executive summary", "overview", "summary"])
@@ -1634,7 +1647,7 @@ class TestAutoAssignDocumentation:
         """Test that final report documents test coverage areas."""
         if not final_report_file.exists():
             pytest.skip("Final report file not found")
-        content = final_report_file.read_text()
+        content = read_text_utf8(final_report_file)
 
         # Should mention coverage areas
         coverage_keywords = ["coverage", "test", "validation", "workflow"]
@@ -1645,7 +1658,7 @@ class TestAutoAssignDocumentation:
         """Test that final report lists modified files."""
         if not final_report_file.exists():
             pytest.skip("Final report file not found")
-        content = final_report_file.read_text()
+        content = read_text_utf8(final_report_file)
 
         # Should mention the workflow file
         assert "auto-assign" in content.lower(), "Should mention auto-assign workflow"
@@ -1656,7 +1669,7 @@ class TestAutoAssignDocumentation:
         """Test that documentation uses consistent formatting."""
         if not summary_file.exists():
             pytest.skip("Summary file not found")
-        content = summary_file.read_text()
+        content = read_text_utf8(summary_file)
 
         # Check for consistent heading levels (should start with # or ##)
         lines = content.split("\n")
@@ -1669,7 +1682,7 @@ class TestAutoAssignDocumentation:
         """Test that documentation has no obvious Markdown syntax errors."""
         if not summary_file.exists():
             pytest.skip("Summary file not found")
-        content = summary_file.read_text()
+        content = read_text_utf8(summary_file)
 
         # Check for balanced brackets
         assert content.count("[") == content.count("]"), "Markdown links should have balanced brackets"
@@ -1681,7 +1694,7 @@ class TestAutoAssignDocumentation:
         """Test that documentation references the correct GitHub Action."""
         if not summary_file.exists():
             pytest.skip("Summary file not found")
-        content = summary_file.read_text()
+        content = read_text_utf8(summary_file)
 
         # Should reference pozil/auto-assign-issue action
         assert (
@@ -2188,7 +2201,7 @@ class TestWorkflowAdvancedSecurity:
     @pytest.mark.parametrize("workflow_file", get_workflow_files())
     def test_no_environment_variable_injection(self, workflow_file: Path):
         """Test that workflows don't have potential env injection vulnerabilities."""
-        content = workflow_file.read_text()
+        content = read_text_utf8(workflow_file)
 
         # Check for unsafe environment variable usage in bash context
         unsafe_patterns = [
@@ -2222,7 +2235,7 @@ class TestWorkflowAdvancedSecurity:
     @pytest.mark.parametrize("workflow_file", get_workflow_files())
     def test_secrets_not_echoed_to_logs(self, workflow_file: Path):
         """Test that secrets aren't accidentally printed to logs."""
-        content = workflow_file.read_text()
+        content = read_text_utf8(workflow_file)
 
         # Check for echo/print of secrets
         secret_logging_patterns = [
@@ -2238,7 +2251,7 @@ class TestWorkflowAdvancedSecurity:
     @pytest.mark.parametrize("workflow_file", get_workflow_files())
     def test_no_curl_with_user_input(self, workflow_file: Path):
         """Test that curl commands don't use untrusted user input."""
-        content = workflow_file.read_text()
+        content = read_text_utf8(workflow_file)
 
         # Check for curl with event data
         if "curl" in content and "github.event" in content:
@@ -2360,7 +2373,7 @@ class TestWorkflowCachingStrategies:
     @pytest.mark.parametrize("workflow_file", get_workflow_files())
     def test_cache_uses_hashfiles_for_lockfiles(self, workflow_file: Path):
         """Test that caches use hashFiles for dependency lockfiles."""
-        content = workflow_file.read_text()
+        content = read_text_utf8(workflow_file)
 
         if "actions/cache" in content:
             lockfiles = [
@@ -2535,7 +2548,7 @@ class TestWorkflowConditionalExecution:
     @pytest.mark.parametrize("workflow_file", get_workflow_files())
     def test_if_conditions_handle_undefined_gracefully(self, workflow_file: Path):
         """Test that if conditions handle potentially undefined values."""
-        content = workflow_file.read_text()
+        content = read_text_utf8(workflow_file)
 
         # Check for conditions that might fail if value is undefined
         risky_patterns = [
