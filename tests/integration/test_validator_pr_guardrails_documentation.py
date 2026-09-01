@@ -38,6 +38,13 @@ class TestMarkdownSectionHelper:
         content = "# Document\n## Target\nalpha\n### Nested\nbeta\n## Next\ngamma\n"
         assert markdown_section(content, "## Target") == "alpha\n### Nested\nbeta"
 
+    @pytest.mark.parametrize(("opening", "closing"), [("```markdown", "```"), ("~~~markdown", "~~~")])
+    def test_ignores_heading_like_lines_inside_fenced_code(self, opening: str, closing: str) -> None:
+        """Fenced examples cannot duplicate or truncate a live section."""
+        content = f"# Document\n## Target\nbefore\n{opening}\n## Target\n## Next\n{closing}\nafter\n## Next\nend\n"
+        expected = f"before\n{opening}\n## Target\n## Next\n{closing}\nafter"
+        assert markdown_section(content, "## Target") == expected
+
     @pytest.mark.parametrize(
         "content",
         [

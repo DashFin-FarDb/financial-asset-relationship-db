@@ -63,6 +63,12 @@ class TestDependencyChangePRTemplate:
     def test_file_is_not_empty(self, content: str) -> None:
         assert len(content.strip()) > 0
 
+    def test_title_is_unique_first_level_heading(self, content: str, lines: list[str]) -> None:
+        """Template starts with one canonical H1 before its form sections."""
+        title = "# Dependency Change Pull Request"
+        assert lines[0] == title
+        assert markdown_section(content, title) == "\n".join(lines[1:]).strip("\n")
+
     def test_has_dependency_change_summary_section(self, content: str) -> None:
         assert "## Dependency change summary" in content
 
