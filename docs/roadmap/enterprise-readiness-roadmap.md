@@ -21,8 +21,8 @@ The remaining roadmap is about release execution: attaching target-environment e
 Current `main@0984f6225cc0f42ff02a9f7eda7b314566d759d0` includes GNC Phase 2's deterministic non-blocking
 advisory implementation (PR #1740), the safe local WSL observability launcher and earlier unenrolled-input proof
 (PR #1742), native-Windows-safe SQLite CI paths (PR #1748), and the deterministic evidence-normalization repair
-(PR #1768). The enrolled version-5 controlled proof passed on PR #1770; that draft was closed unmerged and issue
-#1739 was closed as complete. GNC Phase 3 and enforcement are not authorised.
+(PR #1768). The enrolled version-5 controlled proof passed on PR #1770; that draft was closed unmerged and issue #1739
+was closed as complete. GNC Phase 3 and enforcement are not authorised.
 
 The critical database lane remains CQ-03D-02. A target-bound database maintenance window is approved in principle,
 but Supabase support, IPv6-capable connectivity, and an exact-SHA/target protected single-use permit still have to be

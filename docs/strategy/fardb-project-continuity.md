@@ -134,7 +134,10 @@ Primary authorities:
 - **Type:** Repository governance / exact-head evidence
 - **Status:** Phases 1 and 2 satisfied; Phase 3 not authorised
 - **Decision or objective:** Preserve the landed offline replay contract and the deterministic, trusted-target, non-blocking exact-head advisory; require every later phase to proceed through a separately approved exact-base child issue and one bounded PR.
-- **Rationale and constraints:** Phase 2 evidence collectively establishes bounded deterministic fail-safe and passing output, actual head-changing stale-run cancellation, same-head replay idempotence, and exact binding of the approved contract, approval, refs, paths, and evidence. It does not justify semantic/model review, a required check, ruleset change, provider action, PR-code execution, auto-resolution, or merge enforcement.
+- **Rationale and constraints:** Phase 2 evidence collectively establishes bounded deterministic fail-safe and passing
+  output, actual head-changing stale-run cancellation, same-head replay idempotence, and exact binding of the approved
+  contract, approval, refs, paths, and evidence. It does not justify semantic/model review, a required check, ruleset
+  change, provider action, PR-code execution, auto-resolution, or merge enforcement.
 - **Repository scope:** ADR 0011, parent issue #1557, completed Phase 1 issue #1558, closed Phase 2 issue #1739, merged PRs #1673, #1740, and #1768, earlier fail-safe evidence through PR #1742, controlled proof PR #1770 closed unmerged, and any future separately approved child contract.
 - **Dependencies or blockers:** Phase 2 has no remaining completion blocker. Phase 3 requires a new exact-base child contract, explicit ratification, a bounded shadow-mode corpus and measurement plan, exact allowed and forbidden files, rollback, merge criteria, stop conditions, and named human review.
 - **Evidence and provenance:**

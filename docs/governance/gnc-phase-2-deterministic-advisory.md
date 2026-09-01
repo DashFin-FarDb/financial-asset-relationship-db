@@ -187,9 +187,8 @@ enrolled draft used a minimal approved contract and no provider/runtime effect. 
 
 PR #1742 satisfied criterion 4 with an actual head change. Version-5 draft PR #1770 satisfied the enrolled binding,
 deterministic replay, non-mutation, and separate-closure criteria and was then closed unmerged by separate
-human-authorised action. The completion evidence is recorded on closed issue #1739 and reflected in parent issue
-#1557. This completion does not authorise Phase 3, semantic/model review, a required check, ruleset changes, or
-enforcement.
+human-authorised action. The completion evidence is recorded on closed issue #1739 and reflected in parent issue #1557.
+This completion does not authorise Phase 3, semantic/model review, a required check, ruleset changes, or enforcement.
 
 ## Rollback
 
