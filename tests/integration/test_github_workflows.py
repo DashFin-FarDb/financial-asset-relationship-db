@@ -2282,6 +2282,7 @@ class TestWorkflowAdvancedValidation:
 
         # Check for cycles using DFS
         def has_cycle(node, visited, rec_stack):
+            """Return whether depth-first traversal finds a dependency cycle."""
             visited.add(node)
             rec_stack.add(node)
 
@@ -2433,27 +2434,30 @@ class TestWorkflowPermissionsBestPractices:
                 ], f"Invalid permission value '{value}' in {workflow_file.name}"
 
     @pytest.mark.parametrize("workflow_file", get_workflow_files())
-    def test_write_permissions_have_justification(self, workflow_file: Path):
-        """Test that write permissions are used appropriately."""
+    def test_write_permissions_are_explicitly_scoped(self, workflow_file: Path):
+        """Reject broad write access that cannot be reviewed scope by scope."""
         data = load_yaml_safe(workflow_file)
 
-        def check_perms(perms):
-            if isinstance(perms, dict):
-                for _, value in perms.items():
-                    if value == "write":
-                        # Common justified write permissions
-
-                        # Check workflow-level permissions
-                        pass
+        def check_perms(perms, location):
+            """Require write access to use named permission scopes, not write-all."""
+            assert perms != "write-all", f"{workflow_file.name}: {location} permissions must not use write-all"
 
         if "permissions" in data:
-            check_perms(data["permissions"])
+            check_perms(data["permissions"], "workflow-level")
 
         # Check job-level permissions
         jobs = data.get("jobs", {})
-        for _, job in jobs.items():
+        for job_name, job in jobs.items():
             if "permissions" in job:
-                check_perms(job["permissions"])
+                check_perms(job["permissions"], f"job {job_name!r}")
+
+    def test_write_all_permissions_are_rejected(self, tmp_path: Path):
+        """Prove the explicit-scope boundary rejects a broad write grant."""
+        workflow_file = tmp_path / "write-all.yml"
+        workflow_file.write_text("name: unsafe\npermissions: write-all\njobs: {}\n", encoding="utf-8")
+
+        with pytest.raises(AssertionError, match="must not use write-all"):
+            self.test_write_permissions_are_explicitly_scoped(workflow_file)
 
 
 class TestWorkflowComplexScenarios:
@@ -2612,6 +2616,7 @@ class TestWorkflowEnvironmentVariables:
         data = load_yaml_safe(workflow_file)
 
         def check_env_names(env_dict):
+            """Require conventional names for every environment mapping key."""
             if isinstance(env_dict, dict):
                 for key in env_dict:
                     # Env vars should be UPPER_CASE
@@ -2628,15 +2633,46 @@ class TestWorkflowEnvironmentVariables:
                 check_env_names(job["env"])
 
     @pytest.mark.parametrize("workflow_file", get_workflow_files())
-    def test_env_vars_not_duplicated_across_levels(self, workflow_file: Path):
-        """Test that env vars aren't unnecessarily duplicated."""
+    def test_env_vars_not_redundantly_duplicated_across_levels(self, workflow_file: Path):
+        """Reject job env entries that repeat an identical workflow-level value."""
         data = load_yaml_safe(workflow_file)
-
+        workflow_env = data.get("env", {})
         jobs = data.get("jobs", {})
 
-        for _, _job in jobs.items():
-            # Check for duplication (informational)
-            pass
+        for job_name, job in jobs.items():
+            job_env = job.get("env", {})
+            if not isinstance(workflow_env, dict) or not isinstance(job_env, dict):
+                continue
+
+            redundant_keys = sorted(
+                key for key in workflow_env.keys() & job_env.keys() if workflow_env[key] == job_env[key]
+            )
+            assert (
+                not redundant_keys
+            ), f"{workflow_file.name}: job {job_name!r} redundantly repeats workflow env values: " + ", ".join(
+                redundant_keys
+            )
+
+    def test_redundant_job_env_value_is_rejected(self, tmp_path: Path):
+        """Prove identical workflow and job env entries fail the boundary."""
+        workflow_file = tmp_path / "redundant-env.yml"
+        workflow_file.write_text(
+            "name: redundant env\nenv:\n  MODE: test\njobs:\n  verify:\n    env:\n      MODE: test\n",
+            encoding="utf-8",
+        )
+
+        with pytest.raises(AssertionError, match="redundantly repeats"):
+            self.test_env_vars_not_redundantly_duplicated_across_levels(workflow_file)
+
+    def test_job_env_value_override_is_allowed(self, tmp_path: Path):
+        """Preserve an intentional job-level override of a workflow env value."""
+        workflow_file = tmp_path / "env-override.yml"
+        workflow_file.write_text(
+            "name: env override\nenv:\n  MODE: test\njobs:\n  verify:\n    env:\n      MODE: production\n",
+            encoding="utf-8",
+        )
+
+        self.test_env_vars_not_redundantly_duplicated_across_levels(workflow_file)
 
 
 class TestWorkflowScheduledExecutionBestPractices:
