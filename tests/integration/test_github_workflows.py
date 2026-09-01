@@ -16,6 +16,9 @@ import pytest
 import yaml
 
 BOOL_TAG = "tag:yaml.org,2002:bool"
+FLOAT_TAG = "tag:yaml.org,2002:float"
+INT_TAG = "tag:yaml.org,2002:int"
+TIMESTAMP_TAG = "tag:yaml.org,2002:timestamp"
 
 
 class GitHubActionsYamlLoader(yaml.SafeLoader):
@@ -35,7 +38,7 @@ GitHubActionsYamlLoader.yaml_implicit_resolvers = copy.deepcopy(GitHubActionsYam
 
 for ch, resolvers in list(GitHubActionsYamlLoader.yaml_implicit_resolvers.items()):
     GitHubActionsYamlLoader.yaml_implicit_resolvers[ch] = [
-        (tag, regexp) for tag, regexp in resolvers if tag != BOOL_TAG
+        (tag, regexp) for tag, regexp in resolvers if tag not in {BOOL_TAG, FLOAT_TAG, INT_TAG, TIMESTAMP_TAG}
     ]
 
 GitHubActionsYamlLoader.add_implicit_resolver(
@@ -43,6 +46,36 @@ GitHubActionsYamlLoader.add_implicit_resolver(
     re.compile(r"^(?:true|false)$", re.IGNORECASE),
     list("tTfF"),
 )
+
+GitHubActionsYamlLoader.add_implicit_resolver(
+    INT_TAG,
+    re.compile(r"^[-+]?(?:[0-9]+|0o[0-7]+|0x[0-9a-fA-F]+)$"),
+    list("-+0123456789"),
+)
+
+GitHubActionsYamlLoader.add_implicit_resolver(
+    FLOAT_TAG,
+    re.compile(
+        r"^[-+]?(?:(?:[0-9]+\.[0-9]*|\.[0-9]+)(?:[eE][-+]?[0-9]+)?|"
+        r"[0-9]+[eE][-+]?[0-9]+|\.(?:inf|Inf|INF)|\.(?:nan|NaN|NAN))$"
+    ),
+    list("-+0123456789."),
+)
+
+
+def construct_yaml_12_int(loader: GitHubActionsYamlLoader, node: yaml.ScalarNode) -> int:
+    """Construct YAML 1.2 integers without YAML 1.1's leading-zero octal rule."""
+    value = loader.construct_scalar(node)
+    sign = -1 if value.startswith("-") else 1
+    unsigned = value[1:] if value[:1] in {"-", "+"} else value
+    if unsigned.startswith("0o"):
+        return sign * int(unsigned[2:], 8)
+    if unsigned.startswith("0x"):
+        return sign * int(unsigned[2:], 16)
+    return sign * int(unsigned, 10)
+
+
+GitHubActionsYamlLoader.add_constructor(INT_TAG, construct_yaml_12_int)
 
 # Path to workflows directory
 WORKFLOWS_DIR = Path(__file__).parent.parent.parent / ".github" / "workflows"
@@ -83,6 +116,68 @@ def load_yaml_safe(file_path: Path) -> dict[str, Any]:
     """
     with open(file_path, encoding="utf-8") as f:
         return yaml.load(f, Loader=GitHubActionsYamlLoader)  # nosec B506
+
+
+def load_workflow_mapping_and_jobs(workflow_file: Path) -> tuple[dict[str, Any], dict[str, Any]]:
+    """Load one workflow and fail clearly unless its root and jobs are mappings."""
+    data = load_yaml_safe(workflow_file)
+    assert isinstance(data, dict), f"{workflow_file.name}: workflow document must be a mapping"
+
+    jobs = data.get("jobs", {})
+    assert isinstance(jobs, dict), f"{workflow_file.name}: jobs must be a mapping"
+    for job_name, job in jobs.items():
+        assert isinstance(job, dict), f"{workflow_file.name}: job {job_name!r} must be a mapping"
+
+    return data, jobs
+
+
+def github_env_comparison_key(value: Any) -> tuple[str, Any]:
+    """Canonicalize stable GitHub env scalars and preserve ambiguous scalar types."""
+    if value is None:
+        return ("runtime_text", "")
+    if isinstance(value, bool):
+        return ("runtime_text", str(value).lower())
+    if isinstance(value, (int, str)):
+        return ("runtime_text", str(value))
+    return (type(value).__qualname__, value)
+
+
+def assert_write_permissions_are_explicitly_scoped(workflow_file: Path) -> None:
+    """Reject broad write access at workflow or job scope."""
+    data, jobs = load_workflow_mapping_and_jobs(workflow_file)
+
+    def check_perms(perms: Any, location: str) -> None:
+        """Require write access to use named permission scopes, not write-all."""
+        assert perms != "write-all", f"{workflow_file.name}: {location} permissions must not use write-all"
+
+    if "permissions" in data:
+        check_perms(data["permissions"], "workflow-level")
+
+    for job_name, job in jobs.items():
+        if "permissions" in job:
+            check_perms(job["permissions"], f"job {job_name!r}")
+
+
+def assert_no_redundant_job_env_values(workflow_file: Path) -> None:
+    """Reject job env entries with the same runtime text as workflow scope."""
+    data, jobs = load_workflow_mapping_and_jobs(workflow_file)
+    workflow_env = data.get("env", {})
+    assert isinstance(workflow_env, dict), f"{workflow_file.name}: workflow env must be a mapping"
+
+    for job_name, job in jobs.items():
+        job_env = job.get("env", {})
+        assert isinstance(job_env, dict), f"{workflow_file.name}: job {job_name!r} env must be a mapping"
+
+        redundant_keys = sorted(
+            key
+            for key in workflow_env.keys() & job_env.keys()
+            if github_env_comparison_key(workflow_env[key]) == github_env_comparison_key(job_env[key])
+        )
+        assert (
+            not redundant_keys
+        ), f"{workflow_file.name}: job {job_name!r} redundantly repeats workflow env values: " + ", ".join(
+            redundant_keys
+        )
 
 
 def check_duplicate_keys(file_path: Path) -> list[str]:
@@ -2282,6 +2377,7 @@ class TestWorkflowAdvancedValidation:
 
         # Check for cycles using DFS
         def has_cycle(node, visited, rec_stack):
+            """Return whether depth-first traversal finds a dependency cycle."""
             visited.add(node)
             rec_stack.add(node)
 
@@ -2433,27 +2529,25 @@ class TestWorkflowPermissionsBestPractices:
                 ], f"Invalid permission value '{value}' in {workflow_file.name}"
 
     @pytest.mark.parametrize("workflow_file", get_workflow_files())
-    def test_write_permissions_have_justification(self, workflow_file: Path):
-        """Test that write permissions are used appropriately."""
-        data = load_yaml_safe(workflow_file)
+    def test_write_permissions_are_explicitly_scoped(self, workflow_file: Path):
+        """Reject broad write access that cannot be reviewed scope by scope."""
+        assert_write_permissions_are_explicitly_scoped(workflow_file)
 
-        def check_perms(perms):
-            if isinstance(perms, dict):
-                for _, value in perms.items():
-                    if value == "write":
-                        # Common justified write permissions
+    def test_write_all_permissions_are_rejected(self, tmp_path: Path):
+        """Prove the explicit-scope boundary rejects a broad write grant."""
+        workflow_file = tmp_path / "write-all.yml"
+        workflow_file.write_text("name: unsafe\npermissions: write-all\njobs: {}\n", encoding="utf-8")
 
-                        # Check workflow-level permissions
-                        pass
+        with pytest.raises(AssertionError, match="must not use write-all"):
+            assert_write_permissions_are_explicitly_scoped(workflow_file)
 
-        if "permissions" in data:
-            check_perms(data["permissions"])
+    def test_permission_boundary_rejects_non_mapping_workflow(self, tmp_path: Path):
+        """Fail clearly when permission policy receives an empty workflow."""
+        workflow_file = tmp_path / "empty.yml"
+        workflow_file.write_text("", encoding="utf-8")
 
-        # Check job-level permissions
-        jobs = data.get("jobs", {})
-        for _, job in jobs.items():
-            if "permissions" in job:
-                check_perms(job["permissions"])
+        with pytest.raises(AssertionError, match="workflow document must be a mapping"):
+            assert_write_permissions_are_explicitly_scoped(workflow_file)
 
 
 class TestWorkflowComplexScenarios:
@@ -2612,6 +2706,7 @@ class TestWorkflowEnvironmentVariables:
         data = load_yaml_safe(workflow_file)
 
         def check_env_names(env_dict):
+            """Require conventional names for every environment mapping key."""
             if isinstance(env_dict, dict):
                 for key in env_dict:
                     # Env vars should be UPPER_CASE
@@ -2628,15 +2723,95 @@ class TestWorkflowEnvironmentVariables:
                 check_env_names(job["env"])
 
     @pytest.mark.parametrize("workflow_file", get_workflow_files())
-    def test_env_vars_not_duplicated_across_levels(self, workflow_file: Path):
-        """Test that env vars aren't unnecessarily duplicated."""
-        data = load_yaml_safe(workflow_file)
+    def test_env_vars_not_redundantly_duplicated_across_levels(self, workflow_file: Path):
+        """Reject job env entries that repeat an identical workflow-level value."""
+        assert_no_redundant_job_env_values(workflow_file)
 
-        jobs = data.get("jobs", {})
+    def test_redundant_job_env_value_is_rejected(self, tmp_path: Path):
+        """Prove identical workflow and job env entries fail the boundary."""
+        workflow_file = tmp_path / "redundant-env.yml"
+        workflow_file.write_text(
+            "name: redundant env\nenv:\n  MODE: test\njobs:\n  verify:\n    env:\n      MODE: test\n",
+            encoding="utf-8",
+        )
 
-        for _, _job in jobs.items():
-            # Check for duplication (informational)
-            pass
+        with pytest.raises(AssertionError, match="redundantly repeats"):
+            assert_no_redundant_job_env_values(workflow_file)
+
+    def test_job_env_value_override_is_allowed(self, tmp_path: Path):
+        """Preserve an intentional job-level override of a workflow env value."""
+        workflow_file = tmp_path / "env-override.yml"
+        workflow_file.write_text(
+            "name: env override\nenv:\n  MODE: test\njobs:\n  verify:\n    env:\n      MODE: production\n",
+            encoding="utf-8",
+        )
+
+        assert_no_redundant_job_env_values(workflow_file)
+
+    def test_distinct_yaml_scalar_types_are_not_redundant(self, tmp_path: Path):
+        """Keep YAML boolean false distinct from integer zero despite Python equality."""
+        workflow_file = tmp_path / "typed-env-values.yml"
+        workflow_file.write_text(
+            "name: typed env values\nenv:\n  FLAG: false\njobs:\n  verify:\n    env:\n      FLAG: 0\n",
+            encoding="utf-8",
+        )
+
+        assert_no_redundant_job_env_values(workflow_file)
+
+    @pytest.mark.parametrize(
+        ("workflow_value", "job_value"),
+        [("8080", '"8080"'), ("true", '"true"'), ("012", '"12"')],
+    )
+    def test_runtime_equivalent_env_scalars_are_rejected(
+        self,
+        tmp_path: Path,
+        workflow_value: str,
+        job_value: str,
+    ):
+        """Treat YAML scalars as redundant when GitHub exposes identical text."""
+        workflow_file = tmp_path / "runtime-equivalent-env.yml"
+        workflow_file.write_text(
+            f"name: runtime equivalent env\nenv:\n  VALUE: {workflow_value}\n"
+            f"jobs:\n  verify:\n    env:\n      VALUE: {job_value}\n",
+            encoding="utf-8",
+        )
+
+        with pytest.raises(AssertionError, match="redundantly repeats"):
+            assert_no_redundant_job_env_values(workflow_file)
+
+    @pytest.mark.parametrize(
+        ("workflow_value", "job_value"),
+        [
+            ("012", '"10"'),
+            ("1.0", '"1.0"'),
+            ("1e3", '"1e3"'),
+            ("1e3", '"1000"'),
+            ("1_000", '"1000"'),
+        ],
+    )
+    def test_non_equivalent_or_ambiguous_env_scalars_are_allowed(
+        self,
+        tmp_path: Path,
+        workflow_value: str,
+        job_value: str,
+    ):
+        """Avoid YAML 1.1 octal errors and uncertain cross-type float coercion."""
+        workflow_file = tmp_path / "distinct-env.yml"
+        workflow_file.write_text(
+            f"name: distinct env\nenv:\n  VALUE: {workflow_value}\n"
+            f"jobs:\n  verify:\n    env:\n      VALUE: {job_value}\n",
+            encoding="utf-8",
+        )
+
+        assert_no_redundant_job_env_values(workflow_file)
+
+    def test_env_boundary_rejects_non_mapping_jobs(self, tmp_path: Path):
+        """Fail clearly when a workflow's jobs value is not a mapping."""
+        workflow_file = tmp_path / "invalid-jobs.yml"
+        workflow_file.write_text("name: invalid jobs\njobs: []\n", encoding="utf-8")
+
+        with pytest.raises(AssertionError, match="jobs must be a mapping"):
+            assert_no_redundant_job_env_values(workflow_file)
 
 
 class TestWorkflowScheduledExecutionBestPractices:
