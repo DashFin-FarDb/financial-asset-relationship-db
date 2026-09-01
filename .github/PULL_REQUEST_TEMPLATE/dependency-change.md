@@ -1,3 +1,5 @@
+# Dependency Change Pull Request
+
 ## Dependency change summary
 
 <!-- State the single primary dependency decision in this PR. -->
@@ -49,6 +51,7 @@ This PR does **not** do:
 - [ ] `pylint --version`
 - [ ] `mypy --version`
 - [ ] `black --version`
+- [ ] `isort --version`
 - [ ] `ruff --version`
 
 ### Security scan
