@@ -3,18 +3,29 @@
 **Authority:** issue #1739, ratified 2026-08-27 at base
 `9cbb4493cc5f1701c6c7789c9cc076fba57d82ca`
 **Phase 1 prerequisite:** issue #1558 and merged PR #1673
-**Status:** implementation merged; the ratified post-merge enrolled controlled-draft proof remains open; Phase 3 and
-enforcement are not authorised
+**Status:** Phase 2 implementation, deterministic evidence-normalization repair, and enrolled version-5 controlled
+proof are complete; issue #1739 is closed; Phase 3 and enforcement are not authorised
 
 **Implementation evidence:** PR #1740 merged from exact signed head `272eb82ccadf2542bc67ffb93202db9ca18c3a7a` as
 merge commit `755814d7d226808051d16f9d17f80342326e6a2a`.
 
-**Partial live evidence:** unenrolled draft PR #1742 exercised the merged advisory at final head
+**Repair evidence:** PR #1768 made normalized evidence replay-idempotent and merged from exact approved head
+`47e0522a5e072c070db44c9ae7de97c3d82e9043` as merge commit
+`857cdcf1ae6b39a18c84ddec3e3bf84f2e9e4831`.
+
+**Completion evidence:** the ratified version-5 contract used base/policy
+`539fb33f27d40110699105ff29dcf341b2b7f34e`, controlled draft PR #1770 at exact head
+`c8f0a9d5d3ec940f0fcd5d1451234c88d4213cd5`, and canonical contract hash
+`e4fd4afdcced98a5857f9b9a9add3b7356e0835a6c8ada2df956120dcb4efe24`. Three approval-bound evaluations of the
+unchanged snapshot produced byte-identical 9,853-byte passing artifacts with SHA-256
+`6bc0adf60bf10f051101195f4bbc1c148a20a07aaba6ea48860ea0529b1fcfab`; a superseded run was cancelled and its
+successor passed without changing the Git head. PR #1770 was closed unmerged and issue #1739 was closed as complete.
+
+**Earlier fail-safe evidence:** unenrolled draft PR #1742 exercised the merged advisory at final head
 `02964c13633c3c2440684bc574b58e528b1e4618`. Runs `33156842234` and `33156897196` produced byte-identical
 296-byte artifacts with SHA-256 `bef922ef5862e14a984972a54568fbe2526338b4fd3f246406624ec3a6dfb469` and the expected fail-safe
-`needs-human` / `contract.markers-invalid` result for unenrolled input. This proves bounded deterministic failure
-behavior, but not the contract, approval, refs, paths, and evidence bindings required below. Issue #1739 remains open
-until one enrolled controlled draft satisfies every post-merge completion criterion.
+`needs-human` / `contract.markers-invalid` result for unenrolled input. This established bounded deterministic failure
+behavior before the later enrolled proof established the contract, approval, refs, paths, and evidence bindings.
 
 ## Purpose and authority boundary
 
@@ -156,10 +167,10 @@ The implementation PR must contain only the seven paths in
 - one new immutable approval comment on issue #1739; and
 - a separate explicit maintainer merge decision with auto-merge disabled.
 
-## Post-merge controlled-draft proof
+## Completed post-merge controlled-draft proof
 
-Issue #1739 remains open after the implementation merge. Create one harmless controlled draft PR targeting `main`
-with a minimal approved contract and no provider/runtime effect. At exact draft head, verify:
+Issue #1739 remained open after the implementation merge until one harmless controlled draft PR targeting `main`
+with a minimal approved contract and no provider/runtime effect verified at its exact head that:
 
 1. a supported event starts the workflow using the exact base evaluator;
 2. the job and artifact report the latest head, canonical contract, approval, refs, paths, and evidence consistently;
@@ -167,9 +178,11 @@ with a minimal approved contract and no provider/runtime effect. At exact draft 
 4. a superseded head is cancelled or reports stale and never publishes a current pass;
 5. the check remains non-required and creates no comment, review, label, commit, merge, deployment, settings, or
    provider mutation; and
-6. cleanup/closure of the controlled draft is a separate human action recorded on #1739.
+6. cleanup/closure of the controlled draft was a separate human action recorded on #1739.
 
-Only after that exact-SHA evidence is recorded may #1739 and the Phase 2 line in parent issue #1557 be marked complete.
+Version-5 draft PR #1770 satisfied those criteria and was then closed unmerged by separate human-authorised action.
+The completion evidence is recorded on closed issue #1739 and reflected in parent issue #1557. This completion does
+not authorise Phase 3, semantic/model review, a required check, ruleset changes, or enforcement.
 
 ## Rollback
 

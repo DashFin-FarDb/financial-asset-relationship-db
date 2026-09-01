@@ -6,9 +6,11 @@ For the broader enterprise-readiness index, see [docs/enterprise-readiness-index
 **Format:** Release evidence board
 **Purpose:** Track enterprise-readiness PR outcomes and the remaining release-evidence gates after PR #1287-#1301
 
-**Current reconciliation checkpoint — 2026-08-30:** `main@f919a4237b4c7ce56fed7af92cee7f0938f3dcba` includes
-the GNC Phase 2 implementation (PR #1740), the local observability launcher (PR #1742), and the Windows SQLite CI
-repair (PR #1748). The enrolled controlled-draft proof required to complete GNC Phase 2 remains open. CQ-03D-02
+**Current reconciliation checkpoint — 2026-09-01:** `main@0984f6225cc0f42ff02a9f7eda7b314566d759d0` includes
+the GNC Phase 2 implementation (PR #1740), the local observability launcher and earlier unenrolled-input proof
+(PR #1742), the Windows SQLite CI repair (PR #1748), and the deterministic evidence-normalization repair (PR #1768).
+The enrolled version-5 proof passed on PR #1770; the draft was closed unmerged and issue #1739 was closed complete.
+Phase 3 and enforcement remain explicitly unauthorised. CQ-03D-02
 remains blocked on Supabase support, IPv6-capable connectivity, and an exact-SHA/target protected single-use permit
 despite approval in principle for a target-bound maintenance window. Automated dependency PRs #1741 and #1743-#1747
 are an overlap/drift assessment queue, not approved merge work.
