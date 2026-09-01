@@ -18,14 +18,18 @@ merge commit `755814d7d226808051d16f9d17f80342326e6a2a`.
 `c8f0a9d5d3ec940f0fcd5d1451234c88d4213cd5`, and canonical contract hash
 `e4fd4afdcced98a5857f9b9a9add3b7356e0835a6c8ada2df956120dcb4efe24`. Three approval-bound evaluations of the
 unchanged snapshot produced byte-identical 9,853-byte passing artifacts with SHA-256
-`6bc0adf60bf10f051101195f4bbc1c148a20a07aaba6ea48860ea0529b1fcfab`; a superseded run was cancelled and its
-successor passed without changing the Git head. PR #1770 was closed unmerged and issue #1739 was closed as complete.
+`6bc0adf60bf10f051101195f4bbc1c148a20a07aaba6ea48860ea0529b1fcfab`. A body-only retrigger cancelled superseded
+same-head run `33372451149`; successor run `33372451926` passed without changing the contract or Git head. PR #1770
+was closed unmerged and issue #1739 was closed as complete.
 
 **Earlier fail-safe evidence:** unenrolled draft PR #1742 exercised the merged advisory at final head
 `02964c13633c3c2440684bc574b58e528b1e4618`. Runs `33156842234` and `33156897196` produced byte-identical
 296-byte artifacts with SHA-256 `bef922ef5862e14a984972a54568fbe2526338b4fd3f246406624ec3a6dfb469` and the expected fail-safe
-`needs-human` / `contract.markers-invalid` result for unenrolled input. This established bounded deterministic failure
-behavior before the later enrolled proof established the contract, approval, refs, paths, and evidence bindings.
+`needs-human` / `contract.markers-invalid` result for unenrolled input. It also exercised genuine head-changing
+supersession: run `33141475497` at head `2276538275abc9783ace4e8abc36072277d9fae9` was cancelled after the PR advanced,
+and successor run `33141528367` passed at head `b5bbe70a4a1c69b3ea78a4e70159834c91cc5ef0`. This established fail-safe
+behavior and stale-head cancellation before the later enrolled proof established the contract, approval, refs, paths,
+and evidence bindings at one frozen head.
 
 ## Purpose and authority boundary
 
@@ -169,8 +173,9 @@ The implementation PR must contain only the seven paths in
 
 ## Completed post-merge controlled-draft proof
 
-Issue #1739 remained open after the implementation merge until one harmless controlled draft PR targeting `main`
-with a minimal approved contract and no provider/runtime effect verified at its exact head that:
+Issue #1739 remained open after the implementation merge until the evidence set combined the actual head-changing
+supersession already observed on controlled PR #1742 with one harmless enrolled draft PR targeting `main`. The
+enrolled draft used a minimal approved contract and no provider/runtime effect. Together, the evidence verified that:
 
 1. a supported event starts the workflow using the exact base evaluator;
 2. the job and artifact report the latest head, canonical contract, approval, refs, paths, and evidence consistently;
@@ -180,9 +185,11 @@ with a minimal approved contract and no provider/runtime effect verified at its 
    provider mutation; and
 6. cleanup/closure of the controlled draft was a separate human action recorded on #1739.
 
-Version-5 draft PR #1770 satisfied those criteria and was then closed unmerged by separate human-authorised action.
-The completion evidence is recorded on closed issue #1739 and reflected in parent issue #1557. This completion does
-not authorise Phase 3, semantic/model review, a required check, ruleset changes, or enforcement.
+PR #1742 satisfied criterion 4 with an actual head change. Version-5 draft PR #1770 satisfied the enrolled binding,
+deterministic replay, non-mutation, and separate-closure criteria and was then closed unmerged by separate
+human-authorised action. The completion evidence is recorded on closed issue #1739 and reflected in parent issue
+#1557. This completion does not authorise Phase 3, semantic/model review, a required check, ruleset changes, or
+enforcement.
 
 ## Rollback
 

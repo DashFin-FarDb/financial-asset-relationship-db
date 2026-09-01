@@ -3,7 +3,7 @@
 For the broader enterprise-readiness index, see [docs/enterprise-readiness-index.md](../enterprise-readiness-index.md).
 
 **Publication date:** 2026-06-25
-**Last updated:** 2026-08-18
+**Last updated:** 2026-09-01
 **Format:** Release evidence / Target-environment proof / Follow-up hardening
 **Purpose:** Sequence the remaining work after the PR #1287-#1301 enterprise-readiness reconciliation point
 
@@ -28,10 +28,9 @@ The critical database lane remains CQ-03D-02. A target-bound database maintenanc
 but Supabase support, IPv6-capable connectivity, and an exact-SHA/target protected single-use permit still have to be
 reconciled before the read-only hosted preflight. The later history marker remains a separate decision.
 
-While that external gate remains, the next repository lane is dependency reconciliation—not immediate merging.
-Depfu PRs #1741, #1743, and #1744 and Dependabot PRs #1745, #1746, and #1747 must be compared for package, manifest,
-lockfile, workflow, and transitive overlap before choosing an order. This checkpoint makes no merge-readiness claim
-for them.
+While that external gate remains, dependency work must continue through live overlap and drift assessment rather
+than immediate merging. The earlier Depfu PRs #1741, #1743, and #1744 and Dependabot PRs #1745, #1746, and #1747
+were reconciled and closed unmerged; they are not an active merge queue.
 
 ## Current critical-path programme — CQ-03 PostgreSQL ledger adoption
 

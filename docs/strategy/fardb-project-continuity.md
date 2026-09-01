@@ -5,7 +5,11 @@
 **Repository evidence cutoff:** `main` at `0984f6225cc0f42ff02a9f7eda7b314566d759d0`
 **Ratified setup baseline:** CQ-03B-R1 ratified on 2026-08-17 at `main@76f1194f1f9b83cb9ed8f0bb0083824ededbe0ae`
 **CQ-03C merge baseline:** `784d092f1204b59e612efd4ff3949f3e3fed12cf`
-**Continuity status:** CQ-03B-R1, CQ-03B-R2, CQ-03C, CQ-03D-00, and CQ-03D-01 are merged; GNC Phases 1 and 2 are complete; Phase 3 remains unauthorised; no CQ-03D-02 target or permit is approved, and no hosted preflight has been executed
+**Continuity status:**
+
+- **CQ-03:** CQ-03B-R1, CQ-03B-R2, CQ-03C, CQ-03D-00, and CQ-03D-01 are merged.
+- **GNC:** Phases 1 and 2 are complete; Phase 3 remains unauthorised.
+- **Hosted preflight:** no CQ-03D-02 target or permit is approved, and no hosted preflight has been executed.
 
 This ledger preserves durable project decisions, plans, milestones, and handoffs across ChatGPT, Codex, and
 repository work. It is an index of authoritative evidence, not a replacement for detailed specifications, issues,
@@ -44,7 +48,7 @@ At the evidence cutoff:
 - GNC Phase 1 is complete through issue
   [#1558](https://github.com/DashFin-FarDb/financial-asset-relationship-db/issues/1558) and merged PR
   [#1673](https://github.com/DashFin-FarDb/financial-asset-relationship-db/pull/1673).
-- GNC Phase 2 implementation merged through PR
+- GNC Phase 2 implementation is merged through PR
   [#1740](https://github.com/DashFin-FarDb/financial-asset-relationship-db/pull/1740). PR #1768 then merged the
   deterministic evidence-normalization repair as `857cdcf1ae6b39a18c84ddec3e3bf84f2e9e4831`. The ratified version-5
   controlled proof passed on draft PR #1770 at exact head `c8f0a9d5d3ec940f0fcd5d1451234c88d4213cd5`, base/policy
@@ -130,10 +134,22 @@ Primary authorities:
 - **Type:** Repository governance / exact-head evidence
 - **Status:** Phases 1 and 2 satisfied; Phase 3 not authorised
 - **Decision or objective:** Preserve the landed offline replay contract and the deterministic, trusted-target, non-blocking exact-head advisory; require every later phase to proceed through a separately approved exact-base child issue and one bounded PR.
-- **Rationale and constraints:** Phase 2 implementation, the PR #1768 evidence-normalization repair, and the enrolled version-5 proof establish bounded deterministic fail-safe and passing output, stale-run suppression, and exact binding of the approved contract, approval, refs, paths, and evidence. They do not justify semantic/model review, a required check, ruleset change, provider action, PR-code execution, auto-resolution, or merge enforcement.
+- **Rationale and constraints:** Phase 2 evidence collectively establishes bounded deterministic fail-safe and passing output, actual head-changing stale-run cancellation, same-head replay idempotence, and exact binding of the approved contract, approval, refs, paths, and evidence. It does not justify semantic/model review, a required check, ruleset change, provider action, PR-code execution, auto-resolution, or merge enforcement.
 - **Repository scope:** ADR 0011, parent issue #1557, completed Phase 1 issue #1558, closed Phase 2 issue #1739, merged PRs #1673, #1740, and #1768, earlier fail-safe evidence through PR #1742, controlled proof PR #1770 closed unmerged, and any future separately approved child contract.
 - **Dependencies or blockers:** Phase 2 has no remaining completion blocker. Phase 3 requires a new exact-base child contract, explicit ratification, a bounded shadow-mode corpus and measurement plan, exact allowed and forbidden files, rollback, merge criteria, stop conditions, and named human review.
-- **Evidence and provenance:** Phase 1: PR #1673 approved head `dde4427ebfc6807519a9fedf01e182ca43ee70d9`, merge commit `bca812c83bd8def01587dc2c050f8c8bc37ad1fc`, 107 resolved review threads, and 90 passing focused tests. Phase 2: PR #1740 approved head `272eb82ccadf2542bc67ffb93202db9ca18c3a7a`, merge commit `755814d7d226808051d16f9d17f80342326e6a2a`, and 156 focused tests; PR #1768 approved head `47e0522a5e072c070db44c9ae7de97c3d82e9043`, merge commit `857cdcf1ae6b39a18c84ddec3e3bf84f2e9e4831`; version-5 proof PR #1770 exact head `c8f0a9d5d3ec940f0fcd5d1451234c88d4213cd5`, contract hash `e4fd4afdcced98a5857f9b9a9add3b7356e0835a6c8ada2df956120dcb4efe24`, three byte-identical approval-bound passing artifacts, successful stale-run supersession, closure unmerged, and closed issue #1739.
+- **Evidence and provenance:**
+  - **Phase 1:** PR #1673 approved head `dde4427ebfc6807519a9fedf01e182ca43ee70d9`, merge commit
+    `bca812c83bd8def01587dc2c050f8c8bc37ad1fc`, 107 resolved review threads, and 90 passing focused tests.
+  - **Phase 2 implementation:** PR #1740 approved head `272eb82ccadf2542bc67ffb93202db9ca18c3a7a`, merge commit
+    `755814d7d226808051d16f9d17f80342326e6a2a`, and 156 focused tests.
+  - **Phase 2 repair:** PR #1768 approved head `47e0522a5e072c070db44c9ae7de97c3d82e9043`, merge commit
+    `857cdcf1ae6b39a18c84ddec3e3bf84f2e9e4831`.
+  - **Stale-head behavior:** PR #1742 run `33141475497` was cancelled at head
+    `2276538275abc9783ace4e8abc36072277d9fae9`; successor run `33141528367` passed after the head advanced to
+    `b5bbe70a4a1c69b3ea78a4e70159834c91cc5ef0`.
+  - **Controlled proof:** version-5 PR #1770 exact head `c8f0a9d5d3ec940f0fcd5d1451234c88d4213cd5`, contract hash
+    `e4fd4afdcced98a5857f9b9a9add3b7356e0835a6c8ada2df956120dcb4efe24`, three byte-identical approval-bound
+    passing artifacts, same-head superseded-run cancellation, closure unmerged, and closed issue #1739.
 - **Next action and completion test:** Keep Phase 2 advisory-only. Do not begin Phase 3 unless a later precision, appeal/override, recurrence, and stale-head measurement contract is separately ratified under a new exact-base child issue.
 - **Last updated:** 2026-09-01
 
@@ -606,10 +622,10 @@ evidence. Do not authorize the later migration-history marker in this step.
 Do not replay or reconstruct SQL under historical timestamps, run `supabase db pull` against hosted state, retain
 provider link state, apply DDL, or select `hosted-legacy-v1` as adopted before the separate history-action decision.
 Issue #1623 remains a small P2 follow-up and does not displace the CQ-03 programme. In parallel with the provider
-wait, keep the completed Phase 2 advisory non-blocking and reconcile the open
-automated dependency PRs as one overlap/drift inventory
-before selecting any merge order: Depfu #1741, #1743, and #1744; Dependabot #1745, #1746, and #1747. This listing is
-not a readiness or merge decision. Release repeatability (**FPC-2026-07-21-02**) remains active.
+wait, keep the completed Phase 2 advisory non-blocking. The earlier Depfu PRs #1741, #1743, and #1744 and Dependabot
+PRs #1745, #1746, and #1747 were reconciled and closed unmerged; they are not an active merge queue. New automated
+dependency work must be assessed from its live package, manifest, lockfile, workflow, and transitive scope. Release
+repeatability (**FPC-2026-07-21-02**) remains active.
 
 ### Completion test
 

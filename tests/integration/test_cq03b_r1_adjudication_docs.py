@@ -193,7 +193,7 @@ def test_historical_roadmap_cannot_select_current_work() -> None:
 def test_continuity_records_merged_r2_without_claiming_provider_delivery() -> None:
     """The durable handoff must record merged R2 and keep CQ-03D separately authorized."""
     continuity = _load(CONTINUITY)
-    header = "\n".join(continuity.splitlines()[:8])
+    header = continuity.split("\nThis ledger preserves", maxsplit=1)[0]
     assert SETUP_BASELINE in header
     assert "CQ-03B-R1 ratified on 2026-08-17" in header
     assert "ADR 0010" in continuity
@@ -212,7 +212,7 @@ def test_continuity_records_merged_r2_without_claiming_provider_delivery() -> No
 def test_continuity_records_merged_cq03c_without_claiming_hosted_adoption() -> None:
     """The handoff must advance CQ-03C but retain CQ-03D's separate authority."""
     continuity = _load(CONTINUITY)
-    header = "\n".join(continuity.splitlines()[:8])
+    header = continuity.split("\nThis ledger preserves", maxsplit=1)[0]
     assert CQ03C_MERGE in header
     assert "CQ-03C is implemented in draft PR #1643" not in continuity
     assert "CQ-03C was human-ratified" in continuity
@@ -255,7 +255,7 @@ def test_cq03d_progress_preserves_separate_authority_and_history_only_boundary()
     assert "target/permit approval and hosted preflight remain unexecuted" not in continuity
     assert "no DML beyond one permit-bound history marker" in roadmap
     assert "**Publication date:** 2026-06-25" in roadmap
-    assert "**Last updated:** 2026-08-18" in roadmap
+    assert "**Last updated:** 2026-09-01" in roadmap
 
     delivery_order = roadmap.split("## Proposed Delivery Order", maxsplit=1)[1]
     assert delivery_order.lstrip().startswith(
