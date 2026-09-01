@@ -16,6 +16,9 @@ import pytest
 import yaml
 
 BOOL_TAG = "tag:yaml.org,2002:bool"
+FLOAT_TAG = "tag:yaml.org,2002:float"
+INT_TAG = "tag:yaml.org,2002:int"
+TIMESTAMP_TAG = "tag:yaml.org,2002:timestamp"
 
 
 class GitHubActionsYamlLoader(yaml.SafeLoader):
@@ -35,7 +38,7 @@ GitHubActionsYamlLoader.yaml_implicit_resolvers = copy.deepcopy(GitHubActionsYam
 
 for ch, resolvers in list(GitHubActionsYamlLoader.yaml_implicit_resolvers.items()):
     GitHubActionsYamlLoader.yaml_implicit_resolvers[ch] = [
-        (tag, regexp) for tag, regexp in resolvers if tag != BOOL_TAG
+        (tag, regexp) for tag, regexp in resolvers if tag not in {BOOL_TAG, FLOAT_TAG, INT_TAG, TIMESTAMP_TAG}
     ]
 
 GitHubActionsYamlLoader.add_implicit_resolver(
@@ -43,6 +46,36 @@ GitHubActionsYamlLoader.add_implicit_resolver(
     re.compile(r"^(?:true|false)$", re.IGNORECASE),
     list("tTfF"),
 )
+
+GitHubActionsYamlLoader.add_implicit_resolver(
+    INT_TAG,
+    re.compile(r"^[-+]?(?:[0-9]+|0o[0-7]+|0x[0-9a-fA-F]+)$"),
+    list("-+0123456789"),
+)
+
+GitHubActionsYamlLoader.add_implicit_resolver(
+    FLOAT_TAG,
+    re.compile(
+        r"^[-+]?(?:(?:[0-9]+\.[0-9]*|\.[0-9]+)(?:[eE][-+]?[0-9]+)?|"
+        r"[0-9]+[eE][-+]?[0-9]+|\.(?:inf|Inf|INF)|\.(?:nan|NaN|NAN))$"
+    ),
+    list("-+0123456789."),
+)
+
+
+def construct_yaml_12_int(loader: GitHubActionsYamlLoader, node: yaml.ScalarNode) -> int:
+    """Construct YAML 1.2 integers without YAML 1.1's leading-zero octal rule."""
+    value = loader.construct_scalar(node)
+    sign = -1 if value.startswith("-") else 1
+    unsigned = value[1:] if value[:1] in {"-", "+"} else value
+    if unsigned.startswith("0o"):
+        return sign * int(unsigned[2:], 8)
+    if unsigned.startswith("0x"):
+        return sign * int(unsigned[2:], 16)
+    return sign * int(unsigned, 10)
+
+
+GitHubActionsYamlLoader.add_constructor(INT_TAG, construct_yaml_12_int)
 
 # Path to workflows directory
 WORKFLOWS_DIR = Path(__file__).parent.parent.parent / ".github" / "workflows"
@@ -85,9 +118,33 @@ def load_yaml_safe(file_path: Path) -> dict[str, Any]:
         return yaml.load(f, Loader=GitHubActionsYamlLoader)  # nosec B506
 
 
+def load_workflow_mapping_and_jobs(workflow_file: Path) -> tuple[dict[str, Any], dict[str, Any]]:
+    """Load one workflow and fail clearly unless its root and jobs are mappings."""
+    data = load_yaml_safe(workflow_file)
+    assert isinstance(data, dict), f"{workflow_file.name}: workflow document must be a mapping"
+
+    jobs = data.get("jobs", {})
+    assert isinstance(jobs, dict), f"{workflow_file.name}: jobs must be a mapping"
+    for job_name, job in jobs.items():
+        assert isinstance(job, dict), f"{workflow_file.name}: job {job_name!r} must be a mapping"
+
+    return data, jobs
+
+
+def github_env_comparison_key(value: Any) -> tuple[str, Any]:
+    """Canonicalize stable GitHub env scalars and preserve ambiguous scalar types."""
+    if value is None:
+        return ("runtime_text", "")
+    if isinstance(value, bool):
+        return ("runtime_text", str(value).lower())
+    if isinstance(value, (int, str)):
+        return ("runtime_text", str(value))
+    return (type(value).__qualname__, value)
+
+
 def assert_write_permissions_are_explicitly_scoped(workflow_file: Path) -> None:
     """Reject broad write access at workflow or job scope."""
-    data = load_yaml_safe(workflow_file)
+    data, jobs = load_workflow_mapping_and_jobs(workflow_file)
 
     def check_perms(perms: Any, location: str) -> None:
         """Require write access to use named permission scopes, not write-all."""
@@ -96,25 +153,25 @@ def assert_write_permissions_are_explicitly_scoped(workflow_file: Path) -> None:
     if "permissions" in data:
         check_perms(data["permissions"], "workflow-level")
 
-    for job_name, job in data.get("jobs", {}).items():
+    for job_name, job in jobs.items():
         if "permissions" in job:
             check_perms(job["permissions"], f"job {job_name!r}")
 
 
 def assert_no_redundant_job_env_values(workflow_file: Path) -> None:
-    """Reject job env entries that repeat the type and value from workflow scope."""
-    data = load_yaml_safe(workflow_file)
+    """Reject job env entries with the same runtime text as workflow scope."""
+    data, jobs = load_workflow_mapping_and_jobs(workflow_file)
     workflow_env = data.get("env", {})
+    assert isinstance(workflow_env, dict), f"{workflow_file.name}: workflow env must be a mapping"
 
-    for job_name, job in data.get("jobs", {}).items():
+    for job_name, job in jobs.items():
         job_env = job.get("env", {})
-        if not isinstance(workflow_env, dict) or not isinstance(job_env, dict):
-            continue
+        assert isinstance(job_env, dict), f"{workflow_file.name}: job {job_name!r} env must be a mapping"
 
         redundant_keys = sorted(
             key
             for key in workflow_env.keys() & job_env.keys()
-            if type(workflow_env[key]) is type(job_env[key]) and workflow_env[key] == job_env[key]
+            if github_env_comparison_key(workflow_env[key]) == github_env_comparison_key(job_env[key])
         )
         assert (
             not redundant_keys
@@ -2484,6 +2541,14 @@ class TestWorkflowPermissionsBestPractices:
         with pytest.raises(AssertionError, match="must not use write-all"):
             assert_write_permissions_are_explicitly_scoped(workflow_file)
 
+    def test_permission_boundary_rejects_non_mapping_workflow(self, tmp_path: Path):
+        """Fail clearly when permission policy receives an empty workflow."""
+        workflow_file = tmp_path / "empty.yml"
+        workflow_file.write_text("", encoding="utf-8")
+
+        with pytest.raises(AssertionError, match="workflow document must be a mapping"):
+            assert_write_permissions_are_explicitly_scoped(workflow_file)
+
 
 class TestWorkflowComplexScenarios:
     """Tests for complex workflow patterns."""
@@ -2692,6 +2757,61 @@ class TestWorkflowEnvironmentVariables:
         )
 
         assert_no_redundant_job_env_values(workflow_file)
+
+    @pytest.mark.parametrize(
+        ("workflow_value", "job_value"),
+        [("8080", '"8080"'), ("true", '"true"'), ("012", '"12"')],
+    )
+    def test_runtime_equivalent_env_scalars_are_rejected(
+        self,
+        tmp_path: Path,
+        workflow_value: str,
+        job_value: str,
+    ):
+        """Treat YAML scalars as redundant when GitHub exposes identical text."""
+        workflow_file = tmp_path / "runtime-equivalent-env.yml"
+        workflow_file.write_text(
+            f"name: runtime equivalent env\nenv:\n  VALUE: {workflow_value}\n"
+            f"jobs:\n  verify:\n    env:\n      VALUE: {job_value}\n",
+            encoding="utf-8",
+        )
+
+        with pytest.raises(AssertionError, match="redundantly repeats"):
+            assert_no_redundant_job_env_values(workflow_file)
+
+    @pytest.mark.parametrize(
+        ("workflow_value", "job_value"),
+        [
+            ("012", '"10"'),
+            ("1.0", '"1.0"'),
+            ("1e3", '"1e3"'),
+            ("1e3", '"1000"'),
+            ("1_000", '"1000"'),
+        ],
+    )
+    def test_non_equivalent_or_ambiguous_env_scalars_are_allowed(
+        self,
+        tmp_path: Path,
+        workflow_value: str,
+        job_value: str,
+    ):
+        """Avoid YAML 1.1 octal errors and uncertain cross-type float coercion."""
+        workflow_file = tmp_path / "distinct-env.yml"
+        workflow_file.write_text(
+            f"name: distinct env\nenv:\n  VALUE: {workflow_value}\n"
+            f"jobs:\n  verify:\n    env:\n      VALUE: {job_value}\n",
+            encoding="utf-8",
+        )
+
+        assert_no_redundant_job_env_values(workflow_file)
+
+    def test_env_boundary_rejects_non_mapping_jobs(self, tmp_path: Path):
+        """Fail clearly when a workflow's jobs value is not a mapping."""
+        workflow_file = tmp_path / "invalid-jobs.yml"
+        workflow_file.write_text("name: invalid jobs\njobs: []\n", encoding="utf-8")
+
+        with pytest.raises(AssertionError, match="jobs must be a mapping"):
+            assert_no_redundant_job_env_values(workflow_file)
 
 
 class TestWorkflowScheduledExecutionBestPractices:
