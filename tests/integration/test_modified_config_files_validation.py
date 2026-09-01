@@ -2,17 +2,45 @@
 Validation tests for configuration files modified in the current branch.
 
 Tests cover:
+- .deepsource.toml
 - .github/pr-agent-config.yml
 - .github/workflows/*.yml
 - requirements-dev.txt
 - Deletion validation for removed files
 """
 
+import re
 from pathlib import Path
 from typing import Any
 
 import pytest
 import yaml
+
+
+class TestDeepSourceFormatterOwnership:
+    """Validate that DeepSource does not run the known conflicting Ruff formatter."""
+
+    @pytest.fixture
+    @staticmethod
+    def config_content() -> str:
+        """Load the DeepSource configuration."""
+        config_path = Path(__file__).parent.parent.parent / ".deepsource.toml"
+        return config_path.read_text(encoding="utf-8")
+
+    def test_ruff_formatter_is_removed_without_changing_other_owners(self, config_content: str) -> None:
+        """Remove only Ruff Formatter while preserving the existing formatter sequence."""
+        formatter_names = re.findall(
+            r'\[\[code_formatters\]\]\s*name\s*=\s*"([^"]+)"',
+            config_content,
+        )
+
+        assert formatter_names == [
+            "black",
+            "autopep8",
+            "isort",
+            "standardjs",
+            "prettier",
+        ]
 
 
 class TestPRAgentConfigChanges:
