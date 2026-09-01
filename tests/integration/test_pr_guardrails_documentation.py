@@ -176,6 +176,7 @@ class TestAgentTaskEntryRoute:
     """Validate the task-entry stop boundary."""
 
     def test_distinguishes_universal_and_risk_bounded_stop_conditions(self) -> None:
+        """Keep universal brief failures separate from risk-bounded failures."""
         content = " ".join(_load(AGENT_TASK_ENTRY_FILE).split())
         expected = (
             "Stop and obtain a corrected brief if the brief is absent or contradictory. For any high-risk or "
