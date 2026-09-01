@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import re
-import shlex
 from pathlib import Path
 
 import pytest
@@ -26,9 +25,11 @@ EXPECTED_PROBES = {
     ".github/workflows/python-package.yml": 2,
     "scripts/ci_install_python_deps.sh": 1,
 }
-SHELL_SEPARATORS = {";", "&&", "||", "|", "&"}
-PIP_COMMAND = re.compile(r"pip(?:\d+(?:\.\d+)*)?")
-BOOTSTRAP_PACKAGE_ARGUMENT = re.compile(r"(?:^|\s)(?:pip|setuptools|wheel)(?:$|[\s<>=!~])")
+PIP_INSTALL = re.compile(
+    r"(?:^|[;&|])[^;&|#]*(?<![\w-])pip(?:\d+(?:\.\d+)*)?(?![\w.-])" r"[^;&|#]*?\binstall\b(?P<arguments>[^;&|#]*)",
+    flags=re.IGNORECASE,
+)
+BOOTSTRAP_PACKAGE_ARGUMENT = re.compile(r"(?:^|\s)(?:pip|setuptools|wheel)(?:$|[\s<>=!~\[])")
 
 
 def _ci_install_surfaces() -> list[Path]:
@@ -63,53 +64,16 @@ def _logical_shell_lines(content: str) -> list[tuple[int, str]]:
     return logical_lines
 
 
-def _shell_tokens(line: str) -> list[str]:
-    """Tokenize one logical shell line, ignoring comments."""
-    lexer = shlex.shlex(line, posix=True, punctuation_chars=";&|")
-    lexer.whitespace_split = True
-    lexer.commenters = "#"
-    try:
-        return list(lexer)
-    except ValueError:
-        return line.split("#", maxsplit=1)[0].split()
-
-
-def _shell_commands(tokens: list[str]) -> list[list[str]]:
-    """Split tokens at shell command separators."""
-    commands: list[list[str]] = [[]]
-    for token in tokens:
-        if token in SHELL_SEPARATORS:
-            commands.append([])
-        else:
-            commands[-1].append(token)
-    return [command for command in commands if command]
-
-
-def _pip_install_arguments(command: list[str]) -> list[str]:
-    """Return arguments to a pip install command after global options."""
-    pip_index = next((index for index, token in enumerate(command) if PIP_COMMAND.fullmatch(token)), None)
-    if pip_index is None:
-        return []
-    try:
-        install_index = command.index("install", pip_index + 1)
-    except ValueError:
-        return []
-    return command[install_index + 1 :]
-
-
-def _command_installs_bootstrap_package(command: list[str]) -> bool:
-    """Return whether one pip command installs a bootstrap package."""
-    arguments = " " + " ".join(_pip_install_arguments(command))
-    return bool(BOOTSTRAP_PACKAGE_ARGUMENT.search(arguments))
-
-
 def _explicit_bootstrap_installs(content: str) -> list[tuple[int, str]]:
     """Return explicit pip installs of pip, setuptools, or wheel."""
-    return [
-        (line_number, line.strip())
-        for line_number, line in _logical_shell_lines(content)
-        if any(_command_installs_bootstrap_package(command) for command in _shell_commands(_shell_tokens(line)))
-    ]
+    offenders: list[tuple[int, str]] = []
+    for line_number, line in _logical_shell_lines(content):
+        for install in PIP_INSTALL.finditer(line):
+            arguments = install.group("arguments").replace('"', "").replace("'", "")
+            if BOOTSTRAP_PACKAGE_ARGUMENT.search(arguments):
+                offenders.append((line_number, line.strip()))
+                break
+    return offenders
 
 
 @pytest.mark.unit
@@ -150,6 +114,10 @@ def test_ci_configs_do_not_install_bootstrap_packages() -> None:
         'pip install "wheel==0.46.1"',
         "python -m pip --disable-pip-version-check install --upgrade pip",
         "pip3.12 --isolated install wheel",
+        "/usr/bin/pip install --upgrade pip",
+        "$PIP install -U setuptools",
+        "$(command -v pip) install wheel",
+        'pip install "setuptools[core]==75.0"',
         "pip install --upgrade \\\n  pip",
         "pip install pylint && pip install wheel",
     ],
@@ -161,6 +129,10 @@ def test_ci_configs_do_not_install_bootstrap_packages() -> None:
         "quoted-pin",
         "global-option",
         "versioned-global-option",
+        "absolute-path",
+        "environment-variable",
+        "command-substitution",
+        "package-extra",
         "continued",
         "second-command",
     ],
@@ -184,9 +156,10 @@ def test_detector_preserves_physical_start_line_after_continuation() -> None:
         "python -m pip --version",
         "pip install -r requirements.txt",
         "pip install pip-audit",
+        "pip-audit install wheel",
         "python -m pip --version && pip install pylint",
     ],
-    ids=["probe", "requirements", "prefixed-package", "chained-safe-install"],
+    ids=["probe", "requirements", "prefixed-package", "different-command", "chained-safe-install"],
 )
 def test_explicit_bootstrap_install_detector_allows_package_inputs(command: str) -> None:
     """Ordinary project and tool installs are outside the bootstrap prohibition."""
