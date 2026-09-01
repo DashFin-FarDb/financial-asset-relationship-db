@@ -49,6 +49,8 @@ jobs:
             echo "available=false" >> "$GITHUB_OUTPUT"
           fi
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
         if: ${{ steps.snyk-token.outputs.available == 'true' }}
       - name: Skip Snyk when token is unavailable
         if: ${{ steps.snyk-token.outputs.available == 'false' }}
