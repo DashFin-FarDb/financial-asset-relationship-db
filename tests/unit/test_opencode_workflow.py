@@ -57,15 +57,16 @@ def test_opencode_job_requires_the_exact_trusted_association_set() -> None:
 def test_opencode_command_gate_remains_bounded() -> None:
     """Preserve the four supported command positions behind the trust gate."""
     condition = " ".join(str(_opencode_job()["if"]).split())
-    expected = " ".join("""
-        contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.comment.author_association) &&
-        (
-          contains(github.event.comment.body, ' /oc') ||
-          startsWith(github.event.comment.body, '/oc') ||
-          contains(github.event.comment.body, ' /opencode') ||
-          startsWith(github.event.comment.body, '/opencode')
-        )
-        """.split())
+    expected = (
+        'contains(fromJSON(\'["OWNER","MEMBER","COLLABORATOR"]\'), '
+        "github.event.comment.author_association) && "
+        "( "
+        "contains(github.event.comment.body, ' /oc') || "
+        "startsWith(github.event.comment.body, '/oc') || "
+        "contains(github.event.comment.body, ' /opencode') || "
+        "startsWith(github.event.comment.body, '/opencode') "
+        ")"
+    )
 
     assert condition == expected
 
