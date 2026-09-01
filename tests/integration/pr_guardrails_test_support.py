@@ -5,30 +5,40 @@ from __future__ import annotations
 import re
 
 
+def _fence_parts(line: str) -> tuple[str, int, str] | None:
+    """Return marker character, length, and remainder for a Markdown fence."""
+    match = re.match(r"^ {0,3}(`{3,}|~{3,})(.*)$", line)
+    if match is None:
+        return None
+    marker, remainder = match.groups()
+    return marker[0], len(marker), remainder
+
+
+def _closes_fence(active_fence: tuple[str, int], candidate: tuple[str, int, str] | None) -> bool:
+    """Return whether a candidate is a valid close for the active fence."""
+    if candidate is None:
+        return False
+    marker, length, remainder = candidate
+    if marker != active_fence[0] or length < active_fence[1]:
+        return False
+    return not remainder.strip()
+
+
 def _outside_fenced_code(lines: list[str]) -> list[bool]:
     """Mark lines outside Markdown backtick or tilde fenced code blocks."""
     outside: list[bool] = []
     active_fence: tuple[str, int] | None = None
     for line in lines:
-        stripped = line.lstrip(" ")
-        indentation = len(line) - len(stripped)
-        fence_match = re.match(r"(`{3,}|~{3,})(.*)$", stripped) if indentation <= 3 else None
-
-        if active_fence is not None:
-            outside.append(False)
-            if fence_match is not None:
-                marker, remainder = fence_match.groups()
-                if marker[0] == active_fence[0] and len(marker) >= active_fence[1] and not remainder.strip():
-                    active_fence = None
+        fence = _fence_parts(line)
+        if active_fence is None:
+            outside.append(fence is None)
+            if fence is not None:
+                active_fence = (fence[0], fence[1])
             continue
 
-        if fence_match is not None:
-            marker = fence_match.group(1)
-            active_fence = (marker[0], len(marker))
-            outside.append(False)
-            continue
-
-        outside.append(True)
+        outside.append(False)
+        if _closes_fence(active_fence, fence):
+            active_fence = None
     return outside
 
 
