@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+import shlex
 from pathlib import Path
 
 import pytest
@@ -31,9 +32,12 @@ def _ci_install_surfaces() -> list[Path]:
     """Return every workflow and helper that installs CI dependencies."""
     workflows_dir = PROJECT_ROOT / ".github" / "workflows"
     workflows = sorted({*workflows_dir.glob("*.yml"), *workflows_dir.glob("*.yaml")})
+    actions_dir = PROJECT_ROOT / ".github" / "actions"
+    composite_actions = sorted({*actions_dir.rglob("action.yml"), *actions_dir.rglob("action.yaml")})
     return [
         PROJECT_ROOT / ".circleci" / "config.yml",
         *workflows,
+        *composite_actions,
         PROJECT_ROOT / "scripts" / "ci_install_python_deps.sh",
     ]
 
@@ -59,17 +63,34 @@ def _logical_shell_lines(content: str) -> list[tuple[int, str]]:
 def _explicit_bootstrap_installs(content: str) -> list[tuple[int, str]]:
     """Return explicit pip installs of pip, setuptools, or wheel."""
     package_argument = re.compile(r"(?:^|\s)(?:pip|setuptools|wheel)(?:$|[\s<>=!~])")
+    pip_command = re.compile(r"pip(?:\d+(?:\.\d+)*)?")
     offenders: list[tuple[int, str]] = []
     for line_number, line in _logical_shell_lines(content):
-        installs = re.finditer(
-            r"\bpip(?:\d+(?:\.\d+)*)?\s+install\b(?P<arguments>[^;&|]*)",
-            line,
-        )
-        for install in installs:
-            arguments = install.group("arguments").split("#", maxsplit=1)[0]
-            unquoted_arguments = arguments.replace('"', "").replace("'", "")
-            if package_argument.search(unquoted_arguments):
-                offenders.append((line_number, line.strip()))
+        lexer = shlex.shlex(line, posix=True, punctuation_chars=";&|")
+        lexer.whitespace_split = True
+        lexer.commenters = "#"
+        try:
+            tokens = list(lexer)
+        except ValueError:
+            tokens = line.split("#", maxsplit=1)[0].split()
+
+        command_start = 0
+        for token_index in range(len(tokens) + 1):
+            if token_index < len(tokens) and tokens[token_index] not in {";", "&&", "||", "|", "&"}:
+                continue
+            command = tokens[command_start:token_index]
+            command_start = token_index + 1
+            for pip_index, token in enumerate(command):
+                if not pip_command.fullmatch(token):
+                    continue
+                try:
+                    install_index = command.index("install", pip_index + 1)
+                except ValueError:
+                    continue
+                arguments = " " + " ".join(command[install_index + 1 :])
+                if package_argument.search(arguments):
+                    offenders.append((line_number, line.strip()))
+                    break
     return offenders
 
 
@@ -109,6 +130,8 @@ def test_ci_configs_do_not_install_bootstrap_packages() -> None:
         "pip3 install wheel",
         "pip3.12 install setuptools",
         'pip install "wheel==0.46.1"',
+        "python -m pip --disable-pip-version-check install --upgrade pip",
+        "pip3.12 --isolated install wheel",
         "pip install --upgrade \\\n  pip",
         "pip install pylint && pip install wheel",
     ],
@@ -118,6 +141,8 @@ def test_ci_configs_do_not_install_bootstrap_packages() -> None:
         "pip3",
         "versioned-pip",
         "quoted-pin",
+        "global-option",
+        "versioned-global-option",
         "continued",
         "second-command",
     ],
@@ -154,7 +179,9 @@ def test_explicit_bootstrap_install_detector_allows_package_inputs(command: str)
 def test_dependency_policy_defines_trusted_bootstrap_boundary() -> None:
     """The authoritative dependency policy records the fixed CI decision."""
     policy = (PROJECT_ROOT / "docs" / "DEPENDENCY_POLICY.md").read_text(encoding="utf-8")
-    section = policy.split("## CI bootstrap boundary", maxsplit=1)[1].split("\n## ", maxsplit=1)[0]
+    _, section_header, remainder = policy.partition("## CI bootstrap boundary")
+    assert section_header, "dependency policy is missing the CI bootstrap boundary section"
+    section = remainder.partition("\n## ")[0]
     assert PROBE in section
     assert "trusted-bootstrap boundary" in section
     assert "must not perform a floating network" in section
