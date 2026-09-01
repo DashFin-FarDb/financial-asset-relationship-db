@@ -44,7 +44,7 @@ jobs:
           requirements.txt
           requirements-dev.txt
         install: |
-          python -m pip install --upgrade pip && \
+          python -m pip --version && \
           pip install pylint && pip install -r requirements-dev.txt
         test: |
           pylint $(git ls-files '*.py')

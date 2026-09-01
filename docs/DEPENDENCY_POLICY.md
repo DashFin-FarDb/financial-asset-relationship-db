@@ -28,7 +28,7 @@ Packaging and editable-install surface.
 Use this file for:
 
 - package metadata
-- build system configuration
+- build tool configuration
 - a runtime dependency surface that mirrors `requirements.txt` closely enough for `pip install -e .`
 
 Rule:
@@ -65,6 +65,35 @@ Rule:
 
 - if a validator or workflow disagrees with the dependency policy, fix the validator or workflow
 - do not distort dependency files to satisfy a stale assumption
+
+## CI bootstrap boundary
+
+CI trusts the packaging tools supplied by its selected Python runtime. GitHub
+Actions obtains that runtime through a commit-pinned `actions/setup-python`
+invocation, directly or through the repository's pinned local composite action.
+CircleCI obtains it from the configured, reviewed `cimg/python:3.12` executor
+tag. That tag is not an immutable image digest and can be rebuilt upstream; the
+current boundary explicitly trusts that provider-managed tag.
+
+That provider-supplied `pip`, `setuptools`, and `wheel` surface is the narrow
+trusted-bootstrap boundary. A job must not perform a floating network
+self-upgrade of those tools before installing the repository's existing package
+inputs. Every current bootstrap site must instead record the runtime identity
+with this exact command:
+
+```bash
+python -m pip --version
+```
+
+The version record is build evidence; it is not a new dependency source of
+truth. Changing the Python setup action, executor tag or digest, or bootstrap
+model is a separate dependency decision and must be reviewed explicitly. If a
+supported job cannot install its unchanged inputs with the supplied tooling,
+stop and review that runtime boundary rather than adding an unpinned
+self-upgrade.
+
+This boundary does not change project dependencies, scanner roots, or the
+separate PEP 517 build-isolation behavior declared by `pyproject.toml`.
 
 ## Dependency change order of operations
 
