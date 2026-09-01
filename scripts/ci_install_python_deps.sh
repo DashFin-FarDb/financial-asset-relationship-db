@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Install Python runtime + dev deps for CI (wheels only).
-# Kept in a helper because githubactions:S8544 cannot resolve pinned -r inputs.
+# Kept in a helper because githubactions:S8544 cannot resolve requirements-file (-r) inputs.
 set -euo pipefail
 
 python -m pip --version
