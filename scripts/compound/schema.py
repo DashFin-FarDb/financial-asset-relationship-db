@@ -105,6 +105,7 @@ _PATH_DOMAIN_RULES: tuple[tuple[str, str], ...] = (
     ("docs/reconciliation", "rebuild-reconciliation"),
     (".github/", "ci-guardrails"),
     ("docs/PR_SCOPE", "ci-guardrails"),
+    ("docs/HIGH_RISK_CHANGE_GUARDRAILS.md", "ci-guardrails"),
     ("docs/staging", "deployment"),
     ("docs/release", "deployment"),
     ("docs/enterprise-deployment", "deployment"),

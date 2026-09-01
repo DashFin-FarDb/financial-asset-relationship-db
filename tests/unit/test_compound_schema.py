@@ -114,6 +114,7 @@ class TestCompoundSchema:
         assert "persistence" in detect_domains_from_paths(["src/data/sample_data.py"])
         assert "rebuild-reconciliation" in detect_domains_from_paths(["src/logic/reconciliation_engine.py"])
         assert "ci-guardrails" in detect_domains_from_paths([".github/workflows/ci.yml"])
+        assert detect_domains_from_paths(["docs/HIGH_RISK_CHANGE_GUARDRAILS.md"]) == ("ci-guardrails",)
         assert "deployment" in detect_domains_from_paths(["docs/staging-deployment-operating-baseline.md"])
         multi = detect_domains_from_paths(["api/auth.py", "docs/adr/0001-production-architecture.md"])
         assert "api" in multi

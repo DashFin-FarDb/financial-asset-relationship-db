@@ -67,6 +67,7 @@ class TestCompoundBootstrap:
         captured: list[dict[str, object]] = []
 
         def capture_payload(payload: dict[str, object], *, repo_root: Path) -> tuple[Path, str]:
+            """Capture one seed payload without crossing the POSIX lock boundary."""
             captured.append(payload)
             return repo_root / "docs/compound/ledger/observations.jsonl", "appended"
 
