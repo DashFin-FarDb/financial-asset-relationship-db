@@ -40,9 +40,10 @@ EXPECTED_AUTOMATED_PR_FIELDS = [
 
 def _assert_canonical_automated_pr_fields(section: str) -> None:
     """Require every numbered entry to be one canonical formatted field."""
-    entries = re.findall(r"^(\d+)\.(.*)$", section, re.MULTILINE)
+    entries = re.findall(r"^ {0,3}(\d+)([.)])(.*)$", section, re.MULTILINE)
     fields: list[tuple[str, str]] = []
-    for number, entry in entries:
+    for number, marker, entry in entries:
+        assert marker == ".", f"Automated PR field {number} must use the canonical '.' marker"
         field = re.fullmatch(r" \*\*([^*]+)\*\*: .+", entry)
         assert field is not None, f"Automated PR field {number} must use 'N. **Name**: description'"
         fields.append((number, field.group(1)))
@@ -321,9 +322,11 @@ class TestPRScopeGuardrailsDoc:
         [
             "7. Security Notes",
             "7.**Security Notes**: missing separator space",
+            "  7. **Security Notes**: indented unapproved field",
+            "7) **Security Notes**: alternate ordered-list marker",
             "7. **Security Notes**: an unapproved seventh field",
         ],
-        ids=["malformed", "missing-space", "well-formed"],
+        ids=["malformed", "missing-space", "indented", "alternate-marker", "well-formed"],
     )
     def test_required_pr_description_sections_rejects_additional_numbered_items(
         self, content: str, extra_field: str
