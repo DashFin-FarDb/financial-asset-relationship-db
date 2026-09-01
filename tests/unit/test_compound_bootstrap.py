@@ -57,6 +57,28 @@ class TestCompoundBootstrap:
             {"architecture", "api", "persistence", "ci-guardrails", "rebuild-reconciliation", "deployment"}
         )
 
+    def test_high_risk_guardrails_seed_is_canonical_ci_policy(
+        self, seed_repo: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Canonical high-risk guardrails seed the CI guardrails domain."""
+        rel_path = "docs/HIGH_RISK_CHANGE_GUARDRAILS.md"
+        assert (rel_path, ("ci-guardrails",)) in SEED_DOCS
+
+        captured: list[dict[str, object]] = []
+
+        def capture_payload(payload: dict[str, object], *, repo_root: Path) -> tuple[Path, str]:
+            """Capture one seed payload without crossing the POSIX lock boundary."""
+            captured.append(payload)
+            return repo_root / "docs/compound/ledger/observations.jsonl", "appended"
+
+        monkeypatch.setattr(bootstrap_mod, "append_observation", capture_payload)
+        seed_from_docs(seed_repo)
+        matching = [payload for payload in captured if payload["primary_ref"] == f"doc:{rel_path}"]
+
+        assert len(matching) == 1
+        assert matching[0]["domains"] == ["ci-guardrails"]
+        assert matching[0]["evidence_pointers"] == [rel_path]
+
     def test_seed_does_not_write_denylisted_paths(self, seed_repo: Path) -> None:
         """Bootstrap only appends ledger; ADR bytes remain unchanged."""
         adr = seed_repo / "docs/adr/0001-production-architecture.md"

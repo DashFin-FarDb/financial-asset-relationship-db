@@ -93,6 +93,14 @@ class TestCompoundSchema:
         with pytest.raises(PathPolicyError, match="denylist"):
             assert_writable("AGENTS.md")
 
+    def test_high_risk_guardrails_are_human_owned_and_denylisted(self) -> None:
+        """Compound writers fail closed for the canonical high-risk policy."""
+        path = "docs/HIGH_RISK_CHANGE_GUARDRAILS.md"
+        assert path in WRITE_DENYLIST_PREFIXES
+        assert is_denylisted(path)
+        with pytest.raises(PathPolicyError, match="denylist"):
+            assert_writable(path)
+
     def test_unknown_path_not_allowlisted(self) -> None:
         """Paths outside allowlist are rejected even if not denylisted."""
         with pytest.raises(PathPolicyError, match="not allowlisted"):
@@ -106,6 +114,7 @@ class TestCompoundSchema:
         assert "persistence" in detect_domains_from_paths(["src/data/sample_data.py"])
         assert "rebuild-reconciliation" in detect_domains_from_paths(["src/logic/reconciliation_engine.py"])
         assert "ci-guardrails" in detect_domains_from_paths([".github/workflows/ci.yml"])
+        assert detect_domains_from_paths(["docs/HIGH_RISK_CHANGE_GUARDRAILS.md"]) == ("ci-guardrails",)
         assert "deployment" in detect_domains_from_paths(["docs/staging-deployment-operating-baseline.md"])
         multi = detect_domains_from_paths(["api/auth.py", "docs/adr/0001-production-architecture.md"])
         assert "api" in multi
