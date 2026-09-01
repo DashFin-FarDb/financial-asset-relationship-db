@@ -43,6 +43,7 @@ SEED_DOCS: tuple[tuple[str, tuple[str, ...]], ...] = (
     (".github/AUTOMATION_SCOPE_POLICY.md", ("ci-guardrails",)),
     (".github/AI_AGENT_GUARDRAILS.md", ("ci-guardrails",)),
     ("docs/PR_SCOPE_GUARDRAILS.md", ("ci-guardrails",)),
+    ("docs/HIGH_RISK_CHANGE_GUARDRAILS.md", ("ci-guardrails",)),
     ("docs/reconciliation-discovery-map.md", ("rebuild-reconciliation",)),
     ("docs/reconciliation-engine.md", ("rebuild-reconciliation",)),
     ("docs/governance/state-machine-and-operating-authority.md", ("rebuild-reconciliation",)),

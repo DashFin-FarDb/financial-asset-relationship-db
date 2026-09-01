@@ -50,6 +50,7 @@ WRITE_ALLOWLIST_PREFIXES: tuple[str, ...] = (
 # - .github/AI_AGENT_GUARDRAILS.md: agent guardrail policy
 # - .github/copilot-instructions.md: Copilot instruction policy
 # - docs/PR_SCOPE_GUARDRAILS.md: PR scope policy
+# - docs/HIGH_RISK_CHANGE_GUARDRAILS.md: high-risk change policy
 # - docs/GOVERNANCE.md: governance policy
 # - docs/DEPENDENCY_POLICY.md: dependency policy
 # - docs/lessons/: durable lessons (human-curated)
@@ -60,6 +61,7 @@ WRITE_DENYLIST_PREFIXES: tuple[str, ...] = (
     ".github/AI_AGENT_GUARDRAILS.md",
     ".github/copilot-instructions.md",
     "docs/PR_SCOPE_GUARDRAILS.md",
+    "docs/HIGH_RISK_CHANGE_GUARDRAILS.md",
     "docs/GOVERNANCE.md",
     "docs/DEPENDENCY_POLICY.md",
     "docs/lessons/",
