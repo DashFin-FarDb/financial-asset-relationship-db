@@ -273,9 +273,9 @@ class TestHighRiskChangeGuardrails:
         ]
         canonical = HIGH_RISK_GUARDRAILS_FILE.resolve()
         for path in navigation_files:
-            assert canonical in _resolved_local_markdown_links(
-                path
-            ), f"{path.relative_to(REPO_ROOT)} must have a resolving link to the canonical high-risk contract"
+            assert canonical in _resolved_local_markdown_links(path), (
+                f"{path.relative_to(REPO_ROOT)} must have a resolving link to the canonical high-risk contract"
+            )
 
 
 # ---------------------------------------------------------------------------
