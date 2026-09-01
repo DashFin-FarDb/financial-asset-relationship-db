@@ -3,7 +3,7 @@
 For the broader enterprise-readiness index, see [docs/enterprise-readiness-index.md](../enterprise-readiness-index.md).
 
 **Publication date:** 2026-06-25
-**Last updated:** 2026-08-18
+**Last updated:** 2026-09-01
 **Format:** Release evidence / Target-environment proof / Follow-up hardening
 **Purpose:** Sequence the remaining work after the PR #1287-#1301 enterprise-readiness reconciliation point
 
@@ -16,21 +16,21 @@ The release evidence pack also exists and governs release-proof capture.
 
 The remaining roadmap is about release execution: attaching target-environment evidence, rehearsing restore, and closing bounded follow-up seams without reopening the architecture.
 
-## Current execution checkpoint — 2026-08-30
+## Current execution checkpoint — 2026-09-01
 
-Current `main@f919a4237b4c7ce56fed7af92cee7f0938f3dcba` includes GNC Phase 2's deterministic non-blocking
-advisory implementation (PR #1740), the safe local WSL observability launcher and a partial unenrolled-input proof
-(PR #1742), and native-Windows-safe SQLite CI paths (PR #1748). The enrolled controlled-draft proof required by
-#1739 remains open; GNC Phase 3 and enforcement are not authorised.
+Current `main@0984f6225cc0f42ff02a9f7eda7b314566d759d0` includes GNC Phase 2's deterministic non-blocking
+advisory implementation (PR #1740), the safe local WSL observability launcher and earlier unenrolled-input proof
+(PR #1742), native-Windows-safe SQLite CI paths (PR #1748), and the deterministic evidence-normalization repair
+(PR #1768). The enrolled version-5 controlled proof passed on PR #1770; that draft was closed unmerged and issue #1739
+was closed as complete. GNC Phase 3 and enforcement are not authorised.
 
 The critical database lane remains CQ-03D-02. A target-bound database maintenance window is approved in principle,
 but Supabase support, IPv6-capable connectivity, and an exact-SHA/target protected single-use permit still have to be
 reconciled before the read-only hosted preflight. The later history marker remains a separate decision.
 
-While that external gate remains, the next repository lane is dependency reconciliation—not immediate merging.
-Depfu PRs #1741, #1743, and #1744 and Dependabot PRs #1745, #1746, and #1747 must be compared for package, manifest,
-lockfile, workflow, and transitive overlap before choosing an order. This checkpoint makes no merge-readiness claim
-for them.
+While that external gate remains, dependency work must continue through live overlap and drift assessment rather
+than immediate merging. The earlier Depfu PRs #1741, #1743, and #1744 and Dependabot PRs #1745, #1746, and #1747
+were reconciled and closed unmerged; they are not an active merge queue.
 
 ## Current critical-path programme — CQ-03 PostgreSQL ledger adoption
 
@@ -41,8 +41,8 @@ permit-bound, read-only hosted preflight. This is not hosted adoption evidence: 
 in principle, but Supabase support, IPv6 connectivity, and the executable exact-target permit remain unresolved, and
 no hosted preflight has been executed.
 
-| Item                                     | Status                                                                                   | Next evidence required                                                                                                | Non-negotiable boundary                                                                                                                                      |
-| ---------------------------------------- | ---------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Item                                     | Status                                                                                                                             | Next evidence required                                                                                                                                                                   | Non-negotiable boundary                                                                                                                                      |
+| ---------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | CQ-03D hosted migration-history adoption | Partially satisfied — D-01 merged and verified at repository scope; target/permit absent; maintenance window approved in principle | D-02: separately approve one target and protected single-use permit after reconciling Supabase support and IPv6, bind the reviewed SHA, then obtain a passing hosted read-only preflight | History-only reconciliation; no DDL; no DML beyond one permit-bound history marker; no grant, role, credential, deployment, or provider-configuration change |
 
 The CQ-03D-01 target adapter contract was human-ratified on 2026-08-18 and merged through PR #1646 at verified squash

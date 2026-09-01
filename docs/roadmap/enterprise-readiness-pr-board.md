@@ -6,12 +6,14 @@ For the broader enterprise-readiness index, see [docs/enterprise-readiness-index
 **Format:** Release evidence board
 **Purpose:** Track enterprise-readiness PR outcomes and the remaining release-evidence gates after PR #1287-#1301
 
-**Current reconciliation checkpoint — 2026-08-30:** `main@f919a4237b4c7ce56fed7af92cee7f0938f3dcba` includes
-the GNC Phase 2 implementation (PR #1740), the local observability launcher (PR #1742), and the Windows SQLite CI
-repair (PR #1748). The enrolled controlled-draft proof required to complete GNC Phase 2 remains open. CQ-03D-02
+**Current reconciliation checkpoint — 2026-09-01:** `main@0984f6225cc0f42ff02a9f7eda7b314566d759d0` includes
+the GNC Phase 2 implementation (PR #1740), the local observability launcher and earlier unenrolled-input proof
+(PR #1742), the Windows SQLite CI repair (PR #1748), and the deterministic evidence-normalization repair (PR #1768).
+The enrolled version-5 proof passed on PR #1770; the draft was closed unmerged and issue #1739 was closed as complete.
+Phase 3 and enforcement remain explicitly unauthorised. CQ-03D-02
 remains blocked on Supabase support, IPv6-capable connectivity, and an exact-SHA/target protected single-use permit
-despite approval in principle for a target-bound maintenance window. Automated dependency PRs #1741 and #1743-#1747
-are an overlap/drift assessment queue, not approved merge work.
+despite approval in principle for a target-bound maintenance window. The earlier automated dependency cohort in
+PRs #1741 and #1743-#1747 is closed and is no longer an active merge queue.
 
 Status legend follows the [Release Evidence Pack](../release-evidence-pack.md): **Satisfied - automated**, **Satisfied - documented**, **Satisfied - manual evidence required**, **Partially satisfied**, and **Blocked**.
 
@@ -63,7 +65,7 @@ Do not reopen closed PR1–9 rows; track hardening here and in the evidence pack
 | H-P1-01           | Satisfied - automated                | `--require-persistence` auto-enables `--assets-smoke` in hosted readiness                                                | Empty persisted graphs fail promotion    |
 | H-P1-02           | Satisfied - automated                | `production-promotion.yml` twin of staging (prod Environment + persistence/assets smoke)                                 | Mixing with Docker/compose P1 work       |
 | H-P1-03           | Satisfied - automated                | `post-recovery-readiness.yml` mandatory re-smoke + context-named artifacts                                               | Reusing promotion artifact names         |
-| H-P1-04           | Satisfied - documented               | Policy ↔ Mergify ↔ workflow job names reconciled; maintainer must apply BP names in GitHub UI                          | Hard-requiring path-filtered frontend-ci |
+| H-P1-04           | Satisfied - documented               | Policy ↔ Mergify ↔ workflow job names reconciled; maintainer must apply BP names in GitHub UI                            | Hard-requiring path-filtered frontend-ci |
 | H-P1-05           | Satisfied - automated                | Gradio Docker CI labeled non-prod; production-container rebuild→restart persistence+assets smoke                         | Mixing with hosted promotion evidence    |
 | H-P1-06           | Satisfied - automated                | See evidence pack                                                                                                        | Mixing P1 Docker work with P0 docs       |
 | H-P2-01 … H-P2-05 | Partially satisfied                  | See evidence pack                                                                                                        | P0 gate wiring                           |
