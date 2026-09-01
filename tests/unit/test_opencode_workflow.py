@@ -56,17 +56,18 @@ def test_opencode_job_requires_the_exact_trusted_association_set() -> None:
 
 def test_opencode_command_gate_remains_bounded() -> None:
     """Preserve the four supported command positions behind the trust gate."""
-    condition = str(_opencode_job()["if"])
-    commands = {
-        "contains(github.event.comment.body, ' /oc')",
-        "startsWith(github.event.comment.body, '/oc')",
-        "contains(github.event.comment.body, ' /opencode')",
-        "startsWith(github.event.comment.body, '/opencode')",
-    }
+    condition = " ".join(str(_opencode_job()["if"]).split())
+    expected = " ".join("""
+        contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.comment.author_association) &&
+        (
+          contains(github.event.comment.body, ' /oc') ||
+          startsWith(github.event.comment.body, '/oc') ||
+          contains(github.event.comment.body, ' /opencode') ||
+          startsWith(github.event.comment.body, '/opencode')
+        )
+        """.split())
 
-    assert all(command in condition for command in commands)
-    assert condition.count("github.event.comment.body") == len(commands)
-    assert "author_association" in condition.split("github.event.comment.body", maxsplit=1)[0]
+    assert condition == expected
 
 
 def test_opencode_job_retains_only_required_token_permissions() -> None:
