@@ -26,6 +26,9 @@ EXPECTED_PROBES = {
     ".github/workflows/python-package.yml": 2,
     "scripts/ci_install_python_deps.sh": 1,
 }
+SHELL_SEPARATORS = {";", "&&", "||", "|", "&"}
+PIP_COMMAND = re.compile(r"pip(?:\d+(?:\.\d+)*)?")
+BOOTSTRAP_PACKAGE_ARGUMENT = re.compile(r"(?:^|\s)(?:pip|setuptools|wheel)(?:$|[\s<>=!~])")
 
 
 def _ci_install_surfaces() -> list[Path]:
@@ -60,38 +63,53 @@ def _logical_shell_lines(content: str) -> list[tuple[int, str]]:
     return logical_lines
 
 
+def _shell_tokens(line: str) -> list[str]:
+    """Tokenize one logical shell line, ignoring comments."""
+    lexer = shlex.shlex(line, posix=True, punctuation_chars=";&|")
+    lexer.whitespace_split = True
+    lexer.commenters = "#"
+    try:
+        return list(lexer)
+    except ValueError:
+        return line.split("#", maxsplit=1)[0].split()
+
+
+def _shell_commands(tokens: list[str]) -> list[list[str]]:
+    """Split tokens at shell command separators."""
+    commands: list[list[str]] = [[]]
+    for token in tokens:
+        if token in SHELL_SEPARATORS:
+            commands.append([])
+        else:
+            commands[-1].append(token)
+    return [command for command in commands if command]
+
+
+def _pip_install_arguments(command: list[str]) -> list[str]:
+    """Return arguments to a pip install command after global options."""
+    pip_index = next((index for index, token in enumerate(command) if PIP_COMMAND.fullmatch(token)), None)
+    if pip_index is None:
+        return []
+    try:
+        install_index = command.index("install", pip_index + 1)
+    except ValueError:
+        return []
+    return command[install_index + 1 :]
+
+
+def _command_installs_bootstrap_package(command: list[str]) -> bool:
+    """Return whether one pip command installs a bootstrap package."""
+    arguments = " " + " ".join(_pip_install_arguments(command))
+    return bool(BOOTSTRAP_PACKAGE_ARGUMENT.search(arguments))
+
+
 def _explicit_bootstrap_installs(content: str) -> list[tuple[int, str]]:
     """Return explicit pip installs of pip, setuptools, or wheel."""
-    package_argument = re.compile(r"(?:^|\s)(?:pip|setuptools|wheel)(?:$|[\s<>=!~])")
-    pip_command = re.compile(r"pip(?:\d+(?:\.\d+)*)?")
-    offenders: list[tuple[int, str]] = []
-    for line_number, line in _logical_shell_lines(content):
-        lexer = shlex.shlex(line, posix=True, punctuation_chars=";&|")
-        lexer.whitespace_split = True
-        lexer.commenters = "#"
-        try:
-            tokens = list(lexer)
-        except ValueError:
-            tokens = line.split("#", maxsplit=1)[0].split()
-
-        command_start = 0
-        for token_index in range(len(tokens) + 1):
-            if token_index < len(tokens) and tokens[token_index] not in {";", "&&", "||", "|", "&"}:
-                continue
-            command = tokens[command_start:token_index]
-            command_start = token_index + 1
-            for pip_index, token in enumerate(command):
-                if not pip_command.fullmatch(token):
-                    continue
-                try:
-                    install_index = command.index("install", pip_index + 1)
-                except ValueError:
-                    continue
-                arguments = " " + " ".join(command[install_index + 1 :])
-                if package_argument.search(arguments):
-                    offenders.append((line_number, line.strip()))
-                    break
-    return offenders
+    return [
+        (line_number, line.strip())
+        for line_number, line in _logical_shell_lines(content)
+        if any(_command_installs_bootstrap_package(command) for command in _shell_commands(_shell_tokens(line)))
+    ]
 
 
 @pytest.mark.unit
