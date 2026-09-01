@@ -6,6 +6,7 @@ Claims are labeled landed vs provisional. ADRs/policy are not rewritten.
 ## Seam movement by domain
 
 ### architecture
+- [provisional] **pr:1802**: ()    w
 - [landed] **sha:7259346f9640ff592da553209e83f350451f071e**: Merge/push to main 7259346f9640ff592da553209e83f350451f071e
 - [landed] **pr:1801**: ()  v    
 - [provisional] **pr:1800**: ()    x  
@@ -20,7 +21,6 @@ Claims are labeled landed vs provisional. ADRs/policy are not rewritten.
 - [landed] **sha:d38f67f571226bf6d8eac45d24d2b51636d10f5b**: Merge/push to main d38f67f571226bf6d8eac45d24d2b51636d10f5b
 - [landed] **sha:7d70c6e3b64aecd7d175692fdfdda7b6e7c7a3e2**: Merge/push to main 7d70c6e3b64aecd7d175692fdfdda7b6e7c7a3e2
 - [landed] **pr:1779**:     y
-- [landed] **sha:78b522d75bac0d203d46e6d3799ae3133a3b6130**: Merge/push to main 78b522d75bac0d203d46e6d3799ae3133a3b6130
 
 ### api
 - [provisional] **pr:1752**: (-v)    ..  ..  /
