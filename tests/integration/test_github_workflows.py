@@ -85,6 +85,44 @@ def load_yaml_safe(file_path: Path) -> dict[str, Any]:
         return yaml.load(f, Loader=GitHubActionsYamlLoader)  # nosec B506
 
 
+def assert_write_permissions_are_explicitly_scoped(workflow_file: Path) -> None:
+    """Reject broad write access at workflow or job scope."""
+    data = load_yaml_safe(workflow_file)
+
+    def check_perms(perms: Any, location: str) -> None:
+        """Require write access to use named permission scopes, not write-all."""
+        assert perms != "write-all", f"{workflow_file.name}: {location} permissions must not use write-all"
+
+    if "permissions" in data:
+        check_perms(data["permissions"], "workflow-level")
+
+    for job_name, job in data.get("jobs", {}).items():
+        if "permissions" in job:
+            check_perms(job["permissions"], f"job {job_name!r}")
+
+
+def assert_no_redundant_job_env_values(workflow_file: Path) -> None:
+    """Reject job env entries that repeat the type and value from workflow scope."""
+    data = load_yaml_safe(workflow_file)
+    workflow_env = data.get("env", {})
+
+    for job_name, job in data.get("jobs", {}).items():
+        job_env = job.get("env", {})
+        if not isinstance(workflow_env, dict) or not isinstance(job_env, dict):
+            continue
+
+        redundant_keys = sorted(
+            key
+            for key in workflow_env.keys() & job_env.keys()
+            if type(workflow_env[key]) is type(job_env[key]) and workflow_env[key] == job_env[key]
+        )
+        assert (
+            not redundant_keys
+        ), f"{workflow_file.name}: job {job_name!r} redundantly repeats workflow env values: " + ", ".join(
+            redundant_keys
+        )
+
+
 def check_duplicate_keys(file_path: Path) -> list[str]:
     """
     Detect duplicate mapping keys in a YAML file.
@@ -2436,20 +2474,7 @@ class TestWorkflowPermissionsBestPractices:
     @pytest.mark.parametrize("workflow_file", get_workflow_files())
     def test_write_permissions_are_explicitly_scoped(self, workflow_file: Path):
         """Reject broad write access that cannot be reviewed scope by scope."""
-        data = load_yaml_safe(workflow_file)
-
-        def check_perms(perms, location):
-            """Require write access to use named permission scopes, not write-all."""
-            assert perms != "write-all", f"{workflow_file.name}: {location} permissions must not use write-all"
-
-        if "permissions" in data:
-            check_perms(data["permissions"], "workflow-level")
-
-        # Check job-level permissions
-        jobs = data.get("jobs", {})
-        for job_name, job in jobs.items():
-            if "permissions" in job:
-                check_perms(job["permissions"], f"job {job_name!r}")
+        assert_write_permissions_are_explicitly_scoped(workflow_file)
 
     def test_write_all_permissions_are_rejected(self, tmp_path: Path):
         """Prove the explicit-scope boundary rejects a broad write grant."""
@@ -2457,7 +2482,7 @@ class TestWorkflowPermissionsBestPractices:
         workflow_file.write_text("name: unsafe\npermissions: write-all\njobs: {}\n", encoding="utf-8")
 
         with pytest.raises(AssertionError, match="must not use write-all"):
-            self.test_write_permissions_are_explicitly_scoped(workflow_file)
+            assert_write_permissions_are_explicitly_scoped(workflow_file)
 
 
 class TestWorkflowComplexScenarios:
@@ -2635,23 +2660,7 @@ class TestWorkflowEnvironmentVariables:
     @pytest.mark.parametrize("workflow_file", get_workflow_files())
     def test_env_vars_not_redundantly_duplicated_across_levels(self, workflow_file: Path):
         """Reject job env entries that repeat an identical workflow-level value."""
-        data = load_yaml_safe(workflow_file)
-        workflow_env = data.get("env", {})
-        jobs = data.get("jobs", {})
-
-        for job_name, job in jobs.items():
-            job_env = job.get("env", {})
-            if not isinstance(workflow_env, dict) or not isinstance(job_env, dict):
-                continue
-
-            redundant_keys = sorted(
-                key for key in workflow_env.keys() & job_env.keys() if workflow_env[key] == job_env[key]
-            )
-            assert (
-                not redundant_keys
-            ), f"{workflow_file.name}: job {job_name!r} redundantly repeats workflow env values: " + ", ".join(
-                redundant_keys
-            )
+        assert_no_redundant_job_env_values(workflow_file)
 
     def test_redundant_job_env_value_is_rejected(self, tmp_path: Path):
         """Prove identical workflow and job env entries fail the boundary."""
@@ -2662,7 +2671,7 @@ class TestWorkflowEnvironmentVariables:
         )
 
         with pytest.raises(AssertionError, match="redundantly repeats"):
-            self.test_env_vars_not_redundantly_duplicated_across_levels(workflow_file)
+            assert_no_redundant_job_env_values(workflow_file)
 
     def test_job_env_value_override_is_allowed(self, tmp_path: Path):
         """Preserve an intentional job-level override of a workflow env value."""
@@ -2672,7 +2681,17 @@ class TestWorkflowEnvironmentVariables:
             encoding="utf-8",
         )
 
-        self.test_env_vars_not_redundantly_duplicated_across_levels(workflow_file)
+        assert_no_redundant_job_env_values(workflow_file)
+
+    def test_distinct_yaml_scalar_types_are_not_redundant(self, tmp_path: Path):
+        """Keep YAML boolean false distinct from integer zero despite Python equality."""
+        workflow_file = tmp_path / "typed-env-values.yml"
+        workflow_file.write_text(
+            "name: typed env values\nenv:\n  FLAG: false\njobs:\n  verify:\n    env:\n      FLAG: 0\n",
+            encoding="utf-8",
+        )
+
+        assert_no_redundant_job_env_values(workflow_file)
 
 
 class TestWorkflowScheduledExecutionBestPractices:
