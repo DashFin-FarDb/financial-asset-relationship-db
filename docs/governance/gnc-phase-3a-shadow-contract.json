@@ -35,7 +35,7 @@
     {
       "rule_id": "method.frozen-identities",
       "type": "fixed_decision",
-      "statement": "The normative method is docs/governance/gnc-phase-3a-shadow-method.md at the separately accepted freeze head. Input canonical SHA256 is 47f70d04ebf58cc60936488893890b58eb3b5b26890588365b39a7d281096fc6; expected canonical SHA256 is 43df6c74d7ebb146ceb734864a764103bcbe9f34175c63e2765626de403fc4f6. Both are static definitions, not generated runtime evidence."
+      "statement": "The normative method is docs/governance/gnc-phase-3a-shadow-method.md at the separately accepted freeze head. Input canonical SHA256 is 47f70d04ebf58cc60936488893890b58eb3b5b26890588365b39a7d281096fc6; expected canonical SHA256 is 3d8b79a812e023fad51cf1ebfec8b83384b11a66edcbef6a6e401782f46b9205. Both are static definitions, not generated runtime evidence."
     },
     {
       "rule_id": "scope.static-only",
@@ -109,7 +109,7 @@
     "Base moves or sixth/newly modified existing file is needed.",
     "Existing Phase1/2 semantics, policy, workflow, dependency or provider must change.",
     "Inputs require private data, live reviews, model calls, external processing, credentials, source execution or new bill.",
-    "More than64 scenarios,8 snapshots or64 events per scenario is required, except explicit bounded negative-probe expansion reserved for future boundary tests.",
+    "More than 64 scenarios, 8 snapshots or 64 events per scenario is required, except explicit bounded negative-probe expansion reserved for future boundary tests.",
     "Expected decisions require runtime outputs or any substantive design finding contradicts the ratified boundary."
   ],
   "approved_by": "mohavro",

@@ -335,7 +335,7 @@
       },
       "links": [],
       "source_history": "preserve-all",
-      "rationale": "The waiver has a mismatched or expired expired binding; old authority is not extended."
+      "rationale": "The waiver has a mismatched or expired binding; old authority is not extended."
     },
     {
       "case_id": "waiver.forged-actor",

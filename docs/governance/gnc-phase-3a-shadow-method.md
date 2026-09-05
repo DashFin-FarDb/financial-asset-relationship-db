@@ -46,7 +46,7 @@ Expected lifecycle states and explanations are not embedded in the input corpus.
   canonical SHA-256 `47f70d04ebf58cc60936488893890b58eb3b5b26890588365b39a7d281096fc6`.
 - Independent expectation definitions:
   [phase3a-expected.json](../../tests/fixtures/gnc/shadow/phase3a-expected.json),
-  canonical SHA-256 `43df6c74d7ebb146ceb734864a764103bcbe9f34175c63e2765626de403fc4f6`.
+  canonical SHA-256 `3d8b79a812e023fad51cf1ebfec8b83384b11a66edcbef6a6e401782f46b9205`.
 - Static validation: [test_gnc_shadow_contract.py](../../tests/unit/test_gnc_shadow_contract.py).
 
 Canonical identity means SHA-256 of the landed `canonical_json_bytes` representation, not source whitespace or
@@ -144,7 +144,8 @@ normative [fixture-adapter boundary](#fixture-adapter-boundary) below.
 ### Fixture-adapter boundary
 
 The stored input's `probe` belongs only to the fixture adapter and is normally null. Four negative cases specify
-exactly `{kind, count}`: events65, snapshots9, text-bytes4097, input-bytes262145.
+exactly `{kind, count}`: `events` with count 65, `snapshots` with count 9, `text-bytes` with count 4097,
+and `input-bytes` with count 262145.
 
 These are **declarative future boundary probes**, not oversized replay records and not already executed tests.
 A separately authorized later test adapter may build exactly those bounded sizes in memory before calling the

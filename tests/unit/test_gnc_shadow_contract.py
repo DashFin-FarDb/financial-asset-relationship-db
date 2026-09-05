@@ -27,7 +27,7 @@ CONTRACT_PATH = ROOT / "docs/governance/gnc-phase-3a-shadow-contract.json"
 METHOD_PATH = ROOT / "docs/governance/gnc-phase-3a-shadow-method.md"
 BASE = "165efa4d239737fefad33ca1ecb1db347e6b8414"
 INPUT_HASH = "47f70d04ebf58cc60936488893890b58eb3b5b26890588365b39a7d281096fc6"
-EXPECTED_HASH = "43df6c74d7ebb146ceb734864a764103bcbe9f34175c63e2765626de403fc4f6"
+EXPECTED_HASH = "3d8b79a812e023fad51cf1ebfec8b83384b11a66edcbef6a6e401782f46b9205"
 PATHS = {
     "docs/governance/gnc-phase-3a-shadow-method.md",
     "docs/governance/gnc-phase-3a-shadow-contract.json",
@@ -67,10 +67,17 @@ def _unique_object(pairs):
     return result
 
 
+def _bounded_bytes(path: Path) -> bytes:
+    """Enforce the static file ceiling before decoding or parsing."""
+    with path.open("rb") as stream:
+        raw = stream.read(262145)
+    assert len(raw) <= 262144
+    return raw
+
+
 def _read(path):
     """Read one bounded static specification without importing application code."""
-    raw = path.read_bytes()
-    assert len(raw) <= 262144
+    raw = _bounded_bytes(path)
     return json.loads(raw.decode("utf-8"), object_pairs_hook=_unique_object)
 
 
@@ -165,6 +172,7 @@ def test_frozen_contract_and_preparation_authority():
 def test_frozen_corpus_identities_bounds_and_question_inventory():
     """Detect any altered/missing corpus instead of regenerating a matching oracle."""
     inputs, expected = _read(INPUT_PATH), _read(EXPECTED_PATH)
+    method_text = _bounded_bytes(METHOD_PATH).decode("utf-8")
     _check_identity(inputs, INPUT_HASH)
     _check_identity(expected, EXPECTED_HASH)
     _check_json_values(inputs)
@@ -192,7 +200,7 @@ def test_frozen_corpus_identities_bounds_and_question_inventory():
         assert entry["source_history"] == "preserve-all"
         assert entry["assessment"] in {"full", "refused"}
         assert entry["rationale"].strip()
-        assert entry["code"] in METHOD_PATH.read_text(encoding="utf-8")
+        assert entry["code"] in method_text
         if entry["assessment"] == "refused":
             assert entry["states"] == {}
 
@@ -251,6 +259,16 @@ def test_negative_probe_recipes_are_bounded_and_not_executed():
         "input.json-limit": {"kind": "input-bytes", "count": 262145},
         "input.snapshot-limit": {"kind": "snapshots", "count": 9},
     }
+
+
+def test_static_file_byte_limit(tmp_path: Path) -> None:
+    """Exercise the actual static reader at the limit and one byte above it."""
+    path = tmp_path / "bounded.txt"
+    path.write_bytes(b"x" * 262144)
+    assert len(_bounded_bytes(path)) == 262144
+    path.write_bytes(b"x" * 262145)
+    with pytest.raises(AssertionError):
+        _bounded_bytes(path)
 
 
 def test_static_negative_oracle_and_input_mutations_are_detected():
