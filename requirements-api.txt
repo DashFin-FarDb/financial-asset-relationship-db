@@ -13,7 +13,7 @@ dataclasses-json>=0.5.7
 yfinance>=0.2.51
 fastapi==0.141.1  # pinned for API compatibility and stability; 0.133+ allows Starlette 1.x
 uvicorn[standard]>=0.24.0
-pydantic==2.13.4  # pinned for FastAPI compatibility
+pydantic==2.13.5  # pinned for FastAPI compatibility
 h11==0.16.0  # pinned for compatibility with uvicorn/httpx
 
 # YAML / configuration dependencies
