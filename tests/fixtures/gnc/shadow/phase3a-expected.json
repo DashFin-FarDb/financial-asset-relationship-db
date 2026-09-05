@@ -1,0 +1,720 @@
+{
+  "schema_version": 1,
+  "oracle_kind": "human-reviewable-pre-runtime-expectations",
+  "derivation": "Written from the method and concrete source sequences, not runtime output; freeze acceptance is pending.",
+  "expected": [
+    {
+      "case_id": "authority.advisory",
+      "code": "candidate-advisory",
+      "assessment": "full",
+      "states": {
+        "f.one": "open"
+      },
+      "links": [],
+      "source_history": "preserve-all",
+      "rationale": "A harmless candidate has no disposition authority and does not remove the open deterministic finding."
+    },
+    {
+      "case_id": "authority.self-approval",
+      "code": "candidate-authority-refused",
+      "assessment": "full",
+      "states": {
+        "f.one": "open"
+      },
+      "links": [],
+      "source_history": "preserve-all",
+      "rationale": "The fixed candidate requests approve; candidate origin never grants this authority."
+    },
+    {
+      "case_id": "authority.new-rule",
+      "code": "candidate-authority-refused",
+      "assessment": "full",
+      "states": {
+        "f.one": "open"
+      },
+      "links": [],
+      "source_history": "preserve-all",
+      "rationale": "The fixed candidate requests new-rule; candidate origin never grants this authority."
+    },
+    {
+      "case_id": "authority.waiver-request",
+      "code": "candidate-authority-refused",
+      "assessment": "full",
+      "states": {
+        "f.one": "open"
+      },
+      "links": [],
+      "source_history": "preserve-all",
+      "rationale": "The fixed candidate requests waive; candidate origin never grants this authority."
+    },
+    {
+      "case_id": "authority.scope-expansion",
+      "code": "candidate-authority-refused",
+      "assessment": "full",
+      "states": {
+        "f.one": "open"
+      },
+      "links": [],
+      "source_history": "preserve-all",
+      "rationale": "The fixed candidate requests expand-scope; candidate origin never grants this authority."
+    },
+    {
+      "case_id": "memory.carry-forward",
+      "code": "unresolved-carried",
+      "assessment": "full",
+      "states": {
+        "f.one": "open"
+      },
+      "links": [],
+      "source_history": "preserve-all",
+      "rationale": "An unchanged subject blob at a newer head does not erase the old unresolved finding."
+    },
+    {
+      "case_id": "memory.thread-only",
+      "code": "remediation-unproven",
+      "assessment": "full",
+      "states": {
+        "f.one": "open"
+      },
+      "links": [],
+      "source_history": "preserve-all",
+      "rationale": "Thread resolution without an authorized disposition and exact evidence leaves the finding open."
+    },
+    {
+      "case_id": "resolution.valid",
+      "code": "resolution-observed",
+      "assessment": "full",
+      "states": {
+        "f.one": "resolved"
+      },
+      "links": [],
+      "source_history": "preserve-all",
+      "rationale": "The synthetic trusted disposition and passing executed evidence bind the current head, contract, scope, finding and target."
+    },
+    {
+      "case_id": "resolution.no-disposition",
+      "code": "remediation-unproven",
+      "assessment": "full",
+      "states": {
+        "f.one": "open"
+      },
+      "links": [],
+      "source_history": "preserve-all",
+      "rationale": "Passing evidence alone is not the synthetic authorized disposition."
+    },
+    {
+      "case_id": "resolution.no-evidence",
+      "code": "remediation-unproven",
+      "assessment": "full",
+      "states": {
+        "f.one": "open"
+      },
+      "links": [],
+      "source_history": "preserve-all",
+      "rationale": "A disposition cannot establish remediation without its referenced executed evidence."
+    },
+    {
+      "case_id": "evidence.executed-wrong-head",
+      "code": "evidence-unsatisfied",
+      "assessment": "full",
+      "states": {
+        "f.one": "open"
+      },
+      "links": [],
+      "source_history": "preserve-all",
+      "rationale": "The only change from valid resolution is the evidence head. Executed passing evidence still cannot satisfy another head; this isolates the head-binding guard."
+    },
+    {
+      "case_id": "evidence.executed-wrong-target",
+      "code": "evidence-unsatisfied",
+      "assessment": "full",
+      "states": {
+        "f.one": "open"
+      },
+      "links": [],
+      "source_history": "preserve-all",
+      "rationale": "The only change from valid resolution is the evidence target. Executed passing evidence still cannot satisfy another target; this isolates the target-binding guard."
+    },
+    {
+      "case_id": "evidence.failed",
+      "code": "evidence-unsatisfied",
+      "assessment": "full",
+      "states": {
+        "f.one": "open"
+      },
+      "links": [],
+      "source_history": "preserve-all",
+      "rationale": "Evidence failed does not satisfy executed passing exact-head exact-target evidence."
+    },
+    {
+      "case_id": "evidence.skipped",
+      "code": "evidence-unsatisfied",
+      "assessment": "full",
+      "states": {
+        "f.one": "open"
+      },
+      "links": [],
+      "source_history": "preserve-all",
+      "rationale": "Evidence skipped does not satisfy executed passing exact-head exact-target evidence."
+    },
+    {
+      "case_id": "evidence.canceled",
+      "code": "evidence-unsatisfied",
+      "assessment": "full",
+      "states": {
+        "f.one": "open"
+      },
+      "links": [],
+      "source_history": "preserve-all",
+      "rationale": "Evidence canceled does not satisfy executed passing exact-head exact-target evidence."
+    },
+    {
+      "case_id": "evidence.unavailable",
+      "code": "evidence-unsatisfied",
+      "assessment": "full",
+      "states": {
+        "f.one": "open"
+      },
+      "links": [],
+      "source_history": "preserve-all",
+      "rationale": "Evidence unavailable does not satisfy executed passing exact-head exact-target evidence."
+    },
+    {
+      "case_id": "evidence.stale_sha",
+      "code": "evidence-unsatisfied",
+      "assessment": "full",
+      "states": {
+        "f.one": "open"
+      },
+      "links": [],
+      "source_history": "preserve-all",
+      "rationale": "Evidence stale_sha does not satisfy executed passing exact-head exact-target evidence."
+    },
+    {
+      "case_id": "evidence.wrong_target",
+      "code": "evidence-unsatisfied",
+      "assessment": "full",
+      "states": {
+        "f.one": "open"
+      },
+      "links": [],
+      "source_history": "preserve-all",
+      "rationale": "Evidence wrong_target does not satisfy executed passing exact-head exact-target evidence."
+    },
+    {
+      "case_id": "identity.exact-duplicate",
+      "code": "exact-link-observed",
+      "assessment": "full",
+      "states": {
+        "f.one": "open",
+        "f.two": "duplicate_of"
+      },
+      "links": [
+        {
+          "from": "f.two",
+          "to": "f.one"
+        }
+      ],
+      "source_history": "preserve-all",
+      "rationale": "Structured fields match in one unresolved occurrence; preserve both events and keep the underlying finding open."
+    },
+    {
+      "case_id": "identity.paraphrase",
+      "code": "duplicate-needs-human",
+      "assessment": "full",
+      "states": {
+        "f.one": "open"
+      },
+      "links": [],
+      "source_history": "preserve-all",
+      "rationale": "Wording similarity alone does not establish structured identity or a duplicate disposition."
+    },
+    {
+      "case_id": "identity.distinct-mode",
+      "code": "distinct-preserved",
+      "assessment": "full",
+      "states": {
+        "f.one": "open",
+        "f.two": "open"
+      },
+      "links": [],
+      "source_history": "preserve-all",
+      "rationale": "Same subject is insufficient when failure mode differs."
+    },
+    {
+      "case_id": "identity.conflict",
+      "code": "conflict-needs-human",
+      "assessment": "full",
+      "states": {
+        "f.one": "open",
+        "f.two": "open"
+      },
+      "links": [],
+      "source_history": "preserve-all",
+      "rationale": "Conflicting expected outcomes remain separate and explicitly need adjudication."
+    },
+    {
+      "case_id": "identity.recurrence",
+      "code": "recurrence-observed",
+      "assessment": "full",
+      "states": {
+        "f.one": "resolved",
+        "f.two": "reopened_as_recurrence"
+      },
+      "links": [
+        {
+          "from": "f.two",
+          "to": "f.one",
+          "relation": "recurrence"
+        }
+      ],
+      "source_history": "preserve-all",
+      "rationale": "The same failure after an evidenced resolution is a new occurrence, not a duplicate to hide."
+    },
+    {
+      "case_id": "waiver.valid",
+      "code": "waiver-observed",
+      "assessment": "full",
+      "states": {
+        "f.one": "waived"
+      },
+      "links": [],
+      "source_history": "preserve-all",
+      "rationale": "Explicit synthetic authorized source, exact scope, finding, head and contract, unexpired at supplied as_of."
+    },
+    {
+      "case_id": "waiver.wrong-head",
+      "code": "waiver-inapplicable",
+      "assessment": "full",
+      "states": {
+        "f.one": "open"
+      },
+      "links": [],
+      "source_history": "preserve-all",
+      "rationale": "The waiver has a mismatched or expired head binding; old authority is not extended."
+    },
+    {
+      "case_id": "waiver.wrong-contract",
+      "code": "waiver-inapplicable",
+      "assessment": "full",
+      "states": {
+        "f.one": "open"
+      },
+      "links": [],
+      "source_history": "preserve-all",
+      "rationale": "The waiver has a mismatched or expired contract binding; old authority is not extended."
+    },
+    {
+      "case_id": "waiver.wrong-scope",
+      "code": "waiver-inapplicable",
+      "assessment": "full",
+      "states": {
+        "f.one": "open"
+      },
+      "links": [],
+      "source_history": "preserve-all",
+      "rationale": "The waiver has a mismatched or expired scope binding; old authority is not extended."
+    },
+    {
+      "case_id": "waiver.wrong-finding",
+      "code": "waiver-inapplicable",
+      "assessment": "full",
+      "states": {
+        "f.one": "open"
+      },
+      "links": [],
+      "source_history": "preserve-all",
+      "rationale": "The waiver has a mismatched or expired finding binding; old authority is not extended."
+    },
+    {
+      "case_id": "waiver.wrong-expired",
+      "code": "waiver-inapplicable",
+      "assessment": "full",
+      "states": {
+        "f.one": "open"
+      },
+      "links": [],
+      "source_history": "preserve-all",
+      "rationale": "The waiver has a mismatched or expired expired binding; old authority is not extended."
+    },
+    {
+      "case_id": "waiver.forged-actor",
+      "code": "authority-unknown",
+      "assessment": "full",
+      "states": {
+        "f.one": "open"
+      },
+      "links": [],
+      "source_history": "preserve-all",
+      "rationale": "An actor string matching the maintainer cannot authenticate a candidate-origin event."
+    },
+    {
+      "case_id": "snapshot.current",
+      "code": "current-assessed",
+      "assessment": "full",
+      "states": {
+        "f.one": "open"
+      },
+      "links": [],
+      "source_history": "preserve-all",
+      "rationale": "Exact current snapshot still receives a complete assessment; this does not resolve the open finding."
+    },
+    {
+      "case_id": "snapshot.superseded-head",
+      "code": "changed-context-reassessed",
+      "assessment": "full",
+      "states": {
+        "f.one": "open"
+      },
+      "links": [],
+      "source_history": "preserve-all",
+      "rationale": "A changed superseded-head invalidates old eligibility; preserve unresolved history and fully assess the declared new snapshot."
+    },
+    {
+      "case_id": "snapshot.force-push",
+      "code": "changed-context-reassessed",
+      "assessment": "full",
+      "states": {
+        "f.one": "open"
+      },
+      "links": [],
+      "source_history": "preserve-all",
+      "rationale": "A changed force-push invalidates old eligibility; preserve unresolved history and fully assess the declared new snapshot."
+    },
+    {
+      "case_id": "snapshot.rebase",
+      "code": "changed-context-reassessed",
+      "assessment": "full",
+      "states": {
+        "f.one": "open"
+      },
+      "links": [],
+      "source_history": "preserve-all",
+      "rationale": "A changed rebase invalidates old eligibility; preserve unresolved history and fully assess the declared new snapshot."
+    },
+    {
+      "case_id": "snapshot.merge-base",
+      "code": "changed-context-reassessed",
+      "assessment": "full",
+      "states": {
+        "f.one": "open"
+      },
+      "links": [],
+      "source_history": "preserve-all",
+      "rationale": "A changed merge-base invalidates old eligibility; preserve unresolved history and fully assess the declared new snapshot."
+    },
+    {
+      "case_id": "snapshot.contract",
+      "code": "changed-context-reassessed",
+      "assessment": "full",
+      "states": {
+        "f.one": "open"
+      },
+      "links": [],
+      "source_history": "preserve-all",
+      "rationale": "A changed contract invalidates old eligibility; preserve unresolved history and fully assess the declared new snapshot."
+    },
+    {
+      "case_id": "snapshot.policy",
+      "code": "changed-context-reassessed",
+      "assessment": "full",
+      "states": {
+        "f.one": "open"
+      },
+      "links": [],
+      "source_history": "preserve-all",
+      "rationale": "A changed policy invalidates old eligibility; preserve unresolved history and fully assess the declared new snapshot."
+    },
+    {
+      "case_id": "snapshot.evaluator",
+      "code": "changed-context-reassessed",
+      "assessment": "full",
+      "states": {
+        "f.one": "open"
+      },
+      "links": [],
+      "source_history": "preserve-all",
+      "rationale": "A changed evaluator invalidates old eligibility; preserve unresolved history and fully assess the declared new snapshot."
+    },
+    {
+      "case_id": "snapshot.stale-run",
+      "code": "snapshot-inapplicable",
+      "assessment": "refused",
+      "states": {},
+      "links": [],
+      "source_history": "preserve-all",
+      "rationale": "A requested current identity absent from the inventory cannot be replaced by an old run."
+    },
+    {
+      "case_id": "context.cross-file",
+      "code": "changed-context-reassessed",
+      "assessment": "full",
+      "states": {
+        "f.one": "open"
+      },
+      "links": [],
+      "source_history": "preserve-all",
+      "rationale": "Unchanged subject bytes do not hide a changed dependency blob; all current checks rerun."
+    },
+    {
+      "case_id": "context.renamed",
+      "code": "path-needs-human",
+      "assessment": "full",
+      "states": {
+        "f.one": "open"
+      },
+      "links": [],
+      "source_history": "preserve-all",
+      "rationale": "An old finding is not silently resolved by renamed path; applicability requires human review."
+    },
+    {
+      "case_id": "context.deleted",
+      "code": "path-needs-human",
+      "assessment": "full",
+      "states": {
+        "f.one": "open"
+      },
+      "links": [],
+      "source_history": "preserve-all",
+      "rationale": "An old finding is not silently resolved by deleted path; applicability requires human review."
+    },
+    {
+      "case_id": "context.incomplete-inventory",
+      "code": "input-incomplete",
+      "assessment": "refused",
+      "states": {},
+      "links": [],
+      "source_history": "preserve-all",
+      "rationale": "Missing whole-snapshot path inventory is not a valid empty inventory."
+    },
+    {
+      "case_id": "context.truncated",
+      "code": "input-incomplete",
+      "assessment": "refused",
+      "states": {},
+      "links": [],
+      "source_history": "preserve-all",
+      "rationale": "Truncated context refuses instead of treating omitted dependencies as unchanged."
+    },
+    {
+      "case_id": "input.unknown-field",
+      "code": "input-malformed",
+      "assessment": "refused",
+      "states": {},
+      "links": [],
+      "source_history": "preserve-all",
+      "rationale": "An unknown candidate key is refused instead of silently normalized away."
+    },
+    {
+      "case_id": "input.malformed-type",
+      "code": "input-malformed",
+      "assessment": "refused",
+      "states": {},
+      "links": [],
+      "source_history": "preserve-all",
+      "rationale": "Sequence text is not an integer; coercion could mask ambiguous history."
+    },
+    {
+      "case_id": "input.event-limit",
+      "code": "input-over-limit",
+      "assessment": "refused",
+      "states": {},
+      "links": [],
+      "source_history": "preserve-all",
+      "rationale": "The separately authorized future boundary adapter constructs one bounded above-limit event-limit input; refusal is required without truncation."
+    },
+    {
+      "case_id": "input.text-limit",
+      "code": "input-over-limit",
+      "assessment": "refused",
+      "states": {},
+      "links": [],
+      "source_history": "preserve-all",
+      "rationale": "The separately authorized future boundary adapter constructs one bounded above-limit text-limit input; refusal is required without truncation."
+    },
+    {
+      "case_id": "input.json-limit",
+      "code": "input-over-limit",
+      "assessment": "refused",
+      "states": {},
+      "links": [],
+      "source_history": "preserve-all",
+      "rationale": "The separately authorized future boundary adapter constructs one bounded above-limit json-limit input; refusal is required without truncation."
+    },
+    {
+      "case_id": "input.snapshot-limit",
+      "code": "input-over-limit",
+      "assessment": "refused",
+      "states": {},
+      "links": [],
+      "source_history": "preserve-all",
+      "rationale": "The separately authorized future boundary adapter constructs one bounded above-limit snapshot-limit input; refusal is required without truncation."
+    },
+    {
+      "case_id": "input.inert-instruction",
+      "code": "candidate-advisory",
+      "assessment": "full",
+      "states": {
+        "f.one": "open"
+      },
+      "links": [],
+      "source_history": "preserve-all",
+      "rationale": "Instruction-like prose is data, not authority, execution or a new disposition."
+    },
+    {
+      "case_id": "history.reordered",
+      "code": "history-invalid",
+      "assessment": "refused",
+      "states": {},
+      "links": [],
+      "source_history": "preserve-all",
+      "rationale": "The reordered source history cannot support a coherent replay; retain raw source visibility without inventing a state."
+    },
+    {
+      "case_id": "history.duplicate",
+      "code": "history-invalid",
+      "assessment": "refused",
+      "states": {},
+      "links": [],
+      "source_history": "preserve-all",
+      "rationale": "The duplicate source history cannot support a coherent replay; retain raw source visibility without inventing a state."
+    },
+    {
+      "case_id": "history.missing-predecessor",
+      "code": "history-invalid",
+      "assessment": "refused",
+      "states": {},
+      "links": [],
+      "source_history": "preserve-all",
+      "rationale": "The missing-predecessor source history cannot support a coherent replay; retain raw source visibility without inventing a state."
+    },
+    {
+      "case_id": "history.divergent",
+      "code": "history-invalid",
+      "assessment": "refused",
+      "states": {},
+      "links": [],
+      "source_history": "preserve-all",
+      "rationale": "The divergent source history cannot support a coherent replay; retain raw source visibility without inventing a state."
+    },
+    {
+      "case_id": "history.tampered-binding",
+      "code": "history-invalid",
+      "assessment": "refused",
+      "states": {},
+      "links": [],
+      "source_history": "preserve-all",
+      "rationale": "The tampered-binding source history cannot support a coherent replay; retain raw source visibility without inventing a state."
+    },
+    {
+      "case_id": "history.tampered-digest",
+      "code": "history-invalid",
+      "assessment": "refused",
+      "states": {},
+      "links": [],
+      "source_history": "preserve-all",
+      "rationale": "The explicit claimed event digest does not match canonical event bytes; a digest is not authenticity."
+    },
+    {
+      "case_id": "history.deterministic",
+      "code": "current-assessed",
+      "assessment": "full",
+      "states": {
+        "f.one": "open"
+      },
+      "links": [],
+      "source_history": "preserve-all",
+      "rationale": "Repeated valid identical ordered source data must produce byte-identical observations and event identities."
+    },
+    {
+      "case_id": "counts.complete",
+      "code": "counts-observed",
+      "assessment": "full",
+      "states": {
+        "f.one": "open"
+      },
+      "links": [],
+      "source_history": "preserve-all",
+      "rationale": "Preserve raw complete counts; wording variants share one family and empty applicable denominator is undefined, not a perfect rate.",
+      "counts": {
+        "predictions": 1,
+        "applicable": 1,
+        "abstentions": 0,
+        "families": 1,
+        "defined_denominator": true
+      }
+    },
+    {
+      "case_id": "counts.empty-predictions",
+      "code": "counts-observed",
+      "assessment": "full",
+      "states": {
+        "f.one": "open"
+      },
+      "links": [],
+      "source_history": "preserve-all",
+      "rationale": "Preserve raw empty-predictions counts; wording variants share one family and empty applicable denominator is undefined, not a perfect rate.",
+      "counts": {
+        "predictions": 0,
+        "applicable": 1,
+        "abstentions": 0,
+        "families": 0,
+        "defined_denominator": true
+      }
+    },
+    {
+      "case_id": "counts.empty-applicable",
+      "code": "counts-observed",
+      "assessment": "full",
+      "states": {
+        "f.one": "open"
+      },
+      "links": [],
+      "source_history": "preserve-all",
+      "rationale": "Preserve raw empty-applicable counts; wording variants share one family and empty applicable denominator is undefined, not a perfect rate.",
+      "counts": {
+        "predictions": 1,
+        "applicable": 0,
+        "abstentions": 0,
+        "families": 1,
+        "defined_denominator": false
+      }
+    },
+    {
+      "case_id": "counts.abstention",
+      "code": "counts-observed",
+      "assessment": "full",
+      "states": {
+        "f.one": "open"
+      },
+      "links": [],
+      "source_history": "preserve-all",
+      "rationale": "Preserve raw abstention counts; wording variants share one family and empty applicable denominator is undefined, not a perfect rate.",
+      "counts": {
+        "predictions": 1,
+        "applicable": 1,
+        "abstentions": 1,
+        "families": 1,
+        "defined_denominator": true
+      }
+    },
+    {
+      "case_id": "counts.wording-variants",
+      "code": "counts-observed",
+      "assessment": "full",
+      "states": {
+        "f.one": "open"
+      },
+      "links": [],
+      "source_history": "preserve-all",
+      "rationale": "Preserve raw wording-variants counts; wording variants share one family and empty applicable denominator is undefined, not a perfect rate.",
+      "counts": {
+        "predictions": 2,
+        "applicable": 1,
+        "abstentions": 0,
+        "families": 1,
+        "defined_denominator": true
+      }
+    }
+  ]
+}
