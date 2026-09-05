@@ -25,10 +25,10 @@ INPUT_PATH = ROOT / "tests/fixtures/gnc/shadow/phase3a-cases.json"
 EXPECTED_PATH = ROOT / "tests/fixtures/gnc/shadow/phase3a-expected.json"
 CONTRACT_PATH = ROOT / "docs/governance/gnc-phase-3a-shadow-contract.json"
 METHOD_PATH = ROOT / "docs/governance/gnc-phase-3a-shadow-method.md"
-BASE = "165efa4d239737fefad33ca1ecb1db347e6b8414"
-# Predeclared normalized identity of the unchanged candidate contract at 7d192ed59.
+BASE = "af06017b9a179e1b289f137e47f8ab86296502ca"
+# Predeclared identity after the maintainer-approved base-only reconciliation.
 # This pin detects drift; it is not human freeze acceptance or authority to repin.
-CONTRACT_HASH = "20cc780707244455119e89f3fd30d7dd7424f3d925ea50a706acde9023a23ec0"
+CONTRACT_HASH = "45d08e008b5bb7af1bdefd41051cd5a012f7c3f79d511a799c11c49a92d36fe9"
 INPUT_HASH = "47f70d04ebf58cc60936488893890b58eb3b5b26890588365b39a7d281096fc6"
 EXPECTED_HASH = "3d8b79a812e023fad51cf1ebfec8b83384b11a66edcbef6a6e401782f46b9205"
 PATHS = {

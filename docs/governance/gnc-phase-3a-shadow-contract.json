@@ -4,8 +4,8 @@
   "version": 1,
   "parent_issue": 1817,
   "objective": "Prepare only the separate static method freeze for offline public synthetic shadow-boundary and review-memory correctness; preparation approval is not freeze or runtime acceptance.",
-  "base_sha": "165efa4d239737fefad33ca1ecb1db347e6b8414",
-  "policy_sha": "165efa4d239737fefad33ca1ecb1db347e6b8414",
+  "base_sha": "af06017b9a179e1b289f137e47f8ab86296502ca",
+  "policy_sha": "af06017b9a179e1b289f137e47f8ab86296502ca",
   "risk_class": "high",
   "allowed_paths": [
     "docs/governance/gnc-phase-3a-shadow-method.md",

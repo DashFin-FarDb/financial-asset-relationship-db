@@ -2,7 +2,7 @@
 
 **Candidate, not accepted.** Child [#1817](https://github.com/DashFin-FarDb/financial-asset-relationship-db/issues/1817)
 of [#1557](https://github.com/DashFin-FarDb/financial-asset-relationship-db/issues/1557).
-Exact base and policy: `165efa4d239737fefad33ca1ecb1db347e6b8414`.
+Exact base and policy: `af06017b9a179e1b289f137e47f8ab86296502ca`.
 This freezes a proposed method only. It supplies no new evaluator, observation report, model result or live integration.
 
 ## Authority and task entry
@@ -13,6 +13,24 @@ was recorded by `mohavro` at `2026-09-05T16:30:22Z`. The existing
 those fields bind this real **preparation** decision, not acceptance of this unwritten-at-ratification contract.
 The exact freeze head and normalized contract hash still require separate named-human review and unchanged-head merge.
 No preparation field, successful structural test or synthetic source actor grants that acceptance.
+
+### Local base reconciliation (not freeze acceptance)
+
+The maintainer separately approved local reconciliation from original base
+`165efa4d239737fefad33ca1ecb1db347e6b8414` to the exact base above on 2026-09-05.
+The intervening ten commits update dependencies and CI action versions; they do not change GNC code,
+governance controls or its compatibility tests. This approval permits local reconciliation and revalidation
+only; publication and merge remain withheld. The original preparation actor/time above are historical,
+not a backdated approval of this reconciliation. This remains an unaccepted version-1 freeze candidate.
+
+Only the machine contract's base/policy fields change. Its normalized candidate SHA-256 changes from
+`20cc780707244455119e89f3fd30d7dd7424f3d925ea50a706acde9023a23ec0` at published head
+`7d192ed59bf77520c72675f2c5200dd2959576df` to
+`45d08e008b5bb7af1bdefd41051cd5a012f7c3f79d511a799c11c49a92d36fe9`.
+Rules, evidence requirements, path boundaries, merge criteria and stop conditions remain unchanged.
+Canonical inputs and expected decisions remain unchanged. The static test pins the new identity independently
+and rejects schema-valid removal or alteration of controls; changing that pin is not authority to accept a
+different contract. Renewed exact-head human review remains mandatory.
 
 Task: prepare the five files in the contract at the exact base, on `codex/gnc-phase3a-freeze`.
 All other new paths and every existing file are forbidden. Named read-only seams are the landed
