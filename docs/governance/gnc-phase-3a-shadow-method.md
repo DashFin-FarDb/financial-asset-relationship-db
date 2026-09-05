@@ -78,9 +78,8 @@ The future runtime receives one case input plus the independently hash-checked f
 the expected file, expected labels, rationale, or a helper that computes expected decisions.
 
 Each stored fixture input contains explicit `as_of`, ordered `snapshots`, `current_snapshot`, ordered `events`,
-`candidates`, `applicable_findings`, and `probe`. The last field belongs only to the fixture adapter:
-for every normal and negative-probe case alike, the adapter removes `probe` before the runtime parser sees input.
-The runtime wire input therefore has exactly the other six fields and rejects a supplied `probe` as unknown.
+`candidates`, `applicable_findings`, and `probe`. The normative
+[fixture-adapter boundary](#fixture-adapter-boundary) below defines the stored-to-runtime transformation.
 No wall-clock, environment, network or repository checkout
 is consulted by that future replay. Synthetic object IDs are artificial, not claims of existing Git objects.
 
@@ -139,16 +138,22 @@ identified cases, not permission for invalid live inputs.
 
 Stored files must each fit 256 KiB; at most 64 cases, 8 snapshots and 64 events per case, and 4096 UTF-8 bytes per
 permitted text field. Counts use bytes, not characters. No silent truncation.
-The stored corpus obeys these bounds. The input's `probe` is normally null. Four negative cases instead specify
+The stored corpus obeys these bounds. Above-limit recipes and their bounded future expansion follow the single
+normative [fixture-adapter boundary](#fixture-adapter-boundary) below.
+
+### Fixture-adapter boundary
+
+The stored input's `probe` belongs only to the fixture adapter and is normally null. Four negative cases specify
 exactly `{kind, count}`: events65, snapshots9, text-bytes4097, input-bytes262145.
 
 These are **declarative future boundary probes**, not oversized replay records and not already executed tests.
 A separately authorized later test adapter may build exactly those bounded sizes in memory before calling the
 runtime parser. It must use unique sequential event/snapshot records, ASCII inert text of the exact byte count,
 or legal JSON padded by spaces to the exact input byte size. Test size is verified before invocation.
-The production-shaped parser must not accept probe recipes as a runtime bypass; the future test adapter removes
-the probe field from every materialized input, including normal cases where it is null. No runtime input requires
-or permits that metadata field. The adapter cannot execute arbitrary instructions, repeat without a fixed cap,
+For every normal and negative-probe case alike, the adapter removes `probe` before the runtime parser sees input.
+The runtime wire input has exactly the other six fields and rejects a supplied `probe` as unknown; no runtime
+input requires or permits that metadata field or accepts probe recipes as a bypass.
+The adapter cannot execute arbitrary instructions, repeat without a fixed cap,
 make I/O calls, or reinterpret probe failures as pass. Static tests validate the recipes only.
 
 ## Decision precedence and required observable result

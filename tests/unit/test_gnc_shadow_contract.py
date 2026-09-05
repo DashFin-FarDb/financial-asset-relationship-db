@@ -6,6 +6,7 @@ import copy
 import json
 import re
 from pathlib import Path
+from typing import Any
 
 import pytest
 
@@ -78,37 +79,52 @@ def _check_identity(data, digest):
     assert canonical_hash(data) == digest
 
 
-def _check_json_values(value):
-    """Check static stored data has bounded canonical types and text."""
+def _check_json_mapping(value: dict[str, Any]) -> None:
+    """Check mapping keys and recurse without interpreting stored data."""
+    assert all(isinstance(key, str) for key in value)
+    for key, item in value.items():
+        assert key.strip().casefold() not in {
+            "credential",
+            "credentials",
+            "diff",
+            "evidence_body",
+            "patch",
+            "password",
+            "private_key",
+            "raw_evidence",
+            "review_transcript",
+            "script",
+            "secret",
+            "token",
+        }
+        _check_json_values(item)
+
+
+def _check_json_sequence(value: list[Any]) -> None:
+    """Check each stored sequence member without altering its order."""
+    for item in value:
+        _check_json_values(item)
+
+
+def _check_json_text(value: str) -> None:
+    """Check the existing bounded text and secret-pattern assertions."""
+    assert len(value.encode("utf-8")) <= 4096
+    assert not re.search(
+        r"-----BEGIN [A-Z ]+PRIVATE KEY-----|(?<![A-Z0-9])"
+        r"(?:github_pat_|gh[opusr]_|sk_live_|xox[a-z0-9]*-)[A-Z0-9_-]+",
+        value,
+        re.IGNORECASE,
+    )
+
+
+def _check_json_values(value: Any) -> None:
+    """Dispatch static canonical-type checks, never runtime adjudication."""
     if isinstance(value, dict):
-        assert all(isinstance(key, str) for key in value)
-        for key, item in value.items():
-            assert key.strip().casefold() not in {
-                "credential",
-                "credentials",
-                "diff",
-                "evidence_body",
-                "patch",
-                "password",
-                "private_key",
-                "raw_evidence",
-                "review_transcript",
-                "script",
-                "secret",
-                "token",
-            }
-            _check_json_values(item)
+        _check_json_mapping(value)
     elif isinstance(value, list):
-        for item in value:
-            _check_json_values(item)
+        _check_json_sequence(value)
     elif isinstance(value, str):
-        assert len(value.encode("utf-8")) <= 4096
-        assert not re.search(
-            r"-----BEGIN [A-Z ]+PRIVATE KEY-----|(?<![A-Z0-9])"
-            r"(?:github_pat_|gh[opusr]_|sk_live_|xox[a-z0-9]*-)[A-Z0-9_-]+",
-            value,
-            re.IGNORECASE,
-        )
+        _check_json_text(value)
     else:
         assert value is None or type(value) in (bool, int)
 
@@ -181,30 +197,45 @@ def test_frozen_corpus_identities_bounds_and_question_inventory():
             assert entry["states"] == {}
 
 
-def test_static_inputs_and_expected_definitions_are_separate():
+def _check_input_envelope(value: dict[str, Any]) -> None:
+    """Check fixture envelope keys, bounds and absence of oracle fields."""
+    assert set(value) == {
+        "as_of",
+        "snapshots",
+        "current_snapshot",
+        "events",
+        "candidates",
+        "applicable_findings",
+        "probe",
+    }
+    assert 1 <= len(value["snapshots"]) <= 8
+    assert 1 <= len(value["events"]) <= 64
+    assert not {"rationale", "code", "assessment", "states", "links"} & set(value)
+
+
+def _check_synthetic_snapshots(snapshots: list[dict[str, Any]]) -> None:
+    """Keep every fixture snapshot explicitly synthetic and model-free."""
+    for snapshot in snapshots:
+        assert snapshot["model"] == snapshot["prompt"] == "not-used"
+        assert snapshot["repository"] == "synthetic/fardb-review"
+
+
+def _check_synthetic_candidates(case_id: str, candidates: list[dict[str, Any]]) -> None:
+    """Retain the one declared unknown-field probe without weakening other cases."""
+    keys = CANDIDATE_KEYS | ({"unexpected"} if case_id == "input.unknown-field" else set())
+    for candidate in candidates:
+        assert set(candidate) == keys
+        assert candidate["source_class"] == "synthetic_candidate"
+        assert type(candidate["abstains"]) is bool
+
+
+def test_static_inputs_and_expected_definitions_are_separate() -> None:
     """Check input envelopes without implementing the future decision procedure."""
     for case in _read(INPUT_PATH)["cases"]:
         value = case["input"]
-        assert set(value) == {
-            "as_of",
-            "snapshots",
-            "current_snapshot",
-            "events",
-            "candidates",
-            "applicable_findings",
-            "probe",
-        }
-        assert 1 <= len(value["snapshots"]) <= 8
-        assert 1 <= len(value["events"]) <= 64
-        for snapshot in value["snapshots"]:
-            assert snapshot["model"] == snapshot["prompt"] == "not-used"
-            assert snapshot["repository"] == "synthetic/fardb-review"
-        for candidate in value["candidates"]:
-            keys = CANDIDATE_KEYS | ({"unexpected"} if case["case_id"] == "input.unknown-field" else set())
-            assert set(candidate) == keys
-            assert candidate["source_class"] == "synthetic_candidate"
-            assert type(candidate["abstains"]) is bool
-        assert not {"rationale", "code", "assessment", "states", "links"} & set(value)
+        _check_input_envelope(value)
+        _check_synthetic_snapshots(value["snapshots"])
+        _check_synthetic_candidates(case["case_id"], value["candidates"])
 
 
 def test_negative_probe_recipes_are_bounded_and_not_executed():
@@ -238,28 +269,50 @@ def test_static_negative_oracle_and_input_mutations_are_detected():
         canonical_json_bytes({"floating": 1.5})
 
 
-def test_existing_finding_and_evidence_primitive_compatibility():
-    """Check landed record semantics, not the proposed lifecycle runtime."""
+def _check_primitive_events(events: list[dict[str, Any]]) -> None:
+    """Validate existing finding and evidence records without lifecycle decisions."""
+    for event in events:
+        if event["event_type"] in {"finding", "evidence"}:
+            validate_record(event["record"])
+
+
+def test_existing_finding_and_evidence_record_compatibility() -> None:
+    """Check all stored records against the unchanged landed primitive."""
     cases = _case_map(_read(INPUT_PATH))
     for case in cases.values():
-        for event in case["input"]["events"]:
-            if event["event_type"] in {"finding", "evidence"}:
-                validate_record(event["record"])
+        _check_primitive_events(case["input"]["events"])
+
+
+def test_existing_evidence_state_compatibility() -> None:
+    """Preserve passing evidence and every unsatisfied execution-state contrast."""
+    cases = _case_map(_read(INPUT_PATH))
     valid = cases["resolution.valid"]["input"]["events"][1]["record"]
     assert evidence_satisfies(valid, head_sha="1" * 40, target="synthetic-unit")
     for label in ("failed", "skipped", "canceled", "unavailable", "stale_sha", "wrong_target"):
         record = cases[f"evidence.{label}"]["input"]["events"][1]["record"]
         assert not evidence_satisfies(record, head_sha="1" * 40, target="synthetic-unit")
+
+
+def test_existing_evidence_exact_binding_compatibility() -> None:
+    """Keep each executed-pass mismatch isolated to exactly one binding."""
+    cases = _case_map(_read(INPUT_PATH))
+    valid = cases["resolution.valid"]["input"]["events"][1]["record"]
     for label, field in (("executed-wrong-head", "head_sha"), ("executed-wrong-target", "target")):
         changed_input = copy.deepcopy(cases[f"evidence.{label}"]["input"])
         record = changed_input["events"][1]["record"]
-        assert record["state"] == "executed" and record["result"] == "pass"
+        assert record["state"] == "executed"
+        assert record["result"] == "pass"
         assert record[field] != valid[field]
         assert not evidence_satisfies(record, head_sha="1" * 40, target="synthetic-unit")
         # Restoring exactly one binding recovers the entire positive-control input.
         record[field] = valid[field]
         assert changed_input == cases["resolution.valid"]["input"]
         assert evidence_satisfies(record, head_sha="1" * 40, target="synthetic-unit")
+
+
+def test_existing_finding_fingerprint_compatibility() -> None:
+    """Preserve exact-duplicate and distinct-failure-mode fingerprint controls."""
+    cases = _case_map(_read(INPUT_PATH))
     first, second = cases["identity.exact-duplicate"]["input"]["events"]
     fields = ("rule_id", "subject", "failure_mode", "expected_outcome")
     assert finding_fingerprint(**{key: first["record"][key] for key in fields}) == finding_fingerprint(
