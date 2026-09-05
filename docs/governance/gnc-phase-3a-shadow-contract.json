@@ -1,0 +1,117 @@
+{
+  "schema_version": 1,
+  "contract_id": "gnc.phase3a-shadow-method",
+  "version": 1,
+  "parent_issue": 1817,
+  "objective": "Prepare only the separate static method freeze for offline public synthetic shadow-boundary and review-memory correctness; preparation approval is not freeze or runtime acceptance.",
+  "base_sha": "af06017b9a179e1b289f137e47f8ab86296502ca",
+  "policy_sha": "af06017b9a179e1b289f137e47f8ab86296502ca",
+  "risk_class": "high",
+  "allowed_paths": [
+    "docs/governance/gnc-phase-3a-shadow-method.md",
+    "docs/governance/gnc-phase-3a-shadow-contract.json",
+    "tests/fixtures/gnc/shadow/phase3a-cases.json",
+    "tests/fixtures/gnc/shadow/phase3a-expected.json",
+    "tests/unit/test_gnc_shadow_contract.py"
+  ],
+  "forbidden_paths": [
+    "scripts/gnc",
+    ".github",
+    "api",
+    "src",
+    "frontend",
+    "migrations",
+    "requirements.txt",
+    "requirements-dev.txt",
+    "pyproject.toml",
+    "docs/adr",
+    "docs/governance/governance-and-compliance-agent-v1.md",
+    "docs/governance/gnc-phase-2-contract.json",
+    "tests/unit/test_gnc_schema.py",
+    "tests/unit/test_gnc_advisory.py",
+    "tests/fixtures/gnc/advisory"
+  ],
+  "rules": [
+    {
+      "rule_id": "method.frozen-identities",
+      "type": "fixed_decision",
+      "statement": "The normative method is docs/governance/gnc-phase-3a-shadow-method.md at the separately accepted freeze head. Input canonical SHA256 is 47f70d04ebf58cc60936488893890b58eb3b5b26890588365b39a7d281096fc6; expected canonical SHA256 is 3d8b79a812e023fad51cf1ebfec8b83384b11a66edcbef6a6e401782f46b9205. Both are static definitions, not generated runtime evidence."
+    },
+    {
+      "rule_id": "scope.static-only",
+      "type": "mandatory_invariant",
+      "statement": "Only the five new allowlisted static files may change; all existing paths and all other new paths are forbidden. No runtime, reports, model/provider/network access, live ingestion, verdict caching or automatic actions."
+    },
+    {
+      "rule_id": "authority.synthetic-only",
+      "type": "mandatory_invariant",
+      "statement": "Fixed synthetic candidates cannot create rules, confirmations, dispositions, waivers or authority. Synthetic source authority is an explicit fixture trust assumption, not authentication."
+    },
+    {
+      "rule_id": "memory.current-evidence",
+      "type": "mandatory_invariant",
+      "statement": "Unresolved findings remain visible across snapshots. Thread state does not establish remediation. Resolution requires a current applicable synthetic authorized disposition and executed passing exact-head exact-target evidence."
+    },
+    {
+      "rule_id": "identity.conservative",
+      "type": "mandatory_invariant",
+      "statement": "Exact structured identity may link source records without removing them or resolving the underlying finding. Paraphrase requires confirmation. Different failure mode, conflict and recurrence are not collapsed."
+    },
+    {
+      "rule_id": "bindings.exact",
+      "type": "mandatory_invariant",
+      "statement": "Dispositions and waivers bind finding, head, contract, scope and explicit time; actor text alone is not authority. Every current snapshot is assessed fully; historical evidence never silently inherits applicability."
+    },
+    {
+      "rule_id": "context.full-review",
+      "type": "mandatory_invariant",
+      "statement": "Changed base, head, merge-base, policy, contract, evaluator, paths or relevant context invalidates reuse. Rename/delete and cross-file inventories remain mandatory; incomplete inputs refuse."
+    },
+    {
+      "rule_id": "input.bounded",
+      "type": "mandatory_invariant",
+      "statement": "Unknown fields, malformed values, exceeded limits and incomplete inputs refuse without truncation. Instruction-like permitted text remains inert; no source text is executed."
+    },
+    {
+      "rule_id": "history.preserved",
+      "type": "mandatory_invariant",
+      "statement": "Sequence, predecessor references, uniqueness and any supplied event digest must agree. Divergent or incomplete history refuses. All source events remain inspectable; hashes do not prove authenticity or non-equivocation."
+    },
+    {
+      "rule_id": "oracle.independent",
+      "type": "mandatory_invariant",
+      "statement": "Expected decisions are written from method rules before runtime and unavailable to future runtime. Static checks do not adjudicate or establish future runtime correctness. Later guard-removal tests and positive controls are mandatory."
+    },
+    {
+      "rule_id": "measurement.honest",
+      "type": "mandatory_invariant",
+      "statement": "Report raw counts, denominators, abstentions and wording-family groups without invented rates for empty denominators. Hand-authored candidates cannot establish model quality, performance, savings or operational readiness."
+    }
+  ],
+  "required_evidence": [
+    "focused-static-tests",
+    "phase1-phase2-compatibility",
+    "python-compile",
+    "pre-commit",
+    "scoped-security",
+    "exact-five-path-inventory",
+    "exact-head-checks",
+    "named-human-freeze-review"
+  ],
+  "merge_criteria": [
+    "Remain based on the ratified exact base and change exactly the five new allowlisted paths.",
+    "Record actual local checks and substantive review dispositions; do not classify unavailable provider checks as passing.",
+    "Return normalized ContractVersion canonical hash and exact candidate head for separate named-human freeze acceptance and unchanged-head merge.",
+    "The approved_by and approved_at fields record only preparation ratification at issue1557 comment5553196960; this candidate has no freeze acceptance yet.",
+    "No runtime/evidence candidate before separate freeze review and unchanged-head merge; runtime scope needs its own bounded authority."
+  ],
+  "stop_conditions": [
+    "Base moves or sixth/newly modified existing file is needed.",
+    "Existing Phase1/2 semantics, policy, workflow, dependency or provider must change.",
+    "Inputs require private data, live reviews, model calls, external processing, credentials, source execution or new bill.",
+    "More than 64 scenarios, 8 snapshots or 64 events per scenario is required, except explicit bounded negative-probe expansion reserved for future boundary tests.",
+    "Expected decisions require runtime outputs or any substantive design finding contradicts the ratified boundary."
+  ],
+  "approved_by": "mohavro",
+  "approved_at": "2026-09-05T16:30:22Z"
+}
