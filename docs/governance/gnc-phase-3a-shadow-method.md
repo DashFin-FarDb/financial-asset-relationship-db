@@ -233,7 +233,7 @@ refusal implementation must fail valid resolution, waiver and duplicate controls
 
 Counts preserve candidates (including abstentions), applicable finding opportunities, abstentions and distinct
 wording families. Wording variants may raise candidate count, not independent family count. Empty applicable
-denominator is undefined, encoded as null for any derived rate, never 0% or100%. Hand-authored applicable IDs are
+denominator is undefined, encoded as null for any derived rate, never 0% or 100%. Hand-authored applicable IDs are
 frozen experimental labels, not independently measured recall opportunities. No accuracy percentage is an acceptance
 criterion here; timing, model costs and savings are not measured. Full reassessment is intentionally unoptimized.
 
