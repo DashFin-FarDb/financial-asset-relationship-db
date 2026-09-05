@@ -44,7 +44,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         if: steps.check-creds.outputs.has_credentials == 'true'
 
-      - uses: jfrog/frogbot@4efe5f243086276f1ed990e7bfc68b16a8cb5bf8  # v3.3.2
+      - uses: jfrog/frogbot@7d2603d053b111cb5c2470ea89bd5bb14154fa79  # v3.5.0
         if: steps.check-creds.outputs.has_credentials == 'true'
 
         env:
