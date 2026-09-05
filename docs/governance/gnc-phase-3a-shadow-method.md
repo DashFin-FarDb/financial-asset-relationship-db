@@ -54,18 +54,18 @@ platform line endings. The contract hash is SHA-256 of `validate_contract(contra
 typed rules. This method and both fixture identities are bound by contract rules; the exact freeze commit binds
 all five source files. No self-referential commit/hash placeholder is fabricated.
 
-| Question | Explicit contrast families | Critical future guard-removal control |
-| --- | --- | --- |
-| authority | advisory, self-approval, new rule, waiver request, scope expansion | Promoting candidate requests must break refusal assertions |
-| memory | unresolved carry-forward, thread-only, failed/skipped/canceled/unavailable/stale/wrong-target evidence, executed-pass wrong-head-only and wrong-target-only | Removing either exact binding guard must fail its isolated executed-pass contrast against valid resolution |
-| resolution | valid, no disposition, no evidence | Always refusing must fail valid resolution; evidence alone cannot close |
-| identity | structured exact duplicate, paraphrase, distinct mode, conflict, recurrence | Wording-only collapse must lose a required distinct record and fail |
-| waiver | valid, wrong head/contract/scope/finding, expiry, forged actor | Actor-string or stale-binding acceptance must fail; blanket rejection fails valid waiver |
-| snapshot | current, superseded head, force-push, rebase, merge-base, contract, policy, evaluator, stale run | Reusing prior assessment must break changed-context assertions |
-| context | cross-file change, rename, delete, incomplete inventory, truncation | Filename-only reuse and treating missing inventory as empty must fail |
-| input | unknown field, malformed type, four explicit limit probes, inert instruction-like prose | Coercion/truncation/execution or candidate authority must fail |
-| history | reordered, duplicated, missing predecessor, divergence, tampered binding/digest, deterministic valid | Skipping sequence/binding/digest checks must fail |
-| measurement | complete, empty predictions, empty applicable denominator, abstention, wording variants | Dropping abstentions or counting variants as independent families must fail |
+| Question    | Explicit contrast families                                                                                                                                  | Critical future guard-removal control                                                                      |
+| ----------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| authority   | advisory, self-approval, new rule, waiver request, scope expansion                                                                                          | Promoting candidate requests must break refusal assertions                                                 |
+| memory      | unresolved carry-forward, thread-only, failed/skipped/canceled/unavailable/stale/wrong-target evidence, executed-pass wrong-head-only and wrong-target-only | Removing either exact binding guard must fail its isolated executed-pass contrast against valid resolution |
+| resolution  | valid, no disposition, no evidence                                                                                                                          | Always refusing must fail valid resolution; evidence alone cannot close                                    |
+| identity    | structured exact duplicate, paraphrase, distinct mode, conflict, recurrence                                                                                 | Wording-only collapse must lose a required distinct record and fail                                        |
+| waiver      | valid, wrong head/contract/scope/finding, expiry, forged actor                                                                                              | Actor-string or stale-binding acceptance must fail; blanket rejection fails valid waiver                   |
+| snapshot    | current, superseded head, force-push, rebase, merge-base, contract, policy, evaluator, stale run                                                            | Reusing prior assessment must break changed-context assertions                                             |
+| context     | cross-file change, rename, delete, incomplete inventory, truncation                                                                                         | Filename-only reuse and treating missing inventory as empty must fail                                      |
+| input       | unknown field, malformed type, four explicit limit probes, inert instruction-like prose                                                                     | Coercion/truncation/execution or candidate authority must fail                                             |
+| history     | reordered, duplicated, missing predecessor, divergence, tampered binding/digest, deterministic valid                                                        | Skipping sequence/binding/digest checks must fail                                                          |
+| measurement | complete, empty predictions, empty applicable denominator, abstention, wording variants                                                                     | Dropping abstentions or counting variants as independent families must fail                                |
 
 Every concrete case ID, input and expected observation is enumerated in the two JSON files. No contrasts may be
 silently dropped, no counts padded to the ceiling, and no oracle changed to match a runtime failure.
