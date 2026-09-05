@@ -154,6 +154,27 @@ def _case_map(data):
 def test_frozen_contract_and_preparation_authority():
     """Preserve exact scope and distinguish preparation from acceptance."""
     raw = _read(CONTRACT_PATH)
+    # Check the source shape before shared normalization can discard extra fields.
+    assert set(raw) == {
+        "schema_version",
+        "contract_id",
+        "version",
+        "parent_issue",
+        "objective",
+        "base_sha",
+        "policy_sha",
+        "risk_class",
+        "allowed_paths",
+        "forbidden_paths",
+        "rules",
+        "required_evidence",
+        "merge_criteria",
+        "stop_conditions",
+        "approved_by",
+        "approved_at",
+    }, "frozen raw contract keys changed"
+    for rule in raw["rules"]:
+        assert set(rule) == {"rule_id", "type", "statement"}, "frozen raw rule keys changed"
     normalized = validate_contract(raw)
     assert canonical_hash(normalized) == CONTRACT_HASH, "frozen contract identity changed"
     assert normalized["contract_id"] == "gnc.phase3a-shadow-method"
@@ -224,6 +245,22 @@ def test_contract_human_and_exact_head_controls_cannot_both_be_removed(monkeypat
     altered["required_evidence"].remove("named-human-freeze-review")
     altered["required_evidence"].remove("exact-head-checks")
     _assert_contract_mutation_rejected(monkeypatch, altered)
+
+
+@pytest.mark.parametrize(
+    "index,key",
+    [(None, key) for key in ("freeze_accepted", "previous_contract_hash", "amendment_reason")]
+    + [(index, key) for index in range(11) for key in ("optional", "blocking_eligible")],
+)
+def test_contract_ignored_fields_are_rejected(monkeypatch: pytest.MonkeyPatch, index: int | None, key: str) -> None:
+    """Reject source fields discarded or overwritten by shared normalization."""
+    altered = copy.deepcopy(_read(CONTRACT_PATH))
+    target = altered if index is None else altered["rules"][index]
+    target[key] = False
+    assert canonical_hash(validate_contract(altered)) == CONTRACT_HASH
+    monkeypatch.setitem(globals(), "_read", lambda path: altered)
+    with pytest.raises(AssertionError, match="frozen raw .* keys changed"):
+        test_frozen_contract_and_preparation_authority()
 
 
 def test_contract_identity_accepts_formatting_only_changes(monkeypatch: pytest.MonkeyPatch) -> None:
