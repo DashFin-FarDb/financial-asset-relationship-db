@@ -90,9 +90,7 @@
             "abstains": false
           }
         ],
-        "applicable_findings": [
-          "f.one"
-        ],
+        "applicable_findings": ["f.one"],
         "probe": null
       }
     },
@@ -157,9 +155,7 @@
             "abstains": false
           }
         ],
-        "applicable_findings": [
-          "f.one"
-        ],
+        "applicable_findings": ["f.one"],
         "probe": null
       }
     },
@@ -224,9 +220,7 @@
             "abstains": false
           }
         ],
-        "applicable_findings": [
-          "f.one"
-        ],
+        "applicable_findings": ["f.one"],
         "probe": null
       }
     },
@@ -291,9 +285,7 @@
             "abstains": false
           }
         ],
-        "applicable_findings": [
-          "f.one"
-        ],
+        "applicable_findings": ["f.one"],
         "probe": null
       }
     },
@@ -358,9 +350,7 @@
             "abstains": false
           }
         ],
-        "applicable_findings": [
-          "f.one"
-        ],
+        "applicable_findings": ["f.one"],
         "probe": null
       }
     },
@@ -444,9 +434,7 @@
             "abstains": false
           }
         ],
-        "applicable_findings": [
-          "f.one"
-        ],
+        "applicable_findings": ["f.one"],
         "probe": null
       }
     },
@@ -523,9 +511,7 @@
             "abstains": false
           }
         ],
-        "applicable_findings": [
-          "f.one"
-        ],
+        "applicable_findings": ["f.one"],
         "probe": null
       }
     },
@@ -610,9 +596,7 @@
               "head_sha": "1111111111111111111111111111111111111111",
               "contract_hash": "4444444444444444444444444444444444444444444444444444444444444444",
               "scope": "synthetic/subject.txt",
-              "evidence_ids": [
-                "e.one"
-              ]
+              "evidence_ids": ["e.one"]
             }
           }
         ],
@@ -627,9 +611,7 @@
             "abstains": false
           }
         ],
-        "applicable_findings": [
-          "f.one"
-        ],
+        "applicable_findings": ["f.one"],
         "probe": null
       }
     },
@@ -712,9 +694,7 @@
             "abstains": false
           }
         ],
-        "applicable_findings": [
-          "f.one"
-        ],
+        "applicable_findings": ["f.one"],
         "probe": null
       }
     },
@@ -781,9 +761,7 @@
               "head_sha": "1111111111111111111111111111111111111111",
               "contract_hash": "4444444444444444444444444444444444444444444444444444444444444444",
               "scope": "synthetic/subject.txt",
-              "evidence_ids": [
-                "e.one"
-              ]
+              "evidence_ids": ["e.one"]
             }
           }
         ],
@@ -798,9 +776,7 @@
             "abstains": false
           }
         ],
-        "applicable_findings": [
-          "f.one"
-        ],
+        "applicable_findings": ["f.one"],
         "probe": null
       }
     },
@@ -885,9 +861,7 @@
               "head_sha": "1111111111111111111111111111111111111111",
               "contract_hash": "4444444444444444444444444444444444444444444444444444444444444444",
               "scope": "synthetic/subject.txt",
-              "evidence_ids": [
-                "e.one"
-              ]
+              "evidence_ids": ["e.one"]
             }
           }
         ],
@@ -902,9 +876,7 @@
             "abstains": false
           }
         ],
-        "applicable_findings": [
-          "f.one"
-        ],
+        "applicable_findings": ["f.one"],
         "probe": null
       }
     },
@@ -989,9 +961,7 @@
               "head_sha": "1111111111111111111111111111111111111111",
               "contract_hash": "4444444444444444444444444444444444444444444444444444444444444444",
               "scope": "synthetic/subject.txt",
-              "evidence_ids": [
-                "e.one"
-              ]
+              "evidence_ids": ["e.one"]
             }
           }
         ],
@@ -1006,9 +976,7 @@
             "abstains": false
           }
         ],
-        "applicable_findings": [
-          "f.one"
-        ],
+        "applicable_findings": ["f.one"],
         "probe": null
       }
     },
@@ -1093,9 +1061,7 @@
               "head_sha": "1111111111111111111111111111111111111111",
               "contract_hash": "4444444444444444444444444444444444444444444444444444444444444444",
               "scope": "synthetic/subject.txt",
-              "evidence_ids": [
-                "e.one"
-              ]
+              "evidence_ids": ["e.one"]
             }
           }
         ],
@@ -1110,9 +1076,7 @@
             "abstains": false
           }
         ],
-        "applicable_findings": [
-          "f.one"
-        ],
+        "applicable_findings": ["f.one"],
         "probe": null
       }
     },
@@ -1197,9 +1161,7 @@
               "head_sha": "1111111111111111111111111111111111111111",
               "contract_hash": "4444444444444444444444444444444444444444444444444444444444444444",
               "scope": "synthetic/subject.txt",
-              "evidence_ids": [
-                "e.one"
-              ]
+              "evidence_ids": ["e.one"]
             }
           }
         ],
@@ -1214,9 +1176,7 @@
             "abstains": false
           }
         ],
-        "applicable_findings": [
-          "f.one"
-        ],
+        "applicable_findings": ["f.one"],
         "probe": null
       }
     },
@@ -1301,9 +1261,7 @@
               "head_sha": "1111111111111111111111111111111111111111",
               "contract_hash": "4444444444444444444444444444444444444444444444444444444444444444",
               "scope": "synthetic/subject.txt",
-              "evidence_ids": [
-                "e.one"
-              ]
+              "evidence_ids": ["e.one"]
             }
           }
         ],
@@ -1318,9 +1276,7 @@
             "abstains": false
           }
         ],
-        "applicable_findings": [
-          "f.one"
-        ],
+        "applicable_findings": ["f.one"],
         "probe": null
       }
     },
@@ -1405,9 +1361,7 @@
               "head_sha": "1111111111111111111111111111111111111111",
               "contract_hash": "4444444444444444444444444444444444444444444444444444444444444444",
               "scope": "synthetic/subject.txt",
-              "evidence_ids": [
-                "e.one"
-              ]
+              "evidence_ids": ["e.one"]
             }
           }
         ],
@@ -1422,9 +1376,7 @@
             "abstains": false
           }
         ],
-        "applicable_findings": [
-          "f.one"
-        ],
+        "applicable_findings": ["f.one"],
         "probe": null
       }
     },
@@ -1509,9 +1461,7 @@
               "head_sha": "1111111111111111111111111111111111111111",
               "contract_hash": "4444444444444444444444444444444444444444444444444444444444444444",
               "scope": "synthetic/subject.txt",
-              "evidence_ids": [
-                "e.one"
-              ]
+              "evidence_ids": ["e.one"]
             }
           }
         ],
@@ -1526,9 +1476,7 @@
             "abstains": false
           }
         ],
-        "applicable_findings": [
-          "f.one"
-        ],
+        "applicable_findings": ["f.one"],
         "probe": null
       }
     },
@@ -1613,9 +1561,7 @@
               "head_sha": "1111111111111111111111111111111111111111",
               "contract_hash": "4444444444444444444444444444444444444444444444444444444444444444",
               "scope": "synthetic/subject.txt",
-              "evidence_ids": [
-                "e.one"
-              ]
+              "evidence_ids": ["e.one"]
             }
           }
         ],
@@ -1630,9 +1576,7 @@
             "abstains": false
           }
         ],
-        "applicable_findings": [
-          "f.one"
-        ],
+        "applicable_findings": ["f.one"],
         "probe": null
       }
     },
@@ -1718,9 +1662,7 @@
             "abstains": false
           }
         ],
-        "applicable_findings": [
-          "f.one"
-        ],
+        "applicable_findings": ["f.one"],
         "probe": null
       }
     },
@@ -1785,9 +1727,7 @@
             "abstains": false
           }
         ],
-        "applicable_findings": [
-          "f.one"
-        ],
+        "applicable_findings": ["f.one"],
         "probe": null
       }
     },
@@ -1873,9 +1813,7 @@
             "abstains": false
           }
         ],
-        "applicable_findings": [
-          "f.one"
-        ],
+        "applicable_findings": ["f.one"],
         "probe": null
       }
     },
@@ -1961,9 +1899,7 @@
             "abstains": false
           }
         ],
-        "applicable_findings": [
-          "f.one"
-        ],
+        "applicable_findings": ["f.one"],
         "probe": null
       }
     },
@@ -2048,9 +1984,7 @@
               "head_sha": "1111111111111111111111111111111111111111",
               "contract_hash": "4444444444444444444444444444444444444444444444444444444444444444",
               "scope": "synthetic/subject.txt",
-              "evidence_ids": [
-                "e.one"
-              ]
+              "evidence_ids": ["e.one"]
             }
           },
           {
@@ -2086,9 +2020,7 @@
             "abstains": false
           }
         ],
-        "applicable_findings": [
-          "f.one"
-        ],
+        "applicable_findings": ["f.one"],
         "probe": null
       }
     },
@@ -2172,9 +2104,7 @@
             "abstains": false
           }
         ],
-        "applicable_findings": [
-          "f.one"
-        ],
+        "applicable_findings": ["f.one"],
         "probe": null
       }
     },
@@ -2258,9 +2188,7 @@
             "abstains": false
           }
         ],
-        "applicable_findings": [
-          "f.one"
-        ],
+        "applicable_findings": ["f.one"],
         "probe": null
       }
     },
@@ -2344,9 +2272,7 @@
             "abstains": false
           }
         ],
-        "applicable_findings": [
-          "f.one"
-        ],
+        "applicable_findings": ["f.one"],
         "probe": null
       }
     },
@@ -2430,9 +2356,7 @@
             "abstains": false
           }
         ],
-        "applicable_findings": [
-          "f.one"
-        ],
+        "applicable_findings": ["f.one"],
         "probe": null
       }
     },
@@ -2516,9 +2440,7 @@
             "abstains": false
           }
         ],
-        "applicable_findings": [
-          "f.one"
-        ],
+        "applicable_findings": ["f.one"],
         "probe": null
       }
     },
@@ -2602,9 +2524,7 @@
             "abstains": false
           }
         ],
-        "applicable_findings": [
-          "f.one"
-        ],
+        "applicable_findings": ["f.one"],
         "probe": null
       }
     },
@@ -2688,9 +2608,7 @@
             "abstains": false
           }
         ],
-        "applicable_findings": [
-          "f.one"
-        ],
+        "applicable_findings": ["f.one"],
         "probe": null
       }
     },
@@ -2755,9 +2673,7 @@
             "abstains": false
           }
         ],
-        "applicable_findings": [
-          "f.one"
-        ],
+        "applicable_findings": ["f.one"],
         "probe": null
       }
     },
@@ -2841,9 +2757,7 @@
             "abstains": false
           }
         ],
-        "applicable_findings": [
-          "f.one"
-        ],
+        "applicable_findings": ["f.one"],
         "probe": null
       }
     },
@@ -2927,9 +2841,7 @@
             "abstains": false
           }
         ],
-        "applicable_findings": [
-          "f.one"
-        ],
+        "applicable_findings": ["f.one"],
         "probe": null
       }
     },
@@ -3013,9 +2925,7 @@
             "abstains": false
           }
         ],
-        "applicable_findings": [
-          "f.one"
-        ],
+        "applicable_findings": ["f.one"],
         "probe": null
       }
     },
@@ -3099,9 +3009,7 @@
             "abstains": false
           }
         ],
-        "applicable_findings": [
-          "f.one"
-        ],
+        "applicable_findings": ["f.one"],
         "probe": null
       }
     },
@@ -3185,9 +3093,7 @@
             "abstains": false
           }
         ],
-        "applicable_findings": [
-          "f.one"
-        ],
+        "applicable_findings": ["f.one"],
         "probe": null
       }
     },
@@ -3271,9 +3177,7 @@
             "abstains": false
           }
         ],
-        "applicable_findings": [
-          "f.one"
-        ],
+        "applicable_findings": ["f.one"],
         "probe": null
       }
     },
@@ -3357,9 +3261,7 @@
             "abstains": false
           }
         ],
-        "applicable_findings": [
-          "f.one"
-        ],
+        "applicable_findings": ["f.one"],
         "probe": null
       }
     },
@@ -3424,9 +3326,7 @@
             "abstains": false
           }
         ],
-        "applicable_findings": [
-          "f.one"
-        ],
+        "applicable_findings": ["f.one"],
         "probe": null
       }
     },
@@ -3510,9 +3410,7 @@
             "abstains": false
           }
         ],
-        "applicable_findings": [
-          "f.one"
-        ],
+        "applicable_findings": ["f.one"],
         "probe": null
       }
     },
@@ -3596,9 +3494,7 @@
             "abstains": false
           }
         ],
-        "applicable_findings": [
-          "f.one"
-        ],
+        "applicable_findings": ["f.one"],
         "probe": null
       }
     },
@@ -3681,9 +3577,7 @@
             "abstains": false
           }
         ],
-        "applicable_findings": [
-          "f.one"
-        ],
+        "applicable_findings": ["f.one"],
         "probe": null
       }
     },
@@ -3748,9 +3642,7 @@
             "abstains": false
           }
         ],
-        "applicable_findings": [
-          "f.one"
-        ],
+        "applicable_findings": ["f.one"],
         "probe": null
       }
     },
@@ -3815,9 +3707,7 @@
             "abstains": false
           }
         ],
-        "applicable_findings": [
-          "f.one"
-        ],
+        "applicable_findings": ["f.one"],
         "probe": null
       }
     },
@@ -3883,9 +3773,7 @@
             "unexpected": "synthetic"
           }
         ],
-        "applicable_findings": [
-          "f.one"
-        ],
+        "applicable_findings": ["f.one"],
         "probe": null
       }
     },
@@ -3950,9 +3838,7 @@
             "abstains": false
           }
         ],
-        "applicable_findings": [
-          "f.one"
-        ],
+        "applicable_findings": ["f.one"],
         "probe": null
       }
     },
@@ -4017,9 +3903,7 @@
             "abstains": false
           }
         ],
-        "applicable_findings": [
-          "f.one"
-        ],
+        "applicable_findings": ["f.one"],
         "probe": {
           "kind": "events",
           "count": 65
@@ -4087,9 +3971,7 @@
             "abstains": false
           }
         ],
-        "applicable_findings": [
-          "f.one"
-        ],
+        "applicable_findings": ["f.one"],
         "probe": {
           "kind": "text-bytes",
           "count": 4097
@@ -4157,9 +4039,7 @@
             "abstains": false
           }
         ],
-        "applicable_findings": [
-          "f.one"
-        ],
+        "applicable_findings": ["f.one"],
         "probe": {
           "kind": "input-bytes",
           "count": 262145
@@ -4227,9 +4107,7 @@
             "abstains": false
           }
         ],
-        "applicable_findings": [
-          "f.one"
-        ],
+        "applicable_findings": ["f.one"],
         "probe": {
           "kind": "snapshots",
           "count": 9
@@ -4297,9 +4175,7 @@
             "abstains": false
           }
         ],
-        "applicable_findings": [
-          "f.one"
-        ],
+        "applicable_findings": ["f.one"],
         "probe": null
       }
     },
@@ -4385,9 +4261,7 @@
             "abstains": false
           }
         ],
-        "applicable_findings": [
-          "f.one"
-        ],
+        "applicable_findings": ["f.one"],
         "probe": null
       }
     },
@@ -4473,9 +4347,7 @@
             "abstains": false
           }
         ],
-        "applicable_findings": [
-          "f.one"
-        ],
+        "applicable_findings": ["f.one"],
         "probe": null
       }
     },
@@ -4561,9 +4433,7 @@
             "abstains": false
           }
         ],
-        "applicable_findings": [
-          "f.one"
-        ],
+        "applicable_findings": ["f.one"],
         "probe": null
       }
     },
@@ -4649,9 +4519,7 @@
             "abstains": false
           }
         ],
-        "applicable_findings": [
-          "f.one"
-        ],
+        "applicable_findings": ["f.one"],
         "probe": null
       }
     },
@@ -4737,9 +4605,7 @@
             "abstains": false
           }
         ],
-        "applicable_findings": [
-          "f.one"
-        ],
+        "applicable_findings": ["f.one"],
         "probe": null
       }
     },
@@ -4805,9 +4671,7 @@
             "abstains": false
           }
         ],
-        "applicable_findings": [
-          "f.one"
-        ],
+        "applicable_findings": ["f.one"],
         "probe": null
       }
     },
@@ -4872,9 +4736,7 @@
             "abstains": false
           }
         ],
-        "applicable_findings": [
-          "f.one"
-        ],
+        "applicable_findings": ["f.one"],
         "probe": null
       }
     },
@@ -4939,9 +4801,7 @@
             "abstains": false
           }
         ],
-        "applicable_findings": [
-          "f.one"
-        ],
+        "applicable_findings": ["f.one"],
         "probe": null
       }
     },
@@ -4996,9 +4856,7 @@
           }
         ],
         "candidates": [],
-        "applicable_findings": [
-          "f.one"
-        ],
+        "applicable_findings": ["f.one"],
         "probe": null
       }
     },
@@ -5128,9 +4986,7 @@
             "abstains": true
           }
         ],
-        "applicable_findings": [
-          "f.one"
-        ],
+        "applicable_findings": ["f.one"],
         "probe": null
       }
     },
@@ -5204,9 +5060,7 @@
             "abstains": false
           }
         ],
-        "applicable_findings": [
-          "f.one"
-        ],
+        "applicable_findings": ["f.one"],
         "probe": null
       }
     }

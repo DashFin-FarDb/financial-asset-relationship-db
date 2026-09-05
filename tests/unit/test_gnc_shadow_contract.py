@@ -26,6 +26,9 @@ EXPECTED_PATH = ROOT / "tests/fixtures/gnc/shadow/phase3a-expected.json"
 CONTRACT_PATH = ROOT / "docs/governance/gnc-phase-3a-shadow-contract.json"
 METHOD_PATH = ROOT / "docs/governance/gnc-phase-3a-shadow-method.md"
 BASE = "165efa4d239737fefad33ca1ecb1db347e6b8414"
+# Predeclared normalized identity of the unchanged candidate contract at 7d192ed59.
+# This pin detects drift; it is not human freeze acceptance or authority to repin.
+CONTRACT_HASH = "20cc780707244455119e89f3fd30d7dd7424f3d925ea50a706acde9023a23ec0"
 INPUT_HASH = "47f70d04ebf58cc60936488893890b58eb3b5b26890588365b39a7d281096fc6"
 EXPECTED_HASH = "3d8b79a812e023fad51cf1ebfec8b83384b11a66edcbef6a6e401782f46b9205"
 PATHS = {
@@ -152,6 +155,7 @@ def test_frozen_contract_and_preparation_authority():
     """Preserve exact scope and distinguish preparation from acceptance."""
     raw = _read(CONTRACT_PATH)
     normalized = validate_contract(raw)
+    assert canonical_hash(normalized) == CONTRACT_HASH, "frozen contract identity changed"
     assert normalized["contract_id"] == "gnc.phase3a-shadow-method"
     assert normalized["version"] == 1
     assert normalized["parent_issue"] == 1817
@@ -166,7 +170,67 @@ def test_frozen_contract_and_preparation_authority():
     assert EXPECTED_HASH in rules["method.frozen-identities"]["statement"]
     assert all(rule["type"] in ("mandatory_invariant", "fixed_decision") for rule in rules.values())
     assert validate_contract(normalized) == normalized
-    assert canonical_hash(normalized) == canonical_hash(validate_contract(raw))
+
+
+def _assert_contract_mutation_rejected(monkeypatch: pytest.MonkeyPatch, altered: dict[str, Any]) -> None:
+    """Exercise the real entry test, not just an otherwise unused hash helper."""
+    validate_contract(altered)  # Mutation must be schema-valid, not rejected by parsing.
+    monkeypatch.setitem(globals(), "_read", lambda path: altered)
+    with pytest.raises(AssertionError, match="frozen contract identity changed"):
+        test_frozen_contract_and_preparation_authority()
+
+
+@pytest.mark.parametrize("operation", ["remove", "replace"])
+@pytest.mark.parametrize(
+    "field,index",
+    [
+        (field, index)
+        for field, count in (
+            ("required_evidence", 8),
+            ("forbidden_paths", 15),
+            ("merge_criteria", 5),
+            ("stop_conditions", 5),
+        )
+        for index in range(count)
+    ],
+)
+def test_contract_control_mutations_are_rejected(
+    monkeypatch: pytest.MonkeyPatch, field: str, index: int, operation: str
+) -> None:
+    """Individually protect every required control, including human and exact-head review."""
+    altered = copy.deepcopy(_read(CONTRACT_PATH))
+    if operation == "remove":
+        del altered[field][index]
+    else:
+        altered[field][index] += "-optional"
+    _assert_contract_mutation_rejected(monkeypatch, altered)
+
+
+@pytest.mark.parametrize("operation", ["remove", "weaken"])
+@pytest.mark.parametrize("index", range(11))
+def test_contract_rule_mutations_are_rejected(monkeypatch: pytest.MonkeyPatch, index: int, operation: str) -> None:
+    """Reject removal or schema-valid weakening of each frozen rule statement."""
+    altered = copy.deepcopy(_read(CONTRACT_PATH))
+    if operation == "remove":
+        del altered["rules"][index]
+    else:
+        altered["rules"][index]["statement"] = "This rule is optional."
+    _assert_contract_mutation_rejected(monkeypatch, altered)
+
+
+def test_contract_human_and_exact_head_controls_cannot_both_be_removed(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Reproduce the confirmed review counterexample against the actual entry test."""
+    altered = copy.deepcopy(_read(CONTRACT_PATH))
+    altered["required_evidence"].remove("named-human-freeze-review")
+    altered["required_evidence"].remove("exact-head-checks")
+    _assert_contract_mutation_rejected(monkeypatch, altered)
+
+
+def test_contract_identity_accepts_formatting_only_changes(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Preserve normalized identity across JSON whitespace and object-key ordering."""
+    equivalent = json.loads(json.dumps(_read(CONTRACT_PATH), sort_keys=True, indent=4))
+    monkeypatch.setitem(globals(), "_read", lambda path: equivalent)
+    test_frozen_contract_and_preparation_authority()
 
 
 def test_frozen_corpus_identities_bounds_and_question_inventory():
