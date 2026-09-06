@@ -1,6 +1,7 @@
-name: Codacy isolated decoder reproduction
+name: Codacy isolated compatibility and report observation
 
-# Proposed replacement on the existing disposable branch only; not a scan or repair.
+# LOCAL PROPOSAL ONLY. No CI or publication authorized by preparation.
+# REPORT failure is not waived even if DECODER passes. Not a scanner run or repair.
 "on":
   push:
     branches: [codex/codacy-1833-charset-probe]
@@ -13,13 +14,19 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - name: Test the unchanged packaged decoder with bounded fixtures
+      - name: Observe distinct decoder, report and exit-policy outcomes
         shell: bash
         env:
           PROBE_IMAGE: codacy/codacy-analysis-cli@sha256:d412b2a84e72d0b541e29dd6cdffa78a73afcf35d8aa546988cd2a44edaab15c
           JAVA_SOURCE: |
             import java.io.BufferedReader;
+            import java.io.ByteArrayOutputStream;
+            import java.io.PrintStream;
             import java.io.StringReader;
+            import java.lang.reflect.Constructor;
+            import java.lang.reflect.InvocationTargetException;
+            import java.lang.reflect.Method;
+            import java.net.URL;
             import java.nio.ByteBuffer;
             import java.nio.charset.Charset;
             import java.nio.charset.CodingErrorAction;
@@ -32,10 +39,19 @@ jobs:
             import java.security.MessageDigest;
             import java.util.ArrayList;
             import java.util.Arrays;
+            import java.util.Collections;
+            import java.util.Enumeration;
+            import java.util.LinkedHashMap;
             import java.util.List;
+            import java.util.Map;
 
-            /** Bounded diagnostic of an unchanged packaged decoder, not a scanner or repair. */
-            public final class DecoderProbe {
+            /** Preparation-only source: no scanner invocation or repair acceptance. */
+            public final class CompatibilityProbe {
+                private static final Path INPUT = Paths.get("/probe");
+                private static final Path SCRATCH = Paths.get("/scratch");
+                private static final Path LIBRARY = INPUT.resolve("better-files_2.12-3.9.2.jar");
+                private static final String LIBRARY_HASH =
+                    "65fc3f2e622d23d0e574f6b526a868e62b2e8d79d8b286018d7db3aa69244cff";
                 private static final String[] NAMES = {
                     "ARCHITECTURE.md", "TEST_GENERATION_CURRENT_BRANCH_SUMMARY.md", "tech_spec.md"
                 };
@@ -45,8 +61,22 @@ jobs:
                     "f8b55c887c12461fa0c8135b155d8e2b566f2660c5ca6a9d9b47e443e9dbe052",
                     "f5edfdcc78f272fab6398b2cba88b56a7aadeb4639372c4b92c3d82bea8e889d"
                 };
+                private static final int[] LINES = {72, 225, 428};
+                private static final String[] IDS = {"PROBE_SECURITY", "PROBE_STYLE"};
+                // Independently computed from immutable blobs; existing MD5 compatibility, not security hashes.
+                private static final String[][] FINGERPRINTS = {
+                    {"253e6cc072076684e3bfe42810062636", "eb180a858145a555e7f5bf537824bb2c"},
+                    {"79f4d51fefa75a68778db019be0a37f9", "a830f5226f0477cf34cd2206dc156908"},
+                    {"684fd56bf001dd98452c50f58f7fa121", "db628a6ad3e6c8d753e69b10f213bfa0"}
+                };
+                private static final String[] CATEGORIES = {"Security", "CodeStyle"};
+                private static final List<String> FAILURES = new ArrayList<String>();
 
-                private DecoderProbe() {}
+                private CompatibilityProbe() {}
+
+                private interface Check {
+                    void run() throws Exception;
+                }
 
                 private static void require(boolean condition, String message) {
                     if (!condition) {
@@ -54,121 +84,398 @@ jobs:
                     }
                 }
 
-                private static String sha256(byte[] data) throws Exception {
-                    byte[] digest = MessageDigest.getInstance("SHA-256").digest(data);
-                    StringBuilder result = new StringBuilder();
-                    for (byte value : digest) {
-                        result.append(String.format("%02x", value & 255));
+                private static void lane(String name, Check check) {
+                    try {
+                        check.run();
+                        System.out.println("OUTCOME\t" + name + "\tPASS");
+                    } catch (Exception | LinkageError error) {
+                        FAILURES.add(name);
+                        System.out.println("OUTCOME\t" + name + "\tFAIL\t" + error);
                     }
-                    return result.toString();
                 }
 
-                private static Charset packagedCharset() throws Exception {
-                    Class<?> moduleClass = Class.forName("better.files.package$");
-                    Object module = moduleClass.getField("MODULE$").get(null);
-                    Charset charset = (Charset) moduleClass.getMethod("DefaultCharset").invoke(module);
-                    require(charset.getClass().getName().equals("better.files.UnicodeCharset"), "Unexpected charset class");
-                    require(charset.name().equals("UTF-8"), "Unexpected packaged charset");
-                    Class<?> decoderClass = charset.newDecoder().getClass();
-                    require(decoderClass.getName().equals("better.files.UnicodeDecoder"), "Unexpected decoder class");
-                    System.out.println("DECODER\t" + decoderClass.getName() + "\t"
-                        + decoderClass.getProtectionDomain().getCodeSource().getLocation());
+                private static Class<?> type(String name) throws ClassNotFoundException {
+                    return Class.forName(name);
+                }
+
+                private static Object module(String name) throws Exception {
+                    return type(name).getField("MODULE$").get(null);
+                }
+
+                private static boolean accepts(Class<?>[] parameters, Object[] arguments) {
+                    if (parameters.length != arguments.length) {
+                        return false;
+                    }
+                    for (int i = 0; i < parameters.length; i++) {
+                        Class<?> parameter = parameters[i];
+                        if (parameter == int.class) {
+                            parameter = Integer.class;
+                        } else if (parameter == boolean.class) {
+                            parameter = Boolean.class;
+                        }
+                        if (arguments[i] == null || !parameter.isInstance(arguments[i])) {
+                            return false;
+                        }
+                    }
+                    return true;
+                }
+
+                private static Object invoke(Method method, Object target, Object[] arguments) throws Exception {
+                    try {
+                        return method.invoke(target, arguments);
+                    } catch (InvocationTargetException error) {
+                        Throwable cause = error.getCause();
+                        if (cause instanceof Exception) {
+                            throw (Exception) cause;
+                        }
+                        if (cause instanceof Error) {
+                            throw (Error) cause;
+                        }
+                        throw error;
+                    }
+                }
+
+                private static Object call(Object target, String owner, String name, Object... arguments) throws Exception {
+                    List<Method> matches = new ArrayList<Method>();
+                    for (Method method : type(owner).getMethods()) {
+                        if (method.getName().equals(name) && !method.isBridge() && !method.isSynthetic()
+                            && accepts(method.getParameterTypes(), arguments)) {
+                            matches.add(method);
+                        }
+                    }
+                    require(matches.size() == 1, "Missing/ambiguous method: " + owner + "." + name);
+                    return invoke(matches.get(0), target, arguments);
+                }
+
+                private static Object construct(String name, Object... arguments) throws Exception {
+                    List<Constructor<?>> matches = new ArrayList<Constructor<?>>();
+                    for (Constructor<?> constructor : type(name).getConstructors()) {
+                        if (!constructor.isSynthetic() && accepts(constructor.getParameterTypes(), arguments)) {
+                            matches.add(constructor);
+                        }
+                    }
+                    require(matches.size() == 1, "Missing/ambiguous constructor: " + name);
+                    try {
+                        return matches.get(0).newInstance(arguments);
+                    } catch (InvocationTargetException error) {
+                        Throwable cause = error.getCause();
+                        if (cause instanceof Exception) {
+                            throw (Exception) cause;
+                        }
+                        if (cause instanceof Error) {
+                            throw (Error) cause;
+                        }
+                        throw error;
+                    }
+                }
+
+                private static Object none() throws Exception {
+                    return module("scala.None$");
+                }
+
+                private static Object some(Object value) throws Exception {
+                    return construct("scala.Some", value);
+                }
+
+                private static Object scalaList(Object... values) throws Exception {
+                    Object list = module("scala.collection.immutable.Nil$");
+                    for (int i = values.length - 1; i >= 0; i--) {
+                        list = construct("scala.collection.immutable.$colon$colon", values[i], list);
+                    }
+                    return list;
+                }
+
+                private static Object scalaSet(Object... values) throws Exception {
+                    return call(scalaList(values), "scala.collection.immutable.List", "toSet");
+                }
+
+                private static Object enumValue(String name, String value) throws Exception {
+                    return call(module(name), "scala.Enumeration", "withName", value);
+                }
+
+                private static String sha256(byte[] bytes) throws Exception {
+                    byte[] digest = MessageDigest.getInstance("SHA-256").digest(bytes);
+                    StringBuilder text = new StringBuilder();
+                    for (byte value : digest) {
+                        text.append(String.format("%02x", value & 255));
+                    }
+                    return text.toString();
+                }
+
+                private static byte[] verified(Path file, long size, String digest) throws Exception {
+                    require(!Files.isSymbolicLink(file) && Files.isRegularFile(file), "Invalid input type: " + file);
+                    require(Files.size(file) == size, "Input size: " + file);
+                    byte[] bytes = Files.readAllBytes(file);
+                    require(bytes.length == size && sha256(bytes).equals(digest), "Input identity: " + file);
+                    return bytes;
+                }
+
+                private static void libraryClass(String name) throws Exception {
+                    Class<?> clazz = type(name);
+                    Path source = Paths.get(clazz.getProtectionDomain().getCodeSource().getLocation().toURI());
+                    require(source.equals(LIBRARY), "Unexpected class origin: " + name + " " + source);
+                    Enumeration<URL> resources = clazz.getClassLoader().getResources(name.replace('.', '/') + ".class");
+                    List<URL> origins = Collections.list(resources);
+                    require(origins.size() == 1, "Ambiguous class resources: " + name);
+                }
+
+                private static Charset candidateCharset() throws Exception {
+                    verified(LIBRARY, 263930L, LIBRARY_HASH);
+                    for (String name : new String[] {"better.files.package$", "better.files.File", "better.files.File$",
+                        "better.files.UnicodeCharset", "better.files.UnicodeDecoder"}) {
+                        libraryClass(name);
+                    }
+                    Object value = call(module("better.files.package$"), "better.files.package$", "DefaultCharset");
+                    require(value instanceof Charset, "Unexpected charset result");
+                    Charset charset = (Charset) value;
+                    require(charset.name().equals("UTF-8")
+                        && charset.getClass().getName().equals("better.files.UnicodeCharset"), "Unexpected charset");
+                    require(charset.newDecoder().getClass().getName().equals("better.files.UnicodeDecoder"), "Decoder class");
+                    System.out.println("LIBRARY\t" + LIBRARY + "\tsha256=" + LIBRARY_HASH);
                     return charset;
                 }
 
-                private static List<String> strictWholeFileLines(byte[] bytes) throws Exception {
-                    String decoded = StandardCharsets.UTF_8.newDecoder()
-                        .onMalformedInput(CodingErrorAction.REPORT)
-                        .onUnmappableCharacter(CodingErrorAction.REPORT)
-                        .decode(ByteBuffer.wrap(bytes)).toString();
-                    List<String> lines = new ArrayList<String>();
-                    try (BufferedReader reader = new BufferedReader(new StringReader(decoded))) {
+                private static List<String> lines(String text) throws Exception {
+                    List<String> result = new ArrayList<String>();
+                    try (BufferedReader reader = new BufferedReader(new StringReader(text))) {
                         String line;
                         while ((line = reader.readLine()) != null) {
-                            lines.add(line);
+                            result.add(line);
                         }
                     }
-                    return lines;
+                    return result;
                 }
 
-                private static boolean observeValid(Path path, Charset packaged, int expected) throws Exception {
-                    // expected: 0 = must agree, 2 = predicted old-decoder failure, -1 = observe candidate.
-                    List<String> oracle = strictWholeFileLines(Files.readAllBytes(path));
-                    require(Files.readAllLines(path, StandardCharsets.UTF_8).equals(oracle), "Native read disagrees: " + path);
-                    boolean failed = false;
-                    try {
-                        List<String> actual = Files.readAllLines(path, packaged);
-                        require(actual.equals(oracle), "Bundled read changed content: " + path);
-                        System.out.println("VALID\t" + path.getFileName() + "\tBUNDLED_EQUAL\tlines=" + oracle.size());
-                    } catch (MalformedInputException error) {
-                        failed = true;
-                        require(error.getInputLength() == 2, "Unexpected malformed length: " + path);
-                        System.out.println("VALID\t" + path.getFileName() + "\tBUNDLED_MALFORMED\tlength=2");
-                    }
-                    require(expected != 0 || !failed, "Valid control unexpectedly rejected: " + path);
-                    require(expected != 2 || failed, "Old-decoder split prediction not reproduced: " + path);
-                    return failed;
+                private static List<String> oracle(byte[] bytes) throws Exception {
+                    return lines(StandardCharsets.UTF_8.newDecoder().onMalformedInput(CodingErrorAction.REPORT)
+                        .onUnmappableCharacter(CodingErrorAction.REPORT).decode(ByteBuffer.wrap(bytes)).toString());
                 }
 
-                private static void observeInvalid(Path path, Charset packaged) throws Exception {
+                private static void valid(Path path, Charset charset) throws Exception {
+                    List<String> expected = oracle(Files.readAllBytes(path));
+                    require(Files.readAllLines(path, StandardCharsets.UTF_8).equals(expected), "Native disagreement: " + path);
+                    require(Files.readAllLines(path, charset).equals(expected), "Candidate disagreement: " + path);
+                    System.out.println("DECODER_VALID\t" + path.getFileName() + "\tEXACT_LINES");
+                }
+
+                private static void invalid(Path path, Charset charset) throws Exception {
                     int rejected = 0;
                     try {
-                        strictWholeFileLines(Files.readAllBytes(path));
+                        oracle(Files.readAllBytes(path));
                     } catch (MalformedInputException error) {
                         rejected++;
                     }
-                    for (Charset charset : new Charset[] {StandardCharsets.UTF_8, packaged}) {
+                    for (Charset decoder : new Charset[] {StandardCharsets.UTF_8, charset}) {
                         try {
-                            Files.readAllLines(path, charset);
+                            Files.readAllLines(path, decoder);
                         } catch (MalformedInputException error) {
                             rejected++;
                         }
                     }
-                    require(rejected == 3, "Malformed control accepted by a path: " + path);
-                    System.out.println("INVALID\t" + path.getFileName() + "\tALL_THREE_REJECTED");
+                    require(rejected == 3, "Malformed input accepted: " + path);
+                    System.out.println("DECODER_INVALID\t" + path.getFileName() + "\tALL_REJECTED");
                 }
 
-                private static Path fixture(Path scratch, String name, int prefix, int... tail) throws Exception {
-                    byte[] data = new byte[prefix + tail.length];
-                    Arrays.fill(data, 0, prefix, (byte) 'a');
-                    for (int index = 0; index < tail.length; index++) {
-                        data[prefix + index] = (byte) tail[index];
+                private static Path fixture(String name, int prefix, int... tail) throws Exception {
+                    byte[] bytes = new byte[prefix + tail.length];
+                    Arrays.fill(bytes, 0, prefix, (byte) 'a');
+                    for (int i = 0; i < tail.length; i++) {
+                        bytes[prefix + i] = (byte) tail[i];
                     }
-                    Path result = scratch.resolve(name);
-                    Files.write(result, data, StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE);
+                    Path path = SCRATCH.resolve(name);
+                    Files.write(path, bytes, StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE);
+                    return path;
+                }
+
+                private static void decoderChecks() throws Exception {
+                    Charset charset = candidateCharset();
+                    for (int i = 0; i < NAMES.length; i++) {
+                        Path path = INPUT.resolve(NAMES[i]);
+                        verified(path, SIZES[i], HASHES[i]);
+                        valid(path, charset);
+                        verified(path, SIZES[i], HASHES[i]);
+                    }
+                    valid(fixture("ascii", 8200), charset);
+                    valid(fixture("aligned-three", 8189, 0xe2, 0x94, 0x80, 10), charset);
+                    valid(fixture("shifted-three", 8192, 0xe2, 0x94, 0x80, 10), charset);
+                    valid(fixture("split-three", 8190, 0xe2, 0x94, 0x80, 10), charset);
+                    valid(fixture("split-four", 8190, 0xf0, 0x9f, 0x98, 0x80, 10), charset);
+                    valid(fixture("empty-eof", 0), charset);
+                    valid(fixture("no-final-newline", 0, 0xe2, 0x94, 0x80), charset);
+                    Path endings = fixture("mixed-line-endings", 0, 97, 13, 10, 98, 13, 99, 10, 10, 100);
+                    require(oracle(Files.readAllBytes(endings)).equals(Arrays.asList("a", "b", "c", "", "d")), "Line oracle");
+                    valid(endings, charset);
+                    // JDK readAllLines initially supplies an empty buffer: this seam retains the UTF-8 BOM.
+                    Path bom = fixture("utf8-bom-stream", 0, 0xef, 0xbb, 0xbf, 97, 10);
+                    require(Files.readAllLines(bom, charset).equals(Arrays.asList("\ufeffa")), "Streaming BOM expectation");
+                    valid(bom, charset);
+                    // A nonempty whole-buffer decoder call deliberately consumes the initial BOM instead.
+                    require(charset.newDecoder().decode(ByteBuffer.wrap(Files.readAllBytes(bom))).toString().equals("a\n"),
+                        "Whole-buffer UTF-8 BOM expectation");
+                    require(charset.newDecoder().decode(ByteBuffer.wrap(new byte[] {(byte) 0xff, (byte) 0xfe, 97, 0}))
+                        .toString().equals("a"), "Whole-buffer UTF-16LE BOM expectation");
+                    require(charset.newDecoder().decode(ByteBuffer.wrap(new byte[] {(byte) 0xfe, (byte) 0xff, 0, 97}))
+                        .toString().equals("a"), "Whole-buffer UTF-16BE BOM expectation");
+                    invalid(fixture("invalid-continuation", 0, 0xe2, 0x94, 65), charset);
+                    invalid(fixture("truncated-eof", 0, 0xe2, 0x94), charset);
+                    invalid(fixture("truncated-boundary", 8190, 0xe2, 0x94), charset);
+                }
+
+                private static Map<String, Object> object(Object... pairs) {
+                    require(pairs.length % 2 == 0, "Object pair count");
+                    Map<String, Object> result = new LinkedHashMap<String, Object>();
+                    for (int i = 0; i < pairs.length; i += 2) {
+                        String key = (String) pairs[i];
+                        require(!result.containsKey(key), "Duplicate expected key");
+                        result.put(key, pairs[i + 1]);
+                    }
                     return result;
                 }
 
-                public static void main(String[] args) throws Exception {
-                    require(args.length == 0, "No external arguments accepted");
-                    require(System.getProperty("java.version").equals("1.8.0_452"), "Unexpected image Java runtime");
-                    require(Charset.defaultCharset().equals(StandardCharsets.UTF_8), "Unexpected default charset");
-                    Path inputs = Paths.get("/probe");
-                    Path scratch = Paths.get("/scratch");
-                    require(Files.isDirectory(inputs) && Files.isDirectory(scratch), "Missing bounded directories");
-                    System.out.println("RUNTIME\t" + System.getProperty("java.version") + "\t" + Charset.defaultCharset());
-                    Charset packaged = packagedCharset();
-                    int candidateRejections = 0;
-                    for (int index = 0; index < NAMES.length; index++) {
-                        Path file = inputs.resolve(NAMES[index]);
-                        require(!Files.isSymbolicLink(file) && Files.isRegularFile(file), "Invalid fixture type");
-                        require(Files.size(file) == SIZES[index], "Fixture size mismatch: " + NAMES[index]);
-                        require(sha256(Files.readAllBytes(file)).equals(HASHES[index]), "Fixture hash mismatch: " + NAMES[index]);
-                        if (observeValid(file, packaged, -1)) {
-                            candidateRejections++;
-                        }
-                        require(sha256(Files.readAllBytes(file)).equals(HASHES[index]), "Fixture changed: " + NAMES[index]);
+                private static List<Object> list(Object... values) {
+                    return Arrays.asList(values);
+                }
+
+                private static Object pattern(int index) throws Exception {
+                    return construct("com.codacy.plugins.api.results.Pattern$Specification", IDS[index],
+                        enumValue("com.codacy.plugins.api.results.Result$Level$", "Error"),
+                        enumValue("com.codacy.plugins.api.results.Pattern$Category$", CATEGORIES[index]),
+                        none(), none(), scalaSet(), scalaSet(), false);
+                }
+
+                private static Object description(int index) throws Exception {
+                    return construct("com.codacy.plugins.api.PatternDescription", IDS[index], IDS[index] + " title",
+                        none(), some(IDS[index] + " description"), none(), none());
+                }
+
+                private static Object issue(int file, int category) throws Exception {
+                    return construct("com.codacy.analysis.core.model.Issue", IDS[category], Paths.get(NAMES[file]),
+                        IDS[category] + " message", enumValue("com.codacy.plugins.api.results.Result$Level$", "Error"),
+                        some(enumValue("com.codacy.plugins.api.results.Pattern$Category$", CATEGORIES[category])),
+                        construct("com.codacy.analysis.core.model.LineLocation", LINES[file]), none());
+                }
+
+                private static Object expectedReport(int file) {
+                    List<Object> rules = new ArrayList<Object>();
+                    List<Object> results = new ArrayList<Object>();
+                    for (int category = 0; category < IDS.length; category++) {
+                        rules.add(object("id", IDS[category], "name", IDS[category] + " title",
+                            "shortDescription", object("text", IDS[category] + " description"),
+                            "help", object("text", IDS[category] + " description"),
+                            "properties", object("category", CATEGORIES[category])));
+                        results.add(object("ruleIndex", category, "ruleId", IDS[category],
+                            "message", object("text", IDS[category] + " message"),
+                            "level", category == 0 ? "error" : "warning",
+                            "locations", list(object("physicalLocation", object(
+                                "artifactLocation", object("index", 0, "uri", NAMES[file]),
+                                "region", object("startLine", LINES[file], "startColumn", 1)))),
+                            "partialFingerprints", object("primaryLocationStartColumnFingerprint", "1",
+                                "primaryLocationLineHash", FINGERPRINTS[file][category])));
                     }
-                    observeValid(fixture(scratch, "ascii", 8200), packaged, 0);
-                    observeValid(fixture(scratch, "aligned-three", 8189, 0xe2, 0x94, 0x80, 0x0a), packaged, 0);
-                    observeValid(fixture(scratch, "shifted-three", 8192, 0xe2, 0x94, 0x80, 0x0a), packaged, 0);
-                    observeValid(fixture(scratch, "split-three", 8190, 0xe2, 0x94, 0x80, 0x0a), packaged, 2);
-                    observeValid(fixture(scratch, "split-four", 8190, 0xf0, 0x9f, 0x98, 0x80, 0x0a), packaged, 2);
-                    observeInvalid(fixture(scratch, "invalid-continuation", 0, 0xe2, 0x94, 0x41), packaged);
-                    observeInvalid(fixture(scratch, "truncated-eof", 0, 0xe2, 0x94), packaged);
-                    observeInvalid(fixture(scratch, "truncated-boundary", 8190, 0xe2, 0x94), packaged);
-                    System.out.println("DIAGNOSTIC_CONTROLS_MATCHED\tcandidates=3\tcandidateRejections=" + candidateRejections
-                        + "\tvalidControls=5\tinvalidControls=3\tNOT_A_SCANNER_PASS");
+                    return object("$schema", "https://docs.oasis-open.org/sarif/sarif/v2.1.0/cos02/schemas/sarif-schema-2.1.0.json",
+                        "version", "2.1.0", "runs", list(object("tool", object("driver", object(
+                            "name", "Compatibility probe (reported by Codacy)", "version", "1.0.0",
+                            "informationUri", "https://www.codacy.com", "rules", rules)), "results", results,
+                            "invocations", list(object("executionSuccessful", true,
+                                "workingDirectory", object("uri", "file:///codacy"))),
+                            "artifacts", list(object("location", object("uri", NAMES[file]))))));
+                }
+
+                private static void reportCheck(int file) throws Exception {
+                    verified(INPUT.resolve(NAMES[file]), SIZES[file], HASHES[file]);
+                    Object directory = call(module("better.files.File$"), "better.files.File$", "apply", INPUT);
+                    Object tool = construct("com.codacy.plugins.api.results.Tool$Specification", "Compatibility probe",
+                        some(construct("com.codacy.plugins.api.results.Tool$Version", "1.0.0")),
+                        scalaSet(pattern(0), pattern(1)));
+                    ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+                    try (PrintStream stream = new PrintStream(bytes, false, "UTF-8")) {
+                        Object formatter = call(module("com.codacy.analysis.cli.formatter.Sarif$"),
+                            "com.codacy.analysis.cli.formatter.Sarif$", "apply", stream, directory, true);
+                        String owner = "com.codacy.analysis.cli.formatter.Formatter";
+                        call(formatter, owner, "begin");
+                        call(formatter, owner, "addAll", some(tool), scalaSet(description(0), description(1)),
+                            none(), scalaList(issue(file, 0), issue(file, 1)));
+                        call(formatter, owner, "end");
+                    }
+                    require(bytes.size() > 0 && bytes.size() < 65536, "Unexpected report size");
+                    String json = StandardCharsets.UTF_8.newDecoder().onMalformedInput(CodingErrorAction.REPORT)
+                        .decode(ByteBuffer.wrap(bytes.toByteArray())).toString();
+                    Object mapper = construct("com.fasterxml.jackson.databind.ObjectMapper");
+                    call(mapper, "com.fasterxml.jackson.databind.ObjectMapper", "configure",
+                        type("com.fasterxml.jackson.core.JsonParser$Feature").getField("STRICT_DUPLICATE_DETECTION").get(null), true);
+                    call(mapper, "com.fasterxml.jackson.databind.ObjectMapper", "configure",
+                        type("com.fasterxml.jackson.databind.DeserializationFeature").getField("FAIL_ON_TRAILING_TOKENS").get(null), true);
+                    Object parsed = call(mapper, "com.fasterxml.jackson.databind.ObjectMapper", "readValue", json, Map.class);
+                    require(parsed instanceof Map, "Report is not a JSON object");
+                    System.out.println("SYNTHETIC_SARIF\t" + NAMES[file] + "\t" + json);
+                    // A legacy style ruleIndex=0 is a correctness failure, never an accepted compatibility oracle.
+                    require(expectedReport(file).equals(parsed), "Report content/rule-index relation mismatch: " + NAMES[file]);
+                    verified(INPUT.resolve(NAMES[file]), SIZES[file], HASHES[file]);
+                }
+
+                private static void reportChecks() throws Exception {
+                    candidateCharset();
+                    List<String> failed = new ArrayList<String>();
+                    for (int file = 0; file < NAMES.length; file++) {
+                        try {
+                            reportCheck(file);
+                            System.out.println("REPORT_FIXTURE\t" + NAMES[file] + "\tPASS");
+                        } catch (Exception | LinkageError error) {
+                            failed.add(NAMES[file]);
+                            System.out.println("REPORT_FIXTURE\t" + NAMES[file] + "\tFAIL\t" + error);
+                        }
+                    }
+                    require(failed.isEmpty(), "Report fixtures failed: " + failed);
+                }
+
+                private static Object toolResult(Object attempt) throws Exception {
+                    return construct("com.codacy.analysis.cli.analysis.AnalyseExecutor$IssuesToolExecutorResult",
+                        "Synthetic probe", none(), scalaSet(), none(), scalaSet(), attempt);
+                }
+
+                private static void exitCase(String name, Object policy, Object either, int expected) throws Exception {
+                    Object actual = call(policy, "com.codacy.analysis.cli.analysis.ExitStatus", "exitCode", either);
+                    require(actual instanceof Integer && ((Integer) actual).intValue() == expected, "Exit policy: " + name);
+                    System.out.println("EXIT_CASE\t" + name + "\t" + actual);
+                }
+
+                private static void exitChecks() throws Exception {
+                    Object policy = construct("com.codacy.analysis.cli.analysis.ExitStatus", Integer.MAX_VALUE, true);
+                    Object success = toolResult(construct("scala.util.Success", scalaSet(issue(0, 0), issue(0, 1))));
+                    Object failedAttempt = construct("scala.util.Failure", new Exception("Synthetic tool failure"));
+                    Object failure = toolResult(failedAttempt);
+                    exitCase("complete", policy, construct("scala.util.Right", scalaList(success)), 0);
+                    exitCase("partial", policy, construct("scala.util.Right", scalaList(success, failure)), 101);
+                    exitCase("all-tools-failed", policy, construct("scala.util.Right", scalaList(failure)), 101);
+                    Object metricsFailure = construct("com.codacy.analysis.cli.analysis.AnalyseExecutor$MetricsToolExecutorResult",
+                        "Synthetic language", scalaSet(), failedAttempt);
+                    Object duplicationFailure = construct("com.codacy.analysis.cli.analysis.AnalyseExecutor$DuplicationToolExecutorResult",
+                        "Synthetic language", scalaSet(), failedAttempt);
+                    exitCase("metrics-failure", policy, construct("scala.util.Right", scalaList(success, metricsFailure)), 101);
+                    exitCase("duplication-failure", policy, construct("scala.util.Right", scalaList(success, duplicationFailure)), 101);
+                    exitCase("analysis-left", policy, construct("scala.util.Left",
+                        module("com.codacy.analysis.cli.CLIError$FilesAccessError$")), 100);
+                    exitCase("threshold", construct("com.codacy.analysis.cli.analysis.ExitStatus", 0, true),
+                        construct("scala.util.Right", scalaList(success)), 102);
+                }
+
+                public static void main(String[] arguments) throws Exception {
+                    require(arguments.length == 0, "No external arguments");
+                    require(System.getProperty("java.version").equals("1.8.0_452"), "Unexpected runtime");
+                    require(Charset.defaultCharset().equals(StandardCharsets.UTF_8), "Unexpected default charset");
+                    require(Files.isDirectory(INPUT) && Files.isDirectory(SCRATCH), "Missing bounded directories");
+                    System.out.println("RUNTIME\t" + System.getProperty("java.version") + "\t" + Charset.defaultCharset());
+                    lane("DECODER", new Check() {
+                        public void run() throws Exception { decoderChecks(); }
+                    });
+                    lane("REPORT", new Check() {
+                        public void run() throws Exception { reportChecks(); }
+                    });
+                    lane("EXIT_POLICY", new Check() {
+                        public void run() throws Exception { exitChecks(); }
+                    });
+                    System.out.println("NOT_A_SCANNER_PASS\tfailedSections=" + FAILURES);
+                    require(FAILURES.isEmpty(), "Compatibility/report diagnostic failed: " + FAILURES);
                 }
             }
         run: |
@@ -188,10 +495,10 @@ jobs:
           [[ "$GITHUB_RUN_ID" =~ ^[0-9]+$ && "$GITHUB_RUN_ATTEMPT" =~ ^[0-9]+$ ]]
           [[ -n "$RUNNER_TEMP" && "$RUNNER_TEMP" == /* && -d "$RUNNER_TEMP" ]]
           [[ -n "$JAVA_HOME_17_X64" && -x "$JAVA_HOME_17_X64/bin/javac" ]]
-          probe_dir=$(mktemp -d "$RUNNER_TEMP/codacy-decoder.XXXXXX")
-          [[ "$probe_dir" == "$RUNNER_TEMP"/codacy-decoder.* && "$probe_dir" != *,* ]]
+          probe_dir=$(mktemp -d "$RUNNER_TEMP/codacy-compat.XXXXXX")
+          [[ "$probe_dir" == "$RUNNER_TEMP"/codacy-compat.* && "$probe_dir" != *,* ]]
           mkdir "$probe_dir/classes"
-          printf '%s\n' "$JAVA_SOURCE" > "$probe_dir/DecoderProbe.java"
+          printf '%s' "$JAVA_SOURCE" > "$probe_dir/CompatibilityProbe.java"
           for file in ARCHITECTURE.md TEST_GENERATION_CURRENT_BRANCH_SUMMARY.md tech_spec.md; do
             curl --proto '=https' --tlsv1.2 --fail --silent --show-error \
               --connect-timeout 5 --max-time 15 --max-filesize 600000 \
@@ -209,19 +516,29 @@ jobs:
             [[ $(wc -c < TEST_GENERATION_CURRENT_BRANCH_SUMMARY.md) == 10387 ]]
             [[ $(wc -c < tech_spec.md) == 579135 ]]
           )
+          curl --proto '=https' --tlsv1.2 --fail --silent --show-error \
+            --connect-timeout 5 --max-time 15 --max-filesize 263930 \
+            --output "$probe_dir/better-files_2.12-3.9.2.jar" \
+            'https://repo.maven.apache.org/maven2/com/github/pathikrit/better-files_2.12/3.9.2/better-files_2.12-3.9.2.jar'
+          (
+            cd "$probe_dir"
+            printf '%s\n' '65fc3f2e622d23d0e574f6b526a868e62b2e8d79d8b286018d7db3aa69244cff  better-files_2.12-3.9.2.jar' |
+              sha256sum --check --strict
+            [[ $(wc -c < better-files_2.12-3.9.2.jar) == 263930 ]]
+          )
           timeout --kill-after=1s 5s "$JAVA_HOME_17_X64/bin/javac" -version
           timeout --kill-after=1s 20s "$JAVA_HOME_17_X64/bin/javac" \
-            --release 8 -encoding UTF-8 -d "$probe_dir/classes" "$probe_dir/DecoderProbe.java"
+            --release 8 -encoding UTF-8 -d "$probe_dir/classes" "$probe_dir/CompatibilityProbe.java"
           chmod 755 "$probe_dir" "$probe_dir/classes"
-          chmod 644 "$probe_dir/DecoderProbe.java" "$probe_dir/ARCHITECTURE.md" \
+          chmod 644 "$probe_dir/CompatibilityProbe.java" "$probe_dir/ARCHITECTURE.md" \
             "$probe_dir/TEST_GENERATION_CURRENT_BRANCH_SUMMARY.md" "$probe_dir/tech_spec.md" \
-            "$probe_dir/classes/DecoderProbe.class"
-          sha256sum "$probe_dir/DecoderProbe.java" "$probe_dir/classes/DecoderProbe.class"
+            "$probe_dir/better-files_2.12-3.9.2.jar" "$probe_dir"/classes/*.class
+          sha256sum "$probe_dir/CompatibilityProbe.java" "$probe_dir/better-files_2.12-3.9.2.jar" "$probe_dir"/classes/*.class
           timeout --kill-after=1s 120s docker pull "$PROBE_IMAGE"
           image_id=$(timeout --kill-after=1s 5s docker image inspect "$PROBE_IMAGE" --format '{{.Id}}')
           printf 'Image: %s configuration=%s\n' "$PROBE_IMAGE" "$image_id"
           [[ "$image_id" == sha256:51eefdb019babab617368ccd49dc3ed84713934e17835468ae1dc6a660215516 ]]
-          container_name="codacy-decoder-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
+          container_name="codacy-compat-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
           existing=$(timeout --kill-after=1s 5s docker ps --all \
             --filter "name=^/$container_name$" --format '{{.Names}}')
           [[ -z "$existing" ]]
@@ -232,18 +549,19 @@ jobs:
             --mount "type=bind,source=$probe_dir,target=/probe,readonly" \
             --tmpfs /scratch:rw,noexec,nosuid,nodev,size=8m,mode=1777 \
             --entrypoint /bin/sh "$PROBE_IMAGE" -ec '
-              for jar in /workdir/lib/com.github.pathikrit.better-files_2.12-3.8.0.jar \
-                /workdir/lib/org.scala-lang.scala-library-2.12.19.jar; do
+              classpath="/workdir/lib/com.codacy.codacy-analysis-cli-dev-snapshot.jar:/workdir/lib/com.codacy.codacy-analysis-core-7.10.1.jar:/workdir/lib/com.codacy.codacy-analysis-cli-model-7.10.1.jar:/workdir/lib/com.codacy.toolrepositoryremote-7.10.1.jar:/workdir/lib/com.codacy.codacy-api-client-7.10.1.jar:/workdir/lib/org.scala-lang.scala-library-2.12.19.jar:/workdir/lib/com.lihaoyi.pprint_2.12-0.5.7.jar:/workdir/lib/com.github.alexarchambault.case-app_2.12-1.2.0.jar:/probe/better-files_2.12-3.9.2.jar:/workdir/lib/joda-time.joda-time-2.10.6.jar:/workdir/lib/com.codacy.scalaj-http_2.12-2.5.0.jar:/workdir/lib/org.eclipse.jgit.org.eclipse.jgit-5.6.0.201912101111-r.jar:/workdir/lib/org.typelevel.cats-core_2.12-2.1.0.jar:/workdir/lib/com.typesafe.config-1.4.2.jar:/workdir/lib/io.circe.circe-core_2.12-0.13.0.jar:/workdir/lib/io.circe.circe-generic_2.12-0.12.3.jar:/workdir/lib/io.circe.circe-parser_2.12-0.12.3.jar:/workdir/lib/io.circe.circe-yaml_2.12-0.13.1.jar:/workdir/lib/ch.qos.logback.logback-classic-1.2.3.jar:/workdir/lib/org.log4s.log4s_2.12-1.8.2.jar:/workdir/lib/com.codacy.codacy-plugins_2.12-27.0.0_play_2.7.jar:/workdir/lib/com.codacy.codacy-plugins-runner-binary_2.12-27.0.0_play_2.7.jar:/workdir/lib/com.lihaoyi.fansi_2.12-0.2.7.jar:/workdir/lib/com.lihaoyi.sourcecode_2.12-0.1.8.jar:/workdir/lib/com.codacy.codacy-plugins-api_2.12-10.0.0.jar:/workdir/lib/com.github.alexarchambault.case-app-annotations_2.12-1.2.0.jar:/workdir/lib/com.github.alexarchambault.case-app-util_2.12-1.2.0.jar:/workdir/lib/com.jcraft.jsch-0.1.55.jar:/workdir/lib/com.jcraft.jzlib-1.1.1.jar:/workdir/lib/com.googlecode.javaewah.JavaEWAH-1.1.6.jar:/workdir/lib/org.slf4j.slf4j-api-1.7.36.jar:/workdir/lib/org.bouncycastle.bcpg-jdk15on-1.64.jar:/workdir/lib/org.bouncycastle.bcprov-jdk15on-1.64.jar:/workdir/lib/org.bouncycastle.bcpkix-jdk15on-1.64.jar:/workdir/lib/org.typelevel.cats-macros_2.12-2.1.0.jar:/workdir/lib/org.typelevel.cats-kernel_2.12-2.1.0.jar:/workdir/lib/io.circe.circe-numbers_2.12-0.13.0.jar:/workdir/lib/com.chuusai.shapeless_2.12-2.3.3.jar:/workdir/lib/io.circe.circe-jawn_2.12-0.12.3.jar:/workdir/lib/org.yaml.snakeyaml-1.26.jar:/workdir/lib/ch.qos.logback.logback-core-1.2.3.jar:/workdir/lib/commons-io.commons-io-2.6.jar:/workdir/lib/com.typesafe.play.play-json_2.12-2.7.4.jar:/workdir/lib/com.typesafe.akka.akka-actor_2.12-2.6.20.jar:/workdir/lib/com.typesafe.akka.akka-stream_2.12-2.6.20.jar:/workdir/lib/com.typesafe.akka.akka-slf4j_2.12-2.6.20.jar:/workdir/lib/com.typesafe.akka.akka-http_2.12-10.2.10.jar:/workdir/lib/org.typelevel.macro-compat_2.12-1.1.1.jar:/workdir/lib/org.typelevel.jawn-parser_2.12-0.14.2.jar:/workdir/lib/com.typesafe.play.play-functional_2.12-2.7.4.jar:/workdir/lib/org.scala-lang.scala-reflect-2.12.19.jar:/workdir/lib/com.fasterxml.jackson.core.jackson-core-2.9.8.jar:/workdir/lib/com.fasterxml.jackson.core.jackson-annotations-2.9.8.jar:/workdir/lib/com.fasterxml.jackson.core.jackson-databind-2.9.8.jar:/workdir/lib/com.fasterxml.jackson.datatype.jackson-datatype-jdk8-2.9.8.jar:/workdir/lib/com.fasterxml.jackson.datatype.jackson-datatype-jsr310-2.9.8.jar:/workdir/lib/org.scala-lang.modules.scala-java8-compat_2.12-0.8.0.jar:/workdir/lib/com.typesafe.akka.akka-protobuf-v3_2.12-2.6.20.jar:/workdir/lib/org.reactivestreams.reactive-streams-1.0.3.jar:/workdir/lib/com.typesafe.ssl-config-core_2.12-0.4.3.jar:/workdir/lib/com.typesafe.akka.akka-http-core_2.12-10.2.10.jar:/workdir/lib/org.scala-lang.modules.scala-parser-combinators_2.12-1.1.2.jar:/workdir/lib/com.typesafe.akka.akka-parsing_2.12-10.2.10.jar"
+              IFS=:
+              for jar in $classpath; do
                 test -f "$jar" && test -r "$jar" && test ! -L "$jar"
                 sha256sum "$jar"
               done
-              exec java -Xmx128m \
-                -cp /probe/classes:/workdir/lib/com.github.pathikrit.better-files_2.12-3.8.0.jar:/workdir/lib/org.scala-lang.scala-library-2.12.19.jar \
-                DecoderProbe
+              unset IFS
+              exec java -Xmx128m -cp "/probe/classes:$classpath" CompatibilityProbe
             ')
           [[ "$container_id" =~ ^[0-9a-f]{64}$ ]]
-          timeout --kill-after=1s 20s docker start --attach "$container_id"
+          start_status=0
+          timeout --kill-after=1s 30s docker start --attach "$container_id" || start_status=$?
           running=$(timeout --kill-after=1s 5s docker inspect --format '{{.State.Running}}' "$container_id")
           exit_code=$(timeout --kill-after=1s 5s docker inspect --format '{{.State.ExitCode}}' "$container_id")
-          printf 'Container result: running=%s exit=%s\n' "$running" "$exit_code"
-          [[ "$running" == false && "$exit_code" == 0 ]]
+          printf 'Container result: start=%s running=%s exit=%s\n' "$start_status" "$running" "$exit_code"
+          [[ "$running" == false && "$start_status" == 0 && "$exit_code" == 0 ]]
