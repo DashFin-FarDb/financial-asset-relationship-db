@@ -15,7 +15,7 @@ rebuild/reconciliation, and deployment/readiness.
 | architecture | [domains/architecture.md](domains/architecture.md) | 241 | 54 |
 | api | [domains/api.md](domains/api.md) | 41 | 89 |
 | persistence | [domains/persistence.md](domains/persistence.md) | 9 | 31 |
-| ci-guardrails | [domains/ci-guardrails.md](domains/ci-guardrails.md) | 60 | 45 |
+| ci-guardrails | [domains/ci-guardrails.md](domains/ci-guardrails.md) | 60 | 46 |
 | rebuild-reconciliation | [domains/rebuild-reconciliation.md](domains/rebuild-reconciliation.md) | 1 | 9 |
 | deployment | [domains/deployment.md](domains/deployment.md) | 14 | 12 |
 
