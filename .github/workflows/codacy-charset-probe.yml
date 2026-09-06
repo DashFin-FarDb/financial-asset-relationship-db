@@ -1,6 +1,6 @@
-name: Codacy isolated charset observation
+name: Codacy isolated decoder reproduction
 
-# Diagnostic branch only. Not a scanner result or an amendment to the normal scan.
+# Proposed replacement on the existing disposable branch only; not a scan or repair.
 "on":
   push:
     branches: [codex/codacy-1833-charset-probe]
@@ -13,70 +13,237 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - name: Observe pinned Java and packaged launcher without analysis
+      - name: Test the unchanged packaged decoder with bounded fixtures
         shell: bash
         env:
           PROBE_IMAGE: codacy/codacy-analysis-cli@sha256:d412b2a84e72d0b541e29dd6cdffa78a73afcf35d8aa546988cd2a44edaab15c
+          JAVA_SOURCE: |
+            import java.io.BufferedReader;
+            import java.io.StringReader;
+            import java.nio.ByteBuffer;
+            import java.nio.charset.Charset;
+            import java.nio.charset.CodingErrorAction;
+            import java.nio.charset.MalformedInputException;
+            import java.nio.charset.StandardCharsets;
+            import java.nio.file.Files;
+            import java.nio.file.Path;
+            import java.nio.file.Paths;
+            import java.nio.file.StandardOpenOption;
+            import java.security.MessageDigest;
+            import java.util.ArrayList;
+            import java.util.Arrays;
+            import java.util.List;
+
+            /** Bounded diagnostic of an unchanged packaged decoder, not a scanner or repair. */
+            public final class DecoderProbe {
+                private static final String[] NAMES = {
+                    "ARCHITECTURE.md", "TEST_GENERATION_CURRENT_BRANCH_SUMMARY.md", "tech_spec.md"
+                };
+                private static final long[] SIZES = {21474L, 10387L, 579135L};
+                private static final String[] HASHES = {
+                    "524cc09849f99b6e603f229d2abbef2f8783d9929c1eb7172becc407307aaeac",
+                    "f8b55c887c12461fa0c8135b155d8e2b566f2660c5ca6a9d9b47e443e9dbe052",
+                    "f5edfdcc78f272fab6398b2cba88b56a7aadeb4639372c4b92c3d82bea8e889d"
+                };
+
+                private DecoderProbe() {}
+
+                private static void require(boolean condition, String message) {
+                    if (!condition) {
+                        throw new IllegalStateException(message);
+                    }
+                }
+
+                private static String sha256(byte[] data) throws Exception {
+                    byte[] digest = MessageDigest.getInstance("SHA-256").digest(data);
+                    StringBuilder result = new StringBuilder();
+                    for (byte value : digest) {
+                        result.append(String.format("%02x", value & 255));
+                    }
+                    return result.toString();
+                }
+
+                private static Charset packagedCharset() throws Exception {
+                    Class<?> moduleClass = Class.forName("better.files.package$");
+                    Object module = moduleClass.getField("MODULE$").get(null);
+                    Charset charset = (Charset) moduleClass.getMethod("DefaultCharset").invoke(module);
+                    require(charset.getClass().getName().equals("better.files.UnicodeCharset"), "Unexpected charset class");
+                    require(charset.name().equals("UTF-8"), "Unexpected packaged charset");
+                    Class<?> decoderClass = charset.newDecoder().getClass();
+                    require(decoderClass.getName().equals("better.files.UnicodeDecoder"), "Unexpected decoder class");
+                    System.out.println("DECODER\t" + decoderClass.getName() + "\t"
+                        + decoderClass.getProtectionDomain().getCodeSource().getLocation());
+                    return charset;
+                }
+
+                private static List<String> strictWholeFileLines(byte[] bytes) throws Exception {
+                    String decoded = StandardCharsets.UTF_8.newDecoder()
+                        .onMalformedInput(CodingErrorAction.REPORT)
+                        .onUnmappableCharacter(CodingErrorAction.REPORT)
+                        .decode(ByteBuffer.wrap(bytes)).toString();
+                    List<String> lines = new ArrayList<String>();
+                    try (BufferedReader reader = new BufferedReader(new StringReader(decoded))) {
+                        String line;
+                        while ((line = reader.readLine()) != null) {
+                            lines.add(line);
+                        }
+                    }
+                    return lines;
+                }
+
+                private static boolean observeValid(Path path, Charset packaged, int expected) throws Exception {
+                    // expected: 0 = must agree, 2 = predicted old-decoder failure, -1 = observe candidate.
+                    List<String> oracle = strictWholeFileLines(Files.readAllBytes(path));
+                    require(Files.readAllLines(path, StandardCharsets.UTF_8).equals(oracle), "Native read disagrees: " + path);
+                    boolean failed = false;
+                    try {
+                        List<String> actual = Files.readAllLines(path, packaged);
+                        require(actual.equals(oracle), "Bundled read changed content: " + path);
+                        System.out.println("VALID\t" + path.getFileName() + "\tBUNDLED_EQUAL\tlines=" + oracle.size());
+                    } catch (MalformedInputException error) {
+                        failed = true;
+                        require(error.getInputLength() == 2, "Unexpected malformed length: " + path);
+                        System.out.println("VALID\t" + path.getFileName() + "\tBUNDLED_MALFORMED\tlength=2");
+                    }
+                    require(expected != 0 || !failed, "Valid control unexpectedly rejected: " + path);
+                    require(expected != 2 || failed, "Old-decoder split prediction not reproduced: " + path);
+                    return failed;
+                }
+
+                private static void observeInvalid(Path path, Charset packaged) throws Exception {
+                    int rejected = 0;
+                    try {
+                        strictWholeFileLines(Files.readAllBytes(path));
+                    } catch (MalformedInputException error) {
+                        rejected++;
+                    }
+                    for (Charset charset : new Charset[] {StandardCharsets.UTF_8, packaged}) {
+                        try {
+                            Files.readAllLines(path, charset);
+                        } catch (MalformedInputException error) {
+                            rejected++;
+                        }
+                    }
+                    require(rejected == 3, "Malformed control accepted by a path: " + path);
+                    System.out.println("INVALID\t" + path.getFileName() + "\tALL_THREE_REJECTED");
+                }
+
+                private static Path fixture(Path scratch, String name, int prefix, int... tail) throws Exception {
+                    byte[] data = new byte[prefix + tail.length];
+                    Arrays.fill(data, 0, prefix, (byte) 'a');
+                    for (int index = 0; index < tail.length; index++) {
+                        data[prefix + index] = (byte) tail[index];
+                    }
+                    Path result = scratch.resolve(name);
+                    Files.write(result, data, StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE);
+                    return result;
+                }
+
+                public static void main(String[] args) throws Exception {
+                    require(args.length == 0, "No external arguments accepted");
+                    require(System.getProperty("java.version").equals("1.8.0_452"), "Unexpected image Java runtime");
+                    require(Charset.defaultCharset().equals(StandardCharsets.UTF_8), "Unexpected default charset");
+                    Path inputs = Paths.get("/probe");
+                    Path scratch = Paths.get("/scratch");
+                    require(Files.isDirectory(inputs) && Files.isDirectory(scratch), "Missing bounded directories");
+                    System.out.println("RUNTIME\t" + System.getProperty("java.version") + "\t" + Charset.defaultCharset());
+                    Charset packaged = packagedCharset();
+                    int candidateRejections = 0;
+                    for (int index = 0; index < NAMES.length; index++) {
+                        Path file = inputs.resolve(NAMES[index]);
+                        require(!Files.isSymbolicLink(file) && Files.isRegularFile(file), "Invalid fixture type");
+                        require(Files.size(file) == SIZES[index], "Fixture size mismatch: " + NAMES[index]);
+                        require(sha256(Files.readAllBytes(file)).equals(HASHES[index]), "Fixture hash mismatch: " + NAMES[index]);
+                        if (observeValid(file, packaged, -1)) {
+                            candidateRejections++;
+                        }
+                        require(sha256(Files.readAllBytes(file)).equals(HASHES[index]), "Fixture changed: " + NAMES[index]);
+                    }
+                    observeValid(fixture(scratch, "ascii", 8200), packaged, 0);
+                    observeValid(fixture(scratch, "aligned-three", 8189, 0xe2, 0x94, 0x80, 0x0a), packaged, 0);
+                    observeValid(fixture(scratch, "shifted-three", 8192, 0xe2, 0x94, 0x80, 0x0a), packaged, 0);
+                    observeValid(fixture(scratch, "split-three", 8190, 0xe2, 0x94, 0x80, 0x0a), packaged, 2);
+                    observeValid(fixture(scratch, "split-four", 8190, 0xf0, 0x9f, 0x98, 0x80, 0x0a), packaged, 2);
+                    observeInvalid(fixture(scratch, "invalid-continuation", 0, 0xe2, 0x94, 0x41), packaged);
+                    observeInvalid(fixture(scratch, "truncated-eof", 0, 0xe2, 0x94), packaged);
+                    observeInvalid(fixture(scratch, "truncated-boundary", 8190, 0xe2, 0x94), packaged);
+                    System.out.println("DIAGNOSTIC_CONTROLS_MATCHED\tcandidates=3\tcandidateRejections=" + candidateRejections
+                        + "\tvalidControls=5\tinvalidControls=3\tNOT_A_SCANNER_PASS");
+                }
+            }
         run: |
           set -euo pipefail
-          owned_containers=()
+          owned_name=''
           cleanup() {
             local outcome=$?
             trap - EXIT
-            for owned_name in "${owned_containers[@]}"; do
+            if [[ -n "$owned_name" ]]; then
               if ! timeout --kill-after=1s 5s docker rm --force "$owned_name"; then
                 outcome=1
               fi
-            done
+            fi
             exit "$outcome"
           }
           trap cleanup EXIT
           [[ "$GITHUB_RUN_ID" =~ ^[0-9]+$ && "$GITHUB_RUN_ATTEMPT" =~ ^[0-9]+$ ]]
+          [[ -n "$RUNNER_TEMP" && "$RUNNER_TEMP" == /* && -d "$RUNNER_TEMP" ]]
+          [[ -n "$JAVA_HOME_17_X64" && -x "$JAVA_HOME_17_X64/bin/javac" ]]
+          probe_dir=$(mktemp -d "$RUNNER_TEMP/codacy-decoder.XXXXXX")
+          [[ "$probe_dir" == "$RUNNER_TEMP"/codacy-decoder.* && "$probe_dir" != *,* ]]
+          mkdir "$probe_dir/classes"
+          printf '%s\n' "$JAVA_SOURCE" > "$probe_dir/DecoderProbe.java"
+          for file in ARCHITECTURE.md TEST_GENERATION_CURRENT_BRANCH_SUMMARY.md tech_spec.md; do
+            curl --proto '=https' --tlsv1.2 --fail --silent --show-error \
+              --connect-timeout 5 --max-time 15 --max-filesize 600000 \
+              --output "$probe_dir/$file" \
+              "https://raw.githubusercontent.com/DashFin-FarDb/financial-asset-relationship-db/4e687329c2216e7e4b4fe4b6a8c36a5ed02f3de7/$file"
+          done
+          (
+            cd "$probe_dir"
+            printf '%s\n' \
+              '524cc09849f99b6e603f229d2abbef2f8783d9929c1eb7172becc407307aaeac  ARCHITECTURE.md' \
+              'f8b55c887c12461fa0c8135b155d8e2b566f2660c5ca6a9d9b47e443e9dbe052  TEST_GENERATION_CURRENT_BRANCH_SUMMARY.md' \
+              'f5edfdcc78f272fab6398b2cba88b56a7aadeb4639372c4b92c3d82bea8e889d  tech_spec.md' |
+              sha256sum --check --strict
+            [[ $(wc -c < ARCHITECTURE.md) == 21474 ]]
+            [[ $(wc -c < TEST_GENERATION_CURRENT_BRANCH_SUMMARY.md) == 10387 ]]
+            [[ $(wc -c < tech_spec.md) == 579135 ]]
+          )
+          timeout --kill-after=1s 5s "$JAVA_HOME_17_X64/bin/javac" -version
+          timeout --kill-after=1s 20s "$JAVA_HOME_17_X64/bin/javac" \
+            --release 8 -encoding UTF-8 -d "$probe_dir/classes" "$probe_dir/DecoderProbe.java"
+          chmod 755 "$probe_dir" "$probe_dir/classes"
+          chmod 644 "$probe_dir/DecoderProbe.java" "$probe_dir/ARCHITECTURE.md" \
+            "$probe_dir/TEST_GENERATION_CURRENT_BRANCH_SUMMARY.md" "$probe_dir/tech_spec.md" \
+            "$probe_dir/classes/DecoderProbe.class"
+          sha256sum "$probe_dir/DecoderProbe.java" "$probe_dir/classes/DecoderProbe.class"
           timeout --kill-after=1s 120s docker pull "$PROBE_IMAGE"
           image_id=$(timeout --kill-after=1s 5s docker image inspect "$PROBE_IMAGE" --format '{{.Id}}')
           printf 'Image: %s configuration=%s\n' "$PROBE_IMAGE" "$image_id"
           [[ "$image_id" == sha256:51eefdb019babab617368ccd49dc3ed84713934e17835468ae1dc6a660215516 ]]
-
-          observe() {
-            local label=$1 entrypoint=$2 container_name existing container_id running exit_code
-            shift 2
-            printf '\nObservation: %s\n' "$label"
-            container_name="codacy-charset-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}-${label}"
-            existing=$(timeout --kill-after=1s 5s docker ps --all \
-              --filter "name=^/${container_name}$" --format '{{.Names}}')
-            [[ -z "$existing" ]]
-            # Track the unused, run-specific name before create, including a lost create response.
-            owned_containers+=("$container_name")
-            container_id=$(timeout --kill-after=1s 5s docker create --pull=never --name "$container_name" \
-              --network none --read-only --cap-drop ALL \
-              --security-opt no-new-privileges:true \
-              --cpus 1 --memory 256m --pids-limit 64 \
-              --entrypoint "$entrypoint" "$PROBE_IMAGE" "$@")
-            [[ "$container_id" =~ ^[0-9a-f]{64}$ ]]
-            timeout --kill-after=1s 20s docker start --attach "$container_id"
-            running=$(timeout --kill-after=1s 5s docker inspect --format '{{.State.Running}}' "$container_id")
-            exit_code=$(timeout --kill-after=1s 5s docker inspect --format '{{.State.ExitCode}}' "$container_id")
-            printf 'Container result: running=%s exit=%s\n' "$running" "$exit_code"
-            [[ "$running" == false && "$exit_code" == 0 ]]
-          }
-
-          observe default-jvm java -XshowSettings:properties -version
-          observe explicit-utf8-jvm java -Dfile.encoding=UTF-8 -XshowSettings:properties -version
-          observe packaged-launcher /bin/sh -ec '
-            show_file() {
-              test -f "$1" && test -r "$1"
-              bytes=$(wc -c < "$1")
-              test "$bytes" -le 65536
-              lines=$(awk "END { print NR }" "$1")
-              test "$lines" -le 1000
-              printf "\nPackaged file: %s (%s bytes)\n" "$1" "$bytes"
-              sha256sum "$1"
-              sed -n "1,1000p" "$1"
-            }
-            show_file /workdir/bin/codacy-analysis-cli
-            for option_file in /workdir/conf/*.ini /workdir/conf/*.opts; do
-              if test -f "$option_file"; then
-                show_file "$option_file"
-              fi
-            done
-          '
+          container_name="codacy-decoder-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
+          existing=$(timeout --kill-after=1s 5s docker ps --all \
+            --filter "name=^/$container_name$" --format '{{.Names}}')
+          [[ -z "$existing" ]]
+          owned_name="$container_name"
+          container_id=$(timeout --kill-after=1s 5s docker create --pull=never --name "$container_name" \
+            --network none --read-only --user 65534:65534 --cap-drop ALL \
+            --security-opt no-new-privileges:true --cpus 1 --memory 256m --pids-limit 64 \
+            --mount "type=bind,source=$probe_dir,target=/probe,readonly" \
+            --tmpfs /scratch:rw,noexec,nosuid,nodev,size=8m,mode=1777 \
+            --entrypoint /bin/sh "$PROBE_IMAGE" -ec '
+              for jar in /workdir/lib/com.github.pathikrit.better-files_2.12-3.8.0.jar \
+                /workdir/lib/org.scala-lang.scala-library-2.12.19.jar; do
+                test -f "$jar" && test -r "$jar" && test ! -L "$jar"
+                sha256sum "$jar"
+              done
+              exec java -Xmx128m \
+                -cp /probe/classes:/workdir/lib/com.github.pathikrit.better-files_2.12-3.8.0.jar:/workdir/lib/org.scala-lang.scala-library-2.12.19.jar \
+                DecoderProbe
+            ')
+          [[ "$container_id" =~ ^[0-9a-f]{64}$ ]]
+          timeout --kill-after=1s 20s docker start --attach "$container_id"
+          running=$(timeout --kill-after=1s 5s docker inspect --format '{{.State.Running}}' "$container_id")
+          exit_code=$(timeout --kill-after=1s 5s docker inspect --format '{{.State.ExitCode}}' "$container_id")
+          printf 'Container result: running=%s exit=%s\n' "$running" "$exit_code"
+          [[ "$running" == false && "$exit_code" == 0 ]]
