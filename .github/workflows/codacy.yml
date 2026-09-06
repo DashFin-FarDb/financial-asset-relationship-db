@@ -87,9 +87,9 @@ jobs:
         # useful SARIF can still be published, then fail closed on any scan error.
         id: codacy
         continue-on-error: true
-        # Keep pinned to the last policy-compatible release: newer upstream revisions
-        # currently transitively invoke actions/setup-go@v3 (unpinned), which fails org policy.
-        uses: codacy/codacy-analysis-cli-action@d840f886c4bd4edc059706d09c6a1586111c540b
+        # v4.3.0 uses CLI 7.6.4 with the SARIF source-line bounds guard and no nested actions.
+        # Its launcher and Docker tools remain version-tagged, not fully digest-pinned.
+        uses: codacy/codacy-analysis-cli-action@5cc54a75f9ad88159bb54046196d920e40e367a5 # v4.3.0
         with:
           # Check https://github.com/codacy/codacy-analysis-cli#project-token to get your project token from your Codacy repository
           # You can also omit the token and run the tools that support default configurations
@@ -97,10 +97,12 @@ jobs:
           verbose: true
           output: results.sarif
           format: sarif
+          # A valid report must not turn individual analyser failures into a clean scan.
+          fail-if-incomplete: true
           # Adjust severity of non-security issues
           gh-code-scanning-compat: true
-          # Force 0 exit code to allow SARIF file generation
-          # This will handover control about PR rejection to the GitHub side
+          # Preserve the findings threshold; execution failures remain fatal below.
+          # Findings-based PR rejection is separate from successful scan execution.
           max-allowed-issues: 2147483647
 
       - name: Validate SARIF results file
