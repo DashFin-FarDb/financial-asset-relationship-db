@@ -16,9 +16,13 @@ ADDENDUM = "docs/governance/gnc-phase-3a-refusal-scope-addendum.md"
 ADDENDUM_HASH = "252211ad73c2b12de48cb64d3a5ce16ec028520af7376bfad5a7fb24d14a6292"
 PARENT_HASHES = {
     "docs/governance/gnc-phase-3a-shadow-method.md": "0c6306d7c2ad6ed8f72cf0de016e29c7345f58d5eaac515010e78be749b02538",
-    "docs/governance/gnc-phase-3a-shadow-contract.json": "7d7ed5533ebe328c20167a788d6822c0b6d16dfd00051cd1c623a24730fc1e89",
+    "docs/governance/gnc-phase-3a-shadow-contract.json": (
+        "7d7ed5533ebe328c20167a788d6822c0b6d16dfd00051cd1c623a24730fc1e89"
+    ),
     "tests/fixtures/gnc/shadow/phase3a-cases.json": "2133a261d5a3d4b98bfe73a047b2e55938e136f42fb78746d09151ec194fc502",
-    "tests/fixtures/gnc/shadow/phase3a-expected.json": "27b640a8d86eebd87ffdf586f85cf027b07f475c34b5fd5ca9300fdf61069395",
+    "tests/fixtures/gnc/shadow/phase3a-expected.json": (
+        "27b640a8d86eebd87ffdf586f85cf027b07f475c34b5fd5ca9300fdf61069395"
+    ),
     "tests/unit/test_gnc_shadow_contract.py": "810f719b9ad953dff8c5e044c8a822e67a29a510b8c9b1e5a423ffc4ab62d1d4",
 }
 CLAUSES = (
