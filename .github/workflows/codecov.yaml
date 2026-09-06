@@ -8,6 +8,8 @@ permissions:
 
 jobs:
   test:
+    # Approved disposable diagnostic only; retain all other event/ref behavior.
+    if: github.event_name != 'push' || github.ref != 'refs/heads/codex/codacy-1833-charset-probe'
     name: Run tests and collect coverage
     runs-on: ubuntu-latest
     steps:

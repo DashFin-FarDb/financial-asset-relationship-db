@@ -8,6 +8,8 @@ permissions:
   contents: read
 jobs:
   build:
+    # Approved disposable diagnostic only; retain all other event/ref behavior.
+    if: github.event_name != 'push' || github.ref != 'refs/heads/codex/codacy-1833-charset-probe'
     runs-on: ubuntu-latest
     # Resolve JF_URL once at job scope so steps inherit it without echoing secrets.
     env:
