@@ -1,0 +1,82 @@
+name: Codacy isolated charset observation
+
+# Diagnostic branch only. Not a scanner result or an amendment to the normal scan.
+"on":
+  push:
+    branches: [codex/codacy-1833-charset-probe]
+    paths: [.github/workflows/codacy-charset-probe.yml]
+
+permissions: {}
+
+jobs:
+  observe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Observe pinned Java and packaged launcher without analysis
+        shell: bash
+        env:
+          PROBE_IMAGE: codacy/codacy-analysis-cli@sha256:d412b2a84e72d0b541e29dd6cdffa78a73afcf35d8aa546988cd2a44edaab15c
+        run: |
+          set -euo pipefail
+          owned_containers=()
+          cleanup() {
+            local outcome=$?
+            trap - EXIT
+            for owned_name in "${owned_containers[@]}"; do
+              if ! timeout --kill-after=1s 5s docker rm --force "$owned_name"; then
+                outcome=1
+              fi
+            done
+            exit "$outcome"
+          }
+          trap cleanup EXIT
+          [[ "$GITHUB_RUN_ID" =~ ^[0-9]+$ && "$GITHUB_RUN_ATTEMPT" =~ ^[0-9]+$ ]]
+          timeout --kill-after=1s 120s docker pull "$PROBE_IMAGE"
+          image_id=$(timeout --kill-after=1s 5s docker image inspect "$PROBE_IMAGE" --format '{{.Id}}')
+          printf 'Image: %s configuration=%s\n' "$PROBE_IMAGE" "$image_id"
+          [[ "$image_id" == sha256:51eefdb019babab617368ccd49dc3ed84713934e17835468ae1dc6a660215516 ]]
+
+          observe() {
+            local label=$1 entrypoint=$2 container_name existing container_id running exit_code
+            shift 2
+            printf '\nObservation: %s\n' "$label"
+            container_name="codacy-charset-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}-${label}"
+            existing=$(timeout --kill-after=1s 5s docker ps --all \
+              --filter "name=^/${container_name}$" --format '{{.Names}}')
+            [[ -z "$existing" ]]
+            # Track the unused, run-specific name before create, including a lost create response.
+            owned_containers+=("$container_name")
+            container_id=$(timeout --kill-after=1s 5s docker create --pull=never --name "$container_name" \
+              --network none --read-only --cap-drop ALL \
+              --security-opt no-new-privileges:true \
+              --cpus 1 --memory 256m --pids-limit 64 \
+              --entrypoint "$entrypoint" "$PROBE_IMAGE" "$@")
+            [[ "$container_id" =~ ^[0-9a-f]{64}$ ]]
+            timeout --kill-after=1s 20s docker start --attach "$container_id"
+            running=$(timeout --kill-after=1s 5s docker inspect --format '{{.State.Running}}' "$container_id")
+            exit_code=$(timeout --kill-after=1s 5s docker inspect --format '{{.State.ExitCode}}' "$container_id")
+            printf 'Container result: running=%s exit=%s\n' "$running" "$exit_code"
+            [[ "$running" == false && "$exit_code" == 0 ]]
+          }
+
+          observe default-jvm java -XshowSettings:properties -version
+          observe explicit-utf8-jvm java -Dfile.encoding=UTF-8 -XshowSettings:properties -version
+          observe packaged-launcher /bin/sh -ec '
+            show_file() {
+              test -f "$1" && test -r "$1"
+              bytes=$(wc -c < "$1")
+              test "$bytes" -le 65536
+              lines=$(awk "END { print NR }" "$1")
+              test "$lines" -le 1000
+              printf "\nPackaged file: %s (%s bytes)\n" "$1" "$bytes"
+              sha256sum "$1"
+              sed -n "1,1000p" "$1"
+            }
+            show_file /workdir/bin/codacy-analysis-cli
+            for option_file in /workdir/conf/*.ini /workdir/conf/*.opts; do
+              if test -f "$option_file"; then
+                show_file "$option_file"
+              fi
+            done
+          '
