@@ -102,14 +102,14 @@ Synthetic source authority remains a declared test assumption, not authenticatio
 
 ## Contrast matrix and later proof obligations
 
-| Independent records and assessment | Unauthorized candidate request | Required distinction |
-| --- | --- | --- |
-| Valid resolution with every existing evidence/authority check satisfied | approve / new-rule / waive / expand-scope | Reject request; preserve independently justified resolution |
-| No authorized disposition or no required evidence | Any of those four requests | Reject request; finding stays open |
-| Executed-pass evidence with wrong head only or wrong target only | Any of those four requests | Reject request; insufficient evidence cannot resolve |
-| Valid independent waiver, exact duplicate link or recurrence under existing rules | Any of those four requests | Reject request; neither create nor veto the independently justified result |
-| Forged actor/source or inapplicable disposition | Any of those four requests | Preserve existing refusal/applicability rules; no new authority |
-| Malformed or unknown fields, incomplete context, over-limit input, invalid history or ineligible snapshot | Any request, even beside otherwise valid resolution records | Refuse assessment; no successful projected states, links or transitions |
+| Independent records and assessment                                                                        | Unauthorized candidate request                              | Required distinction                                                       |
+| --------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------- | -------------------------------------------------------------------------- |
+| Valid resolution with every existing evidence/authority check satisfied                                   | approve / new-rule / waive / expand-scope                   | Reject request; preserve independently justified resolution                |
+| No authorized disposition or no required evidence                                                         | Any of those four requests                                  | Reject request; finding stays open                                         |
+| Executed-pass evidence with wrong head only or wrong target only                                          | Any of those four requests                                  | Reject request; insufficient evidence cannot resolve                       |
+| Valid independent waiver, exact duplicate link or recurrence under existing rules                         | Any of those four requests                                  | Reject request; neither create nor veto the independently justified result |
+| Forged actor/source or inapplicable disposition                                                           | Any of those four requests                                  | Preserve existing refusal/applicability rules; no new authority            |
+| Malformed or unknown fields, incomplete context, over-limit input, invalid history or ineligible snapshot | Any request, even beside otherwise valid resolution records | Refuse assessment; no successful projected states, links or transitions    |
 
 This matrix is a prospective specification, not newly executed evidence and not
 a replacement for the frozen oracle. A separately authorized runtime candidate
