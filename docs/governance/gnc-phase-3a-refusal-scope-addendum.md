@@ -14,7 +14,9 @@ conversation on 2026-09-06:
 
 This records preparation authority, **not exact-head acceptance of this candidate**.
 It does not retroactively amend the accepted method or authorize runtime changes.
-Publication, CI spend, acceptance and merge remain withheld.
+That preparation decision withheld publication and CI spend; any later publication
+authority is recorded separately in the PR. Exact-head acceptance, merge and
+runtime changes still require separate decisions.
 
 The immutable parent is [the Phase 3A method](gnc-phase-3a-shadow-method.md) at
 accepted freeze source head `dc1571c3a6d6f20a4f7fb0d3addb62c525c04cb8`.

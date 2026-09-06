@@ -13,7 +13,7 @@ from scripts.gnc.schema import canonical_hash, validate_contract
 ROOT = Path(__file__).resolve().parents[2]
 ADDENDUM = "docs/governance/gnc-phase-3a-refusal-scope-addendum.md"
 # Preparation identity only, not human acceptance or permission to repin.
-ADDENDUM_HASH = "c3b4174bd81f8dd1e9bc6b7ce73d3a9de394137def4b5529bc0808c41c5ceabf"
+ADDENDUM_HASH = "252211ad73c2b12de48cb64d3a5ce16ec028520af7376bfad5a7fb24d14a6292"
 PARENT_HASHES = {
     "docs/governance/gnc-phase-3a-shadow-method.md": "0c6306d7c2ad6ed8f72cf0de016e29c7345f58d5eaac515010e78be749b02538",
     "docs/governance/gnc-phase-3a-shadow-contract.json": "7d7ed5533ebe328c20167a788d6822c0b6d16dfd00051cd1c623a24730fc1e89",
@@ -22,7 +22,7 @@ PARENT_HASHES = {
     "tests/unit/test_gnc_shadow_contract.py": "810f719b9ad953dff8c5e044c8a822e67a29a510b8c9b1e5a423ffc4ab62d1d4",
 }
 CLAUSES = (
-    "Publication, CI spend, acceptance and merge remain withheld.",
+    "That preparation decision withheld publication and CI spend; any later publication",
     "Assessment-level refusal and request-level rejection are distinct.",
     "projected states and links are empty and its source history remains preserved.",
     "Such a request cannot create, alter, substitute for, or veto authority.",
