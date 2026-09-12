@@ -36,7 +36,7 @@ rebuild/reconciliation, and deployment/readiness.
 
 | Domain | Doc | Landed | Provisional |
 |--------|-----|--------|-------------|
-| architecture | [/docs/compound/domains/architecture.md](/docs/compound/domains/architecture.md) | 243 | 57 |
+| architecture | [/docs/compound/domains/architecture.md](/docs/compound/domains/architecture.md) | 244 | 56 |
 | api | [/docs/compound/domains/api.md](/docs/compound/domains/api.md) | 43 | 92 |
 | persistence | [/docs/compound/domains/persistence.md](/docs/compound/domains/persistence.md) | 9 | 31 |
 | ci-guardrails | [/docs/compound/domains/ci-guardrails.md](/docs/compound/domains/ci-guardrails.md) | 60 | 46 |
