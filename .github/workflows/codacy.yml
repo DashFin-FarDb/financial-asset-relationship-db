@@ -87,21 +87,33 @@ jobs:
         # useful SARIF can still be published, then fail closed on any scan error.
         id: codacy
         continue-on-error: true
-        # Keep pinned to the last policy-compatible release: newer upstream revisions
-        # currently transitively invoke actions/setup-go@v3 (unpinned), which fails org policy.
-        uses: codacy/codacy-analysis-cli-action@d840f886c4bd4edc059706d09c6a1586111c540b
-        with:
-          # Check https://github.com/codacy/codacy-analysis-cli#project-token to get your project token from your Codacy repository
-          # You can also omit the token and run the tools that support default configurations
-          project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}
-          verbose: true
-          output: results.sarif
-          format: sarif
-          # Adjust severity of non-security issues
-          gh-code-scanning-compat: true
-          # Force 0 exit code to allow SARIF file generation
-          # This will handover control about PR rejection to the GitHub side
-          max-allowed-issues: 2147483647
+        # CLI 7.10.1, including its runtime, is digest-pinned; no launcher is downloaded.
+        # Remote rule metadata and downstream analyser images are not pinned by this digest.
+        # The Docker socket retains high authority on this disposable hosted runner only.
+        shell: bash
+        env:
+          CODACY_CODE: ${{ github.workspace }}
+          CODACY_PROJECT_TOKEN: ${{ secrets.CODACY_PROJECT_TOKEN }}
+          CODACY_COMMIT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          docker run \
+            --rm \
+            --env CODACY_CODE \
+            --env CODACY_PROJECT_TOKEN \
+            --volume /var/run/docker.sock:/var/run/docker.sock \
+            --volume "$CODACY_CODE:$CODACY_CODE" \
+            --volume /tmp:/tmp \
+            codacy/codacy-analysis-cli@sha256:d412b2a84e72d0b541e29dd6cdffa78a73afcf35d8aa546988cd2a44edaab15c -- \
+            analyze \
+            --directory "$CODACY_CODE" \
+            --skip-commit-uuid-validation \
+            --commit-uuid "$CODACY_COMMIT_SHA" \
+            --verbose \
+            --output "$CODACY_CODE/results.sarif" \
+            --format sarif \
+            --gh-code-scanning-compat \
+            --max-allowed-issues 2147483647 \
+            --fail-if-incomplete
 
       - name: Validate SARIF results file
         id: validate_sarif
