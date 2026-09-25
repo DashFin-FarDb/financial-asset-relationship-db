@@ -198,9 +198,9 @@ function TabNavigation({ activeTab, onTabChange }: TabNavigationProps) {
 }
 
 /**
- * Render the dashboard home page with a tabbed interface for Visualization, Metrics, and Assets.
+ * Render the dashboard home page with a tabbed interface for the GRAC demonstrator, Visualization, Metrics, and Assets.
  *
- * Loads metrics and visualization data on mount, displays loading and error states, and exposes a retry action.
+ * Loads metrics and visualization data independently on mount, displays loading and bounded per-tab error states, and exposes a retry action.
  *
  * @returns The top-level JSX element for the home page
  */
