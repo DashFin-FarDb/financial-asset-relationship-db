@@ -14,9 +14,7 @@ type InstitutionalDemoProps = Readonly<{
  * GRAC semantics, persistence, and publication logic remain in the existing
  * graph and governed-edge APIs.
  */
-export default function InstitutionalDemo({
-  data,
-}: InstitutionalDemoProps) {
+export default function InstitutionalDemo({ data }: InstitutionalDemoProps) {
   return (
     <div className="space-y-8">
       <section className="rounded-2xl bg-slate-900 px-6 py-8 text-white shadow-lg">

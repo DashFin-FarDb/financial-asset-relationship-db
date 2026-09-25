@@ -246,7 +246,8 @@ export default function Home() {
             FarDb — Financial Asset Relationship Database
           </h1>
           <p className="text-gray-600 mt-2">
-            Governed relationship infrastructure with an institutional demonstration surface
+            Governed relationship infrastructure with an institutional
+            demonstration surface
           </p>
         </div>
       </header>
@@ -269,9 +270,7 @@ export default function Home() {
       {/* Footer */}
       <footer className="bg-white border-t border-gray-200 mt-12">
         <div className="container mx-auto px-4 py-6 text-center text-gray-600 text-sm">
-          <p>
-            FarDb — Governed Relationship Assertion Contract demonstrator
-          </p>
+          <p>FarDb — Governed Relationship Assertion Contract demonstrator</p>
         </div>
       </footer>
     </main>
