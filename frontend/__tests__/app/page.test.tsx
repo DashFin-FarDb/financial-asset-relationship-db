@@ -204,13 +204,17 @@ describe("Error Handling and Recovery", () => {
     render(<Home />);
 
     await waitFor(() => {
-      expect(screen.getByText(/Metrics data is unavailable/i)).toBeInTheDocument();
+      expect(screen.getByText("FarDb Institutional Demonstrator")).toBeInTheDocument();
     });
+
+    fireEvent.click(screen.getByText("3D Visualization"));
+
+    expect(screen.getByText(/Visualization data is unavailable/i)).toBeInTheDocument();
 
     consoleError.mockRestore();
   });
 
-  it("should show generic error message for unknown errors", async () => {
+  it("should show generic error message when both dashboard requests fail", async () => {
     mockedApi.getMetrics.mockRejectedValue(new Error());
     mockedApi.getVisualizationData.mockRejectedValue(new Error());
     const consoleError = jest.spyOn(console, "error").mockImplementation();
@@ -218,12 +222,8 @@ describe("Error Handling and Recovery", () => {
     render(<Home />);
 
     await waitFor(() => {
-      expect(screen.getByText("FarDb Institutional Demonstrator")).toBeInTheDocument();
+      expect(screen.getByText(/Failed to load data/i)).toBeInTheDocument();
     });
-
-    fireEvent.click(screen.getByText("3D Visualization"));
-
-    expect(screen.getByText(/Visualization data is unavailable/i)).toBeInTheDocument();
 
     consoleError.mockRestore();
   });
