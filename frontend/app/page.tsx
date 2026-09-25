@@ -16,6 +16,8 @@ type HomeContentProps = Readonly<{
   activeTab: HomeTab;
   vizData: VisualizationData | null;
   metrics: Metrics | null;
+  metricsError: string | null;
+  visualizationError: string | null;
   onRetry: () => void;
 }>;
 
@@ -56,7 +58,7 @@ function getTabClassName(isActive: boolean): string {
  * Render the home page's tabbed content area based on loading, error, and the active tab.
  *
  * When `loading` is true, shows a loading indicator; when `error` is set, shows an error panel with a retry action;
- * otherwise renders the content for the active tab ("visualization", "metrics", or "assets").
+ * otherwise renders the content for the active tab ("demonstrator", "visualization", "metrics", or "assets").
  *
  * @returns The JSX element for the content area, or `null` if no content is applicable.
  */
@@ -66,11 +68,20 @@ function HomeContent({
   activeTab,
   vizData,
   metrics,
+  metricsError,
+  visualizationError,
   onRetry,
 }: HomeContentProps) {
+  const tabPanelProps = {
+    role: "tabpanel" as const,
+    id: `tabpanel-${activeTab}`,
+    "aria-labelledby": `tab-${activeTab}`,
+    tabIndex: 0,
+  };
+
   if (loading) {
     return (
-      <div className="text-center py-12">
+      <div {...tabPanelProps} className="text-center py-12">
         <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600" />
         <p className="mt-4 text-gray-600">Loading data...</p>
       </div>
@@ -79,9 +90,10 @@ function HomeContent({
 
   if (error) {
     return (
-      <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
+      <div {...tabPanelProps} className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
         <p className="text-red-800">{error}</p>
         <button
+          type="button"
           onClick={onRetry}
           className="mt-4 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
         >
@@ -92,26 +104,60 @@ function HomeContent({
   }
 
   if (activeTab === "demonstrator") {
-    return <InstitutionalDemo data={vizData} />;
+    return <div {...tabPanelProps}><InstitutionalDemo data={vizData} /></div>;
   }
 
-  if (activeTab === "visualization" && vizData) {
+  if (activeTab === "visualization") {
     return (
-      <div className="bg-white rounded-lg shadow-lg p-6">
-        <NetworkVisualization data={vizData} />
+      <div {...tabPanelProps} className="bg-white rounded-lg shadow-lg p-6">
+        {vizData ? (
+          <NetworkVisualization data={vizData} />
+        ) : (
+          <div className="text-center py-12 text-gray-600" role="alert">
+            {visualizationError ?? "Visualization data is unavailable."}
+            <div>
+              <button
+                type="button"
+                onClick={onRetry}
+                className="mt-4 px-4 py-2 bg-gray-800 text-white rounded-md hover:bg-gray-900 transition-colors"
+              >
+                Retry
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     );
   }
 
-  if (activeTab === "metrics" && metrics) {
-    return <MetricsDashboard metrics={metrics} />;
+  if (activeTab === "metrics") {
+    return (
+      <div {...tabPanelProps} className="bg-white rounded-lg shadow-lg p-6">
+        {metrics ? (
+          <MetricsDashboard metrics={metrics} />
+        ) : (
+          <div className="text-center py-12 text-gray-600" role="alert">
+            {metricsError ?? "Metrics data is unavailable."}
+            <div>
+              <button
+                type="button"
+                onClick={onRetry}
+                className="mt-4 px-4 py-2 bg-gray-800 text-white rounded-md hover:bg-gray-900 transition-colors"
+              >
+                Retry
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    );
   }
 
   if (activeTab === "assets") {
-    return <AssetList />;
+    return <div {...tabPanelProps}><AssetList /></div>;
   }
 
-  return null;
+  return <div {...tabPanelProps} />;
 }
 
 /**
@@ -123,7 +169,11 @@ function HomeContent({
  */
 function TabNavigation({ activeTab, onTabChange }: TabNavigationProps) {
   return (
-    <nav className="bg-white border-b border-gray-200">
+    <nav
+      className="bg-white border-b border-gray-200"
+      role="tablist"
+      aria-label="Dashboard sections"
+    >
       <div className="container mx-auto px-4">
         <div className="flex space-x-8">
           {TAB_DEFINITIONS.map((tab) => (
@@ -131,6 +181,12 @@ function TabNavigation({ activeTab, onTabChange }: TabNavigationProps) {
               key={tab.key}
               onClick={() => onTabChange(tab.key)}
               className={getTabClassName(activeTab === tab.key)}
+              role="tab"
+              id={`tab-${tab.key}`}
+              aria-controls={`tabpanel-${tab.key}`}
+              aria-selected={activeTab === tab.key}
+              tabIndex={activeTab === tab.key ? 0 : -1}
+              type="button"
             >
               {tab.label}
             </button>
@@ -154,6 +210,8 @@ export default function Home() {
   const [vizData, setVizData] = useState<VisualizationData | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [metricsError, setMetricsError] = useState<string | null>(null);
+  const [visualizationError, setVisualizationError] = useState<string | null>(null);
 
   const requestIdRef = useRef(0);
   const mountedRef = useRef(true);
@@ -171,31 +229,59 @@ export default function Home() {
    */
   const fetchDashboardData = useCallback(async () => {
     const requestId = ++requestIdRef.current;
-    try {
-      const [metricsData, visualizationData] = await Promise.all([
-        api.getMetrics(),
-        api.getVisualizationData(),
-      ]);
-      return { metricsData, visualizationData, error: null, requestId };
-    } catch (err) {
+    const [metricsResult, visualizationResult] = await Promise.allSettled([
+      api.getMetrics(),
+      api.getVisualizationData(),
+    ]);
+
+    const metricsData =
+      metricsResult.status === "fulfilled" ? metricsResult.value : null;
+    const visualizationData =
+      visualizationResult.status === "fulfilled"
+        ? visualizationResult.value
+        : null;
+    const metricsError =
+      metricsResult.status === "rejected"
+        ? "Failed to load metrics data."
+        : null;
+    const visualizationError =
+      visualizationResult.status === "rejected"
+        ? "Failed to load visualization data. Please ensure the API server is running."
+        : null;
+
+    if (metricsResult.status === "rejected" || visualizationResult.status === "rejected") {
       if (process.env.NODE_ENV === "production") {
-        console.error("Error loading data");
+        console.error("Error loading dashboard data");
       } else {
-        console.error("Error loading data:", err);
+        console.error("Error loading dashboard data:", {
+          metrics: metricsResult.status === "rejected" ? metricsResult.reason : null,
+          visualization:
+            visualizationResult.status === "rejected"
+              ? visualizationResult.reason
+              : null,
+        });
       }
-      return {
-        metricsData: null,
-        visualizationData: null,
-        error: "Failed to load data. Please ensure the API server is running.",
-        requestId,
-      };
     }
+
+    return {
+      metricsData,
+      visualizationData,
+      error:
+        !metricsData && !visualizationData
+          ? "Failed to load data. Please ensure the API server is running."
+          : null,
+      metricsError,
+      visualizationError,
+      requestId,
+    };
   }, []);
   const applyResult = useCallback(
     (result: {
       metricsData: Metrics | null;
       visualizationData: VisualizationData | null;
       error: string | null;
+      metricsError: string | null;
+      visualizationError: string | null;
       requestId: number;
     }) => {
       if (result.requestId !== requestIdRef.current || !mountedRef.current)
@@ -205,6 +291,8 @@ export default function Home() {
       } else {
         setMetrics(result.metricsData);
         setVizData(result.visualizationData);
+        setMetricsError(result.metricsError);
+        setVisualizationError(result.visualizationError);
         setError(null);
       }
       setLoading(false);
@@ -229,6 +317,8 @@ export default function Home() {
   const handleRetry = useCallback(async () => {
     setLoading(true);
     setError(null);
+    setMetricsError(null);
+    setVisualizationError(null);
     const result = await fetchDashboardData();
     applyResult(result);
   }, [fetchDashboardData, applyResult]);
@@ -263,6 +353,8 @@ export default function Home() {
           activeTab={activeTab}
           vizData={vizData}
           metrics={metrics}
+          metricsError={metricsError}
+          visualizationError={visualizationError}
           onRetry={handleRetry}
         />
       </div>
