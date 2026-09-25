@@ -94,7 +94,7 @@ function ScenarioTimeline() {
           </p>
         </div>
         <div className="rounded-lg bg-slate-900 px-4 py-3 text-right text-white">
-          <p className="text-xs uppercase tracking-[0.16em] text-slate-600">
+          <p className="text-xs uppercase tracking-[0.16em] text-slate-400">
             Step {stepIndex + 1} of {SCENARIO_STEPS.length}
           </p>
           <p className="mt-1 font-semibold">{step.label}</p>
