@@ -3,11 +3,12 @@
 import React, { useEffect, useState, useCallback, useRef } from "react";
 import { api } from "./lib/api";
 import NetworkVisualization from "./components/NetworkVisualization";
+import InstitutionalDemo from "./components/InstitutionalDemo";
 import MetricsDashboard from "./components/MetricsDashboard";
 import AssetList from "./components/AssetList";
 import type { Metrics, VisualizationData } from "./types/api";
 
-type HomeTab = "visualization" | "metrics" | "assets";
+type HomeTab = "demonstrator" | "visualization" | "metrics" | "assets";
 
 type HomeContentProps = Readonly<{
   loading: boolean;
@@ -29,6 +30,7 @@ type TabDefinition = Readonly<{
 }>;
 
 const TAB_DEFINITIONS: readonly TabDefinition[] = [
+  { key: "demonstrator", label: "GRAC Demonstrator" },
   { key: "visualization", label: "3D Visualization" },
   { key: "metrics", label: "Metrics & Analytics" },
   { key: "assets", label: "Asset Explorer" },
@@ -89,6 +91,10 @@ function HomeContent({
     );
   }
 
+  if (activeTab === "demonstrator") {
+    return <InstitutionalDemo data={vizData} />;
+  }
+
   if (activeTab === "visualization" && vizData) {
     return (
       <div className="bg-white rounded-lg shadow-lg p-6">
@@ -143,7 +149,7 @@ function TabNavigation({ activeTab, onTabChange }: TabNavigationProps) {
  * @returns The top-level JSX element for the home page
  */
 export default function Home() {
-  const [activeTab, setActiveTab] = useState<HomeTab>("visualization");
+  const [activeTab, setActiveTab] = useState<HomeTab>("demonstrator");
   const [metrics, setMetrics] = useState<Metrics | null>(null);
   const [vizData, setVizData] = useState<VisualizationData | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -237,10 +243,10 @@ export default function Home() {
       <header className="bg-white shadow-md">
         <div className="container mx-auto px-4 py-6">
           <h1 className="text-3xl font-bold text-gray-800">
-            🏦 Financial Asset Relationship Network
+            FarDb — Financial Asset Relationship Database
           </h1>
           <p className="text-gray-600 mt-2">
-            Interactive 3D visualization of interconnected financial assets
+            Governed relationship infrastructure with an institutional demonstration surface
           </p>
         </div>
       </header>
@@ -264,7 +270,7 @@ export default function Home() {
       <footer className="bg-white border-t border-gray-200 mt-12">
         <div className="container mx-auto px-4 py-6 text-center text-gray-600 text-sm">
           <p>
-            Financial Asset Relationship Database - Powered by Next.js & FastAPI
+            FarDb — Governed Relationship Assertion Contract demonstrator
           </p>
         </div>
       </footer>
