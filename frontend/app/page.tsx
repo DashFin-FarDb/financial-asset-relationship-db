@@ -90,7 +90,10 @@ function HomeContent({
 
   if (error) {
     return (
-      <div {...tabPanelProps} className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
+      <div
+        {...tabPanelProps}
+        className="bg-red-50 border border-red-200 rounded-lg p-6 text-center"
+      >
         <p className="text-red-800">{error}</p>
         <button
           type="button"
@@ -104,7 +107,11 @@ function HomeContent({
   }
 
   if (activeTab === "demonstrator") {
-    return <div {...tabPanelProps}><InstitutionalDemo data={vizData} /></div>;
+    return (
+      <div {...tabPanelProps}>
+        <InstitutionalDemo data={vizData} />
+      </div>
+    );
   }
 
   if (activeTab === "visualization") {
@@ -154,7 +161,11 @@ function HomeContent({
   }
 
   if (activeTab === "assets") {
-    return <div {...tabPanelProps}><AssetList /></div>;
+    return (
+      <div {...tabPanelProps}>
+        <AssetList />
+      </div>
+    );
   }
 
   return <div {...tabPanelProps} />;
@@ -211,7 +222,9 @@ export default function Home() {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [metricsError, setMetricsError] = useState<string | null>(null);
-  const [visualizationError, setVisualizationError] = useState<string | null>(null);
+  const [visualizationError, setVisualizationError] = useState<string | null>(
+    null,
+  );
 
   const requestIdRef = useRef(0);
   const mountedRef = useRef(true);
@@ -249,12 +262,16 @@ export default function Home() {
         ? "Failed to load visualization data. Please ensure the API server is running."
         : null;
 
-    if (metricsResult.status === "rejected" || visualizationResult.status === "rejected") {
+    if (
+      metricsResult.status === "rejected" ||
+      visualizationResult.status === "rejected"
+    ) {
       if (process.env.NODE_ENV === "production") {
         console.error("Error loading dashboard data");
       } else {
         console.error("Error loading dashboard data:", {
-          metrics: metricsResult.status === "rejected" ? metricsResult.reason : null,
+          metrics:
+            metricsResult.status === "rejected" ? metricsResult.reason : null,
           visualization:
             visualizationResult.status === "rejected"
               ? visualizationResult.reason
