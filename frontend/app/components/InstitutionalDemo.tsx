@@ -47,7 +47,8 @@ const SCENARIO_STEPS: readonly ScenarioStep[] = [
     state: "Accepted",
     description:
       "The authorised reviewer accepts the assertion under the applicable mandate.",
-    decision: "Human authority determines; the graph may now project the relationship.",
+    decision:
+      "Human authority determines; the graph may now project the relationship.",
   },
   {
     label: "Challenge",
@@ -57,7 +58,8 @@ const SCENARIO_STEPS: readonly ScenarioStep[] = [
     state: "Challenged",
     description:
       "A later source indicates that the original control interpretation may be incomplete.",
-    decision: "The existing assertion remains historical evidence; it is not silently overwritten.",
+    decision:
+      "The existing assertion remains historical evidence; it is not silently overwritten.",
   },
   {
     label: "Supersession",
@@ -67,7 +69,8 @@ const SCENARIO_STEPS: readonly ScenarioStep[] = [
     state: "Superseded",
     description:
       "A successor assertion incorporates the newer evidence and supersedes the prior determination.",
-    decision: "The successor becomes the current governed proposition while the predecessor remains auditable.",
+    decision:
+      "The successor becomes the current governed proposition while the predecessor remains auditable.",
   },
 ];
 
