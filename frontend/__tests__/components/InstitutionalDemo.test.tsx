@@ -19,7 +19,9 @@ describe("InstitutionalDemo", () => {
       screen.getByText("Synthetic governance walkthrough"),
     ).toBeInTheDocument();
     expect(
-      screen.getByText(/synthetic and are not presented as live FarDb customer data/),
+      screen.getByText(
+        /synthetic and are not presented as live FarDb customer data/,
+      ),
     ).toBeInTheDocument();
     expect(screen.getByTestId("network-visualization")).toBeInTheDocument();
   });
