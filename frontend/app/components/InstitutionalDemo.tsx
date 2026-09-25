@@ -94,7 +94,7 @@ function ScenarioTimeline() {
           </p>
         </div>
         <div className="rounded-lg bg-slate-900 px-4 py-3 text-right text-white">
-          <p className="text-xs uppercase tracking-[0.16em] text-slate-400">
+          <p className="text-xs uppercase tracking-[0.16em] text-slate-600">
             Step {stepIndex + 1} of {SCENARIO_STEPS.length}
           </p>
           <p className="mt-1 font-semibold">{step.label}</p>
@@ -118,14 +118,15 @@ function ScenarioTimeline() {
           onChange={(event) => setStepIndex(Number(event.target.value))}
           className="mt-3 w-full"
         />
-        <div className="mt-2 grid grid-cols-5 gap-2 text-[11px] text-slate-500">
+        <div className="mt-2 grid grid-cols-1 gap-2 text-[11px] text-slate-500 sm:grid-cols-5">
           {SCENARIO_STEPS.map((item, index) => (
             <button
               key={item.date + item.label}
               type="button"
               onClick={() => setStepIndex(index)}
               className="text-left hover:text-slate-900"
-              aria-label={"Show " + item.label}
+              aria-label={"Show " + item.label + " (" + item.date + ")"}
+              aria-current={stepIndex === index ? "step" : undefined}
             >
               <span className="block font-medium">{item.date}</span>
               <span>{item.label}</span>
@@ -214,7 +215,7 @@ export default function InstitutionalDemo({ data }: InstitutionalDemoProps) {
         </div>
       </section>
 
-      <section className="grid grid-cols-1 gap-4 md:grid-cols-4">
+      <section className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
         {[
           {
             number: "01",
@@ -241,7 +242,7 @@ export default function InstitutionalDemo({ data }: InstitutionalDemoProps) {
             key={item.number}
             className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm"
           >
-            <p className="text-xs font-semibold tracking-[0.16em] text-slate-400">
+            <p className="text-xs font-semibold tracking-[0.16em] text-slate-600">
               {item.number}
             </p>
             <h3 className="mt-2 text-lg font-semibold text-slate-900">
@@ -253,9 +254,9 @@ export default function InstitutionalDemo({ data }: InstitutionalDemoProps) {
       </section>
 
       <section className="rounded-xl border border-amber-200 bg-amber-50 px-5 py-4">
-        <p className="text-sm font-medium text-amber-900">
+        <h3 className="text-sm font-medium text-amber-900">
           Governance boundary
-        </p>
+        </h3>
         <p className="mt-1 text-sm leading-6 text-amber-800">
           AI systems may propose, retrieve, explain, or challenge. Authority to
           determine and publish a consequential relationship remains with the
