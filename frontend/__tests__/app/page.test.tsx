@@ -76,12 +76,14 @@ describe("Home Page", () => {
   it("should render header", async () => {
     render(<Home />);
     expect(
-      screen.getByText(/Financial Asset Relationship Network/i),
+      screen.getByText(/FarDb — Financial Asset Relationship Database/i),
     ).toBeInTheDocument();
   });
 
   it("should render navigation tabs", async () => {
     render(<Home />);
+    expect(screen.getByText("GRAC Demonstrator")).toBeInTheDocument();
+    expect(screen.getByText("GRAC Demonstrator")).toBeInTheDocument();
     expect(screen.getByText("3D Visualization")).toBeInTheDocument();
     expect(screen.getByText("Metrics & Analytics")).toBeInTheDocument();
     expect(screen.getByText("Asset Explorer")).toBeInTheDocument();
@@ -93,6 +95,20 @@ describe("Home Page", () => {
     await waitFor(() => {
       expect(mockedApi.getMetrics).toHaveBeenCalled();
       expect(mockedApi.getVisualizationData).toHaveBeenCalled();
+    });
+  });
+
+  it("should expose tab semantics for the active demonstrator", async () => {
+    render(<Home />);
+
+    await waitFor(() => {
+      const tab = screen.getByRole("tab", { name: "GRAC Demonstrator" });
+      expect(tab).toHaveAttribute("aria-selected", "true");
+      expect(tab).toHaveAttribute("aria-controls", "tabpanel-demonstrator");
+      expect(screen.getByRole("tabpanel")).toHaveAttribute(
+        "aria-labelledby",
+        "tab-demonstrator",
+      );
     });
   });
 
@@ -108,6 +124,9 @@ describe("Home Page", () => {
       expect(screen.getByTestId("network-visualization")).toBeInTheDocument();
     });
 
+    fireEvent.click(screen.getByText("3D Visualization"));
+    expect(screen.getByTestId("network-visualization")).toBeInTheDocument();
+
     fireEvent.click(screen.getByText("Metrics & Analytics"));
     expect(screen.getByTestId("metrics-dashboard")).toBeInTheDocument();
 
@@ -122,7 +141,7 @@ describe("Home Page", () => {
     render(<Home />);
 
     await waitFor(() => {
-      expect(screen.getByText(/Failed to load data/i)).toBeInTheDocument();
+      expect(screen.getByText(/Metrics data is unavailable/i)).toBeInTheDocument();
     });
 
     consoleError.mockRestore();
@@ -135,7 +154,7 @@ describe("Home Page", () => {
     render(<Home />);
 
     await waitFor(() => {
-      expect(screen.getByText(/Failed to load data/i)).toBeInTheDocument();
+      expect(screen.getByText(/Metrics data is unavailable/i)).toBeInTheDocument();
     });
 
     const retryButton = screen.getByText("Retry");
@@ -186,7 +205,7 @@ describe("Error Handling and Recovery", () => {
     render(<Home />);
 
     await waitFor(() => {
-      expect(screen.getByText(/Failed to load data/i)).toBeInTheDocument();
+      expect(screen.getByText(/Metrics data is unavailable/i)).toBeInTheDocument();
     });
 
     consoleError.mockRestore();
@@ -199,7 +218,7 @@ describe("Error Handling and Recovery", () => {
     render(<Home />);
 
     await waitFor(() => {
-      expect(screen.getByText(/Failed to load data/i)).toBeInTheDocument();
+      expect(screen.getByText(/Visualization data is unavailable/i)).toBeInTheDocument();
     });
 
     consoleError.mockRestore();
@@ -215,7 +234,7 @@ describe("Error Handling and Recovery", () => {
     render(<Home />);
 
     await waitFor(() => {
-      expect(screen.getByText(/Failed to load data/i)).toBeInTheDocument();
+      expect(screen.getByText(/Metrics data is unavailable/i)).toBeInTheDocument();
     });
 
     fireEvent.click(screen.getByText("Retry"));
@@ -245,7 +264,7 @@ describe("Tab Navigation and State Management", () => {
     expect(screen.getByTestId("metrics-dashboard")).toBeInTheDocument();
   });
 
-  it("should switch between all three tabs sequentially", async () => {
+  it("should switch between all four tabs sequentially", async () => {
     render(<Home />);
 
     await waitFor(() => {
@@ -267,13 +286,38 @@ describe("Tab Navigation and State Management", () => {
     expect(screen.queryByTestId("asset-list")).not.toBeInTheDocument();
   });
 
+  it("should expose active tab state after switching tabs", async () => {
+    render(<Home />);
+
+    await waitFor(() => {
+      expect(screen.getByRole("tab", { name: "GRAC Demonstrator" })).toHaveAttribute(
+        "aria-selected",
+        "true",
+      );
+    });
+
+    fireEvent.click(screen.getByText("Metrics & Analytics"));
+    expect(screen.getByRole("tab", { name: "Metrics & Analytics" })).toHaveAttribute(
+      "aria-selected",
+      "true",
+    );
+    expect(screen.getByRole("tab", { name: "GRAC Demonstrator" })).toHaveAttribute(
+      "aria-selected",
+      "false",
+    );
+  });
+
   it("should highlight active tab button", async () => {
     render(<Home />);
 
     await waitFor(() => {
-      const vizButton = screen.getByText("3D Visualization");
-      expect(vizButton).toHaveClass("border-blue-500");
+      const demoButton = screen.getByText("GRAC Demonstrator");
+      expect(demoButton).toHaveClass("border-blue-500");
     });
+
+    const vizButton = screen.getByText("3D Visualization");
+    fireEvent.click(vizButton);
+    expect(vizButton).toHaveClass("border-blue-500");
 
     const metricsButton = screen.getByText("Metrics & Analytics");
     fireEvent.click(metricsButton);
@@ -377,12 +421,12 @@ describe("Loading States", () => {
 });
 
 describe("Footer and Static Content", () => {
-  it("should render footer with correct text", async () => {
+  it("should render footer with demonstrator text", async () => {
     render(<Home />);
 
     await waitFor(() => {
       expect(
-        screen.getByText(/Powered by Next.js & FastAPI/i),
+        screen.getByText(/FarDb — Governed Relationship Assertion Contract demonstrator/i),
       ).toBeInTheDocument();
     });
   });
@@ -391,7 +435,7 @@ describe("Footer and Static Content", () => {
     render(<Home />);
 
     expect(
-      screen.getByText(/Interactive 3D visualization/i),
+      screen.getByText(/Governed relationship infrastructure with an institutional demonstration surface/i),
     ).toBeInTheDocument();
   });
 });
