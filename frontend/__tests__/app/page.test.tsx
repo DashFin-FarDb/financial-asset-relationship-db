@@ -83,7 +83,6 @@ describe("Home Page", () => {
   it("should render navigation tabs", async () => {
     render(<Home />);
     expect(screen.getByText("GRAC Demonstrator")).toBeInTheDocument();
-    expect(screen.getByText("GRAC Demonstrator")).toBeInTheDocument();
     expect(screen.getByText("3D Visualization")).toBeInTheDocument();
     expect(screen.getByText("Metrics & Analytics")).toBeInTheDocument();
     expect(screen.getByText("Asset Explorer")).toBeInTheDocument();
@@ -172,7 +171,7 @@ describe("Accessibility Tests", () => {
 
     await waitFor(() => {
       const h1 = screen.getByRole("heading", { level: 1 });
-      expect(h1).toHaveTextContent("Financial Asset Relationship Network");
+      expect(h1).toHaveTextContent("FarDb — Financial Asset Relationship Database");
     });
   });
 
@@ -213,13 +212,18 @@ describe("Error Handling and Recovery", () => {
 
   it("should show generic error message for unknown errors", async () => {
     mockedApi.getMetrics.mockRejectedValue(new Error());
+    mockedApi.getVisualizationData.mockRejectedValue(new Error());
     const consoleError = jest.spyOn(console, "error").mockImplementation();
 
     render(<Home />);
 
     await waitFor(() => {
-      expect(screen.getByText(/Visualization data is unavailable/i)).toBeInTheDocument();
+      expect(screen.getByText("FarDb Institutional Demonstrator")).toBeInTheDocument();
     });
+
+    fireEvent.click(screen.getByText("3D Visualization"));
+
+    expect(screen.getByText(/Visualization data is unavailable/i)).toBeInTheDocument();
 
     consoleError.mockRestore();
   });
@@ -234,8 +238,11 @@ describe("Error Handling and Recovery", () => {
     render(<Home />);
 
     await waitFor(() => {
-      expect(screen.getByText(/Metrics data is unavailable/i)).toBeInTheDocument();
+      expect(screen.getByText("FarDb Institutional Demonstrator")).toBeInTheDocument();
     });
+
+    fireEvent.click(screen.getByText("Metrics & Analytics"));
+    expect(screen.getByText(/Metrics data is unavailable/i)).toBeInTheDocument();
 
     fireEvent.click(screen.getByText("Retry"));
 
