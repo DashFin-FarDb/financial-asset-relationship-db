@@ -185,7 +185,7 @@ function TabNavigation({ activeTab, onTabChange }: TabNavigationProps) {
               id={`tab-${tab.key}`}
               aria-controls={`tabpanel-${tab.key}`}
               aria-selected={activeTab === tab.key}
-              tabIndex={activeTab === tab.key ? 0 : -1}
+              tabIndex={0}
               type="button"
             >
               {tab.label}
