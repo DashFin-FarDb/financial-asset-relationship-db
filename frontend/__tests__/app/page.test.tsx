@@ -133,34 +133,40 @@ describe("Home Page", () => {
     expect(screen.getByTestId("asset-list")).toBeInTheDocument();
   });
 
-  it("should handle API errors", async () => {
+  it("should handle metrics API errors without blocking the demonstrator", async () => {
     const consoleError = jest.spyOn(console, "error").mockImplementation();
     mockedApi.getMetrics.mockRejectedValue(new Error("API Error"));
 
     render(<Home />);
 
     await waitFor(() => {
-      expect(screen.getByText(/Metrics data is unavailable/i)).toBeInTheDocument();
+      expect(screen.getByText("FarDb Institutional Demonstrator")).toBeInTheDocument();
     });
+
+    fireEvent.click(screen.getByText("Metrics & Analytics"));
+    expect(screen.getByText(/Metrics data is unavailable/i)).toBeInTheDocument();
 
     consoleError.mockRestore();
   });
 
-  it("should allow retry after error", async () => {
+  it("should allow retry after a metrics error", async () => {
     mockedApi.getMetrics.mockRejectedValueOnce(new Error("API Error"));
     mockedApi.getMetrics.mockResolvedValueOnce(mockMetrics);
 
     render(<Home />);
 
     await waitFor(() => {
-      expect(screen.getByText(/Metrics data is unavailable/i)).toBeInTheDocument();
+      expect(screen.getByText("FarDb Institutional Demonstrator")).toBeInTheDocument();
     });
 
-    const retryButton = screen.getByText("Retry");
-    fireEvent.click(retryButton);
+    fireEvent.click(screen.getByText("Metrics & Analytics"));
+    expect(screen.getByText(/Metrics data is unavailable/i)).toBeInTheDocument();
+
+    fireEvent.click(screen.getByText("Retry"));
 
     await waitFor(() => {
       expect(mockedApi.getMetrics).toHaveBeenCalledTimes(2);
+      expect(screen.getByTestId("metrics-dashboard")).toBeInTheDocument();
     });
   });
 });
@@ -291,6 +297,9 @@ describe("Tab Navigation and State Management", () => {
     fireEvent.click(screen.getByText("3D Visualization"));
     expect(screen.getByTestId("network-visualization")).toBeInTheDocument();
     expect(screen.queryByTestId("asset-list")).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByText("GRAC Demonstrator"));
+    expect(screen.getByText("FarDb Institutional Demonstrator")).toBeInTheDocument();
   });
 
   it("should expose active tab state after switching tabs", async () => {
@@ -414,6 +423,7 @@ describe("Loading States", () => {
 
   it("should hide loading state after error occurs", async () => {
     mockedApi.getMetrics.mockRejectedValue(new Error("Test Error"));
+    mockedApi.getVisualizationData.mockRejectedValue(new Error("Test Visualization Error"));
     const consoleError = jest.spyOn(console, "error").mockImplementation();
 
     render(<Home />);
