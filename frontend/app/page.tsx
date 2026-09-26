@@ -345,8 +345,8 @@ function useDashboardData() {
     [],
   );
 
-  const fetchDashboardData = useCallback(
-    async (): Promise<DashboardDataResult> => {
+  const fetchDashboardData =
+    useCallback(async (): Promise<DashboardDataResult> => {
       const requestId = ++requestIdRef.current;
 
       const metricsPromise = api
