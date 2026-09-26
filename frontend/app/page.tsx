@@ -227,7 +227,10 @@ function TabNavigation({ activeTab, onTabChange }: TabNavigationProps) {
                   activeTab === tab.key ? `tabpanel-${tab.key}` : undefined
                 }
                 aria-selected={activeTab === tab.key}
-                tabIndex={0}
+                tabIndex={activeTab === tab.key ? 0 : -1}
+                ref={(node) => {
+                  tabRefs.current[tab.key] = node ?? undefined;
+                }}
                 type="button"
               >
                 {tab.label}
