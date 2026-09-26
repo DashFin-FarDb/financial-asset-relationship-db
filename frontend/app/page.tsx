@@ -137,7 +137,8 @@ function HomeContent({
             {visualizationError && (
               <div className="mb-4 flex items-center justify-between gap-4 rounded-md border border-amber-200 bg-amber-50 p-4">
                 <p className="text-sm text-amber-700" role="status">
-                  The latest refresh failed — showing the last successfully loaded graph.
+                  The latest refresh failed — showing the last successfully
+                  loaded graph.
                 </p>
                 <button
                   type="button"
@@ -152,7 +153,11 @@ function HomeContent({
           </>
         ) : (
           <div className="text-center py-12 text-gray-600" role="alert">
-            <p>{error ?? visualizationError ?? "Visualization data is unavailable."}</p>
+            <p>
+              {error ??
+                visualizationError ??
+                "Visualization data is unavailable."}
+            </p>
             <div>
               <button
                 type="button"
@@ -176,7 +181,8 @@ function HomeContent({
             {metricsError && (
               <div className="mb-4 flex items-center justify-between gap-4 rounded-md border border-amber-200 bg-amber-50 p-4">
                 <p className="text-sm text-amber-700" role="status">
-                  The latest refresh failed — showing the last successfully loaded metrics.
+                  The latest refresh failed — showing the last successfully
+                  loaded metrics.
                 </p>
                 <button
                   type="button"
