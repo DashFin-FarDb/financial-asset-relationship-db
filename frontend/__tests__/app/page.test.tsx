@@ -111,9 +111,22 @@ describe("Home Page", () => {
     });
   });
 
-  it("should show loading state", () => {
+  it("should show loading state for data-dependent tabs", () => {
     render(<Home />);
+    fireEvent.click(screen.getByText("3D Visualization"));
     expect(screen.getByText("Loading data...")).toBeInTheDocument();
+  });
+
+  it("should render the demonstrator before dashboard data settles", () => {
+    mockedApi.getMetrics.mockImplementation(() => new Promise(() => {}));
+    mockedApi.getVisualizationData.mockImplementation(() => new Promise(() => {}));
+
+    render(<Home />);
+
+    expect(
+      screen.getByText("FarDb Institutional Demonstrator"),
+    ).toBeInTheDocument();
+    expect(screen.queryByText("Loading data...")).not.toBeInTheDocument();
   });
 
   it("should switch tabs", async () => {
@@ -147,7 +160,7 @@ describe("Home Page", () => {
 
     fireEvent.click(screen.getByText("Metrics & Analytics"));
     expect(
-      screen.getByText(/Metrics data is unavailable/i),
+      screen.getByText("Failed to load metrics data."),
     ).toBeInTheDocument();
 
     consoleError.mockRestore();
@@ -167,7 +180,7 @@ describe("Home Page", () => {
 
     fireEvent.click(screen.getByText("Metrics & Analytics"));
     expect(
-      screen.getByText(/Metrics data is unavailable/i),
+      screen.getByText("Failed to load metrics data."),
     ).toBeInTheDocument();
 
     fireEvent.click(screen.getByText("Retry"));
@@ -228,7 +241,9 @@ describe("Error Handling and Recovery", () => {
     fireEvent.click(screen.getByText("3D Visualization"));
 
     expect(
-      screen.getByText(/Visualization data is unavailable/i),
+      screen.getByText(
+        "Failed to load visualization data. Please ensure the API server is running.",
+      ),
     ).toBeInTheDocument();
 
     consoleError.mockRestore();
@@ -240,6 +255,7 @@ describe("Error Handling and Recovery", () => {
     const consoleError = jest.spyOn(console, "error").mockImplementation();
 
     render(<Home />);
+    fireEvent.click(screen.getByText("3D Visualization"));
 
     await waitFor(() => {
       expect(screen.getByText(/Failed to load data/i)).toBeInTheDocument();
@@ -265,7 +281,7 @@ describe("Error Handling and Recovery", () => {
 
     fireEvent.click(screen.getByText("Metrics & Analytics"));
     expect(
-      screen.getByText(/Metrics data is unavailable/i),
+      screen.getByText("Failed to load metrics data."),
     ).toBeInTheDocument();
 
     fireEvent.click(screen.getByText("Retry"));
@@ -338,6 +354,34 @@ describe("Tab Navigation and State Management", () => {
     expect(
       screen.getByRole("tab", { name: "GRAC Demonstrator" }),
     ).toHaveAttribute("aria-selected", "false");
+  });
+
+  it("should support keyboard navigation between tabs", async () => {
+    render(<Home />);
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole("tab", { name: "GRAC Demonstrator" }),
+      ).toHaveAttribute("aria-selected", "true");
+    });
+
+    const demoTab = screen.getByRole("tab", { name: "GRAC Demonstrator" });
+    fireEvent.keyDown(demoTab, { key: "ArrowRight" });
+
+    const visualizationTab = screen.getByRole("tab", {
+      name: "3D Visualization",
+    });
+    expect(visualizationTab).toHaveAttribute("aria-selected", "true");
+    expect(document.activeElement).toBe(visualizationTab);
+
+    fireEvent.keyDown(visualizationTab, { key: "End" });
+    const assetTab = screen.getByRole("tab", { name: "Asset Explorer" });
+    expect(assetTab).toHaveAttribute("aria-selected", "true");
+    expect(document.activeElement).toBe(assetTab);
+
+    fireEvent.keyDown(assetTab, { key: "Home" });
+    expect(demoTab).toHaveAttribute("aria-selected", "true");
+    expect(document.activeElement).toBe(demoTab);
   });
 
   it("should highlight active tab button", async () => {
@@ -422,6 +466,7 @@ describe("Loading States", () => {
         }),
     );
     render(<Home />);
+    fireEvent.click(screen.getByText("3D Visualization"));
 
     expect(screen.getByText("Loading data...")).toBeInTheDocument();
     const spinner = document.querySelector(".animate-spin");
@@ -430,6 +475,7 @@ describe("Loading States", () => {
 
   it("should hide loading state after data loads", async () => {
     render(<Home />);
+    fireEvent.click(screen.getByText("3D Visualization"));
 
     expect(screen.getByText("Loading data...")).toBeInTheDocument();
 
@@ -446,6 +492,7 @@ describe("Loading States", () => {
     const consoleError = jest.spyOn(console, "error").mockImplementation();
 
     render(<Home />);
+    fireEvent.click(screen.getByText("3D Visualization"));
 
     await waitFor(() => {
       expect(screen.queryByText("Loading data...")).not.toBeInTheDocument();
