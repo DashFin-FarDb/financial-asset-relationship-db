@@ -179,6 +179,34 @@ function HomeContent({
  * @returns A JSX element containing the tab buttons with appropriate active/inactive styling.
  */
 function TabNavigation({ activeTab, onTabChange }: TabNavigationProps) {
+  const tabRefs = useRef<Partial<Record<HomeTab, HTMLButtonElement>>>({});
+
+  const handleTabKeyDown = (event: React.KeyboardEvent<HTMLButtonElement>) => {
+    const currentIndex = TAB_DEFINITIONS.findIndex(
+      (tab) => tab.key === activeTab,
+    );
+    if (currentIndex < 0) return;
+
+    let nextIndex: number | null = null;
+    if (event.key === "ArrowRight") {
+      nextIndex = (currentIndex + 1) % TAB_DEFINITIONS.length;
+    } else if (event.key === "ArrowLeft") {
+      nextIndex =
+        (currentIndex - 1 + TAB_DEFINITIONS.length) % TAB_DEFINITIONS.length;
+    } else if (event.key === "Home") {
+      nextIndex = 0;
+    } else if (event.key === "End") {
+      nextIndex = TAB_DEFINITIONS.length - 1;
+    }
+
+    if (nextIndex === null) return;
+
+    event.preventDefault();
+    const nextTab = TAB_DEFINITIONS[nextIndex].key;
+    onTabChange(nextTab);
+    tabRefs.current[nextTab]?.focus();
+  };
+
   return (
     <nav
       className="bg-white border-b border-gray-200"
