@@ -338,10 +338,7 @@ function useDashboardData() {
       const metricsPromise = api
         .getMetrics()
         .then((value) => {
-          if (
-            requestId === requestIdRef.current &&
-            mountedRef.current
-          ) {
+          if (requestId === requestIdRef.current && mountedRef.current) {
             setMetrics(value);
           }
           return { status: "fulfilled" as const, value };
@@ -351,10 +348,7 @@ function useDashboardData() {
       const visualizationPromise = api
         .getVisualizationData()
         .then((value) => {
-          if (
-            requestId === requestIdRef.current &&
-            mountedRef.current
-          ) {
+          if (requestId === requestIdRef.current && mountedRef.current) {
             setVizData(value);
           }
           return { status: "fulfilled" as const, value };
