@@ -140,11 +140,15 @@ describe("Home Page", () => {
     render(<Home />);
 
     await waitFor(() => {
-      expect(screen.getByText("FarDb Institutional Demonstrator")).toBeInTheDocument();
+      expect(
+        screen.getByText("FarDb Institutional Demonstrator"),
+      ).toBeInTheDocument();
     });
 
     fireEvent.click(screen.getByText("Metrics & Analytics"));
-    expect(screen.getByText(/Metrics data is unavailable/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Metrics data is unavailable/i),
+    ).toBeInTheDocument();
 
     consoleError.mockRestore();
   });
@@ -156,11 +160,15 @@ describe("Home Page", () => {
     render(<Home />);
 
     await waitFor(() => {
-      expect(screen.getByText("FarDb Institutional Demonstrator")).toBeInTheDocument();
+      expect(
+        screen.getByText("FarDb Institutional Demonstrator"),
+      ).toBeInTheDocument();
     });
 
     fireEvent.click(screen.getByText("Metrics & Analytics"));
-    expect(screen.getByText(/Metrics data is unavailable/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Metrics data is unavailable/i),
+    ).toBeInTheDocument();
 
     fireEvent.click(screen.getByText("Retry"));
 
@@ -177,7 +185,9 @@ describe("Accessibility Tests", () => {
 
     await waitFor(() => {
       const h1 = screen.getByRole("heading", { level: 1 });
-      expect(h1).toHaveTextContent("FarDb — Financial Asset Relationship Database");
+      expect(h1).toHaveTextContent(
+        "FarDb — Financial Asset Relationship Database",
+      );
     });
   });
 
@@ -210,12 +220,16 @@ describe("Error Handling and Recovery", () => {
     render(<Home />);
 
     await waitFor(() => {
-      expect(screen.getByText("FarDb Institutional Demonstrator")).toBeInTheDocument();
+      expect(
+        screen.getByText("FarDb Institutional Demonstrator"),
+      ).toBeInTheDocument();
     });
 
     fireEvent.click(screen.getByText("3D Visualization"));
 
-    expect(screen.getByText(/Visualization data is unavailable/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Visualization data is unavailable/i),
+    ).toBeInTheDocument();
 
     consoleError.mockRestore();
   });
@@ -244,11 +258,15 @@ describe("Error Handling and Recovery", () => {
     render(<Home />);
 
     await waitFor(() => {
-      expect(screen.getByText("FarDb Institutional Demonstrator")).toBeInTheDocument();
+      expect(
+        screen.getByText("FarDb Institutional Demonstrator"),
+      ).toBeInTheDocument();
     });
 
     fireEvent.click(screen.getByText("Metrics & Analytics"));
-    expect(screen.getByText(/Metrics data is unavailable/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Metrics data is unavailable/i),
+    ).toBeInTheDocument();
 
     fireEvent.click(screen.getByText("Retry"));
 
@@ -299,28 +317,27 @@ describe("Tab Navigation and State Management", () => {
     expect(screen.queryByTestId("asset-list")).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByText("GRAC Demonstrator"));
-    expect(screen.getByText("FarDb Institutional Demonstrator")).toBeInTheDocument();
+    expect(
+      screen.getByText("FarDb Institutional Demonstrator"),
+    ).toBeInTheDocument();
   });
 
   it("should expose active tab state after switching tabs", async () => {
     render(<Home />);
 
     await waitFor(() => {
-      expect(screen.getByRole("tab", { name: "GRAC Demonstrator" })).toHaveAttribute(
-        "aria-selected",
-        "true",
-      );
+      expect(
+        screen.getByRole("tab", { name: "GRAC Demonstrator" }),
+      ).toHaveAttribute("aria-selected", "true");
     });
 
     fireEvent.click(screen.getByText("Metrics & Analytics"));
-    expect(screen.getByRole("tab", { name: "Metrics & Analytics" })).toHaveAttribute(
-      "aria-selected",
-      "true",
-    );
-    expect(screen.getByRole("tab", { name: "GRAC Demonstrator" })).toHaveAttribute(
-      "aria-selected",
-      "false",
-    );
+    expect(
+      screen.getByRole("tab", { name: "Metrics & Analytics" }),
+    ).toHaveAttribute("aria-selected", "true");
+    expect(
+      screen.getByRole("tab", { name: "GRAC Demonstrator" }),
+    ).toHaveAttribute("aria-selected", "false");
   });
 
   it("should highlight active tab button", async () => {
@@ -423,7 +440,9 @@ describe("Loading States", () => {
 
   it("should hide loading state after error occurs", async () => {
     mockedApi.getMetrics.mockRejectedValue(new Error("Test Error"));
-    mockedApi.getVisualizationData.mockRejectedValue(new Error("Test Visualization Error"));
+    mockedApi.getVisualizationData.mockRejectedValue(
+      new Error("Test Visualization Error"),
+    );
     const consoleError = jest.spyOn(console, "error").mockImplementation();
 
     render(<Home />);
@@ -443,7 +462,9 @@ describe("Footer and Static Content", () => {
 
     await waitFor(() => {
       expect(
-        screen.getByText(/FarDb — Governed Relationship Assertion Contract demonstrator/i),
+        screen.getByText(
+          /FarDb — Governed Relationship Assertion Contract demonstrator/i,
+        ),
       ).toBeInTheDocument();
     });
   });
@@ -452,7 +473,9 @@ describe("Footer and Static Content", () => {
     render(<Home />);
 
     expect(
-      screen.getByText(/Governed relationship infrastructure with an institutional demonstration surface/i),
+      screen.getByText(
+        /Governed relationship infrastructure with an institutional demonstration surface/i,
+      ),
     ).toBeInTheDocument();
   });
 });

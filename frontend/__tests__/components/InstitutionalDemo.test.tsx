@@ -29,10 +29,16 @@ describe("InstitutionalDemo", () => {
   it("moves through the synthetic lifecycle without changing the data contract", () => {
     render(<InstitutionalDemo data={null} />);
 
-    expect(screen.getByRole("button", { name: "Show Governance determination (12 May 2026)" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", {
+        name: "Show Governance determination (12 May 2026)",
+      }),
+    ).toBeInTheDocument();
     expect(screen.getByText("Accepted")).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole("button", { name: "Show Supersession (26 Aug 2026)" }));
+    fireEvent.click(
+      screen.getByRole("button", { name: "Show Supersession (26 Aug 2026)" }),
+    );
 
     expect(
       screen.getByRole("button", { name: "Show Supersession (26 Aug 2026)" }),
