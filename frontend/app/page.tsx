@@ -85,9 +85,7 @@ function HomeContent({
       <div {...tabPanelProps}>
         <InstitutionalDemo
           data={vizData}
-          isGraphLoading={
-            loading && vizData === null && !visualizationError
-          }
+          isGraphLoading={loading && vizData === null && !visualizationError}
           isGraphStale={Boolean(visualizationError) && vizData !== null}
           graphError={error ?? visualizationError}
           onRetry={onRetry}
