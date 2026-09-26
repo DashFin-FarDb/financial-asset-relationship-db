@@ -291,6 +291,45 @@ describe("Error Handling and Recovery", () => {
     consoleError.mockRestore();
   });
 
+  it("should show a stale graph notice after a total dashboard outage", async () => {
+    mockedApi.getVisualizationData
+      .mockResolvedValueOnce(mockVisualizationData)
+      .mockRejectedValueOnce(new Error("Viz outage"));
+    mockedApi.getMetrics
+      .mockResolvedValueOnce(mockMetrics)
+      .mockRejectedValueOnce(new Error("Metrics outage"));
+
+    const consoleError = jest.spyOn(console, "error").mockImplementation();
+    render(<Home />);
+
+    await waitFor(() => {
+      expect(
+        screen.getByText("FarDb Institutional Demonstrator"),
+      ).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByText("3D Visualization"));
+    expect(screen.getByTestId("network-visualization")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByText("Retry"));
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(/Failed to load data/i),
+      ).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByText("GRAC Demonstrator"));
+
+    expect(
+      screen.getByText(
+        "The latest refresh failed — showing the last successfully loaded graph.",
+      ),
+    ).toBeInTheDocument();
+
+    consoleError.mockRestore();
+  });
+
   it("should show a stale graph notice after a visualization refresh fails", async () => {
     mockedApi.getVisualizationData
       .mockResolvedValueOnce(mockVisualizationData)
