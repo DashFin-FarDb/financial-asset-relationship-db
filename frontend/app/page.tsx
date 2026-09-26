@@ -188,23 +188,23 @@ function TabNavigation({ activeTab, onTabChange }: TabNavigationProps) {
       <div className="container mx-auto px-4">
         <div className="overflow-x-auto">
           <div className="flex min-w-max gap-x-8">
-          {TAB_DEFINITIONS.map((tab) => (
-            <button
-              key={tab.key}
-              onClick={() => onTabChange(tab.key)}
-              className={getTabClassName(activeTab === tab.key)}
-              role="tab"
-              id={`tab-${tab.key}`}
-              aria-controls={
-                activeTab === tab.key ? `tabpanel-${tab.key}` : undefined
-              }
-              aria-selected={activeTab === tab.key}
-              tabIndex={0}
-              type="button"
-            >
-              {tab.label}
-            </button>
-          ))}
+            {TAB_DEFINITIONS.map((tab) => (
+              <button
+                key={tab.key}
+                onClick={() => onTabChange(tab.key)}
+                className={getTabClassName(activeTab === tab.key)}
+                role="tab"
+                id={`tab-${tab.key}`}
+                aria-controls={
+                  activeTab === tab.key ? `tabpanel-${tab.key}` : undefined
+                }
+                aria-selected={activeTab === tab.key}
+                tabIndex={0}
+                type="button"
+              >
+                {tab.label}
+              </button>
+            ))}
           </div>
         </div>
       </div>
