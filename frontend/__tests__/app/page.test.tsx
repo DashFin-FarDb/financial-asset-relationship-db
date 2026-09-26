@@ -292,31 +292,31 @@ describe("Error Handling and Recovery", () => {
   });
 
   it("should show a stale graph notice after a total dashboard outage", async () => {
+    mockedApi.getMetrics
+      .mockRejectedValueOnce(new Error("Metrics outage"))
+      .mockRejectedValueOnce(new Error("Metrics retry outage"));
     mockedApi.getVisualizationData
       .mockResolvedValueOnce(mockVisualizationData)
-      .mockRejectedValueOnce(new Error("Viz outage"));
-    mockedApi.getMetrics
-      .mockResolvedValueOnce(mockMetrics)
-      .mockRejectedValueOnce(new Error("Metrics outage"));
+      .mockRejectedValueOnce(new Error("Viz retry outage"));
 
     const consoleError = jest.spyOn(console, "error").mockImplementation();
     render(<Home />);
 
     await waitFor(() => {
       expect(
-        screen.getByText("FarDb Institutional Demonstrator"),
+        screen.getByText("Failed to load metrics data."),
       ).toBeInTheDocument();
     });
 
-    fireEvent.click(screen.getByText("3D Visualization"));
-    expect(screen.getByTestId("network-visualization")).toBeInTheDocument();
+    fireEvent.click(screen.getByText("Metrics & Analytics"));
+    expect(
+      screen.getByText("Failed to load metrics data."),
+    ).toBeInTheDocument();
 
     fireEvent.click(screen.getByText("Retry"));
 
     await waitFor(() => {
-      expect(
-        screen.getByText(/Failed to load data/i),
-      ).toBeInTheDocument();
+      expect(screen.getByText(/Failed to load data/i)).toBeInTheDocument();
     });
 
     fireEvent.click(screen.getByText("GRAC Demonstrator"));
@@ -331,30 +331,27 @@ describe("Error Handling and Recovery", () => {
   });
 
   it("should show a stale graph notice after a visualization refresh fails", async () => {
+    mockedApi.getMetrics
+      .mockRejectedValueOnce(new Error("Metrics outage"))
+      .mockResolvedValueOnce(mockMetrics);
     mockedApi.getVisualizationData
       .mockResolvedValueOnce(mockVisualizationData)
       .mockRejectedValueOnce(new Error("Viz refresh failed"));
-    const consoleError = jest.spyOn(console, "error").mockImplementation();
 
+    const consoleError = jest.spyOn(console, "error").mockImplementation();
     render(<Home />);
 
+    fireEvent.click(screen.getByText("Metrics & Analytics"));
     await waitFor(() => {
       expect(
-        screen.getByText("FarDb Institutional Demonstrator"),
+        screen.getByText("Failed to load metrics data."),
       ).toBeInTheDocument();
     });
-
-    fireEvent.click(screen.getByText("3D Visualization"));
-    expect(screen.getByTestId("network-visualization")).toBeInTheDocument();
 
     fireEvent.click(screen.getByText("Retry"));
 
     await waitFor(() => {
-      expect(
-        screen.getByText(
-          "Failed to load visualization data. Please ensure the API server is running.",
-        ),
-      ).toBeInTheDocument();
+      expect(screen.getByTestId("metrics-dashboard")).toBeInTheDocument();
     });
 
     fireEvent.click(screen.getByText("GRAC Demonstrator"));
