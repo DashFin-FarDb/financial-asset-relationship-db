@@ -8,6 +8,8 @@ type InstitutionalDemoProps = Readonly<{
   data: VisualizationData | null;
   isGraphLoading?: boolean;
   isGraphStale?: boolean;
+  graphError?: string | null;
+  onRetry?: () => void;
 }>;
 
 type ScenarioStep = Readonly<{
@@ -202,6 +204,8 @@ export default function InstitutionalDemo({
   data,
   isGraphLoading = false,
   isGraphStale = false,
+  graphError = null,
+  onRetry,
 }: InstitutionalDemoProps) {
   return (
     <div className="space-y-8">
@@ -288,10 +292,21 @@ export default function InstitutionalDemo({
             </p>
           )}
           {isGraphStale && (
-            <p className="mt-2 text-sm text-amber-700" role="status">
-              The latest refresh failed — showing the last successfully loaded
-              graph.
-            </p>
+            <div className="mt-2 flex items-center justify-between gap-4">
+              <p className="text-sm text-amber-700" role="status">
+                The latest refresh failed — showing the last successfully loaded
+                graph.
+              </p>
+              {onRetry && (
+                <button
+                  type="button"
+                  onClick={onRetry}
+                  className="px-3 py-1 text-xs font-medium bg-amber-600 text-white rounded hover:bg-amber-700 transition-colors"
+                >
+                  Retry
+                </button>
+              )}
+            </div>
           )}
         </div>
         {isGraphLoading && data === null ? (
@@ -300,6 +315,22 @@ export default function InstitutionalDemo({
             role="status"
           >
             Loading relationship graph...
+          </div>
+        ) : !data && graphError ? (
+          <div
+            className="rounded-xl border border-red-200 bg-red-50 p-8 text-center text-sm text-red-800"
+            role="alert"
+          >
+            <p>{graphError}</p>
+            {onRetry && (
+              <button
+                type="button"
+                onClick={onRetry}
+                className="mt-4 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors text-sm font-medium"
+              >
+                Retry
+              </button>
+            )}
           </div>
         ) : (
           <NetworkVisualization data={data} />

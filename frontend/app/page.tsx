@@ -58,8 +58,8 @@ function getTabClassName(isActive: boolean): string {
  * Render the home page's tabbed content area based on loading, error, and the active tab.
  *
  * The demonstrator renders immediately; data-dependent tabs show loading and error states as needed.
- * When `error` is set, shows an error panel with a retry action; otherwise renders the active tab
- * ("visualization", "metrics", or "assets").
+ * When `error` is set and no data is retained, shows an error panel with a retry action; otherwise renders the active tab
+ * ("demonstrator", "visualization", "metrics", or "assets") preserving retained data on refresh failures.
  *
  * @returns The JSX element for the content area, or `null` if no content is applicable.
  */
@@ -87,6 +87,8 @@ function HomeContent({
           data={vizData}
           isGraphLoading={loading && vizData === null}
           isGraphStale={Boolean(visualizationError) && vizData !== null}
+          graphError={error ?? visualizationError}
+          onRetry={onRetry}
         />
       </div>
     );
@@ -109,7 +111,7 @@ function HomeContent({
     );
   }
 
-  if (error) {
+  if (error && !vizData && !metrics) {
     return (
       <div
         {...tabPanelProps}
@@ -131,10 +133,26 @@ function HomeContent({
     return (
       <div {...tabPanelProps} className="bg-white rounded-lg shadow-lg p-6">
         {vizData ? (
-          <NetworkVisualization data={vizData} />
+          <>
+            {visualizationError && (
+              <div className="mb-4 flex items-center justify-between gap-4 rounded-md border border-amber-200 bg-amber-50 p-4">
+                <p className="text-sm text-amber-700" role="status">
+                  The latest refresh failed — showing the last successfully loaded graph.
+                </p>
+                <button
+                  type="button"
+                  onClick={onRetry}
+                  className="px-3 py-1 text-xs font-medium bg-amber-600 text-white rounded hover:bg-amber-700 transition-colors"
+                >
+                  Retry
+                </button>
+              </div>
+            )}
+            <NetworkVisualization data={vizData} />
+          </>
         ) : (
           <div className="text-center py-12 text-gray-600" role="alert">
-            {visualizationError ?? "Visualization data is unavailable."}
+            <p>{error ?? visualizationError ?? "Visualization data is unavailable."}</p>
             <div>
               <button
                 type="button"
@@ -154,10 +172,26 @@ function HomeContent({
     return (
       <div {...tabPanelProps} className="bg-white rounded-lg shadow-lg p-6">
         {metrics ? (
-          <MetricsDashboard metrics={metrics} />
+          <>
+            {metricsError && (
+              <div className="mb-4 flex items-center justify-between gap-4 rounded-md border border-amber-200 bg-amber-50 p-4">
+                <p className="text-sm text-amber-700" role="status">
+                  The latest refresh failed — showing the last successfully loaded metrics.
+                </p>
+                <button
+                  type="button"
+                  onClick={onRetry}
+                  className="px-3 py-1 text-xs font-medium bg-amber-600 text-white rounded hover:bg-amber-700 transition-colors"
+                >
+                  Retry
+                </button>
+              </div>
+            )}
+            <MetricsDashboard metrics={metrics} />
+          </>
         ) : (
           <div className="text-center py-12 text-gray-600" role="alert">
-            {metricsError ?? "Metrics data is unavailable."}
+            <p>{error ?? metricsError ?? "Metrics data is unavailable."}</p>
             <div>
               <button
                 type="button"

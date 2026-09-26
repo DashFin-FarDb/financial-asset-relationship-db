@@ -323,38 +323,94 @@ describe("Error Handling and Recovery", () => {
       ),
     ).toBeInTheDocument();
 
+    fireEvent.click(screen.getByText("3D Visualization"));
+
+    expect(screen.getByTestId("network-visualization")).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        "The latest refresh failed — showing the last successfully loaded graph.",
+      ),
+    ).toBeInTheDocument();
+
     consoleError.mockRestore();
   });
 
-  it("should show a stale graph notice after a visualization refresh fails", async () => {
-    mockedApi.getMetrics
-      .mockRejectedValueOnce(new Error("Metrics outage"))
-      .mockResolvedValueOnce(mockMetrics);
+  it("should show an explicit error and allow retry directly from demonstrator when initial graph load fails", async () => {
+    mockedApi.getMetrics.mockResolvedValue(mockMetrics);
     mockedApi.getVisualizationData
-      .mockResolvedValueOnce(mockVisualizationData)
-      .mockRejectedValueOnce(new Error("Viz refresh failed"));
+      .mockRejectedValueOnce(new Error("Graph fetch failed"))
+      .mockResolvedValueOnce(mockVisualizationData);
 
     const consoleError = jest.spyOn(console, "error").mockImplementation();
     render(<Home />);
 
-    fireEvent.click(screen.getByText("Metrics & Analytics"));
     await waitFor(() => {
       expect(
-        screen.getByText("Failed to load metrics data."),
+        screen.getByText("FarDb Institutional Demonstrator"),
+      ).toBeInTheDocument();
+      expect(
+        screen.getByText(
+          "Failed to load visualization data. Please ensure the API server is running.",
+        ),
       ).toBeInTheDocument();
     });
+
+    expect(
+      screen.queryByTestId("network-visualization"),
+    ).not.toBeInTheDocument();
+
+    const retryButton = screen.getByRole("button", { name: "Retry" });
+    fireEvent.click(retryButton);
+
+    await waitFor(() => {
+      expect(mockedApi.getVisualizationData).toHaveBeenCalledTimes(2);
+      expect(screen.getByTestId("network-visualization")).toBeInTheDocument();
+      expect(
+        screen.queryByText(
+          "Failed to load visualization data. Please ensure the API server is running.",
+        ),
+      ).not.toBeInTheDocument();
+    });
+
+    consoleError.mockRestore();
+  });
+
+  it("should keep retained metrics data visible with error indicator after a total outage on refresh", async () => {
+    mockedApi.getMetrics
+      .mockResolvedValueOnce(mockMetrics)
+      .mockRejectedValueOnce(new Error("Metrics outage on refresh"));
+    mockedApi.getVisualizationData
+      .mockRejectedValueOnce(new Error("Initial viz failure"))
+      .mockRejectedValueOnce(new Error("Visualization outage on refresh"));
+
+    const consoleError = jest.spyOn(console, "error").mockImplementation();
+    render(<Home />);
+
+    await waitFor(() => {
+      expect(
+        screen.getByText("FarDb Institutional Demonstrator"),
+      ).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByText("3D Visualization"));
+    expect(
+      screen.getByText(
+        "Failed to load visualization data. Please ensure the API server is running.",
+      ),
+    ).toBeInTheDocument();
 
     fireEvent.click(screen.getByText("Retry"));
 
     await waitFor(() => {
-      expect(screen.getByTestId("metrics-dashboard")).toBeInTheDocument();
+      expect(mockedApi.getMetrics).toHaveBeenCalledTimes(2);
+      expect(mockedApi.getVisualizationData).toHaveBeenCalledTimes(2);
     });
 
-    fireEvent.click(screen.getByText("GRAC Demonstrator"));
-
+    fireEvent.click(screen.getByText("Metrics & Analytics"));
+    expect(screen.getByTestId("metrics-dashboard")).toBeInTheDocument();
     expect(
       screen.getByText(
-        "The latest refresh failed — showing the last successfully loaded graph.",
+        "The latest refresh failed — showing the last successfully loaded metrics.",
       ),
     ).toBeInTheDocument();
 

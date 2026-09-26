@@ -74,4 +74,51 @@ describe("InstitutionalDemo", () => {
     expect(screen.getByText("Superseded")).toBeInTheDocument();
     expect(screen.getAllByText("26 Aug 2026")).toHaveLength(2);
   });
+
+  it("shows an explicit error state and retry action when initial graph load fails", () => {
+    const handleRetry = jest.fn();
+    render(
+      <InstitutionalDemo
+        data={null}
+        graphError="Failed to load visualization data. Please ensure the API server is running."
+        onRetry={handleRetry}
+      />,
+    );
+
+    const alert = screen.getByRole("alert");
+    expect(alert).toHaveTextContent(
+      "Failed to load visualization data. Please ensure the API server is running.",
+    );
+    const retryButton = screen.getByRole("button", { name: "Retry" });
+    expect(retryButton).toBeInTheDocument();
+
+    fireEvent.click(retryButton);
+    expect(handleRetry).toHaveBeenCalledTimes(1);
+    expect(
+      screen.queryByTestId("network-visualization"),
+    ).not.toBeInTheDocument();
+  });
+
+  it("shows a retry action alongside the stale graph notice when refresh fails", () => {
+    const handleRetry = jest.fn();
+    render(
+      <InstitutionalDemo
+        data={mockVisualizationData}
+        isGraphStale={true}
+        onRetry={handleRetry}
+      />,
+    );
+
+    expect(
+      screen.getByText(
+        "The latest refresh failed — showing the last successfully loaded graph.",
+      ),
+    ).toBeInTheDocument();
+    const retryButton = screen.getByRole("button", { name: "Retry" });
+    expect(retryButton).toBeInTheDocument();
+
+    fireEvent.click(retryButton);
+    expect(handleRetry).toHaveBeenCalledTimes(1);
+    expect(screen.getByTestId("network-visualization")).toBeInTheDocument();
+  });
 });
