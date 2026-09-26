@@ -302,16 +302,12 @@ describe("Error Handling and Recovery", () => {
     const consoleError = jest.spyOn(console, "error").mockImplementation();
     render(<Home />);
 
+    fireEvent.click(screen.getByText("Metrics & Analytics"));
     await waitFor(() => {
       expect(
         screen.getByText("Failed to load metrics data."),
       ).toBeInTheDocument();
     });
-
-    fireEvent.click(screen.getByText("Metrics & Analytics"));
-    expect(
-      screen.getByText("Failed to load metrics data."),
-    ).toBeInTheDocument();
 
     fireEvent.click(screen.getByText("Retry"));
 
