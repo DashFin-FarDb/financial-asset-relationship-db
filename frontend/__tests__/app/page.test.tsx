@@ -663,7 +663,9 @@ describe("Loading States", () => {
     });
 
     expect(mockedApi.getMetrics).toHaveBeenCalledTimes(1);
-    await act(async () => {\n      resolveMetrics?.(mockMetrics);\n    });
+    await act(async () => {
+      resolveMetrics?.(mockMetrics);
+    });
   });
 
   it("should show loading spinner while fetching data", () => {
