@@ -193,6 +193,48 @@ function ScenarioTimeline() {
   );
 }
 
+function GraphContent({
+  data,
+  isGraphLoading,
+  graphError,
+  onRetry,
+}: Readonly<{
+  data: VisualizationData | null;
+  isGraphLoading: boolean;
+  graphError: string | null;
+  onRetry?: () => void;
+}>) {
+  if (isGraphLoading && data === null) {
+    return (
+      <output className="block rounded-xl border border-slate-200 bg-slate-50 p-8 text-center text-sm text-slate-600">
+        Loading relationship graph...
+      </output>
+    );
+  }
+
+  if (!data && graphError) {
+    return (
+      <div
+        className="rounded-xl border border-red-200 bg-red-50 p-8 text-center text-sm text-red-800"
+        role="alert"
+      >
+        <p>{graphError}</p>
+        {onRetry && (
+          <button
+            type="button"
+            onClick={onRetry}
+            className="mt-4 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors text-sm font-medium"
+          >
+            Retry
+          </button>
+        )}
+      </div>
+    );
+  }
+
+  return <NetworkVisualization data={data} />;
+}
+
 /**
  * Institutional presentation surface for the existing FarDb/GRAC graph.
  *
@@ -287,16 +329,16 @@ export default function InstitutionalDemo({
             behind the published edge.
           </p>
           {isGraphLoading && (
-            <p className="mt-2 text-sm text-slate-600" role="status">
+            <output className="mt-2 block text-sm text-slate-600">
               Loading the latest FarDb relationship graph...
-            </p>
+            </output>
           )}
           {isGraphStale && (
             <div className="mt-2 flex items-center justify-between gap-4">
-              <p className="text-sm text-amber-700" role="status">
+              <output className="block text-sm text-amber-700">
                 The latest refresh failed — showing the last successfully loaded
                 graph.
-              </p>
+              </output>
               {onRetry && (
                 <button
                   type="button"
@@ -309,32 +351,12 @@ export default function InstitutionalDemo({
             </div>
           )}
         </div>
-        {isGraphLoading && data === null ? (
-          <div
-            className="rounded-xl border border-slate-200 bg-slate-50 p-8 text-center text-sm text-slate-600"
-            role="status"
-          >
-            Loading relationship graph...
-          </div>
-        ) : !data && graphError ? (
-          <div
-            className="rounded-xl border border-red-200 bg-red-50 p-8 text-center text-sm text-red-800"
-            role="alert"
-          >
-            <p>{graphError}</p>
-            {onRetry && (
-              <button
-                type="button"
-                onClick={onRetry}
-                className="mt-4 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors text-sm font-medium"
-              >
-                Retry
-              </button>
-            )}
-          </div>
-        ) : (
-          <NetworkVisualization data={data} />
-        )}
+        <GraphContent
+          data={data}
+          isGraphLoading={isGraphLoading}
+          graphError={graphError}
+          onRetry={onRetry}
+        />
       </section>
     </div>
   );

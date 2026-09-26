@@ -150,10 +150,10 @@ function HomeContent({
           <>
             {visualizationError && (
               <div className="mb-4 flex items-center justify-between gap-4 rounded-md border border-amber-200 bg-amber-50 p-4">
-                <p className="text-sm text-amber-700" role="status">
+                <output className="block text-sm text-amber-700">
                   The latest refresh failed — showing the last successfully
                   loaded graph.
-                </p>
+                </output>
                 <button
                   type="button"
                   onClick={onRetry}
@@ -194,10 +194,10 @@ function HomeContent({
           <>
             {metricsError && (
               <div className="mb-4 flex items-center justify-between gap-4 rounded-md border border-amber-200 bg-amber-50 p-4">
-                <p className="text-sm text-amber-700" role="status">
+                <output className="block text-sm text-amber-700">
                   The latest refresh failed — showing the last successfully
                   loaded metrics.
-                </p>
+                </output>
                 <button
                   type="button"
                   onClick={onRetry}
@@ -336,41 +336,50 @@ function useDashboardData() {
     };
   }, []);
 
-  const fetchDashboardData =
-    useCallback(async (): Promise<DashboardDataResult> => {
+  const updateIfCurrentRequest = useCallback(
+    (requestId: number, update: () => void) => {
+      if (requestId === requestIdRef.current && mountedRef.current) {
+        update();
+      }
+    },
+    [],
+  );
+
+  const fetchDashboardData = useCallback(
+    async (): Promise<DashboardDataResult> => {
       const requestId = ++requestIdRef.current;
 
       const metricsPromise = api
         .getMetrics()
         .then((value) => {
-          if (requestId === requestIdRef.current && mountedRef.current) {
+          updateIfCurrentRequest(requestId, () => {
             setMetrics(value);
             setMetricsError(null);
-          }
+          });
           return { status: "fulfilled" as const, value };
         })
         .catch((reason) => {
-          if (requestId === requestIdRef.current && mountedRef.current) {
+          updateIfCurrentRequest(requestId, () => {
             setMetricsError("Failed to load metrics data.");
-          }
+          });
           return { status: "rejected" as const, reason };
         });
 
       const visualizationPromise = api
         .getVisualizationData()
         .then((value) => {
-          if (requestId === requestIdRef.current && mountedRef.current) {
+          updateIfCurrentRequest(requestId, () => {
             setVizData(value);
             setVisualizationError(null);
-          }
+          });
           return { status: "fulfilled" as const, value };
         })
         .catch((reason) => {
-          if (requestId === requestIdRef.current && mountedRef.current) {
+          updateIfCurrentRequest(requestId, () => {
             setVisualizationError(
               "Failed to load visualization data. Please ensure the API server is running.",
             );
-          }
+          });
           return { status: "rejected" as const, reason };
         });
 
@@ -423,7 +432,7 @@ function useDashboardData() {
         visualizationError,
         requestId,
       };
-    }, []);
+    }, [updateIfCurrentRequest]);
 
   const applyResult = useCallback((result: DashboardDataResult) => {
     if (result.requestId !== requestIdRef.current || !mountedRef.current) {
