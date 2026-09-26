@@ -6,6 +6,8 @@ import type { VisualizationData } from "../types/api";
 
 type InstitutionalDemoProps = Readonly<{
   data: VisualizationData | null;
+  isGraphLoading?: boolean;
+  isGraphStale?: boolean;
 }>;
 
 type ScenarioStep = Readonly<{
@@ -196,7 +198,11 @@ function ScenarioTimeline() {
  * persistence, publication and governed-edge evidence remain in the existing
  * FarDb APIs.
  */
-export default function InstitutionalDemo({ data }: InstitutionalDemoProps) {
+export default function InstitutionalDemo({
+  data,
+  isGraphLoading = false,
+  isGraphStale = false,
+}: InstitutionalDemoProps) {
   return (
     <div className="space-y-8">
       <section className="rounded-2xl bg-slate-900 px-6 py-8 text-white shadow-lg">
@@ -276,8 +282,28 @@ export default function InstitutionalDemo({ data }: InstitutionalDemoProps) {
             explanation path. Select a relationship to inspect the assertion
             behind the published edge.
           </p>
+          {isGraphLoading && (
+            <p className="mt-2 text-sm text-slate-600" role="status">
+              Loading the latest FarDb relationship graph...
+            </p>
+          )}
+          {isGraphStale && (
+            <p className="mt-2 text-sm text-amber-700" role="status">
+              The latest refresh failed — showing the last successfully loaded
+              graph.
+            </p>
+          )}
         </div>
-        <NetworkVisualization data={data} />
+        {isGraphLoading && data === null ? (
+          <div
+            className="rounded-xl border border-slate-200 bg-slate-50 p-8 text-center text-sm text-slate-600"
+            role="status"
+          >
+            Loading relationship graph...
+          </div>
+        ) : (
+          <NetworkVisualization data={data} />
+        )}
       </section>
     </div>
   );
