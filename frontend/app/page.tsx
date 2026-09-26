@@ -57,8 +57,9 @@ function getTabClassName(isActive: boolean): string {
 /**
  * Render the home page's tabbed content area based on loading, error, and the active tab.
  *
- * When `loading` is true, shows a loading indicator; when `error` is set, shows an error panel with a retry action;
- * otherwise renders the content for the active tab ("demonstrator", "visualization", "metrics", or "assets").
+ * The demonstrator renders immediately; data-dependent tabs show loading and error states as needed.
+ * When `error` is set, shows an error panel with a retry action; otherwise renders the active tab
+ * ("visualization", "metrics", or "assets").
  *
  * @returns The JSX element for the content area, or `null` if no content is applicable.
  */
@@ -221,6 +222,7 @@ function TabNavigation({ activeTab, onTabChange }: TabNavigationProps) {
                 key={tab.key}
                 onClick={() => onTabChange(tab.key)}
                 className={getTabClassName(activeTab === tab.key)}
+                onKeyDown={handleTabKeyDown}
                 role="tab"
                 id={`tab-${tab.key}`}
                 aria-controls={
