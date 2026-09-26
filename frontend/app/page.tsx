@@ -79,6 +79,14 @@ function HomeContent({
     tabIndex: 0,
   };
 
+  if (activeTab === "demonstrator") {
+    return (
+      <div {...tabPanelProps}>
+        <InstitutionalDemo data={vizData} />
+      </div>
+    );
+  }
+
   if (loading) {
     return (
       <div {...tabPanelProps} className="text-center py-12">
@@ -102,14 +110,6 @@ function HomeContent({
         >
           Retry
         </button>
-      </div>
-    );
-  }
-
-  if (activeTab === "demonstrator") {
-    return (
-      <div {...tabPanelProps}>
-        <InstitutionalDemo data={vizData} />
       </div>
     );
   }
@@ -186,7 +186,8 @@ function TabNavigation({ activeTab, onTabChange }: TabNavigationProps) {
       aria-label="Dashboard sections"
     >
       <div className="container mx-auto px-4">
-        <div className="flex space-x-8">
+        <div className="overflow-x-auto">
+          <div className="flex min-w-max gap-x-8">
           {TAB_DEFINITIONS.map((tab) => (
             <button
               key={tab.key}
@@ -194,7 +195,9 @@ function TabNavigation({ activeTab, onTabChange }: TabNavigationProps) {
               className={getTabClassName(activeTab === tab.key)}
               role="tab"
               id={`tab-${tab.key}`}
-              aria-controls={`tabpanel-${tab.key}`}
+              aria-controls={
+                activeTab === tab.key ? `tabpanel-${tab.key}` : undefined
+              }
               aria-selected={activeTab === tab.key}
               tabIndex={0}
               type="button"
@@ -202,6 +205,7 @@ function TabNavigation({ activeTab, onTabChange }: TabNavigationProps) {
               {tab.label}
             </button>
           ))}
+          </div>
         </div>
       </div>
     </nav>
@@ -306,8 +310,12 @@ export default function Home() {
       if (result.error) {
         setError(result.error);
       } else {
-        setMetrics(result.metricsData);
-        setVizData(result.visualizationData);
+        if (result.metricsData) {
+          setMetrics(result.metricsData);
+        }
+        if (result.visualizationData) {
+          setVizData(result.visualizationData);
+        }
         setMetricsError(result.metricsError);
         setVisualizationError(result.visualizationError);
         setError(null);
