@@ -108,9 +108,9 @@ describe("Home Page", () => {
         "aria-labelledby",
         "tab-demonstrator",
       );
-      expect(screen.getByRole("tab", { name: "3D Visualization" })).not.toHaveAttribute(
-        "aria-controls",
-      );
+      expect(
+        screen.getByRole("tab", { name: "3D Visualization" }),
+      ).not.toHaveAttribute("aria-controls");
     });
   });
 

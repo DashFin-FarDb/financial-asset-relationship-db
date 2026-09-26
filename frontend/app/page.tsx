@@ -276,83 +276,81 @@ function useDashboardData() {
     };
   }, []);
 
-  const fetchDashboardData = useCallback(async (): Promise<DashboardDataResult> => {
-    const requestId = ++requestIdRef.current;
-    const [metricsResult, visualizationResult] = await Promise.allSettled([
-      api.getMetrics(),
-      api.getVisualizationData(),
-    ]);
+  const fetchDashboardData =
+    useCallback(async (): Promise<DashboardDataResult> => {
+      const requestId = ++requestIdRef.current;
+      const [metricsResult, visualizationResult] = await Promise.allSettled([
+        api.getMetrics(),
+        api.getVisualizationData(),
+      ]);
 
-    const metricsData =
-      metricsResult.status === "fulfilled" ? metricsResult.value : null;
-    const visualizationData =
-      visualizationResult.status === "fulfilled"
-        ? visualizationResult.value
-        : null;
-    const metricsError =
-      metricsResult.status === "rejected"
-        ? "Failed to load metrics data."
-        : null;
-    const visualizationError =
-      visualizationResult.status === "rejected"
-        ? "Failed to load visualization data. Please ensure the API server is running."
-        : null;
+      const metricsData =
+        metricsResult.status === "fulfilled" ? metricsResult.value : null;
+      const visualizationData =
+        visualizationResult.status === "fulfilled"
+          ? visualizationResult.value
+          : null;
+      const metricsError =
+        metricsResult.status === "rejected"
+          ? "Failed to load metrics data."
+          : null;
+      const visualizationError =
+        visualizationResult.status === "rejected"
+          ? "Failed to load visualization data. Please ensure the API server is running."
+          : null;
 
-    if (
-      metricsResult.status === "rejected" ||
-      visualizationResult.status === "rejected"
-    ) {
-      if (process.env.NODE_ENV === "production") {
-        console.error("Error loading dashboard data");
-      } else {
-        console.error("Error loading dashboard data:", {
-          metrics:
-            metricsResult.status === "rejected" ? metricsResult.reason : null,
-          visualization:
-            visualizationResult.status === "rejected"
-              ? visualizationResult.reason
-              : null,
-        });
+      if (
+        metricsResult.status === "rejected" ||
+        visualizationResult.status === "rejected"
+      ) {
+        if (process.env.NODE_ENV === "production") {
+          console.error("Error loading dashboard data");
+        } else {
+          console.error("Error loading dashboard data:", {
+            metrics:
+              metricsResult.status === "rejected" ? metricsResult.reason : null,
+            visualization:
+              visualizationResult.status === "rejected"
+                ? visualizationResult.reason
+                : null,
+          });
+        }
       }
+
+      return {
+        metricsData,
+        visualizationData,
+        error:
+          !metricsData && !visualizationData
+            ? "Failed to load data. Please ensure the API server is running."
+            : null,
+        metricsError,
+        visualizationError,
+        requestId,
+      };
+    }, []);
+
+  const applyResult = useCallback((result: DashboardDataResult) => {
+    if (result.requestId !== requestIdRef.current || !mountedRef.current) {
+      return;
     }
 
-    return {
-      metricsData,
-      visualizationData,
-      error:
-        !metricsData && !visualizationData
-          ? "Failed to load data. Please ensure the API server is running."
-          : null,
-      metricsError,
-      visualizationError,
-      requestId,
-    };
+    if (result.error) {
+      setError(result.error);
+    } else {
+      if (result.metricsData) {
+        setMetrics(result.metricsData);
+      }
+      if (result.visualizationData) {
+        setVizData(result.visualizationData);
+      }
+      setMetricsError(result.metricsError);
+      setVisualizationError(result.visualizationError);
+      setError(null);
+    }
+
+    setLoading(false);
   }, []);
-
-  const applyResult = useCallback(
-    (result: DashboardDataResult) => {
-      if (result.requestId !== requestIdRef.current || !mountedRef.current) {
-        return;
-      }
-
-      if (result.error) {
-        setError(result.error);
-      } else {
-        if (result.metricsData) {
-          setMetrics(result.metricsData);
-        }
-        if (result.visualizationData) {
-          setVizData(result.visualizationData);
-        }
-        setMetricsError(result.metricsError);
-        setVisualizationError(result.visualizationError);
-        setError(null);
-      }
-
-      setLoading(false);
-    },
-    [],
-  );
 
   useEffect(() => {
     const load = async () => {
