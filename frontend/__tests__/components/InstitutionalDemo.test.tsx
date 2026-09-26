@@ -105,6 +105,7 @@ describe("InstitutionalDemo", () => {
       <InstitutionalDemo
         data={mockVisualizationData}
         isGraphStale={true}
+        graphError="Failed to load visualization data. Please ensure the API server is running."
         onRetry={handleRetry}
       />,
     );

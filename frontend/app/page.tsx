@@ -102,7 +102,16 @@ function HomeContent({
     );
   }
 
-  if (loading) {
+  if (activeTab === "visualization" && loading && !vizData) {
+    return (
+      <div {...tabPanelProps} className="text-center py-12">
+        <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600" />
+        <p className="mt-4 text-gray-600">Loading data...</p>
+      </div>
+    );
+  }
+
+  if (activeTab === "metrics" && loading && !metrics) {
     return (
       <div {...tabPanelProps} className="text-center py-12">
         <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600" />
@@ -325,9 +334,36 @@ function useDashboardData() {
   const fetchDashboardData =
     useCallback(async (): Promise<DashboardDataResult> => {
       const requestId = ++requestIdRef.current;
-      const [metricsResult, visualizationResult] = await Promise.allSettled([
-        api.getMetrics(),
-        api.getVisualizationData(),
+
+      const metricsPromise = api
+        .getMetrics()
+        .then((value) => {
+          if (
+            requestId === requestIdRef.current &&
+            mountedRef.current
+          ) {
+            setMetrics(value);
+          }
+          return { status: "fulfilled" as const, value };
+        })
+        .catch((reason) => ({ status: "rejected" as const, reason }));
+
+      const visualizationPromise = api
+        .getVisualizationData()
+        .then((value) => {
+          if (
+            requestId === requestIdRef.current &&
+            mountedRef.current
+          ) {
+            setVizData(value);
+          }
+          return { status: "fulfilled" as const, value };
+        })
+        .catch((reason) => ({ status: "rejected" as const, reason }));
+
+      const [metricsResult, visualizationResult] = await Promise.all([
+        metricsPromise,
+        visualizationPromise,
       ]);
 
       const metricsData =

@@ -206,9 +206,11 @@ describe("Home Page", () => {
     });
 
     fireEvent.click(screen.getByText("Metrics & Analytics"));
-    expect(
-      screen.getByText("Failed to load metrics data."),
-    ).toBeInTheDocument();
+    await waitFor(() => {
+      expect(
+        screen.getByText("Failed to load metrics data."),
+      ).toBeInTheDocument();
+    });
 
     fireEvent.click(screen.getByText("Retry"));
 
@@ -325,12 +327,14 @@ describe("Error Handling and Recovery", () => {
 
     fireEvent.click(screen.getByText("3D Visualization"));
 
-    expect(screen.getByTestId("network-visualization")).toBeInTheDocument();
-    expect(
-      screen.getByText(
-        "The latest refresh failed — showing the last successfully loaded graph.",
-      ),
-    ).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByTestId("network-visualization")).toBeInTheDocument();
+      expect(
+        screen.getByText(
+          "The latest refresh failed — showing the last successfully loaded graph.",
+        ),
+      ).toBeInTheDocument();
+    });
 
     consoleError.mockRestore();
   });
@@ -393,11 +397,13 @@ describe("Error Handling and Recovery", () => {
     });
 
     fireEvent.click(screen.getByText("3D Visualization"));
-    expect(
-      screen.getByText(
-        "Failed to load visualization data. Please ensure the API server is running.",
-      ),
-    ).toBeInTheDocument();
+    await waitFor(() => {
+      expect(
+        screen.getByText(
+          "Failed to load visualization data. Please ensure the API server is running.",
+        ),
+      ).toBeInTheDocument();
+    });
 
     fireEvent.click(screen.getByText("Retry"));
 
@@ -611,6 +617,26 @@ describe("Component Integration", () => {
 });
 
 describe("Loading States", () => {
+  it("should render the graph as soon as visualization data resolves without waiting for metrics", async () => {
+    let resolveMetrics: ((value: typeof mockMetrics) => void) | undefined;
+    mockedApi.getMetrics.mockImplementation(
+      () =>
+        new Promise<typeof mockMetrics>((resolve) => {
+          resolveMetrics = resolve;
+        }),
+    );
+    mockedApi.getVisualizationData.mockResolvedValue(mockVisualizationData);
+
+    render(<Home />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("network-visualization")).toBeInTheDocument();
+    });
+
+    expect(mockedApi.getMetrics).toHaveBeenCalledTimes(1);
+    resolveMetrics?.(mockMetrics);
+  });
+
   it("should show loading spinner while fetching data", () => {
     mockedApi.getMetrics.mockImplementation(
       () =>
