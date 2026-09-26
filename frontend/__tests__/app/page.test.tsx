@@ -76,12 +76,13 @@ describe("Home Page", () => {
   it("should render header", async () => {
     render(<Home />);
     expect(
-      screen.getByText(/Financial Asset Relationship Network/i),
+      screen.getByText(/FarDb — Financial Asset Relationship Database/i),
     ).toBeInTheDocument();
   });
 
   it("should render navigation tabs", async () => {
     render(<Home />);
+    expect(screen.getByText("GRAC Demonstrator")).toBeInTheDocument();
     expect(screen.getByText("3D Visualization")).toBeInTheDocument();
     expect(screen.getByText("Metrics & Analytics")).toBeInTheDocument();
     expect(screen.getByText("Asset Explorer")).toBeInTheDocument();
@@ -96,9 +97,41 @@ describe("Home Page", () => {
     });
   });
 
-  it("should show loading state", () => {
+  it("should expose tab semantics for the active demonstrator", async () => {
     render(<Home />);
+
+    await waitFor(() => {
+      const tab = screen.getByRole("tab", { name: "GRAC Demonstrator" });
+      expect(tab).toHaveAttribute("aria-selected", "true");
+      expect(tab).toHaveAttribute("aria-controls", "tabpanel-demonstrator");
+      expect(screen.getByRole("tabpanel")).toHaveAttribute(
+        "aria-labelledby",
+        "tab-demonstrator",
+      );
+      expect(
+        screen.getByRole("tab", { name: "3D Visualization" }),
+      ).not.toHaveAttribute("aria-controls");
+    });
+  });
+
+  it("should show loading state for data-dependent tabs", () => {
+    render(<Home />);
+    fireEvent.click(screen.getByText("3D Visualization"));
     expect(screen.getByText("Loading data...")).toBeInTheDocument();
+  });
+
+  it("should render the demonstrator before dashboard data settles", () => {
+    mockedApi.getMetrics.mockImplementation(() => new Promise(() => {}));
+    mockedApi.getVisualizationData.mockImplementation(
+      () => new Promise(() => {}),
+    );
+
+    render(<Home />);
+
+    expect(
+      screen.getByText("FarDb Institutional Demonstrator"),
+    ).toBeInTheDocument();
+    expect(screen.queryByText("Loading data...")).not.toBeInTheDocument();
   });
 
   it("should switch tabs", async () => {
@@ -108,6 +141,9 @@ describe("Home Page", () => {
       expect(screen.getByTestId("network-visualization")).toBeInTheDocument();
     });
 
+    fireEvent.click(screen.getByText("3D Visualization"));
+    expect(screen.getByTestId("network-visualization")).toBeInTheDocument();
+
     fireEvent.click(screen.getByText("Metrics & Analytics"));
     expect(screen.getByTestId("metrics-dashboard")).toBeInTheDocument();
 
@@ -115,34 +151,72 @@ describe("Home Page", () => {
     expect(screen.getByTestId("asset-list")).toBeInTheDocument();
   });
 
-  it("should handle API errors", async () => {
+  it("should allow Asset Explorer when dashboard requests both fail", async () => {
+    mockedApi.getMetrics.mockRejectedValue(new Error("Metrics outage"));
+    mockedApi.getVisualizationData.mockRejectedValue(
+      new Error("Visualization outage"),
+    );
+    const consoleError = jest.spyOn(console, "error").mockImplementation();
+
+    render(<Home />);
+
+    await waitFor(() => {
+      expect(mockedApi.getMetrics).toHaveBeenCalled();
+      expect(mockedApi.getVisualizationData).toHaveBeenCalled();
+    });
+
+    fireEvent.click(screen.getByText("Asset Explorer"));
+
+    expect(screen.getByTestId("asset-list")).toBeInTheDocument();
+    expect(screen.queryByText(/Failed to load data/i)).not.toBeInTheDocument();
+
+    consoleError.mockRestore();
+  });
+
+  it("should handle metrics API errors without blocking the demonstrator", async () => {
     const consoleError = jest.spyOn(console, "error").mockImplementation();
     mockedApi.getMetrics.mockRejectedValue(new Error("API Error"));
 
     render(<Home />);
 
     await waitFor(() => {
-      expect(screen.getByText(/Failed to load data/i)).toBeInTheDocument();
+      expect(
+        screen.getByText("FarDb Institutional Demonstrator"),
+      ).toBeInTheDocument();
     });
+
+    fireEvent.click(screen.getByText("Metrics & Analytics"));
+    expect(
+      screen.getByText("Failed to load metrics data."),
+    ).toBeInTheDocument();
 
     consoleError.mockRestore();
   });
 
-  it("should allow retry after error", async () => {
+  it("should allow retry after a metrics error", async () => {
     mockedApi.getMetrics.mockRejectedValueOnce(new Error("API Error"));
     mockedApi.getMetrics.mockResolvedValueOnce(mockMetrics);
 
     render(<Home />);
 
     await waitFor(() => {
-      expect(screen.getByText(/Failed to load data/i)).toBeInTheDocument();
+      expect(
+        screen.getByText("FarDb Institutional Demonstrator"),
+      ).toBeInTheDocument();
     });
 
-    const retryButton = screen.getByText("Retry");
-    fireEvent.click(retryButton);
+    fireEvent.click(screen.getByText("Metrics & Analytics"));
+    await waitFor(() => {
+      expect(
+        screen.getByText("Failed to load metrics data."),
+      ).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByText("Retry"));
 
     await waitFor(() => {
       expect(mockedApi.getMetrics).toHaveBeenCalledTimes(2);
+      expect(screen.getByTestId("metrics-dashboard")).toBeInTheDocument();
     });
   });
 });
@@ -153,7 +227,9 @@ describe("Accessibility Tests", () => {
 
     await waitFor(() => {
       const h1 = screen.getByRole("heading", { level: 1 });
-      expect(h1).toHaveTextContent("Financial Asset Relationship Network");
+      expect(h1).toHaveTextContent(
+        "FarDb — Financial Asset Relationship Database",
+      );
     });
   });
 
@@ -186,21 +262,192 @@ describe("Error Handling and Recovery", () => {
     render(<Home />);
 
     await waitFor(() => {
+      expect(
+        screen.getByText("FarDb Institutional Demonstrator"),
+      ).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByText("3D Visualization"));
+
+    expect(
+      screen.getByText(
+        "Failed to load visualization data. Please ensure the API server is running.",
+      ),
+    ).toBeInTheDocument();
+
+    consoleError.mockRestore();
+  });
+
+  it("should show generic error message when both dashboard requests fail", async () => {
+    mockedApi.getMetrics.mockRejectedValue(new Error());
+    mockedApi.getVisualizationData.mockRejectedValue(new Error());
+    const consoleError = jest.spyOn(console, "error").mockImplementation();
+
+    render(<Home />);
+    fireEvent.click(screen.getByText("3D Visualization"));
+
+    await waitFor(() => {
       expect(screen.getByText(/Failed to load data/i)).toBeInTheDocument();
     });
 
     consoleError.mockRestore();
   });
 
-  it("should show generic error message for unknown errors", async () => {
-    mockedApi.getMetrics.mockRejectedValue(new Error());
-    const consoleError = jest.spyOn(console, "error").mockImplementation();
+  it("should show a stale graph notice after a total dashboard outage", async () => {
+    mockedApi.getMetrics
+      .mockRejectedValueOnce(new Error("Metrics outage"))
+      .mockRejectedValueOnce(new Error("Metrics retry outage"));
+    mockedApi.getVisualizationData
+      .mockResolvedValueOnce(mockVisualizationData)
+      .mockRejectedValueOnce(new Error("Viz retry outage"));
 
+    const consoleError = jest.spyOn(console, "error").mockImplementation();
     render(<Home />);
+
+    fireEvent.click(screen.getByText("Metrics & Analytics"));
+    await waitFor(() => {
+      expect(
+        screen.getByText("Failed to load metrics data."),
+      ).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByText("Retry"));
 
     await waitFor(() => {
       expect(screen.getByText(/Failed to load data/i)).toBeInTheDocument();
     });
+
+    fireEvent.click(screen.getByText("GRAC Demonstrator"));
+
+    expect(
+      screen.getByText(
+        "The latest refresh failed — showing the last successfully loaded graph.",
+      ),
+    ).toBeInTheDocument();
+
+    fireEvent.click(screen.getByText("3D Visualization"));
+
+    await waitFor(() => {
+      expect(screen.getByTestId("network-visualization")).toBeInTheDocument();
+      expect(
+        screen.getByText(
+          "The latest refresh failed — showing the last successfully loaded graph.",
+        ),
+      ).toBeInTheDocument();
+    });
+
+    consoleError.mockRestore();
+  });
+
+  it("should show a visualization error without waiting for pending metrics", async () => {
+    mockedApi.getMetrics.mockImplementation(
+      () =>
+        new Promise<typeof mockMetrics>(() => {
+          // intentionally pending while visualization failure resolves independently
+        }),
+    );
+    mockedApi.getVisualizationData.mockRejectedValue(
+      new Error("Graph fetch failed"),
+    );
+
+    const consoleError = jest.spyOn(console, "error").mockImplementation();
+    render(<Home />);
+
+    fireEvent.click(screen.getByText("3D Visualization"));
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(
+          "Failed to load visualization data. Please ensure the API server is running.",
+        ),
+      ).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "Retry" })).toBeInTheDocument();
+    });
+
+    expect(screen.queryByText("Loading data...")).not.toBeInTheDocument();
+    consoleError.mockRestore();
+  });
+
+  it("should show an explicit error and allow retry directly from demonstrator when initial graph load fails", async () => {
+    mockedApi.getMetrics.mockResolvedValue(mockMetrics);
+    mockedApi.getVisualizationData
+      .mockRejectedValueOnce(new Error("Graph fetch failed"))
+      .mockResolvedValueOnce(mockVisualizationData);
+
+    const consoleError = jest.spyOn(console, "error").mockImplementation();
+    render(<Home />);
+
+    await waitFor(() => {
+      expect(
+        screen.getByText("FarDb Institutional Demonstrator"),
+      ).toBeInTheDocument();
+      expect(
+        screen.getByText(
+          "Failed to load visualization data. Please ensure the API server is running.",
+        ),
+      ).toBeInTheDocument();
+    });
+
+    expect(
+      screen.queryByTestId("network-visualization"),
+    ).not.toBeInTheDocument();
+
+    const retryButton = screen.getByRole("button", { name: "Retry" });
+    fireEvent.click(retryButton);
+
+    await waitFor(() => {
+      expect(mockedApi.getVisualizationData).toHaveBeenCalledTimes(2);
+      expect(screen.getByTestId("network-visualization")).toBeInTheDocument();
+      expect(
+        screen.queryByText(
+          "Failed to load visualization data. Please ensure the API server is running.",
+        ),
+      ).not.toBeInTheDocument();
+    });
+
+    consoleError.mockRestore();
+  });
+
+  it("should keep retained metrics data visible with error indicator after a total outage on refresh", async () => {
+    mockedApi.getMetrics
+      .mockResolvedValueOnce(mockMetrics)
+      .mockRejectedValueOnce(new Error("Metrics outage on refresh"));
+    mockedApi.getVisualizationData
+      .mockRejectedValueOnce(new Error("Initial viz failure"))
+      .mockRejectedValueOnce(new Error("Visualization outage on refresh"));
+
+    const consoleError = jest.spyOn(console, "error").mockImplementation();
+    render(<Home />);
+
+    await waitFor(() => {
+      expect(
+        screen.getByText("FarDb Institutional Demonstrator"),
+      ).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByText("3D Visualization"));
+    await waitFor(() => {
+      expect(
+        screen.getByText(
+          "Failed to load visualization data. Please ensure the API server is running.",
+        ),
+      ).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByText("Retry"));
+
+    await waitFor(() => {
+      expect(mockedApi.getMetrics).toHaveBeenCalledTimes(2);
+      expect(mockedApi.getVisualizationData).toHaveBeenCalledTimes(2);
+    });
+
+    fireEvent.click(screen.getByText("Metrics & Analytics"));
+    expect(screen.getByTestId("metrics-dashboard")).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        "The latest refresh failed — showing the last successfully loaded metrics.",
+      ),
+    ).toBeInTheDocument();
 
     consoleError.mockRestore();
   });
@@ -215,8 +462,15 @@ describe("Error Handling and Recovery", () => {
     render(<Home />);
 
     await waitFor(() => {
-      expect(screen.getByText(/Failed to load data/i)).toBeInTheDocument();
+      expect(
+        screen.getByText("FarDb Institutional Demonstrator"),
+      ).toBeInTheDocument();
     });
+
+    fireEvent.click(screen.getByText("Metrics & Analytics"));
+    expect(
+      screen.getByText("Failed to load metrics data."),
+    ).toBeInTheDocument();
 
     fireEvent.click(screen.getByText("Retry"));
 
@@ -245,7 +499,7 @@ describe("Tab Navigation and State Management", () => {
     expect(screen.getByTestId("metrics-dashboard")).toBeInTheDocument();
   });
 
-  it("should switch between all three tabs sequentially", async () => {
+  it("should switch between all four tabs sequentially", async () => {
     render(<Home />);
 
     await waitFor(() => {
@@ -265,15 +519,70 @@ describe("Tab Navigation and State Management", () => {
     fireEvent.click(screen.getByText("3D Visualization"));
     expect(screen.getByTestId("network-visualization")).toBeInTheDocument();
     expect(screen.queryByTestId("asset-list")).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByText("GRAC Demonstrator"));
+    expect(
+      screen.getByText("FarDb Institutional Demonstrator"),
+    ).toBeInTheDocument();
+  });
+
+  it("should expose active tab state after switching tabs", async () => {
+    render(<Home />);
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole("tab", { name: "GRAC Demonstrator" }),
+      ).toHaveAttribute("aria-selected", "true");
+    });
+
+    fireEvent.click(screen.getByText("Metrics & Analytics"));
+    expect(
+      screen.getByRole("tab", { name: "Metrics & Analytics" }),
+    ).toHaveAttribute("aria-selected", "true");
+    expect(
+      screen.getByRole("tab", { name: "GRAC Demonstrator" }),
+    ).toHaveAttribute("aria-selected", "false");
+  });
+
+  it("should support keyboard navigation between tabs", async () => {
+    render(<Home />);
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole("tab", { name: "GRAC Demonstrator" }),
+      ).toHaveAttribute("aria-selected", "true");
+    });
+
+    const demoTab = screen.getByRole("tab", { name: "GRAC Demonstrator" });
+    fireEvent.keyDown(demoTab, { key: "ArrowRight" });
+
+    const visualizationTab = screen.getByRole("tab", {
+      name: "3D Visualization",
+    });
+    expect(visualizationTab).toHaveAttribute("aria-selected", "true");
+    expect(document.activeElement).toBe(visualizationTab);
+
+    fireEvent.keyDown(visualizationTab, { key: "End" });
+    const assetTab = screen.getByRole("tab", { name: "Asset Explorer" });
+    expect(assetTab).toHaveAttribute("aria-selected", "true");
+    expect(document.activeElement).toBe(assetTab);
+
+    fireEvent.keyDown(assetTab, { key: "Home" });
+    expect(demoTab).toHaveAttribute("aria-selected", "true");
+    expect(document.activeElement).toBe(demoTab);
   });
 
   it("should highlight active tab button", async () => {
     render(<Home />);
 
     await waitFor(() => {
-      const vizButton = screen.getByText("3D Visualization");
-      expect(vizButton).toHaveClass("border-blue-500");
+      const demoButton = screen.getByText("GRAC Demonstrator");
+      expect(demoButton).toHaveClass("border-blue-500");
     });
+
+    const vizButton = screen.getByText("3D Visualization");
+    fireEvent.click(vizButton);
+    expect(vizButton).toHaveClass("border-blue-500");
 
     const metricsButton = screen.getByText("Metrics & Analytics");
     fireEvent.click(metricsButton);
@@ -337,6 +646,26 @@ describe("Component Integration", () => {
 });
 
 describe("Loading States", () => {
+  it("should render the graph as soon as visualization data resolves without waiting for metrics", async () => {
+    let resolveMetrics: ((value: typeof mockMetrics) => void) | undefined;
+    mockedApi.getMetrics.mockImplementation(
+      () =>
+        new Promise<typeof mockMetrics>((resolve) => {
+          resolveMetrics = resolve;
+        }),
+    );
+    mockedApi.getVisualizationData.mockResolvedValue(mockVisualizationData);
+
+    render(<Home />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("network-visualization")).toBeInTheDocument();
+    });
+
+    expect(mockedApi.getMetrics).toHaveBeenCalledTimes(1);
+    resolveMetrics?.(mockMetrics);
+  });
+
   it("should show loading spinner while fetching data", () => {
     mockedApi.getMetrics.mockImplementation(
       () =>
@@ -345,6 +674,7 @@ describe("Loading States", () => {
         }),
     );
     render(<Home />);
+    fireEvent.click(screen.getByText("3D Visualization"));
 
     expect(screen.getByText("Loading data...")).toBeInTheDocument();
     const spinner = document.querySelector(".animate-spin");
@@ -353,6 +683,7 @@ describe("Loading States", () => {
 
   it("should hide loading state after data loads", async () => {
     render(<Home />);
+    fireEvent.click(screen.getByText("3D Visualization"));
 
     expect(screen.getByText("Loading data...")).toBeInTheDocument();
 
@@ -363,9 +694,13 @@ describe("Loading States", () => {
 
   it("should hide loading state after error occurs", async () => {
     mockedApi.getMetrics.mockRejectedValue(new Error("Test Error"));
+    mockedApi.getVisualizationData.mockRejectedValue(
+      new Error("Test Visualization Error"),
+    );
     const consoleError = jest.spyOn(console, "error").mockImplementation();
 
     render(<Home />);
+    fireEvent.click(screen.getByText("3D Visualization"));
 
     await waitFor(() => {
       expect(screen.queryByText("Loading data...")).not.toBeInTheDocument();
@@ -377,12 +712,14 @@ describe("Loading States", () => {
 });
 
 describe("Footer and Static Content", () => {
-  it("should render footer with correct text", async () => {
+  it("should render footer with demonstrator text", async () => {
     render(<Home />);
 
     await waitFor(() => {
       expect(
-        screen.getByText(/Powered by Next.js & FastAPI/i),
+        screen.getByText(
+          /FarDb — Governed Relationship Assertion Contract demonstrator/i,
+        ),
       ).toBeInTheDocument();
     });
   });
@@ -391,7 +728,9 @@ describe("Footer and Static Content", () => {
     render(<Home />);
 
     expect(
-      screen.getByText(/Interactive 3D visualization/i),
+      screen.getByText(
+        /Governed relationship infrastructure with an institutional demonstration surface/i,
+      ),
     ).toBeInTheDocument();
   });
 });
