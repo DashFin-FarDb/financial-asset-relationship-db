@@ -3,7 +3,7 @@
  */
 
 import React from "react";
-import { render, screen, waitFor, fireEvent } from "@testing-library/react";
+import { act, render, screen, waitFor, fireEvent } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import Home from "../../app/page";
 import { api } from "../../app/lib/api";
@@ -663,7 +663,7 @@ describe("Loading States", () => {
     });
 
     expect(mockedApi.getMetrics).toHaveBeenCalledTimes(1);
-    resolveMetrics?.(mockMetrics);
+    await act(async () => {\n      resolveMetrics?.(mockMetrics);\n    });
   });
 
   it("should show loading spinner while fetching data", () => {
