@@ -137,7 +137,7 @@ function ScenarioTimeline() {
 
       <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-3">
         <article className="rounded-xl bg-slate-50 p-4">
-          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">
+          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-600">
             Effective time
           </p>
           <p className="mt-2 text-lg font-semibold text-slate-900">
@@ -148,7 +148,7 @@ function ScenarioTimeline() {
           </p>
         </article>
         <article className="rounded-xl bg-slate-50 p-4">
-          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">
+          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-600">
             Known time
           </p>
           <p className="mt-2 text-lg font-semibold text-slate-900">
@@ -159,7 +159,7 @@ function ScenarioTimeline() {
           </p>
         </article>
         <article className="rounded-xl bg-slate-50 p-4">
-          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">
+          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-600">
             Governance state
           </p>
           <p className="mt-2 text-lg font-semibold text-slate-900">
