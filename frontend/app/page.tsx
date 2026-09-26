@@ -432,7 +432,7 @@ export default function Home() {
           metrics={metrics}
           metricsError={metricsError}
           visualizationError={visualizationError}
-          onRetry={handleRetry}
+          onRetry={onRetry}
         />
       </div>
 
