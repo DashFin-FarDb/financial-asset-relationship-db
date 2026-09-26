@@ -243,15 +243,20 @@ function TabNavigation({ activeTab, onTabChange }: TabNavigationProps) {
   );
 }
 
+type DashboardDataResult = Readonly<{
+  metricsData: Metrics | null;
+  visualizationData: VisualizationData | null;
+  error: string | null;
+  metricsError: string | null;
+  visualizationError: string | null;
+  requestId: number;
+}>;
+
 /**
- * Render the dashboard home page with a tabbed interface for the GRAC demonstrator, Visualization, Metrics, and Assets.
- *
- * Loads metrics and visualization data independently on mount, displays loading and bounded per-tab error states, and exposes a retry action.
- *
- * @returns The top-level JSX element for the home page
+ * Owns dashboard data fetching, partial-failure handling, retry state, and
+ * request ordering so the page component remains focused on presentation.
  */
-export default function Home() {
-  const [activeTab, setActiveTab] = useState<HomeTab>("demonstrator");
+function useDashboardData() {
   const [metrics, setMetrics] = useState<Metrics | null>(null);
   const [vizData, setVizData] = useState<VisualizationData | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -271,11 +276,7 @@ export default function Home() {
     };
   }, []);
 
-  /**
-   * Loads metrics and visualization data from the API.
-   * Sets loading states during fetch and handles errors by logging and setting error message.
-   */
-  const fetchDashboardData = useCallback(async () => {
+  const fetchDashboardData = useCallback(async (): Promise<DashboardDataResult> => {
     const requestId = ++requestIdRef.current;
     const [metricsResult, visualizationResult] = await Promise.allSettled([
       api.getMetrics(),
@@ -327,17 +328,13 @@ export default function Home() {
       requestId,
     };
   }, []);
+
   const applyResult = useCallback(
-    (result: {
-      metricsData: Metrics | null;
-      visualizationData: VisualizationData | null;
-      error: string | null;
-      metricsError: string | null;
-      visualizationError: string | null;
-      requestId: number;
-    }) => {
-      if (result.requestId !== requestIdRef.current || !mountedRef.current)
+    (result: DashboardDataResult) => {
+      if (result.requestId !== requestIdRef.current || !mountedRef.current) {
         return;
+      }
+
       if (result.error) {
         setError(result.error);
       } else {
@@ -351,25 +348,20 @@ export default function Home() {
         setVisualizationError(result.visualizationError);
         setError(null);
       }
+
       setLoading(false);
     },
     [],
   );
+
   useEffect(() => {
-    /**
-     * Executes the initial data fetch and updates component state.
-     * Evaluates the result and sets appropriate UI states (loading, error, data).
-     */
     const load = async () => {
       const result = await fetchDashboardData();
       applyResult(result);
     };
     load();
   }, [fetchDashboardData, applyResult]);
-  /**
-   * Refetches the dashboard data and updates component state.
-   * Useful when the previous fetch failed or manual refresh is required.
-   */
+
   const handleRetry = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -379,6 +371,35 @@ export default function Home() {
     applyResult(result);
   }, [fetchDashboardData, applyResult]);
 
+  return {
+    metrics,
+    vizData,
+    loading,
+    error,
+    metricsError,
+    visualizationError,
+    onRetry: handleRetry,
+  };
+}
+
+/**
+ * Render the dashboard home page with a tabbed interface for the GRAC demonstrator, Visualization, Metrics, and Assets.
+ *
+ * Loads metrics and visualization data independently on mount, displays loading and bounded per-tab error states, and exposes a retry action.
+ *
+ * @returns The top-level JSX element for the home page
+ */
+export default function Home() {
+  const [activeTab, setActiveTab] = useState<HomeTab>("demonstrator");
+  const {
+    metrics,
+    vizData,
+    loading,
+    error,
+    metricsError,
+    visualizationError,
+    onRetry,
+  } = useDashboardData();
   const handleTabChange = useCallback((tab: HomeTab) => {
     setActiveTab(tab);
   }, []);
