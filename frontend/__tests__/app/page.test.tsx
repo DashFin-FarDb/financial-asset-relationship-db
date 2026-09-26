@@ -122,7 +122,9 @@ describe("Home Page", () => {
 
   it("should render the demonstrator before dashboard data settles", () => {
     mockedApi.getMetrics.mockImplementation(() => new Promise(() => {}));
-    mockedApi.getVisualizationData.mockImplementation(() => new Promise(() => {}));
+    mockedApi.getVisualizationData.mockImplementation(
+      () => new Promise(() => {}),
+    );
 
     render(<Home />);
 
