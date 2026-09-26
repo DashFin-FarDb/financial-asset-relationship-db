@@ -2,6 +2,7 @@ import React from "react";
 import { fireEvent, render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import InstitutionalDemo from "../../app/components/InstitutionalDemo";
+import { mockVisualizationData } from "../test-utils";
 
 jest.mock("../../app/components/NetworkVisualization", () => ({
   __esModule: true,
@@ -21,6 +22,36 @@ describe("InstitutionalDemo", () => {
     expect(
       screen.getByText(
         /synthetic and are not presented as live FarDb customer data/,
+      ),
+    ).toBeInTheDocument();
+    expect(screen.getByTestId("network-visualization")).toBeInTheDocument();
+  });
+
+  it("shows a loading state instead of an empty graph while data is pending", () => {
+    render(<InstitutionalDemo data={null} isGraphLoading={true} />);
+
+    expect(
+      screen.getByText("Loading relationship graph..."),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByTestId("network-visualization"),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByText("Loading the latest FarDb relationship graph..."),
+    ).toBeInTheDocument();
+  });
+
+  it("shows a stale graph notice when the latest refresh fails", () => {
+    render(
+      <InstitutionalDemo
+        data={mockVisualizationData}
+        isGraphStale={true}
+      />,
+    );
+
+    expect(
+      screen.getByText(
+        "The latest refresh failed — showing the last successfully loaded graph.",
       ),
     ).toBeInTheDocument();
     expect(screen.getByTestId("network-visualization")).toBeInTheDocument();
