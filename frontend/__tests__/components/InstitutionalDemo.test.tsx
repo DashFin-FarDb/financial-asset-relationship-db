@@ -32,10 +32,12 @@ describe("InstitutionalDemo", () => {
     expect(screen.getByRole("button", { name: "Show Governance determination (12 May 2026)" })).toBeInTheDocument();
     expect(screen.getByText("Accepted")).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole("button", { name: "Show Supersession" }));
+    fireEvent.click(screen.getByRole("button", { name: "Show Supersession (26 Aug 2026)" }));
 
-    expect(screen.getByText("Supersession")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Show Supersession (26 Aug 2026)" }),
+    ).toHaveAttribute("aria-current", "step");
     expect(screen.getByText("Superseded")).toBeInTheDocument();
-    expect(screen.getByText("26 Aug 2026")).toBeInTheDocument();
+    expect(screen.getAllByText("26 Aug 2026")).toHaveLength(2);
   });
 });
