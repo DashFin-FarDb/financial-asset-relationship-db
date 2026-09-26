@@ -168,9 +168,7 @@ describe("Home Page", () => {
     fireEvent.click(screen.getByText("Asset Explorer"));
 
     expect(screen.getByTestId("asset-list")).toBeInTheDocument();
-    expect(
-      screen.queryByText(/Failed to load data/i),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByText(/Failed to load data/i)).not.toBeInTheDocument();
 
     consoleError.mockRestore();
   });
