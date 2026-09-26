@@ -43,10 +43,7 @@ describe("InstitutionalDemo", () => {
 
   it("shows a stale graph notice when the latest refresh fails", () => {
     render(
-      <InstitutionalDemo
-        data={mockVisualizationData}
-        isGraphStale={true}
-      />,
+      <InstitutionalDemo data={mockVisualizationData} isGraphStale={true} />,
     );
 
     expect(
