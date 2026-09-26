@@ -339,6 +339,35 @@ describe("Error Handling and Recovery", () => {
     consoleError.mockRestore();
   });
 
+  it("should show a visualization error without waiting for pending metrics", async () => {
+    mockedApi.getMetrics.mockImplementation(
+      () =>
+        new Promise<typeof mockMetrics>(() => {
+          // intentionally pending while visualization failure resolves independently
+        }),
+    );
+    mockedApi.getVisualizationData.mockRejectedValue(
+      new Error("Graph fetch failed"),
+    );
+
+    const consoleError = jest.spyOn(console, "error").mockImplementation();
+    render(<Home />);
+
+    fireEvent.click(screen.getByText("3D Visualization"));
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(
+          "Failed to load visualization data. Please ensure the API server is running.",
+        ),
+      ).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "Retry" })).toBeInTheDocument();
+    });
+
+    expect(screen.queryByText("Loading data...")).not.toBeInTheDocument();
+    consoleError.mockRestore();
+  });
+
   it("should show an explicit error and allow retry directly from demonstrator when initial graph load fails", async () => {
     mockedApi.getMetrics.mockResolvedValue(mockMetrics);
     mockedApi.getVisualizationData

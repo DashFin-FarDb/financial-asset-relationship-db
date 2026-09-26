@@ -85,7 +85,9 @@ function HomeContent({
       <div {...tabPanelProps}>
         <InstitutionalDemo
           data={vizData}
-          isGraphLoading={loading && vizData === null}
+          isGraphLoading={
+            loading && vizData === null && !visualizationError
+          }
           isGraphStale={Boolean(visualizationError) && vizData !== null}
           graphError={error ?? visualizationError}
           onRetry={onRetry}
@@ -102,7 +104,12 @@ function HomeContent({
     );
   }
 
-  if (activeTab === "visualization" && loading && !vizData) {
+  if (
+    activeTab === "visualization" &&
+    loading &&
+    !vizData &&
+    !visualizationError
+  ) {
     return (
       <div {...tabPanelProps} className="text-center py-12">
         <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600" />
@@ -111,7 +118,7 @@ function HomeContent({
     );
   }
 
-  if (activeTab === "metrics" && loading && !metrics) {
+  if (activeTab === "metrics" && loading && !metrics && !metricsError) {
     return (
       <div {...tabPanelProps} className="text-center py-12">
         <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600" />
@@ -340,20 +347,34 @@ function useDashboardData() {
         .then((value) => {
           if (requestId === requestIdRef.current && mountedRef.current) {
             setMetrics(value);
+            setMetricsError(null);
           }
           return { status: "fulfilled" as const, value };
         })
-        .catch((reason) => ({ status: "rejected" as const, reason }));
+        .catch((reason) => {
+          if (requestId === requestIdRef.current && mountedRef.current) {
+            setMetricsError("Failed to load metrics data.");
+          }
+          return { status: "rejected" as const, reason };
+        });
 
       const visualizationPromise = api
         .getVisualizationData()
         .then((value) => {
           if (requestId === requestIdRef.current && mountedRef.current) {
             setVizData(value);
+            setVisualizationError(null);
           }
           return { status: "fulfilled" as const, value };
         })
-        .catch((reason) => ({ status: "rejected" as const, reason }));
+        .catch((reason) => {
+          if (requestId === requestIdRef.current && mountedRef.current) {
+            setVisualizationError(
+              "Failed to load visualization data. Please ensure the API server is running.",
+            );
+          }
+          return { status: "rejected" as const, reason };
+        });
 
       const [metricsResult, visualizationResult] = await Promise.all([
         metricsPromise,
