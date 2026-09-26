@@ -83,7 +83,19 @@ function HomeContent({
   if (activeTab === "demonstrator") {
     return (
       <div {...tabPanelProps}>
-        <InstitutionalDemo data={vizData} />
+        <InstitutionalDemo
+          data={vizData}
+          isGraphLoading={loading && vizData === null}
+          isGraphStale={Boolean(visualizationError) && vizData !== null}
+        />
+      </div>
+    );
+  }
+
+  if (activeTab === "assets") {
+    return (
+      <div {...tabPanelProps}>
+        <AssetList />
       </div>
     );
   }
@@ -157,14 +169,6 @@ function HomeContent({
             </div>
           </div>
         )}
-      </div>
-    );
-  }
-
-  if (activeTab === "assets") {
-    return (
-      <div {...tabPanelProps}>
-        <AssetList />
       </div>
     );
   }
