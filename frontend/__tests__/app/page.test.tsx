@@ -3,7 +3,13 @@
  */
 
 import React from "react";
-import { act, render, screen, waitFor, fireEvent } from "@testing-library/react";
+import {
+  act,
+  render,
+  screen,
+  waitFor,
+  fireEvent,
+} from "@testing-library/react";
 import "@testing-library/jest-dom";
 import Home from "../../app/page";
 import { api } from "../../app/lib/api";
