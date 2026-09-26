@@ -343,6 +343,8 @@ function useDashboardData() {
 
     if (result.error) {
       setError(result.error);
+      setMetricsError(result.metricsError);
+      setVisualizationError(result.visualizationError);
     } else {
       if (result.metricsData) {
         setMetrics(result.metricsData);
