@@ -119,6 +119,7 @@ function ScenarioTimeline() {
           max={SCENARIO_STEPS.length - 1}
           step={1}
           value={stepIndex}
+          aria-valuetext={step.label + " — " + step.date}
           onChange={(event) => setStepIndex(Number(event.target.value))}
           className="mt-3 w-full"
         />
