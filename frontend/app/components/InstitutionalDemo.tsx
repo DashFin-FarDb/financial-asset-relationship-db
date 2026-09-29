@@ -86,7 +86,7 @@ function ScenarioTimeline() {
     <section className="rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50 p-6 shadow-sm">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-600">
             Synthetic governance walkthrough — demonstration-only
           </p>
           <h3 className="mt-2 text-2xl font-semibold text-slate-900">
@@ -336,7 +336,7 @@ export default function InstitutionalDemo({
             </output>
           )}
           {isGraphStale && (
-            <div className="mt-2 flex items-center justify-between gap-4">
+            <div className="mt-2 flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
               <output className="block text-sm text-amber-700">
                 The latest refresh failed — showing the last successfully loaded
                 graph.
