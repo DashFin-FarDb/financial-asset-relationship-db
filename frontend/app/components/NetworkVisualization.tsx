@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
 import type {
   VisualizationData,
@@ -31,6 +31,7 @@ type EdgeTrace = {
     color: string;
     width: number;
   };
+  opacity?: number;
   hoverinfo: "none";
   showlegend: false;
   /** Stable edge selection key, repeated for each of the two line points. */
@@ -164,24 +165,36 @@ function buildNodeTrace(nodes: VisualizationData["nodes"]): NodeTrace {
  * Build Plotly 3D line traces from already-validated edges.
  *
  * @param validEdges - Edges paired with their resolved endpoint nodes (see `buildValidEdges`).
+ * @param selectedKey - Currently selected edge key, used to make the active relationship prominent.
  * @returns An array of `EdgeTrace` objects; each trace is a two-point 3D line connecting
  *   source and target, carrying the edge's stable selection key as `customdata`.
  */
-function buildEdgeTraces(validEdges: readonly PreparedEdge[]): EdgeTrace[] {
-  return validEdges.map(({ key, edge, sourceNode, targetNode }) => ({
-    type: "scatter3d",
-    mode: "lines",
-    x: [sourceNode.x, targetNode.x],
-    y: [sourceNode.y, targetNode.y],
-    z: [sourceNode.z, targetNode.z],
-    line: {
-      color: `rgba(125, 125, 125, ${edge.strength})`,
-      width: edge.strength * 3,
-    },
-    hoverinfo: "none",
-    showlegend: false,
-    customdata: [key, key],
-  }));
+function buildEdgeTraces(
+  validEdges: readonly PreparedEdge[],
+  selectedKey: string | null,
+): EdgeTrace[] {
+  return validEdges.map(({ key, edge, sourceNode, targetNode }) => {
+    const isSelected = key === selectedKey;
+    return {
+      type: "scatter3d",
+      mode: "lines",
+      x: [sourceNode.x, targetNode.x],
+      y: [sourceNode.y, targetNode.y],
+      z: [sourceNode.z, targetNode.z],
+      line: {
+        color: isSelected
+          ? "rgba(212, 175, 55, 0.95)"
+          : `rgba(125, 125, 125, ${edge.strength})`,
+        width: isSelected
+          ? Math.max(6, edge.strength * 3 + 3)
+          : edge.strength * 3,
+      },
+      opacity: isSelected || selectedKey === null ? 1 : 0.45,
+      hoverinfo: "none",
+      showlegend: false,
+      customdata: [key, key],
+    };
+  });
 }
 
 /**
@@ -197,6 +210,7 @@ function buildEdgeTraces(validEdges: readonly PreparedEdge[]): EdgeTrace[] {
 function prepareVisualizationData(
   data: VisualizationData,
   validEdges: readonly PreparedEdge[],
+  selectedKey: string | null,
 ): VisualizationPreparation {
   const nodes = Array.isArray(data.nodes) ? data.nodes : [];
   const edges = Array.isArray(data.edges) ? data.edges : [];
@@ -221,7 +235,7 @@ function prepareVisualizationData(
   }
 
   const nodeTrace = buildNodeTrace(nodes);
-  const edgeTraces = buildEdgeTraces(validEdges);
+  const edgeTraces = buildEdgeTraces(validEdges, selectedKey);
 
   return {
     status: "ready",
@@ -306,6 +320,11 @@ function RelationshipListItem({
         >
           {isGoverned ? "Governed" : "Legacy"}
         </span>
+        {isSelected && (
+          <span className="ml-2 text-xs font-semibold text-blue-700">
+            Selected
+          </span>
+        )}
       </button>
     </li>
   );
@@ -342,6 +361,7 @@ function resolveValidEdges(data: VisualizationData | null | undefined) {
 function resolvePreparation(
   data: VisualizationData | null | undefined,
   validEdges: readonly PreparedEdge[],
+  selectedKey: string | null,
 ): VisualizationPreparation {
   if (!data) {
     return {
@@ -350,7 +370,7 @@ function resolvePreparation(
       plotData: [],
     };
   }
-  return prepareVisualizationData(data, validEdges);
+  return prepareVisualizationData(data, validEdges, selectedKey);
 }
 
 /** Extract the clicked edge's stable key from a Plotly click event, if any. */
@@ -406,9 +426,17 @@ export default function NetworkVisualization({
     [data],
   );
 
+  useEffect(() => {
+    setSelectedKey((currentKey) =>
+      currentKey !== null && validEdges.some(({ key }) => key === currentKey)
+        ? currentKey
+        : null,
+    );
+  }, [validEdges]);
+
   const preparation = useMemo<VisualizationPreparation>(
-    () => resolvePreparation(data, validEdges),
-    [data, validEdges],
+    () => resolvePreparation(data, validEdges, selectedKey),
+    [data, validEdges, selectedKey],
   );
 
   const { plotData, status, message } = preparation;
@@ -431,62 +459,120 @@ export default function NetworkVisualization({
   }
 
   return (
-    <div className="w-full space-y-4">
-      <div className="w-full h-[800px]">
-        <Plot
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          data={plotData as any}
-          layout={{
-            title: "3D Asset Relationship Network",
-            showlegend: false,
-            scene: {
-              xaxis: {
-                showgrid: false,
-                zeroline: false,
-                showticklabels: false,
-              },
-              yaxis: {
-                showgrid: false,
-                zeroline: false,
-                showticklabels: false,
-              },
-              zaxis: {
-                showgrid: false,
-                zeroline: false,
-                showticklabels: false,
-              },
-              camera: {
-                eye: { x: 1.5, y: 1.5, z: 1.5 },
-              },
-            },
-            hovermode: "closest",
-            margin: { l: 0, r: 0, b: 0, t: 40 },
-            paper_bgcolor: "rgba(0,0,0,0)",
-            plot_bgcolor: "rgba(0,0,0,0)",
-          }}
-          config={{
-            displayModeBar: true,
-            displaylogo: false,
-            responsive: true,
-          }}
-          style={{ width: "100%", height: "100%" }}
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          onClick={handlePlotClick as any}
-        />
-      </div>
+    <div className="w-full">
+      <section className="rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <header className="flex flex-col gap-3 border-b border-slate-200 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-blue-700">
+              Live FarDb publication data
+            </p>
+            <h3 className="mt-1 text-xl font-semibold text-slate-900">
+              Relationship decision surface
+            </h3>
+            <p className="mt-1 max-w-2xl text-sm text-slate-600">
+              Select an edge to keep the graph in context while inspecting the
+              governed relationship dossier.
+            </p>
+          </div>
+          <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-medium text-slate-700">
+            {selectedEdge ? "Relationship selected" : "Select a relationship"}
+          </div>
+        </header>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <RelationshipList
-          validEdges={validEdges}
-          selectedKey={selectedKey}
-          onSelect={setSelectedKey}
-        />
-        <RelationshipExplanationPanel
-          relationship={selectedEdge}
-          publication={data?.publication ?? null}
-          publicationId={data?.publication?.publication_id}
-        />
-      </div>
+        <div className="grid grid-cols-1 gap-4 p-4 lg:grid-cols-[minmax(0,1.4fr)_minmax(320px,0.9fr)]">
+          <div
+            className="min-w-0 h-[640px] rounded-xl border border-slate-200 bg-slate-50"
+            role="region"
+            aria-label="3D FarDb relationship graph"
+            aria-describedby="relationship-graph-summary"
+          >
+            <p id="relationship-graph-summary" className="sr-only">
+              Interactive 3D graph containing {validEdges.length} valid
+              relationships across {data.nodes.length} assets. Use the
+              relationship index to select a relationship and inspect its
+              governed dossier.
+            </p>
+            <Plot
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              data={plotData as any}
+              layout={{
+                title: "3D Asset Relationship Network",
+                showlegend: false,
+                scene: {
+                  xaxis: {
+                    showgrid: false,
+                    zeroline: false,
+                    showticklabels: false,
+                  },
+                  yaxis: {
+                    showgrid: false,
+                    zeroline: false,
+                    showticklabels: false,
+                  },
+                  zaxis: {
+                    showgrid: false,
+                    zeroline: false,
+                    showticklabels: false,
+                  },
+                  camera: {
+                    eye: { x: 1.5, y: 1.5, z: 1.5 },
+                  },
+                },
+                hovermode: "closest",
+                margin: { l: 0, r: 0, b: 0, t: 40 },
+                paper_bgcolor: "rgba(0,0,0,0)",
+                plot_bgcolor: "rgba(0,0,0,0)",
+              }}
+              config={{
+                displayModeBar: true,
+                displaylogo: false,
+                responsive: true,
+              }}
+              style={{ width: "100%", height: "100%" }}
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              onClick={handlePlotClick as any}
+            />
+          </div>
+
+          <aside className="min-w-0 max-h-[640px] overflow-y-auto rounded-xl border border-slate-200 bg-white p-4">
+            <div className="flex items-end justify-between gap-3">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
+                  Relationship index
+                </p>
+                <h4 className="mt-1 text-lg font-semibold text-slate-900">
+                  Select a relationship
+                </h4>
+              </div>
+              <span className="text-xs text-slate-500">
+                {validEdges.length}{" "}
+                {validEdges.length === 1 ? "relationship" : "relationships"}
+              </span>
+            </div>
+
+            <div className="mt-3">
+              <RelationshipList
+                validEdges={validEdges}
+                selectedKey={selectedKey}
+                onSelect={setSelectedKey}
+              />
+            </div>
+
+            <div className="mt-5 border-t border-slate-200 pt-5">
+              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
+                Governed relationship dossier
+              </p>
+              <div className="mt-2">
+                <RelationshipExplanationPanel
+                  relationship={selectedEdge}
+                  publication={data?.publication ?? null}
+                  publicationId={data?.publication?.publication_id}
+                />
+              </div>
+            </div>
+          </aside>
+        </div>
+      </section>
     </div>
   );
 }
