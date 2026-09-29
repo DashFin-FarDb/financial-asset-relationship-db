@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
 import type {
   VisualizationData,
@@ -426,6 +426,14 @@ export default function NetworkVisualization({
     [data],
   );
 
+  useEffect(() => {
+    setSelectedKey((currentKey) =>
+      currentKey !== null && validEdges.some(({ key }) => key === currentKey)
+        ? currentKey
+        : null,
+    );
+  }, [validEdges]);
+
   const preparation = useMemo<VisualizationPreparation>(
     () => resolvePreparation(data, validEdges, selectedKey),
     [data, validEdges, selectedKey],
@@ -472,7 +480,15 @@ export default function NetworkVisualization({
         </header>
 
         <div className="grid grid-cols-1 gap-4 p-4 lg:grid-cols-[minmax(0,1.4fr)_minmax(320px,0.9fr)]">
-          <div className="min-w-0 h-[640px] rounded-xl border border-slate-200 bg-slate-50">
+          <div
+            className="min-w-0 h-[640px] rounded-xl border border-slate-200 bg-slate-50"
+            role="region"
+            aria-label="3D FarDb relationship graph"
+            aria-describedby="relationship-graph-summary"
+          >
+            <p id="relationship-graph-summary" className="sr-only">
+              Interactive 3D graph containing {validEdges.length} valid relationships across {data.nodes.length} assets. Use the relationship index to select a relationship and inspect its governed dossier.
+            </p>
             <Plot
               // eslint-disable-next-line @typescript-eslint/no-explicit-any
               data={plotData as any}
