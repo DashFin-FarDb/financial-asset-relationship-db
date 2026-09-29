@@ -370,6 +370,40 @@ describe("NetworkVisualization Component", () => {
       });
     });
 
+    it("visibly marks the selected relationship in the graph data and relationship index", async () => {
+      render(<NetworkVisualization data={governedData} />);
+
+      const plotDataBefore = JSON.parse(
+        screen.getByTestId("plot-data").textContent || "[]",
+      );
+      const canonicalBefore = plotDataBefore.find(
+        (trace: { customdata?: string[] }) =>
+          trace.customdata?.[0] === "edge-canonical",
+      );
+      expect(canonicalBefore).toBeDefined();
+      expect(canonicalBefore.line.color).toBe("rgba(125, 125, 125, 0.9)");
+
+      const user = userEvent.setup();
+      await user.click(screen.getByTestId("plot-click-trigger"));
+
+      const plotDataAfter = JSON.parse(
+        screen.getByTestId("plot-data").textContent || "[]",
+      );
+      const selectedTrace = plotDataAfter.find(
+        (trace: { customdata?: string[] }) =>
+          trace.customdata?.[0] === "edge-canonical",
+      );
+      const otherTrace = plotDataAfter.find(
+        (trace: { customdata?: string[] }) =>
+          trace.customdata?.[0] === "edge-reverse",
+      );
+
+      expect(selectedTrace.line.color).toBe("rgba(212, 175, 55, 0.95)");
+      expect(selectedTrace.line.width).toBeGreaterThanOrEqual(6);
+      expect(otherTrace.opacity).toBe(0.45);
+      expect(screen.getByText("Selected")).toBeInTheDocument();
+    });
+
     it("allows canonical and reverse representations to select independently by their edge_id", async () => {
       mockedApi.getPublishedEdgeExplanation.mockImplementation(
         (pubId, projectionEdgeId) => {
