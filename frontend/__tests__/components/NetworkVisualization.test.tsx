@@ -404,6 +404,34 @@ describe("NetworkVisualization Component", () => {
       expect(screen.getByText("Selected")).toBeInTheDocument();
     });
 
+    it("clears stale selection when refreshed data removes the selected relationship", async () => {
+      const { rerender } = render(
+        <NetworkVisualization data={governedData} />,
+      );
+
+      const user = userEvent.setup();
+      await user.click(screen.getByTestId("plot-click-trigger"));
+      expect(screen.getByText("Selected")).toBeInTheDocument();
+
+      const refreshedData: VisualizationData = {
+        ...governedData,
+        edges: [governedData.edges[0]],
+      };
+      rerender(<NetworkVisualization data={refreshedData} />);
+
+      expect(screen.getByText("Select a relationship")).toBeInTheDocument();
+      expect(screen.queryByText("Selected")).not.toBeInTheDocument();
+
+      const plotData = JSON.parse(
+        screen.getByTestId("plot-data").textContent || "[]",
+      );
+      const legacyTrace = plotData.find(
+        (trace: { customdata?: string[] }) =>
+          trace.customdata?.[0] === "legacy-edge-1",
+      );
+      expect(legacyTrace.opacity).toBe(1);
+    });
+
     it("allows canonical and reverse representations to select independently by their edge_id", async () => {
       mockedApi.getPublishedEdgeExplanation.mockImplementation(
         (pubId, projectionEdgeId) => {
