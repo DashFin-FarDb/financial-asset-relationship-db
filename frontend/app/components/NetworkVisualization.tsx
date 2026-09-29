@@ -462,7 +462,8 @@ export default function NetworkVisualization({
               Relationship decision surface
             </h3>
             <p className="mt-1 max-w-2xl text-sm text-slate-600">
-              Select an edge to keep the graph in context while inspecting the governed relationship dossier.
+              Select an edge to keep the graph in context while inspecting the
+              governed relationship dossier.
             </p>
           </div>
           <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-medium text-slate-700">
@@ -525,7 +526,8 @@ export default function NetworkVisualization({
                 </h4>
               </div>
               <span className="text-xs text-slate-500">
-                {validEdges.length} {validEdges.length === 1 ? "relationship" : "relationships"}
+                {validEdges.length}{" "}
+                {validEdges.length === 1 ? "relationship" : "relationships"}
               </span>
             </div>
 
