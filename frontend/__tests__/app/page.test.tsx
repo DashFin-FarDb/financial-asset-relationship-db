@@ -476,9 +476,11 @@ describe("Error Handling and Recovery", () => {
     });
 
     fireEvent.click(screen.getByText("Metrics & Analytics"));
-    expect(
-      screen.getByText("Failed to load metrics data."),
-    ).toBeInTheDocument();
+    await waitFor(() => {
+      expect(
+        screen.getByText("Failed to load metrics data."),
+      ).toBeInTheDocument();
+    });
 
     fireEvent.click(screen.getByText("Retry"));
 
