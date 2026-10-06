@@ -414,9 +414,7 @@ describe("NetworkVisualization Component", () => {
         ),
       );
 
-      const { rerender } = render(
-        <NetworkVisualization data={governedData} />,
-      );
+      const { rerender } = render(<NetworkVisualization data={governedData} />);
 
       const user = userEvent.setup();
       await user.click(screen.getByTestId("plot-click-trigger"));
