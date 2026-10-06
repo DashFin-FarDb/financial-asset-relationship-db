@@ -489,7 +489,7 @@ export default function NetworkVisualization({
           >
             <p id="relationship-graph-summary" className="sr-only">
               Interactive 3D graph containing {validEdges.length} valid
-              relationships across {data.nodes.length} assets. Use the
+              relationships across {data?.nodes.length ?? 0} assets. Use the
               relationship index to select a relationship and inspect its
               governed dossier.
             </p>
