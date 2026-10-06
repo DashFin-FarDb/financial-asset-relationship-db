@@ -346,7 +346,9 @@ describe("Component Integration Tests", () => {
 
       render(<Home />);
 
-      expect(screen.getByText("Loading relationship graph...")).toBeInTheDocument();
+      expect(
+        screen.getByText("Loading relationship graph..."),
+      ).toBeInTheDocument();
 
       // Resolve in reverse order
       visualizationDeferred.resolve(mockVisualizationData);
