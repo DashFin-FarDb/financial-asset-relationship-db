@@ -378,7 +378,8 @@ function resolveClickedKey(event: {
   points?: ReadonlyArray<{ customdata?: unknown }>;
 }): string | null {
   const customdata = event?.points?.[0]?.customdata;
-  return typeof customdata === "string" ? customdata : null;
+  const value = Array.isArray(customdata) ? customdata[0] : customdata;
+  return typeof value === "string" ? value : null;
 }
 
 /**
@@ -541,7 +542,7 @@ export default function NetworkVisualization({
                   Relationship index
                 </p>
                 <h4 className="mt-1 text-lg font-semibold text-slate-900">
-                  Select a relationship
+                  Relationship index
                 </h4>
               </div>
               <span className="text-xs text-slate-500">
