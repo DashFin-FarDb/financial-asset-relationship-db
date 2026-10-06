@@ -165,12 +165,17 @@ describe("Component Integration Tests", () => {
       render(<Home />);
 
       await waitFor(() => {
-        expect(screen.getByText(/Failed to load data/i)).toBeInTheDocument();
+        expect(
+          screen.getByText(/Failed to load visualization data/i),
+        ).toBeInTheDocument();
       });
 
-      // Metrics were loaded, but error prevents showing any component
+      // Metrics remain available while the visualization reports its own bounded failure.
       expect(mockedApi.getMetrics).toHaveBeenCalled();
       expect(mockedApi.getVisualizationData).toHaveBeenCalled();
+      expect(
+        screen.getByText(/Synthetic governance walkthrough/i),
+      ).toBeInTheDocument();
 
       consoleError.mockRestore();
     });
@@ -341,7 +346,7 @@ describe("Component Integration Tests", () => {
 
       render(<Home />);
 
-      expect(screen.getByText("Loading data...")).toBeInTheDocument();
+      expect(screen.getByText("Loading relationship graph...")).toBeInTheDocument();
 
       // Resolve in reverse order
       visualizationDeferred.resolve(mockVisualizationData);
