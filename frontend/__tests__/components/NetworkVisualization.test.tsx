@@ -34,7 +34,7 @@ jest.mock("react-plotly.js", () => {
           onClick={() => {
             if (onClick) {
               onClick({
-                points: [{ customdata: "edge-canonical" }],
+                points: [{ customdata: ["edge-canonical"] }],
               });
             }
           }}
@@ -405,6 +405,15 @@ describe("NetworkVisualization Component", () => {
     });
 
     it("clears stale selection when refreshed data removes the selected relationship", async () => {
+      mockedApi.getPublishedEdgeExplanation.mockResolvedValue(
+        createMockExplanation(
+          "pedge-1",
+          "ASSET_2",
+          "ASSET_1",
+          "ASSET_2 is the issuer of ASSET_1",
+        ),
+      );
+
       const { rerender } = render(
         <NetworkVisualization data={governedData} />,
       );
