@@ -180,7 +180,7 @@ def test_representative_scale_rebuild_records_baseline_timing(
         monkeypatch.setattr(
             graph_admin,
             "build_rebuild_graph",
-            lambda *_args, **_kwargs: (representative_graph, "sample"),
+            lambda *_args, **_kwargs: (representative_graph, "real_data"),
         )
 
         engine = create_engine_from_url(database_url)

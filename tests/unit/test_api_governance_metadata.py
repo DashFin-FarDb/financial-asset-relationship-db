@@ -318,7 +318,7 @@ def test_cache_primed_read_is_refreshed_after_admin_publication(
             job_id="job-test",
             execution_id="exec-test",
             graph=graph,
-            source="sample",
+            source="real_data",
             job_started_at=0.0,
             lock_lost=threading.Event(),
             cancel_event=threading.Event(),

@@ -208,7 +208,7 @@ def test_rebuild_allows_active_authorized_operator_user(
         _ = execution_id
         return graph_admin.GraphRebuildResponse(
             status="persisted",
-            source="sample",
+            source="real_data",
             asset_count=0,
             relationship_count=0,
             regulatory_event_count=0,
@@ -226,7 +226,7 @@ def test_rebuild_allows_active_authorized_operator_user(
     data = _assert_successful_json_response(response)
     assert data == {
         "status": "persisted",
-        "source": "sample",
+        "source": "real_data",
         "asset_count": 0,
         "relationship_count": 0,
         "regulatory_event_count": 0,
@@ -454,7 +454,7 @@ async def test_rebuild_outcome_logging_survives_request_cancellation_hardened(
         thread_reached.set()
         proceed_thread.wait(timeout=5.0)
         return graph_admin.GraphRebuildResponse(
-            status="persisted", source="sample", asset_count=5, relationship_count=2, regulatory_event_count=0
+            status="persisted", source="real_data", asset_count=5, relationship_count=2, regulatory_event_count=0
         )
 
     monkeypatch.setattr(graph_admin, "_perform_rebuild_and_persist_sync", coordinated_sync_rebuild)
