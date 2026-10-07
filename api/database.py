@@ -194,10 +194,15 @@ _AUTH_SAFE_ROLE_SQL = "".join(
         "AND membership.member <> (SELECT datdba FROM pg_database WHERE datname = current_database())) "
         "AND (",
         USABLE_ROLE_MEMBERSHIP_CTE_SQL,
-        "SELECT COUNT(*) FROM pg_roles AS grantee "
+        "SELECT (SELECT COUNT(*) FROM pg_roles AS grantee "
         "WHERE grantee.rolcanlogin AND grantee.oid <> (SELECT datdba FROM pg_database WHERE datname = current_database()) "
         "AND EXISTS (SELECT 1 FROM role_membership "
-        "WHERE role_membership.member = grantee.oid AND role_membership.roleid = role.oid)) <= 1",
+        "WHERE role_membership.member = grantee.oid AND role_membership.roleid = role.oid)) >= 1 "
+        "AND NOT EXISTS (SELECT 1 FROM pg_roles AS grantee "
+        "WHERE grantee.rolcanlogin AND grantee.oid <> (SELECT datdba FROM pg_database WHERE datname = current_database()) "
+        "AND EXISTS (SELECT 1 FROM role_membership "
+        "WHERE role_membership.member = grantee.oid AND role_membership.roleid = role.oid) "
+        "AND NOT (grantee.rolname LIKE REPLACE(role.rolname, 'fardb_runtime_', 'fardb_login_') || '%%'))",
     )
 )
 
