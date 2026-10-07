@@ -178,6 +178,7 @@ def test_runtime_capability_catalog_accepts_exact_graph_contract() -> None:  # n
             assert "membership.member = role_membership.roleid" in sql
             assert "OR role_membership.member_is_superuser OR member_role.rolsuper" in sql
             assert "SELECT COUNT(*) FROM pg_roles AS grantee" in sql
+            assert "grantee.oid <> (SELECT datdba FROM pg_database WHERE datname = current_database())" in sql
             assert "role_membership.member = grantee.oid" in sql
             assert "role_membership.roleid = role.oid" in sql
             assert ") <= 1" in sql

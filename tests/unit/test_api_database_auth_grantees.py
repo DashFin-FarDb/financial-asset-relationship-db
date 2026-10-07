@@ -78,6 +78,7 @@ def test_verify_runtime_authority_rejects_unsafe_auth_capability_role(monkeypatc
     assert USABLE_ROLE_MEMBERSHIP_CTE_SQL in safe_role_query
     assert "has_schema_privilege(role.oid, namespace.oid, 'CREATE')" in safe_role_query
     assert "grantee.rolcanlogin" in safe_role_query
+    assert "grantee.oid <> (SELECT datdba FROM pg_database WHERE datname = current_database())" in safe_role_query
     assert "WITH RECURSIVE role_membership(member, roleid, member_is_superuser)" in safe_role_query
     assert "to_jsonb(membership) ->> 'inherit_option'" in safe_role_query
     assert "to_jsonb(membership) ->> 'set_option'" in safe_role_query
