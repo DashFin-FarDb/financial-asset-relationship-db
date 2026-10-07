@@ -63,6 +63,7 @@ BEGIN
                   OR EXISTS (
                       SELECT 1 FROM pg_auth_members AS membership
                       WHERE membership.roleid = role.oid AND membership.admin_option
+                        AND membership.member <> (SELECT datdba FROM pg_database WHERE datname = current_database())
                   )
               )
         ) THEN

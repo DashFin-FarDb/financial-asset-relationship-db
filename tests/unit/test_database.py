@@ -167,6 +167,7 @@ def test_runtime_capability_catalog_accepts_exact_graph_contract() -> None:  # n
             assert set(parameters["sequence_tables"]) == set(parameters["tables"])
             assert "membership.roleid = role.oid" in sql
             assert "membership.admin_option" in sql
+            assert "membership.member <> (SELECT datdba FROM pg_database WHERE datname = current_database())" in sql
             assert "WITH RECURSIVE role_membership(member, roleid, member_is_superuser)" in sql
             assert "grantee.rolsuper" in sql
             assert "to_jsonb(membership) ->> 'inherit_option'" in sql

@@ -560,7 +560,8 @@ def _verify_runtime_capability_roles(connection, capabilities: tuple[str, ...], 
                         "AND NOT EXISTS (SELECT 1 FROM pg_auth_members AS membership "
                         "WHERE membership.member = role.oid) "
                         "AND NOT EXISTS (SELECT 1 FROM pg_auth_members AS membership "
-                        "WHERE membership.roleid = role.oid AND membership.admin_option) AND (",
+                        "WHERE membership.roleid = role.oid AND membership.admin_option "
+                        "AND membership.member <> (SELECT datdba FROM pg_database WHERE datname = current_database())) AND (",
                         USABLE_ROLE_MEMBERSHIP_CTE_SQL,
                         "SELECT COUNT(*) FROM pg_roles AS grantee WHERE grantee.rolcanlogin "
                         "AND EXISTS (SELECT 1 FROM role_membership WHERE role_membership.member = grantee.oid "

@@ -87,6 +87,7 @@ def test_verify_runtime_authority_rejects_unsafe_auth_capability_role(monkeypatc
     assert "OR grantee.rolsuper" in safe_role_query
     assert "membership.roleid = role.oid" in safe_role_query
     assert "membership.admin_option" in safe_role_query
+    assert "membership.member <> (SELECT datdba FROM pg_database WHERE datname = current_database())" in safe_role_query
     assert "JOIN pg_roles AS member_role ON member_role.oid = role_membership.roleid" in safe_role_query
     assert "membership.member = role_membership.roleid" in safe_role_query
     assert "OR role_membership.member_is_superuser OR member_role.rolsuper" in safe_role_query

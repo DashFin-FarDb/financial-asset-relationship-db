@@ -524,6 +524,56 @@ def test_auth_runtime_rejects_inert_creator_admin_option() -> None:
 
 
 @pytest.mark.integration
+def test_db_owner_admin_option_accepted_for_capability_roles() -> None:
+    """Database owner ADMIN OPTION on capability roles is accepted while non-owner ADMIN OPTION is rejected."""
+    database_url = _ephemeral_database_url()
+    _prepare_auth_schema(database_url)
+
+    import api.database as api_database
+
+    with api_database.bind_database_url(database_url):
+        api_database.ensure_runtime_access()
+
+    try:
+        with _operator_connection(database_url) as connection, connection.cursor() as cursor:
+            cursor.execute("SHOW server_version_num")
+            if int(cursor.fetchone()[0]) < 160000:
+                pytest.skip("per-membership INHERIT and SET options require PostgreSQL 16+")
+            runtime_login_ddl = sql.SQL(
+                "CREATE ROLE {} LOGIN INHERIT NOSUPERUSER NOCREATEDB " "NOCREATEROLE NOBYPASSRLS NOREPLICATION"
+            )
+            cursor.execute(runtime_login_ddl.format(sql.Identifier(_AUTH_RUNTIME_LOGIN)))
+            cursor.execute(
+                sql.SQL("GRANT {} TO {} WITH INHERIT TRUE, SET TRUE").format(
+                    sql.Identifier(api_database.AUTH_RUNTIME_ROLE),
+                    sql.Identifier(_AUTH_RUNTIME_LOGIN),
+                )
+            )
+            # Grant ADMIN OPTION to the current database owner role
+            cursor.execute("SELECT CURRENT_USER")
+            db_owner = cursor.fetchone()[0]
+            cursor.execute(
+                sql.SQL("GRANT {} TO {} WITH ADMIN OPTION").format(
+                    sql.Identifier(api_database.AUTH_RUNTIME_ROLE),
+                    sql.Identifier(db_owner),
+                )
+            )
+
+        # Database owner ADMIN OPTION is accepted
+        with (
+            patch.object(api_database, "DATABASE_TYPE", "postgresql"),
+            patch.object(
+                api_database,
+                "_create_postgres_connection",
+                side_effect=lambda: _runtime_connection(database_url, _AUTH_RUNTIME_LOGIN),
+            ),
+        ):
+            api_database.verify_runtime_authority()
+    finally:
+        _drop_roles(database_url, _AUTH_RUNTIME_LOGIN)
+
+
+@pytest.mark.integration
 def test_non_superuser_migration_owner_cannot_create_missing_capability_role() -> None:
     """A CREATEROLE migration owner must stop before creating a missing capability role."""
     database_url = _ephemeral_database_url()
