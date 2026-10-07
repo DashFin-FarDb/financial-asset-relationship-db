@@ -513,7 +513,9 @@ describe("NetworkVisualization Component", () => {
 
       await user.click(deselectButton);
       expect(screen.getByText("Select a relationship")).toBeInTheDocument();
-      expect(screen.queryByRole("button", { name: "Deselect relationship" })).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole("button", { name: "Deselect relationship" }),
+      ).not.toBeInTheDocument();
       expect(canonicalButton).toHaveAttribute("aria-pressed", "false");
     });
 
