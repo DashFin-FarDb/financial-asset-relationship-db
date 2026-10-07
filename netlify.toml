@@ -2,3 +2,9 @@
   base = "frontend"
   command = "npm ci && npm run build"
   publish = "out"
+
+[[redirects]]
+  from = "/api/*"
+  to = "https://financial-asset-relationship-db-nine.vercel.app/api/:splat"
+  status = 200
+  force = true
