@@ -17,3 +17,17 @@ USABLE_ROLE_MEMBERSHIP_CTE_SQL = (
     "OR COALESCE((to_jsonb(membership) ->> 'set_option')::boolean, TRUE) "
     "OR role_membership.member_is_superuser OR member_role.rolsuper)) "
 )
+
+APPROVED_RUNTIME_LOGIN_PRINCIPALS: dict[str, frozenset[str]] = {
+    "fardb_runtime_auth": frozenset({"fardb_login_auth", "fardb_login_auth_prod"}),
+    "fardb_runtime_graph": frozenset({"fardb_login_graph"}),
+    "fardb_runtime_coordination": frozenset({"fardb_login_coordination"}),
+}
+
+
+def get_approved_login_principals(capability_role: str) -> tuple[str, ...]:
+    """Return sorted tuple of approved login principals for a capability role."""
+    principals = APPROVED_RUNTIME_LOGIN_PRINCIPALS.get(capability_role)
+    if principals is None:
+        raise ValueError(f"Unknown capability role: {capability_role}")
+    return tuple(sorted(principals))

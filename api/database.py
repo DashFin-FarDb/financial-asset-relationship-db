@@ -51,7 +51,10 @@ from urllib.parse import unquote, urlparse
 
 from src.config.settings import get_settings
 from src.data.database import POSTGRESQL_MANAGED_TABLES, SchemaCompatibilityError
-from src.data.runtime_role_membership import USABLE_ROLE_MEMBERSHIP_CTE_SQL
+from src.data.runtime_role_membership import (
+    USABLE_ROLE_MEMBERSHIP_CTE_SQL,
+    get_approved_login_principals,
+)
 
 AUTH_RUNTIME_ROLE = "fardb_runtime_auth"
 _NON_AUTH_MANAGED_TABLES = tuple(table for table in POSTGRESQL_MANAGED_TABLES if table != "user_credentials")
@@ -202,7 +205,7 @@ _AUTH_SAFE_ROLE_SQL = "".join(
         "WHERE grantee.rolcanlogin AND grantee.oid <> (SELECT datdba FROM pg_database WHERE datname = current_database()) "
         "AND EXISTS (SELECT 1 FROM role_membership "
         "WHERE role_membership.member = grantee.oid AND role_membership.roleid = role.oid) "
-        "AND NOT (grantee.rolname LIKE REPLACE(role.rolname, 'fardb_runtime_', 'fardb_login_') || '%%'))",
+        "AND NOT (grantee.rolname = ANY(%s)))",
     )
 )
 
@@ -978,6 +981,7 @@ def verify_runtime_access_catalog() -> None:
             AUTH_RUNTIME_ROLE,
             list(_NON_AUTH_MANAGED_TABLES),
             list(_NON_AUTH_MANAGED_TABLES),
+            list(get_approved_login_principals(AUTH_RUNTIME_ROLE)),
         ),
     )
     exact_access = fetch_value(

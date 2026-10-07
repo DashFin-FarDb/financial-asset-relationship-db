@@ -182,7 +182,8 @@ def test_runtime_capability_catalog_accepts_exact_graph_contract() -> None:  # n
             assert "role_membership.member = grantee.oid" in sql
             assert "role_membership.roleid = role.oid" in sql
             assert ") >= 1" in sql
-            assert "grantee.rolname LIKE REPLACE(role.rolname, 'fardb_runtime_', 'fardb_login_')" in sql
+            assert "grantee.rolname IN (__[POSTCOMPILE_approved_logins])" in sql
+            assert parameters["approved_logins"] == ["fardb_login_graph"]
             return _CatalogResult(scalar=True)
         if "has_schema_privilege(:role_name" in sql:
             assert "has_schema_privilege(:role_name, namespace.oid, 'CREATE')" in sql

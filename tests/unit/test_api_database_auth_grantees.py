@@ -55,9 +55,9 @@ def test_verify_runtime_access_catalog_counts_only_usable_login_grantees(monkeyp
     assert "has_any_column_privilege(role.oid, cross_rel.oid, 'SELECT')" in safe_role_query
     assert "has_sequence_privilege(role.oid, cross_sequence.oid, 'UPDATE')" in safe_role_query
     assert "has_function_privilege(role.oid, cross_proc.oid, 'EXECUTE')" in safe_role_query
-    assert fetch_value.call_args_list[0].args[1][1] == list(api_database._NON_AUTH_MANAGED_TABLES)
+    assert fetch_value.call_args_list[0].args[1][3] == ["fardb_login_auth", "fardb_login_auth_prod"]
     assert ") >= 1" in safe_role_query
-    assert "grantee.rolname LIKE REPLACE(role.rolname, 'fardb_runtime_', 'fardb_login_')" in safe_role_query
+    assert "grantee.rolname = ANY(%s)" in safe_role_query
 
 
 def test_verify_runtime_authority_rejects_unsafe_auth_capability_role(monkeypatch) -> None:
@@ -97,4 +97,4 @@ def test_verify_runtime_authority_rejects_unsafe_auth_capability_role(monkeypatc
     assert "role_membership.member = grantee.oid" in safe_role_query
     assert "role_membership.roleid = role.oid" in safe_role_query
     assert ") >= 1" in safe_role_query
-    assert "grantee.rolname LIKE REPLACE(role.rolname, 'fardb_runtime_', 'fardb_login_')" in safe_role_query
+    assert "grantee.rolname = ANY(%s)" in safe_role_query

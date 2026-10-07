@@ -27,7 +27,7 @@ from .check_constraint_normalization import normalize_check_definition as _norma
 # Canonical transaction helper lives in repository.py per tech spec.
 # Re-export here for backward compatibility with older imports.
 from .repository import session_scope  # noqa: F401, E402
-from .runtime_role_membership import USABLE_ROLE_MEMBERSHIP_CTE_SQL
+from .runtime_role_membership import USABLE_ROLE_MEMBERSHIP_CTE_SQL, get_approved_login_principals
 
 DEFAULT_DATABASE_URL = "sqlite:///./asset_graph.db"
 ASSET_GRAPH_DATABASE_URL_ENV_VAR = "ASSET_GRAPH_DATABASE_URL"
@@ -571,18 +571,20 @@ def _verify_runtime_capability_roles(connection, capabilities: tuple[str, ...], 
                         "AND grantee.oid <> (SELECT datdba FROM pg_database WHERE datname = current_database()) "
                         "AND EXISTS (SELECT 1 FROM role_membership WHERE role_membership.member = grantee.oid "
                         "AND role_membership.roleid = role.oid) "
-                        "AND NOT (grantee.rolname LIKE REPLACE(role.rolname, 'fardb_runtime_', 'fardb_login_') || '%'))",
+                        "AND NOT (grantee.rolname IN :approved_logins))",
                     )
                 )
             ).bindparams(
                 bindparam("tables", expanding=True),
                 bindparam("sequence_tables", expanding=True),
+                bindparam("approved_logins", expanding=True),
             ),
             {
                 "role_name": role_name,
                 "auth_table": AUTH_RUNTIME_TABLE,
                 "tables": managed_tables,
                 "sequence_tables": managed_tables,
+                "approved_logins": list(get_approved_login_principals(role_name)),
             },
         ).scalar_one()
         if not safe_role:
