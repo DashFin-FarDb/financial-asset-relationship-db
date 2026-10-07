@@ -62,20 +62,24 @@ def test_verify_runtime_access_catalog_counts_only_usable_login_grantees(monkeyp
 
 def test_verify_runtime_authority_rejects_unsafe_auth_capability_role(monkeypatch) -> None:
     """A falsy safe-role catalog result must reject the auth capability contract."""
-    fetch_value = MagicMock(side_effect=[True, 1, True, True, False, True, True, True, True])
+    fetch_value = MagicMock(side_effect=[True, "fardb_login_auth", 1, True, True, False, True, True, True, True])
     monkeypatch.setattr(api_database, "DATABASE_TYPE", "postgresql")
     monkeypatch.setattr(api_database, "fetch_value", fetch_value)
 
     with pytest.raises(SchemaCompatibilityError, match="capability contract is incompatible"):
         api_database.verify_runtime_authority()
 
-    for usable_membership_query in (call.args[0] for call in fetch_value.call_args_list[:3]):
+    for usable_membership_query in [
+        call.args[0] for call in fetch_value.call_args_list if "server_version_num" in call.args[0]
+    ]:
         assert "current_setting('server_version_num')::integer >= 160000" in usable_membership_query
         assert "pg_has_role(login.oid, assumable.oid, 'USAGE')" in usable_membership_query
         assert "pg_has_role(login.oid, assumable.oid, 'SET')" in usable_membership_query
         assert "ELSE pg_has_role(login.oid, assumable.oid, 'MEMBER') END" in usable_membership_query
 
-    safe_role_query = fetch_value.call_args_list[4].args[0]
+    safe_role_query = [
+        call.args[0] for call in fetch_value.call_args_list if USABLE_ROLE_MEMBERSHIP_CTE_SQL in call.args[0]
+    ][0]
     assert USABLE_ROLE_MEMBERSHIP_CTE_SQL in safe_role_query
     assert "has_schema_privilege(role.oid, namespace.oid, 'CREATE')" in safe_role_query
     assert "grantee.rolcanlogin" in safe_role_query
@@ -98,3 +102,13 @@ def test_verify_runtime_authority_rejects_unsafe_auth_capability_role(monkeypatc
     assert "role_membership.roleid = role.oid" in safe_role_query
     assert ") >= 1" in safe_role_query
     assert "grantee.rolname = ANY(%s)" in safe_role_query
+
+
+def test_verify_runtime_authority_rejects_unapproved_session_user(monkeypatch) -> None:
+    """An unapproved session_user connecting to auth capability must fail closed."""
+    fetch_value = MagicMock(side_effect=[True, "fardb_login_unapproved_hacker"])
+    monkeypatch.setattr(api_database, "DATABASE_TYPE", "postgresql")
+    monkeypatch.setattr(api_database, "fetch_value", fetch_value)
+
+    with pytest.raises(SchemaCompatibilityError, match="API runtime login principal is not an approved login"):
+        api_database.verify_runtime_authority()

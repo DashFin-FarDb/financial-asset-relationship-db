@@ -1095,6 +1095,10 @@ def verify_runtime_authority() -> None:
             "API runtime database role retains schema-migration authority or cross-profile authority"
         )
 
+    session_user_name = fetch_value("SELECT session_user")
+    if session_user_name not in get_approved_login_principals(AUTH_RUNTIME_ROLE):
+        raise SchemaCompatibilityError("API runtime login principal is not an approved login for the auth capability")
+
     membership_count = fetch_value(
         "SELECT COUNT(*) FROM pg_roles AS login JOIN pg_roles AS assumable "
         "ON assumable.oid <> login.oid AND "
@@ -1102,7 +1106,9 @@ def verify_runtime_authority() -> None:
         "(pg_has_role(login.oid, assumable.oid, 'USAGE') "
         "OR pg_has_role(login.oid, assumable.oid, 'SET')) "
         "ELSE pg_has_role(login.oid, assumable.oid, 'MEMBER') END "
-        "WHERE login.rolname = session_user",
+        "WHERE login.rolname = session_user "
+        "AND (assumable.rolname LIKE 'fardb_runtime_%%' OR assumable.rolsuper OR assumable.rolcreaterole "
+        "OR assumable.rolcreatedb OR assumable.rolbypassrls OR assumable.rolreplication)",
     )
     has_auth_membership = fetch_value(
         "SELECT EXISTS (SELECT 1 FROM pg_roles AS login JOIN pg_roles AS assumable "
