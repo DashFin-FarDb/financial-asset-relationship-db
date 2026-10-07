@@ -36,6 +36,7 @@ from .graph_lifecycle import (
     sync_with_latest_rebuild,
 )
 from .graph_lifecycle_providers import (
+    AuthoritativeGraphUnavailableError,
     resolve_hosted_graph_database_url,
     should_degrade_hosted_startup,
 )
@@ -289,9 +290,10 @@ async def _initialize_application_state(
     except asyncio.CancelledError:
         await _stop_auth_database_verification(verification_task, operation_guard)
         raise
+    is_clean_install = False
     if has_persistence:
         try:
-            await _perform_startup_reconciliation(settings)
+            is_clean_install = await _perform_startup_reconciliation(settings)
         except SchemaCompatibilityError:
             raise
         except (SQLAlchemyError, OSError, RuntimeError) as exc:
@@ -314,15 +316,19 @@ async def _initialize_application_state(
     # Required initialization for all environments to ensure state validity
     try:
         get_graph()
-    except (SQLAlchemyError, OSError) as exc:
-        if not hosted_startup_degradation_allowed:
+    except (SQLAlchemyError, OSError, AuthoritativeGraphUnavailableError) as exc:
+        if not (hosted_startup_degradation_allowed or is_clean_install):
             raise
         log_event(
             logger,
             logging.WARNING,
             ObservabilityEvent(
                 event="startup_degraded",
-                message="Hosted fallback graph bootstrap failed; continuing with degraded boot.",
+                message=(
+                    "Clean install graph bootstrap empty; awaiting initial rebuild."
+                    if is_clean_install
+                    else "Hosted fallback graph bootstrap failed; continuing with degraded boot."
+                ),
                 metadata={
                     "error": type(exc).__name__,
                     "phase": "graph_bootstrap",
@@ -394,7 +400,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     await _perform_orderly_shutdown(sync_task, slo_task, recon_task, has_persistence)
 
 
-async def _perform_startup_reconciliation(settings: GraphLifecycleSettings) -> None:
+async def _perform_startup_reconciliation(settings: GraphLifecycleSettings) -> bool:
     """Run startup reconciliation with timeout and error handling."""
     from src.logic.recovery_gate import ExecutionBlockedError
 
@@ -417,10 +423,11 @@ async def _perform_startup_reconciliation(settings: GraphLifecycleSettings) -> N
                 ),
             )
             raise RuntimeError("Startup reconciliation timed out") from None
+        return False
     except SchemaCompatibilityError:
         raise
     except ExecutionBlockedError as exc:
-        _handle_reconciliation_blocked(exc)
+        return _handle_reconciliation_blocked(exc)
     except Exception as exc:
         log_event(
             logger,
@@ -441,7 +448,7 @@ async def _perform_startup_reconciliation(settings: GraphLifecycleSettings) -> N
         raise RuntimeError("Failed to load persisted graph during startup") from None
 
 
-def _handle_reconciliation_blocked(exc: Any) -> None:
+def _handle_reconciliation_blocked(exc: Any) -> bool:
     """Handle ExecutionBlockedError from RecoveryGate."""
     if exc.action == "wait" and exc.inconsistency_type == "none":
         log_event(
@@ -455,17 +462,17 @@ def _handle_reconciliation_blocked(exc: Any) -> None:
                 ),
             ),
         )
-    else:
-        log_event(
-            logger,
-            logging.CRITICAL,
-            ObservabilityEvent(
-                event="startup_reconciliation_blocked",
-                message=f"Application startup BLOCKED by RecoveryGate safety invariant: {type(exc).__name__}",
-                metadata={"error": type(exc).__name__},
-            ),
-        )
-        raise exc from None
+        return True
+    log_event(
+        logger,
+        logging.CRITICAL,
+        ObservabilityEvent(
+            event="startup_reconciliation_blocked",
+            message=f"Application startup BLOCKED by RecoveryGate safety invariant: {type(exc).__name__}",
+            metadata={"error": type(exc).__name__},
+        ),
+    )
+    raise exc from None
 
 
 def _start_background_tasks(

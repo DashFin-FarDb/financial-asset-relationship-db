@@ -377,6 +377,15 @@ def test_promotion_gate_sequence_rebuild_restart_and_persisted_startup(
     database_url = _sqlite_url(tmp_path, "promotion-gate.db")
     _init_empty_db(database_url)
     _configure_persistence(monkeypatch, database_url)
+    monkeypatch.setattr(
+        providers,
+        "build_rebuild_graph",
+        lambda *args, **kwargs: (_seeded_hosted_graph(), "real_data"),
+    )
+    monkeypatch.setattr(
+        "api.routers.graph_admin.build_rebuild_graph",
+        lambda *args, **kwargs: (_seeded_hosted_graph(), "real_data"),
+    )
 
     with TestClient(_authorized_active_user_app(monkeypatch)) as client:
         rebuild_response = client.post("/api/graph/rebuild")

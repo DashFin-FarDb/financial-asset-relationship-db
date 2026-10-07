@@ -50,6 +50,7 @@ async def test_lifespan_calls_shutdown_rebuild_executor_on_exit(
     )
     # FIX: Correct parameter count mapping across all lambda hooks
     monkeypatch.setattr(app_factory, "_run_startup_reconciliation", lambda s, ce=None: None)
+    monkeypatch.setattr(app_factory, "get_graph", lambda: None)
     monkeypatch.setattr(app_factory, "init_rebuild_executor", lambda s: None)
     monkeypatch.setattr(app_factory, "shutdown_rebuild_executor", fake_shutdown)
 

@@ -4,7 +4,6 @@ import json
 import logging
 import math
 import threading
-from collections.abc import Callable
 from dataclasses import asdict
 from datetime import datetime, timedelta, timezone
 from enum import Enum
@@ -34,6 +33,56 @@ logger = logging.getLogger(__name__)
 class FetchCancelledError(RebuildCancelledError):
     """Raised when data fetching is aborted via a cancellation signal."""
 
+
+class DataAcquisitionError(Exception):
+    """Raised when real financial data acquisition fails."""
+
+
+class DataAcquisitionIncompleteError(DataAcquisitionError):
+    """Raised when real financial data acquisition fails the strict completeness gate."""
+
+
+REQUIRED_EQUITY_SYMBOLS: dict[str, tuple[str, str]] = {
+    "AAPL": ("Apple Inc.", "Technology"),
+    "MSFT": ("Microsoft Corporation", "Technology"),
+    "XOM": ("Exxon Mobil Corporation", "Energy"),
+    "JPM": ("JPMorgan Chase & Co.", "Financial Services"),
+}
+
+REQUIRED_BOND_SYMBOLS: dict[str, tuple[str, str, str | None, str | None]] = {
+    "TLT": ("iShares 20+ Year Treasury Bond ETF", "Government", None, "AAA"),
+    "LQD": (
+        "iShares iBoxx $ Investment Grade Corporate Bond ETF",
+        "Corporate",
+        None,
+        None,
+    ),
+    "HYG": (
+        "iShares iBoxx $ High Yield Corporate Bond ETF",
+        "Corporate",
+        None,
+        None,
+    ),
+}
+
+REQUIRED_COMMODITY_SYMBOLS: dict[str, tuple[str, str, float, float]] = {
+    "GC=F": ("Gold Futures", "Metals", 100.0, 0.20),
+    "CL=F": ("Crude Oil Futures", "Energy", 1000.0, 0.35),
+    "SI=F": ("Silver Futures", "Metals", 5000.0, 0.25),
+}
+
+REQUIRED_CURRENCY_SYMBOLS: dict[str, tuple[str, str, str]] = {
+    "EURUSD=X": ("Euro", "EU", "EUR"),
+    "GBPUSD=X": ("British Pound", "UK", "GBP"),
+    "JPYUSD=X": ("Japanese Yen", "Japan", "JPY"),
+}
+
+TOTAL_REQUIRED_ASSET_COUNT: int = (
+    len(REQUIRED_EQUITY_SYMBOLS)
+    + len(REQUIRED_BOND_SYMBOLS)
+    + len(REQUIRED_COMMODITY_SYMBOLS)
+    + len(REQUIRED_CURRENCY_SYMBOLS)
+)
 
 _YFINANCE_MODULE = None
 _FETCHED_ASSET_LOG_MESSAGE = "Fetched %s: %s at $%.2f"
@@ -144,22 +193,18 @@ def __getattr__(name: str) -> Any:
 
 class RealDataFetcher:
     """
-    Fetch real financial data from Yahoo Finance with optional fallback behavior.
+    Fetch real financial data from Yahoo Finance with fail-closed integrity guarantees.
 
     Yahoo Finance fetching requires the optional ``yfinance`` package. If that
     dependency is missing, methods that attempt live fetches will raise a
-    RuntimeError. Higher-level helpers such as ``create_real_database()`` catch
-    failures and can fall back to cached or sample data instead.
-
-    The fetcher also supports offline operation by disabling network access and
-    using cached or sample data only.
+    RuntimeError. If network fetching is disabled or live fetch fails without a
+    valid cache, ``DataAcquisitionIncompleteError`` is raised.
     """
 
     def __init__(
         self,
         *,
         cache_path: str | None = None,
-        fallback_factory: Callable[[], AssetRelationshipGraph] | None = None,
         enable_network: bool = True,
     ) -> None:
         """
@@ -168,29 +213,27 @@ class RealDataFetcher:
         Args:
             cache_path: Optional path to a JSON cache file used to load or
                 persist a previously built AssetRelationshipGraph.
-            fallback_factory: Optional callable producing an
-                AssetRelationshipGraph to use when network fetching is disabled
-                or live fetching fails. If omitted, built-in sample data is
-                used.
             enable_network: When False, disables network access and causes
-                ``create_real_database()`` to return fallback data instead of
-                attempting live fetches.
+                live fetches to be skipped.
         """
         self.cache_path = Path(cache_path) if cache_path else None
-        self.fallback_factory = fallback_factory
         self.enable_network = enable_network
 
     def create_real_database(self) -> AssetRelationshipGraph:
         """
-        Create an asset relationship graph using cached data, live Yahoo Finance data, or a fallback/sample dataset.
+        Create an asset relationship graph using cached data or live Yahoo Finance data.
 
         If a configured cache exists it is used; otherwise, when network fetching is enabled
         a live fetch is attempted and the resulting graph is persisted to cache if configured.
-        If network fetching is disabled or the live fetch fails, the configured fallback or
-        the built-in sample dataset is returned.
+        If network fetching is disabled or the live fetch fails, DataAcquisitionIncompleteError is raised.
 
         Returns:
-            AssetRelationshipGraph: A graph populated from cache, live data, or fallback/sample data.
+            AssetRelationshipGraph: A graph populated from cache or live data.
+
+        Raises:
+            DataAcquisitionIncompleteError: If network is disabled and cache is unavailable,
+                or if live acquisition is incomplete.
+            DataAcquisitionError: If live acquisition fails.
         """
         graph, _ = self.create_real_database_with_source()
         return graph
@@ -226,21 +269,21 @@ class RealDataFetcher:
             )
             return None
 
-    def _try_live_fetch(
-        self, cancel_event: threading.Event | None = None
-    ) -> tuple["AssetRelationshipGraph", str] | None:
+    def _try_live_fetch(self, cancel_event: threading.Event | None = None) -> tuple["AssetRelationshipGraph", str]:
         """Attempt to fetch live data, build the graph, and optionally persist it.
 
         Args:
             cancel_event: Optional event to signal cancellation.
 
         Returns:
-            tuple[AssetRelationshipGraph, str] | None: A tuple containing the graph and source tag, or None if failed.
+            tuple[AssetRelationshipGraph, str]: A tuple containing the graph and source tag ("real_data").
+
+        Raises:
+            FetchCancelledError: If data acquisition is cancelled.
+            DataAcquisitionIncompleteError: If acquisition fails completeness gates or error occurs.
         """
         try:
             assets, events, source = self._perform_live_raw_fetch(cancel_event)
-            if source == "sample":
-                return self._fallback(), "sample"
 
             from src.config.settings import get_settings
 
@@ -275,9 +318,9 @@ class RealDataFetcher:
                     },
                 ),
             )
-            return graph, "real_data"
+            return graph, source
 
-        except FetchCancelledError:
+        except (FetchCancelledError, DataAcquisitionIncompleteError):
             raise
         except Exception as exc:
             log_event(
@@ -289,14 +332,14 @@ class RealDataFetcher:
                     metadata={"error": type(exc).__name__},
                 ),
             )
-            return None
+            raise DataAcquisitionIncompleteError(f"Failed to create real database: {exc}") from exc
 
     def create_real_database_with_source(
         self,
         cancel_event: threading.Event | None = None,
     ) -> tuple[AssetRelationshipGraph, str]:
         """
-        Create an asset relationship graph and identify its source (cache, real_data, or sample).
+        Create an asset relationship graph and identify its source ("cache" or "real_data").
 
         This is the provenance-safe version of create_real_database. It returns both the
         constructed graph and a source tag identifying where the data originated.
@@ -306,7 +349,12 @@ class RealDataFetcher:
 
         Returns:
             tuple[AssetRelationshipGraph, str]: A tuple containing the graph and a source
-                tag: "cache", "real_data" (for live fetches), or "sample".
+                tag: "cache" or "real_data".
+
+        Raises:
+            DataAcquisitionIncompleteError: If network is disabled and cache is unavailable,
+                or if live acquisition is incomplete/fails.
+            FetchCancelledError: If data acquisition is cancelled.
         """
         cached_graph = self._try_load_from_cache()
         if cached_graph is not None:
@@ -315,13 +363,13 @@ class RealDataFetcher:
         if not self.enable_network:
             log_event(
                 logger,
-                logging.INFO,
+                logging.ERROR,
                 ObservabilityEvent(
                     event="graph_network_fetching_disabled",
-                    message="Network fetching disabled. Using fallback dataset if available.",
+                    message="Network fetching disabled and no valid cache is available.",
                 ),
             )
-            return self._fallback(), "sample"
+            raise DataAcquisitionIncompleteError("Network fetching is disabled and no cached data is available.")
 
         log_event(
             logger,
@@ -332,19 +380,7 @@ class RealDataFetcher:
             ),
         )
 
-        live_result = self._try_live_fetch(cancel_event)
-        if live_result is not None:
-            return live_result
-
-        log_event(
-            logger,
-            logging.WARNING,
-            ObservabilityEvent(
-                event="graph_fetch_fallback_engaged",
-                message="Falling back to sample data due to real data fetch failure",
-            ),
-        )
-        return self._fallback(), "sample"
+        return self._try_live_fetch(cancel_event)
 
     def fetch_raw_data(self) -> tuple[list[Asset], list[RegulatoryEvent]]:
         """
@@ -362,22 +398,25 @@ class RealDataFetcher:
         cancel_event: threading.Event | None = None,
     ) -> tuple[list[Asset], list[RegulatoryEvent], str]:
         """
-        Fetch raw asset and regulatory event data and identify its source.
+        Fetch raw asset and regulatory event data and identify its source ("real_data").
 
         Args:
             cancel_event: Optional event to signal cancellation.
 
         Returns:
             tuple[list[Asset], list[RegulatoryEvent], str]: A tuple containing the
-                fetched assets, the regulatory events, and a source tag ("real_data" or "sample").
+                fetched assets, the regulatory events, and a source tag ("real_data").
+
+        Raises:
+            DataAcquisitionIncompleteError: If network is disabled or acquisition fails.
+            FetchCancelledError: If data acquisition is cancelled.
         """
         if not self.enable_network:
-            fb = self._fallback()
-            return list(fb.assets.values()), fb.regulatory_events, "sample"
+            raise DataAcquisitionIncompleteError("Network fetching is disabled and no cached raw data is available.")
 
         try:
             return self._perform_live_raw_fetch(cancel_event)
-        except FetchCancelledError:
+        except (FetchCancelledError, DataAcquisitionIncompleteError):
             raise
         except Exception as exc:
             log_event(
@@ -389,13 +428,13 @@ class RealDataFetcher:
                     metadata={"error": type(exc).__name__},
                 ),
             )
-            raise
+            raise DataAcquisitionIncompleteError(f"Failed to fetch raw data: {exc}") from exc
 
     def _perform_live_raw_fetch(
         self,
         cancel_event: threading.Event | None,
     ) -> tuple[list[Asset], list[RegulatoryEvent], str]:
-        """Perform the actual live fetch sequence."""
+        """Perform the actual live fetch sequence enforcing strict completeness gate."""
         self._check_cancelled(cancel_event, "before starting")
         equities = self._fetch_equity_data(cancel_event)
 
@@ -412,6 +451,10 @@ class RealDataFetcher:
         events = self._create_regulatory_events()
 
         all_assets: list[Asset] = cast(list[Asset], equities + bonds + commodities + currencies)
+        if len(all_assets) != TOTAL_REQUIRED_ASSET_COUNT:
+            raise DataAcquisitionIncompleteError(
+                f"Acquired asset count {len(all_assets)} does not match expected {TOTAL_REQUIRED_ASSET_COUNT}"
+            )
 
         return all_assets, events, "real_data"
 
@@ -476,22 +519,6 @@ class RealDataFetcher:
                         ),
                     )
 
-    def _fallback(self) -> AssetRelationshipGraph:
-        """
-        Provide a fallback AssetRelationshipGraph when live fetching is unavailable.
-
-        If a `fallback_factory` was configured, returns its result; otherwise returns the packaged sample database.
-
-        Returns:
-            AssetRelationshipGraph: The fallback graph produced by the factory or the sample database.
-        """
-        if self.fallback_factory:
-            return self.fallback_factory()
-
-        from src.data.sample_data import create_sample_database
-
-        return create_sample_database()
-
     @staticmethod
     def _fetch_history_close(
         yf_module: Any,
@@ -539,32 +566,28 @@ class RealDataFetcher:
     @staticmethod
     def _fetch_equity_data(cancel_event: threading.Event | None = None) -> list[Equity]:
         """
-        Fetch latest market data for a fixed set of major equity symbols and construct Equity objects.
+        Fetch latest market data for canonical equity symbols and construct Equity objects.
 
-        Skips symbols that lack a valid latest close price; emits structured observability
-        events for each symbol's success or failure.
+        Raises:
+            FetchCancelledError: If fetching is cancelled.
+            DataAcquisitionIncompleteError: If any required equity symbol fails to fetch.
 
         Returns:
-            list[Equity]: Equity instances for symbols with an available valid price.
+            list[Equity]: Equity instances for all required symbols.
         """
         yf = _get_yfinance()
 
-        equity_symbols: dict[str, tuple[str, str]] = {
-            "AAPL": ("Apple Inc.", "Technology"),
-            "MSFT": ("Microsoft Corporation", "Technology"),
-            "XOM": ("Exxon Mobil Corporation", "Energy"),
-            "JPM": ("JPMorgan Chase & Co.", "Financial Services"),
-        }
-
         equities: list[Equity] = []
+        missing_symbols: list[str] = []
 
-        for symbol, (name, sector) in equity_symbols.items():
+        for symbol, (name, sector) in REQUIRED_EQUITY_SYMBOLS.items():
             if cancel_event and cancel_event.is_set():
                 raise FetchCancelledError("Fetch cancelled during equities")
 
             try:
                 current_price, ticker = RealDataFetcher._fetch_history_close(yf, symbol)
                 if current_price is None:
+                    missing_symbols.append(symbol)
                     continue
 
                 info = getattr(ticker, "info", {}) or {}
@@ -589,7 +612,10 @@ class RealDataFetcher:
                         metadata={"symbol": symbol, "name": name, "price": current_price, "asset_class": "equity"},
                     ),
                 )
+            except FetchCancelledError:
+                raise
             except Exception as exc:
+                missing_symbols.append(symbol)
                 log_event(
                     logger,
                     logging.ERROR,
@@ -600,51 +626,41 @@ class RealDataFetcher:
                     ),
                 )
 
+        if missing_symbols or len(equities) != len(REQUIRED_EQUITY_SYMBOLS):
+            all_missing = list(
+                dict.fromkeys(
+                    missing_symbols + [s for s in REQUIRED_EQUITY_SYMBOLS if s not in {e.symbol for e in equities}]
+                )
+            )
+            raise DataAcquisitionIncompleteError(f"Missing required symbols: {all_missing}")
+
         return equities
 
     @staticmethod
     def _fetch_bond_data(cancel_event: threading.Event | None = None) -> list[Bond]:
         """
-        Build Bond proxy objects from a fixed set of bond ETF symbols.
+        Build Bond proxy objects from canonical bond ETF symbols.
 
-        For each configured ETF symbol, attempts to fetch the latest market price
-
-        and constructs a Bond when a finite price is available;
-
-        symbols with missing or non-finite price data are skipped.
-
-        Emits observability events for per-symbol success and failure.
+        Raises:
+            FetchCancelledError: If fetching is cancelled.
+            DataAcquisitionIncompleteError: If any required bond symbol fails to fetch.
 
         Returns:
-            list[Bond]: Bond objects constructed for ETFs that had available market data.
+            list[Bond]: Bond objects constructed for all required bond symbols.
         """
         yf = _get_yfinance()
 
-        bond_symbols: dict[str, tuple[str, str, str | None, str | None]] = {
-            "TLT": ("iShares 20+ Year Treasury Bond ETF", "Government", None, "AAA"),
-            "LQD": (
-                "iShares iBoxx $ Investment Grade Corporate Bond ETF",
-                "Corporate",
-                None,
-                None,
-            ),
-            "HYG": (
-                "iShares iBoxx $ High Yield Corporate Bond ETF",
-                "Corporate",
-                None,
-                None,
-            ),
-        }
-
         bonds: list[Bond] = []
+        missing_symbols: list[str] = []
 
-        for symbol, (name, sector, issuer_id, rating) in bond_symbols.items():
+        for symbol, (name, sector, issuer_id, rating) in REQUIRED_BOND_SYMBOLS.items():
             if cancel_event and cancel_event.is_set():
                 raise FetchCancelledError("Fetch cancelled during bonds")
 
             try:
                 current_price, ticker = RealDataFetcher._fetch_history_close(yf, symbol)
                 if current_price is None:
+                    missing_symbols.append(symbol)
                     continue
 
                 info = getattr(ticker, "info", {}) or {}
@@ -673,7 +689,10 @@ class RealDataFetcher:
                         metadata={"symbol": symbol, "name": name, "price": current_price, "asset_class": "bond"},
                     ),
                 )
+            except FetchCancelledError:
+                raise
             except Exception as exc:
+                missing_symbols.append(symbol)
                 log_event(
                     logger,
                     logging.ERROR,
@@ -684,36 +703,41 @@ class RealDataFetcher:
                     ),
                 )
 
+        if missing_symbols or len(bonds) != len(REQUIRED_BOND_SYMBOLS):
+            all_missing = list(
+                dict.fromkeys(
+                    missing_symbols + [s for s in REQUIRED_BOND_SYMBOLS if s not in {b.symbol for b in bonds}]
+                )
+            )
+            raise DataAcquisitionIncompleteError(f"Missing required symbols: {all_missing}")
+
         return bonds
 
     @staticmethod
     def _fetch_commodity_data(cancel_event: threading.Event | None = None) -> list[Commodity]:
         """
-        Construct Commodity instances for a fixed set of futures symbols using their latest close prices.
+        Construct Commodity instances for canonical futures symbols using their latest close prices.
 
-        Symbols without a valid price are skipped; failures for individual symbols are
-        logged and do not stop processing.
+        Raises:
+            FetchCancelledError: If fetching is cancelled.
+            DataAcquisitionIncompleteError: If any required commodity symbol fails to fetch.
 
         Returns:
-            list[Commodity]: Commodity objects created for symbols with valid prices.
+            list[Commodity]: Commodity objects created for all required commodity symbols.
         """
         yf = _get_yfinance()
 
-        commodity_symbols: dict[str, tuple[str, str, float, float]] = {
-            "GC=F": ("Gold Futures", "Metals", 100.0, 0.20),
-            "CL=F": ("Crude Oil Futures", "Energy", 1000.0, 0.35),
-            "SI=F": ("Silver Futures", "Metals", 5000.0, 0.25),
-        }
-
         commodities: list[Commodity] = []
+        missing_symbols: list[str] = []
 
-        for symbol, (name, sector, contract_size, volatility) in commodity_symbols.items():
+        for symbol, (name, sector, contract_size, volatility) in REQUIRED_COMMODITY_SYMBOLS.items():
             if cancel_event and cancel_event.is_set():
                 raise FetchCancelledError("Fetch cancelled during commodities")
 
             try:
                 current_price, _ticker = RealDataFetcher._fetch_history_close(yf, symbol)
                 if current_price is None:
+                    missing_symbols.append(symbol)
                     continue
 
                 commodity = Commodity(
@@ -738,7 +762,10 @@ class RealDataFetcher:
                         metadata={"symbol": symbol, "name": name, "price": current_price, "asset_class": "commodity"},
                     ),
                 )
+            except FetchCancelledError:
+                raise
             except Exception as exc:
+                missing_symbols.append(symbol)
                 log_event(
                     logger,
                     logging.ERROR,
@@ -749,39 +776,42 @@ class RealDataFetcher:
                     ),
                 )
 
+        if missing_symbols or len(commodities) != len(REQUIRED_COMMODITY_SYMBOLS):
+            all_missing = list(
+                dict.fromkeys(
+                    missing_symbols
+                    + [s for s in REQUIRED_COMMODITY_SYMBOLS if s not in {c.symbol for c in commodities}]
+                )
+            )
+            raise DataAcquisitionIncompleteError(f"Missing required symbols: {all_missing}")
+
         return commodities
 
     @staticmethod
     def _fetch_currency_data(cancel_event: threading.Event | None = None) -> list[Currency]:
         """
-        Construct Currency dataclass instances for a predefined set of FX pairs using the latest available rates.
+        Construct Currency dataclass instances for canonical FX pairs using latest rates.
 
-        For each configured FX symbol, attempts to fetch the most recent exchange rate;
-
-        symbols with no available rate are skipped and failures for individual symbols
-
-        are logged but do not stop the overall fetch.
+        Raises:
+            FetchCancelledError: If fetching is cancelled.
+            DataAcquisitionIncompleteError: If any required currency symbol fails to fetch.
 
         Returns:
-            list[Currency]: Currency objects for symbols with successfully retrieved rates.
+            list[Currency]: Currency objects for all required currency symbols.
         """
         yf = _get_yfinance()
 
-        currency_symbols: dict[str, tuple[str, str, str]] = {
-            "EURUSD=X": ("Euro", "EU", "EUR"),
-            "GBPUSD=X": ("British Pound", "UK", "GBP"),
-            "JPYUSD=X": ("Japanese Yen", "Japan", "JPY"),
-        }
-
         currencies: list[Currency] = []
+        missing_symbols: list[str] = []
 
-        for symbol, (name, country, currency_code) in currency_symbols.items():
+        for symbol, (name, country, currency_code) in REQUIRED_CURRENCY_SYMBOLS.items():
             if cancel_event and cancel_event.is_set():
                 raise FetchCancelledError("Fetch cancelled during currencies")
 
             try:
                 current_rate, _ticker = RealDataFetcher._fetch_history_close(yf, symbol)
                 if current_rate is None:
+                    missing_symbols.append(symbol)
                     continue
 
                 currency = Currency(
@@ -806,7 +836,10 @@ class RealDataFetcher:
                         metadata={"symbol": symbol, "name": name, "rate": current_rate, "asset_class": "currency"},
                     ),
                 )
+            except FetchCancelledError:
+                raise
             except Exception as exc:
+                missing_symbols.append(symbol)
                 log_event(
                     logger,
                     logging.ERROR,
@@ -817,55 +850,35 @@ class RealDataFetcher:
                     ),
                 )
 
+        if missing_symbols or len(currencies) != len(REQUIRED_CURRENCY_SYMBOLS):
+            all_missing = list(
+                dict.fromkeys(
+                    missing_symbols
+                    + [s for s in REQUIRED_CURRENCY_SYMBOLS if s.replace("=X", "") not in {c.id for c in currencies}]
+                )
+            )
+            raise DataAcquisitionIncompleteError(f"Missing required symbols: {all_missing}")
+
         return currencies
 
     @staticmethod
     def _create_regulatory_events() -> list[RegulatoryEvent]:
         """
-        Create three synthetic RegulatoryEvent instances to enrich the asset graph.
+        Retrieve regulatory events for the asset graph.
 
-        Returns:
-            list[RegulatoryEvent]: Three hard-coded regulatory events associated with specific assets.
+        Returns an empty list unless real regulatory data is provided/available,
+        avoiding synthetic mocks in real data pipelines.
         """
-        events: list[RegulatoryEvent] = []
-
-        events.append(
-            RegulatoryEvent(
-                id="AAPL_Q4_2024_REAL",
-                asset_id="AAPL",
-                event_type=RegulatoryActivity.EARNINGS_REPORT,
-                date="2024-11-01",
-                description="Q4 2024 Earnings Report - Record iPhone sales",
-                impact_score=0.12,
-                related_assets=["TLT", "MSFT"],
-            )
+        log_event(
+            logger,
+            logging.INFO,
+            ObservabilityEvent(
+                event="regulatory_events_fetched",
+                message="No live regulatory event feed configured; returning empty list",
+                metadata={"event_count": 0},
+            ),
         )
-
-        events.append(
-            RegulatoryEvent(
-                id="MSFT_DIV_2024_REAL",
-                asset_id="MSFT",
-                event_type=RegulatoryActivity.DIVIDEND_ANNOUNCEMENT,
-                date="2024-09-15",
-                description="Quarterly dividend increase - Cloud growth continues",
-                impact_score=0.08,
-                related_assets=["AAPL", "LQD"],
-            )
-        )
-
-        events.append(
-            RegulatoryEvent(
-                id="XOM_SEC_2024_REAL",
-                asset_id="XOM",
-                event_type=RegulatoryActivity.SEC_FILING,
-                date="2024-10-01",
-                description=("10-K Filing - Increased oil reserves and sustainability initiatives"),
-                impact_score=0.05,
-                related_assets=["CL_FUTURE"],
-            )
-        )
-
-        return events
+        return []
 
 
 def create_real_database() -> AssetRelationshipGraph:
@@ -990,6 +1003,7 @@ def _deserialize_event(data: dict[str, Any]) -> RegulatoryEvent:
         RegulatoryEvent: A reconstructed RegulatoryEvent with event_type restored.
     """
     data = dict(data)
+    data.pop("__type__", None)
     data["event_type"] = RegulatoryActivity(data["event_type"])
     return RegulatoryEvent(**data)
 
@@ -1013,6 +1027,9 @@ def _deserialize_graph(payload: dict[str, Any]) -> AssetRelationshipGraph:
         same_sector_strength=settings.same_sector_strength,
         corporate_bond_strength=settings.corporate_bond_strength,
     )
+
+    if not isinstance(payload, dict) or "assets" not in payload or "relationships" not in payload:
+        raise ValueError("Invalid graph cache payload: missing required fields 'assets' or 'relationships'")
 
     for asset_data in payload.get("assets", []):
         graph.add_asset(_deserialize_asset(dict(asset_data)))

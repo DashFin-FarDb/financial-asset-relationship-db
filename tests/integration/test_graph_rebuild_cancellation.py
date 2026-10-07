@@ -41,6 +41,10 @@ def operator_client(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> Generato
         return User(username="admin", disabled=False)
 
     app.dependency_overrides[get_current_active_user] = active_user
+    from api.graph_lifecycle import set_graph
+    from src.data.sample_data import create_sample_database
+
+    set_graph(create_sample_database())
     with TestClient(app) as client:
         yield client
 

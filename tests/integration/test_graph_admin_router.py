@@ -68,6 +68,10 @@ def _client_with_active_user(
 
     app.dependency_overrides[get_current_active_user] = active_user
 
+    from api.graph_lifecycle import set_graph  # pylint: disable=import-outside-toplevel
+    from src.data.sample_data import create_sample_database  # pylint: disable=import-outside-toplevel
+
+    set_graph(create_sample_database())
     try:
         with TestClient(app) as client:
             yield client
@@ -292,6 +296,10 @@ def test_rebuild_returns_503_when_operator_authorization_not_configured(
 
     app.dependency_overrides[get_current_active_user] = active_user
 
+    from api.graph_lifecycle import set_graph
+    from src.data.sample_data import create_sample_database
+
+    set_graph(create_sample_database())
     try:
         with TestClient(app) as client:
             response = client.post("/api/graph/rebuild")

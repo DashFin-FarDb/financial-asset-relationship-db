@@ -637,7 +637,7 @@ class TestRealDataFetcherFallback:
     @patch("yfinance.Ticker")
     def test_real_data_fetcher_complete_failure_fallback(self, mock_ticker):
         """Test that RealDataFetcher falls back to sample data when fetching fails completely."""
-        from src.data.real_data_fetcher import RealDataFetcher
+        from src.data.real_data_fetcher import DataAcquisitionIncompleteError, RealDataFetcher
 
         # Simulate API failure that causes exception in create_real_database
         def raise_error(*args, **kwargs):
@@ -650,94 +650,74 @@ class TestRealDataFetcherFallback:
 
         # Mock the individual fetch methods to raise exceptions
         with patch.object(fetcher, "_fetch_equity_data", side_effect=Exception("Equity fetch failed")):
-            graph = fetcher.create_real_database()
-
-            # Should fall back to sample data and return a valid graph
-            assert graph is not None
-            assert isinstance(graph, AssetRelationshipGraph)
-            assert len(graph.assets) > 0  # Should have sample data
+            with pytest.raises(DataAcquisitionIncompleteError):
+                fetcher.create_real_database()
 
     @patch("yfinance.Ticker")
     def test_real_data_fetcher_partial_fetch_success(self, mock_ticker):
-        """Test RealDataFetcher when all individual fetches fail gracefully (empty lists)."""
-        from src.data.real_data_fetcher import RealDataFetcher
+        """Test RealDataFetcher fails completeness gate when fetch fails."""
+        from src.data.real_data_fetcher import DataAcquisitionIncompleteError, RealDataFetcher
 
-        # Simulate API failure - each individual fetch will catch exceptions and return empty list
         mock_ticker.side_effect = Exception("API failed")
 
         fetcher = RealDataFetcher()
-        graph = fetcher.create_real_database()
-
-        # Should return an empty graph (individual fetch failures don't trigger fallback)
-        assert graph is not None
-        assert isinstance(graph, AssetRelationshipGraph)
-        # Individual fetch failures result in empty lists, not fallback
-        assert len(graph.assets) == 0
+        with pytest.raises(DataAcquisitionIncompleteError):
+            fetcher.create_real_database()
 
     @patch("src.data.real_data_fetcher.RealDataFetcher._fetch_equity_data")
     def test_fetcher_falls_back_on_unhandled_exception(self, mock_fetch_equity):
-        """Test that unhandled exceptions in create_real_database trigger fallback."""
-        from src.data.real_data_fetcher import RealDataFetcher
+        """Test that unhandled exceptions in create_real_database raise DataAcquisitionIncompleteError."""
+        from src.data.real_data_fetcher import DataAcquisitionIncompleteError, RealDataFetcher
 
-        # Simulate unhandled exception in fetching
         mock_fetch_equity.side_effect = RuntimeError("Unexpected error")
 
         fetcher = RealDataFetcher()
-        graph = fetcher.create_real_database()
-
-        # Should have created a graph with fallback data
-        assert graph is not None
-        assert isinstance(graph, AssetRelationshipGraph)
-        # After fallback to sample data, should have assets
-        assert len(graph.assets) > 0
+        with pytest.raises(DataAcquisitionIncompleteError):
+            fetcher.create_real_database()
 
     @patch("yfinance.Ticker")
     def test_real_data_fetcher_empty_history_graceful_handling(self, mock_ticker):
-        """Test RealDataFetcher handles empty ticker history gracefully."""
+        """Test RealDataFetcher raises DataAcquisitionIncompleteError on empty ticker history."""
         import pandas as pd
 
-        from src.data.real_data_fetcher import RealDataFetcher
+        from src.data.real_data_fetcher import DataAcquisitionIncompleteError, RealDataFetcher
 
-        # Mock ticker to return empty history
         mock_ticker_instance = mock_ticker.return_value
         mock_ticker_instance.history.return_value = pd.DataFrame()  # Empty dataframe
         mock_ticker_instance.info = {}
 
         fetcher = RealDataFetcher()
-        graph = fetcher.create_real_database()
-
-        # Should create empty graph (individual failures don't trigger fallback)
-        assert graph is not None
-        assert isinstance(graph, AssetRelationshipGraph)
+        with pytest.raises(DataAcquisitionIncompleteError):
+            fetcher.create_real_database()
 
     @patch("src.data.real_data_fetcher.log_event")
     @patch("src.data.real_data_fetcher.RealDataFetcher._fetch_equity_data")
     def test_real_data_fetcher_logs_fallback_on_exception(self, mock_fetch_equity, mock_log_event):
-        """Test that RealDataFetcher logs when falling back to sample data."""
-        from src.data.real_data_fetcher import RealDataFetcher
+        """Test that RealDataFetcher logs error event when fetch fails."""
+        from src.data.real_data_fetcher import DataAcquisitionIncompleteError, RealDataFetcher
 
-        # Simulate exception that triggers fallback
         mock_fetch_equity.side_effect = RuntimeError("Unexpected failure")
 
         fetcher = RealDataFetcher()
-        fetcher.create_real_database()
+        with pytest.raises(DataAcquisitionIncompleteError):
+            fetcher.create_real_database()
 
-        # Verify error and warning events were emitted
+        # Verify error event was emitted
         event_names = [call.args[2].event for call in mock_log_event.call_args_list]
         assert "graph_live_fetch_failed" in event_names
-        assert "graph_fetch_fallback_engaged" in event_names
 
     @patch("src.data.real_data_fetcher.log_event")
     @patch("yfinance.Ticker")
     def test_individual_asset_class_fetch_failures_logged(self, mock_ticker, mock_log_event):
         """Test that individual asset class fetch failures are logged properly."""
-        from src.data.real_data_fetcher import RealDataFetcher
+        from src.data.real_data_fetcher import DataAcquisitionIncompleteError, RealDataFetcher
 
         # Simulate ticker failures
         mock_ticker.side_effect = Exception("Ticker API failed")
 
         fetcher = RealDataFetcher()
-        fetcher.create_real_database()
+        with pytest.raises(DataAcquisitionIncompleteError):
+            fetcher.create_real_database()
 
         # Should log failure events for each failed fetch
         event_names = [call.args[2].event for call in mock_log_event.call_args_list]
@@ -778,10 +758,11 @@ class TestCacheCorruptionRegression:
         # This tests the scenario where cache exists but is corrupted
         fetcher = RealDataFetcher(cache_path="/nonexistent/corrupted.cache")
 
-        # Should not raise, should fall back gracefully
-        graph = fetcher.create_real_database()
-        assert graph is not None
-        assert isinstance(graph, AssetRelationshipGraph)
+        # Fail-closed: should raise DataAcquisitionIncompleteError when cache is missing/corrupted and live fetch fails
+        from src.data.real_data_fetcher import DataAcquisitionIncompleteError
+
+        with pytest.raises(DataAcquisitionIncompleteError):
+            fetcher.create_real_database()
 
     @staticmethod
     def test_api_handles_concurrent_cache_reads(tmp_path):
@@ -837,20 +818,15 @@ class TestCacheCorruptionRegression:
     @staticmethod
     @patch("yfinance.Ticker")
     def test_fallback_creates_valid_empty_graph_on_total_failure(mock_ticker):
-        """Regression: Total API failure should create a valid empty or sample graph."""
-        from src.data.real_data_fetcher import RealDataFetcher
+        """Regression: Total API failure should fail closed by raising DataAcquisitionIncompleteError."""
+        from src.data.real_data_fetcher import DataAcquisitionIncompleteError, RealDataFetcher
 
         # Simulate complete network failure
         mock_ticker.side_effect = ConnectionError("Network completely down")
 
         fetcher = RealDataFetcher()
-        graph = fetcher.create_real_database()
-
-        # Should return a valid graph object (either empty or with sample data)
-        assert graph is not None
-        assert hasattr(graph, "assets")
-        assert hasattr(graph, "relationships")
-        assert hasattr(graph, "calculate_metrics")
+        with pytest.raises(DataAcquisitionIncompleteError):
+            fetcher.create_real_database()
 
 
 @pytest.mark.unit

@@ -21,10 +21,12 @@ def client() -> Iterator[TestClient]:
     """Create an isolated test client with a clean graph and auth state."""
     from api import database
     from api.auth import seed_credentials_from_settings, user_repository
-    from api.graph_lifecycle import reset_graph
+    from api.graph_lifecycle import reset_graph, set_graph
     from src.config.settings import load_settings
+    from src.data.sample_data import create_sample_database
 
     reset_graph()
+    set_graph(create_sample_database())
     database.initialize_schema()
     seed_credentials_from_settings(user_repository, load_settings())
     with TestClient(app) as c:

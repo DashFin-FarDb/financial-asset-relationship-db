@@ -65,6 +65,7 @@ from ..graph_lifecycle import (
     synchronize_runtime_graph,
 )
 from ..graph_lifecycle_providers import (
+    AuthoritativeGraphUnavailableError,
     GraphLifecycleSettings,
     GraphPersistenceNonDurableError,
     GraphPersistenceNotConfiguredError,
@@ -273,7 +274,10 @@ def _map_rebuild_error(exc: Exception | asyncio.CancelledError) -> HTTPException
     ):
         return HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(root_exc))
 
-    if isinstance(root_exc, (GraphRebuildSourceError, GraphPersistenceSaveError)):
+    if isinstance(
+        root_exc,
+        (GraphRebuildSourceError, GraphPersistenceSaveError, AuthoritativeGraphUnavailableError),
+    ):
         return HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=str(root_exc),

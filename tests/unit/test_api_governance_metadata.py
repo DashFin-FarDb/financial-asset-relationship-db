@@ -50,7 +50,11 @@ _ = (configure_graph_persistence, initialize_assertion_store, seed_users)
 @pytest.fixture
 def client() -> Iterator[TestClient]:
     """Return a lifespan-managed client with isolated graph lifecycle state."""
+    from api.graph_lifecycle import set_graph
+    from src.data.sample_data import create_sample_database
+
     reset_graph()
+    set_graph(create_sample_database())
     try:
         with TestClient(app) as test_client:
             yield test_client

@@ -63,6 +63,10 @@ class GraphPersistenceSaveError(RuntimeError):
     """Raised when a rebuilt graph could not be persisted."""
 
 
+class AuthoritativeGraphUnavailableError(RuntimeError):
+    """Raised when no authoritative published graph is available."""
+
+
 class GraphRebuildSourceError(RuntimeError):
     """Raised when a fresh rebuild graph could not be constructed."""
 
@@ -276,7 +280,12 @@ def build_rebuild_graph(
 
     Returns:
         tuple[AssetRelationshipGraph, GraphRebuildSource]: A tuple where the first element is the constructed graph
-            and the second element is the rebuild source string: `"cache"`, `"real_data"`, or `"sample"`.
+            and the second element is the rebuild source string: `"cache"` or `"real_data"`.
+
+    Raises:
+        AuthoritativeGraphUnavailableError: If neither cache nor real data is available.
+        RebuildCancelledError: If rebuild execution is cancelled.
+        GraphRebuildSourceError: If building the rebuild graph fails unexpectedly.
     """
     try:
         if settings.graph_cache_path and Path(settings.graph_cache_path).exists():
@@ -309,9 +318,9 @@ def build_rebuild_graph(
 
             return (graph, source)
 
-        return (create_sample_graph(), "sample")
-    except RebuildCancelledError:
-        # Re-raise cancellation exactly as is to correctly short-circuit the pipeline
+        raise AuthoritativeGraphUnavailableError("No valid rebuild source available.")
+    except (RebuildCancelledError, AuthoritativeGraphUnavailableError):
+        # Re-raise cancellation and authoritative graph unavailable errors directly
         raise
     except Exception as exc:
         log_event(
