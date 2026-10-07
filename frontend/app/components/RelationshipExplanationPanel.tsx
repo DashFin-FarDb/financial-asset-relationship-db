@@ -15,6 +15,7 @@ export type ExplainableRelationship = Readonly<{
   target: string;
   relationship_type: string;
   strength: number;
+  edge_id?: string | null;
   assertion_id?: string | null;
   governance_status?: "governed" | null;
   revision_id?: string | null;
@@ -26,6 +27,7 @@ type RelationshipExplanationPanelProps = Readonly<{
   relationship: ExplainableRelationship | null;
   publication?: PublishedProjectionContextResponse | null;
   publicationId?: string | null;
+  onDeselect?: () => void;
 }>;
 
 /**
@@ -95,10 +97,12 @@ function relationshipHeading(relationship: ExplainableRelationship): string {
 function PanelShell({
   heading,
   toneClassName,
+  onDeselect,
   children,
 }: Readonly<{
   heading: string;
   toneClassName: string;
+  onDeselect?: () => void;
   children: React.ReactNode;
 }>) {
   return (
@@ -106,9 +110,48 @@ function PanelShell({
       aria-label="Relationship explanation"
       className={`p-4 border rounded-lg ${toneClassName}`}
     >
-      <h3 className="font-semibold text-gray-900">{heading}</h3>
+      <div className="flex items-start justify-between gap-2">
+        <h3 className="font-semibold text-gray-900">{heading}</h3>
+        {onDeselect && (
+          <button
+            type="button"
+            onClick={onDeselect}
+            className="text-xs px-2 py-0.5 text-gray-600 hover:text-gray-900 border border-gray-300 rounded hover:bg-gray-100 transition-colors"
+            aria-label="Clear relationship selection"
+          >
+            Clear selection
+          </button>
+        )}
+      </div>
       {children}
     </section>
+  );
+}
+
+function EdgeSummaryDetails({
+  relationship,
+}: Readonly<{ relationship: ExplainableRelationship }>) {
+  return (
+    <dl className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+      <div>
+        <dt className="font-medium text-gray-500">Edge ID</dt>
+        <dd className="font-mono text-gray-800 break-all">
+          {relationship.edge_id || relationship.projection_edge_id || "N/A"}
+        </dd>
+      </div>
+      <div>
+        <dt className="font-medium text-gray-500">Relationship type</dt>
+        <dd className="text-gray-800">{relationship.relationship_type}</dd>
+      </div>
+      <div>
+        <dt className="font-medium text-gray-500">Source node</dt>
+        <dd className="font-mono text-gray-800">{relationship.source}</dd>
+      </div>
+      <div>
+        <dt className="font-medium text-gray-500">Target node</dt>
+        <dd className="font-mono text-gray-800">{relationship.target}</dd>
+      </div>
+    </dl>
   );
 }
 
@@ -120,10 +163,25 @@ function EmptySelectionView() {
   );
 }
 
-function LegacyView({ heading }: Readonly<{ heading: string }>) {
+function LegacyView({
+  heading,
+  relationship,
+  onDeselect,
+}: Readonly<{
+  heading: string;
+  relationship: ExplainableRelationship;
+  onDeselect?: () => void;
+}>) {
   return (
-    <PanelShell heading={heading} toneClassName="border-gray-200 bg-gray-50">
-      <output className="block mt-2 text-sm text-gray-600">
+    <PanelShell
+      heading={heading}
+      toneClassName="border-gray-200 bg-gray-50"
+      onDeselect={onDeselect}
+    >
+      <div className="mt-3 border-t border-gray-200 pt-3">
+        <EdgeSummaryDetails relationship={relationship} />
+      </div>
+      <output className="block mt-3 text-sm text-gray-600 border-t border-gray-200 pt-2">
         <span className="inline-block px-2 py-0.5 mr-2 text-xs font-medium rounded bg-gray-200 text-gray-700">
           Legacy
         </span>{" "}
@@ -134,9 +192,24 @@ function LegacyView({ heading }: Readonly<{ heading: string }>) {
   );
 }
 
-function PendingMetadataView({ heading }: Readonly<{ heading: string }>) {
+function PendingMetadataView({
+  heading,
+  relationship,
+  onDeselect,
+}: Readonly<{
+  heading: string;
+  relationship: ExplainableRelationship;
+  onDeselect?: () => void;
+}>) {
   return (
-    <PanelShell heading={heading} toneClassName="border-amber-200 bg-amber-50">
+    <PanelShell
+      heading={heading}
+      toneClassName="border-amber-200 bg-amber-50"
+      onDeselect={onDeselect}
+    >
+      <div className="mt-3 border-t border-amber-200 pt-2">
+        <EdgeSummaryDetails relationship={relationship} />
+      </div>
       <output className="block mt-2 text-sm text-amber-800">
         This relationship is governed, but its publication or edge metadata is
         incomplete. It may still be synchronizing.
@@ -145,9 +218,24 @@ function PendingMetadataView({ heading }: Readonly<{ heading: string }>) {
   );
 }
 
-function LoadingView({ heading }: Readonly<{ heading: string }>) {
+function LoadingView({
+  heading,
+  relationship,
+  onDeselect,
+}: Readonly<{
+  heading: string;
+  relationship: ExplainableRelationship;
+  onDeselect?: () => void;
+}>) {
   return (
-    <PanelShell heading={heading} toneClassName="border-gray-200">
+    <PanelShell
+      heading={heading}
+      toneClassName="border-gray-200"
+      onDeselect={onDeselect}
+    >
+      <div className="mt-3 border-t border-gray-100 pt-2">
+        <EdgeSummaryDetails relationship={relationship} />
+      </div>
       <output className="block mt-2 text-sm text-gray-500" aria-live="polite">
         Loading governed explanation...
       </output>
@@ -155,9 +243,24 @@ function LoadingView({ heading }: Readonly<{ heading: string }>) {
   );
 }
 
-function NotFoundView({ heading }: Readonly<{ heading: string }>) {
+function NotFoundView({
+  heading,
+  relationship,
+  onDeselect,
+}: Readonly<{
+  heading: string;
+  relationship: ExplainableRelationship;
+  onDeselect?: () => void;
+}>) {
   return (
-    <PanelShell heading={heading} toneClassName="border-amber-200 bg-amber-50">
+    <PanelShell
+      heading={heading}
+      toneClassName="border-amber-200 bg-amber-50"
+      onDeselect={onDeselect}
+    >
+      <div className="mt-3 border-t border-amber-200 pt-2">
+        <EdgeSummaryDetails relationship={relationship} />
+      </div>
       <p className="mt-2 text-sm text-amber-800" role="alert">
         The governed assertion behind this relationship could not be found. It
         may be synchronizing with the latest publication.
@@ -166,9 +269,24 @@ function NotFoundView({ heading }: Readonly<{ heading: string }>) {
   );
 }
 
-function UnavailableView({ heading }: Readonly<{ heading: string }>) {
+function UnavailableView({
+  heading,
+  relationship,
+  onDeselect,
+}: Readonly<{
+  heading: string;
+  relationship: ExplainableRelationship;
+  onDeselect?: () => void;
+}>) {
   return (
-    <PanelShell heading={heading} toneClassName="border-red-200 bg-red-50">
+    <PanelShell
+      heading={heading}
+      toneClassName="border-red-200 bg-red-50"
+      onDeselect={onDeselect}
+    >
+      <div className="mt-3 border-t border-red-200 pt-2">
+        <EdgeSummaryDetails relationship={relationship} />
+      </div>
       <p className="mt-2 text-sm text-red-800" role="alert">
         Governance explanation is temporarily unavailable. The graph remains
         usable; please try again shortly.
@@ -470,10 +588,12 @@ function ReadyView({
   heading,
   relationship,
   payload,
+  onDeselect,
 }: Readonly<{
   heading: string;
   relationship: ExplainableRelationship;
   payload: PublishedEdgeExplanationResponse;
+  onDeselect?: () => void;
 }>) {
   const { explanation, history } = payload.assertion;
   return (
@@ -482,8 +602,23 @@ function ReadyView({
       className="p-4 border border-gray-200 rounded-lg space-y-4"
     >
       <header>
-        <h3 className="font-semibold text-gray-900">{heading}</h3>
-        <p className="text-sm text-gray-700 mt-1">{explanation.proposition}</p>
+        <div className="flex items-start justify-between gap-2">
+          <h3 className="font-semibold text-gray-900">{heading}</h3>
+          {onDeselect && (
+            <button
+              type="button"
+              onClick={onDeselect}
+              className="text-xs px-2 py-0.5 text-gray-600 hover:text-gray-900 border border-gray-300 rounded hover:bg-gray-100 transition-colors"
+              aria-label="Clear relationship selection"
+            >
+              Clear selection
+            </button>
+          )}
+        </div>
+        <div className="mt-3 border-t border-gray-100 pt-2">
+          <EdgeSummaryDetails relationship={relationship} />
+        </div>
+        <p className="text-sm text-gray-700 mt-2">{explanation.proposition}</p>
         <span className="inline-block mt-2 px-2 py-0.5 text-xs font-medium rounded bg-blue-100 text-blue-800">
           {explanation.state}
         </span>
@@ -642,11 +777,31 @@ function useAssertionResult(
 /** Discriminated description of what the panel should render next. */
 type ViewState =
   | Readonly<{ kind: "empty" }>
-  | Readonly<{ kind: "legacy"; heading: string }>
-  | Readonly<{ kind: "pending"; heading: string }>
-  | Readonly<{ kind: "loading"; heading: string }>
-  | Readonly<{ kind: "not-found"; heading: string }>
-  | Readonly<{ kind: "unavailable"; heading: string }>
+  | Readonly<{
+      kind: "legacy";
+      heading: string;
+      relationship: ExplainableRelationship;
+    }>
+  | Readonly<{
+      kind: "pending";
+      heading: string;
+      relationship: ExplainableRelationship;
+    }>
+  | Readonly<{
+      kind: "loading";
+      heading: string;
+      relationship: ExplainableRelationship;
+    }>
+  | Readonly<{
+      kind: "not-found";
+      heading: string;
+      relationship: ExplainableRelationship;
+    }>
+  | Readonly<{
+      kind: "unavailable";
+      heading: string;
+      relationship: ExplainableRelationship;
+    }>
   | Readonly<{
       kind: "ready";
       heading: string;
@@ -666,7 +821,7 @@ function resolveViewState(
 
   const heading = relationshipHeading(relationship);
   if (relationship.governance_status !== "governed") {
-    return { kind: "legacy", heading };
+    return { kind: "legacy", heading, relationship };
   }
 
   const projectionEdgeId = relationship.projection_edge_id;
@@ -678,11 +833,13 @@ function resolveViewState(
   );
 
   if (!requestKey) {
-    return { kind: "pending", heading };
+    return { kind: "pending", heading, relationship };
   }
 
   // "Loading" is derived, not stored
-  if (result?.requestKey !== requestKey) return { kind: "loading", heading };
+  if (result?.requestKey !== requestKey) {
+    return { kind: "loading", heading, relationship };
+  }
 
   if (result.status === "ready") {
     return {
@@ -693,32 +850,63 @@ function resolveViewState(
     };
   }
 
-  return { kind: result.status, heading };
+  return { kind: result.status, heading, relationship };
 }
 
 /**
  * Render the subcomponent matching a resolved `ViewState`.
  */
-function renderView(view: ViewState) {
+function renderView(view: ViewState, onDeselect?: () => void) {
   switch (view.kind) {
     case "empty":
       return <EmptySelectionView />;
     case "legacy":
-      return <LegacyView heading={view.heading} />;
+      return (
+        <LegacyView
+          heading={view.heading}
+          relationship={view.relationship}
+          onDeselect={onDeselect}
+        />
+      );
     case "pending":
-      return <PendingMetadataView heading={view.heading} />;
+      return (
+        <PendingMetadataView
+          heading={view.heading}
+          relationship={view.relationship}
+          onDeselect={onDeselect}
+        />
+      );
     case "loading":
-      return <LoadingView heading={view.heading} />;
+      return (
+        <LoadingView
+          heading={view.heading}
+          relationship={view.relationship}
+          onDeselect={onDeselect}
+        />
+      );
     case "not-found":
-      return <NotFoundView heading={view.heading} />;
+      return (
+        <NotFoundView
+          heading={view.heading}
+          relationship={view.relationship}
+          onDeselect={onDeselect}
+        />
+      );
     case "unavailable":
-      return <UnavailableView heading={view.heading} />;
+      return (
+        <UnavailableView
+          heading={view.heading}
+          relationship={view.relationship}
+          onDeselect={onDeselect}
+        />
+      );
     case "ready":
       return (
         <ReadyView
           heading={view.heading}
           relationship={view.relationship}
           payload={view.payload}
+          onDeselect={onDeselect}
         />
       );
   }
@@ -732,6 +920,7 @@ export default function RelationshipExplanationPanel({
   relationship,
   publication,
   publicationId: publicationIdProp,
+  onDeselect,
 }: RelationshipExplanationPanelProps) {
   const publicationId =
     publication?.publication_id ?? publicationIdProp ?? null;
@@ -742,5 +931,5 @@ export default function RelationshipExplanationPanel({
     relationship?.assertion_id,
   );
   const view = resolveViewState(relationship, result, publicationId);
-  return renderView(view);
+  return renderView(view, onDeselect);
 }

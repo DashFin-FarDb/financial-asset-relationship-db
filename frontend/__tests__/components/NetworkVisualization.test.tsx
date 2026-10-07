@@ -495,5 +495,79 @@ describe("NetworkVisualization Component", () => {
         ).toBeInTheDocument();
       });
     });
+
+    it("deselects a relationship when the header Deselect button is clicked", async () => {
+      const user = userEvent.setup();
+      render(<NetworkVisualization data={governedData} />);
+
+      const canonicalButton = screen.getByRole("button", {
+        name: /ASSET_2.*ASSET_1.*CORPORATE_LINK.*Governed/,
+      });
+      await user.click(canonicalButton);
+
+      expect(screen.getByText("Relationship selected")).toBeInTheDocument();
+      const deselectButton = screen.getByRole("button", {
+        name: "Deselect relationship",
+      });
+      expect(deselectButton).toBeInTheDocument();
+
+      await user.click(deselectButton);
+      expect(screen.getByText("Select a relationship")).toBeInTheDocument();
+      expect(screen.queryByRole("button", { name: "Deselect relationship" })).not.toBeInTheDocument();
+      expect(canonicalButton).toHaveAttribute("aria-pressed", "false");
+    });
+
+    it("toggles off selection when the currently selected relationship is clicked again in the list", async () => {
+      const user = userEvent.setup();
+      render(<NetworkVisualization data={governedData} />);
+
+      const canonicalButton = screen.getByRole("button", {
+        name: /ASSET_2.*ASSET_1.*CORPORATE_LINK.*Governed/,
+      });
+
+      // First click: select
+      await user.click(canonicalButton);
+      expect(canonicalButton).toHaveAttribute("aria-pressed", "true");
+      expect(screen.getByText("Relationship selected")).toBeInTheDocument();
+
+      // Second click: toggle off
+      await user.click(canonicalButton);
+      expect(canonicalButton).toHaveAttribute("aria-pressed", "false");
+      expect(screen.getByText("Select a relationship")).toBeInTheDocument();
+    });
+
+    it("toggles off selection when the currently selected relationship is clicked again in the plot", async () => {
+      const user = userEvent.setup();
+      render(<NetworkVisualization data={governedData} />);
+
+      const trigger = screen.getByTestId("plot-click-trigger");
+
+      // First click: select
+      await user.click(trigger);
+      expect(screen.getByText("Relationship selected")).toBeInTheDocument();
+
+      // Second click: toggle off
+      await user.click(trigger);
+      expect(screen.getByText("Select a relationship")).toBeInTheDocument();
+    });
+
+    it("displays edge ID, source, target, and relationship type in the inspector", async () => {
+      const user = userEvent.setup();
+      render(<NetworkVisualization data={governedData} />);
+
+      const legacyButton = screen.getByRole("button", {
+        name: /ASSET_1.*ASSET_2.*SAME_SECTOR.*Legacy/,
+      });
+      await user.click(legacyButton);
+
+      expect(screen.getByText("Edge ID")).toBeInTheDocument();
+      expect(screen.getByText("legacy-edge-1")).toBeInTheDocument();
+      expect(screen.getByText("Relationship type")).toBeInTheDocument();
+      expect(screen.getByText("SAME_SECTOR")).toBeInTheDocument();
+      expect(screen.getByText("Source node")).toBeInTheDocument();
+      expect(screen.getByText("ASSET_1")).toBeInTheDocument();
+      expect(screen.getByText("Target node")).toBeInTheDocument();
+      expect(screen.getByText("ASSET_2")).toBeInTheDocument();
+    });
   });
 });

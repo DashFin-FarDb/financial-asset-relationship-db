@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
 import type {
   VisualizationData,
@@ -247,7 +247,7 @@ function prepareVisualizationData(
 type RelationshipListProps = Readonly<{
   validEdges: readonly PreparedEdge[];
   selectedKey: string | null;
-  onSelect: (key: string) => void;
+  onSelect: (key: string | null) => void;
 }>;
 
 /**
@@ -284,7 +284,7 @@ type RelationshipListItemProps = Readonly<{
   edgeKey: string;
   edge: VisualizationEdge;
   isSelected: boolean;
-  onSelect: (key: string) => void;
+  onSelect: (key: string | null) => void;
 }>;
 
 /** A single selectable relationship row within the keyboard-accessible list. */
@@ -300,7 +300,7 @@ function RelationshipListItem({
       <button
         type="button"
         aria-pressed={isSelected}
-        onClick={() => onSelect(key)}
+        onClick={() => onSelect(isSelected ? null : key)}
         className={`w-full text-left text-sm px-2 py-1 rounded ${
           isSelected
             ? "bg-blue-100 text-blue-900"
@@ -420,24 +420,23 @@ function StatusMessage({ status, message }: StatusMessageProps) {
 export default function NetworkVisualization({
   data,
 }: NetworkVisualizationProps) {
-  const [selectedKey, setSelectedKey] = useState<string | null>(null);
+  const [selectedEdgeId, setSelectedEdgeId] = useState<string | null>(null);
 
   const validEdges = useMemo<PreparedEdge[]>(
     () => resolveValidEdges(data),
     [data],
   );
 
-  useEffect(() => {
-    setSelectedKey((currentKey) =>
-      currentKey !== null && validEdges.some(({ key }) => key === currentKey)
-        ? currentKey
-        : null,
-    );
-  }, [validEdges]);
+  const selectedEdge = useMemo(
+    () => resolveSelectedEdge(validEdges, selectedEdgeId),
+    [validEdges, selectedEdgeId],
+  );
+
+  const effectiveSelectedKey = selectedEdge ? selectedEdgeId : null;
 
   const preparation = useMemo<VisualizationPreparation>(
-    () => resolvePreparation(data, validEdges, selectedKey),
-    [data, validEdges, selectedKey],
+    () => resolvePreparation(data, validEdges, effectiveSelectedKey),
+    [data, validEdges, effectiveSelectedKey],
   );
 
   const { plotData, status, message } = preparation;
@@ -445,14 +444,11 @@ export default function NetworkVisualization({
   const handlePlotClick = useCallback(
     (event: { points?: ReadonlyArray<{ customdata?: unknown }> }) => {
       const key = resolveClickedKey(event);
-      if (key) setSelectedKey(key);
+      if (key) {
+        setSelectedEdgeId((current) => (current === key ? null : key));
+      }
     },
     [],
-  );
-
-  const selectedEdge = useMemo(
-    () => resolveSelectedEdge(validEdges, selectedKey),
-    [validEdges, selectedKey],
   );
 
   if (status !== "ready") {
@@ -475,8 +471,20 @@ export default function NetworkVisualization({
               governed relationship dossier.
             </p>
           </div>
-          <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-medium text-slate-700">
-            {selectedEdge ? "Relationship selected" : "Select a relationship"}
+          <div className="flex items-center gap-2">
+            <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-medium text-slate-700">
+              {selectedEdge ? "Relationship selected" : "Select a relationship"}
+            </div>
+            {selectedEdge && (
+              <button
+                type="button"
+                onClick={() => setSelectedEdgeId(null)}
+                className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors"
+                aria-label="Deselect relationship"
+              >
+                Deselect
+              </button>
+            )}
           </div>
         </header>
 
@@ -554,8 +562,8 @@ export default function NetworkVisualization({
             <div className="mt-3">
               <RelationshipList
                 validEdges={validEdges}
-                selectedKey={selectedKey}
-                onSelect={setSelectedKey}
+                selectedKey={effectiveSelectedKey}
+                onSelect={setSelectedEdgeId}
               />
             </div>
 
@@ -568,6 +576,7 @@ export default function NetworkVisualization({
                   relationship={selectedEdge}
                   publication={data?.publication ?? null}
                   publicationId={data?.publication?.publication_id}
+                  onDeselect={() => setSelectedEdgeId(null)}
                 />
               </div>
             </div>

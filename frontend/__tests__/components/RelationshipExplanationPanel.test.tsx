@@ -426,4 +426,44 @@ describe("RelationshipExplanationPanel", () => {
       );
     });
   });
+
+  it("renders edge ID, relationship type, source node, and target node for a legacy relationship", () => {
+    const legacyWithId: ExplainableRelationship = {
+      ...legacyRelationship,
+      edge_id: "edge-legacy-123",
+    };
+    render(
+      <RelationshipExplanationPanel
+        relationship={legacyWithId}
+        publicationId="pub-1"
+      />,
+    );
+
+    expect(screen.getByText("Edge ID")).toBeInTheDocument();
+    expect(screen.getByText("edge-legacy-123")).toBeInTheDocument();
+    expect(screen.getByText("Relationship type")).toBeInTheDocument();
+    expect(screen.getByText("SAME_SECTOR")).toBeInTheDocument();
+    expect(screen.getByText("Source node")).toBeInTheDocument();
+    expect(screen.getByText("ASSET_1")).toBeInTheDocument();
+    expect(screen.getByText("Target node")).toBeInTheDocument();
+    expect(screen.getByText("ASSET_2")).toBeInTheDocument();
+  });
+
+  it("invokes onDeselect when the Clear selection button is clicked", () => {
+    const onDeselect = jest.fn();
+    render(
+      <RelationshipExplanationPanel
+        relationship={legacyRelationship}
+        publicationId="pub-1"
+        onDeselect={onDeselect}
+      />,
+    );
+
+    const clearButton = screen.getByRole("button", {
+      name: "Clear relationship selection",
+    });
+    expect(clearButton).toBeInTheDocument();
+    clearButton.click();
+    expect(onDeselect).toHaveBeenCalledTimes(1);
+  });
 });
