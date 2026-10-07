@@ -58,6 +58,7 @@ def test_verify_runtime_access_catalog_counts_only_usable_login_grantees(monkeyp
     assert fetch_value.call_args_list[0].args[1][3] == ["fardb_login_auth", "fardb_login_auth_prod"]
     assert ") >= 1" in safe_role_query
     assert "grantee.rolname = ANY(%s)" in safe_role_query
+    assert safe_role_query.rstrip().endswith("))))" )
 
 
 def test_verify_runtime_authority_rejects_unsafe_auth_capability_role(monkeypatch) -> None:
