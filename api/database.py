@@ -205,7 +205,7 @@ _AUTH_SAFE_ROLE_SQL = "".join(
         "WHERE grantee.rolcanlogin AND grantee.oid <> (SELECT datdba FROM pg_database WHERE datname = current_database()) "
         "AND EXISTS (SELECT 1 FROM role_membership "
         "WHERE role_membership.member = grantee.oid AND role_membership.roleid = role.oid) "
-        "AND NOT (grantee.rolname = ANY(%s)))",
+        "AND NOT (grantee.rolname = ANY(%s))))",
     )
 )
 
