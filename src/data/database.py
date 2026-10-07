@@ -571,7 +571,7 @@ def _verify_runtime_capability_roles(connection, capabilities: tuple[str, ...], 
                         "AND grantee.oid <> (SELECT datdba FROM pg_database WHERE datname = current_database()) "
                         "AND EXISTS (SELECT 1 FROM role_membership WHERE role_membership.member = grantee.oid "
                         "AND role_membership.roleid = role.oid) "
-                        "AND NOT (grantee.rolname IN :approved_logins))))",
+                        "AND NOT (grantee.rolname IN :approved_logins)))",
                     )
                 )
             ).bindparams(
