@@ -13,7 +13,8 @@ from contextlib import asynccontextmanager
 from typing import TYPE_CHECKING, Any
 from uuid import uuid4
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
 
 # pylint: disable=import-error
 from slowapi import _rate_limit_exceeded_handler  # type: ignore[import-not-found]
@@ -427,7 +428,7 @@ async def _perform_startup_reconciliation(settings: GraphLifecycleSettings) -> b
     except SchemaCompatibilityError:
         raise
     except ExecutionBlockedError as exc:
-        return _handle_reconciliation_blocked(exc)
+        return _handle_reconciliation_blocked(exc, settings)
     except Exception as exc:
         log_event(
             logger,
@@ -448,17 +449,37 @@ async def _perform_startup_reconciliation(settings: GraphLifecycleSettings) -> b
         raise RuntimeError("Failed to load persisted graph during startup") from None
 
 
-def _handle_reconciliation_blocked(exc: Any) -> bool:
-    """Handle ExecutionBlockedError from RecoveryGate."""
-    if exc.action == "wait" and exc.inconsistency_type == "none":
+def _is_genuine_clean_install(settings: GraphLifecycleSettings) -> bool:
+    """Verify that durable persistence genuinely has zero rebuild jobs (clean install)."""
+    try:
+        from src.data.database import create_engine_from_url, create_session_factory
+        from src.data.repository import AssetGraphRepository, session_scope
+
+        resolved_url = _resolve_startup_reconciliation_url(settings)
+        engine = create_engine_from_url(resolved_url)
+        try:
+            session_factory = create_session_factory(engine)
+            with session_scope(session_factory) as session:
+                repo = AssetGraphRepository(session)
+                return repo.get_latest_rebuild_job() is None
+        finally:
+            engine.dispose()
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("Clean-install verification failed: %s; failing closed.", exc)
+        return False
+
+
+def _handle_reconciliation_blocked(exc: Any, settings: GraphLifecycleSettings) -> bool:
+    """Handle ExecutionBlockedError from RecoveryGate with independent clean-install proof."""
+    if exc.action == "wait" and exc.inconsistency_type == "none" and _is_genuine_clean_install(settings):
         log_event(
             logger,
             logging.INFO,
             ObservabilityEvent(
                 event="startup_reconciliation_benign_clean_install",
                 message=(
-                    "Benign clean-install detected on startup (action=wait, inconsistency=none). "
-                    "Proceeding with startup."
+                    "Benign clean-install verified on startup (action=wait, inconsistency=none, "
+                    "zero prior rebuild jobs). Proceeding with startup."
                 ),
             ),
         )
@@ -686,6 +707,14 @@ def create_app() -> FastAPI:
 
     app.state.limiter = limiter
     app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)  # type: ignore[arg-type]
+
+    @app.exception_handler(AuthoritativeGraphUnavailableError)
+    async def _graph_unavailable_handler(_request: Request, _exc: AuthoritativeGraphUnavailableError) -> JSONResponse:
+        return JSONResponse(
+            status_code=503,
+            content={"detail": "Graph not yet published; awaiting initial rebuild."},
+        )
+
     configure_cors(app)
 
     # Register RequestMetricsMiddleware before CorrelationMiddleware.

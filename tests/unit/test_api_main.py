@@ -47,6 +47,18 @@ from src.models.financial_models import AssetClass, Equity
 CORS_DEV_ORIGIN = "http://localhost:3000"
 
 
+def _make_authoritative_cached_graph() -> AssetRelationshipGraph:
+    """Build an AssetRelationshipGraph containing the 13 canonical assets required for caching."""
+    from tests.unit.test_real_data_fetcher import _make_mock_universe_assets
+
+    graph = AssetRelationshipGraph()
+    equities, bonds, commodities, currencies = _make_mock_universe_assets()
+    for asset in (*equities, *bonds, *commodities, *currencies):
+        graph.add_asset(asset)
+    graph.build_relationships()
+    return graph
+
+
 def _assert_asset_page(data: dict[str, Any], *, page: int = 1, per_page: int = 50) -> list[dict[str, Any]]:
     """Assert that an assets response follows the paginated contract."""
     assert set(data) == {"items", "total", "page", "per_page", "hasMore"}
@@ -172,7 +184,7 @@ class TestGraphInitialization:
     def test_graph_initialization(self, tmp_path: Path, monkeypatch) -> None:
         """Graph is initialized via get_graph() when cache is available."""
         cache_path = tmp_path / "graph_snapshot.json"
-        reference_graph = create_sample_database()
+        reference_graph = _make_authoritative_cached_graph()
         _save_to_cache(reference_graph, cache_path)
 
         monkeypatch.setenv("GRAPH_CACHE_PATH", str(cache_path))
@@ -186,7 +198,7 @@ class TestGraphInitialization:
     def test_graph_singleton(self, tmp_path: Path, monkeypatch) -> None:
         """Graph is a singleton instance via get_graph()."""
         cache_path = tmp_path / "graph_snapshot.json"
-        reference_graph = create_sample_database()
+        reference_graph = _make_authoritative_cached_graph()
         _save_to_cache(reference_graph, cache_path)
 
         monkeypatch.setenv("GRAPH_CACHE_PATH", str(cache_path))
@@ -199,7 +211,7 @@ class TestGraphInitialization:
     def test_graph_uses_cache_when_configured(self, tmp_path: Path, monkeypatch) -> None:
         """Graph initialization should load from cached dataset when provided."""
         cache_path = tmp_path / "graph_snapshot.json"
-        reference_graph = create_sample_database()
+        reference_graph = _make_authoritative_cached_graph()
         _save_to_cache(reference_graph, cache_path)
 
         monkeypatch.setenv("GRAPH_CACHE_PATH", str(cache_path))
@@ -1217,7 +1229,7 @@ class TestGraphInitializationRaceConditions:
         import threading
 
         cache_path = tmp_path / "graph_snapshot.json"
-        reference_graph = create_sample_database()
+        reference_graph = _make_authoritative_cached_graph()
         _save_to_cache(reference_graph, cache_path)
         monkeypatch.setenv("GRAPH_CACHE_PATH", str(cache_path))
 
@@ -1269,7 +1281,7 @@ class TestGraphInitializationRaceConditions:
     def test_graph_reset_and_reinitialize(self, tmp_path: Path, monkeypatch):
         """Boundary: Resetting and reinitializing graph should work correctly."""
         cache_path = tmp_path / "graph_snapshot.json"
-        reference_graph = create_sample_database()
+        reference_graph = _make_authoritative_cached_graph()
         _save_to_cache(reference_graph, cache_path)
         monkeypatch.setenv("GRAPH_CACHE_PATH", str(cache_path))
         api_main.reset_graph()
@@ -1293,7 +1305,7 @@ class TestGraphInitializationRaceConditions:
         import gc
 
         cache_path = tmp_path / "graph_snapshot.json"
-        reference_graph = create_sample_database()
+        reference_graph = _make_authoritative_cached_graph()
         _save_to_cache(reference_graph, cache_path)
         monkeypatch.setenv("GRAPH_CACHE_PATH", str(cache_path))
         api_main.reset_graph()
@@ -1585,7 +1597,7 @@ class TestSetGraphFunctions:
     def test_set_graph_factory_clears_existing_graph(self, tmp_path: Path, monkeypatch):
         """set_graph_factory() should clear existing graph instance."""
         cache_path = tmp_path / "graph_snapshot.json"
-        reference_graph = create_sample_database()
+        reference_graph = _make_authoritative_cached_graph()
         _save_to_cache(reference_graph, cache_path)
         monkeypatch.setenv("GRAPH_CACHE_PATH", str(cache_path))
         api_main.reset_graph()
@@ -1990,7 +2002,7 @@ class TestLifespanHandler:
     async def test_lifespan_initializes_graph(self, tmp_path: Path, monkeypatch):
         """Lifespan handler should initialize graph on startup when cache is present."""
         cache_path = tmp_path / "graph_snapshot.json"
-        reference_graph = create_sample_database()
+        reference_graph = _make_authoritative_cached_graph()
         _save_to_cache(reference_graph, cache_path)
         monkeypatch.setenv("GRAPH_CACHE_PATH", str(cache_path))
 
@@ -2008,7 +2020,7 @@ class TestLifespanHandler:
     async def test_lifespan_yields_control(self, tmp_path: Path, monkeypatch):
         """Lifespan handler should yield control during app lifetime."""
         cache_path = tmp_path / "graph_snapshot.json"
-        reference_graph = create_sample_database()
+        reference_graph = _make_authoritative_cached_graph()
         _save_to_cache(reference_graph, cache_path)
         monkeypatch.setenv("GRAPH_CACHE_PATH", str(cache_path))
 

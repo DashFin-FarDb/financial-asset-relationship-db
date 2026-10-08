@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+from pathlib import Path
 
 import pytest
 from sqlalchemy import create_engine
@@ -12,20 +13,45 @@ from src.data import database as runtime_database
 
 pytestmark = pytest.mark.integration
 
+_BOOTSTRAP_PATH = Path(__file__).resolve().parents[2] / "scripts" / "bootstrap_database_capability_roles.sql"
+
 
 def _postgres_test_url() -> str:
     """Return the explicit PostgreSQL integration-test URL or skip the test."""
-    url = os.getenv("FARDB_POSTGRES_TEST_URL")
+    url = os.getenv("FARDB_POSTGRES_TEST_URL") or os.getenv("FARDB_EPHEMERAL_POSTGRES_URL")
     if not url:
-        pytest.skip("FARDB_POSTGRES_TEST_URL is not configured")
+        pytest.skip("Neither FARDB_POSTGRES_TEST_URL nor FARDB_EPHEMERAL_POSTGRES_URL is configured")
+    assert url is not None
     if not url.lower().startswith(("postgresql://", "postgres://")):
-        pytest.fail("FARDB_POSTGRES_TEST_URL must be a PostgreSQL URL")
+        pytest.fail("Configured PostgreSQL test URL must be a PostgreSQL URL")
     return url
+
+
+def _ensure_bootstrap_roles(url: str) -> None:
+    """Ensure capability roles are present before testing SQL verifiers."""
+    if not _BOOTSTRAP_PATH.exists():
+        return
+    import psycopg2
+
+    bootstrap_sql = _BOOTSTRAP_PATH.read_text(encoding="utf-8")
+    conn = psycopg2.connect(url)
+    conn.autocommit = True
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute(bootstrap_sql)
+    finally:
+        conn.close()
 
 
 def test_runtime_capability_verifier_sql_executes_against_postgres() -> None:
     """Execute the real verifier SQL against PostgreSQL rather than only mocking it."""
-    engine = create_engine(_postgres_test_url(), future=True)
+    url = _postgres_test_url()
+    try:
+        _ensure_bootstrap_roles(url)
+    except Exception:  # noqa: BLE001
+        pass
+
+    engine = create_engine(url, future=True)
     try:
         raw_connection = engine.raw_connection()
         try:

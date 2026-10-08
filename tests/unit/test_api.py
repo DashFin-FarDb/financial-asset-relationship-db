@@ -727,18 +727,21 @@ class TestRealDataFetcherFallback:
     def test_real_data_fetcher_loads_from_cache(tmp_path):
         """Verify that RealDataFetcher returns cached dataset when available."""
         from src.data.real_data_fetcher import RealDataFetcher, _save_to_cache
-        from src.data.sample_data import create_sample_database
+        from src.logic.asset_graph import AssetRelationshipGraph
+        from tests.unit.test_real_data_fetcher import _make_mock_universe_assets
 
         cache_path = tmp_path / "cached_dataset.json"
-        reference_graph = create_sample_database()
+        reference_graph = AssetRelationshipGraph()
+        equities, bonds, commodities, currencies = _make_mock_universe_assets()
+        for asset in (*equities, *bonds, *commodities, *currencies):
+            reference_graph.add_asset(asset)
+        reference_graph.build_relationships()
         _save_to_cache(reference_graph, cache_path)
 
         fetcher = RealDataFetcher(cache_path=str(cache_path), enable_network=False)
         graph = fetcher.create_real_database()
 
         assert len(graph.assets) == len(reference_graph.assets)
-        assert set(graph.relationships.keys()) == set(reference_graph.relationships.keys())
-
         assert set(graph.relationships.keys()) == set(reference_graph.relationships.keys())
 
 
@@ -748,19 +751,19 @@ class TestCacheCorruptionRegression:
 
     @staticmethod
     @patch("yfinance.Ticker")
-    def test_real_data_fetcher_handles_corrupted_cache_gracefully(mock_ticker):
+    def test_real_data_fetcher_handles_corrupted_cache_gracefully(mock_ticker, tmp_path):
         """Regression: RealDataFetcher should handle corrupted cache without crashing."""
-        from src.data.real_data_fetcher import RealDataFetcher
+        from src.data.real_data_fetcher import DataAcquisitionIncompleteError, RealDataFetcher
 
         # Mock ticker to ensure network calls fail
         mock_ticker.side_effect = Exception("Network unavailable")
 
-        # This tests the scenario where cache exists but is corrupted
-        fetcher = RealDataFetcher(cache_path="/nonexistent/corrupted.cache")
+        # This tests the scenario where cache file exists on disk but is corrupted
+        cache_path = tmp_path / "corrupted.cache"
+        cache_path.write_text("not valid json", encoding="utf-8")
+        fetcher = RealDataFetcher(cache_path=str(cache_path))
 
         # Fail-closed: should raise DataAcquisitionIncompleteError when cache is missing/corrupted and live fetch fails
-        from src.data.real_data_fetcher import DataAcquisitionIncompleteError
-
         with pytest.raises(DataAcquisitionIncompleteError):
             fetcher.create_real_database()
 
@@ -776,10 +779,15 @@ class TestCacheCorruptionRegression:
         import threading
 
         from src.data.real_data_fetcher import _save_to_cache
-        from src.data.sample_data import create_sample_database
+        from src.logic.asset_graph import AssetRelationshipGraph
+        from tests.unit.test_real_data_fetcher import _make_mock_universe_assets
 
         cache_path = tmp_path / "concurrent_cache.json"
-        reference_graph = create_sample_database()
+        reference_graph = AssetRelationshipGraph()
+        equities, bonds, commodities, currencies = _make_mock_universe_assets()
+        for asset in (*equities, *bonds, *commodities, *currencies):
+            reference_graph.add_asset(asset)
+        reference_graph.build_relationships()
         _save_to_cache(reference_graph, cache_path)
 
         results = []

@@ -84,6 +84,13 @@ TOTAL_REQUIRED_ASSET_COUNT: int = (
     + len(REQUIRED_CURRENCY_SYMBOLS)
 )
 
+CANONICAL_REQUIRED_ASSET_IDS: frozenset[str] = frozenset(
+    set(REQUIRED_EQUITY_SYMBOLS.keys())
+    | set(REQUIRED_BOND_SYMBOLS.keys())
+    | {s.replace("=F", "_FUTURE") for s in REQUIRED_COMMODITY_SYMBOLS}
+    | {s.replace("=X", "") for s in REQUIRED_CURRENCY_SYMBOLS}
+)
+
 _YFINANCE_MODULE = None
 _FETCHED_ASSET_LOG_MESSAGE = "Fetched %s: %s at $%.2f"
 
@@ -256,7 +263,28 @@ class RealDataFetcher:
                     metadata={"cache_path": str(self.cache_path)},
                 ),
             )
-            return _load_from_cache(self.cache_path)
+            graph = _load_from_cache(self.cache_path)
+            missing_assets = CANONICAL_REQUIRED_ASSET_IDS - set(graph.assets.keys())
+            if missing_assets or len(graph.assets) != TOTAL_REQUIRED_ASSET_COUNT:
+                log_event(
+                    logger,
+                    logging.WARNING,
+                    ObservabilityEvent(
+                        event="graph_cache_incomplete",
+                        message=(
+                            f"Cached graph at {self.cache_path} is incomplete: "
+                            f"{len(graph.assets)} assets found, expected {TOTAL_REQUIRED_ASSET_COUNT}. "
+                            f"Missing: {sorted(missing_assets)}"
+                        ),
+                        metadata={
+                            "asset_count": len(graph.assets),
+                            "expected_count": TOTAL_REQUIRED_ASSET_COUNT,
+                            "missing_assets": sorted(missing_assets),
+                        },
+                    ),
+                )
+                return None
+            return graph
         except Exception as exc:
             log_event(
                 logger,

@@ -402,22 +402,67 @@ class TestCreateRealDatabase:
         cache_path = tmp_path / "cache.json"
 
         graph = AssetRelationshipGraph()
-        equity = Equity(
-            id="CACHED",
-            symbol="CACHED",
-            name="Cached Equity",
-            asset_class=AssetClass.EQUITY,
-            sector="Finance",
-            price=50.0,
-        )
-        graph.add_asset(equity)
+        mock_eqs, mock_bnds, mock_comms, mock_currs = _make_mock_universe_assets()
+        for asset in mock_eqs + mock_bnds + mock_comms + mock_currs:
+            graph.add_asset(asset)
         _save_to_cache(graph, cache_path)
 
         fetcher = RealDataFetcher(cache_path=str(cache_path), enable_network=True)
         loaded_graph = fetcher.create_real_database()
 
-        assert "CACHED" in loaded_graph.assets
-        assert loaded_graph.assets["CACHED"].name == "Cached Equity"
+        assert len(loaded_graph.assets) == TOTAL_REQUIRED_ASSET_COUNT
+        assert "AAPL" in loaded_graph.assets
+
+    @staticmethod
+    def test_incomplete_cache_rejected_and_raises_when_network_disabled(tmp_path):
+        """Incomplete cache must be rejected and fail closed when network is disabled."""
+        cache_path = tmp_path / "cache.json"
+        graph = AssetRelationshipGraph()
+        equity = Equity(
+            id="AAPL",
+            symbol="AAPL",
+            name="Apple Inc.",
+            asset_class=AssetClass.EQUITY,
+            sector="Technology",
+            price=150.0,
+        )
+        graph.add_asset(equity)  # Only 1 of 13 assets
+        _save_to_cache(graph, cache_path)
+
+        fetcher = RealDataFetcher(cache_path=str(cache_path), enable_network=False)
+        with pytest.raises(
+            DataAcquisitionIncompleteError, match="Network fetching is disabled and no cached data is available"
+        ):
+            fetcher.create_real_database_with_source()
+
+    @staticmethod
+    def test_incomplete_cache_falls_back_to_live_fetch_when_network_enabled(tmp_path):
+        """Incomplete cache must be rejected and trigger live fetch when network is enabled."""
+        cache_path = tmp_path / "cache.json"
+        graph = AssetRelationshipGraph()
+        equity = Equity(
+            id="AAPL",
+            symbol="AAPL",
+            name="Apple Inc.",
+            asset_class=AssetClass.EQUITY,
+            sector="Technology",
+            price=150.0,
+        )
+        graph.add_asset(equity)  # Incomplete
+        _save_to_cache(graph, cache_path)
+
+        mock_eqs, mock_bnds, mock_comms, mock_currs = _make_mock_universe_assets()
+        with (
+            patch("src.data.real_data_fetcher.RealDataFetcher._fetch_equity_data", return_value=mock_eqs),
+            patch("src.data.real_data_fetcher.RealDataFetcher._fetch_bond_data", return_value=mock_bnds),
+            patch("src.data.real_data_fetcher.RealDataFetcher._fetch_commodity_data", return_value=mock_comms),
+            patch("src.data.real_data_fetcher.RealDataFetcher._fetch_currency_data", return_value=mock_currs),
+            patch("src.data.real_data_fetcher.RealDataFetcher._create_regulatory_events", return_value=[]),
+        ):
+            fetcher = RealDataFetcher(cache_path=str(cache_path), enable_network=True)
+            loaded_graph, source = fetcher.create_real_database_with_source()
+            assert source == "real_data"
+            assert len(loaded_graph.assets) == TOTAL_REQUIRED_ASSET_COUNT
 
     @staticmethod
     def test_create_database_fetch_failure_raises_incomplete_error():
@@ -967,22 +1012,16 @@ class TestNetworkDisabled:
         cache_path = tmp_path / "cache.json"
 
         cached_graph = AssetRelationshipGraph()
-        custom_asset = Equity(
-            id="CACHED_ONLY",
-            symbol="CO",
-            name="Cached Only",
-            asset_class=AssetClass.EQUITY,
-            sector="Tech",
-            price=999.0,
-        )
-        cached_graph.add_asset(custom_asset)
+        mock_eqs, mock_bnds, mock_comms, mock_currs = _make_mock_universe_assets()
+        for asset in mock_eqs + mock_bnds + mock_comms + mock_currs:
+            cached_graph.add_asset(asset)
         _save_to_cache(cached_graph, cache_path)
 
         fetcher = RealDataFetcher(cache_path=str(cache_path), enable_network=False)
         result = fetcher.create_real_database()
 
-        assert "CACHED_ONLY" in result.assets
-        assert result.assets["CACHED_ONLY"].price == 999.0
+        assert len(result.assets) == TOTAL_REQUIRED_ASSET_COUNT
+        assert "AAPL" in result.assets
 
 
 @pytest.mark.unit
@@ -1651,8 +1690,10 @@ class TestCompletenessGate:
             fetcher = RealDataFetcher(cache_path=str(cache_path), enable_network=True)
             graph, source = fetcher.create_real_database_with_source()
             assert source == "real_data"
+            assert len(graph.assets) == TOTAL_REQUIRED_ASSET_COUNT
 
         # 2. Cache fetch source
         fetcher_cached = RealDataFetcher(cache_path=str(cache_path), enable_network=False)
         graph2, source2 = fetcher_cached.create_real_database_with_source()
         assert source2 == "cache"
+        assert len(graph2.assets) == TOTAL_REQUIRED_ASSET_COUNT

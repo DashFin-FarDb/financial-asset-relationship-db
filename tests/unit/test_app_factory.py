@@ -926,3 +926,40 @@ def test_start_background_tasks_caps_rebuild_lock_ttl_seconds(monkeypatch) -> No
 def test_start_background_tasks_floors_rebuild_lock_ttl_seconds(monkeypatch) -> None:
     """_start_background_tasks should floor periodic reconciliation lock TTL at one second."""
     _assert_start_background_tasks_lock_ttl(monkeypatch, configured_ttl=0, expected_ttl=1)
+
+
+def test_authoritative_graph_unavailable_returns_503() -> None:
+    """AuthoritativeGraphUnavailableError must be mapped to HTTP 503."""
+    from fastapi.testclient import TestClient
+
+    from api.app_factory import create_app
+    from api.graph_lifecycle_providers import AuthoritativeGraphUnavailableError
+
+    test_app = create_app()
+
+    @test_app.get("/test-graph-unavailable")
+    def _trigger_unavailable():
+        raise AuthoritativeGraphUnavailableError("Graph not yet published")
+
+    client = TestClient(test_app, raise_server_exceptions=False)
+    response = client.get("/test-graph-unavailable")
+    assert response.status_code == 503
+    assert response.json() == {"detail": "Graph not yet published; awaiting initial rebuild."}
+
+
+def test_reconciliation_blocked_clean_install_requires_zero_jobs(monkeypatch) -> None:
+    """_handle_reconciliation_blocked must require independent evidence (zero rebuild jobs)."""
+    from api.app_factory import _handle_reconciliation_blocked
+    from src.logic.recovery_gate import ExecutionBlockedError
+
+    exc = ExecutionBlockedError("waiting", action="wait", inconsistency_type="none")
+    dummy_settings = MagicMock()
+
+    # Case 1: Genuine clean install (zero rebuild jobs) -> returns True
+    monkeypatch.setattr("api.app_factory._is_genuine_clean_install", lambda s: True)
+    assert _handle_reconciliation_blocked(exc, dummy_settings) is True
+
+    # Case 2: Established deployment (rebuild jobs exist) -> fails closed and raises
+    monkeypatch.setattr("api.app_factory._is_genuine_clean_install", lambda s: False)
+    with pytest.raises(ExecutionBlockedError):
+        _handle_reconciliation_blocked(exc, dummy_settings)
