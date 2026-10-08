@@ -39,7 +39,7 @@ from src.data.database import (  # noqa: E402
 _EPHEMERAL_AUTHORITY_FLAG = "FARDB_EPHEMERAL_POSTGRES_AUTHORITY_TESTS"
 _EPHEMERAL_POSTGRES_URL = "FARDB_EPHEMERAL_POSTGRES_URL"
 _CAPABILITY_BOOTSTRAP_SQL = Path(__file__).parents[2] / "scripts" / "bootstrap_database_capability_roles.sql"
-_AUTH_RUNTIME_LOGIN = "cq1608_auth_runtime"
+_AUTH_RUNTIME_LOGIN = "fardb_login_auth"
 _AUTH_WRITE_ROLE = "cq1608_auth_writer"
 _AUTH_REPLICATION_ROLE = "cq1608_auth_replication"
 _AUTH_ORDINARY_ROLE = "cq1608_auth_ordinary"
@@ -53,8 +53,8 @@ _GRAPH_SUPERUSER_ROLE = "cq1608_graph_superuser"
 _BOOTSTRAP_MIGRATION_OWNER = "cq1608_bootstrap_migration_owner"
 _BOOTSTRAP_SCHEMA = "cq1608_bootstrap_schema"
 _BOOTSTRAP_UNRELATED_SCHEMA = "cq1608_bootstrap_unrelated_schema"
-_BOOTSTRAP_GRAPH_RUNTIME_LOGIN = "cq1608_bootstrap_graph_runtime"
-_BOOTSTRAP_AUTH_RUNTIME_LOGIN = "cq1608_bootstrap_auth_runtime"
+_BOOTSTRAP_GRAPH_RUNTIME_LOGIN = "fardb_login_graph"
+_BOOTSTRAP_AUTH_RUNTIME_LOGIN = "fardb_login_auth"
 _MISSING_ROLE_MIGRATION_OWNER = "cq1608_missing_role_owner"
 _MISSING_ROLE_SCHEMA = "cq1608_missing_role_schema"
 _MISSING_GRAPH_ROLE = "cq1608_missing_graph_capability"
@@ -176,6 +176,25 @@ def _prepare_auth_schema(database_url: str) -> None:
 
     with api_database.bind_database_url(database_url):
         api_database.initialize_schema()
+
+
+def _apply_auth_ledger(database_url: str) -> None:
+    """Apply capability bootstrap SQL and the auth ledger migration to disposable PostgreSQL."""
+    from scripts.postgresql_ledger import PlannedTarget, apply_profile_to_database, load_and_validate_manifest
+
+    with _operator_connection(database_url) as connection, connection.cursor() as cursor:
+        cursor.execute(_CAPABILITY_BOOTSTRAP_SQL.read_text(encoding="utf-8"))
+
+    manifest = load_and_validate_manifest()
+    target = PlannedTarget(
+        logical_targets=("auth",),
+        profile="auth",
+        lineage="fresh-v1",
+        execution_class="loopback",
+        fingerprint="0" * 64,
+        database_url=database_url,
+    )
+    apply_profile_to_database(target, manifest)
 
 
 @pytest.mark.integration
@@ -527,18 +546,18 @@ def test_auth_runtime_rejects_inert_creator_admin_option() -> None:
 def test_db_owner_admin_option_accepted_for_capability_roles() -> None:
     """Database owner ADMIN OPTION on capability roles is accepted while non-owner ADMIN OPTION is rejected."""
     database_url = _ephemeral_database_url()
-    _prepare_auth_schema(database_url)
+    _apply_auth_ledger(database_url)
 
     import api.database as api_database
 
-    with api_database.bind_database_url(database_url):
-        api_database.ensure_runtime_access()
-
+    non_owner_role = "cq1608_non_owner_admin"
     try:
         with _operator_connection(database_url) as connection, connection.cursor() as cursor:
             cursor.execute("SHOW server_version_num")
             if int(cursor.fetchone()[0]) < 160000:
                 pytest.skip("per-membership INHERIT and SET options require PostgreSQL 16+")
+            cursor.execute(sql.SQL("DROP ROLE IF EXISTS {}").format(sql.Identifier(_AUTH_RUNTIME_LOGIN)))
+            cursor.execute(sql.SQL("DROP ROLE IF EXISTS {}").format(sql.Identifier(non_owner_role)))
             runtime_login_ddl = sql.SQL(
                 "CREATE ROLE {} LOGIN INHERIT NOSUPERUSER NOCREATEDB " "NOCREATEROLE NOBYPASSRLS NOREPLICATION"
             )
@@ -550,7 +569,7 @@ def test_db_owner_admin_option_accepted_for_capability_roles() -> None:
                 )
             )
             # Grant ADMIN OPTION to the current database owner role
-            cursor.execute("SELECT CURRENT_USER")
+            cursor.execute("SELECT datdba::regrole::text FROM pg_database WHERE datname = current_database()")
             db_owner = cursor.fetchone()[0]
             cursor.execute(
                 sql.SQL("GRANT {} TO {} WITH ADMIN OPTION").format(
@@ -559,7 +578,7 @@ def test_db_owner_admin_option_accepted_for_capability_roles() -> None:
                 )
             )
 
-        # Database owner ADMIN OPTION is accepted
+        # 1. Database owner ADMIN OPTION is accepted
         with (
             patch.object(api_database, "DATABASE_TYPE", "postgresql"),
             patch.object(
@@ -569,8 +588,33 @@ def test_db_owner_admin_option_accepted_for_capability_roles() -> None:
             ),
         ):
             api_database.verify_runtime_authority()
+
+        # 2. Non-owner ADMIN OPTION is rejected
+        with _operator_connection(database_url) as connection, connection.cursor() as cursor:
+            cursor.execute(
+                sql.SQL("CREATE ROLE {} NOLOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE").format(
+                    sql.Identifier(non_owner_role)
+                )
+            )
+            cursor.execute(
+                sql.SQL("GRANT {} TO {} WITH ADMIN OPTION").format(
+                    sql.Identifier(api_database.AUTH_RUNTIME_ROLE),
+                    sql.Identifier(non_owner_role),
+                )
+            )
+
+        with (
+            patch.object(api_database, "DATABASE_TYPE", "postgresql"),
+            patch.object(
+                api_database,
+                "_create_postgres_connection",
+                side_effect=lambda: _runtime_connection(database_url, _AUTH_RUNTIME_LOGIN),
+            ),
+            pytest.raises(SchemaCompatibilityError, match="capability contract is incompatible"),
+        ):
+            api_database.verify_runtime_authority()
     finally:
-        _drop_roles(database_url, _AUTH_RUNTIME_LOGIN)
+        _drop_roles(database_url, _AUTH_RUNTIME_LOGIN, non_owner_role)
 
 
 @pytest.mark.integration

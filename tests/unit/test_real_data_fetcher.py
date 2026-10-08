@@ -408,8 +408,9 @@ class TestCreateRealDatabase:
         _save_to_cache(graph, cache_path)
 
         fetcher = RealDataFetcher(cache_path=str(cache_path), enable_network=True)
-        loaded_graph = fetcher.create_real_database()
+        loaded_graph, source = fetcher.create_real_database_with_source()
 
+        assert source == "cache"
         assert len(loaded_graph.assets) == TOTAL_REQUIRED_ASSET_COUNT
         assert "AAPL" in loaded_graph.assets
 

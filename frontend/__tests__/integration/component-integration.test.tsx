@@ -177,6 +177,12 @@ describe("Component Integration Tests", () => {
         screen.getByText(/Synthetic governance walkthrough/i),
       ).toBeInTheDocument();
 
+      fireEvent.click(screen.getByText("Metrics & Analytics"));
+      const totalAssets = await screen.findByTestId("total-assets");
+      expect(totalAssets).toHaveTextContent(mockMetrics.total_assets.toString());
+      const totalRels = await screen.findByTestId("total-relationships");
+      expect(totalRels).toHaveTextContent(mockMetrics.total_relationships.toString());
+
       consoleError.mockRestore();
     });
 

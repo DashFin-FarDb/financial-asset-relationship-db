@@ -29,9 +29,11 @@ def client() -> Iterator[TestClient]:
     set_graph(create_sample_database())
     database.initialize_schema()
     seed_credentials_from_settings(user_repository, load_settings())
-    with TestClient(app) as c:
-        yield c
-    reset_graph()
+    try:
+        with TestClient(app) as c:
+            yield c
+    finally:
+        reset_graph()
 
 
 def asset_items(page: dict) -> list[dict]:

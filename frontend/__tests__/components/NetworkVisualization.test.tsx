@@ -34,7 +34,7 @@ jest.mock("react-plotly.js", () => {
           onClick={() => {
             if (onClick) {
               onClick({
-                points: [{ customdata: ["edge-canonical"] }],
+                points: [{ customdata: "edge-canonical" }],
               });
             }
           }}

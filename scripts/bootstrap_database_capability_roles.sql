@@ -30,6 +30,7 @@ BEGIN
             JOIN pg_roles AS grantee ON grantee.oid = membership.member
             JOIN pg_roles AS grantor ON grantor.oid = membership.grantor
             WHERE role.rolname = capability_role AND membership.admin_option
+              AND membership.member <> (SELECT datdba FROM pg_database WHERE datname = current_database())
         LOOP
             EXECUTE format(
                 'REVOKE %I FROM %I GRANTED BY %I CASCADE',

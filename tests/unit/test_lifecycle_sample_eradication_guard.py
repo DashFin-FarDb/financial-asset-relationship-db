@@ -36,6 +36,7 @@ def test_runtime_lifecycle_modules_do_not_import_sample_data() -> None:
                 module = node.module or ""
                 assert "sample_data" not in module, f"{file_path} imports forbidden module from '{module}'"
                 for alias in node.names:
+                    assert "sample_data" not in alias.name, f"{file_path} imports forbidden module '{alias.name}'"
                     assert (
                         alias.name != "create_sample_database"
                     ), f"{file_path} imports forbidden symbol '{alias.name}'"

@@ -116,10 +116,14 @@ class TestValidateOrigin:
     @staticmethod
     def test_validate_origin_http_localhost_development() -> None:
         """HTTP localhost is allowed in development."""
+        from src.config.settings import get_settings
+
         with patch.dict(os.environ, {"ENV": "development"}):
+            get_settings.cache_clear()
             assert validate_origin("http://localhost:3000")
             assert validate_origin("http://127.0.0.1:8000")
             assert validate_origin("http://localhost")
+            get_settings.cache_clear()
 
     @staticmethod
     def test_validate_origin_http_localhost_production() -> None:
@@ -1827,7 +1831,10 @@ class TestValidateOriginAllowedOrigins:
 
     def test_validate_origin_allowed_origins_with_spaces(self, monkeypatch):
         """validate_origin() should handle ALLOWED_ORIGINS with spaces."""
+        from src.config.settings import get_settings
+
         monkeypatch.setenv("ALLOWED_ORIGINS", " https://app.example.com , https://api.example.com ")
+        get_settings.cache_clear()
 
         # Note: the implementation splits by comma but doesn't strip individual origins
         # Testing actual behavior
@@ -1835,14 +1842,20 @@ class TestValidateOriginAllowedOrigins:
 
     def test_validate_origin_empty_allowed_origins(self, monkeypatch):
         """validate_origin() should handle empty ALLOWED_ORIGINS."""
+        from src.config.settings import get_settings
+
         monkeypatch.setenv("ALLOWED_ORIGINS", "")
+        get_settings.cache_clear()
 
         # Should still validate based on other rules
         assert validate_origin("https://example.com") is True
 
     def test_validate_origin_allowed_origins_not_set(self, monkeypatch):
         """validate_origin() should work when ALLOWED_ORIGINS is not set."""
+        from src.config.settings import get_settings
+
         monkeypatch.delenv("ALLOWED_ORIGINS", raising=False)
+        get_settings.cache_clear()
 
         # Should still validate based on other rules
         assert validate_origin("https://example.com") is True

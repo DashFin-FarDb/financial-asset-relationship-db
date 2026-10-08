@@ -41,12 +41,15 @@ def operator_client(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> Generato
         return User(username="admin", disabled=False)
 
     app.dependency_overrides[get_current_active_user] = active_user
-    from api.graph_lifecycle import set_graph
+    from api.graph_lifecycle import reset_graph, set_graph
     from src.data.sample_data import create_sample_database
 
     set_graph(create_sample_database())
-    with TestClient(app) as client:
-        yield client
+    try:
+        with TestClient(app) as client:
+            yield client
+    finally:
+        reset_graph()
 
 
 def test_cancel_rebuild_happy_path(

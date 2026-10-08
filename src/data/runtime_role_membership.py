@@ -21,7 +21,7 @@ USABLE_ROLE_MEMBERSHIP_CTE_SQL = (
 APPROVED_RUNTIME_LOGIN_PRINCIPALS: dict[str, frozenset[str]] = {
     "fardb_runtime_auth": frozenset({"fardb_login_auth", "fardb_login_auth_prod"}),
     "fardb_runtime_graph": frozenset({"fardb_login_graph"}),
-    "fardb_runtime_coordination": frozenset({"fardb_login_coordination"}),
+    "fardb_runtime_coordination": frozenset({"fardb_login_coordination", "fardb_login_graph"}),
 }
 
 

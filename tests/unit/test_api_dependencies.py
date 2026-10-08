@@ -33,10 +33,16 @@ def test_get_graph_returns_lifecycle_graph() -> None:
 
 def test_get_graph_fails_closed_when_uninitialized(monkeypatch: pytest.MonkeyPatch) -> None:
     """get_graph must fail closed and raise AuthoritativeGraphUnavailableError if not initialized."""
+    from src.config.settings import get_settings
+
     monkeypatch.delenv("ASSET_GRAPH_DATABASE_URL", raising=False)
     monkeypatch.delenv("GRAPH_CACHE_PATH", raising=False)
     monkeypatch.delenv("REAL_DATA_CACHE_PATH", raising=False)
     monkeypatch.delenv("USE_REAL_DATA_FETCHER", raising=False)
 
-    with pytest.raises(AuthoritativeGraphUnavailableError, match="No authoritative published graph available."):
-        get_graph()
+    get_settings.cache_clear()
+    try:
+        with pytest.raises(AuthoritativeGraphUnavailableError, match="No authoritative published graph available."):
+            get_graph()
+    finally:
+        get_settings.cache_clear()

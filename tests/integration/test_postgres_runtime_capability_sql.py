@@ -46,10 +46,11 @@ def _ensure_bootstrap_roles(url: str) -> None:
 def test_runtime_capability_verifier_sql_executes_against_postgres() -> None:
     """Execute the real verifier SQL against PostgreSQL rather than only mocking it."""
     url = _postgres_test_url()
-    try:
-        _ensure_bootstrap_roles(url)
-    except Exception:  # noqa: BLE001
-        pass
+    if url == os.getenv("FARDB_EPHEMERAL_POSTGRES_URL"):
+        try:
+            _ensure_bootstrap_roles(url)
+        except Exception:  # noqa: BLE001
+            pass
 
     engine = create_engine(url, future=True)
     try:

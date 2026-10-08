@@ -274,9 +274,15 @@ def _map_rebuild_error(exc: Exception | asyncio.CancelledError) -> HTTPException
     ):
         return HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(root_exc))
 
+    if isinstance(root_exc, AuthoritativeGraphUnavailableError):
+        return HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=str(root_exc),
+        )
+
     if isinstance(
         root_exc,
-        (GraphRebuildSourceError, GraphPersistenceSaveError, AuthoritativeGraphUnavailableError),
+        (GraphRebuildSourceError, GraphPersistenceSaveError),
     ):
         return HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -306,7 +312,10 @@ def _rebuild_status_code(exc: Exception | asyncio.CancelledError) -> int:
         return status.HTTP_429_TOO_MANY_REQUESTS
     if isinstance(root_exc, RebuildCancelledError):
         return status.HTTP_409_CONFLICT
-    if isinstance(root_exc, (_DistributedLockLostError, ExecutionBlockedError)):
+    if isinstance(
+        root_exc,
+        (_DistributedLockLostError, ExecutionBlockedError, AuthoritativeGraphUnavailableError),
+    ):
         return status.HTTP_503_SERVICE_UNAVAILABLE
     if isinstance(
         root_exc,
@@ -436,6 +445,7 @@ def _rebuild_failure_category(exc: Exception | asyncio.CancelledError) -> str:
         GraphPersistenceNonDurableError: "persistence_non_durable",
         GraphRebuildSourceError: "rebuild_source_error",
         GraphPersistenceSaveError: "persistence_save_error",
+        AuthoritativeGraphUnavailableError: "authoritative_graph_unavailable",
     }
     return categories.get(type(root_exc), "unexpected_error")
 
@@ -585,6 +595,7 @@ async def rebuild_graph(
             GraphPersistenceNotConfiguredError,
             GraphPersistenceSaveError,
             GraphRebuildSourceError,
+            AuthoritativeGraphUnavailableError,
             ExecutionBlockedError,
             RebuildCancelledError,
             asyncio.CancelledError,
@@ -685,6 +696,7 @@ async def _run_rebuild_in_executor(
             GraphPersistenceNotConfiguredError,
             GraphPersistenceSaveError,
             GraphRebuildSourceError,
+            AuthoritativeGraphUnavailableError,
             ExecutionBlockedError,
             RebuildCancelledError,
             asyncio.CancelledError,
@@ -1548,6 +1560,7 @@ def _sanitize_failure_message(exc: Exception | asyncio.CancelledError) -> str:
         GraphPersistenceNonDurableError,
         GraphRebuildSourceError,
         GraphPersistenceSaveError,
+        AuthoritativeGraphUnavailableError,
         ExecutionBlockedError,
     )
 
