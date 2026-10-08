@@ -163,10 +163,7 @@ def _verify_auth_database(operation_guard: Any | None = None) -> None:
     except SchemaCompatibilityError:
         raise
     except Exception as exc:  # noqa: BLE001 - sanitize catalog/driver failures at the startup boundary
-        logger.error("API credential database verification failed with %s: %s", type(exc).__name__, exc, exc_info=True)
-        raise SchemaCompatibilityError(
-            f"API credential database verification failed ({type(exc).__name__}: {exc})"
-        ) from None
+        raise SchemaCompatibilityError(f"API credential database verification failed ({type(exc).__name__})") from None
 
 
 def _consume_auth_database_verification_result(verification_task: asyncio.Task[None]) -> None:
