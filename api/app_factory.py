@@ -465,7 +465,7 @@ def _is_genuine_clean_install(settings: GraphLifecycleSettings) -> bool:
         finally:
             engine.dispose()
     except Exception as exc:  # noqa: BLE001
-        logger.warning("Clean-install verification failed: %s; failing closed.", exc)
+        logger.warning("Clean-install verification failed: %s; failing closed.", type(exc).__name__)
         return False
 
 
@@ -491,7 +491,7 @@ def _is_quiescent_established_state(settings: GraphLifecycleSettings) -> bool:
         finally:
             engine.dispose()
     except Exception as exc:  # noqa: BLE001
-        logger.warning("Quiescent state verification failed: %s; failing closed.", exc)
+        logger.warning("Quiescent state verification failed: %s; failing closed.", type(exc).__name__)
         return False
 
 

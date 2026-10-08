@@ -490,9 +490,18 @@ def ensure_runtime_database_capabilities(
     )
 
 
-def _verify_runtime_capability_roles(connection, capabilities: tuple[str, ...], managed_tables: list[str]) -> None:
+def _verify_runtime_capability_roles(
+    connection,
+    capabilities: tuple[str, ...],
+    managed_tables: list[str],
+    *,
+    combined_topology: bool | None = None,
+) -> None:
     """Verify capability-role safety and schema access."""
-    is_combined = {GRAPH_RUNTIME_CAPABILITY, COORDINATION_RUNTIME_CAPABILITY}.issubset(capabilities)
+    if combined_topology is not None:
+        is_combined = combined_topology
+    else:
+        is_combined = {GRAPH_RUNTIME_CAPABILITY, COORDINATION_RUNTIME_CAPABILITY}.issubset(capabilities)
     for capability in capabilities:
         role_name = RUNTIME_CAPABILITY_ROLES[capability]
         safe_role = connection.execute(
@@ -827,14 +836,24 @@ def _verify_runtime_capability_grants(
 
 
 # The catalog verifier intentionally exposes each privilege edge in one auditable matrix.
-def _verify_runtime_capability_catalog(connection, capabilities: tuple[str, ...]) -> None:
+def _verify_runtime_capability_catalog(
+    connection,
+    capabilities: tuple[str, ...],
+    *,
+    combined_topology: bool | None = None,
+) -> None:
     """Verify exact role attributes, table grants, and named RLS policies."""
     from .relationship_assertion_db_models import GRAC_TABLE_NAMES
 
     managed_tables = _managed_table_names(capabilities)
     table_privileges = _runtime_table_privileges(capabilities)
     policy_specs = _runtime_policy_specs(capabilities)
-    _verify_runtime_capability_roles(connection, capabilities, managed_tables)
+    _verify_runtime_capability_roles(
+        connection,
+        capabilities,
+        managed_tables,
+        combined_topology=combined_topology,
+    )
     _verify_runtime_rls_catalog(connection, managed_tables, policy_specs)
     _verify_runtime_capability_grants(
         connection,
@@ -980,6 +999,8 @@ def _verify_profile_specific_schema(
     inspector,
     backend: str,
     capabilities: tuple[str, ...],
+    *,
+    combined_topology: bool | None = None,
 ) -> None:
     """Verify graph-only invariants and the PostgreSQL authority catalog."""
     from .migrations import postgresql_heartbeat_schema_gaps
@@ -996,13 +1017,18 @@ def _verify_profile_specific_schema(
         verify_relationship_assertion_schema(engine)
     if backend == "postgresql":
         with engine.connect() as connection:
-            _verify_runtime_capability_catalog(connection, capabilities)
+            _verify_runtime_capability_catalog(
+                connection,
+                capabilities,
+                combined_topology=combined_topology,
+            )
 
 
 def verify_database_schema(
     engine: Engine,
     *,
     required_capabilities: tuple[str, ...] | set[str] | frozenset[str] = (),
+    combined_topology: bool | None = None,
 ) -> None:
     """Verify the asset-store schema without creating, altering, or repairing it.
 
@@ -1012,6 +1038,8 @@ def verify_database_schema(
 
     Parameters:
         engine: SQLAlchemy engine connected with runtime application authority.
+        required_capabilities: Runtime capability profile to verify.
+        combined_topology: Optional override for combined topology evaluation.
 
     Raises:
         SchemaCompatibilityError: If the schema or authority posture is not compatible.
@@ -1032,7 +1060,13 @@ def verify_database_schema(
     try:
         inspector = inspect(engine)
         _verify_expected_table_catalog(inspector, normalized_capabilities)
-        _verify_profile_specific_schema(engine, inspector, backend, normalized_capabilities)
+        _verify_profile_specific_schema(
+            engine,
+            inspector,
+            backend,
+            normalized_capabilities,
+            combined_topology=combined_topology,
+        )
     except SchemaCompatibilityError:
         raise
     except (PermissionError, RuntimeError) as exc:
@@ -1048,6 +1082,7 @@ def verify_runtime_database_authority(  # skipcq: PY-R1000
     engine: Engine,
     *,
     required_capabilities: tuple[str, ...] | set[str] | frozenset[str] = (),
+    combined_topology: bool | None = None,
 ) -> None:
     """Require a PostgreSQL runtime role without schema-migration authority."""
     backend = make_url(engine.url).get_backend_name()
@@ -1170,7 +1205,11 @@ def verify_runtime_database_authority(  # skipcq: PY-R1000
             if actual_roles != expected_roles:
                 raise SchemaCompatibilityError("runtime login capability memberships are incompatible")
             if normalized_capabilities:
-                _verify_runtime_capability_catalog(connection, normalized_capabilities)
+                _verify_runtime_capability_catalog(
+                    connection,
+                    normalized_capabilities,
+                    combined_topology=combined_topology,
+                )
             _verify_runtime_login_relation_grants(connection, normalized_capabilities)
             if GRAPH_RUNTIME_CAPABILITY in normalized_capabilities:
                 _verify_runtime_login_sequence_grants(connection, normalized_capabilities)

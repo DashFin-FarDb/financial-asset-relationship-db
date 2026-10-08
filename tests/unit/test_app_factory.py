@@ -970,9 +970,23 @@ def test_reconciliation_blocked_clean_install_requires_zero_jobs(monkeypatch) ->
     with pytest.raises(ExecutionBlockedError):
         _handle_reconciliation_blocked(exc, dummy_settings)
 
-    # Case 4: Non-wait action or drift inconsistency present -> fails closed regardless of clean/quiescent state
-    exc_drift = ExecutionBlockedError("drift", action="resume", inconsistency_type="orphaned_running")
+    # Case 4a: Non-wait action with benign inconsistency -> fails closed regardless of clean/quiescent state
+    exc_non_wait = ExecutionBlockedError("non-wait", action="resume", inconsistency_type="none")
+    monkeypatch.setattr("api.app_factory._is_genuine_clean_install", lambda s: True)
+    monkeypatch.setattr("api.app_factory._is_quiescent_established_state", lambda s: True)
+    with pytest.raises(ExecutionBlockedError):
+        _handle_reconciliation_blocked(exc_non_wait, dummy_settings)
+
+    # Case 4b: Wait action with drift inconsistency -> fails closed regardless of clean/quiescent state
+    exc_drift = ExecutionBlockedError("drift", action="wait", inconsistency_type="orphaned_running")
     monkeypatch.setattr("api.app_factory._is_genuine_clean_install", lambda s: True)
     monkeypatch.setattr("api.app_factory._is_quiescent_established_state", lambda s: True)
     with pytest.raises(ExecutionBlockedError):
         _handle_reconciliation_blocked(exc_drift, dummy_settings)
+
+    # Case 4c: Non-wait action with drift inconsistency -> fails closed regardless of clean/quiescent state
+    exc_both = ExecutionBlockedError("both", action="resume", inconsistency_type="orphaned_running")
+    monkeypatch.setattr("api.app_factory._is_genuine_clean_install", lambda s: True)
+    monkeypatch.setattr("api.app_factory._is_quiescent_established_state", lambda s: True)
+    with pytest.raises(ExecutionBlockedError):
+        _handle_reconciliation_blocked(exc_both, dummy_settings)

@@ -19,6 +19,7 @@ from unittest.mock import MagicMock, Mock, patch
 import pytest
 
 from src.data.real_data_fetcher import (
+    REMOVED_SYNTHETIC_EVENT_IDS,
     REQUIRED_BOND_SYMBOLS,
     REQUIRED_COMMODITY_SYMBOLS,
     REQUIRED_CURRENCY_SYMBOLS,
@@ -893,6 +894,52 @@ class TestEdgeCases:
             graph = fetcher_live.create_real_database()
             assert isinstance(graph, AssetRelationshipGraph)
             assert len(graph.assets) == TOTAL_REQUIRED_ASSET_COUNT
+
+    @staticmethod
+    def test_cache_load_with_contaminated_synthetic_events_rejected(tmp_path):
+        """Caches containing historical synthetic regulatory events must be rejected for provenance."""
+        cache_path = tmp_path / "contaminated_cache.json"
+
+        # Build graph with complete required assets
+        mock_eqs, mock_bnds, mock_comms, mock_currs = _make_mock_universe_assets()
+        graph = AssetRelationshipGraph()
+        for asset in mock_eqs + mock_bnds + mock_comms + mock_currs:
+            graph.add_asset(asset)
+
+        # Add a deprecated synthetic event
+        contaminated_event = RegulatoryEvent(
+            id="AAPL_Q4_2024_REAL",
+            asset_id="AAPL",
+            event_type=RegulatoryActivity.EARNINGS_REPORT,
+            date="2024-11-01",
+            description="Q4 2024 Earnings Report",
+            impact_score=0.12,
+            related_assets=["TLT", "MSFT"],
+        )
+        graph.add_regulatory_event(contaminated_event)
+        _save_to_cache(graph, cache_path)
+
+        # 1. Loading from cache directly fails closed (returns None)
+        fetcher_offline = RealDataFetcher(cache_path=str(cache_path), enable_network=False)
+        assert fetcher_offline._try_load_from_cache() is None
+
+        # 2. create_real_database with offline network raises DataAcquisitionIncompleteError
+        with pytest.raises(DataAcquisitionIncompleteError):
+            fetcher_offline.create_real_database()
+
+        # 3. With live fetch enabled, it bypasses contaminated cache and uses live fetch
+        with (
+            patch("src.data.real_data_fetcher.RealDataFetcher._fetch_equity_data", return_value=mock_eqs),
+            patch("src.data.real_data_fetcher.RealDataFetcher._fetch_bond_data", return_value=mock_bnds),
+            patch("src.data.real_data_fetcher.RealDataFetcher._fetch_commodity_data", return_value=mock_comms),
+            patch("src.data.real_data_fetcher.RealDataFetcher._fetch_currency_data", return_value=mock_currs),
+            patch("src.data.real_data_fetcher.RealDataFetcher._create_regulatory_events", return_value=[]),
+        ):
+            fetcher_live = RealDataFetcher(cache_path=str(cache_path), enable_network=True)
+            live_graph, source = fetcher_live.create_real_database_with_source()
+            assert source == "real_data"
+            assert len(live_graph.assets) == TOTAL_REQUIRED_ASSET_COUNT
+            assert live_graph.regulatory_events == []
 
     @staticmethod
     def test_cache_save_failure_doesnt_prevent_return(tmp_path):

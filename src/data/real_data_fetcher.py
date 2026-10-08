@@ -91,6 +91,21 @@ CANONICAL_REQUIRED_ASSET_IDS: frozenset[str] = frozenset(
     | {s.replace("=X", "") for s in REQUIRED_CURRENCY_SYMBOLS}
 )
 
+REMOVED_SYNTHETIC_EVENT_IDS: frozenset[str] = frozenset(
+    {
+        "AAPL_Q4_2024_REAL",
+        "MSFT_DIV_2024_REAL",
+        "XOM_SEC_2024_REAL",
+        "AAPL_Q4_2024",
+        "US_RATE_HIKE_2023",
+        "TECH_ANTITRUST_2023",
+        "OPEC_CUT_2023",
+        "JPM_DIVIDEND_2024",
+        "GREEN_ENERGY_MANDATE_2024",
+        "BANKING_CAPITAL_RULES_2024",
+    }
+)
+
 _YFINANCE_MODULE = None
 _FETCHED_ASSET_LOG_MESSAGE = "Fetched %s: %s at $%.2f"
 
@@ -280,6 +295,26 @@ class RealDataFetcher:
                             "asset_count": len(graph.assets),
                             "expected_count": TOTAL_REQUIRED_ASSET_COUNT,
                             "missing_assets": sorted(missing_assets),
+                        },
+                    ),
+                )
+                return None
+            contaminated_events = [
+                event.id for event in graph.regulatory_events if event.id in REMOVED_SYNTHETIC_EVENT_IDS
+            ]
+            if contaminated_events:
+                log_event(
+                    logger,
+                    logging.WARNING,
+                    ObservabilityEvent(
+                        event="graph_cache_contaminated",
+                        message=(
+                            f"Cached graph at {self.cache_path} contains deprecated synthetic regulatory "
+                            f"events: {sorted(contaminated_events)}. Rejecting cache for provenance safety."
+                        ),
+                        metadata={
+                            "contaminated_events": sorted(contaminated_events),
+                            "cache_path": str(self.cache_path),
                         },
                     ),
                 )
