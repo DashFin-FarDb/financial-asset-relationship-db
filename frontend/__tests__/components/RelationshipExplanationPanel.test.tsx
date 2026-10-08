@@ -1,5 +1,5 @@
 import React from "react";
-import { render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import RelationshipExplanationPanel, {
   type ExplainableRelationship,
@@ -465,5 +465,404 @@ describe("RelationshipExplanationPanel", () => {
     expect(clearButton).toBeInTheDocument();
     clearButton.click();
     expect(onDeselect).toHaveBeenCalledTimes(1);
+  });
+
+  describe("Institutional Action Layer", () => {
+    it("governed relationship exposes only supported actions and unavailable mutation notice", async () => {
+      mockedApi.getPublishedEdgeExplanation.mockResolvedValue(
+        baseExplanationResponse,
+      );
+
+      render(
+        <RelationshipExplanationPanel
+          relationship={governedRelationship}
+          publicationId="pub-1"
+        />,
+      );
+
+      await waitFor(() => {
+        expect(
+          screen.getByText("ASSET_1 is the issuer of ASSET_3"),
+        ).toBeInTheDocument();
+      });
+
+      // 1. Institutional Actions heading and context are present
+      expect(screen.getByText("Institutional Actions")).toBeInTheDocument();
+      expect(
+        screen.getByTestId("institutional-action-context"),
+      ).toHaveTextContent("pedge-1");
+
+      // 2. Supported read-only actions are exposed
+      const evidenceAction = screen.getByRole("button", {
+        name: "Inspect evidence (2)",
+      });
+      const lifecycleAction = screen.getByRole("button", {
+        name: "Inspect lifecycle (2)",
+      });
+      const provenanceAction = screen.getByRole("button", {
+        name: "Inspect provenance",
+      });
+
+      expect(evidenceAction).toBeInTheDocument();
+      expect(lifecycleAction).toBeInTheDocument();
+      expect(provenanceAction).toBeInTheDocument();
+      expect(evidenceAction).toHaveAttribute("aria-pressed", "false");
+
+      // 3. Unavailable mutation notice is rendered
+      expect(
+        screen.getByText("Governance mutation unavailable"),
+      ).toBeInTheDocument();
+      expect(
+        screen.getByText(
+          /no authorized mutation pathway \(Dispute, Accept, or Supersede\) is exposed by this public interface/i,
+        ),
+      ).toBeInTheDocument();
+
+      // 4. Clicking a supported action focuses that section and toggles active view
+      fireEvent.click(evidenceAction);
+      expect(evidenceAction).toHaveAttribute("aria-pressed", "true");
+      expect(screen.getByText("Focused view:")).toBeInTheDocument();
+      expect(screen.getByText("evidence")).toBeInTheDocument();
+
+      // Show all button is now present and restores full view
+      const showAllButton = screen.getByRole("button", {
+        name: "Show all sections",
+      });
+      expect(showAllButton).toBeInTheDocument();
+      fireEvent.click(showAllButton);
+      expect(evidenceAction).toHaveAttribute("aria-pressed", "false");
+      expect(screen.queryByText("Focused view:")).not.toBeInTheDocument();
+    });
+
+    it("legacy relationship exposes no governed actions", () => {
+      render(
+        <RelationshipExplanationPanel
+          relationship={legacyRelationship}
+          publicationId="pub-1"
+        />,
+      );
+
+      expect(screen.getByText("Legacy")).toBeInTheDocument();
+      expect(
+        screen.queryByText("Institutional Actions"),
+      ).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole("button", { name: /Inspect evidence/i }),
+      ).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole("button", { name: /Inspect lifecycle/i }),
+      ).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole("button", { name: /Inspect provenance/i }),
+      ).not.toBeInTheDocument();
+      expect(
+        screen.getByText(
+          "No governed institutional actions available for legacy relationships.",
+        ),
+      ).toBeInTheDocument();
+    });
+
+    it("action context remains bound to canonical edge_id", async () => {
+      mockedApi.getPublishedEdgeExplanation.mockResolvedValue(
+        baseExplanationResponse,
+      );
+
+      const governedWithCanonicalEdgeId: ExplainableRelationship = {
+        ...governedRelationship,
+        edge_id: "edge-canonical-xyz-999",
+      };
+
+      render(
+        <RelationshipExplanationPanel
+          relationship={governedWithCanonicalEdgeId}
+          publicationId="pub-1"
+        />,
+      );
+
+      await waitFor(() => {
+        expect(
+          screen.getByTestId("institutional-action-context"),
+        ).toHaveTextContent("edge-canonical-xyz-999");
+      });
+    });
+
+    it("deselection removes the action context", async () => {
+      mockedApi.getPublishedEdgeExplanation.mockResolvedValue(
+        baseExplanationResponse,
+      );
+
+      const { rerender } = render(
+        <RelationshipExplanationPanel
+          relationship={governedRelationship}
+          publicationId="pub-1"
+        />,
+      );
+
+      await waitFor(() => {
+        expect(
+          screen.getByTestId("institutional-action-context"),
+        ).toBeInTheDocument();
+      });
+
+      // Deselect by passing null relationship
+      rerender(
+        <RelationshipExplanationPanel
+          relationship={null}
+          publicationId="pub-1"
+        />,
+      );
+
+      expect(
+        screen.getByText("Select a relationship to see how it was determined."),
+      ).toBeInTheDocument();
+      expect(
+        screen.queryByTestId("institutional-action-context"),
+      ).not.toBeInTheDocument();
+      expect(
+        screen.queryByText("Institutional Actions"),
+      ).not.toBeInTheDocument();
+    });
+
+    it("changing from governed edge A to governed edge B updates the action context", async () => {
+      const edgeAResponse: PublishedEdgeExplanationResponse = {
+        ...baseExplanationResponse,
+        edge: {
+          ...baseExplanationResponse.edge,
+          projection_edge_id: "pedge-A",
+          assertion_id: "assertion-A",
+        },
+        assertion: {
+          explanation: {
+            ...baseExplanationResponse.assertion.explanation,
+            assertion_id: "assertion-A",
+            proposition: "Edge A proposition",
+          },
+          history: {
+            ...baseExplanationResponse.assertion.history,
+            assertion_id: "assertion-A",
+          },
+        },
+      };
+
+      const edgeBResponse: PublishedEdgeExplanationResponse = {
+        ...baseExplanationResponse,
+        edge: {
+          ...baseExplanationResponse.edge,
+          projection_edge_id: "pedge-B",
+          assertion_id: "assertion-B",
+        },
+        assertion: {
+          explanation: {
+            ...baseExplanationResponse.assertion.explanation,
+            assertion_id: "assertion-B",
+            proposition: "Edge B proposition",
+          },
+          history: {
+            ...baseExplanationResponse.assertion.history,
+            assertion_id: "assertion-B",
+          },
+        },
+      };
+
+      mockedApi.getPublishedEdgeExplanation.mockImplementation(
+        (_pubId, projectionEdgeId) => {
+          if (projectionEdgeId === "pedge-A") {
+            return Promise.resolve(edgeAResponse);
+          }
+          return Promise.resolve(edgeBResponse);
+        },
+      );
+
+      const edgeA: ExplainableRelationship = {
+        ...governedRelationship,
+        edge_id: "edge-A",
+        projection_edge_id: "pedge-A",
+        assertion_id: "assertion-A",
+      };
+
+      const edgeB: ExplainableRelationship = {
+        ...governedRelationship,
+        edge_id: "edge-B",
+        projection_edge_id: "pedge-B",
+        assertion_id: "assertion-B",
+      };
+
+      const { rerender } = render(
+        <RelationshipExplanationPanel
+          relationship={edgeA}
+          publicationId="pub-1"
+        />,
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText("Edge A proposition")).toBeInTheDocument();
+        expect(
+          screen.getByTestId("institutional-action-context"),
+        ).toHaveTextContent("edge-A");
+      });
+
+      // Switch to edge B
+      rerender(
+        <RelationshipExplanationPanel
+          relationship={edgeB}
+          publicationId="pub-1"
+        />,
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText("Edge B proposition")).toBeInTheDocument();
+        expect(
+          screen.getByTestId("institutional-action-context"),
+        ).toHaveTextContent("edge-B");
+      });
+    });
+
+    it("identical source/target pairs with different edge IDs remain distinct in action context", async () => {
+      const resp1: PublishedEdgeExplanationResponse = {
+        ...baseExplanationResponse,
+        edge: {
+          ...baseExplanationResponse.edge,
+          projection_edge_id: "pedge-pair-1",
+          assertion_id: "assertion-pair-1",
+        },
+        assertion: {
+          explanation: {
+            ...baseExplanationResponse.assertion.explanation,
+            assertion_id: "assertion-pair-1",
+            proposition: "Proposition 1 for identical pair",
+          },
+          history: {
+            ...baseExplanationResponse.assertion.history,
+            assertion_id: "assertion-pair-1",
+          },
+        },
+      };
+
+      const resp2: PublishedEdgeExplanationResponse = {
+        ...baseExplanationResponse,
+        edge: {
+          ...baseExplanationResponse.edge,
+          projection_edge_id: "pedge-pair-2",
+          assertion_id: "assertion-pair-2",
+        },
+        assertion: {
+          explanation: {
+            ...baseExplanationResponse.assertion.explanation,
+            assertion_id: "assertion-pair-2",
+            proposition: "Proposition 2 for identical pair",
+          },
+          history: {
+            ...baseExplanationResponse.assertion.history,
+            assertion_id: "assertion-pair-2",
+          },
+        },
+      };
+
+      mockedApi.getPublishedEdgeExplanation.mockImplementation(
+        (_pubId, projectionEdgeId) => {
+          if (projectionEdgeId === "pedge-pair-1") {
+            return Promise.resolve(resp1);
+          }
+          return Promise.resolve(resp2);
+        },
+      );
+
+      const rel1: ExplainableRelationship = {
+        source: "ASSET_X",
+        target: "ASSET_Y",
+        relationship_type: "CORPORATE_LINK",
+        strength: 0.5,
+        governance_status: "governed",
+        revision_id: "rev-1",
+        edge_id: "edge-pair-1",
+        projection_edge_id: "pedge-pair-1",
+        assertion_id: "assertion-pair-1",
+      };
+
+      const rel2: ExplainableRelationship = {
+        source: "ASSET_X",
+        target: "ASSET_Y",
+        relationship_type: "CORPORATE_LINK",
+        strength: 0.7,
+        governance_status: "governed",
+        revision_id: "rev-1",
+        edge_id: "edge-pair-2",
+        projection_edge_id: "pedge-pair-2",
+        assertion_id: "assertion-pair-2",
+      };
+
+      const { rerender } = render(
+        <RelationshipExplanationPanel
+          relationship={rel1}
+          publicationId="pub-1"
+        />,
+      );
+
+      await waitFor(() => {
+        expect(
+          screen.getByText("Proposition 1 for identical pair"),
+        ).toBeInTheDocument();
+        expect(
+          screen.getByTestId("institutional-action-context"),
+        ).toHaveTextContent("edge-pair-1");
+      });
+
+      rerender(
+        <RelationshipExplanationPanel
+          relationship={rel2}
+          publicationId="pub-1"
+        />,
+      );
+
+      await waitFor(() => {
+        expect(
+          screen.getByText("Proposition 2 for identical pair"),
+        ).toBeInTheDocument();
+        expect(
+          screen.getByTestId("institutional-action-context"),
+        ).toHaveTextContent("edge-pair-2");
+      });
+    });
+
+    it("unsupported mutations are not presented as executable actions", async () => {
+      mockedApi.getPublishedEdgeExplanation.mockResolvedValue(
+        baseExplanationResponse,
+      );
+
+      render(
+        <RelationshipExplanationPanel
+          relationship={governedRelationship}
+          publicationId="pub-1"
+        />,
+      );
+
+      await waitFor(() => {
+        expect(
+          screen.getByText("ASSET_1 is the issuer of ASSET_3"),
+        ).toBeInTheDocument();
+      });
+
+      // Verify that no buttons exist for mutating operations
+      const mutationButtonNames = [
+        /^accept$/i,
+        /^accept\s+determination/i,
+        /^dispute$/i,
+        /^challenge$/i,
+        /^supersede$/i,
+        /^withdraw$/i,
+        /^propose/i,
+      ];
+
+      for (const pattern of mutationButtonNames) {
+        expect(
+          screen.queryByRole("button", { name: pattern }),
+        ).not.toBeInTheDocument();
+      }
+
+      // Explicit notice confirms no mutation pathway is exposed
+      expect(
+        screen.getByText("Governance mutation unavailable"),
+      ).toBeInTheDocument();
+    });
   });
 });

@@ -188,6 +188,11 @@ function LegacyView({
         This relationship is outside any governed scope. No assertion, evidence,
         or lifecycle history is available for it.
       </output>
+      <div className="mt-3 border-t border-gray-200 pt-2">
+        <p className="text-xs text-gray-500 italic">
+          No governed institutional actions available for legacy relationships.
+        </p>
+      </div>
     </PanelShell>
   );
 }
@@ -584,6 +589,117 @@ function PublicationFooter({
   );
 }
 
+type InstitutionalActionView = "all" | "evidence" | "lifecycle" | "provenance";
+
+function InstitutionalActions({
+  canonicalEdgeId,
+  evidenceCount,
+  eventsCount,
+  activeActionView,
+  onSelectActionView,
+}: Readonly<{
+  canonicalEdgeId: string;
+  evidenceCount: number;
+  eventsCount: number;
+  activeActionView: InstitutionalActionView;
+  onSelectActionView: (view: InstitutionalActionView) => void;
+}>) {
+  return (
+    <div
+      className="border-t border-gray-200 pt-3 space-y-3"
+      aria-label="Institutional actions"
+    >
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h4 className="text-xs font-semibold uppercase tracking-wider text-gray-600">
+          Institutional Actions
+        </h4>
+        <span
+          data-testid="institutional-action-context"
+          className="font-mono text-[11px] text-gray-500"
+        >
+          Context: <span className="font-semibold text-gray-800">{canonicalEdgeId}</span>
+        </span>
+      </div>
+
+      <div
+        className="flex flex-wrap gap-2"
+        role="group"
+        aria-label="Institutional view actions"
+      >
+        <button
+          type="button"
+          onClick={() =>
+            onSelectActionView(
+              activeActionView === "evidence" ? "all" : "evidence",
+            )
+          }
+          className={`text-xs px-2.5 py-1 rounded border font-medium transition-colors ${
+            activeActionView === "evidence"
+              ? "bg-blue-600 text-white border-blue-600"
+              : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+          }`}
+          aria-pressed={activeActionView === "evidence"}
+        >
+          Inspect evidence ({evidenceCount})
+        </button>
+
+        <button
+          type="button"
+          onClick={() =>
+            onSelectActionView(
+              activeActionView === "lifecycle" ? "all" : "lifecycle",
+            )
+          }
+          className={`text-xs px-2.5 py-1 rounded border font-medium transition-colors ${
+            activeActionView === "lifecycle"
+              ? "bg-blue-600 text-white border-blue-600"
+              : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+          }`}
+          aria-pressed={activeActionView === "lifecycle"}
+        >
+          Inspect lifecycle ({eventsCount})
+        </button>
+
+        <button
+          type="button"
+          onClick={() =>
+            onSelectActionView(
+              activeActionView === "provenance" ? "all" : "provenance",
+            )
+          }
+          className={`text-xs px-2.5 py-1 rounded border font-medium transition-colors ${
+            activeActionView === "provenance"
+              ? "bg-blue-600 text-white border-blue-600"
+              : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+          }`}
+          aria-pressed={activeActionView === "provenance"}
+        >
+          Inspect provenance
+        </button>
+
+        {activeActionView !== "all" && (
+          <button
+            type="button"
+            onClick={() => onSelectActionView("all")}
+            className="text-xs px-2.5 py-1 rounded border border-gray-300 text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-colors"
+          >
+            Show all sections
+          </button>
+        )}
+      </div>
+
+      <div className="rounded-md border border-amber-200 bg-amber-50/70 p-2.5 text-xs text-amber-900">
+        <div className="font-semibold text-amber-950">
+          Governance mutation unavailable
+        </div>
+        <p className="mt-1 text-amber-800 leading-relaxed">
+          This relationship is inspectable under the published contract, but no authorized mutation pathway (Dispute, Accept, or Supersede) is exposed by this public interface. Consequential determinations require authenticated institutional operator credentials.
+        </p>
+      </div>
+    </div>
+  );
+}
+
 function ReadyView({
   heading,
   relationship,
@@ -595,7 +711,15 @@ function ReadyView({
   payload: PublishedEdgeExplanationResponse;
   onDeselect?: () => void;
 }>) {
+  const [activeActionView, setActiveActionView] =
+    useState<InstitutionalActionView>("all");
   const { explanation, history } = payload.assertion;
+  const canonicalEdgeId =
+    relationship.edge_id ||
+    relationship.projection_edge_id ||
+    payload.edge.projection_edge_id ||
+    "N/A";
+
   return (
     <section
       aria-label="Relationship explanation"
@@ -624,15 +748,50 @@ function ReadyView({
         </span>
       </header>
 
+      <InstitutionalActions
+        canonicalEdgeId={canonicalEdgeId}
+        evidenceCount={explanation.evidence.length}
+        eventsCount={history.events.length}
+        activeActionView={activeActionView}
+        onSelectActionView={setActiveActionView}
+      />
+
+      {activeActionView !== "all" && (
+        <div className="flex items-center justify-between text-xs bg-blue-50 border border-blue-200 rounded px-2.5 py-1.5 text-blue-800">
+          <span>
+            Focused view: <strong className="capitalize">{activeActionView}</strong>
+          </span>
+          <button
+            type="button"
+            onClick={() => setActiveActionView("all")}
+            className="underline hover:text-blue-950"
+          >
+            Reset to full view
+          </button>
+        </div>
+      )}
+
       <ConfidenceAndTimeSummary
         explanation={explanation}
         strength={relationship.strength}
         persistedStrength={payload.edge.strength}
       />
-      <AuthoritySummary history={history} />
-      <EvidenceSummary explanation={explanation} />
-      <LifecycleHistory history={history} />
-      <PublicationFooter payload={payload} />
+
+      {(activeActionView === "all" || activeActionView === "lifecycle") && (
+        <AuthoritySummary history={history} />
+      )}
+
+      {(activeActionView === "all" || activeActionView === "evidence") && (
+        <EvidenceSummary explanation={explanation} />
+      )}
+
+      {(activeActionView === "all" || activeActionView === "lifecycle") && (
+        <LifecycleHistory history={history} />
+      )}
+
+      {(activeActionView === "all" || activeActionView === "provenance") && (
+        <PublicationFooter payload={payload} />
+      )}
     </section>
   );
 }
@@ -903,6 +1062,11 @@ function renderView(view: ViewState, onDeselect?: () => void) {
     case "ready":
       return (
         <ReadyView
+          key={
+            view.relationship.edge_id ||
+            view.relationship.projection_edge_id ||
+            view.payload.edge.projection_edge_id
+          }
           heading={view.heading}
           relationship={view.relationship}
           payload={view.payload}
