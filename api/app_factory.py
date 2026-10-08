@@ -469,21 +469,61 @@ def _is_genuine_clean_install(settings: GraphLifecycleSettings) -> bool:
         return False
 
 
+def _is_quiescent_established_state(settings: GraphLifecycleSettings) -> bool:
+    """Verify that durable persistence has a terminal latest rebuild job (quiescent)."""
+    try:
+        from src.data.database import create_engine_from_url, create_session_factory
+        from src.data.db_models import RebuildJobStatus
+        from src.data.repository import AssetGraphRepository, session_scope
+
+        resolved_url = _resolve_startup_reconciliation_url(settings)
+        engine = create_engine_from_url(resolved_url)
+        try:
+            session_factory = create_session_factory(engine)
+            with session_scope(session_factory) as session:
+                repo = AssetGraphRepository(session)
+                latest = repo.get_latest_rebuild_job()
+                return latest is not None and latest.status in (
+                    RebuildJobStatus.SUCCEEDED,
+                    RebuildJobStatus.FAILED,
+                    RebuildJobStatus.CANCELLED,
+                )
+        finally:
+            engine.dispose()
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("Quiescent state verification failed: %s; failing closed.", exc)
+        return False
+
+
 def _handle_reconciliation_blocked(exc: Any, settings: GraphLifecycleSettings) -> bool:
-    """Handle ExecutionBlockedError from RecoveryGate with independent clean-install proof."""
-    if exc.action == "wait" and exc.inconsistency_type == "none" and _is_genuine_clean_install(settings):
-        log_event(
-            logger,
-            logging.INFO,
-            ObservabilityEvent(
-                event="startup_reconciliation_benign_clean_install",
-                message=(
-                    "Benign clean-install verified on startup (action=wait, inconsistency=none, "
-                    "zero prior rebuild jobs). Proceeding with startup."
+    """Handle ExecutionBlockedError from RecoveryGate with independent clean-install and quiescent-state proof."""
+    if exc.action == "wait" and exc.inconsistency_type == "none":
+        if _is_genuine_clean_install(settings):
+            log_event(
+                logger,
+                logging.INFO,
+                ObservabilityEvent(
+                    event="startup_reconciliation_benign_clean_install",
+                    message=(
+                        "Benign clean-install verified on startup (action=wait, inconsistency=none, "
+                        "zero prior rebuild jobs). Proceeding with startup."
+                    ),
                 ),
-            ),
-        )
-        return True
+            )
+            return True
+        if _is_quiescent_established_state(settings):
+            log_event(
+                logger,
+                logging.INFO,
+                ObservabilityEvent(
+                    event="startup_reconciliation_quiescent_state",
+                    message=(
+                        "Quiescent rebuild state verified on startup (action=wait, inconsistency=none, "
+                        "prior rebuild jobs terminated). Proceeding with startup."
+                    ),
+                ),
+            )
+            return False
     log_event(
         logger,
         logging.CRITICAL,

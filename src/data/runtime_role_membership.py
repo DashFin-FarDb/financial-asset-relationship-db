@@ -21,13 +21,25 @@ USABLE_ROLE_MEMBERSHIP_CTE_SQL = (
 APPROVED_RUNTIME_LOGIN_PRINCIPALS: dict[str, frozenset[str]] = {
     "fardb_runtime_auth": frozenset({"fardb_login_auth", "fardb_login_auth_prod"}),
     "fardb_runtime_graph": frozenset({"fardb_login_graph"}),
-    "fardb_runtime_coordination": frozenset({"fardb_login_coordination", "fardb_login_graph"}),
+    "fardb_runtime_coordination": frozenset({"fardb_login_coordination"}),
 }
 
 
-def get_approved_login_principals(capability_role: str) -> tuple[str, ...]:
-    """Return sorted tuple of approved login principals for a capability role."""
+def get_approved_login_principals(
+    capability_role: str,
+    *,
+    combined_topology: bool = False,
+) -> tuple[str, ...]:
+    """Return sorted tuple of approved login principals for a capability role.
+
+    In a combined topology (where a single database hosts both graph and coordination
+    capabilities), the graph login principal ('fardb_login_graph') is also approved
+    for 'fardb_runtime_coordination'. In a separated topology, each capability role
+    is strictly restricted to its dedicated login principal.
+    """
     principals = APPROVED_RUNTIME_LOGIN_PRINCIPALS.get(capability_role)
     if principals is None:
         raise ValueError(f"Unknown capability role: {capability_role}")
+    if capability_role == "fardb_runtime_coordination" and combined_topology:
+        return tuple(sorted(principals | {"fardb_login_graph"}))
     return tuple(sorted(principals))

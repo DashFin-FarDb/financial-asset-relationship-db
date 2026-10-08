@@ -948,7 +948,7 @@ def test_authoritative_graph_unavailable_returns_503() -> None:
 
 
 def test_reconciliation_blocked_clean_install_requires_zero_jobs(monkeypatch) -> None:
-    """_handle_reconciliation_blocked must require independent evidence (zero rebuild jobs)."""
+    """_handle_reconciliation_blocked must require independent evidence (zero rebuild jobs or quiescent state)."""
     from api.app_factory import _handle_reconciliation_blocked
     from src.logic.recovery_gate import ExecutionBlockedError
 
@@ -957,9 +957,22 @@ def test_reconciliation_blocked_clean_install_requires_zero_jobs(monkeypatch) ->
 
     # Case 1: Genuine clean install (zero rebuild jobs) -> returns True
     monkeypatch.setattr("api.app_factory._is_genuine_clean_install", lambda s: True)
+    monkeypatch.setattr("api.app_factory._is_quiescent_established_state", lambda s: False)
     assert _handle_reconciliation_blocked(exc, dummy_settings) is True
 
-    # Case 2: Established deployment (rebuild jobs exist) -> fails closed and raises
+    # Case 2: Established deployment with terminal latest job (quiescent restart) -> returns False
     monkeypatch.setattr("api.app_factory._is_genuine_clean_install", lambda s: False)
+    monkeypatch.setattr("api.app_factory._is_quiescent_established_state", lambda s: True)
+    assert _handle_reconciliation_blocked(exc, dummy_settings) is False
+
+    # Case 3: Established deployment with active/non-terminal job -> fails closed and raises
+    monkeypatch.setattr("api.app_factory._is_quiescent_established_state", lambda s: False)
     with pytest.raises(ExecutionBlockedError):
         _handle_reconciliation_blocked(exc, dummy_settings)
+
+    # Case 4: Non-wait action or drift inconsistency present -> fails closed regardless of clean/quiescent state
+    exc_drift = ExecutionBlockedError("drift", action="resume", inconsistency_type="orphaned_running")
+    monkeypatch.setattr("api.app_factory._is_genuine_clean_install", lambda s: True)
+    monkeypatch.setattr("api.app_factory._is_quiescent_established_state", lambda s: True)
+    with pytest.raises(ExecutionBlockedError):
+        _handle_reconciliation_blocked(exc_drift, dummy_settings)

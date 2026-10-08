@@ -492,6 +492,7 @@ def ensure_runtime_database_capabilities(
 
 def _verify_runtime_capability_roles(connection, capabilities: tuple[str, ...], managed_tables: list[str]) -> None:
     """Verify capability-role safety and schema access."""
+    is_combined = {GRAPH_RUNTIME_CAPABILITY, COORDINATION_RUNTIME_CAPABILITY}.issubset(capabilities)
     for capability in capabilities:
         role_name = RUNTIME_CAPABILITY_ROLES[capability]
         safe_role = connection.execute(
@@ -584,7 +585,7 @@ def _verify_runtime_capability_roles(connection, capabilities: tuple[str, ...], 
                 "auth_table": AUTH_RUNTIME_TABLE,
                 "tables": managed_tables,
                 "sequence_tables": managed_tables,
-                "approved_logins": list(get_approved_login_principals(role_name)),
+                "approved_logins": list(get_approved_login_principals(role_name, combined_topology=is_combined)),
             },
         ).scalar_one()
         if not safe_role:
