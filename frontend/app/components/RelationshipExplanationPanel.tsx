@@ -617,7 +617,8 @@ function InstitutionalActions({
           data-testid="institutional-action-context"
           className="font-mono text-[11px] text-gray-500"
         >
-          Context: <span className="font-semibold text-gray-800">{canonicalEdgeId}</span>
+          Context:{" "}
+          <span className="font-semibold text-gray-800">{canonicalEdgeId}</span>
         </span>
       </div>
 
@@ -693,7 +694,10 @@ function InstitutionalActions({
           Governance mutation unavailable
         </div>
         <p className="mt-1 text-amber-800 leading-relaxed">
-          This relationship is inspectable under the published contract, but no authorized mutation pathway (Dispute, Accept, or Supersede) is exposed by this public interface. Consequential determinations require authenticated institutional operator credentials.
+          This relationship is inspectable under the published contract, but no
+          authorized mutation pathway (Dispute, Accept, or Supersede) is exposed
+          by this public interface. Consequential determinations require
+          authenticated institutional operator credentials.
         </p>
       </div>
     </div>
@@ -759,7 +763,8 @@ function ReadyView({
       {activeActionView !== "all" && (
         <div className="flex items-center justify-between text-xs bg-blue-50 border border-blue-200 rounded px-2.5 py-1.5 text-blue-800">
           <span>
-            Focused view: <strong className="capitalize">{activeActionView}</strong>
+            Focused view:{" "}
+            <strong className="capitalize">{activeActionView}</strong>
           </span>
           <button
             type="button"
