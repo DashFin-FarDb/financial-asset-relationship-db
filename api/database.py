@@ -51,7 +51,10 @@ from urllib.parse import unquote, urlparse
 
 from src.config.settings import get_settings
 from src.data.database import POSTGRESQL_MANAGED_TABLES, SchemaCompatibilityError
-from src.data.runtime_role_membership import USABLE_ROLE_MEMBERSHIP_CTE_SQL
+from src.data.runtime_role_membership import (
+    USABLE_ROLE_MEMBERSHIP_CTE_SQL,
+    get_approved_login_principals,
+)
 
 AUTH_RUNTIME_ROLE = "fardb_runtime_auth"
 _NON_AUTH_MANAGED_TABLES = tuple(table for table in POSTGRESQL_MANAGED_TABLES if table != "user_credentials")
@@ -190,12 +193,19 @@ _AUTH_SAFE_ROLE_SQL = "".join(
         " ",
         "AND NOT EXISTS (SELECT 1 FROM pg_auth_members AS membership WHERE membership.member = role.oid) "
         "AND NOT EXISTS (SELECT 1 FROM pg_auth_members AS membership "
-        "WHERE membership.roleid = role.oid AND membership.admin_option) "
+        "WHERE membership.roleid = role.oid AND membership.admin_option "
+        "AND membership.member <> (SELECT datdba FROM pg_database WHERE datname = current_database())) "
         "AND (",
         USABLE_ROLE_MEMBERSHIP_CTE_SQL,
-        "SELECT COUNT(*) FROM pg_roles AS grantee "
-        "WHERE grantee.rolcanlogin AND EXISTS (SELECT 1 FROM role_membership "
-        "WHERE role_membership.member = grantee.oid AND role_membership.roleid = role.oid)) <= 1",
+        "SELECT (SELECT COUNT(*) FROM pg_roles AS grantee "
+        "WHERE grantee.rolcanlogin AND grantee.oid <> (SELECT datdba FROM pg_database WHERE datname = current_database()) "
+        "AND EXISTS (SELECT 1 FROM role_membership "
+        "WHERE role_membership.member = grantee.oid AND role_membership.roleid = role.oid)) >= 1 "
+        "AND NOT EXISTS (SELECT 1 FROM pg_roles AS grantee "
+        "WHERE grantee.rolcanlogin AND grantee.oid <> (SELECT datdba FROM pg_database WHERE datname = current_database()) "
+        "AND EXISTS (SELECT 1 FROM role_membership "
+        "WHERE role_membership.member = grantee.oid AND role_membership.roleid = role.oid) "
+        "AND NOT (grantee.rolname = ANY(%s))))",
     )
 )
 
@@ -971,6 +981,7 @@ def verify_runtime_access_catalog() -> None:
             AUTH_RUNTIME_ROLE,
             list(_NON_AUTH_MANAGED_TABLES),
             list(_NON_AUTH_MANAGED_TABLES),
+            list(get_approved_login_principals(AUTH_RUNTIME_ROLE)),
         ),
     )
     exact_access = fetch_value(
@@ -1084,6 +1095,10 @@ def verify_runtime_authority() -> None:
             "API runtime database role retains schema-migration authority or cross-profile authority"
         )
 
+    session_user_name = fetch_value("SELECT session_user")
+    if session_user_name not in get_approved_login_principals(AUTH_RUNTIME_ROLE):
+        raise SchemaCompatibilityError("API runtime login principal is not an approved login for the auth capability")
+
     membership_count = fetch_value(
         "SELECT COUNT(*) FROM pg_roles AS login JOIN pg_roles AS assumable "
         "ON assumable.oid <> login.oid AND "
@@ -1091,7 +1106,9 @@ def verify_runtime_authority() -> None:
         "(pg_has_role(login.oid, assumable.oid, 'USAGE') "
         "OR pg_has_role(login.oid, assumable.oid, 'SET')) "
         "ELSE pg_has_role(login.oid, assumable.oid, 'MEMBER') END "
-        "WHERE login.rolname = session_user",
+        "WHERE login.rolname = session_user "
+        "AND (assumable.rolname LIKE 'fardb_runtime_%%' OR assumable.rolsuper OR assumable.rolcreaterole "
+        "OR assumable.rolcreatedb OR assumable.rolbypassrls OR assumable.rolreplication)",
     )
     has_auth_membership = fetch_value(
         "SELECT EXISTS (SELECT 1 FROM pg_roles AS login JOIN pg_roles AS assumable "

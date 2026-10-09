@@ -50,6 +50,7 @@ async def test_lifespan_calls_shutdown_rebuild_executor_on_exit(
     )
     # FIX: Correct parameter count mapping across all lambda hooks
     monkeypatch.setattr(app_factory, "_run_startup_reconciliation", lambda s, ce=None: None)
+    monkeypatch.setattr(app_factory, "get_graph", lambda: None)
     monkeypatch.setattr(app_factory, "init_rebuild_executor", lambda s: None)
     monkeypatch.setattr(app_factory, "shutdown_rebuild_executor", fake_shutdown)
 
@@ -925,3 +926,67 @@ def test_start_background_tasks_caps_rebuild_lock_ttl_seconds(monkeypatch) -> No
 def test_start_background_tasks_floors_rebuild_lock_ttl_seconds(monkeypatch) -> None:
     """_start_background_tasks should floor periodic reconciliation lock TTL at one second."""
     _assert_start_background_tasks_lock_ttl(monkeypatch, configured_ttl=0, expected_ttl=1)
+
+
+def test_authoritative_graph_unavailable_returns_503() -> None:
+    """AuthoritativeGraphUnavailableError must be mapped to HTTP 503."""
+    from fastapi.testclient import TestClient
+
+    from api.app_factory import create_app
+    from api.graph_lifecycle_providers import AuthoritativeGraphUnavailableError
+
+    test_app = create_app()
+
+    @test_app.get("/test-graph-unavailable")
+    def _trigger_unavailable():
+        raise AuthoritativeGraphUnavailableError("Graph not yet published")
+
+    client = TestClient(test_app, raise_server_exceptions=False)
+    response = client.get("/test-graph-unavailable")
+    assert response.status_code == 503
+    assert response.json() == {"detail": "Graph not yet published; awaiting initial rebuild."}
+
+
+def test_reconciliation_blocked_clean_install_requires_zero_jobs(monkeypatch) -> None:
+    """_handle_reconciliation_blocked must require independent evidence (zero rebuild jobs or quiescent state)."""
+    from api.app_factory import _handle_reconciliation_blocked
+    from src.logic.recovery_gate import ExecutionBlockedError
+
+    exc = ExecutionBlockedError("waiting", action="wait", inconsistency_type="none")
+    dummy_settings = MagicMock()
+
+    # Case 1: Genuine clean install (zero rebuild jobs) -> returns True
+    monkeypatch.setattr("api.app_factory._is_genuine_clean_install", lambda s: True)
+    monkeypatch.setattr("api.app_factory._is_quiescent_established_state", lambda s: False)
+    assert _handle_reconciliation_blocked(exc, dummy_settings) is True
+
+    # Case 2: Established deployment with terminal latest job (quiescent restart) -> returns False
+    monkeypatch.setattr("api.app_factory._is_genuine_clean_install", lambda s: False)
+    monkeypatch.setattr("api.app_factory._is_quiescent_established_state", lambda s: True)
+    assert _handle_reconciliation_blocked(exc, dummy_settings) is False
+
+    # Case 3: Established deployment with active/non-terminal job -> fails closed and raises
+    monkeypatch.setattr("api.app_factory._is_quiescent_established_state", lambda s: False)
+    with pytest.raises(ExecutionBlockedError):
+        _handle_reconciliation_blocked(exc, dummy_settings)
+
+    # Case 4a: Non-wait action with benign inconsistency -> fails closed regardless of clean/quiescent state
+    exc_non_wait = ExecutionBlockedError("non-wait", action="resume", inconsistency_type="none")
+    monkeypatch.setattr("api.app_factory._is_genuine_clean_install", lambda s: True)
+    monkeypatch.setattr("api.app_factory._is_quiescent_established_state", lambda s: True)
+    with pytest.raises(ExecutionBlockedError):
+        _handle_reconciliation_blocked(exc_non_wait, dummy_settings)
+
+    # Case 4b: Wait action with drift inconsistency -> fails closed regardless of clean/quiescent state
+    exc_drift = ExecutionBlockedError("drift", action="wait", inconsistency_type="orphaned_running")
+    monkeypatch.setattr("api.app_factory._is_genuine_clean_install", lambda s: True)
+    monkeypatch.setattr("api.app_factory._is_quiescent_established_state", lambda s: True)
+    with pytest.raises(ExecutionBlockedError):
+        _handle_reconciliation_blocked(exc_drift, dummy_settings)
+
+    # Case 4c: Non-wait action with drift inconsistency -> fails closed regardless of clean/quiescent state
+    exc_both = ExecutionBlockedError("both", action="resume", inconsistency_type="orphaned_running")
+    monkeypatch.setattr("api.app_factory._is_genuine_clean_install", lambda s: True)
+    monkeypatch.setattr("api.app_factory._is_quiescent_established_state", lambda s: True)
+    with pytest.raises(ExecutionBlockedError):
+        _handle_reconciliation_blocked(exc_both, dummy_settings)

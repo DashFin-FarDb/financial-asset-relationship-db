@@ -167,10 +167,12 @@ jobs:
       - name: Build every profile twice and prove drift, relationship, and authority contracts
         env:
           FARDB_EPHEMERAL_POSTGRES_LEDGER_TESTS: "1"
+          FARDB_EPHEMERAL_POSTGRES_AUTHORITY_TESTS: "1"
           FARDB_EPHEMERAL_POSTGRES_URL: postgresql://test:test@127.0.0.1:5432/test_db?sslmode=disable
+          FARDB_POSTGRES_TEST_URL: postgresql://test:test@127.0.0.1:5432/test_db?sslmode=disable
           SECRET_KEY: ci-grac-schema-test-key-not-a-real-secret
           DATABASE_URL: sqlite:///./ci-auth.db
-        run: pytest tests/integration/test_postgresql_ledger_profiles.py -v -rs
+        run: pytest tests/integration/test_postgresql_ledger_profiles.py tests/integration/test_postgres_runtime_capability_sql.py tests/integration/test_runtime_authority_postgres.py -v -rs
 
   postgres-ledger-container-boundary:
     name: PostgreSQL ledger container boundary
