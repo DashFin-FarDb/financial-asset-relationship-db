@@ -167,6 +167,7 @@ def test_runtime_capability_catalog_accepts_exact_graph_contract() -> None:  # n
             assert set(parameters["sequence_tables"]) == set(parameters["tables"])
             assert "membership.roleid = role.oid" in sql
             assert "membership.admin_option" in sql
+            assert "membership.member <> (SELECT datdba FROM pg_database WHERE datname = current_database())" in sql
             assert "WITH RECURSIVE role_membership(member, roleid, member_is_superuser)" in sql
             assert "grantee.rolsuper" in sql
             assert "to_jsonb(membership) ->> 'inherit_option'" in sql
@@ -177,9 +178,13 @@ def test_runtime_capability_catalog_accepts_exact_graph_contract() -> None:  # n
             assert "membership.member = role_membership.roleid" in sql
             assert "OR role_membership.member_is_superuser OR member_role.rolsuper" in sql
             assert "SELECT COUNT(*) FROM pg_roles AS grantee" in sql
+            assert "grantee.oid <> (SELECT datdba FROM pg_database WHERE datname = current_database())" in sql
             assert "role_membership.member = grantee.oid" in sql
             assert "role_membership.roleid = role.oid" in sql
-            assert ") <= 1" in sql
+            assert ") >= 1" in sql
+            assert "grantee.rolname IN (__[POSTCOMPILE_approved_logins])" in sql
+            assert sql.rstrip().endswith(")))")
+            assert parameters["approved_logins"] == ["fardb_login_graph"]
             return _CatalogResult(scalar=True)
         if "has_schema_privilege(:role_name" in sql:
             assert "has_schema_privilege(:role_name, namespace.oid, 'CREATE')" in sql

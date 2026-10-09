@@ -541,7 +541,12 @@ class TestSchemaInitialization:
             verify_runtime_authority()
 
     @patch.object(database, "DATABASE_TYPE", "postgresql")
-    @patch("api.database.fetch_value", return_value=True)
+    @patch(
+        "api.database.fetch_value",
+        side_effect=lambda query, *args, **kwargs: (
+            "fardb_login_auth" if "SELECT session_user" in query else (1 if "COUNT(*)" in query else True)
+        ),
+    )
     def test_verify_runtime_authority_accepts_restricted_postgresql_role(self, mock_fetch_value):
         """Auth startup should accept a PostgreSQL role without migration authority."""
         verify_runtime_authority()

@@ -655,7 +655,30 @@ def _import_api_database(read_only_url: str) -> ModuleType:
         get_settings.cache_clear()
 
 
-def _runtime_compatibility(route: RouteIdentity, component: str) -> None:
+def _is_shared_physical_target(route_a: RouteIdentity | None, route_b: RouteIdentity | None) -> bool:
+    """Determine whether two route identities demonstrate an explicitly shared physical target.
+
+    In the Supabase route adapter model, RouteIdentity instances are constrained by
+    _parsed_supabase_route to port 5432 and database 'postgres'. Two routes that share
+    a non-empty project_ref and the same physical database path target the same physical database.
+    """
+    if route_a is None or route_b is None:
+        return False
+    if not route_a.project_ref or not route_b.project_ref:
+        return False
+    if route_a.project_ref != route_b.project_ref:
+        return False
+    path_a = unquote(urlsplit(route_a.database_url).path).strip("/")
+    path_b = unquote(urlsplit(route_b.database_url).path).strip("/")
+    return bool(path_a and path_b and path_a == path_b)
+
+
+def _runtime_compatibility(
+    route: RouteIdentity,
+    component: str,
+    *,
+    combined_topology: bool | None = None,
+) -> None:
     """Run one component runtime's schema/catalog checks through its own credential."""
     from src.data.database import SchemaCompatibilityError, create_engine_from_url, verify_database_schema
 
@@ -664,7 +687,11 @@ def _runtime_compatibility(route: RouteIdentity, component: str) -> None:
         read_only_url = _read_only_url(route)
         if component in {"graph", "coordination"}:
             engine = create_engine_from_url(read_only_url)
-            verify_database_schema(engine, required_capabilities={component})
+            verify_database_schema(
+                engine,
+                required_capabilities={component},
+                combined_topology=combined_topology,
+            )
         elif component == "auth":
             api_database = _import_api_database(read_only_url)
             with api_database.bind_database_url(read_only_url):
@@ -683,10 +710,14 @@ def _runtime_compatibility(route: RouteIdentity, component: str) -> None:
 
 def _runtime_routes_compatible(routes: Mapping[str, RouteIdentity]) -> None:
     """Require compatibility through every profile-required runtime credential."""
+    graph_route = routes.get("graph")
+    coord_route = routes.get("coordination")
+    combined = _is_shared_physical_target(graph_route, coord_route)
+
     for component in COMPONENT_ORDER:
         route = routes.get(component)
         if route is not None:
-            _runtime_compatibility(route, component)
+            _runtime_compatibility(route, component, combined_topology=combined)
 
 
 def _group_non_auth_routes(
@@ -714,6 +745,10 @@ def _runtime_authority(routes: Mapping[str, RouteIdentity]) -> str:
         verify_runtime_database_authority,
     )
 
+    graph_route = routes.get("graph")
+    coord_route = routes.get("coordination")
+    combined = _is_shared_physical_target(graph_route, coord_route)
+
     try:
         auth_route = routes.get("auth")
         if auth_route is not None:
@@ -725,7 +760,11 @@ def _runtime_authority(routes: Mapping[str, RouteIdentity]) -> str:
             read_only_url = _read_only_url(route)
             engine = create_engine_from_url(read_only_url)
             try:
-                verify_runtime_database_authority(engine, required_capabilities=capabilities)
+                verify_runtime_database_authority(
+                    engine,
+                    required_capabilities=capabilities,
+                    combined_topology=combined,
+                )
             finally:
                 engine.dispose()
     except SchemaCompatibilityError:

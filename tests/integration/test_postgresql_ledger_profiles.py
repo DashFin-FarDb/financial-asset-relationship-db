@@ -117,6 +117,7 @@ def _create_runtime_login(base_url: str, login_name: str, capability_roles: tupl
     connection.autocommit = True
     try:
         with connection.cursor() as cursor:
+            cursor.execute(sql.SQL("DROP ROLE IF EXISTS {}").format(sql.Identifier(login_name)))
             cursor.execute(
                 sql.SQL(
                     "CREATE ROLE {} LOGIN PASSWORD %s NOSUPERUSER NOCREATEDB " "NOCREATEROLE NOBYPASSRLS NOREPLICATION"
@@ -560,7 +561,7 @@ def _verify_capability_runtime(
     capabilities = _profile_capabilities(profile)
     if not capabilities:
         return
-    login_name = f"{database_name}_cap_runtime"
+    login_name = "fardb_login_graph" if "graph" in capabilities else "fardb_login_coordination"
     capability_roles = tuple(
         RUNTIME_CAPABILITY_ROLES[capability] for capability in ("graph", "coordination") if capability in capabilities
     )
@@ -628,7 +629,7 @@ def _verify_auth_runtime(
     """Verify auth runtime authority, including table and view cross-profile drift."""
     if "auth" not in EXPECTED_PROFILES[profile]:
         return
-    login_name = f"{database_name}_auth_runtime"
+    login_name = "fardb_login_auth"
     runtime_logins.append(login_name)
     _create_runtime_login(base_url, login_name, (AUTH_RUNTIME_ROLE,), password)
     runtime_url = _runtime_url(target_url, login_name, password)

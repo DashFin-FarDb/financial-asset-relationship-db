@@ -214,11 +214,13 @@ def test_runtime_helpers_force_read_only_and_check_every_credential(tmp_path: Pa
         component: preflight._supabase_route_identity(_database_url(tmp_path, pooler=component != "auth"))
         for component in ("auth", "graph", "coordination")
     }
-    calls: list[tuple[str, str]] = []
+    calls: list[tuple[str, str, bool | None]] = []
     monkeypatch.setattr(
         preflight,
         "_runtime_compatibility",
-        lambda route, component: calls.append((component, route.database_url)),
+        lambda route, component, *, combined_topology=None: calls.append(
+            (component, route.database_url, combined_topology)
+        ),
     )
 
     preflight._runtime_routes_compatible(routes)
@@ -227,7 +229,7 @@ def test_runtime_helpers_force_read_only_and_check_every_credential(tmp_path: Pa
     assert "options=-c%20default_transaction_read_only%3Don" in read_only_url
     assert "options=-c+default_transaction_read_only%3Don" not in read_only_url
     assert parse_dsn(read_only_url)["options"] == "-c default_transaction_read_only=on"
-    assert [component for component, _url in calls] == ["auth", "graph", "coordination"]
+    assert [component for component, _url, _combined in calls] == ["auth", "graph", "coordination"]
 
 
 def test_auth_helper_import_isolated_from_production_application_settings(tmp_path: Path) -> None:
@@ -298,7 +300,7 @@ def test_runtime_route_incompatibility_propagates_as_drift_signal(tmp_path: Path
         for component in ("auth", "graph", "coordination")
     }
 
-    def check_route(_route, component: str) -> None:
+    def check_route(_route, component: str, **_kwargs) -> None:
         """Model one component-specific runtime incompatibility."""
         if component == "graph":
             raise RuntimeCompatibilityMismatch()
@@ -601,3 +603,99 @@ def test_repository_state_ignores_caller_git_indirection(monkeypatch) -> None:
     monkeypatch.setattr(preflight.subprocess, "run", run)
 
     assert preflight._repository_sha() == "1" * 40
+
+
+def test_is_shared_physical_target_evaluates_project_ref() -> None:
+    """_is_shared_physical_target returns True only when both non-empty project_refs match."""
+    route_a = preflight.RouteIdentity("postgresql://user:pass@host:5432/postgres", "proj1234567890123456")
+    route_b = preflight.RouteIdentity("postgresql://user2:pass2@host2:5432/postgres", "proj1234567890123456")
+    route_c = preflight.RouteIdentity("postgresql://user3:pass3@host3:5432/postgres", "other123456789012345")
+    route_empty = preflight.RouteIdentity("postgresql://user4:pass4@host4:5432/postgres", "")
+
+    assert preflight._is_shared_physical_target(route_a, route_b) is True
+    assert preflight._is_shared_physical_target(route_a, route_c) is False
+    assert preflight._is_shared_physical_target(route_a, route_empty) is False
+    assert preflight._is_shared_physical_target(route_a, None) is False
+    assert preflight._is_shared_physical_target(None, route_b) is False
+    assert preflight._is_shared_physical_target(None, None) is False
+
+    # Same project_ref but different physical database paths
+    route_diff_db = preflight.RouteIdentity("postgresql://user:pass@host:5432/otherdb", "proj1234567890123456")
+    assert preflight._is_shared_physical_target(route_a, route_diff_db) is False
+
+    # Database path normalisation (e.g. unquoted percent-encoding: /postgres vs /%70ostgres)
+    route_encoded_db = preflight.RouteIdentity("postgresql://user:pass@host:5432/%70ostgres", "proj1234567890123456")
+    assert preflight._is_shared_physical_target(route_a, route_encoded_db) is True
+
+
+def test_runtime_routes_compatible_passes_combined_topology_based_on_route_identity(
+    tmp_path: Path, monkeypatch
+) -> None:
+    """_runtime_routes_compatible passes combined_topology=True only when graph and coordination share target."""
+    certificate = _certificate(tmp_path)
+    url_shared = f"postgresql://user:pass@db.{PROJECT_REF}.supabase.co:5432/postgres?sslmode=verify-full&sslrootcert={certificate}"
+    url_other = f"postgresql://user:pass@db.otherprojectref12345.supabase.co:5432/postgres?sslmode=verify-full&sslrootcert={certificate}"
+
+    route_shared = preflight._supabase_route_identity(url_shared)
+    route_other = preflight._supabase_route_identity(url_other)
+
+    recorded_calls: list[tuple[str, bool | None]] = []
+    monkeypatch.setattr(
+        preflight,
+        "_runtime_compatibility",
+        lambda _route, component, *, combined_topology=None: recorded_calls.append((component, combined_topology)),
+    )
+
+    # Combined topology: graph and coordination share project_ref
+    preflight._runtime_routes_compatible({"graph": route_shared, "coordination": route_shared})
+    assert recorded_calls == [("graph", True), ("coordination", True)]
+
+    # Separated topology: graph and coordination have different project_ref
+    recorded_calls.clear()
+    preflight._runtime_routes_compatible({"graph": route_shared, "coordination": route_other})
+    assert recorded_calls == [("graph", False), ("coordination", False)]
+
+
+def test_runtime_authority_passes_combined_topology_to_verifier(monkeypatch) -> None:
+    """_runtime_authority passes combined_topology to verify_runtime_database_authority."""
+    from src.data import database as data_database
+
+    class MockEngine:
+        def dispose(self) -> None:
+            pass
+
+    recorded_calls: list[dict[str, object]] = []
+
+    monkeypatch.setattr(data_database, "create_engine_from_url", lambda _url: MockEngine())
+    monkeypatch.setattr(
+        data_database,
+        "verify_runtime_database_authority",
+        lambda _engine, *, required_capabilities=(), combined_topology=None: recorded_calls.append(
+            {"capabilities": required_capabilities, "combined_topology": combined_topology}
+        ),
+    )
+
+    route_shared_1 = preflight.RouteIdentity(
+        "postgresql://user1:pass@db.ref1.supabase.co:5432/postgres", "shared_project_ref1"
+    )
+    route_shared_2 = preflight.RouteIdentity(
+        "postgresql://user2:pass@db.ref1.supabase.co:5432/postgres", "shared_project_ref1"
+    )
+    route_distinct = preflight.RouteIdentity(
+        "postgresql://user3:pass@db.ref2.supabase.co:5432/postgres", "other_project_ref2"
+    )
+
+    monkeypatch.setattr(preflight, "_read_only_url", lambda r: r.database_url)
+
+    # Shared targets -> combined_topology=True
+    status = preflight._runtime_authority({"graph": route_shared_1, "coordination": route_shared_2})
+    assert status == CHECK_PASSED
+    assert len(recorded_calls) == 2
+    assert all(c["combined_topology"] is True for c in recorded_calls)
+
+    # Distinct targets -> combined_topology=False
+    recorded_calls.clear()
+    status = preflight._runtime_authority({"graph": route_shared_1, "coordination": route_distinct})
+    assert status == CHECK_PASSED
+    assert len(recorded_calls) == 2
+    assert all(c["combined_topology"] is False for c in recorded_calls)
