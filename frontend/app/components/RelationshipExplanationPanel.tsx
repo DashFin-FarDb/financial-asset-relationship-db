@@ -145,11 +145,15 @@ function EdgeSummaryDetails({
       </div>
       <div>
         <dt className="font-medium text-gray-500">Source node</dt>
-        <dd className="font-mono text-gray-800 break-words">{relationship.source}</dd>
+        <dd className="font-mono text-gray-800 break-words">
+          {relationship.source}
+        </dd>
       </div>
       <div>
         <dt className="font-medium text-gray-500">Target node</dt>
-        <dd className="font-mono text-gray-800 break-words">{relationship.target}</dd>
+        <dd className="font-mono text-gray-800 break-words">
+          {relationship.target}
+        </dd>
       </div>
     </dl>
   );
