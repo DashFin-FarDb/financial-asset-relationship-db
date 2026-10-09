@@ -145,11 +145,11 @@ function EdgeSummaryDetails({
       </div>
       <div>
         <dt className="font-medium text-gray-500">Source node</dt>
-        <dd className="font-mono text-gray-800">{relationship.source}</dd>
+        <dd className="font-mono text-gray-800 break-words">{relationship.source}</dd>
       </div>
       <div>
         <dt className="font-medium text-gray-500">Target node</dt>
-        <dd className="font-mono text-gray-800">{relationship.target}</dd>
+        <dd className="font-mono text-gray-800 break-words">{relationship.target}</dd>
       </div>
     </dl>
   );
@@ -607,6 +607,7 @@ function InstitutionalActions({
   return (
     <div
       className="border-t border-gray-200 pt-3 space-y-3"
+      role="region"
       aria-label="Institutional actions"
     >
       <div className="flex flex-wrap items-center justify-between gap-2">
