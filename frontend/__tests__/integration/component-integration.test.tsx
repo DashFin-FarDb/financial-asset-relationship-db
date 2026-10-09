@@ -165,12 +165,27 @@ describe("Component Integration Tests", () => {
       render(<Home />);
 
       await waitFor(() => {
-        expect(screen.getByText(/Failed to load data/i)).toBeInTheDocument();
+        expect(
+          screen.getByText(/Failed to load visualization data/i),
+        ).toBeInTheDocument();
       });
 
-      // Metrics were loaded, but error prevents showing any component
+      // Metrics remain available while the visualization reports its own bounded failure.
       expect(mockedApi.getMetrics).toHaveBeenCalled();
       expect(mockedApi.getVisualizationData).toHaveBeenCalled();
+      expect(
+        screen.getByText(/Synthetic governance walkthrough/i),
+      ).toBeInTheDocument();
+
+      fireEvent.click(screen.getByText("Metrics & Analytics"));
+      const totalAssets = await screen.findByTestId("total-assets");
+      expect(totalAssets).toHaveTextContent(
+        mockMetrics.total_assets.toString(),
+      );
+      const totalRels = await screen.findByTestId("total-relationships");
+      expect(totalRels).toHaveTextContent(
+        mockMetrics.total_relationships.toString(),
+      );
 
       consoleError.mockRestore();
     });
@@ -341,7 +356,9 @@ describe("Component Integration Tests", () => {
 
       render(<Home />);
 
-      expect(screen.getByText("Loading data...")).toBeInTheDocument();
+      expect(
+        screen.getByText("Loading relationship graph..."),
+      ).toBeInTheDocument();
 
       // Resolve in reverse order
       visualizationDeferred.resolve(mockVisualizationData);
@@ -349,7 +366,9 @@ describe("Component Integration Tests", () => {
       metricsDeferred.resolve(mockMetrics);
 
       await waitFor(() => {
-        expect(screen.queryByText("Loading data...")).not.toBeInTheDocument();
+        expect(
+          screen.queryByText("Loading relationship graph..."),
+        ).not.toBeInTheDocument();
         expect(screen.getByTestId("network-visualization")).toBeInTheDocument();
       });
     });
