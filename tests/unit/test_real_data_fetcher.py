@@ -25,6 +25,7 @@ from src.data.real_data_fetcher import (
     REQUIRED_EQUITY_SYMBOLS,
     TOTAL_REQUIRED_ASSET_COUNT,
     DataAcquisitionIncompleteError,
+    FetchCancelledError,
     RealDataFetcher,
     _deserialize_asset,
     _deserialize_event,
@@ -1744,3 +1745,31 @@ class TestCompletenessGate:
         graph2, source2 = fetcher_cached.create_real_database_with_source()
         assert source2 == "cache"
         assert len(graph2.assets) == TOTAL_REQUIRED_ASSET_COUNT
+
+    def test_cache_load_aborts_when_cancel_event_set_before_or_after_load(self, tmp_path):
+        """Ensure _try_load_from_cache raises FetchCancelledError when cancel_event is set."""
+        import threading
+
+        mock_eqs, mock_bnds, mock_comms, mock_currs = _make_mock_universe_assets()
+        cache_path = tmp_path / "test_cancel_cache.json"
+
+        with (
+            patch("src.data.real_data_fetcher.RealDataFetcher._fetch_equity_data", return_value=mock_eqs),
+            patch("src.data.real_data_fetcher.RealDataFetcher._fetch_bond_data", return_value=mock_bnds),
+            patch("src.data.real_data_fetcher.RealDataFetcher._fetch_commodity_data", return_value=mock_comms),
+            patch("src.data.real_data_fetcher.RealDataFetcher._fetch_currency_data", return_value=mock_currs),
+            patch("src.data.real_data_fetcher.RealDataFetcher._create_regulatory_events", return_value=[]),
+        ):
+            fetcher = RealDataFetcher(cache_path=str(cache_path), enable_network=True)
+            fetcher.create_real_database_with_source()
+
+        # Cancellation before cache load
+        cancel_event = threading.Event()
+        cancel_event.set()
+        fetcher_cached = RealDataFetcher(cache_path=str(cache_path), enable_network=False)
+        with pytest.raises(FetchCancelledError, match="before cache load"):
+            fetcher_cached._try_load_from_cache(cancel_event=cancel_event)
+
+        # Cancellation during create_real_database_with_source before cache validation
+        with pytest.raises(FetchCancelledError, match="before cache validation"):
+            fetcher_cached.create_real_database_with_source(cancel_event=cancel_event)

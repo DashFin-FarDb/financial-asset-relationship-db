@@ -261,6 +261,10 @@ def get_graph_with_startup_source() -> tuple[AssetRelationshipGraph, GraphStartu
     """
     with graph_lock:
         if graph_state.graph is None:
+            if graph_state.lifecycle_state == GraphRuntimeLifecycleState.REBUILDING:
+                raise AuthoritativeGraphUnavailableError("Authoritative graph is currently rebuilding.")
+            if graph_state.lifecycle_state == GraphRuntimeLifecycleState.FAILED:
+                raise AuthoritativeGraphUnavailableError("No authoritative published graph available.")
             _normalize_shutdown_state()
             _transition_lifecycle_state(GraphRuntimeLifecycleState.INITIALIZING)
             try:
@@ -406,15 +410,10 @@ def begin_rebuild() -> None:
     """Transition lifecycle state to REBUILDING before rebuild execution."""
     with graph_lock:
         # Rebuild can be the first hosted lifecycle operation after process start
-        # (UNINITIALIZED), or a recovery path after startup/rebuild failure (FAILED).
-        # Normalize those states through INITIALIZING->READY before entering REBUILDING.
+        # (UNINITIALIZED), a recovery path after startup/rebuild failure (FAILED),
+        # or a routine refresh while READY. Transition directly to REBUILDING without
+        # transient intermediate hops through READY when uninitialized or failed.
         _normalize_shutdown_state()
-        if graph_state.lifecycle_state in (
-            GraphRuntimeLifecycleState.UNINITIALIZED,
-            GraphRuntimeLifecycleState.FAILED,
-        ):
-            _transition_lifecycle_state(GraphRuntimeLifecycleState.INITIALIZING)
-            _transition_lifecycle_state(GraphRuntimeLifecycleState.READY)
         _transition_lifecycle_state(GraphRuntimeLifecycleState.REBUILDING)
 
 

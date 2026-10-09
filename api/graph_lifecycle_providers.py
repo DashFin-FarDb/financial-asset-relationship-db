@@ -200,22 +200,30 @@ def load_graph_from_cache_path(
     cache_path: str,
     *,
     enable_network: bool,
+    cancel_event: threading.Event | None = None,
 ) -> tuple[AssetRelationshipGraph, GraphRebuildSource]:
     """Load a graph through the real-data cache path."""
     from src.data.real_data_fetcher import RealDataFetcher  # pylint: disable=import-error,import-outside-toplevel
 
     fetcher = RealDataFetcher(cache_path=cache_path, enable_network=enable_network)
-    return cast(tuple[AssetRelationshipGraph, GraphRebuildSource], fetcher.create_real_database_with_source())
+    return cast(
+        tuple[AssetRelationshipGraph, GraphRebuildSource],
+        fetcher.create_real_database_with_source(cancel_event=cancel_event),
+    )
 
 
 def load_graph_from_real_data_fetcher(
     cache_path: str | None,
+    cancel_event: threading.Event | None = None,
 ) -> tuple[AssetRelationshipGraph, GraphRebuildSource]:
     """Load a graph from the real-data fetcher with network access."""
     from src.data.real_data_fetcher import RealDataFetcher  # pylint: disable=import-error,import-outside-toplevel
 
     fetcher = RealDataFetcher(cache_path=cache_path, enable_network=True)
-    return cast(tuple[AssetRelationshipGraph, GraphRebuildSource], fetcher.create_real_database_with_source())
+    return cast(
+        tuple[AssetRelationshipGraph, GraphRebuildSource],
+        fetcher.create_real_database_with_source(cancel_event=cancel_event),
+    )
 
 
 class GraphPersistenceInvalidUrlError(Exception):
@@ -283,10 +291,19 @@ def build_rebuild_graph(
     """
     try:
         if settings.graph_cache_path and Path(settings.graph_cache_path).exists():
-            graph, source = load_graph_from_cache_path(
-                settings.graph_cache_path,
-                enable_network=settings.use_real_data_fetcher,
-            )
+            if cancel_event and cancel_event.is_set():
+                raise RebuildCancelledError("Rebuild cancelled before loading cache.")
+            try:
+                graph, source = load_graph_from_cache_path(
+                    settings.graph_cache_path,
+                    enable_network=settings.use_real_data_fetcher,
+                    cancel_event=cancel_event,
+                )
+            except TypeError:
+                graph, source = load_graph_from_cache_path(
+                    settings.graph_cache_path,
+                    enable_network=settings.use_real_data_fetcher,
+                )
             return graph, source
 
         if settings.use_real_data_fetcher:

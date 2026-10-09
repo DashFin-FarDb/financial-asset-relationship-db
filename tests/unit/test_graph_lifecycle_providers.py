@@ -225,3 +225,47 @@ def test_build_rebuild_graph_uses_real_data_when_enabled(
 
     assert graph is expected_graph
     assert source == "real_data"
+
+
+def test_build_rebuild_graph_cancels_before_cache_load(tmp_path: object) -> None:
+    """build_rebuild_graph must raise RebuildCancelledError when cancel_event is set prior to loading cache."""
+    cache_file = tmp_path / "cache.json"  # type: ignore[operator]
+    cache_file.write_text("{}", encoding="utf-8")
+
+    settings = providers.GraphLifecycleSettings(
+        graph_cache_path=str(cache_file),
+        use_real_data_fetcher=False,
+    )
+    import threading
+
+    cancel_event = threading.Event()
+    cancel_event.set()
+
+    with pytest.raises(providers.RebuildCancelledError, match="Rebuild cancelled"):
+        providers.build_rebuild_graph(settings, cancel_event=cancel_event)
+
+
+def test_build_rebuild_graph_propagates_cancellation_during_cache_validation(
+    tmp_path: object,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """build_rebuild_graph must propagate RebuildCancelledError when cancelled during cache loading."""
+    cache_file = tmp_path / "cache.json"  # type: ignore[operator]
+    cache_file.write_text("{}", encoding="utf-8")
+
+    import threading
+
+    cancel_event = threading.Event()
+
+    def mock_load_cache(path: str, enable_network: bool, cancel_event: threading.Event | None = None):
+        raise providers.RebuildCancelledError("Cancelled in cache validation")
+
+    monkeypatch.setattr(providers, "load_graph_from_cache_path", mock_load_cache)
+
+    settings = providers.GraphLifecycleSettings(
+        graph_cache_path=str(cache_file),
+        use_real_data_fetcher=False,
+    )
+
+    with pytest.raises(providers.RebuildCancelledError, match="Cancelled in cache validation"):
+        providers.build_rebuild_graph(settings, cancel_event=cancel_event)

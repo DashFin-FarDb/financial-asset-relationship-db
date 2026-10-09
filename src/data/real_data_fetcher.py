@@ -260,14 +260,18 @@ class RealDataFetcher:
         graph, _ = self.create_real_database_with_source()
         return graph
 
-    def _try_load_from_cache(self) -> "AssetRelationshipGraph | None":
+    def _try_load_from_cache(self, cancel_event: threading.Event | None = None) -> "AssetRelationshipGraph | None":
         """Attempt to load the asset relationship graph from cache.
+
+        Args:
+            cancel_event: Optional event to signal cancellation.
 
         Returns:
             AssetRelationshipGraph | None: The cached graph if successful, else None.
         """
         if not self.cache_path or not self.cache_path.exists():
             return None
+        self._check_cancelled(cancel_event, "before cache load")
         try:
             log_event(
                 logger,
@@ -279,6 +283,7 @@ class RealDataFetcher:
                 ),
             )
             graph = _load_from_cache(self.cache_path)
+            self._check_cancelled(cancel_event, "during cache validation")
             missing_assets = CANONICAL_REQUIRED_ASSET_IDS - set(graph.assets.keys())
             if missing_assets or len(graph.assets) != TOTAL_REQUIRED_ASSET_COUNT:
                 log_event(
@@ -319,7 +324,10 @@ class RealDataFetcher:
                     ),
                 )
                 return None
+            self._check_cancelled(cancel_event, "after cache validation")
             return graph
+        except (FetchCancelledError, RebuildCancelledError):
+            raise
         except Exception as exc:
             log_event(
                 logger,
@@ -419,8 +427,10 @@ class RealDataFetcher:
                 or if live acquisition is incomplete/fails.
             FetchCancelledError: If data acquisition is cancelled.
         """
-        cached_graph = self._try_load_from_cache()
+        self._check_cancelled(cancel_event, "before cache validation")
+        cached_graph = self._try_load_from_cache(cancel_event=cancel_event)
         if cached_graph is not None:
+            self._check_cancelled(cancel_event, "after cache load")
             return cached_graph, "cache"
 
         if not self.enable_network:

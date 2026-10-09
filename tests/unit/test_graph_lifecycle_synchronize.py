@@ -244,3 +244,89 @@ def test_stopped_state_allows_reset_to_uninitialized() -> None:
 
     graph_lifecycle.transition_runtime_lifecycle_state(graph_lifecycle.GraphRuntimeLifecycleState.UNINITIALIZED)
     assert graph_lifecycle.get_runtime_lifecycle_state() == graph_lifecycle.GraphRuntimeLifecycleState.UNINITIALIZED
+
+
+def test_absent_graph_request_during_active_rebuild_fails_closed() -> None:
+    """Absent-graph requests during active rebuild must fail closed without state mutation."""
+    assert graph_lifecycle.graph_state.graph is None
+    graph_lifecycle.begin_rebuild()
+    assert graph_lifecycle.get_runtime_lifecycle_state() == graph_lifecycle.GraphRuntimeLifecycleState.REBUILDING
+
+    with pytest.raises(
+        graph_lifecycle.AuthoritativeGraphUnavailableError,
+        match="Authoritative graph is currently rebuilding.",
+    ):
+        graph_lifecycle.get_graph()
+
+    # Rebuilding state must remain intact, never corrupted to INITIALIZING or FAILED
+    assert graph_lifecycle.get_runtime_lifecycle_state() == graph_lifecycle.GraphRuntimeLifecycleState.REBUILDING
+
+    # Finalize rebuild successfully
+    graph_lifecycle.complete_rebuild(succeeded=True)
+    assert graph_lifecycle.get_runtime_lifecycle_state() == graph_lifecycle.GraphRuntimeLifecycleState.READY
+
+
+def test_recovery_after_rebuild_failure_when_db_has_no_published_graph() -> None:
+    """Rebuild recovery after failure must transition directly from FAILED to REBUILDING."""
+    assert graph_lifecycle.graph_state.graph is None
+    graph_lifecycle.begin_rebuild()
+    assert graph_lifecycle.get_runtime_lifecycle_state() == graph_lifecycle.GraphRuntimeLifecycleState.REBUILDING
+
+    # Rebuild fails when DB has no published graph
+    graph_lifecycle.complete_rebuild(succeeded=False)
+    assert graph_lifecycle.get_runtime_lifecycle_state() == graph_lifecycle.GraphRuntimeLifecycleState.FAILED
+    assert graph_lifecycle.graph_state.graph is None
+
+    # Read requests must fail closed and preserve FAILED state
+    with pytest.raises(
+        graph_lifecycle.AuthoritativeGraphUnavailableError,
+        match="No authoritative published graph available.",
+    ):
+        graph_lifecycle.get_graph()
+    assert graph_lifecycle.get_runtime_lifecycle_state() == graph_lifecycle.GraphRuntimeLifecycleState.FAILED
+
+    # Recovery: begin_rebuild transitions directly FAILED -> REBUILDING without intermediate READY
+    graph_lifecycle.begin_rebuild()
+    assert graph_lifecycle.get_runtime_lifecycle_state() == graph_lifecycle.GraphRuntimeLifecycleState.REBUILDING
+
+    # Second rebuild succeeds
+    graph_lifecycle.complete_rebuild(succeeded=True)
+    assert graph_lifecycle.get_runtime_lifecycle_state() == graph_lifecycle.GraphRuntimeLifecycleState.READY
+
+
+def test_repeated_requests_while_unpublished_do_not_corrupt_state_or_serialize_db_init(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Repeated read requests while unpublished must fail closed without repeated DB init calls."""
+    assert graph_lifecycle.graph_state.graph is None
+    init_call_count = 0
+
+    def mock_init_runtime():
+        nonlocal init_call_count
+        init_call_count += 1
+        raise graph_lifecycle.AuthoritativeGraphUnavailableError("Simulated empty DB startup failure")
+
+    monkeypatch.setattr(graph_lifecycle, "initialize_graph_runtime", mock_init_runtime)
+
+    # First request: transitions UNINITIALIZED -> INITIALIZING -> FAILED
+    with pytest.raises(
+        graph_lifecycle.AuthoritativeGraphUnavailableError,
+        match="Simulated empty DB startup failure",
+    ):
+        graph_lifecycle.get_graph()
+
+    assert init_call_count == 1
+    assert graph_lifecycle.get_runtime_lifecycle_state() == graph_lifecycle.GraphRuntimeLifecycleState.FAILED
+
+    # Subsequent repeated requests: must fail closed immediately without calling initialize_graph_runtime again
+    for _ in range(5):
+        with pytest.raises(
+            graph_lifecycle.AuthoritativeGraphUnavailableError,
+            match="No authoritative published graph available.",
+        ):
+            graph_lifecycle.get_graph()
+
+    # DB init was NOT serialized or repeatedly executed
+    assert init_call_count == 1
+    # State remained FAILED without corruption
+    assert graph_lifecycle.get_runtime_lifecycle_state() == graph_lifecycle.GraphRuntimeLifecycleState.FAILED
