@@ -687,11 +687,12 @@ describe("Loading States", () => {
       expect(mockedApi.getVisualizationData).toHaveBeenCalledTimes(1);
     });
 
+    expect(screen.getByTestId("metrics-dashboard")).toBeInTheDocument();
+
     await act(async () => {
       resolveVisualization?.(mockVisualizationData);
     });
 
-    expect(screen.getByTestId("metrics-dashboard")).toBeInTheDocument();
     expect(screen.queryByText("Loading data...")).not.toBeInTheDocument();
   });
 
