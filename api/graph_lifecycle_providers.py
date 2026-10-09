@@ -18,14 +18,13 @@ from src.config.settings import DeploymentEnvironment, get_settings
 from src.data.database import create_engine_from_url, create_session_factory
 from src.data.db_models import AssetORM
 from src.data.repository import AssetGraphRepository
-from src.data.sample_data import create_sample_database
 from src.logic.asset_graph import AssetRelationshipGraph
 from src.logic.reconciliation_engine import RebuildCancelledError
 from src.observability.facade import ObservabilityEvent, log_event
 
 logger = logging.getLogger(__name__)
 
-GraphRebuildSource = Literal["cache", "real_data", "sample"]
+GraphRebuildSource = Literal["cache", "real_data"]
 _GRAPH_PERSISTENCE_SAVE_ERROR_MESSAGE = "Failed to persist rebuilt graph."
 HOSTED_FALLBACK_ENVIRONMENTS: frozenset[DeploymentEnvironment] = frozenset(
     {DeploymentEnvironment.PREVIEW, DeploymentEnvironment.STAGING}
@@ -61,6 +60,10 @@ class GraphPersistenceNonDurableError(RuntimeError):
 
 class GraphPersistenceSaveError(RuntimeError):
     """Raised when a rebuilt graph could not be persisted."""
+
+
+class AuthoritativeGraphUnavailableError(RuntimeError):
+    """Raised when no authoritative published graph is available."""
 
 
 class GraphRebuildSourceError(RuntimeError):
@@ -215,11 +218,6 @@ def load_graph_from_real_data_fetcher(
     return cast(tuple[AssetRelationshipGraph, GraphRebuildSource], fetcher.create_real_database_with_source())
 
 
-def create_sample_graph() -> AssetRelationshipGraph:
-    """Create a graph populated with the default sample dataset."""
-    return create_sample_database()
-
-
 class GraphPersistenceInvalidUrlError(Exception):
     """Raised when the graph persistence URL cannot be parsed."""
 
@@ -265,7 +263,7 @@ def build_rebuild_graph(
     The selection precedence is:
     1. If `settings.graph_cache_path` is set and the path exists, load from the cache and return source `"cache"`.
     2. Else if `settings.use_real_data_fetcher` is true, fetch real data and return source `"real_data"`.
-    3. Otherwise, create and return the sample graph with source `"sample"`.
+    3. Otherwise, fail closed by raising AuthoritativeGraphUnavailableError.
 
     Parameters:
         settings (GraphLifecycleSettings): Immutable settings that control cache paths
@@ -276,7 +274,12 @@ def build_rebuild_graph(
 
     Returns:
         tuple[AssetRelationshipGraph, GraphRebuildSource]: A tuple where the first element is the constructed graph
-            and the second element is the rebuild source string: `"cache"`, `"real_data"`, or `"sample"`.
+            and the second element is the rebuild source string: `"cache"` or `"real_data"`.
+
+    Raises:
+        AuthoritativeGraphUnavailableError: If neither cache nor real data is available.
+        RebuildCancelledError: If rebuild execution is cancelled.
+        GraphRebuildSourceError: If building the rebuild graph fails unexpectedly.
     """
     try:
         if settings.graph_cache_path and Path(settings.graph_cache_path).exists():
@@ -309,9 +312,9 @@ def build_rebuild_graph(
 
             return (graph, source)
 
-        return (create_sample_graph(), "sample")
-    except RebuildCancelledError:
-        # Re-raise cancellation exactly as is to correctly short-circuit the pipeline
+        raise AuthoritativeGraphUnavailableError("No valid rebuild source available.")
+    except (RebuildCancelledError, AuthoritativeGraphUnavailableError):
+        # Re-raise cancellation and authoritative graph unavailable errors directly
         raise
     except Exception as exc:
         log_event(

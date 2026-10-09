@@ -19,6 +19,12 @@ from unittest.mock import MagicMock, Mock, patch
 import pytest
 
 from src.data.real_data_fetcher import (
+    REQUIRED_BOND_SYMBOLS,
+    REQUIRED_COMMODITY_SYMBOLS,
+    REQUIRED_CURRENCY_SYMBOLS,
+    REQUIRED_EQUITY_SYMBOLS,
+    TOTAL_REQUIRED_ASSET_COUNT,
+    DataAcquisitionIncompleteError,
     RealDataFetcher,
     _deserialize_asset,
     _deserialize_event,
@@ -112,6 +118,66 @@ def _make_history_mock(
 
     hist.__getitem__ = Mock(return_value=close_series)
     return hist
+
+
+def _make_mock_universe_assets() -> tuple[list[Equity], list[Bond], list[Commodity], list[Currency]]:
+    """Build mock assets satisfying the canonical required universes (13 assets)."""
+    equities = [
+        Equity(
+            id=s,
+            symbol=s,
+            name=name,
+            asset_class=AssetClass.EQUITY,
+            sector=sector,
+            price=150.0,
+        )
+        for s, (name, sector) in REQUIRED_EQUITY_SYMBOLS.items()
+    ]
+    bonds = [
+        Bond(
+            id=s,
+            symbol=s,
+            name=name,
+            asset_class=AssetClass.FIXED_INCOME,
+            sector=sector,
+            price=100.0,
+            yield_to_maturity=0.03,
+            coupon_rate=0.025,
+            maturity_date="2035-01-01",
+            credit_rating=rating,
+            issuer_id=issuer_id,
+        )
+        for s, (name, sector, issuer_id, rating) in REQUIRED_BOND_SYMBOLS.items()
+    ]
+    commodities = [
+        Commodity(
+            id=s.replace("=F", "_FUTURE"),
+            symbol=s,
+            name=name,
+            asset_class=AssetClass.COMMODITY,
+            sector=sector,
+            price=2000.0,
+            contract_size=c_size,
+            delivery_date="2025-01-01",
+            volatility=vol,
+        )
+        for s, (name, sector, c_size, vol) in REQUIRED_COMMODITY_SYMBOLS.items()
+    ]
+    currencies = [
+        Currency(
+            id=s.replace("=X", ""),
+            symbol=curr,
+            name=name,
+            asset_class=AssetClass.CURRENCY,
+            sector="Forex",
+            price=1.1,
+            exchange_rate=1.1,
+            country=country,
+            central_bank_rate=0.02,
+        )
+        for s, (name, country, curr) in REQUIRED_CURRENCY_SYMBOLS.items()
+    ]
+    return equities, bonds, commodities, currencies
 
 
 @pytest.mark.unit
@@ -300,16 +366,15 @@ class TestCreateRealDatabase:
 
     @staticmethod
     def test_create_database_network_disabled():
-        """Test database creation when network is disabled."""
+        """Test database creation when network is disabled raises DataAcquisitionIncompleteError."""
         fetcher = RealDataFetcher(enable_network=False)
-        graph = fetcher.create_real_database()
-
-        assert isinstance(graph, AssetRelationshipGraph)
-        assert len(graph.assets) > 0
+        with pytest.raises(DataAcquisitionIncompleteError):
+            fetcher.create_real_database()
 
     @staticmethod
     def test_create_database_with_network():
         """Test database creation with network enabled."""
+        mock_eqs, mock_bnds, mock_comms, mock_currs = _make_mock_universe_assets()
         with (
             patch("src.data.real_data_fetcher.RealDataFetcher._fetch_equity_data") as mock_equity,
             patch("src.data.real_data_fetcher.RealDataFetcher._fetch_bond_data") as mock_bond,
@@ -317,26 +382,18 @@ class TestCreateRealDatabase:
             patch("src.data.real_data_fetcher.RealDataFetcher._fetch_currency_data") as mock_currency,
             patch("src.data.real_data_fetcher.RealDataFetcher._create_regulatory_events") as mock_events,
         ):
-            mock_equity.return_value = [
-                Equity(
-                    id="TEST",
-                    symbol="TEST",
-                    name="Test Equity",
-                    asset_class=AssetClass.EQUITY,
-                    sector="Technology",
-                    price=100.0,
-                )
-            ]
-            mock_bond.return_value = []
-            mock_commodity.return_value = []
-            mock_currency.return_value = []
+            mock_equity.return_value = mock_eqs
+            mock_bond.return_value = mock_bnds
+            mock_commodity.return_value = mock_comms
+            mock_currency.return_value = mock_currs
             mock_events.return_value = []
 
             fetcher = RealDataFetcher(enable_network=True)
             graph = fetcher.create_real_database()
 
             assert isinstance(graph, AssetRelationshipGraph)
-            assert "TEST" in graph.assets
+            assert len(graph.assets) == TOTAL_REQUIRED_ASSET_COUNT
+            assert "AAPL" in graph.assets
             mock_equity.assert_called_once()
 
     @staticmethod
@@ -345,33 +402,78 @@ class TestCreateRealDatabase:
         cache_path = tmp_path / "cache.json"
 
         graph = AssetRelationshipGraph()
-        equity = Equity(
-            id="CACHED",
-            symbol="CACHED",
-            name="Cached Equity",
-            asset_class=AssetClass.EQUITY,
-            sector="Finance",
-            price=50.0,
-        )
-        graph.add_asset(equity)
+        mock_eqs, mock_bnds, mock_comms, mock_currs = _make_mock_universe_assets()
+        for asset in mock_eqs + mock_bnds + mock_comms + mock_currs:
+            graph.add_asset(asset)
         _save_to_cache(graph, cache_path)
 
         fetcher = RealDataFetcher(cache_path=str(cache_path), enable_network=True)
-        loaded_graph = fetcher.create_real_database()
+        loaded_graph, source = fetcher.create_real_database_with_source()
 
-        assert "CACHED" in loaded_graph.assets
-        assert loaded_graph.assets["CACHED"].name == "Cached Equity"
+        assert source == "cache"
+        assert len(loaded_graph.assets) == TOTAL_REQUIRED_ASSET_COUNT
+        assert "AAPL" in loaded_graph.assets
 
     @staticmethod
-    def test_create_database_fetch_failure_uses_fallback():
-        """Test that fetch failure falls back to sample data."""
+    def test_incomplete_cache_rejected_and_raises_when_network_disabled(tmp_path):
+        """Incomplete cache must be rejected and fail closed when network is disabled."""
+        cache_path = tmp_path / "cache.json"
+        graph = AssetRelationshipGraph()
+        equity = Equity(
+            id="AAPL",
+            symbol="AAPL",
+            name="Apple Inc.",
+            asset_class=AssetClass.EQUITY,
+            sector="Technology",
+            price=150.0,
+        )
+        graph.add_asset(equity)  # Only 1 of 13 assets
+        _save_to_cache(graph, cache_path)
+
+        fetcher = RealDataFetcher(cache_path=str(cache_path), enable_network=False)
+        with pytest.raises(
+            DataAcquisitionIncompleteError, match="Network fetching is disabled and no cached data is available"
+        ):
+            fetcher.create_real_database_with_source()
+
+    @staticmethod
+    def test_incomplete_cache_falls_back_to_live_fetch_when_network_enabled(tmp_path):
+        """Incomplete cache must be rejected and trigger live fetch when network is enabled."""
+        cache_path = tmp_path / "cache.json"
+        graph = AssetRelationshipGraph()
+        equity = Equity(
+            id="AAPL",
+            symbol="AAPL",
+            name="Apple Inc.",
+            asset_class=AssetClass.EQUITY,
+            sector="Technology",
+            price=150.0,
+        )
+        graph.add_asset(equity)  # Incomplete
+        _save_to_cache(graph, cache_path)
+
+        mock_eqs, mock_bnds, mock_comms, mock_currs = _make_mock_universe_assets()
+        with (
+            patch("src.data.real_data_fetcher.RealDataFetcher._fetch_equity_data", return_value=mock_eqs),
+            patch("src.data.real_data_fetcher.RealDataFetcher._fetch_bond_data", return_value=mock_bnds),
+            patch("src.data.real_data_fetcher.RealDataFetcher._fetch_commodity_data", return_value=mock_comms),
+            patch("src.data.real_data_fetcher.RealDataFetcher._fetch_currency_data", return_value=mock_currs),
+            patch("src.data.real_data_fetcher.RealDataFetcher._create_regulatory_events", return_value=[]),
+        ):
+            fetcher = RealDataFetcher(cache_path=str(cache_path), enable_network=True)
+            loaded_graph, source = fetcher.create_real_database_with_source()
+            assert source == "real_data"
+            assert len(loaded_graph.assets) == TOTAL_REQUIRED_ASSET_COUNT
+
+    @staticmethod
+    def test_create_database_fetch_failure_raises_incomplete_error():
+        """Test that fetch failure raises DataAcquisitionIncompleteError instead of falling back."""
         with patch("src.data.real_data_fetcher.RealDataFetcher._fetch_equity_data") as mock_equity:
             mock_equity.side_effect = Exception("Network error")
 
             fetcher = RealDataFetcher(enable_network=True)
-            graph = fetcher.create_real_database()
-
-            assert isinstance(graph, AssetRelationshipGraph)
+            with pytest.raises(DataAcquisitionIncompleteError):
+                fetcher.create_real_database()
 
 
 @pytest.mark.unit
@@ -401,16 +503,16 @@ class TestFetchMethods:
 
     @patch("src.data.real_data_fetcher._get_yfinance")
     def test_fetch_equity_data_with_empty_history(self, mock_get_yfinance):
-        """Test equity fetching when history is empty."""
+        """Test equity fetching when history is empty raises DataAcquisitionIncompleteError."""
         mock_yf = Mock()
         mock_ticker = Mock()
         mock_ticker.history.return_value = _make_history_mock(100.0, empty=True)
         mock_yf.Ticker.return_value = mock_ticker
         mock_get_yfinance.return_value = mock_yf
 
-        equities = RealDataFetcher._fetch_equity_data()
-
-        assert equities == []
+        with pytest.raises(DataAcquisitionIncompleteError) as exc_info:
+            RealDataFetcher._fetch_equity_data()
+        assert "Missing required symbols" in str(exc_info.value)
 
     @patch("src.data.real_data_fetcher._get_yfinance")
     def test_fetch_bond_data_success(self, mock_get_yfinance):
@@ -461,60 +563,38 @@ class TestFetchMethods:
 
     @staticmethod
     def test_create_regulatory_events():
-        """Test regulatory event creation."""
+        """Test regulatory event creation returns empty list without synthetic mocks."""
         events = RealDataFetcher._create_regulatory_events()
 
         assert isinstance(events, list)
-        assert len(events) > 0
-        for event in events:
-            assert isinstance(event, RegulatoryEvent)
-            assert event.id
-            assert event.asset_id
-            assert event.event_type
-            assert event.date
+        assert events == []
 
 
 @pytest.mark.unit
-class TestFallback:
-    """Test fallback mechanism."""
+class TestFailClosedIntegrity:
+    """Test fail-closed data acquisition and absence of fallback mechanisms."""
 
     @staticmethod
-    def test_fallback_with_custom_factory():
-        """Test fallback uses custom factory when provided."""
-        custom_graph = AssetRelationshipGraph()
-        custom_asset = Equity(
-            id="CUSTOM",
-            symbol="CUST",
-            name="Custom Asset",
-            asset_class=AssetClass.EQUITY,
-            sector="Technology",
-            price=50.0,
-        )
-        custom_graph.add_asset(custom_asset)
-
-        def custom_factory():
-            """
-            Return a prebuilt AssetRelationshipGraph provided by the surrounding test scope.
-
-            Returns:
-                AssetRelationshipGraph: the `custom_graph` object defined in the enclosing scope.
-            """
-            return custom_graph
-
-        fetcher = RealDataFetcher(fallback_factory=custom_factory, enable_network=False)
-        result = fetcher._fallback()
-
-        assert "CUSTOM" in result.assets
-        assert result.assets["CUSTOM"].name == "Custom Asset"
-
-    @staticmethod
-    def test_fallback_without_custom_factory():
-        """Test fallback uses sample data when no factory provided."""
+    def test_fallback_method_and_factory_purged():
+        """Ensure _fallback and fallback_factory attributes do not exist."""
         fetcher = RealDataFetcher(enable_network=False)
-        result = fetcher._fallback()
+        assert not hasattr(fetcher, "_fallback")
+        assert not hasattr(fetcher, "fallback_factory")
 
-        assert isinstance(result, AssetRelationshipGraph)
-        assert len(result.assets) > 0
+    @staticmethod
+    def test_network_disabled_without_cache_raises():
+        """Ensure network disabled raises DataAcquisitionIncompleteError."""
+        fetcher = RealDataFetcher(enable_network=False)
+        with pytest.raises(DataAcquisitionIncompleteError):
+            fetcher.create_real_database()
+
+    @staticmethod
+    def test_fetch_failure_raises_incomplete_error():
+        """Ensure fetch failure raises DataAcquisitionIncompleteError."""
+        with patch("src.data.real_data_fetcher.RealDataFetcher._fetch_equity_data", side_effect=RuntimeError("error")):
+            fetcher = RealDataFetcher(enable_network=True)
+            with pytest.raises(DataAcquisitionIncompleteError):
+                fetcher.create_real_database()
 
 
 @pytest.mark.unit
@@ -798,13 +878,72 @@ class TestEdgeCases:
         cache_path.write_text("{ invalid", encoding="utf-8")
 
         fetcher = RealDataFetcher(cache_path=str(cache_path), enable_network=False)
-        graph = fetcher.create_real_database()
+        with pytest.raises(DataAcquisitionIncompleteError):
+            fetcher.create_real_database()
 
-        assert isinstance(graph, AssetRelationshipGraph)
+        mock_eqs, mock_bnds, mock_comms, mock_currs = _make_mock_universe_assets()
+        with (
+            patch("src.data.real_data_fetcher.RealDataFetcher._fetch_equity_data", return_value=mock_eqs),
+            patch("src.data.real_data_fetcher.RealDataFetcher._fetch_bond_data", return_value=mock_bnds),
+            patch("src.data.real_data_fetcher.RealDataFetcher._fetch_commodity_data", return_value=mock_comms),
+            patch("src.data.real_data_fetcher.RealDataFetcher._fetch_currency_data", return_value=mock_currs),
+            patch("src.data.real_data_fetcher.RealDataFetcher._create_regulatory_events", return_value=[]),
+        ):
+            fetcher_live = RealDataFetcher(cache_path=str(cache_path), enable_network=True)
+            graph = fetcher_live.create_real_database()
+            assert isinstance(graph, AssetRelationshipGraph)
+            assert len(graph.assets) == TOTAL_REQUIRED_ASSET_COUNT
+
+    @staticmethod
+    def test_cache_load_with_contaminated_synthetic_events_rejected(tmp_path):
+        """Caches containing historical synthetic regulatory events must be rejected for provenance."""
+        cache_path = tmp_path / "contaminated_cache.json"
+
+        # Build graph with complete required assets
+        mock_eqs, mock_bnds, mock_comms, mock_currs = _make_mock_universe_assets()
+        graph = AssetRelationshipGraph()
+        for asset in mock_eqs + mock_bnds + mock_comms + mock_currs:
+            graph.add_asset(asset)
+
+        # Add a deprecated synthetic event
+        contaminated_event = RegulatoryEvent(
+            id="AAPL_Q4_2024_REAL",
+            asset_id="AAPL",
+            event_type=RegulatoryActivity.EARNINGS_REPORT,
+            date="2024-11-01",
+            description="Q4 2024 Earnings Report",
+            impact_score=0.12,
+            related_assets=["TLT", "MSFT"],
+        )
+        graph.add_regulatory_event(contaminated_event)
+        _save_to_cache(graph, cache_path)
+
+        # 1. Loading from cache directly fails closed (returns None)
+        fetcher_offline = RealDataFetcher(cache_path=str(cache_path), enable_network=False)
+        assert fetcher_offline._try_load_from_cache() is None
+
+        # 2. create_real_database with offline network raises DataAcquisitionIncompleteError
+        with pytest.raises(DataAcquisitionIncompleteError):
+            fetcher_offline.create_real_database()
+
+        # 3. With live fetch enabled, it bypasses contaminated cache and uses live fetch
+        with (
+            patch("src.data.real_data_fetcher.RealDataFetcher._fetch_equity_data", return_value=mock_eqs),
+            patch("src.data.real_data_fetcher.RealDataFetcher._fetch_bond_data", return_value=mock_bnds),
+            patch("src.data.real_data_fetcher.RealDataFetcher._fetch_commodity_data", return_value=mock_comms),
+            patch("src.data.real_data_fetcher.RealDataFetcher._fetch_currency_data", return_value=mock_currs),
+            patch("src.data.real_data_fetcher.RealDataFetcher._create_regulatory_events", return_value=[]),
+        ):
+            fetcher_live = RealDataFetcher(cache_path=str(cache_path), enable_network=True)
+            live_graph, source = fetcher_live.create_real_database_with_source()
+            assert source == "real_data"
+            assert len(live_graph.assets) == TOTAL_REQUIRED_ASSET_COUNT
+            assert live_graph.regulatory_events == []
 
     @staticmethod
     def test_cache_save_failure_doesnt_prevent_return(tmp_path):
         """Cache save failures should not prevent returning a graph."""
+        mock_eqs, mock_bnds, mock_comms, mock_currs = _make_mock_universe_assets()
         with (
             patch("src.data.real_data_fetcher._save_to_cache") as mock_save,
             patch("src.data.real_data_fetcher.RealDataFetcher._fetch_equity_data") as mock_equity,
@@ -813,10 +952,10 @@ class TestEdgeCases:
             patch("src.data.real_data_fetcher.RealDataFetcher._fetch_currency_data") as mock_currency,
             patch("src.data.real_data_fetcher.RealDataFetcher._create_regulatory_events") as mock_events,
         ):
-            mock_equity.return_value = []
-            mock_bond.return_value = []
-            mock_commodity.return_value = []
-            mock_currency.return_value = []
+            mock_equity.return_value = mock_eqs
+            mock_bond.return_value = mock_bnds
+            mock_commodity.return_value = mock_comms
+            mock_currency.return_value = mock_currs
             mock_events.return_value = []
             mock_save.side_effect = Exception("Save failed")
 
@@ -825,6 +964,7 @@ class TestEdgeCases:
             graph = fetcher.create_real_database()
 
             assert isinstance(graph, AssetRelationshipGraph)
+            assert len(graph.assets) == TOTAL_REQUIRED_ASSET_COUNT
 
     @staticmethod
     def test_deserialize_asset_with_missing_type():
@@ -911,32 +1051,24 @@ class TestNetworkDisabled:
     @staticmethod
     def test_network_disabled_never_attempts_fetch():
         fetcher = RealDataFetcher(enable_network=False)
-        graph = fetcher.create_real_database()
-
-        assert isinstance(graph, AssetRelationshipGraph)
-        assert len(graph.assets) > 0
+        with pytest.raises(DataAcquisitionIncompleteError):
+            fetcher.create_real_database()
 
     @staticmethod
     def test_network_disabled_with_cache_uses_cache(tmp_path):
         cache_path = tmp_path / "cache.json"
 
         cached_graph = AssetRelationshipGraph()
-        custom_asset = Equity(
-            id="CACHED_ONLY",
-            symbol="CO",
-            name="Cached Only",
-            asset_class=AssetClass.EQUITY,
-            sector="Tech",
-            price=999.0,
-        )
-        cached_graph.add_asset(custom_asset)
+        mock_eqs, mock_bnds, mock_comms, mock_currs = _make_mock_universe_assets()
+        for asset in mock_eqs + mock_bnds + mock_comms + mock_currs:
+            cached_graph.add_asset(asset)
         _save_to_cache(cached_graph, cache_path)
 
         fetcher = RealDataFetcher(cache_path=str(cache_path), enable_network=False)
         result = fetcher.create_real_database()
 
-        assert "CACHED_ONLY" in result.assets
-        assert result.assets["CACHED_ONLY"].price == 999.0
+        assert len(result.assets) == TOTAL_REQUIRED_ASSET_COUNT
+        assert "AAPL" in result.assets
 
 
 @pytest.mark.unit
@@ -1017,32 +1149,28 @@ class TestRegulatoryEvents:
     """Test regulatory event creation and handling."""
 
     @staticmethod
-    def test_regulatory_events_have_required_fields():
+    def test_regulatory_events_returns_empty_list():
+        """Verify _create_regulatory_events returns empty list without synthetic mocks."""
         events = RealDataFetcher._create_regulatory_events()
-
-        for event in events:
-            assert event.id
-            assert event.asset_id
-            assert isinstance(event.event_type, RegulatoryActivity)
-            assert event.date
-            assert event.description
-            assert isinstance(event.impact_score, (int, float))
-            assert isinstance(event.related_assets, list)
+        assert events == []
 
     @staticmethod
-    def test_regulatory_events_reference_known_assets():
-        events = RealDataFetcher._create_regulatory_events()
-        expected_assets = {"AAPL", "MSFT", "XOM"}
-        asset_ids = {event.asset_id for event in events}
-
-        assert any(asset_id in expected_assets for asset_id in asset_ids)
-
-    @staticmethod
-    def test_regulatory_events_have_valid_impact_scores():
-        events = RealDataFetcher._create_regulatory_events()
-
-        for event in events:
-            assert -1.0 <= event.impact_score <= 1.0
+    def test_regulatory_event_schema_compliance():
+        """Verify schema compliance of RegulatoryEvent dataclass."""
+        event = RegulatoryEvent(
+            id="AAPL_TEST_EVENT",
+            asset_id="AAPL",
+            event_type=RegulatoryActivity.EARNINGS_REPORT,
+            date="2024-11-01",
+            description="Q4 2024 Earnings Report",
+            impact_score=0.12,
+            related_assets=["TLT", "MSFT"],
+        )
+        assert event.id == "AAPL_TEST_EVENT"
+        assert event.asset_id == "AAPL"
+        assert isinstance(event.event_type, RegulatoryActivity)
+        assert event.date == "2024-11-01"
+        assert -1.0 <= event.impact_score <= 1.0
 
 
 @pytest.mark.unit
@@ -1062,55 +1190,21 @@ class TestGraphBuilding:
         mock_bond,
         mock_equity,
     ):
-        mock_equity.return_value = [
-            Equity(
-                id="E1",
-                symbol="E1",
-                name="Equity 1",
-                asset_class=AssetClass.EQUITY,
-                sector="Tech",
-                price=100.0,
-            )
-        ]
-        mock_bond.return_value = [
-            Bond(
-                id="B1",
-                symbol="B1",
-                name="Bond 1",
-                asset_class=AssetClass.FIXED_INCOME,
-                sector="Gov",
-                price=1000.0,
-            )
-        ]
-        mock_commodity.return_value = [
-            Commodity(
-                id="C1",
-                symbol="C1",
-                name="Commodity 1",
-                asset_class=AssetClass.COMMODITY,
-                sector="Materials",
-                price=2000.0,
-            )
-        ]
-        mock_currency.return_value = [
-            Currency(
-                id="CUR1",
-                symbol="CUR1",
-                name="Currency 1",
-                asset_class=AssetClass.CURRENCY,
-                sector="Forex",
-                price=1.1,
-            )
-        ]
+        mock_eqs, mock_bnds, mock_comms, mock_currs = _make_mock_universe_assets()
+        mock_equity.return_value = mock_eqs
+        mock_bond.return_value = mock_bnds
+        mock_commodity.return_value = mock_comms
+        mock_currency.return_value = mock_currs
         mock_events.return_value = []
 
         fetcher = RealDataFetcher(enable_network=True)
         graph = fetcher.create_real_database()
 
-        assert "E1" in graph.assets
-        assert "B1" in graph.assets
-        assert "C1" in graph.assets
-        assert "CUR1" in graph.assets
+        assert "AAPL" in graph.assets
+        assert "TLT" in graph.assets
+        assert "GC_FUTURE" in graph.assets
+        assert "EURUSD" in graph.assets
+        assert len(graph.assets) == TOTAL_REQUIRED_ASSET_COUNT
 
     @patch("src.data.real_data_fetcher.RealDataFetcher._fetch_equity_data")
     @patch("src.data.real_data_fetcher.RealDataFetcher._fetch_bond_data")
@@ -1126,33 +1220,13 @@ class TestGraphBuilding:
         mock_equity,
     ):
         """
-        Verifies that create_real_database constructs a non-empty set of asset relationships when multiple equities are
-        present.
-
-        Sets up two equities (and no bonds, commodities, currencies, or events), builds the real database with network
-        enabled, and asserts the resulting graph contains at least one relationship.
+        Verifies that create_real_database constructs a non-empty set of asset relationships when assets are present.
         """
-        mock_equity.return_value = [
-            Equity(
-                id="E1",
-                symbol="E1",
-                name="E1",
-                asset_class=AssetClass.EQUITY,
-                sector="Tech",
-                price=100.0,
-            ),
-            Equity(
-                id="E2",
-                symbol="E2",
-                name="E2",
-                asset_class=AssetClass.EQUITY,
-                sector="Tech",
-                price=200.0,
-            ),
-        ]
-        mock_bond.return_value = []
-        mock_commodity.return_value = []
-        mock_currency.return_value = []
+        mock_eqs, mock_bnds, mock_comms, mock_currs = _make_mock_universe_assets()
+        mock_equity.return_value = mock_eqs
+        mock_bond.return_value = mock_bnds
+        mock_commodity.return_value = mock_comms
+        mock_currency.return_value = mock_currs
         mock_events.return_value = []
 
         fetcher = RealDataFetcher(enable_network=True)
@@ -1337,8 +1411,8 @@ class TestFetchMethodsErrorHandling:
         mock_yf.Ticker.return_value = mock_ticker
         mock_get_yfinance.return_value = mock_yf
 
-        commodities = RealDataFetcher._fetch_commodity_data()
-        assert commodities == []
+        with pytest.raises(DataAcquisitionIncompleteError):
+            RealDataFetcher._fetch_commodity_data()
 
 
 @pytest.mark.unit
@@ -1362,18 +1436,22 @@ class TestAssetFieldValidation:
             assert equity.symbol
 
     @staticmethod
-    def test_regulatory_events_have_unique_ids():
+    def test_regulatory_events_empty_without_real_feed():
         events = RealDataFetcher._create_regulatory_events()
-
-        event_ids = [event.id for event in events]
-        assert len(event_ids) == len(set(event_ids)), "Event IDs should be unique"
+        assert events == []
 
     @staticmethod
-    def test_regulatory_events_dates_are_valid_format():
-        events = RealDataFetcher._create_regulatory_events()
-
-        for event in events:
-            assert re.match(r"^\d{4}-\d{2}-\d{2}$", event.date), f"Invalid date format: {event.date}"
+    def test_regulatory_event_date_format_validation():
+        event = RegulatoryEvent(
+            id="TEST_EVENT",
+            asset_id="AAPL",
+            event_type=RegulatoryActivity.EARNINGS_REPORT,
+            date="2024-11-01",
+            description="Test Event",
+            impact_score=0.1,
+            related_assets=[],
+        )
+        assert re.match(r"^\d{4}-\d{2}-\d{2}$", event.date)
 
 
 @pytest.mark.unit
@@ -1445,12 +1523,7 @@ class TestDataFetcherConsistency:
     @staticmethod
     def test_regulatory_events_asset_ids_reference_known_symbols():
         events = RealDataFetcher._create_regulatory_events()
-
-        known_symbols = {"AAPL", "MSFT", "XOM", "JPM"}
-        referenced_assets = {event.asset_id for event in events}
-        assert any(
-            asset_id in known_symbols for asset_id in referenced_assets
-        ), "Events should reference known asset IDs"
+        assert events == []
 
 
 @pytest.mark.unit
@@ -1542,3 +1615,132 @@ class TestSerializationRobustness:
 
         assert deserialized.id == asset.id
         assert deserialized.market_cap is None
+
+
+@pytest.mark.unit
+class TestCompletenessGate:
+    """Tests for strict completeness gate (M == N == 13)."""
+
+    @patch("src.data.real_data_fetcher._get_yfinance")
+    def test_missing_equity_symbol_raises_incomplete_error(self, mock_get_yf):
+        """Missing one equity symbol raises DataAcquisitionIncompleteError with symbol name."""
+        mock_yf = Mock()
+
+        def mock_ticker(sym):
+            t = Mock()
+            if sym == "MSFT":
+                t.history.return_value = _make_history_mock(0.0, empty=True)
+            else:
+                t.history.return_value = _make_history_mock(150.0)
+                t.info = {}
+            return t
+
+        mock_yf.Ticker.side_effect = mock_ticker
+        mock_get_yf.return_value = mock_yf
+
+        with pytest.raises(DataAcquisitionIncompleteError) as exc_info:
+            RealDataFetcher._fetch_equity_data()
+        assert "MSFT" in str(exc_info.value)
+
+    @patch("src.data.real_data_fetcher._get_yfinance")
+    def test_missing_bond_symbol_raises_incomplete_error(self, mock_get_yf):
+        """Missing one bond symbol raises DataAcquisitionIncompleteError with symbol name."""
+        mock_yf = Mock()
+
+        def mock_ticker(sym):
+            t = Mock()
+            if sym == "TLT":
+                t.history.side_effect = RuntimeError("TLT fetch failed")
+            else:
+                t.history.return_value = _make_history_mock(100.0)
+                t.info = {}
+            return t
+
+        mock_yf.Ticker.side_effect = mock_ticker
+        mock_get_yf.return_value = mock_yf
+
+        with pytest.raises(DataAcquisitionIncompleteError) as exc_info:
+            RealDataFetcher._fetch_bond_data()
+        assert "TLT" in str(exc_info.value)
+
+    @patch("src.data.real_data_fetcher._get_yfinance")
+    def test_missing_commodity_symbol_raises_incomplete_error(self, mock_get_yf):
+        """Missing one commodity symbol raises DataAcquisitionIncompleteError."""
+        mock_yf = Mock()
+
+        def mock_ticker(sym):
+            t = Mock()
+            if sym == "GC=F":
+                t.history.return_value = _make_history_mock(0.0, empty=True)
+            else:
+                t.history.return_value = _make_history_mock(100.0)
+            return t
+
+        mock_yf.Ticker.side_effect = mock_ticker
+        mock_get_yf.return_value = mock_yf
+
+        with pytest.raises(DataAcquisitionIncompleteError) as exc_info:
+            RealDataFetcher._fetch_commodity_data()
+        assert "GC=F" in str(exc_info.value)
+
+    @patch("src.data.real_data_fetcher._get_yfinance")
+    def test_missing_currency_symbol_raises_incomplete_error(self, mock_get_yf):
+        """Missing one currency symbol raises DataAcquisitionIncompleteError."""
+        mock_yf = Mock()
+
+        def mock_ticker(sym):
+            t = Mock()
+            if sym == "EURUSD=X":
+                t.history.side_effect = ValueError("Corrupt price")
+            else:
+                t.history.return_value = _make_history_mock(1.2)
+            return t
+
+        mock_yf.Ticker.side_effect = mock_ticker
+        mock_get_yf.return_value = mock_yf
+
+        with pytest.raises(DataAcquisitionIncompleteError) as exc_info:
+            RealDataFetcher._fetch_currency_data()
+        assert "EURUSD=X" in str(exc_info.value)
+
+    def test_overall_count_mismatch_raises_incomplete_error(self):
+        """If total assets count != 13, _perform_live_raw_fetch raises DataAcquisitionIncompleteError."""
+        mock_eqs, mock_bnds, mock_comms, mock_currs = _make_mock_universe_assets()
+        # Drop one asset to simulate M != N
+        mock_currs_partial = mock_currs[:-1]
+
+        with (
+            patch("src.data.real_data_fetcher.RealDataFetcher._fetch_equity_data", return_value=mock_eqs),
+            patch("src.data.real_data_fetcher.RealDataFetcher._fetch_bond_data", return_value=mock_bnds),
+            patch("src.data.real_data_fetcher.RealDataFetcher._fetch_commodity_data", return_value=mock_comms),
+            patch("src.data.real_data_fetcher.RealDataFetcher._fetch_currency_data", return_value=mock_currs_partial),
+            patch("src.data.real_data_fetcher.RealDataFetcher._create_regulatory_events", return_value=[]),
+        ):
+            fetcher = RealDataFetcher(enable_network=True)
+            with pytest.raises(DataAcquisitionIncompleteError) as exc_info:
+                fetcher._perform_live_raw_fetch(None)
+            assert "Acquired asset count" in str(exc_info.value)
+
+    def test_source_tag_is_never_sample(self, tmp_path):
+        """Ensure source tag is only cache or real_data, never sample."""
+        mock_eqs, mock_bnds, mock_comms, mock_currs = _make_mock_universe_assets()
+        cache_path = tmp_path / "test_cache.json"
+
+        # 1. Live fetch source
+        with (
+            patch("src.data.real_data_fetcher.RealDataFetcher._fetch_equity_data", return_value=mock_eqs),
+            patch("src.data.real_data_fetcher.RealDataFetcher._fetch_bond_data", return_value=mock_bnds),
+            patch("src.data.real_data_fetcher.RealDataFetcher._fetch_commodity_data", return_value=mock_comms),
+            patch("src.data.real_data_fetcher.RealDataFetcher._fetch_currency_data", return_value=mock_currs),
+            patch("src.data.real_data_fetcher.RealDataFetcher._create_regulatory_events", return_value=[]),
+        ):
+            fetcher = RealDataFetcher(cache_path=str(cache_path), enable_network=True)
+            graph, source = fetcher.create_real_database_with_source()
+            assert source == "real_data"
+            assert len(graph.assets) == TOTAL_REQUIRED_ASSET_COUNT
+
+        # 2. Cache fetch source
+        fetcher_cached = RealDataFetcher(cache_path=str(cache_path), enable_network=False)
+        graph2, source2 = fetcher_cached.create_real_database_with_source()
+        assert source2 == "cache"
+        assert len(graph2.assets) == TOTAL_REQUIRED_ASSET_COUNT

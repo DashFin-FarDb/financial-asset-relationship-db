@@ -13,7 +13,8 @@ from contextlib import asynccontextmanager
 from typing import TYPE_CHECKING, Any
 from uuid import uuid4
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
 
 # pylint: disable=import-error
 from slowapi import _rate_limit_exceeded_handler  # type: ignore[import-not-found]
@@ -36,6 +37,7 @@ from .graph_lifecycle import (
     sync_with_latest_rebuild,
 )
 from .graph_lifecycle_providers import (
+    AuthoritativeGraphUnavailableError,
     resolve_hosted_graph_database_url,
     should_degrade_hosted_startup,
 )
@@ -289,9 +291,10 @@ async def _initialize_application_state(
     except asyncio.CancelledError:
         await _stop_auth_database_verification(verification_task, operation_guard)
         raise
+    is_clean_install = False
     if has_persistence:
         try:
-            await _perform_startup_reconciliation(settings)
+            is_clean_install = await _perform_startup_reconciliation(settings)
         except SchemaCompatibilityError:
             raise
         except (SQLAlchemyError, OSError, RuntimeError) as exc:
@@ -314,15 +317,19 @@ async def _initialize_application_state(
     # Required initialization for all environments to ensure state validity
     try:
         get_graph()
-    except (SQLAlchemyError, OSError) as exc:
-        if not hosted_startup_degradation_allowed:
+    except (SQLAlchemyError, OSError, AuthoritativeGraphUnavailableError) as exc:
+        if not (hosted_startup_degradation_allowed or is_clean_install):
             raise
         log_event(
             logger,
             logging.WARNING,
             ObservabilityEvent(
                 event="startup_degraded",
-                message="Hosted fallback graph bootstrap failed; continuing with degraded boot.",
+                message=(
+                    "Clean install graph bootstrap empty; awaiting initial rebuild."
+                    if is_clean_install
+                    else "Hosted fallback graph bootstrap failed; continuing with degraded boot."
+                ),
                 metadata={
                     "error": type(exc).__name__,
                     "phase": "graph_bootstrap",
@@ -394,7 +401,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     await _perform_orderly_shutdown(sync_task, slo_task, recon_task, has_persistence)
 
 
-async def _perform_startup_reconciliation(settings: GraphLifecycleSettings) -> None:
+async def _perform_startup_reconciliation(settings: GraphLifecycleSettings) -> bool:
     """Run startup reconciliation with timeout and error handling."""
     from src.logic.recovery_gate import ExecutionBlockedError
 
@@ -417,10 +424,11 @@ async def _perform_startup_reconciliation(settings: GraphLifecycleSettings) -> N
                 ),
             )
             raise RuntimeError("Startup reconciliation timed out") from None
+        return False
     except SchemaCompatibilityError:
         raise
     except ExecutionBlockedError as exc:
-        _handle_reconciliation_blocked(exc)
+        return _handle_reconciliation_blocked(exc, settings)
     except Exception as exc:
         log_event(
             logger,
@@ -441,31 +449,91 @@ async def _perform_startup_reconciliation(settings: GraphLifecycleSettings) -> N
         raise RuntimeError("Failed to load persisted graph during startup") from None
 
 
-def _handle_reconciliation_blocked(exc: Any) -> None:
-    """Handle ExecutionBlockedError from RecoveryGate."""
+def _is_genuine_clean_install(settings: GraphLifecycleSettings) -> bool:
+    """Verify that durable persistence genuinely has zero rebuild jobs (clean install)."""
+    try:
+        from src.data.database import create_engine_from_url, create_session_factory
+        from src.data.repository import AssetGraphRepository, session_scope
+
+        resolved_url = _resolve_startup_reconciliation_url(settings)
+        engine = create_engine_from_url(resolved_url)
+        try:
+            session_factory = create_session_factory(engine)
+            with session_scope(session_factory) as session:
+                repo = AssetGraphRepository(session)
+                return repo.get_latest_rebuild_job() is None
+        finally:
+            engine.dispose()
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("Clean-install verification failed: %s; failing closed.", type(exc).__name__)
+        return False
+
+
+def _is_quiescent_established_state(settings: GraphLifecycleSettings) -> bool:
+    """Verify that durable persistence has a terminal latest rebuild job (quiescent)."""
+    try:
+        from src.data.database import create_engine_from_url, create_session_factory
+        from src.data.db_models import RebuildJobStatus
+        from src.data.repository import AssetGraphRepository, session_scope
+
+        resolved_url = _resolve_startup_reconciliation_url(settings)
+        engine = create_engine_from_url(resolved_url)
+        try:
+            session_factory = create_session_factory(engine)
+            with session_scope(session_factory) as session:
+                repo = AssetGraphRepository(session)
+                latest = repo.get_latest_rebuild_job()
+                return latest is not None and latest.status in (
+                    RebuildJobStatus.SUCCEEDED,
+                    RebuildJobStatus.FAILED,
+                    RebuildJobStatus.CANCELLED,
+                )
+        finally:
+            engine.dispose()
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("Quiescent state verification failed: %s; failing closed.", type(exc).__name__)
+        return False
+
+
+def _handle_reconciliation_blocked(exc: Any, settings: GraphLifecycleSettings) -> bool:
+    """Handle ExecutionBlockedError from RecoveryGate with independent clean-install and quiescent-state proof."""
     if exc.action == "wait" and exc.inconsistency_type == "none":
-        log_event(
-            logger,
-            logging.INFO,
-            ObservabilityEvent(
-                event="startup_reconciliation_benign_clean_install",
-                message=(
-                    "Benign clean-install detected on startup (action=wait, inconsistency=none). "
-                    "Proceeding with startup."
+        if _is_genuine_clean_install(settings):
+            log_event(
+                logger,
+                logging.INFO,
+                ObservabilityEvent(
+                    event="startup_reconciliation_benign_clean_install",
+                    message=(
+                        "Benign clean-install verified on startup (action=wait, inconsistency=none, "
+                        "zero prior rebuild jobs). Proceeding with startup."
+                    ),
                 ),
-            ),
-        )
-    else:
-        log_event(
-            logger,
-            logging.CRITICAL,
-            ObservabilityEvent(
-                event="startup_reconciliation_blocked",
-                message=f"Application startup BLOCKED by RecoveryGate safety invariant: {type(exc).__name__}",
-                metadata={"error": type(exc).__name__},
-            ),
-        )
-        raise exc from None
+            )
+            return True
+        if _is_quiescent_established_state(settings):
+            log_event(
+                logger,
+                logging.INFO,
+                ObservabilityEvent(
+                    event="startup_reconciliation_quiescent_state",
+                    message=(
+                        "Quiescent rebuild state verified on startup (action=wait, inconsistency=none, "
+                        "prior rebuild jobs terminated). Proceeding with startup."
+                    ),
+                ),
+            )
+            return False
+    log_event(
+        logger,
+        logging.CRITICAL,
+        ObservabilityEvent(
+            event="startup_reconciliation_blocked",
+            message=f"Application startup BLOCKED by RecoveryGate safety invariant: {type(exc).__name__}",
+            metadata={"error": type(exc).__name__},
+        ),
+    )
+    raise exc from None
 
 
 def _start_background_tasks(
@@ -679,6 +747,14 @@ def create_app() -> FastAPI:
 
     app.state.limiter = limiter
     app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)  # type: ignore[arg-type]
+
+    @app.exception_handler(AuthoritativeGraphUnavailableError)
+    async def _graph_unavailable_handler(_request: Request, _exc: AuthoritativeGraphUnavailableError) -> JSONResponse:
+        return JSONResponse(
+            status_code=503,
+            content={"detail": "Graph not yet published; awaiting initial rebuild."},
+        )
+
     configure_cors(app)
 
     # Register RequestMetricsMiddleware before CorrelationMiddleware.

@@ -12,7 +12,6 @@ from src.data.db_models import RebuildJobStatus
 GraphRebuildSource = Literal[
     "cache",
     "real_data",
-    "sample",
 ]
 
 

@@ -36,7 +36,7 @@ from api.api_models import (
     RelationshipResponse,
     VisualizationDataResponse,
 )
-from api.graph_lifecycle_providers import GraphLifecycleSettings
+from api.graph_lifecycle_providers import AuthoritativeGraphUnavailableError, GraphLifecycleSettings
 from api.main import app, validate_origin
 from api.router_helpers import _ASSET_CLASS_COLORS, _DEFAULT_COLOR, raise_asset_not_found, serialize_asset
 from src.data.real_data_fetcher import _save_to_cache
@@ -45,6 +45,18 @@ from src.logic.asset_graph import AssetRelationshipGraph
 from src.models.financial_models import AssetClass, Equity
 
 CORS_DEV_ORIGIN = "http://localhost:3000"
+
+
+def _make_authoritative_cached_graph() -> AssetRelationshipGraph:
+    """Build an AssetRelationshipGraph containing the 13 canonical assets required for caching."""
+    from tests.unit.test_real_data_fetcher import _make_mock_universe_assets
+
+    graph = AssetRelationshipGraph()
+    equities, bonds, commodities, currencies = _make_mock_universe_assets()
+    for asset in (*equities, *bonds, *commodities, *currencies):
+        graph.add_asset(asset)
+    graph.build_relationships()
+    return graph
 
 
 def _assert_asset_page(data: dict[str, Any], *, page: int = 1, per_page: int = 50) -> list[dict[str, Any]]:
@@ -104,10 +116,14 @@ class TestValidateOrigin:
     @staticmethod
     def test_validate_origin_http_localhost_development() -> None:
         """HTTP localhost is allowed in development."""
+        from src.config.settings import get_settings
+
         with patch.dict(os.environ, {"ENV": "development"}):
+            get_settings.cache_clear()
             assert validate_origin("http://localhost:3000")
             assert validate_origin("http://127.0.0.1:8000")
             assert validate_origin("http://localhost")
+            get_settings.cache_clear()
 
     @staticmethod
     def test_validate_origin_http_localhost_production() -> None:
@@ -169,25 +185,37 @@ class TestValidateOrigin:
 class TestGraphInitialization:
     """Test the lazy graph initialization via get_graph()."""
 
-    def test_graph_initialization(self) -> None:
-        """Graph is initialized via get_graph()."""
+    def test_graph_initialization(self, tmp_path: Path, monkeypatch) -> None:
+        """Graph is initialized via get_graph() when cache is available."""
+        cache_path = tmp_path / "graph_snapshot.json"
+        reference_graph = _make_authoritative_cached_graph()
+        _save_to_cache(reference_graph, cache_path)
+
+        monkeypatch.setenv("GRAPH_CACHE_PATH", str(cache_path))
         api_main.reset_graph()
         graph = api_main.get_graph()
         assert graph is not None
         assert hasattr(graph, "assets")
         assert hasattr(graph, "relationships")
+        api_main.reset_graph()
 
-    def test_graph_singleton(self) -> None:
+    def test_graph_singleton(self, tmp_path: Path, monkeypatch) -> None:
         """Graph is a singleton instance via get_graph()."""
+        cache_path = tmp_path / "graph_snapshot.json"
+        reference_graph = _make_authoritative_cached_graph()
+        _save_to_cache(reference_graph, cache_path)
+
+        monkeypatch.setenv("GRAPH_CACHE_PATH", str(cache_path))
         api_main.reset_graph()
         graph1 = api_main.get_graph()
         graph2 = api_main.get_graph()
         assert graph1 is graph2
+        api_main.reset_graph()
 
     def test_graph_uses_cache_when_configured(self, tmp_path: Path, monkeypatch) -> None:
         """Graph initialization should load from cached dataset when provided."""
         cache_path = tmp_path / "graph_snapshot.json"
-        reference_graph = create_sample_database()
+        reference_graph = _make_authoritative_cached_graph()
         _save_to_cache(reference_graph, cache_path)
 
         monkeypatch.setenv("GRAPH_CACHE_PATH", str(cache_path))
@@ -202,20 +230,15 @@ class TestGraphInitialization:
         monkeypatch.delenv("GRAPH_CACHE_PATH", raising=False)
 
     def test_graph_fallback_on_corrupted_cache(self, tmp_path: Path, monkeypatch) -> None:
-        """Graph initialization should fallback when cache is corrupted or invalid."""
+        """Graph initialization should fail closed when cache is corrupted and no other source is available."""
         cache_path = tmp_path / "graph_snapshot.json"
         cache_path.write_text("not valid json", encoding="utf-8")
-
-        reference_graph = create_sample_database()
 
         monkeypatch.setenv("GRAPH_CACHE_PATH", str(cache_path))
         api_main.reset_graph()
 
-        graph = api_main.get_graph()
-        assert graph is not None
-        assert hasattr(graph, "assets")
-        assert len(graph.assets) == len(reference_graph.assets)
-        assert len(graph.relationships) == len(reference_graph.relationships)
+        with pytest.raises(AuthoritativeGraphUnavailableError):
+            api_main.get_graph()
 
         api_main.reset_graph()
         monkeypatch.delenv("GRAPH_CACHE_PATH", raising=False)
@@ -1205,9 +1228,14 @@ class TestIntegrationScenarios:
 class TestGraphInitializationRaceConditions:
     """Test race conditions and thread safety in graph initialization."""
 
-    def test_concurrent_graph_initialization_threads(self):
+    def test_concurrent_graph_initialization_threads(self, tmp_path: Path, monkeypatch):
         """Boundary: Multiple threads initializing graph concurrently should be safe."""
         import threading
+
+        cache_path = tmp_path / "graph_snapshot.json"
+        reference_graph = _make_authoritative_cached_graph()
+        _save_to_cache(reference_graph, cache_path)
+        monkeypatch.setenv("GRAPH_CACHE_PATH", str(cache_path))
 
         api_main.reset_graph()
         results = []
@@ -1244,20 +1272,24 @@ class TestGraphInitializationRaceConditions:
         api_main.reset_graph()
 
     def test_graph_initialization_with_corrupted_environment(self, monkeypatch):
-        """Boundary: Graph initialization should handle corrupted environment variables."""
+        """Boundary: Graph initialization should fail closed when cache path is invalid and no source exists."""
         # Set invalid cache path
         monkeypatch.setenv("GRAPH_CACHE_PATH", "/invalid/path/to/cache.json")
         api_main.reset_graph()
 
-        # Should not crash, should fall back gracefully
-        graph = api_main.get_graph()
-        assert graph is not None
-        assert hasattr(graph, "assets")
+        with pytest.raises(AuthoritativeGraphUnavailableError):
+            api_main.get_graph()
 
         api_main.reset_graph()
 
-    def test_graph_reset_and_reinitialize(self):
+    def test_graph_reset_and_reinitialize(self, tmp_path: Path, monkeypatch):
         """Boundary: Resetting and reinitializing graph should work correctly."""
+        cache_path = tmp_path / "graph_snapshot.json"
+        reference_graph = _make_authoritative_cached_graph()
+        _save_to_cache(reference_graph, cache_path)
+        monkeypatch.setenv("GRAPH_CACHE_PATH", str(cache_path))
+        api_main.reset_graph()
+
         # Initialize graph
         graph1 = api_main.get_graph()
         assert graph1 is not None
@@ -1272,9 +1304,15 @@ class TestGraphInitializationRaceConditions:
 
         api_main.reset_graph()
 
-    def test_graph_initialization_memory_cleanup(self):
+    def test_graph_initialization_memory_cleanup(self, tmp_path: Path, monkeypatch):
         """Boundary: Graph should be properly cleaned up after reset."""
         import gc
+
+        cache_path = tmp_path / "graph_snapshot.json"
+        reference_graph = _make_authoritative_cached_graph()
+        _save_to_cache(reference_graph, cache_path)
+        monkeypatch.setenv("GRAPH_CACHE_PATH", str(cache_path))
+        api_main.reset_graph()
 
         # Create and reset graph multiple times
         for _ in range(5):
@@ -1295,41 +1333,43 @@ class TestGraphCachingEdgeCases:
     """Edge cases for graph caching and persistence."""
 
     def test_empty_cache_file_handling(self, tmp_path, monkeypatch):
-        """Edge: Empty cache file should trigger fallback."""
+        """Edge: Empty cache file should fail closed when no other source is available."""
         cache_path = tmp_path / "empty_cache.json"
         cache_path.write_text("")
 
         monkeypatch.setenv("GRAPH_CACHE_PATH", str(cache_path))
         api_main.reset_graph()
 
-        graph = api_main.get_graph()
-        assert graph is not None
+        with pytest.raises(AuthoritativeGraphUnavailableError):
+            api_main.get_graph()
 
         api_main.reset_graph()
 
     def test_json_array_instead_of_object_cache(self, tmp_path, monkeypatch):
-        """Edge: Cache with JSON array instead of object should fallback."""
+        """Edge: Cache with JSON array instead of object should fail closed."""
         cache_path = tmp_path / "array_cache.json"
         cache_path.write_text("[]")
 
         monkeypatch.setenv("GRAPH_CACHE_PATH", str(cache_path))
         api_main.reset_graph()
 
-        graph = api_main.get_graph()
-        assert graph is not None
+        with pytest.raises(AuthoritativeGraphUnavailableError):
+            api_main.get_graph()
 
         api_main.reset_graph()
 
     def test_cache_with_missing_required_fields(self, tmp_path, monkeypatch):
-        """Edge: Cache missing required fields should trigger fallback."""
+        """Edge: Cache missing required fields should fail closed."""
         cache_path = tmp_path / "incomplete_cache.json"
         cache_path.write_text('{"incomplete": "data"}')
 
         monkeypatch.setenv("GRAPH_CACHE_PATH", str(cache_path))
         api_main.reset_graph()
 
-        graph = api_main.get_graph()
-        assert graph is not None
+        with pytest.raises(AuthoritativeGraphUnavailableError):
+            api_main.get_graph()
+
+        api_main.reset_graph()
 
         api_main.reset_graph()
 
@@ -1543,7 +1583,7 @@ class TestSetGraphFunctions:
         api_main.reset_graph()
 
     def test_set_graph_factory_none_clears_factory(self):
-        """set_graph_factory(None) should clear the factory."""
+        """set_graph_factory(None) should clear the factory and fail closed if no source exists."""
 
         def test_factory():
             """Return a sample database for checking if setting None clears the factory."""
@@ -1552,15 +1592,21 @@ class TestSetGraphFunctions:
         api_main.set_graph_factory(test_factory)
         api_main.set_graph_factory(None)
 
-        # Should use default initialization
-        graph = api_main.get_graph()
-        assert graph is not None
+        # Without factory, default initialization fails closed when no published/cache graph exists
+        with pytest.raises(AuthoritativeGraphUnavailableError):
+            api_main.get_graph()
 
         api_main.reset_graph()
 
-    def test_set_graph_factory_clears_existing_graph(self):
+    def test_set_graph_factory_clears_existing_graph(self, tmp_path: Path, monkeypatch):
         """set_graph_factory() should clear existing graph instance."""
-        # Initialize graph first
+        cache_path = tmp_path / "graph_snapshot.json"
+        reference_graph = _make_authoritative_cached_graph()
+        _save_to_cache(reference_graph, cache_path)
+        monkeypatch.setenv("GRAPH_CACHE_PATH", str(cache_path))
+        api_main.reset_graph()
+
+        # Initialize graph first from cache
         graph1 = api_main.get_graph()
 
         # Set a factory
@@ -1785,7 +1831,10 @@ class TestValidateOriginAllowedOrigins:
 
     def test_validate_origin_allowed_origins_with_spaces(self, monkeypatch):
         """validate_origin() should handle ALLOWED_ORIGINS with spaces."""
+        from src.config.settings import get_settings
+
         monkeypatch.setenv("ALLOWED_ORIGINS", " https://app.example.com , https://api.example.com ")
+        get_settings.cache_clear()
 
         # Note: the implementation splits by comma but doesn't strip individual origins
         # Testing actual behavior
@@ -1793,14 +1842,20 @@ class TestValidateOriginAllowedOrigins:
 
     def test_validate_origin_empty_allowed_origins(self, monkeypatch):
         """validate_origin() should handle empty ALLOWED_ORIGINS."""
+        from src.config.settings import get_settings
+
         monkeypatch.setenv("ALLOWED_ORIGINS", "")
+        get_settings.cache_clear()
 
         # Should still validate based on other rules
         assert validate_origin("https://example.com") is True
 
     def test_validate_origin_allowed_origins_not_set(self, monkeypatch):
         """validate_origin() should work when ALLOWED_ORIGINS is not set."""
+        from src.config.settings import get_settings
+
         monkeypatch.delenv("ALLOWED_ORIGINS", raising=False)
+        get_settings.cache_clear()
 
         # Should still validate based on other rules
         assert validate_origin("https://example.com") is True
@@ -1957,8 +2012,13 @@ class TestLifespanHandler:
     """Test the lifespan async context manager."""
 
     @pytest.mark.asyncio
-    async def test_lifespan_initializes_graph(self):
-        """Lifespan handler should initialize graph on startup."""
+    async def test_lifespan_initializes_graph(self, tmp_path: Path, monkeypatch):
+        """Lifespan handler should initialize graph on startup when cache is present."""
+        cache_path = tmp_path / "graph_snapshot.json"
+        reference_graph = _make_authoritative_cached_graph()
+        _save_to_cache(reference_graph, cache_path)
+        monkeypatch.setenv("GRAPH_CACHE_PATH", str(cache_path))
+
         api_main.reset_graph()
 
         async with api_main.lifespan(app):
@@ -1970,8 +2030,13 @@ class TestLifespanHandler:
         api_main.reset_graph()
 
     @pytest.mark.asyncio
-    async def test_lifespan_yields_control(self):
+    async def test_lifespan_yields_control(self, tmp_path: Path, monkeypatch):
         """Lifespan handler should yield control during app lifetime."""
+        cache_path = tmp_path / "graph_snapshot.json"
+        reference_graph = _make_authoritative_cached_graph()
+        _save_to_cache(reference_graph, cache_path)
+        monkeypatch.setenv("GRAPH_CACHE_PATH", str(cache_path))
+
         api_main.reset_graph()
         yielded = False
 

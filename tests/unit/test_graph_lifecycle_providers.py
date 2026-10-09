@@ -149,3 +149,79 @@ def test_save_graph_with_session_rolls_back_when_pre_commit_check_fails(
 
     session.rollback.assert_called_once_with()
     session.commit.assert_not_called()
+
+
+def test_build_rebuild_graph_fails_closed_when_no_source_available() -> None:
+    """build_rebuild_graph must fail closed when neither cache nor real data is available."""
+    settings = providers.GraphLifecycleSettings(
+        graph_cache_path=None,
+        use_real_data_fetcher=False,
+    )
+
+    with pytest.raises(
+        providers.AuthoritativeGraphUnavailableError,
+        match="No valid rebuild source available.",
+    ):
+        providers.build_rebuild_graph(settings)
+
+
+def test_build_rebuild_graph_uses_cache_when_available(
+    tmp_path: pytest.TempPathFactory,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """build_rebuild_graph must load cache when configured cache path exists."""
+    cache_file = tmp_path / "cache.json"  # type: ignore[operator]
+    cache_file.write_text("{}", encoding="utf-8")
+    expected_graph = AssetRelationshipGraph()
+
+    monkeypatch.setattr(
+        providers,
+        "load_graph_from_cache_path",
+        lambda path, enable_network: (expected_graph, "cache"),
+    )
+
+    settings = providers.GraphLifecycleSettings(
+        graph_cache_path=str(cache_file),
+        use_real_data_fetcher=False,
+    )
+    graph, source = providers.build_rebuild_graph(settings)
+
+    assert graph is expected_graph
+    assert source == "cache"
+
+
+def test_build_rebuild_graph_uses_real_data_when_enabled(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """build_rebuild_graph must use real data fetcher when enabled."""
+    expected_graph = AssetRelationshipGraph()
+
+    class MockFetcher:
+        """Mock RealDataFetcher for unit testing."""
+
+        def __init__(self, *args: object, **kwargs: object) -> None:
+            pass
+
+        def fetch_raw_data_with_source(self, cancel_event: object = None) -> tuple[dict, list, str]:
+            return ({}, [], "real_data")
+
+        def _persist_cache(self, graph: object) -> None:
+            pass
+
+    class MockExecutor:
+        """Mock RebuildExecutor for unit testing."""
+
+        def run_rebuild(self, **kwargs: object) -> AssetRelationshipGraph:
+            return expected_graph
+
+    monkeypatch.setattr("src.data.real_data_fetcher.RealDataFetcher", MockFetcher)
+    monkeypatch.setattr("src.logic.rebuild_executor.RebuildExecutor", MockExecutor)
+
+    settings = providers.GraphLifecycleSettings(
+        graph_cache_path=None,
+        use_real_data_fetcher=True,
+    )
+    graph, source = providers.build_rebuild_graph(settings)
+
+    assert graph is expected_graph
+    assert source == "real_data"
