@@ -322,12 +322,16 @@ describe("Error Handling and Recovery", () => {
     await waitFor(() => {
       expect(mockedApi.getMetrics).toHaveBeenCalledTimes(2);
     });
-    expect(screen.getByText("Failed to load metrics data.")).toBeInTheDocument();
+    expect(
+      screen.getByText("Failed to load metrics data."),
+    ).toBeInTheDocument();
     expect(screen.queryByText(/Failed to load data/i)).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByText("GRAC Demonstrator"));
 
-    expect(screen.getByText("FarDb Institutional Demonstrator")).toBeInTheDocument();
+    expect(
+      screen.getByText("FarDb Institutional Demonstrator"),
+    ).toBeInTheDocument();
 
     fireEvent.click(screen.getByText("3D Visualization"));
 
@@ -407,8 +411,7 @@ describe("Error Handling and Recovery", () => {
   });
 
   it("should retry visualization without reloading successful metrics data", async () => {
-    mockedApi.getMetrics
-      .mockResolvedValueOnce(mockMetrics);
+    mockedApi.getMetrics.mockResolvedValueOnce(mockMetrics);
     mockedApi.getVisualizationData
       .mockRejectedValueOnce(new Error("Initial viz failure"))
       .mockRejectedValueOnce(new Error("Visualization outage on refresh"));
