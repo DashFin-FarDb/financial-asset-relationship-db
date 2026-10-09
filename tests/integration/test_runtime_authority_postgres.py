@@ -551,6 +551,7 @@ def test_db_owner_admin_option_accepted_for_capability_roles() -> None:
     import api.database as api_database
 
     non_owner_role = "cq1608_non_owner_admin"
+    db_owner: str | None = None
     try:
         with _operator_connection(database_url) as connection, connection.cursor() as cursor:
             cursor.execute("SHOW server_version_num")
@@ -615,6 +616,17 @@ def test_db_owner_admin_option_accepted_for_capability_roles() -> None:
             api_database.verify_runtime_authority()
     finally:
         _drop_roles(database_url, _AUTH_RUNTIME_LOGIN, non_owner_role)
+        if db_owner is not None:
+            try:
+                with _operator_connection(database_url) as connection, connection.cursor() as cursor:
+                    cursor.execute(
+                        sql.SQL("REVOKE {} FROM {} CASCADE").format(
+                            sql.Identifier(api_database.AUTH_RUNTIME_ROLE),
+                            sql.Identifier(db_owner),
+                        )
+                    )
+            except Exception:
+                pass
 
 
 @pytest.mark.integration

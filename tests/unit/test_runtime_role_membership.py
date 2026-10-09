@@ -96,3 +96,32 @@ def test_verify_runtime_capability_roles_passes_combined_topology_flag() -> None
     coordination_call_params = [p for p in executed_params if p["role_name"] == COORDINATION_RUNTIME_ROLE]
     assert len(coordination_call_params) == 1
     assert coordination_call_params[0]["approved_logins"] == ["fardb_login_coordination"]
+
+
+def test_verify_runtime_capability_roles_require_login_principals_flag() -> None:
+    """_verify_runtime_capability_roles conditionally includes grantee count assertion."""
+    mock_conn = MagicMock()
+    mock_result = MagicMock()
+    mock_result.scalar_one.return_value = True
+    mock_conn.execute.return_value = mock_result
+
+    # 1. require_login_principals=True includes count assertion
+    _verify_runtime_capability_roles(
+        mock_conn,
+        (GRAPH_RUNTIME_CAPABILITY,),
+        ["assets"],
+        require_login_principals=True,
+    )
+    sql_text = str(mock_conn.execute.call_args_list[0].args[0])
+    assert ") >= 1" in sql_text
+
+    # 2. require_login_principals=False omits count assertion
+    mock_conn.reset_mock()
+    _verify_runtime_capability_roles(
+        mock_conn,
+        (GRAPH_RUNTIME_CAPABILITY,),
+        ["assets"],
+        require_login_principals=False,
+    )
+    sql_text = str(mock_conn.execute.call_args_list[0].args[0])
+    assert ") >= 1" not in sql_text

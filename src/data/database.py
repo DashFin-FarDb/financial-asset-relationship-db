@@ -496,12 +496,21 @@ def _verify_runtime_capability_roles(
     managed_tables: list[str],
     *,
     combined_topology: bool | None = None,
+    require_login_principals: bool = True,
 ) -> None:
     """Verify capability-role safety and schema access."""
     if combined_topology is not None:
         is_combined = combined_topology
     else:
         is_combined = {GRAPH_RUNTIME_CAPABILITY, COORDINATION_RUNTIME_CAPABILITY}.issubset(capabilities)
+    grantee_count_clause = (
+        "(SELECT COUNT(*) FROM pg_roles AS grantee WHERE grantee.rolcanlogin "
+        "AND grantee.oid <> (SELECT datdba FROM pg_database WHERE datname = current_database()) "
+        "AND EXISTS (SELECT 1 FROM role_membership WHERE role_membership.member = grantee.oid "
+        "AND role_membership.roleid = role.oid)) >= 1 AND "
+        if require_login_principals
+        else ""
+    )
     for capability in capabilities:
         role_name = RUNTIME_CAPABILITY_ROLES[capability]
         safe_role = connection.execute(
@@ -573,11 +582,9 @@ def _verify_runtime_capability_roles(
                         "WHERE membership.roleid = role.oid AND membership.admin_option "
                         "AND membership.member <> (SELECT datdba FROM pg_database WHERE datname = current_database())) AND (",
                         USABLE_ROLE_MEMBERSHIP_CTE_SQL,
-                        "SELECT (SELECT COUNT(*) FROM pg_roles AS grantee WHERE grantee.rolcanlogin "
-                        "AND grantee.oid <> (SELECT datdba FROM pg_database WHERE datname = current_database()) "
-                        "AND EXISTS (SELECT 1 FROM role_membership WHERE role_membership.member = grantee.oid "
-                        "AND role_membership.roleid = role.oid)) >= 1 "
-                        "AND NOT EXISTS (SELECT 1 FROM pg_roles AS grantee WHERE grantee.rolcanlogin "
+                        "SELECT ",
+                        grantee_count_clause,
+                        "NOT EXISTS (SELECT 1 FROM pg_roles AS grantee WHERE grantee.rolcanlogin "
                         "AND grantee.oid <> (SELECT datdba FROM pg_database WHERE datname = current_database()) "
                         "AND EXISTS (SELECT 1 FROM role_membership WHERE role_membership.member = grantee.oid "
                         "AND role_membership.roleid = role.oid) "
@@ -841,6 +848,7 @@ def _verify_runtime_capability_catalog(
     capabilities: tuple[str, ...],
     *,
     combined_topology: bool | None = None,
+    require_login_principals: bool = True,
 ) -> None:
     """Verify exact role attributes, table grants, and named RLS policies."""
     from .relationship_assertion_db_models import GRAC_TABLE_NAMES
@@ -853,6 +861,7 @@ def _verify_runtime_capability_catalog(
         capabilities,
         managed_tables,
         combined_topology=combined_topology,
+        require_login_principals=require_login_principals,
     )
     _verify_runtime_rls_catalog(connection, managed_tables, policy_specs)
     _verify_runtime_capability_grants(
@@ -1001,6 +1010,7 @@ def _verify_profile_specific_schema(
     capabilities: tuple[str, ...],
     *,
     combined_topology: bool | None = None,
+    require_login_principals: bool = True,
 ) -> None:
     """Verify graph-only invariants and the PostgreSQL authority catalog."""
     from .migrations import postgresql_heartbeat_schema_gaps
@@ -1021,6 +1031,7 @@ def _verify_profile_specific_schema(
                 connection,
                 capabilities,
                 combined_topology=combined_topology,
+                require_login_principals=require_login_principals,
             )
 
 
@@ -1029,6 +1040,7 @@ def verify_database_schema(
     *,
     required_capabilities: tuple[str, ...] | set[str] | frozenset[str] = (),
     combined_topology: bool | None = None,
+    require_login_principals: bool = False,
 ) -> None:
     """Verify the asset-store schema without creating, altering, or repairing it.
 
@@ -1040,6 +1052,7 @@ def verify_database_schema(
         engine: SQLAlchemy engine connected with runtime application authority.
         required_capabilities: Runtime capability profile to verify.
         combined_topology: Optional override for combined topology evaluation.
+        require_login_principals: Whether to require provisioned runtime logins (defaults to False for migration time).
 
     Raises:
         SchemaCompatibilityError: If the schema or authority posture is not compatible.
@@ -1066,6 +1079,7 @@ def verify_database_schema(
             backend,
             normalized_capabilities,
             combined_topology=combined_topology,
+            require_login_principals=require_login_principals,
         )
     except SchemaCompatibilityError:
         raise
@@ -1209,6 +1223,7 @@ def verify_runtime_database_authority(  # skipcq: PY-R1000
                     connection,
                     normalized_capabilities,
                     combined_topology=combined_topology,
+                    require_login_principals=True,
                 )
             _verify_runtime_login_relation_grants(connection, normalized_capabilities)
             if GRAPH_RUNTIME_CAPABILITY in normalized_capabilities:

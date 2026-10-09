@@ -113,3 +113,27 @@ def test_verify_runtime_authority_rejects_unapproved_session_user(monkeypatch) -
 
     with pytest.raises(SchemaCompatibilityError, match="API runtime login principal is not an approved login"):
         api_database.verify_runtime_authority()
+
+
+def test_verify_runtime_access_catalog_allows_zero_grantees_when_not_requiring_principals(monkeypatch) -> None:
+    """Migration-time catalog verification allows zero grantees before login provisioning."""
+    fetch_value = MagicMock(return_value=True)
+    monkeypatch.setattr(api_database, "DATABASE_TYPE", "postgresql")
+    monkeypatch.setattr(api_database, "fetch_value", fetch_value)
+
+    api_database.verify_runtime_access_catalog(require_login_principals=False)
+
+    safe_role_query = fetch_value.call_args_list[0].args[0]
+    assert USABLE_ROLE_MEMBERSHIP_CTE_SQL in safe_role_query
+    assert ") >= 1" not in safe_role_query
+    assert "grantee.rolname = ANY(%s)" in safe_role_query
+
+
+def test_verify_runtime_authority_rejects_unexpected_ordinary_assumable_role(monkeypatch) -> None:
+    """An unexpected ordinary role assumable by the login principal must fail closed."""
+    fetch_value = MagicMock(side_effect=[True, "fardb_login_auth", 2, True])
+    monkeypatch.setattr(api_database, "DATABASE_TYPE", "postgresql")
+    monkeypatch.setattr(api_database, "fetch_value", fetch_value)
+
+    with pytest.raises(SchemaCompatibilityError, match="API runtime login capability memberships are incompatible"):
+        api_database.verify_runtime_authority()

@@ -180,34 +180,46 @@ def _cross_profile_authority_sql(role_alias: str) -> str:
     )
 
 
-_AUTH_SAFE_ROLE_SQL = "".join(
-    (
-        "SELECT COUNT(*) = 1 FROM pg_roles AS role WHERE role.rolname = %s "
-        "AND NOT role.rolcanlogin AND NOT role.rolsuper AND NOT role.rolcreatedb "
-        "AND NOT role.rolcreaterole AND NOT role.rolbypassrls AND NOT role.rolreplication "
-        "AND NOT has_database_privilege(role.oid, current_database(), 'CREATE') "
-        "AND NOT EXISTS (SELECT 1 FROM pg_namespace AS namespace "
-        "WHERE has_schema_privilege(role.oid, namespace.oid, 'CREATE')) "
-        "AND NOT ",
-        _cross_profile_authority_sql("role"),
-        " ",
-        "AND NOT EXISTS (SELECT 1 FROM pg_auth_members AS membership WHERE membership.member = role.oid) "
-        "AND NOT EXISTS (SELECT 1 FROM pg_auth_members AS membership "
-        "WHERE membership.roleid = role.oid AND membership.admin_option "
-        "AND membership.member <> (SELECT datdba FROM pg_database WHERE datname = current_database())) "
-        "AND (",
-        USABLE_ROLE_MEMBERSHIP_CTE_SQL,
-        "SELECT (SELECT COUNT(*) FROM pg_roles AS grantee "
+def _auth_safe_role_sql(require_login_principals: bool = True) -> str:
+    """Build the read-only auth capability role SQL verification query."""
+    grantee_count_clause = (
+        "(SELECT COUNT(*) FROM pg_roles AS grantee "
         "WHERE grantee.rolcanlogin AND grantee.oid <> (SELECT datdba FROM pg_database WHERE datname = current_database()) "
         "AND EXISTS (SELECT 1 FROM role_membership "
         "WHERE role_membership.member = grantee.oid AND role_membership.roleid = role.oid)) >= 1 "
-        "AND NOT EXISTS (SELECT 1 FROM pg_roles AS grantee "
-        "WHERE grantee.rolcanlogin AND grantee.oid <> (SELECT datdba FROM pg_database WHERE datname = current_database()) "
-        "AND EXISTS (SELECT 1 FROM role_membership "
-        "WHERE role_membership.member = grantee.oid AND role_membership.roleid = role.oid) "
-        "AND NOT (grantee.rolname = ANY(%s))))",
+        "AND "
+        if require_login_principals
+        else ""
     )
-)
+    return "".join(
+        (
+            "SELECT COUNT(*) = 1 FROM pg_roles AS role WHERE role.rolname = %s "
+            "AND NOT role.rolcanlogin AND NOT role.rolsuper AND NOT role.rolcreatedb "
+            "AND NOT role.rolcreaterole AND NOT role.rolbypassrls AND NOT role.rolreplication "
+            "AND NOT has_database_privilege(role.oid, current_database(), 'CREATE') "
+            "AND NOT EXISTS (SELECT 1 FROM pg_namespace AS namespace "
+            "WHERE has_schema_privilege(role.oid, namespace.oid, 'CREATE')) "
+            "AND NOT ",
+            _cross_profile_authority_sql("role"),
+            " ",
+            "AND NOT EXISTS (SELECT 1 FROM pg_auth_members AS membership WHERE membership.member = role.oid) "
+            "AND NOT EXISTS (SELECT 1 FROM pg_auth_members AS membership "
+            "WHERE membership.roleid = role.oid AND membership.admin_option "
+            "AND membership.member <> (SELECT datdba FROM pg_database WHERE datname = current_database())) "
+            "AND (",
+            USABLE_ROLE_MEMBERSHIP_CTE_SQL,
+            "SELECT ",
+            grantee_count_clause,
+            "NOT EXISTS (SELECT 1 FROM pg_roles AS grantee "
+            "WHERE grantee.rolcanlogin AND grantee.oid <> (SELECT datdba FROM pg_database WHERE datname = current_database()) "
+            "AND EXISTS (SELECT 1 FROM role_membership "
+            "WHERE role_membership.member = grantee.oid AND role_membership.roleid = role.oid) "
+            "AND NOT (grantee.rolname = ANY(%s))))",
+        )
+    )
+
+
+_AUTH_SAFE_ROLE_SQL = _auth_safe_role_sql(require_login_principals=True)
 
 
 def _is_postgres_url(url: str) -> bool:
@@ -970,13 +982,13 @@ def ensure_runtime_access() -> None:
     raise SchemaCompatibilityError("PostgreSQL auth capability mutation is owned by the profile-scoped Supabase ledger")
 
 
-def verify_runtime_access_catalog() -> None:
+def verify_runtime_access_catalog(require_login_principals: bool = True) -> None:
     """Verify the ledger-owned auth role, grants, RLS, and routine catalog."""
     if DATABASE_TYPE != "postgresql":
         return
 
     safe_role = fetch_value(
-        _AUTH_SAFE_ROLE_SQL,
+        _auth_safe_role_sql(require_login_principals=require_login_principals),
         (
             AUTH_RUNTIME_ROLE,
             list(_NON_AUTH_MANAGED_TABLES),
@@ -1106,9 +1118,7 @@ def verify_runtime_authority() -> None:
         "(pg_has_role(login.oid, assumable.oid, 'USAGE') "
         "OR pg_has_role(login.oid, assumable.oid, 'SET')) "
         "ELSE pg_has_role(login.oid, assumable.oid, 'MEMBER') END "
-        "WHERE login.rolname = session_user "
-        "AND (assumable.rolname LIKE 'fardb_runtime_%%' OR assumable.rolsuper OR assumable.rolcreaterole "
-        "OR assumable.rolcreatedb OR assumable.rolbypassrls OR assumable.rolreplication)",
+        "WHERE login.rolname = session_user",
     )
     has_auth_membership = fetch_value(
         "SELECT EXISTS (SELECT 1 FROM pg_roles AS login JOIN pg_roles AS assumable "
