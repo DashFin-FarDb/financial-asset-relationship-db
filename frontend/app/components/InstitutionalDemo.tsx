@@ -83,11 +83,11 @@ function ScenarioTimeline() {
   const step = SCENARIO_STEPS[stepIndex];
 
   return (
-    <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+    <section className="rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50 p-6 shadow-sm">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
-            Synthetic governance walkthrough
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-600">
+            Synthetic governance walkthrough — demonstration-only
           </p>
           <h3 className="mt-2 text-2xl font-semibold text-slate-900">
             One relationship, two clocks, one accountable determination
@@ -317,12 +317,13 @@ export default function InstitutionalDemo({
         </p>
       </section>
 
-      <ScenarioTimeline />
-
       <section>
         <div className="mb-4">
-          <h3 className="text-2xl font-semibold text-slate-900">
-            Explore the live FarDb relationship graph
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-blue-700">
+            Live FarDb publication data
+          </p>
+          <h3 className="mt-1 text-2xl font-semibold text-slate-900">
+            Explore the live relationship graph
           </h3>
           <p className="mt-1 text-sm leading-6 text-slate-600">
             This section uses the existing FarDb graph and governed-edge
@@ -335,7 +336,7 @@ export default function InstitutionalDemo({
             </output>
           )}
           {isGraphStale && (
-            <div className="mt-2 flex items-center justify-between gap-4">
+            <div className="mt-2 flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
               <output className="block text-sm text-amber-700">
                 The latest refresh failed — showing the last successfully loaded
                 graph.
@@ -359,6 +360,7 @@ export default function InstitutionalDemo({
           onRetry={onRetry}
         />
       </section>
+      <ScenarioTimeline />
     </div>
   );
 }
