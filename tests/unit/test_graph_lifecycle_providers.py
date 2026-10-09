@@ -200,13 +200,14 @@ def test_build_rebuild_graph_uses_real_data_when_enabled(
         """Mock RealDataFetcher for unit testing."""
 
         def __init__(self, *args: object, **kwargs: object) -> None:
-            pass
+            """Initialize mock fetcher."""
 
         def fetch_raw_data_with_source(self, cancel_event: object = None) -> tuple[dict, list, str]:
+            """Return mock raw data."""
             return ({}, [], "real_data")
 
         def _persist_cache(self, graph: object) -> None:
-            pass
+            """Mock cache persistence without disk writes."""
 
     class MockExecutor:
         """Mock RebuildExecutor for unit testing."""
