@@ -534,6 +534,52 @@ describe("RelationshipExplanationPanel", () => {
       expect(screen.queryByText("Focused view:")).not.toBeInTheDocument();
     });
 
+    it("resets dossier focus state when relationship data changes, including refreshes with unchanged edge IDs", async () => {
+      mockedApi.getPublishedEdgeExplanation.mockResolvedValue(
+        baseExplanationResponse,
+      );
+
+      const { rerender } = render(
+        <RelationshipExplanationPanel
+          relationship={governedRelationship}
+          publicationId="pub-1"
+        />,
+      );
+
+      await waitFor(() => {
+        expect(
+          screen.getByRole("button", { name: /Inspect evidence/i }),
+        ).toBeInTheDocument();
+      });
+
+      const evidenceButton = screen.getByRole("button", {
+        name: /Inspect evidence/i,
+      });
+      fireEvent.click(evidenceButton);
+      expect(screen.getByText("Focused view:")).toBeInTheDocument();
+      expect(screen.getByText("evidence")).toBeInTheDocument();
+
+      // Refresh with refreshed relationship object where edge ID remains unchanged
+      const refreshedSameEdge: ExplainableRelationship = {
+        ...governedRelationship,
+        strength: 0.95,
+      };
+
+      rerender(
+        <RelationshipExplanationPanel
+          relationship={refreshedSameEdge}
+          publicationId="pub-1"
+        />,
+      );
+
+      await waitFor(() => {
+        expect(screen.queryByText("Focused view:")).not.toBeInTheDocument();
+      });
+      expect(
+        screen.getByRole("button", { name: /Inspect evidence/i }),
+      ).toHaveAttribute("aria-pressed", "false");
+    });
+
     it("legacy relationship exposes no governed actions", () => {
       render(
         <RelationshipExplanationPanel

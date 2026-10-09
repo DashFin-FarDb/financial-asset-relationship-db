@@ -717,6 +717,15 @@ function ReadyView({
 }>) {
   const [activeActionView, setActiveActionView] =
     useState<InstitutionalActionView>("all");
+  const [prevRelationship, setPrevRelationship] = useState(relationship);
+  const [prevPayload, setPrevPayload] = useState(payload);
+
+  if (relationship !== prevRelationship || payload !== prevPayload) {
+    setPrevRelationship(relationship);
+    setPrevPayload(payload);
+    setActiveActionView("all");
+  }
+
   const { explanation, history } = payload.assertion;
   const canonicalEdgeId =
     relationship.edge_id ||

@@ -404,7 +404,7 @@ describe("NetworkVisualization Component", () => {
       expect(screen.getByText("Selected")).toBeInTheDocument();
     });
 
-    it("clears stale selection when refreshed data removes the selected relationship", async () => {
+    it("clears stored selection when refreshed data removes the selected relationship and preserves deselection upon restoration", async () => {
       mockedApi.getPublishedEdgeExplanation.mockResolvedValue(
         createMockExplanation(
           "pedge-1",
@@ -420,6 +420,7 @@ describe("NetworkVisualization Component", () => {
       await user.click(screen.getByTestId("plot-click-trigger"));
       expect(screen.getByText("Selected")).toBeInTheDocument();
 
+      // 1. Removal: refreshed data removes the selected relationship
       const refreshedData: VisualizationData = {
         ...governedData,
         edges: [governedData.edges[0]],
@@ -437,6 +438,21 @@ describe("NetworkVisualization Component", () => {
           trace.customdata?.[0] === "legacy-edge-1",
       );
       expect(legacyTrace.opacity).toBe(1);
+
+      // 2. Restoration: restored data brings back the edge, confirming stored selectedEdgeId was cleared
+      rerender(<NetworkVisualization data={governedData} />);
+
+      expect(screen.getByText("Select a relationship")).toBeInTheDocument();
+      expect(screen.queryByText("Selected")).not.toBeInTheDocument();
+
+      const restoredPlotData = JSON.parse(
+        screen.getByTestId("plot-data").textContent || "[]",
+      );
+      const canonicalRestored = restoredPlotData.find(
+        (trace: { customdata?: string[] }) =>
+          trace.customdata?.[0] === "edge-canonical",
+      );
+      expect(canonicalRestored.line.color).toBe("rgba(125, 125, 125, 0.9)");
     });
 
     it("allows canonical and reverse representations to select independently by their edge_id", async () => {

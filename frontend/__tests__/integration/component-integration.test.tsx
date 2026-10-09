@@ -366,7 +366,9 @@ describe("Component Integration Tests", () => {
       metricsDeferred.resolve(mockMetrics);
 
       await waitFor(() => {
-        expect(screen.queryByText("Loading data...")).not.toBeInTheDocument();
+        expect(
+          screen.queryByText("Loading relationship graph..."),
+        ).not.toBeInTheDocument();
         expect(screen.getByTestId("network-visualization")).toBeInTheDocument();
       });
     });
