@@ -68,6 +68,10 @@ def _client_with_active_user(
 
     app.dependency_overrides[get_current_active_user] = active_user
 
+    from api.graph_lifecycle import set_graph  # pylint: disable=import-outside-toplevel
+    from src.data.sample_data import create_sample_database  # pylint: disable=import-outside-toplevel
+
+    set_graph(create_sample_database())
     try:
         with TestClient(app) as client:
             yield client
@@ -204,7 +208,7 @@ def test_rebuild_allows_active_authorized_operator_user(
         _ = execution_id
         return graph_admin.GraphRebuildResponse(
             status="persisted",
-            source="sample",
+            source="real_data",
             asset_count=0,
             relationship_count=0,
             regulatory_event_count=0,
@@ -222,7 +226,7 @@ def test_rebuild_allows_active_authorized_operator_user(
     data = _assert_successful_json_response(response)
     assert data == {
         "status": "persisted",
-        "source": "sample",
+        "source": "real_data",
         "asset_count": 0,
         "relationship_count": 0,
         "regulatory_event_count": 0,
@@ -292,6 +296,10 @@ def test_rebuild_returns_503_when_operator_authorization_not_configured(
 
     app.dependency_overrides[get_current_active_user] = active_user
 
+    from api.graph_lifecycle import set_graph
+    from src.data.sample_data import create_sample_database
+
+    set_graph(create_sample_database())
     try:
         with TestClient(app) as client:
             response = client.post("/api/graph/rebuild")
@@ -446,7 +454,7 @@ async def test_rebuild_outcome_logging_survives_request_cancellation_hardened(
         thread_reached.set()
         proceed_thread.wait(timeout=5.0)
         return graph_admin.GraphRebuildResponse(
-            status="persisted", source="sample", asset_count=5, relationship_count=2, regulatory_event_count=0
+            status="persisted", source="real_data", asset_count=5, relationship_count=2, regulatory_event_count=0
         )
 
     monkeypatch.setattr(graph_admin, "_perform_rebuild_and_persist_sync", coordinated_sync_rebuild)

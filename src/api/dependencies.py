@@ -2,30 +2,17 @@
 
 from __future__ import annotations
 
-from functools import lru_cache
-
-from src.data.sample_data import create_sample_database
+from api.graph_lifecycle import get_graph as get_lifecycle_graph
 from src.logic.asset_graph import AssetRelationshipGraph
 
 
-@lru_cache(maxsize=1)
-def _get_cached_graph() -> AssetRelationshipGraph:
-    """
-    Create and return the application's single shared AssetRelationshipGraph instance cached across calls.
-
-    The first invocation initializes and caches the graph; subsequent calls return the cached instance.
-
-    Returns:
-        AssetRelationshipGraph: The shared AssetRelationshipGraph instance.
-    """
-    return create_sample_database()
-
-
 def get_graph() -> AssetRelationshipGraph:
-    """
-    Return the module's shared AssetRelationshipGraph.
+    """Return the authoritative lifecycle AssetRelationshipGraph.
 
     Returns:
-        AssetRelationshipGraph: The shared cached graph instance.
+        AssetRelationshipGraph: The active lifecycle graph instance.
+
+    Raises:
+        AuthoritativeGraphUnavailableError: If no authoritative published graph is available.
     """
-    return _get_cached_graph()
+    return get_lifecycle_graph()

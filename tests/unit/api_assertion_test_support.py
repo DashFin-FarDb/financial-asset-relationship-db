@@ -91,6 +91,13 @@ def initialize_assertion_store(tmp_path_factory: pytest.TempPathFactory) -> Iter
     engine = create_engine_from_url(_assertion_database_url)
     try:
         init_db(engine)
+        from src.data.database import create_session_factory, session_scope
+        from src.data.repository import AssetGraphRepository
+        from src.data.sample_data import create_sample_database
+
+        session_factory = create_session_factory(engine)
+        with session_scope(session_factory) as session:
+            AssetGraphRepository(session).save_graph(create_sample_database())
         yield
     finally:
         _reset_assertion_persistence_runtime()

@@ -133,7 +133,7 @@ def test_perform_rebuild_uses_typed_lock_ttl_for_distributed_lock(
         graph_admin,
         "_run_rebuild_pipeline",
         lambda *_args, **_kwargs: GraphRebuildResponse(
-            source="sample",
+            source="real_data",
             asset_count=0,
             relationship_count=0,
             regulatory_event_count=0,
@@ -148,4 +148,4 @@ def test_perform_rebuild_uses_typed_lock_ttl_for_distributed_lock(
 
     assert captured["ttl_seconds"] == settings.rebuild_lock_ttl_seconds
     assert captured["ttl_seconds"] == 42
-    assert response.source == "sample"
+    assert response.source == "real_data"

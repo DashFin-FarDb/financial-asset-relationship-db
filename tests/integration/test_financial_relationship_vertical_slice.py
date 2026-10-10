@@ -86,7 +86,7 @@ def _finalize(
         "job_id": job_id,
         "execution_id": "exec-publication",
         "graph": create_sample_database(),
-        "source": "sample",
+        "source": "real_data",
         "job_started_at": perf_counter(),
         "lock_lost": threading.Event(),
         "cancel_event": threading.Event(),

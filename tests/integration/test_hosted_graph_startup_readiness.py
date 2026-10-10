@@ -30,8 +30,8 @@ def _reset_runtime_graph_state() -> None:
     """Reset lifecycle graph state and any already-imported legacy api.main mirror."""
     graph_lifecycle.reset_graph()
     api_main = sys.modules.get("api.main")
-    if api_main is not None and hasattr(api_main, "graph"):
-        api_main.graph = None  # type: ignore[attr-defined]
+    if api_main is not None:
+        api_main.__dict__.pop("graph", None)
 
 
 @pytest.fixture(autouse=True)
@@ -203,7 +203,6 @@ def test_hosted_startup_loads_persisted_graph_truth_via_readiness(
         """Fail the test if startup unexpectedly falls back to any generation path."""
         raise AssertionError("Fallback generation triggered unexpectedly")
 
-    monkeypatch.setattr(providers, "create_sample_graph", fail_fallback_generation)
     monkeypatch.setattr(providers, "load_graph_from_cache_path", fail_fallback_generation)
     monkeypatch.setattr(providers, "load_graph_from_real_data_fetcher", fail_fallback_generation)
 
@@ -256,7 +255,6 @@ def test_preview_startup_uses_shared_supabase_boundary_when_dedicated_graph_db_i
             """Fail the test if startup unexpectedly falls back to any generation path."""
             raise AssertionError("Fallback generation triggered unexpectedly")
 
-        monkeypatch.setattr(providers, "create_sample_graph", fail_fallback_generation)
         monkeypatch.setattr(providers, "load_graph_from_cache_path", fail_fallback_generation)
         monkeypatch.setattr(providers, "load_graph_from_real_data_fetcher", fail_fallback_generation)
 
@@ -377,6 +375,15 @@ def test_promotion_gate_sequence_rebuild_restart_and_persisted_startup(
     database_url = _sqlite_url(tmp_path, "promotion-gate.db")
     _init_empty_db(database_url)
     _configure_persistence(monkeypatch, database_url)
+    monkeypatch.setattr(
+        providers,
+        "build_rebuild_graph",
+        lambda *args, **kwargs: (_seeded_hosted_graph(), "real_data"),
+    )
+    monkeypatch.setattr(
+        "api.routers.graph_admin.build_rebuild_graph",
+        lambda *args, **kwargs: (_seeded_hosted_graph(), "real_data"),
+    )
 
     with TestClient(_authorized_active_user_app(monkeypatch)) as client:
         rebuild_response = client.post("/api/graph/rebuild")
