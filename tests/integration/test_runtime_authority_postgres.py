@@ -617,16 +617,13 @@ def test_db_owner_admin_option_accepted_for_capability_roles() -> None:
     finally:
         _drop_roles(database_url, _AUTH_RUNTIME_LOGIN, non_owner_role)
         if db_owner is not None:
-            try:
-                with _operator_connection(database_url) as connection, connection.cursor() as cursor:
-                    cursor.execute(
-                        sql.SQL("REVOKE {} FROM {} CASCADE").format(
-                            sql.Identifier(api_database.AUTH_RUNTIME_ROLE),
-                            sql.Identifier(db_owner),
-                        )
+            with _operator_connection(database_url) as connection, connection.cursor() as cursor:
+                cursor.execute(
+                    sql.SQL("REVOKE {} FROM {} CASCADE").format(
+                        sql.Identifier(api_database.AUTH_RUNTIME_ROLE),
+                        sql.Identifier(db_owner),
                     )
-            except Exception:
-                pass
+                )
 
 
 @pytest.mark.integration

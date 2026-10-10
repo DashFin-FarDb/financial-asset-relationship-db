@@ -32,6 +32,7 @@ def _ensure_bootstrap_roles(url: str) -> None:
     if not _BOOTSTRAP_PATH.exists():
         return
     import psycopg2
+    from psycopg2 import sql
 
     bootstrap_sql = _BOOTSTRAP_PATH.read_text(encoding="utf-8")
     conn = psycopg2.connect(url)
@@ -39,6 +40,21 @@ def _ensure_bootstrap_roles(url: str) -> None:
     try:
         with conn.cursor() as cursor:
             cursor.execute(bootstrap_sql)
+            for login_role, capability_role in (
+                ("fardb_login_auth", api_database.AUTH_RUNTIME_ROLE),
+                ("fardb_login_graph", runtime_database.GRAPH_RUNTIME_ROLE),
+            ):
+                cursor.execute("SELECT 1 FROM pg_roles WHERE rolname = %s", (login_role,))
+                if cursor.fetchone() is None:
+                    cursor.execute(
+                        sql.SQL(
+                            "CREATE ROLE {} LOGIN NOINHERIT NOSUPERUSER NOCREATEDB "
+                            "NOCREATEROLE NOBYPASSRLS NOREPLICATION"
+                        ).format(sql.Identifier(login_role))
+                    )
+                cursor.execute(
+                    sql.SQL("GRANT {} TO {}").format(sql.Identifier(capability_role), sql.Identifier(login_role))
+                )
     finally:
         conn.close()
 
