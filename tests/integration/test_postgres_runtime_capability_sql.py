@@ -71,7 +71,7 @@ def test_runtime_capability_verifier_sql_executes_against_postgres() -> None:
                         ),
                     ),
                 )
-                assert cursor.fetchone() is not None
+                assert cursor.fetchone() == (True,)
 
                 cursor.execute("SELECT 1")
                 assert cursor.fetchone() == (1,)
