@@ -6,7 +6,7 @@ import os
 import sys
 from contextlib import suppress
 from pathlib import Path
-from urllib.parse import urlsplit
+from urllib.parse import parse_qsl, urlsplit
 
 import pytest
 from sqlalchemy import create_engine
@@ -23,6 +23,21 @@ _TEST_POSTGRES_URL = "FARDB_POSTGRES_TEST_URL"
 _LOOPBACK_HOSTS = frozenset({"localhost", "127.0.0.1", "::1"})
 
 
+def _is_loopback_postgres_url(url: str) -> bool:
+    """Reject PostgreSQL URI overrides that can redirect a loopback URL to another host."""
+    try:
+        parsed = urlsplit(url)
+        parameters = parse_qsl(parsed.query, keep_blank_values=True)
+    except ValueError:
+        return False
+    host_override = any(name.casefold() in {"host", "hostaddr"} for name, _value in parameters)
+    return (
+        parsed.scheme.casefold() in {"postgres", "postgresql"}
+        and parsed.hostname in _LOOPBACK_HOSTS
+        and not host_override
+    )
+
+
 def _postgres_test_url() -> str:
     """Return the explicitly opted-in, loopback-only disposable PostgreSQL URL or skip the test."""
     if os.getenv(_EPHEMERAL_AUTHORITY_FLAG) != "1":
@@ -37,10 +52,33 @@ def _postgres_test_url() -> str:
     test_url = os.getenv(_TEST_POSTGRES_URL)
     if test_url and test_url != url:
         pytest.fail(f"{_TEST_POSTGRES_URL} must match {_EPHEMERAL_POSTGRES_URL} for this mutating integration test")
-    if urlsplit(url).hostname not in _LOOPBACK_HOSTS:
-        pytest.fail(f"{_EPHEMERAL_POSTGRES_URL} must target a loopback PostgreSQL service")
+    if not _is_loopback_postgres_url(url):
+        pytest.fail(
+            f"{_EPHEMERAL_POSTGRES_URL} must target loopback and must not override host or hostaddr in query parameters"
+        )
 
     return url
+
+
+@pytest.mark.parametrize(
+    "query",
+    (
+        "host=192.0.2.10",
+        "hostaddr=192.0.2.10",
+        "host=localhost&hostaddr=192.0.2.10",
+        "%68ostaddr=192.0.2.10",
+    ),
+)
+def test_loopback_postgres_guard_rejects_host_query_overrides(query: str) -> None:
+    """Reject URI query options that can redirect an otherwise loopback connection."""
+    url = f"postgresql://test:test@127.0.0.1:5432/test_db?{query}"
+
+    assert not _is_loopback_postgres_url(url)
+
+
+def test_loopback_postgres_guard_accepts_plain_loopback_authority() -> None:
+    """Accept an ordinary loopback URI when no host override is present."""
+    assert _is_loopback_postgres_url("postgresql://test:test@127.0.0.1:5432/test_db")
 
 
 def _drop_logins(
@@ -74,8 +112,15 @@ def _drop_logins(
 
 def _ensure_bootstrap_roles(url: str) -> tuple[list[str], list[tuple[str, str]]]:
     """Ensure capability roles are present only on the explicitly opted-in disposable service."""
-    if os.getenv(_EPHEMERAL_AUTHORITY_FLAG) != "1" or url != os.getenv(_EPHEMERAL_POSTGRES_URL):
-        pytest.fail("Capability-role bootstrap is restricted to the opted-in FARDB_EPHEMERAL_POSTGRES_URL")
+    if (
+        os.getenv(_EPHEMERAL_AUTHORITY_FLAG) != "1"
+        or url != os.getenv(_EPHEMERAL_POSTGRES_URL)
+        or not _is_loopback_postgres_url(url)
+    ):
+        pytest.fail(
+            "Capability-role bootstrap requires the opted-in loopback FARDB_EPHEMERAL_POSTGRES_URL "
+            "without host or hostaddr query overrides"
+        )
 
     if not _BOOTSTRAP_PATH.exists():
         return [], []
