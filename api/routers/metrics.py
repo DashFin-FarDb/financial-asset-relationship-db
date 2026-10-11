@@ -9,6 +9,7 @@ from fastapi import APIRouter, HTTPException
 from src.observability.facade import ObservabilityEvent, log_event
 
 from ..api_models import MetricsResponse
+from ..graph_lifecycle_providers import AuthoritativeGraphUnavailableError
 from ..router_helpers import get_graph, logger
 
 router = APIRouter()
@@ -36,7 +37,8 @@ async def get_graph_metrics() -> MetricsResponse:
             max_degree=metrics_dict["max_degree"],
             network_density=metrics_dict["network_density"],
         )
-    except HTTPException:
+    except (HTTPException, AuthoritativeGraphUnavailableError):
+        # Unavailable graph is mapped to 503 by the app-level handler; never mask it as a 500.
         raise
     except Exception as e:
         log_event(

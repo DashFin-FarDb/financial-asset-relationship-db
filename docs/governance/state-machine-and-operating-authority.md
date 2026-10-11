@@ -217,6 +217,32 @@ in-memory graph availability, and application DB reachability. It cannot prove s
 unless accompanied by persisted startup evidence such as `graph.persistence_loaded == true`,
 `graph.startup_source == "persisted"`, and expected persisted graph counts or sentinels.
 
+## Startup without a published graph
+
+Application startup does not require a published graph in every case. The RecoveryGate startup check may block with
+`action == "wait"` and `inconsistency_type == "none"`. Startup may then proceed without a graph only when independent,
+read-only evidence from `ASSET_GRAPH_DATABASE_URL` proves that no graph has ever been published:
+
+| Persisted rebuild history                                                         | Startup                              | Graph reads                                  |
+| --------------------------------------------------------------------------------- | ------------------------------------ | -------------------------------------------- |
+| No rebuild jobs (clean install)                                                   | Proceeds without a graph             | `503` until the first rebuild publishes      |
+| Latest job `FAILED` or `CANCELLED`, and no `SUCCEEDED` job has ever been recorded | Proceeds without a graph             | `503` until a later rebuild publishes        |
+| Any `SUCCEEDED` job recorded, latest job terminal                                 | Requires a loadable published graph  | Startup fails if the graph cannot be loaded  |
+| Latest job non-terminal, or any other blocked action or inconsistency             | Blocked (RecoveryGate fails closed)  | Not applicable                               |
+
+Rules for this path:
+
+- A failed or cancelled first rebuild must not strand the deployment: the rebuild API has to be reachable to retry.
+  Terminal job states are never reopened; the retry is a new rebuild job.
+- A recorded `SUCCEEDED` job means a graph was published. A missing graph in that case is an anomaly and keeps startup
+  failing closed.
+- Graph reads stay unavailable until publication. They return `503` with
+  `Graph not yet published; awaiting initial rebuild.`, never a generic `500`, so clients can tell pending publication
+  from an unexpected server failure. A read made while the first rebuild is in `REBUILDING` returns the same `503` and
+  does not change the lifecycle state.
+- The verification is read-only, runs off the event loop and is bounded by a 30-second timeout. A verification error or
+  timeout is never evidence of a clean or unpublished state and fails startup closed.
+
 ## Formal invariants
 
 The following invariants are the current review and operating contract:
@@ -239,6 +265,8 @@ The following invariants are the current review and operating contract:
 16. A redeployed instance may recover a dead owner only through stale-owner classification, lock reacquisition, and RecoveryGate-approved reset semantics.
 17. Staging/production promotion requires durable graph evidence, not bounded health alone.
 18. All instances in one environment must use the same rebuild lock TTL and coordination database boundary.
+19. Startup may proceed without a published graph only on independent evidence that none was ever published; unverifiable history fails closed.
+20. Graph reads are unavailable (`503`), not erroring (`500`), until the first graph is published.
 
 ## Operator ownership and handoff boundaries
 

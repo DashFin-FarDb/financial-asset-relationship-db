@@ -16,6 +16,7 @@ from src.observability.facade import ObservabilityEvent, log_event
 
 from ..api_models import VisualizationDataResponse, VisualizationEdge, VisualizationNode
 from ..assertion_models import PublishedProjectionContextResponse
+from ..graph_lifecycle_providers import AuthoritativeGraphUnavailableError
 from ..router_helpers import (
     _ASSET_CLASS_COLORS,
     _DEFAULT_COLOR,
@@ -174,7 +175,8 @@ async def get_visualization_data() -> VisualizationDataResponse:
             network_density=network_density,
             publication=_publication_response(snapshot.publication),
         )
-    except HTTPException:
+    except (HTTPException, AuthoritativeGraphUnavailableError):
+        # Unavailable graph is mapped to 503 by the app-level handler; never mask it as a 500.
         raise
     except (ValidationError, PydanticValidationError, ValueError) as e:
         raise HTTPException(

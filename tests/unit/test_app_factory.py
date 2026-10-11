@@ -954,6 +954,7 @@ def test_reconciliation_blocked_clean_install_requires_zero_jobs(monkeypatch) ->
 
     exc = ExecutionBlockedError("waiting", action="wait", inconsistency_type="none")
     dummy_settings = MagicMock()
+    monkeypatch.setattr("api.app_factory._has_never_published_graph", lambda s: False)
 
     # Case 1: Genuine clean install (zero rebuild jobs) -> returns True
     monkeypatch.setattr("api.app_factory._is_genuine_clean_install", lambda s: True)
@@ -990,3 +991,184 @@ def test_reconciliation_blocked_clean_install_requires_zero_jobs(monkeypatch) ->
     monkeypatch.setattr("api.app_factory._is_quiescent_established_state", lambda s: True)
     with pytest.raises(ExecutionBlockedError):
         _handle_reconciliation_blocked(exc_both, dummy_settings)
+
+
+def test_reconciliation_blocked_never_published_graph_allows_empty_startup(monkeypatch) -> None:
+    """A verified history with no published graph (failed/cancelled first rebuild) may start without a graph."""
+    from api.app_factory import _handle_reconciliation_blocked
+
+    exc = ExecutionBlockedError("waiting", action="wait", inconsistency_type="none")
+    monkeypatch.setattr("api.app_factory._is_genuine_clean_install", lambda s: False)
+    monkeypatch.setattr("api.app_factory._has_never_published_graph", lambda s: True)
+    monkeypatch.setattr("api.app_factory._is_quiescent_established_state", lambda s: True)
+    assert _handle_reconciliation_blocked(exc, MagicMock()) is True
+
+    # Without that proof the established quiescent path keeps requiring a published graph.
+    monkeypatch.setattr("api.app_factory._has_never_published_graph", lambda s: False)
+    assert _handle_reconciliation_blocked(exc, MagicMock()) is False
+
+    # The allowance never applies to non-benign blocks.
+    monkeypatch.setattr("api.app_factory._has_never_published_graph", lambda s: True)
+    for blocked in (
+        ExecutionBlockedError("drift", action="wait", inconsistency_type="orphaned_running"),
+        ExecutionBlockedError("resume", action="resume", inconsistency_type="none"),
+    ):
+        with pytest.raises(ExecutionBlockedError):
+            _handle_reconciliation_blocked(blocked, MagicMock())
+
+
+@pytest.mark.parametrize(
+    ("statuses", "expected"),
+    [
+        ([], False),
+        (["failed"], True),
+        (["cancelled"], True),
+        (["failed", "cancelled"], True),
+        (["succeeded"], False),
+        (["succeeded", "failed"], False),
+        (["failed", "succeeded"], False),
+        (["failed", "pending"], False),
+        (["failed", "running"], False),
+    ],
+)
+def test_has_never_published_graph_uses_rebuild_history(tmp_path, statuses, expected) -> None:
+    """Only a failed/cancelled latest job with no successful job proves that nothing was ever published."""
+    from datetime import datetime, timedelta, timezone
+
+    from src.data.database import create_engine_from_url, create_session_factory, init_db
+    from src.data.db_models import RebuildJobORM, RebuildJobStatus
+    from src.data.repository import AssetGraphRepository, session_scope
+
+    url = f"sqlite:///{tmp_path / 'history.db'}"
+    engine = create_engine_from_url(url)
+    try:
+        init_db(engine)
+        session_factory = create_session_factory(engine)
+        base = datetime(2026, 1, 1, tzinfo=timezone.utc)
+        with session_scope(session_factory) as session:
+            repo = AssetGraphRepository(session)
+            for offset, status in enumerate(statuses):
+                job_id = repo.create_rebuild_job(requested_by="tester")
+                job = session.get(RebuildJobORM, job_id)
+                assert job is not None
+                job.status = RebuildJobStatus(status)
+                job.created_at = base + timedelta(minutes=offset)
+                job.completed_at = base + timedelta(minutes=offset, seconds=30)
+    finally:
+        engine.dispose()
+
+    settings = SimpleNamespace(database_url=url, has_durable_graph_persistence=True)
+    assert app_factory._has_never_published_graph(cast(Any, settings)) is expected
+
+
+def test_has_never_published_graph_fails_closed_when_store_unreadable() -> None:
+    """Verification errors must never be read as proof that no graph was published."""
+    settings = SimpleNamespace(database_url=None, has_durable_graph_persistence=True)
+    assert app_factory._has_never_published_graph(cast(Any, settings)) is False
+
+
+@pytest.mark.asyncio
+async def test_blocked_reconciliation_verification_does_not_block_event_loop(monkeypatch) -> None:
+    """Blocked-state database verification must run off the event loop thread."""
+    import time
+
+    def _raise_block(*_args, **_kwargs):
+        raise ExecutionBlockedError("waiting", action="wait", inconsistency_type="none")
+
+    def _slow_handler(_exc, _settings) -> bool:
+        time.sleep(0.4)
+        return True
+
+    monkeypatch.setattr(app_factory, "_run_startup_reconciliation", _raise_block)
+    monkeypatch.setattr(app_factory, "_handle_reconciliation_blocked", _slow_handler)
+
+    max_gap = 0.0
+    stop = asyncio.Event()
+
+    async def _ticker() -> None:
+        nonlocal max_gap
+        last = time.perf_counter()
+        while not stop.is_set():
+            await asyncio.sleep(0.01)
+            now = time.perf_counter()
+            max_gap = max(max_gap, now - last)
+            last = now
+
+    ticker = asyncio.create_task(_ticker())
+    await asyncio.sleep(0.05)  # let the ticker establish a baseline before startup work begins
+    try:
+        result = await app_factory._perform_startup_reconciliation(cast(Any, MagicMock()))
+        await asyncio.sleep(0.05)  # let the ticker observe any stall caused by the verification
+    finally:
+        stop.set()
+        await ticker
+
+    assert result is True
+    assert max_gap < 0.2, f"event loop was blocked for {max_gap:.3f}s"
+
+
+@pytest.mark.asyncio
+async def test_blocked_reconciliation_verification_is_time_bounded(monkeypatch) -> None:
+    """A stuck blocked-state verification must fail startup instead of hanging it."""
+    import time
+
+    def _raise_block(*_args, **_kwargs):
+        raise ExecutionBlockedError("waiting", action="wait", inconsistency_type="none")
+
+    monkeypatch.setattr(app_factory, "_run_startup_reconciliation", _raise_block)
+    monkeypatch.setattr(app_factory, "_handle_reconciliation_blocked", lambda _e, _s: time.sleep(0.3) or True)
+    monkeypatch.setattr(app_factory, "_STARTUP_BLOCKED_VERIFICATION_TIMEOUT_SECONDS", 0.05)
+
+    with pytest.raises(RuntimeError, match="timed out"):
+        await app_factory._perform_startup_reconciliation(cast(Any, MagicMock()))
+
+
+@pytest.mark.parametrize(
+    "path",
+    [
+        "/api/assets",
+        "/api/assets/ANY",
+        "/api/assets/ANY/relationships",
+        "/api/relationships",
+        "/api/graph/metrics",
+        "/api/visualization",
+    ],
+)
+def test_graph_read_routes_return_503_when_no_graph_is_published(monkeypatch, path) -> None:
+    """Empty-store startup must surface 503 (pending publication), not a masked generic 500."""
+    from fastapi.testclient import TestClient
+
+    from api import graph_lifecycle
+    from api.graph_lifecycle_providers import AuthoritativeGraphUnavailableError
+
+    def _no_graph():
+        raise AuthoritativeGraphUnavailableError("No authoritative published graph found in persistent storage.")
+
+    graph_lifecycle.reset_graph()
+    monkeypatch.setattr(graph_lifecycle, "initialize_graph_runtime", _no_graph)
+    try:
+        client = TestClient(app_factory.create_app(), raise_server_exceptions=False)
+        response = client.get(path)
+    finally:
+        graph_lifecycle.reset_graph()
+
+    assert response.status_code == 503
+    assert response.json() == {"detail": "Graph not yet published; awaiting initial rebuild."}
+
+
+def test_graph_read_during_first_rebuild_returns_503_and_preserves_rebuilding_state() -> None:
+    """A read before the first publication must stay a typed 503 and never disturb the REBUILDING lifecycle state."""
+    from fastapi.testclient import TestClient
+
+    from api import graph_lifecycle
+
+    graph_lifecycle.reset_graph()
+    try:
+        graph_lifecycle.begin_rebuild()
+        client = TestClient(app_factory.create_app(), raise_server_exceptions=False)
+        response = client.get("/api/assets")
+
+        assert response.status_code == 503
+        assert graph_lifecycle.get_runtime_lifecycle_state() == graph_lifecycle.GraphRuntimeLifecycleState.REBUILDING
+    finally:
+        graph_lifecycle.reset_graph()

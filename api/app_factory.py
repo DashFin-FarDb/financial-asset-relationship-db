@@ -65,6 +65,7 @@ logger = logging.getLogger(__name__)
 _STARTUP_RECONCILIATION_LOCK_TTL_SECONDS = 10.0
 _AUTH_DATABASE_VERIFICATION_TIMEOUT_SECONDS = 30.0
 _AUTH_DATABASE_SHUTDOWN_TIMEOUT_SECONDS = 5.0
+_STARTUP_BLOCKED_VERIFICATION_TIMEOUT_SECONDS = 30.0
 
 
 def _get_durable_graph_database_url(settings: GraphLifecycleSettings) -> str | None:
@@ -326,7 +327,7 @@ async def _initialize_application_state(
             ObservabilityEvent(
                 event="startup_degraded",
                 message=(
-                    "Clean install graph bootstrap empty; awaiting initial rebuild."
+                    "No published graph at startup; awaiting initial rebuild."
                     if is_clean_install
                     else "Hosted fallback graph bootstrap failed; continuing with degraded boot."
                 ),
@@ -402,7 +403,14 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
 
 async def _perform_startup_reconciliation(settings: GraphLifecycleSettings) -> bool:
-    """Run startup reconciliation with timeout and error handling."""
+    """
+    Run startup reconciliation with timeout and error handling.
+
+    Returns:
+        bool: True when startup may proceed without a published graph (verified clean install, or a verified
+            history in which no rebuild has ever published a graph). Graph reads stay unavailable until the
+            first rebuild publishes. False otherwise.
+    """
     from src.logic.recovery_gate import ExecutionBlockedError
 
     cancellation_event = threading.Event()
@@ -428,7 +436,7 @@ async def _perform_startup_reconciliation(settings: GraphLifecycleSettings) -> b
     except SchemaCompatibilityError:
         raise
     except ExecutionBlockedError as exc:
-        return _handle_reconciliation_blocked(exc, settings)
+        return await _handle_reconciliation_blocked_bounded(exc, settings)
     except Exception as exc:
         log_event(
             logger,
@@ -495,6 +503,61 @@ def _is_quiescent_established_state(settings: GraphLifecycleSettings) -> bool:
         return False
 
 
+def _has_never_published_graph(settings: GraphLifecycleSettings) -> bool:
+    """
+    Verify that rebuild history exists but no rebuild has ever published a graph.
+
+    True only when the latest rebuild job is FAILED or CANCELLED and no SUCCEEDED job exists. A SUCCEEDED job
+    means a graph was published, so a missing graph is then an anomaly that must keep failing closed.
+    """
+    try:
+        from src.data.database import create_engine_from_url, create_session_factory
+        from src.data.db_models import RebuildJobStatus
+        from src.data.repository import AssetGraphRepository, session_scope
+
+        resolved_url = _resolve_startup_reconciliation_url(settings)
+        engine = create_engine_from_url(resolved_url)
+        try:
+            session_factory = create_session_factory(engine)
+            with session_scope(session_factory) as session:
+                repo = AssetGraphRepository(session)
+                latest = repo.get_latest_rebuild_job()
+                if latest is None or latest.status not in (RebuildJobStatus.FAILED, RebuildJobStatus.CANCELLED):
+                    return False
+                return repo.get_latest_successful_rebuild_job() is None
+        finally:
+            engine.dispose()
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("Unpublished-history verification failed: %s; failing closed.", type(exc).__name__)
+        return False
+
+
+async def _handle_reconciliation_blocked_bounded(exc: Any, settings: GraphLifecycleSettings) -> bool:
+    """Run blocked-reconciliation verification off the event loop, bounded by a timeout.
+
+    The verification opens database connections, so it must not run on the async startup thread and must not
+    outlive the same kind of bound that protects the reconciliation worker itself.
+    """
+    try:
+        return await asyncio.wait_for(
+            asyncio.to_thread(_handle_reconciliation_blocked, exc, settings),
+            timeout=_STARTUP_BLOCKED_VERIFICATION_TIMEOUT_SECONDS,
+        )
+    except (TimeoutError, asyncio.TimeoutError):  # pylint: disable=overlapping-except
+        log_event(
+            logger,
+            logging.CRITICAL,
+            ObservabilityEvent(
+                event="startup_reconciliation_timeout",
+                message=(
+                    "Startup blocked-state verification timed out after "
+                    f"{_STARTUP_BLOCKED_VERIFICATION_TIMEOUT_SECONDS:g}s"
+                ),
+            ),
+        )
+        raise RuntimeError("Startup reconciliation timed out") from None
+
+
 def _handle_reconciliation_blocked(exc: Any, settings: GraphLifecycleSettings) -> bool:
     """Handle ExecutionBlockedError from RecoveryGate with independent clean-install and quiescent-state proof."""
     if exc.action == "wait" and exc.inconsistency_type == "none":
@@ -507,6 +570,20 @@ def _handle_reconciliation_blocked(exc: Any, settings: GraphLifecycleSettings) -
                     message=(
                         "Benign clean-install verified on startup (action=wait, inconsistency=none, "
                         "zero prior rebuild jobs). Proceeding with startup."
+                    ),
+                ),
+            )
+            return True
+        if _has_never_published_graph(settings):
+            log_event(
+                logger,
+                logging.INFO,
+                ObservabilityEvent(
+                    event="startup_reconciliation_no_published_graph",
+                    message=(
+                        "No published graph verified on startup (action=wait, inconsistency=none, "
+                        "latest rebuild failed or cancelled, no successful rebuild recorded). "
+                        "Proceeding with startup; graph reads remain unavailable until a rebuild publishes."
                     ),
                 ),
             )
