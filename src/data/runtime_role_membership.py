@@ -28,6 +28,7 @@ APPROVED_RUNTIME_LOGIN_PRINCIPALS: dict[str, frozenset[str]] = {
     COORDINATION_RUNTIME_ROLE: frozenset({"fardb_login_coordination"}),
 }
 
+
 def get_approved_login_principals(
     capability_role: str,
     *,
