@@ -687,6 +687,20 @@ def test_db_owner_admin_option_accepted_for_capability_roles() -> None:
         finally:
             _drop_roles(database_url, _AUTH_RUNTIME_LOGIN, non_owner_role)
 
+    if db_owner is not None and owner_membership_grantor is not None and owner_membership_captured:
+        with _operator_connection(database_url) as connection, connection.cursor() as cursor:
+            cursor.execute(
+                "SELECT membership.admin_option, membership.inherit_option, membership.set_option "
+                "FROM pg_auth_members AS membership "
+                "JOIN pg_roles AS capability ON capability.oid = membership.roleid "
+                "JOIN pg_roles AS grantee ON grantee.oid = membership.member "
+                "JOIN pg_roles AS grantor ON grantor.oid = membership.grantor "
+                "WHERE capability.rolname = %s AND grantee.rolname = %s AND grantor.rolname = %s",
+                (api_database.AUTH_RUNTIME_ROLE, db_owner, owner_membership_grantor),
+            )
+            restored_membership = cursor.fetchone()
+        assert restored_membership == owner_membership_before
+
 
 @pytest.mark.integration
 def test_non_superuser_migration_owner_cannot_create_missing_capability_role() -> None:
