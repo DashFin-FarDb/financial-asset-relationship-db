@@ -16,8 +16,8 @@ from unittest.mock import PropertyMock, patch
 import pytest
 from fastapi.testclient import TestClient
 
-from api.main import app, validate_origin
 from api.graph_lifecycle import graph_state
+from api.main import app, validate_origin
 from src.config.settings import get_settings
 from src.logic.asset_graph import AssetRelationshipGraph
 from src.models.financial_models import AssetClass, Bond, Commodity, Currency, Equity
