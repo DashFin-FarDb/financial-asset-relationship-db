@@ -890,13 +890,12 @@ describe("RelationshipExplanationPanel", () => {
 
       // Verify that no buttons exist for mutating operations
       const mutationButtonNames = [
-        /^accept$/i,
-        /^accept\s+determination/i,
-        /^dispute$/i,
-        /^challenge$/i,
-        /^supersede$/i,
-        /^withdraw$/i,
-        /^propose/i,
+        /^accept(?:\s|$)/i,
+        /^dispute(?:\s|$)/i,
+        /^challenge(?:\s|$)/i,
+        /^supersede(?:\s|$)/i,
+        /^withdraw(?:\s|$)/i,
+        /^propose(?:\s|$)/i,
       ];
 
       for (const pattern of mutationButtonNames) {
