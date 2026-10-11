@@ -223,12 +223,12 @@ Application startup does not require a published graph in every case. The Recove
 `action == "wait"` and `inconsistency_type == "none"`. Startup may then proceed without a graph only when independent,
 read-only evidence from `ASSET_GRAPH_DATABASE_URL` proves that no graph has ever been published:
 
-| Persisted rebuild history                                                         | Startup                              | Graph reads                                  |
-| --------------------------------------------------------------------------------- | ------------------------------------ | -------------------------------------------- |
-| No rebuild jobs (clean install)                                                   | Proceeds without a graph             | `503` until the first rebuild publishes      |
-| Latest job `FAILED` or `CANCELLED`, and no `SUCCEEDED` job has ever been recorded | Proceeds without a graph             | `503` until a later rebuild publishes        |
-| Any `SUCCEEDED` job recorded, latest job terminal                                 | Requires a loadable published graph  | Startup fails if the graph cannot be loaded  |
-| Latest job non-terminal, or any other blocked action or inconsistency             | Blocked (RecoveryGate fails closed)  | Not applicable                               |
+| Persisted rebuild history                                                         | Startup                             | Graph reads                                 |
+| --------------------------------------------------------------------------------- | ----------------------------------- | ------------------------------------------- |
+| No rebuild jobs (clean install)                                                   | Proceeds without a graph            | `503` until the first rebuild publishes     |
+| Latest job `FAILED` or `CANCELLED`, and no `SUCCEEDED` job has ever been recorded | Proceeds without a graph            | `503` until a later rebuild publishes       |
+| Any `SUCCEEDED` job recorded, latest job terminal                                 | Requires a loadable published graph | Startup fails if the graph cannot be loaded |
+| Latest job non-terminal, or any other blocked action or inconsistency             | Blocked (RecoveryGate fails closed) | Not applicable                              |
 
 Rules for this path:
 
