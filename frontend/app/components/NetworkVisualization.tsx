@@ -424,7 +424,14 @@ export default function NetworkVisualization({
 
   const validEdges = useMemo<PreparedEdge[]>(
     () => resolveValidEdges(data),
-    [data],
+  
+  const effectiveSelectedKey = selectedEdge ? selectedEdgeId : null;
+  
+  useEffect(() => {
+    if (selectedEdgeId !== null && effectiveSelectedKey === null) {
+      setSelectedEdgeId(null);
+    }
+  }, [selectedEdgeId, effectiveSelectedKey]);
   );
 
   if (
@@ -498,7 +505,7 @@ export default function NetworkVisualization({
         <div className="grid grid-cols-1 gap-4 p-4 lg:grid-cols-[minmax(0,1.4fr)_minmax(320px,0.9fr)]">
           <div
             className="min-w-0 h-[380px] sm:h-[480px] lg:h-[640px] rounded-xl border border-slate-200 bg-slate-50"
-            role="region"
+            <RelationshipList relationships={validEdges} selectedKey={effectiveSelectedKey} onSelect={setSelectedEdgeId} />
             aria-label="3D FarDb relationship graph"
             aria-describedby="relationship-graph-summary"
           >
