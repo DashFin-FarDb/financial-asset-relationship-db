@@ -55,9 +55,11 @@ def _ensure_bootstrap_roles(url: str) -> None:
                 cursor.execute(
                     sql.SQL("GRANT {} TO {}").format(sql.Identifier(capability_role), sql.Identifier(login_role))
                 )
+                created.append(login_role)
     finally:
         conn.close()
 
+                return created            
 
 def test_runtime_capability_verifier_sql_executes_against_postgres() -> None:
     """Execute the real verifier SQL against PostgreSQL rather than only mocking it."""
