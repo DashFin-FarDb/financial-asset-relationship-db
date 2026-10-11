@@ -69,6 +69,7 @@ def test_runtime_capability_verifier_sql_executes_against_postgres() -> None:
     if url == os.getenv("FARDB_EPHEMERAL_POSTGRES_URL"):
         _ensure_bootstrap_roles(url)
 
+    created_logins = _ensure_bootstrap_roles(url)
     engine = create_engine(url, future=True)
     try:
         raw_connection = engine.raw_connection()
@@ -96,6 +97,7 @@ def test_runtime_capability_verifier_sql_executes_against_postgres() -> None:
                 cursor.close()
         finally:
             raw_connection.close()
+            _drop_logins(url, created_logins)  # DROP ROLE IF EXISTS each
 
         with engine.connect() as connection:
             capabilities = (runtime_database.GRAPH_RUNTIME_CAPABILITY,)
