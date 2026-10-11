@@ -424,9 +424,9 @@ export default function NetworkVisualization({
 
   const validEdges = useMemo<PreparedEdge[]>(
     () => resolveValidEdges(data),
-  
+
   const effectiveSelectedKey = selectedEdge ? selectedEdgeId : null;
-  
+
   useEffect(() => {
     if (selectedEdgeId !== null && effectiveSelectedKey === null) {
       setSelectedEdgeId(null);
