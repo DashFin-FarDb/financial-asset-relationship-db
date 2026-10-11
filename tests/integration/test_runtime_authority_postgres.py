@@ -116,9 +116,6 @@ def _drop_roles(database_url: str, *role_names: str) -> None:
             cursor.execute(sql.SQL("DROP ROLE IF EXISTS {}").format(sql.Identifier(role_name)))
 
 
-
-
-
 def _restore_capability_membership(
     database_url: str,
     capability_role: str,
