@@ -34,6 +34,7 @@ def _ensure_bootstrap_roles(url: str) -> None:
     import psycopg2
     from psycopg2 import sql
 
+    created: list[str] = []
     bootstrap_sql = _BOOTSTRAP_PATH.read_text(encoding="utf-8")
     conn = psycopg2.connect(url)
     conn.autocommit = True
