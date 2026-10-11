@@ -116,6 +116,51 @@ def _drop_roles(database_url: str, *role_names: str) -> None:
             cursor.execute(sql.SQL("DROP ROLE IF EXISTS {}").format(sql.Identifier(role_name)))
 
 
+
+
+
+def _restore_capability_membership(
+    database_url: str,
+    capability_role: str,
+    member_role: str,
+    grantor_role: str,
+    previous_membership: tuple[bool, bool, bool] | None,
+) -> None:
+    """Restore only this grantor's prior capability membership and options."""
+    with _operator_connection(database_url) as connection, connection.cursor() as cursor:
+        if previous_membership is None:
+            cursor.execute(
+                "SELECT EXISTS (SELECT 1 FROM pg_auth_members AS membership "
+                "JOIN pg_roles AS capability ON capability.oid = membership.roleid "
+                "JOIN pg_roles AS grantee ON grantee.oid = membership.member "
+                "JOIN pg_roles AS grantor ON grantor.oid = membership.grantor "
+                "WHERE capability.rolname = %s AND grantee.rolname = %s AND grantor.rolname = %s)",
+                (capability_role, member_role, grantor_role),
+            )
+            if not cursor.fetchone()[0]:
+                return
+            cursor.execute(
+                sql.SQL("REVOKE {} FROM {} GRANTED BY {} RESTRICT").format(
+                    sql.Identifier(capability_role),
+                    sql.Identifier(member_role),
+                    sql.Identifier(grantor_role),
+                )
+            )
+            return
+
+        admin_option, inherit_option, set_option = previous_membership
+        cursor.execute(
+            sql.SQL("GRANT {} TO {} WITH ADMIN {}, INHERIT {}, SET {} GRANTED BY {}").format(
+                sql.Identifier(capability_role),
+                sql.Identifier(member_role),
+                sql.SQL("TRUE" if admin_option else "FALSE"),
+                sql.SQL("TRUE" if inherit_option else "FALSE"),
+                sql.SQL("TRUE" if set_option else "FALSE"),
+                sql.Identifier(grantor_role),
+            )
+        )
+
+
 def _drop_schema(database_url: str, schema_name: str) -> None:
     """Drop one disposable authority-test schema and all objects it owns."""
     with _operator_connection(database_url) as connection, connection.cursor() as cursor:
@@ -549,6 +594,9 @@ def test_db_owner_admin_option_accepted_for_capability_roles() -> None:
 
     non_owner_role = "cq1608_non_owner_admin"
     db_owner: str | None = None
+    owner_membership_grantor: str | None = None
+    owner_membership_before: tuple[bool, bool, bool] | None = None
+    owner_membership_captured = False
     try:
         with _operator_connection(database_url) as connection, connection.cursor() as cursor:
             cursor.execute("SHOW server_version_num")
@@ -567,8 +615,26 @@ def test_db_owner_admin_option_accepted_for_capability_roles() -> None:
                 )
             )
             # Grant ADMIN OPTION to the current database owner role
-            cursor.execute("SELECT datdba::regrole::text FROM pg_database WHERE datname = current_database()")
+            cursor.execute(
+                "SELECT owner.rolname FROM pg_database AS database "
+                "JOIN pg_roles AS owner ON owner.oid = database.datdba "
+                "WHERE database.datname = current_database()"
+            )
             db_owner = cursor.fetchone()[0]
+            # PostgreSQL records superuser-issued role memberships under bootstrap superuser OID 10.
+            cursor.execute("SELECT rolname FROM pg_roles WHERE oid = 10")
+            owner_membership_grantor = cursor.fetchone()[0]
+            cursor.execute(
+                "SELECT membership.admin_option, membership.inherit_option, membership.set_option "
+                "FROM pg_auth_members AS membership "
+                "JOIN pg_roles AS capability ON capability.oid = membership.roleid "
+                "JOIN pg_roles AS grantee ON grantee.oid = membership.member "
+                "JOIN pg_roles AS grantor ON grantor.oid = membership.grantor "
+                "WHERE capability.rolname = %s AND grantee.rolname = %s AND grantor.rolname = %s",
+                (api_database.AUTH_RUNTIME_ROLE, db_owner, owner_membership_grantor),
+            )
+            owner_membership_before = cursor.fetchone()
+            owner_membership_captured = True
             cursor.execute(
                 sql.SQL("GRANT {} TO {} WITH ADMIN OPTION").format(
                     sql.Identifier(api_database.AUTH_RUNTIME_ROLE),
@@ -612,15 +678,17 @@ def test_db_owner_admin_option_accepted_for_capability_roles() -> None:
         ):
             api_database.verify_runtime_authority()
     finally:
-        _drop_roles(database_url, _AUTH_RUNTIME_LOGIN, non_owner_role)
-        if db_owner is not None:
-            with _operator_connection(database_url) as connection, connection.cursor() as cursor:
-                cursor.execute(
-                    sql.SQL("REVOKE {} FROM {} CASCADE").format(
-                        sql.Identifier(api_database.AUTH_RUNTIME_ROLE),
-                        sql.Identifier(db_owner),
-                    )
+        try:
+            if db_owner is not None and owner_membership_grantor is not None and owner_membership_captured:
+                _restore_capability_membership(
+                    database_url,
+                    api_database.AUTH_RUNTIME_ROLE,
+                    db_owner,
+                    owner_membership_grantor,
+                    owner_membership_before,
                 )
+        finally:
+            _drop_roles(database_url, _AUTH_RUNTIME_LOGIN, non_owner_role)
 
 
 @pytest.mark.integration
