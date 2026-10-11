@@ -59,7 +59,8 @@ def _ensure_bootstrap_roles(url: str) -> None:
     finally:
         conn.close()
 
-                return created            
+        return created
+
 
 def test_runtime_capability_verifier_sql_executes_against_postgres() -> None:
     """Execute the real verifier SQL against PostgreSQL rather than only mocking it."""
