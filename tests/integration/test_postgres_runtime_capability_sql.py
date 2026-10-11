@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import os
+import sys
+from contextlib import suppress
 from pathlib import Path
 
 import pytest
@@ -27,10 +29,10 @@ def _postgres_test_url() -> str:
     return url
 
 
-def _ensure_bootstrap_roles(url: str) -> None:
+def _ensure_bootstrap_roles(url: str) -> list[str]:
     """Ensure capability roles are present before testing SQL verifiers."""
     if not _BOOTSTRAP_PATH.exists():
-        return
+        return []
     import psycopg2
     from psycopg2 import sql
 
@@ -53,25 +55,44 @@ def _ensure_bootstrap_roles(url: str) -> None:
                             "NOCREATEROLE NOBYPASSRLS NOREPLICATION"
                         ).format(sql.Identifier(login_role))
                     )
+                    created.append(login_role)
                 cursor.execute(
                     sql.SQL("GRANT {} TO {}").format(sql.Identifier(capability_role), sql.Identifier(login_role))
                 )
-                created.append(login_role)
+    except Exception:
+        with suppress(Exception):
+            _drop_logins(url, created)
+        raise
     finally:
         conn.close()
 
-        return created
+    return created
+
+
+def _drop_logins(url: str, created_logins: list[str]) -> None:
+    """Drop only the login roles created by this test."""
+    if not created_logins:
+        return
+    import psycopg2
+    from psycopg2 import sql
+
+    conn = psycopg2.connect(url)
+    conn.autocommit = True
+    try:
+        with conn.cursor() as cursor:
+            for login_role in created_logins:
+                cursor.execute(sql.SQL("DROP ROLE IF EXISTS {}").format(sql.Identifier(login_role)))
+    finally:
+        conn.close()
 
 
 def test_runtime_capability_verifier_sql_executes_against_postgres() -> None:
     """Execute the real verifier SQL against PostgreSQL rather than only mocking it."""
     url = _postgres_test_url()
-    if url == os.getenv("FARDB_EPHEMERAL_POSTGRES_URL"):
-        _ensure_bootstrap_roles(url)
-
     created_logins = _ensure_bootstrap_roles(url)
-    engine = create_engine(url, future=True)
+    engine = None
     try:
+        engine = create_engine(url, future=True)
         raw_connection = engine.raw_connection()
         try:
             cursor = raw_connection.cursor()
@@ -97,7 +118,6 @@ def test_runtime_capability_verifier_sql_executes_against_postgres() -> None:
                 cursor.close()
         finally:
             raw_connection.close()
-            _drop_logins(url, created_logins)  # DROP ROLE IF EXISTS each
 
         with engine.connect() as connection:
             capabilities = (runtime_database.GRAPH_RUNTIME_CAPABILITY,)
@@ -107,4 +127,13 @@ def test_runtime_capability_verifier_sql_executes_against_postgres() -> None:
                 runtime_database._managed_table_names(capabilities),
             )
     finally:
-        engine.dispose()
+        verification_failed = sys.exc_info()[0] is not None
+        try:
+            try:
+                if engine is not None:
+                    engine.dispose()
+            finally:
+                _drop_logins(url, created_logins)
+        except Exception:
+            if not verification_failed:
+                raise
