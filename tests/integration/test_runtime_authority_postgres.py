@@ -171,11 +171,8 @@ def _restore_capability_roles(
 
 
 def _prepare_auth_schema(database_url: str) -> None:
-    """Create the auth schema against the explicit disposable operator target."""
-    import api.database as api_database
-
-    with api_database.bind_database_url(database_url):
-        api_database.initialize_schema()
+    """Build the auth schema through the explicit PostgreSQL profile ledger."""
+    _apply_auth_ledger(database_url)
 
 
 def _apply_auth_ledger(database_url: str) -> None:
