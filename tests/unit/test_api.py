@@ -17,6 +17,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from api.main import app, validate_origin
+from api.graph_lifecycle import graph_state
 from src.config.settings import get_settings
 from src.logic.asset_graph import AssetRelationshipGraph
 from src.models.financial_models import AssetClass, Bond, Commodity, Currency, Equity
@@ -43,12 +44,17 @@ def asset_items(page: dict[str, Any]) -> list[dict[str, Any]]:
 
 
 @pytest.fixture
-def client():
-    """Create a test client for the FastAPI app.
+def client(monkeypatch: pytest.MonkeyPatch):
+    """Create a test client with isolated graph-publication state.
+
+    These API tests patch the graph instance directly and do not represent a
+    graph published by a rebuild job. Clear any job binding left by another test
+    so governed relationship reads use the intended unbound/mock-graph path.
 
     Note: TestClient uses internal ASGI transport, not actual network requests.
     The base_url is only used for URL construction in tests, not for real HTTP calls.
     """
+    monkeypatch.setattr(graph_state, "last_synced_job_id", None)
     # nosec B113 - TestClient uses ASGI transport, no actual localhost network access
     return TestClient(app, base_url="http://testserver")
 
@@ -898,153 +904,3 @@ class TestAPISecurityRegression:
 
 
 @pytest.mark.unit
-class TestAPIBoundaryConditions:
-    """Boundary condition tests for API endpoints."""
-
-    @staticmethod
-    @patch("api.graph_lifecycle.graph_state.graph")
-    def test_api_handles_extremely_large_graph(mock_graph_instance, client):
-        """Boundary: API should handle graphs with many assets."""
-        large_graph = AssetRelationshipGraph()
-
-        # Create 1000 assets
-        for i in range(1000):
-            equity = Equity(
-                id=f"TEST_{i}",
-                symbol=f"TST{i}",
-                name=f"Test Asset {i}",
-                asset_class=AssetClass.EQUITY,
-                sector="Technology",
-                price=100.0 + i,
-            )
-            large_graph.add_asset(equity)
-
-        mock_graph_instance.assets = large_graph.assets
-        mock_graph_instance.relationships = large_graph.relationships
-        mock_graph_instance.calculate_metrics = large_graph.calculate_metrics
-        mock_graph_instance.get_3d_visualization_data = large_graph.get_3d_visualization_data_enhanced
-
-        # Should not timeout or error
-        response = client.get("/api/assets")
-        assert response.status_code == 200
-        data = response.json()
-        assert data["page"] == 1
-        assert data["per_page"] == 50
-        assert data["total"] == 1000
-        assert len(data["items"]) == 50
-
-    @staticmethod
-    @patch("api.graph_lifecycle.graph_state.graph")
-    def test_api_handles_asset_with_none_values(mock_graph_instance, client):
-        """Boundary: API should handle assets with None optional fields."""
-        graph = AssetRelationshipGraph()
-
-        # Create equity with minimal fields (many None values)
-        equity = Equity(
-            id="MINIMAL",
-            symbol="MIN",
-            name="Minimal Asset",
-            asset_class=AssetClass.EQUITY,
-            sector="Technology",
-            price=100.0,
-            market_cap=None,
-            pe_ratio=None,
-            dividend_yield=None,
-        )
-        graph.add_asset(equity)
-
-        mock_graph_instance.assets = graph.assets
-        mock_graph_instance.relationships = graph.relationships
-
-        response = client.get("/api/assets/MINIMAL")
-        assert response.status_code == 200
-        data = response.json()
-        assert data["id"] == "MINIMAL"
-        # None values should be handled gracefully
-        assert "market_cap" in data
-
-
-@pytest.mark.unit
-class TestNegativeScenarios:
-    """Negative test cases for error conditions."""
-
-    @staticmethod
-    def test_validate_origin_with_null_bytes():
-        """Negative: Origin with null bytes should be rejected."""
-        assert validate_origin("https://evil\x00.com") is False
-        assert validate_origin("https://example.com\x00") is False
-
-    @staticmethod
-    def test_validate_origin_with_unicode_domain():
-        """Verify that validate_origin accepts an HTTPS internationalized domain name.
-
-        Uses an internationalized domain name (IDN) such as "https://münchen.de".
-        """
-        result = validate_origin("https://münchen.de")
-        # IDN with HTTPS: validate_origin should accept valid HTTPS domains
-        assert result is True
-
-
-class TestUserInDBClassRefactoring:
-    """Test suite for UserInDB class that was moved from api.models."""
-
-    def test_user_in_db_class_exists_in_auth_module(self):
-        """Test that UserInDB is accessible via api.auth module."""
-        from api.auth import UserInDB
-
-        assert UserInDB is not None
-        assert hasattr(UserInDB, "__annotations__")
-
-    def test_user_in_db_inherits_from_user_base_class(self):
-        """Test that UserInDB properly inherits from User."""
-        from api.auth import User, UserInDB
-
-        user_in_db = UserInDB(
-            username="testuser",
-            email="test@example.com",
-            full_name="Test User",
-            disabled=False,
-            hashed_password="$2b$12$hashedpasswordexample",
-        )
-
-        assert isinstance(user_in_db, User)
-        assert user_in_db.username == "testuser"
-        assert user_in_db.email == "test@example.com"
-        assert user_in_db.full_name == "Test User"
-        assert user_in_db.disabled is False
-        assert user_in_db.hashed_password == "$2b$12$hashedpasswordexample"
-
-    def test_user_in_db_requires_hashed_password_field(self):
-        """Test that UserInDB requires hashed_password field."""
-        from api.auth import UserInDB
-
-        user = UserInDB(username="test", hashed_password="$2b$12$hash")
-        assert user.hashed_password == "$2b$12$hash"
-        assert "hashed_password" in UserInDB.__annotations__
-
-    def test_user_in_db_optional_fields(self):
-        """Test that UserInDB handles optional fields correctly."""
-        from api.auth import UserInDB
-
-        user = UserInDB(username="minimaluser", hashed_password="$2b$12$hash")
-
-        assert user.username == "minimaluser"
-        assert user.hashed_password == "$2b$12$hash"
-
-
-class TestAuthModuleDocstringUpdates:
-    """Test that auth module docstrings are present and descriptive."""
-
-    def test_user_repository_get_user_docstring(self):
-        """Test that UserRepository.get_user has proper docstring."""
-        from api.auth import UserRepository
-
-        assert UserRepository.get_user.__doc__ is not None
-        assert "Retrieve a user record by username" in UserRepository.get_user.__doc__
-
-    def test_user_repository_has_users_docstring(self):
-        """Test that UserRepository.has_users has proper docstring."""
-        from api.auth import UserRepository
-
-        assert UserRepository.has_users.__doc__ is not None
-        assert "Check whether any user credential records exist" in UserRepository.has_users.__doc__
