@@ -6,6 +6,7 @@ import os
 import sys
 from contextlib import suppress
 from pathlib import Path
+from urllib.parse import urlsplit
 
 import pytest
 from sqlalchemy import create_engine
@@ -16,27 +17,74 @@ from src.data import database as runtime_database
 pytestmark = pytest.mark.integration
 
 _BOOTSTRAP_PATH = Path(__file__).resolve().parents[2] / "scripts" / "bootstrap_database_capability_roles.sql"
+_EPHEMERAL_AUTHORITY_FLAG = "FARDB_EPHEMERAL_POSTGRES_AUTHORITY_TESTS"
+_EPHEMERAL_POSTGRES_URL = "FARDB_EPHEMERAL_POSTGRES_URL"
+_TEST_POSTGRES_URL = "FARDB_POSTGRES_TEST_URL"
+_LOOPBACK_HOSTS = frozenset({"localhost", "127.0.0.1", "::1"})
 
 
 def _postgres_test_url() -> str:
-    """Return the explicit PostgreSQL integration-test URL or skip the test."""
-    url = os.getenv("FARDB_POSTGRES_TEST_URL") or os.getenv("FARDB_EPHEMERAL_POSTGRES_URL")
+    """Return the explicitly opted-in, loopback-only disposable PostgreSQL URL or skip the test."""
+    if os.getenv(_EPHEMERAL_AUTHORITY_FLAG) != "1":
+        pytest.skip(f"Set {_EPHEMERAL_AUTHORITY_FLAG}=1 only for disposable PostgreSQL authority tests")
+
+    url = os.getenv(_EPHEMERAL_POSTGRES_URL)
     if not url:
-        pytest.skip("Neither FARDB_POSTGRES_TEST_URL nor FARDB_EPHEMERAL_POSTGRES_URL is configured")
-    assert url is not None
+        pytest.fail(f"{_EPHEMERAL_POSTGRES_URL} is required when {_EPHEMERAL_AUTHORITY_FLAG}=1")
     if not url.lower().startswith(("postgresql://", "postgres://")):
-        pytest.fail("Configured PostgreSQL test URL must be a PostgreSQL URL")
+        pytest.fail(f"{_EPHEMERAL_POSTGRES_URL} must be a PostgreSQL URL")
+
+    test_url = os.getenv(_TEST_POSTGRES_URL)
+    if test_url and test_url != url:
+        pytest.fail(f"{_TEST_POSTGRES_URL} must match {_EPHEMERAL_POSTGRES_URL} for this mutating integration test")
+    if urlsplit(url).hostname not in _LOOPBACK_HOSTS:
+        pytest.fail(f"{_EPHEMERAL_POSTGRES_URL} must target a loopback PostgreSQL service")
+
     return url
 
 
-def _ensure_bootstrap_roles(url: str) -> list[str]:
-    """Ensure capability roles are present before testing SQL verifiers."""
-    if not _BOOTSTRAP_PATH.exists():
-        return []
+def _drop_logins(
+    url: str,
+    created_logins: list[str],
+    created_memberships: list[tuple[str, str]],
+) -> None:
+    """Revoke test-added memberships and drop only login roles created by this test."""
+    if not created_logins and not created_memberships:
+        return
+
     import psycopg2
     from psycopg2 import sql
 
-    created: list[str] = []
+    conn = psycopg2.connect(url)
+    conn.autocommit = True
+    try:
+        with conn.cursor() as cursor:
+            for capability_role, login_role in created_memberships:
+                cursor.execute(
+                    sql.SQL("REVOKE {} FROM {}").format(
+                        sql.Identifier(capability_role),
+                        sql.Identifier(login_role),
+                    )
+                )
+            for login_role in created_logins:
+                cursor.execute(sql.SQL("DROP ROLE IF EXISTS {}").format(sql.Identifier(login_role)))
+    finally:
+        conn.close()
+
+
+def _ensure_bootstrap_roles(url: str) -> tuple[list[str], list[tuple[str, str]]]:
+    """Ensure capability roles are present only on the explicitly opted-in disposable service."""
+    if os.getenv(_EPHEMERAL_AUTHORITY_FLAG) != "1" or url != os.getenv(_EPHEMERAL_POSTGRES_URL):
+        pytest.fail("Capability-role bootstrap is restricted to the opted-in FARDB_EPHEMERAL_POSTGRES_URL")
+
+    if not _BOOTSTRAP_PATH.exists():
+        return [], []
+
+    import psycopg2
+    from psycopg2 import sql
+
+    created_logins: list[str] = []
+    created_memberships: list[tuple[str, str]] = []
     bootstrap_sql = _BOOTSTRAP_PATH.read_text(encoding="utf-8")
     conn = psycopg2.connect(url)
     conn.autocommit = True
@@ -55,41 +103,37 @@ def _ensure_bootstrap_roles(url: str) -> list[str]:
                             "NOCREATEROLE NOBYPASSRLS NOREPLICATION"
                         ).format(sql.Identifier(login_role))
                     )
-                    created.append(login_role)
+                    created_logins.append(login_role)
+
                 cursor.execute(
-                    sql.SQL("GRANT {} TO {}").format(sql.Identifier(capability_role), sql.Identifier(login_role))
+                    "SELECT 1 FROM pg_auth_members AS membership "
+                    "JOIN pg_roles AS capability ON capability.oid = membership.roleid "
+                    "JOIN pg_roles AS grantee ON grantee.oid = membership.member "
+                    "WHERE capability.rolname = %s AND grantee.rolname = %s",
+                    (capability_role, login_role),
                 )
+                if cursor.fetchone() is None:
+                    cursor.execute(
+                        sql.SQL("GRANT {} TO {}").format(
+                            sql.Identifier(capability_role),
+                            sql.Identifier(login_role),
+                        )
+                    )
+                    created_memberships.append((capability_role, login_role))
     except Exception:
         with suppress(Exception):
-            _drop_logins(url, created)
+            _drop_logins(url, created_logins, created_memberships)
         raise
     finally:
         conn.close()
 
-    return created
-
-
-def _drop_logins(url: str, created_logins: list[str]) -> None:
-    """Drop only the login roles created by this test."""
-    if not created_logins:
-        return
-    import psycopg2
-    from psycopg2 import sql
-
-    conn = psycopg2.connect(url)
-    conn.autocommit = True
-    try:
-        with conn.cursor() as cursor:
-            for login_role in created_logins:
-                cursor.execute(sql.SQL("DROP ROLE IF EXISTS {}").format(sql.Identifier(login_role)))
-    finally:
-        conn.close()
+    return created_logins, created_memberships
 
 
 def test_runtime_capability_verifier_sql_executes_against_postgres() -> None:
     """Execute the real verifier SQL against PostgreSQL rather than only mocking it."""
     url = _postgres_test_url()
-    created_logins = _ensure_bootstrap_roles(url)
+    created_logins, created_memberships = _ensure_bootstrap_roles(url)
     engine = None
     try:
         engine = create_engine(url, future=True)
@@ -133,7 +177,7 @@ def test_runtime_capability_verifier_sql_executes_against_postgres() -> None:
                 if engine is not None:
                     engine.dispose()
             finally:
-                _drop_logins(url, created_logins)
+                _drop_logins(url, created_logins, created_memberships)
         except Exception:
             if not verification_failed:
                 raise
