@@ -27,7 +27,7 @@ def test_ensure_runtime_access_fails_before_catalog_or_ddl(monkeypatch) -> None:
 
 
 def test_verify_runtime_access_catalog_counts_only_usable_login_grantees(monkeypatch) -> None:
-    """Read-only role verification permits at most one usable runtime login path."""
+    """Require a usable approved runtime login and reject unapproved grantees."""
     fetch_value = MagicMock(return_value=True)
     monkeypatch.setattr(api_database, "DATABASE_TYPE", "postgresql")
     monkeypatch.setattr(api_database, "fetch_value", fetch_value)
