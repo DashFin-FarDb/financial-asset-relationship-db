@@ -1,0 +1,26 @@
+scripts/postgresql_ledger.py
+  h_f327e6ff3ec3c1 29,967,1010,1042
+scripts/run_ephemeral_postgres_integration.sh
+  h_f327e6ff3ec3c1 21-22
+tests/integration/postgresql_disposable_cluster.py
+  h_f327e6ff3ec3c1 8,13,320-325,500-504,519-525
+tests/integration/test_github_workflows.py
+  h_f327e6ff3ec3c1 2894-2900,2915-2916,2962-2972
+tests/integration/test_postgres_runtime_capability_sql.py
+  h_f327e6ff3ec3c1 49,230-254
+tests/integration/test_runtime_authority_postgres.py
+  h_f327e6ff3ec3c1 256-257,261-262,291,293,949-951,954-955
+tests/unit/test_postgresql_disposable_cluster.py
+  h_f327e6ff3ec3c1 117-118,185,187-188,190,638-679
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "cf986b8bf0d9273dc0565017d7335e95ecc84ea1",
+  "prompts": {},
+  "humans": {
+    "h_f327e6ff3ec3c1": {
+      "author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}
