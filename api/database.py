@@ -184,7 +184,8 @@ def _auth_safe_role_sql(require_login_principals: bool = True) -> str:
     """Build the read-only auth capability role SQL verification query."""
     grantee_count_clause = (
         "(SELECT COUNT(*) FROM pg_roles AS grantee "
-        "WHERE grantee.rolcanlogin AND grantee.oid <> (SELECT datdba FROM pg_database WHERE datname = current_database()) "
+        "WHERE grantee.rolcanlogin AND grantee.oid <> "
+        "(SELECT datdba FROM pg_database WHERE datname = current_database()) "
         "AND EXISTS (SELECT 1 FROM role_membership "
         "WHERE role_membership.member = grantee.oid AND role_membership.roleid = role.oid)) >= 1 "
         "AND "
@@ -211,7 +212,8 @@ def _auth_safe_role_sql(require_login_principals: bool = True) -> str:
             "SELECT ",
             grantee_count_clause,
             "NOT EXISTS (SELECT 1 FROM pg_roles AS grantee "
-            "WHERE grantee.rolcanlogin AND grantee.oid <> (SELECT datdba FROM pg_database WHERE datname = current_database()) "
+            "WHERE grantee.rolcanlogin AND grantee.oid <> "
+            "(SELECT datdba FROM pg_database WHERE datname = current_database()) "
             "AND EXISTS (SELECT 1 FROM role_membership "
             "WHERE role_membership.member = grantee.oid AND role_membership.roleid = role.oid) "
             "AND NOT (grantee.rolname = ANY(%s))))",

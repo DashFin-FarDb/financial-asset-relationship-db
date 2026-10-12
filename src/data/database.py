@@ -580,7 +580,8 @@ def _verify_runtime_capability_roles(
                         "WHERE membership.member = role.oid) "
                         "AND NOT EXISTS (SELECT 1 FROM pg_auth_members AS membership "
                         "WHERE membership.roleid = role.oid AND membership.admin_option "
-                        "AND membership.member <> (SELECT datdba FROM pg_database WHERE datname = current_database())) AND (",
+                        "AND membership.member <> "
+                        "(SELECT datdba FROM pg_database WHERE datname = current_database())) AND (",
                         USABLE_ROLE_MEMBERSHIP_CTE_SQL,
                         "SELECT ",
                         grantee_count_clause,

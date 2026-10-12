@@ -9,6 +9,7 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 from types import SimpleNamespace
+from unittest.mock import Mock
 
 import pytest
 from psycopg2.extensions import parse_dsn
@@ -660,13 +661,10 @@ def test_runtime_authority_passes_combined_topology_to_verifier(monkeypatch) -> 
     """_runtime_authority passes combined_topology to verify_runtime_database_authority."""
     from src.data import database as data_database
 
-    class MockEngine:
-        def dispose(self) -> None:
-            pass
-
+    engine = Mock(spec=["dispose"])
     recorded_calls: list[dict[str, object]] = []
 
-    monkeypatch.setattr(data_database, "create_engine_from_url", lambda _url: MockEngine())
+    monkeypatch.setattr(data_database, "create_engine_from_url", lambda _url: engine)
     monkeypatch.setattr(
         data_database,
         "verify_runtime_database_authority",
@@ -699,3 +697,4 @@ def test_runtime_authority_passes_combined_topology_to_verifier(monkeypatch) -> 
     assert status == CHECK_PASSED
     assert len(recorded_calls) == 2
     assert all(c["combined_topology"] is False for c in recorded_calls)
+    assert engine.dispose.call_count == 4

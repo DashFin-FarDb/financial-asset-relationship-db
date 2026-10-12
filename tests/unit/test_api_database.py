@@ -257,10 +257,10 @@ class TestConnectionManagement:
             patch("api.database.DATABASE_TYPE", "postgresql"),
             patch("api.database.get_settings", return_value=settings),
             patch("psycopg2.connect", return_value=connection),
+            pytest.raises(QueryCanceled) as exc_info,
+            get_connection(),
         ):
-            with pytest.raises(QueryCanceled) as exc_info:
-                with get_connection():
-                    raise query_cancelled
+            raise query_cancelled
 
         assert exc_info.value is query_cancelled
         connection.close.assert_called_once_with()
@@ -624,6 +624,7 @@ class TestEdgeCases:
             results = []
 
             def access_connection():
+                """Record the shared connection used by one worker thread."""
                 with get_connection() as conn:
                     results.append(id(conn))
 
@@ -665,12 +666,10 @@ class TestConnectionPooling:
     def test_cleanup_function_is_registered(self):
         """Test that cleanup function is registered."""
         with patch("atexit.register") as mock_register:
-            import api.database as db_module
-
-            importlib.reload(db_module)
+            importlib.reload(database)
 
             assert any(
-                call.args and call.args[0] is db_module._cleanup_memory_connection
+                call.args and call.args[0] is database._cleanup_memory_connection
                 for call in mock_register.call_args_list
             )
 
