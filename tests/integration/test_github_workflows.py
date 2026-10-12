@@ -1181,7 +1181,6 @@ class TestAutoAssignWorkflow:
 
     def test_auto_assign_security_no_hardcoded_secrets(self, auto_assign_workflow: dict[str, Any]):
         """Test that no secrets are hardcoded in the workflow."""
-        import json
 
         workflow_str = json.dumps(auto_assign_workflow)
         suspicious_patterns = [
@@ -1228,7 +1227,6 @@ class TestAutoAssignWorkflow:
 
     def test_auto_assign_security_no_deprecated_syntax(self, auto_assign_workflow: dict[str, Any]):
         """Test that the workflow doesn't use deprecated GitHub Actions syntax."""
-        import json
 
         workflow_str = json.dumps(auto_assign_workflow)
         assert "::set-output" not in workflow_str, "Should not use deprecated ::set-output syntax"
@@ -2883,7 +2881,6 @@ class TestTestSuiteCompleteness:
         """Ensure we have multiple test categories."""
         # Count test classes in this module
         import inspect
-        import sys
 
         current_module = sys.modules[__name__]
         test_classes = [
@@ -2892,6 +2889,13 @@ class TestTestSuiteCompleteness:
 
         # Should have many test classes (original + new ones)
         assert len(test_classes) >= 15, f"Should have at least 15 test classes, found {len(test_classes)}"
+
+
+def _exactly_one_workflow_step(steps: list[dict[str, Any]], prefix: str) -> dict[str, Any]:
+    """Require one named step so missing and duplicate workflow contracts fail clearly."""
+    matches = [step for step in steps if isinstance(step.get("name"), str) and step["name"].startswith(prefix)]
+    assert len(matches) == 1, f"Expected exactly one {prefix!r} step; found {len(matches)}"
+    return matches[0]
 
 
 @pytest.mark.parametrize(
@@ -2908,8 +2912,8 @@ def test_postgres_attestation_shell_handoff_inherits_nonempty_values(tmp_path, m
     workflow = Path(__file__).parents[2] / ".github/workflows/ci.yml"
     data = yaml.load(workflow.read_text(), Loader=GitHubActionsYamlLoader)
     steps = data["jobs"]["postgres-ledger-profiles"]["steps"]
-    producer = next(step for step in steps if step["name"].startswith("Attest this job"))
-    consumer = next(step for step in steps if step["name"].startswith("Build every profile twice"))
+    producer = _exactly_one_workflow_step(steps, "Attest this job")
+    consumer = _exactly_one_workflow_step(steps, "Build every profile twice")
     keys = (
         "FARDB_EPHEMERAL_POSTGRES_SYSTEM_IDENTIFIER",
         "FARDB_EPHEMERAL_POSTGRES_CONTAINER_RECORD",
@@ -2955,3 +2959,14 @@ def test_postgres_attestation_shell_handoff_inherits_nonempty_values(tmp_path, m
         assert result.returncode == 0
         captured = json.loads(invocation.read_text())
         assert all(captured[key] == inherited[key] for key in keys)
+
+
+@pytest.mark.parametrize("prefix", ["Attest this job", "Build every profile twice"])
+@pytest.mark.parametrize("count", [0, 2])
+def test_workflow_handoff_rejects_missing_or_duplicate_steps(prefix, count) -> None:
+    """Missing or duplicate attestation steps fail with their exact identity and count."""
+    steps = [{"name": prefix + " contract"} for _ in range(count)]
+    steps.append({"uses": "unrelated-action"})
+    message = f"Expected exactly one {prefix!r} step; found {count}"
+    with pytest.raises(AssertionError, match=re.escape(message)):
+        _exactly_one_workflow_step(steps, prefix)

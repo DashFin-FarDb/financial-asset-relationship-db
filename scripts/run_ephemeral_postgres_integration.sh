@@ -18,8 +18,8 @@ if ! harness_python="$(command -v "$configured_python")"; then
   echo 'A configured Python 3 interpreter is required (FARDB_PYTHON or python3)' >&2
   exit 2
 fi
-if ! "$harness_python" -c 'import sys; sys.exit(0 if sys.version_info.major == 3 else 1)'; then
-  echo 'The configured interpreter must be Python 3' >&2
+if ! "$harness_python" -c 'import sys; sys.exit(0 if sys.version_info[0] == 3 and sys.version_info[:2] >= (3, 10) else 1)'; then
+  echo 'The configured interpreter must be Python 3.10 or newer within Python 3' >&2
   exit 2
 fi
 exec "$harness_python" -m tests.integration.postgresql_disposable_cluster harness --major "$requested_major" "$@"

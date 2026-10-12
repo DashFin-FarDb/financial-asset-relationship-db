@@ -114,7 +114,8 @@ def test_collision_snapshot_retains_available_membership_options(version, column
     assert query.startswith("SELECT " + columns + " FROM pg_auth_members")
     assert cursor.execute.call_args_list[-1].args[1] == (1, 1)
     if version < 160000:
-        assert "inherit_option" not in query and "set_option" not in query
+        assert "inherit_option" not in query
+        assert "set_option" not in query
 
 
 def _container_fixture():
@@ -181,10 +182,12 @@ def test_cli_binding_uses_container_local_port_not_the_host_port(monkeypatch) ->
         == "postgresql://test:test@127.0.0.1:5432/fardb_authority_test?sslmode=disable"
     )
     for suffix in ("&dbname=other", "&hostaddr=127.0.0.2", "&port=5432", "&service=other"):
+        overridden_url = url + suffix
         with pytest.raises(guard.DisposableTargetError):
-            guard._internal_cli_url(url + suffix, record)
+            guard._internal_cli_url(overridden_url, record)
+    wrong_port_url = url.replace(":55000/", ":55001/")
     with pytest.raises(guard.DisposableTargetError):
-        guard._internal_cli_url(url.replace(":55000/", ":55001/"), record)
+        guard._internal_cli_url(wrong_port_url, record)
 
 
 def test_runner_rejects_container_restart_before_cli(monkeypatch) -> None:
@@ -632,3 +635,45 @@ def test_only_exact_reviewed_bootstrap_bypasses_ad_hoc_ddl_parser() -> None:
     with pytest.raises(guard.DisposableTargetError):
         guard._parse_role_ddl(text + "\nDROP ROLE protected")
     assert guard._parse_role_ddl("SELECT 'DROP OWNED BY protected'") is None
+
+
+@pytest.mark.parametrize("version, allowed", [((3, 9), False), ((3, 10), True), ((3, 14), True), ((4, 0), False)])
+def test_shell_python_minimum_rejected_before_harness_or_docker(tmp_path, version, allowed) -> None:
+    """Run the real shell probe with simulated versions before any harness invocation."""
+    import os
+    import subprocess
+    import sys
+    from pathlib import Path
+
+    interpreter = tmp_path / "configured-python"
+    args = tmp_path / "harness-args"
+    interpreter.write_text(
+        f"#!{sys.executable}\nimport os,sys\n"
+        f"sys.version_info = {version!r}\n"
+        "if sys.argv[1] == '-c':\n    exec(sys.argv[2])\n"
+        "else:\n    open(os.environ['HARNESS_ARGS'], 'w').write(' '.join(sys.argv[1:]))\n"
+    )
+    interpreter.chmod(0o700)
+    env = {**os.environ, "FARDB_PYTHON": str(interpreter), "HARNESS_ARGS": str(args)}
+    env.pop("PG_CONFIG", None)
+    script = Path(__file__).parents[2] / "scripts/run_ephemeral_postgres_integration.sh"
+    result = subprocess.run(["/bin/bash", str(script), "selected-test"], env=env, capture_output=True, check=False)
+    if allowed:
+        assert result.returncode == 0
+        assert args.read_text().endswith("selected-test")
+    else:
+        assert result.returncode == 2
+        assert not args.exists()
+        assert b"Python 3.10 or newer" in result.stderr
+
+
+@pytest.mark.parametrize("name", ["_database_host", "_validate_loopback_target"])
+def test_ledger_invalid_url_constant_preserves_message_and_cause(name) -> None:
+    """Constant extraction retains the existing public error and exception chaining."""
+    from scripts import postgresql_ledger as ledger
+
+    check = getattr(ledger, name)
+    with pytest.raises(ledger.HostedWriteBarrierError) as error:
+        check("postgresql://[")
+    assert str(error.value) == "database URL is invalid"
+    assert isinstance(error.value.__cause__, ValueError)

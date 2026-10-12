@@ -46,6 +46,7 @@ def _postgres_test_url() -> str:
     url = os.getenv(_EPHEMERAL_POSTGRES_URL)
     if not url:
         pytest.fail(f"{_EPHEMERAL_POSTGRES_URL} is required when {_EPHEMERAL_AUTHORITY_FLAG}=1")
+    assert url is not None
     if not url.lower().startswith(("postgresql://", "postgres://")):
         pytest.fail(f"{_EPHEMERAL_POSTGRES_URL} must be a PostgreSQL URL")
 
@@ -226,3 +227,28 @@ def test_runtime_capability_verifier_sql_executes_against_postgres() -> None:
         except Exception:
             if not verification_failed:
                 raise
+
+
+@pytest.mark.parametrize("url", [None, "", "sqlite:///not-postgresql", "postgresql://test@192.0.2.1/test_db"])
+def test_postgres_test_url_preserves_invalid_target_failures(monkeypatch, url) -> None:
+    """Explicit narrowing must preserve missing-value and target failure behaviour."""
+    monkeypatch.setenv(_EPHEMERAL_AUTHORITY_FLAG, "1")
+    monkeypatch.delenv(_TEST_POSTGRES_URL, raising=False)
+    if url is None:
+        monkeypatch.delenv(_EPHEMERAL_POSTGRES_URL, raising=False)
+    else:
+        monkeypatch.setenv(_EPHEMERAL_POSTGRES_URL, url)
+    with pytest.raises(pytest.fail.Exception):
+        _postgres_test_url()
+
+
+def test_postgres_test_url_preserves_valid_target_and_mismatch_failure(monkeypatch) -> None:
+    """Keep the original URL unchanged and reject conflicting mutating-test targets."""
+    url = "postgresql://test@127.0.0.1/test_db"
+    monkeypatch.setenv(_EPHEMERAL_AUTHORITY_FLAG, "1")
+    monkeypatch.setenv(_EPHEMERAL_POSTGRES_URL, url)
+    monkeypatch.delenv(_TEST_POSTGRES_URL, raising=False)
+    assert _postgres_test_url() == url
+    monkeypatch.setenv(_TEST_POSTGRES_URL, url + "_other")
+    with pytest.raises(pytest.fail.Exception, match="must match"):
+        _postgres_test_url()

@@ -5,10 +5,12 @@ from __future__ import annotations
 import hashlib
 import os
 import re
+import shutil
 import sys
 from collections.abc import Iterator, Mapping
 from contextlib import contextmanager
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any
 from urllib.parse import parse_qs, urlsplit
 
@@ -245,7 +247,6 @@ def create_attested_engine(database_url: str, **kwargs):
 
 def _parse_role_ddl(rendered_sql: str) -> tuple[str, str] | None:
     """Fully interpret only the single-role forms used by this harness."""
-    from pathlib import Path
 
     bootstrap = Path(__file__).parents[2] / "scripts" / "bootstrap_database_capability_roles.sql"
     if rendered_sql == bootstrap.read_text(encoding="utf-8"):
@@ -316,9 +317,12 @@ class OwnedRoleCursor(PsycopgCursor):
         rendered = self.mogrify(query, vars).decode("utf-8", errors="replace")
         parsed = _parse_role_ddl(rendered)
         command, role_name = parsed if parsed else ("", None)
-        if command == "CREATE ROLE" and role_name not in _CANONICAL_CAPABILITY_ROLES | _CANONICAL_TEST_LOGIN_ROLES:
-            if not role_name or not role_name.startswith(f"{_ROLE_PREFIX}{invocation_id()}_"):
-                raise DisposableTargetError("refusing creation outside the invocation role namespace")
+        if (
+            command == "CREATE ROLE"
+            and role_name not in _CANONICAL_CAPABILITY_ROLES | _CANONICAL_TEST_LOGIN_ROLES
+            and (not role_name or not role_name.startswith(f"{_ROLE_PREFIX}{invocation_id()}_"))
+        ):
+            raise DisposableTargetError("refusing creation outside the invocation role namespace")
         if command.startswith("DROP ROLE"):
             oid = owned_role_oid(role_name or "")
             with self.connection.cursor(cursor_factory=PsycopgCursor) as check:
@@ -346,7 +350,6 @@ CONTAINER_RECORD_ENV = "FARDB_EPHEMERAL_POSTGRES_CONTAINER_RECORD"
 def _read_harness_record() -> dict:
     """Reject native/unowned test execution before any mutation connection opens."""
     import json
-    from pathlib import Path
 
     path = os.environ.get(CONTAINER_RECORD_ENV)
     if not path:
@@ -376,7 +379,6 @@ def _docker_command(command: list[str], *, input_bytes: bytes | None = None, tim
 
 def _docker_cli() -> str:
     """Find a working Docker interface without changing saved contexts."""
-    import shutil
 
     supplied = os.environ.get("FARDB_DOCKER_CLI")
     candidates = [supplied] if supplied else [shutil.which("docker"), shutil.which("docker.exe")]
@@ -495,7 +497,11 @@ class ContainerCliRunner:
             raise DisposableTargetError("owned container cluster identity changed")
 
     def __enter__(self):
-        """Prepare invocation-private CLI files inside the verified container."""
+        """Allocate private CLI state with container-side mktemp in the verified namespace.
+
+        The allocator creates mode 0700 atomically. Its output is validated before
+        adoption; malformed output cannot become a transfer or cleanup target.
+        """
         self.validate()
         output = _docker_command(
             [self.cli, "exec", self.record["id"], "mktemp", "-d", f"/tmp/fardb-cli-{invocation_id()}-XXXXXX"]
@@ -510,7 +516,13 @@ class ContainerCliRunner:
             raise
 
     def _validate_private_directory(self, path: str) -> None:
-        """Accept only this invocation's mktemp path with safe directory metadata."""
+        """Validate the invocation path, directory type, owner and mode before use.
+
+        The fixed /tmp prefix constrains the allocator output; it does not create
+        or adopt a predictable directory. Symlinks are rejected. Transfer and
+        cleanup repeat these checks on the same independently verified container.
+        Unrelated privileged Docker clients remain outside this harness boundary.
+        """
         if re.fullmatch(rf"/tmp/fardb-cli-{re.escape(invocation_id())}-[a-zA-Z0-9]{{6}}", path) is None:
             raise DisposableTargetError("malformed container private directory")
         self.validate()
@@ -527,8 +539,6 @@ class ContainerCliRunner:
 
     def _prepare_cli(self):
         """Copy and compatibility-check the pinned executable in validated private state."""
-        import shutil
-        from pathlib import Path
 
         if self.directory is None:
             raise DisposableTargetError("CLI runner context is not active")
@@ -609,7 +619,6 @@ class ContainerCliRunner:
 
     def __call__(self, command, *, timeout, **_kwargs):
         """Adapt only ledger's fixed version/push commands to container-local execution."""
-        from pathlib import Path
 
         if self.directory is None:
             raise DisposableTargetError("CLI runner context is not active")
@@ -682,7 +691,6 @@ def verify_applied_profile(database_url: str, manifest, profile: str) -> None:
         evidence = os.environ.get("FARDB_POSTGRES_EVIDENCE_DIR")
         if evidence:
             import json
-            from pathlib import Path
             from uuid import uuid4
 
             Path(evidence, f"catalog-{profile}-{uuid4().hex}.json").write_text(
@@ -798,7 +806,6 @@ def _run_locked_container_harness(cli: str, major: int, pytest_args: list[str]) 
     import json
     import tempfile
     import time
-    from pathlib import Path
     from uuid import uuid4
 
     if major not in (15, 16):
@@ -936,7 +943,6 @@ def _main() -> int:
     """Provide only the owned local harness and exact Actions service attestation modes."""
     import argparse
     import json
-    from pathlib import Path
 
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("mode", choices=("harness", "attest-job"))

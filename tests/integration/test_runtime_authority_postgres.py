@@ -253,11 +253,13 @@ def test_preexisting_role_collision_is_not_modified_or_adopted() -> None:
                 if role_oid is not None:
                     cursor.execute("SELECT oid FROM pg_roles WHERE rolname = %s", (collision_name,))
                     current = cursor.fetchone()
-                    assert current is not None and int(current[0]) == role_oid
+                    assert current is not None
+                    assert int(current[0]) == role_oid
                 if grantee_oid is not None:
                     cursor.execute("SELECT oid FROM pg_roles WHERE rolname = %s", (grantee_name,))
                     current = cursor.fetchone()
-                    assert current is not None and int(current[0]) == grantee_oid
+                    assert current is not None
+                    assert int(current[0]) == grantee_oid
                     cursor.execute(
                         sql.SQL("REVOKE {} FROM {}").format(
                             sql.Identifier(grantee_name),
@@ -286,10 +288,9 @@ def test_multi_role_drop_rejected_without_changing_preexisting_second_role() -> 
             cursor.execute(sql.SQL("GRANT {} TO test WITH ADMIN OPTION").format(sql.Identifier(sentinel)))
         before = _role_and_membership_snapshot(connection, oid)
         with connection.cursor(cursor_factory=OwnedRoleCursor) as guarded:
+            statement = sql.SQL("DROP ROLE IF EXISTS {}, {}").format(sql.Identifier(absent), sql.Identifier(sentinel))
             with pytest.raises(DisposableTargetError, match="multi-role"):
-                guarded.execute(
-                    sql.SQL("DROP ROLE IF EXISTS {}, {}").format(sql.Identifier(absent), sql.Identifier(sentinel))
-                )
+                guarded.execute(statement)
             guarded.execute("SELECT %s::int", (7,))
             assert guarded.fetchone() == (7,)
             guarded.execute(query="SELECT %s::int", vars=(8,))
@@ -945,14 +946,13 @@ def test_non_superuser_migration_owner_cannot_create_missing_capability_role() -
             )
         migration_owner = _runtime_connection(database_url, _MISSING_ROLE_MIGRATION_OWNER)
         try:
-            with (
-                migration_owner.cursor() as cursor,
-                pytest.raises(
+            with migration_owner.cursor() as cursor:
+                bootstrap_sql = _CAPABILITY_BOOTSTRAP_SQL.read_text(encoding="utf-8")
+                with pytest.raises(
                     psycopg2.Error,
                     match="FarDB capability-role bootstrap requires a PostgreSQL superuser",
-                ),
-            ):
-                cursor.execute(_CAPABILITY_BOOTSTRAP_SQL.read_text(encoding="utf-8"))
+                ):
+                    cursor.execute(bootstrap_sql)
         finally:
             migration_owner.close()
 

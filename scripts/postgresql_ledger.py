@@ -26,6 +26,7 @@ from urllib.parse import parse_qs, urlsplit
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_MANIFEST_PATH = REPOSITORY_ROOT / "supabase" / "ledger-profiles.json"
+_INVALID_DATABASE_URL_MESSAGE = "database URL is invalid"
 TARGET_BINDINGS_ENV = "FARDB_POSTGRES_TARGET_BINDINGS_FILE"
 
 MANIFEST_VERSION = "fardb-ledger-profiles-v1"
@@ -963,7 +964,7 @@ def _database_host(database_url: str) -> str:
         host = parsed.hostname
         port = parsed.port
     except ValueError as exc:
-        raise HostedWriteBarrierError("database URL is invalid") from exc
+        raise HostedWriteBarrierError(_INVALID_DATABASE_URL_MESSAGE) from exc
     if (
         parsed.scheme not in ("postgres", "postgresql")
         or not host
@@ -1006,7 +1007,7 @@ def _validate_loopback_target(database_url: str) -> str:
         host_overrides = query.get("host", [])
         hostaddr_overrides = query.get("hostaddr", [])
     except ValueError as exc:
-        raise HostedWriteBarrierError("database URL is invalid") from exc
+        raise HostedWriteBarrierError(_INVALID_DATABASE_URL_MESSAGE) from exc
     hosts = [parsed.hostname, *host_overrides]
     if not all(host and "," not in host and _is_loopback_address(host) for host in hosts):
         raise HostedWriteBarrierError("loopback execution class does not resolve to loopback")
@@ -1038,7 +1039,7 @@ def assert_profile_write_allowed(target: PlannedTarget) -> None:
         try:
             sslmodes = parse_qs(urlsplit(database_url).query).get("sslmode", [])
         except ValueError as exc:
-            raise HostedWriteBarrierError("database URL is invalid") from exc
+            raise HostedWriteBarrierError(_INVALID_DATABASE_URL_MESSAGE) from exc
         if "disable" in sslmodes and (
             target.execution_class != "loopback" or not _validate_loopback_target(database_url)
         ):
