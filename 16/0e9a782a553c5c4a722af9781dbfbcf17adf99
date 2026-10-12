@@ -1,0 +1,28 @@
+.github/workflows/ci.yml
+  h_f327e6ff3ec3c1 137,166-208,213-215
+scripts/postgresql_ledger.py
+  h_f327e6ff3ec3c1 7,25,978-1017,1036-1045,1137-1138,1173
+scripts/run_ephemeral_postgres_integration.sh
+  h_f327e6ff3ec3c1 1-16
+tests/integration/postgresql_disposable_cluster.py
+  h_f327e6ff3ec3c1 1-873
+tests/integration/test_postgresql_ledger_profiles.py
+  h_f327e6ff3ec3c1 7,9,44,53-62,79-94,107,111-115,117-123,131,156,179,182-183,192,210,229,278,283,341,352,363,387,456,500,646,735-742
+tests/integration/test_runtime_authority_postgres.py
+  h_f327e6ff3ec3c1 14,18-19,23-37,54-55,78,85-91,104-124,128-178,182,184-190,194-201,207-208,218-299,304-305,362-364,374-375,398-402,410,419-424,432-433,439-441,475,619,670,707,709,716,759,761,768,785,839,863,870-871,898,900-901,903-904,908-909,916-927,936-938,1008,1046,1052-1053,1065-1068,1107,1111,1159,1163,1228,1232,1292,1294,1302-1307,1318-1319,1334,1338,1385-1386,1396,1434,1439,1468,1482-1484,1520-1521,1595-1596,1665-1666
+tests/unit/test_postgresql_disposable_cluster.py
+  h_f327e6ff3ec3c1 1-415
+tests/unit/test_postgresql_ledger.py
+  h_f327e6ff3ec3c1 466-498,578,584-585,600,608-610,646-686
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "160e9a782a553c5c4a722af9781dbfbcf17adf99",
+  "prompts": {},
+  "humans": {
+    "h_f327e6ff3ec3c1": {
+      "author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}
