@@ -464,6 +464,39 @@ def test_profile_write_barrier_checks_every_combined_alias_url() -> None:
 
 
 @pytest.mark.parametrize(
+    "database_url",
+    [
+        "postgresql://operator@192.0.2.10/graph?host=localhost",
+        "postgresql://operator@localhost/graph?hostaddr=192.0.2.10",
+        "postgresql://operator@localhost/graph?host=localhost&hostaddr=2001:db8::1",
+        "postgresql://operator@project.supabase.co/graph?host=localhost&hostaddr=127.0.0.1",
+        "postgresql://operator@localhost/graph?host=localhost,example.com",
+    ],
+)
+def test_loopback_write_barrier_validates_uri_and_effective_host_overrides(database_url: str) -> None:
+    """Host and hostaddr overrides may not redirect a labeled loopback target."""
+    target = _planned_target(database_url=database_url)
+
+    with pytest.raises(ledger.HostedWriteBarrierError):
+        ledger.assert_profile_write_allowed(target)
+
+
+def test_sslmode_disable_is_limited_to_validated_loopback_targets() -> None:
+    """Cleartext TLS mode is permitted only for an explicit disposable loopback URL."""
+    allowed = _planned_target(database_url="postgresql://operator@localhost/graph?hostaddr=127.0.0.1&sslmode=disable")
+    ledger.assert_profile_write_allowed(allowed)
+    ipv6_loopback = _planned_target(database_url="postgresql://operator@[::1]/graph?hostaddr=%3A%3A1&sslmode=disable")
+    ledger.assert_profile_write_allowed(ipv6_loopback)
+
+    forbidden = _planned_target(
+        database_url="postgresql://operator@localhost/graph?hostaddr=192.0.2.10&sslmode=disable",
+        execution_class="disposable",
+    )
+    with pytest.raises(ledger.HostedWriteBarrierError):
+        ledger.assert_profile_write_allowed(forbidden)
+
+
+@pytest.mark.parametrize(
     "command",
     [
         ("link",),
@@ -542,13 +575,14 @@ def test_profile_application_uses_pinned_cli_fixed_command_and_clean_environment
     """The executor captures output, strips provider secrets, and invokes only fixed db push."""
     manifest = ledger.load_and_validate_manifest()
     target = _planned_target()
-    calls: list[tuple[list[str], dict[str, str]]] = []
+    calls: list[tuple[list[str], dict[str, str], Path]] = []
     projected_workdir: Path | None = None
 
     def runner(command, **kwargs):
         """Capture the fixed child process contract without starting a process."""
         nonlocal projected_workdir
-        calls.append((list(command), dict(kwargs["env"])))
+        assert Path(kwargs["cwd"]).is_dir()
+        calls.append((list(command), dict(kwargs["env"]), Path(kwargs["cwd"])))
         if command[-1] == "--version":
             return subprocess.CompletedProcess(command, 0, stdout=f"{ledger.PINNED_SUPABASE_CLI_VERSION}\n", stderr="")
         projected_workdir = Path(command[command.index("--workdir") + 1])
@@ -563,7 +597,7 @@ def test_profile_application_uses_pinned_cli_fixed_command_and_clean_environment
     ledger.apply_profile_to_database(target, manifest, runner=runner)
 
     assert len(calls) == 2
-    push_command, child_environment = calls[1]
+    push_command, child_environment, private_cwd = calls[1]
     assert push_command[-4:] == ["db", "push", "--db-url", target.database_url]
     assert "--linked" not in push_command
     assert "--project-ref" not in push_command
@@ -571,6 +605,9 @@ def test_profile_application_uses_pinned_cli_fixed_command_and_clean_environment
     assert "PGPASSWORD" not in child_environment
     assert "SUPABASE_PROJECT_REF" not in child_environment
     assert child_environment["SUPABASE_TELEMETRY_DISABLED"] == "1"
+    assert child_environment["HOME"] == child_environment["XDG_CONFIG_HOME"]
+    assert private_cwd == Path(child_environment["SUPABASE_HOME"])
+    assert private_cwd != Path.cwd()
     assert projected_workdir is not None
     assert not projected_workdir.exists()
 
@@ -606,3 +643,44 @@ def test_profile_application_reports_only_bounded_cli_failure_identifiers(monkey
     public_message = str(failure.value)
     assert "protected" not in public_message
     assert "private_database" not in public_message
+
+
+@pytest.mark.parametrize(
+    "address",
+    [
+        "LOCALHOST",
+        "localhost.",
+        "localhost",
+        "db.example",
+        "",
+        "[::1]",
+        "::1%lo",
+        "127.0.0.1,::1",
+        "127.0.0.1%20",
+        "192.0.2.1",
+        "2001:db8::1",
+        "%4cOCALHOST",
+    ],
+)
+def test_numeric_hostaddr_rejects_names_and_malformed_literals(address: str) -> None:
+    """A loopback URI cannot legitimize a named or malformed hostaddr override."""
+    target = _planned_target(database_url="postgresql://operator@localhost/graph?hostaddr=" + address)
+    with pytest.raises(ledger.HostedWriteBarrierError):
+        ledger.assert_profile_write_allowed(target)
+
+
+@pytest.mark.parametrize("address", ["127.0.0.1", "127.2.3.4", "::1"])
+def test_numeric_hostaddr_accepts_only_loopback_literals(address: str) -> None:
+    """IPv4 loopback range and numeric IPv6 loopback remain supported."""
+    ledger.assert_profile_write_allowed(
+        _planned_target(database_url="postgresql://operator@localhost/graph?hostaddr=" + address)
+    )
+
+
+def test_every_repeated_encoded_hostaddr_is_validated() -> None:
+    """Later/encoded query parameters cannot hide a nonnumeric address."""
+    target = _planned_target(
+        database_url="postgresql://operator@localhost/graph?hostaddr=127.0.0.1&%68ostaddr=LOCALHOST"
+    )
+    with pytest.raises(ledger.HostedWriteBarrierError):
+        ledger.assert_profile_write_allowed(target)

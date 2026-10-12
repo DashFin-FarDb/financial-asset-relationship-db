@@ -11,33 +11,48 @@ import os
 import time
 from collections.abc import Iterator
 from contextlib import contextmanager
+from dataclasses import replace
 from pathlib import Path
 from typing import Any
 from unittest.mock import patch
+from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
+from uuid import uuid4
 
 import pytest
+
+from tests.integration.postgresql_disposable_cluster import (
+    ContainerCliRunner,
+    OwnedRoleCursor,
+    allocate_role_names,
+    attested_connection,
+    connect_attested,
+    connect_owned_attested,
+    create_attested_engine,
+    invocation_id,
+    owned_role_oid,
+    record_created_role,
+    role_name_candidate,
+    verify_applied_profile,
+)
 
 psycopg2 = pytest.importorskip("psycopg2")
 from psycopg2 import sql  # noqa: E402  # type: ignore[import-untyped]
 from sqlalchemy import create_engine, event  # noqa: E402
-from sqlalchemy.exc import DBAPIError  # noqa: E402
 
 from src.data.database import (  # noqa: E402
     COORDINATION_RUNTIME_CAPABILITY,
     COORDINATION_RUNTIME_ROLE,
     GRAPH_RUNTIME_CAPABILITY,
     GRAPH_RUNTIME_ROLE,
-    RUNTIME_CAPABILITY_ROLES,
-    CapabilityRoleBootstrapRequiredError,
     SchemaCompatibilityError,
     _verify_runtime_capability_catalog,
-    ensure_runtime_database_capabilities,
-    init_db,
     verify_runtime_database_authority,
 )
 
 _EPHEMERAL_AUTHORITY_FLAG = "FARDB_EPHEMERAL_POSTGRES_AUTHORITY_TESTS"
 _EPHEMERAL_POSTGRES_URL = "FARDB_EPHEMERAL_POSTGRES_URL"
+_ISOLATED_DATABASE_ADMIN_URLS: dict[str, str] = {}
+_DEFERRED_CAPABILITY_ROLE_RESTORATIONS: dict[str, tuple[dict[str, str], set[str]]] = {}
 _CAPABILITY_BOOTSTRAP_SQL = Path(__file__).parents[2] / "scripts" / "bootstrap_database_capability_roles.sql"
 _AUTH_RUNTIME_LOGIN = "fardb_login_auth"
 _AUTH_WRITE_ROLE = "cq1608_auth_writer"
@@ -51,26 +66,29 @@ _GRAPH_REPLICATION_ROLE = "cq1608_graph_replication"
 _GRAPH_OTHER_CAPABILITY_LOGIN = "cq1608_graph_other_capability"
 _GRAPH_SUPERUSER_ROLE = "cq1608_graph_superuser"
 _BOOTSTRAP_MIGRATION_OWNER = "cq1608_bootstrap_migration_owner"
-_BOOTSTRAP_SCHEMA = "cq1608_bootstrap_schema"
 _BOOTSTRAP_UNRELATED_SCHEMA = "cq1608_bootstrap_unrelated_schema"
 _BOOTSTRAP_GRAPH_RUNTIME_LOGIN = "fardb_login_graph"
 _BOOTSTRAP_AUTH_RUNTIME_LOGIN = "fardb_login_auth"
 _MISSING_ROLE_MIGRATION_OWNER = "cq1608_missing_role_owner"
-_MISSING_ROLE_SCHEMA = "cq1608_missing_role_schema"
-_MISSING_GRAPH_ROLE = "cq1608_missing_graph_capability"
-_MISSING_COORDINATION_ROLE = "cq1608_missing_coordination_capability"
 _GRAPH_NO_CAP_RUNTIME_LOGIN = "cq1608_graph_no_cap_runtime"
 _GRAPH_NO_CAP_DIRECT_LOGIN = "cq1608_graph_no_cap_direct"
 _GRAPH_ORDINARY_ROLE = "cq1608_graph_ordinary"
 _GRAPH_EXTRA_RUNTIME_LOGIN = "cq1608_graph_extra_runtime"
 _GRAPH_EXTRA_TRUNCATE_ROLE = "cq1608_graph_extra_truncate"
-_GRAPH_DIRECT_SEQUENCE_LOGIN = "cq1608_graph_direct_sequence"
+_GRAPH_DIRECT_SEQUENCE_LOGIN = "fardb_login_graph"
 _GRAPH_UNRELATED_SCHEMA = "cq1608_graph_unrelated_schema"
 _SEQUENCE_RUNTIME_LOGIN = "cq1608_sequence_runtime"
 _SEQUENCE_OWNER_ROLE = "cq1608_sequence_owner"
 _RUNTIME_LOGIN_DDL = sql.SQL(
     "CREATE ROLE {} LOGIN NOINHERIT NOSUPERUSER NOCREATEDB NOCREATEROLE " "NOBYPASSRLS NOREPLICATION"
 )
+_ORIGINAL_ROLE_NAMES = {
+    name: value
+    for name, value in tuple(globals().items())
+    if name.isupper() and isinstance(value, str) and value.startswith("cq1608_")
+}
+_ALLOCATED_ROLE_NAMES: dict[str, str] | None = None
+_CAPABILITY_BACKUP_OIDS: dict[str, int] = {}
 
 
 def _ephemeral_database_url() -> str:
@@ -83,23 +101,111 @@ def _ephemeral_database_url() -> str:
     assert database_url is not None
     if not database_url.startswith(("postgresql://", "postgres://")):
         pytest.fail(f"{_EPHEMERAL_POSTGRES_URL} must be a PostgreSQL URL")
+    global _ALLOCATED_ROLE_NAMES
+    if _ALLOCATED_ROLE_NAMES is None:
+        with attested_connection(database_url) as connection:
+            _ALLOCATED_ROLE_NAMES = allocate_role_names(connection, _ORIGINAL_ROLE_NAMES)
+        globals().update(_ALLOCATED_ROLE_NAMES)
+    from scripts.postgresql_ledger import PlannedTarget, assert_profile_write_allowed
+
+    target = PlannedTarget(
+        logical_targets=("graph",),
+        profile="graph",
+        lineage="fresh-v1",
+        execution_class="loopback",
+        fingerprint="0" * 64,
+        database_url=database_url,
+    )
+    assert_profile_write_allowed(target)
+    parsed = urlsplit(database_url)
+    query = dict(parse_qsl(parsed.query, keep_blank_values=True))
+    query["sslmode"] = "disable"
+    database_url = urlunsplit((parsed.scheme, parsed.netloc, parsed.path, urlencode(query), parsed.fragment))
+    assert_profile_write_allowed(replace(target, database_url=database_url))
     return database_url
+
+
+@pytest.fixture(autouse=True)
+def _isolated_profile_database(monkeypatch: pytest.MonkeyPatch):
+    """Give each authority test a new disposable database for its exact ledger profile."""
+    if os.getenv(_EPHEMERAL_AUTHORITY_FLAG) != "1":
+        yield
+        return
+    from scripts.postgresql_ledger import PlannedTarget, assert_profile_write_allowed
+
+    base_url = os.environ.get(_EPHEMERAL_POSTGRES_URL)
+    if not base_url:
+        pytest.fail(f"{_EPHEMERAL_POSTGRES_URL} is required when {_EPHEMERAL_AUTHORITY_FLAG}=1")
+    assert base_url is not None
+    target = PlannedTarget(
+        logical_targets=("graph",),
+        profile="graph",
+        lineage="fresh-v1",
+        execution_class="loopback",
+        fingerprint="0" * 64,
+        database_url=base_url,
+    )
+    assert_profile_write_allowed(target)
+    parsed = urlsplit(base_url)
+    query = dict(parse_qsl(parsed.query, keep_blank_values=True))
+    query["sslmode"] = "disable"
+    base_url = urlunsplit((parsed.scheme, parsed.netloc, parsed.path, urlencode(query), parsed.fragment))
+    assert_profile_write_allowed(replace(target, database_url=base_url))
+    database_name = f"fardb_authority_{uuid4().hex}"
+    parsed = urlsplit(base_url)
+    isolated_url = urlunsplit((parsed.scheme, parsed.netloc, f"/{database_name}", parsed.query, parsed.fragment))
+    assert_profile_write_allowed(replace(target, database_url=isolated_url))
+    with _operator_connection(base_url) as connection, connection.cursor() as cursor:
+        cursor.execute(sql.SQL("CREATE DATABASE {}").format(sql.Identifier(database_name)))
+    _ISOLATED_DATABASE_ADMIN_URLS[database_name] = base_url
+    monkeypatch.setenv(_EPHEMERAL_POSTGRES_URL, isolated_url)
+    try:
+        yield
+    finally:
+        with _operator_connection(base_url) as connection, connection.cursor() as cursor:
+            cursor.execute(
+                "SELECT pg_terminate_backend(pid) FROM pg_stat_activity "
+                "WHERE datname = %s AND pid <> pg_backend_pid()",
+                (database_name,),
+            )
+            cursor.execute(sql.SQL("DROP DATABASE IF EXISTS {}").format(sql.Identifier(database_name)))
+        restoration = _DEFERRED_CAPABILITY_ROLE_RESTORATIONS.pop(database_name, None)
+        if restoration is not None:
+            role_backups, moved_roles = restoration
+            _restore_capability_roles(base_url, role_backups, moved_roles)
+        _ISOLATED_DATABASE_ADMIN_URLS.pop(database_name, None)
 
 
 @contextmanager
 def _operator_connection(database_url: str) -> Iterator[Any]:
     """Yield an autocommit operator connection for authority-fixture setup and cleanup."""
-    connection = psycopg2.connect(database_url)
+    connection = connect_owned_attested(database_url)
     connection.autocommit = True
+    canonical_before: set[str]
+    with connection.cursor() as cursor:
+        cursor.execute(
+            "SELECT rolname FROM pg_roles WHERE rolname = ANY(%s)",
+            (["fardb_runtime_auth", "fardb_runtime_graph", "fardb_runtime_coordination"],),
+        )
+        canonical_before = {row[0] for row in cursor.fetchall()}
     try:
         yield connection
     finally:
+        with connection.cursor() as cursor:
+            cursor.execute(
+                "SELECT rolname FROM pg_roles WHERE rolname = ANY(%s)",
+                (["fardb_runtime_auth", "fardb_runtime_graph", "fardb_runtime_coordination"],),
+            )
+            for (name,) in cursor.fetchall():
+                if name not in canonical_before:
+                    record_created_role(connection, name, canonical_test_role=True)
         connection.close()
 
 
 def _runtime_connection(database_url: str, role_name: str, schema_name: str | None = None):
     """Return a connection whose session authorization is the requested runtime role."""
-    connection = psycopg2.connect(database_url)
+    connection = connect_attested(database_url)
+    connection.cursor_factory = OwnedRoleCursor
     connection.autocommit = True
     with connection.cursor() as cursor:
         cursor.execute(sql.SQL("SET SESSION AUTHORIZATION {}").format(sql.Identifier(role_name)))
@@ -109,10 +215,94 @@ def _runtime_connection(database_url: str, role_name: str, schema_name: str | No
     return connection
 
 
+@pytest.mark.integration
+def test_preexisting_role_collision_is_not_modified_or_adopted() -> None:
+    """A colliding role and its membership state remain intact during allocation."""
+    database_url = _ephemeral_database_url()
+    collision_name = role_name_candidate("collision", "sentinel_role")
+    grantee_name = f"fdbt_{invocation_id()}_sentinel_grantee_{uuid4().hex[:8]}"
+    connection = connect_attested(database_url)
+    role_oid = grantee_oid = None
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute(
+                sql.SQL("CREATE ROLE {} LOGIN CREATEROLE NOCREATEDB INHERIT CONNECTION LIMIT 7").format(
+                    sql.Identifier(collision_name)
+                )
+            )
+            cursor.execute(sql.SQL("CREATE ROLE {} NOLOGIN").format(sql.Identifier(grantee_name)))
+            cursor.execute("SELECT oid FROM pg_roles WHERE rolname = %s", (collision_name,))
+            role_oid = int(cursor.fetchone()[0])
+            cursor.execute("SELECT oid FROM pg_roles WHERE rolname = %s", (grantee_name,))
+            grantee_oid = int(cursor.fetchone()[0])
+            cursor.execute(
+                sql.SQL("GRANT {} TO {} WITH ADMIN OPTION").format(
+                    sql.Identifier(grantee_name),
+                    sql.Identifier(collision_name),
+                )
+            )
+
+        before = _role_and_membership_snapshot(connection, role_oid)
+        allocated = allocate_role_names(connection, {"collision": "sentinel_role"})["collision"]
+        assert allocated != collision_name
+        assert _role_and_membership_snapshot(connection, role_oid) == before
+    finally:
+        try:
+            with connection.cursor() as cursor:
+                if role_oid is not None:
+                    cursor.execute("SELECT oid FROM pg_roles WHERE rolname = %s", (collision_name,))
+                    current = cursor.fetchone()
+                    assert current is not None and int(current[0]) == role_oid
+                if grantee_oid is not None:
+                    cursor.execute("SELECT oid FROM pg_roles WHERE rolname = %s", (grantee_name,))
+                    current = cursor.fetchone()
+                    assert current is not None and int(current[0]) == grantee_oid
+                    cursor.execute(
+                        sql.SQL("REVOKE {} FROM {}").format(
+                            sql.Identifier(grantee_name),
+                            sql.Identifier(collision_name),
+                        )
+                    )
+                    cursor.execute(sql.SQL("DROP ROLE {}").format(sql.Identifier(collision_name)))
+                    cursor.execute(sql.SQL("DROP ROLE {}").format(sql.Identifier(grantee_name)))
+        finally:
+            connection.close()
+
+
+def _role_and_membership_snapshot(connection, role_oid: int) -> tuple[tuple, tuple]:
+    """Capture role attributes and all memberships touching the colliding role."""
+    with connection.cursor() as cursor:
+        cursor.execute(
+            "SELECT rolcanlogin, rolsuper, rolcreatedb, rolcreaterole, rolbypassrls, rolreplication, "
+            "rolinherit, rolconnlimit, rolvaliduntil, rolconfig FROM pg_roles WHERE oid = %s",
+            (role_oid,),
+        )
+        attributes = cursor.fetchone()
+        cursor.execute(
+            "SELECT roleid, member, grantor, admin_option"
+            + (", inherit_option, set_option" if connection.server_version >= 160000 else "")
+            + " FROM pg_auth_members "
+            "WHERE roleid = %s OR member = %s ORDER BY roleid, member, grantor",
+            (role_oid, role_oid),
+        )
+        memberships = tuple(cursor.fetchall())
+    return attributes, memberships
+
+
+def _grant_usable_membership(cursor, capability_role: str, login_name: str) -> None:
+    """Retain native membership semantics on each supported PostgreSQL version."""
+    options = " WITH INHERIT TRUE, SET TRUE" if cursor.connection.server_version >= 160000 else ""
+    cursor.execute(
+        sql.SQL("GRANT {} TO {}" + options).format(sql.Identifier(capability_role), sql.Identifier(login_name))
+    )
+
+
 def _drop_roles(database_url: str, *role_names: str) -> None:
     """Drop disposable authority-test roles after their object grants have been removed."""
     with _operator_connection(database_url) as connection, connection.cursor() as cursor:
         for role_name in role_names:
+            if owned_role_oid(role_name) is None:
+                continue
             cursor.execute(sql.SQL("DROP ROLE IF EXISTS {}").format(sql.Identifier(role_name)))
 
 
@@ -169,9 +359,9 @@ def _move_capability_roles_aside(database_url: str) -> tuple[dict[str, str], set
     import api.database as api_database
 
     role_backups = {
-        api_database.AUTH_RUNTIME_ROLE: "cq1608_saved_runtime_auth",
-        GRAPH_RUNTIME_ROLE: "cq1608_saved_runtime_graph",
-        COORDINATION_RUNTIME_ROLE: "cq1608_saved_runtime_coordination",
+        api_database.AUTH_RUNTIME_ROLE: f"fdbt_{invocation_id()}_saved_auth_{uuid4().hex[:8]}",
+        GRAPH_RUNTIME_ROLE: f"fdbt_{invocation_id()}_saved_graph_{uuid4().hex[:8]}",
+        COORDINATION_RUNTIME_ROLE: f"fdbt_{invocation_id()}_saved_coord_{uuid4().hex[:8]}",
     }
     moved: set[str] = set()
     with _operator_connection(database_url) as connection, connection.cursor() as cursor:
@@ -181,6 +371,8 @@ def _move_capability_roles_aside(database_url: str) -> tuple[dict[str, str], set
                 pytest.fail(f"disposable PostgreSQL contains stale bootstrap backup role {backup}")
             cursor.execute("SELECT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = %s)", (original,))
             if cursor.fetchone()[0]:
+                cursor.execute("SELECT oid FROM pg_roles WHERE rolname = %s", (original,))
+                _CAPABILITY_BACKUP_OIDS[backup] = int(cursor.fetchone()[0])
                 cursor.execute(
                     sql.SQL("ALTER ROLE {} RENAME TO {}").format(
                         sql.Identifier(original),
@@ -203,6 +395,11 @@ def _restore_capability_roles(
                 cursor.execute(sql.SQL("DROP ROLE IF EXISTS {}").format(sql.Identifier(original)))
         for original, backup in role_backups.items():
             if original in moved:
+                expected_oid = _CAPABILITY_BACKUP_OIDS.get(backup)
+                cursor.execute("SELECT oid FROM pg_roles WHERE rolname = %s", (backup,))
+                backup_row = cursor.fetchone()
+                if expected_oid is None or backup_row is None or int(backup_row[0]) != expected_oid:
+                    raise RuntimeError("capability role name/OID changed before prior-state restoration")
                 cursor.execute(sql.SQL("DROP ROLE IF EXISTS {}").format(sql.Identifier(original)))
                 cursor.execute(
                     sql.SQL("ALTER ROLE {} RENAME TO {}").format(
@@ -210,6 +407,7 @@ def _restore_capability_roles(
                         sql.Identifier(original),
                     )
                 )
+                _CAPABILITY_BACKUP_OIDS.pop(backup, None)
 
 
 def _prepare_auth_schema(database_url: str) -> None:
@@ -218,7 +416,12 @@ def _prepare_auth_schema(database_url: str) -> None:
 
 
 def _apply_auth_ledger(database_url: str) -> None:
-    """Apply capability bootstrap SQL and the auth ledger migration to disposable PostgreSQL."""
+    """Apply capability bootstrap SQL and one selected profile ledger to disposable PostgreSQL."""
+    _apply_ledger_profile(database_url, "auth")
+
+
+def _apply_ledger_profile(database_url: str, profile: str) -> None:
+    """Provision schema only through the selected validated profile ledger."""
     from scripts.postgresql_ledger import PlannedTarget, apply_profile_to_database, load_and_validate_manifest
 
     with _operator_connection(database_url) as connection, connection.cursor() as cursor:
@@ -226,14 +429,16 @@ def _apply_auth_ledger(database_url: str) -> None:
 
     manifest = load_and_validate_manifest()
     target = PlannedTarget(
-        logical_targets=("auth",),
-        profile="auth",
+        logical_targets=(profile,),
+        profile=profile,
         lineage="fresh-v1",
         execution_class="loopback",
         fingerprint="0" * 64,
         database_url=database_url,
     )
-    apply_profile_to_database(target, manifest)
+    with ContainerCliRunner(database_url) as runner:
+        apply_profile_to_database(target, manifest, runner=runner)
+    verify_applied_profile(database_url, manifest, profile)
 
 
 @pytest.mark.integration
@@ -260,9 +465,6 @@ def test_auth_runtime_uses_only_inherited_or_settable_membership_paths() -> None
     _prepare_auth_schema(database_url)
     import api.database as api_database
 
-    with api_database.bind_database_url(database_url):
-        api_database.ensure_runtime_access()
-
     def _verify_runtime(error: str | None = None) -> None:
         """Verify the disposable auth login with an optional expected failure."""
         with (
@@ -270,7 +472,7 @@ def test_auth_runtime_uses_only_inherited_or_settable_membership_paths() -> None
             patch.object(
                 api_database,
                 "_create_postgres_connection",
-                side_effect=lambda: _runtime_connection(database_url, _AUTH_RUNTIME_LOGIN),
+                side_effect=lambda **_kwargs: _runtime_connection(database_url, _AUTH_RUNTIME_LOGIN),
             ),
         ):
             if error is None:
@@ -414,7 +616,7 @@ def test_auth_runtime_rejects_assumable_privileged_roles(attack_role: str) -> No
             patch.object(
                 api_database,
                 "_create_postgres_connection",
-                side_effect=lambda: _runtime_connection(database_url, _AUTH_RUNTIME_LOGIN),
+                side_effect=lambda **_kwargs: _runtime_connection(database_url, _AUTH_RUNTIME_LOGIN),
             ),
             pytest.raises(SchemaCompatibilityError, match="retains schema-migration authority"),
         ):
@@ -437,9 +639,6 @@ def test_auth_runtime_rejects_unexpected_assumable_ordinary_role() -> None:
     _prepare_auth_schema(database_url)
 
     import api.database as api_database
-
-    with api_database.bind_database_url(database_url):
-        api_database.ensure_runtime_access()
 
     try:
         with _operator_connection(database_url) as connection, connection.cursor() as cursor:
@@ -468,7 +667,7 @@ def test_auth_runtime_rejects_unexpected_assumable_ordinary_role() -> None:
             patch.object(
                 api_database,
                 "_create_postgres_connection",
-                side_effect=lambda: _runtime_connection(database_url, _AUTH_RUNTIME_LOGIN),
+                side_effect=lambda **_kwargs: _runtime_connection(database_url, _AUTH_RUNTIME_LOGIN),
             ),
             pytest.raises(SchemaCompatibilityError, match="capability memberships are incompatible"),
         ):
@@ -483,9 +682,6 @@ def test_auth_runtime_rejects_capability_create_on_non_current_schema() -> None:
     database_url = _ephemeral_database_url()
     _prepare_auth_schema(database_url)
     import api.database as api_database
-
-    with api_database.bind_database_url(database_url):
-        api_database.ensure_runtime_access()
 
     try:
         with _operator_connection(database_url) as connection, connection.cursor() as cursor:
@@ -508,16 +704,16 @@ def test_auth_runtime_rejects_capability_create_on_non_current_schema() -> None:
 
         with (
             api_database.bind_database_url(database_url),
-            pytest.raises(psycopg2.Error, match="unsafe FarDB capability role"),
+            pytest.raises(SchemaCompatibilityError, match="API runtime capability contract is incompatible"),
         ):
-            api_database.ensure_runtime_access()
+            api_database.verify_runtime_access_catalog()
 
         with (
             patch.object(api_database, "DATABASE_TYPE", "postgresql"),
             patch.object(
                 api_database,
                 "_create_postgres_connection",
-                side_effect=lambda: _runtime_connection(database_url, _AUTH_RUNTIME_LOGIN),
+                side_effect=lambda **_kwargs: _runtime_connection(database_url, _AUTH_RUNTIME_LOGIN),
             ),
             pytest.raises(SchemaCompatibilityError, match="retains schema-migration authority"),
         ):
@@ -534,9 +730,6 @@ def test_auth_runtime_rejects_inert_creator_admin_option() -> None:
     _prepare_auth_schema(database_url)
 
     import api.database as api_database
-
-    with api_database.bind_database_url(database_url):
-        api_database.ensure_runtime_access()
 
     try:
         with _operator_connection(database_url) as connection, connection.cursor() as cursor:
@@ -563,16 +756,16 @@ def test_auth_runtime_rejects_inert_creator_admin_option() -> None:
 
         with (
             api_database.bind_database_url(database_url),
-            pytest.raises(psycopg2.Error, match="unsafe FarDB capability role"),
+            pytest.raises(SchemaCompatibilityError, match="API runtime capability contract is incompatible"),
         ):
-            api_database.ensure_runtime_access()
+            api_database.verify_runtime_access_catalog()
 
         with (
             patch.object(api_database, "DATABASE_TYPE", "postgresql"),
             patch.object(
                 api_database,
                 "_create_postgres_connection",
-                side_effect=lambda: _runtime_connection(database_url, _AUTH_RUNTIME_LOGIN),
+                side_effect=lambda **_kwargs: _runtime_connection(database_url, _AUTH_RUNTIME_LOGIN),
             ),
             pytest.raises(SchemaCompatibilityError, match="capability contract is incompatible"),
         ):
@@ -589,7 +782,7 @@ def test_db_owner_admin_option_accepted_for_capability_roles() -> None:
 
     import api.database as api_database
 
-    non_owner_role = "cq1608_non_owner_admin"
+    non_owner_role = f"fdbt_{invocation_id()}_non_owner_{uuid4().hex[:8]}"
     db_owner: str | None = None
     owner_membership_grantor: str | None = None
     owner_membership_before: tuple[bool, bool, bool] | None = None
@@ -599,8 +792,6 @@ def test_db_owner_admin_option_accepted_for_capability_roles() -> None:
             cursor.execute("SHOW server_version_num")
             if int(cursor.fetchone()[0]) < 160000:
                 pytest.skip("per-membership INHERIT and SET options require PostgreSQL 16+")
-            cursor.execute(sql.SQL("DROP ROLE IF EXISTS {}").format(sql.Identifier(_AUTH_RUNTIME_LOGIN)))
-            cursor.execute(sql.SQL("DROP ROLE IF EXISTS {}").format(sql.Identifier(non_owner_role)))
             runtime_login_ddl = sql.SQL(
                 "CREATE ROLE {} LOGIN INHERIT NOSUPERUSER NOCREATEDB " "NOCREATEROLE NOBYPASSRLS NOREPLICATION"
             )
@@ -645,7 +836,7 @@ def test_db_owner_admin_option_accepted_for_capability_roles() -> None:
             patch.object(
                 api_database,
                 "_create_postgres_connection",
-                side_effect=lambda: _runtime_connection(database_url, _AUTH_RUNTIME_LOGIN),
+                side_effect=lambda **_kwargs: _runtime_connection(database_url, _AUTH_RUNTIME_LOGIN),
             ),
         ):
             api_database.verify_runtime_authority()
@@ -669,13 +860,15 @@ def test_db_owner_admin_option_accepted_for_capability_roles() -> None:
             patch.object(
                 api_database,
                 "_create_postgres_connection",
-                side_effect=lambda: _runtime_connection(database_url, _AUTH_RUNTIME_LOGIN),
+                side_effect=lambda **_kwargs: _runtime_connection(database_url, _AUTH_RUNTIME_LOGIN),
             ),
             pytest.raises(SchemaCompatibilityError, match="capability contract is incompatible"),
         ):
             api_database.verify_runtime_authority()
     finally:
         try:
+            _drop_roles(database_url, _AUTH_RUNTIME_LOGIN, non_owner_role)
+        finally:
             if db_owner is not None and owner_membership_grantor is not None and owner_membership_captured:
                 _restore_capability_membership(
                     database_url,
@@ -684,8 +877,6 @@ def test_db_owner_admin_option_accepted_for_capability_roles() -> None:
                     owner_membership_grantor,
                     owner_membership_before,
                 )
-        finally:
-            _drop_roles(database_url, _AUTH_RUNTIME_LOGIN, non_owner_role)
 
     if db_owner is not None and owner_membership_grantor is not None and owner_membership_captured:
         with _operator_connection(database_url) as connection, connection.cursor() as cursor:
@@ -704,49 +895,36 @@ def test_db_owner_admin_option_accepted_for_capability_roles() -> None:
 
 @pytest.mark.integration
 def test_non_superuser_migration_owner_cannot_create_missing_capability_role() -> None:
-    """A CREATEROLE migration owner must stop before creating a missing capability role."""
+    """A CREATEROLE migration owner cannot run the superuser-only capability bootstrap."""
     database_url = _ephemeral_database_url()
-    migration_engine = None
+    role_backups: dict[str, str] = {}
+    moved_roles: set[str] = set()
     capability_roles = {
-        GRAPH_RUNTIME_CAPABILITY: _MISSING_GRAPH_ROLE,
-        COORDINATION_RUNTIME_CAPABILITY: _MISSING_COORDINATION_ROLE,
+        GRAPH_RUNTIME_CAPABILITY: GRAPH_RUNTIME_ROLE,
+        COORDINATION_RUNTIME_CAPABILITY: COORDINATION_RUNTIME_ROLE,
     }
 
     try:
+        _apply_ledger_profile(database_url, "graph")
+        role_backups, moved_roles = _move_capability_roles_aside(database_url)
         with _operator_connection(database_url) as connection, connection.cursor() as cursor:
-            cursor.execute("SHOW server_version_num")
-            if int(cursor.fetchone()[0]) < 160000:
-                pytest.skip("PostgreSQL 16 capability-role bootstrap regression")
             cursor.execute(
                 sql.SQL("CREATE ROLE {} LOGIN NOSUPERUSER NOCREATEDB CREATEROLE " "NOBYPASSRLS NOREPLICATION").format(
                     sql.Identifier(_MISSING_ROLE_MIGRATION_OWNER)
                 )
             )
-            cursor.execute(
-                sql.SQL("CREATE SCHEMA {} AUTHORIZATION {}").format(
-                    sql.Identifier(_MISSING_ROLE_SCHEMA),
-                    sql.Identifier(_MISSING_ROLE_MIGRATION_OWNER),
-                )
-            )
-
-        migration_engine = create_engine(
-            "postgresql+psycopg2://",
-            creator=lambda: _runtime_connection(
-                database_url,
-                _MISSING_ROLE_MIGRATION_OWNER,
-                _MISSING_ROLE_SCHEMA,
-            ),
-            future=True,
-        )
-        init_db(migration_engine)
-        with (
-            patch.dict(RUNTIME_CAPABILITY_ROLES, capability_roles, clear=True),
-            pytest.raises(
-                CapabilityRoleBootstrapRequiredError,
-                match="bootstrap_database_capability_roles.sql as a PostgreSQL superuser",
-            ),
-        ):
-            ensure_runtime_database_capabilities(migration_engine, {GRAPH_RUNTIME_CAPABILITY})
+        migration_owner = _runtime_connection(database_url, _MISSING_ROLE_MIGRATION_OWNER)
+        try:
+            with (
+                migration_owner.cursor() as cursor,
+                pytest.raises(
+                    psycopg2.Error,
+                    match="FarDB capability-role bootstrap requires a PostgreSQL superuser",
+                ),
+            ):
+                cursor.execute(_CAPABILITY_BOOTSTRAP_SQL.read_text(encoding="utf-8"))
+        finally:
+            migration_owner.close()
 
         with _operator_connection(database_url) as connection, connection.cursor() as cursor:
             cursor.execute(
@@ -755,22 +933,15 @@ def test_non_superuser_migration_owner_cannot_create_missing_capability_role() -
             )
             assert cursor.fetchone()[0] == 0
     finally:
-        if migration_engine is not None:
-            migration_engine.dispose()
-        _drop_schema(database_url, _MISSING_ROLE_SCHEMA)
-        _drop_roles(
-            database_url,
-            _MISSING_GRAPH_ROLE,
-            _MISSING_COORDINATION_ROLE,
-            _MISSING_ROLE_MIGRATION_OWNER,
-        )
+        _drop_roles(database_url, _MISSING_ROLE_MIGRATION_OWNER)
+        if role_backups:
+            _restore_capability_roles(database_url, role_backups, moved_roles)
 
 
 @pytest.mark.integration
 def test_superuser_bootstrap_enables_least_privilege_migration_and_runtime_verification() -> None:
     """Bootstrap creates safe roles consumed by migration and restricted runtimes."""
     database_url = _ephemeral_database_url()
-    migration_engine = None
     graph_runtime_engine = None
     role_backups: dict[str, str] = {}
     moved_roles: set[str] = set()
@@ -833,43 +1004,10 @@ def test_superuser_bootstrap_enables_least_privilege_migration_and_runtime_verif
                 (GRAPH_RUNTIME_ROLE, _BOOTSTRAP_MIGRATION_OWNER),
             )
             assert cursor.fetchone()[0] == 0
-            cursor.execute(
-                sql.SQL("CREATE SCHEMA {} AUTHORIZATION {}").format(
-                    sql.Identifier(_BOOTSTRAP_SCHEMA),
-                    sql.Identifier(_BOOTSTRAP_MIGRATION_OWNER),
-                )
-            )
-
-        migration_engine = create_engine(
-            "postgresql+psycopg2://",
-            creator=lambda: _runtime_connection(
-                database_url,
-                _BOOTSTRAP_MIGRATION_OWNER,
-                _BOOTSTRAP_SCHEMA,
-            ),
-            future=True,
-        )
-        init_db(migration_engine)
         capabilities = {GRAPH_RUNTIME_CAPABILITY, COORDINATION_RUNTIME_CAPABILITY}
-        ensure_runtime_database_capabilities(migration_engine, capabilities)
+        _apply_ledger_profile(database_url, "combined")
 
         import api.database as api_database
-
-        with (
-            api_database.bind_database_url(database_url),
-            patch.object(
-                api_database,
-                "_create_postgres_connection",
-                side_effect=lambda: _runtime_connection(
-                    database_url,
-                    _BOOTSTRAP_MIGRATION_OWNER,
-                    _BOOTSTRAP_SCHEMA,
-                ),
-            ),
-        ):
-            api_database.initialize_schema()
-            api_database.ensure_runtime_access()
-            api_database.verify_schema_compatibility()
 
         with _operator_connection(database_url) as connection, connection.cursor() as cursor:
             cursor.execute(_RUNTIME_LOGIN_DDL.format(sql.Identifier(_BOOTSTRAP_GRAPH_RUNTIME_LOGIN)))
@@ -893,7 +1031,6 @@ def test_superuser_bootstrap_enables_least_privilege_migration_and_runtime_verif
             creator=lambda: _runtime_connection(
                 database_url,
                 _BOOTSTRAP_GRAPH_RUNTIME_LOGIN,
-                _BOOTSTRAP_SCHEMA,
             ),
             future=True,
         )
@@ -906,20 +1043,18 @@ def test_superuser_bootstrap_enables_least_privilege_migration_and_runtime_verif
             patch.object(
                 api_database,
                 "_create_postgres_connection",
-                side_effect=lambda: _runtime_connection(
+                side_effect=lambda **_kwargs: _runtime_connection(
                     database_url,
                     _BOOTSTRAP_AUTH_RUNTIME_LOGIN,
-                    _BOOTSTRAP_SCHEMA,
                 ),
             ),
         ):
+            api_database.verify_schema_compatibility()
+            api_database.verify_runtime_access_catalog()
             api_database.verify_runtime_authority()
     finally:
         if graph_runtime_engine is not None:
             graph_runtime_engine.dispose()
-        if migration_engine is not None:
-            migration_engine.dispose()
-        _drop_schema(database_url, _BOOTSTRAP_SCHEMA)
         _drop_roles(
             database_url,
             _BOOTSTRAP_GRAPH_RUNTIME_LOGIN,
@@ -927,7 +1062,10 @@ def test_superuser_bootstrap_enables_least_privilege_migration_and_runtime_verif
             _BOOTSTRAP_MIGRATION_OWNER,
         )
         if role_backups:
-            _restore_capability_roles(database_url, role_backups, moved_roles)
+            database_name = urlsplit(database_url).path.lstrip("/")
+            if database_name not in _ISOLATED_DATABASE_ADMIN_URLS:
+                pytest.fail("isolated database role restoration target is unavailable")
+            _DEFERRED_CAPABILITY_ROLE_RESTORATIONS[database_name] = (role_backups, moved_roles)
 
 
 @pytest.mark.integration
@@ -966,12 +1104,11 @@ def test_capability_bootstrap_rejects_create_on_non_current_schema() -> None:
 def test_graph_runtime_rejects_capability_create_on_non_current_schema() -> None:
     """Graph provisioning, catalog, and startup reject CREATE on any schema."""
     database_url = _ephemeral_database_url()
-    operator_engine = create_engine(database_url, future=True)
+    operator_engine = create_attested_engine(database_url, future=True)
     runtime_engine = None
 
     try:
-        init_db(operator_engine)
-        ensure_runtime_database_capabilities(operator_engine, {GRAPH_RUNTIME_CAPABILITY})
+        _apply_ledger_profile(database_url, "graph")
 
         with _operator_connection(database_url) as connection, connection.cursor() as cursor:
             cursor.execute(_RUNTIME_LOGIN_DDL.format(sql.Identifier(_GRAPH_EXTRA_RUNTIME_LOGIN)))
@@ -990,9 +1127,6 @@ def test_graph_runtime_rejects_capability_create_on_non_current_schema() -> None
                     sql.Identifier(GRAPH_RUNTIME_ROLE),
                 )
             )
-
-        with pytest.raises(DBAPIError, match="unsafe FarDB capability role"):
-            ensure_runtime_database_capabilities(operator_engine, {GRAPH_RUNTIME_CAPABILITY})
 
         with (
             operator_engine.connect() as connection,
@@ -1022,12 +1156,11 @@ def test_graph_runtime_rejects_capability_create_on_non_current_schema() -> None
 def test_runtime_database_authority_rejects_capability_reachable_through_superuser_role() -> None:
     """A login may not reach a capability through an intermediate superuser role."""
     database_url = _ephemeral_database_url()
-    operator_engine = create_engine(database_url, future=True)
+    operator_engine = create_attested_engine(database_url, future=True)
     runtime_engine = None
 
     try:
-        init_db(operator_engine)
-        ensure_runtime_database_capabilities(operator_engine, {GRAPH_RUNTIME_CAPABILITY})
+        _apply_ledger_profile(database_url, "graph")
 
         with _operator_connection(database_url) as connection, connection.cursor() as cursor:
             cursor.execute("SHOW server_version_num")
@@ -1058,9 +1191,6 @@ def test_runtime_database_authority_rejects_capability_reachable_through_superus
                     sql.Identifier(_GRAPH_SUPERUSER_ROLE),
                 )
             )
-
-        with pytest.raises(DBAPIError, match="unsafe FarDB capability role"):
-            ensure_runtime_database_capabilities(operator_engine, {GRAPH_RUNTIME_CAPABILITY})
 
         with (
             operator_engine.connect() as connection,
@@ -1095,12 +1225,11 @@ def test_runtime_database_authority_rejects_capability_reachable_through_superus
 def test_runtime_database_authority_rejects_unsafe_capability_grantee(membership_posture: str) -> None:
     """No other login may delegate or use an application capability."""
     database_url = _ephemeral_database_url()
-    operator_engine = create_engine(database_url, future=True)
+    operator_engine = create_attested_engine(database_url, future=True)
     runtime_engine = None
 
     try:
-        init_db(operator_engine)
-        ensure_runtime_database_capabilities(operator_engine, {GRAPH_RUNTIME_CAPABILITY})
+        _apply_ledger_profile(database_url, "graph")
 
         with _operator_connection(database_url) as connection, connection.cursor() as cursor:
             cursor.execute("SHOW server_version_num")
@@ -1129,9 +1258,6 @@ def test_runtime_database_authority_rejects_unsafe_capability_grantee(membership
                     membership_options,
                 )
             )
-
-        with pytest.raises(DBAPIError, match="unsafe FarDB capability role"):
-            ensure_runtime_database_capabilities(operator_engine, {GRAPH_RUNTIME_CAPABILITY})
 
         with (
             operator_engine.connect() as connection,
@@ -1163,8 +1289,9 @@ def test_runtime_database_authority_rejects_unsafe_capability_grantee(membership
 def test_capability_catalog_verification_has_bounded_round_trips() -> None:
     """The full two-capability grant matrix must remain set-based."""
     database_url = _ephemeral_database_url()
-    operator_engine = create_engine(database_url, future=True)
+    operator_engine = create_attested_engine(database_url, future=True)
     statement_count = 0
+    runtime_login_created = False
 
     def _count_statement(*_args, **_kwargs) -> None:
         """Count driver executions inside the focused catalog verification window."""
@@ -1172,9 +1299,12 @@ def test_capability_catalog_verification_has_bounded_round_trips() -> None:
         statement_count += 1
 
     try:
-        init_db(operator_engine)
-        capabilities = {GRAPH_RUNTIME_CAPABILITY, COORDINATION_RUNTIME_CAPABILITY}
-        ensure_runtime_database_capabilities(operator_engine, capabilities)
+        _apply_ledger_profile(database_url, "combined")
+        with _operator_connection(database_url) as connection, connection.cursor() as cursor:
+            cursor.execute(_RUNTIME_LOGIN_DDL.format(sql.Identifier(_BOOTSTRAP_GRAPH_RUNTIME_LOGIN)))
+            runtime_login_created = True
+            for role_name in (GRAPH_RUNTIME_ROLE, COORDINATION_RUNTIME_ROLE):
+                _grant_usable_membership(cursor, role_name, _BOOTSTRAP_GRAPH_RUNTIME_LOGIN)
         event.listen(operator_engine, "before_cursor_execute", _count_statement)
         with operator_engine.connect() as connection:
             _verify_runtime_capability_catalog(
@@ -1185,6 +1315,8 @@ def test_capability_catalog_verification_has_bounded_round_trips() -> None:
     finally:
         if event.contains(operator_engine, "before_cursor_execute", _count_statement):
             event.remove(operator_engine, "before_cursor_execute", _count_statement)
+        if runtime_login_created:
+            _drop_roles(database_url, _BOOTSTRAP_GRAPH_RUNTIME_LOGIN)
         operator_engine.dispose()
 
 
@@ -1199,12 +1331,11 @@ def test_capability_catalog_rejects_managed_relation_ownership(
 ) -> None:
     """Migration verification rejects capability-owned tables and linked sequences."""
     database_url = _ephemeral_database_url()
-    operator_engine = create_engine(database_url, future=True)
+    operator_engine = create_attested_engine(database_url, future=True)
     original_owner: str | None = None
 
     try:
-        init_db(operator_engine)
-        ensure_runtime_database_capabilities(operator_engine, {GRAPH_RUNTIME_CAPABILITY})
+        _apply_ledger_profile(database_url, "graph")
 
         with _operator_connection(database_url) as connection, connection.cursor() as cursor:
             cursor.execute(
@@ -1251,8 +1382,8 @@ def test_capability_catalog_rejects_managed_relation_ownership(
 @pytest.mark.parametrize(
     ("assumable_role", "role_attribute", "expected_error"),
     [
-        (_GRAPH_ORDINARY_ROLE, "NOREPLICATION", "capability memberships are incompatible"),
-        (_GRAPH_REPLICATION_ROLE, "REPLICATION", "retains schema-migration authority"),
+        ("ordinary", "NOREPLICATION", "capability memberships are incompatible"),
+        ("replication", "REPLICATION", "retains schema-migration authority"),
     ],
 )
 def test_runtime_database_authority_rejects_unexpected_assumable_role_without_capabilities(
@@ -1262,6 +1393,7 @@ def test_runtime_database_authority_rejects_unexpected_assumable_role_without_ca
 ) -> None:
     """A no-capability runtime login may not retain any assumable role membership."""
     database_url = _ephemeral_database_url()
+    assumable_role = _GRAPH_ORDINARY_ROLE if assumable_role == "ordinary" else _GRAPH_REPLICATION_ROLE
     runtime_engine = None
     try:
         with _operator_connection(database_url) as connection, connection.cursor() as cursor:
@@ -1299,13 +1431,12 @@ def test_runtime_database_authority_rejects_unexpected_assumable_role_without_ca
 def test_runtime_database_authority_enforces_zero_managed_privileges_without_capabilities() -> None:
     """A no-capability login may hold no managed table, column, or sequence privilege."""
     database_url = _ephemeral_database_url()
-    operator_engine = create_engine(database_url, future=True)
+    operator_engine = create_attested_engine(database_url, future=True)
     runtime_engine = None
     sequence_name: str | None = None
 
     try:
-        init_db(operator_engine)
-        ensure_runtime_database_capabilities(operator_engine, {COORDINATION_RUNTIME_CAPABILITY})
+        _apply_ledger_profile(database_url, "combined")
         with _operator_connection(database_url) as connection, connection.cursor() as cursor:
             cursor.execute(_RUNTIME_LOGIN_DDL.format(sql.Identifier(_GRAPH_NO_CAP_DIRECT_LOGIN)))
             cursor.execute("SELECT pg_get_serial_sequence('asset_relationships', 'id')")
@@ -1334,7 +1465,7 @@ def test_runtime_database_authority_enforces_zero_managed_privileges_without_cap
             cursor.execute(
                 sql.SQL("GRANT UPDATE (price) ON TABLE assets TO {}").format(sql.Identifier(_GRAPH_NO_CAP_DIRECT_LOGIN))
             )
-        with pytest.raises(SchemaCompatibilityError, match="runtime login column grants are incompatible on assets"):
+        with pytest.raises(SchemaCompatibilityError, match="runtime login grants are incompatible on assets"):
             verify_runtime_database_authority(runtime_engine)
         with _operator_connection(database_url) as connection, connection.cursor() as cursor:
             cursor.execute(
@@ -1348,7 +1479,9 @@ def test_runtime_database_authority_enforces_zero_managed_privileges_without_cap
                     sql.Identifier(_GRAPH_NO_CAP_DIRECT_LOGIN),
                 )
             )
-        with pytest.raises(SchemaCompatibilityError, match="runtime login sequence grants are incompatible"):
+        with pytest.raises(
+            SchemaCompatibilityError, match="runtime login grants are incompatible on asset_relationships"
+        ):
             verify_runtime_database_authority(runtime_engine)
     finally:
         if runtime_engine is not None:
@@ -1384,12 +1517,8 @@ def test_runtime_database_authority_rejects_unexpected_assumable_truncate_role()
     extra_role_created = False
 
     try:
-        operator_engine = create_engine(database_url, future=True)
-        init_db(operator_engine)
-        ensure_runtime_database_capabilities(
-            operator_engine,
-            {GRAPH_RUNTIME_CAPABILITY},
-        )
+        operator_engine = create_attested_engine(database_url, future=True)
+        _apply_ledger_profile(database_url, "graph")
 
         with _operator_connection(database_url) as connection, connection.cursor() as cursor:
             cursor.execute(_RUNTIME_LOGIN_DDL.format(sql.Identifier(_GRAPH_EXTRA_RUNTIME_LOGIN)))
@@ -1463,12 +1592,8 @@ def test_runtime_database_authority_rejects_direct_sequence_update_grant() -> No
     sequence_name: str | None = None
 
     try:
-        operator_engine = create_engine(database_url, future=True)
-        init_db(operator_engine)
-        ensure_runtime_database_capabilities(
-            operator_engine,
-            {GRAPH_RUNTIME_CAPABILITY},
-        )
+        operator_engine = create_attested_engine(database_url, future=True)
+        _apply_ledger_profile(database_url, "graph")
 
         with _operator_connection(database_url) as connection, connection.cursor() as cursor:
             runtime_login_ddl = sql.SQL(
@@ -1537,8 +1662,8 @@ def test_runtime_database_authority_rejects_direct_sequence_update_grant() -> No
 def test_runtime_database_authority_executes_against_linked_application_sequence() -> None:
     """Exercise the sequence-ownership catalog path against live PostgreSQL."""
     database_url = _ephemeral_database_url()
-    operator_engine = create_engine(database_url, future=True)
-    init_db(operator_engine)
+    operator_engine = create_attested_engine(database_url, future=True)
+    _apply_ledger_profile(database_url, "graph")
 
     original_owner: str | None = None
     runtime_engine = None
