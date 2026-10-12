@@ -1,0 +1,44 @@
+api/assertion_models.py
+  h_f327e6ff3ec3c1 6,195-238
+api/routers/assertions.py
+  h_f327e6ff3ec3c1 15,579-580,585,587-588,602,619
+api/routers/visualization.py
+  h_f327e6ff3ec3c1 11,13,18,136-143,171-175
+api/services/relationship_index.py
+  h_f327e6ff3ec3c1 14,302-320,381,421,450
+frontend/app/components/NetworkVisualization.tsx
+  h_f327e6ff3ec3c1 483-486
+frontend/app/components/RelationshipExplanationPanel.tsx
+  h_f327e6ff3ec3c1 20,25,348,398-400,403-407,410-434,446-450,454-457,459,464-469,474,511,522-525,529,584,587-588
+frontend/app/lib/api.ts
+  h_f327e6ff3ec3c1 12,146-156
+frontend/app/types/api.ts
+  h_f327e6ff3ec3c1 76,80,87,213-254
+src/data/relationship_assertion_repository.py
+  h_f327e6ff3ec3c1 65,866-909
+src/data/relationship_projection_persistence.py
+  h_f327e6ff3ec3c1 242-263
+tests/unit/test_api_assertions.py
+  h_f327e6ff3ec3c1 390-627
+tests/unit/test_api_governance_metadata.py
+  h_f327e6ff3ec3c1 210-214,216,554-616
+tests/unit/test_api_main.py
+  h_f327e6ff3ec3c1 303,950,962-963
+tests/unit/test_relationship_index_publication_binding.py
+  h_f327e6ff3ec3c1 40,96,100,102,106-110,119-120,135,144,163-177,237,241-243,247
+tests/unit/test_relationship_index_review_fixes.py
+  h_f327e6ff3ec3c1 68
+tests/unit/test_relationship_index_shared_publication.py
+  h_f327e6ff3ec3c1 60-61,64-68,72-73,218-233,235,242
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.20",
+  "base_commit_sha": "ebf41bfdd65fa1300be03e24fbc3421b031d2539",
+  "prompts": {},
+  "humans": {
+    "h_f327e6ff3ec3c1": {
+      "author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}

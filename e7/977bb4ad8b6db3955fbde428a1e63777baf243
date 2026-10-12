@@ -1,0 +1,14 @@
+.github/workflows/get-codescene-token.yml
+  h_f327e6ff3ec3c1 1-13
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.21",
+  "base_commit_sha": "e7977bb4ad8b6db3955fbde428a1e63777baf243",
+  "prompts": {},
+  "humans": {
+    "h_f327e6ff3ec3c1": {
+      "author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}

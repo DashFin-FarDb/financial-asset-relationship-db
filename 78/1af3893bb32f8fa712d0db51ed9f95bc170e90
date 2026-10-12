@@ -1,0 +1,78 @@
+tests/unit/test_database_check_normalization_regression.py
+  s_951b443e5699cd::t_12233699ddff02 63-70
+.github/workflows/pyre.yml
+  s_951b443e5699cd::t_9c8f92105388e8 78
+src/data/check_constraint_normalization.py
+  s_951b443e5699cd::t_836f8a0874f613 129-138,145,155
+docker-compose.production.yml
+  s_951b443e5699cd::t_50cbe37e007468 10,17-18
+  s_951b443e5699cd::t_b98bb7d94d51ff 11-12
+  s_951b443e5699cd::t_95502deb8c0379 44-45
+tests/integration/test_migrate_database_operator.py
+  s_951b443e5699cd::t_516a884bdefdf9 21,27,44,49
+tests/integration/test_relationship_assertion_schema.py
+  s_951b443e5699cd::t_56d938058a83e7 85-92
+tests/integration/test_production_container_workflow.py
+  s_951b443e5699cd::t_95502deb8c0379 125
+  s_951b443e5699cd::t_50cbe37e007468 121,123
+  s_951b443e5699cd::t_b98bb7d94d51ff 122
+api/database.py
+  s_951b443e5699cd::t_0963b191836659 923
+  s_951b443e5699cd::t_516a884bdefdf9 61-62,67-68,96-130,904
+  s_951b443e5699cd::t_b66b34f5c6eeaf 79-90
+tests/unit/test_ci_common_checkout.py
+  s_951b443e5699cd::t_9c8f92105388e8 114
+tests/unit/test_database.py
+  s_951b443e5699cd::t_bc40fdc7c1ed15 94-96
+  s_951b443e5699cd::t_3398bc04287be9 145-147
+  s_951b443e5699cd::t_d6987c83ff713c 20,92-93,97-100
+  s_951b443e5699cd::t_97f5457a26cd16 101-102
+src/data/database.py
+  s_951b443e5699cd::t_5ff3456aeae267 338-340,345-349,354-359
+  s_951b443e5699cd::t_0c77a08a86b233 583
+  s_951b443e5699cd::t_2ce39078b9f17c 659-660,726-728,772-852,857-885
+  s_951b443e5699cd::t_0963b191836659 517-582,584-623,644,653-656
+  s_951b443e5699cd::t_3398bc04287be9 474-491
+tests/unit/test_dev_scripts.py
+  s_951b443e5699cd::t_f02e796e890c18 375-381
+  s_951b443e5699cd::t_a859519cc8ea65 365,367,384
+tests/conftest.py
+  s_951b443e5699cd::t_c8930d99ba555a 29
+scripts/bootstrap_database_capability_roles.sql
+  s_951b443e5699cd::t_d6987c83ff713c 54-58
+src/data/relationship_assertion_schema.py
+  s_951b443e5699cd::t_56d938058a83e7 18,315
+  s_951b443e5699cd::t_9f6430e1370223 325-329
+tests/unit/test_auth.py
+  s_951b443e5699cd::t_802baa353ebbe4 17,59
+  s_951b443e5699cd::t_516a884bdefdf9 1066,1092
+tests/integration/test_postgres_database.py
+  s_951b443e5699cd::t_7e966cd57e8c3e 267-268,324-325
+  s_951b443e5699cd::t_b4dd747be89950 266
+tests/unit/test_migrate_database.py
+  s_951b443e5699cd::t_516a884bdefdf9 244-245
+run-dev.sh
+  s_951b443e5699cd::t_f02e796e890c18 61-64
+tests/integration/test_runtime_authority_postgres.py
+  s_951b443e5699cd::t_a2f31ca14f8da6 121-122,124
+  s_951b443e5699cd::t_1aa6afcdf5e5f7 589
+  s_951b443e5699cd::t_d6987c83ff713c 50,562-588,590
+  s_951b443e5699cd::t_3398bc04287be9 690-692
+  s_951b443e5699cd::t_3e43e0cb4ce963 591-592
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "781af3893bb32f8fa712d0db51ed9f95bc170e90",
+  "prompts": {},
+  "sessions": {
+    "s_951b443e5699cd": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019ff519-696e-7c60-b8fa-0b2080202bc9",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}

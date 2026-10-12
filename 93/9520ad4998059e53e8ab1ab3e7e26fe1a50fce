@@ -1,0 +1,29 @@
+api/routers/graph_admin.py
+  s_8630f737cf5bfc::t_6ac4ccae5994db 850,992
+tests/integration/test_graph_rebuild_persistence.py
+  s_8630f737cf5bfc::t_a7b4616bd611cd 270-294,296-297
+  s_8630f737cf5bfc::t_c471d350c1e80c 295
+tests/integration/test_distributed_hosting_failure_modes.py
+  s_8630f737cf5bfc::t_a7b4616bd611cd 18,223-224,227
+tests/unit/test_relationship_projection.py
+  s_8630f737cf5bfc::t_d8c1937194ddd3 21,26,80-117
+  s_8630f737cf5bfc::t_38154b382cd587 118-119
+tests/integration/test_financial_relationship_vertical_slice.py
+  s_8630f737cf5bfc::t_6ac4ccae5994db 130-132
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.19",
+  "base_commit_sha": "939520ad4998059e53e8ab1ab3e7e26fe1a50fce",
+  "prompts": {},
+  "sessions": {
+    "s_8630f737cf5bfc": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fbc00-9ecc-7473-b6de-74c7d06b262a",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}

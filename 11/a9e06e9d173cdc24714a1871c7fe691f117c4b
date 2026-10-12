@@ -1,0 +1,14 @@
+tests/unit/test_relationship_assertion_proof_contract.py
+  h_f327e6ff3ec3c1 103-105,267,274,287
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.21",
+  "base_commit_sha": "11a9e06e9d173cdc24714a1871c7fe691f117c4b",
+  "prompts": {},
+  "humans": {
+    "h_f327e6ff3ec3c1": {
+      "author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}

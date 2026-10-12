@@ -1,0 +1,19 @@
+.github/workflows/staging-promotion.yml
+  s_ebae7f3448d420::t_14e63f87eb97ce 1-46
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "8a133e39d5413c602b3020e03b1e2a678e1290cd",
+  "prompts": {},
+  "sessions": {
+    "s_ebae7f3448d420": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f3760-85c1-7991-b0f7-7ffd254a3193",
+        "model": "gpt-5.4-mini"
+      },
+      "human_author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}

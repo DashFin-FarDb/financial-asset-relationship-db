@@ -1,0 +1,14 @@
+tests/integration/test_governed_relationship_assertion_docs.py
+  h_f327e6ff3ec3c1 308-309,320-322
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.21",
+  "base_commit_sha": "7a22538dcfb2e195a143a023a1f955416ee4d060",
+  "prompts": {},
+  "humans": {
+    "h_f327e6ff3ec3c1": {
+      "author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}

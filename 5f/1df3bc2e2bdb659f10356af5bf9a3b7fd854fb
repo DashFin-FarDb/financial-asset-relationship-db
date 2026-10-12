@@ -1,0 +1,23 @@
+tests/integration/test_graph_rebuild_persistence.py
+  s_8630f737cf5bfc::t_d9b5a64ce7fb99 30,172
+tests/integration/test_rebuild_checkpoint_resume.py
+  s_8630f737cf5bfc::t_d9b5a64ce7fb99 197
+tests/integration/test_distributed_hosting_failure_modes.py
+  s_8630f737cf5bfc::t_d9b5a64ce7fb99 303
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.19",
+  "base_commit_sha": "5f1df3bc2e2bdb659f10356af5bf9a3b7fd854fb",
+  "prompts": {},
+  "sessions": {
+    "s_8630f737cf5bfc": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fbc00-9ecc-7473-b6de-74c7d06b262a",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}

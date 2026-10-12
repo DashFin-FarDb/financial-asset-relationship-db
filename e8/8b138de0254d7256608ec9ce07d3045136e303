@@ -1,0 +1,19 @@
+Dockerfile.api
+  s_ebae7f3448d420::t_124ef116a991e6 5-7,9-10,20
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "e88b138de0254d7256608ec9ce07d3045136e303",
+  "prompts": {},
+  "sessions": {
+    "s_ebae7f3448d420": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f3760-85c1-7991-b0f7-7ffd254a3193",
+        "model": "gpt-5.4-mini"
+      },
+      "human_author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}

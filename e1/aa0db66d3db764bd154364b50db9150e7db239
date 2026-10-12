@@ -1,0 +1,19 @@
+src/data/database.py
+  s_97fc15acf20f75::t_7fb061e3f4e7a1 551,553-554
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.21",
+  "base_commit_sha": "e1aa0db66d3db764bd154364b50db9150e7db239",
+  "prompts": {},
+  "sessions": {
+    "s_97fc15acf20f75": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "fe8baa04-319a-4b21-8392-0ad867596ec6",
+        "model": "composer-2.5"
+      },
+      "human_author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}

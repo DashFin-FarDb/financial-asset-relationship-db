@@ -1,0 +1,19 @@
+docs/enterprise-readiness-index.md
+  s_9fe91a3c294672::t_51d9a5ebef7e21 63-69
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "defd72cf9b401e91f9dbd5b72f562827ba36e30e",
+  "prompts": {},
+  "sessions": {
+    "s_9fe91a3c294672": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "01a01ef3-688c-7872-bea6-edcd50fdb7a5",
+        "model": "unknown"
+      },
+      "human_author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}

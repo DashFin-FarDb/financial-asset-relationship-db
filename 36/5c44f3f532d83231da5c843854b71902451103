@@ -1,0 +1,26 @@
+docs/evidence-records/rc1-objective-2-follow-up.md
+  s_a2375cdf388c42::t_2f747bb5645550 117,147-157
+  s_a2375cdf388c42::t_a0ce16d0919e3e 1-14,17,19-103,105-112,114-116,118-146,158-244
+  s_a2375cdf388c42::t_4b298a56ea0a8a 104,113
+  s_a2375cdf388c42::t_1808128a391993 15-16,18
+docs/release-evidence-pack.md
+  s_a2375cdf388c42::t_a911656e922c38 49
+docs/operations/hosted-readiness-evidence-guide.md
+  s_a2375cdf388c42::t_11b21ebbd4a65e 171-174,191
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.3",
+  "base_commit_sha": "365c44f3f532d83231da5c843854b71902451103",
+  "prompts": {},
+  "sessions": {
+    "s_a2375cdf388c42": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019ef40a-d392-79a0-94fb-198575f20fb1",
+        "model": "gpt-5.4-mini"
+      },
+      "human_author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}

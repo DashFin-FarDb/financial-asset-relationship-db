@@ -1,0 +1,25 @@
+tests/unit/test_relationship_projection.py
+  s_8630f737cf5bfc::t_75e972e317c4bd 120-136
+tests/integration/test_financial_relationship_vertical_slice.py
+  s_8630f737cf5bfc::t_b25ccbdd64d810 301,303-306,314,325
+  s_8630f737cf5bfc::t_75e972e317c4bd 214-215
+  s_8630f737cf5bfc::t_54ede46b7615ce 216
+api/routers/graph_admin.py
+  s_8630f737cf5bfc::t_75e972e317c4bd 1629,1647-1648,1752-1757
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.19",
+  "base_commit_sha": "de949864e2b283ba7f0657d5868ab8ddabb394eb",
+  "prompts": {},
+  "sessions": {
+    "s_8630f737cf5bfc": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fbc00-9ecc-7473-b6de-74c7d06b262a",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}

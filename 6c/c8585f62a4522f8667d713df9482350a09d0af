@@ -1,0 +1,23 @@
+main.py
+  s_33a25107973364::t_000bc8ac20b585 20,22,41-64,71
+  s_33a25107973364::t_4a291420a05b85 10,19
+test_supabase.py
+  s_33a25107973364::t_4a291420a05b85 22,30
+  s_33a25107973364::t_000bc8ac20b585 31,33
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "6cc8585f62a4522f8667d713df9482350a09d0af",
+  "prompts": {},
+  "sessions": {
+    "s_33a25107973364": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a01ef3-688c-7872-bea6-edcd50fdb7a5",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}

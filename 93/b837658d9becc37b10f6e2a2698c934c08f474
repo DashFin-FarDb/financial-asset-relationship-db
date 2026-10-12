@@ -1,0 +1,34 @@
+frontend/__tests__/components/NetworkVisualization.test.tsx
+  s_e11e1b7a855681::t_9227fca57e9a1b 213-227,234
+frontend/__tests__/components/RelationshipExplanationPanel.test.tsx
+  s_e11e1b7a855681::t_8b1bda5e1e5526 167-182
+  s_e11e1b7a855681::t_b780ad303c7dab 226-242,254
+  s_e11e1b7a855681::t_3675a92ee48969 208-215
+frontend/app/types/api.ts
+  s_e11e1b7a855681::t_cb1b035ecaa716 15-25,32,36-42,73,111-119,154-159,161-170,197,200-205
+frontend/app/components/RelationshipExplanationPanel.tsx
+  s_e11e1b7a855681::t_b1e69a0cbfbe4d 27,35,37-44,54,90-350,363,368,374-380,382-383,394,399,402,405,408,412,419,423-431,434-435
+  s_e11e1b7a855681::t_7359287ce204ea 365,387,392,415-418,422,432-433
+  s_e11e1b7a855681::t_3fa6f9c9b362df 28-34,36
+frontend/app/components/NetworkVisualization.tsx
+  s_e11e1b7a855681::t_56e91d44b87d2f 5,32-33,67-78,82-120,159,161-163,165-179,186,194,219,228-294,308,310-313,323-324,331-332,335,338-345,394-398
+frontend/app/lib/api.ts
+  s_e11e1b7a855681::t_c99fb5dd97a8d8 6
+  s_e11e1b7a855681::t_373b4ce3d152f4 40-56,121-125,128,131,136,139
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.20",
+  "base_commit_sha": "93b837658d9becc37b10f6e2a2698c934c08f474",
+  "prompts": {},
+  "sessions": {
+    "s_e11e1b7a855681": {
+      "agent_id": {
+        "tool": "github-copilot-cli",
+        "id": "96539b92-3573-4274-93af-64a55df563e7",
+        "model": "unknown"
+      },
+      "human_author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}

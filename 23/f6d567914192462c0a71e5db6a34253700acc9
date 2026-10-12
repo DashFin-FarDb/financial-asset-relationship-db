@@ -1,0 +1,30 @@
+frontend/app/components/RelationshipExplanationPanel.tsx
+  s_e11e1b7a855681::t_eaeb1833bb33a6 1-366
+frontend/app/types/api.ts
+  s_e11e1b7a855681::t_eaeb1833bb33a6 20-27,66-73,99-184
+frontend/app/components/NetworkVisualization.tsx
+  s_e11e1b7a855681::t_eaeb1833bb33a6 3,5-6,32-33,121,146,210-216,230-242,257-271,273-328
+frontend/__tests__/components/RelationshipExplanationPanel.test.tsx
+  s_e11e1b7a855681::t_eaeb1833bb33a6 1-249
+frontend/app/lib/api.ts
+  s_e11e1b7a855681::t_eaeb1833bb33a6 6-7,101-123
+frontend/__tests__/components/NetworkVisualization.test.tsx
+  s_e11e1b7a855681::t_eaeb1833bb33a6 7,12-15,126-231
+  s_e11e1b7a855681::t_f63ca37a818291 232
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.20",
+  "base_commit_sha": "23f6d567914192462c0a71e5db6a34253700acc9",
+  "prompts": {},
+  "sessions": {
+    "s_e11e1b7a855681": {
+      "agent_id": {
+        "tool": "github-copilot-cli",
+        "id": "96539b92-3573-4274-93af-64a55df563e7",
+        "model": "unknown"
+      },
+      "human_author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}

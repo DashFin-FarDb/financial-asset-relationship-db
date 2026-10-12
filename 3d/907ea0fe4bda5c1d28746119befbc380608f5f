@@ -1,0 +1,25 @@
+.github/workflows/release-evidence-verify.yml
+  s_8d43d0750b87ca::t_8923b2e2950f7a 74-76,86-87
+  s_8d43d0750b87ca::t_f1e1c366906781 43,51-57,93,107,119,134,149,162,174,208-210,214,221-226,246
+  s_8d43d0750b87ca::t_5b28b34ccf0e13 218-220,227-229
+.github/pr-agent-config.yml
+  s_8d43d0750b87ca::t_f1e1c366906781 113-118
+Dockerfile.api
+  s_8d43d0750b87ca::t_0ac4972bd5d7ab 14-17,19-22
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "3d907ea0fe4bda5c1d28746119befbc380608f5f",
+  "prompts": {},
+  "sessions": {
+    "s_8d43d0750b87ca": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f32c2-fafe-7da1-b16e-6cbcc1cdb886",
+        "model": "gpt-5.4-mini"
+      },
+      "human_author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}

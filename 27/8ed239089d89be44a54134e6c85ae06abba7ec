@@ -1,0 +1,19 @@
+tests/integration/test_financial_relationship_vertical_slice.py
+  s_8630f737cf5bfc::t_31e11887ef27be 301,312,315
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.19",
+  "base_commit_sha": "278ed239089d89be44a54134e6c85ae06abba7ec",
+  "prompts": {},
+  "sessions": {
+    "s_8630f737cf5bfc": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fbc00-9ecc-7473-b6de-74c7d06b262a",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}

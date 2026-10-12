@@ -1,0 +1,20 @@
+api/routers/assertions.py
+  s_c7d30c1af3d543::t_62ad5eef152e13 233-237
+  s_c7d30c1af3d543::t_1ed76b93e63a1a 17
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.20",
+  "base_commit_sha": "8a2dee261493b02d3a19eabe1a6987cf1efe6c93",
+  "prompts": {},
+  "sessions": {
+    "s_c7d30c1af3d543": {
+      "agent_id": {
+        "tool": "github-copilot-cli",
+        "id": "12131665-f27d-4ae1-8191-d6b00d9907cd",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}

@@ -1,0 +1,23 @@
+docs/release-evidence-pack.md
+  s_a2375cdf388c42::t_15fa106e7fdb59 13-15
+docs/enterprise-readiness-index.md
+  s_a2375cdf388c42::t_ae3af2a44f0c4b 16,31,44,69
+docs/operations/operational-evidence-capture-framework.md
+  s_a2375cdf388c42::t_38430884b69049 1-274
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.3",
+  "base_commit_sha": "3a6e5d9a726d19412035352b55ce347ddd89ffc8",
+  "prompts": {},
+  "sessions": {
+    "s_a2375cdf388c42": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019ef40a-d392-79a0-94fb-198575f20fb1",
+        "model": "gpt-5.4-mini"
+      },
+      "human_author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}

@@ -1,0 +1,14 @@
+.github/workflows/ci.yml
+  h_f327e6ff3ec3c1 31-36
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.21",
+  "base_commit_sha": "4a208f20227a6bcff5a1be12797e0cdde5a02e24",
+  "prompts": {},
+  "humans": {
+    "h_f327e6ff3ec3c1": {
+      "author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}

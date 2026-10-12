@@ -1,0 +1,28 @@
+tests/unit/test_api_database_auth_grantees.py
+  s_1a4d3926661ace::t_ad18040b71acca 31-32
+tests/unit/test_database.py
+  s_1a4d3926661ace::t_ad18040b71acca 119-120
+api/database.py
+  s_1a4d3926661ace::t_ad18040b71acca 840-841
+src/data/database.py
+  s_1a4d3926661ace::t_ad18040b71acca 596-598
+tests/integration/test_runtime_authority_postgres.py
+  s_1a4d3926661ace::t_ad18040b71acca 39,241-244,261-308
+  s_1a4d3926661ace::t_957a9b09d92378 309-310
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "874a30c026c867529cc2f3469a127f847aa26e54",
+  "prompts": {},
+  "sessions": {
+    "s_1a4d3926661ace": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fefd1-5047-7173-ae4c-e6962d4e9ad9",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}

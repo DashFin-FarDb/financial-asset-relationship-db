@@ -1,0 +1,18 @@
+api/services/relationship_index.py
+  h_f327e6ff3ec3c1 367
+frontend/app/components/RelationshipExplanationPanel.tsx
+  h_f327e6ff3ec3c1 501
+src/data/relationship_assertion_repository.py
+  h_f327e6ff3ec3c1 824,903-933,957
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.20",
+  "base_commit_sha": "285db971a50baf6f21f4dfff869ffa768bdd62c6",
+  "prompts": {},
+  "humans": {
+    "h_f327e6ff3ec3c1": {
+      "author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}

@@ -1,0 +1,19 @@
+tests/integration/test_governed_relationship_assertion_docs.py
+  s_50ba40dc3a4f23::t_25dac5f7d5ed4d 22
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "ac1c710ce106af567a10d8ea0e4f73dc05f5f408",
+  "prompts": {},
+  "sessions": {
+    "s_50ba40dc3a4f23": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fefb4-630c-7f01-aef2-0e04df52546c",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}

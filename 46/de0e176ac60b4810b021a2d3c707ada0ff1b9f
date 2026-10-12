@@ -1,0 +1,14 @@
+docs/governance/staging-proof-result.json
+  h_f327e6ff3ec3c1 10-12
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.21",
+  "base_commit_sha": "46de0e176ac60b4810b021a2d3c707ada0ff1b9f",
+  "prompts": {},
+  "humans": {
+    "h_f327e6ff3ec3c1": {
+      "author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}

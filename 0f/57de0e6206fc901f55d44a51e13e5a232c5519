@@ -1,0 +1,23 @@
+tests/unit/test_api_assertion_reads.py
+  s_8d478941b92cbb::t_ef0e5103d0e7f5 1-191
+tests/unit/test_api_assertions.py
+  s_8d478941b92cbb::t_50420050523ef1 1,7,14,16-36,210,313,327
+tests/unit/test_api_governance_metadata.py
+  s_8d478941b92cbb::t_9aad089e0408aa 1-229
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.19",
+  "base_commit_sha": "0f57de0e6206fc901f55d44a51e13e5a232c5519",
+  "prompts": {},
+  "sessions": {
+    "s_8d478941b92cbb": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "019fbd72-bfea-71d0-87a8-8bd4e0570b7e",
+        "model": "unknown"
+      },
+      "human_author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}

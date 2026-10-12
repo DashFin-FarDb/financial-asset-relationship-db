@@ -1,0 +1,16 @@
+docs/governance/grac-v1-staging-evidence-2026-08-06.md
+  h_f327e6ff3ec3c1 3
+tests/integration/test_governed_relationship_assertion_docs.py
+  h_f327e6ff3ec3c1 186,196
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.21",
+  "base_commit_sha": "c24fe84dcc28454e1b31f23be5d44b2f2b90ccc0",
+  "prompts": {},
+  "humans": {
+    "h_f327e6ff3ec3c1": {
+      "author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}

@@ -1,0 +1,19 @@
+frontend/__tests__/config/package-lock-validation.test.ts
+  s_33a25107973364::t_86b00d202a96dd 223,226-230,235-239
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "f95b21d2912fe5898cd401292759d56f9ac21853",
+  "prompts": {},
+  "sessions": {
+    "s_33a25107973364": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a01ef3-688c-7872-bea6-edcd50fdb7a5",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}

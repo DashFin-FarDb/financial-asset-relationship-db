@@ -1,0 +1,26 @@
+api/api_models.py
+  h_f327e6ff3ec3c1 8,103,106,121
+api/assertion_models.py
+  h_f327e6ff3ec3c1 167-228
+api/routers/assertions.py
+  h_f327e6ff3ec3c1 24,56-60,83-84,348-386,593-656
+api/routers/visualization.py
+  h_f327e6ff3ec3c1 5-6,16,24-26,87,90-92,96,103,105-110,112-117,122-153,170-171,174-179
+api/services/relationship_index.py
+  h_f327e6ff3ec3c1 6-7,23,29,43,81-119,155-156,181-182,251-252,262-271,278-287,290,292,295,300-301,314-319,325-327,330-353,357,360-364,375-379,387-391,395,399-404,406-407,414-419,427,432,434-436,443-448,456-460,490,493-495,499,501,503-511,513-514,517-524,526-528,532,544,548-549,555,557,562-575,580-581
+src/data/relationship_assertion_repository.py
+  h_f327e6ff3ec3c1 620,799-869,887-895
+tests/unit/test_api_governance_metadata.py
+  h_f327e6ff3ec3c1 66-67,71-82,85-91,102,122-123,127-138,148-159,170,173,182-183,206,208-210,218-244,248-249,344-349,381-397,408-422,424-426,430,488-489,497-507,518
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.20",
+  "base_commit_sha": "adb8f5d73068d3866345f6192115b0057d30e53f",
+  "prompts": {},
+  "humans": {
+    "h_f327e6ff3ec3c1": {
+      "author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}

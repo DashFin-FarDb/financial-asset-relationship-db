@@ -1,0 +1,28 @@
+api/services/relationship_index.py
+  s_c7d30c1af3d543::t_811011e98aee42 421,435-436,438
+  s_c7d30c1af3d543::t_4519d82d70eb61 422-434
+tests/unit/test_api_assertions.py
+  s_c7d30c1af3d543::t_81141a0a67826a 32-34
+tests/unit/test_api_assertion_reads.py
+  s_c7d30c1af3d543::t_81141a0a67826a 31-33
+tests/unit/test_api_governance_metadata.py
+  s_c7d30c1af3d543::t_81141a0a67826a 37-39
+tests/unit/test_api.py
+  s_c7d30c1af3d543::t_3c5884e38874bc 262,282,294,305,317,331,347,361,370,387,405,413,436,451,475,511,532,545,554,568,589,617,880,905,937
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.20",
+  "base_commit_sha": "9bfc9961d3764e95e637a2aa1e7a9a3bb1c5c88e",
+  "prompts": {},
+  "sessions": {
+    "s_c7d30c1af3d543": {
+      "agent_id": {
+        "tool": "github-copilot-cli",
+        "id": "12131665-f27d-4ae1-8191-d6b00d9907cd",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}

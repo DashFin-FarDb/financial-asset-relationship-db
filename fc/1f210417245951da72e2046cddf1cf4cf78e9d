@@ -1,0 +1,23 @@
+.github/ISSUE_TEMPLATE/release_candidate_evidence.md
+  s_a2375cdf388c42::t_e5ecbaf8ecaa05 81-86,88-93,95-106
+docs/release-evidence-pack.md
+  s_a2375cdf388c42::t_2a29bc31a3bebb 270-271
+docs/runbooks/backup-restore-dr.md
+  s_a2375cdf388c42::t_961a91744aa145 461-493
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.3",
+  "base_commit_sha": "fc1f210417245951da72e2046cddf1cf4cf78e9d",
+  "prompts": {},
+  "sessions": {
+    "s_a2375cdf388c42": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019ef40a-d392-79a0-94fb-198575f20fb1",
+        "model": "unknown"
+      },
+      "human_author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}

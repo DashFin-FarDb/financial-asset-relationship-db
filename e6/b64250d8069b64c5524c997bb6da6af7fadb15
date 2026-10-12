@@ -1,0 +1,18 @@
+.github/workflows/relationship-assertion-staging-proof.yml
+  h_f327e6ff3ec3c1 34,295-305
+pr1589_blocker_patches/apply_pr1589_require_seed_execution_id.py
+  h_f327e6ff3ec3c1 1-99
+scripts/check_relationship_assertion_proof.py
+  h_f327e6ff3ec3c1 630-636
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.21",
+  "base_commit_sha": "e6b64250d8069b64c5524c997bb6da6af7fadb15",
+  "prompts": {},
+  "humans": {
+    "h_f327e6ff3ec3c1": {
+      "author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}

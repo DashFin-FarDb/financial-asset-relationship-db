@@ -1,0 +1,21 @@
+scripts/check_hosted_readiness.py
+  s_a2375cdf388c42::t_27f9c3980d2ce5 41,301
+tests/unit/test_check_hosted_readiness.py
+  s_a2375cdf388c42::t_bd1b8c5d9e11ff 704-732
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.3",
+  "base_commit_sha": "632f006b6984963fa3b1bd9381a49d320a55f99e",
+  "prompts": {},
+  "sessions": {
+    "s_a2375cdf388c42": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019ef40a-d392-79a0-94fb-198575f20fb1",
+        "model": "gpt-5.4-mini"
+      },
+      "human_author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}

@@ -1,0 +1,16 @@
+pr1589_blocker_patches/apply_pr1589_execution_id_fail_closed.py
+  h_f327e6ff3ec3c1 1-102
+scripts/check_relationship_assertion_proof.py
+  h_f327e6ff3ec3c1 346,348-351,447-450
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.21",
+  "base_commit_sha": "99c969ca9dd934c1dc784508a9b59e4759e3f324",
+  "prompts": {},
+  "humans": {
+    "h_f327e6ff3ec3c1": {
+      "author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}

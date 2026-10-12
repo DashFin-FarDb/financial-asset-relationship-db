@@ -1,0 +1,20 @@
+.github/workflows/relationship-assertion-staging-proof.yml
+  h_f327e6ff3ec3c1 351-353,363,406-409,416-418,469
+docs/governance/governed-relationship-assertion-contract-v1.md
+  h_f327e6ff3ec3c1 4
+scripts/check_relationship_assertion_proof.py
+  h_f327e6ff3ec3c1 461,467,476,489,524-551,755-770,951-953,1025-1050,1053-1062,1183-1186
+tests/integration/test_governed_relationship_assertion_docs.py
+  h_f327e6ff3ec3c1 308-309,320-321
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.21",
+  "base_commit_sha": "396514256e5e0351e69faea2f89f38c0923d8d9e",
+  "prompts": {},
+  "humans": {
+    "h_f327e6ff3ec3c1": {
+      "author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}

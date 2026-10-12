@@ -1,0 +1,19 @@
+BEARER_WORKFLOW_TEST_SUMMARY.md
+  s_0cea544e166c51::t_7456fe68db16a4 158
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "acc28d9fffbde619c9478dd7b598c4f7a5a16f86",
+  "prompts": {},
+  "sessions": {
+    "s_0cea544e166c51": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f3f8a-1d56-71e3-af97-085304629a25",
+        "model": "gpt-5.4"
+      },
+      "human_author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}

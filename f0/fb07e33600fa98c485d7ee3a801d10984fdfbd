@@ -1,0 +1,21 @@
+src/data/database.py
+  s_951b443e5699cd::t_0831b82488bd2f 459-487,502,504,506-507,662-695
+api/database.py
+  s_951b443e5699cd::t_0831b82488bd2f 113-128,130-162
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "f0fb07e33600fa98c485d7ee3a801d10984fdfbd",
+  "prompts": {},
+  "sessions": {
+    "s_951b443e5699cd": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019ff519-696e-7c60-b8fa-0b2080202bc9",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}

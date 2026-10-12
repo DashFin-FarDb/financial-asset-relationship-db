@@ -1,0 +1,19 @@
+docs/runbooks/database-migration-authority.md
+  s_97fc15acf20f75::t_3ffaa4904da5cf 30-34
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.21",
+  "base_commit_sha": "239c5553d6b3c39aca398439dc86ba60d99428d7",
+  "prompts": {},
+  "sessions": {
+    "s_97fc15acf20f75": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "fe8baa04-319a-4b21-8392-0ad867596ec6",
+        "model": "composer-2.5"
+      },
+      "human_author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}

@@ -1,0 +1,22 @@
+docs/enterprise-readiness-index.md
+  s_a2375cdf388c42::t_f478fe5c8ffb97 33
+  s_a2375cdf388c42::t_8e4e8e766e182f 34
+docs/audits/enterprise-readiness-audit.md
+  s_a2375cdf388c42::t_8d77f8b77b4240 20-21,36,196
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.3",
+  "base_commit_sha": "2f522e3bcf05f2747e5c5b7b8c06eb646b4d7883",
+  "prompts": {},
+  "sessions": {
+    "s_a2375cdf388c42": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019ef40a-d392-79a0-94fb-198575f20fb1",
+        "model": "gpt-5.4-mini"
+      },
+      "human_author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}
