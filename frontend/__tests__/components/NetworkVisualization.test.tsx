@@ -75,6 +75,10 @@ describe("NetworkVisualization Component", () => {
   it("should render plot with data", async () => {
     render(<NetworkVisualization data={mockVisualizationData} />);
 
+    expect(
+      screen.getByRole("region", { name: "3D FarDb relationship graph" }),
+    ).toBeInTheDocument();
+
     await waitFor(() => {
       expect(screen.getByTestId("mock-plot")).toBeInTheDocument();
     });

@@ -493,6 +493,12 @@ describe("RelationshipExplanationPanel", () => {
       ).toHaveTextContent("pedge-1");
 
       // 2. Supported read-only actions are exposed
+      expect(
+        screen.getByRole("region", { name: "Institutional actions" }),
+      ).toBeInTheDocument();
+      expect(
+        screen.getByRole("group", { name: "Institutional view actions" }),
+      ).toBeInTheDocument();
       const evidenceAction = screen.getByRole("button", {
         name: "Inspect evidence (2)",
       });

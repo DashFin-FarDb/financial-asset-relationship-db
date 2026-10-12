@@ -609,9 +609,8 @@ function InstitutionalActions({
   onSelectActionView: (view: InstitutionalActionView) => void;
 }>) {
   return (
-    <div
+    <section
       className="border-t border-gray-200 pt-3 space-y-3"
-      role="region"
       aria-label="Institutional actions"
     >
       <div className="flex flex-wrap items-center justify-between gap-2">
@@ -627,9 +626,8 @@ function InstitutionalActions({
         </span>
       </div>
 
-      <div
-        className="flex flex-wrap gap-2"
-        role="group"
+      <fieldset
+        className="flex flex-wrap gap-2 border-0 m-0 p-0 min-w-0"
         aria-label="Institutional view actions"
       >
         <button
@@ -692,7 +690,7 @@ function InstitutionalActions({
             Show all sections
           </button>
         )}
-      </div>
+      </fieldset>
 
       <div className="rounded-md border border-amber-200 bg-amber-50/70 p-2.5 text-xs text-amber-900">
         <div className="font-semibold text-amber-950">
@@ -705,7 +703,7 @@ function InstitutionalActions({
           authenticated institutional operator credentials.
         </p>
       </div>
-    </div>
+    </section>
   );
 }
 

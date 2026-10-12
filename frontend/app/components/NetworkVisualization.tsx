@@ -496,7 +496,7 @@ export default function NetworkVisualization({
         </header>
 
         <div className="grid grid-cols-1 gap-4 p-4 lg:grid-cols-[minmax(0,1.4fr)_minmax(320px,0.9fr)]">
-          <div
+          <section
             className="min-w-0 h-[380px] sm:h-[480px] lg:h-[640px] rounded-xl border border-slate-200 bg-slate-50"
             aria-label="3D FarDb relationship graph"
             aria-describedby="relationship-graph-summary"
@@ -547,7 +547,7 @@ export default function NetworkVisualization({
               // eslint-disable-next-line @typescript-eslint/no-explicit-any
               onClick={handlePlotClick as any}
             />
-          </div>
+          </section>
 
           <aside className="min-w-0 max-h-[500px] lg:max-h-[640px] overflow-y-auto rounded-xl border border-slate-200 bg-white p-4">
             <div className="flex items-end justify-between gap-3">
