@@ -5,6 +5,7 @@ from __future__ import annotations
 import hashlib
 import os
 import re
+import sys
 from collections.abc import Iterator, Mapping
 from contextlib import contextmanager
 from dataclasses import dataclass
@@ -28,8 +29,8 @@ _CANONICAL_CAPABILITY_ROLES = {
     "fardb_runtime_coordination",
 }
 _CANONICAL_TEST_LOGIN_ROLES = {"fardb_login_auth", "fardb_login_graph", "fardb_login_coordination"}
-_ROLE_DDL = re.compile(r"^\s*(CREATE ROLE|DROP ROLE(?: IF EXISTS)?|DROP OWNED BY)\s+(.+?)\s*;?\s*$", re.I | re.S)
-_QUOTED_IDENTIFIER = re.compile(r'^"((?:[^"]|"")+)"')
+_ROLE_IDENTIFIER = r'(?:"(?:[^"]|"")+"|[a-zA-Z_][a-zA-Z0-9_$]*)'
+_SQL_QUOTED_TOKEN = re.compile(r"'(?:[^'\\]|'')*'|\"(?:[^\"]|\"\")*\"")
 _owned_roles: dict[str, int] = {}
 
 
@@ -38,10 +39,12 @@ class DisposableTargetError(RuntimeError):
 
 
 def _enabled() -> bool:
+    """Return whether the harness explicitly enabled disposable integration tests."""
     return any(os.environ.get(name) == "1" for name in ENABLE_ENVIRONMENTS)
 
 
 def _loopback_host(value: str, *, allow_localhost: bool = True) -> bool:
+    """Validate a URI host independently of numeric-only hostaddr overrides."""
     from ipaddress import ip_address
 
     value = value.strip().lower().rstrip(".")
@@ -234,42 +237,101 @@ def create_attested_engine(database_url: str, **kwargs):
 
     @event.listens_for(engine, "connect")
     def _attest(dbapi_connection, _connection_record) -> None:
+        """Attest each newly opened physical operator connection."""
         attest_connection(dbapi_connection, database_url)
 
     return engine
 
 
-def _ddl_role_name(rendered_sql: str) -> str | None:
-    match = _ROLE_DDL.match(rendered_sql)
-    if not match:
+def _parse_role_ddl(rendered_sql: str) -> tuple[str, str] | None:
+    """Fully interpret only the single-role forms used by this harness."""
+    from pathlib import Path
+
+    bootstrap = Path(__file__).parents[2] / "scripts" / "bootstrap_database_capability_roles.sql"
+    if rendered_sql == bootstrap.read_text(encoding="utf-8"):
+        return None  # Exact reviewed bootstrap remains independently attested, not parsed as ad hoc DDL.
+    statement = rendered_sql.strip()
+    if statement.endswith(";"):
+        statement = statement[:-1].rstrip()
+    unquoted = _SQL_QUOTED_TOKEN.sub("", statement)
+    if (
+        any(marker in unquoted for marker in (";", "--", "/*", "'", '"', "\\"))
+        or re.search(r"\$[a-zA-Z0-9_]*\$", unquoted)
+        or re.match(r"^DO\b", statement, re.I)
+    ):
+        raise DisposableTargetError("unsupported or multi-statement SQL before role DDL execution")
+    if re.match(
+        r"^(?:(?:DROP|REASSIGN)\s+OWNED\b|COMMENT\s+ON\s+(?:ROLE|USER|GROUP)\b|SECURITY\s+LABEL\b)",
+        statement,
+        re.I,
+    ):
+        raise DisposableTargetError("unsupported role metadata or owned-object mutation")
+    if not re.match(r"^(?:CREATE|DROP|ALTER)\s+(?:ROLE|USER|GROUP|OWNED)\b", statement, re.I):
         return None
-    identifier = _QUOTED_IDENTIFIER.match(match.group(2).strip())
-    if identifier:
-        return identifier.group(1).replace('""', '"')
-    bare = re.match(r"([a-zA-Z_][a-zA-Z0-9_$]*)", match.group(2).strip())
-    return bare.group(1) if bare else None
+    match = re.fullmatch(
+        rf"(CREATE ROLE|DROP ROLE(?: IF EXISTS)?|ALTER ROLE)\s+({_ROLE_IDENTIFIER})(.*)",
+        statement,
+        re.I | re.S,
+    )
+    if match is None:
+        raise DisposableTargetError("unsupported role DDL")
+    command, identifier, tail = match.groups()
+    command = command.upper()
+    if command == "CREATE ROLE":
+        option = (
+            r"(?:NO)?(?:LOGIN|INHERIT|SUPERUSER|CREATEDB|CREATEROLE|BYPASSRLS|REPLICATION)"
+            r"|CONNECTION\s+LIMIT\s+-?\d+|PASSWORD\s+'(?:[^'\\]|'')*'"
+        )
+        accepted = re.fullmatch(rf"(?:\s+(?:{option}))*\s*", tail, re.I)
+    elif command == "ALTER ROLE":
+        accepted = re.fullmatch(rf"\s+RENAME TO\s+{_ROLE_IDENTIFIER}\s*", tail, re.I)
+    else:
+        accepted = re.fullmatch(r"\s*", tail, re.I)
+    if accepted is None:
+        raise DisposableTargetError("unsupported or multi-role DDL")
+    name = identifier[1:-1].replace('""', '"') if identifier.startswith('"') else identifier.lower()
+    return command, name
+
+
+def _ddl_role_name(rendered_sql: str) -> str | None:
+    """Return the affected role only after complete supported-DDL validation."""
+    parsed = _parse_role_ddl(rendered_sql)
+    return parsed[1] if parsed else None
 
 
 class OwnedRoleCursor(PsycopgCursor):
-    """Cursor guard that records created roles and fences role cleanup by OID."""
+    """Fence fixture CREATE/DROP roles and reject unsupported role/ownership DDL.
+
+    This is not a general SQL sandbox: memberships and object SQL remain caller-owned.
+    RENAME serves recorded prior-state restoration; only the exact reviewed bootstrap
+    script bypasses ad hoc DDL parsing after independent connection attestation.
+    """
+
+    def _execute_driver(self, query, parameters):
+        """Delegate to psycopg only after statement and ownership guards succeed."""
+        return super().execute(query, parameters)
 
     def execute(self, query, vars=None):
+        """Preserve psycopg's vars keyword while rejecting unchecked role mutation."""
         rendered = self.mogrify(query, vars).decode("utf-8", errors="replace")
-        match = _ROLE_DDL.match(rendered)
-        role_name = _ddl_role_name(rendered)
-        if match and match.group(1).upper().startswith(("DROP ROLE", "DROP OWNED")):
+        parsed = _parse_role_ddl(rendered)
+        command, role_name = parsed if parsed else ("", None)
+        if command == "CREATE ROLE" and role_name not in _CANONICAL_CAPABILITY_ROLES | _CANONICAL_TEST_LOGIN_ROLES:
+            if not role_name or not role_name.startswith(f"{_ROLE_PREFIX}{invocation_id()}_"):
+                raise DisposableTargetError("refusing creation outside the invocation role namespace")
+        if command.startswith("DROP ROLE"):
             oid = owned_role_oid(role_name or "")
             with self.connection.cursor(cursor_factory=PsycopgCursor) as check:
                 check.execute("SELECT oid FROM pg_roles WHERE rolname = %s", (role_name,))
                 row = check.fetchone()
-            if row is None and match.group(1).upper().startswith("DROP ROLE IF EXISTS"):
+            if row is None and command == "DROP ROLE IF EXISTS":
                 pass
             elif oid is None:
                 raise DisposableTargetError("refusing cleanup of a role not created by this invocation")
             elif row is None or int(row[0]) != oid:
                 raise DisposableTargetError("refusing cleanup after role name/OID ownership changed")
-        result = super().execute(query, vars)
-        if match and match.group(1).upper() == "CREATE ROLE" and role_name:
+        result = self._execute_driver(query, vars)
+        if command == "CREATE ROLE" and role_name:
             record_created_role(
                 self.connection,
                 role_name,
@@ -434,13 +496,42 @@ class ContainerCliRunner:
 
     def __enter__(self):
         """Prepare invocation-private CLI files inside the verified container."""
+        self.validate()
+        output = _docker_command(
+            [self.cli, "exec", self.record["id"], "mktemp", "-d", f"/tmp/fardb-cli-{invocation_id()}-XXXXXX"]
+        ).stdout.decode()
+        candidate = output.removesuffix("\n")
+        self._validate_private_directory(candidate)
+        self.directory = candidate  # Invalid output never becomes a transfer or cleanup target.
+        try:
+            return self._prepare_cli()
+        except BaseException:
+            self.__exit__()
+            raise
+
+    def _validate_private_directory(self, path: str) -> None:
+        """Accept only this invocation's mktemp path with safe directory metadata."""
+        if re.fullmatch(rf"/tmp/fardb-cli-{re.escape(invocation_id())}-[a-zA-Z0-9]{{6}}", path) is None:
+            raise DisposableTargetError("malformed container private directory")
+        self.validate()
+        for argv in (["test", "!", "-L", path], ["test", "-d", path]):
+            _docker_command([self.cli, "exec", self.record["id"], *argv])
+        uid = _docker_command([self.cli, "exec", self.record["id"], "id", "-u"]).stdout.decode().strip()
+        metadata = (
+            _docker_command([self.cli, "exec", self.record["id"], "stat", "-c", "%a:%u", "--", path])
+            .stdout.decode()
+            .strip()
+        )
+        if not uid.isdigit() or metadata != f"700:{uid}":
+            raise DisposableTargetError("unsafe container private directory permissions or owner")
+
+    def _prepare_cli(self):
+        """Copy and compatibility-check the pinned executable in validated private state."""
         import shutil
         from pathlib import Path
-        from uuid import uuid4
 
-        self.validate()
-        self.directory = f"/tmp/fardb-cli-{invocation_id()}-{uuid4().hex}"
-        _docker_command([self.cli, "exec", self.record["id"], "mkdir", "-m", "700", self.directory])
+        if self.directory is None:
+            raise DisposableTargetError("CLI runner context is not active")
         executable = shutil.which("supabase")
         if not executable:
             raise DisposableTargetError("pinned Supabase executable unavailable")
@@ -455,6 +546,9 @@ class ContainerCliRunner:
         import io
         import tarfile
 
+        if self.directory is None:
+            raise DisposableTargetError("CLI runner context is not active")
+        self._validate_private_directory(self.directory)
         buffer = io.BytesIO()
         digests = {}
         with tarfile.open(fileobj=buffer, mode="w") as archive:
@@ -565,8 +659,11 @@ class ContainerCliRunner:
 
     def __exit__(self, *_args):
         """Remove only this runner's private directory in the same live owned container."""
-        self.validate()
+        if self.directory is None:
+            return
+        self._validate_private_directory(self.directory)
         _docker_command([self.cli, "exec", self.record["id"], "rm", "-rf", "--", self.directory])
+        self.directory = None
 
 
 def verify_applied_profile(database_url: str, manifest, profile: str) -> None:
@@ -687,10 +784,18 @@ def run_container_harness(major: int, pytest_args: list[str]) -> int:
         return _run_locked_container_harness(cli, major, pytest_args)
 
 
+def _run_pytest(pytest_args: list[str], output: Any) -> int:
+    """Launch pytest with the same interpreter that loaded the harness."""
+    import subprocess
+
+    return subprocess.run(
+        [sys.executable, "-m", "pytest", *pytest_args], stdout=output, stderr=subprocess.STDOUT, check=False
+    ).returncode
+
+
 def _run_locked_container_harness(cli: str, major: int, pytest_args: list[str]) -> int:
     """Own fresh anonymous storage, attest both endpoints and clean up only this run."""
     import json
-    import subprocess
     import tempfile
     import time
     from pathlib import Path
@@ -792,9 +897,7 @@ def _run_locked_container_harness(cli: str, major: int, pytest_args: list[str]) 
                 "--tb=short",
             ]
             with (evidence / "pytest.log").open("w") as output:
-                result_code = subprocess.run(
-                    ["python", "-m", "pytest", *args], stdout=output, stderr=subprocess.STDOUT, check=False
-                ).returncode
+                result_code = _run_pytest(args, output)
             print((evidence / "pytest.log").read_text()[-16000:])
         report["exit_code"] = result_code
     except (DisposableTargetError, OSError) as exc:

@@ -413,3 +413,222 @@ def test_daemon_lock_rejects_concurrent_versions_and_releases(monkeypatch, failu
     with guard._exclusive_daemon_harness_lock("docker", 15):
         assert held == {lock_id}
     assert not held
+
+
+@pytest.mark.parametrize(
+    "statement",
+    [
+        "DROP ROLE IF EXISTS absent, existing",
+        'DROP ROLE IF EXISTS "absent", "existing"',
+        "DROP ROLE absent; DROP ROLE existing",
+        "SELECT 1; DROP ROLE existing",
+        "DROP ROLE absent -- hidden\n, existing",
+        "DROP USER existing",
+        "DROP OWNED BY absent, existing CASCADE",
+        "CREATE ROLE new IN ROLE existing",
+        "ALTER ROLE existing SUPERUSER",
+        "DO $$ BEGIN EXECUTE 'DROP ROLE existing'; END $$",
+    ],
+)
+def test_unsupported_role_ddl_rejected_before_driver_execution(statement) -> None:
+    """No unsupported form can reach the driver's mutation or ownership query."""
+    cursor = MagicMock()
+    cursor.mogrify.return_value = statement.encode()
+    with pytest.raises(guard.DisposableTargetError):
+        guard.OwnedRoleCursor.execute(cursor, statement)
+    cursor.connection.cursor.assert_not_called()
+    cursor._execute_driver.assert_not_called()
+
+
+@pytest.mark.parametrize(
+    "statement, expected",
+    [
+        ('DROP ROLE IF EXISTS "quoted;role";', ("DROP ROLE IF EXISTS", "quoted;role")),
+        ('DROP ROLE "double""quote"', ("DROP ROLE", 'double"quote')),
+        ("CREATE ROLE owned LOGIN PASSWORD 'safe' NOINHERIT CONNECTION LIMIT 7", ("CREATE ROLE", "owned")),
+        ('ALTER ROLE "original" RENAME TO "saved"', ("ALTER ROLE", "original")),
+    ],
+)
+def test_role_ddl_parser_fully_consumes_supported_forms(statement, expected) -> None:
+    """Quoted identifiers and current fixture options preserve their exact names."""
+    assert guard._parse_role_ddl(statement) == expected
+
+
+@pytest.mark.parametrize(
+    "output",
+    [b"", b"/tmp/other\n", b"/tmp/fardb-cli-invocation-ABC123\nextra\n", b"/tmp/fardb-cli-invocation-../bad\n"],
+)
+def test_malformed_mktemp_output_never_becomes_a_cleanup_target(monkeypatch, output) -> None:
+    """Reject untrusted output before copy, metadata probes or recursive removal."""
+    runner = object.__new__(guard.ContainerCliRunner)
+    runner.cli = "docker"
+    runner.record = {"id": "a" * 64}
+    runner.directory = None
+    monkeypatch.setattr(guard, "invocation_id", lambda: "invocation")
+    monkeypatch.setattr(runner, "validate", Mock())
+    docker = Mock(return_value=Mock(stdout=output))
+    monkeypatch.setattr(guard, "_docker_command", docker)
+    with pytest.raises(guard.DisposableTargetError, match="malformed"):
+        runner.__enter__()
+    runner.__exit__()
+    assert runner.directory is None
+    docker.assert_called_once_with(["docker", "exec", "a" * 64, "mktemp", "-d", "/tmp/fardb-cli-invocation-XXXXXX"])
+
+
+@pytest.mark.parametrize("metadata", [b"700:0\n", b"777:0\n", b"700:99\n"])
+def test_private_directory_checks_mode_and_owner_before_adoption(monkeypatch, metadata) -> None:
+    """Only a real private directory owned by the container exec user is accepted."""
+    runner = object.__new__(guard.ContainerCliRunner)
+    runner.cli = "docker"
+    runner.record = {"id": "a" * 64}
+    monkeypatch.setattr(runner, "validate", Mock())
+    monkeypatch.setattr(guard, "invocation_id", lambda: "invocation")
+    docker = Mock(side_effect=[Mock(stdout=b""), Mock(stdout=b""), Mock(stdout=b"0\n"), Mock(stdout=metadata)])
+    monkeypatch.setattr(guard, "_docker_command", docker)
+    if metadata == b"700:0\n":
+        runner._validate_private_directory("/tmp/fardb-cli-invocation-ABC123")
+    else:
+        with pytest.raises(guard.DisposableTargetError, match="permissions or owner"):
+            runner._validate_private_directory("/tmp/fardb-cli-invocation-ABC123")
+
+
+def test_cli_setup_failure_cleans_only_a_validated_private_directory(monkeypatch) -> None:
+    """Failed binary preparation removes the adopted directory through its guard."""
+    runner = object.__new__(guard.ContainerCliRunner)
+    runner.cli = "docker"
+    runner.record = {"id": "a" * 64}
+    runner.directory = None
+    path = "/tmp/fardb-cli-invocation-ABC123"
+    monkeypatch.setattr(runner, "validate", Mock())
+    validated = Mock()
+    monkeypatch.setattr(runner, "_validate_private_directory", validated)
+    monkeypatch.setattr(guard, "invocation_id", lambda: "invocation")
+    docker = Mock(return_value=Mock(stdout=(path + "\n").encode()))
+    monkeypatch.setattr(guard, "_docker_command", docker)
+    monkeypatch.setattr(runner, "_prepare_cli", Mock(side_effect=RuntimeError("incompatible")))
+    with pytest.raises(RuntimeError, match="incompatible"):
+        runner.__enter__()
+    assert runner.directory is None
+    assert validated.call_count == 2
+    assert docker.call_args.args[0] == ["docker", "exec", "a" * 64, "rm", "-rf", "--", path]
+
+
+@pytest.mark.parametrize("configured", [False, True])
+def test_shell_entrypoint_uses_python3_without_python_alias(tmp_path, monkeypatch, configured) -> None:
+    """Resolve the explicit interpreter or python3 before launching any Docker work."""
+    import os
+    import subprocess
+    from pathlib import Path
+
+    binary = tmp_path / ("configured-python" if configured else "python3")
+    binary.write_text('#!/bin/sh\nif [ "$1" = "-c" ]; then exit 0; fi\nprintf "%s\\n" "$@" > "$ARGV_FILE"\n')
+    binary.chmod(0o700)
+    (tmp_path / "dirname").symlink_to("/usr/bin/dirname")
+    args = tmp_path / "args"
+    env = {**os.environ, "PATH": str(tmp_path), "ARGV_FILE": str(args)}
+    env.pop("PG_CONFIG", None)
+    env.pop("FARDB_PYTHON", None)
+    if configured:
+        env["FARDB_PYTHON"] = str(binary)
+    script = Path(__file__).parents[2] / "scripts/run_ephemeral_postgres_integration.sh"
+    result = subprocess.run(["/bin/bash", str(script), "selected-test"], env=env, capture_output=True, check=False)
+    assert result.returncode == 0
+    assert args.read_text().splitlines()[-1] == "selected-test"
+    env["FARDB_PYTHON"] = str(tmp_path / "missing")
+    args.unlink()
+    result = subprocess.run(["/bin/bash", str(script)], env=env, capture_output=True, check=False)
+    assert result.returncode == 2
+    assert not args.exists()
+
+
+def test_pytest_subprocess_uses_the_current_interpreter(monkeypatch) -> None:
+    """A PATH alias cannot replace the configured harness interpreter."""
+    import subprocess
+    import sys
+
+    run = Mock(return_value=Mock(returncode=17))
+    monkeypatch.setattr(subprocess, "run", run)
+    output = Mock()
+    assert guard._run_pytest(["selected-test", "-q"], output) == 17
+    run.assert_called_once_with(
+        [sys.executable, "-m", "pytest", "selected-test", "-q"], stdout=output, stderr=subprocess.STDOUT, check=False
+    )
+
+
+def test_shell_rejects_non_python3_interpreter_before_launch(tmp_path) -> None:
+    """A configured executable that fails the Python 3 probe cannot launch tests."""
+    import os
+    import subprocess
+    from pathlib import Path
+
+    binary = tmp_path / "not-python3"
+    binary.write_text("#!/bin/sh\nexit 1\n")
+    binary.chmod(0o700)
+    env = {**os.environ, "FARDB_PYTHON": str(binary)}
+    env.pop("PG_CONFIG", None)
+    script = Path(__file__).parents[2] / "scripts/run_ephemeral_postgres_integration.sh"
+    result = subprocess.run(["/bin/bash", str(script)], env=env, capture_output=True, check=False)
+    assert result.returncode == 2
+    assert b"must be Python 3" in result.stderr
+
+
+@pytest.mark.parametrize(
+    "statement",
+    [
+        "COMMENT ON ROLE protected IS 'changed'",
+        "SECURITY LABEL ON ROLE protected IS 'changed'",
+        "SECURITY LABEL FOR provider ON ROLE protected IS 'changed'",
+        "SECURITY LABEL FOR \"quoted provider\" ON ROLE protected IS 'changed'",
+        "REASSIGN OWNED BY protected TO test",
+        "DROP OWNED BY protected",
+        "DROP OWNED BY protected RESTRICT",
+        "DROP OWNED BY absent, protected CASCADE",
+    ],
+)
+@pytest.mark.parametrize(
+    "variant",
+    [
+        "plain",
+        "whitespace",
+        "leading_comment",
+        "inline_comment",
+        "leading_line",
+        "inline_line",
+        "stacked",
+        "trailing_stacked",
+    ],
+)
+def test_role_metadata_and_owned_object_mutations_never_reach_driver(statement, variant) -> None:
+    """Every unsupported family and separator variant fails before driver execution."""
+    if variant == "whitespace":
+        statement = " \n\t" + statement.replace(" ", "\n\t") + ";\n"
+    elif variant == "leading_comment":
+        statement = "/* prefix */ " + statement
+    elif variant == "inline_comment":
+        statement = statement.replace(" ", " /* separator */ ", 1)
+    elif variant == "leading_line":
+        statement = "-- prefix\n" + statement
+    elif variant == "inline_line":
+        statement = statement.replace(" ", " -- separator\n ", 1)
+    elif variant == "stacked":
+        statement = "SELECT 1; " + statement
+    elif variant == "trailing_stacked":
+        statement += "; SELECT 1"
+    cursor = MagicMock()
+    cursor.mogrify.return_value = statement.encode()
+    with pytest.raises(guard.DisposableTargetError):
+        guard.OwnedRoleCursor.execute(cursor, statement)
+    cursor.connection.cursor.assert_not_called()
+    cursor._execute_driver.assert_not_called()
+
+
+def test_only_exact_reviewed_bootstrap_bypasses_ad_hoc_ddl_parser() -> None:
+    """Preserve the attested bootstrap path without accepting arbitrary DO blocks."""
+    from pathlib import Path
+
+    bootstrap = Path(__file__).parents[2] / "scripts/bootstrap_database_capability_roles.sql"
+    text = bootstrap.read_text(encoding="utf-8")
+    assert guard._parse_role_ddl(text) is None
+    with pytest.raises(guard.DisposableTargetError):
+        guard._parse_role_ddl(text + "\nDROP ROLE protected")
+    assert guard._parse_role_ddl("SELECT 'DROP OWNED BY protected'") is None

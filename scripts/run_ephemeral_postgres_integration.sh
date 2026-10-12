@@ -13,4 +13,13 @@ if [[ -n "${PG_CONFIG:-}" ]]; then
   exit 2
 fi
 cd "$repo_root"
-python -m tests.integration.postgresql_disposable_cluster harness --major "$requested_major" "$@"
+configured_python="${FARDB_PYTHON:-python3}"
+if ! harness_python="$(command -v "$configured_python")"; then
+  echo 'A configured Python 3 interpreter is required (FARDB_PYTHON or python3)' >&2
+  exit 2
+fi
+if ! "$harness_python" -c 'import sys; sys.exit(0 if sys.version_info.major == 3 else 1)'; then
+  echo 'The configured interpreter must be Python 3' >&2
+  exit 2
+fi
+exec "$harness_python" -m tests.integration.postgresql_disposable_cluster harness --major "$requested_major" "$@"

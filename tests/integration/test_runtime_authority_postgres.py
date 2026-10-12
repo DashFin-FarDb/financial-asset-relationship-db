@@ -22,6 +22,7 @@ import pytest
 
 from tests.integration.postgresql_disposable_cluster import (
     ContainerCliRunner,
+    DisposableTargetError,
     OwnedRoleCursor,
     allocate_role_names,
     attested_connection,
@@ -267,6 +268,35 @@ def test_preexisting_role_collision_is_not_modified_or_adopted() -> None:
                     cursor.execute(sql.SQL("DROP ROLE {}").format(sql.Identifier(grantee_name)))
         finally:
             connection.close()
+
+
+@pytest.mark.integration
+def test_multi_role_drop_rejected_without_changing_preexisting_second_role() -> None:
+    """An absent first name cannot authorize dropping a pre-existing sentinel."""
+    database_url = _ephemeral_database_url()
+    sentinel = f"fdbt_{invocation_id()}_sentinel_{uuid4().hex[:8]}"
+    absent = f"fdbt_{invocation_id()}_absent_{uuid4().hex[:8]}"
+    with attested_connection(database_url) as connection:
+        with connection.cursor() as cursor:
+            cursor.execute(
+                sql.SQL("CREATE ROLE {} NOLOGIN INHERIT CONNECTION LIMIT 7").format(sql.Identifier(sentinel))
+            )
+            cursor.execute("SELECT oid FROM pg_roles WHERE rolname = %s", (sentinel,))
+            oid = int(cursor.fetchone()[0])
+            cursor.execute(sql.SQL("GRANT {} TO test WITH ADMIN OPTION").format(sql.Identifier(sentinel)))
+        before = _role_and_membership_snapshot(connection, oid)
+        with connection.cursor(cursor_factory=OwnedRoleCursor) as guarded:
+            with pytest.raises(DisposableTargetError, match="multi-role"):
+                guarded.execute(
+                    sql.SQL("DROP ROLE IF EXISTS {}, {}").format(sql.Identifier(absent), sql.Identifier(sentinel))
+                )
+            guarded.execute("SELECT %s::int", (7,))
+            assert guarded.fetchone() == (7,)
+            guarded.execute(query="SELECT %s::int", vars=(8,))
+            assert guarded.fetchone() == (8,)
+            guarded.execute(sql.SQL("DROP ROLE IF EXISTS {}").format(sql.Identifier(absent)))
+        assert _role_and_membership_snapshot(connection, oid) == before
+        # The uncommitted sentinel/membership are rolled back on connection close.
 
 
 def _role_and_membership_snapshot(connection, role_oid: int) -> tuple[tuple, tuple]:
