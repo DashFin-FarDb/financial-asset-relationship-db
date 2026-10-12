@@ -265,7 +265,7 @@ The following invariants are the current review and operating contract:
 16. A redeployed instance may recover a dead owner only through stale-owner classification, lock reacquisition, and RecoveryGate-approved reset semantics.
 17. Staging/production promotion requires durable graph evidence, not bounded health alone.
 18. All instances in one environment must use the same rebuild lock TTL and coordination database boundary.
-19. Startup may proceed without a published graph only on independent evidence that none was ever published; unverifiable history fails closed.
+19. On the authoritative `ASSET_GRAPH_DATABASE_URL` path, startup may proceed without a published graph only on independent evidence that none was ever published; unverifiable history fails closed. Hosted fallback startup follows its separate degraded-boot policy.
 20. Graph reads are unavailable (`503`), not erroring (`500`), until the first graph is published.
 
 ## Operator ownership and handoff boundaries

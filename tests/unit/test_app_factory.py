@@ -1013,8 +1013,9 @@ def test_reconciliation_blocked_never_published_graph_allows_empty_startup(monke
         ExecutionBlockedError("drift", action="wait", inconsistency_type="orphaned_running"),
         ExecutionBlockedError("resume", action="resume", inconsistency_type="none"),
     ):
+        settings = MagicMock()
         with pytest.raises(ExecutionBlockedError):
-            _handle_reconciliation_blocked(blocked, MagicMock())
+            _handle_reconciliation_blocked(blocked, settings)
 
 
 @pytest.mark.parametrize(
@@ -1073,9 +1074,11 @@ async def test_blocked_reconciliation_verification_does_not_block_event_loop(mon
     import time
 
     def _raise_block(*_args, **_kwargs):
+        """Simulate a benign blocked reconciliation result."""
         raise ExecutionBlockedError("waiting", action="wait", inconsistency_type="none")
 
     def _slow_handler(_exc, _settings) -> bool:
+        """Simulate synchronous database verification taking time."""
         time.sleep(0.4)
         return True
 
@@ -1086,6 +1089,7 @@ async def test_blocked_reconciliation_verification_does_not_block_event_loop(mon
     stop = asyncio.Event()
 
     async def _ticker() -> None:
+        """Measure event loop responsiveness during verification."""
         nonlocal max_gap
         last = time.perf_counter()
         while not stop.is_set():
@@ -1113,14 +1117,21 @@ async def test_blocked_reconciliation_verification_is_time_bounded(monkeypatch) 
     import time
 
     def _raise_block(*_args, **_kwargs):
+        """Simulate a benign blocked reconciliation result."""
         raise ExecutionBlockedError("waiting", action="wait", inconsistency_type="none")
 
+    def _slow_handler(_exc, _settings) -> bool:
+        """Simulate verification that exceeds the startup timeout."""
+        time.sleep(0.3)
+        return True
+
     monkeypatch.setattr(app_factory, "_run_startup_reconciliation", _raise_block)
-    monkeypatch.setattr(app_factory, "_handle_reconciliation_blocked", lambda _e, _s: time.sleep(0.3) or True)
+    monkeypatch.setattr(app_factory, "_handle_reconciliation_blocked", _slow_handler)
     monkeypatch.setattr(app_factory, "_STARTUP_BLOCKED_VERIFICATION_TIMEOUT_SECONDS", 0.05)
 
+    settings = cast(Any, MagicMock())
     with pytest.raises(RuntimeError, match="timed out"):
-        await app_factory._perform_startup_reconciliation(cast(Any, MagicMock()))
+        await app_factory._perform_startup_reconciliation(settings)
 
 
 @pytest.mark.parametrize(
@@ -1142,6 +1153,7 @@ def test_graph_read_routes_return_503_when_no_graph_is_published(monkeypatch, pa
     from api.graph_lifecycle_providers import AuthoritativeGraphUnavailableError
 
     def _no_graph():
+        """Simulate an authoritative store awaiting first publication."""
         raise AuthoritativeGraphUnavailableError("No authoritative published graph found in persistent storage.")
 
     graph_lifecycle.reset_graph()

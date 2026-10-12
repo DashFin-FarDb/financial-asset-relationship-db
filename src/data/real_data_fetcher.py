@@ -326,7 +326,7 @@ class RealDataFetcher:
                 return None
             self._check_cancelled(cancel_event, "after cache validation")
             return graph
-        except (FetchCancelledError, RebuildCancelledError):
+        except RebuildCancelledError:
             raise
         except Exception as exc:
             log_event(
