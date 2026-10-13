@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
-from contextlib import nullcontext
+from contextlib import AbstractContextManager, nullcontext
 
 from sqlalchemy import (
     CheckConstraint,
@@ -15,7 +15,7 @@ from sqlalchemy import (
     inspect,
     text,
 )
-from sqlalchemy.engine import Engine, make_url
+from sqlalchemy.engine import Connection, Engine, make_url
 from sqlalchemy.exc import ArgumentError
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool
@@ -1006,7 +1006,7 @@ def _verify_expected_table_catalog(inspector, capabilities: tuple[str, ...]) -> 
 
 
 def _verify_profile_specific_schema(
-    engine: Engine,
+    engine: Engine | _ConnectionBoundEngine,
     inspector,
     backend: str,
     capabilities: tuple[str, ...],
@@ -1040,14 +1040,14 @@ def _verify_profile_specific_schema(
 class _ConnectionBoundEngine:
     """Expose verification-only engine operations on one caller-owned connection."""
 
-    def __init__(self, engine, connection) -> None:
+    def __init__(self, engine: Engine, connection: Connection) -> None:
         """Reject a connection belonging to any other engine."""
         if connection.engine is not engine:
             raise SchemaCompatibilityError("verification connection does not belong to its engine")
         self.url = engine.url
         self._connection = connection
 
-    def connect(self):
+    def connect(self) -> AbstractContextManager[Connection]:
         """Reuse the caller-owned connection without closing or replacing it."""
         return nullcontext(self._connection)
 

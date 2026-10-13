@@ -884,3 +884,85 @@ def test_cursor_adapter_rejects_excess_positional_parameters_before_driver() -> 
         guard.OwnedRoleCursor.execute(cursor, "SELECT 1", None, None)
     cursor.mogrify.assert_not_called()
     cursor._execute_driver.assert_not_called()
+
+
+@pytest.mark.parametrize("autocommit", [True, False])
+def test_bootstrap_mapping_and_block_share_transaction(autocommit: bool, monkeypatch) -> None:
+    """Autocommit callers explicitly retain the mapping until bootstrap completes."""
+    from scripts import bootstrap_database_capability_roles as bootstrap
+
+    connection = MagicMock()
+    connection.autocommit = autocommit
+    cursor = MagicMock()
+    cursor.connection = connection
+    mapping = {name: ["test_db"] for name in guard._CANONICAL_CAPABILITY_ROLES}
+    monkeypatch.setattr(bootstrap, "_lock_coordinator_catalogs", Mock())
+    monkeypatch.setattr(bootstrap, "_cluster_and_database_identity", Mock(return_value=("123", 42, "test_db")))
+    monkeypatch.setattr(bootstrap, "_coordinator_targets", Mock(return_value={"test_db": (42, "test_db")}))
+    monkeypatch.setattr(
+        bootstrap,
+        "_preflight_targets",
+        Mock(
+            return_value=(
+                {"test_db": connection},
+                {"test_db": dict.fromkeys(bootstrap._ROLE_NAMES)},
+            )
+        ),
+    )
+    monkeypatch.setattr(bootstrap, "_verify_target_schema_acl", Mock())
+    monkeypatch.setattr(
+        bootstrap,
+        "_apply_bootstrap",
+        lambda active_cursor, _mapping, sql_text: (
+            active_cursor.execute("SELECT set_config('fardb.bootstrap_targets', %s, true)", ("{}",)),
+            active_cursor.execute(sql_text),
+        ),
+    )
+    guard.execute_capability_bootstrap(cursor, mapping)
+    statements = [call.args[0] for call in cursor.execute.call_args_list]
+    if autocommit:
+        assert statements[0] == "BEGIN"
+        assert statements[-1] == "COMMIT"
+    else:
+        connection.commit.assert_called_once()
+    setup = [index for index, statement in enumerate(statements) if "set_config" in statement]
+    blocks = [index for index, statement in enumerate(statements) if "DO $fardb$" in statement]
+    assert len(setup) == 1
+    assert len(blocks) == 1
+    assert setup[0] < blocks[0]
+
+
+def test_autocommit_bootstrap_failure_rolls_back(monkeypatch) -> None:
+    """A bootstrap failure rolls back the explicit transaction instead of committing."""
+    from scripts import bootstrap_database_capability_roles as bootstrap
+
+    connection = MagicMock()
+    connection.autocommit = True
+    cursor = MagicMock()
+    cursor.connection = connection
+
+    mapping = {name: ["test_db"] for name in guard._CANONICAL_CAPABILITY_ROLES}
+    monkeypatch.setattr(bootstrap, "_lock_coordinator_catalogs", Mock())
+    monkeypatch.setattr(bootstrap, "_cluster_and_database_identity", Mock(return_value=("123", 42, "test_db")))
+    monkeypatch.setattr(bootstrap, "_coordinator_targets", Mock(return_value={"test_db": (42, "test_db")}))
+    monkeypatch.setattr(
+        bootstrap,
+        "_preflight_targets",
+        Mock(
+            return_value=(
+                {"test_db": connection},
+                {"test_db": dict.fromkeys(bootstrap._ROLE_NAMES)},
+            )
+        ),
+    )
+
+    def fail_after_mapping(active_cursor, _mapping, _sql_text):
+        """Fail after the transaction-local target mapping has been set."""
+        active_cursor.execute("SELECT set_config('fardb.bootstrap_targets', %s, true)", ("{}",))
+        raise RuntimeError("bootstrap failed")
+
+    monkeypatch.setattr(bootstrap, "_apply_bootstrap", fail_after_mapping)
+    with pytest.raises(RuntimeError, match="bootstrap failed"):
+        guard.execute_capability_bootstrap(cursor, mapping)
+    assert cursor.execute.call_args_list[-1].args == ("ROLLBACK",)
+    assert not any(call.args[0] == "COMMIT" for call in cursor.execute.call_args_list)

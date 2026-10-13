@@ -469,9 +469,11 @@ def test_binding_restores_connection_state_when_temporary_cleanup_fails(monkeypa
     failure = sqlite3.Error("temporary close failed")
     temporary.close_shared_connection.side_effect = failure
     monkeypatch.setattr(api.database, "_DatabaseConnectionManager", lambda _path: temporary)
-    with pytest.raises(sqlite3.Error, match="temporary close failed"):
-        with api.database.bind_database_url("sqlite:///:memory:"):
-            assert state.manager is temporary
+    with (
+        pytest.raises(sqlite3.Error, match="temporary close failed"),
+        api.database.bind_database_url("sqlite:///:memory:"),
+    ):
+        assert state.manager is temporary
     restored = (
         api.database._effective_database_target(),
         state.target,
@@ -490,22 +492,28 @@ def test_nested_binding_restores_each_owned_target_and_cache() -> None:
     state = api.database._CONNECTION_STATE
     previous = (state.target, state.manager, state.connection, state.connection_manager)
     constants = (api.database.DATABASE_URL, api.database.DATABASE_TYPE, api.database.DATABASE_PATH)
-    with api.database.bind_database_url("sqlite:///:memory:"):
-        with api.database.get_connection() as outer:
-            outer.execute("CREATE TABLE outer_sentinel (value INTEGER)")
-            outer_target = state.target
-            outer_manager = state.manager
-            with pytest.raises(RuntimeError, match="inner binding failed"):
-                with api.database.bind_database_url("sqlite:///:memory:"):
-                    with api.database.get_connection() as inner:
-                        assert inner is not outer
-                        raise RuntimeError("inner binding failed")
-            assert state.target is outer_target
-            assert state.manager is outer_manager
-            assert state.connection is outer
-            assert outer.execute("SELECT COUNT(*) FROM outer_sentinel").fetchone()[0] == 0
-            with pytest.raises(sqlite3.ProgrammingError, match="closed database"):
-                inner.execute("SELECT 1")
+    with (
+        api.database.bind_database_url("sqlite:///:memory:"),
+        api.database.get_connection() as outer,
+    ):
+        outer.execute("CREATE TABLE outer_sentinel (value INTEGER)")
+        outer_target = state.target
+        outer_manager = state.manager
+        with (
+            pytest.raises(RuntimeError, match="inner binding failed"),
+            api.database.bind_database_url("sqlite:///:memory:"),
+            api.database.get_connection() as inner,
+        ):
+            assert inner is not outer
+            raise RuntimeError("inner binding failed")
+        assert state.target is outer_target
+        assert state.manager is outer_manager
+        assert state.connection is outer
+        assert outer is not None
+        assert outer.execute("SELECT COUNT(*) FROM outer_sentinel").fetchone()[0] == 0
+        assert inner is not None
+        with pytest.raises(sqlite3.ProgrammingError, match="closed database"):
+            inner.execute("SELECT 1")
     assert (state.target, state.manager, state.connection, state.connection_manager) == previous
     assert (api.database.DATABASE_URL, api.database.DATABASE_TYPE, api.database.DATABASE_PATH) == constants
     with pytest.raises(sqlite3.ProgrammingError, match="closed database"):
@@ -522,9 +530,11 @@ def test_binding_setup_failure_preserves_state_and_releases_lock(monkeypatch) ->
     failure = sqlite3.Error("manager construction failed")
     with monkeypatch.context() as scoped:
         scoped.setattr(api.database, "_DatabaseConnectionManager", MagicMock(side_effect=failure))
-        with pytest.raises(sqlite3.Error, match="manager construction failed"):
-            with api.database.bind_database_url("sqlite:///:memory:"):
-                pytest.fail("failed setup must not enter the binding body")
+        with (
+            pytest.raises(sqlite3.Error, match="manager construction failed"),
+            api.database.bind_database_url("sqlite:///:memory:"),
+        ):
+            pytest.fail("failed setup must not enter the binding body")
     assert (state.target, state.manager, state.connection, state.connection_manager) == previous
     with api.database.bind_database_url("sqlite:///:memory:"):
         assert state.target is not None
@@ -539,9 +549,11 @@ def test_invalid_binding_url_does_not_change_state() -> None:
 
     state = api.database._CONNECTION_STATE
     previous = (state.target, state.manager, state.connection, state.connection_manager)
-    with pytest.raises(ValueError, match="Unsupported database URL scheme"):
-        with api.database.bind_database_url("https://invalid.example/database"):
-            pytest.fail("invalid target must not enter the binding body")
+    with (
+        pytest.raises(ValueError, match="Unsupported database URL scheme"),
+        api.database.bind_database_url("https://invalid.example/database"),
+    ):
+        pytest.fail("invalid target must not enter the binding body")
     assert (state.target, state.manager, state.connection, state.connection_manager) == previous
 
 
@@ -563,10 +575,12 @@ def test_binding_lock_is_held_then_released_after_failure() -> None:
     import api.database
 
     with ThreadPoolExecutor(max_workers=1) as executor:
-        with pytest.raises(RuntimeError, match="binding body failed"):
-            with api.database.bind_database_url("sqlite:///:memory:"):
-                assert executor.submit(_binding_lock_is_available_to_worker).result(timeout=5) is False
-                raise RuntimeError("binding body failed")
+        with (
+            pytest.raises(RuntimeError, match="binding body failed"),
+            api.database.bind_database_url("sqlite:///:memory:"),
+        ):
+            assert executor.submit(_binding_lock_is_available_to_worker).result(timeout=5) is False
+            raise RuntimeError("binding body failed")
         assert executor.submit(_binding_lock_is_available_to_worker).result(timeout=5) is True
 
 
@@ -578,12 +592,14 @@ def test_postgresql_binding_uses_owned_target_without_mutating_constants() -> No
     constants = (api.database.DATABASE_URL, api.database.DATABASE_TYPE, api.database.DATABASE_PATH)
     target = "postgresql://runtime@127.0.0.1/runtime_db"
     connection = MagicMock()
-    with patch("psycopg2.connect", return_value=connection) as connect:
-        with api.database.bind_database_url(target):
-            with api.database.get_connection() as opened:
-                assert opened is connection
-            assert connect.call_args.args[0] == target
-            assert api.database._effective_database_target().database_type == "postgresql"
-            assert api.database._effective_database_target().path == target
+    with (
+        patch("psycopg2.connect", return_value=connection) as connect,
+        api.database.bind_database_url(target),
+    ):
+        with api.database.get_connection() as opened:
+            assert opened is connection
+        assert connect.call_args.args[0] == target
+        assert api.database._effective_database_target().database_type == "postgresql"
+        assert api.database._effective_database_target().path == target
     assert (api.database.DATABASE_URL, api.database.DATABASE_TYPE, api.database.DATABASE_PATH) == constants
     connection.close.assert_called_once()

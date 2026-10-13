@@ -1,4 +1,5 @@
--- Run explicitly with psql as a PostgreSQL superuser before the normal FarDB migration.
+-- Executed only by scripts.bootstrap_database_capability_roles as a PostgreSQL superuser.
+-- The orchestrator proves every mapped database identity and schema ACL before this block.
 -- This is a cluster-role bootstrap only; it creates no login, credential, or runtime API.
 DO $fardb$
 DECLARE
@@ -81,7 +82,12 @@ BEGIN
                   OR role.rolcreaterole
                   OR role.rolbypassrls
                   OR role.rolreplication
-                  OR has_database_privilege(role.oid, current_database(), 'CREATE')
+                  OR EXISTS (
+                      SELECT 1
+                      FROM jsonb_array_elements_text(target_mapping -> capability_role) AS target(name)
+                      JOIN pg_database AS target_database ON target_database.datname = target.name
+                      WHERE has_database_privilege(role.oid, target_database.oid, 'CREATE')
+                  )
                   OR EXISTS (
                       SELECT 1
                       FROM pg_namespace AS namespace

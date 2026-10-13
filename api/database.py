@@ -969,11 +969,24 @@ def initialize_schema() -> None:
         """)
 
 
-def verify_schema_compatibility() -> None:
+def _verification_fetch_value(connection, query, parameters=None):
+    """Read one catalog value without replacing a caller-owned proved session."""
+    if connection is None:
+        return fetch_value(query, parameters) if parameters is not None else fetch_value(query)
+    with connection.cursor() as cursor:
+        cursor.execute(query, parameters)
+        row = cursor.fetchone()
+    return row[0] if row is not None else None
+
+
+def verify_schema_compatibility(*, verification_connection=None) -> None:
     """Verify the API credential schema using read-only catalog queries."""
     if _effective_database_target().database_type == "postgresql":
-        column_names = _parse_catalog_column_names(fetch_value(_POSTGRES_CREDENTIAL_COLUMN_NAMES_SQL))
-        username_unique = fetch_value(
+        column_names = _parse_catalog_column_names(
+            _verification_fetch_value(verification_connection, _POSTGRES_CREDENTIAL_COLUMN_NAMES_SQL)
+        )
+        username_unique = _verification_fetch_value(
+            verification_connection,
             "SELECT EXISTS ("
             "SELECT 1 FROM pg_constraint AS con "
             "JOIN pg_class AS rel ON rel.oid = con.conrelid "
@@ -981,16 +994,19 @@ def verify_schema_compatibility() -> None:
             "WHERE namespace.nspname = current_schema() AND rel.relname = 'user_credentials' "
             "AND con.contype = 'u' AND con.conkey = ARRAY[("
             "SELECT attnum FROM pg_attribute WHERE attrelid = rel.oid AND attname = 'username'"
-            ")]::smallint[])"
+            ")]::smallint[])",
         )
     else:
-        column_names = _parse_catalog_column_names(fetch_value(_SQLITE_CREDENTIAL_COLUMN_NAMES_SQL))
-        username_unique = fetch_value(
+        column_names = _parse_catalog_column_names(
+            _verification_fetch_value(verification_connection, _SQLITE_CREDENTIAL_COLUMN_NAMES_SQL)
+        )
+        username_unique = _verification_fetch_value(
+            verification_connection,
             "SELECT EXISTS ("
             "SELECT 1 FROM pragma_index_list('user_credentials') AS indexes "
             "WHERE indexes.[unique] = 1 "
             "AND (SELECT COUNT(*) FROM pragma_index_info(indexes.name)) = 1 "
-            "AND (SELECT name FROM pragma_index_info(indexes.name) LIMIT 1) = 'username')"
+            "AND (SELECT name FROM pragma_index_info(indexes.name) LIMIT 1) = 'username')",
         )
 
     if not _CREDENTIAL_COLUMN_SET.issubset(column_names):
@@ -1006,12 +1022,13 @@ def ensure_runtime_access() -> None:
     raise SchemaCompatibilityError("PostgreSQL auth capability mutation is owned by the profile-scoped Supabase ledger")
 
 
-def verify_runtime_access_catalog(require_login_principals: bool = True) -> None:
+def verify_runtime_access_catalog(require_login_principals: bool = True, *, verification_connection=None) -> None:
     """Verify the ledger-owned auth role, grants, RLS, and routine catalog."""
     if _effective_database_target().database_type != "postgresql":
         return
 
-    safe_role = fetch_value(
+    safe_role = _verification_fetch_value(
+        verification_connection,
         _auth_safe_role_sql(require_login_principals=require_login_principals),
         (
             AUTH_RUNTIME_ROLE,
@@ -1020,7 +1037,8 @@ def verify_runtime_access_catalog(require_login_principals: bool = True) -> None
             list(get_approved_login_principals(AUTH_RUNTIME_ROLE)),
         ),
     )
-    exact_access = fetch_value(
+    exact_access = _verification_fetch_value(
+        verification_connection,
         "SELECT has_schema_privilege(%s, current_schema(), 'USAGE') "
         "AND NOT EXISTS (SELECT 1 FROM pg_namespace AS namespace "
         "WHERE has_schema_privilege(%s, namespace.oid, 'CREATE')) "
@@ -1036,7 +1054,8 @@ def verify_runtime_access_catalog(require_login_principals: bool = True) -> None
         "AND NOT has_any_column_privilege(%s, 'user_credentials', 'REFERENCES')",
         (AUTH_RUNTIME_ROLE,) * 12,
     )
-    exact_policy = fetch_value(
+    exact_policy = _verification_fetch_value(
+        verification_connection,
         "SELECT COUNT(*) = 1 FROM pg_policy AS policy "
         "JOIN pg_class AS rel ON rel.oid = policy.polrelid "
         "JOIN pg_namespace AS namespace ON namespace.oid = rel.relnamespace "
@@ -1049,7 +1068,8 @@ def verify_runtime_access_catalog(require_login_principals: bool = True) -> None
         "AND (SELECT COUNT(*) FROM pg_policy AS all_policy WHERE all_policy.polrelid = rel.oid) = 1",
         (AUTH_RUNTIME_ROLE,),
     )
-    exact_table_posture = fetch_value(
+    exact_table_posture = _verification_fetch_value(
+        verification_connection,
         "SELECT rel.relrowsecurity "
         "AND NOT EXISTS (SELECT 1 FROM aclexplode("
         "COALESCE(rel.relacl, acldefault('r', rel.relowner))) AS acl "
@@ -1062,23 +1082,25 @@ def verify_runtime_access_catalog(require_login_principals: bool = True) -> None
         "WHERE namespace.nspname = current_schema() AND rel.relname = 'user_credentials'",
         (AUTH_RUNTIME_ROLE,) * 3,
     )
-    auth_routines_absent = fetch_value(
+    auth_routines_absent = _verification_fetch_value(
+        verification_connection,
         "SELECT NOT EXISTS (SELECT 1 FROM pg_trigger AS trigger "
         "JOIN pg_class AS rel ON rel.oid = trigger.tgrelid "
         "JOIN pg_namespace AS namespace ON namespace.oid = rel.relnamespace "
         "WHERE namespace.nspname = current_schema() AND rel.relname = 'user_credentials' "
-        "AND NOT trigger.tgisinternal)"
+        "AND NOT trigger.tgisinternal)",
     )
     if not all((safe_role, exact_access, exact_policy, exact_table_posture, auth_routines_absent)):
         raise SchemaCompatibilityError("API runtime capability contract is incompatible")
 
 
-def verify_runtime_authority() -> None:
+def verify_runtime_authority(*, verification_connection=None) -> None:
     """Require the exact read-only auth capability without migration authority."""
     if _effective_database_target().database_type != "postgresql":
         return
 
-    restricted = fetch_value(
+    restricted = _verification_fetch_value(
+        verification_connection,
         "".join(
             (
                 "SELECT current_schema() IS NOT NULL AND NOT EXISTS ("
@@ -1131,11 +1153,12 @@ def verify_runtime_authority() -> None:
             "API runtime database role retains schema-migration authority or cross-profile authority"
         )
 
-    session_user_name = fetch_value("SELECT session_user")
+    session_user_name = _verification_fetch_value(verification_connection, "SELECT session_user")
     if session_user_name not in get_approved_login_principals(AUTH_RUNTIME_ROLE):
         raise SchemaCompatibilityError("API runtime login principal is not an approved login for the auth capability")
 
-    membership_count = fetch_value(
+    membership_count = _verification_fetch_value(
+        verification_connection,
         "SELECT COUNT(*) FROM pg_roles AS login JOIN pg_roles AS assumable "
         "ON assumable.oid <> login.oid AND "
         "CASE WHEN current_setting('server_version_num')::integer >= 160000 THEN "
@@ -1144,7 +1167,8 @@ def verify_runtime_authority() -> None:
         "ELSE pg_has_role(login.oid, assumable.oid, 'MEMBER') END "
         "WHERE login.rolname = session_user",
     )
-    has_auth_membership = fetch_value(
+    has_auth_membership = _verification_fetch_value(
+        verification_connection,
         "SELECT EXISTS (SELECT 1 FROM pg_roles AS login JOIN pg_roles AS assumable "
         "ON assumable.rolname = %s AND "
         "CASE WHEN current_setting('server_version_num')::integer >= 160000 THEN "
@@ -1157,7 +1181,8 @@ def verify_runtime_authority() -> None:
     if membership_count != 1 or not has_auth_membership:
         raise SchemaCompatibilityError("API runtime login capability memberships are incompatible")
 
-    exact_login_access = fetch_value(
+    exact_login_access = _verification_fetch_value(
+        verification_connection,
         "SELECT has_table_privilege(session_user, 'user_credentials', 'SELECT') "
         "AND NOT has_table_privilege(session_user, 'user_credentials', 'INSERT') "
         "AND NOT has_table_privilege(session_user, 'user_credentials', 'UPDATE') "
@@ -1167,7 +1192,7 @@ def verify_runtime_authority() -> None:
         "AND NOT has_table_privilege(session_user, 'user_credentials', 'TRIGGER') "
         "AND NOT has_any_column_privilege(session_user, 'user_credentials', 'INSERT') "
         "AND NOT has_any_column_privilege(session_user, 'user_credentials', 'UPDATE') "
-        "AND NOT has_any_column_privilege(session_user, 'user_credentials', 'REFERENCES')"
+        "AND NOT has_any_column_privilege(session_user, 'user_credentials', 'REFERENCES')",
     )
     if not exact_login_access:
         raise SchemaCompatibilityError("API runtime login grants are incompatible")

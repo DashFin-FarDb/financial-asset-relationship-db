@@ -34,15 +34,15 @@ separate human-controlled provider operation.
 
 ## Superuser capability-role bootstrap
 
-Run the static bootstrap once on every distinct PostgreSQL cluster that hosts a FarDB auth, graph, or coordination
-database, before using the normal migration owner:
+Run the identity-checked bootstrap orchestrator once on every distinct PostgreSQL cluster that hosts a FarDB auth,
+graph, or coordination database, before using the normal migration owner. Do not execute the SQL block directly for
+multi-target acceptance; the SQL artifact is the coordinator transaction body used by this entrypoint:
 
 ```bash
-psql --set=ON_ERROR_STOP=1 --single-transaction "$MIGRATION_DATABASE_URL" \
-  --set=bootstrap_targets='{"fardb_runtime_auth":["auth_db"],"fardb_runtime_graph":["graph_db"],"fardb_runtime_coordination":["coordination_db"]}' <<'SQL'
-SELECT set_config('fardb.bootstrap_targets', :'bootstrap_targets', true);
-\i scripts/bootstrap_database_capability_roles.sql
-SQL
+export FARDB_BOOTSTRAP_DATABASE_URL="$MIGRATION_DATABASE_URL"
+python -m scripts.bootstrap_database_capability_roles \
+  --targets-json '{"fardb_runtime_auth":["auth_db"],"fardb_runtime_graph":["graph_db"],"fardb_runtime_coordination":["coordination_db"]}'
+unset FARDB_BOOTSTRAP_DATABASE_URL
 ```
 
 Replace every database name with the reviewed physical target on this cluster. For a combined database, repeat its
@@ -50,14 +50,37 @@ name for the capabilities it hosts. Each list may contain multiple targets. The 
 missing keys, empty lists, unknown databases and malformed input fail before mutation. Resolve target ownership from
 `pg_database`; this interface does not accept arbitrary exempt role names.
 
-The connection must be the reviewed superuser bootstrap connection. Never publish its credentials. The transaction-local
-mapping and bootstrap must execute in the **same transaction**. Invalid input, unsafe role attributes or restricted
-revocation dependencies roll back every change, including capability roles created earlier in the bootstrap.
+The connection must be the reviewed superuser bootstrap connection. Never publish its credentials. The orchestrator
+checks the coordinator's cluster identity and the OID/name of every mapped database, then opens and retains a
+target-local connection for each distinct database. Each target session must prove the same cluster identifier and
+its expected database OID/name. Identity uncertainty, connection failure, lock timeout, or privilege failure aborts
+before acceptance.
+
+The coordinator acquires `SHARE ROW EXCLUSIVE` locks on `pg_authid`, `pg_auth_members`, and `pg_database` in that
+fixed order. These locks block conflicting role, membership, and database catalog writes while allowing the same
+transaction's bootstrap writes. Target sessions acquire `SHARE` on their local `pg_namespace`, in database OID/name
+order, to block concurrent schema ACL changes. Each lock wait is bounded. The mapping setting and SQL bootstrap run
+in the coordinator's one transaction. Target sessions retain catalog locks through commit; they perform reads only.
+Any known pre-commit failure rolls back the coordinator transaction and releases all locks.
+
+Target sessions cannot see coordinator's uncommitted role creation or revocation. Existing committed capability roles
+are checked by OID with `has_schema_privilege` in each target. A role absent from target snapshots is checked against
+the target's actual schema ACL for `PUBLIC CREATE`; the bootstrap SQL independently validates final role attributes,
+database privileges, local schema privileges, memberships, and restricted revocations in the coordinator transaction.
+No post-bootstrap target query assumes visibility of uncommitted roles. If the coordinator connection fails during
+commit, the outcome is indeterminate: do not retry until an operator verifies the cluster state.
 
 The artifact creates only fixed restricted `NOLOGIN` roles. It preserves incoming memberships of the mapped target
 owners, including grantor and the membership options supported by the server. Other delegable memberships are revoked
 with `RESTRICT`; dependent grants cause failure rather than cascading removal. Operators must investigate that failure
 separately. Bootstrap neither grants runtime memberships nor configures schema objects.
+
+The orchestrator checks database `CREATE` for every mapped database and schema `CREATE` inside each mapped database's
+own identity-proved session before accepting the cluster bootstrap. These are separate database-local reads held under
+target namespace locks; the coordinator never queries a remote `pg_namespace` catalog. The coordinator transaction
+remains atomic for role and membership mutations. PostgreSQL does not provide one ordinary transaction spanning
+catalog writes in multiple databases, so the orchestrator does not claim distributed write atomicity. Target checks
+are read-only and remain protected until the coordinator transaction commits.
 
 Do not replace this step with a `SECURITY DEFINER` function, privileged application endpoint or superuser runtime
 credentials. Runtime login provisioning and credential custody remain separate operator responsibilities.

@@ -12,10 +12,28 @@ def identity_engine(identifier="12345", oid=16384, name="test_db"):
     """Model an engine whose retained connection exposes a complete live identity."""
     engine = MagicMock()
     engine.url = "postgresql://runtime@127.0.0.1/test_db"
-    connection = MagicMock()
-    connection.engine = engine
-    connection.execute.return_value.fetchall.return_value = [(identifier, oid, name)]
-    engine.connect.return_value.__enter__.return_value = connection
+    engine.identity_connections = []
+    engine.identity_contexts = []
+
+    def new_context():
+        """Every pool checkout has a distinct session and identity query result."""
+        connection = MagicMock()
+        connection.engine = engine
+        connection.execute.return_value.fetchall.return_value = [(identifier, oid, name)]
+        context = MagicMock()
+        context.__enter__.return_value = connection
+        engine.identity_connections.append(connection)
+        engine.identity_contexts.append(context)
+        return context
+
+    first = new_context()
+    pending = [first]
+
+    def connect():
+        """Return the prepared first session, then independent pool checkouts."""
+        return pending.pop() if pending else new_context()
+
+    engine.connect.side_effect = connect
     return engine
 
 
@@ -78,7 +96,8 @@ def test_verification_adapter_retains_caller_connection_ownership() -> None:
     """Nested verification cannot replace or close the identity-proved session."""
     engine = identity_engine()
     connection = engine.connect().__enter__()
+    close_mock = connection.close
     bound = _ConnectionBoundEngine(engine, connection)
     with bound.connect() as actual:
         assert actual is connection
-    connection.close.assert_not_called()
+    close_mock.assert_not_called()

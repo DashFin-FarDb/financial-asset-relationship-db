@@ -120,63 +120,70 @@ def _run_startup_reconciliation(
             coord_engine.dispose()
 
 
+def _reconciliation_sessions(stack: Any, engine: Any, coord_engine: Any) -> tuple[Any, ...]:
+    """Open and prove the exact sessions retained for reconciliation verification."""
+    from sqlalchemy.engine import make_url
+
+    from src.data.postgresql_topology import read_database_identity, same_database
+
+    graph_postgres = make_url(engine.url).get_backend_name() == "postgresql"
+    coord_postgres = make_url(coord_engine.url).get_backend_name() == "postgresql"
+    graph_connection = stack.enter_context(engine.connect()) if graph_postgres else None
+    if coord_engine is engine:
+        coord_connection = graph_connection
+    else:
+        coord_connection = stack.enter_context(coord_engine.connect()) if coord_postgres else None
+    graph_identity = read_database_identity(graph_connection) if graph_postgres else None
+    coord_identity = None
+    if coord_postgres:
+        coord_identity = (
+            graph_identity if coord_connection is graph_connection else read_database_identity(coord_connection)
+        )
+    combined = coord_engine is engine
+    if graph_postgres and coord_postgres:
+        if graph_identity is None or coord_identity is None:
+            raise SchemaCompatibilityError("runtime topology requires both live database identities")
+        combined = same_database(graph_identity, coord_identity)
+    return graph_connection, coord_connection, graph_identity, coord_identity, combined
+
+
+def _verify_reconciliation_target(engine: Any, connection: Any, capabilities: set[str], combined: bool) -> None:
+    """Run schema and authority checks on the already-proved caller-owned session."""
+    from src.data.database import verify_database_schema, verify_runtime_database_authority
+
+    options: dict[str, Any] = {"combined_topology": combined}
+    if connection is not None:
+        options["verification_connection"] = connection
+    verify_database_schema(engine, required_capabilities=capabilities, **options)
+    verify_runtime_database_authority(engine, required_capabilities=capabilities, **options)
+
+
 def _verify_reconciliation_schemas(engine: Any, coord_engine: Any) -> None:
     """Verify reconciliation schemas without exercising migration authority."""
     from contextlib import ExitStack
 
-    from sqlalchemy.engine import make_url
-
-    from src.data.database import (
-        COORDINATION_RUNTIME_CAPABILITY,
-        GRAPH_RUNTIME_CAPABILITY,
-        verify_database_schema,
-        verify_runtime_database_authority,
-    )
-    from src.data.postgresql_topology import read_database_identity, same_database
+    from src.data.database import COORDINATION_RUNTIME_CAPABILITY, GRAPH_RUNTIME_CAPABILITY
+    from src.data.postgresql_topology import read_database_identity
 
     graph_capabilities = {GRAPH_RUNTIME_CAPABILITY}
     if coord_engine is engine:
         graph_capabilities.add(COORDINATION_RUNTIME_CAPABILITY)
     with ExitStack() as stack:
-        graph_postgres = make_url(engine.url).get_backend_name() == "postgresql"
-        coord_postgres = make_url(coord_engine.url).get_backend_name() == "postgresql"
-        graph_connection = stack.enter_context(engine.connect()) if graph_postgres else None
-        coord_connection = (
-            graph_connection
-            if coord_engine is engine
-            else (stack.enter_context(coord_engine.connect()) if coord_postgres else None)
+        graph_connection, coord_connection, graph_identity, coord_identity, combined = _reconciliation_sessions(
+            stack, engine, coord_engine
         )
-        combined = coord_engine is engine
-        graph_identity = read_database_identity(graph_connection) if graph_postgres else None
-        coord_identity = (
-            (graph_identity if coord_connection is graph_connection else read_database_identity(coord_connection))
-            if coord_postgres
-            else None
-        )
-        if graph_postgres and coord_postgres:
-            if graph_identity is None or coord_identity is None:
-                raise SchemaCompatibilityError("runtime topology requires both live database identities")
-            combined = same_database(graph_identity, coord_identity)
-        graph_options = {"combined_topology": combined}
-        if graph_connection is not None:
-            graph_options["verification_connection"] = graph_connection
-        verify_database_schema(engine, required_capabilities=graph_capabilities, **graph_options)
-        verify_runtime_database_authority(engine, required_capabilities=graph_capabilities, **graph_options)
+        _verify_reconciliation_target(engine, graph_connection, graph_capabilities, combined)
         if coord_engine is not engine:
-            coordination_capabilities = {COORDINATION_RUNTIME_CAPABILITY}
-            coord_options = {"combined_topology": combined}
-            if coord_connection is not None:
-                coord_options["verification_connection"] = coord_connection
-            verify_database_schema(coord_engine, required_capabilities=coordination_capabilities, **coord_options)
-            verify_runtime_database_authority(
-                coord_engine, required_capabilities=coordination_capabilities, **coord_options
-            )
+            _verify_reconciliation_target(coord_engine, coord_connection, {COORDINATION_RUNTIME_CAPABILITY}, combined)
         # Detect identity drift before publication/recovery is allowed to start.
-        if graph_postgres and read_database_identity(graph_connection) != graph_identity:
+        if graph_connection is not None and read_database_identity(graph_connection) != graph_identity:
             raise SchemaCompatibilityError("graph target identity changed during verification")
-        if coord_postgres and coord_connection is not graph_connection:
-            if read_database_identity(coord_connection) != coord_identity:
-                raise SchemaCompatibilityError("coordination target identity changed during verification")
+        if (
+            coord_connection is not None
+            and coord_connection is not graph_connection
+            and read_database_identity(coord_connection) != coord_identity
+        ):
+            raise SchemaCompatibilityError("coordination target identity changed during verification")
 
 
 def _verify_auth_database(operation_guard: Any | None = None) -> None:

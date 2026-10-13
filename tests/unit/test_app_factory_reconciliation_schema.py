@@ -49,13 +49,13 @@ def test_reconciliation_schema_verification_combines_shared_target_capabilities(
         shared_engine,
         required_capabilities=required_capabilities,
         combined_topology=True,
-        verification_connection=shared_engine.connect().__enter__(),
+        verification_connection=shared_engine.identity_connections[0],
     )
     verify_authority.assert_called_once_with(
         shared_engine,
         required_capabilities=required_capabilities,
         combined_topology=True,
-        verification_connection=shared_engine.connect().__enter__(),
+        verification_connection=shared_engine.identity_connections[0],
     )
 
 
@@ -73,10 +73,17 @@ def test_distinct_credentials_propagate_proved_physical_topology(monkeypatch, sh
         assert verifier.call_count == 2
         assert verifier.call_args_list[0].kwargs["combined_topology"] is shared
         assert verifier.call_args_list[1].kwargs["combined_topology"] is shared
-        assert verifier.call_args_list[0].kwargs["verification_connection"] is graph.connect().__enter__()
-        assert verifier.call_args_list[1].kwargs["verification_connection"] is coordination.connect().__enter__()
-    graph.connect.return_value.__exit__.assert_called_once()
-    coordination.connect.return_value.__exit__.assert_called_once()
+        assert verifier.call_args_list[0].kwargs["verification_connection"] is graph.identity_connections[0]
+        assert verifier.call_args_list[1].kwargs["verification_connection"] is coordination.identity_connections[0]
+    for engine in (graph, coordination):
+        engine.connect.assert_called_once()
+        proved_connection = engine.identity_connections[0]
+        assert proved_connection.execute.call_count == 2
+        fresh_connection = engine.connect().__enter__()
+        assert fresh_connection is not proved_connection
+        fresh_connection.execute.assert_not_called()
+    graph.identity_contexts[0].__exit__.assert_called_once()
+    coordination.identity_contexts[0].__exit__.assert_called_once()
 
 
 def test_unavailable_identity_stops_before_any_authority_check(monkeypatch) -> None:
@@ -84,7 +91,7 @@ def test_unavailable_identity_stops_before_any_authority_check(monkeypatch) -> N
     from src.data.database import SchemaCompatibilityError
 
     graph = identity_engine()
-    graph.connect().__enter__().execute.side_effect = PermissionError("denied")
+    graph.identity_connections[0].execute.side_effect = PermissionError("denied")
     schema = MagicMock()
     authority = MagicMock()
     monkeypatch.setattr("src.data.database.verify_database_schema", schema)
@@ -100,7 +107,7 @@ def test_changed_identity_blocks_recovery_after_verification(monkeypatch) -> Non
     from src.data.database import SchemaCompatibilityError
 
     graph = identity_engine()
-    connection = graph.connect().__enter__()
+    connection = graph.identity_connections[0]
     first = MagicMock()
     first.fetchall.return_value = [("12345", 16384, "test_db")]
     second = MagicMock()

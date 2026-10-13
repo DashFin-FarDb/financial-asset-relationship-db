@@ -300,17 +300,13 @@ def _ddl_role_name(rendered_sql: str) -> str | None:
     return parsed[1] if parsed else None
 
 
-def execute_capability_bootstrap(cursor, mapping=None) -> None:
-    """Set the complete mapping and bootstrap atomically on the attested connection."""
-    bootstrap = Path(__file__).parents[2] / "scripts" / "bootstrap_database_capability_roles.sql"
-    connection = cursor.connection
-    with connection:
-        if mapping is None:
-            cursor.execute("SELECT current_database()")
-            database = cursor.fetchone()[0]
-            mapping = {name: [database] for name in sorted(_CANONICAL_CAPABILITY_ROLES)}
-        cursor.execute("SELECT set_config('fardb.bootstrap_targets', %s, true)", (json.dumps(mapping),))
-        cursor.execute(bootstrap.read_text(encoding="utf-8"))
+def execute_capability_bootstrap(cursor, mapping=None, *, target_database_url: str | None = None) -> None:
+    """Delegate bootstrap to the identity-checked target-local orchestrator."""
+    if target_database_url is None:
+        target_database_url = os.environ.get(URL_ENV)
+    from scripts.bootstrap_database_capability_roles import bootstrap_capability_roles
+
+    bootstrap_capability_roles(cursor, mapping, target_database_url=target_database_url)
 
 
 class OwnedRoleCursor(PsycopgCursor):
@@ -325,16 +321,17 @@ class OwnedRoleCursor(PsycopgCursor):
         """Delegate to psycopg only after statement and ownership guards succeed."""
         return super().execute(query, parameters)
 
-    def execute(self, query, *arguments, **kwargs):
-        """Adapt positional and psycopg keyword parameters before enforcing mutation guards."""
+    @staticmethod
+    def _execution_parameters(arguments, kwargs):
+        """Resolve driver-compatible positional or keyword parameters exactly once."""
         if set(kwargs) - {"vars"}:
             raise TypeError("unexpected cursor execution keyword")
         if len(arguments) > 1 or ("vars" in kwargs and arguments):
             raise TypeError("cursor parameters supplied more than once")
-        parameters = arguments[0] if arguments else kwargs.get("vars", None)
-        rendered = self.mogrify(query, parameters).decode("utf-8", errors="replace")
-        parsed = _parse_role_ddl(rendered)
-        command, role_name = parsed if parsed else ("", None)
+        return arguments[0] if arguments else kwargs.get("vars")
+
+    def _validate_role_mutation(self, command: str, role_name: str | None) -> None:
+        """Fence creation namespace and cleanup against the invocation-owned role OID."""
         if (
             command == "CREATE ROLE"
             and role_name not in _CANONICAL_CAPABILITY_ROLES | _CANONICAL_TEST_LOGIN_ROLES
@@ -342,16 +339,28 @@ class OwnedRoleCursor(PsycopgCursor):
         ):
             raise DisposableTargetError("refusing creation outside the invocation role namespace")
         if command.startswith("DROP ROLE"):
-            oid = owned_role_oid(role_name or "")
-            with self.connection.cursor(cursor_factory=PsycopgCursor) as check:
-                check.execute("SELECT oid FROM pg_roles WHERE rolname = %s", (role_name,))
-                row = check.fetchone()
-            if row is None and command == "DROP ROLE IF EXISTS":
-                pass
-            elif oid is None:
-                raise DisposableTargetError("refusing cleanup of a role not created by this invocation")
-            elif row is None or int(row[0]) != oid:
-                raise DisposableTargetError("refusing cleanup after role name/OID ownership changed")
+            self._validate_role_cleanup(command, role_name)
+
+    def _validate_role_cleanup(self, command: str, role_name: str | None) -> None:
+        """Permit an absent IF EXISTS target or require its recorded live role identity."""
+        oid = owned_role_oid(role_name or "")
+        with self.connection.cursor(cursor_factory=PsycopgCursor) as check:
+            check.execute("SELECT oid FROM pg_roles WHERE rolname = %s", (role_name,))
+            row = check.fetchone()
+        if row is None and command == "DROP ROLE IF EXISTS":
+            return
+        if oid is None:
+            raise DisposableTargetError("refusing cleanup of a role not created by this invocation")
+        if row is None or int(row[0]) != oid:
+            raise DisposableTargetError("refusing cleanup after role name/OID ownership changed")
+
+    def execute(self, query, *arguments, **kwargs):
+        """Adapt positional and psycopg keyword parameters before enforcing mutation guards."""
+        parameters = OwnedRoleCursor._execution_parameters(arguments, kwargs)
+        rendered = self.mogrify(query, parameters).decode("utf-8", errors="replace")
+        parsed = _parse_role_ddl(rendered)
+        command, role_name = parsed if parsed else ("", None)
+        self._validate_role_mutation(command, role_name)
         result = self._execute_driver(query, parameters)
         if command == "CREATE ROLE" and role_name:
             record_created_role(
@@ -367,7 +376,6 @@ CONTAINER_RECORD_ENV = "FARDB_EPHEMERAL_POSTGRES_CONTAINER_RECORD"
 
 def _read_harness_record() -> dict:
     """Reject native/unowned test execution before any mutation connection opens."""
-
     path = os.environ.get(CONTAINER_RECORD_ENV)
     if not path:
         raise DisposableTargetError("independent harness container ownership record required")
@@ -410,7 +418,6 @@ def _docker_cli() -> str:
 
 def _inspect_container(cli: str, container_id: str) -> dict:
     """Inspect exactly one full immutable container identity."""
-
     if not re.fullmatch(r"[0-9a-f]{64}", container_id):
         raise DisposableTargetError("full container ID required")
     items = json.loads(_docker_command([cli, "inspect", container_id]).stdout)

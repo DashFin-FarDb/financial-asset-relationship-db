@@ -427,8 +427,7 @@ def test_existing_login_collision_retains_attributes_and_prior_memberships() -> 
             _drop_logins(url, created_logins, created_memberships)
         finally:
             try:
-                if sentinel is not None:
-                    if not drop_owned_role(connection, sentinel):
-                        raise DisposableTargetError("outer collision fixture identity changed")
+                if sentinel is not None and not drop_owned_role(connection, sentinel):
+                    raise DisposableTargetError("outer collision fixture identity changed")
             finally:
                 connection.close()

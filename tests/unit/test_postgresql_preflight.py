@@ -9,7 +9,7 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 from types import SimpleNamespace
-from unittest.mock import Mock
+from unittest.mock import MagicMock, Mock
 
 import pytest
 from psycopg2.extensions import parse_dsn
@@ -725,8 +725,8 @@ def test_preflight_rejects_equal_project_routes_with_different_live_clusters(mon
     from src.data import database as data_database
     from tests.unit.test_postgresql_topology import identity_engine
 
-    engines = iter([identity_engine(identifier="12345"), identity_engine(identifier="99999")])
-    monkeypatch.setattr(data_database, "create_engine_from_url", lambda _url: next(engines))
+    engines = [identity_engine(identifier="12345"), identity_engine(identifier="99999")]
+    monkeypatch.setattr(data_database, "create_engine_from_url", lambda _url: engines.pop(0))
     monkeypatch.setattr(preflight, "_read_only_url", lambda route: route.database_url)
     route = preflight.RouteIdentity("postgresql://runtime@host/postgres", "same_project")
     with preflight._verified_non_auth_connections({"graph": route, "coordination": route}) as (sessions, combined):
@@ -740,7 +740,7 @@ def test_preflight_rejects_unavailable_live_identity(monkeypatch) -> None:
     from tests.unit.test_postgresql_topology import identity_engine
 
     engine = identity_engine()
-    engine.connect().__enter__().execute.side_effect = PermissionError("denied")
+    engine.identity_connections[0].execute.side_effect = PermissionError("denied")
     monkeypatch.setattr(data_database, "create_engine_from_url", lambda _url: engine)
     monkeypatch.setattr(preflight, "_read_only_url", lambda route: route.database_url)
     verifier = Mock()
@@ -766,7 +766,7 @@ def test_preflight_preserves_union_for_identical_runtime_credentials(monkeypatch
         engines[0],
         required_capabilities={"graph", "coordination"},
         combined_topology=True,
-        verification_connection=engines[0].connect().__enter__(),
+        verification_connection=engines[0].identity_connections[0],
     )
     for engine in engines:
         engine.dispose.assert_called_once()
@@ -777,11 +777,84 @@ def test_preflight_rejects_identical_credentials_with_conflicting_live_identitie
     from src.data import database as data_database
     from tests.unit.test_postgresql_topology import identity_engine
 
-    engines = iter([identity_engine(identifier="12345"), identity_engine(identifier="99999")])
-    monkeypatch.setattr(data_database, "create_engine_from_url", lambda _url: next(engines))
+    engines = [identity_engine(identifier="12345"), identity_engine(identifier="99999")]
+    monkeypatch.setattr(data_database, "create_engine_from_url", lambda _url: engines.pop(0))
     monkeypatch.setattr(preflight, "_read_only_url", lambda route: route.database_url)
     verifier = Mock()
     monkeypatch.setattr(data_database, "verify_runtime_database_authority", verifier)
     route = preflight.RouteIdentity("postgresql://runtime@db.shared.supabase.co/postgres", "shared")
     assert preflight._runtime_authority({"graph": route, "coordination": route}) == preflight.NOT_EVALUATED
     verifier.assert_not_called()
+
+
+@pytest.mark.parametrize(
+    "oid,identifier,name", [(16385, "12345", "postgres"), (16384, "99999", "postgres"), (16384, "12345", "other")]
+)
+def test_retained_session_must_match_permit_and_inspection_identity(tmp_path, monkeypatch, oid, identifier, name):
+    """Rerouted sessions cannot verify even if both runtime credentials agree."""
+    from src.data import database as data_database
+    from src.data.postgresql_topology import DatabaseIdentity
+    from tests.unit.test_postgresql_topology import identity_engine
+
+    route = preflight._supabase_route_identity(_database_url(tmp_path))
+    target = _target(route.database_url)
+    monkeypatch.setattr(data_database, "create_engine_from_url", lambda _url: identity_engine(identifier, oid, name))
+    with pytest.raises(preflight.TargetIdentityError):
+        with preflight._verified_non_auth_connections(
+            {"graph": route}, target, DatabaseIdentity("12345", int(DATABASE_ID), "postgres")
+        ):
+            pytest.fail("rerouted session reached verification")
+
+
+def test_auth_catalog_checks_reuse_permit_proved_connection(tmp_path, monkeypatch):
+    """Auth schema and authority predicates cannot silently open a new session."""
+    route = preflight._supabase_route_identity(_database_url(tmp_path))
+    connection = Mock()
+    api = Mock()
+    api.bind_database_url.return_value = MagicMock()
+    monkeypatch.setattr(preflight, "_import_api_database", lambda _url: api)
+    preflight._runtime_compatibility(route, "auth", auth_connection=connection)
+    api.verify_schema_compatibility.assert_called_once_with(verification_connection=connection)
+    api.verify_runtime_access_catalog.assert_called_once_with(verification_connection=connection)
+
+
+def test_auth_retained_session_rejects_reroute_before_verification(tmp_path, monkeypatch):
+    """A valid earlier route probe cannot authorize a different retained cluster."""
+    from src.data.postgresql_topology import DatabaseIdentity
+
+    route = preflight._supabase_route_identity(_database_url(tmp_path))
+    target = _target(route.database_url)
+    connection = Mock()
+    monkeypatch.setattr(preflight, "_connect_verified", lambda _route, _target: connection)
+    monkeypatch.setattr(
+        preflight,
+        "_psycopg_database_identity",
+        lambda _connection: DatabaseIdentity("99999", int(DATABASE_ID), "postgres"),
+    )
+    with pytest.raises(preflight.TargetIdentityError):
+        with preflight._verified_auth_connection(
+            {"auth": route}, target, DatabaseIdentity("12345", int(DATABASE_ID), "postgres")
+        ):
+            pytest.fail("rerouted auth reached verification")
+    connection.close.assert_called_once()
+
+
+def test_retained_session_accepts_exact_permit_identity(tmp_path, monkeypatch):
+    """The catalog verifier receives the same session that proved the planned target."""
+    from src.data import database as data_database
+    from src.data.postgresql_topology import DatabaseIdentity
+    from tests.unit.test_postgresql_topology import identity_engine
+
+    route = preflight._supabase_route_identity(_database_url(tmp_path))
+    target = _target(route.database_url)
+    engine = identity_engine(name="postgres")
+    monkeypatch.setattr(data_database, "create_engine_from_url", lambda _url: engine)
+    verifier = Mock()
+    monkeypatch.setattr(data_database, "verify_runtime_database_authority", verifier)
+    assert (
+        preflight._runtime_authority({"graph": route}, target, DatabaseIdentity("12345", int(DATABASE_ID), "postgres"))
+        == CHECK_PASSED
+    )
+    assert verifier.call_args.kwargs["verification_connection"] is engine.identity_connections[0]
+    engine.connect.assert_called_once()
+    assert engine.identity_connections[0].execute.call_count == 2

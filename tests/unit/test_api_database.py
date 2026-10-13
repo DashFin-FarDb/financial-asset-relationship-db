@@ -15,7 +15,7 @@ import importlib
 import os
 import sqlite3
 from pathlib import Path
-from unittest.mock import Mock, patch
+from unittest.mock import MagicMock, Mock, patch
 
 import pytest
 
@@ -683,3 +683,14 @@ class TestConnectionPooling:
 
         # Cleanup should attempt to close if connection exists
         # (Implementation detail may vary)
+
+
+def test_verification_fetch_value_uses_retained_session_without_reconnect(monkeypatch):
+    """Catalog verification leaves the caller-owned identity session open."""
+    connection = MagicMock()
+    connection.cursor.return_value.__enter__.return_value.fetchone.return_value = (True,)
+    monkeypatch.setattr(database, "get_connection", MagicMock(side_effect=AssertionError("unproved reconnect")))
+    assert database._verification_fetch_value(connection, "SELECT %s", (True,)) is True
+    connection.cursor.return_value.__enter__.return_value.execute.assert_called_once_with("SELECT %s", (True,))
+    connection.close.assert_not_called()
+    monkeypatch.undo()

@@ -10,6 +10,7 @@ from __future__ import annotations
 import os
 import time
 from collections.abc import Iterator
+from concurrent.futures import ThreadPoolExecutor
 from contextlib import contextmanager
 from dataclasses import replace
 from typing import Any
@@ -24,6 +25,7 @@ from tests.integration.postgresql_disposable_cluster import (
     DisposableTargetError,
     OwnedRoleCursor,
     allocate_role_names,
+    attest_connection,
     attested_connection,
     connect_attested,
     connect_owned_attested,
@@ -236,6 +238,12 @@ def _runtime_connection(database_url: str, role_name: str, schema_name: str | No
             cursor.execute(sql.SQL("SET search_path TO {}").format(sql.Identifier(schema_name)))
     connection.autocommit = False
     return connection
+
+
+def _database_url_for_name(database_url: str, database_name: str) -> str:
+    """Select one explicitly created secondary database while preserving URL options."""
+    parsed = urlsplit(database_url)
+    return urlunsplit((parsed.scheme, parsed.netloc, f"/{database_name}", parsed.query, parsed.fragment))
 
 
 @pytest.mark.integration
@@ -976,12 +984,14 @@ def test_non_superuser_migration_owner_cannot_create_missing_capability_role() -
             )
         migration_owner = _runtime_connection(database_url, _ROLE_ALLOCATION.names["_MISSING_ROLE_MIGRATION_OWNER"])
         try:
-            with migration_owner.cursor() as cursor:
-                with pytest.raises(
+            with (
+                migration_owner.cursor() as cursor,
+                pytest.raises(
                     psycopg2.Error,
                     match="FarDB capability-role bootstrap requires a PostgreSQL superuser",
-                ):
-                    execute_capability_bootstrap(cursor)
+                ),
+            ):
+                execute_capability_bootstrap(cursor)
         finally:
             migration_owner.close()
 
@@ -1131,6 +1141,7 @@ def test_superuser_bootstrap_enables_least_privilege_migration_and_runtime_verif
 def test_capability_bootstrap_rejects_create_on_non_current_schema() -> None:
     """A capability role may not retain CREATE on any schema in the database."""
     database_url = _ephemeral_database_url()
+    from scripts.bootstrap_database_capability_roles import BootstrapTargetError
 
     try:
         with _operator_connection(database_url) as connection, connection.cursor() as cursor:
@@ -1149,7 +1160,10 @@ def test_capability_bootstrap_rejects_create_on_non_current_schema() -> None:
             cursor.execute("SELECT current_schema()")
             assert cursor.fetchone()[0] != _ROLE_ALLOCATION.names["_BOOTSTRAP_UNRELATED_SCHEMA"]
 
-            with pytest.raises(psycopg2.Error, match="unsafe FarDB capability role"):
+            with pytest.raises(
+                BootstrapTargetError,
+                match="unsafe FarDB capability schema CREATE privilege",
+            ):
                 execute_capability_bootstrap(cursor)
     finally:
         with _operator_connection(database_url) as connection, connection.cursor() as cursor:
@@ -1920,7 +1934,9 @@ def test_invalid_bootstrap_mapping_rolls_back_transaction_mutations(invalid) -> 
         with connection.cursor() as cursor:
             cursor.execute(sql.SQL("CREATE ROLE {} NOLOGIN").format(sql.Identifier(name)))
             mapping = invalid if invalid is not None else {"fardb_runtime_auth": []}
-            with pytest.raises(psycopg2.Error, match="bootstrap target"):
+            from scripts.bootstrap_database_capability_roles import BootstrapTargetError
+
+            with pytest.raises(BootstrapTargetError, match="bootstrap target"):
                 execute_capability_bootstrap(cursor, mapping)
             cursor.execute("SELECT oid FROM pg_roles WHERE rolname = %s", (name,))
             assert cursor.fetchone() is None
@@ -2058,3 +2074,231 @@ def test_runtime_non_superuser_identity_and_startup_topology_use_same_connection
         for engine in engines:
             engine.dispose()
         _drop_roles(database_url, *names)
+
+
+@pytest.mark.integration
+def test_bootstrap_rejects_create_on_secondary_mapped_database() -> None:
+    """A secondary target's database CREATE privilege cannot escape bootstrap checks."""
+    database_url = _ephemeral_database_url()
+    secondary = f"fdbt_secondary_{invocation_id()[:12]}_{uuid4().hex[:8]}"
+    created = False
+    try:
+        with _operator_connection(database_url) as connection, connection.cursor() as cursor:
+            execute_capability_bootstrap(cursor)
+            cursor.execute("SELECT current_database()")
+            current = cursor.fetchone()[0]
+            cursor.execute(sql.SQL("CREATE DATABASE {}").format(sql.Identifier(secondary)))
+            created = True
+            cursor.execute(
+                sql.SQL("GRANT CREATE ON DATABASE {} TO {}").format(
+                    sql.Identifier(secondary), sql.Identifier(GRAPH_RUNTIME_ROLE)
+                )
+            )
+            mapping = {
+                name: [current] for name in ("fardb_runtime_auth", GRAPH_RUNTIME_ROLE, COORDINATION_RUNTIME_ROLE)
+            }
+            mapping[GRAPH_RUNTIME_ROLE].append(secondary)
+            with pytest.raises(psycopg2.Error, match="unsafe FarDB capability role"):
+                execute_capability_bootstrap(cursor, mapping)
+    finally:
+        if created:
+            with _operator_connection(database_url) as connection, connection.cursor() as cursor:
+                cursor.execute(sql.SQL("DROP DATABASE {}").format(sql.Identifier(secondary)))
+
+
+@pytest.mark.integration
+def test_bootstrap_rejects_secondary_schema_create_and_rolls_back() -> None:
+    """Secondary PUBLIC CREATE is rejected before missing capability roles are accepted."""
+    from scripts.bootstrap_database_capability_roles import BootstrapTargetError
+
+    database_url = _ephemeral_database_url()
+    secondary = f"fdbt_schema_target_{invocation_id()[:10]}_{uuid4().hex[:8]}"
+    backups, moved = _move_capability_roles_aside(database_url)
+    created = False
+    try:
+        with _operator_connection(database_url) as connection, connection.cursor() as cursor:
+            cursor.execute("SELECT current_database()")
+            current = cursor.fetchone()[0]
+            cursor.execute(sql.SQL("CREATE DATABASE {}").format(sql.Identifier(secondary)))
+            created = True
+        secondary_url = _database_url_for_name(database_url, secondary)
+        with _operator_connection(secondary_url) as connection, connection.cursor() as cursor:
+            cursor.execute("GRANT CREATE ON SCHEMA public TO PUBLIC")
+        mapping = {
+            "fardb_runtime_auth": [current],
+            "fardb_runtime_graph": [current, secondary],
+            "fardb_runtime_coordination": [current],
+        }
+        with _operator_connection(database_url) as connection, connection.cursor() as cursor:
+            with pytest.raises(BootstrapTargetError, match="schema CREATE privilege"):
+                execute_capability_bootstrap(cursor, mapping)
+            cursor.execute(
+                "SELECT rolname FROM pg_catalog.pg_roles WHERE rolname = ANY(%s)",
+                (["fardb_runtime_auth", "fardb_runtime_graph", "fardb_runtime_coordination"],),
+            )
+            assert cursor.fetchall() == []
+            cursor.execute("SELECT NULLIF(current_setting('fardb.bootstrap_targets', true), '')")
+            assert cursor.fetchone()[0] is None
+    finally:
+        if created:
+            secondary_url = _database_url_for_name(database_url, secondary)
+            try:
+                with _operator_connection(secondary_url) as connection, connection.cursor() as cursor:
+                    cursor.execute("REVOKE CREATE ON SCHEMA public FROM PUBLIC")
+            finally:
+                with _operator_connection(database_url) as connection, connection.cursor() as cursor:
+                    cursor.execute(sql.SQL("DROP DATABASE IF EXISTS {}").format(sql.Identifier(secondary)))
+        _restore_capability_roles(database_url, backups, moved)
+
+
+def _wait_for_bootstrap_mutators(observer, application_names: dict[str, str]) -> None:
+    """Require all three competing writers to appear in PostgreSQL lock waits."""
+    expected = set(application_names.values())
+    deadline = time.monotonic() + 8
+    blocked: set[str] = set()
+    while time.monotonic() < deadline:
+        with observer.cursor() as cursor:
+            cursor.execute(
+                "SELECT application_name FROM pg_catalog.pg_stat_activity "
+                "WHERE application_name = ANY(%s) AND wait_event_type = 'Lock'",
+                (list(expected),),
+            )
+            blocked = {row[0] for row in cursor.fetchall()}
+        if blocked == expected:
+            break
+        time.sleep(0.05)
+    assert blocked == expected, f"mutators were not all blocked: {blocked}"
+
+
+@pytest.mark.integration
+def test_bootstrap_catalog_locks_block_concurrent_mutations(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Held coordinator and target locks block role, database, and schema writers."""
+    import threading
+
+    from scripts import bootstrap_database_capability_roles as bootstrap_module
+
+    database_url = _ephemeral_database_url()
+    secondary = f"fdbt_lock_target_{invocation_id()[:10]}_{uuid4().hex[:8]}"
+    names = {}
+    created_database = False
+    lock_ready = threading.Event()
+    release_bootstrap = threading.Event()
+    bootstrap_errors: list[BaseException] = []
+    original_apply = bootstrap_module._apply_bootstrap
+    suffix = uuid4().hex[:8]
+    application_names = {
+        "role": f"fdbboot_{suffix}_role",
+        "schema": f"fdbboot_{suffix}_schema",
+        "database": f"fdbboot_{suffix}_database",
+    }
+
+    def pause_after_preflight(cursor, mapping, bootstrap_sql):
+        """Expose the held-lock interval to concurrent mutator sessions."""
+        lock_ready.set()
+        if not release_bootstrap.wait(15):
+            raise TimeoutError("test did not release bootstrap lock barrier")
+        return original_apply(cursor, mapping, bootstrap_sql)
+
+    try:
+        with _operator_connection(database_url) as connection, connection.cursor() as cursor:
+            names = allocate_role_names(
+                connection,
+                {"schema": f"cq1608_lock_schema_{suffix}", "role": f"cq1608_lock_role_{suffix}"},
+            )
+            cursor.execute(sql.SQL("CREATE ROLE {} NOLOGIN").format(sql.Identifier(names["schema"])))
+            record_created_role(connection, names["schema"])
+            cursor.execute(sql.SQL("CREATE DATABASE {}").format(sql.Identifier(secondary)))
+            created_database = True
+            cursor.execute("SELECT datconnlimit FROM pg_catalog.pg_database WHERE datname = %s", (secondary,))
+            previous_connection_limit = int(cursor.fetchone()[0])
+
+        current = urlsplit(database_url).path.lstrip("/")
+        mapping = {
+            "fardb_runtime_auth": [current],
+            "fardb_runtime_graph": [current, secondary],
+            "fardb_runtime_coordination": [current],
+        }
+        monkeypatch.setattr(bootstrap_module, "_apply_bootstrap", pause_after_preflight)
+
+        def run_bootstrap() -> None:
+            """Run the real orchestration transaction while writers contend."""
+            connection = connect_owned_attested(database_url)
+            connection.autocommit = True
+            try:
+                with connection.cursor() as cursor:
+                    execute_capability_bootstrap(cursor, mapping)
+            except BaseException as exc:
+                bootstrap_errors.append(exc)
+            finally:
+                connection.close()
+
+        def mutate(application_name: str, statement, target_url: str = database_url) -> None:
+            """Issue one independently attested catalog mutation from another session."""
+            connection = psycopg2.connect(target_url, application_name=application_name, connect_timeout=10)
+            try:
+                attest_connection(connection, target_url)
+                connection.cursor_factory = OwnedRoleCursor
+                with connection.cursor() as cursor:
+                    statement(cursor)
+                    if application_name == application_names["role"]:
+                        record_created_role(connection, names["role"])
+                connection.commit()
+            finally:
+                connection.close()
+
+        def create_role(cursor) -> None:
+            cursor.execute(sql.SQL("CREATE ROLE {}").format(sql.Identifier(names["role"])))
+
+        def grant_schema(cursor) -> None:
+            cursor.execute(sql.SQL("GRANT CREATE ON SCHEMA public TO {}").format(sql.Identifier(names["schema"])))
+
+        def alter_database(cursor) -> None:
+            cursor.execute(sql.SQL("ALTER DATABASE {} CONNECTION LIMIT 88").format(sql.Identifier(secondary)))
+
+        with ThreadPoolExecutor(max_workers=4) as executor:
+            bootstrap_future = executor.submit(run_bootstrap)
+            assert lock_ready.wait(10), "bootstrap never reached the held-lock interval"
+            writer_futures = [
+                executor.submit(mutate, application_names["role"], create_role),
+                executor.submit(
+                    mutate,
+                    application_names["schema"],
+                    grant_schema,
+                    _database_url_for_name(database_url, secondary),
+                ),
+                executor.submit(mutate, application_names["database"], alter_database),
+            ]
+            observer = psycopg2.connect(database_url, application_name=f"fdbboot_{suffix}_observer")
+            try:
+                attest_connection(observer, database_url)
+                observer.autocommit = True
+                _wait_for_bootstrap_mutators(observer, application_names)
+            finally:
+                observer.close()
+                release_bootstrap.set()
+            bootstrap_future.result(timeout=20)
+            for future in writer_futures:
+                future.result(timeout=20)
+        assert bootstrap_errors == []
+        with _operator_connection(database_url) as connection, connection.cursor() as cursor:
+            cursor.execute(
+                sql.SQL("ALTER DATABASE {} CONNECTION LIMIT %s").format(sql.Identifier(secondary)),
+                (previous_connection_limit,),
+            )
+        with (
+            _operator_connection(_database_url_for_name(database_url, secondary)) as connection,
+            connection.cursor() as cursor,
+        ):
+            cursor.execute(sql.SQL("REVOKE CREATE ON SCHEMA public FROM {}").format(sql.Identifier(names["schema"])))
+    finally:
+        release_bootstrap.set()
+        if created_database:
+            with _operator_connection(database_url) as connection, connection.cursor() as cursor:
+                cursor.execute(
+                    "SELECT pg_catalog.pg_terminate_backend(pid) FROM pg_catalog.pg_stat_activity "
+                    "WHERE datname = %s AND pid <> pg_catalog.pg_backend_pid()",
+                    (secondary,),
+                )
+                cursor.execute(sql.SQL("DROP DATABASE IF EXISTS {}").format(sql.Identifier(secondary)))
+        if names:
+            _drop_roles(database_url, *[role for role in names.values() if owned_role_oid(role) is not None])

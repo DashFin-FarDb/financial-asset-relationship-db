@@ -11,9 +11,11 @@ import json
 import os
 import re
 from collections.abc import Mapping
+from contextlib import AbstractContextManager
+from typing import Protocol
 
 from sqlalchemy import bindparam, text
-from sqlalchemy.engine import Connection, Engine, make_url
+from sqlalchemy.engine import URL, Connection, Engine, make_url
 
 from src.data.check_constraint_normalization import normalize_check_definition
 from src.data.relationship_assertion_db_models import (
@@ -30,6 +32,19 @@ _GRAC_TABLE_NAME_SET = frozenset(GRAC_TABLE_NAMES)
 _UNTRUSTED_DATABASE_ROLES_ENV = "FARDB_UNTRUSTED_DATABASE_ROLES"
 _DEFAULT_UNTRUSTED_DATABASE_ROLES = ("anon", "authenticated")
 _SAFE_ROLE_PATTERN = re.compile(r"^[a-z_][a-z0-9_]*$")
+
+
+class SchemaVerificationTarget(Protocol):
+    """Read-only engine surface supporting a retained caller-owned connection."""
+
+    @property
+    def url(self) -> URL:
+        """Return the configured SQLAlchemy target URL."""
+        ...
+
+    def connect(self) -> AbstractContextManager[Connection]:
+        """Provide the session whose schema and authority will be verified."""
+        ...
 
 
 def ensure_relationship_assertion_schema(engine: Engine) -> None:
@@ -53,7 +68,7 @@ def ensure_relationship_assertion_schema(engine: Engine) -> None:
                 _install_sqlite_immutability_guards(connection)
 
 
-def verify_relationship_assertion_schema(engine: Engine) -> None:
+def verify_relationship_assertion_schema(engine: SchemaVerificationTarget) -> None:
     """Verify GRAC schema and authority invariants without performing repair."""
     backend = make_url(str(engine.url)).get_backend_name()
     with engine.connect() as connection:
