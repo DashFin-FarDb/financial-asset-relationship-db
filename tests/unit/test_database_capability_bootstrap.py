@@ -106,13 +106,14 @@ def test_bootstrap_mapping_is_bound_and_only_fixed_sql_is_executed(tmp_path, mon
 
     bootstrap._apply_bootstrap(cursor, mapping)
 
-    assert [
+    expected_calls = [
         call(
             "SELECT pg_catalog.set_config('fardb.bootstrap_targets', %s, true)",
             (json.dumps(mapping, sort_keys=True, separators=(",", ":")),),
         ),
         call("SELECT 'fixed-reviewed-bootstrap'"),
-    ] == cursor.execute.call_args_list
+    ]
+    assert cursor.execute.call_args_list == expected_calls
 
 
 def test_target_does_not_assume_visibility_of_coordinator_uncommitted_role() -> None:
@@ -177,3 +178,30 @@ def test_precommit_failure_rolls_back_coordinator_transaction(monkeypatch: pytes
         bootstrap.bootstrap_capability_roles(cursor, {role: ["db"] for role in bootstrap._ROLE_NAMES})
     assert any(call.args and call.args[0] == "ROLLBACK" for call in cursor.execute.call_args_list)
     assert not any(call.args and call.args[0] == "COMMIT" for call in cursor.execute.call_args_list)
+
+
+def test_target_transaction_cleanup_preserves_coordinator_and_closed_sessions() -> None:
+    """Cleanup releases only open target sessions, retaining coordinator ownership."""
+    coordinator = MagicMock(closed=False)
+    target = MagicMock(closed=False)
+    closed = MagicMock(closed=True)
+    bootstrap._release_target_transactions(
+        {"coordinator": coordinator, "target": target, "closed": closed}, coordinator
+    )
+    target.rollback.assert_called_once_with()
+    target.close.assert_not_called()
+    coordinator.rollback.assert_not_called()
+    coordinator.close.assert_not_called()
+    closed.rollback.assert_not_called()
+    closed.close.assert_not_called()
+
+
+def test_target_transaction_cleanup_closes_failed_rollback_and_continues() -> None:
+    """A failed target rollback closes that session and still releases later targets."""
+    failed = MagicMock(closed=False)
+    failed.rollback.side_effect = OSError("target disconnected")
+    healthy = MagicMock(closed=False)
+    bootstrap._release_target_transactions({"failed": failed, "healthy": healthy}, MagicMock())
+    failed.close.assert_called_once_with()
+    healthy.rollback.assert_called_once_with()
+    healthy.close.assert_not_called()

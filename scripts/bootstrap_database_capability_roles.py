@@ -312,6 +312,18 @@ def _verify_locked_target_state(
         _verify_target_schema_acl(target_connection, mapping, database_name, target_role_oids[database_name])
 
 
+def _release_target_transactions(
+    target_connections: dict[str, PsycopgConnection], coordinator: PsycopgConnection
+) -> None:
+    """Release read-only target locks; close a target if its rollback fails."""
+    for target_connection in target_connections.values():
+        if target_connection is not coordinator and not target_connection.closed:
+            try:
+                target_connection.rollback()
+            except Exception:
+                target_connection.close()
+
+
 def bootstrap_capability_roles(
     cursor,
     mapping: Mapping[str, object] | None = None,
@@ -346,13 +358,7 @@ def bootstrap_capability_roles(
                 connection.rollback()
             raise
         finally:
-            # Target sessions perform catalog reads and acquire locks only.
-            for target_connection in target_connections.values():
-                if target_connection is not connection and not target_connection.closed:
-                    try:
-                        target_connection.rollback()
-                    except Exception:
-                        target_connection.close()
+            _release_target_transactions(target_connections, connection)
 
 
 def main(argv: list[str] | None = None) -> int:

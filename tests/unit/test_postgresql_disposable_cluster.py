@@ -913,9 +913,9 @@ def test_bootstrap_mapping_and_block_share_transaction(autocommit: bool, monkeyp
     monkeypatch.setattr(
         bootstrap,
         "_apply_bootstrap",
-        lambda active_cursor, _mapping, sql_text: (
+        lambda active_cursor, _mapping: (
             active_cursor.execute("SELECT set_config('fardb.bootstrap_targets', %s, true)", ("{}",)),
-            active_cursor.execute(sql_text),
+            active_cursor.execute(bootstrap._BOOTSTRAP_SQL.read_text(encoding="utf-8")),
         ),
     )
     guard.execute_capability_bootstrap(cursor, mapping)
@@ -956,7 +956,7 @@ def test_autocommit_bootstrap_failure_rolls_back(monkeypatch) -> None:
         ),
     )
 
-    def fail_after_mapping(active_cursor, _mapping, _sql_text):
+    def fail_after_mapping(active_cursor, _mapping):
         """Fail after the transaction-local target mapping has been set."""
         active_cursor.execute("SELECT set_config('fardb.bootstrap_targets', %s, true)", ("{}",))
         raise RuntimeError("bootstrap failed")
