@@ -38,19 +38,50 @@ Run the static bootstrap once on every distinct PostgreSQL cluster that hosts a 
 database, before using the normal migration owner:
 
 ```bash
-psql --set=ON_ERROR_STOP=1 "$MIGRATION_DATABASE_URL" \
-  --file scripts/bootstrap_database_capability_roles.sql
+psql --set=ON_ERROR_STOP=1 --single-transaction "$MIGRATION_DATABASE_URL" \
+  --set=bootstrap_targets='{"fardb_runtime_auth":["auth_db"],"fardb_runtime_graph":["graph_db"],"fardb_runtime_coordination":["coordination_db"]}' <<'SQL'
+SELECT set_config('fardb.bootstrap_targets', :'bootstrap_targets', true);
+\i scripts/bootstrap_database_capability_roles.sql
+SQL
 ```
 
-`MIGRATION_DATABASE_URL` in this example must identify the reviewed superuser-owned bootstrap connection. Do not save
-or publish its value. The artifact creates only the three fixed `NOLOGIN` roles with restricted attributes. It removes
-incoming memberships carrying `ADMIN OPTION`, including PostgreSQL 16's bootstrap-superuser grant to a non-superuser
-`CREATEROLE` creator, and then fails closed if any restricted role invariant remains unsafe. It does not grant a
-runtime login membership or configure schema objects.
+Replace every database name with the reviewed physical target on this cluster. For a combined database, repeat its
+name for the capabilities it hosts. Each list may contain multiple targets. The complete three-key mapping is required;
+missing keys, empty lists, unknown databases and malformed input fail before mutation. Resolve target ownership from
+`pg_database`; this interface does not accept arbitrary exempt role names.
 
-Do not replace this step with a `SECURITY DEFINER` function, a privileged application endpoint, or superuser
-credentials in the application environment. Keep bootstrap credentials in the approved operator surface and remove
-them before running the normal migration.
+The connection must be the reviewed superuser bootstrap connection. Never publish its credentials. The transaction-local
+mapping and bootstrap must execute in the **same transaction**. Invalid input, unsafe role attributes or restricted
+revocation dependencies roll back every change, including capability roles created earlier in the bootstrap.
+
+The artifact creates only fixed restricted `NOLOGIN` roles. It preserves incoming memberships of the mapped target
+owners, including grantor and the membership options supported by the server. Other delegable memberships are revoked
+with `RESTRICT`; dependent grants cause failure rather than cascading removal. Operators must investigate that failure
+separately. Bootstrap neither grants runtime memberships nor configures schema objects.
+
+Do not replace this step with a `SECURITY DEFINER` function, privileged application endpoint or superuser runtime
+credentials. Runtime login provisioning and credential custody remain separate operator responsibilities.
+
+### Runtime physical topology proof
+
+Startup and preflight read `pg_catalog.pg_control_system().system_identifier` and the connected database's OID/name
+through the same retained runtime connection used for catalog and authority checks. Equal project references, database
+names, URLs or OIDs alone do not prove combined topology. Identity must be readable by the actual non-superuser runtime
+credentials. An unavailable or changing identity fails closed; no automatic grants, superuser fallback or endpoint
+assumptions are used. The system identifier identifies PostgreSQL cluster lineage, including its physical replicas;
+cloned lineages must remain governed by the existing provider routing boundary.
+
+### Private validation state and scanner evidence
+
+The disposable harness creates an exclusive mode-0700 parent under `/run` in its exact verified container. It records
+owner, device and inode, then uses container-side `mktemp -d` to create random child state. Malformed output is never
+adopted for transfer or cleanup. Cleanup revalidates ownership and identity, removes only the adopted child and removes
+the parent only when empty. Logs retain the real paths. Unrelated privileged Docker clients remain outside this boundary.
+
+The completion patch replaces cache/allocation globals with explicit state holders, extracts container-validation and
+cleanup helpers, and adapts psycopg's `vars=` keyword without shadowing the built-in. Earlier finding deferrals do not
+constitute scanner passes. Any residual finding requires its exact rule, location and evidence-based disposition;
+there are no new suppressions or scanner-configuration changes.
 
 ## PostgreSQL runtime capability contract
 

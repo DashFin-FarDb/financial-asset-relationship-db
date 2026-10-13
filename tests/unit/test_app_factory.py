@@ -498,7 +498,9 @@ def test_startup_reconciliation_lock_release_behavior(
     should_raise: bool,
 ) -> None:
     """Startup reconciliation lock release behavior based on reacquisition."""
-    fake_engine = SimpleNamespace(dispose=lambda: None)
+    from tests.unit.test_postgresql_topology import identity_engine
+
+    fake_engine = identity_engine()
     fake_lock = SimpleNamespace(lock_name="graph_rebuild", release=MagicMock())
 
     class _GateMock:
@@ -545,8 +547,10 @@ def test_reconciliation_schema_verification_separates_runtime_capabilities(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """Separate graph and coordination URLs must require disjoint capability roles."""
-    graph_engine = object()
-    coordination_engine = object()
+    from tests.unit.test_postgresql_topology import identity_engine
+
+    graph_engine = identity_engine()
+    coordination_engine = identity_engine(identifier="99999")
     verify_schema = MagicMock()
     verify_authority = MagicMock()
     monkeypatch.setattr("src.data.database.verify_database_schema", verify_schema)
@@ -573,8 +577,9 @@ async def test_periodic_reconciliation_loop_triggers_recovery(
 ) -> None:
     """periodic_reconciliation_loop should retrieve and consume automatic reset reconciliation plans."""
     from src.logic.reconciliation_engine import ActionType, ExecutionMode, ExecutionSafety, Severity
+    from tests.unit.test_postgresql_topology import identity_engine
 
-    fake_engine = SimpleNamespace(dispose=lambda: None)
+    fake_engine = identity_engine()
     fake_lock = SimpleNamespace(lock_name="graph_rebuild", release=MagicMock())
 
     # Mock DB and Lock

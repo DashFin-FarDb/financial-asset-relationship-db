@@ -210,7 +210,7 @@ def test_runner_transfer_checksum_mismatch_rejects_before_execution(monkeypatch)
     runner = object.__new__(guard.ContainerCliRunner)
     runner.cli = "docker"
     runner.record = {"id": "a" * 64}
-    runner.directory = "/tmp/owned"
+    runner.directory = "/run/owned"
     runner.digests = {"supabase": "reviewed"}
     monkeypatch.setattr(guard, "_docker_command", Mock(return_value=Mock(stdout=b"different file")))
     with pytest.raises(guard.DisposableTargetError, match="checksum"):
@@ -224,7 +224,7 @@ def test_runner_timeout_stops_only_the_recorded_container(monkeypatch) -> None:
     runner = object.__new__(guard.ContainerCliRunner)
     runner.cli = "docker"
     runner.record = {"id": "a" * 64}
-    runner.directory = "/tmp/owned"
+    runner.directory = "/run/owned"
     monkeypatch.setattr(subprocess, "run", Mock(side_effect=subprocess.TimeoutExpired("docker", 1)))
     stop = Mock()
     monkeypatch.setattr(guard, "_docker_command", stop)
@@ -457,63 +457,104 @@ def test_role_ddl_parser_fully_consumes_supported_forms(statement, expected) -> 
     assert guard._parse_role_ddl(statement) == expected
 
 
-@pytest.mark.parametrize(
-    "output",
-    [b"", b"/tmp/other\n", b"/tmp/fardb-cli-invocation-ABC123\nextra\n", b"/tmp/fardb-cli-invocation-../bad\n"],
-)
-def test_malformed_mktemp_output_never_becomes_a_cleanup_target(monkeypatch, output) -> None:
-    """Reject untrusted output before copy, metadata probes or recursive removal."""
+def _private_runner(monkeypatch):
+    """Create a runner whose owned parent is separately validated by focused tests."""
     runner = object.__new__(guard.ContainerCliRunner)
     runner.cli = "docker"
     runner.record = {"id": "a" * 64}
     runner.directory = None
+    runner.private_parent = None
+    runner.parent_identity = None
     monkeypatch.setattr(guard, "invocation_id", lambda: "invocation")
     monkeypatch.setattr(runner, "validate", Mock())
+
+    def parent(path, *, adopt=False):
+        """Model successful ownership adoption without accepting an untrusted child."""
+        assert path == "/run/fardb-cli-invocation"
+        if adopt:
+            runner.private_parent = path
+            runner.parent_identity = "700:0:1:2"
+
+    monkeypatch.setattr(runner, "_validate_private_parent", parent)
+    return runner
+
+
+@pytest.mark.parametrize(
+    "output",
+    [
+        b"",
+        b"/elsewhere/other\n",
+        b"/run/fardb-cli-invocation/cli-ABC123\nextra\n",
+        b"/run/fardb-cli-invocation/../bad\n",
+    ],
+)
+def test_malformed_mktemp_output_never_becomes_a_cleanup_target(monkeypatch, output) -> None:
+    """Untrusted output cannot become a transfer or recursive cleanup argument."""
+    runner = _private_runner(monkeypatch)
     docker = Mock(return_value=Mock(stdout=output))
     monkeypatch.setattr(guard, "_docker_command", docker)
     with pytest.raises(guard.DisposableTargetError, match="malformed"):
         runner.__enter__()
     runner.__exit__()
     assert runner.directory is None
-    docker.assert_called_once_with(["docker", "exec", "a" * 64, "mktemp", "-d", "/tmp/fardb-cli-invocation-XXXXXX"])
+    assert runner.private_parent is None
+    commands = [call.args[0] for call in docker.call_args_list]
+    assert commands == [
+        ["docker", "exec", "a" * 64, "mkdir", "-m", "700", "--", "/run/fardb-cli-invocation"],
+        ["docker", "exec", "a" * 64, "mktemp", "-d", "-p", "/run/fardb-cli-invocation", "cli-XXXXXX"],
+        ["docker", "exec", "a" * 64, "rmdir", "--", "/run/fardb-cli-invocation"],
+    ]
 
 
 @pytest.mark.parametrize("metadata", [b"700:0\n", b"777:0\n", b"700:99\n"])
 def test_private_directory_checks_mode_and_owner_before_adoption(monkeypatch, metadata) -> None:
-    """Only a real private directory owned by the container exec user is accepted."""
-    runner = object.__new__(guard.ContainerCliRunner)
-    runner.cli = "docker"
-    runner.record = {"id": "a" * 64}
-    monkeypatch.setattr(runner, "validate", Mock())
-    monkeypatch.setattr(guard, "invocation_id", lambda: "invocation")
+    """Only a private child owned by the container exec user is accepted."""
+    runner = _private_runner(monkeypatch)
+    runner.private_parent = "/run/fardb-cli-invocation"
     docker = Mock(side_effect=[Mock(stdout=b""), Mock(stdout=b""), Mock(stdout=b"0\n"), Mock(stdout=metadata)])
     monkeypatch.setattr(guard, "_docker_command", docker)
+    path = "/run/fardb-cli-invocation/cli-ABC123"
     if metadata == b"700:0\n":
-        runner._validate_private_directory("/tmp/fardb-cli-invocation-ABC123")
+        runner._validate_private_directory(path)
     else:
         with pytest.raises(guard.DisposableTargetError, match="permissions or owner"):
-            runner._validate_private_directory("/tmp/fardb-cli-invocation-ABC123")
+            runner._validate_private_directory(path)
 
 
 def test_cli_setup_failure_cleans_only_a_validated_private_directory(monkeypatch) -> None:
-    """Failed binary preparation removes the adopted directory through its guard."""
-    runner = object.__new__(guard.ContainerCliRunner)
-    runner.cli = "docker"
-    runner.record = {"id": "a" * 64}
-    runner.directory = None
-    path = "/tmp/fardb-cli-invocation-ABC123"
-    monkeypatch.setattr(runner, "validate", Mock())
+    """Failed binary preparation removes the adopted child then its empty parent."""
+    runner = _private_runner(monkeypatch)
+    path = "/run/fardb-cli-invocation/cli-ABC123"
     validated = Mock()
     monkeypatch.setattr(runner, "_validate_private_directory", validated)
-    monkeypatch.setattr(guard, "invocation_id", lambda: "invocation")
     docker = Mock(return_value=Mock(stdout=(path + "\n").encode()))
     monkeypatch.setattr(guard, "_docker_command", docker)
     monkeypatch.setattr(runner, "_prepare_cli", Mock(side_effect=RuntimeError("incompatible")))
     with pytest.raises(RuntimeError, match="incompatible"):
         runner.__enter__()
     assert runner.directory is None
+    assert runner.private_parent is None
     assert validated.call_count == 2
-    assert docker.call_args.args[0] == ["docker", "exec", "a" * 64, "rm", "-rf", "--", path]
+    assert docker.call_args_list[-2].args[0] == ["docker", "exec", "a" * 64, "rm", "-rf", "--", path]
+    assert docker.call_args.args[0] == ["docker", "exec", "a" * 64, "rmdir", "--", "/run/fardb-cli-invocation"]
+
+
+@pytest.mark.parametrize("metadata", [b"777:0:1:2", b"700:99:1:2", b"700:0:1:3"])
+def test_private_parent_replacement_or_unsafe_ownership_prevents_cleanup(monkeypatch, metadata) -> None:
+    """Cleanup cannot adopt a changed parent even when its pathname matches."""
+    runner = object.__new__(guard.ContainerCliRunner)
+    runner.cli = "docker"
+    runner.record = {"id": "a" * 64}
+    runner.private_parent = "/run/fardb-cli-invocation"
+    runner.parent_identity = "700:0:1:2"
+    runner.directory = None
+    monkeypatch.setattr(runner, "validate", Mock())
+    monkeypatch.setattr(guard, "invocation_id", lambda: "invocation")
+    docker = Mock(side_effect=[Mock(stdout=b""), Mock(stdout=b""), Mock(stdout=b"0"), Mock(stdout=metadata)])
+    monkeypatch.setattr(guard, "_docker_command", docker)
+    with pytest.raises(guard.DisposableTargetError):
+        runner.__exit__()
+    assert all("rmdir" not in call.args[0] and "rm" not in call.args[0] for call in docker.call_args_list)
 
 
 @pytest.mark.parametrize("configured", [False, True])
@@ -677,3 +718,169 @@ def test_ledger_invalid_url_constant_preserves_message_and_cause(name) -> None:
         check("postgresql://[")
     assert str(error.value) == "database URL is invalid"
     assert isinstance(error.value.__cause__, ValueError)
+
+
+@pytest.mark.parametrize("kwargs", [{"unexpected": 1}, {"parameters": (1,)}, {"vars": (1,)}])
+def test_cursor_adapter_rejects_unknown_or_duplicate_parameters_before_driver(kwargs) -> None:
+    """Invalid Python call forms cannot reach role parsing or driver execution."""
+    cursor = Mock()
+    with pytest.raises(TypeError):
+        guard.OwnedRoleCursor.execute(cursor, "SELECT 1", None, **kwargs)
+    cursor.mogrify.assert_not_called()
+    cursor._execute_driver.assert_not_called()
+
+
+@pytest.mark.parametrize("keyword", [False, True])
+def test_cursor_adapter_preserves_psycopg_parameter_calls(keyword) -> None:
+    """Positional and vars keyword arguments deliver identical guarded parameters."""
+    cursor = Mock()
+    cursor.mogrify.return_value = b"SELECT 1"
+    parameters = (1,)
+    if keyword:
+        guard.OwnedRoleCursor.execute(cursor, "SELECT %s", vars=parameters)
+    else:
+        guard.OwnedRoleCursor.execute(cursor, "SELECT %s", parameters)
+    cursor._execute_driver.assert_called_once_with("SELECT %s", parameters)
+
+
+def test_owned_parent_creation_refuses_existing_path_without_adoption(monkeypatch) -> None:
+    """A colliding parent is never reused or removed."""
+    runner = _private_runner(monkeypatch)
+    docker = Mock(side_effect=guard.DisposableTargetError("already exists"))
+    monkeypatch.setattr(guard, "_docker_command", docker)
+    with pytest.raises(guard.DisposableTargetError, match="already exists"):
+        runner.__enter__()
+    runner.__exit__()
+    assert runner.private_parent is None
+    assert docker.call_count == 1
+
+
+@pytest.mark.parametrize("fail_first", [False, True])
+def test_role_allocation_publishes_only_after_success_and_rejects_other_invocations(monkeypatch, fail_first) -> None:
+    """Allocation failure is retryable; completed state belongs to exactly one invocation."""
+    from contextlib import nullcontext
+
+    from tests.integration import test_runtime_authority_postgres as authority
+
+    holder = authority._RoleAllocation()
+    invocation = ["first"]
+    monkeypatch.setattr(guard, "invocation_id", lambda: invocation[0])
+    monkeypatch.setattr(authority, "invocation_id", lambda: invocation[0])
+    monkeypatch.setattr(authority, "attested_connection", lambda _url: nullcontext(Mock()))
+    allocation = Mock(return_value={"role": "owned"})
+    monkeypatch.setattr(authority, "allocate_role_names", allocation)
+    if fail_first:
+        allocation.side_effect = RuntimeError("allocation failed")
+        with pytest.raises(RuntimeError, match="allocation failed"):
+            holder.initialize("target")
+        assert holder.names == {}
+        assert holder.invocation is None
+        allocation.side_effect = None
+    holder.initialize("target")
+    calls = allocation.call_count
+    holder.initialize("target")
+    assert allocation.call_count == calls
+    assert holder.names == {"role": "owned"}
+    invocation[0] = "second"
+    with pytest.raises(guard.DisposableTargetError, match="different invocation"):
+        holder.initialize("target")
+    assert allocation.call_count == calls
+
+
+def test_role_allocation_lock_publishes_once_under_concurrent_access(monkeypatch) -> None:
+    """Concurrent users cannot allocate or publish competing name sets."""
+    from concurrent.futures import ThreadPoolExecutor
+    from contextlib import nullcontext
+
+    from tests.integration import test_runtime_authority_postgres as authority
+
+    holder = authority._RoleAllocation()
+    monkeypatch.setattr(guard, "invocation_id", lambda: "first")
+    monkeypatch.setattr(authority, "invocation_id", lambda: "first")
+    monkeypatch.setattr(authority, "attested_connection", lambda _url: nullcontext(Mock()))
+    allocation = Mock(return_value={"role": "owned"})
+    monkeypatch.setattr(authority, "allocate_role_names", allocation)
+    with ThreadPoolExecutor(max_workers=4) as executor:
+        list(executor.map(holder.initialize, ["target"] * 8))
+    allocation.assert_called_once()
+    assert holder.names == {"role": "owned"}
+
+
+@pytest.mark.parametrize("cleanup_failed", [False, True])
+def test_harness_finalization_cleans_before_inventory_and_records_failure(
+    monkeypatch, tmp_path, cleanup_failed
+) -> None:
+    """Cleanup failures remain failures even when final inventory appears preserved."""
+    events = []
+
+    def cleanup(*_args):
+        """Record cleanup ordering and optionally model an ownership rejection."""
+        events.append("cleanup")
+        if cleanup_failed:
+            raise guard.DisposableTargetError("cleanup ownership rejected")
+
+    def docker(command):
+        """Record inventory only after cleanup has been attempted."""
+        events.append("inventory")
+        return Mock(stdout=b"existing\n")
+
+    monkeypatch.setattr(guard, "_cleanup_local_container", cleanup)
+    monkeypatch.setattr(guard, "_docker_command", docker)
+    report: dict[str, object] = {}
+    result = guard._finalize_harness(
+        "docker", "owned", "volume", "invocation", {"existing"}, {"existing"}, report, tmp_path, 0
+    )
+    assert events == ["cleanup", "inventory", "inventory"]
+    assert result == (1 if cleanup_failed else 0)
+    assert report["existing_containers_preserved"] is True
+    assert report["existing_volumes_preserved"] is True
+    if cleanup_failed:
+        assert report["cleanup_failure"] == "cleanup ownership rejected"
+    assert (tmp_path / "report.json").is_file()
+
+
+def test_harness_evidence_write_failure_propagates_after_owned_cleanup(monkeypatch, tmp_path) -> None:
+    """Missing evidence cannot be reported as successful preservation."""
+    cleanup = Mock()
+    monkeypatch.setattr(guard, "_cleanup_local_container", cleanup)
+    monkeypatch.setattr(guard, "_docker_command", Mock(return_value=Mock(stdout=b"existing\n")))
+    with pytest.raises(FileNotFoundError):
+        guard._finalize_harness(
+            "docker", "owned", "volume", "invocation", {"existing"}, {"existing"}, {}, tmp_path / "missing", 0
+        )
+    cleanup.assert_called_once()
+
+
+def test_readiness_failure_still_cleans_owned_resources_and_reports_preservation(monkeypatch, tmp_path) -> None:
+    """A bounded startup failure follows the same cleanup and preservation path."""
+    import tempfile
+
+    inventory = [Mock(stdout=b"existing\n"), Mock(stdout=b"oldvolume\n"), Mock(stdout=b"started\n")]
+    monkeypatch.setattr(tempfile, "mkdtemp", lambda **_kwargs: str(tmp_path))
+    monkeypatch.setattr(guard, "_docker_command", Mock(side_effect=inventory))
+    monkeypatch.setattr(guard, "_create_harness_container", lambda *_args: "owned")
+    monkeypatch.setattr(
+        guard,
+        "_fresh_storage_volume",
+        lambda *_args: ("newvolume", {"Config": {"Labels": {"fardb.test.invocation": "invocation"}}}),
+    )
+    monkeypatch.setattr("uuid.uuid4", lambda: Mock(hex="invocation"))
+    monkeypatch.setattr(
+        guard, "_wait_for_owned_postgres", Mock(side_effect=guard.DisposableTargetError("readiness timeout"))
+    )
+    finalize = Mock(return_value=1)
+    monkeypatch.setattr(guard, "_finalize_harness", finalize)
+    assert guard._run_locked_container_harness("docker", 16, []) == 1
+    args = finalize.call_args.args
+    assert args[1:4] == ("owned", "newvolume", "invocation")
+    assert args[4:6] == ({"existing"}, {"oldvolume"})
+    assert args[6]["failure"] == "readiness timeout"
+
+
+def test_cursor_adapter_rejects_excess_positional_parameters_before_driver() -> None:
+    """The adapter preserves the original two-argument interface boundary."""
+    cursor = Mock()
+    with pytest.raises(TypeError):
+        guard.OwnedRoleCursor.execute(cursor, "SELECT 1", None, None)
+    cursor.mogrify.assert_not_called()
+    cursor._execute_driver.assert_not_called()

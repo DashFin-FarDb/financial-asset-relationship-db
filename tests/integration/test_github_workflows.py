@@ -1181,7 +1181,6 @@ class TestAutoAssignWorkflow:
 
     def test_auto_assign_security_no_hardcoded_secrets(self, auto_assign_workflow: dict[str, Any]):
         """Test that no secrets are hardcoded in the workflow."""
-
         workflow_str = json.dumps(auto_assign_workflow)
         suspicious_patterns = [
             r"ghp_[a-zA-Z0-9]{36}",
@@ -1227,7 +1226,6 @@ class TestAutoAssignWorkflow:
 
     def test_auto_assign_security_no_deprecated_syntax(self, auto_assign_workflow: dict[str, Any]):
         """Test that the workflow doesn't use deprecated GitHub Actions syntax."""
-
         workflow_str = json.dumps(auto_assign_workflow)
         assert "::set-output" not in workflow_str, "Should not use deprecated ::set-output syntax"
         assert "::set-env" not in workflow_str, "Should not use deprecated ::set-env syntax"

@@ -65,14 +65,14 @@ class TestDatabaseURLConfiguration:
 
     def test_explicit_database_binding_restores_import_time_target(self, tmp_path: Path):
         """Operator binding must use the requested target and restore module state."""
-        original_target = (database.DATABASE_URL, database.DATABASE_TYPE, database.DATABASE_PATH)
+        original_target = database._effective_database_target()
         requested_path = tmp_path / "explicit-auth.db"
 
         with bind_database_url(f"sqlite:///{requested_path}"):
-            assert str(requested_path) == database.DATABASE_PATH
+            assert str(requested_path) == database._effective_database_target().path
             initialize_schema()
 
-        assert original_target == (database.DATABASE_URL, database.DATABASE_TYPE, database.DATABASE_PATH)
+        assert original_target == database._effective_database_target()
         with sqlite3.connect(requested_path) as connection:
             assert connection.execute(
                 "SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = 'user_credentials'"
@@ -297,9 +297,9 @@ class TestConnectionManagement:
         mem_manager = _DatabaseConnectionManager(":memory:")
         with (
             patch("api.database.DATABASE_PATH", ":memory:"),
-            patch("api.database._db_manager", mem_manager),
-            patch("api.database._MEMORY_CONNECTION", None),
-            patch("api.database._MEMORY_CONNECTION_MANAGER", None),
+            patch("api.database._CONNECTION_STATE.manager", mem_manager),
+            patch("api.database._CONNECTION_STATE.connection", None),
+            patch("api.database._CONNECTION_STATE.connection_manager", None),
         ):
             _close_memory_connection_cache()
             with get_connection() as conn1:
@@ -673,7 +673,7 @@ class TestConnectionPooling:
                 for call in mock_register.call_args_list
             )
 
-    @patch("api.database._MEMORY_CONNECTION")
+    @patch("api.database._CONNECTION_STATE.connection")
     def test_cleanup_closes_memory_connection(self, mock_conn):
         """Test that cleanup closes memory connection."""
         from api.database import _cleanup_memory_connection

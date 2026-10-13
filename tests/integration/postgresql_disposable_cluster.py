@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import hashlib
+import json
 import os
 import re
 import shutil
@@ -247,7 +248,6 @@ def create_attested_engine(database_url: str, **kwargs):
 
 def _parse_role_ddl(rendered_sql: str) -> tuple[str, str] | None:
     """Fully interpret only the single-role forms used by this harness."""
-
     bootstrap = Path(__file__).parents[2] / "scripts" / "bootstrap_database_capability_roles.sql"
     if rendered_sql == bootstrap.read_text(encoding="utf-8"):
         return None  # Exact reviewed bootstrap remains independently attested, not parsed as ad hoc DDL.
@@ -300,6 +300,19 @@ def _ddl_role_name(rendered_sql: str) -> str | None:
     return parsed[1] if parsed else None
 
 
+def execute_capability_bootstrap(cursor, mapping=None) -> None:
+    """Set the complete mapping and bootstrap atomically on the attested connection."""
+    bootstrap = Path(__file__).parents[2] / "scripts" / "bootstrap_database_capability_roles.sql"
+    connection = cursor.connection
+    with connection:
+        if mapping is None:
+            cursor.execute("SELECT current_database()")
+            database = cursor.fetchone()[0]
+            mapping = {name: [database] for name in sorted(_CANONICAL_CAPABILITY_ROLES)}
+        cursor.execute("SELECT set_config('fardb.bootstrap_targets', %s, true)", (json.dumps(mapping),))
+        cursor.execute(bootstrap.read_text(encoding="utf-8"))
+
+
 class OwnedRoleCursor(PsycopgCursor):
     """Fence fixture CREATE/DROP roles and reject unsupported role/ownership DDL.
 
@@ -312,9 +325,14 @@ class OwnedRoleCursor(PsycopgCursor):
         """Delegate to psycopg only after statement and ownership guards succeed."""
         return super().execute(query, parameters)
 
-    def execute(self, query, vars=None):
-        """Preserve psycopg's vars keyword while rejecting unchecked role mutation."""
-        rendered = self.mogrify(query, vars).decode("utf-8", errors="replace")
+    def execute(self, query, *arguments, **kwargs):
+        """Adapt positional and psycopg keyword parameters before enforcing mutation guards."""
+        if set(kwargs) - {"vars"}:
+            raise TypeError("unexpected cursor execution keyword")
+        if len(arguments) > 1 or ("vars" in kwargs and arguments):
+            raise TypeError("cursor parameters supplied more than once")
+        parameters = arguments[0] if arguments else kwargs.get("vars", None)
+        rendered = self.mogrify(query, parameters).decode("utf-8", errors="replace")
         parsed = _parse_role_ddl(rendered)
         command, role_name = parsed if parsed else ("", None)
         if (
@@ -334,7 +352,7 @@ class OwnedRoleCursor(PsycopgCursor):
                 raise DisposableTargetError("refusing cleanup of a role not created by this invocation")
             elif row is None or int(row[0]) != oid:
                 raise DisposableTargetError("refusing cleanup after role name/OID ownership changed")
-        result = self._execute_driver(query, vars)
+        result = self._execute_driver(query, parameters)
         if command == "CREATE ROLE" and role_name:
             record_created_role(
                 self.connection,
@@ -349,7 +367,6 @@ CONTAINER_RECORD_ENV = "FARDB_EPHEMERAL_POSTGRES_CONTAINER_RECORD"
 
 def _read_harness_record() -> dict:
     """Reject native/unowned test execution before any mutation connection opens."""
-    import json
 
     path = os.environ.get(CONTAINER_RECORD_ENV)
     if not path:
@@ -379,7 +396,6 @@ def _docker_command(command: list[str], *, input_bytes: bytes | None = None, tim
 
 def _docker_cli() -> str:
     """Find a working Docker interface without changing saved contexts."""
-
     supplied = os.environ.get("FARDB_DOCKER_CLI")
     candidates = [supplied] if supplied else [shutil.which("docker"), shutil.which("docker.exe")]
     for candidate in candidates:
@@ -394,7 +410,6 @@ def _docker_cli() -> str:
 
 def _inspect_container(cli: str, container_id: str) -> dict:
     """Inspect exactly one full immutable container identity."""
-    import json
 
     if not re.fullmatch(r"[0-9a-f]{64}", container_id):
         raise DisposableTargetError("full container ID required")
@@ -404,12 +419,8 @@ def _inspect_container(cli: str, container_id: str) -> dict:
     return items[0]
 
 
-def _container_identity(container: dict, major: int) -> dict:
-    """Reject ambiguous storage and expose only non-secret ownership fields."""
-    host = container["HostConfig"]
-    env = dict(item.split("=", 1) for item in container["Config"]["Env"])
-    mounts = container["Mounts"]
-    ports = container["NetworkSettings"]["Ports"].get("5432/tcp")
+def _validate_container_process(container, major, host, env, mounts) -> None:
+    """Check the unchanged process, image and publication predicates first."""
     valid = (
         container["State"]["Running"]
         and container["Config"]["Image"] == f"postgres:{major}"
@@ -419,12 +430,19 @@ def _container_identity(container: dict, major: int) -> dict:
         and env.get("POSTGRES_USER") == "test"
         and env.get("POSTGRES_DB") == "test_db"
         and len(mounts) == 1
-        and ports
-        and len(ports) == 1
-        and ports[0]["HostIp"] == "127.0.0.1"
     )
     if not valid:
         raise DisposableTargetError("container ownership, image, mounts or loopback binding is invalid")
+
+
+def _validate_loopback_publication(ports) -> None:
+    """Require exactly one publication bound to the original loopback address."""
+    if not ports or len(ports) != 1 or ports[0]["HostIp"] != "127.0.0.1":
+        raise DisposableTargetError("container ownership, image, mounts or loopback binding is invalid")
+
+
+def _validate_anonymous_mount(container, env, mounts):
+    """Reject every mount except the image's owned anonymous data volume."""
     mount = mounts[0]
     if (
         mount["Type"] != "volume"
@@ -434,6 +452,18 @@ def _container_identity(container: dict, major: int) -> dict:
         or not mount["Source"].endswith("/volumes/" + mount["Name"] + "/_data")
     ):
         raise DisposableTargetError("container data storage is not an owned anonymous volume")
+    return mount
+
+
+def _container_identity(container: dict, major: int) -> dict:
+    """Reject ambiguous storage and expose only non-secret ownership fields."""
+    host = container["HostConfig"]
+    env = dict(item.split("=", 1) for item in container["Config"]["Env"])
+    mounts = container["Mounts"]
+    ports = container["NetworkSettings"]["Ports"].get("5432/tcp")
+    _validate_container_process(container, major, host, env, mounts)
+    _validate_loopback_publication(ports)
+    mount = _validate_anonymous_mount(container, env, mounts)
     return {
         "id": container["Id"],
         "image": container["Config"]["Image"],
@@ -482,6 +512,8 @@ class ContainerCliRunner:
         _internal_cli_url(database_url, self.record)
         self.validate()
         self.directory: str | None = None
+        self.private_parent: str | None = None
+        self.parent_identity: str | None = None
         self.digests: dict[str, str] = {}
 
     def validate(self) -> None:
@@ -496,36 +528,54 @@ class ContainerCliRunner:
         if not identifier or identifier.group(1) != self.record["system_identifier"]:
             raise DisposableTargetError("owned container cluster identity changed")
 
-    def __enter__(self):
-        """Allocate private CLI state with container-side mktemp in the verified namespace.
-
-        The allocator creates mode 0700 atomically. Its output is validated before
-        adoption; malformed output cannot become a transfer or cleanup target.
-        """
+    def _validate_private_parent(self, path: str, *, adopt: bool = False) -> None:
+        """Require the exclusively created parent and its recorded inode/ownership."""
+        expected = f"/run/fardb-cli-{invocation_id()}"
+        if path != expected:
+            raise DisposableTargetError("malformed container private parent")
         self.validate()
-        output = _docker_command(
-            [self.cli, "exec", self.record["id"], "mktemp", "-d", f"/tmp/fardb-cli-{invocation_id()}-XXXXXX"]
-        ).stdout.decode()
-        candidate = output.removesuffix("\n")
-        self._validate_private_directory(candidate)
-        self.directory = candidate  # Invalid output never becomes a transfer or cleanup target.
+        _docker_command([self.cli, "exec", self.record["id"], "test", "!", "-L", path])
+        _docker_command([self.cli, "exec", self.record["id"], "test", "-d", path])
+        uid = _docker_command([self.cli, "exec", self.record["id"], "id", "-u"]).stdout.decode().strip()
+        metadata = (
+            _docker_command([self.cli, "exec", self.record["id"], "stat", "-c", "%a:%u:%d:%i", "--", path])
+            .stdout.decode()
+            .strip()
+        )
+        if not uid.isdigit() or not re.fullmatch(rf"700:{uid}:\d+:\d+", metadata):
+            raise DisposableTargetError("unsafe container private parent permissions or owner")
+        if adopt:
+            self.parent_identity = metadata
+            self.private_parent = path
+        elif metadata != self.parent_identity:
+            raise DisposableTargetError("container private parent changed identity")
+
+    def __enter__(self):
+        """Allocate random CLI state beneath an exclusively owned mode-0700 parent."""
+        self.validate()
+        parent = f"/run/fardb-cli-{invocation_id()}"
+        _docker_command([self.cli, "exec", self.record["id"], "mkdir", "-m", "700", "--", parent])
+        self._validate_private_parent(parent, adopt=True)
         try:
+            output = _docker_command(
+                [self.cli, "exec", self.record["id"], "mktemp", "-d", "-p", parent, "cli-XXXXXX"]
+            ).stdout.decode()
+            candidate = output.removesuffix("\n")
+            self._validate_private_directory(candidate)
+            self.directory = candidate
+            print(json.dumps({"cli_private_parent": parent, "cli_private_directory": candidate}))
             return self._prepare_cli()
         except BaseException:
             self.__exit__()
             raise
 
     def _validate_private_directory(self, path: str) -> None:
-        """Validate the invocation path, directory type, owner and mode before use.
-
-        The fixed /tmp prefix constrains the allocator output; it does not create
-        or adopt a predictable directory. Symlinks are rejected. Transfer and
-        cleanup repeat these checks on the same independently verified container.
-        Unrelated privileged Docker clients remain outside this harness boundary.
-        """
-        if re.fullmatch(rf"/tmp/fardb-cli-{re.escape(invocation_id())}-[a-zA-Z0-9]{{6}}", path) is None:
+        """Validate the random direct child before transfer or cleanup adoption."""
+        if self.private_parent is None:
+            raise DisposableTargetError("container private parent is not active")
+        if re.fullmatch(rf"{re.escape(self.private_parent)}/cli-[a-zA-Z0-9]{{6}}", path) is None:
             raise DisposableTargetError("malformed container private directory")
-        self.validate()
+        self._validate_private_parent(self.private_parent)
         for argv in (["test", "!", "-L", path], ["test", "-d", path]):
             _docker_command([self.cli, "exec", self.record["id"], *argv])
         uid = _docker_command([self.cli, "exec", self.record["id"], "id", "-u"]).stdout.decode().strip()
@@ -539,7 +589,6 @@ class ContainerCliRunner:
 
     def _prepare_cli(self):
         """Copy and compatibility-check the pinned executable in validated private state."""
-
         if self.directory is None:
             raise DisposableTargetError("CLI runner context is not active")
         executable = shutil.which("supabase")
@@ -619,7 +668,6 @@ class ContainerCliRunner:
 
     def __call__(self, command, *, timeout, **_kwargs):
         """Adapt only ledger's fixed version/push commands to container-local execution."""
-
         if self.directory is None:
             raise DisposableTargetError("CLI runner context is not active")
         self.validate()
@@ -667,12 +715,16 @@ class ContainerCliRunner:
         return result
 
     def __exit__(self, *_args):
-        """Remove only this runner's private directory in the same live owned container."""
-        if self.directory is None:
-            return
-        self._validate_private_directory(self.directory)
-        _docker_command([self.cli, "exec", self.record["id"], "rm", "-rf", "--", self.directory])
-        self.directory = None
+        """Remove adopted children and the empty, still-owned parent only."""
+        if self.directory is not None:
+            self._validate_private_directory(self.directory)
+            _docker_command([self.cli, "exec", self.record["id"], "rm", "-rf", "--", self.directory])
+            self.directory = None
+        if self.private_parent is not None:
+            self._validate_private_parent(self.private_parent)
+            _docker_command([self.cli, "exec", self.record["id"], "rmdir", "--", self.private_parent])
+            self.private_parent = None
+            self.parent_identity = None
 
 
 def verify_applied_profile(database_url: str, manifest, profile: str) -> None:
@@ -680,7 +732,8 @@ def verify_applied_profile(database_url: str, manifest, profile: str) -> None:
     from scripts.postgresql_drift import catalog_digest, normalized_managed_catalog
 
     with attested_connection(database_url) as connection, connection.cursor() as cursor:
-        actual = catalog_digest(normalized_managed_catalog(cursor, profile))
+        normalized = normalized_managed_catalog(cursor, profile)
+        actual = catalog_digest(normalized)
         expected = manifest.catalog_digest_for_profile(profile)
         if actual != expected:
             raise DisposableTargetError(f"post-CLI {profile} catalog digest mismatch: {actual} != {expected}")
@@ -690,11 +743,18 @@ def verify_applied_profile(database_url: str, manifest, profile: str) -> None:
             raise DisposableTargetError("post-CLI host-side migration history differs from the selected profile")
         evidence = os.environ.get("FARDB_POSTGRES_EVIDENCE_DIR")
         if evidence:
-            import json
             from uuid import uuid4
 
             Path(evidence, f"catalog-{profile}-{uuid4().hex}.json").write_text(
-                json.dumps({"profile": profile, "actual": actual, "expected": expected, "history": expected_history})
+                json.dumps(
+                    {
+                        "profile": profile,
+                        "actual": actual,
+                        "expected": expected,
+                        "history": expected_history,
+                        "normalized_catalog": normalized,
+                    }
+                )
             )
 
 
@@ -801,11 +861,97 @@ def _run_pytest(pytest_args: list[str], output: Any) -> int:
     ).returncode
 
 
+def _finalize_harness(cli, container_id, volume, invocation, old_ids, old_volumes, report, evidence, result_code):
+    """Clean owned resources before inventory preservation and evidence publication."""
+    if container_id and container_id not in old_ids:
+        try:
+            _cleanup_local_container(cli, container_id, volume, invocation, old_ids, old_volumes)
+        except DisposableTargetError as exc:
+            report["cleanup_failure"] = str(exc)
+            result_code = 1
+    current_ids = set(_docker_command([cli, "ps", "-aq", "--no-trunc"]).stdout.decode().split())
+    current_volumes = set(_docker_command([cli, "volume", "ls", "-q"]).stdout.decode().split())
+    report.update(
+        container_removed=container_id not in current_ids,
+        owned_volume_removed=volume not in current_volumes,
+        existing_containers_preserved=old_ids <= current_ids,
+        existing_volumes_preserved=old_volumes <= current_volumes,
+    )
+    if not all(
+        report[k]
+        for k in (
+            "container_removed",
+            "owned_volume_removed",
+            "existing_containers_preserved",
+            "existing_volumes_preserved",
+        )
+    ):
+        result_code = 1
+    (evidence / "report.json").write_text(json.dumps(report, indent=2))
+    print(json.dumps(report, indent=2))
+    return result_code
+
+
+def _create_harness_container(cli: str, major: int, invocation: str) -> str:
+    """Create a fresh container only after the caller's locked inventory capture."""
+    container_id = (
+        _docker_command(
+            [
+                cli,
+                "create",
+                "--rm",
+                "--name",
+                f"fardb-pr1870-pg{major}-{invocation[:12]}",
+                "--label",
+                "fardb.test.invocation=" + invocation,
+                "-e",
+                "POSTGRES_USER=test",
+                "-e",
+                "POSTGRES_PASSWORD=test",
+                "-e",
+                "POSTGRES_DB=test_db",
+                "-p",
+                "127.0.0.1::5432",
+                f"postgres:{major}",
+            ]
+        )
+        .stdout.decode()
+        .strip()
+    )
+    return container_id
+
+
+def _fresh_storage_volume(cli: str, container_id: str) -> tuple[str, dict]:
+    """Inspect storage before adopting its name for any later cleanup."""
+    created = _inspect_container(cli, container_id)
+    if (
+        not created["HostConfig"]["AutoRemove"]
+        or created["HostConfig"].get("Binds")
+        or created["HostConfig"].get("Mounts")
+        or len(created["Mounts"]) != 1
+    ):
+        raise DisposableTargetError("fresh-container storage setup is ambiguous")
+    return created["Mounts"][0]["Name"], created
+
+
+def _wait_for_owned_postgres(cli: str, container_id: str) -> None:
+    """Bound readiness only after the owned container has been started."""
+    import time
+
+    deadline = time.monotonic() + 45
+    while True:
+        try:
+            _docker_command([cli, "exec", container_id, "pg_isready", "-U", "test", "-d", "test_db"])
+            break
+        except DisposableTargetError:
+            if time.monotonic() > deadline:
+                raise DisposableTargetError("new PostgreSQL container readiness timeout") from None
+            time.sleep(1)
+
+
 def _run_locked_container_harness(cli: str, major: int, pytest_args: list[str]) -> int:
     """Own fresh anonymous storage, attest both endpoints and clean up only this run."""
-    import json
     import tempfile
-    import time
     from uuid import uuid4
 
     if major not in (15, 16):
@@ -823,53 +969,14 @@ def _run_locked_container_harness(cli: str, major: int, pytest_args: list[str]) 
     }
     result_code = 1
     try:
-        container_id = (
-            _docker_command(
-                [
-                    cli,
-                    "create",
-                    "--rm",
-                    "--name",
-                    f"fardb-pr1870-pg{major}-{invocation[:12]}",
-                    "--label",
-                    "fardb.test.invocation=" + invocation,
-                    "-e",
-                    "POSTGRES_USER=test",
-                    "-e",
-                    "POSTGRES_PASSWORD=test",
-                    "-e",
-                    "POSTGRES_DB=test_db",
-                    "-p",
-                    "127.0.0.1::5432",
-                    f"postgres:{major}",
-                ]
-            )
-            .stdout.decode()
-            .strip()
-        )
+        container_id = _create_harness_container(cli, major, invocation)
         if container_id in old_ids:
             raise DisposableTargetError("refusing reused container")
-        created = _inspect_container(cli, container_id)
-        if (
-            not created["HostConfig"]["AutoRemove"]
-            or created["HostConfig"].get("Binds")
-            or created["HostConfig"].get("Mounts")
-            or len(created["Mounts"]) != 1
-        ):
-            raise DisposableTargetError("fresh-container storage setup is ambiguous")
-        volume = created["Mounts"][0]["Name"]
+        volume, created = _fresh_storage_volume(cli, container_id)
         if volume in old_volumes or created["Config"]["Labels"].get("fardb.test.invocation") != invocation:
             raise DisposableTargetError("container storage is not newly owned")
         _docker_command([cli, "start", container_id])
-        deadline = time.monotonic() + 45
-        while True:
-            try:
-                _docker_command([cli, "exec", container_id, "pg_isready", "-U", "test", "-d", "test_db"])
-                break
-            except DisposableTargetError:
-                if time.monotonic() > deadline:
-                    raise DisposableTargetError("new PostgreSQL container readiness timeout") from None
-                time.sleep(1)
+        _wait_for_owned_postgres(cli, container_id)
         record = _capture_record(cli, container_id, major, invocation, "local-created")
         report.update(record)
         record_path = evidence / "ownership.json"
@@ -911,38 +1018,15 @@ def _run_locked_container_harness(cli: str, major: int, pytest_args: list[str]) 
         report["failure"] = str(exc)
         print("Harness failed: " + str(exc))
     finally:
-        if container_id and container_id not in old_ids:
-            try:
-                _cleanup_local_container(cli, container_id, volume, invocation, old_ids, old_volumes)
-            except DisposableTargetError:
-                result_code = 1
-        current_ids = set(_docker_command([cli, "ps", "-aq", "--no-trunc"]).stdout.decode().split())
-        current_volumes = set(_docker_command([cli, "volume", "ls", "-q"]).stdout.decode().split())
-        report.update(
-            container_removed=container_id not in current_ids,
-            owned_volume_removed=volume not in current_volumes,
-            existing_containers_preserved=old_ids <= current_ids,
-            existing_volumes_preserved=old_volumes <= current_volumes,
+        result_code = _finalize_harness(
+            cli, container_id, volume, invocation, old_ids, old_volumes, report, evidence, result_code
         )
-        if not all(
-            report[k]
-            for k in (
-                "container_removed",
-                "owned_volume_removed",
-                "existing_containers_preserved",
-                "existing_volumes_preserved",
-            )
-        ):
-            result_code = 1
-        (evidence / "report.json").write_text(json.dumps(report, indent=2))
-        print(json.dumps(report, indent=2))
     return result_code
 
 
 def _main() -> int:
     """Provide only the owned local harness and exact Actions service attestation modes."""
     import argparse
-    import json
 
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("mode", choices=("harness", "attest-job"))

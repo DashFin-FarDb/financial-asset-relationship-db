@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
+from contextlib import nullcontext
 
 from sqlalchemy import (
     CheckConstraint,
@@ -1036,11 +1037,27 @@ def _verify_profile_specific_schema(
             )
 
 
+class _ConnectionBoundEngine:
+    """Expose verification-only engine operations on one caller-owned connection."""
+
+    def __init__(self, engine, connection) -> None:
+        """Reject a connection belonging to any other engine."""
+        if connection.engine is not engine:
+            raise SchemaCompatibilityError("verification connection does not belong to its engine")
+        self.url = engine.url
+        self._connection = connection
+
+    def connect(self):
+        """Reuse the caller-owned connection without closing or replacing it."""
+        return nullcontext(self._connection)
+
+
 def verify_database_schema(
     engine: Engine,
     *,
     required_capabilities: tuple[str, ...] | set[str] | frozenset[str] = (),
     combined_topology: bool | None = None,
+    verification_connection=None,
     require_login_principals: bool = False,
 ) -> None:
     """Verify the asset-store schema without creating, altering, or repairing it.
@@ -1072,10 +1089,13 @@ def verify_database_schema(
         configure_sqlite_engine(engine)
 
     try:
-        inspector = inspect(engine)
+        bound_engine = (
+            _ConnectionBoundEngine(engine, verification_connection) if verification_connection is not None else engine
+        )
+        inspector = inspect(verification_connection if verification_connection is not None else engine)
         _verify_expected_table_catalog(inspector, normalized_capabilities)
         _verify_profile_specific_schema(
-            engine,
+            bound_engine,
             inspector,
             backend,
             normalized_capabilities,
@@ -1098,6 +1118,7 @@ def verify_runtime_database_authority(  # skipcq: PY-R1000
     *,
     required_capabilities: tuple[str, ...] | set[str] | frozenset[str] = (),
     combined_topology: bool | None = None,
+    verification_connection=None,
 ) -> None:
     """Require a PostgreSQL runtime role without schema-migration authority."""
     backend = make_url(engine.url).get_backend_name()
@@ -1111,7 +1132,10 @@ def verify_runtime_database_authority(  # skipcq: PY-R1000
             if normalized_capabilities
             else list(POSTGRESQL_MANAGED_TABLES)
         )
-        with engine.connect() as connection:
+        bound_engine = (
+            _ConnectionBoundEngine(engine, verification_connection) if verification_connection is not None else engine
+        )
+        with bound_engine.connect() as connection:
             restricted = connection.execute(
                 text(
                     "SELECT current_schema() IS NOT NULL AND NOT EXISTS ("

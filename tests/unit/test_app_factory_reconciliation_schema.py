@@ -8,14 +8,15 @@ import pytest
 
 from api import app_factory
 from src.data.database import COORDINATION_RUNTIME_CAPABILITY, GRAPH_RUNTIME_CAPABILITY
+from tests.unit.test_postgresql_topology import identity_engine
 
 pytestmark = pytest.mark.unit
 
 
 def test_reconciliation_schema_verification_calls_each_separate_target_once(monkeypatch) -> None:
     """Separate graph and coordination engines must each be verified exactly once."""
-    graph_engine = object()
-    coordination_engine = object()
+    graph_engine = identity_engine()
+    coordination_engine = identity_engine(identifier="99999")
     verify_schema = MagicMock()
     verify_authority = MagicMock()
     monkeypatch.setattr("src.data.database.verify_database_schema", verify_schema)
@@ -35,7 +36,7 @@ def test_reconciliation_schema_verification_calls_each_separate_target_once(monk
 
 def test_reconciliation_schema_verification_combines_shared_target_capabilities(monkeypatch) -> None:
     """A shared engine must be verified once with the union of required capabilities."""
-    shared_engine = object()
+    shared_engine = identity_engine()
     verify_schema = MagicMock()
     verify_authority = MagicMock()
     monkeypatch.setattr("src.data.database.verify_database_schema", verify_schema)
@@ -44,5 +45,68 @@ def test_reconciliation_schema_verification_combines_shared_target_capabilities(
     app_factory._verify_reconciliation_schemas(shared_engine, shared_engine)  # pylint: disable=protected-access
 
     required_capabilities = {GRAPH_RUNTIME_CAPABILITY, COORDINATION_RUNTIME_CAPABILITY}
-    verify_schema.assert_called_once_with(shared_engine, required_capabilities=required_capabilities)
-    verify_authority.assert_called_once_with(shared_engine, required_capabilities=required_capabilities)
+    verify_schema.assert_called_once_with(
+        shared_engine,
+        required_capabilities=required_capabilities,
+        combined_topology=True,
+        verification_connection=shared_engine.connect().__enter__(),
+    )
+    verify_authority.assert_called_once_with(
+        shared_engine,
+        required_capabilities=required_capabilities,
+        combined_topology=True,
+        verification_connection=shared_engine.connect().__enter__(),
+    )
+
+
+@pytest.mark.parametrize("shared", [True, False])
+def test_distinct_credentials_propagate_proved_physical_topology(monkeypatch, shared) -> None:
+    """Distinct engines keep their scopes while receiving the live topology proof."""
+    graph = identity_engine()
+    coordination = identity_engine(identifier="12345" if shared else "99999")
+    schema = MagicMock()
+    authority = MagicMock()
+    monkeypatch.setattr("src.data.database.verify_database_schema", schema)
+    monkeypatch.setattr("src.data.database.verify_runtime_database_authority", authority)
+    app_factory._verify_reconciliation_schemas(graph, coordination)
+    for verifier in (schema, authority):
+        assert verifier.call_count == 2
+        assert verifier.call_args_list[0].kwargs["combined_topology"] is shared
+        assert verifier.call_args_list[1].kwargs["combined_topology"] is shared
+        assert verifier.call_args_list[0].kwargs["verification_connection"] is graph.connect().__enter__()
+        assert verifier.call_args_list[1].kwargs["verification_connection"] is coordination.connect().__enter__()
+    graph.connect.return_value.__exit__.assert_called_once()
+    coordination.connect.return_value.__exit__.assert_called_once()
+
+
+def test_unavailable_identity_stops_before_any_authority_check(monkeypatch) -> None:
+    """A failed proof cannot broaden authority or start catalog verification."""
+    from src.data.database import SchemaCompatibilityError
+
+    graph = identity_engine()
+    graph.connect().__enter__().execute.side_effect = PermissionError("denied")
+    schema = MagicMock()
+    authority = MagicMock()
+    monkeypatch.setattr("src.data.database.verify_database_schema", schema)
+    monkeypatch.setattr("src.data.database.verify_runtime_database_authority", authority)
+    with pytest.raises(SchemaCompatibilityError, match="identity"):
+        app_factory._verify_reconciliation_schemas(graph, graph)
+    schema.assert_not_called()
+    authority.assert_not_called()
+
+
+def test_changed_identity_blocks_recovery_after_verification(monkeypatch) -> None:
+    """An identity change during catalog checks fails before recovery publication."""
+    from src.data.database import SchemaCompatibilityError
+
+    graph = identity_engine()
+    connection = graph.connect().__enter__()
+    first = MagicMock()
+    first.fetchall.return_value = [("12345", 16384, "test_db")]
+    second = MagicMock()
+    second.fetchall.return_value = [("99999", 16384, "test_db")]
+    connection.execute.side_effect = [first, second]
+    monkeypatch.setattr("src.data.database.verify_database_schema", MagicMock())
+    monkeypatch.setattr("src.data.database.verify_runtime_database_authority", MagicMock())
+    with pytest.raises(SchemaCompatibilityError, match="changed"):
+        app_factory._verify_reconciliation_schemas(graph, graph)

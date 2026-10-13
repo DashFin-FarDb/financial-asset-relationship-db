@@ -5,7 +5,6 @@ from __future__ import annotations
 import os
 from collections.abc import Callable
 from dataclasses import replace
-from pathlib import Path
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 from uuid import uuid4
 
@@ -55,6 +54,7 @@ from tests.integration.postgresql_disposable_cluster import (
     attested_connection,
     connect_owned_attested,
     create_attested_engine,
+    execute_capability_bootstrap,
     invocation_id,
     owned_role_oid,
     record_created_role,
@@ -65,7 +65,6 @@ pytestmark = pytest.mark.integration
 
 _ENABLE_ENV = "FARDB_EPHEMERAL_POSTGRES_LEDGER_TESTS"
 _URL_ENV = "FARDB_EPHEMERAL_POSTGRES_URL"
-_BOOTSTRAP_PATH = Path(__file__).resolve().parents[2] / "scripts" / "bootstrap_database_capability_roles.sql"
 
 
 def _ephemeral_postgres_url() -> str:
@@ -103,7 +102,6 @@ def _database_url(base_url: str, database_name: str) -> str:
 
 def _bootstrap_roles_and_create_database(base_url: str, database_name: str) -> None:
     """Create stable capability roles and one empty disposable database."""
-    bootstrap_sql = _BOOTSTRAP_PATH.read_text(encoding="utf-8")
     connection = connect_owned_attested(base_url)
     connection.autocommit = True
     try:
@@ -113,7 +111,7 @@ def _bootstrap_roles_and_create_database(base_url: str, database_name: str) -> N
                 (["fardb_runtime_auth", "fardb_runtime_graph", "fardb_runtime_coordination"],),
             )
             preexisting_capabilities = {row[0] for row in cursor.fetchall()}
-            cursor.execute(bootstrap_sql)
+            execute_capability_bootstrap(cursor)
             cursor.execute(
                 "SELECT rolname FROM pg_roles WHERE rolname = ANY(%s)",
                 (["fardb_runtime_auth", "fardb_runtime_graph", "fardb_runtime_coordination"],),

@@ -209,8 +209,31 @@ def test_supabase_adapter_rejects_replaceable_trust_root(tmp_path: Path) -> None
         preflight._supabase_route_identity(database_url)
 
 
+def _stub_runtime_engines(monkeypatch):
+    """Supply distinct live-identity doubles without contacting placeholder providers."""
+    from urllib.parse import urlsplit
+
+    from src.data import database as data_database
+    from tests.unit.test_postgresql_topology import identity_engine
+
+    engines = []
+
+    def create(url):
+        """Represent project-specific identities independent of credential text."""
+        parsed = urlsplit(url)
+        reference = (parsed.hostname or "") if (parsed.hostname or "").startswith("db.") else parsed.username or ""
+        identifier = "99999" if "other" in reference or "ref2" in reference else "12345"
+        engine = identity_engine(identifier=identifier)
+        engines.append(engine)
+        return engine
+
+    monkeypatch.setattr(data_database, "create_engine_from_url", create)
+    return engines
+
+
 def test_runtime_helpers_force_read_only_and_check_every_credential(tmp_path: Path, monkeypatch) -> None:
     """Compatibility uses each runtime route and preserves the libpq options space."""
+    _stub_runtime_engines(monkeypatch)
     routes = {
         component: preflight._supabase_route_identity(_database_url(tmp_path, pooler=component != "auth"))
         for component in ("auth", "graph", "coordination")
@@ -219,7 +242,7 @@ def test_runtime_helpers_force_read_only_and_check_every_credential(tmp_path: Pa
     monkeypatch.setattr(
         preflight,
         "_runtime_compatibility",
-        lambda route, component, *, combined_topology=None: calls.append(
+        lambda route, component, *, combined_topology=None, verified_session=None: calls.append(
             (component, route.database_url, combined_topology)
         ),
     )
@@ -274,13 +297,7 @@ def test_graph_checks_do_not_import_auth_database(tmp_path: Path, monkeypatch) -
     """Graph compatibility and authority have no API import-time dependency."""
     from src.data import database as data_database
 
-    class Engine:
-        """Minimal disposable graph engine fixture."""
-
-        def dispose(self) -> None:
-            """Model successful engine cleanup."""
-
-    monkeypatch.setattr(data_database, "create_engine_from_url", lambda _url: Engine())
+    _stub_runtime_engines(monkeypatch)
     monkeypatch.setattr(data_database, "verify_database_schema", lambda _engine, **_kwargs: None)
     monkeypatch.setattr(data_database, "verify_runtime_database_authority", lambda _engine, **_kwargs: None)
     monkeypatch.setattr(
@@ -296,6 +313,7 @@ def test_graph_checks_do_not_import_auth_database(tmp_path: Path, monkeypatch) -
 
 def test_runtime_route_incompatibility_propagates_as_drift_signal(tmp_path: Path, monkeypatch) -> None:
     """One incompatible runtime credential stops the aggregate compatibility callback."""
+    _stub_runtime_engines(monkeypatch)
     routes = {
         component: preflight._supabase_route_identity(_database_url(tmp_path, pooler=component != "auth"))
         for component in ("auth", "graph", "coordination")
@@ -633,6 +651,7 @@ def test_runtime_routes_compatible_passes_combined_topology_based_on_route_ident
     tmp_path: Path, monkeypatch
 ) -> None:
     """_runtime_routes_compatible passes combined_topology=True only when graph and coordination share target."""
+    _stub_runtime_engines(monkeypatch)
     certificate = _certificate(tmp_path)
     url_shared = f"postgresql://user:pass@db.{PROJECT_REF}.supabase.co:5432/postgres?sslmode=verify-full&sslrootcert={certificate}"
     url_other = f"postgresql://user:pass@db.otherprojectref12345.supabase.co:5432/postgres?sslmode=verify-full&sslrootcert={certificate}"
@@ -644,7 +663,9 @@ def test_runtime_routes_compatible_passes_combined_topology_based_on_route_ident
     monkeypatch.setattr(
         preflight,
         "_runtime_compatibility",
-        lambda _route, component, *, combined_topology=None: recorded_calls.append((component, combined_topology)),
+        lambda _route, component, *, combined_topology=None, verified_session=None: recorded_calls.append(
+            (component, combined_topology)
+        ),
     )
 
     # Combined topology: graph and coordination share project_ref
@@ -661,14 +682,13 @@ def test_runtime_authority_passes_combined_topology_to_verifier(monkeypatch) -> 
     """_runtime_authority passes combined_topology to verify_runtime_database_authority."""
     from src.data import database as data_database
 
-    engine = Mock(spec=["dispose"])
+    engines = _stub_runtime_engines(monkeypatch)
     recorded_calls: list[dict[str, object]] = []
 
-    monkeypatch.setattr(data_database, "create_engine_from_url", lambda _url: engine)
     monkeypatch.setattr(
         data_database,
         "verify_runtime_database_authority",
-        lambda _engine, *, required_capabilities=(), combined_topology=None: recorded_calls.append(
+        lambda _engine, *, required_capabilities=(), combined_topology=None, verification_connection=None: recorded_calls.append(
             {"capabilities": required_capabilities, "combined_topology": combined_topology}
         ),
     )
@@ -697,4 +717,71 @@ def test_runtime_authority_passes_combined_topology_to_verifier(monkeypatch) -> 
     assert status == CHECK_PASSED
     assert len(recorded_calls) == 2
     assert all(c["combined_topology"] is False for c in recorded_calls)
-    assert engine.dispose.call_count == 4
+    assert sum(engine.dispose.call_count for engine in engines) == 4
+
+
+def test_preflight_rejects_equal_project_routes_with_different_live_clusters(monkeypatch) -> None:
+    """Provider names cannot override conflicting live cluster identities."""
+    from src.data import database as data_database
+    from tests.unit.test_postgresql_topology import identity_engine
+
+    engines = iter([identity_engine(identifier="12345"), identity_engine(identifier="99999")])
+    monkeypatch.setattr(data_database, "create_engine_from_url", lambda _url: next(engines))
+    monkeypatch.setattr(preflight, "_read_only_url", lambda route: route.database_url)
+    route = preflight.RouteIdentity("postgresql://runtime@host/postgres", "same_project")
+    with preflight._verified_non_auth_connections({"graph": route, "coordination": route}) as (sessions, combined):
+        assert len(sessions) == 2
+        assert combined is False
+
+
+def test_preflight_rejects_unavailable_live_identity(monkeypatch) -> None:
+    """No readable identity means no authority verification or route fallback."""
+    from src.data import database as data_database
+    from tests.unit.test_postgresql_topology import identity_engine
+
+    engine = identity_engine()
+    engine.connect().__enter__().execute.side_effect = PermissionError("denied")
+    monkeypatch.setattr(data_database, "create_engine_from_url", lambda _url: engine)
+    monkeypatch.setattr(preflight, "_read_only_url", lambda route: route.database_url)
+    verifier = Mock()
+    monkeypatch.setattr(data_database, "verify_runtime_database_authority", verifier)
+    route = preflight.RouteIdentity("postgresql://runtime@host/postgres", "same_project")
+    assert preflight._runtime_authority({"graph": route}) == preflight.NOT_EVALUATED
+    verifier.assert_not_called()
+    engine.dispose.assert_called_once()
+
+
+def test_preflight_preserves_union_for_identical_runtime_credentials(monkeypatch) -> None:
+    """One combined credential must be verified once with both required capabilities."""
+    from src.data import database as data_database
+
+    engines = _stub_runtime_engines(monkeypatch)
+    monkeypatch.setattr(preflight, "_read_only_url", lambda route: route.database_url)
+    verifier = Mock()
+    monkeypatch.setattr(data_database, "verify_runtime_database_authority", verifier)
+    route = preflight.RouteIdentity("postgresql://runtime@db.shared.supabase.co/postgres", "shared")
+    assert preflight._runtime_authority({"graph": route, "coordination": route}) == CHECK_PASSED
+    assert len(engines) == 2
+    verifier.assert_called_once_with(
+        engines[0],
+        required_capabilities={"graph", "coordination"},
+        combined_topology=True,
+        verification_connection=engines[0].connect().__enter__(),
+    )
+    for engine in engines:
+        engine.dispose.assert_called_once()
+
+
+def test_preflight_rejects_identical_credentials_with_conflicting_live_identities(monkeypatch) -> None:
+    """A routed credential yielding different clusters cannot acquire a combined scope."""
+    from src.data import database as data_database
+    from tests.unit.test_postgresql_topology import identity_engine
+
+    engines = iter([identity_engine(identifier="12345"), identity_engine(identifier="99999")])
+    monkeypatch.setattr(data_database, "create_engine_from_url", lambda _url: next(engines))
+    monkeypatch.setattr(preflight, "_read_only_url", lambda route: route.database_url)
+    verifier = Mock()
+    monkeypatch.setattr(data_database, "verify_runtime_database_authority", verifier)
+    route = preflight.RouteIdentity("postgresql://runtime@db.shared.supabase.co/postgres", "shared")
+    assert preflight._runtime_authority({"graph": route, "coordination": route}) == preflight.NOT_EVALUATED
+    verifier.assert_not_called()

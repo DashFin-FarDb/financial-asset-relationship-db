@@ -45,6 +45,7 @@ import threading
 from collections.abc import Iterator
 from contextlib import contextmanager, suppress
 from contextvars import ContextVar
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 from urllib.parse import unquote, urlparse
@@ -407,9 +408,6 @@ else:
         "Supported schemes are: sqlite:, postgresql://, postgres://"
     )
 
-# Module-level shared in-memory connection
-_MEMORY_CONNECTION: sqlite3.Connection | None = None
-_MEMORY_CONNECTION_MANAGER: _DatabaseConnectionManager | None = None
 _MEMORY_CONNECTION_LOCK = threading.Lock()
 # Separate reentrant lock used to serialize concurrent use of the shared in-memory connection.
 _MEMORY_USE_LOCK = threading.RLock()
@@ -440,7 +438,7 @@ def _is_memory_db(path: str | None = None) -> bool:
     Returns:
         bool: `True` if the evaluated target denotes an in-memory SQLite database, `False` otherwise.
     """
-    target = DATABASE_PATH if path is None else path
+    target = _effective_database_target().path if path is None else path
     if target == ":memory:":
         return True
 
@@ -474,7 +472,7 @@ def _create_postgres_connection(*, statement_timeout_milliseconds: int | None = 
     connection_options: dict[str, Any] = {"connect_timeout": _POSTGRES_CONNECT_TIMEOUT_SECONDS}
     if statement_timeout_milliseconds is not None:
         connection_options["options"] = f"-c statement_timeout={statement_timeout_milliseconds}"
-    conn = psycopg2.connect(DATABASE_URL, **connection_options)
+    conn = psycopg2.connect(_effective_database_target().url, **connection_options)
     return conn
 
 
@@ -553,7 +551,33 @@ class _DatabaseConnectionManager:
                 self._memory_connection = None
 
 
-_db_manager = _DatabaseConnectionManager(DATABASE_PATH)
+@dataclass(frozen=True)
+class _DatabaseTarget:
+    """Represent the effective operator binding without changing import-time constants."""
+
+    url: str
+    database_type: str
+    path: str
+
+
+@dataclass
+class _ConnectionState:
+    """Own the active manager and the shared connection with its original manager."""
+
+    manager: _DatabaseConnectionManager
+    connection: sqlite3.Connection | None = None
+    connection_manager: _DatabaseConnectionManager | None = None
+    target: _DatabaseTarget | None = None
+
+
+_CONNECTION_STATE = _ConnectionState(_DatabaseConnectionManager(DATABASE_PATH))
+
+
+def _effective_database_target() -> _DatabaseTarget:
+    """Use the owned binding or the import-time configuration when no binding is active."""
+    if _CONNECTION_STATE.target is not None:
+        return _CONNECTION_STATE.target
+    return _DatabaseTarget(DATABASE_URL, DATABASE_TYPE, DATABASE_PATH)
 
 
 def _resolve_database_target(url: str) -> tuple[str, str]:
@@ -574,55 +598,50 @@ def bind_database_url(url: str) -> Iterator[None]:
 
     This process-local binding exists for the single-threaded migration command;
     normal application runtime continues to use its import-time stable target.
+    The state holder owns the effective target; import-time constants remain stable.
     The previous target and any pre-existing in-memory connection are restored.
     """
-    global DATABASE_URL, DATABASE_TYPE, DATABASE_PATH, _db_manager  # skipcq: PYL-W0603
-    global _MEMORY_CONNECTION, _MEMORY_CONNECTION_MANAGER  # skipcq: PYL-W0603
-
     database_type, database_path = _resolve_database_target(url)
+    target = _DatabaseTarget(url, database_type, database_path)
     with _DATABASE_BINDING_LOCK:
+        # Construct before publication so setup failure leaves the previous state intact.
+        target_manager = _DatabaseConnectionManager(database_path)
         previous = (
-            DATABASE_URL,
-            DATABASE_TYPE,
-            DATABASE_PATH,
-            _db_manager,
-            _MEMORY_CONNECTION,
-            _MEMORY_CONNECTION_MANAGER,
+            _CONNECTION_STATE.target,
+            _CONNECTION_STATE.manager,
+            _CONNECTION_STATE.connection,
+            _CONNECTION_STATE.connection_manager,
         )
-        DATABASE_URL = url
-        DATABASE_TYPE = database_type
-        DATABASE_PATH = database_path
-        _db_manager = _DatabaseConnectionManager(database_path)
-        _MEMORY_CONNECTION = None
-        _MEMORY_CONNECTION_MANAGER = None
+        _CONNECTION_STATE.target = target
+        _CONNECTION_STATE.manager = target_manager
+        _CONNECTION_STATE.connection = None
+        _CONNECTION_STATE.connection_manager = None
         try:
             yield
         finally:
-            target_manager = _db_manager
-            target_connection = _MEMORY_CONNECTION
-            target_manager_connection = getattr(target_manager, "_memory_connection", None)
-            if target_connection is not None and target_connection is not target_manager_connection:
-                target_connection.close()
-            target_manager.close_shared_connection()
-            (
-                DATABASE_URL,
-                DATABASE_TYPE,
-                DATABASE_PATH,
-                _db_manager,
-                _MEMORY_CONNECTION,
-                _MEMORY_CONNECTION_MANAGER,
-            ) = previous
+            try:
+                target_manager = _CONNECTION_STATE.manager
+                target_connection = _CONNECTION_STATE.connection
+                target_manager_connection = getattr(target_manager, "_memory_connection", None)
+                if target_connection is not None and target_connection is not target_manager_connection:
+                    target_connection.close()
+                target_manager.close_shared_connection()
+            finally:
+                (
+                    _CONNECTION_STATE.target,
+                    _CONNECTION_STATE.manager,
+                    _CONNECTION_STATE.connection,
+                    _CONNECTION_STATE.connection_manager,
+                ) = previous
 
 
 def _close_memory_connection_cache() -> None:
     """Close and clear the module-level cached shared in-memory connection, if present."""
-    global _MEMORY_CONNECTION, _MEMORY_CONNECTION_MANAGER
+    manager = _CONNECTION_STATE.connection_manager
+    connection = _CONNECTION_STATE.connection
 
-    manager = _MEMORY_CONNECTION_MANAGER
-    connection = _MEMORY_CONNECTION
-
-    _MEMORY_CONNECTION = None
-    _MEMORY_CONNECTION_MANAGER = None
+    _CONNECTION_STATE.connection = None
+    _CONNECTION_STATE.connection_manager = None
 
     errors: list[sqlite3.Error] = []
 
@@ -649,53 +668,58 @@ def _connect() -> sqlite3.Connection:
 
     For in-memory databases (as determined by the current ``DATABASE_PATH``) the
     module-level shared connection is returned, creating it on the first call
-    under a lock by delegating to ``_db_manager.connect()``.
+    under a lock by delegating to ``_CONNECTION_STATE.manager.connect()``.
 
-    If ``_db_manager`` has been replaced since the cached connection was created
+    If ``_CONNECTION_STATE.manager`` has been replaced since the cached connection was created
     (e.g. patched by tests), the stale cache is discarded and the new manager is
-    used on the next call.  If ``DATABASE_PATH`` has changed while ``_db_manager``
+    used on the next call.  If ``DATABASE_PATH`` has changed while ``_CONNECTION_STATE.manager``
     still points to the old path, a fresh manager is created for the current path.
     Both detections use only the live module objects — no separate tracking variable
     is required.
 
-    For file-backed databases ``_db_manager.connect()`` is called directly,
+    For file-backed databases ``_CONNECTION_STATE.manager.connect()`` is called directly,
     which creates a new connection each time.
 
     Returns:
         sqlite3.Connection: A shared persistent connection for in-memory databases,
         or a new connection instance for file-backed databases.
     """
-    global _MEMORY_CONNECTION, _MEMORY_CONNECTION_MANAGER, _db_manager
     if _is_memory_db():
         with _MEMORY_CONNECTION_LOCK:
             # Detect two distinct stale-cache conditions:
             #   1. The manager is still the same object but DATABASE_PATH changed
-            #      (e.g. test patched DATABASE_PATH without patching _db_manager).
-            #      Rebuild _db_manager for the new path.
-            #   2. _db_manager was replaced directly (e.g. patch.object).
-            #      Just discard the stale cache; use whatever _db_manager now is.
+            #      (e.g. test patched DATABASE_PATH without patching _CONNECTION_STATE.manager).
+            #      Rebuild _CONNECTION_STATE.manager for the new path.
+            #   2. _CONNECTION_STATE.manager was replaced directly (e.g. patch.object).
+            #      Just discard the stale cache; use whatever _CONNECTION_STATE.manager now is.
             if (
-                _MEMORY_CONNECTION_MANAGER is _db_manager
-                and isinstance(_db_manager, _DatabaseConnectionManager)
-                and _db_manager._database_path != DATABASE_PATH
+                _CONNECTION_STATE.connection_manager is _CONNECTION_STATE.manager
+                and isinstance(_CONNECTION_STATE.manager, _DatabaseConnectionManager)
+                and _CONNECTION_STATE.manager._database_path != _effective_database_target().path
             ):
                 _close_memory_connection_cache()
-                _db_manager = _DatabaseConnectionManager(DATABASE_PATH)
-            elif _MEMORY_CONNECTION_MANAGER is not _db_manager:
+                _CONNECTION_STATE.manager = _DatabaseConnectionManager(_effective_database_target().path)
+            elif _CONNECTION_STATE.connection_manager is not _CONNECTION_STATE.manager:
                 _close_memory_connection_cache()
-            if _MEMORY_CONNECTION is None:
-                _MEMORY_CONNECTION = _db_manager.connect()
-                _MEMORY_CONNECTION_MANAGER = _db_manager
-            return _MEMORY_CONNECTION
+            if _CONNECTION_STATE.connection is None:
+                _CONNECTION_STATE.connection = _CONNECTION_STATE.manager.connect()
+                _CONNECTION_STATE.connection_manager = _CONNECTION_STATE.manager
+            return _CONNECTION_STATE.connection
     # File-backed path: rebuild the manager when DATABASE_PATH has changed.
-    # Only rebuild when _db_manager is a real manager (not a test mock) and its
+    # Only rebuild when _CONNECTION_STATE.manager is a real manager (not a test mock) and its
     # path no longer matches DATABASE_PATH. Uses double-checked locking.
-    if isinstance(_db_manager, _DatabaseConnectionManager) and _db_manager._database_path != DATABASE_PATH:
+    if (
+        isinstance(_CONNECTION_STATE.manager, _DatabaseConnectionManager)
+        and _CONNECTION_STATE.manager._database_path != _effective_database_target().path
+    ):
         with _MEMORY_CONNECTION_LOCK:
-            if isinstance(_db_manager, _DatabaseConnectionManager) and _db_manager._database_path != DATABASE_PATH:
+            if (
+                isinstance(_CONNECTION_STATE.manager, _DatabaseConnectionManager)
+                and _CONNECTION_STATE.manager._database_path != _effective_database_target().path
+            ):
                 _close_memory_connection_cache()
-                _db_manager = _DatabaseConnectionManager(DATABASE_PATH)
-    return _db_manager.connect()
+                _CONNECTION_STATE.manager = _DatabaseConnectionManager(_effective_database_target().path)
+    return _CONNECTION_STATE.manager.connect()
 
 
 @contextmanager
@@ -725,7 +749,7 @@ def get_connection() -> Iterator[Any]:
     Returns:
         Connection object (sqlite3.Connection for SQLite, psycopg2 connection for PostgreSQL).
     """
-    if DATABASE_TYPE == "postgresql":
+    if _effective_database_target().database_type == "postgresql":
         # PostgreSQL: create new connection, close on exit
         operation_guard = _POSTGRES_OPERATION_GUARD.get()
         if operation_guard is None:
@@ -767,16 +791,14 @@ def _cleanup_memory_connection() -> None:
     This avoids double-closing when both caches reference the same SQLite
     connection. Safe to call multiple times.
     """
-    global _MEMORY_CONNECTION, _MEMORY_CONNECTION_MANAGER
-
     errors: list[sqlite3.Error] = []
     with _MEMORY_CONNECTION_LOCK:
-        module_connection = _MEMORY_CONNECTION
-        manager = _MEMORY_CONNECTION_MANAGER or _db_manager
+        module_connection = _CONNECTION_STATE.connection
+        manager = _CONNECTION_STATE.connection_manager or _CONNECTION_STATE.manager
         manager_connection = getattr(manager, "_memory_connection", None)
 
-        _MEMORY_CONNECTION = None
-        _MEMORY_CONNECTION_MANAGER = None
+        _CONNECTION_STATE.connection = None
+        _CONNECTION_STATE.connection_manager = None
 
         if module_connection is not None and module_connection is not manager_connection:
             try:
@@ -827,7 +849,7 @@ def execute(query: str, parameters: tuple | list | None = None) -> None:
             statement; use `None` or an empty sequence if there are no parameters.
     """
     with get_connection() as connection:
-        if DATABASE_TYPE == "postgresql":
+        if _effective_database_target().database_type == "postgresql":
             # Convert SQLite ? placeholders to PostgreSQL %s
             pg_query = _convert_internal_qmark_placeholders_for_postgres(query)
             # Security: Query strings are internal/static from this module and api/auth.py.
@@ -859,7 +881,7 @@ def fetch_one(query: str, parameters: tuple | list | None = None) -> Any | None:
             dict-like for PostgreSQL), or `None` if the query returned no rows.
     """
     with get_connection() as connection:
-        if DATABASE_TYPE == "postgresql":
+        if _effective_database_target().database_type == "postgresql":
             import psycopg2.extras  # type: ignore[import-untyped]
 
             # Convert SQLite ? placeholders to PostgreSQL %s
@@ -933,7 +955,7 @@ def initialize_schema() -> None:
     - `hashed_password`: TEXT, not null
     - `disabled`: INTEGER, not null, defaults to 0
     """
-    if DATABASE_TYPE == "postgresql":
+    if _effective_database_target().database_type == "postgresql":
         raise SchemaCompatibilityError("PostgreSQL auth schema mutation is owned by the profile-scoped Supabase ledger")
     execute("""
         CREATE TABLE IF NOT EXISTS user_credentials(
@@ -949,7 +971,7 @@ def initialize_schema() -> None:
 
 def verify_schema_compatibility() -> None:
     """Verify the API credential schema using read-only catalog queries."""
-    if DATABASE_TYPE == "postgresql":
+    if _effective_database_target().database_type == "postgresql":
         column_names = _parse_catalog_column_names(fetch_value(_POSTGRES_CREDENTIAL_COLUMN_NAMES_SQL))
         username_unique = fetch_value(
             "SELECT EXISTS ("
@@ -979,14 +1001,14 @@ def verify_schema_compatibility() -> None:
 
 def ensure_runtime_access() -> None:
     """Reject legacy imperative PostgreSQL auth capability provisioning."""
-    if DATABASE_TYPE != "postgresql":
+    if _effective_database_target().database_type != "postgresql":
         return
     raise SchemaCompatibilityError("PostgreSQL auth capability mutation is owned by the profile-scoped Supabase ledger")
 
 
 def verify_runtime_access_catalog(require_login_principals: bool = True) -> None:
     """Verify the ledger-owned auth role, grants, RLS, and routine catalog."""
-    if DATABASE_TYPE != "postgresql":
+    if _effective_database_target().database_type != "postgresql":
         return
 
     safe_role = fetch_value(
@@ -1053,7 +1075,7 @@ def verify_runtime_access_catalog(require_login_principals: bool = True) -> None
 
 def verify_runtime_authority() -> None:
     """Require the exact read-only auth capability without migration authority."""
-    if DATABASE_TYPE != "postgresql":
+    if _effective_database_target().database_type != "postgresql":
         return
 
     restricted = fetch_value(

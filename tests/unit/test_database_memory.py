@@ -20,7 +20,7 @@ def restore_database_module(monkeypatch: pytest.MonkeyPatch) -> Iterator[None]:
     """
     Preserve the api.database module state and the DATABASE_URL environment variable for the duration of a test, restoring them on teardown.
 
-    Yields control to the test. On teardown, closes any in-memory connection stored in api.database._MEMORY_CONNECTION and clears that reference, restores the original DATABASE_URL environment variable (or removes it if none was set), and reloads the api.database module to reset its state.
+    Yields control to the test. On teardown, closes any in-memory connection stored in api.database._CONNECTION_STATE.connection and clears that reference, restores the original DATABASE_URL environment variable (or removes it if none was set), and reloads the api.database module to reset its state.
     """
     original_url = os.environ.get("DATABASE_URL")
     get_settings.cache_clear()
@@ -28,10 +28,7 @@ def restore_database_module(monkeypatch: pytest.MonkeyPatch) -> Iterator[None]:
     yield
 
     # Close any in-memory connection that may have been created during the test
-    memory_conn = getattr(database, "_MEMORY_CONNECTION", None)
-    if memory_conn is not None:
-        memory_conn.close()
-        database._MEMORY_CONNECTION = None
+    database._cleanup_memory_connection()
 
     if original_url is None:
         monkeypatch.delenv("DATABASE_URL", raising=False)
@@ -250,12 +247,12 @@ class TestConnectWithMemoryDb:
         # First connection
         conn1 = reloaded_database._connect()
         assert conn1 is not None
-        assert reloaded_database._MEMORY_CONNECTION is not None
+        assert reloaded_database._CONNECTION_STATE.connection is not None
 
         # Second connection should be the same object
         conn2 = reloaded_database._connect()
         assert conn2 is conn1
-        assert conn2 is reloaded_database._MEMORY_CONNECTION
+        assert conn2 is reloaded_database._CONNECTION_STATE.connection
 
     @staticmethod
     def test_connect_with_uri_memory_database(

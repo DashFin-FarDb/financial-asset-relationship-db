@@ -13,7 +13,7 @@ import subprocess  # nosec B404 - fixed shell-free Git and pinned Supabase comma
 import sys
 import tempfile
 from collections.abc import Mapping, Sequence
-from contextlib import suppress
+from contextlib import ExitStack, contextmanager, suppress
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
@@ -673,11 +673,43 @@ def _is_shared_physical_target(route_a: RouteIdentity | None, route_b: RouteIden
     return bool(path_a and path_b and path_a == path_b)
 
 
+@contextmanager
+def _verified_non_auth_connections(routes):
+    """Hold identity-proved runtime sessions through their catalog verification."""
+    from src.data.database import create_engine_from_url
+    from src.data.postgresql_topology import read_database_identity, same_database
+
+    with ExitStack() as stack:
+        sessions = {}
+        identities = {}
+        for component in ("graph", "coordination"):
+            route = routes.get(component)
+            if route is None:
+                continue
+            engine = create_engine_from_url(_read_only_url(route))
+            stack.callback(engine.dispose)
+            connection = stack.enter_context(engine.connect())
+            sessions[component] = (engine, connection)
+            identities[component] = read_database_identity(connection)
+        combined = (
+            "graph" in identities
+            and "coordination" in identities
+            and same_database(identities["graph"], identities["coordination"])
+        )
+        if combined and not _is_shared_physical_target(routes.get("graph"), routes.get("coordination")):
+            raise TargetIdentityError()
+        yield sessions, combined
+        for component, (_, connection) in sessions.items():
+            if read_database_identity(connection) != identities[component]:
+                raise TargetIdentityError()
+
+
 def _runtime_compatibility(
     route: RouteIdentity,
     component: str,
     *,
     combined_topology: bool | None = None,
+    verified_session=None,
 ) -> None:
     """Run one component runtime's schema/catalog checks through its own credential."""
     from src.data.database import SchemaCompatibilityError, create_engine_from_url, verify_database_schema
@@ -686,11 +718,12 @@ def _runtime_compatibility(
     try:
         read_only_url = _read_only_url(route)
         if component in {"graph", "coordination"}:
-            engine = create_engine_from_url(read_only_url)
+            engine = verified_session[0] if verified_session else create_engine_from_url(read_only_url)
             verify_database_schema(
                 engine,
                 required_capabilities={component},
                 combined_topology=combined_topology,
+                **({"verification_connection": verified_session[1]} if verified_session else {}),
             )
         elif component == "auth":
             api_database = _import_api_database(read_only_url)
@@ -704,20 +737,22 @@ def _runtime_compatibility(
     except Exception as exc:  # noqa: BLE001 - unavailable dependency/catalog is a bounded result
         raise RuntimeCheckUnavailable() from exc
     finally:
-        if engine is not None:
+        if engine is not None and verified_session is None:
             engine.dispose()
 
 
 def _runtime_routes_compatible(routes: Mapping[str, RouteIdentity]) -> None:
-    """Require compatibility through every profile-required runtime credential."""
-    graph_route = routes.get("graph")
-    coord_route = routes.get("coordination")
-    combined = _is_shared_physical_target(graph_route, coord_route)
-
-    for component in COMPONENT_ORDER:
-        route = routes.get(component)
-        if route is not None:
-            _runtime_compatibility(route, component, combined_topology=combined)
+    """Require compatibility through identity-proved runtime credentials."""
+    with _verified_non_auth_connections(routes) as (sessions, combined):
+        for component in COMPONENT_ORDER:
+            route = routes.get(component)
+            if route is not None:
+                _runtime_compatibility(
+                    route,
+                    component,
+                    combined_topology=combined,
+                    **({"verified_session": sessions[component]} if component in sessions else {}),
+                )
 
 
 def _group_non_auth_routes(
@@ -741,13 +776,9 @@ def _runtime_authority(routes: Mapping[str, RouteIdentity]) -> str:
     """Verify each configured runtime login has only its required capability."""
     from src.data.database import (
         SchemaCompatibilityError,
-        create_engine_from_url,
         verify_runtime_database_authority,
     )
-
-    graph_route = routes.get("graph")
-    coord_route = routes.get("coordination")
-    combined = _is_shared_physical_target(graph_route, coord_route)
+    from src.data.postgresql_topology import RuntimeIdentityUnavailable
 
     try:
         auth_route = routes.get("auth")
@@ -756,17 +787,20 @@ def _runtime_authority(routes: Mapping[str, RouteIdentity]) -> str:
             api_database = _import_api_database(read_only_url)
             with api_database.bind_database_url(read_only_url):
                 api_database.verify_runtime_authority()
-        for route, capabilities in _group_non_auth_routes(routes):
-            read_only_url = _read_only_url(route)
-            engine = create_engine_from_url(read_only_url)
-            try:
+        with _verified_non_auth_connections(routes) as (sessions, combined):
+            for _route, capabilities in _group_non_auth_routes(routes):
+                if len(capabilities) > 1 and not combined:
+                    raise TargetIdentityError()
+                component = "graph" if "graph" in capabilities else "coordination"
+                engine, connection = sessions[component]
                 verify_runtime_database_authority(
                     engine,
                     required_capabilities=capabilities,
                     combined_topology=combined,
+                    verification_connection=connection,
                 )
-            finally:
-                engine.dispose()
+    except RuntimeIdentityUnavailable:
+        return NOT_EVALUATED
     except SchemaCompatibilityError:
         return CHECK_DRIFT
     except Exception:  # noqa: BLE001 - dependency/provider failures are not proof of drift

@@ -12,7 +12,6 @@ import time
 from collections.abc import Iterator
 from contextlib import contextmanager
 from dataclasses import replace
-from pathlib import Path
 from typing import Any
 from unittest.mock import patch
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
@@ -29,6 +28,7 @@ from tests.integration.postgresql_disposable_cluster import (
     connect_attested,
     connect_owned_attested,
     create_attested_engine,
+    execute_capability_bootstrap,
     invocation_id,
     owned_role_oid,
     record_created_role,
@@ -54,7 +54,6 @@ _EPHEMERAL_AUTHORITY_FLAG = "FARDB_EPHEMERAL_POSTGRES_AUTHORITY_TESTS"
 _EPHEMERAL_POSTGRES_URL = "FARDB_EPHEMERAL_POSTGRES_URL"
 _ISOLATED_DATABASE_ADMIN_URLS: dict[str, str] = {}
 _DEFERRED_CAPABILITY_ROLE_RESTORATIONS: dict[str, tuple[dict[str, str], set[str]]] = {}
-_CAPABILITY_BOOTSTRAP_SQL = Path(__file__).parents[2] / "scripts" / "bootstrap_database_capability_roles.sql"
 _AUTH_RUNTIME_LOGIN = "fardb_login_auth"
 _AUTH_WRITE_ROLE = "cq1608_auth_writer"
 _AUTH_REPLICATION_ROLE = "cq1608_auth_replication"
@@ -88,7 +87,34 @@ _ORIGINAL_ROLE_NAMES = {
     for name, value in tuple(globals().items())
     if name.isupper() and isinstance(value, str) and value.startswith("cq1608_")
 }
-_ALLOCATED_ROLE_NAMES: dict[str, str] | None = None
+
+
+class _RoleAllocation:
+    """Publish names only after complete allocation on an attested invocation."""
+
+    def __init__(self) -> None:
+        """Create empty allocation state and its initialization lock."""
+        import threading
+
+        self.names: dict[str, str] = {}
+        self.invocation: str | None = None
+        self.lock = threading.Lock()
+
+    def initialize(self, database_url: str) -> None:
+        """Reject cross-invocation reuse and leave failed initialization unpublished."""
+        invocation = invocation_id()
+        with self.lock:
+            if self.invocation is not None:
+                if self.invocation != invocation:
+                    raise DisposableTargetError("role allocation belongs to a different invocation")
+                return
+            with attested_connection(database_url) as connection:
+                names = allocate_role_names(connection, _ORIGINAL_ROLE_NAMES)
+            self.names = names
+            self.invocation = invocation
+
+
+_ROLE_ALLOCATION = _RoleAllocation()
 _CAPABILITY_BACKUP_OIDS: dict[str, int] = {}
 
 
@@ -102,11 +128,7 @@ def _ephemeral_database_url() -> str:
     assert database_url is not None
     if not database_url.startswith(("postgresql://", "postgres://")):
         pytest.fail(f"{_EPHEMERAL_POSTGRES_URL} must be a PostgreSQL URL")
-    global _ALLOCATED_ROLE_NAMES
-    if _ALLOCATED_ROLE_NAMES is None:
-        with attested_connection(database_url) as connection:
-            _ALLOCATED_ROLE_NAMES = allocate_role_names(connection, _ORIGINAL_ROLE_NAMES)
-        globals().update(_ALLOCATED_ROLE_NAMES)
+    _ROLE_ALLOCATION.initialize(database_url)
     from scripts.postgresql_ledger import PlannedTarget, assert_profile_write_allowed
 
     target = PlannedTarget(
@@ -456,7 +478,7 @@ def _apply_ledger_profile(database_url: str, profile: str) -> None:
     from scripts.postgresql_ledger import PlannedTarget, apply_profile_to_database, load_and_validate_manifest
 
     with _operator_connection(database_url) as connection, connection.cursor() as cursor:
-        cursor.execute(_CAPABILITY_BOOTSTRAP_SQL.read_text(encoding="utf-8"))
+        execute_capability_bootstrap(cursor)
 
     manifest = load_and_validate_manifest()
     target = PlannedTarget(
@@ -521,11 +543,11 @@ def test_auth_runtime_uses_only_inherited_or_settable_membership_paths() -> None
         with _operator_connection(database_url) as connection, connection.cursor() as cursor:
             cursor.execute(_RUNTIME_LOGIN_DDL.format(sql.Identifier(_AUTH_RUNTIME_LOGIN)))
             role_ddl = sql.SQL("CREATE ROLE {} NOLOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOBYPASSRLS NOREPLICATION")
-            cursor.execute(role_ddl.format(sql.Identifier(_AUTH_USABLE_PATH_ROLE)))
-            cursor.execute(role_ddl.format(sql.Identifier(_AUTH_MEMBERSHIP_BRIDGE_ROLE)))
+            cursor.execute(role_ddl.format(sql.Identifier(_ROLE_ALLOCATION.names["_AUTH_USABLE_PATH_ROLE"])))
+            cursor.execute(role_ddl.format(sql.Identifier(_ROLE_ALLOCATION.names["_AUTH_MEMBERSHIP_BRIDGE_ROLE"])))
             cursor.execute(
                 sql.SQL("GRANT UPDATE (hashed_password) ON TABLE user_credentials TO {}").format(
-                    sql.Identifier(_AUTH_USABLE_PATH_ROLE)
+                    sql.Identifier(_ROLE_ALLOCATION.names["_AUTH_USABLE_PATH_ROLE"])
                 )
             )
             cursor.execute(
@@ -537,7 +559,7 @@ def test_auth_runtime_uses_only_inherited_or_settable_membership_paths() -> None
 
             cursor.execute(
                 sql.SQL("GRANT {} TO {} WITH INHERIT FALSE, SET FALSE").format(
-                    sql.Identifier(_AUTH_USABLE_PATH_ROLE),
+                    sql.Identifier(_ROLE_ALLOCATION.names["_AUTH_USABLE_PATH_ROLE"]),
                     sql.Identifier(_AUTH_RUNTIME_LOGIN),
                 )
             )
@@ -546,7 +568,7 @@ def test_auth_runtime_uses_only_inherited_or_settable_membership_paths() -> None
         with _operator_connection(database_url) as connection, connection.cursor() as cursor:
             cursor.execute(
                 sql.SQL("GRANT {} TO {} WITH INHERIT TRUE, SET FALSE").format(
-                    sql.Identifier(_AUTH_USABLE_PATH_ROLE),
+                    sql.Identifier(_ROLE_ALLOCATION.names["_AUTH_USABLE_PATH_ROLE"]),
                     sql.Identifier(_AUTH_RUNTIME_LOGIN),
                 )
             )
@@ -555,7 +577,7 @@ def test_auth_runtime_uses_only_inherited_or_settable_membership_paths() -> None
         with _operator_connection(database_url) as connection, connection.cursor() as cursor:
             cursor.execute(
                 sql.SQL("GRANT {} TO {} WITH INHERIT FALSE, SET TRUE").format(
-                    sql.Identifier(_AUTH_USABLE_PATH_ROLE),
+                    sql.Identifier(_ROLE_ALLOCATION.names["_AUTH_USABLE_PATH_ROLE"]),
                     sql.Identifier(_AUTH_RUNTIME_LOGIN),
                 )
             )
@@ -564,20 +586,20 @@ def test_auth_runtime_uses_only_inherited_or_settable_membership_paths() -> None
         with _operator_connection(database_url) as connection, connection.cursor() as cursor:
             cursor.execute(
                 sql.SQL("REVOKE {} FROM {}").format(
-                    sql.Identifier(_AUTH_USABLE_PATH_ROLE),
+                    sql.Identifier(_ROLE_ALLOCATION.names["_AUTH_USABLE_PATH_ROLE"]),
                     sql.Identifier(_AUTH_RUNTIME_LOGIN),
                 )
             )
             cursor.execute(
                 sql.SQL("GRANT {} TO {} WITH INHERIT FALSE, SET TRUE").format(
-                    sql.Identifier(_AUTH_MEMBERSHIP_BRIDGE_ROLE),
+                    sql.Identifier(_ROLE_ALLOCATION.names["_AUTH_MEMBERSHIP_BRIDGE_ROLE"]),
                     sql.Identifier(_AUTH_RUNTIME_LOGIN),
                 )
             )
             cursor.execute(
                 sql.SQL("GRANT {} TO {} WITH INHERIT FALSE, SET TRUE").format(
-                    sql.Identifier(_AUTH_USABLE_PATH_ROLE),
-                    sql.Identifier(_AUTH_MEMBERSHIP_BRIDGE_ROLE),
+                    sql.Identifier(_ROLE_ALLOCATION.names["_AUTH_USABLE_PATH_ROLE"]),
+                    sql.Identifier(_ROLE_ALLOCATION.names["_AUTH_MEMBERSHIP_BRIDGE_ROLE"]),
                 )
             )
         _verify_runtime("retains schema-migration authority")
@@ -585,7 +607,7 @@ def test_auth_runtime_uses_only_inherited_or_settable_membership_paths() -> None
         with _operator_connection(database_url) as connection, connection.cursor() as cursor:
             cursor.execute(
                 sql.SQL("GRANT {} TO {} WITH INHERIT FALSE, SET FALSE").format(
-                    sql.Identifier(_AUTH_MEMBERSHIP_BRIDGE_ROLE),
+                    sql.Identifier(_ROLE_ALLOCATION.names["_AUTH_MEMBERSHIP_BRIDGE_ROLE"]),
                     sql.Identifier(_AUTH_RUNTIME_LOGIN),
                 )
             )
@@ -594,14 +616,14 @@ def test_auth_runtime_uses_only_inherited_or_settable_membership_paths() -> None
         with _operator_connection(database_url) as connection, connection.cursor() as cursor:
             cursor.execute(
                 sql.SQL("REVOKE UPDATE (hashed_password) ON TABLE user_credentials FROM {}").format(
-                    sql.Identifier(_AUTH_USABLE_PATH_ROLE)
+                    sql.Identifier(_ROLE_ALLOCATION.names["_AUTH_USABLE_PATH_ROLE"])
                 )
             )
         _drop_roles(
             database_url,
             _AUTH_RUNTIME_LOGIN,
-            _AUTH_MEMBERSHIP_BRIDGE_ROLE,
-            _AUTH_USABLE_PATH_ROLE,
+            _ROLE_ALLOCATION.names["_AUTH_MEMBERSHIP_BRIDGE_ROLE"],
+            _ROLE_ALLOCATION.names["_AUTH_USABLE_PATH_ROLE"],
         )
 
 
@@ -612,7 +634,11 @@ def test_auth_runtime_rejects_assumable_privileged_roles(attack_role: str) -> No
     database_url = _ephemeral_database_url()
     _prepare_auth_schema(database_url)
 
-    elevated_role = _AUTH_REPLICATION_ROLE if attack_role == "replication" else _AUTH_WRITE_ROLE
+    elevated_role = (
+        _ROLE_ALLOCATION.names["_AUTH_REPLICATION_ROLE"]
+        if attack_role == "replication"
+        else _ROLE_ALLOCATION.names["_AUTH_WRITE_ROLE"]
+    )
     try:
         with _operator_connection(database_url) as connection, connection.cursor() as cursor:
             cursor.execute(_RUNTIME_LOGIN_DDL.format(sql.Identifier(_AUTH_RUNTIME_LOGIN)))
@@ -657,7 +683,7 @@ def test_auth_runtime_rejects_assumable_privileged_roles(attack_role: str) -> No
             with _operator_connection(database_url) as connection, connection.cursor() as cursor:
                 cursor.execute(
                     sql.SQL("REVOKE UPDATE (hashed_password) ON TABLE user_credentials FROM {}").format(
-                        sql.Identifier(_AUTH_WRITE_ROLE)
+                        sql.Identifier(_ROLE_ALLOCATION.names["_AUTH_WRITE_ROLE"])
                     )
                 )
         _drop_roles(database_url, _AUTH_RUNTIME_LOGIN, elevated_role)
@@ -678,7 +704,7 @@ def test_auth_runtime_rejects_unexpected_assumable_ordinary_role() -> None:
             ordinary_role_ddl = sql.SQL(
                 "CREATE ROLE {} NOLOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE " "NOBYPASSRLS NOREPLICATION"
             )
-            cursor.execute(ordinary_role_ddl.format(sql.Identifier(_AUTH_ORDINARY_ROLE)))
+            cursor.execute(ordinary_role_ddl.format(sql.Identifier(_ROLE_ALLOCATION.names["_AUTH_ORDINARY_ROLE"])))
 
             cursor.execute(
                 sql.SQL("GRANT {} TO {}").format(
@@ -688,7 +714,7 @@ def test_auth_runtime_rejects_unexpected_assumable_ordinary_role() -> None:
             )
             cursor.execute(
                 sql.SQL("GRANT {} TO {}").format(
-                    sql.Identifier(_AUTH_ORDINARY_ROLE),
+                    sql.Identifier(_ROLE_ALLOCATION.names["_AUTH_ORDINARY_ROLE"]),
                     sql.Identifier(_AUTH_RUNTIME_LOGIN),
                 )
             )
@@ -704,7 +730,7 @@ def test_auth_runtime_rejects_unexpected_assumable_ordinary_role() -> None:
         ):
             api_database.verify_runtime_authority()
     finally:
-        _drop_roles(database_url, _AUTH_RUNTIME_LOGIN, _AUTH_ORDINARY_ROLE)
+        _drop_roles(database_url, _AUTH_RUNTIME_LOGIN, _ROLE_ALLOCATION.names["_AUTH_ORDINARY_ROLE"])
 
 
 @pytest.mark.integration
@@ -724,11 +750,13 @@ def test_auth_runtime_rejects_capability_create_on_non_current_schema() -> None:
                 )
             )
             cursor.execute(
-                sql.SQL("CREATE SCHEMA {} AUTHORIZATION CURRENT_USER").format(sql.Identifier(_AUTH_UNRELATED_SCHEMA))
+                sql.SQL("CREATE SCHEMA {} AUTHORIZATION CURRENT_USER").format(
+                    sql.Identifier(_ROLE_ALLOCATION.names["_AUTH_UNRELATED_SCHEMA"])
+                )
             )
             cursor.execute(
                 sql.SQL("GRANT CREATE ON SCHEMA {} TO {}").format(
-                    sql.Identifier(_AUTH_UNRELATED_SCHEMA),
+                    sql.Identifier(_ROLE_ALLOCATION.names["_AUTH_UNRELATED_SCHEMA"]),
                     sql.Identifier(api_database.AUTH_RUNTIME_ROLE),
                 )
             )
@@ -750,7 +778,7 @@ def test_auth_runtime_rejects_capability_create_on_non_current_schema() -> None:
         ):
             api_database.verify_runtime_authority()
     finally:
-        _drop_schema(database_url, _AUTH_UNRELATED_SCHEMA)
+        _drop_schema(database_url, _ROLE_ALLOCATION.names["_AUTH_UNRELATED_SCHEMA"])
         _drop_roles(database_url, _AUTH_RUNTIME_LOGIN)
 
 
@@ -771,7 +799,9 @@ def test_auth_runtime_rejects_inert_creator_admin_option() -> None:
                 "CREATE ROLE {} LOGIN INHERIT NOSUPERUSER NOCREATEDB " "NOCREATEROLE NOBYPASSRLS NOREPLICATION"
             )
             cursor.execute(runtime_login_ddl.format(sql.Identifier(_AUTH_RUNTIME_LOGIN)))
-            cursor.execute(runtime_login_ddl.format(sql.Identifier(_AUTH_INERT_CREATOR_LOGIN)))
+            cursor.execute(
+                runtime_login_ddl.format(sql.Identifier(_ROLE_ALLOCATION.names["_AUTH_INERT_CREATOR_LOGIN"]))
+            )
             cursor.execute(
                 sql.SQL("GRANT {} TO {} WITH INHERIT TRUE, SET TRUE").format(
                     sql.Identifier(api_database.AUTH_RUNTIME_ROLE),
@@ -781,7 +811,7 @@ def test_auth_runtime_rejects_inert_creator_admin_option() -> None:
             cursor.execute(
                 sql.SQL("GRANT {} TO {} WITH ADMIN OPTION, INHERIT FALSE, SET FALSE").format(
                     sql.Identifier(api_database.AUTH_RUNTIME_ROLE),
-                    sql.Identifier(_AUTH_INERT_CREATOR_LOGIN),
+                    sql.Identifier(_ROLE_ALLOCATION.names["_AUTH_INERT_CREATOR_LOGIN"]),
                 )
             )
 
@@ -802,7 +832,7 @@ def test_auth_runtime_rejects_inert_creator_admin_option() -> None:
         ):
             api_database.verify_runtime_authority()
     finally:
-        _drop_roles(database_url, _AUTH_RUNTIME_LOGIN, _AUTH_INERT_CREATOR_LOGIN)
+        _drop_roles(database_url, _AUTH_RUNTIME_LOGIN, _ROLE_ALLOCATION.names["_AUTH_INERT_CREATOR_LOGIN"])
 
 
 @pytest.mark.integration
@@ -941,18 +971,17 @@ def test_non_superuser_migration_owner_cannot_create_missing_capability_role() -
         with _operator_connection(database_url) as connection, connection.cursor() as cursor:
             cursor.execute(
                 sql.SQL("CREATE ROLE {} LOGIN NOSUPERUSER NOCREATEDB CREATEROLE " "NOBYPASSRLS NOREPLICATION").format(
-                    sql.Identifier(_MISSING_ROLE_MIGRATION_OWNER)
+                    sql.Identifier(_ROLE_ALLOCATION.names["_MISSING_ROLE_MIGRATION_OWNER"])
                 )
             )
-        migration_owner = _runtime_connection(database_url, _MISSING_ROLE_MIGRATION_OWNER)
+        migration_owner = _runtime_connection(database_url, _ROLE_ALLOCATION.names["_MISSING_ROLE_MIGRATION_OWNER"])
         try:
             with migration_owner.cursor() as cursor:
-                bootstrap_sql = _CAPABILITY_BOOTSTRAP_SQL.read_text(encoding="utf-8")
                 with pytest.raises(
                     psycopg2.Error,
                     match="FarDB capability-role bootstrap requires a PostgreSQL superuser",
                 ):
-                    cursor.execute(bootstrap_sql)
+                    execute_capability_bootstrap(cursor)
         finally:
             migration_owner.close()
 
@@ -963,7 +992,7 @@ def test_non_superuser_migration_owner_cannot_create_missing_capability_role() -
             )
             assert cursor.fetchone()[0] == 0
     finally:
-        _drop_roles(database_url, _MISSING_ROLE_MIGRATION_OWNER)
+        _drop_roles(database_url, _ROLE_ALLOCATION.names["_MISSING_ROLE_MIGRATION_OWNER"])
         if role_backups:
             _restore_capability_roles(database_url, role_backups, moved_roles)
 
@@ -986,11 +1015,11 @@ def test_superuser_bootstrap_enables_least_privilege_migration_and_runtime_verif
         with _operator_connection(database_url) as connection, connection.cursor() as cursor:
             cursor.execute(
                 sql.SQL("CREATE ROLE {} LOGIN NOSUPERUSER NOCREATEDB CREATEROLE " "NOBYPASSRLS NOREPLICATION").format(
-                    sql.Identifier(_BOOTSTRAP_MIGRATION_OWNER)
+                    sql.Identifier(_ROLE_ALLOCATION.names["_BOOTSTRAP_MIGRATION_OWNER"])
                 )
             )
 
-        creator_connection = _runtime_connection(database_url, _BOOTSTRAP_MIGRATION_OWNER)
+        creator_connection = _runtime_connection(database_url, _ROLE_ALLOCATION.names["_BOOTSTRAP_MIGRATION_OWNER"])
         try:
             with creator_connection.cursor() as cursor:
                 cursor.execute(
@@ -1008,10 +1037,10 @@ def test_superuser_bootstrap_enables_least_privilege_migration_and_runtime_verif
                 "JOIN pg_roles AS role ON role.oid = membership.roleid "
                 "JOIN pg_roles AS grantee ON grantee.oid = membership.member "
                 "WHERE role.rolname = %s AND grantee.rolname = %s AND membership.admin_option",
-                (GRAPH_RUNTIME_ROLE, _BOOTSTRAP_MIGRATION_OWNER),
+                (GRAPH_RUNTIME_ROLE, _ROLE_ALLOCATION.names["_BOOTSTRAP_MIGRATION_OWNER"]),
             )
             assert cursor.fetchone()[0] == 1
-            cursor.execute(_CAPABILITY_BOOTSTRAP_SQL.read_text(encoding="utf-8"))
+            execute_capability_bootstrap(cursor)
             cursor.execute(
                 "SELECT COUNT(*) FROM pg_roles WHERE rolname = ANY(%s) "
                 "AND NOT rolcanlogin AND NOT rolsuper AND NOT rolcreatedb "
@@ -1031,7 +1060,7 @@ def test_superuser_bootstrap_enables_least_privilege_migration_and_runtime_verif
                 "JOIN pg_roles AS role ON role.oid = membership.roleid "
                 "JOIN pg_roles AS grantee ON grantee.oid = membership.member "
                 "WHERE role.rolname = %s AND grantee.rolname = %s",
-                (GRAPH_RUNTIME_ROLE, _BOOTSTRAP_MIGRATION_OWNER),
+                (GRAPH_RUNTIME_ROLE, _ROLE_ALLOCATION.names["_BOOTSTRAP_MIGRATION_OWNER"]),
             )
             assert cursor.fetchone()[0] == 0
         capabilities = {GRAPH_RUNTIME_CAPABILITY, COORDINATION_RUNTIME_CAPABILITY}
@@ -1089,7 +1118,7 @@ def test_superuser_bootstrap_enables_least_privilege_migration_and_runtime_verif
             database_url,
             _BOOTSTRAP_GRAPH_RUNTIME_LOGIN,
             _BOOTSTRAP_AUTH_RUNTIME_LOGIN,
-            _BOOTSTRAP_MIGRATION_OWNER,
+            _ROLE_ALLOCATION.names["_BOOTSTRAP_MIGRATION_OWNER"],
         )
         if role_backups:
             database_name = urlsplit(database_url).path.lstrip("/")
@@ -1102,31 +1131,32 @@ def test_superuser_bootstrap_enables_least_privilege_migration_and_runtime_verif
 def test_capability_bootstrap_rejects_create_on_non_current_schema() -> None:
     """A capability role may not retain CREATE on any schema in the database."""
     database_url = _ephemeral_database_url()
-    bootstrap_sql = _CAPABILITY_BOOTSTRAP_SQL.read_text(encoding="utf-8")
 
     try:
         with _operator_connection(database_url) as connection, connection.cursor() as cursor:
-            cursor.execute(bootstrap_sql)
+            execute_capability_bootstrap(cursor)
             cursor.execute(
                 sql.SQL("CREATE SCHEMA {} AUTHORIZATION CURRENT_USER").format(
-                    sql.Identifier(_BOOTSTRAP_UNRELATED_SCHEMA)
+                    sql.Identifier(_ROLE_ALLOCATION.names["_BOOTSTRAP_UNRELATED_SCHEMA"])
                 )
             )
             cursor.execute(
                 sql.SQL("GRANT CREATE ON SCHEMA {} TO {}").format(
-                    sql.Identifier(_BOOTSTRAP_UNRELATED_SCHEMA),
+                    sql.Identifier(_ROLE_ALLOCATION.names["_BOOTSTRAP_UNRELATED_SCHEMA"]),
                     sql.Identifier(GRAPH_RUNTIME_ROLE),
                 )
             )
             cursor.execute("SELECT current_schema()")
-            assert cursor.fetchone()[0] != _BOOTSTRAP_UNRELATED_SCHEMA
+            assert cursor.fetchone()[0] != _ROLE_ALLOCATION.names["_BOOTSTRAP_UNRELATED_SCHEMA"]
 
             with pytest.raises(psycopg2.Error, match="unsafe FarDB capability role"):
-                cursor.execute(bootstrap_sql)
+                execute_capability_bootstrap(cursor)
     finally:
         with _operator_connection(database_url) as connection, connection.cursor() as cursor:
             cursor.execute(
-                sql.SQL("DROP SCHEMA IF EXISTS {} CASCADE").format(sql.Identifier(_BOOTSTRAP_UNRELATED_SCHEMA))
+                sql.SQL("DROP SCHEMA IF EXISTS {} CASCADE").format(
+                    sql.Identifier(_ROLE_ALLOCATION.names["_BOOTSTRAP_UNRELATED_SCHEMA"])
+                )
             )
 
 
@@ -1141,19 +1171,23 @@ def test_graph_runtime_rejects_capability_create_on_non_current_schema() -> None
         _apply_ledger_profile(database_url, "graph")
 
         with _operator_connection(database_url) as connection, connection.cursor() as cursor:
-            cursor.execute(_RUNTIME_LOGIN_DDL.format(sql.Identifier(_GRAPH_EXTRA_RUNTIME_LOGIN)))
+            cursor.execute(
+                _RUNTIME_LOGIN_DDL.format(sql.Identifier(_ROLE_ALLOCATION.names["_GRAPH_EXTRA_RUNTIME_LOGIN"]))
+            )
             cursor.execute(
                 sql.SQL("GRANT {} TO {}").format(
                     sql.Identifier(GRAPH_RUNTIME_ROLE),
-                    sql.Identifier(_GRAPH_EXTRA_RUNTIME_LOGIN),
+                    sql.Identifier(_ROLE_ALLOCATION.names["_GRAPH_EXTRA_RUNTIME_LOGIN"]),
                 )
             )
             cursor.execute(
-                sql.SQL("CREATE SCHEMA {} AUTHORIZATION CURRENT_USER").format(sql.Identifier(_GRAPH_UNRELATED_SCHEMA))
+                sql.SQL("CREATE SCHEMA {} AUTHORIZATION CURRENT_USER").format(
+                    sql.Identifier(_ROLE_ALLOCATION.names["_GRAPH_UNRELATED_SCHEMA"])
+                )
             )
             cursor.execute(
                 sql.SQL("GRANT CREATE ON SCHEMA {} TO {}").format(
-                    sql.Identifier(_GRAPH_UNRELATED_SCHEMA),
+                    sql.Identifier(_ROLE_ALLOCATION.names["_GRAPH_UNRELATED_SCHEMA"]),
                     sql.Identifier(GRAPH_RUNTIME_ROLE),
                 )
             )
@@ -1166,7 +1200,7 @@ def test_graph_runtime_rejects_capability_create_on_non_current_schema() -> None
 
         runtime_engine = create_engine(
             "postgresql+psycopg2://",
-            creator=lambda: _runtime_connection(database_url, _GRAPH_EXTRA_RUNTIME_LOGIN),
+            creator=lambda: _runtime_connection(database_url, _ROLE_ALLOCATION.names["_GRAPH_EXTRA_RUNTIME_LOGIN"]),
             future=True,
         )
         with pytest.raises(SchemaCompatibilityError, match="retains schema-migration authority"):
@@ -1177,8 +1211,8 @@ def test_graph_runtime_rejects_capability_create_on_non_current_schema() -> None
     finally:
         if runtime_engine is not None:
             runtime_engine.dispose()
-        _drop_schema(database_url, _GRAPH_UNRELATED_SCHEMA)
-        _drop_roles(database_url, _GRAPH_EXTRA_RUNTIME_LOGIN)
+        _drop_schema(database_url, _ROLE_ALLOCATION.names["_GRAPH_UNRELATED_SCHEMA"])
+        _drop_roles(database_url, _ROLE_ALLOCATION.names["_GRAPH_EXTRA_RUNTIME_LOGIN"])
         operator_engine.dispose()
 
 
@@ -1196,29 +1230,33 @@ def test_runtime_database_authority_rejects_capability_reachable_through_superus
             cursor.execute("SHOW server_version_num")
             if int(cursor.fetchone()[0]) < 160000:
                 pytest.skip("per-membership INHERIT and SET options require PostgreSQL 16+")
-            cursor.execute(_RUNTIME_LOGIN_DDL.format(sql.Identifier(_GRAPH_EXTRA_RUNTIME_LOGIN)))
-            cursor.execute(_RUNTIME_LOGIN_DDL.format(sql.Identifier(_GRAPH_OTHER_CAPABILITY_LOGIN)))
+            cursor.execute(
+                _RUNTIME_LOGIN_DDL.format(sql.Identifier(_ROLE_ALLOCATION.names["_GRAPH_EXTRA_RUNTIME_LOGIN"]))
+            )
+            cursor.execute(
+                _RUNTIME_LOGIN_DDL.format(sql.Identifier(_ROLE_ALLOCATION.names["_GRAPH_OTHER_CAPABILITY_LOGIN"]))
+            )
             cursor.execute(
                 sql.SQL(
                     "CREATE ROLE {} NOLOGIN INHERIT SUPERUSER NOCREATEDB NOCREATEROLE " "NOBYPASSRLS NOREPLICATION"
-                ).format(sql.Identifier(_GRAPH_SUPERUSER_ROLE))
+                ).format(sql.Identifier(_ROLE_ALLOCATION.names["_GRAPH_SUPERUSER_ROLE"]))
             )
             cursor.execute(
                 sql.SQL("GRANT {} TO {} WITH INHERIT TRUE, SET TRUE").format(
                     sql.Identifier(GRAPH_RUNTIME_ROLE),
-                    sql.Identifier(_GRAPH_EXTRA_RUNTIME_LOGIN),
+                    sql.Identifier(_ROLE_ALLOCATION.names["_GRAPH_EXTRA_RUNTIME_LOGIN"]),
                 )
             )
             cursor.execute(
                 sql.SQL("GRANT {} TO {} WITH INHERIT TRUE, SET TRUE").format(
-                    sql.Identifier(_GRAPH_SUPERUSER_ROLE),
-                    sql.Identifier(_GRAPH_OTHER_CAPABILITY_LOGIN),
+                    sql.Identifier(_ROLE_ALLOCATION.names["_GRAPH_SUPERUSER_ROLE"]),
+                    sql.Identifier(_ROLE_ALLOCATION.names["_GRAPH_OTHER_CAPABILITY_LOGIN"]),
                 )
             )
             cursor.execute(
                 sql.SQL("GRANT {} TO {} WITH INHERIT FALSE, SET FALSE").format(
                     sql.Identifier(GRAPH_RUNTIME_ROLE),
-                    sql.Identifier(_GRAPH_SUPERUSER_ROLE),
+                    sql.Identifier(_ROLE_ALLOCATION.names["_GRAPH_SUPERUSER_ROLE"]),
                 )
             )
 
@@ -1230,7 +1268,7 @@ def test_runtime_database_authority_rejects_capability_reachable_through_superus
 
         runtime_engine = create_engine(
             "postgresql+psycopg2://",
-            creator=lambda: _runtime_connection(database_url, _GRAPH_EXTRA_RUNTIME_LOGIN),
+            creator=lambda: _runtime_connection(database_url, _ROLE_ALLOCATION.names["_GRAPH_EXTRA_RUNTIME_LOGIN"]),
             future=True,
         )
         with pytest.raises(SchemaCompatibilityError, match="unsafe or missing runtime capability role"):
@@ -1243,9 +1281,9 @@ def test_runtime_database_authority_rejects_capability_reachable_through_superus
             runtime_engine.dispose()
         _drop_roles(
             database_url,
-            _GRAPH_EXTRA_RUNTIME_LOGIN,
-            _GRAPH_OTHER_CAPABILITY_LOGIN,
-            _GRAPH_SUPERUSER_ROLE,
+            _ROLE_ALLOCATION.names["_GRAPH_EXTRA_RUNTIME_LOGIN"],
+            _ROLE_ALLOCATION.names["_GRAPH_OTHER_CAPABILITY_LOGIN"],
+            _ROLE_ALLOCATION.names["_GRAPH_SUPERUSER_ROLE"],
         )
         operator_engine.dispose()
 
@@ -1268,12 +1306,16 @@ def test_runtime_database_authority_rejects_unsafe_capability_grantee(membership
             runtime_login_ddl = sql.SQL(
                 "CREATE ROLE {} LOGIN INHERIT NOSUPERUSER NOCREATEDB " "NOCREATEROLE NOBYPASSRLS NOREPLICATION"
             )
-            cursor.execute(runtime_login_ddl.format(sql.Identifier(_GRAPH_EXTRA_RUNTIME_LOGIN)))
-            cursor.execute(runtime_login_ddl.format(sql.Identifier(_GRAPH_OTHER_CAPABILITY_LOGIN)))
+            cursor.execute(
+                runtime_login_ddl.format(sql.Identifier(_ROLE_ALLOCATION.names["_GRAPH_EXTRA_RUNTIME_LOGIN"]))
+            )
+            cursor.execute(
+                runtime_login_ddl.format(sql.Identifier(_ROLE_ALLOCATION.names["_GRAPH_OTHER_CAPABILITY_LOGIN"]))
+            )
             cursor.execute(
                 sql.SQL("GRANT {} TO {} WITH INHERIT TRUE, SET TRUE").format(
                     sql.Identifier(GRAPH_RUNTIME_ROLE),
-                    sql.Identifier(_GRAPH_EXTRA_RUNTIME_LOGIN),
+                    sql.Identifier(_ROLE_ALLOCATION.names["_GRAPH_EXTRA_RUNTIME_LOGIN"]),
                 )
             )
             membership_options = (
@@ -1284,7 +1326,7 @@ def test_runtime_database_authority_rejects_unsafe_capability_grantee(membership
             cursor.execute(
                 sql.SQL("GRANT {} TO {} {}").format(
                     sql.Identifier(GRAPH_RUNTIME_ROLE),
-                    sql.Identifier(_GRAPH_OTHER_CAPABILITY_LOGIN),
+                    sql.Identifier(_ROLE_ALLOCATION.names["_GRAPH_OTHER_CAPABILITY_LOGIN"]),
                     membership_options,
                 )
             )
@@ -1300,7 +1342,7 @@ def test_runtime_database_authority_rejects_unsafe_capability_grantee(membership
 
         runtime_engine = create_engine(
             "postgresql+psycopg2://",
-            creator=lambda: _runtime_connection(database_url, _GRAPH_EXTRA_RUNTIME_LOGIN),
+            creator=lambda: _runtime_connection(database_url, _ROLE_ALLOCATION.names["_GRAPH_EXTRA_RUNTIME_LOGIN"]),
             future=True,
         )
         with pytest.raises(SchemaCompatibilityError, match="unsafe or missing runtime capability role"):
@@ -1311,7 +1353,11 @@ def test_runtime_database_authority_rejects_unsafe_capability_grantee(membership
     finally:
         if runtime_engine is not None:
             runtime_engine.dispose()
-        _drop_roles(database_url, _GRAPH_EXTRA_RUNTIME_LOGIN, _GRAPH_OTHER_CAPABILITY_LOGIN)
+        _drop_roles(
+            database_url,
+            _ROLE_ALLOCATION.names["_GRAPH_EXTRA_RUNTIME_LOGIN"],
+            _ROLE_ALLOCATION.names["_GRAPH_OTHER_CAPABILITY_LOGIN"],
+        )
         operator_engine.dispose()
 
 
@@ -1423,11 +1469,17 @@ def test_runtime_database_authority_rejects_unexpected_assumable_role_without_ca
 ) -> None:
     """A no-capability runtime login may not retain any assumable role membership."""
     database_url = _ephemeral_database_url()
-    assumable_role = _GRAPH_ORDINARY_ROLE if assumable_role == "ordinary" else _GRAPH_REPLICATION_ROLE
+    assumable_role = (
+        _ROLE_ALLOCATION.names["_GRAPH_ORDINARY_ROLE"]
+        if assumable_role == "ordinary"
+        else _ROLE_ALLOCATION.names["_GRAPH_REPLICATION_ROLE"]
+    )
     runtime_engine = None
     try:
         with _operator_connection(database_url) as connection, connection.cursor() as cursor:
-            cursor.execute(_RUNTIME_LOGIN_DDL.format(sql.Identifier(_GRAPH_NO_CAP_RUNTIME_LOGIN)))
+            cursor.execute(
+                _RUNTIME_LOGIN_DDL.format(sql.Identifier(_ROLE_ALLOCATION.names["_GRAPH_NO_CAP_RUNTIME_LOGIN"]))
+            )
 
             assumable_role_ddl = sql.SQL(
                 "CREATE ROLE {} NOLOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOBYPASSRLS {}"
@@ -1440,13 +1492,13 @@ def test_runtime_database_authority_rejects_unexpected_assumable_role_without_ca
             cursor.execute(
                 sql.SQL("GRANT {} TO {}").format(
                     sql.Identifier(assumable_role),
-                    sql.Identifier(_GRAPH_NO_CAP_RUNTIME_LOGIN),
+                    sql.Identifier(_ROLE_ALLOCATION.names["_GRAPH_NO_CAP_RUNTIME_LOGIN"]),
                 )
             )
 
         runtime_engine = create_engine(
             "postgresql+psycopg2://",
-            creator=lambda: _runtime_connection(database_url, _GRAPH_NO_CAP_RUNTIME_LOGIN),
+            creator=lambda: _runtime_connection(database_url, _ROLE_ALLOCATION.names["_GRAPH_NO_CAP_RUNTIME_LOGIN"]),
             future=True,
         )
         with pytest.raises(SchemaCompatibilityError, match=expected_error):
@@ -1454,7 +1506,7 @@ def test_runtime_database_authority_rejects_unexpected_assumable_role_without_ca
     finally:
         if runtime_engine is not None:
             runtime_engine.dispose()
-        _drop_roles(database_url, _GRAPH_NO_CAP_RUNTIME_LOGIN, assumable_role)
+        _drop_roles(database_url, _ROLE_ALLOCATION.names["_GRAPH_NO_CAP_RUNTIME_LOGIN"], assumable_role)
 
 
 @pytest.mark.integration
@@ -1468,7 +1520,9 @@ def test_runtime_database_authority_enforces_zero_managed_privileges_without_cap
     try:
         _apply_ledger_profile(database_url, "combined")
         with _operator_connection(database_url) as connection, connection.cursor() as cursor:
-            cursor.execute(_RUNTIME_LOGIN_DDL.format(sql.Identifier(_GRAPH_NO_CAP_DIRECT_LOGIN)))
+            cursor.execute(
+                _RUNTIME_LOGIN_DDL.format(sql.Identifier(_ROLE_ALLOCATION.names["_GRAPH_NO_CAP_DIRECT_LOGIN"]))
+            )
             cursor.execute("SELECT pg_get_serial_sequence('asset_relationships', 'id')")
             sequence_name = cursor.fetchone()[0]
             assert isinstance(sequence_name, str)
@@ -1476,7 +1530,7 @@ def test_runtime_database_authority_enforces_zero_managed_privileges_without_cap
 
         runtime_engine = create_engine(
             "postgresql+psycopg2://",
-            creator=lambda: _runtime_connection(database_url, _GRAPH_NO_CAP_DIRECT_LOGIN),
+            creator=lambda: _runtime_connection(database_url, _ROLE_ALLOCATION.names["_GRAPH_NO_CAP_DIRECT_LOGIN"]),
             future=True,
         )
 
@@ -1484,29 +1538,35 @@ def test_runtime_database_authority_enforces_zero_managed_privileges_without_cap
 
         with _operator_connection(database_url) as connection, connection.cursor() as cursor:
             cursor.execute(
-                sql.SQL("GRANT INSERT ON TABLE assets TO {}").format(sql.Identifier(_GRAPH_NO_CAP_DIRECT_LOGIN))
+                sql.SQL("GRANT INSERT ON TABLE assets TO {}").format(
+                    sql.Identifier(_ROLE_ALLOCATION.names["_GRAPH_NO_CAP_DIRECT_LOGIN"])
+                )
             )
         with pytest.raises(SchemaCompatibilityError, match="runtime login grants are incompatible on assets"):
             verify_runtime_database_authority(runtime_engine)
         with _operator_connection(database_url) as connection, connection.cursor() as cursor:
             cursor.execute(
-                sql.SQL("REVOKE INSERT ON TABLE assets FROM {}").format(sql.Identifier(_GRAPH_NO_CAP_DIRECT_LOGIN))
+                sql.SQL("REVOKE INSERT ON TABLE assets FROM {}").format(
+                    sql.Identifier(_ROLE_ALLOCATION.names["_GRAPH_NO_CAP_DIRECT_LOGIN"])
+                )
             )
             cursor.execute(
-                sql.SQL("GRANT UPDATE (price) ON TABLE assets TO {}").format(sql.Identifier(_GRAPH_NO_CAP_DIRECT_LOGIN))
+                sql.SQL("GRANT UPDATE (price) ON TABLE assets TO {}").format(
+                    sql.Identifier(_ROLE_ALLOCATION.names["_GRAPH_NO_CAP_DIRECT_LOGIN"])
+                )
             )
         with pytest.raises(SchemaCompatibilityError, match="runtime login grants are incompatible on assets"):
             verify_runtime_database_authority(runtime_engine)
         with _operator_connection(database_url) as connection, connection.cursor() as cursor:
             cursor.execute(
                 sql.SQL("REVOKE UPDATE (price) ON TABLE assets FROM {}").format(
-                    sql.Identifier(_GRAPH_NO_CAP_DIRECT_LOGIN)
+                    sql.Identifier(_ROLE_ALLOCATION.names["_GRAPH_NO_CAP_DIRECT_LOGIN"])
                 )
             )
             cursor.execute(
                 sql.SQL("GRANT USAGE ON SEQUENCE {} TO {}").format(
                     sql.Identifier(*sequence_name.split(".")),
-                    sql.Identifier(_GRAPH_NO_CAP_DIRECT_LOGIN),
+                    sql.Identifier(_ROLE_ALLOCATION.names["_GRAPH_NO_CAP_DIRECT_LOGIN"]),
                 )
             )
         with pytest.raises(
@@ -1520,21 +1580,21 @@ def test_runtime_database_authority_enforces_zero_managed_privileges_without_cap
             with _operator_connection(database_url) as connection, connection.cursor() as cursor:
                 cursor.execute(
                     sql.SQL("REVOKE ALL PRIVILEGES ON TABLE assets FROM {}").format(
-                        sql.Identifier(_GRAPH_NO_CAP_DIRECT_LOGIN)
+                        sql.Identifier(_ROLE_ALLOCATION.names["_GRAPH_NO_CAP_DIRECT_LOGIN"])
                     )
                 )
                 cursor.execute(
                     sql.SQL("REVOKE UPDATE (price) ON TABLE assets FROM {}").format(
-                        sql.Identifier(_GRAPH_NO_CAP_DIRECT_LOGIN)
+                        sql.Identifier(_ROLE_ALLOCATION.names["_GRAPH_NO_CAP_DIRECT_LOGIN"])
                     )
                 )
                 cursor.execute(
                     sql.SQL("REVOKE ALL PRIVILEGES ON SEQUENCE {} FROM {}").format(
                         sql.Identifier(*sequence_name.split(".")),
-                        sql.Identifier(_GRAPH_NO_CAP_DIRECT_LOGIN),
+                        sql.Identifier(_ROLE_ALLOCATION.names["_GRAPH_NO_CAP_DIRECT_LOGIN"]),
                     )
                 )
-        _drop_roles(database_url, _GRAPH_NO_CAP_DIRECT_LOGIN)
+        _drop_roles(database_url, _ROLE_ALLOCATION.names["_GRAPH_NO_CAP_DIRECT_LOGIN"])
         operator_engine.dispose()
 
 
@@ -1551,27 +1611,31 @@ def test_runtime_database_authority_rejects_unexpected_assumable_truncate_role()
         _apply_ledger_profile(database_url, "graph")
 
         with _operator_connection(database_url) as connection, connection.cursor() as cursor:
-            cursor.execute(_RUNTIME_LOGIN_DDL.format(sql.Identifier(_GRAPH_EXTRA_RUNTIME_LOGIN)))
+            cursor.execute(
+                _RUNTIME_LOGIN_DDL.format(sql.Identifier(_ROLE_ALLOCATION.names["_GRAPH_EXTRA_RUNTIME_LOGIN"]))
+            )
 
             extra_role_ddl = sql.SQL(
                 "CREATE ROLE {} NOLOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE " "NOBYPASSRLS NOREPLICATION"
             )
-            cursor.execute(extra_role_ddl.format(sql.Identifier(_GRAPH_EXTRA_TRUNCATE_ROLE)))
+            cursor.execute(extra_role_ddl.format(sql.Identifier(_ROLE_ALLOCATION.names["_GRAPH_EXTRA_TRUNCATE_ROLE"])))
             extra_role_created = True
 
             cursor.execute(
                 sql.SQL("GRANT {} TO {}").format(
                     sql.Identifier(GRAPH_RUNTIME_ROLE),
-                    sql.Identifier(_GRAPH_EXTRA_RUNTIME_LOGIN),
+                    sql.Identifier(_ROLE_ALLOCATION.names["_GRAPH_EXTRA_RUNTIME_LOGIN"]),
                 )
             )
             cursor.execute(
-                sql.SQL("GRANT TRUNCATE ON TABLE assets TO {}").format(sql.Identifier(_GRAPH_EXTRA_TRUNCATE_ROLE))
+                sql.SQL("GRANT TRUNCATE ON TABLE assets TO {}").format(
+                    sql.Identifier(_ROLE_ALLOCATION.names["_GRAPH_EXTRA_TRUNCATE_ROLE"])
+                )
             )
             cursor.execute(
                 sql.SQL("GRANT {} TO {}").format(
-                    sql.Identifier(_GRAPH_EXTRA_TRUNCATE_ROLE),
-                    sql.Identifier(_GRAPH_EXTRA_RUNTIME_LOGIN),
+                    sql.Identifier(_ROLE_ALLOCATION.names["_GRAPH_EXTRA_TRUNCATE_ROLE"]),
+                    sql.Identifier(_ROLE_ALLOCATION.names["_GRAPH_EXTRA_RUNTIME_LOGIN"]),
                 )
             )
 
@@ -1579,7 +1643,7 @@ def test_runtime_database_authority_rejects_unexpected_assumable_truncate_role()
             "postgresql+psycopg2://",
             creator=lambda: _runtime_connection(
                 database_url,
-                _GRAPH_EXTRA_RUNTIME_LOGIN,
+                _ROLE_ALLOCATION.names["_GRAPH_EXTRA_RUNTIME_LOGIN"],
             ),
             future=True,
         )
@@ -1600,14 +1664,14 @@ def test_runtime_database_authority_rejects_unexpected_assumable_truncate_role()
             with _operator_connection(database_url) as connection, connection.cursor() as cursor:
                 cursor.execute(
                     sql.SQL("REVOKE TRUNCATE ON TABLE assets FROM {}").format(
-                        sql.Identifier(_GRAPH_EXTRA_TRUNCATE_ROLE)
+                        sql.Identifier(_ROLE_ALLOCATION.names["_GRAPH_EXTRA_TRUNCATE_ROLE"])
                     )
                 )
 
         _drop_roles(
             database_url,
-            _GRAPH_EXTRA_RUNTIME_LOGIN,
-            _GRAPH_EXTRA_TRUNCATE_ROLE,
+            _ROLE_ALLOCATION.names["_GRAPH_EXTRA_RUNTIME_LOGIN"],
+            _ROLE_ALLOCATION.names["_GRAPH_EXTRA_TRUNCATE_ROLE"],
         )
         if operator_engine is not None:
             operator_engine.dispose()
@@ -1706,21 +1770,29 @@ def test_runtime_database_authority_executes_against_linked_application_sequence
 
             cursor.execute(
                 sql.SQL("CREATE ROLE {} NOLOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOBYPASSRLS NOREPLICATION").format(
-                    sql.Identifier(_SEQUENCE_OWNER_ROLE)
+                    sql.Identifier(_ROLE_ALLOCATION.names["_SEQUENCE_OWNER_ROLE"])
                 )
             )
-            cursor.execute(_RUNTIME_LOGIN_DDL.format(sql.Identifier(_SEQUENCE_RUNTIME_LOGIN)))
-            cursor.execute(sql.SQL("GRANT CREATE ON SCHEMA public TO {}").format(sql.Identifier(_SEQUENCE_OWNER_ROLE)))
+            cursor.execute(_RUNTIME_LOGIN_DDL.format(sql.Identifier(_ROLE_ALLOCATION.names["_SEQUENCE_RUNTIME_LOGIN"])))
             cursor.execute(
-                sql.SQL("ALTER TABLE asset_relationships OWNER TO {}").format(sql.Identifier(_SEQUENCE_OWNER_ROLE))
+                sql.SQL("GRANT CREATE ON SCHEMA public TO {}").format(
+                    sql.Identifier(_ROLE_ALLOCATION.names["_SEQUENCE_OWNER_ROLE"])
+                )
             )
             cursor.execute(
-                sql.SQL("REVOKE CREATE ON SCHEMA public FROM {}").format(sql.Identifier(_SEQUENCE_OWNER_ROLE))
+                sql.SQL("ALTER TABLE asset_relationships OWNER TO {}").format(
+                    sql.Identifier(_ROLE_ALLOCATION.names["_SEQUENCE_OWNER_ROLE"])
+                )
+            )
+            cursor.execute(
+                sql.SQL("REVOKE CREATE ON SCHEMA public FROM {}").format(
+                    sql.Identifier(_ROLE_ALLOCATION.names["_SEQUENCE_OWNER_ROLE"])
+                )
             )
             cursor.execute(
                 sql.SQL("GRANT {} TO {}").format(
-                    sql.Identifier(_SEQUENCE_OWNER_ROLE),
-                    sql.Identifier(_SEQUENCE_RUNTIME_LOGIN),
+                    sql.Identifier(_ROLE_ALLOCATION.names["_SEQUENCE_OWNER_ROLE"]),
+                    sql.Identifier(_ROLE_ALLOCATION.names["_SEQUENCE_RUNTIME_LOGIN"]),
                 )
             )
 
@@ -1728,7 +1800,7 @@ def test_runtime_database_authority_executes_against_linked_application_sequence
                 "SELECT pg_get_userbyid(relowner) FROM pg_class "
                 "WHERE oid = pg_get_serial_sequence('asset_relationships', 'id')::regclass"
             )
-            assert cursor.fetchone()[0] == _SEQUENCE_OWNER_ROLE
+            assert cursor.fetchone()[0] == _ROLE_ALLOCATION.names["_SEQUENCE_OWNER_ROLE"]
             cursor.execute(
                 "SELECT EXISTS (SELECT 1 FROM pg_depend AS dependency "
                 "WHERE dependency.classid = 'pg_class'::regclass "
@@ -1741,7 +1813,7 @@ def test_runtime_database_authority_executes_against_linked_application_sequence
 
         runtime_engine = create_engine(
             "postgresql+psycopg2://",
-            creator=lambda: _runtime_connection(database_url, _SEQUENCE_RUNTIME_LOGIN),
+            creator=lambda: _runtime_connection(database_url, _ROLE_ALLOCATION.names["_SEQUENCE_RUNTIME_LOGIN"]),
             future=True,
         )
         with pytest.raises(SchemaCompatibilityError, match="retains schema-migration authority"):
@@ -1754,5 +1826,235 @@ def test_runtime_database_authority_executes_against_linked_application_sequence
                 cursor.execute(
                     sql.SQL("ALTER TABLE asset_relationships OWNER TO {}").format(sql.Identifier(original_owner))
                 )
-        _drop_roles(database_url, _SEQUENCE_RUNTIME_LOGIN, _SEQUENCE_OWNER_ROLE)
+        _drop_roles(
+            database_url,
+            _ROLE_ALLOCATION.names["_SEQUENCE_RUNTIME_LOGIN"],
+            _ROLE_ALLOCATION.names["_SEQUENCE_OWNER_ROLE"],
+        )
         operator_engine.dispose()
+
+
+def test_bootstrap_preserves_each_separately_owned_target_membership() -> None:
+    """Repeated bootstrap preserves target owners with complete version-specific options."""
+    database_url = _ephemeral_database_url()
+    databases = []
+    names = []
+    with _operator_connection(database_url) as connection:
+        allocated = allocate_role_names(
+            connection, {key: f"cq1608_target_{key}" for key in ("auth", "graph", "coordination")}
+        )
+    try:
+        _apply_ledger_profile(database_url, "auth")
+        with _operator_connection(database_url) as connection, connection.cursor() as cursor:
+            cursor.execute("SHOW server_version_num")
+            supports_options = int(cursor.fetchone()[0]) >= 160000
+            mapping = {}
+            snapshots = {}
+            for component, role_name in allocated.items():
+                cursor.execute(sql.SQL("CREATE ROLE {} NOLOGIN").format(sql.Identifier(role_name)))
+                names.append(role_name)
+                database = f"fdbt_owner_{invocation_id()[:12]}_{component}_{uuid4().hex[:8]}"
+                cursor.execute(
+                    sql.SQL("CREATE DATABASE {} OWNER {}").format(sql.Identifier(database), sql.Identifier(role_name))
+                )
+                databases.append(database)
+                capability = f"fardb_runtime_{component}"
+                mapping[capability] = [database]
+                cursor.execute(
+                    sql.SQL("GRANT {} TO {} WITH ADMIN OPTION").format(
+                        sql.Identifier(capability), sql.Identifier(role_name)
+                    )
+                )
+                if supports_options:
+                    cursor.execute(
+                        sql.SQL("GRANT {} TO {} WITH ADMIN TRUE, INHERIT FALSE, SET FALSE").format(
+                            sql.Identifier(capability), sql.Identifier(role_name)
+                        )
+                    )
+                cursor.execute("SELECT oid FROM pg_roles WHERE rolname = %s", (role_name,))
+                snapshots[role_name] = _role_and_membership_snapshot(connection, int(cursor.fetchone()[0]))
+            # Ownership of the auth target does not exempt a coordination grant.
+            cursor.execute(
+                sql.SQL("GRANT {} TO {} WITH ADMIN OPTION").format(
+                    sql.Identifier(COORDINATION_RUNTIME_ROLE), sql.Identifier(allocated["auth"])
+                )
+            )
+            for _ in range(2):
+                execute_capability_bootstrap(cursor, mapping)
+                cursor.execute(
+                    "SELECT count(*) FROM pg_auth_members AS membership "
+                    "JOIN pg_roles AS role ON role.oid=membership.roleid "
+                    "JOIN pg_roles AS member ON member.oid=membership.member "
+                    "WHERE role.rolname=%s AND member.rolname=%s",
+                    (COORDINATION_RUNTIME_ROLE, allocated["auth"]),
+                )
+                assert cursor.fetchone()[0] == 0
+                for role_name, expected in snapshots.items():
+                    cursor.execute("SELECT oid FROM pg_roles WHERE rolname = %s", (role_name,))
+                    assert _role_and_membership_snapshot(connection, int(cursor.fetchone()[0])) == expected
+    finally:
+        with _operator_connection(database_url) as connection, connection.cursor() as cursor:
+            for database in databases:
+                cursor.execute(sql.SQL("DROP DATABASE {}").format(sql.Identifier(database)))
+        _drop_roles(database_url, *names)
+
+
+@pytest.mark.parametrize(
+    "invalid",
+    [
+        None,
+        {},
+        {"fardb_runtime_auth": ["missing_database"]},
+        {
+            name: ["missing_database"]
+            for name in ("fardb_runtime_auth", "fardb_runtime_graph", "fardb_runtime_coordination")
+        },
+    ],
+)
+def test_invalid_bootstrap_mapping_rolls_back_transaction_mutations(invalid) -> None:
+    """Mapping rejection rolls back the same transaction, including preceding role creation."""
+    database_url = _ephemeral_database_url()
+    with _operator_connection(database_url) as connection:
+        name = allocate_role_names(connection, {"sentinel": "cq1608_rollback_sentinel"})["sentinel"]
+        connection.autocommit = False
+        with connection.cursor() as cursor:
+            cursor.execute(sql.SQL("CREATE ROLE {} NOLOGIN").format(sql.Identifier(name)))
+            mapping = invalid if invalid is not None else {"fardb_runtime_auth": []}
+            with pytest.raises(psycopg2.Error, match="bootstrap target"):
+                execute_capability_bootstrap(cursor, mapping)
+            cursor.execute("SELECT oid FROM pg_roles WHERE rolname = %s", (name,))
+            assert cursor.fetchone() is None
+            cursor.execute("SELECT NULLIF(current_setting('fardb.bootstrap_targets', true), '')")
+            assert cursor.fetchone()[0] is None
+
+
+def test_bootstrap_failure_after_first_capability_creation_rolls_back_every_role() -> None:
+    """An unsafe later capability cannot leave an earlier created capability behind."""
+    database_url = _ephemeral_database_url()
+    _apply_ledger_profile(database_url, "auth")
+    backups, moved = _move_capability_roles_aside(database_url)
+    try:
+        with _operator_connection(database_url) as connection, connection.cursor() as cursor:
+            cursor.execute(sql.SQL("CREATE ROLE {} NOLOGIN CREATEDB").format(sql.Identifier(GRAPH_RUNTIME_ROLE)))
+            cursor.execute("SELECT oid FROM pg_roles WHERE rolname = %s", (GRAPH_RUNTIME_ROLE,))
+            graph_oid = int(cursor.fetchone()[0])
+            before = _role_and_membership_snapshot(connection, graph_oid)
+            with pytest.raises(psycopg2.Error, match="unsafe FarDB capability role"):
+                execute_capability_bootstrap(cursor)
+            cursor.execute(
+                "SELECT rolname FROM pg_roles WHERE rolname = ANY(%s)",
+                (["fardb_runtime_auth", "fardb_runtime_coordination"],),
+            )
+            assert cursor.fetchall() == []
+            assert _role_and_membership_snapshot(connection, graph_oid) == before
+    finally:
+        _restore_capability_roles(database_url, backups, moved)
+
+
+def test_bootstrap_restricted_revocation_rolls_back_and_preserves_dependent_owner() -> None:
+    """A tracked dependent owner grant cannot be removed by cascading bootstrap cleanup."""
+    database_url = _ephemeral_database_url()
+    _apply_ledger_profile(database_url, "auth")
+    names = []
+    owned_database = None
+    with _operator_connection(database_url) as connection, connection.cursor() as cursor:
+        cursor.execute("SHOW server_version_num")
+        if int(cursor.fetchone()[0]) < 160000:
+            pytest.skip("PostgreSQL 16 tracks dependent role-membership grant chains")
+        allocated = allocate_role_names(
+            connection, {"delegator": "cq1608_delegator", "owner": "cq1608_dependent_owner"}
+        )
+    try:
+        with _operator_connection(database_url) as connection, connection.cursor() as cursor:
+            for name in allocated.values():
+                cursor.execute(sql.SQL("CREATE ROLE {} NOLOGIN").format(sql.Identifier(name)))
+                names.append(name)
+            owned_database = f"fdbt_dependent_{uuid4().hex}"
+            cursor.execute(
+                sql.SQL("CREATE DATABASE {} OWNER {}").format(
+                    sql.Identifier(owned_database), sql.Identifier(allocated["owner"])
+                )
+            )
+            cursor.execute(
+                sql.SQL("GRANT {} TO {} WITH ADMIN OPTION").format(
+                    sql.Identifier(GRAPH_RUNTIME_ROLE), sql.Identifier(allocated["delegator"])
+                )
+            )
+            cursor.execute(
+                sql.SQL("GRANT {} TO {} WITH ADMIN OPTION GRANTED BY {}").format(
+                    sql.Identifier(GRAPH_RUNTIME_ROLE),
+                    sql.Identifier(allocated["owner"]),
+                    sql.Identifier(allocated["delegator"]),
+                )
+            )
+            cursor.execute("SELECT oid FROM pg_roles WHERE rolname = %s", (allocated["owner"],))
+            oid = int(cursor.fetchone()[0])
+            before = _role_and_membership_snapshot(connection, oid)
+            mapping = {
+                name: [urlsplit(database_url).path.lstrip("/")]
+                for name in ("fardb_runtime_auth", "fardb_runtime_graph", "fardb_runtime_coordination")
+            }
+            mapping[GRAPH_RUNTIME_ROLE] = [owned_database]
+            with pytest.raises(psycopg2.Error, match="dependent|depend on"):
+                execute_capability_bootstrap(cursor, mapping)
+            assert _role_and_membership_snapshot(connection, oid) == before
+            # Explicit fixture cleanup removes the dependent edge before its grantor edge.
+            cursor.execute(
+                sql.SQL("REVOKE {} FROM {} GRANTED BY {} RESTRICT").format(
+                    sql.Identifier(GRAPH_RUNTIME_ROLE),
+                    sql.Identifier(allocated["owner"]),
+                    sql.Identifier(allocated["delegator"]),
+                )
+            )
+    finally:
+        if owned_database is not None:
+            with _operator_connection(database_url) as connection, connection.cursor() as cursor:
+                cursor.execute(sql.SQL("DROP DATABASE {}").format(sql.Identifier(owned_database)))
+        _drop_roles(database_url, *reversed(names))
+
+
+def test_runtime_non_superuser_identity_and_startup_topology_use_same_connections() -> None:
+    """Scoped logins prove shared identity while each authority check retains its own session."""
+    from api import app_factory
+    from src.data.postgresql_topology import read_database_identity
+
+    database_url = _ephemeral_database_url()
+    _apply_ledger_profile(database_url, "combined")
+    names = []
+    engines = []
+    try:
+        with _operator_connection(database_url) as connection, connection.cursor() as cursor:
+            for login, capability in [
+                ("fardb_login_graph", GRAPH_RUNTIME_ROLE),
+                ("fardb_login_coordination", COORDINATION_RUNTIME_ROLE),
+                ("fardb_login_auth", "fardb_runtime_auth"),
+            ]:
+                # This fixture exercises ordinary startup without an explicit SET ROLE.
+                # INHERIT activates only the already-approved scoped capability membership
+                # on both PG15 and PG16; no role elevation or authority predicate changes.
+                cursor.execute(
+                    sql.SQL(
+                        "CREATE ROLE {} LOGIN INHERIT NOSUPERUSER NOCREATEDB NOCREATEROLE " "NOBYPASSRLS NOREPLICATION"
+                    ).format(sql.Identifier(login))
+                )
+                names.append(login)
+                cursor.execute(sql.SQL("GRANT {} TO {}").format(sql.Identifier(capability), sql.Identifier(login)))
+        graph = create_engine(
+            "postgresql+psycopg2://", creator=lambda: _runtime_connection(database_url, "fardb_login_graph")
+        )
+        coordination = create_engine(
+            "postgresql+psycopg2://", creator=lambda: _runtime_connection(database_url, "fardb_login_coordination")
+        )
+        engines.extend([graph, coordination])
+        with graph.connect() as graph_connection, coordination.connect() as coordination_connection:
+            assert read_database_identity(graph_connection) == read_database_identity(coordination_connection)
+            for connection in (graph_connection, coordination_connection):
+                assert (
+                    connection.exec_driver_sql("SELECT rolsuper FROM pg_roles WHERE rolname=current_user").scalar()
+                    is False
+                )
+        app_factory._verify_reconciliation_schemas(graph, coordination)
+    finally:
+        for engine in engines:
+            engine.dispose()
+        _drop_roles(database_url, *names)
