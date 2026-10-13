@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from unittest.mock import MagicMock, Mock, call
 
 import psycopg2
@@ -93,6 +94,25 @@ def test_new_role_schema_check_reads_actual_public_acl() -> None:
     assert "acldefault('n', namespace.nspowner)" in query
     assert "acl.grantee = 0" in query
     assert "acl.privilege_type = 'CREATE'" in query
+
+
+def test_bootstrap_mapping_is_bound_and_only_fixed_sql_is_executed(tmp_path, monkeypatch) -> None:
+    """Untrusted target mapping stays a bound value; executable SQL comes from the reviewed file."""
+    bootstrap_file = tmp_path / "bootstrap.sql"
+    bootstrap_file.write_text("SELECT 'fixed-reviewed-bootstrap'", encoding="utf-8")
+    monkeypatch.setattr(bootstrap, "_BOOTSTRAP_SQL", bootstrap_file)
+    cursor = MagicMock()
+    mapping = {role: ["target_db"] for role in bootstrap._ROLE_NAMES}
+
+    bootstrap._apply_bootstrap(cursor, mapping)
+
+    assert [
+        call(
+            "SELECT pg_catalog.set_config('fardb.bootstrap_targets', %s, true)",
+            (json.dumps(mapping, sort_keys=True, separators=(",", ":")),),
+        ),
+        call("SELECT 'fixed-reviewed-bootstrap'"),
+    ] == cursor.execute.call_args_list
 
 
 def test_target_does_not_assume_visibility_of_coordinator_uncommitted_role() -> None:

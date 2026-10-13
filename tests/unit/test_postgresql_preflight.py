@@ -799,11 +799,12 @@ def test_retained_session_must_match_permit_and_inspection_identity(tmp_path, mo
     route = preflight._supabase_route_identity(_database_url(tmp_path))
     target = _target(route.database_url)
     monkeypatch.setattr(data_database, "create_engine_from_url", lambda _url: identity_engine(identifier, oid, name))
-    with pytest.raises(preflight.TargetIdentityError):
-        with preflight._verified_non_auth_connections(
+    _assert_context_entry_raises(
+        preflight._verified_non_auth_connections(
             {"graph": route}, target, DatabaseIdentity("12345", int(DATABASE_ID), "postgres")
-        ):
-            pytest.fail("rerouted session reached verification")
+        ),
+        preflight.TargetIdentityError,
+    )
 
 
 def test_auth_catalog_checks_reuse_permit_proved_connection(tmp_path, monkeypatch):
@@ -831,12 +832,23 @@ def test_auth_retained_session_rejects_reroute_before_verification(tmp_path, mon
         "_psycopg_database_identity",
         lambda _connection: DatabaseIdentity("99999", int(DATABASE_ID), "postgres"),
     )
-    with pytest.raises(preflight.TargetIdentityError):
-        with preflight._verified_auth_connection(
+    _assert_context_entry_raises(
+        preflight._verified_auth_connection(
             {"auth": route}, target, DatabaseIdentity("12345", int(DATABASE_ID), "postgres")
-        ):
-            pytest.fail("rerouted auth reached verification")
+        ),
+        preflight.TargetIdentityError,
+    )
     connection.close.assert_called_once()
+
+
+def _assert_context_entry_raises(context_manager, error_type: type[Exception]) -> None:
+    """Assert a context manager rejects entry and close it if it unexpectedly enters."""
+    try:
+        context_manager.__enter__()
+    except error_type:
+        return
+    context_manager.__exit__(None, None, None)
+    pytest.fail(f"context entry should raise {error_type.__name__}")
 
 
 def test_retained_session_accepts_exact_permit_identity(tmp_path, monkeypatch):

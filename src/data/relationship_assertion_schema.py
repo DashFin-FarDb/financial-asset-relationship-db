@@ -47,6 +47,10 @@ class SchemaVerificationTarget(Protocol):
         ...
 
 
+class SchemaCompatibilityError(RuntimeError):
+    """Raised when a runtime database does not match the required schema contract."""
+
+
 def ensure_relationship_assertion_schema(engine: Engine) -> None:
     """
     Ensure local SQLite guards, while rejecting PostgreSQL schema mutation.
@@ -57,8 +61,6 @@ def ensure_relationship_assertion_schema(engine: Engine) -> None:
     """
     backend = make_url(str(engine.url)).get_backend_name()
     if backend == "postgresql":
-        from src.data.database import SchemaCompatibilityError  # pylint: disable=import-outside-toplevel
-
         raise SchemaCompatibilityError("PostgreSQL GRAC schema mutation is owned by the profile-scoped Supabase ledger")
     with engine.begin() as connection:
         if backend == "sqlite":

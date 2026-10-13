@@ -254,13 +254,62 @@ def _preflight_targets(
     return target_connections, target_role_oids
 
 
-def _apply_bootstrap(cursor, mapping: dict[str, list[str]], bootstrap_sql: str) -> None:
+def _apply_bootstrap(cursor, mapping: dict[str, list[str]]) -> None:
     """Keep complete mapping configuration and the reviewed SQL in one transaction."""
     cursor.execute(
         "SELECT pg_catalog.set_config('fardb.bootstrap_targets', %s, true)",
         (json.dumps(mapping, sort_keys=True, separators=(",", ":")),),
     )
-    cursor.execute(bootstrap_sql)
+    cursor.execute(_BOOTSTRAP_SQL.read_text(encoding="utf-8"))
+
+
+def _prepare_and_apply_bootstrap(
+    cursor,
+    connection: PsycopgConnection,
+    mapping: Mapping[str, object] | None,
+    target_database_url: str | None,
+    stack: ExitStack,
+) -> dict[str, PsycopgConnection]:
+    """Preflight all targets, apply fixed reviewed SQL, and recheck locked ACLs."""
+    _require_superuser(cursor)
+    _lock_coordinator_catalogs(cursor)
+    normalized = _normalize_mapping(cursor, mapping)
+    coordinator_identity = _cluster_and_database_identity(connection)
+    target_identities = _coordinator_targets(cursor, normalized)
+    target_connections, target_role_oids = _preflight_targets(
+        cursor,
+        connection,
+        target_database_url,
+        normalized,
+        target_identities,
+        coordinator_identity,
+        stack,
+    )
+    _apply_bootstrap(cursor, normalized)
+    _verify_locked_target_state(
+        target_connections,
+        target_role_oids,
+        normalized,
+        target_identities,
+        coordinator_identity,
+    )
+    return target_connections
+
+
+def _verify_locked_target_state(
+    target_connections: dict[str, PsycopgConnection],
+    target_role_oids: dict[str, dict[str, int | None]],
+    mapping: dict[str, list[str]],
+    target_identities: dict[str, tuple[int, str]],
+    coordinator_identity: tuple[str, int, str],
+) -> None:
+    """Recheck stable identity and ACL facts without relying on uncommitted role visibility."""
+    for database_name, target_connection in target_connections.items():
+        observed = _cluster_and_database_identity(target_connection)
+        expected_oid, expected_name = target_identities[database_name]
+        if observed != (coordinator_identity[0], expected_oid, expected_name):
+            raise BootstrapTargetError("mapped database identity changed during bootstrap")
+        _verify_target_schema_acl(target_connection, mapping, database_name, target_role_oids[database_name])
 
 
 def bootstrap_capability_roles(
@@ -273,35 +322,12 @@ def bootstrap_capability_roles(
     connection: PsycopgConnection = cursor.connection
     began_explicitly = bool(connection.autocommit)
     commit_started = False
+    target_connections: dict[str, PsycopgConnection] = {}
     with ExitStack() as stack:
         try:
             if began_explicitly:
                 cursor.execute("BEGIN")
-            _require_superuser(cursor)
-            _lock_coordinator_catalogs(cursor)
-            normalized = _normalize_mapping(cursor, mapping)
-            coordinator_identity = _cluster_and_database_identity(connection)
-            target_identities = _coordinator_targets(cursor, normalized)
-            target_connections, target_role_oids = _preflight_targets(
-                cursor,
-                connection,
-                target_database_url,
-                normalized,
-                target_identities,
-                coordinator_identity,
-                stack,
-            )
-            _apply_bootstrap(cursor, normalized, _BOOTSTRAP_SQL.read_text(encoding="utf-8"))
-
-            # Target connections cannot see coordinator writes before commit. Recheck
-            # only their stable identity and ACL evidence while the schema locks remain.
-            for database_name, target_connection in target_connections.items():
-                observed = _cluster_and_database_identity(target_connection)
-                expected_oid, expected_name = target_identities[database_name]
-                if observed != (coordinator_identity[0], expected_oid, expected_name):
-                    raise BootstrapTargetError("mapped database identity changed during bootstrap")
-                _verify_target_schema_acl(target_connection, normalized, database_name, target_role_oids[database_name])
-
+            target_connections = _prepare_and_apply_bootstrap(cursor, connection, mapping, target_database_url, stack)
             commit_started = True
             if began_explicitly:
                 cursor.execute("COMMIT")
@@ -321,7 +347,7 @@ def bootstrap_capability_roles(
             raise
         finally:
             # Target sessions perform catalog reads and acquire locks only.
-            for target_connection in locals().get("target_connections", {}).values():
+            for target_connection in target_connections.values():
                 if target_connection is not connection and not target_connection.closed:
                     try:
                         target_connection.rollback()
@@ -337,13 +363,12 @@ def main(argv: list[str] | None = None) -> int:
     database_url = os.environ.get("FARDB_BOOTSTRAP_DATABASE_URL")
     if not database_url:
         parser.error("FARDB_BOOTSTRAP_DATABASE_URL must be provided through the protected operator environment")
-    try:
-        mapping = json.loads(arguments.targets_json)
-        with psycopg2.connect(database_url, connect_timeout=_CONNECT_TIMEOUT_SECONDS) as connection:
-            with connection.cursor() as cursor:
-                bootstrap_capability_roles(cursor, mapping, target_database_url=database_url)
-    except BootstrapOutcomeIndeterminate:
-        raise
+    mapping = json.loads(arguments.targets_json)
+    with (
+        psycopg2.connect(database_url, connect_timeout=_CONNECT_TIMEOUT_SECONDS) as connection,
+        connection.cursor() as cursor,
+    ):
+        bootstrap_capability_roles(cursor, mapping, target_database_url=database_url)
     print("FarDB capability-role bootstrap accepted for every identity-proved target")
     return 0
 

@@ -39,7 +39,7 @@ class TestGetDatabaseUrl:
             get_settings.cache_clear()
             url = _get_database_url()
 
-        assert url == "sqlite:///test.db"
+        assert "sqlite:///test.db" == url
 
     def test_get_database_url_ignores_asset_graph_database_url(self):
         """Test that API database helpers do not consume ASSET_GRAPH_DATABASE_URL."""
@@ -55,7 +55,7 @@ class TestGetDatabaseUrl:
             get_settings.cache_clear()
             url = _get_database_url()
 
-        assert url == "sqlite:///api.db"
+        assert "sqlite:///api.db" == url
 
     def test_get_database_url_raises_when_database_url_not_set(self):
         """Test that ValueError is raised when DATABASE_URL is not set."""
@@ -79,7 +79,7 @@ class TestResolveSqlitePath:
     def test_resolve_sqlite_path_memory_colon(self):
         """Test resolving :memory: path."""
         path = _resolve_sqlite_path("sqlite:///:memory:")
-        assert path == ":memory:"
+        assert ":memory:" == path
 
     def test_resolve_sqlite_path_file_uri(self):
         """Test resolving URI-style memory database."""
@@ -510,7 +510,7 @@ def test_nested_binding_restores_each_owned_target_and_cache() -> None:
         assert state.manager is outer_manager
         assert state.connection is outer
         assert outer is not None
-        assert outer.execute("SELECT COUNT(*) FROM outer_sentinel").fetchone()[0] == 0
+        assert 0 == outer.execute("SELECT COUNT(*) FROM outer_sentinel").fetchone()[0]
         assert inner is not None
         with pytest.raises(sqlite3.ProgrammingError, match="closed database"):
             inner.execute("SELECT 1")
@@ -538,7 +538,7 @@ def test_binding_setup_failure_preserves_state_and_releases_lock(monkeypatch) ->
     assert (state.target, state.manager, state.connection, state.connection_manager) == previous
     with api.database.bind_database_url("sqlite:///:memory:"):
         assert state.target is not None
-        assert state.target.path == ":memory:"
+        assert ":memory:" == state.target.path
     assert (state.target, state.manager, state.connection, state.connection_manager) == previous
 
 
@@ -567,20 +567,23 @@ def _binding_lock_is_available_to_worker() -> bool:
     return acquired
 
 
+def _fail_inside_bound_database(executor) -> None:
+    """Raise from inside a binding after proving another thread cannot acquire its lock."""
+    import api.database
+
+    with api.database.bind_database_url("sqlite:///:memory:"):
+        assert executor.submit(_binding_lock_is_available_to_worker).result(timeout=5) is False
+        raise RuntimeError("binding body failed")
+
+
 @pytest.mark.unit
 def test_binding_lock_is_held_then_released_after_failure() -> None:
     """A failing binding retains exclusion until restoration and releases it afterwards."""
     from concurrent.futures import ThreadPoolExecutor
 
-    import api.database
-
     with ThreadPoolExecutor(max_workers=1) as executor:
-        with (
-            pytest.raises(RuntimeError, match="binding body failed"),
-            api.database.bind_database_url("sqlite:///:memory:"),
-        ):
-            assert executor.submit(_binding_lock_is_available_to_worker).result(timeout=5) is False
-            raise RuntimeError("binding body failed")
+        with pytest.raises(RuntimeError, match="binding body failed"):
+            _fail_inside_bound_database(executor)
         assert executor.submit(_binding_lock_is_available_to_worker).result(timeout=5) is True
 
 
@@ -598,8 +601,8 @@ def test_postgresql_binding_uses_owned_target_without_mutating_constants() -> No
     ):
         with api.database.get_connection() as opened:
             assert opened is connection
-        assert connect.call_args.args[0] == target
-        assert api.database._effective_database_target().database_type == "postgresql"
-        assert api.database._effective_database_target().path == target
+        assert target == connect.call_args.args[0]
+        assert "postgresql" == api.database._effective_database_target().database_type
+        assert target == api.database._effective_database_target().path
     assert (api.database.DATABASE_URL, api.database.DATABASE_TYPE, api.database.DATABASE_PATH) == constants
     connection.close.assert_called_once()

@@ -24,6 +24,7 @@ from src.config.settings import get_settings
 
 from .base import Base
 from .check_constraint_normalization import normalize_check_definition as _normalize_check_definition
+from .relationship_assertion_schema import SchemaCompatibilityError
 
 # Canonical transaction helper lives in repository.py per tech spec.
 # Re-export here for backward compatibility with older imports.
@@ -86,10 +87,6 @@ _TABLE_PRIVILEGES = (*_RLS_COMMANDS, "TRUNCATE", "REFERENCES", "TRIGGER")
 _COLUMN_PRIVILEGES = ("SELECT", "INSERT", "UPDATE", "REFERENCES")
 _SEQUENCE_PRIVILEGES = ("USAGE", "SELECT", "UPDATE")
 _GRAPH_SEQUENCE_PRIVILEGES = frozenset({"USAGE", "SELECT"})
-
-
-class SchemaCompatibilityError(RuntimeError):
-    """Raised when a runtime database does not match the required schema contract."""
 
 
 class CapabilityRoleBootstrapRequiredError(SchemaCompatibilityError):

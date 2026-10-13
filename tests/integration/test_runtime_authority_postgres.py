@@ -2192,12 +2192,12 @@ def test_bootstrap_catalog_locks_block_concurrent_mutations(monkeypatch: pytest.
         "database": f"fdbboot_{suffix}_database",
     }
 
-    def pause_after_preflight(cursor, mapping, bootstrap_sql):
+    def pause_after_preflight(cursor, mapping):
         """Expose the held-lock interval to concurrent mutator sessions."""
         lock_ready.set()
         if not release_bootstrap.wait(15):
             raise TimeoutError("test did not release bootstrap lock barrier")
-        return original_apply(cursor, mapping, bootstrap_sql)
+        return original_apply(cursor, mapping)
 
     try:
         with _operator_connection(database_url) as connection, connection.cursor() as cursor:
@@ -2247,12 +2247,15 @@ def test_bootstrap_catalog_locks_block_concurrent_mutations(monkeypatch: pytest.
                 connection.close()
 
         def create_role(cursor) -> None:
+            """Create the invocation-owned sentinel role for the concurrent writer."""
             cursor.execute(sql.SQL("CREATE ROLE {}").format(sql.Identifier(names["role"])))
 
         def grant_schema(cursor) -> None:
+            """Attempt a conflicting CREATE grant in the secondary database."""
             cursor.execute(sql.SQL("GRANT CREATE ON SCHEMA public TO {}").format(sql.Identifier(names["schema"])))
 
         def alter_database(cursor) -> None:
+            """Attempt a conflicting database-catalog update for the writer test."""
             cursor.execute(sql.SQL("ALTER DATABASE {} CONNECTION LIMIT 88").format(sql.Identifier(secondary)))
 
         with ThreadPoolExecutor(max_workers=4) as executor:
