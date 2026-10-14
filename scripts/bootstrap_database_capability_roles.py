@@ -11,7 +11,6 @@ from pathlib import Path
 
 import psycopg2
 from psycopg2.extensions import connection as PsycopgConnection
-from psycopg2.extensions import make_dsn
 
 _ROLE_NAMES = (
     "fardb_runtime_auth",
@@ -32,7 +31,7 @@ class BootstrapOutcomeIndeterminate(RuntimeError):
     """The coordinator connection failed while commit outcome was unknown."""
 
 
-def _normalize_mapping(cursor, mapping: Mapping[str, object] | None) -> dict[str, list[str]]:
+def _normalize_mapping(mapping: Mapping[str, object] | None) -> dict[str, list[str]]:
     """Validate the complete fixed-role mapping before opening target sessions."""
     if not isinstance(mapping, Mapping) or set(mapping) != set(_ROLE_NAMES):
         raise BootstrapTargetError("complete FarDB bootstrap target mapping is required")
@@ -210,13 +209,12 @@ def _open_target_connections(
                 raise BootstrapTargetError(
                     "a protected target connection URL is required for mapped secondary databases"
                 )
-            dsn = make_dsn(
+            target_connection = psycopg2.connect(
                 target_database_url,
                 dbname=database_name,
                 connect_timeout=_CONNECT_TIMEOUT_SECONDS,
                 application_name="fardb-capability-bootstrap-target",
             )
-            target_connection = psycopg2.connect(dsn)
             stack.callback(target_connection.close)
         observed = _cluster_and_database_identity(target_connection)
         if observed != (coordinator_identity[0], expected_oid, expected_name):
@@ -269,7 +267,7 @@ def _prepare_and_apply_bootstrap(
     """Preflight all targets, apply fixed reviewed SQL, and recheck locked ACLs."""
     _require_superuser(cursor)
     _lock_coordinator_catalogs(cursor)
-    normalized = _normalize_mapping(cursor, mapping)
+    normalized = _normalize_mapping(mapping)
     coordinator_identity = _cluster_and_database_identity(connection)
     target_identities = _coordinator_targets(cursor, normalized)
     target_connections, target_role_oids = _preflight_targets(
@@ -334,7 +332,7 @@ def bootstrap_capability_roles(
     target_connections: dict[str, PsycopgConnection] = {}
     with ExitStack() as stack:
         try:
-            mapping = _normalize_mapping(cursor, mapping)
+            mapping = _normalize_mapping(mapping)
             if began_explicitly:
                 cursor.execute("BEGIN")
                 transaction_started = True
@@ -369,7 +367,7 @@ def main(argv: list[str] | None = None) -> int:
     database_url = os.environ.get("FARDB_BOOTSTRAP_DATABASE_URL")
     if not database_url:
         parser.error("FARDB_BOOTSTRAP_DATABASE_URL must be provided through the protected operator environment")
-    mapping = _normalize_mapping(None, json.loads(arguments.targets_json))
+    mapping = _normalize_mapping(json.loads(arguments.targets_json))
     with (
         psycopg2.connect(database_url, connect_timeout=_CONNECT_TIMEOUT_SECONDS) as connection,
         connection.cursor() as cursor,

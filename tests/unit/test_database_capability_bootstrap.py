@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from contextlib import ExitStack
 from unittest.mock import MagicMock, Mock, call
 
 import psycopg2
@@ -14,16 +15,14 @@ from scripts import bootstrap_database_capability_roles as bootstrap
 @pytest.mark.parametrize("mapping", [None, {}, [], "null"])
 def test_mapping_rejects_incomplete_targets(mapping) -> None:
     """The coordinator rejects missing keys before it can open a target session."""
-    cursor = MagicMock()
     with pytest.raises(bootstrap.BootstrapTargetError, match="complete FarDB bootstrap target mapping"):
-        bootstrap._normalize_mapping(cursor, mapping)
-    cursor.execute.assert_not_called()
+        bootstrap._normalize_mapping(mapping)
 
 
 def test_mapping_keeps_all_capabilities_and_deduplicates_each_target() -> None:
     """The normalized mapping remains complete while repeated databases are checked once."""
     mapping = {role: ["graph_db", "auth_db", "graph_db"] for role in bootstrap._ROLE_NAMES}
-    normalized = bootstrap._normalize_mapping(MagicMock(), mapping)
+    normalized = bootstrap._normalize_mapping(mapping)
     assert normalized == {role: ["graph_db", "auth_db"] for role in bootstrap._ROLE_NAMES}
 
 
@@ -31,7 +30,7 @@ def test_catalog_database_name_cannot_override_connection_route() -> None:
     """Libpq quotes the catalog-selected database name as a value, not DSN options."""
     target_url = "postgresql://bootstrap:placeholder@127.0.0.1:5432/control?sslmode=disable&hostaddr=127.0.0.1"
     database_name = "target_db host=192.0.2.8 port=1 user=attacker"
-    dsn = bootstrap.make_dsn(
+    dsn = psycopg2.extensions.make_dsn(
         target_url,
         dbname=database_name,
         connect_timeout=bootstrap._CONNECT_TIMEOUT_SECONDS,
@@ -236,3 +235,55 @@ def test_invalid_mapping_rolls_back_existing_caller_transaction(mapping) -> None
     cursor.execute.assert_not_called()
     cursor.connection.rollback.assert_called_once()
     cursor.connection.commit.assert_not_called()
+
+
+@pytest.mark.parametrize(
+    "database_name",
+    [
+        "target_db host=192.0.2.8 port=1 user=attacker",
+        "postgresql://192.0.2.8/other",
+        "target' hostaddr=192.0.2.8 sslmode=disable",
+    ],
+)
+def test_catalog_name_is_separate_from_protected_connection_route(database_name, monkeypatch) -> None:
+    """Catalog values remain database names and cannot replace operator routing parameters."""
+    coordinator = MagicMock()
+    target = MagicMock()
+    connect = Mock(return_value=target)
+    route = "postgresql://operator@127.0.0.1:5432/control?hostaddr=127.0.0.1&sslmode=require"
+    monkeypatch.setattr(bootstrap.psycopg2, "connect", connect)
+    monkeypatch.setattr(bootstrap, "_cluster_and_database_identity", Mock(return_value=("123", 43, database_name)))
+    with ExitStack() as stack:
+        observed = bootstrap._open_target_connections(
+            coordinator, route, {database_name: (43, database_name)}, ("123", 42, "control"), stack
+        )
+        assert observed[database_name] is target
+        args, kwargs = connect.call_args
+        assert args == (route,)
+        assert kwargs["dbname"] == database_name
+        parameters = psycopg2.extensions.parse_dsn(psycopg2.extensions.make_dsn(*args, **kwargs))
+        assert parameters["dbname"] == database_name
+        assert parameters["host"] == "127.0.0.1"
+        assert parameters["hostaddr"] == "127.0.0.1"
+        assert parameters["port"] == "5432"
+        assert parameters["user"] == "operator"
+        assert parameters["sslmode"] == "require"
+        assert parameters["connect_timeout"] == str(bootstrap._CONNECT_TIMEOUT_SECONDS)
+    target.close.assert_called_once()
+
+
+@pytest.mark.parametrize("identity", [("999", 43, "target"), ("123", 99, "target"), ("123", 43, "other")])
+def test_secondary_connection_identity_mismatch_closes_before_acceptance(identity, monkeypatch) -> None:
+    """Any cluster, OID or database-name mismatch rejects and releases the target session."""
+    target = MagicMock()
+    monkeypatch.setattr(bootstrap.psycopg2, "connect", Mock(return_value=target))
+    monkeypatch.setattr(bootstrap, "_cluster_and_database_identity", Mock(return_value=identity))
+    with ExitStack() as stack, pytest.raises(bootstrap.BootstrapTargetError, match="identity-proved cluster target"):
+        bootstrap._open_target_connections(
+            MagicMock(),
+            "postgresql://operator@127.0.0.1/control",
+            {"target": (43, "target")},
+            ("123", 42, "control"),
+            stack,
+        )
+    target.close.assert_called_once()

@@ -121,6 +121,34 @@ def test_changed_identity_blocks_recovery_after_verification(monkeypatch) -> Non
         app_factory._verify_reconciliation_schemas(graph, graph)
 
 
+@pytest.mark.parametrize("changed_target", ["graph", "coordination"])
+def test_each_retained_target_rejects_post_verification_identity_drift(monkeypatch, changed_target) -> None:
+    """Either target changing identity blocks recovery and releases both retained sessions."""
+    from src.data.database import SchemaCompatibilityError
+
+    graph = identity_engine()
+    coordination = identity_engine(identifier="99999")
+    affected = graph if changed_target == "graph" else coordination
+    initial_identifier = "12345" if changed_target == "graph" else "99999"
+    before = MagicMock()
+    before.fetchall.return_value = [(initial_identifier, 16384, "test_db")]
+    after = MagicMock()
+    after.fetchall.return_value = [("77777", 16384, "test_db")]
+    affected.identity_connections[0].execute.side_effect = [before, after]
+    schema = MagicMock()
+    authority = MagicMock()
+    monkeypatch.setattr("src.data.database.verify_database_schema", schema)
+    monkeypatch.setattr("src.data.database.verify_runtime_database_authority", authority)
+
+    with pytest.raises(SchemaCompatibilityError, match=f"{changed_target} target identity changed"):
+        app_factory._verify_reconciliation_schemas(graph, coordination)
+
+    assert schema.call_count == 2
+    assert authority.call_count == 2
+    graph.identity_contexts[0].__exit__.assert_called_once()
+    coordination.identity_contexts[0].__exit__.assert_called_once()
+
+
 @pytest.mark.parametrize("invalid_login", [None, "", 42])
 @pytest.mark.parametrize("invalid_target", ["graph", "coordination"])
 def test_invalid_login_identity_stops_before_authority(monkeypatch, invalid_login, invalid_target) -> None:

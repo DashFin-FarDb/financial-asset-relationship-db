@@ -158,14 +158,37 @@ def _verify_reconciliation_target(engine: Any, connection: Any, capabilities: se
     verify_runtime_database_authority(engine, required_capabilities=capabilities, **options)
 
 
+def _has_shared_reconciliation_login(graph_connection: Any, coord_connection: Any, combined: bool) -> bool:
+    """Prove shared authenticated login scope without replacing the retained sessions."""
+    from sqlalchemy import text
+
+    if not combined or graph_connection is None or coord_connection is graph_connection:
+        return False
+    graph_login = graph_connection.execute(text("SELECT session_user")).scalar_one()
+    coordination_login = coord_connection.execute(text("SELECT session_user")).scalar_one()
+    if (
+        not isinstance(graph_login, str)
+        or not graph_login
+        or not isinstance(coordination_login, str)
+        or not coordination_login
+    ):
+        raise SchemaCompatibilityError("runtime login identity could not be established")
+    return graph_login == coordination_login
+
+
+def _verify_reconciliation_identity(connection: Any, expected_identity: Any, component: str) -> None:
+    """Reject identity drift on a retained session before recovery can proceed."""
+    from src.data.postgresql_topology import read_database_identity
+
+    if connection is not None and read_database_identity(connection) != expected_identity:
+        raise SchemaCompatibilityError(f"{component} target identity changed during verification")
+
+
 def _verify_reconciliation_schemas(engine: Any, coord_engine: Any) -> None:
     """Verify reconciliation schemas without exercising migration authority."""
     from contextlib import ExitStack
 
-    from sqlalchemy import text
-
     from src.data.database import COORDINATION_RUNTIME_CAPABILITY, GRAPH_RUNTIME_CAPABILITY
-    from src.data.postgresql_topology import read_database_identity
 
     graph_capabilities = {GRAPH_RUNTIME_CAPABILITY}
     if coord_engine is engine:
@@ -175,31 +198,16 @@ def _verify_reconciliation_schemas(engine: Any, coord_engine: Any) -> None:
             stack, engine, coord_engine
         )
         coordination_capabilities = {COORDINATION_RUNTIME_CAPABILITY}
-        if combined and graph_connection is not None and coord_connection is not graph_connection:
-            graph_login = graph_connection.execute(text("SELECT session_user")).scalar_one()
-            coordination_login = coord_connection.execute(text("SELECT session_user")).scalar_one()
-            if (
-                not isinstance(graph_login, str)
-                or not graph_login
-                or not isinstance(coordination_login, str)
-                or not coordination_login
-            ):
-                raise SchemaCompatibilityError("runtime login identity could not be established")
-            if graph_login == coordination_login:
-                graph_capabilities.add(COORDINATION_RUNTIME_CAPABILITY)
-                coordination_capabilities.add(GRAPH_RUNTIME_CAPABILITY)
+        if _has_shared_reconciliation_login(graph_connection, coord_connection, combined):
+            graph_capabilities.add(COORDINATION_RUNTIME_CAPABILITY)
+            coordination_capabilities.add(GRAPH_RUNTIME_CAPABILITY)
         _verify_reconciliation_target(engine, graph_connection, graph_capabilities, combined)
         if coord_engine is not engine:
             _verify_reconciliation_target(coord_engine, coord_connection, coordination_capabilities, combined)
         # Detect identity drift before publication/recovery is allowed to start.
-        if graph_connection is not None and read_database_identity(graph_connection) != graph_identity:
-            raise SchemaCompatibilityError("graph target identity changed during verification")
-        if (
-            coord_connection is not None
-            and coord_connection is not graph_connection
-            and read_database_identity(coord_connection) != coord_identity
-        ):
-            raise SchemaCompatibilityError("coordination target identity changed during verification")
+        _verify_reconciliation_identity(graph_connection, graph_identity, "graph")
+        if coord_connection is not graph_connection:
+            _verify_reconciliation_identity(coord_connection, coord_identity, "coordination")
 
 
 def _verify_auth_database(operation_guard: Any | None = None) -> None:
