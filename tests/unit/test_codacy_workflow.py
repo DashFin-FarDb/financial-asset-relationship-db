@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
+import itertools
 import os
 import shutil
-import subprocess
+import subprocess  # nosec B404
 from pathlib import Path
 from typing import Any
 
@@ -28,8 +29,11 @@ def codacy_steps(codacy_workflow: dict[str, Any]) -> list[dict[str, Any]]:
 
 
 def _step(steps: list[dict[str, Any]], name: str) -> dict[str, Any]:
-    """Return one named workflow step."""
-    return next(step for step in steps if step.get("name") == name)
+    """Return exactly one named workflow step."""
+    matches = [step for step in steps if step.get("name") == name]
+    if len(matches) != 1:
+        raise ValueError(f"Expected exactly 1 step named {name!r}, found {len(matches)}")
+    return matches[0]
 
 
 @pytest.mark.unit
@@ -63,14 +67,22 @@ def native_bash() -> str:
     return bash_path
 
 
+_SCENARIO_COMBINATIONS = list(
+    itertools.product(
+        [0, 1, 100, 101, 125],
+        ["/synthetic/repo", "/synthetic/FarDb space;$(false)/unicode-δ"],
+        ["", "synthetic token;$(false)"],
+    )
+)
+
+
 @pytest.mark.unit
-@pytest.mark.parametrize("exit_code", [0, 1, 100, 101, 125])
-@pytest.mark.parametrize("workspace", ["/synthetic/repo", "/synthetic/FarDb space;$(false)/unicode-δ"])
-@pytest.mark.parametrize("token", ["", "synthetic token;$(false)"])
+@pytest.mark.parametrize("scenario", _SCENARIO_COMBINATIONS)
 def test_codacy_command_arguments_and_failure_propagation(
-    codacy_steps: list[dict[str, Any]], native_bash: str, exit_code: int, workspace: str, token: str
+    codacy_steps: list[dict[str, Any]], native_bash: str, scenario: tuple[int, str, str]
 ) -> None:
     """Exercise the workflow shell with an inert Docker function, not a real scanner."""
+    exit_code, workspace, token = scenario
     scan = _step(codacy_steps, "Run Codacy Analysis CLI")
     stub = """docker() {
       printf '%s\\0' "$CODACY_CODE" "$CODACY_PROJECT_TOKEN" "$@"
@@ -90,7 +102,7 @@ def test_codacy_command_arguments_and_failure_propagation(
             "CODACY_STUB_STATUS": str(exit_code),
         }
     )
-    result = subprocess.run(
+    result = subprocess.run(  # nosec B603
         [native_bash, "--noprofile", "--norc", "-e", "-o", "pipefail", "-c", stub + scan["run"]],
         env=environment,
         capture_output=True,
@@ -115,7 +127,7 @@ def test_codacy_command_arguments_and_failure_propagation(
         "--volume",
         f"{workspace}:{workspace}",
         "--volume",
-        "/tmp:/tmp",
+        "/tmp:/tmp",  # nosec B108
         CODACY_IMAGE,
         "--",
         "analyze",
@@ -135,6 +147,20 @@ def test_codacy_command_arguments_and_failure_propagation(
         "--fail-if-incomplete",
         "",
     ]
+
+
+@pytest.mark.unit
+def test_step_helper_requires_exactly_one_match() -> None:
+    """_step raises ValueError when a step is missing or duplicated."""
+    steps = [{"name": "First"}, {"name": "Second"}]
+    assert _step(steps, "First") == {"name": "First"}
+
+    with pytest.raises(ValueError, match="Expected exactly 1 step named 'Missing', found 0"):
+        _step(steps, "Missing")
+
+    duplicate_steps = [{"name": "Step A"}, {"name": "Step A"}]
+    with pytest.raises(ValueError, match="Expected exactly 1 step named 'Step A', found 2"):
+        _step(duplicate_steps, "Step A")
 
 
 @pytest.mark.unit
