@@ -276,13 +276,14 @@ def test_catalog_name_is_separate_from_protected_connection_route(database_name,
 def test_secondary_connection_identity_mismatch_closes_before_acceptance(identity, monkeypatch) -> None:
     """Any cluster, OID or database-name mismatch rejects and releases the target session."""
     target = MagicMock()
+    coordinator_cursor = MagicMock()
     monkeypatch.setattr(bootstrap.psycopg2, "connect", Mock(return_value=target))
     monkeypatch.setattr(bootstrap, "_cluster_and_database_identity", Mock(return_value=identity))
     stack = ExitStack()
     try:
         with pytest.raises(bootstrap.BootstrapTargetError, match="identity-proved cluster target"):
             bootstrap._open_target_connections(
-                MagicMock(),
+                coordinator_cursor,
                 "postgresql://operator@127.0.0.1/control",
                 {"target": (43, "target")},
                 ("123", 42, "control"),
