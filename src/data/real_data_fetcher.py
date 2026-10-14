@@ -304,9 +304,11 @@ class RealDataFetcher:
                     ),
                 )
                 return None
-            contaminated_events = [
-                event.id for event in graph.regulatory_events if event.id in REMOVED_SYNTHETIC_EVENT_IDS
-            ]
+            contaminated_events = []
+            for event in graph.regulatory_events:
+                self._check_cancelled(cancel_event, "during cache event validation")
+                if event.id in REMOVED_SYNTHETIC_EVENT_IDS:
+                    contaminated_events.append(event.id)
             if contaminated_events:
                 log_event(
                     logger,

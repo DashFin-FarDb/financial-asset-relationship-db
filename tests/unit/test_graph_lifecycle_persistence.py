@@ -7,6 +7,7 @@ import logging
 from collections.abc import Iterator
 from pathlib import Path
 from typing import Any, Callable  # noqa: UP035  # Callable from typing for Prospector/Pylint compatibility
+from unittest.mock import Mock
 
 import pytest
 from sqlalchemy import create_engine, text  # pylint: disable=import-error
@@ -273,6 +274,26 @@ def test_persistence_disabled_loads_configured_cache(monkeypatch: pytest.MonkeyP
     assert startup_source is not None
     assert startup_source.source == graph_lifecycle.GraphStartupSource.CACHE
     assert startup_source.persistence_enabled is False
+
+
+def test_startup_cache_probe_stays_offline_before_one_live_fallback(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Cache failure triggers exactly one live source call after an offline probe."""
+    settings = graph_lifecycle_providers.GraphLifecycleSettings(
+        graph_cache_path="startup-cache.json", use_real_data_fetcher=True
+    )
+    monkeypatch.setattr(graph_lifecycle_providers, "get_graph_lifecycle_settings", lambda: settings)
+    cache = Mock(side_effect=graph_lifecycle_providers.DataAcquisitionIncompleteError("cache unavailable"))
+    graph = _asset_only_graph()
+    live = Mock(return_value=(graph, "real_data"))
+    monkeypatch.setattr(graph_lifecycle_providers, "load_graph_from_cache_path", cache)
+    monkeypatch.setattr(graph_lifecycle_providers, "load_graph_from_real_data_fetcher", live)
+
+    loaded, metadata = graph_lifecycle.initialize_graph_runtime()
+
+    cache.assert_called_once_with("startup-cache.json", enable_network=False)
+    live.assert_called_once_with(None)
+    assert loaded is graph
+    assert metadata.source == graph_lifecycle.GraphStartupSource.REAL_DATA
 
 
 def test_initialize_graph_does_not_commit_startup_source_state(

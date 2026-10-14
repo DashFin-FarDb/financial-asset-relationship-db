@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import threading
 from dataclasses import FrozenInstanceError
+from pathlib import Path
 from unittest.mock import MagicMock
 
 import pytest
@@ -166,18 +168,18 @@ def test_build_rebuild_graph_fails_closed_when_no_source_available() -> None:
 
 
 def test_build_rebuild_graph_uses_cache_when_available(
-    tmp_path: pytest.TempPathFactory,
+    tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """build_rebuild_graph must load cache when configured cache path exists."""
-    cache_file = tmp_path / "cache.json"  # type: ignore[operator]
+    cache_file = tmp_path / "cache.json"
     cache_file.write_text("{}", encoding="utf-8")
     expected_graph = AssetRelationshipGraph()
 
     monkeypatch.setattr(
         providers,
         "load_graph_from_cache_path",
-        lambda path, enable_network: (expected_graph, "cache"),
+        lambda path, enable_network, cancel_event=None: (expected_graph, "cache"),
     )
 
     settings = providers.GraphLifecycleSettings(
@@ -237,8 +239,6 @@ def test_build_rebuild_graph_cancels_before_cache_load(tmp_path: object) -> None
         graph_cache_path=str(cache_file),
         use_real_data_fetcher=False,
     )
-    import threading
-
     cancel_event = threading.Event()
     cancel_event.set()
 
@@ -254,8 +254,6 @@ def test_build_rebuild_graph_propagates_cancellation_during_cache_validation(
     cache_file = tmp_path / "cache.json"  # type: ignore[operator]
     cache_file.write_text("{}", encoding="utf-8")
 
-    import threading
-
     cancel_event = threading.Event()
 
     def mock_load_cache(path: str, enable_network: bool, cancel_event: threading.Event | None = None):
@@ -270,3 +268,46 @@ def test_build_rebuild_graph_propagates_cancellation_during_cache_validation(
 
     with pytest.raises(providers.RebuildCancelledError, match="Cancelled in cache validation"):
         providers.build_rebuild_graph(settings, cancel_event=cancel_event)
+
+
+def test_internal_cache_type_error_is_not_retried_without_cancellation(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A loader failure invokes the loader once and follows the sanitized error path."""
+    cache_file = tmp_path / "cache.json"
+    cache_file.write_text("{}", encoding="utf-8")
+    cancel_event = threading.Event()
+    loader = MagicMock(side_effect=TypeError("private loader failure"))
+    monkeypatch.setattr(providers, "load_graph_from_cache_path", loader)
+    settings = providers.GraphLifecycleSettings(graph_cache_path=str(cache_file), use_real_data_fetcher=True)
+
+    with pytest.raises(providers.GraphRebuildSourceError, match="Failed to build rebuild graph") as raised:
+        providers.build_rebuild_graph(settings, cancel_event=cancel_event)
+
+    loader.assert_called_once_with(str(cache_file), enable_network=True, cancel_event=cancel_event)
+    assert "private loader failure" not in str(raised.value)
+
+
+@pytest.mark.parametrize("source", ["cache", "real_data"])
+def test_incomplete_rebuild_acquisition_is_typed_unavailable(
+    source: str, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Incomplete acquisition cannot become an unexpected rebuild error or expose provider details."""
+    incomplete = providers.DataAcquisitionIncompleteError("private acquisition detail")
+    loader = MagicMock(side_effect=incomplete)
+    cache_path = None
+    if source == "cache":
+        cache_file = tmp_path / "cache.json"
+        cache_file.write_text("{}", encoding="utf-8")
+        cache_path = str(cache_file)
+        monkeypatch.setattr(providers, "load_graph_from_cache_path", loader)
+    else:
+        fetcher = MagicMock()
+        fetcher.fetch_raw_data_with_source = loader
+        monkeypatch.setattr("src.data.real_data_fetcher.RealDataFetcher", lambda **kwargs: fetcher)
+    settings = providers.GraphLifecycleSettings(graph_cache_path=cache_path, use_real_data_fetcher=True)
+
+    with pytest.raises(providers.AuthoritativeGraphUnavailableError, match="No complete authoritative rebuild source"):
+        providers.build_rebuild_graph(settings)
+
+    assert loader.call_count == 1

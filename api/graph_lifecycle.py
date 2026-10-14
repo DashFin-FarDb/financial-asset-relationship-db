@@ -574,7 +574,7 @@ def initialize_graph_runtime() -> tuple[AssetRelationshipGraph, GraphStartupMeta
         try:
             graph, raw_source = graph_lifecycle_providers.load_graph_from_cache_path(
                 cache_path,
-                enable_network=use_real_data,
+                enable_network=False,
             )
             source_id = _resolve_provider_source(raw_source)
         except Exception as exc:

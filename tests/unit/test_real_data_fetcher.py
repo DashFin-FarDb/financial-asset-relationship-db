@@ -14,6 +14,7 @@ Tests cover:
 
 import json
 import re
+import threading
 from unittest.mock import MagicMock, Mock, patch
 
 import pytest
@@ -51,6 +52,47 @@ from src.models.financial_models import (
 )
 
 pytestmark = pytest.mark.unit
+
+
+def test_cache_load_cancellation_triggered_inside_loader(tmp_path, monkeypatch):
+    """Cancellation raised during cache loading propagates instead of being treated as a cache miss."""
+    cache_path = tmp_path / "cache.json"
+    cache_path.write_text("{}", encoding="utf-8")
+    cancelled = threading.Event()
+
+    def load_and_cancel(path):
+        """Simulate cancellation arriving while a cache loader owns the work."""
+        cancelled.set()
+        return Mock()
+
+    monkeypatch.setattr("src.data.real_data_fetcher._load_from_cache", load_and_cancel)
+    fetcher = RealDataFetcher(cache_path=str(cache_path), enable_network=False)
+    with pytest.raises(FetchCancelledError, match="during cache validation"):
+        fetcher._try_load_from_cache(cancel_event=cancelled)
+
+
+def test_cache_event_scan_stops_when_cancellation_arrives(tmp_path, monkeypatch):
+    """A cancellation inside the event iterator stops validation before scanning the remaining events."""
+    cache_path = tmp_path / "cache.json"
+    cache_path.write_text("{}", encoding="utf-8")
+    cancelled = threading.Event()
+    visited = []
+
+    def events():
+        """Deliver cancellation during a multi-event cache validation pass."""
+        for index in range(5):
+            visited.append(index)
+            if index == 1:
+                cancelled.set()
+            yield Mock(id=f"authoritative_filing_{index}")
+
+    universe = _make_mock_universe_assets()
+    graph = Mock(assets={asset.id: asset for group in universe for asset in group}, regulatory_events=events())
+    monkeypatch.setattr("src.data.real_data_fetcher._load_from_cache", lambda path: graph)
+    fetcher = RealDataFetcher(cache_path=str(cache_path), enable_network=False)
+    with pytest.raises(FetchCancelledError, match="during cache event validation"):
+        fetcher._try_load_from_cache(cancel_event=cancelled)
+    assert visited == [0, 1]
 
 
 def _make_import_blocker(blocked_module: str):
@@ -1748,8 +1790,6 @@ class TestCompletenessGate:
 
     def test_cache_load_aborts_when_cancel_event_set_before_or_after_load(self, tmp_path):
         """Ensure _try_load_from_cache raises FetchCancelledError when cancel_event is set."""
-        import threading
-
         mock_eqs, mock_bnds, mock_comms, mock_currs = _make_mock_universe_assets()
         cache_path = tmp_path / "test_cancel_cache.json"
 

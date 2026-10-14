@@ -35,6 +35,8 @@ def test_get_graph_fails_closed_when_uninitialized(monkeypatch: pytest.MonkeyPat
     """get_graph must fail closed and raise AuthoritativeGraphUnavailableError if not initialized."""
     from src.config.settings import get_settings
 
+    monkeypatch.setenv("ENV", "development")
+    monkeypatch.delenv("VERCEL_ENV", raising=False)
     monkeypatch.delenv("ASSET_GRAPH_DATABASE_URL", raising=False)
     monkeypatch.delenv("GRAPH_CACHE_PATH", raising=False)
     monkeypatch.delenv("REAL_DATA_CACHE_PATH", raising=False)

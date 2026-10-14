@@ -13,6 +13,7 @@ import api.graph_lifecycle_providers
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 
 _RUNTIME_FILES: list[Path] = [
+    _PROJECT_ROOT / "api" / "main.py",
     _PROJECT_ROOT / "api" / "graph_lifecycle.py",
     _PROJECT_ROOT / "api" / "graph_lifecycle_providers.py",
     _PROJECT_ROOT / "api" / "app_factory.py",

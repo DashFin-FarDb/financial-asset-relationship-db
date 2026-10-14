@@ -17,6 +17,7 @@ from sqlalchemy.orm import Session  # pylint: disable=import-error
 from src.config.settings import DeploymentEnvironment, get_settings
 from src.data.database import create_engine_from_url, create_session_factory
 from src.data.db_models import AssetORM
+from src.data.real_data_fetcher import DataAcquisitionIncompleteError
 from src.data.repository import AssetGraphRepository
 from src.logic.asset_graph import AssetRelationshipGraph
 from src.logic.reconciliation_engine import RebuildCancelledError
@@ -293,17 +294,11 @@ def build_rebuild_graph(
         if settings.graph_cache_path and Path(settings.graph_cache_path).exists():
             if cancel_event and cancel_event.is_set():
                 raise RebuildCancelledError("Rebuild cancelled before loading cache.")
-            try:
-                graph, source = load_graph_from_cache_path(
-                    settings.graph_cache_path,
-                    enable_network=settings.use_real_data_fetcher,
-                    cancel_event=cancel_event,
-                )
-            except TypeError:
-                graph, source = load_graph_from_cache_path(
-                    settings.graph_cache_path,
-                    enable_network=settings.use_real_data_fetcher,
-                )
+            graph, source = load_graph_from_cache_path(
+                settings.graph_cache_path,
+                enable_network=settings.use_real_data_fetcher,
+                cancel_event=cancel_event,
+            )
             return graph, source
 
         if settings.use_real_data_fetcher:
@@ -330,6 +325,8 @@ def build_rebuild_graph(
             return (graph, source)
 
         raise AuthoritativeGraphUnavailableError("No valid rebuild source available.")
+    except DataAcquisitionIncompleteError:
+        raise AuthoritativeGraphUnavailableError("No complete authoritative rebuild source available.") from None
     except (RebuildCancelledError, AuthoritativeGraphUnavailableError):
         # Re-raise cancellation and authoritative graph unavailable errors directly
         raise
