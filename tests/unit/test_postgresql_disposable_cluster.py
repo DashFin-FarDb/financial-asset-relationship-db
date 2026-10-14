@@ -297,17 +297,150 @@ def test_post_cli_catalog_is_read_through_host_attestation(actual, monkeypatch) 
     attested.assert_called_once_with("host-attested-url")
 
 
-def test_docker_transport_timeout_does_not_publish_credential_arguments(monkeypatch) -> None:
-    """Transport failures expose a bounded reason rather than the Docker command's env arguments."""
+def test_docker_transport_timeout_suppresses_traceback_disclosure(monkeypatch) -> None:
+    """Timeout failures suppress exception chaining so tracebacks cannot disclose command credentials."""
     import subprocess
+    import traceback
 
     command = ["docker", "create", "-e", "POSTGRES_PASSWORD=private-fixture-value"]
-    monkeypatch.setattr(subprocess, "run", Mock(side_effect=subprocess.TimeoutExpired(command, 1)))
-    with pytest.raises(guard.DisposableTargetError, match="transport failed") as error:
-        guard._docker_command(command)
-    assert error.value.__suppress_context__ is True
+    timeout_exc = subprocess.TimeoutExpired(command, 15)
+    monkeypatch.setattr(subprocess, "run", Mock(side_effect=timeout_exc))
+    with pytest.raises(guard.DisposableTargetError) as error:
+        guard._docker_command(command, timeout=15)
+
     assert error.value.__cause__ is None
-    assert "private-fixture-value" not in str(error.value)
+    assert error.value.__suppress_context__ is True
+    assert error.value.category == "timeout"
+    assert error.value.operation == "docker create"
+    assert error.value.timeout == 15
+    assert str(error.value) == "owned Docker transport timeout during docker create (15s)"
+
+    tb = "".join(traceback.format_exception(type(error.value), error.value, error.value.__traceback__))
+    assert "private-fixture-value" not in tb
+    assert "-e" not in tb
+    assert "TimeoutExpired" not in tb
+
+
+def test_docker_transport_os_error_suppresses_traceback_disclosure(monkeypatch) -> None:
+    """OS errors suppress exception chaining and report category and type without raw paths."""
+    import subprocess
+    import traceback
+
+    command = ["docker", "cp", "-", "container_id:/run/fardb-cli"]
+    os_exc = BrokenPipeError("broken pipe to private endpoint")
+    monkeypatch.setattr(subprocess, "run", Mock(side_effect=os_exc))
+    with pytest.raises(guard.DisposableTargetError) as error:
+        guard._docker_command(command)
+
+    assert error.value.__cause__ is None
+    assert error.value.__suppress_context__ is True
+    assert error.value.category == "os_error"
+    assert error.value.operation == "docker cp"
+    assert error.value.timeout == 30
+    assert str(error.value) == "owned Docker transport OS error during docker cp: BrokenPipeError"
+
+    tb = "".join(traceback.format_exception(type(error.value), error.value, error.value.__traceback__))
+    assert "broken pipe to private endpoint" not in tb
+
+
+def test_docker_command_nonzero_exit_omits_raw_output_from_message(monkeypatch) -> None:
+    """Nonzero exit status preserves the return code and omits arbitrary stderr/stdout from messages."""
+    import subprocess
+    import traceback
+
+    command = ["docker", "cp", "-", "container_id:/run/fardb-cli"]
+    stderr = b"Error: credentials failed with POSTGRES_PASSWORD=supersecret\n"
+    stdout = b"sensitive container dump\n"
+    result = subprocess.CompletedProcess(command, 1, stdout=stdout, stderr=stderr)
+    monkeypatch.setattr(subprocess, "run", Mock(return_value=result))
+    with pytest.raises(guard.DisposableTargetError) as error:
+        guard._docker_command(command)
+
+    assert error.value.__cause__ is None
+    assert error.value.__suppress_context__ is True
+    assert error.value.category == "command_failed"
+    assert error.value.operation == "docker cp"
+    assert error.value.returncode == 1
+    assert str(error.value) == "owned Docker operation failed during docker cp (exit status 1)"
+
+    tb = "".join(traceback.format_exception(type(error.value), error.value, error.value.__traceback__))
+    assert "supersecret" not in tb
+    assert "sensitive container dump" not in tb
+
+
+def test_docker_operation_type_handles_global_options_with_args() -> None:
+    """Global options taking values (such as -H, --config) are skipped rather than parsed as subcommands."""
+    assert guard._docker_operation_type(["docker", "-H", "tcp://admin:secret@daemon:2375", "ps"]) == "docker ps"
+    assert guard._docker_operation_type(["docker", "--config", "/root/.docker", "ps"]) == "docker ps"
+    assert guard._docker_operation_type(["docker", "--config=/root/.docker", "ps"]) == "docker ps"
+    assert guard._docker_operation_type(["docker", "-c", "custom-context", "volume", "ls"]) == "docker volume ls"
+    assert (
+        guard._docker_operation_type(["docker", "-l", "debug", "exec", "c123", "pg_controldata", "/dir"])
+        == "docker exec pg_controldata"
+    )
+    assert guard._docker_operation_type(["docker", "--tlsverify", "info"]) == "docker info"
+
+
+def test_docker_operation_type_rejects_unknown_subcommands() -> None:
+    """Unknown subcommands and arbitrary tools collapse to generic fail-closed descriptors."""
+    assert guard._docker_operation_type([]) == "docker"
+    assert guard._docker_operation_type(["docker"]) == "docker"
+    assert guard._docker_operation_type(["docker", "unrecognized_command", "arg"]) == "docker"
+    assert guard._docker_operation_type(["docker", "malicious_subcommand", "--flag"]) == "docker"
+    assert guard._docker_operation_type(["docker", "exec", "c123", "unrecognized_tool", "arg"]) == "docker exec"
+    assert guard._docker_operation_type(["docker", "volume", "unrecognized_subcommand"]) == "docker volume"
+
+
+def test_docker_operation_type_permitted_subcommands() -> None:
+    """Permitted subcommands and tools produce exact, bounded operation descriptors."""
+    assert guard._docker_operation_type(["docker", "cp", "-", "c:dir"]) == "docker cp"
+    assert guard._docker_operation_type(["docker", "exec", "c123", "pg_controldata", "/pgdata"]) == (
+        "docker exec pg_controldata"
+    )
+    assert guard._docker_operation_type(["docker", "exec", "c123", "sha256sum", "/file"]) == "docker exec sha256sum"
+    assert guard._docker_operation_type(["docker", "exec", "c123", "test", "-d", "/dir"]) == "docker exec test"
+    assert guard._docker_operation_type(["docker", "volume", "ls", "-q"]) == "docker volume ls"
+    assert guard._docker_operation_type(["docker", "volume", "rm", "vname"]) == "docker volume rm"
+    assert guard._docker_operation_type(["docker", "create", "-e", "PW=val"]) == "docker create"
+    assert guard._docker_operation_type(["docker", "stop", "--time", "5", "c123"]) == "docker stop"
+    assert guard._docker_operation_type(["docker", "inspect", "c123"]) == "docker inspect"
+    assert guard._docker_operation_type(["docker", "ps", "-aq"]) == "docker ps"
+    assert guard._docker_operation_type(["docker", "start", "c123"]) == "docker start"
+    assert guard._docker_operation_type(["docker", "rm", "--force", "c123"]) == "docker rm"
+    assert guard._docker_operation_type(["docker", "run", "-d", "postgres:16"]) == "docker run"
+
+
+def test_disposable_target_error_backwards_compatibility() -> None:
+    """Single-argument positional construction remains 100% compatible with existing callers."""
+    err = guard.DisposableTargetError("legacy invariant failure")
+    assert str(err) == "legacy invariant failure"
+    assert err.args == ("legacy invariant failure",)
+    assert err.category is None
+    assert err.operation is None
+    assert err.timeout is None
+    assert err.returncode is None
+    assert isinstance(err, RuntimeError)
+
+    with pytest.raises(guard.DisposableTargetError, match="legacy invariant failure"):
+        raise err
+
+
+def test_docker_command_preserves_timeout_and_invocation_flags(monkeypatch) -> None:
+    """Default 30-second timeout and subprocess invocation parameters remain unchanged."""
+    import subprocess
+
+    run_mock = Mock(return_value=subprocess.CompletedProcess(["docker", "ps"], 0, stdout=b"", stderr=b""))
+    monkeypatch.setattr(subprocess, "run", run_mock)
+
+    guard._docker_command(["docker", "ps"])
+
+    run_mock.assert_called_once_with(
+        ["docker", "ps"],
+        input=None,
+        capture_output=True,
+        timeout=30,
+        check=False,
+    )
 
 
 @pytest.mark.parametrize("version,options", [(150019, ""), (160014, " WITH INHERIT TRUE, SET TRUE")])

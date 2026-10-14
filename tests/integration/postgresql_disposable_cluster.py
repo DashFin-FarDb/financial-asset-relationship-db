@@ -40,6 +40,21 @@ _owned_roles: dict[str, int] = {}
 class DisposableTargetError(RuntimeError):
     """Raised when a test target is not the harness-attested disposable cluster."""
 
+    def __init__(
+        self,
+        message: str,
+        *,
+        category: str | None = None,
+        operation: str | None = None,
+        timeout: int | None = None,
+        returncode: int | None = None,
+    ):
+        super().__init__(message)
+        self.category = category
+        self.operation = operation
+        self.timeout = timeout
+        self.returncode = returncode
+
 
 def _enabled() -> bool:
     """Return whether the harness explicitly enabled disposable integration tests."""
@@ -393,16 +408,126 @@ def _read_harness_record() -> dict:
     return record
 
 
+_ALLOWED_DOCKER_SUBCOMMANDS = frozenset(
+    {
+        "cp",
+        "create",
+        "exec",
+        "info",
+        "inspect",
+        "ps",
+        "rm",
+        "run",
+        "start",
+        "stop",
+        "volume",
+    }
+)
+_ALLOWED_VOLUME_SUBCOMMANDS = frozenset({"create", "inspect", "ls", "prune", "rm"})
+_ALLOWED_EXEC_COMMANDS = frozenset(
+    {
+        "id",
+        "mkdir",
+        "mktemp",
+        "pg_controldata",
+        "pg_isready",
+        "postgres",
+        "rm",
+        "rmdir",
+        "sha256sum",
+        "stat",
+        "test",
+    }
+)
+_GLOBAL_OPTIONS_WITH_ARGS = frozenset(
+    {
+        "-H",
+        "--host",
+        "-c",
+        "--context",
+        "--config",
+        "-l",
+        "--log-level",
+        "--tlscacert",
+        "--tlscert",
+        "--tlskey",
+    }
+)
+
+
+def _docker_operation_type(command: list[str]) -> str:
+    """Extract a safe, sanitized Docker operation descriptor without exposing arguments or credentials."""
+    if not command:
+        return "docker"
+    subcommand = None
+    subcommand_idx = -1
+    i = 1
+    while i < len(command):
+        arg = command[i]
+        if arg in _GLOBAL_OPTIONS_WITH_ARGS:
+            i += 2
+            continue
+        if arg.startswith("-") and "=" in arg:
+            i += 1
+            continue
+        if arg.startswith("-"):
+            i += 1
+            continue
+        subcommand = arg
+        subcommand_idx = i
+        break
+
+    if not subcommand or subcommand not in _ALLOWED_DOCKER_SUBCOMMANDS:
+        return "docker"
+
+    if subcommand == "volume" and subcommand_idx + 1 < len(command):
+        next_arg = command[subcommand_idx + 1]
+        if next_arg in _ALLOWED_VOLUME_SUBCOMMANDS:
+            return f"docker volume {next_arg}"
+        return "docker volume"
+
+    if subcommand == "exec" and subcommand_idx + 2 < len(command):
+        for j in range(subcommand_idx + 2, len(command)):
+            inner = command[j]
+            if not inner.startswith("-"):
+                inner_name = Path(inner).name
+                if inner_name in _ALLOWED_EXEC_COMMANDS:
+                    return f"docker exec {inner_name}"
+                break
+        return "docker exec"
+
+    return f"docker {subcommand}"
+
+
 def _docker_command(command: list[str], *, input_bytes: bytes | None = None, timeout: int = 30):
     """Run a fixed Docker argv without publishing captured credentials."""
     import subprocess
 
+    operation = _docker_operation_type(command)
     try:
         result = subprocess.run(command, input=input_bytes, capture_output=True, timeout=timeout, check=False)
-    except (OSError, subprocess.TimeoutExpired):
-        raise DisposableTargetError("owned Docker transport failed") from None
+    except subprocess.TimeoutExpired:
+        raise DisposableTargetError(
+            f"owned Docker transport timeout during {operation} ({timeout}s)",
+            category="timeout",
+            operation=operation,
+            timeout=timeout,
+        ) from None
+    except OSError as exc:
+        err_name = type(exc).__name__
+        raise DisposableTargetError(
+            f"owned Docker transport OS error during {operation}: {err_name}",
+            category="os_error",
+            operation=operation,
+            timeout=timeout,
+        ) from None
     if result.returncode:
-        raise DisposableTargetError("owned Docker operation failed")
+        raise DisposableTargetError(
+            f"owned Docker operation failed during {operation} (exit status {result.returncode})",
+            category="command_failed",
+            operation=operation,
+            returncode=result.returncode,
+        ) from None
     return result
 
 
@@ -712,9 +837,17 @@ class ContainerCliRunner:
         ]
         try:
             result = subprocess.run(command, capture_output=True, timeout=timeout, check=False)
-        except (subprocess.TimeoutExpired, KeyboardInterrupt):
+        except subprocess.TimeoutExpired:
             _docker_command([self.cli, "stop", "--time", "5", self.record["id"]])
-            raise DisposableTargetError("CLI timed out/cancelled; owned container stopped") from None
+            raise DisposableTargetError(
+                f"CLI timed out ({timeout}s); owned container stopped",
+                category="timeout",
+                operation="supabase",
+                timeout=timeout,
+            ) from None
+        except KeyboardInterrupt:
+            _docker_command([self.cli, "stop", "--time", "5", self.record["id"]])
+            raise
         return subprocess.CompletedProcess(argv, result.returncode, result.stdout.decode(), result.stderr.decode())
 
     def __call__(self, command, *, timeout, **_kwargs):
