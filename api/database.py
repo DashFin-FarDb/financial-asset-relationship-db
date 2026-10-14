@@ -1196,4 +1196,4 @@ def verify_runtime_authority(*, verification_connection=None) -> None:
     )
     if not exact_login_access:
         raise SchemaCompatibilityError("API runtime login grants are incompatible")
-    verify_runtime_access_catalog()
+    verify_runtime_access_catalog(verification_connection=verification_connection)

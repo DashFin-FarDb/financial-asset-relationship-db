@@ -11,11 +11,12 @@ import pytest
 from scripts import bootstrap_database_capability_roles as bootstrap
 
 
-def test_mapping_rejects_incomplete_targets() -> None:
+@pytest.mark.parametrize("mapping", [None, {}, [], "null"])
+def test_mapping_rejects_incomplete_targets(mapping) -> None:
     """The coordinator rejects missing keys before it can open a target session."""
     cursor = MagicMock()
     with pytest.raises(bootstrap.BootstrapTargetError, match="complete FarDB bootstrap target mapping"):
-        bootstrap._normalize_mapping(cursor, {})
+        bootstrap._normalize_mapping(cursor, mapping)
     cursor.execute.assert_not_called()
 
 
@@ -205,3 +206,33 @@ def test_target_transaction_cleanup_closes_failed_rollback_and_continues() -> No
     failed.close.assert_called_once_with()
     healthy.rollback.assert_called_once_with()
     healthy.close.assert_not_called()
+
+
+def test_cli_null_mapping_rejected_before_connection(monkeypatch) -> None:
+    """JSON null cannot silently select one database or open an operator connection."""
+    monkeypatch.setenv("FARDB_BOOTSTRAP_DATABASE_URL", "postgresql://operator@127.0.0.1/test_db")
+    connect = Mock()
+    monkeypatch.setattr(bootstrap.psycopg2, "connect", connect)
+    with pytest.raises(bootstrap.BootstrapTargetError, match="complete FarDB bootstrap target mapping"):
+        bootstrap.main(["--targets-json", "null"])
+    connect.assert_not_called()
+
+
+def test_missing_mapping_rejected_before_transaction_or_mutation() -> None:
+    """Direct callers must supply a complete mapping before bootstrap executes any SQL."""
+    cursor = MagicMock()
+    with pytest.raises(bootstrap.BootstrapTargetError, match="complete FarDB bootstrap target mapping"):
+        bootstrap.bootstrap_capability_roles(cursor, None)
+    cursor.execute.assert_not_called()
+
+
+@pytest.mark.parametrize("mapping", [None, {}, {"fardb_runtime_auth": []}])
+def test_invalid_mapping_rolls_back_existing_caller_transaction(mapping) -> None:
+    """Invalid targets roll back prior caller writes without executing bootstrap SQL."""
+    cursor = MagicMock()
+    cursor.connection.autocommit = False
+    with pytest.raises(bootstrap.BootstrapTargetError, match="bootstrap target"):
+        bootstrap.bootstrap_capability_roles(cursor, mapping)
+    cursor.execute.assert_not_called()
+    cursor.connection.rollback.assert_called_once()
+    cursor.connection.commit.assert_not_called()

@@ -870,3 +870,29 @@ def test_retained_session_accepts_exact_permit_identity(tmp_path, monkeypatch):
     assert verifier.call_args.kwargs["verification_connection"] is engine.identity_connections[0]
     engine.connect.assert_called_once()
     assert engine.identity_connections[0].execute.call_count == 2
+
+
+def test_auth_authority_catalog_uses_retained_connection(monkeypatch) -> None:
+    """Every auth-authority predicate, including final catalog checks, retains its proved session."""
+    from api import database as api_database
+
+    monkeypatch.setattr(api_database, "DATABASE_TYPE", "postgresql")
+    connection = MagicMock()
+    connection.cursor.return_value.__enter__.return_value.fetchone.side_effect = [
+        (True,),
+        ("fardb_login_auth",),
+        (1,),
+        (True,),
+        (True,),
+        (True,),
+        (True,),
+        (True,),
+        (True,),
+        (True,),
+    ]
+    monkeypatch.setattr(api_database, "get_approved_login_principals", lambda _role: ("fardb_login_auth",))
+    get_connection = Mock(side_effect=AssertionError("must retain verified connection"))
+    monkeypatch.setattr(api_database, "get_connection", get_connection)
+    api_database.verify_runtime_authority(verification_connection=connection)
+    get_connection.assert_not_called()
+    assert connection.cursor.call_count > 3

@@ -202,6 +202,7 @@ jobs:
           record_path="$RUNNER_TEMP/fardb-postgres-${{ matrix.postgres-version }}-ownership.json"
           python -m tests.integration.postgresql_disposable_cluster attest-job \
             --major "${{ matrix.postgres-version }}" --record "$record_path"
+          printf 'PG_SERVICE_ID=%s\n' "$PG_SERVICE_ID" >> "$GITHUB_ENV"
           printf 'FARDB_EPHEMERAL_POSTGRES_CONTAINER_RECORD=%s\n' "$record_path" >> "$GITHUB_ENV"
           printf 'FARDB_EPHEMERAL_POSTGRES_SYSTEM_IDENTIFIER=%s\n' "$system_identifier" >> "$GITHUB_ENV"
           printf 'FARDB_EPHEMERAL_POSTGRES_INVOCATION_ID=%s-%s-pg%s\n' "$GITHUB_RUN_ID" "$GITHUB_RUN_ATTEMPT" "${{ matrix.postgres-version }}" >> "$GITHUB_ENV"
@@ -216,6 +217,7 @@ jobs:
           DATABASE_URL: sqlite:///./ci-auth.db
         run: |
           set -euo pipefail
+          test -n "$PG_SERVICE_ID"
           test -n "$FARDB_EPHEMERAL_POSTGRES_SYSTEM_IDENTIFIER"
           test -n "$FARDB_EPHEMERAL_POSTGRES_CONTAINER_RECORD"
           test -n "$FARDB_EPHEMERAL_POSTGRES_INVOCATION_ID"

@@ -2900,6 +2900,7 @@ def _exactly_one_workflow_step(steps: list[dict[str, Any]], prefix: str) -> dict
     "missing",
     [
         None,
+        "PG_SERVICE_ID",
         "FARDB_EPHEMERAL_POSTGRES_SYSTEM_IDENTIFIER",
         "FARDB_EPHEMERAL_POSTGRES_CONTAINER_RECORD",
         "FARDB_EPHEMERAL_POSTGRES_INVOCATION_ID",
@@ -2912,22 +2913,27 @@ def test_postgres_attestation_shell_handoff_inherits_nonempty_values(tmp_path, m
     steps = data["jobs"]["postgres-ledger-profiles"]["steps"]
     producer = _exactly_one_workflow_step(steps, "Attest this job")
     consumer = _exactly_one_workflow_step(steps, "Build every profile twice")
+    assert producer["env"]["PG_SERVICE_ID"] == "${{ job.services.postgres.id }}"
     keys = (
         "FARDB_EPHEMERAL_POSTGRES_SYSTEM_IDENTIFIER",
         "FARDB_EPHEMERAL_POSTGRES_CONTAINER_RECORD",
         "FARDB_EPHEMERAL_POSTGRES_INVOCATION_ID",
+        "PG_SERVICE_ID",
     )
     assert not set(keys).intersection(consumer["env"])
     exported = tmp_path / "github-env"
     env = {
         **os.environ,
         "GITHUB_ENV": str(exported),
+        "PG_SERVICE_ID": "c" * 64,
         "record_path": str(tmp_path / "owned.json"),
         "system_identifier": "123456",
         "GITHUB_RUN_ID": "42",
         "GITHUB_RUN_ATTEMPT": "1",
     }
-    commands = "\n".join(line for line in producer["run"].splitlines() if line.startswith("printf 'FARDB_"))
+    commands = "\n".join(
+        line for line in producer["run"].splitlines() if line.startswith(("printf 'FARDB_", "printf 'PG_SERVICE_ID="))
+    )
     commands = commands.replace("${{ matrix.postgres-version }}", "16")
     subprocess.run(["/bin/bash", "-euc", commands], env=env, check=True, capture_output=True)
     inherited = dict(line.split("=", 1) for line in exported.read_text().splitlines())
@@ -2935,6 +2941,7 @@ def test_postgres_attestation_shell_handoff_inherits_nonempty_values(tmp_path, m
     assert inherited[keys[0]] == "123456"
     assert inherited[keys[1]] == env["record_path"]
     assert inherited[keys[2]] == "42-1-pg16"
+    assert inherited["PG_SERVICE_ID"] == env["PG_SERVICE_ID"]
     invocation = tmp_path / "pytest-env.json"
     python = tmp_path / "python"
     python.write_text(

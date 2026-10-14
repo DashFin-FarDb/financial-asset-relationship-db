@@ -99,7 +99,7 @@ def expected_system_identifier() -> str:
 def attest_connection(connection, database_url: str, expected_identifier: str | None = None) -> None:
     """Attest this live connection before it is used for any fixture mutation."""
     validate_effective_loopback_url(database_url)
-    _read_harness_record()
+    _validate_harness_container(_read_harness_record(), database_url)
     expected = expected_identifier or expected_system_identifier()
     if expected != expected_system_identifier():
         raise DisposableTargetError("requested system identifier differs from harness attestation")
@@ -118,7 +118,7 @@ def connect_attested(database_url: str):
     """Open and attest the exact connection that callers will use for mutations."""
     expected = expected_system_identifier()
     validate_effective_loopback_url(database_url)
-    _read_harness_record()
+    _validate_harness_container(_read_harness_record(), database_url)
     connection = psycopg2.connect(database_url)
     try:
         attest_connection(connection, database_url, expected)
@@ -306,6 +306,10 @@ def execute_capability_bootstrap(cursor, mapping=None, *, target_database_url: s
         target_database_url = os.environ.get(URL_ENV)
     from scripts.bootstrap_database_capability_roles import bootstrap_capability_roles
 
+    if mapping is None:
+        cursor.execute("SELECT current_database()")
+        database_name = cursor.fetchone()[0]
+        mapping = {role: [database_name] for role in _CANONICAL_CAPABILITY_ROLES}
     bootstrap_capability_roles(cursor, mapping, target_database_url=target_database_url)
 
 
@@ -485,6 +489,24 @@ def _container_identity(container: dict, major: int) -> dict:
     }
 
 
+def _validate_owned_host_endpoint(database_url: str, record: dict) -> None:
+    """Bind runtime or operator credentials to the independently inspected publication."""
+    validate_effective_loopback_url(database_url)
+    parsed = urlsplit(database_url)
+    query = parse_qs(parsed.query, keep_blank_values=True)
+    if (
+        parsed.scheme not in ("postgresql", "postgres")
+        or parsed.port != record["port"]
+        or parsed.hostname not in ("127.0.0.1", "localhost")
+        or not re.fullmatch(r"/[a-zA-Z0-9_]+", parsed.path)
+        or parsed.fragment
+        or set(query) - {"host", "hostaddr", "sslmode"}
+        or any(value not in ("127.0.0.1", "localhost") for value in query.get("host", []))
+        or any(value != "127.0.0.1" for value in query.get("hostaddr", []))
+    ):
+        raise DisposableTargetError("mutation target does not match the harness-owned published endpoint")
+
+
 def _internal_cli_url(database_url: str, record: dict) -> str:
     """Bind the selected host database to the verified container-local endpoint."""
     from urllib.parse import urlencode, urlunsplit
@@ -509,6 +531,34 @@ def _internal_cli_url(database_url: str, record: dict) -> str:
     return urlunsplit(("postgresql", "test:test@127.0.0.1:5432", parsed.path, urlencode({"sslmode": "disable"}), ""))
 
 
+def _validate_harness_container(record: dict, database_url: str) -> None:
+    """Independently inspect lifecycle, storage and harness ownership before mutation."""
+    cli = _docker_cli()
+    if record["docker_cli"] != cli:
+        raise DisposableTargetError("container record Docker interface differs from the independent host interface")
+    container = _inspect_container(cli, record["id"])
+    current = _container_identity(container, record["major"])
+    if any(current[key] != record[key] for key in current):
+        raise DisposableTargetError("owned container restarted or changed identity/storage")
+    if record["owner"] == "local-created":
+        if container["Config"].get("Labels", {}).get("fardb.test.invocation") != record["invocation"]:
+            raise DisposableTargetError("local container invocation ownership is unverified")
+    elif (
+        os.environ.get("GITHUB_ACTIONS") != "true"
+        or os.environ.get("PG_SERVICE_ID") != record["id"]
+        or record["invocation"]
+        != f"{os.environ.get('GITHUB_RUN_ID')}-{os.environ.get('GITHUB_RUN_ATTEMPT')}-pg{record['major']}"
+    ):
+        raise DisposableTargetError("exact current Actions service identity required")
+    _validate_owned_host_endpoint(database_url, record)
+    control = _docker_command(
+        [record["docker_cli"], "exec", record["id"], "pg_controldata", record["pgdata"]]
+    ).stdout.decode()
+    identifier = re.search(r"Database system identifier:\s*(\d+)", control)
+    if not identifier or identifier.group(1) != record["system_identifier"]:
+        raise DisposableTargetError("owned container cluster identity changed")
+
+
 class ContainerCliRunner:
     """Execute pinned CLI mutations in the exact owned PostgreSQL container namespace."""
 
@@ -525,15 +575,7 @@ class ContainerCliRunner:
 
     def validate(self) -> None:
         """Check exact storage, process lifecycle and independent cluster identity."""
-        current = _container_identity(_inspect_container(self.cli, self.record["id"]), self.record["major"])
-        if any(current[key] != self.record[key] for key in current):
-            raise DisposableTargetError("owned container restarted or changed identity/storage")
-        control = _docker_command(
-            [self.cli, "exec", self.record["id"], "pg_controldata", self.record["pgdata"]]
-        ).stdout.decode()
-        identifier = re.search(r"Database system identifier:\s*(\d+)", control)
-        if not identifier or identifier.group(1) != self.record["system_identifier"]:
-            raise DisposableTargetError("owned container cluster identity changed")
+        _validate_harness_container(self.record, self.database_url)
 
     def _validate_private_parent(self, path: str, *, adopt: bool = False) -> None:
         """Require the exclusively created parent and its recorded inode/ownership."""
@@ -603,7 +645,9 @@ class ContainerCliRunner:
             raise DisposableTargetError("pinned Supabase executable unavailable")
         self._copy_files({"supabase": Path(executable).resolve()})
         result = self._execute([self.directory + "/supabase", "--version"], 15)
-        if result.returncode or result.stdout.strip() != "2.114.0":
+        from scripts.postgresql_ledger import PINNED_SUPABASE_CLI_VERSION
+
+        if result.returncode or result.stdout.strip() != PINNED_SUPABASE_CLI_VERSION:
             raise DisposableTargetError("pinned CLI is incompatible with the container image")
         return self
 

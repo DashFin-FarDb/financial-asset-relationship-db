@@ -26,6 +26,7 @@ def test_connected_but_mismatched_system_identifier_closes_before_mutation(monke
     monkeypatch.setenv(guard.ENABLE_ENVIRONMENTS[0], "1")
     monkeypatch.setenv(guard.SYSTEM_IDENTIFIER_ENV, "123456789")
     monkeypatch.setattr(guard, "_read_harness_record", Mock(return_value={"system_identifier": "123456789"}))
+    monkeypatch.setattr(guard, "_validate_harness_container", Mock())
     connection = MagicMock()
     connection.cursor.return_value.__enter__.return_value.fetchone.return_value = ("987654321",)
     monkeypatch.setattr(guard.psycopg2, "connect", Mock(return_value=connection))
@@ -195,8 +196,10 @@ def test_runner_rejects_container_restart_before_cli(monkeypatch) -> None:
     container = _container_fixture()
     runner = object.__new__(guard.ContainerCliRunner)
     runner.cli = "docker"
-    runner.record = guard._container_identity(container, 16)
+    runner.database_url = "postgresql://test:test@127.0.0.1:55000/test_db?sslmode=disable"
+    runner.record = {**guard._container_identity(container, 16), "docker_cli": "docker"}
     container["State"]["StartedAt"] = "restarted"
+    monkeypatch.setattr(guard, "_docker_cli", lambda: "docker")
     monkeypatch.setattr(guard, "_inspect_container", lambda *_: container)
     docker = Mock()
     monkeypatch.setattr(guard, "_docker_command", docker)
@@ -340,6 +343,7 @@ def test_failed_start_cleanup_removes_only_owned_resources(existing_volume, monk
     container_id, volume, invocation = "a" * 64, "b" * 64, "invocation"
     container = _container_fixture()
     container["Config"]["Labels"] = {"fardb.test.invocation": invocation}
+    monkeypatch.setattr(guard, "_docker_cli", lambda: "docker")
     monkeypatch.setattr(guard, "_inspect_container", Mock(return_value=container))
     calls = []
     remaining = {container_id}
@@ -966,3 +970,101 @@ def test_autocommit_bootstrap_failure_rolls_back(monkeypatch) -> None:
         guard.execute_capability_bootstrap(cursor, mapping)
     assert cursor.execute.call_args_list[-1].args == ("ROLLBACK",)
     assert not any(call.args[0] == "COMMIT" for call in cursor.execute.call_args_list)
+
+
+@pytest.mark.parametrize("defect", ["label", "restart", "cluster", "endpoint", "ci", "ci-missing"])
+def test_host_connection_rejects_fabricated_or_stale_container_before_connect(defect, monkeypatch) -> None:
+    """Matching JSON and environment values cannot replace live ownership inspection."""
+    monkeypatch.setenv(guard.ENABLE_ENVIRONMENTS[0], "1")
+    monkeypatch.setenv(guard.SYSTEM_IDENTIFIER_ENV, "123456789")
+    container = _container_fixture()
+    container["Config"]["Labels"] = {"fardb.test.invocation": "ownedrun"}
+    record = {
+        **guard._container_identity(container, 16),
+        "owner": "local-created",
+        "invocation": "ownedrun",
+        "docker_cli": "docker",
+        "system_identifier": "123456789",
+    }
+    url = "postgresql://test:test@127.0.0.1:55000/test_db?sslmode=disable"
+    if defect == "label":
+        container["Config"]["Labels"] = {}
+    elif defect == "restart":
+        container["State"]["StartedAt"] = "restarted"
+    elif defect == "endpoint":
+        url = url.replace("55000", "55001")
+    elif defect in ("ci", "ci-missing"):
+        record["owner"] = "github-job"
+        record["invocation"] = "42-1-pg16"
+        monkeypatch.setenv("GITHUB_ACTIONS", "true")
+        monkeypatch.setenv("GITHUB_RUN_ID", "42")
+        monkeypatch.setenv("GITHUB_RUN_ATTEMPT", "1")
+        if defect == "ci":
+            monkeypatch.setenv("PG_SERVICE_ID", "c" * 64)
+        else:
+            monkeypatch.delenv("PG_SERVICE_ID", raising=False)
+    identifier = "999" if defect == "cluster" else "123456789"
+    monkeypatch.setattr(guard, "_read_harness_record", Mock(return_value=record))
+    monkeypatch.setattr(guard, "_docker_cli", lambda: "docker")
+    monkeypatch.setattr(guard, "_inspect_container", Mock(return_value=container))
+    monkeypatch.setattr(
+        guard, "_docker_command", Mock(return_value=Mock(stdout=f"Database system identifier: {identifier}".encode()))
+    )
+    connect = Mock()
+    monkeypatch.setattr(guard.psycopg2, "connect", connect)
+    with pytest.raises(guard.DisposableTargetError):
+        guard.connect_attested(url)
+    connect.assert_not_called()
+
+
+@pytest.mark.parametrize("credentials", ["test:test", "runtime:runtime-password"])
+def test_owned_host_connection_attests_same_mutation_session(credentials, monkeypatch) -> None:
+    """Live container checks precede opening and attesting the returned mutation session."""
+    monkeypatch.setenv(guard.ENABLE_ENVIRONMENTS[0], "1")
+    monkeypatch.setenv(guard.SYSTEM_IDENTIFIER_ENV, "123456789")
+    container = _container_fixture()
+    container["Config"]["Labels"] = {"fardb.test.invocation": "ownedrun"}
+    record = {
+        **guard._container_identity(container, 16),
+        "owner": "local-created",
+        "invocation": "ownedrun",
+        "docker_cli": "docker",
+        "system_identifier": "123456789",
+    }
+    monkeypatch.setattr(guard, "_read_harness_record", Mock(return_value=record))
+    monkeypatch.setattr(guard, "_docker_cli", lambda: "docker")
+    inspect = Mock(return_value=container)
+    monkeypatch.setattr(guard, "_inspect_container", inspect)
+    monkeypatch.setattr(
+        guard,
+        "_docker_command",
+        Mock(return_value=Mock(stdout=b"Database system identifier: 123456789")),
+    )
+    connection = MagicMock()
+    cursor = connection.cursor.return_value.__enter__.return_value
+    cursor.fetchone.return_value = ("123456789",)
+
+    def open_connection(_url):
+        """Ensure host opening follows an independent ownership check."""
+        inspect.assert_called_once_with("docker", record["id"])
+        return connection
+
+    monkeypatch.setattr(guard.psycopg2, "connect", open_connection)
+    actual = guard.connect_attested(f"postgresql://{credentials}@127.0.0.1:55000/test_db?sslmode=disable")
+    assert actual is connection
+    cursor.execute.assert_called_once_with("SELECT system_identifier::text FROM pg_control_system()")
+    connection.rollback.assert_called_once()
+    assert inspect.call_count == 2
+
+
+def test_record_cannot_select_a_fake_docker_executable(monkeypatch) -> None:
+    """A fabricated record executable is rejected before any inspect or exec call."""
+    monkeypatch.setattr(guard, "_docker_cli", lambda: "/usr/bin/docker")
+    inspect = Mock()
+    command = Mock()
+    monkeypatch.setattr(guard, "_inspect_container", inspect)
+    monkeypatch.setattr(guard, "_docker_command", command)
+    with pytest.raises(guard.DisposableTargetError, match="independent host interface"):
+        guard._validate_harness_container({"docker_cli": "/tmp/fake-docker"}, "unused")
+    inspect.assert_not_called()
+    command.assert_not_called()

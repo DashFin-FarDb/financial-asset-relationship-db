@@ -162,6 +162,8 @@ def _verify_reconciliation_schemas(engine: Any, coord_engine: Any) -> None:
     """Verify reconciliation schemas without exercising migration authority."""
     from contextlib import ExitStack
 
+    from sqlalchemy import text
+
     from src.data.database import COORDINATION_RUNTIME_CAPABILITY, GRAPH_RUNTIME_CAPABILITY
     from src.data.postgresql_topology import read_database_identity
 
@@ -172,9 +174,23 @@ def _verify_reconciliation_schemas(engine: Any, coord_engine: Any) -> None:
         graph_connection, coord_connection, graph_identity, coord_identity, combined = _reconciliation_sessions(
             stack, engine, coord_engine
         )
+        coordination_capabilities = {COORDINATION_RUNTIME_CAPABILITY}
+        if combined and graph_connection is not None and coord_connection is not graph_connection:
+            graph_login = graph_connection.execute(text("SELECT session_user")).scalar_one()
+            coordination_login = coord_connection.execute(text("SELECT session_user")).scalar_one()
+            if (
+                not isinstance(graph_login, str)
+                or not graph_login
+                or not isinstance(coordination_login, str)
+                or not coordination_login
+            ):
+                raise SchemaCompatibilityError("runtime login identity could not be established")
+            if graph_login == coordination_login:
+                graph_capabilities.add(COORDINATION_RUNTIME_CAPABILITY)
+                coordination_capabilities.add(GRAPH_RUNTIME_CAPABILITY)
         _verify_reconciliation_target(engine, graph_connection, graph_capabilities, combined)
         if coord_engine is not engine:
-            _verify_reconciliation_target(coord_engine, coord_connection, {COORDINATION_RUNTIME_CAPABILITY}, combined)
+            _verify_reconciliation_target(coord_engine, coord_connection, coordination_capabilities, combined)
         # Detect identity drift before publication/recovery is allowed to start.
         if graph_connection is not None and read_database_identity(graph_connection) != graph_identity:
             raise SchemaCompatibilityError("graph target identity changed during verification")

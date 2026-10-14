@@ -34,10 +34,6 @@ class BootstrapOutcomeIndeterminate(RuntimeError):
 
 def _normalize_mapping(cursor, mapping: Mapping[str, object] | None) -> dict[str, list[str]]:
     """Validate the complete fixed-role mapping before opening target sessions."""
-    if mapping is None:
-        cursor.execute("SELECT current_database()")
-        current_database = cursor.fetchone()[0]
-        return {role: [current_database] for role in _ROLE_NAMES}
     if not isinstance(mapping, Mapping) or set(mapping) != set(_ROLE_NAMES):
         raise BootstrapTargetError("complete FarDB bootstrap target mapping is required")
     normalized: dict[str, list[str]] = {}
@@ -333,12 +329,15 @@ def bootstrap_capability_roles(
     """Bootstrap roles atomically after identity-proved checks in every mapped database."""
     connection: PsycopgConnection = cursor.connection
     began_explicitly = bool(connection.autocommit)
+    transaction_started = False
     commit_started = False
     target_connections: dict[str, PsycopgConnection] = {}
     with ExitStack() as stack:
         try:
+            mapping = _normalize_mapping(cursor, mapping)
             if began_explicitly:
                 cursor.execute("BEGIN")
+                transaction_started = True
             target_connections = _prepare_and_apply_bootstrap(cursor, connection, mapping, target_database_url, stack)
             commit_started = True
             if began_explicitly:
@@ -353,7 +352,8 @@ def bootstrap_capability_roles(
                     "bootstrap commit outcome is indeterminate; do not retry without operator verification"
                 ) from exc
             if began_explicitly:
-                cursor.execute("ROLLBACK")
+                if transaction_started:
+                    cursor.execute("ROLLBACK")
             else:
                 connection.rollback()
             raise
@@ -369,7 +369,7 @@ def main(argv: list[str] | None = None) -> int:
     database_url = os.environ.get("FARDB_BOOTSTRAP_DATABASE_URL")
     if not database_url:
         parser.error("FARDB_BOOTSTRAP_DATABASE_URL must be provided through the protected operator environment")
-    mapping = json.loads(arguments.targets_json)
+    mapping = _normalize_mapping(None, json.loads(arguments.targets_json))
     with (
         psycopg2.connect(database_url, connect_timeout=_CONNECT_TIMEOUT_SECONDS) as connection,
         connection.cursor() as cursor,
