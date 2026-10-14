@@ -278,12 +278,16 @@ def test_secondary_connection_identity_mismatch_closes_before_acceptance(identit
     target = MagicMock()
     monkeypatch.setattr(bootstrap.psycopg2, "connect", Mock(return_value=target))
     monkeypatch.setattr(bootstrap, "_cluster_and_database_identity", Mock(return_value=identity))
-    with ExitStack() as stack, pytest.raises(bootstrap.BootstrapTargetError, match="identity-proved cluster target"):
-        bootstrap._open_target_connections(
-            MagicMock(),
-            "postgresql://operator@127.0.0.1/control",
-            {"target": (43, "target")},
-            ("123", 42, "control"),
-            stack,
-        )
+    stack = ExitStack()
+    try:
+        with pytest.raises(bootstrap.BootstrapTargetError, match="identity-proved cluster target"):
+            bootstrap._open_target_connections(
+                MagicMock(),
+                "postgresql://operator@127.0.0.1/control",
+                {"target": (43, "target")},
+                ("123", 42, "control"),
+                stack,
+            )
+    finally:
+        stack.close()
     target.close.assert_called_once()
