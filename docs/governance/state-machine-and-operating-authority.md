@@ -357,7 +357,6 @@ A PR must update this document when it changes any of the following governed beh
 
 If a PR changes one of these behaviours and does not update this document, reviewers should treat the PR as incomplete unless the PR explicitly proves the canonical interpretation is unchanged.
 
-
 ### Published-graph completion and bounded startup evidence
 
 A successful process-local rebuild completion requires a graph to have been published to the runtime. Without a
