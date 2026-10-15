@@ -106,7 +106,14 @@ REMOVED_SYNTHETIC_EVENT_IDS: frozenset[str] = frozenset(
     }
 )
 
-_YFINANCE_MODULE = None
+
+class _YfinanceState:
+    """Hold the optional lazily imported provider module."""
+
+    module: Any = None
+
+
+_yfinance_state = _YfinanceState()
 _FETCHED_ASSET_LOG_MESSAGE = "Fetched %s: %s at $%.2f"
 
 
@@ -122,10 +129,8 @@ def _get_yfinance() -> Any:
         RuntimeError: If `yfinance` or one of its dependencies fails to import.
         RuntimeError: If an unexpected error occurs during import.
     """
-    global _YFINANCE_MODULE
-
-    if _YFINANCE_MODULE is not None:
-        return _YFINANCE_MODULE
+    if _yfinance_state.module is not None:
+        return _yfinance_state.module
 
     try:
         import yfinance as yf
@@ -186,8 +191,8 @@ def _get_yfinance() -> Any:
             "Unexpected error while loading yfinance. Check the environment and dependency state."
         ) from exc
 
-    _YFINANCE_MODULE = yf
-    return _YFINANCE_MODULE
+    _yfinance_state.module = yf
+    return _yfinance_state.module
 
 
 def __getattr__(name: str) -> Any:
@@ -211,6 +216,13 @@ def __getattr__(name: str) -> Any:
     if name == "yf":
         return _get_yfinance()
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+
+
+def _require_complete_symbols(required: list[str], actual: list[str], missing: list[str]) -> None:
+    """Require every symbol and the exact asset count without changing failure ordering."""
+    if missing or len(actual) != len(required):
+        all_missing = list(dict.fromkeys(missing + [symbol for symbol in required if symbol not in set(actual)]))
+        raise DataAcquisitionIncompleteError(f"Missing required symbols: {all_missing}")
 
 
 class RealDataFetcher:
@@ -701,13 +713,7 @@ class RealDataFetcher:
                     ),
                 )
 
-        if missing_symbols or len(equities) != len(REQUIRED_EQUITY_SYMBOLS):
-            all_missing = list(
-                dict.fromkeys(
-                    missing_symbols + [s for s in REQUIRED_EQUITY_SYMBOLS if s not in {e.symbol for e in equities}]
-                )
-            )
-            raise DataAcquisitionIncompleteError(f"Missing required symbols: {all_missing}")
+        _require_complete_symbols(list(REQUIRED_EQUITY_SYMBOLS), [asset.symbol for asset in equities], missing_symbols)
 
         return equities
 
@@ -778,13 +784,7 @@ class RealDataFetcher:
                     ),
                 )
 
-        if missing_symbols or len(bonds) != len(REQUIRED_BOND_SYMBOLS):
-            all_missing = list(
-                dict.fromkeys(
-                    missing_symbols + [s for s in REQUIRED_BOND_SYMBOLS if s not in {b.symbol for b in bonds}]
-                )
-            )
-            raise DataAcquisitionIncompleteError(f"Missing required symbols: {all_missing}")
+        _require_complete_symbols(list(REQUIRED_BOND_SYMBOLS), [asset.symbol for asset in bonds], missing_symbols)
 
         return bonds
 
@@ -851,14 +851,9 @@ class RealDataFetcher:
                     ),
                 )
 
-        if missing_symbols or len(commodities) != len(REQUIRED_COMMODITY_SYMBOLS):
-            all_missing = list(
-                dict.fromkeys(
-                    missing_symbols
-                    + [s for s in REQUIRED_COMMODITY_SYMBOLS if s not in {c.symbol for c in commodities}]
-                )
-            )
-            raise DataAcquisitionIncompleteError(f"Missing required symbols: {all_missing}")
+        _require_complete_symbols(
+            list(REQUIRED_COMMODITY_SYMBOLS), [asset.symbol for asset in commodities], missing_symbols
+        )
 
         return commodities
 
@@ -925,14 +920,9 @@ class RealDataFetcher:
                     ),
                 )
 
-        if missing_symbols or len(currencies) != len(REQUIRED_CURRENCY_SYMBOLS):
-            all_missing = list(
-                dict.fromkeys(
-                    missing_symbols
-                    + [s for s in REQUIRED_CURRENCY_SYMBOLS if s.replace("=X", "") not in {c.id for c in currencies}]
-                )
-            )
-            raise DataAcquisitionIncompleteError(f"Missing required symbols: {all_missing}")
+        _require_complete_symbols(
+            list(REQUIRED_CURRENCY_SYMBOLS), [asset.id + "=X" for asset in currencies], missing_symbols
+        )
 
         return currencies
 

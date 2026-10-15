@@ -356,3 +356,22 @@ A PR must update this document when it changes any of the following governed beh
 - operator authorization, exception authority, or manual-intervention paths.
 
 If a PR changes one of these behaviours and does not update this document, reviewers should treat the PR as incomplete unless the PR explicitly proves the canonical interpretation is unchanged.
+
+
+### Published-graph completion and bounded startup evidence
+
+A successful process-local rebuild completion requires a graph to have been published to the runtime. Without a
+published graph, completion enters `FAILED`; a subsequent read reports `503`, including inconsistent `READY`
+state with no graph. Rejected lock-contention work clears its busy state without claiming successful publication.
+
+In non-persistent cache/live-data mode, a later read may retry failed initialization under the existing graph lock.
+Only one initializer runs at a time. Durable deployments do not perform read-triggered recovery after `FAILED`:
+the explicit rebuild/recovery authority remains responsible for publication.
+
+Blocked-startup history probes share a monotonic deadline across all evidence checks. PostgreSQL connections use
+bounded connection acquisition and server statement timeouts, and the operation guard cancels active connections
+on timeout or cancellation. A connection completing after cancellation is closed before use. SQLite history
+queries use bounded busy waiting and a deadline progress handler. Late or failed evidence never authorizes boot.
+Engines are disposed by the probe cleanup paths. The outer asyncio timeout is not treated as thread termination;
+worker completion is observed separately. Driver connection timeouts do not guarantee interruption of arbitrary
+operating-system DNS resolution stalls; such failures are not evidence of a safe startup state.

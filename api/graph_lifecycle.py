@@ -263,7 +263,11 @@ def get_graph_with_startup_source() -> tuple[AssetRelationshipGraph, GraphStartu
         if graph_state.graph is None:
             if graph_state.lifecycle_state == GraphRuntimeLifecycleState.REBUILDING:
                 raise AuthoritativeGraphUnavailableError("Authoritative graph is currently rebuilding.")
-            if graph_state.lifecycle_state == GraphRuntimeLifecycleState.FAILED:
+            if graph_state.lifecycle_state == GraphRuntimeLifecycleState.READY:
+                raise AuthoritativeGraphUnavailableError("No authoritative published graph available.")
+            if graph_state.lifecycle_state == GraphRuntimeLifecycleState.FAILED and _settings_asset_graph_database_url(
+                graph_lifecycle_providers.get_graph_lifecycle_settings()
+            ):
                 raise AuthoritativeGraphUnavailableError("No authoritative published graph available.")
             _normalize_shutdown_state()
             _transition_lifecycle_state(GraphRuntimeLifecycleState.INITIALIZING)
@@ -423,10 +427,10 @@ def complete_rebuild(*, succeeded: bool) -> None:
 
     If called when the runtime is not in the REBUILDING state, emits a warning event and returns without changing state.
 
-    If `succeeded` is True transitions the lifecycle to READY; otherwise transitions it to FAILED.
+    Successful completion requires a published graph before READY; otherwise transitions to FAILED.
 
     Parameters:
-        succeeded (bool): Whether the rebuild succeeded; `True` transitions to READY, `False` transitions to FAILED.
+        succeeded (bool): Whether the rebuild succeeded; READY additionally requires a published graph.
     """
     with graph_lock:
         if graph_state.lifecycle_state != GraphRuntimeLifecycleState.REBUILDING:
@@ -440,7 +444,7 @@ def complete_rebuild(*, succeeded: bool) -> None:
                 ),
             )
             return
-        if succeeded:
+        if succeeded and graph_state.graph is not None:
             _transition_lifecycle_state(GraphRuntimeLifecycleState.READY)
             return
         _transition_lifecycle_state(GraphRuntimeLifecycleState.FAILED)

@@ -370,6 +370,7 @@ def test_empty_configured_db_fails_closed_without_fallback(
     monkeypatch.setenv(env_var, env_val)
 
     def fail_fallback(*_args: Any, **_kwargs: Any) -> Any:
+        """Reject fallback use when durable persistence is empty."""
         raise AssertionError("Fallback provider should not be called when persistence is empty")
 
     monkeypatch.setattr(graph_lifecycle_providers, provider_attr, fail_fallback)

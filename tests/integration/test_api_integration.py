@@ -25,11 +25,11 @@ def client() -> Iterator[TestClient]:
     from src.config.settings import load_settings
     from src.data.sample_data import create_sample_database
 
-    reset_graph()
-    set_graph(create_sample_database())
-    database.initialize_schema()
-    seed_credentials_from_settings(user_repository, load_settings())
     try:
+        reset_graph()
+        set_graph(create_sample_database())
+        database.initialize_schema()
+        seed_credentials_from_settings(user_repository, load_settings())
         with TestClient(app) as c:
             yield c
     finally:
@@ -216,6 +216,7 @@ class TestPerformance:
         from concurrent.futures import ThreadPoolExecutor
 
         def make_request():
+            """Request the asset list and return its response status."""
             return client.get("/api/assets").status_code
 
         with ThreadPoolExecutor(max_workers=5) as executor:

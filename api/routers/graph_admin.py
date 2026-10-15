@@ -158,8 +158,8 @@ class _RebuildRuntime:
         complete_rebuild(succeeded=succeeded)
 
     def clear_busy_after_contention(self) -> None:
-        """Clear transient REBUILDING state when work was rejected before execution."""
-        complete_rebuild(succeeded=True)
+        """Clear rejected work without claiming a successful graph publication."""
+        complete_rebuild(succeeded=False)
 
     def get_lock(self) -> asyncio.Lock:
         """Return a rebuild lock bound to the current event loop."""
@@ -604,7 +604,8 @@ async def rebuild_graph(
 
             # If it's a lock contention error, handle it cleanly as a rejection
             if isinstance(root_exc, _DistributedLockAcquisitionError):
-                _REBUILD_RUNTIME.clear_busy_after_contention()
+                if _REBUILD_RUNTIME.is_busy():
+                    _REBUILD_RUNTIME.clear_busy_after_contention()
                 _log_rebuild_rejected(user_ref=user_ref)
                 tracking_state["audit_logged"] = True
             else:
@@ -702,7 +703,7 @@ async def _run_rebuild_in_executor(
             asyncio.CancelledError,
         ) as exc:
             if isinstance(_unwrap_rebuild_error(exc), _DistributedLockAcquisitionError):
-                _REBUILD_RUNTIME.mark_idle(succeeded=True)
+                _REBUILD_RUNTIME.clear_busy_after_contention()
                 _log_rebuild_rejected(user_ref=user_ref)
             else:
                 _REBUILD_RUNTIME.mark_idle(succeeded=False)

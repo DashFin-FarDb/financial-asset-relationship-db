@@ -231,7 +231,7 @@ class TestGetYfinanceLazyImport:
     def test_get_yfinance_returns_module_when_available():
         """_get_yfinance() returns the yfinance module when it is installed."""
         expected_yf = pytest.importorskip("yfinance")
-        with patch("src.data.real_data_fetcher._YFINANCE_MODULE", None):
+        with patch("src.data.real_data_fetcher._yfinance_state.module", None):
             yf = _get_yfinance()
         assert yf is expected_yf
 
@@ -239,7 +239,7 @@ class TestGetYfinanceLazyImport:
     def test_get_yfinance_raises_runtime_error_on_module_not_found():
         """_get_yfinance() raises RuntimeError when yfinance is not installed."""
         with (
-            patch("src.data.real_data_fetcher._YFINANCE_MODULE", None),
+            patch("src.data.real_data_fetcher._yfinance_state.module", None),
             patch("builtins.__import__", side_effect=_make_import_blocker("yfinance")),
             pytest.raises(RuntimeError, match="Install it using: pip install yfinance"),
         ):
@@ -249,7 +249,7 @@ class TestGetYfinanceLazyImport:
     def test_get_yfinance_runtime_error_chains_original_cause():
         """RuntimeError raised by _get_yfinance() chains the original ImportError."""
         with (
-            patch("src.data.real_data_fetcher._YFINANCE_MODULE", None),
+            patch("src.data.real_data_fetcher._yfinance_state.module", None),
             patch("builtins.__import__", side_effect=_make_import_blocker("yfinance")),
             pytest.raises(RuntimeError) as exc_info,
         ):
@@ -283,7 +283,7 @@ class TestGetYfinanceLazyImport:
             return real_import(name, *args, **kwargs)
 
         with (
-            patch("src.data.real_data_fetcher._YFINANCE_MODULE", None),
+            patch("src.data.real_data_fetcher._yfinance_state.module", None),
             patch("builtins.__import__", side_effect=side_effect),
             pytest.raises(
                 RuntimeError,
@@ -646,14 +646,17 @@ class TestSerialization:
 
     @staticmethod
     def test_enum_to_value_with_enum():
+        """Verify enum to value with enum."""
         assert _enum_to_value(AssetClass.EQUITY) == "Equity"
 
     @staticmethod
     def test_enum_to_value_with_non_enum():
+        """Verify enum to value with non enum."""
         assert _enum_to_value("test_string") == "test_string"
 
     @staticmethod
     def test_serialize_dataclass_equity():
+        """Verify serialize dataclass equity."""
         equity = Equity(
             id="TEST",
             symbol="TEST",
@@ -673,6 +676,7 @@ class TestSerialization:
 
     @staticmethod
     def test_serialize_graph():
+        """Verify serialize graph."""
         graph = AssetRelationshipGraph()
         equity = Equity(
             id="TEST",
@@ -711,6 +715,7 @@ class TestDeserialization:
 
     @staticmethod
     def test_deserialize_asset_equity():
+        """Verify deserialize asset equity."""
         data = {
             "__type__": "Equity",
             "id": "TEST",
@@ -736,6 +741,7 @@ class TestDeserialization:
 
     @staticmethod
     def test_deserialize_asset_bond():
+        """Verify deserialize asset bond."""
         data = {
             "__type__": "Bond",
             "id": "BOND",
@@ -761,6 +767,7 @@ class TestDeserialization:
 
     @staticmethod
     def test_deserialize_asset_commodity():
+        """Verify deserialize asset commodity."""
         data = {
             "__type__": "Commodity",
             "id": "GOLD",
@@ -783,6 +790,7 @@ class TestDeserialization:
 
     @staticmethod
     def test_deserialize_asset_currency():
+        """Verify deserialize asset currency."""
         data = {
             "__type__": "Currency",
             "id": "EUR",
@@ -805,6 +813,7 @@ class TestDeserialization:
 
     @staticmethod
     def test_deserialize_event():
+        """Verify deserialize event."""
         data = {
             "id": "EVENT1",
             "asset_id": "TEST",
@@ -830,6 +839,7 @@ class TestCacheOperations:
 
     @staticmethod
     def test_save_to_cache(tmp_path):
+        """Verify save to cache."""
         cache_path = tmp_path / "cache.json"
         graph = AssetRelationshipGraph()
         equity = Equity(
@@ -852,6 +862,7 @@ class TestCacheOperations:
 
     @staticmethod
     def test_load_from_cache(tmp_path):
+        """Verify load from cache."""
         cache_path = tmp_path / "cache.json"
 
         graph = AssetRelationshipGraph()
@@ -874,6 +885,7 @@ class TestCacheOperations:
 
     @staticmethod
     def test_save_to_cache_creates_parent_dirs(tmp_path):
+        """Verify save to cache creates parent dirs."""
         cache_path = tmp_path / "subdir" / "deep" / "cache.json"
         graph = AssetRelationshipGraph()
 
@@ -909,6 +921,7 @@ class TestEdgeCases:
 
     @staticmethod
     def test_cache_load_with_corrupted_file(tmp_path):
+        """Verify cache load with corrupted file."""
         cache_path = tmp_path / "corrupted.json"
         cache_path.write_text("{ invalid", encoding="utf-8")
 
@@ -917,6 +930,7 @@ class TestEdgeCases:
 
     @staticmethod
     def test_create_database_cache_load_failure_continues(tmp_path):
+        """Verify create database cache load failure continues."""
         cache_path = tmp_path / "bad_cache.json"
         cache_path.write_text("{ invalid", encoding="utf-8")
 
@@ -1011,6 +1025,7 @@ class TestEdgeCases:
 
     @staticmethod
     def test_deserialize_asset_with_missing_type():
+        """Verify deserialize asset with missing type."""
         data = {
             "id": "TEST",
             "symbol": "TEST",
@@ -1027,6 +1042,7 @@ class TestEdgeCases:
 
     @staticmethod
     def test_serialize_graph_with_complex_relationships():
+        """Verify serialize graph with complex relationships."""
         graph = AssetRelationshipGraph()
         equity1 = Equity(
             id="TEST1",
@@ -1060,6 +1076,7 @@ class TestRegressionCases:
 
     @staticmethod
     def test_cache_roundtrip(tmp_path):
+        """Verify cache roundtrip."""
         cache_path = tmp_path / "cache.json"
         graph = AssetRelationshipGraph()
 
@@ -1071,6 +1088,7 @@ class TestRegressionCases:
 
     @staticmethod
     def test_enum_serialization_consistency():
+        """Verify enum serialization consistency."""
         original = Equity(
             id="TEST",
             symbol="TEST",
@@ -1093,12 +1111,14 @@ class TestNetworkDisabled:
 
     @staticmethod
     def test_network_disabled_never_attempts_fetch():
+        """Verify network disabled never attempts fetch."""
         fetcher = RealDataFetcher(enable_network=False)
         with pytest.raises(DataAcquisitionIncompleteError):
             fetcher.create_real_database()
 
     @staticmethod
     def test_network_disabled_with_cache_uses_cache(tmp_path):
+        """Verify network disabled with cache uses cache."""
         cache_path = tmp_path / "cache.json"
 
         cached_graph = AssetRelationshipGraph()
@@ -1120,6 +1140,7 @@ class TestAllAssetTypes:
 
     @patch("src.data.real_data_fetcher._get_yfinance")
     def test_fetch_all_equity_symbols(self, mock_get_yfinance):
+        """Verify fetch all equity symbols."""
         mock_yf = Mock()
         mock_ticker = Mock()
         mock_ticker.info = {}
@@ -1138,6 +1159,7 @@ class TestAllAssetTypes:
 
     @patch("src.data.real_data_fetcher._get_yfinance")
     def test_fetch_all_bond_symbols(self, mock_get_yfinance):
+        """Verify fetch all bond symbols."""
         mock_yf = Mock()
         mock_ticker = Mock()
         mock_ticker.info = {"yield": 0.03}
@@ -1172,6 +1194,7 @@ class TestAllAssetTypes:
 
     @patch("src.data.real_data_fetcher._get_yfinance")
     def test_fetch_all_currency_symbols(self, mock_get_yfinance):
+        """Verify fetch all currency symbols."""
         mock_yf = Mock()
         mock_ticker = Mock()
         mock_ticker.history.return_value = _make_history_mock(1.1)
@@ -1233,6 +1256,7 @@ class TestGraphBuilding:
         mock_bond,
         mock_equity,
     ):
+        """Verify graph includes all asset types."""
         mock_eqs, mock_bnds, mock_comms, mock_currs = _make_mock_universe_assets()
         mock_equity.return_value = mock_eqs
         mock_bond.return_value = mock_bnds
@@ -1285,6 +1309,7 @@ class TestSerializationEdgeCases:
 
     @staticmethod
     def test_serialize_asset_with_none_values():
+        """Verify serialize asset with none values."""
         equity = Equity(
             id="TEST",
             symbol="TEST",
@@ -1304,6 +1329,7 @@ class TestSerializationEdgeCases:
 
     @staticmethod
     def test_deserialize_graph_with_relationships():
+        """Verify deserialize graph with relationships."""
         payload = {
             "assets": [
                 {
@@ -1359,6 +1385,7 @@ class TestSerializationEdgeCases:
 
     @staticmethod
     def test_serialize_graph_with_all_relationships():
+        """Verify serialize graph with all relationships."""
         graph = AssetRelationshipGraph()
 
         e1 = Equity(
@@ -1396,6 +1423,7 @@ class TestCacheOverwriteOperations:
 
     @staticmethod
     def test_cache_overwrite_preserves_data(tmp_path):
+        """Verify cache overwrite preserves data."""
         cache_path = tmp_path / "cache.json"
 
         graph1 = AssetRelationshipGraph()
@@ -1433,6 +1461,7 @@ class TestFetchMethodsErrorHandling:
 
     @patch("src.data.real_data_fetcher._get_yfinance")
     def test_fetch_equity_handles_missing_info(self, mock_get_yfinance):
+        """Verify fetch equity handles missing info."""
         mock_yf = Mock()
         mock_ticker = Mock()
         mock_ticker.info = {}
@@ -1448,6 +1477,7 @@ class TestFetchMethodsErrorHandling:
 
     @patch("src.data.real_data_fetcher._get_yfinance")
     def test_fetch_commodity_handles_missing_close_column(self, mock_get_yfinance):
+        """Verify fetch commodity handles missing close column."""
         mock_yf = Mock()
         mock_ticker = Mock()
         mock_ticker.history.return_value = _make_history_mock(2000.0, has_close=False)
@@ -1464,6 +1494,7 @@ class TestAssetFieldValidation:
 
     @patch("src.data.real_data_fetcher._get_yfinance")
     def test_equity_with_missing_optional_fields(self, mock_get_yfinance):
+        """Verify equity with missing optional fields."""
         mock_yf = Mock()
         mock_ticker = Mock()
         mock_ticker.info = {"symbol": "TEST"}
@@ -1480,11 +1511,13 @@ class TestAssetFieldValidation:
 
     @staticmethod
     def test_regulatory_events_empty_without_real_feed():
+        """Verify regulatory events empty without real feed."""
         events = RealDataFetcher._create_regulatory_events()
         assert events == []
 
     @staticmethod
     def test_regulatory_event_date_format_validation():
+        """Verify regulatory event date format validation."""
         event = RegulatoryEvent(
             id="TEST_EVENT",
             asset_id="AAPL",
@@ -1503,6 +1536,7 @@ class TestCacheEdgeCases:
 
     @staticmethod
     def test_cache_with_empty_graph(tmp_path):
+        """Verify cache with empty graph."""
         cache_path = tmp_path / "empty_cache.json"
         empty_graph = AssetRelationshipGraph()
 
@@ -1514,6 +1548,7 @@ class TestCacheEdgeCases:
 
     @staticmethod
     def test_cache_with_only_relationships(tmp_path):
+        """Verify cache with only relationships."""
         cache_path = tmp_path / "rel_cache.json"
         graph = AssetRelationshipGraph()
 
@@ -1550,6 +1585,7 @@ class TestDataFetcherConsistency:
 
     @patch("src.data.real_data_fetcher._get_yfinance")
     def test_fetch_equity_sector_assignment_consistent(self, mock_get_yfinance):
+        """Verify fetch equity sector assignment consistent."""
         mock_yf = Mock()
         mock_ticker = Mock()
         mock_ticker.info = {}
@@ -1565,6 +1601,7 @@ class TestDataFetcherConsistency:
 
     @staticmethod
     def test_regulatory_events_asset_ids_reference_known_symbols():
+        """Verify regulatory events asset ids reference known symbols."""
         events = RealDataFetcher._create_regulatory_events()
         assert events == []
 
@@ -1575,6 +1612,7 @@ class TestSerializationRobustness:
 
     @staticmethod
     def test_serialize_asset_with_all_none_optional_fields():
+        """Verify serialize asset with all none optional fields."""
         equity = Equity(
             id="TEST",
             symbol="TEST",
@@ -1597,6 +1635,7 @@ class TestSerializationRobustness:
 
     @staticmethod
     def test_deserialize_asset_with_unexpected_type():
+        """Verify deserialize asset with unexpected type."""
         data = {
             "__type__": "UnknownAssetType",
             "id": "TEST",
@@ -1615,6 +1654,7 @@ class TestSerializationRobustness:
 
     @staticmethod
     def test_serialize_then_deserialize_bond_preserves_data():
+        """Verify serialize then deserialize bond preserves data."""
         bond = Bond(
             id="BOND1",
             symbol="BND1",
@@ -1642,6 +1682,7 @@ class TestSerializationRobustness:
 
     @staticmethod
     def test_serialize_deserialize_with_none_values():
+        """Verify serialize deserialize with none values."""
         asset = Asset(
             id="TEST",
             symbol="TST",
@@ -1670,6 +1711,7 @@ class TestCompletenessGate:
         mock_yf = Mock()
 
         def mock_ticker(sym):
+            """Return market data with the selected required symbol unavailable."""
             t = Mock()
             if sym == "MSFT":
                 t.history.return_value = _make_history_mock(0.0, empty=True)
@@ -1691,6 +1733,7 @@ class TestCompletenessGate:
         mock_yf = Mock()
 
         def mock_ticker(sym):
+            """Return market data with the selected required symbol unavailable."""
             t = Mock()
             if sym == "TLT":
                 t.history.side_effect = RuntimeError("TLT fetch failed")
@@ -1712,6 +1755,7 @@ class TestCompletenessGate:
         mock_yf = Mock()
 
         def mock_ticker(sym):
+            """Return market data with the selected required symbol unavailable."""
             t = Mock()
             if sym == "GC=F":
                 t.history.return_value = _make_history_mock(0.0, empty=True)
@@ -1732,6 +1776,7 @@ class TestCompletenessGate:
         mock_yf = Mock()
 
         def mock_ticker(sym):
+            """Return market data with the selected required symbol unavailable."""
             t = Mock()
             if sym == "EURUSD=X":
                 t.history.side_effect = ValueError("Corrupt price")

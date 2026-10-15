@@ -181,32 +181,33 @@ class TestValidateOrigin:
         assert not validate_origin("https://.com")
 
 
+@pytest.fixture
+def authoritative_graph_cache(tmp_path: Path, monkeypatch):
+    """Own a complete cached graph and reset runtime state after each test."""
+    cache_path = tmp_path / "graph_snapshot.json"
+    _save_to_cache(_make_authoritative_cached_graph(), cache_path)
+    monkeypatch.setenv("GRAPH_CACHE_PATH", str(cache_path))
+    api_main.reset_graph()
+    try:
+        yield cache_path
+    finally:
+        api_main.reset_graph()
+
+
 @pytest.mark.unit
 class TestGraphInitialization:
     """Test the lazy graph initialization via get_graph()."""
 
-    def test_graph_initialization(self, tmp_path: Path, monkeypatch) -> None:
+    def test_graph_initialization(self, authoritative_graph_cache) -> None:
         """Graph is initialized via get_graph() when cache is available."""
-        cache_path = tmp_path / "graph_snapshot.json"
-        reference_graph = _make_authoritative_cached_graph()
-        _save_to_cache(reference_graph, cache_path)
-
-        monkeypatch.setenv("GRAPH_CACHE_PATH", str(cache_path))
-        api_main.reset_graph()
         graph = api_main.get_graph()
         assert graph is not None
         assert hasattr(graph, "assets")
         assert hasattr(graph, "relationships")
         api_main.reset_graph()
 
-    def test_graph_singleton(self, tmp_path: Path, monkeypatch) -> None:
+    def test_graph_singleton(self, authoritative_graph_cache) -> None:
         """Graph is a singleton instance via get_graph()."""
-        cache_path = tmp_path / "graph_snapshot.json"
-        reference_graph = _make_authoritative_cached_graph()
-        _save_to_cache(reference_graph, cache_path)
-
-        monkeypatch.setenv("GRAPH_CACHE_PATH", str(cache_path))
-        api_main.reset_graph()
         graph1 = api_main.get_graph()
         graph2 = api_main.get_graph()
         assert graph1 is graph2

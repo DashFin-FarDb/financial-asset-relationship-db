@@ -51,6 +51,7 @@ def publication_session_factory(tmp_path: Path) -> Iterator[sessionmaker]:
 
 
 def _authority(actor_id: str, role: str) -> AuthorityContext:
+    """Build the test actor authority context."""
     return AuthorityContext(
         actor_id=actor_id,
         roles=frozenset({role}),  # type: ignore[arg-type]
@@ -98,10 +99,12 @@ def _finalize(
 
 
 def _publication_count(session: Session) -> int:
+    """Count durable projection publications."""
     return session.execute(select(func.count()).select_from(RelationshipProjectionPublicationORM)).scalar_one()
 
 
 def _revision_count(session: Session) -> int:
+    """Count durable projection revisions."""
     return session.execute(select(func.count()).select_from(RelationshipProjectionRevisionORM)).scalar_one()
 
 

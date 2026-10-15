@@ -18,6 +18,7 @@ def reset_lifecycle():
     """Reset lifecycle graph state around each test."""
 
     def _full_reset():
+        """Provide full reset for this regression."""
         graph_lifecycle.reset_graph()
         # Also reset api.main mirror if it's already loaded to prevent leakage
         if "api.main" in sys.modules:
@@ -50,6 +51,7 @@ def test_synchronize_runtime_graph_does_not_resolve_lazy_graph_mirror() -> None:
     api_main = types.ModuleType("api.main")
 
     def fail_lazy_lookup(name: str) -> None:
+        """Provide fail lazy lookup for this regression."""
         raise AssertionError(f"unexpected lazy compatibility lookup: {name}")
 
     setattr(api_main, "__getattr__", fail_lazy_lookup)
@@ -84,6 +86,7 @@ def test_synchronize_runtime_graph_preserves_rebuild_until_completion() -> None:
     assert graph_lifecycle.graph_state.graph is graph_instance
     assert graph_lifecycle.get_runtime_lifecycle_state() == graph_lifecycle.GraphRuntimeLifecycleState.REBUILDING
 
+    graph_lifecycle.synchronize_runtime_graph(cast(graph_lifecycle.AssetRelationshipGraph, object()))
     graph_lifecycle.complete_rebuild(succeeded=True)
     assert graph_lifecycle.get_runtime_lifecycle_state() == graph_lifecycle.GraphRuntimeLifecycleState.READY
 
@@ -208,6 +211,7 @@ def test_rebuild_transition_semantics() -> None:
     graph_lifecycle.begin_rebuild()
     assert graph_lifecycle.get_runtime_lifecycle_state() == graph_lifecycle.GraphRuntimeLifecycleState.REBUILDING
 
+    graph_lifecycle.synchronize_runtime_graph(cast(graph_lifecycle.AssetRelationshipGraph, object()))
     graph_lifecycle.complete_rebuild(succeeded=True)
     assert graph_lifecycle.get_runtime_lifecycle_state() == graph_lifecycle.GraphRuntimeLifecycleState.READY
 
@@ -219,6 +223,7 @@ def test_rebuild_transition_semantics() -> None:
 def test_shutdown_transition_semantics() -> None:
     """Shutdown must progress through SHUTTING_DOWN and reach STOPPED as the terminal state."""
     graph_lifecycle.begin_rebuild()
+    graph_lifecycle.synchronize_runtime_graph(cast(graph_lifecycle.AssetRelationshipGraph, object()))
     graph_lifecycle.complete_rebuild(succeeded=True)
 
     graph_lifecycle.begin_shutdown()
@@ -262,11 +267,12 @@ def test_absent_graph_request_during_active_rebuild_fails_closed() -> None:
     assert graph_lifecycle.get_runtime_lifecycle_state() == graph_lifecycle.GraphRuntimeLifecycleState.REBUILDING
 
     # Finalize rebuild successfully
+    graph_lifecycle.synchronize_runtime_graph(cast(graph_lifecycle.AssetRelationshipGraph, object()))
     graph_lifecycle.complete_rebuild(succeeded=True)
     assert graph_lifecycle.get_runtime_lifecycle_state() == graph_lifecycle.GraphRuntimeLifecycleState.READY
 
 
-def test_recovery_after_rebuild_failure_when_db_has_no_published_graph() -> None:
+def test_recovery_after_rebuild_failure_when_db_has_no_published_graph(monkeypatch) -> None:
     """Rebuild recovery after failure must transition directly from FAILED to REBUILDING."""
     assert graph_lifecycle.graph_state.graph is None
     graph_lifecycle.begin_rebuild()
@@ -277,6 +283,11 @@ def test_recovery_after_rebuild_failure_when_db_has_no_published_graph() -> None
     assert graph_lifecycle.get_runtime_lifecycle_state() == graph_lifecycle.GraphRuntimeLifecycleState.FAILED
     assert graph_lifecycle.graph_state.graph is None
 
+    monkeypatch.setattr(
+        graph_lifecycle.graph_lifecycle_providers,
+        "get_graph_lifecycle_settings",
+        lambda: types.SimpleNamespace(asset_graph_database_url="postgresql://localhost/durable"),
+    )
     # Read requests must fail closed and preserve FAILED state
     with pytest.raises(
         graph_lifecycle.AuthoritativeGraphUnavailableError,
@@ -290,6 +301,7 @@ def test_recovery_after_rebuild_failure_when_db_has_no_published_graph() -> None
     assert graph_lifecycle.get_runtime_lifecycle_state() == graph_lifecycle.GraphRuntimeLifecycleState.REBUILDING
 
     # Second rebuild succeeds
+    graph_lifecycle.synchronize_runtime_graph(cast(graph_lifecycle.AssetRelationshipGraph, object()))
     graph_lifecycle.complete_rebuild(succeeded=True)
     assert graph_lifecycle.get_runtime_lifecycle_state() == graph_lifecycle.GraphRuntimeLifecycleState.READY
 
@@ -302,11 +314,17 @@ def test_repeated_requests_while_unpublished_do_not_corrupt_state_or_serialize_d
     init_call_count = 0
 
     def mock_init_runtime():
+        """Provide mock init runtime for this regression."""
         nonlocal init_call_count
         init_call_count += 1
         raise graph_lifecycle.AuthoritativeGraphUnavailableError("Simulated empty DB startup failure")
 
     monkeypatch.setattr(graph_lifecycle, "initialize_graph_runtime", mock_init_runtime)
+    monkeypatch.setattr(
+        graph_lifecycle.graph_lifecycle_providers,
+        "get_graph_lifecycle_settings",
+        lambda: types.SimpleNamespace(asset_graph_database_url="postgresql://localhost/durable"),
+    )
 
     # First request: transitions UNINITIALIZED -> INITIALIZING -> FAILED
     with pytest.raises(
@@ -330,3 +348,41 @@ def test_repeated_requests_while_unpublished_do_not_corrupt_state_or_serialize_d
     assert init_call_count == 1
     # State remained FAILED without corruption
     assert graph_lifecycle.get_runtime_lifecycle_state() == graph_lifecycle.GraphRuntimeLifecycleState.FAILED
+
+
+def test_success_without_publication_fails_closed() -> None:
+    """A success flag alone cannot publish a graph or authorize READY."""
+    graph_lifecycle.begin_rebuild()
+    graph_lifecycle.complete_rebuild(succeeded=True)
+    assert graph_lifecycle.graph_state.graph is None
+    assert graph_lifecycle.get_runtime_lifecycle_state() == graph_lifecycle.GraphRuntimeLifecycleState.FAILED
+
+
+def test_inconsistent_ready_without_graph_returns_unavailable() -> None:
+    """An inconsistent READY state must not attempt an invalid transition."""
+    graph_lifecycle.graph_state.lifecycle_state = graph_lifecycle.GraphRuntimeLifecycleState.READY
+    with pytest.raises(graph_lifecycle.AuthoritativeGraphUnavailableError):
+        graph_lifecycle.get_graph()
+    assert graph_lifecycle.graph_state.lifecycle_state == graph_lifecycle.GraphRuntimeLifecycleState.READY
+
+
+def test_failed_nonpersistent_initialization_recovers_single_flight(monkeypatch) -> None:
+    """Concurrent reads retry one transient failure and share the published result."""
+    from concurrent.futures import ThreadPoolExecutor
+    from unittest.mock import Mock
+
+    graph = cast(graph_lifecycle.AssetRelationshipGraph, object())
+    metadata = types.SimpleNamespace(source="cache")
+    initializer = Mock(side_effect=[RuntimeError("transient"), (graph, metadata)])
+    monkeypatch.setattr(graph_lifecycle, "initialize_graph_runtime", initializer)
+    monkeypatch.setattr(
+        graph_lifecycle.graph_lifecycle_providers,
+        "get_graph_lifecycle_settings",
+        lambda: types.SimpleNamespace(asset_graph_database_url=None),
+    )
+    with pytest.raises(RuntimeError, match="transient"):
+        graph_lifecycle.get_graph()
+    with ThreadPoolExecutor(max_workers=4) as executor:
+        results = list(executor.map(lambda _: graph_lifecycle.get_graph(), range(8)))
+    assert all(result is graph for result in results)
+    assert initializer.call_count == 2

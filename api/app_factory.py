@@ -10,6 +10,7 @@ import threading
 import time
 from collections.abc import AsyncGenerator, Callable
 from contextlib import asynccontextmanager
+from contextvars import ContextVar
 from typing import TYPE_CHECKING, Any
 from uuid import uuid4
 
@@ -123,24 +124,94 @@ def _run_startup_reconciliation(
             coord_engine.dispose()
 
 
+def _reconciliation_sessions(stack: Any, engine: Any, coord_engine: Any) -> tuple[Any, ...]:
+    """Open and prove the exact sessions retained for reconciliation verification."""
+    from sqlalchemy.engine import make_url
+
+    from src.data.postgresql_topology import read_database_identity, same_database
+
+    graph_postgres = make_url(engine.url).get_backend_name() == "postgresql"
+    coord_postgres = make_url(coord_engine.url).get_backend_name() == "postgresql"
+    graph_connection = stack.enter_context(engine.connect()) if graph_postgres else None
+    if coord_engine is engine:
+        coord_connection = graph_connection
+    else:
+        coord_connection = stack.enter_context(coord_engine.connect()) if coord_postgres else None
+    graph_identity = read_database_identity(graph_connection) if graph_postgres else None
+    coord_identity = None
+    if coord_postgres:
+        coord_identity = (
+            graph_identity if coord_connection is graph_connection else read_database_identity(coord_connection)
+        )
+    combined = coord_engine is engine
+    if graph_postgres and coord_postgres:
+        if graph_identity is None or coord_identity is None:
+            raise SchemaCompatibilityError("runtime topology requires both live database identities")
+        combined = same_database(graph_identity, coord_identity)
+    return graph_connection, coord_connection, graph_identity, coord_identity, combined
+
+
+def _verify_reconciliation_target(engine: Any, connection: Any, capabilities: set[str], combined: bool) -> None:
+    """Run schema and authority checks on the already-proved caller-owned session."""
+    from src.data.database import verify_database_schema, verify_runtime_database_authority
+
+    options: dict[str, Any] = {"combined_topology": combined}
+    if connection is not None:
+        options["verification_connection"] = connection
+    verify_database_schema(engine, required_capabilities=capabilities, **options)
+    verify_runtime_database_authority(engine, required_capabilities=capabilities, **options)
+
+
+def _has_shared_reconciliation_login(graph_connection: Any, coord_connection: Any, combined: bool) -> bool:
+    """Prove shared authenticated login scope without replacing the retained sessions."""
+    from sqlalchemy import text
+
+    if not combined or graph_connection is None or coord_connection is graph_connection:
+        return False
+    graph_login = graph_connection.execute(text("SELECT session_user")).scalar_one()
+    coordination_login = coord_connection.execute(text("SELECT session_user")).scalar_one()
+    if (
+        not isinstance(graph_login, str)
+        or not graph_login
+        or not isinstance(coordination_login, str)
+        or not coordination_login
+    ):
+        raise SchemaCompatibilityError("runtime login identity could not be established")
+    return graph_login == coordination_login
+
+
+def _verify_reconciliation_identity(connection: Any, expected_identity: Any, component: str) -> None:
+    """Reject identity drift on a retained session before recovery can proceed."""
+    from src.data.postgresql_topology import read_database_identity
+
+    if connection is not None and read_database_identity(connection) != expected_identity:
+        raise SchemaCompatibilityError(f"{component} target identity changed during verification")
+
+
 def _verify_reconciliation_schemas(engine: Any, coord_engine: Any) -> None:
     """Verify reconciliation schemas without exercising migration authority."""
-    from src.data.database import (
-        COORDINATION_RUNTIME_CAPABILITY,
-        GRAPH_RUNTIME_CAPABILITY,
-        verify_database_schema,
-        verify_runtime_database_authority,
-    )
+    from contextlib import ExitStack
+
+    from src.data.database import COORDINATION_RUNTIME_CAPABILITY, GRAPH_RUNTIME_CAPABILITY
 
     graph_capabilities = {GRAPH_RUNTIME_CAPABILITY}
     if coord_engine is engine:
         graph_capabilities.add(COORDINATION_RUNTIME_CAPABILITY)
-    verify_database_schema(engine, required_capabilities=graph_capabilities)
-    verify_runtime_database_authority(engine, required_capabilities=graph_capabilities)
-    if coord_engine is not engine:
+    with ExitStack() as stack:
+        graph_connection, coord_connection, graph_identity, coord_identity, combined = _reconciliation_sessions(
+            stack, engine, coord_engine
+        )
         coordination_capabilities = {COORDINATION_RUNTIME_CAPABILITY}
-        verify_database_schema(coord_engine, required_capabilities=coordination_capabilities)
-        verify_runtime_database_authority(coord_engine, required_capabilities=coordination_capabilities)
+        if _has_shared_reconciliation_login(graph_connection, coord_connection, combined):
+            graph_capabilities.add(COORDINATION_RUNTIME_CAPABILITY)
+            coordination_capabilities.add(GRAPH_RUNTIME_CAPABILITY)
+        _verify_reconciliation_target(engine, graph_connection, graph_capabilities, combined)
+        if coord_engine is not engine:
+            _verify_reconciliation_target(coord_engine, coord_connection, coordination_capabilities, combined)
+        # Detect identity drift before publication/recovery is allowed to start.
+        _verify_reconciliation_identity(graph_connection, graph_identity, "graph")
+        if coord_connection is not graph_connection:
+            _verify_reconciliation_identity(coord_connection, coord_identity, "coordination")
 
 
 def _verify_auth_database(operation_guard: Any | None = None) -> None:
@@ -168,13 +239,13 @@ def _verify_auth_database(operation_guard: Any | None = None) -> None:
         raise SchemaCompatibilityError(f"API credential database verification failed ({type(exc).__name__})") from None
 
 
-def _consume_auth_database_verification_result(verification_task: asyncio.Task[None]) -> None:
+def _consume_auth_database_verification_result(verification_task: asyncio.Task[Any]) -> None:
     """Retrieve a completed background verification result without leaking its exception."""
     with contextlib.suppress(asyncio.CancelledError, Exception):
         verification_task.result()
 
 
-async def _stop_auth_database_verification(verification_task: asyncio.Task[None], operation_guard: Any) -> None:
+async def _stop_auth_database_verification(verification_task: asyncio.Task[Any], operation_guard: Any) -> None:
     """Stop a worker-owned auth verification and drain its task for a bounded interval."""
     operation_guard.cancel()
     done, _pending = await asyncio.wait(
@@ -275,6 +346,13 @@ async def _initialize_application_state(
     hosted_startup_degradation_allowed: bool,
 ) -> None:
     """Run startup reconciliation and initialize the graph, handling degraded startup."""
+    await _verify_startup_auth_database()
+    is_clean_install = await _reconcile_startup_graph(settings, has_persistence, hosted_startup_degradation_allowed)
+    _initialize_startup_graph(is_clean_install, hosted_startup_degradation_allowed)
+
+
+async def _verify_startup_auth_database() -> None:
+    """Prove credential authority before accepting HTTP traffic."""
     # Credential compatibility is an authority boundary, not an optional hosted
     # fallback. It must fail closed before any HTTP traffic is accepted.
     from .database import _PostgresOperationGuard
@@ -292,6 +370,12 @@ async def _initialize_application_state(
     except asyncio.CancelledError:
         await _stop_auth_database_verification(verification_task, operation_guard)
         raise
+
+
+async def _reconcile_startup_graph(
+    settings: GraphLifecycleSettings, has_persistence: bool, hosted_startup_degradation_allowed: bool
+) -> bool:
+    """Reconcile durable startup state with the existing hosted fallback policy."""
     is_clean_install = False
     if has_persistence:
         try:
@@ -315,6 +399,11 @@ async def _initialize_application_state(
                     },
                 ),
             )
+    return is_clean_install
+
+
+def _initialize_startup_graph(is_clean_install: bool, hosted_startup_degradation_allowed: bool) -> None:
+    """Load the graph or retain the explicitly allowed unavailable startup state."""
     # Required initialization for all environments to ensure state validity
     try:
         get_graph()
@@ -457,14 +546,108 @@ async def _perform_startup_reconciliation(settings: GraphLifecycleSettings) -> b
         raise RuntimeError("Failed to load persisted graph during startup") from None
 
 
+class _BlockedVerification:
+    """Own one read-only worker deadline and its cancellable database connections."""
+
+    def __init__(self, seconds: float) -> None:
+        """Start a shared deadline covering all evidence probes."""
+        from .database import _PostgresOperationGuard
+
+        self.deadline = time.monotonic() + seconds
+        self.cancelled = threading.Event()
+        self.guard = _PostgresOperationGuard()
+
+    def remaining(self) -> float:
+        """Reject expired evidence before starting another operation."""
+        remaining = self.deadline - time.monotonic()
+        if self.cancelled.is_set() or remaining <= 0:
+            raise TimeoutError("Startup evidence deadline expired")
+        return remaining
+
+    def cancel(self) -> None:
+        """Stop subsequent work and cancel active PostgreSQL evidence connections."""
+        self.cancelled.set()
+        self.guard.cancel()
+
+
+_BLOCKED_VERIFICATION: ContextVar[_BlockedVerification | None] = ContextVar("blocked_verification", default=None)
+
+
+def _create_startup_evidence_engine(url: str) -> Any:
+    """Apply operation-local connection/query bounds without changing runtime engines."""
+    from sqlalchemy import event
+
+    from src.data.database import create_engine_from_url
+
+    operation = _BLOCKED_VERIFICATION.get()
+    engine = create_engine_from_url(url)
+    if operation is None:
+        return engine
+    try:
+        operation.remaining()
+        if engine.dialect.name == "postgresql":
+
+            @event.listens_for(engine, "do_connect")
+            def _bound_connect(_dialect: Any, _record: Any, _args: Any, params: Any) -> None:
+                """Bound initial connection and reject options that can override query limits."""
+                remaining = operation.remaining()
+                if params.get("options"):
+                    raise SchemaCompatibilityError("Startup evidence connection options are unsupported")
+                params["connect_timeout"] = max(1, min(5, int(remaining)))
+                params["options"] = f"-c statement_timeout={max(1, int(remaining * 1000))}"
+
+            @event.listens_for(engine, "connect")
+            def _track_connection(connection: Any, _record: Any) -> None:
+                """Cancel connections acquired after worker cancellation as well as active ones."""
+                operation.guard.register(connection)
+
+            @event.listens_for(engine, "before_cursor_execute")
+            def _bound_query(
+                _connection: Any, cursor: Any, _statement: Any, _params: Any, _context: Any, _many: Any
+            ) -> None:
+                """Clamp every query to the remaining shared deadline."""
+                remaining = operation.remaining()
+                cursor.execute("SET statement_timeout = %s", (max(1, int(remaining * 1000)),))
+
+        elif engine.dialect.name == "sqlite":
+
+            @event.listens_for(engine, "checkout")
+            def _bound_sqlite(connection: Any, _record: Any, _proxy: Any) -> None:
+                """Interrupt SQLite evidence work when the shared deadline expires."""
+                connection.execute(f"PRAGMA busy_timeout = {max(1, int(operation.remaining() * 1000))}")
+                connection.set_progress_handler(
+                    lambda: int(operation.cancelled.is_set() or time.monotonic() >= operation.deadline), 1000
+                )
+
+        else:
+            raise SchemaCompatibilityError("Unsupported startup evidence database driver")
+        return engine
+    except Exception:
+        engine.dispose()
+        raise
+
+
+def _run_blocked_verification(exc: Any, settings: GraphLifecycleSettings, operation: _BlockedVerification) -> bool:
+    """Bind the deadline across all evidence checks and reject late success."""
+    token = _BLOCKED_VERIFICATION.set(operation)
+    try:
+        operation.remaining()
+        result = _handle_reconciliation_blocked(exc, settings)
+        operation.remaining()
+        return result
+    finally:
+        _BLOCKED_VERIFICATION.reset(token)
+        operation.cancel()
+
+
 def _is_genuine_clean_install(settings: GraphLifecycleSettings) -> bool:
     """Verify that durable persistence genuinely has zero rebuild jobs (clean install)."""
     try:
-        from src.data.database import create_engine_from_url, create_session_factory
+        from src.data.database import create_session_factory
         from src.data.repository import AssetGraphRepository, session_scope
 
         resolved_url = _resolve_startup_reconciliation_url(settings)
-        engine = create_engine_from_url(resolved_url)
+        engine = _create_startup_evidence_engine(resolved_url)
         try:
             session_factory = create_session_factory(engine)
             with session_scope(session_factory) as session:
@@ -480,12 +663,12 @@ def _is_genuine_clean_install(settings: GraphLifecycleSettings) -> bool:
 def _is_quiescent_established_state(settings: GraphLifecycleSettings) -> bool:
     """Verify that durable persistence has a terminal latest rebuild job (quiescent)."""
     try:
-        from src.data.database import create_engine_from_url, create_session_factory
+        from src.data.database import create_session_factory
         from src.data.db_models import RebuildJobStatus
         from src.data.repository import AssetGraphRepository, session_scope
 
         resolved_url = _resolve_startup_reconciliation_url(settings)
-        engine = create_engine_from_url(resolved_url)
+        engine = _create_startup_evidence_engine(resolved_url)
         try:
             session_factory = create_session_factory(engine)
             with session_scope(session_factory) as session:
@@ -511,12 +694,12 @@ def _has_never_published_graph(settings: GraphLifecycleSettings) -> bool:
     means a graph was published, so a missing graph is then an anomaly that must keep failing closed.
     """
     try:
-        from src.data.database import create_engine_from_url, create_session_factory
+        from src.data.database import create_session_factory
         from src.data.db_models import RebuildJobStatus
         from src.data.repository import AssetGraphRepository, session_scope
 
         resolved_url = _resolve_startup_reconciliation_url(settings)
-        engine = create_engine_from_url(resolved_url)
+        engine = _create_startup_evidence_engine(resolved_url)
         try:
             session_factory = create_session_factory(engine)
             with session_scope(session_factory) as session:
@@ -538,12 +721,15 @@ async def _handle_reconciliation_blocked_bounded(exc: Any, settings: GraphLifecy
     The verification opens database connections, so it must not run on the async startup thread and must not
     outlive the same kind of bound that protects the reconciliation worker itself.
     """
+    operation = _BlockedVerification(_STARTUP_BLOCKED_VERIFICATION_TIMEOUT_SECONDS)
+    task = asyncio.create_task(asyncio.to_thread(_run_blocked_verification, exc, settings, operation))
     try:
-        return await asyncio.wait_for(
-            asyncio.to_thread(_handle_reconciliation_blocked, exc, settings),
-            timeout=_STARTUP_BLOCKED_VERIFICATION_TIMEOUT_SECONDS,
-        )
-    except (TimeoutError, asyncio.TimeoutError):  # pylint: disable=overlapping-except
+        return await asyncio.wait_for(asyncio.shield(task), timeout=_STARTUP_BLOCKED_VERIFICATION_TIMEOUT_SECONDS)
+    except asyncio.CancelledError:
+        await _stop_auth_database_verification(task, operation)
+        raise
+    except TimeoutError:
+        await _stop_auth_database_verification(task, operation)
         log_event(
             logger,
             logging.CRITICAL,
@@ -827,6 +1013,7 @@ def create_app() -> FastAPI:
 
     @app.exception_handler(AuthoritativeGraphUnavailableError)
     async def _graph_unavailable_handler(_request: Request, _exc: AuthoritativeGraphUnavailableError) -> JSONResponse:
+        """Return the bounded unavailable-graph response without provider details."""
         return JSONResponse(
             status_code=503,
             content={"detail": "Graph not yet published; awaiting initial rebuild."},

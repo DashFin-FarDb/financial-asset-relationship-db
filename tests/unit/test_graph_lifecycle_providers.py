@@ -215,6 +215,7 @@ def test_build_rebuild_graph_uses_real_data_when_enabled(
         """Mock RebuildExecutor for unit testing."""
 
         def run_rebuild(self, **kwargs: object) -> AssetRelationshipGraph:
+            """Return the test graph from the mocked executor."""
             return expected_graph
 
     monkeypatch.setattr("src.data.real_data_fetcher.RealDataFetcher", MockFetcher)
@@ -257,6 +258,7 @@ def test_build_rebuild_graph_propagates_cancellation_during_cache_validation(
     cancel_event = threading.Event()
 
     def mock_load_cache(path: str, enable_network: bool, cancel_event: threading.Event | None = None):
+        """Simulate cancellation while validating cached data."""
         raise providers.RebuildCancelledError("Cancelled in cache validation")
 
     monkeypatch.setattr(providers, "load_graph_from_cache_path", mock_load_cache)

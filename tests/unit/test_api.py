@@ -16,6 +16,7 @@ from unittest.mock import PropertyMock, patch
 import pytest
 from fastapi.testclient import TestClient
 
+from api.graph_lifecycle import graph_state
 from api.main import app, validate_origin
 from src.config.settings import get_settings
 from src.logic.asset_graph import AssetRelationshipGraph
@@ -43,12 +44,17 @@ def asset_items(page: dict[str, Any]) -> list[dict[str, Any]]:
 
 
 @pytest.fixture
-def client():
-    """Create a test client for the FastAPI app.
+def client(monkeypatch: pytest.MonkeyPatch):
+    """Create a test client with isolated graph-publication state.
+
+    These API tests patch the graph instance directly and do not represent a
+    graph published by a rebuild job. Clear any job binding left by another test
+    so governed relationship reads use the intended unbound/mock-graph path.
 
     Note: TestClient uses internal ASGI transport, not actual network requests.
     The base_url is only used for URL construction in tests, not for real HTTP calls.
     """
+    monkeypatch.setattr(graph_state, "last_synced_job_id", None)
     # nosec B113 - TestClient uses ASGI transport, no actual localhost network access
     return TestClient(app, base_url="http://testserver")
 
@@ -631,7 +637,7 @@ class TestResponseValidation:
 
 
 @pytest.mark.unit
-class TestRealDataFetcherFallback:
+class TestRealDataFetcherCompleteness:
     """Test RealDataFetcher fallback behavior when external APIs fail."""
 
     @patch("yfinance.Ticker")
@@ -649,9 +655,11 @@ class TestRealDataFetcherFallback:
         fetcher = RealDataFetcher()
 
         # Mock the individual fetch methods to raise exceptions
-        with patch.object(fetcher, "_fetch_equity_data", side_effect=Exception("Equity fetch failed")):
-            with pytest.raises(DataAcquisitionIncompleteError):
-                fetcher.create_real_database()
+        with (
+            patch.object(fetcher, "_fetch_equity_data", side_effect=Exception("Equity fetch failed")),
+            pytest.raises(DataAcquisitionIncompleteError),
+        ):
+            fetcher.create_real_database()
 
     @patch("yfinance.Ticker")
     def test_real_data_fetcher_partial_fetch_success(self, mock_ticker):
@@ -665,7 +673,7 @@ class TestRealDataFetcherFallback:
             fetcher.create_real_database()
 
     @patch("src.data.real_data_fetcher.RealDataFetcher._fetch_equity_data")
-    def test_fetcher_falls_back_on_unhandled_exception(self, mock_fetch_equity):
+    def test_fetcher_rejects_unhandled_exception(self, mock_fetch_equity):
         """Test that unhandled exceptions in create_real_database raise DataAcquisitionIncompleteError."""
         from src.data.real_data_fetcher import DataAcquisitionIncompleteError, RealDataFetcher
 
@@ -692,7 +700,7 @@ class TestRealDataFetcherFallback:
 
     @patch("src.data.real_data_fetcher.log_event")
     @patch("src.data.real_data_fetcher.RealDataFetcher._fetch_equity_data")
-    def test_real_data_fetcher_logs_fallback_on_exception(self, mock_fetch_equity, mock_log_event):
+    def test_real_data_fetcher_logs_acquisition_failure(self, mock_fetch_equity, mock_log_event):
         """Test that RealDataFetcher logs error event when fetch fails."""
         from src.data.real_data_fetcher import DataAcquisitionIncompleteError, RealDataFetcher
 
@@ -727,7 +735,6 @@ class TestRealDataFetcherFallback:
     def test_real_data_fetcher_loads_from_cache(tmp_path):
         """Verify that RealDataFetcher returns cached dataset when available."""
         from src.data.real_data_fetcher import RealDataFetcher, _save_to_cache
-        from src.logic.asset_graph import AssetRelationshipGraph
         from tests.unit.test_real_data_fetcher import _make_mock_universe_assets
 
         cache_path = tmp_path / "cached_dataset.json"
@@ -779,7 +786,6 @@ class TestCacheCorruptionRegression:
         import threading
 
         from src.data.real_data_fetcher import _save_to_cache
-        from src.logic.asset_graph import AssetRelationshipGraph
         from tests.unit.test_real_data_fetcher import _make_mock_universe_assets
 
         cache_path = tmp_path / "concurrent_cache.json"

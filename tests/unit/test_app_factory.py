@@ -499,7 +499,9 @@ def test_startup_reconciliation_lock_release_behavior(
     should_raise: bool,
 ) -> None:
     """Startup reconciliation lock release behavior based on reacquisition."""
-    fake_engine = SimpleNamespace(dispose=lambda: None)
+    from tests.unit.test_postgresql_topology import identity_engine
+
+    fake_engine = identity_engine()
     fake_lock = SimpleNamespace(lock_name="graph_rebuild", release=MagicMock())
 
     class _GateMock:
@@ -546,8 +548,10 @@ def test_reconciliation_schema_verification_separates_runtime_capabilities(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """Separate graph and coordination URLs must require disjoint capability roles."""
-    graph_engine = object()
-    coordination_engine = object()
+    from tests.unit.test_postgresql_topology import identity_engine
+
+    graph_engine = identity_engine()
+    coordination_engine = identity_engine(identifier="99999")
     verify_schema = MagicMock()
     verify_authority = MagicMock()
     monkeypatch.setattr("src.data.database.verify_database_schema", verify_schema)
@@ -574,8 +578,9 @@ async def test_periodic_reconciliation_loop_triggers_recovery(
 ) -> None:
     """periodic_reconciliation_loop should retrieve and consume automatic reset reconciliation plans."""
     from src.logic.reconciliation_engine import ActionType, ExecutionMode, ExecutionSafety, Severity
+    from tests.unit.test_postgresql_topology import identity_engine
 
-    fake_engine = SimpleNamespace(dispose=lambda: None)
+    fake_engine = identity_engine()
     fake_lock = SimpleNamespace(lock_name="graph_rebuild", release=MagicMock())
 
     # Mock DB and Lock
@@ -939,6 +944,7 @@ def test_authoritative_graph_unavailable_returns_503() -> None:
 
     @test_app.get("/test-graph-unavailable")
     def _trigger_unavailable():
+        """Provide trigger unavailable for this regression."""
         raise AuthoritativeGraphUnavailableError("Graph not yet published")
 
     client = TestClient(test_app, raise_server_exceptions=False)
@@ -950,7 +956,6 @@ def test_authoritative_graph_unavailable_returns_503() -> None:
 def test_reconciliation_blocked_clean_install_requires_zero_jobs(monkeypatch) -> None:
     """_handle_reconciliation_blocked must require independent evidence (zero rebuild jobs or quiescent state)."""
     from api.app_factory import _handle_reconciliation_blocked
-    from src.logic.recovery_gate import ExecutionBlockedError
 
     exc = ExecutionBlockedError("waiting", action="wait", inconsistency_type="none")
     dummy_settings = MagicMock()
@@ -1184,3 +1189,261 @@ def test_graph_read_during_first_rebuild_returns_503_and_preserves_rebuilding_st
         assert graph_lifecycle.get_runtime_lifecycle_state() == graph_lifecycle.GraphRuntimeLifecycleState.REBUILDING
     finally:
         graph_lifecycle.reset_graph()
+
+
+@pytest.mark.parametrize("same_login", [True, False])
+def test_reconciliation_same_database_distinct_sessions_capabilities(monkeypatch, same_login) -> None:
+    """Combined requirements apply only to identity-proved same-database shared logins."""
+    from tests.unit.test_postgresql_topology import identity_engine
+
+    graph_engine = identity_engine()
+    coordination_engine = identity_engine()
+    graph_engine.identity_connections[0].execute.return_value.scalar_one.return_value = "graph_login"
+    coordination_engine.identity_connections[0].execute.return_value.scalar_one.return_value = (
+        "graph_login" if same_login else "coordination_login"
+    )
+    verify_schema = MagicMock()
+    verify_authority = MagicMock()
+    monkeypatch.setattr("src.data.database.verify_database_schema", verify_schema)
+    monkeypatch.setattr("src.data.database.verify_runtime_database_authority", verify_authority)
+    app_factory._verify_reconciliation_schemas(graph_engine, coordination_engine)
+    expected = [{"graph", "coordination"}] * 2 if same_login else [{"graph"}, {"coordination"}]
+    for verifier in (verify_schema, verify_authority):
+        assert [call.kwargs["required_capabilities"] for call in verifier.call_args_list] == expected
+        assert all(call.kwargs["combined_topology"] for call in verifier.call_args_list)
+        assert verifier.call_args_list[0].kwargs["verification_connection"] is graph_engine.identity_connections[0]
+        assert (
+            verifier.call_args_list[1].kwargs["verification_connection"] is coordination_engine.identity_connections[0]
+        )
+
+
+@pytest.mark.asyncio
+async def test_blocked_verification_cancels_owned_connection_and_observes_worker(monkeypatch) -> None:
+    """Timeout cancels the actual worker connection rather than only its awaitable."""
+    import threading
+
+    finished = threading.Event()
+    cancelled = threading.Event()
+    connection = MagicMock()
+    connection.cancel.side_effect = cancelled.set
+
+    def blocked_handler(_exc, _settings):
+        """Wait until the operation guard cancels this simulated database query."""
+        operation = app_factory._BLOCKED_VERIFICATION.get()
+        assert operation is not None
+        operation.guard.register(connection)
+        assert cancelled.wait(1)
+        finished.set()
+        return True
+
+    monkeypatch.setattr(app_factory, "_handle_reconciliation_blocked", blocked_handler)
+    monkeypatch.setattr(app_factory, "_STARTUP_BLOCKED_VERIFICATION_TIMEOUT_SECONDS", 0.02)
+    with pytest.raises(RuntimeError, match="Startup reconciliation timed out"):
+        await app_factory._handle_reconciliation_blocked_bounded(MagicMock(), MagicMock())
+    assert finished.is_set()
+    connection.cancel.assert_called_once()
+    assert connection.close.called
+
+
+def test_startup_evidence_postgres_connect_and_query_share_deadline(monkeypatch) -> None:
+    """Driver limits and cancellation registration cover every retained evidence connection."""
+    from sqlalchemy import create_engine
+
+    engine = create_engine("postgresql://localhost/test")
+    monkeypatch.setattr("src.data.database.create_engine_from_url", lambda _url: engine)
+    operation = app_factory._BlockedVerification(10)
+    token = app_factory._BLOCKED_VERIFICATION.set(operation)
+    try:
+        assert app_factory._create_startup_evidence_engine("postgresql://localhost/test") is engine
+        params: dict[str, Any] = {}
+        engine.dialect.dispatch.do_connect(engine.dialect, None, [], params)
+        assert 1 <= params["connect_timeout"] <= 5
+        assert "statement_timeout=" in params["options"]
+        override = {"options": "-c statement_timeout=0"}
+        with pytest.raises(SchemaCompatibilityError):
+            engine.dialect.dispatch.do_connect(engine.dialect, None, [], override)
+        cursor = MagicMock()
+        engine.dispatch.before_cursor_execute(None, cursor, "SELECT 1", (), None, False)
+        assert cursor.execute.call_args.args[0] == "SET statement_timeout = %s"
+        assert 0 < cursor.execute.call_args.args[1][0] <= 10000
+        operation.guard.cancel()
+        connection = MagicMock()
+        with pytest.raises(RuntimeError, match="cancelled"):
+            list(engine.pool.dispatch.connect)[-1](connection, None)
+        connection.close.assert_called_once()
+    finally:
+        app_factory._BLOCKED_VERIFICATION.reset(token)
+        engine.dispose()
+
+
+def test_expired_evidence_does_not_accept_late_success(monkeypatch) -> None:
+    """Even a positive evidence result is rejected if it finishes after the deadline."""
+    operation = app_factory._BlockedVerification(1)
+
+    def late_handler(_exc, _settings):
+        """Expire the operation before returning a positive result."""
+        operation.deadline = 0
+        return True
+
+    monkeypatch.setattr(app_factory, "_handle_reconciliation_blocked", late_handler)
+    with pytest.raises(TimeoutError):
+        app_factory._run_blocked_verification(MagicMock(), MagicMock(), operation)
+    assert app_factory._BLOCKED_VERIFICATION.get() is None
+
+
+def test_sqlite_startup_evidence_query_is_interrupted_by_deadline() -> None:
+    """Real SQLite work cannot continue past the evidence deadline."""
+    import sqlite3
+
+    from sqlalchemy.exc import OperationalError
+
+    operation = app_factory._BlockedVerification(1)
+    token = app_factory._BLOCKED_VERIFICATION.set(operation)
+    engine = app_factory._create_startup_evidence_engine("sqlite:///:memory:")
+    try:
+        with engine.connect() as connection:
+            operation.deadline = 0
+            with pytest.raises(OperationalError) as captured:
+                connection.exec_driver_sql(
+                    "WITH RECURSIVE counter(n) AS (SELECT 1 UNION ALL SELECT n+1 FROM counter WHERE n<100000) "
+                    "SELECT sum(n) FROM counter"
+                )
+            assert isinstance(captured.value.orig, sqlite3.OperationalError)
+    finally:
+        app_factory._BLOCKED_VERIFICATION.reset(token)
+        engine.dispose()
+
+
+def test_cancelled_startup_evidence_cannot_open_another_probe() -> None:
+    """Cancellation prevents another evidence query even before the deadline expires."""
+    operation = app_factory._BlockedVerification(30)
+    operation.cancel()
+    with pytest.raises(TimeoutError):
+        operation.remaining()
+
+
+def test_postgres_startup_evidence_real_deadline_and_cancellation() -> None:
+    """A harness-owned PostgreSQL query stops on deadline and cannot be reused after cancellation."""
+    import os
+    import time
+
+    from sqlalchemy.exc import DBAPIError
+
+    from tests.integration.postgresql_disposable_cluster import URL_ENV, attested_connection
+
+    database_url = os.environ.get(URL_ENV)
+    if not database_url:
+        pytest.skip("requires the fresh disposable PostgreSQL harness")
+    assert database_url is not None
+    with attested_connection(database_url):
+        pass
+
+    operation = app_factory._BlockedVerification(2)
+    token = app_factory._BLOCKED_VERIFICATION.set(operation)
+    engine = app_factory._create_startup_evidence_engine(database_url)
+    try:
+        started = time.monotonic()
+        with pytest.raises(DBAPIError):
+            with engine.connect() as connection:
+                connection.exec_driver_sql("SELECT pg_sleep(8)")
+        assert time.monotonic() - started < 7
+        operation.cancel()
+        with pytest.raises(TimeoutError):
+            operation.remaining()
+        engine.dispose()
+        with pytest.raises(TimeoutError):
+            engine.connect()
+    finally:
+        operation.cancel()
+        app_factory._BLOCKED_VERIFICATION.reset(token)
+        engine.dispose()
+
+
+def test_postgres_startup_evidence_rejects_real_options_override() -> None:
+    """A connection option cannot disable the bounded evidence query on the disposable target."""
+    import os
+    from urllib.parse import quote
+
+    from tests.integration.postgresql_disposable_cluster import URL_ENV, attested_connection
+
+    database_url = os.environ.get(URL_ENV)
+    if not database_url:
+        pytest.skip("requires the fresh disposable PostgreSQL harness")
+    assert database_url is not None
+    with attested_connection(database_url):
+        pass
+    separator = "&" if "?" in database_url else "?"
+    overridden_url = database_url + separator + "options=" + quote("-c statement_timeout=0")
+    operation = app_factory._BlockedVerification(5)
+    token = app_factory._BLOCKED_VERIFICATION.set(operation)
+    engine = app_factory._create_startup_evidence_engine(overridden_url)
+    try:
+        with pytest.raises(SchemaCompatibilityError, match="options are unsupported"):
+            engine.connect()
+    finally:
+        operation.cancel()
+        app_factory._BLOCKED_VERIFICATION.reset(token)
+        engine.dispose()
+
+
+def test_postgres_startup_evidence_cancels_active_real_query() -> None:
+    """Cancellation interrupts an observed PostgreSQL query before its server deadline."""
+    import os
+    import time
+
+    from sqlalchemy.exc import DBAPIError
+
+    from tests.integration.postgresql_disposable_cluster import URL_ENV, attested_connection
+
+    database_url = os.environ.get(URL_ENV)
+    if not database_url:
+        pytest.skip("requires the fresh disposable PostgreSQL harness")
+    assert database_url is not None
+    operation = app_factory._BlockedVerification(20)
+    token = app_factory._BLOCKED_VERIFICATION.set(operation)
+    engine = app_factory._create_startup_evidence_engine(database_url)
+    backend_pid: list[int] = []
+    errors: list[Exception] = []
+    connected = threading.Event()
+
+    def run_query() -> None:
+        """Run a bounded query on the connection registered with the operation guard."""
+        try:
+            with engine.connect() as connection:
+                backend_pid.append(connection.exec_driver_sql("SELECT pg_backend_pid()").scalar_one())
+                connected.set()
+                connection.exec_driver_sql("SELECT pg_sleep(12)")
+        except Exception as exc:  # noqa: BLE001 - preserve the real driver outcome for the assertion
+            errors.append(exc)
+            connected.set()
+
+    worker = threading.Thread(target=run_query)
+    try:
+        with attested_connection(database_url) as observer:
+            observer.autocommit = True
+            worker.start()
+            assert connected.wait(8), "PostgreSQL query did not acquire a connection"
+            assert backend_pid, f"PostgreSQL connection failed: {[type(error).__name__ for error in errors]}"
+            deadline = time.monotonic() + 5
+            active = False
+            with observer.cursor() as cursor:
+                while time.monotonic() < deadline:
+                    cursor.execute("SELECT state, query FROM pg_stat_activity WHERE pid = %s", (backend_pid[0],))
+                    row = cursor.fetchone()
+                    if row and row[0] == "active" and "pg_sleep(12)" in row[1]:
+                        active = True
+                        break
+                    time.sleep(0.05)
+            assert active, "PostgreSQL query did not become active"
+            cancelled_at = time.monotonic()
+            operation.cancel()
+            worker.join(8)
+            assert not worker.is_alive(), "cancelled PostgreSQL query did not finish"
+            assert time.monotonic() - cancelled_at < 8
+            assert len(errors) == 1 and isinstance(errors[0], DBAPIError)
+    finally:
+        operation.cancel()
+        if worker.ident is not None:
+            worker.join(8)
+        app_factory._BLOCKED_VERIFICATION.reset(token)
+        engine.dispose()

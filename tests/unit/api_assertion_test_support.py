@@ -19,7 +19,15 @@ from api.services import relationship_index as relationship_index_service
 from src.data.database import create_engine_from_url, init_db
 
 UTC = timezone.utc
-_assertion_database_url: str | None = None
+
+
+class _AssertionStoreState:
+    """Hold the URL of the module-owned assertion test store."""
+
+    database_url: str | None = None
+
+
+_assertion_store = _AssertionStoreState()
 
 
 def _iso_now() -> str:
@@ -83,12 +91,10 @@ def _reset_assertion_persistence_runtime() -> None:
 @pytest.fixture(scope="module", autouse=True)
 def initialize_assertion_store(tmp_path_factory: pytest.TempPathFactory) -> Iterator[None]:
     """Initialize a module-isolated assertion store matching application startup."""
-    global _assertion_database_url
-
     database_path: Path = tmp_path_factory.mktemp("assertion-store") / "assertions.db"
-    _assertion_database_url = f"sqlite:///{database_path.as_posix()}"
+    _assertion_store.database_url = f"sqlite:///{database_path.as_posix()}"
     _reset_assertion_persistence_runtime()
-    engine = create_engine_from_url(_assertion_database_url)
+    engine = create_engine_from_url(_assertion_store.database_url)
     try:
         init_db(engine)
         from src.data.database import create_session_factory, session_scope
@@ -101,7 +107,7 @@ def initialize_assertion_store(tmp_path_factory: pytest.TempPathFactory) -> Iter
         yield
     finally:
         _reset_assertion_persistence_runtime()
-        _assertion_database_url = None
+        _assertion_store.database_url = None
         engine.dispose()
 
 
@@ -111,9 +117,9 @@ def configure_graph_persistence(monkeypatch: pytest.MonkeyPatch) -> None:
     relationship_index_service._load_contract_predicates.cache_clear()
     relationship_index_service.invalidate_governed_relationship_index_cache()
 
-    if _assertion_database_url is None:
+    if _assertion_store.database_url is None:
         raise RuntimeError("isolated assertion store is not initialized")
-    database_url = _assertion_database_url
+    database_url = _assertion_store.database_url
     settings = SimpleNamespace(
         asset_graph_database_url=database_url,
         database_url=None,

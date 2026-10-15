@@ -9,6 +9,7 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from types import ModuleType, SimpleNamespace
 from typing import cast
+from unittest.mock import MagicMock
 
 import pytest
 from fastapi.testclient import TestClient
@@ -314,7 +315,7 @@ def test_cache_primed_read_is_refreshed_after_admin_publication(
 
     try:
         graph_admin._finalize_rebuild_success(
-            session_factory=lambda: None,
+            session_factory=MagicMock(),
             job_id="job-test",
             execution_id="exec-test",
             graph=graph,

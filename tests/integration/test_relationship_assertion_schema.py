@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+from collections.abc import Iterator
 from datetime import datetime, timezone
 
 import pytest
@@ -185,7 +186,7 @@ def _postgres_url() -> str | None:
 
 
 @pytest.fixture(params=["sqlite", "postgresql"])
-def schema_engine(request, tmp_path) -> Engine:
+def schema_engine(request, tmp_path) -> Iterator[Engine]:
     """Provide SQLite always; PostgreSQL when an ephemeral URL is configured."""
     dialect = request.param
     if dialect == "sqlite":
@@ -214,16 +215,26 @@ def _table_names(engine: Engine) -> set[str]:
 
 def _check_names(engine: Engine, table: str) -> set[str]:
     """Return named CHECK constraints reflected for one table."""
-    return {item["name"] for item in inspect(engine).get_check_constraints(table)}
+    names: set[str] = set()
+    for item in inspect(engine).get_check_constraints(table):
+        name = item["name"]
+        if name is not None:
+            names.add(name)
+    return names
 
 
 def _index_names(engine: Engine, table: str) -> set[str]:
     """Return named indexes and unique constraints reflected for one table."""
-    names = {item["name"] for item in inspect(engine).get_indexes(table) if item.get("name")}
+    names: set[str] = set()
+    for item in inspect(engine).get_indexes(table):
+        name = item.get("name")
+        if name:
+            names.add(name)
     # UniqueConstraints may appear as unique indexes depending on dialect.
     for uk in inspect(engine).get_unique_constraints(table):
-        if uk.get("name"):
-            names.add(uk["name"])
+        name = uk.get("name")
+        if name:
+            names.add(name)
     return names
 
 

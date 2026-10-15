@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from contextlib import contextmanager
-from typing import cast
+from typing import Any, cast
 from unittest.mock import MagicMock, call
 
 import pytest
@@ -26,9 +26,9 @@ pytestmark = pytest.mark.unit
 _TEST_ADMIN_PASSWORD = "strong-test-password"  # nosec B105 - synthetic unit-test value
 
 
-def _settings(**overrides) -> Settings:
+def _settings(**overrides: Any) -> Settings:
     """Build minimal operator settings with caller-selected database URLs."""
-    values = {
+    values: dict[str, Any] = {
         "secret_key": "s" * 32,
         "database_url": "sqlite:///auth.db",
     }
@@ -202,7 +202,9 @@ def test_postgresql_targets_apply_after_global_preflight_and_before_engines(monk
         call(engines[plan[2].database_url], required_capabilities={"coordination"}),
     ]
     cast(MagicMock, migrate_database.initialize_schema).assert_not_called()
-    cast(MagicMock, migrate_database.verify_runtime_access_catalog).assert_called_once_with()
+    cast(MagicMock, migrate_database.verify_runtime_access_catalog).assert_called_once_with(
+        require_login_principals=False
+    )
     cast(MagicMock, migrate_database.verify_schema_compatibility).assert_called_once_with()
 
 
