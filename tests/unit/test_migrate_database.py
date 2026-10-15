@@ -202,7 +202,9 @@ def test_postgresql_targets_apply_after_global_preflight_and_before_engines(monk
         call(engines[plan[2].database_url], required_capabilities={"coordination"}),
     ]
     cast(MagicMock, migrate_database.initialize_schema).assert_not_called()
-    cast(MagicMock, migrate_database.verify_runtime_access_catalog).assert_called_once_with()
+    cast(MagicMock, migrate_database.verify_runtime_access_catalog).assert_called_once_with(
+        require_login_principals=False
+    )
     cast(MagicMock, migrate_database.verify_schema_compatibility).assert_called_once_with()
 
 

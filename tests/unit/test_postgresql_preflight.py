@@ -9,6 +9,7 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 from types import SimpleNamespace
+from unittest.mock import MagicMock, Mock
 
 import pytest
 from psycopg2.extensions import parse_dsn
@@ -208,17 +209,42 @@ def test_supabase_adapter_rejects_replaceable_trust_root(tmp_path: Path) -> None
         preflight._supabase_route_identity(database_url)
 
 
+def _stub_runtime_engines(monkeypatch):
+    """Supply distinct live-identity doubles without contacting placeholder providers."""
+    from urllib.parse import urlsplit
+
+    from src.data import database as data_database
+    from tests.unit.test_postgresql_topology import identity_engine
+
+    engines = []
+
+    def create(url):
+        """Represent project-specific identities independent of credential text."""
+        parsed = urlsplit(url)
+        reference = (parsed.hostname or "") if (parsed.hostname or "").startswith("db.") else parsed.username or ""
+        identifier = "99999" if "other" in reference or "ref2" in reference else "12345"
+        engine = identity_engine(identifier=identifier)
+        engines.append(engine)
+        return engine
+
+    monkeypatch.setattr(data_database, "create_engine_from_url", create)
+    return engines
+
+
 def test_runtime_helpers_force_read_only_and_check_every_credential(tmp_path: Path, monkeypatch) -> None:
     """Compatibility uses each runtime route and preserves the libpq options space."""
+    _stub_runtime_engines(monkeypatch)
     routes = {
         component: preflight._supabase_route_identity(_database_url(tmp_path, pooler=component != "auth"))
         for component in ("auth", "graph", "coordination")
     }
-    calls: list[tuple[str, str]] = []
+    calls: list[tuple[str, str, bool | None]] = []
     monkeypatch.setattr(
         preflight,
         "_runtime_compatibility",
-        lambda route, component: calls.append((component, route.database_url)),
+        lambda route, component, *, combined_topology=None, verified_session=None: calls.append(
+            (component, route.database_url, combined_topology)
+        ),
     )
 
     preflight._runtime_routes_compatible(routes)
@@ -227,7 +253,7 @@ def test_runtime_helpers_force_read_only_and_check_every_credential(tmp_path: Pa
     assert "options=-c%20default_transaction_read_only%3Don" in read_only_url
     assert "options=-c+default_transaction_read_only%3Don" not in read_only_url
     assert parse_dsn(read_only_url)["options"] == "-c default_transaction_read_only=on"
-    assert [component for component, _url in calls] == ["auth", "graph", "coordination"]
+    assert [component for component, _url, _combined in calls] == ["auth", "graph", "coordination"]
 
 
 def test_auth_helper_import_isolated_from_production_application_settings(tmp_path: Path) -> None:
@@ -271,13 +297,7 @@ def test_graph_checks_do_not_import_auth_database(tmp_path: Path, monkeypatch) -
     """Graph compatibility and authority have no API import-time dependency."""
     from src.data import database as data_database
 
-    class Engine:
-        """Minimal disposable graph engine fixture."""
-
-        def dispose(self) -> None:
-            """Model successful engine cleanup."""
-
-    monkeypatch.setattr(data_database, "create_engine_from_url", lambda _url: Engine())
+    _stub_runtime_engines(monkeypatch)
     monkeypatch.setattr(data_database, "verify_database_schema", lambda _engine, **_kwargs: None)
     monkeypatch.setattr(data_database, "verify_runtime_database_authority", lambda _engine, **_kwargs: None)
     monkeypatch.setattr(
@@ -293,12 +313,13 @@ def test_graph_checks_do_not_import_auth_database(tmp_path: Path, monkeypatch) -
 
 def test_runtime_route_incompatibility_propagates_as_drift_signal(tmp_path: Path, monkeypatch) -> None:
     """One incompatible runtime credential stops the aggregate compatibility callback."""
+    _stub_runtime_engines(monkeypatch)
     routes = {
         component: preflight._supabase_route_identity(_database_url(tmp_path, pooler=component != "auth"))
         for component in ("auth", "graph", "coordination")
     }
 
-    def check_route(_route, component: str) -> None:
+    def check_route(_route, component: str, **_kwargs) -> None:
         """Model one component-specific runtime incompatibility."""
         if component == "graph":
             raise RuntimeCompatibilityMismatch()
@@ -601,3 +622,277 @@ def test_repository_state_ignores_caller_git_indirection(monkeypatch) -> None:
     monkeypatch.setattr(preflight.subprocess, "run", run)
 
     assert preflight._repository_sha() == "1" * 40
+
+
+def test_is_shared_physical_target_evaluates_project_ref() -> None:
+    """_is_shared_physical_target returns True only when both non-empty project_refs match."""
+    route_a = preflight.RouteIdentity("postgresql://user:pass@host:5432/postgres", "proj1234567890123456")
+    route_b = preflight.RouteIdentity("postgresql://user2:pass2@host2:5432/postgres", "proj1234567890123456")
+    route_c = preflight.RouteIdentity("postgresql://user3:pass3@host3:5432/postgres", "other123456789012345")
+    route_empty = preflight.RouteIdentity("postgresql://user4:pass4@host4:5432/postgres", "")
+
+    assert preflight._is_shared_physical_target(route_a, route_b) is True
+    assert preflight._is_shared_physical_target(route_a, route_c) is False
+    assert preflight._is_shared_physical_target(route_a, route_empty) is False
+    assert preflight._is_shared_physical_target(route_a, None) is False
+    assert preflight._is_shared_physical_target(None, route_b) is False
+    assert preflight._is_shared_physical_target(None, None) is False
+
+    # Same project_ref but different physical database paths
+    route_diff_db = preflight.RouteIdentity("postgresql://user:pass@host:5432/otherdb", "proj1234567890123456")
+    assert preflight._is_shared_physical_target(route_a, route_diff_db) is False
+
+    # Database path normalisation (e.g. unquoted percent-encoding: /postgres vs /%70ostgres)
+    route_encoded_db = preflight.RouteIdentity("postgresql://user:pass@host:5432/%70ostgres", "proj1234567890123456")
+    assert preflight._is_shared_physical_target(route_a, route_encoded_db) is True
+
+
+def test_runtime_routes_compatible_passes_combined_topology_based_on_route_identity(
+    tmp_path: Path, monkeypatch
+) -> None:
+    """_runtime_routes_compatible passes combined_topology=True only when graph and coordination share target."""
+    _stub_runtime_engines(monkeypatch)
+    certificate = _certificate(tmp_path)
+    url_shared = f"postgresql://user:pass@db.{PROJECT_REF}.supabase.co:5432/postgres?sslmode=verify-full&sslrootcert={certificate}"
+    url_other = f"postgresql://user:pass@db.otherprojectref12345.supabase.co:5432/postgres?sslmode=verify-full&sslrootcert={certificate}"
+
+    route_shared = preflight._supabase_route_identity(url_shared)
+    route_other = preflight._supabase_route_identity(url_other)
+
+    recorded_calls: list[tuple[str, bool | None]] = []
+    monkeypatch.setattr(
+        preflight,
+        "_runtime_compatibility",
+        lambda _route, component, *, combined_topology=None, verified_session=None: recorded_calls.append(
+            (component, combined_topology)
+        ),
+    )
+
+    # Combined topology: graph and coordination share project_ref
+    preflight._runtime_routes_compatible({"graph": route_shared, "coordination": route_shared})
+    assert recorded_calls == [("graph", True), ("coordination", True)]
+
+    # Separated topology: graph and coordination have different project_ref
+    recorded_calls.clear()
+    preflight._runtime_routes_compatible({"graph": route_shared, "coordination": route_other})
+    assert recorded_calls == [("graph", False), ("coordination", False)]
+
+
+def test_runtime_authority_passes_combined_topology_to_verifier(monkeypatch) -> None:
+    """_runtime_authority passes combined_topology to verify_runtime_database_authority."""
+    from src.data import database as data_database
+
+    engines = _stub_runtime_engines(monkeypatch)
+    recorded_calls: list[dict[str, object]] = []
+
+    monkeypatch.setattr(
+        data_database,
+        "verify_runtime_database_authority",
+        lambda _engine, *, required_capabilities=(), combined_topology=None, verification_connection=None: recorded_calls.append(
+            {"capabilities": required_capabilities, "combined_topology": combined_topology}
+        ),
+    )
+
+    route_shared_1 = preflight.RouteIdentity(
+        "postgresql://user1:pass@db.ref1.supabase.co:5432/postgres", "shared_project_ref1"
+    )
+    route_shared_2 = preflight.RouteIdentity(
+        "postgresql://user2:pass@db.ref1.supabase.co:5432/postgres", "shared_project_ref1"
+    )
+    route_distinct = preflight.RouteIdentity(
+        "postgresql://user3:pass@db.ref2.supabase.co:5432/postgres", "other_project_ref2"
+    )
+
+    monkeypatch.setattr(preflight, "_read_only_url", lambda r: r.database_url)
+
+    # Shared targets -> combined_topology=True
+    status = preflight._runtime_authority({"graph": route_shared_1, "coordination": route_shared_2})
+    assert status == CHECK_PASSED
+    assert len(recorded_calls) == 2
+    assert all(c["combined_topology"] is True for c in recorded_calls)
+
+    # Distinct targets -> combined_topology=False
+    recorded_calls.clear()
+    status = preflight._runtime_authority({"graph": route_shared_1, "coordination": route_distinct})
+    assert status == CHECK_PASSED
+    assert len(recorded_calls) == 2
+    assert all(c["combined_topology"] is False for c in recorded_calls)
+    assert sum(engine.dispose.call_count for engine in engines) == 4
+
+
+def test_preflight_rejects_equal_project_routes_with_different_live_clusters(monkeypatch) -> None:
+    """Provider names cannot override conflicting live cluster identities."""
+    from src.data import database as data_database
+    from tests.unit.test_postgresql_topology import identity_engine
+
+    engines = [identity_engine(identifier="12345"), identity_engine(identifier="99999")]
+    monkeypatch.setattr(data_database, "create_engine_from_url", lambda _url: engines.pop(0))
+    monkeypatch.setattr(preflight, "_read_only_url", lambda route: route.database_url)
+    route = preflight.RouteIdentity("postgresql://runtime@host/postgres", "same_project")
+    with preflight._verified_non_auth_connections({"graph": route, "coordination": route}) as (sessions, combined):
+        assert len(sessions) == 2
+        assert combined is False
+
+
+def test_preflight_rejects_unavailable_live_identity(monkeypatch) -> None:
+    """No readable identity means no authority verification or route fallback."""
+    from src.data import database as data_database
+    from tests.unit.test_postgresql_topology import identity_engine
+
+    engine = identity_engine()
+    engine.identity_connections[0].execute.side_effect = PermissionError("denied")
+    monkeypatch.setattr(data_database, "create_engine_from_url", lambda _url: engine)
+    monkeypatch.setattr(preflight, "_read_only_url", lambda route: route.database_url)
+    verifier = Mock()
+    monkeypatch.setattr(data_database, "verify_runtime_database_authority", verifier)
+    route = preflight.RouteIdentity("postgresql://runtime@host/postgres", "same_project")
+    assert preflight._runtime_authority({"graph": route}) == preflight.NOT_EVALUATED
+    verifier.assert_not_called()
+    engine.dispose.assert_called_once()
+
+
+def test_preflight_preserves_union_for_identical_runtime_credentials(monkeypatch) -> None:
+    """One combined credential must be verified once with both required capabilities."""
+    from src.data import database as data_database
+
+    engines = _stub_runtime_engines(monkeypatch)
+    monkeypatch.setattr(preflight, "_read_only_url", lambda route: route.database_url)
+    verifier = Mock()
+    monkeypatch.setattr(data_database, "verify_runtime_database_authority", verifier)
+    route = preflight.RouteIdentity("postgresql://runtime@db.shared.supabase.co/postgres", "shared")
+    assert preflight._runtime_authority({"graph": route, "coordination": route}) == CHECK_PASSED
+    assert len(engines) == 2
+    verifier.assert_called_once_with(
+        engines[0],
+        required_capabilities={"graph", "coordination"},
+        combined_topology=True,
+        verification_connection=engines[0].identity_connections[0],
+    )
+    for engine in engines:
+        engine.dispose.assert_called_once()
+
+
+def test_preflight_rejects_identical_credentials_with_conflicting_live_identities(monkeypatch) -> None:
+    """A routed credential yielding different clusters cannot acquire a combined scope."""
+    from src.data import database as data_database
+    from tests.unit.test_postgresql_topology import identity_engine
+
+    engines = [identity_engine(identifier="12345"), identity_engine(identifier="99999")]
+    monkeypatch.setattr(data_database, "create_engine_from_url", lambda _url: engines.pop(0))
+    monkeypatch.setattr(preflight, "_read_only_url", lambda route: route.database_url)
+    verifier = Mock()
+    monkeypatch.setattr(data_database, "verify_runtime_database_authority", verifier)
+    route = preflight.RouteIdentity("postgresql://runtime@db.shared.supabase.co/postgres", "shared")
+    assert preflight._runtime_authority({"graph": route, "coordination": route}) == preflight.NOT_EVALUATED
+    verifier.assert_not_called()
+
+
+@pytest.mark.parametrize(
+    "oid,identifier,name", [(16385, "12345", "postgres"), (16384, "99999", "postgres"), (16384, "12345", "other")]
+)
+def test_retained_session_must_match_permit_and_inspection_identity(tmp_path, monkeypatch, oid, identifier, name):
+    """Rerouted sessions cannot verify even if both runtime credentials agree."""
+    from src.data import database as data_database
+    from src.data.postgresql_topology import DatabaseIdentity
+    from tests.unit.test_postgresql_topology import identity_engine
+
+    route = preflight._supabase_route_identity(_database_url(tmp_path))
+    target = _target(route.database_url)
+    monkeypatch.setattr(data_database, "create_engine_from_url", lambda _url: identity_engine(identifier, oid, name))
+    _assert_context_entry_raises(
+        preflight._verified_non_auth_connections(
+            {"graph": route}, target, DatabaseIdentity("12345", int(DATABASE_ID), "postgres")
+        ),
+        preflight.TargetIdentityError,
+    )
+
+
+def test_auth_catalog_checks_reuse_permit_proved_connection(tmp_path, monkeypatch):
+    """Auth schema and authority predicates cannot silently open a new session."""
+    route = preflight._supabase_route_identity(_database_url(tmp_path))
+    connection = Mock()
+    api = Mock()
+    api.bind_database_url.return_value = MagicMock()
+    monkeypatch.setattr(preflight, "_import_api_database", lambda _url: api)
+    preflight._runtime_compatibility(route, "auth", auth_connection=connection)
+    api.verify_schema_compatibility.assert_called_once_with(verification_connection=connection)
+    api.verify_runtime_access_catalog.assert_called_once_with(verification_connection=connection)
+
+
+def test_auth_retained_session_rejects_reroute_before_verification(tmp_path, monkeypatch):
+    """A valid earlier route probe cannot authorize a different retained cluster."""
+    from src.data.postgresql_topology import DatabaseIdentity
+
+    route = preflight._supabase_route_identity(_database_url(tmp_path))
+    target = _target(route.database_url)
+    connection = Mock()
+    monkeypatch.setattr(preflight, "_connect_verified", lambda _route, _target: connection)
+    monkeypatch.setattr(
+        preflight,
+        "_psycopg_database_identity",
+        lambda _connection: DatabaseIdentity("99999", int(DATABASE_ID), "postgres"),
+    )
+    _assert_context_entry_raises(
+        preflight._verified_auth_connection(
+            {"auth": route}, target, DatabaseIdentity("12345", int(DATABASE_ID), "postgres")
+        ),
+        preflight.TargetIdentityError,
+    )
+    connection.close.assert_called_once()
+
+
+def _assert_context_entry_raises(context_manager, error_type: type[Exception]) -> None:
+    """Assert a context manager rejects entry and close it if it unexpectedly enters."""
+    try:
+        context_manager.__enter__()
+    except error_type:
+        return
+    context_manager.__exit__(None, None, None)
+    pytest.fail(f"context entry should raise {error_type.__name__}")
+
+
+def test_retained_session_accepts_exact_permit_identity(tmp_path, monkeypatch):
+    """The catalog verifier receives the same session that proved the planned target."""
+    from src.data import database as data_database
+    from src.data.postgresql_topology import DatabaseIdentity
+    from tests.unit.test_postgresql_topology import identity_engine
+
+    route = preflight._supabase_route_identity(_database_url(tmp_path))
+    target = _target(route.database_url)
+    engine = identity_engine(name="postgres")
+    monkeypatch.setattr(data_database, "create_engine_from_url", lambda _url: engine)
+    verifier = Mock()
+    monkeypatch.setattr(data_database, "verify_runtime_database_authority", verifier)
+    assert (
+        preflight._runtime_authority({"graph": route}, target, DatabaseIdentity("12345", int(DATABASE_ID), "postgres"))
+        == CHECK_PASSED
+    )
+    assert verifier.call_args.kwargs["verification_connection"] is engine.identity_connections[0]
+    engine.connect.assert_called_once()
+    assert engine.identity_connections[0].execute.call_count == 2
+
+
+def test_auth_authority_catalog_uses_retained_connection(monkeypatch) -> None:
+    """Every auth-authority predicate, including final catalog checks, retains its proved session."""
+    from api import database as api_database
+
+    monkeypatch.setattr(api_database, "DATABASE_TYPE", "postgresql")
+    connection = MagicMock()
+    connection.cursor.return_value.__enter__.return_value.fetchone.side_effect = [
+        (True,),
+        ("fardb_login_auth",),
+        (1,),
+        (True,),
+        (True,),
+        (True,),
+        (True,),
+        (True,),
+        (True,),
+        (True,),
+    ]
+    monkeypatch.setattr(api_database, "get_approved_login_principals", lambda _role: ("fardb_login_auth",))
+    get_connection = Mock(side_effect=AssertionError("must retain verified connection"))
+    monkeypatch.setattr(api_database, "get_connection", get_connection)
+    api_database.verify_runtime_authority(verification_connection=connection)
+    get_connection.assert_not_called()
+    assert connection.cursor.call_count > 3

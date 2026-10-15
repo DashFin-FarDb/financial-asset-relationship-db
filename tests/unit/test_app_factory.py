@@ -498,7 +498,9 @@ def test_startup_reconciliation_lock_release_behavior(
     should_raise: bool,
 ) -> None:
     """Startup reconciliation lock release behavior based on reacquisition."""
-    fake_engine = SimpleNamespace(dispose=lambda: None)
+    from tests.unit.test_postgresql_topology import identity_engine
+
+    fake_engine = identity_engine()
     fake_lock = SimpleNamespace(lock_name="graph_rebuild", release=MagicMock())
 
     class _GateMock:
@@ -545,8 +547,10 @@ def test_reconciliation_schema_verification_separates_runtime_capabilities(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """Separate graph and coordination URLs must require disjoint capability roles."""
-    graph_engine = object()
-    coordination_engine = object()
+    from tests.unit.test_postgresql_topology import identity_engine
+
+    graph_engine = identity_engine()
+    coordination_engine = identity_engine(identifier="99999")
     verify_schema = MagicMock()
     verify_authority = MagicMock()
     monkeypatch.setattr("src.data.database.verify_database_schema", verify_schema)
@@ -573,8 +577,9 @@ async def test_periodic_reconciliation_loop_triggers_recovery(
 ) -> None:
     """periodic_reconciliation_loop should retrieve and consume automatic reset reconciliation plans."""
     from src.logic.reconciliation_engine import ActionType, ExecutionMode, ExecutionSafety, Severity
+    from tests.unit.test_postgresql_topology import identity_engine
 
-    fake_engine = SimpleNamespace(dispose=lambda: None)
+    fake_engine = identity_engine()
     fake_lock = SimpleNamespace(lock_name="graph_rebuild", release=MagicMock())
 
     # Mock DB and Lock
@@ -925,3 +930,29 @@ def test_start_background_tasks_caps_rebuild_lock_ttl_seconds(monkeypatch) -> No
 def test_start_background_tasks_floors_rebuild_lock_ttl_seconds(monkeypatch) -> None:
     """_start_background_tasks should floor periodic reconciliation lock TTL at one second."""
     _assert_start_background_tasks_lock_ttl(monkeypatch, configured_ttl=0, expected_ttl=1)
+
+
+@pytest.mark.parametrize("same_login", [True, False])
+def test_reconciliation_same_database_distinct_sessions_capabilities(monkeypatch, same_login) -> None:
+    """Combined requirements apply only to identity-proved same-database shared logins."""
+    from tests.unit.test_postgresql_topology import identity_engine
+
+    graph_engine = identity_engine()
+    coordination_engine = identity_engine()
+    graph_engine.identity_connections[0].execute.return_value.scalar_one.return_value = "graph_login"
+    coordination_engine.identity_connections[0].execute.return_value.scalar_one.return_value = (
+        "graph_login" if same_login else "coordination_login"
+    )
+    verify_schema = MagicMock()
+    verify_authority = MagicMock()
+    monkeypatch.setattr("src.data.database.verify_database_schema", verify_schema)
+    monkeypatch.setattr("src.data.database.verify_runtime_database_authority", verify_authority)
+    app_factory._verify_reconciliation_schemas(graph_engine, coordination_engine)
+    expected = [{"graph", "coordination"}] * 2 if same_login else [{"graph"}, {"coordination"}]
+    for verifier in (verify_schema, verify_authority):
+        assert [call.kwargs["required_capabilities"] for call in verifier.call_args_list] == expected
+        assert all(call.kwargs["combined_topology"] for call in verifier.call_args_list)
+        assert verifier.call_args_list[0].kwargs["verification_connection"] is graph_engine.identity_connections[0]
+        assert (
+            verifier.call_args_list[1].kwargs["verification_connection"] is coordination_engine.identity_connections[0]
+        )

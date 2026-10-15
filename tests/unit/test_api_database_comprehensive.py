@@ -39,7 +39,7 @@ class TestGetDatabaseUrl:
             get_settings.cache_clear()
             url = _get_database_url()
 
-        assert url == "sqlite:///test.db"
+        assert "sqlite:///test.db" == url
 
     def test_get_database_url_ignores_asset_graph_database_url(self):
         """Test that API database helpers do not consume ASSET_GRAPH_DATABASE_URL."""
@@ -55,7 +55,7 @@ class TestGetDatabaseUrl:
             get_settings.cache_clear()
             url = _get_database_url()
 
-        assert url == "sqlite:///api.db"
+        assert "sqlite:///api.db" == url
 
     def test_get_database_url_raises_when_database_url_not_set(self):
         """Test that ValueError is raised when DATABASE_URL is not set."""
@@ -79,7 +79,7 @@ class TestResolveSqlitePath:
     def test_resolve_sqlite_path_memory_colon(self):
         """Test resolving :memory: path."""
         path = _resolve_sqlite_path("sqlite:///:memory:")
-        assert path == ":memory:"
+        assert ":memory:" == path
 
     def test_resolve_sqlite_path_file_uri(self):
         """Test resolving URI-style memory database."""
@@ -137,7 +137,7 @@ class TestConnect:
         from api.database import _DatabaseConnectionManager
 
         temp_manager = _DatabaseConnectionManager(":memory:")
-        with patch.object(api.database, "_db_manager", temp_manager):
+        with patch.object(api.database._CONNECTION_STATE, "manager", temp_manager):
             try:
                 conn = _connect()
                 assert isinstance(conn, sqlite3.Connection)
@@ -154,7 +154,7 @@ class TestConnect:
         mock_manager = MagicMock()
         mock_manager.connect.return_value = mock_conn
 
-        with patch.object(api.database, "_db_manager", mock_manager):
+        with patch.object(api.database._CONNECTION_STATE, "manager", mock_manager):
             conn = _connect()
 
         mock_manager.connect.assert_called_once()
@@ -168,7 +168,7 @@ class TestConnect:
 
         with (
             patch.object(api.database, "DATABASE_PATH", "file:test.db?mode=ro"),
-            patch.object(api.database, "_db_manager", temp_manager),
+            patch.object(api.database._CONNECTION_STATE, "manager", temp_manager),
             patch("api.database.sqlite3.connect") as mock_connect,
         ):
             mock_connection = MagicMock()
@@ -250,22 +250,22 @@ class TestConnectModuleLevelCaching:
         import api.database
 
         temp_manager = api.database._DatabaseConnectionManager(":memory:")
-        saved_module_conn = api.database._MEMORY_CONNECTION
-        saved_module_conn_manager = api.database._MEMORY_CONNECTION_MANAGER
-        api.database._MEMORY_CONNECTION = None
-        api.database._MEMORY_CONNECTION_MANAGER = None
+        saved_module_conn = api.database._CONNECTION_STATE.connection
+        saved_module_conn_manager = api.database._CONNECTION_STATE.connection_manager
+        api.database._CONNECTION_STATE.connection = None
+        api.database._CONNECTION_STATE.connection_manager = None
         try:
             with (
-                patch.object(api.database, "_db_manager", temp_manager),
+                patch.object(api.database._CONNECTION_STATE, "manager", temp_manager),
                 patch.object(api.database, "_is_memory_db", return_value=True),
             ):
                 conn = api.database._connect()
                 assert (
-                    api.database._MEMORY_CONNECTION is conn
+                    api.database._CONNECTION_STATE.connection is conn
                 ), "_MEMORY_CONNECTION global must be set to the returned connection"
         finally:
-            api.database._MEMORY_CONNECTION = saved_module_conn
-            api.database._MEMORY_CONNECTION_MANAGER = saved_module_conn_manager
+            api.database._CONNECTION_STATE.connection = saved_module_conn
+            api.database._CONNECTION_STATE.connection_manager = saved_module_conn_manager
             if temp_manager._memory_connection is not None:
                 temp_manager._memory_connection.close()
                 temp_manager._memory_connection = None
@@ -275,21 +275,21 @@ class TestConnectModuleLevelCaching:
         import api.database
 
         temp_manager = api.database._DatabaseConnectionManager(":memory:")
-        saved_module_conn = api.database._MEMORY_CONNECTION
-        saved_module_conn_manager = api.database._MEMORY_CONNECTION_MANAGER
-        api.database._MEMORY_CONNECTION = None
-        api.database._MEMORY_CONNECTION_MANAGER = None
+        saved_module_conn = api.database._CONNECTION_STATE.connection
+        saved_module_conn_manager = api.database._CONNECTION_STATE.connection_manager
+        api.database._CONNECTION_STATE.connection = None
+        api.database._CONNECTION_STATE.connection_manager = None
         try:
             with (
                 patch.object(api.database, "DATABASE_PATH", ":memory:"),
-                patch.object(api.database, "_db_manager", temp_manager),
+                patch.object(api.database._CONNECTION_STATE, "manager", temp_manager),
             ):
                 conn1 = api.database._connect()
                 conn2 = api.database._connect()
                 assert conn1 is conn2, "Repeated _connect() calls must return the same cached connection"
         finally:
-            api.database._MEMORY_CONNECTION = saved_module_conn
-            api.database._MEMORY_CONNECTION_MANAGER = saved_module_conn_manager
+            api.database._CONNECTION_STATE.connection = saved_module_conn
+            api.database._CONNECTION_STATE.connection_manager = saved_module_conn_manager
             if temp_manager._memory_connection is not None:
                 temp_manager._memory_connection.close()
                 temp_manager._memory_connection = None
@@ -302,22 +302,22 @@ class TestConnectModuleLevelCaching:
         mock_manager = MagicMock()
         mock_manager.connect.return_value = mock_conn
 
-        saved_module_conn = api.database._MEMORY_CONNECTION
-        saved_module_conn_manager = api.database._MEMORY_CONNECTION_MANAGER
-        api.database._MEMORY_CONNECTION = None
-        api.database._MEMORY_CONNECTION_MANAGER = None
+        saved_module_conn = api.database._CONNECTION_STATE.connection
+        saved_module_conn_manager = api.database._CONNECTION_STATE.connection_manager
+        api.database._CONNECTION_STATE.connection = None
+        api.database._CONNECTION_STATE.connection_manager = None
         try:
             with (
-                patch.object(api.database, "_db_manager", mock_manager),
+                patch.object(api.database._CONNECTION_STATE, "manager", mock_manager),
                 patch.object(api.database, "_is_memory_db", return_value=False),
             ):
                 api.database._connect()
                 assert (
-                    api.database._MEMORY_CONNECTION is None
+                    api.database._CONNECTION_STATE.connection is None
                 ), "_MEMORY_CONNECTION must remain None for file-backed databases"
         finally:
-            api.database._MEMORY_CONNECTION = saved_module_conn
-            api.database._MEMORY_CONNECTION_MANAGER = saved_module_conn_manager
+            api.database._CONNECTION_STATE.connection = saved_module_conn
+            api.database._CONNECTION_STATE.connection_manager = saved_module_conn_manager
 
 
 class TestCleanupMemoryConnection:
@@ -328,14 +328,14 @@ class TestCleanupMemoryConnection:
         import api.database
 
         mock_conn = MagicMock(spec=sqlite3.Connection)
-        saved = api.database._MEMORY_CONNECTION
-        api.database._MEMORY_CONNECTION = mock_conn
+        saved = api.database._CONNECTION_STATE.connection
+        api.database._CONNECTION_STATE.connection = mock_conn
         try:
-            with patch.object(api.database._db_manager, "close_shared_connection"):
+            with patch.object(api.database._CONNECTION_STATE.manager, "close_shared_connection"):
                 api.database._cleanup_memory_connection()
-            assert api.database._MEMORY_CONNECTION is None
+            assert api.database._CONNECTION_STATE.connection is None
         finally:
-            api.database._MEMORY_CONNECTION = saved
+            api.database._CONNECTION_STATE.connection = saved
 
     def test_cleanup_closes_module_connection_when_distinct_from_manager(self):
         """When module and manager hold different connections, the module one must be closed."""
@@ -344,17 +344,17 @@ class TestCleanupMemoryConnection:
         module_conn = MagicMock(spec=sqlite3.Connection)
         manager_conn = MagicMock(spec=sqlite3.Connection)
 
-        saved = api.database._MEMORY_CONNECTION
-        api.database._MEMORY_CONNECTION = module_conn
+        saved = api.database._CONNECTION_STATE.connection
+        api.database._CONNECTION_STATE.connection = module_conn
         try:
             with (
-                patch.object(api.database._db_manager, "_memory_connection", manager_conn, create=True),
-                patch.object(api.database._db_manager, "close_shared_connection"),
+                patch.object(api.database._CONNECTION_STATE.manager, "_memory_connection", manager_conn, create=True),
+                patch.object(api.database._CONNECTION_STATE.manager, "close_shared_connection"),
             ):
                 api.database._cleanup_memory_connection()
             module_conn.close.assert_called_once()
         finally:
-            api.database._MEMORY_CONNECTION = saved
+            api.database._CONNECTION_STATE.connection = saved
 
     def test_cleanup_does_not_double_close_when_connections_are_same(self):
         """When module-level and manager connections are identical, only one close must occur."""
@@ -362,47 +362,47 @@ class TestCleanupMemoryConnection:
 
         shared_conn = MagicMock(spec=sqlite3.Connection)
 
-        saved = api.database._MEMORY_CONNECTION
-        api.database._MEMORY_CONNECTION = shared_conn
+        saved = api.database._CONNECTION_STATE.connection
+        api.database._CONNECTION_STATE.connection = shared_conn
         try:
             # Patch _memory_connection on the real _db_manager instance
-            original_mc = api.database._db_manager._memory_connection
-            api.database._db_manager._memory_connection = shared_conn
+            original_mc = api.database._CONNECTION_STATE.manager._memory_connection
+            api.database._CONNECTION_STATE.manager._memory_connection = shared_conn
             try:
-                with patch.object(api.database._db_manager, "close_shared_connection"):
+                with patch.object(api.database._CONNECTION_STATE.manager, "close_shared_connection"):
                     api.database._cleanup_memory_connection()
                 # The module-level branch skips close because they are the same object
                 shared_conn.close.assert_not_called()
             finally:
-                api.database._db_manager._memory_connection = original_mc
+                api.database._CONNECTION_STATE.manager._memory_connection = original_mc
         finally:
-            api.database._MEMORY_CONNECTION = saved
+            api.database._CONNECTION_STATE.connection = saved
 
     def test_cleanup_is_idempotent(self):
         """Calling _cleanup_memory_connection() multiple times must not raise."""
         import api.database
 
-        saved = api.database._MEMORY_CONNECTION
-        api.database._MEMORY_CONNECTION = None
+        saved = api.database._CONNECTION_STATE.connection
+        api.database._CONNECTION_STATE.connection = None
         try:
-            with patch.object(api.database._db_manager, "close_shared_connection"):
+            with patch.object(api.database._CONNECTION_STATE.manager, "close_shared_connection"):
                 api.database._cleanup_memory_connection()
                 api.database._cleanup_memory_connection()
         finally:
-            api.database._MEMORY_CONNECTION = saved
+            api.database._CONNECTION_STATE.connection = saved
 
     def test_cleanup_always_calls_manager_close_shared_connection(self):
         """_cleanup_memory_connection() must always delegate to the manager's close_shared_connection."""
         import api.database
 
-        saved = api.database._MEMORY_CONNECTION
-        api.database._MEMORY_CONNECTION = None
+        saved = api.database._CONNECTION_STATE.connection
+        api.database._CONNECTION_STATE.connection = None
         try:
-            with patch.object(api.database._db_manager, "close_shared_connection") as mock_close:
+            with patch.object(api.database._CONNECTION_STATE.manager, "close_shared_connection") as mock_close:
                 api.database._cleanup_memory_connection()
             mock_close.assert_called_once()
         finally:
-            api.database._MEMORY_CONNECTION = saved
+            api.database._CONNECTION_STATE.connection = saved
 
     def test_cleanup_propagates_module_connection_close_error(self):
         """If closing the module-level connection raises, the error must propagate after manager cleanup."""
@@ -412,17 +412,17 @@ class TestCleanupMemoryConnection:
         module_conn.close.side_effect = sqlite3.Error("forced close error")
         manager_conn = MagicMock(spec=sqlite3.Connection)
 
-        saved = api.database._MEMORY_CONNECTION
-        api.database._MEMORY_CONNECTION = module_conn
+        saved = api.database._CONNECTION_STATE.connection
+        api.database._CONNECTION_STATE.connection = module_conn
         try:
             with (
-                patch.object(api.database._db_manager, "_memory_connection", manager_conn, create=True),
-                patch.object(api.database._db_manager, "close_shared_connection"),
+                patch.object(api.database._CONNECTION_STATE.manager, "_memory_connection", manager_conn, create=True),
+                patch.object(api.database._CONNECTION_STATE.manager, "close_shared_connection"),
                 pytest.raises(sqlite3.Error, match="forced close error"),
             ):
                 api.database._cleanup_memory_connection()
         finally:
-            api.database._MEMORY_CONNECTION = saved
+            api.database._CONNECTION_STATE.connection = saved
 
 
 class TestAtexitRegistration:
@@ -449,3 +449,160 @@ class TestAtexitRegistration:
         assert not hasattr(
             api.database, "_ATEXIT_DB_CLOSE_REGISTERED"
         ), "_ATEXIT_DB_CLOSE_REGISTERED guard variable should have been removed"
+
+
+@pytest.mark.unit
+def test_binding_restores_connection_state_when_temporary_cleanup_fails(monkeypatch) -> None:
+    """Cleanup failure must not replace the previous target or its owned cache."""
+    import api.database
+
+    state = api.database._CONNECTION_STATE
+    previous = (
+        api.database._effective_database_target(),
+        state.target,
+        state.manager,
+        state.connection,
+        state.connection_manager,
+    )
+    temporary = MagicMock()
+    temporary._memory_connection = None
+    failure = sqlite3.Error("temporary close failed")
+    temporary.close_shared_connection.side_effect = failure
+    monkeypatch.setattr(api.database, "_DatabaseConnectionManager", lambda _path: temporary)
+    with (
+        pytest.raises(sqlite3.Error, match="temporary close failed"),
+        api.database.bind_database_url("sqlite:///:memory:"),
+    ):
+        assert state.manager is temporary
+    restored = (
+        api.database._effective_database_target(),
+        state.target,
+        state.manager,
+        state.connection,
+        state.connection_manager,
+    )
+    assert restored == previous
+
+
+@pytest.mark.unit
+def test_nested_binding_restores_each_owned_target_and_cache() -> None:
+    """Nested failure closes only the inner cache and restores each previous binding."""
+    import api.database
+
+    state = api.database._CONNECTION_STATE
+    previous = (state.target, state.manager, state.connection, state.connection_manager)
+    constants = (api.database.DATABASE_URL, api.database.DATABASE_TYPE, api.database.DATABASE_PATH)
+    with (
+        api.database.bind_database_url("sqlite:///:memory:"),
+        api.database.get_connection() as outer,
+    ):
+        outer.execute("CREATE TABLE outer_sentinel (value INTEGER)")
+        outer_target = state.target
+        outer_manager = state.manager
+        with (
+            pytest.raises(RuntimeError, match="inner binding failed"),
+            api.database.bind_database_url("sqlite:///:memory:"),
+            api.database.get_connection() as inner,
+        ):
+            assert inner is not outer
+            raise RuntimeError("inner binding failed")
+        assert state.target is outer_target
+        assert state.manager is outer_manager
+        assert state.connection is outer
+        assert outer is not None
+        assert 0 == outer.execute("SELECT COUNT(*) FROM outer_sentinel").fetchone()[0]
+        assert inner is not None
+        with pytest.raises(sqlite3.ProgrammingError, match="closed database"):
+            inner.execute("SELECT 1")
+    assert (state.target, state.manager, state.connection, state.connection_manager) == previous
+    assert (api.database.DATABASE_URL, api.database.DATABASE_TYPE, api.database.DATABASE_PATH) == constants
+    with pytest.raises(sqlite3.ProgrammingError, match="closed database"):
+        outer.execute("SELECT 1")
+
+
+@pytest.mark.unit
+def test_binding_setup_failure_preserves_state_and_releases_lock(monkeypatch) -> None:
+    """Manager construction failure publishes no target and leaves binding usable."""
+    import api.database
+
+    state = api.database._CONNECTION_STATE
+    previous = (state.target, state.manager, state.connection, state.connection_manager)
+    failure = sqlite3.Error("manager construction failed")
+    with monkeypatch.context() as scoped:
+        scoped.setattr(api.database, "_DatabaseConnectionManager", MagicMock(side_effect=failure))
+        with (
+            pytest.raises(sqlite3.Error, match="manager construction failed"),
+            api.database.bind_database_url("sqlite:///:memory:"),
+        ):
+            pytest.fail("failed setup must not enter the binding body")
+    assert (state.target, state.manager, state.connection, state.connection_manager) == previous
+    with api.database.bind_database_url("sqlite:///:memory:"):
+        assert state.target is not None
+        assert ":memory:" == state.target.path
+    assert (state.target, state.manager, state.connection, state.connection_manager) == previous
+
+
+@pytest.mark.unit
+def test_invalid_binding_url_does_not_change_state() -> None:
+    """Unsupported schemes fail before creating or publishing a binding."""
+    import api.database
+
+    state = api.database._CONNECTION_STATE
+    previous = (state.target, state.manager, state.connection, state.connection_manager)
+    with (
+        pytest.raises(ValueError, match="Unsupported database URL scheme"),
+        api.database.bind_database_url("https://invalid.example/database"),
+    ):
+        pytest.fail("invalid target must not enter the binding body")
+    assert (state.target, state.manager, state.connection, state.connection_manager) == previous
+
+
+def _binding_lock_is_available_to_worker() -> bool:
+    """Acquire and release the binding lock from a thread other than the test owner."""
+    import api.database
+
+    acquired = api.database._DATABASE_BINDING_LOCK.acquire(blocking=False)
+    if acquired:
+        api.database._DATABASE_BINDING_LOCK.release()
+    return acquired
+
+
+def _fail_inside_bound_database(executor) -> None:
+    """Raise from inside a binding after proving another thread cannot acquire its lock."""
+    import api.database
+
+    with api.database.bind_database_url("sqlite:///:memory:"):
+        assert executor.submit(_binding_lock_is_available_to_worker).result(timeout=5) is False
+        raise RuntimeError("binding body failed")
+
+
+@pytest.mark.unit
+def test_binding_lock_is_held_then_released_after_failure() -> None:
+    """A failing binding retains exclusion until restoration and releases it afterwards."""
+    from concurrent.futures import ThreadPoolExecutor
+
+    with ThreadPoolExecutor(max_workers=1) as executor:
+        with pytest.raises(RuntimeError, match="binding body failed"):
+            _fail_inside_bound_database(executor)
+        assert executor.submit(_binding_lock_is_available_to_worker).result(timeout=5) is True
+
+
+@pytest.mark.unit
+def test_postgresql_binding_uses_owned_target_without_mutating_constants() -> None:
+    """The driver receives the bound URL and backend while import-time exports stay stable."""
+    import api.database
+
+    constants = (api.database.DATABASE_URL, api.database.DATABASE_TYPE, api.database.DATABASE_PATH)
+    target = "postgresql://runtime@127.0.0.1/runtime_db"
+    connection = MagicMock()
+    with (
+        patch("psycopg2.connect", return_value=connection) as connect,
+        api.database.bind_database_url(target),
+    ):
+        with api.database.get_connection() as opened:
+            assert opened is connection
+        assert target == connect.call_args.args[0]
+        assert "postgresql" == api.database._effective_database_target().database_type
+        assert target == api.database._effective_database_target().path
+    assert (api.database.DATABASE_URL, api.database.DATABASE_TYPE, api.database.DATABASE_PATH) == constants
+    connection.close.assert_called_once()

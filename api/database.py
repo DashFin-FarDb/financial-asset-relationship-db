@@ -45,13 +45,17 @@ import threading
 from collections.abc import Iterator
 from contextlib import contextmanager, suppress
 from contextvars import ContextVar
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 from urllib.parse import unquote, urlparse
 
 from src.config.settings import get_settings
 from src.data.database import POSTGRESQL_MANAGED_TABLES, SchemaCompatibilityError
-from src.data.runtime_role_membership import USABLE_ROLE_MEMBERSHIP_CTE_SQL
+from src.data.runtime_role_membership import (
+    USABLE_ROLE_MEMBERSHIP_CTE_SQL,
+    get_approved_login_principals,
+)
 
 AUTH_RUNTIME_ROLE = "fardb_runtime_auth"
 _NON_AUTH_MANAGED_TABLES = tuple(table for table in POSTGRESQL_MANAGED_TABLES if table != "user_credentials")
@@ -177,27 +181,48 @@ def _cross_profile_authority_sql(role_alias: str) -> str:
     )
 
 
-_AUTH_SAFE_ROLE_SQL = "".join(
-    (
-        "SELECT COUNT(*) = 1 FROM pg_roles AS role WHERE role.rolname = %s "
-        "AND NOT role.rolcanlogin AND NOT role.rolsuper AND NOT role.rolcreatedb "
-        "AND NOT role.rolcreaterole AND NOT role.rolbypassrls AND NOT role.rolreplication "
-        "AND NOT has_database_privilege(role.oid, current_database(), 'CREATE') "
-        "AND NOT EXISTS (SELECT 1 FROM pg_namespace AS namespace "
-        "WHERE has_schema_privilege(role.oid, namespace.oid, 'CREATE')) "
-        "AND NOT ",
-        _cross_profile_authority_sql("role"),
-        " ",
-        "AND NOT EXISTS (SELECT 1 FROM pg_auth_members AS membership WHERE membership.member = role.oid) "
-        "AND NOT EXISTS (SELECT 1 FROM pg_auth_members AS membership "
-        "WHERE membership.roleid = role.oid AND membership.admin_option) "
-        "AND (",
-        USABLE_ROLE_MEMBERSHIP_CTE_SQL,
-        "SELECT COUNT(*) FROM pg_roles AS grantee "
-        "WHERE grantee.rolcanlogin AND EXISTS (SELECT 1 FROM role_membership "
-        "WHERE role_membership.member = grantee.oid AND role_membership.roleid = role.oid)) <= 1",
+def _auth_safe_role_sql(require_login_principals: bool = True) -> str:
+    """Build the read-only auth capability role SQL verification query."""
+    grantee_count_clause = (
+        "(SELECT COUNT(*) FROM pg_roles AS grantee "
+        "WHERE grantee.rolcanlogin AND grantee.oid <> "
+        "(SELECT datdba FROM pg_database WHERE datname = current_database()) "
+        "AND EXISTS (SELECT 1 FROM role_membership "
+        "WHERE role_membership.member = grantee.oid AND role_membership.roleid = role.oid)) >= 1 "
+        "AND "
+        if require_login_principals
+        else ""
     )
-)
+    return "".join(
+        (
+            "SELECT COUNT(*) = 1 FROM pg_roles AS role WHERE role.rolname = %s "
+            "AND NOT role.rolcanlogin AND NOT role.rolsuper AND NOT role.rolcreatedb "
+            "AND NOT role.rolcreaterole AND NOT role.rolbypassrls AND NOT role.rolreplication "
+            "AND NOT has_database_privilege(role.oid, current_database(), 'CREATE') "
+            "AND NOT EXISTS (SELECT 1 FROM pg_namespace AS namespace "
+            "WHERE has_schema_privilege(role.oid, namespace.oid, 'CREATE')) "
+            "AND NOT ",
+            _cross_profile_authority_sql("role"),
+            " ",
+            "AND NOT EXISTS (SELECT 1 FROM pg_auth_members AS membership WHERE membership.member = role.oid) "
+            "AND NOT EXISTS (SELECT 1 FROM pg_auth_members AS membership "
+            "WHERE membership.roleid = role.oid AND membership.admin_option "
+            "AND membership.member <> (SELECT datdba FROM pg_database WHERE datname = current_database())) "
+            "AND (",
+            USABLE_ROLE_MEMBERSHIP_CTE_SQL,
+            "SELECT ",
+            grantee_count_clause,
+            "NOT EXISTS (SELECT 1 FROM pg_roles AS grantee "
+            "WHERE grantee.rolcanlogin AND grantee.oid <> "
+            "(SELECT datdba FROM pg_database WHERE datname = current_database()) "
+            "AND EXISTS (SELECT 1 FROM role_membership "
+            "WHERE role_membership.member = grantee.oid AND role_membership.roleid = role.oid) "
+            "AND NOT (grantee.rolname = ANY(%s))))",
+        )
+    )
+
+
+_AUTH_SAFE_ROLE_SQL = _auth_safe_role_sql(require_login_principals=True)
 
 
 def _is_postgres_url(url: str) -> bool:
@@ -383,9 +408,6 @@ else:
         "Supported schemes are: sqlite:, postgresql://, postgres://"
     )
 
-# Module-level shared in-memory connection
-_MEMORY_CONNECTION: sqlite3.Connection | None = None
-_MEMORY_CONNECTION_MANAGER: _DatabaseConnectionManager | None = None
 _MEMORY_CONNECTION_LOCK = threading.Lock()
 # Separate reentrant lock used to serialize concurrent use of the shared in-memory connection.
 _MEMORY_USE_LOCK = threading.RLock()
@@ -416,7 +438,7 @@ def _is_memory_db(path: str | None = None) -> bool:
     Returns:
         bool: `True` if the evaluated target denotes an in-memory SQLite database, `False` otherwise.
     """
-    target = DATABASE_PATH if path is None else path
+    target = _effective_database_target().path if path is None else path
     if target == ":memory:":
         return True
 
@@ -450,7 +472,7 @@ def _create_postgres_connection(*, statement_timeout_milliseconds: int | None = 
     connection_options: dict[str, Any] = {"connect_timeout": _POSTGRES_CONNECT_TIMEOUT_SECONDS}
     if statement_timeout_milliseconds is not None:
         connection_options["options"] = f"-c statement_timeout={statement_timeout_milliseconds}"
-    conn = psycopg2.connect(DATABASE_URL, **connection_options)
+    conn = psycopg2.connect(_effective_database_target().url, **connection_options)
     return conn
 
 
@@ -529,7 +551,33 @@ class _DatabaseConnectionManager:
                 self._memory_connection = None
 
 
-_db_manager = _DatabaseConnectionManager(DATABASE_PATH)
+@dataclass(frozen=True)
+class _DatabaseTarget:
+    """Represent the effective operator binding without changing import-time constants."""
+
+    url: str
+    database_type: str
+    path: str
+
+
+@dataclass
+class _ConnectionState:
+    """Own the active manager and the shared connection with its original manager."""
+
+    manager: _DatabaseConnectionManager
+    connection: sqlite3.Connection | None = None
+    connection_manager: _DatabaseConnectionManager | None = None
+    target: _DatabaseTarget | None = None
+
+
+_CONNECTION_STATE = _ConnectionState(_DatabaseConnectionManager(DATABASE_PATH))
+
+
+def _effective_database_target() -> _DatabaseTarget:
+    """Use the owned binding or the import-time configuration when no binding is active."""
+    if _CONNECTION_STATE.target is not None:
+        return _CONNECTION_STATE.target
+    return _DatabaseTarget(DATABASE_URL, DATABASE_TYPE, DATABASE_PATH)
 
 
 def _resolve_database_target(url: str) -> tuple[str, str]:
@@ -550,55 +598,50 @@ def bind_database_url(url: str) -> Iterator[None]:
 
     This process-local binding exists for the single-threaded migration command;
     normal application runtime continues to use its import-time stable target.
+    The state holder owns the effective target; import-time constants remain stable.
     The previous target and any pre-existing in-memory connection are restored.
     """
-    global DATABASE_URL, DATABASE_TYPE, DATABASE_PATH, _db_manager  # skipcq: PYL-W0603
-    global _MEMORY_CONNECTION, _MEMORY_CONNECTION_MANAGER  # skipcq: PYL-W0603
-
     database_type, database_path = _resolve_database_target(url)
+    target = _DatabaseTarget(url, database_type, database_path)
     with _DATABASE_BINDING_LOCK:
+        # Construct before publication so setup failure leaves the previous state intact.
+        target_manager = _DatabaseConnectionManager(database_path)
         previous = (
-            DATABASE_URL,
-            DATABASE_TYPE,
-            DATABASE_PATH,
-            _db_manager,
-            _MEMORY_CONNECTION,
-            _MEMORY_CONNECTION_MANAGER,
+            _CONNECTION_STATE.target,
+            _CONNECTION_STATE.manager,
+            _CONNECTION_STATE.connection,
+            _CONNECTION_STATE.connection_manager,
         )
-        DATABASE_URL = url
-        DATABASE_TYPE = database_type
-        DATABASE_PATH = database_path
-        _db_manager = _DatabaseConnectionManager(database_path)
-        _MEMORY_CONNECTION = None
-        _MEMORY_CONNECTION_MANAGER = None
+        _CONNECTION_STATE.target = target
+        _CONNECTION_STATE.manager = target_manager
+        _CONNECTION_STATE.connection = None
+        _CONNECTION_STATE.connection_manager = None
         try:
             yield
         finally:
-            target_manager = _db_manager
-            target_connection = _MEMORY_CONNECTION
-            target_manager_connection = getattr(target_manager, "_memory_connection", None)
-            if target_connection is not None and target_connection is not target_manager_connection:
-                target_connection.close()
-            target_manager.close_shared_connection()
-            (
-                DATABASE_URL,
-                DATABASE_TYPE,
-                DATABASE_PATH,
-                _db_manager,
-                _MEMORY_CONNECTION,
-                _MEMORY_CONNECTION_MANAGER,
-            ) = previous
+            try:
+                target_manager = _CONNECTION_STATE.manager
+                target_connection = _CONNECTION_STATE.connection
+                target_manager_connection = getattr(target_manager, "_memory_connection", None)
+                if target_connection is not None and target_connection is not target_manager_connection:
+                    target_connection.close()
+                target_manager.close_shared_connection()
+            finally:
+                (
+                    _CONNECTION_STATE.target,
+                    _CONNECTION_STATE.manager,
+                    _CONNECTION_STATE.connection,
+                    _CONNECTION_STATE.connection_manager,
+                ) = previous
 
 
 def _close_memory_connection_cache() -> None:
     """Close and clear the module-level cached shared in-memory connection, if present."""
-    global _MEMORY_CONNECTION, _MEMORY_CONNECTION_MANAGER
+    manager = _CONNECTION_STATE.connection_manager
+    connection = _CONNECTION_STATE.connection
 
-    manager = _MEMORY_CONNECTION_MANAGER
-    connection = _MEMORY_CONNECTION
-
-    _MEMORY_CONNECTION = None
-    _MEMORY_CONNECTION_MANAGER = None
+    _CONNECTION_STATE.connection = None
+    _CONNECTION_STATE.connection_manager = None
 
     errors: list[sqlite3.Error] = []
 
@@ -625,53 +668,58 @@ def _connect() -> sqlite3.Connection:
 
     For in-memory databases (as determined by the current ``DATABASE_PATH``) the
     module-level shared connection is returned, creating it on the first call
-    under a lock by delegating to ``_db_manager.connect()``.
+    under a lock by delegating to ``_CONNECTION_STATE.manager.connect()``.
 
-    If ``_db_manager`` has been replaced since the cached connection was created
+    If ``_CONNECTION_STATE.manager`` has been replaced since the cached connection was created
     (e.g. patched by tests), the stale cache is discarded and the new manager is
-    used on the next call.  If ``DATABASE_PATH`` has changed while ``_db_manager``
+    used on the next call.  If ``DATABASE_PATH`` has changed while ``_CONNECTION_STATE.manager``
     still points to the old path, a fresh manager is created for the current path.
     Both detections use only the live module objects — no separate tracking variable
     is required.
 
-    For file-backed databases ``_db_manager.connect()`` is called directly,
+    For file-backed databases ``_CONNECTION_STATE.manager.connect()`` is called directly,
     which creates a new connection each time.
 
     Returns:
         sqlite3.Connection: A shared persistent connection for in-memory databases,
         or a new connection instance for file-backed databases.
     """
-    global _MEMORY_CONNECTION, _MEMORY_CONNECTION_MANAGER, _db_manager
     if _is_memory_db():
         with _MEMORY_CONNECTION_LOCK:
             # Detect two distinct stale-cache conditions:
             #   1. The manager is still the same object but DATABASE_PATH changed
-            #      (e.g. test patched DATABASE_PATH without patching _db_manager).
-            #      Rebuild _db_manager for the new path.
-            #   2. _db_manager was replaced directly (e.g. patch.object).
-            #      Just discard the stale cache; use whatever _db_manager now is.
+            #      (e.g. test patched DATABASE_PATH without patching _CONNECTION_STATE.manager).
+            #      Rebuild _CONNECTION_STATE.manager for the new path.
+            #   2. _CONNECTION_STATE.manager was replaced directly (e.g. patch.object).
+            #      Just discard the stale cache; use whatever _CONNECTION_STATE.manager now is.
             if (
-                _MEMORY_CONNECTION_MANAGER is _db_manager
-                and isinstance(_db_manager, _DatabaseConnectionManager)
-                and _db_manager._database_path != DATABASE_PATH
+                _CONNECTION_STATE.connection_manager is _CONNECTION_STATE.manager
+                and isinstance(_CONNECTION_STATE.manager, _DatabaseConnectionManager)
+                and _CONNECTION_STATE.manager._database_path != _effective_database_target().path
             ):
                 _close_memory_connection_cache()
-                _db_manager = _DatabaseConnectionManager(DATABASE_PATH)
-            elif _MEMORY_CONNECTION_MANAGER is not _db_manager:
+                _CONNECTION_STATE.manager = _DatabaseConnectionManager(_effective_database_target().path)
+            elif _CONNECTION_STATE.connection_manager is not _CONNECTION_STATE.manager:
                 _close_memory_connection_cache()
-            if _MEMORY_CONNECTION is None:
-                _MEMORY_CONNECTION = _db_manager.connect()
-                _MEMORY_CONNECTION_MANAGER = _db_manager
-            return _MEMORY_CONNECTION
+            if _CONNECTION_STATE.connection is None:
+                _CONNECTION_STATE.connection = _CONNECTION_STATE.manager.connect()
+                _CONNECTION_STATE.connection_manager = _CONNECTION_STATE.manager
+            return _CONNECTION_STATE.connection
     # File-backed path: rebuild the manager when DATABASE_PATH has changed.
-    # Only rebuild when _db_manager is a real manager (not a test mock) and its
+    # Only rebuild when _CONNECTION_STATE.manager is a real manager (not a test mock) and its
     # path no longer matches DATABASE_PATH. Uses double-checked locking.
-    if isinstance(_db_manager, _DatabaseConnectionManager) and _db_manager._database_path != DATABASE_PATH:
+    if (
+        isinstance(_CONNECTION_STATE.manager, _DatabaseConnectionManager)
+        and _CONNECTION_STATE.manager._database_path != _effective_database_target().path
+    ):
         with _MEMORY_CONNECTION_LOCK:
-            if isinstance(_db_manager, _DatabaseConnectionManager) and _db_manager._database_path != DATABASE_PATH:
+            if (
+                isinstance(_CONNECTION_STATE.manager, _DatabaseConnectionManager)
+                and _CONNECTION_STATE.manager._database_path != _effective_database_target().path
+            ):
                 _close_memory_connection_cache()
-                _db_manager = _DatabaseConnectionManager(DATABASE_PATH)
-    return _db_manager.connect()
+                _CONNECTION_STATE.manager = _DatabaseConnectionManager(_effective_database_target().path)
+    return _CONNECTION_STATE.manager.connect()
 
 
 @contextmanager
@@ -701,7 +749,7 @@ def get_connection() -> Iterator[Any]:
     Returns:
         Connection object (sqlite3.Connection for SQLite, psycopg2 connection for PostgreSQL).
     """
-    if DATABASE_TYPE == "postgresql":
+    if _effective_database_target().database_type == "postgresql":
         # PostgreSQL: create new connection, close on exit
         operation_guard = _POSTGRES_OPERATION_GUARD.get()
         if operation_guard is None:
@@ -743,16 +791,14 @@ def _cleanup_memory_connection() -> None:
     This avoids double-closing when both caches reference the same SQLite
     connection. Safe to call multiple times.
     """
-    global _MEMORY_CONNECTION, _MEMORY_CONNECTION_MANAGER
-
     errors: list[sqlite3.Error] = []
     with _MEMORY_CONNECTION_LOCK:
-        module_connection = _MEMORY_CONNECTION
-        manager = _MEMORY_CONNECTION_MANAGER or _db_manager
+        module_connection = _CONNECTION_STATE.connection
+        manager = _CONNECTION_STATE.connection_manager or _CONNECTION_STATE.manager
         manager_connection = getattr(manager, "_memory_connection", None)
 
-        _MEMORY_CONNECTION = None
-        _MEMORY_CONNECTION_MANAGER = None
+        _CONNECTION_STATE.connection = None
+        _CONNECTION_STATE.connection_manager = None
 
         if module_connection is not None and module_connection is not manager_connection:
             try:
@@ -803,7 +849,7 @@ def execute(query: str, parameters: tuple | list | None = None) -> None:
             statement; use `None` or an empty sequence if there are no parameters.
     """
     with get_connection() as connection:
-        if DATABASE_TYPE == "postgresql":
+        if _effective_database_target().database_type == "postgresql":
             # Convert SQLite ? placeholders to PostgreSQL %s
             pg_query = _convert_internal_qmark_placeholders_for_postgres(query)
             # Security: Query strings are internal/static from this module and api/auth.py.
@@ -835,7 +881,7 @@ def fetch_one(query: str, parameters: tuple | list | None = None) -> Any | None:
             dict-like for PostgreSQL), or `None` if the query returned no rows.
     """
     with get_connection() as connection:
-        if DATABASE_TYPE == "postgresql":
+        if _effective_database_target().database_type == "postgresql":
             import psycopg2.extras  # type: ignore[import-untyped]
 
             # Convert SQLite ? placeholders to PostgreSQL %s
@@ -909,7 +955,7 @@ def initialize_schema() -> None:
     - `hashed_password`: TEXT, not null
     - `disabled`: INTEGER, not null, defaults to 0
     """
-    if DATABASE_TYPE == "postgresql":
+    if _effective_database_target().database_type == "postgresql":
         raise SchemaCompatibilityError("PostgreSQL auth schema mutation is owned by the profile-scoped Supabase ledger")
     execute("""
         CREATE TABLE IF NOT EXISTS user_credentials(
@@ -923,11 +969,24 @@ def initialize_schema() -> None:
         """)
 
 
-def verify_schema_compatibility() -> None:
+def _verification_fetch_value(connection, query, parameters=None):
+    """Read one catalog value without replacing a caller-owned proved session."""
+    if connection is None:
+        return fetch_value(query, parameters) if parameters is not None else fetch_value(query)
+    with connection.cursor() as cursor:
+        cursor.execute(query, parameters)
+        row = cursor.fetchone()
+    return row[0] if row is not None else None
+
+
+def verify_schema_compatibility(*, verification_connection=None) -> None:
     """Verify the API credential schema using read-only catalog queries."""
-    if DATABASE_TYPE == "postgresql":
-        column_names = _parse_catalog_column_names(fetch_value(_POSTGRES_CREDENTIAL_COLUMN_NAMES_SQL))
-        username_unique = fetch_value(
+    if _effective_database_target().database_type == "postgresql":
+        column_names = _parse_catalog_column_names(
+            _verification_fetch_value(verification_connection, _POSTGRES_CREDENTIAL_COLUMN_NAMES_SQL)
+        )
+        username_unique = _verification_fetch_value(
+            verification_connection,
             "SELECT EXISTS ("
             "SELECT 1 FROM pg_constraint AS con "
             "JOIN pg_class AS rel ON rel.oid = con.conrelid "
@@ -935,16 +994,19 @@ def verify_schema_compatibility() -> None:
             "WHERE namespace.nspname = current_schema() AND rel.relname = 'user_credentials' "
             "AND con.contype = 'u' AND con.conkey = ARRAY[("
             "SELECT attnum FROM pg_attribute WHERE attrelid = rel.oid AND attname = 'username'"
-            ")]::smallint[])"
+            ")]::smallint[])",
         )
     else:
-        column_names = _parse_catalog_column_names(fetch_value(_SQLITE_CREDENTIAL_COLUMN_NAMES_SQL))
-        username_unique = fetch_value(
+        column_names = _parse_catalog_column_names(
+            _verification_fetch_value(verification_connection, _SQLITE_CREDENTIAL_COLUMN_NAMES_SQL)
+        )
+        username_unique = _verification_fetch_value(
+            verification_connection,
             "SELECT EXISTS ("
             "SELECT 1 FROM pragma_index_list('user_credentials') AS indexes "
             "WHERE indexes.[unique] = 1 "
             "AND (SELECT COUNT(*) FROM pragma_index_info(indexes.name)) = 1 "
-            "AND (SELECT name FROM pragma_index_info(indexes.name) LIMIT 1) = 'username')"
+            "AND (SELECT name FROM pragma_index_info(indexes.name) LIMIT 1) = 'username')",
         )
 
     if not _CREDENTIAL_COLUMN_SET.issubset(column_names):
@@ -955,25 +1017,28 @@ def verify_schema_compatibility() -> None:
 
 def ensure_runtime_access() -> None:
     """Reject legacy imperative PostgreSQL auth capability provisioning."""
-    if DATABASE_TYPE != "postgresql":
+    if _effective_database_target().database_type != "postgresql":
         return
     raise SchemaCompatibilityError("PostgreSQL auth capability mutation is owned by the profile-scoped Supabase ledger")
 
 
-def verify_runtime_access_catalog() -> None:
+def verify_runtime_access_catalog(require_login_principals: bool = True, *, verification_connection=None) -> None:
     """Verify the ledger-owned auth role, grants, RLS, and routine catalog."""
-    if DATABASE_TYPE != "postgresql":
+    if _effective_database_target().database_type != "postgresql":
         return
 
-    safe_role = fetch_value(
-        _AUTH_SAFE_ROLE_SQL,
+    safe_role = _verification_fetch_value(
+        verification_connection,
+        _auth_safe_role_sql(require_login_principals=require_login_principals),
         (
             AUTH_RUNTIME_ROLE,
             list(_NON_AUTH_MANAGED_TABLES),
             list(_NON_AUTH_MANAGED_TABLES),
+            list(get_approved_login_principals(AUTH_RUNTIME_ROLE)),
         ),
     )
-    exact_access = fetch_value(
+    exact_access = _verification_fetch_value(
+        verification_connection,
         "SELECT has_schema_privilege(%s, current_schema(), 'USAGE') "
         "AND NOT EXISTS (SELECT 1 FROM pg_namespace AS namespace "
         "WHERE has_schema_privilege(%s, namespace.oid, 'CREATE')) "
@@ -989,7 +1054,8 @@ def verify_runtime_access_catalog() -> None:
         "AND NOT has_any_column_privilege(%s, 'user_credentials', 'REFERENCES')",
         (AUTH_RUNTIME_ROLE,) * 12,
     )
-    exact_policy = fetch_value(
+    exact_policy = _verification_fetch_value(
+        verification_connection,
         "SELECT COUNT(*) = 1 FROM pg_policy AS policy "
         "JOIN pg_class AS rel ON rel.oid = policy.polrelid "
         "JOIN pg_namespace AS namespace ON namespace.oid = rel.relnamespace "
@@ -1002,7 +1068,8 @@ def verify_runtime_access_catalog() -> None:
         "AND (SELECT COUNT(*) FROM pg_policy AS all_policy WHERE all_policy.polrelid = rel.oid) = 1",
         (AUTH_RUNTIME_ROLE,),
     )
-    exact_table_posture = fetch_value(
+    exact_table_posture = _verification_fetch_value(
+        verification_connection,
         "SELECT rel.relrowsecurity "
         "AND NOT EXISTS (SELECT 1 FROM aclexplode("
         "COALESCE(rel.relacl, acldefault('r', rel.relowner))) AS acl "
@@ -1015,23 +1082,25 @@ def verify_runtime_access_catalog() -> None:
         "WHERE namespace.nspname = current_schema() AND rel.relname = 'user_credentials'",
         (AUTH_RUNTIME_ROLE,) * 3,
     )
-    auth_routines_absent = fetch_value(
+    auth_routines_absent = _verification_fetch_value(
+        verification_connection,
         "SELECT NOT EXISTS (SELECT 1 FROM pg_trigger AS trigger "
         "JOIN pg_class AS rel ON rel.oid = trigger.tgrelid "
         "JOIN pg_namespace AS namespace ON namespace.oid = rel.relnamespace "
         "WHERE namespace.nspname = current_schema() AND rel.relname = 'user_credentials' "
-        "AND NOT trigger.tgisinternal)"
+        "AND NOT trigger.tgisinternal)",
     )
     if not all((safe_role, exact_access, exact_policy, exact_table_posture, auth_routines_absent)):
         raise SchemaCompatibilityError("API runtime capability contract is incompatible")
 
 
-def verify_runtime_authority() -> None:
+def verify_runtime_authority(*, verification_connection=None) -> None:
     """Require the exact read-only auth capability without migration authority."""
-    if DATABASE_TYPE != "postgresql":
+    if _effective_database_target().database_type != "postgresql":
         return
 
-    restricted = fetch_value(
+    restricted = _verification_fetch_value(
+        verification_connection,
         "".join(
             (
                 "SELECT current_schema() IS NOT NULL AND NOT EXISTS ("
@@ -1084,7 +1153,12 @@ def verify_runtime_authority() -> None:
             "API runtime database role retains schema-migration authority or cross-profile authority"
         )
 
-    membership_count = fetch_value(
+    session_user_name = _verification_fetch_value(verification_connection, "SELECT session_user")
+    if session_user_name not in get_approved_login_principals(AUTH_RUNTIME_ROLE):
+        raise SchemaCompatibilityError("API runtime login principal is not an approved login for the auth capability")
+
+    membership_count = _verification_fetch_value(
+        verification_connection,
         "SELECT COUNT(*) FROM pg_roles AS login JOIN pg_roles AS assumable "
         "ON assumable.oid <> login.oid AND "
         "CASE WHEN current_setting('server_version_num')::integer >= 160000 THEN "
@@ -1093,7 +1167,8 @@ def verify_runtime_authority() -> None:
         "ELSE pg_has_role(login.oid, assumable.oid, 'MEMBER') END "
         "WHERE login.rolname = session_user",
     )
-    has_auth_membership = fetch_value(
+    has_auth_membership = _verification_fetch_value(
+        verification_connection,
         "SELECT EXISTS (SELECT 1 FROM pg_roles AS login JOIN pg_roles AS assumable "
         "ON assumable.rolname = %s AND "
         "CASE WHEN current_setting('server_version_num')::integer >= 160000 THEN "
@@ -1106,7 +1181,8 @@ def verify_runtime_authority() -> None:
     if membership_count != 1 or not has_auth_membership:
         raise SchemaCompatibilityError("API runtime login capability memberships are incompatible")
 
-    exact_login_access = fetch_value(
+    exact_login_access = _verification_fetch_value(
+        verification_connection,
         "SELECT has_table_privilege(session_user, 'user_credentials', 'SELECT') "
         "AND NOT has_table_privilege(session_user, 'user_credentials', 'INSERT') "
         "AND NOT has_table_privilege(session_user, 'user_credentials', 'UPDATE') "
@@ -1116,8 +1192,8 @@ def verify_runtime_authority() -> None:
         "AND NOT has_table_privilege(session_user, 'user_credentials', 'TRIGGER') "
         "AND NOT has_any_column_privilege(session_user, 'user_credentials', 'INSERT') "
         "AND NOT has_any_column_privilege(session_user, 'user_credentials', 'UPDATE') "
-        "AND NOT has_any_column_privilege(session_user, 'user_credentials', 'REFERENCES')"
+        "AND NOT has_any_column_privilege(session_user, 'user_credentials', 'REFERENCES')",
     )
     if not exact_login_access:
         raise SchemaCompatibilityError("API runtime login grants are incompatible")
-    verify_runtime_access_catalog()
+    verify_runtime_access_catalog(verification_connection=verification_connection)

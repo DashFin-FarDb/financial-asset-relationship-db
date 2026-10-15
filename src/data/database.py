@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
+from contextlib import AbstractContextManager, nullcontext
 
 from sqlalchemy import (
     CheckConstraint,
@@ -14,7 +15,7 @@ from sqlalchemy import (
     inspect,
     text,
 )
-from sqlalchemy.engine import Engine, make_url
+from sqlalchemy.engine import Connection, Engine, make_url
 from sqlalchemy.exc import ArgumentError
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool
@@ -23,11 +24,12 @@ from src.config.settings import get_settings
 
 from .base import Base
 from .check_constraint_normalization import normalize_check_definition as _normalize_check_definition
+from .relationship_assertion_schema import SchemaCompatibilityError
 
 # Canonical transaction helper lives in repository.py per tech spec.
 # Re-export here for backward compatibility with older imports.
 from .repository import session_scope  # noqa: F401, E402
-from .runtime_role_membership import USABLE_ROLE_MEMBERSHIP_CTE_SQL
+from .runtime_role_membership import USABLE_ROLE_MEMBERSHIP_CTE_SQL, get_approved_login_principals
 
 DEFAULT_DATABASE_URL = "sqlite:///./asset_graph.db"
 ASSET_GRAPH_DATABASE_URL_ENV_VAR = "ASSET_GRAPH_DATABASE_URL"
@@ -85,10 +87,6 @@ _TABLE_PRIVILEGES = (*_RLS_COMMANDS, "TRUNCATE", "REFERENCES", "TRIGGER")
 _COLUMN_PRIVILEGES = ("SELECT", "INSERT", "UPDATE", "REFERENCES")
 _SEQUENCE_PRIVILEGES = ("USAGE", "SELECT", "UPDATE")
 _GRAPH_SEQUENCE_PRIVILEGES = frozenset({"USAGE", "SELECT"})
-
-
-class SchemaCompatibilityError(RuntimeError):
-    """Raised when a runtime database does not match the required schema contract."""
 
 
 class CapabilityRoleBootstrapRequiredError(SchemaCompatibilityError):
@@ -490,8 +488,27 @@ def ensure_runtime_database_capabilities(
     )
 
 
-def _verify_runtime_capability_roles(connection, capabilities: tuple[str, ...], managed_tables: list[str]) -> None:
+def _verify_runtime_capability_roles(
+    connection,
+    capabilities: tuple[str, ...],
+    managed_tables: list[str],
+    *,
+    combined_topology: bool | None = None,
+    require_login_principals: bool = True,
+) -> None:
     """Verify capability-role safety and schema access."""
+    if combined_topology is not None:
+        is_combined = combined_topology
+    else:
+        is_combined = {GRAPH_RUNTIME_CAPABILITY, COORDINATION_RUNTIME_CAPABILITY}.issubset(capabilities)
+    grantee_count_clause = (
+        "(SELECT COUNT(*) FROM pg_roles AS grantee WHERE grantee.rolcanlogin "
+        "AND grantee.oid <> (SELECT datdba FROM pg_database WHERE datname = current_database()) "
+        "AND EXISTS (SELECT 1 FROM role_membership WHERE role_membership.member = grantee.oid "
+        "AND role_membership.roleid = role.oid)) >= 1 AND "
+        if require_login_principals
+        else ""
+    )
     for capability in capabilities:
         role_name = RUNTIME_CAPABILITY_ROLES[capability]
         safe_role = connection.execute(
@@ -560,22 +577,30 @@ def _verify_runtime_capability_roles(connection, capabilities: tuple[str, ...], 
                         "AND NOT EXISTS (SELECT 1 FROM pg_auth_members AS membership "
                         "WHERE membership.member = role.oid) "
                         "AND NOT EXISTS (SELECT 1 FROM pg_auth_members AS membership "
-                        "WHERE membership.roleid = role.oid AND membership.admin_option) AND (",
+                        "WHERE membership.roleid = role.oid AND membership.admin_option "
+                        "AND membership.member <> "
+                        "(SELECT datdba FROM pg_database WHERE datname = current_database())) AND (",
                         USABLE_ROLE_MEMBERSHIP_CTE_SQL,
-                        "SELECT COUNT(*) FROM pg_roles AS grantee WHERE grantee.rolcanlogin "
+                        "SELECT ",
+                        grantee_count_clause,
+                        "NOT EXISTS (SELECT 1 FROM pg_roles AS grantee WHERE grantee.rolcanlogin "
+                        "AND grantee.oid <> (SELECT datdba FROM pg_database WHERE datname = current_database()) "
                         "AND EXISTS (SELECT 1 FROM role_membership WHERE role_membership.member = grantee.oid "
-                        "AND role_membership.roleid = role.oid)) <= 1",
+                        "AND role_membership.roleid = role.oid) "
+                        "AND NOT (grantee.rolname IN :approved_logins)))",
                     )
                 )
             ).bindparams(
                 bindparam("tables", expanding=True),
                 bindparam("sequence_tables", expanding=True),
+                bindparam("approved_logins", expanding=True),
             ),
             {
                 "role_name": role_name,
                 "auth_table": AUTH_RUNTIME_TABLE,
                 "tables": managed_tables,
                 "sequence_tables": managed_tables,
+                "approved_logins": list(get_approved_login_principals(role_name, combined_topology=is_combined)),
             },
         ).scalar_one()
         if not safe_role:
@@ -817,14 +842,26 @@ def _verify_runtime_capability_grants(
 
 
 # The catalog verifier intentionally exposes each privilege edge in one auditable matrix.
-def _verify_runtime_capability_catalog(connection, capabilities: tuple[str, ...]) -> None:
+def _verify_runtime_capability_catalog(
+    connection,
+    capabilities: tuple[str, ...],
+    *,
+    combined_topology: bool | None = None,
+    require_login_principals: bool = True,
+) -> None:
     """Verify exact role attributes, table grants, and named RLS policies."""
     from .relationship_assertion_db_models import GRAC_TABLE_NAMES
 
     managed_tables = _managed_table_names(capabilities)
     table_privileges = _runtime_table_privileges(capabilities)
     policy_specs = _runtime_policy_specs(capabilities)
-    _verify_runtime_capability_roles(connection, capabilities, managed_tables)
+    _verify_runtime_capability_roles(
+        connection,
+        capabilities,
+        managed_tables,
+        combined_topology=combined_topology,
+        require_login_principals=require_login_principals,
+    )
     _verify_runtime_rls_catalog(connection, managed_tables, policy_specs)
     _verify_runtime_capability_grants(
         connection,
@@ -966,10 +1003,13 @@ def _verify_expected_table_catalog(inspector, capabilities: tuple[str, ...]) -> 
 
 
 def _verify_profile_specific_schema(
-    engine: Engine,
+    engine: Engine | _ConnectionBoundEngine,
     inspector,
     backend: str,
     capabilities: tuple[str, ...],
+    *,
+    combined_topology: bool | None = None,
+    require_login_principals: bool = True,
 ) -> None:
     """Verify graph-only invariants and the PostgreSQL authority catalog."""
     from .migrations import postgresql_heartbeat_schema_gaps
@@ -986,13 +1026,36 @@ def _verify_profile_specific_schema(
         verify_relationship_assertion_schema(engine)
     if backend == "postgresql":
         with engine.connect() as connection:
-            _verify_runtime_capability_catalog(connection, capabilities)
+            _verify_runtime_capability_catalog(
+                connection,
+                capabilities,
+                combined_topology=combined_topology,
+                require_login_principals=require_login_principals,
+            )
+
+
+class _ConnectionBoundEngine:
+    """Expose verification-only engine operations on one caller-owned connection."""
+
+    def __init__(self, engine: Engine, connection: Connection) -> None:
+        """Reject a connection belonging to any other engine."""
+        if connection.engine is not engine:
+            raise SchemaCompatibilityError("verification connection does not belong to its engine")
+        self.url = engine.url
+        self._connection = connection
+
+    def connect(self) -> AbstractContextManager[Connection]:
+        """Reuse the caller-owned connection without closing or replacing it."""
+        return nullcontext(self._connection)
 
 
 def verify_database_schema(
     engine: Engine,
     *,
     required_capabilities: tuple[str, ...] | set[str] | frozenset[str] = (),
+    combined_topology: bool | None = None,
+    verification_connection=None,
+    require_login_principals: bool = False,
 ) -> None:
     """Verify the asset-store schema without creating, altering, or repairing it.
 
@@ -1002,6 +1065,9 @@ def verify_database_schema(
 
     Parameters:
         engine: SQLAlchemy engine connected with runtime application authority.
+        required_capabilities: Runtime capability profile to verify.
+        combined_topology: Optional override for combined topology evaluation.
+        require_login_principals: Whether to require provisioned runtime logins (defaults to False for migration time).
 
     Raises:
         SchemaCompatibilityError: If the schema or authority posture is not compatible.
@@ -1020,9 +1086,19 @@ def verify_database_schema(
         configure_sqlite_engine(engine)
 
     try:
-        inspector = inspect(engine)
+        bound_engine = (
+            _ConnectionBoundEngine(engine, verification_connection) if verification_connection is not None else engine
+        )
+        inspector = inspect(verification_connection if verification_connection is not None else engine)
         _verify_expected_table_catalog(inspector, normalized_capabilities)
-        _verify_profile_specific_schema(engine, inspector, backend, normalized_capabilities)
+        _verify_profile_specific_schema(
+            bound_engine,
+            inspector,
+            backend,
+            normalized_capabilities,
+            combined_topology=combined_topology,
+            require_login_principals=require_login_principals,
+        )
     except SchemaCompatibilityError:
         raise
     except (PermissionError, RuntimeError) as exc:
@@ -1038,6 +1114,8 @@ def verify_runtime_database_authority(  # skipcq: PY-R1000
     engine: Engine,
     *,
     required_capabilities: tuple[str, ...] | set[str] | frozenset[str] = (),
+    combined_topology: bool | None = None,
+    verification_connection=None,
 ) -> None:
     """Require a PostgreSQL runtime role without schema-migration authority."""
     backend = make_url(engine.url).get_backend_name()
@@ -1051,7 +1129,10 @@ def verify_runtime_database_authority(  # skipcq: PY-R1000
             if normalized_capabilities
             else list(POSTGRESQL_MANAGED_TABLES)
         )
-        with engine.connect() as connection:
+        bound_engine = (
+            _ConnectionBoundEngine(engine, verification_connection) if verification_connection is not None else engine
+        )
+        with bound_engine.connect() as connection:
             restricted = connection.execute(
                 text(
                     "SELECT current_schema() IS NOT NULL AND NOT EXISTS ("
@@ -1160,7 +1241,12 @@ def verify_runtime_database_authority(  # skipcq: PY-R1000
             if actual_roles != expected_roles:
                 raise SchemaCompatibilityError("runtime login capability memberships are incompatible")
             if normalized_capabilities:
-                _verify_runtime_capability_catalog(connection, normalized_capabilities)
+                _verify_runtime_capability_catalog(
+                    connection,
+                    normalized_capabilities,
+                    combined_topology=combined_topology,
+                    require_login_principals=True,
+                )
             _verify_runtime_login_relation_grants(connection, normalized_capabilities)
             if GRAPH_RUNTIME_CAPABILITY in normalized_capabilities:
                 _verify_runtime_login_sequence_grants(connection, normalized_capabilities)
