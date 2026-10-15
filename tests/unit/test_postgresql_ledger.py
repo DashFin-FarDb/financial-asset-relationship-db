@@ -481,6 +481,55 @@ def test_loopback_write_barrier_validates_uri_and_effective_host_overrides(datab
         ledger.assert_profile_write_allowed(target)
 
 
+@pytest.mark.parametrize(
+    "database_url",
+    [
+        "postgresql://operator@localhost/graph?host=attacker.com&sslmode=require",
+        "postgresql://operator@localhost/graph?hostaddr=192.0.2.10&sslmode=require",
+        "postgresql://operator@localhost/graph?host=attacker.com&hostaddr=127.0.0.1&sslmode=require",
+        "postgresql://operator@localhost/graph?host=localhost&hostaddr=203.0.113.1&sslmode=require",
+        "postgresql://operator@localhost/graph?host=attacker.com",
+        "postgresql://operator@localhost/graph?hostaddr=192.0.2.10",
+        "postgresql://operator@localhost/graph?host=localhost,evil.com",
+        "postgresql://operator@192.0.2.10/graph?host=localhost&sslmode=require",
+        "postgresql://operator@attacker.com/graph?hostaddr=127.0.0.1",
+        "postgresql://operator@localhost/graph?host=127.0.0.1&host=attacker.com",
+        "postgresql://operator@localhost/graph?hostaddr=127.0.0.1&hostaddr=192.0.2.10",
+        "postgresql://operator@localhost/graph?host=",
+        "postgresql://operator@localhost/graph?hostaddr=",
+        "postgresql://operator@localhost/graph?host=127.0.0.1%2cattacker.com",
+    ],
+)
+def test_disposable_write_barrier_rejects_external_host_and_hostaddr_overrides(database_url: str) -> None:
+    """Disposable execution class rejects external host/hostaddr overrides with SSL enabled or omitted."""
+    target = _planned_target(database_url=database_url, execution_class="disposable")
+
+    with pytest.raises(ledger.HostedWriteBarrierError):
+        ledger.assert_profile_write_allowed(target)
+
+
+@pytest.mark.parametrize(
+    "database_url",
+    [
+        "postgresql://operator@localhost:5432/graph?sslmode=require",
+        "postgresql://operator@127.0.0.1:5432/graph?sslmode=require",
+        "postgresql://operator@localhost/graph?hostaddr=127.0.0.1&sslmode=require",
+        "postgresql://operator@localhost:5432/graph",
+        "postgresql://operator@127.0.0.1:5432/graph",
+        "postgresql://operator@[::1]:5432/graph",
+        "postgresql://operator@localhost:5432/graph?sslmode=disable",
+        "postgresql://operator@localhost:5432/graph?hostaddr=127.0.0.1&sslmode=disable",
+        "postgresql://operator@[::1]:5432/graph?hostaddr=%3A%3A1&sslmode=disable",
+        "postgresql://operator@localhost/graph?host=127.0.0.1&host=localhost&sslmode=require",
+        "postgresql://operator@localhost/graph?hostaddr=127.0.0.1&hostaddr=127.0.0.2&sslmode=require",
+    ],
+)
+def test_disposable_write_barrier_accepts_authorized_loopback_configurations(database_url: str) -> None:
+    """Disposable execution class permits valid loopback configurations with SSL enabled, omitted, or disabled."""
+    target = _planned_target(database_url=database_url, execution_class="disposable")
+    ledger.assert_profile_write_allowed(target)
+
+
 def test_sslmode_disable_is_limited_to_validated_loopback_targets() -> None:
     """Cleartext TLS mode is permitted only for an explicit disposable loopback URL."""
     allowed = _planned_target(database_url="postgresql://operator@localhost/graph?hostaddr=127.0.0.1&sslmode=disable")

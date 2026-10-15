@@ -1034,14 +1034,14 @@ def assert_profile_write_allowed(target: PlannedTarget) -> None:
         host = _database_host(database_url)
         if _is_hosted_database_host(host):
             raise HostedWriteBarrierError("hosted database writes are forbidden before CQ-03D")
-        if target.execution_class == "loopback":
+        if target.execution_class in ("disposable", "loopback"):
             _validate_loopback_target(database_url)
         try:
             sslmodes = parse_qs(urlsplit(database_url).query).get("sslmode", [])
         except ValueError as exc:
             raise HostedWriteBarrierError(_INVALID_DATABASE_URL_MESSAGE) from exc
         if "disable" in sslmodes and (
-            target.execution_class != "loopback" or not _validate_loopback_target(database_url)
+            target.execution_class not in ("disposable", "loopback") or not _validate_loopback_target(database_url)
         ):
             raise HostedWriteBarrierError("sslmode=disable requires an explicitly validated loopback target")
 
