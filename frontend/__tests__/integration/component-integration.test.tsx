@@ -620,5 +620,162 @@ describe("Component Integration Tests", () => {
         expect(screen.getByText("pub-B")).toBeInTheDocument();
       });
     });
+
+    it("handles transition from loaded governed dossier to authoritative unavailable (HTTP 503) through parent API error handling and recovers via retry", async () => {
+      // 1. Parent integration harness that exercises actual API call, error handling, and recovery
+      function AuthoritativeDemonstratorParent() {
+        const [data, setData] = React.useState<VisualizationData | null>(null);
+        const [graphError, setGraphError] = React.useState<string | null>(null);
+
+        const fetchGraph = React.useCallback(async () => {
+          try {
+            const result = await api.getVisualizationData();
+            setData(result);
+            setGraphError(null);
+          } catch (err: unknown) {
+            const detail =
+              (err as { response?: { data?: { detail?: string } } })?.response
+                ?.data?.detail ||
+              (err as Error)?.message ||
+              "Graph not yet published; awaiting initial rebuild.";
+            setData(null);
+            setGraphError(`Institutional Graph Unavailable: ${detail}`);
+          }
+        }, []);
+
+        React.useEffect(() => {
+          fetchGraph();
+        }, [fetchGraph]);
+
+        if (!data && graphError) {
+          return (
+            <div
+              className="rounded-xl border border-red-200 bg-red-50 p-8 text-center text-sm text-red-800"
+              role="alert"
+            >
+              <p className="font-semibold text-red-900">
+                Institutional Graph Unavailable
+              </p>
+              <p className="mt-1 text-sm text-red-800">{graphError}</p>
+              <button
+                type="button"
+                onClick={fetchGraph}
+                className="mt-4 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors text-sm font-medium"
+              >
+                Retry connection
+              </button>
+            </div>
+          );
+        }
+
+        if (!data) {
+          return <output>Loading relationship graph...</output>;
+        }
+
+        return (
+          <div>
+            <button
+              type="button"
+              onClick={fetchGraph}
+              data-testid="refresh-graph-btn"
+            >
+              Refresh live graph
+            </button>
+            <ActualNetworkVisualization data={data} />
+          </div>
+        );
+      }
+
+      // 2. Initial state: API successfully returns publication A
+      mockedApi.getVisualizationData.mockResolvedValueOnce(dataA);
+      mockedApi.getPublishedEdgeExplanation.mockResolvedValue(explanationA);
+
+      render(<AuthoritativeDemonstratorParent />);
+
+      // Wait for graph to load
+      await waitFor(() => {
+        expect(
+          screen.getByRole("region", { name: "3D FarDb relationship graph" }),
+        ).toBeInTheDocument();
+      });
+
+      // 3. User selects the governed edge and inspects the dossier
+      const edgeAButton = screen.getByRole("button", {
+        name: /A1.*A2.*CORPORATE_LINK.*Governed/,
+      });
+      fireEvent.click(edgeAButton);
+
+      await waitFor(() => {
+        expect(screen.getByText("A1 controls A2")).toBeInTheDocument();
+        expect(screen.getByText("pub-A")).toBeInTheDocument();
+      });
+      expect(
+        screen.getByTestId("institutional-action-context"),
+      ).toHaveTextContent("edge-A");
+      expect(screen.getByText("Relationship selected")).toBeInTheDocument();
+
+      // 4. Graph refresh encounters HTTP 503 (e.g. uninitialized graph or active rebuild)
+      mockedApi.getVisualizationData.mockRejectedValueOnce({
+        response: {
+          status: 503,
+          data: {
+            detail: "Graph not yet published; awaiting initial rebuild.",
+          },
+        },
+      });
+
+      fireEvent.click(screen.getByTestId("refresh-graph-btn"));
+
+      // 5. Assert explicit authoritative-unavailable presentation
+      const alert = await screen.findByRole("alert");
+      expect(alert).toBeInTheDocument();
+      expect(alert).toHaveTextContent("Institutional Graph Unavailable");
+      expect(alert).toHaveTextContent(
+        "Graph not yet published; awaiting initial rebuild.",
+      );
+
+      // 6. Assert no visible stale graph or dossier
+      expect(screen.queryByText("A1 controls A2")).not.toBeInTheDocument();
+      expect(screen.queryByText("pub-A")).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole("region", { name: "3D FarDb relationship graph" }),
+      ).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole("region", { name: "Relationship explanation" }),
+      ).not.toBeInTheDocument();
+
+      // 7. Assert no remaining selected-edge action context
+      expect(
+        screen.queryByTestId("institutional-action-context"),
+      ).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole("region", { name: "Institutional actions" }),
+      ).not.toBeInTheDocument();
+
+      // 8. Assert no synthetic/sample-data fallback
+      expect(screen.queryByText("SAME_SECTOR")).not.toBeInTheDocument();
+      expect(
+        screen.queryByText("No visualization data available."),
+      ).not.toBeInTheDocument();
+
+      // 9. Assert recovery remains possible through existing retry mechanism
+      mockedApi.getVisualizationData.mockResolvedValueOnce(dataA);
+
+      const retryBtn = screen.getByRole("button", { name: "Retry connection" });
+      fireEvent.click(retryBtn);
+
+      await waitFor(() => {
+        expect(
+          screen.getByRole("region", { name: "3D FarDb relationship graph" }),
+        ).toBeInTheDocument();
+      });
+      expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+      expect(
+        screen.getByText("Select a relationship to see how it was determined."),
+      ).toBeInTheDocument();
+      expect(
+        screen.queryByText("Relationship selected"),
+      ).not.toBeInTheDocument();
+    });
   });
 });
