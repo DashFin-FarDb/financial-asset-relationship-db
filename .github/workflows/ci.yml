@@ -133,9 +133,8 @@ jobs:
           POSTGRES_USER: test
           POSTGRES_PASSWORD: test
           POSTGRES_DB: test_db
-        ports:
-          - 5432:5432
         options: >-
+          --publish=127.0.0.1:5432:5432
           --health-cmd="pg_isready -U test -d test_db"
           --health-interval=5s
           --health-timeout=5s
@@ -164,6 +163,50 @@ jobs:
       - name: Validate exact component ledger bytes
         run: python -m scripts.postgresql_ledger validate
 
+      - name: Attest this job's PostgreSQL service and data directory
+        env:
+          PG_SERVICE_ID: ${{ job.services.postgres.id }}
+          PG_SERVICE_IMAGE: postgres:${{ matrix.postgres-version }}
+        run: |
+          set -euo pipefail
+          test -n "$PG_SERVICE_ID"
+          running_ids="$(docker ps --no-trunc --filter "id=$PG_SERVICE_ID" --format '{{.ID}}')"
+          test "$running_ids" = "$PG_SERVICE_ID"
+          inspect_json="$(docker inspect "$PG_SERVICE_ID")"
+          pgdata="$(docker exec "$PG_SERVICE_ID" printenv PGDATA)"
+          test -n "$pgdata"
+          printf '%s' "$inspect_json" | PGDATA="$pgdata" python -c '
+          import json, os, re, sys
+          containers = json.load(sys.stdin)
+          assert len(containers) == 1, "service ID inspection was ambiguous"
+          c = containers[0]
+          assert c["Id"] == os.environ["PG_SERVICE_ID"], "service ID did not match inspected container"
+          assert c["Config"]["Image"] == os.environ["PG_SERVICE_IMAGE"], "unexpected PostgreSQL service image"
+          assert c["State"]["Running"], "PostgreSQL service is not running"
+          assert not (c["HostConfig"].get("Binds") or c["HostConfig"].get("Mounts")), "explicit host mounts are forbidden"
+          pgdata = os.environ["PGDATA"]
+          for mount in c["Mounts"]:
+              destination = mount["Destination"].rstrip("/") or "/"
+              covers_data = pgdata == destination or pgdata.startswith(destination.rstrip("/") + "/")
+              if not covers_data:
+                  continue
+              assert mount["Type"] == "volume", "persistent/bind PostgreSQL data mount is forbidden"
+              assert c["Config"].get("Volumes", {}).get(destination) is not None, "mount is not image-declared ephemeral storage"
+              name = mount.get("Name", "")
+              source = mount.get("Source", "")
+              assert re.fullmatch(r"[0-9a-f]{64}", name), "named or ambiguous PostgreSQL volume is forbidden"
+              assert source.endswith("/volumes/" + name + "/_data"), "Docker volume ownership could not be verified"
+          '
+          system_identifier="$(docker exec "$PG_SERVICE_ID" pg_controldata "$pgdata" | awk -F ': *' '$1 ~ /Database system identifier/ { print $2 }')"
+          [[ "$system_identifier" =~ ^[0-9]+$ ]]
+          record_path="$RUNNER_TEMP/fardb-postgres-${{ matrix.postgres-version }}-ownership.json"
+          python -m tests.integration.postgresql_disposable_cluster attest-job \
+            --major "${{ matrix.postgres-version }}" --record "$record_path"
+          printf 'PG_SERVICE_ID=%s\n' "$PG_SERVICE_ID" >> "$GITHUB_ENV"
+          printf 'FARDB_EPHEMERAL_POSTGRES_CONTAINER_RECORD=%s\n' "$record_path" >> "$GITHUB_ENV"
+          printf 'FARDB_EPHEMERAL_POSTGRES_SYSTEM_IDENTIFIER=%s\n' "$system_identifier" >> "$GITHUB_ENV"
+          printf 'FARDB_EPHEMERAL_POSTGRES_INVOCATION_ID=%s-%s-pg%s\n' "$GITHUB_RUN_ID" "$GITHUB_RUN_ATTEMPT" "${{ matrix.postgres-version }}" >> "$GITHUB_ENV"
+
       - name: Build every profile twice and prove drift, relationship, and authority contracts
         env:
           FARDB_EPHEMERAL_POSTGRES_LEDGER_TESTS: "1"
@@ -172,7 +215,13 @@ jobs:
           FARDB_POSTGRES_TEST_URL: postgresql://test:test@127.0.0.1:5432/test_db?sslmode=disable
           SECRET_KEY: ci-grac-schema-test-key-not-a-real-secret
           DATABASE_URL: sqlite:///./ci-auth.db
-        run: pytest tests/integration/test_postgresql_ledger_profiles.py tests/integration/test_postgres_runtime_capability_sql.py tests/integration/test_runtime_authority_postgres.py -v -rs
+        run: |
+          set -euo pipefail
+          test -n "$PG_SERVICE_ID"
+          test -n "$FARDB_EPHEMERAL_POSTGRES_SYSTEM_IDENTIFIER"
+          test -n "$FARDB_EPHEMERAL_POSTGRES_CONTAINER_RECORD"
+          test -n "$FARDB_EPHEMERAL_POSTGRES_INVOCATION_ID"
+          python -m pytest tests/integration/test_postgresql_ledger_profiles.py tests/integration/test_postgres_runtime_capability_sql.py tests/integration/test_runtime_authority_postgres.py -v -rs
 
   postgres-ledger-container-boundary:
     name: PostgreSQL ledger container boundary

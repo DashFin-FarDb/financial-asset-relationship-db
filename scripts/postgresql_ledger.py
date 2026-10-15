@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import ipaddress
 import json
 import os
 import re
@@ -21,10 +22,11 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path, PurePosixPath
 from typing import Any
-from urllib.parse import urlsplit
+from urllib.parse import parse_qs, urlsplit
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_MANIFEST_PATH = REPOSITORY_ROOT / "supabase" / "ledger-profiles.json"
+_INVALID_DATABASE_URL_MESSAGE = "database URL is invalid"
 TARGET_BINDINGS_ENV = "FARDB_POSTGRES_TARGET_BINDINGS_FILE"
 
 MANIFEST_VERSION = "fardb-ledger-profiles-v1"
@@ -962,7 +964,7 @@ def _database_host(database_url: str) -> str:
         host = parsed.hostname
         port = parsed.port
     except ValueError as exc:
-        raise HostedWriteBarrierError("database URL is invalid") from exc
+        raise HostedWriteBarrierError(_INVALID_DATABASE_URL_MESSAGE) from exc
     if (
         parsed.scheme not in ("postgres", "postgresql")
         or not host
@@ -972,6 +974,46 @@ def _database_host(database_url: str) -> str:
     ):
         raise HostedWriteBarrierError("database URL is not an explicit PostgreSQL target")
     return host.lower().rstrip(".")
+
+
+def _is_loopback_address(value: str) -> bool:
+    """Accept only literal loopback addresses or the reserved localhost name."""
+    normalized = value.strip().lower().rstrip(".")
+    if normalized == "localhost":
+        return True
+    if normalized.startswith("[") and normalized.endswith("]"):
+        normalized = normalized[1:-1]
+    try:
+        return ipaddress.ip_address(normalized).is_loopback
+    except ValueError:
+        return False
+
+
+def _is_numeric_loopback_address(value: str) -> bool:
+    """Require a literal, unscoped loopback IP for libpq hostaddr."""
+    if "%" in value:
+        return False
+    try:
+        return ipaddress.ip_address(value).is_loopback
+    except ValueError:
+        return False
+
+
+def _validate_loopback_target(database_url: str) -> str:
+    """Validate URI and libpq host overrides before permitting disposable loopback use."""
+    try:
+        parsed = urlsplit(database_url)
+        query = parse_qs(parsed.query, keep_blank_values=True, strict_parsing=False)
+        host_overrides = query.get("host", [])
+        hostaddr_overrides = query.get("hostaddr", [])
+    except ValueError as exc:
+        raise HostedWriteBarrierError(_INVALID_DATABASE_URL_MESSAGE) from exc
+    hosts = [parsed.hostname, *host_overrides]
+    if not all(host and "," not in host and _is_loopback_address(host) for host in hosts):
+        raise HostedWriteBarrierError("loopback execution class does not resolve to loopback")
+    if not all(address and _is_numeric_loopback_address(address) for address in hostaddr_overrides):
+        raise HostedWriteBarrierError("loopback execution class has a non-loopback hostaddr override")
+    return (parsed.hostname or "").lower().rstrip(".")
 
 
 def _is_hosted_database_host(host: str) -> bool:
@@ -992,8 +1034,16 @@ def assert_profile_write_allowed(target: PlannedTarget) -> None:
         host = _database_host(database_url)
         if _is_hosted_database_host(host):
             raise HostedWriteBarrierError("hosted database writes are forbidden before CQ-03D")
-        if target.execution_class == "loopback" and host not in ("localhost", "127.0.0.1", "::1"):
-            raise HostedWriteBarrierError("loopback execution class does not resolve to loopback")
+        if target.execution_class == "loopback":
+            _validate_loopback_target(database_url)
+        try:
+            sslmodes = parse_qs(urlsplit(database_url).query).get("sslmode", [])
+        except ValueError as exc:
+            raise HostedWriteBarrierError(_INVALID_DATABASE_URL_MESSAGE) from exc
+        if "disable" in sslmodes and (
+            target.execution_class != "loopback" or not _validate_loopback_target(database_url)
+        ):
+            raise HostedWriteBarrierError("sslmode=disable requires an explicitly validated loopback target")
 
 
 def assert_allowed_supabase_command(command: Sequence[str], target: PlannedTarget) -> None:
@@ -1085,6 +1135,8 @@ def _sanitized_cli_environment(state_directory: Path, environment: Mapping[str, 
     sanitized = {name: source[name] for name in _SAFE_CLI_ENVIRONMENT if source.get(name)}
     sanitized.update(
         {
+            "HOME": str(state_directory),
+            "XDG_CONFIG_HOME": str(state_directory),
             "SUPABASE_HOME": str(state_directory),
             "SUPABASE_TELEMETRY_DISABLED": "1",
             "DO_NOT_TRACK": "1",
@@ -1119,6 +1171,7 @@ def _run_cli(
             capture_output=True,
             text=True,
             env=dict(environment),
+            cwd=environment["SUPABASE_HOME"],
             timeout=timeout_seconds,
         )
     except (OSError, subprocess.SubprocessError) as exc:

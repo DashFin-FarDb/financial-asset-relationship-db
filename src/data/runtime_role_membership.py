@@ -18,10 +18,14 @@ USABLE_ROLE_MEMBERSHIP_CTE_SQL = (
     "OR role_membership.member_is_superuser OR member_role.rolsuper)) "
 )
 
+AUTH_RUNTIME_ROLE = "fardb_runtime_auth"
+GRAPH_RUNTIME_ROLE = "fardb_runtime_graph"
+COORDINATION_RUNTIME_ROLE = "fardb_runtime_coordination"
+
 APPROVED_RUNTIME_LOGIN_PRINCIPALS: dict[str, frozenset[str]] = {
-    "fardb_runtime_auth": frozenset({"fardb_login_auth", "fardb_login_auth_prod"}),
-    "fardb_runtime_graph": frozenset({"fardb_login_graph"}),
-    "fardb_runtime_coordination": frozenset({"fardb_login_coordination"}),
+    AUTH_RUNTIME_ROLE: frozenset({"fardb_login_auth", "fardb_login_auth_prod"}),
+    GRAPH_RUNTIME_ROLE: frozenset({"fardb_login_graph"}),
+    COORDINATION_RUNTIME_ROLE: frozenset({"fardb_login_coordination"}),
 }
 
 

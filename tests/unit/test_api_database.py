@@ -15,7 +15,7 @@ import importlib
 import os
 import sqlite3
 from pathlib import Path
-from unittest.mock import Mock, patch
+from unittest.mock import MagicMock, Mock, patch
 
 import pytest
 
@@ -65,14 +65,14 @@ class TestDatabaseURLConfiguration:
 
     def test_explicit_database_binding_restores_import_time_target(self, tmp_path: Path):
         """Operator binding must use the requested target and restore module state."""
-        original_target = (database.DATABASE_URL, database.DATABASE_TYPE, database.DATABASE_PATH)
+        original_target = database._effective_database_target()
         requested_path = tmp_path / "explicit-auth.db"
 
         with bind_database_url(f"sqlite:///{requested_path}"):
-            assert str(requested_path) == database.DATABASE_PATH
+            assert str(requested_path) == database._effective_database_target().path
             initialize_schema()
 
-        assert original_target == (database.DATABASE_URL, database.DATABASE_TYPE, database.DATABASE_PATH)
+        assert original_target == database._effective_database_target()
         with sqlite3.connect(requested_path) as connection:
             assert connection.execute(
                 "SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = 'user_credentials'"
@@ -257,10 +257,10 @@ class TestConnectionManagement:
             patch("api.database.DATABASE_TYPE", "postgresql"),
             patch("api.database.get_settings", return_value=settings),
             patch("psycopg2.connect", return_value=connection),
+            pytest.raises(QueryCanceled) as exc_info,
+            get_connection(),
         ):
-            with pytest.raises(QueryCanceled) as exc_info:
-                with get_connection():
-                    raise query_cancelled
+            raise query_cancelled
 
         assert exc_info.value is query_cancelled
         connection.close.assert_called_once_with()
@@ -297,9 +297,9 @@ class TestConnectionManagement:
         mem_manager = _DatabaseConnectionManager(":memory:")
         with (
             patch("api.database.DATABASE_PATH", ":memory:"),
-            patch("api.database._db_manager", mem_manager),
-            patch("api.database._MEMORY_CONNECTION", None),
-            patch("api.database._MEMORY_CONNECTION_MANAGER", None),
+            patch("api.database._CONNECTION_STATE.manager", mem_manager),
+            patch("api.database._CONNECTION_STATE.connection", None),
+            patch("api.database._CONNECTION_STATE.connection_manager", None),
         ):
             _close_memory_connection_cache()
             with get_connection() as conn1:
@@ -624,6 +624,7 @@ class TestEdgeCases:
             results = []
 
             def access_connection():
+                """Record the shared connection used by one worker thread."""
                 with get_connection() as conn:
                     results.append(id(conn))
 
@@ -665,16 +666,14 @@ class TestConnectionPooling:
     def test_cleanup_function_is_registered(self):
         """Test that cleanup function is registered."""
         with patch("atexit.register") as mock_register:
-            import api.database as db_module
-
-            importlib.reload(db_module)
+            importlib.reload(database)
 
             assert any(
-                call.args and call.args[0] is db_module._cleanup_memory_connection
+                call.args and call.args[0] is database._cleanup_memory_connection
                 for call in mock_register.call_args_list
             )
 
-    @patch("api.database._MEMORY_CONNECTION")
+    @patch("api.database._CONNECTION_STATE.connection")
     def test_cleanup_closes_memory_connection(self, mock_conn):
         """Test that cleanup closes memory connection."""
         from api.database import _cleanup_memory_connection
@@ -684,3 +683,14 @@ class TestConnectionPooling:
 
         # Cleanup should attempt to close if connection exists
         # (Implementation detail may vary)
+
+
+def test_verification_fetch_value_uses_retained_session_without_reconnect(monkeypatch):
+    """Catalog verification leaves the caller-owned identity session open."""
+    connection = MagicMock()
+    connection.cursor.return_value.__enter__.return_value.fetchone.return_value = (True,)
+    monkeypatch.setattr(database, "get_connection", MagicMock(side_effect=AssertionError("unproved reconnect")))
+    assert database._verification_fetch_value(connection, "SELECT %s", (True,)) is True
+    connection.cursor.return_value.__enter__.return_value.execute.assert_called_once_with("SELECT %s", (True,))
+    connection.close.assert_not_called()
+    monkeypatch.undo()
