@@ -551,6 +551,90 @@ def _unwrap_rebuild_error(exc: Exception | asyncio.CancelledError) -> Exception 
     return exc
 
 
+def _record_fallback_audit_failure(
+    *,
+    user_ref: str,
+    exc: Exception | asyncio.CancelledError,
+    started_at: float,
+    tracking_state: dict[str, bool],
+) -> None:
+    """Record a failure audit log if the execution path did not already emit one."""
+    if not tracking_state["audit_logged"]:
+        _log_rebuild_failed(
+            user_ref=user_ref,
+            exc=exc,
+            status_code=_rebuild_status_code(exc),
+            duration_ms=_duration_ms(started_at),
+        )
+        tracking_state["audit_logged"] = True
+
+
+async def _execute_rebuild_with_error_handling(
+    loop: asyncio.AbstractEventLoop,
+    settings: GraphLifecycleSettings,
+    *,
+    user_ref: str,
+    started_at: float,
+    tracking_state: dict[str, bool],
+) -> GraphRebuildResponse:
+    """Execute rebuild within the worker executor and map expected and unexpected failures."""
+    try:
+        return await _run_rebuild_in_executor(
+            loop,
+            settings,
+            user_ref=user_ref,
+            started_at=started_at,
+            tracking_state=tracking_state,
+        )
+    except (
+        HTTPException,
+        _RebuildExecutionError,
+        _DistributedLockAcquisitionError,
+        _DistributedLockLostError,
+        GraphPersistenceNonDurableError,
+        GraphPersistenceNotConfiguredError,
+        GraphPersistenceSaveError,
+        GraphRebuildSourceError,
+        AuthoritativeGraphUnavailableError,
+        ExecutionBlockedError,
+        RebuildCancelledError,
+        asyncio.CancelledError,
+    ) as exc:
+        root_exc = _unwrap_rebuild_error(exc)
+
+        # If it's a lock contention error, handle it cleanly as a rejection
+        if isinstance(root_exc, _DistributedLockAcquisitionError):
+            if _REBUILD_RUNTIME.is_busy():
+                _REBUILD_RUNTIME.clear_busy_after_contention()
+            _log_rebuild_rejected(user_ref=user_ref)
+            tracking_state["audit_logged"] = True
+        else:
+            _REBUILD_RUNTIME.mark_idle(succeeded=False)
+
+        # Defensive safety net: If the callback never completed to write any audit trace, write it now
+        _record_fallback_audit_failure(
+            user_ref=user_ref,
+            exc=exc,
+            started_at=started_at,
+            tracking_state=tracking_state,
+        )
+        raise _map_rebuild_error(exc) from None
+
+    except Exception as exc:
+        # Emit the structured critical alert sentinel identically to the callback path
+        _log_unexpected_rebuild_exception(user_ref=user_ref, exc=exc)
+        _REBUILD_RUNTIME.mark_idle(succeeded=False)
+
+        # Ensure structural audit coverage for general unexpected programming errors
+        _record_fallback_audit_failure(
+            user_ref=user_ref,
+            exc=exc,
+            started_at=started_at,
+            tracking_state=tracking_state,
+        )
+        raise _map_rebuild_error(exc) from None
+
+
 @router.post(_REBUILD_PATH)
 async def rebuild_graph(
     current_user: Annotated[User, Depends(get_current_rebuild_operator_user)],
@@ -578,67 +662,13 @@ async def rebuild_graph(
         await rebuild_lock.acquire()
         lock_acquired = True
 
-        try:
-            return await _run_rebuild_in_executor(
-                loop,
-                settings,
-                user_ref=user_ref,
-                started_at=started_at,
-                tracking_state=tracking_state,
-            )
-        except (
-            HTTPException,
-            _RebuildExecutionError,
-            _DistributedLockAcquisitionError,
-            _DistributedLockLostError,
-            GraphPersistenceNonDurableError,
-            GraphPersistenceNotConfiguredError,
-            GraphPersistenceSaveError,
-            GraphRebuildSourceError,
-            AuthoritativeGraphUnavailableError,
-            ExecutionBlockedError,
-            RebuildCancelledError,
-            asyncio.CancelledError,
-        ) as exc:
-            root_exc = _unwrap_rebuild_error(exc)
-
-            # If it's a lock contention error, handle it cleanly as a rejection
-            if isinstance(root_exc, _DistributedLockAcquisitionError):
-                if _REBUILD_RUNTIME.is_busy():
-                    _REBUILD_RUNTIME.clear_busy_after_contention()
-                _log_rebuild_rejected(user_ref=user_ref)
-                tracking_state["audit_logged"] = True
-            else:
-                _REBUILD_RUNTIME.mark_idle(succeeded=False)
-
-            # Defensive safety net: If the callback never completed to write any audit trace, write it now
-            if not tracking_state["audit_logged"]:
-                _log_rebuild_failed(
-                    user_ref=user_ref,
-                    exc=exc,
-                    status_code=_rebuild_status_code(exc),
-                    duration_ms=_duration_ms(started_at),
-                )
-                tracking_state["audit_logged"] = True
-
-            raise _map_rebuild_error(exc) from None
-
-        except Exception as exc:
-            # Emit the structured critical alert sentinel identically to the callback path
-            _log_unexpected_rebuild_exception(user_ref=user_ref, exc=exc)
-            _REBUILD_RUNTIME.mark_idle(succeeded=False)
-
-            # Ensure structural audit coverage for general unexpected programming errors
-            if not tracking_state["audit_logged"]:
-                _log_rebuild_failed(
-                    user_ref=user_ref,
-                    exc=exc,
-                    status_code=_rebuild_status_code(exc),
-                    duration_ms=_duration_ms(started_at),
-                )
-                tracking_state["audit_logged"] = True
-
-            raise _map_rebuild_error(exc) from None
+        return await _execute_rebuild_with_error_handling(
+            loop,
+            settings,
+            user_ref=user_ref,
+            started_at=started_at,
+            tracking_state=tracking_state,
+        )
     finally:
         if lock_acquired:
             rebuild_lock.release()

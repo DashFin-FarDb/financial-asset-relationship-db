@@ -51,6 +51,8 @@ _PROVIDER_SOURCE_TO_STARTUP_SOURCE: Final[dict[str, GraphStartupSource]] = {
     "real_data": GraphStartupSource.REAL_DATA,
 }
 
+_NO_AUTHORITATIVE_GRAPH_MESSAGE: Final[str] = "No authoritative published graph available."
+
 
 def _resolve_provider_source(raw_source: str) -> GraphStartupSource:
     """Map a provider-reported GraphRebuildSource string to a GraphStartupSource enum value."""
@@ -264,11 +266,11 @@ def get_graph_with_startup_source() -> tuple[AssetRelationshipGraph, GraphStartu
             if graph_state.lifecycle_state == GraphRuntimeLifecycleState.REBUILDING:
                 raise AuthoritativeGraphUnavailableError("Authoritative graph is currently rebuilding.")
             if graph_state.lifecycle_state == GraphRuntimeLifecycleState.READY:
-                raise AuthoritativeGraphUnavailableError("No authoritative published graph available.")
+                raise AuthoritativeGraphUnavailableError(_NO_AUTHORITATIVE_GRAPH_MESSAGE)
             if graph_state.lifecycle_state == GraphRuntimeLifecycleState.FAILED and _settings_asset_graph_database_url(
                 graph_lifecycle_providers.get_graph_lifecycle_settings()
             ):
-                raise AuthoritativeGraphUnavailableError("No authoritative published graph available.")
+                raise AuthoritativeGraphUnavailableError(_NO_AUTHORITATIVE_GRAPH_MESSAGE)
             _normalize_shutdown_state()
             _transition_lifecycle_state(GraphRuntimeLifecycleState.INITIALIZING)
             try:
@@ -611,7 +613,7 @@ def initialize_graph_runtime() -> tuple[AssetRelationshipGraph, GraphStartupMeta
             )
 
     if graph is None:
-        raise AuthoritativeGraphUnavailableError("No authoritative published graph available.")
+        raise AuthoritativeGraphUnavailableError(_NO_AUTHORITATIVE_GRAPH_MESSAGE)
 
     return graph, _create_metadata(
         source=source_id or GraphStartupSource.UNKNOWN,
