@@ -25,6 +25,7 @@ def reset_graph_lifecycle(monkeypatch: pytest.MonkeyPatch) -> Iterator[None]:
 
 
 def _persist_graph(database_url: str, graph: AssetRelationshipGraph) -> None:
+    """Persist graph snapshot and finalize projection publication for test lifecycle."""
     from datetime import datetime, timezone
     from uuid import uuid4
 

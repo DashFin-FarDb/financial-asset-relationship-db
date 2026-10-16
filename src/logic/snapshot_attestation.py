@@ -211,6 +211,33 @@ def canonicalize_asset(asset: Any) -> dict[str, Any]:
     }
 
 
+def _unpack_relationship_fields(
+    relationship: Any,
+    source_id: str | None = None,
+) -> tuple[Any, Any, Any, Any, bool]:
+    """Extract raw source, target, type, strength, and bidirectional flag from relationship."""
+    if isinstance(relationship, tuple):
+        if len(relationship) == 4:
+            src, tgt, rel_type, strength = relationship
+            return src, tgt, rel_type, strength, True
+        if len(relationship) == 3:
+            if source_id is None:
+                raise CanonicalizationValidationError("source_id required for 3-tuple relationship")
+            tgt, rel_type, strength = relationship
+            return source_id, tgt, rel_type, strength, False
+        if len(relationship) == 5:
+            src, tgt, rel_type, strength, bidirectional = relationship
+            return src, tgt, rel_type, strength, bool(bidirectional)
+        raise CanonicalizationValidationError(f"Invalid relationship tuple length: {len(relationship)}")
+
+    src = _extract_attr_or_key(relationship, "source_id") or _extract_attr_or_key(relationship, "source_asset_id")
+    tgt = _extract_attr_or_key(relationship, "target_id") or _extract_attr_or_key(relationship, "target_asset_id")
+    rel_type = _extract_attr_or_key(relationship, "relationship_type")
+    strength = _extract_attr_or_key(relationship, "strength")
+    bidirectional = bool(_extract_attr_or_key(relationship, "bidirectional", False))
+    return src, tgt, rel_type, strength, bidirectional
+
+
 def canonicalize_relationship(relationship: Any, *, source_id: str | None = None) -> dict[str, Any]:
     """Canonicalize a single relationship edge into a deterministic 5-property dictionary.
 
@@ -221,26 +248,7 @@ def canonicalize_relationship(relationship: Any, *, source_id: str | None = None
     Returns:
         Canonicalized dictionary with keys: bidirectional, relationship_type, source_id, strength, target_id.
     """
-    if isinstance(relationship, tuple):
-        if len(relationship) == 4:
-            src, tgt, rel_type, strength = relationship
-            bidirectional = True
-        elif len(relationship) == 3:
-            if source_id is None:
-                raise CanonicalizationValidationError("source_id required for 3-tuple relationship")
-            src = source_id
-            tgt, rel_type, strength = relationship
-            bidirectional = False
-        elif len(relationship) == 5:
-            src, tgt, rel_type, strength, bidirectional = relationship
-        else:
-            raise CanonicalizationValidationError(f"Invalid relationship tuple length: {len(relationship)}")
-    else:
-        src = _extract_attr_or_key(relationship, "source_id") or _extract_attr_or_key(relationship, "source_asset_id")
-        tgt = _extract_attr_or_key(relationship, "target_id") or _extract_attr_or_key(relationship, "target_asset_id")
-        rel_type = _extract_attr_or_key(relationship, "relationship_type")
-        strength = _extract_attr_or_key(relationship, "strength")
-        bidirectional = bool(_extract_attr_or_key(relationship, "bidirectional", False))
+    src, tgt, rel_type, strength, bidirectional = _unpack_relationship_fields(relationship, source_id)
 
     source_clean = _normalize_string(src, "source_id")
     target_clean = _normalize_string(tgt, "target_id")

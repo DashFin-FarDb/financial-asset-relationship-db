@@ -20,33 +20,27 @@ from src.models.financial_models import (
 
 def create_sample_equity_pair() -> tuple[Equity, Equity]:
     """Create a deterministic pair of equities (AAPL, MSFT) for testing."""
-    aapl = Equity(
+    eq_a = Equity(
         id="AAPL",
-        symbol="AAPL",
-        name="Apple Inc.",
+        symbol="AAPL.US",
+        name="Apple Inc. Fixture",
         asset_class=AssetClass.EQUITY,
-        sector="Technology",
-        price=180.50,
-        market_cap=3000000000000.0,
+        sector="Consumer Electronics",
+        price=192.25,
         currency="USD",
-        pe_ratio=28.5,
-        dividend_yield=0.0055,
-        earnings_per_share=6.42,
+        market_cap=2900000000000.0,
     )
-    msft = Equity(
+    eq_b = Equity(
         id="MSFT",
-        symbol="MSFT",
-        name="Microsoft Corporation",
+        symbol="MSFT.US",
+        name="Microsoft Corporation Fixture",
         asset_class=AssetClass.EQUITY,
-        sector="Technology",
-        price=420.10,
-        market_cap=3100000000000.0,
+        sector="Software Infrastructure",
+        price=415.50,
         currency="USD",
-        pe_ratio=35.1,
-        dividend_yield=0.0072,
-        earnings_per_share=11.05,
+        market_cap=3150000000000.0,
     )
-    return aapl, msft
+    return eq_a, eq_b
 
 
 def create_sample_test_graph() -> AssetRelationshipGraph:

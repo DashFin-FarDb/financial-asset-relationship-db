@@ -25,14 +25,13 @@ from unittest.mock import patch
 from uuid import uuid4
 
 import pytest
-from sqlalchemy import create_engine, select, text, update
+from sqlalchemy import select, update
 
 from api.graph_lifecycle_providers import (
     _load_persisted_graph_from_configured_store,
     load_persisted_graph_if_available,
     stage_graph_snapshot,
 )
-from src.data.database import configure_sqlite_engine, create_session_factory, init_db
 from src.data.db_models import AssetORM, AssetRelationshipORM, RebuildJobORM, RegulatoryEventORM
 from src.data.relationship_assertion_db_models import RelationshipProjectionPublicationORM
 from src.data.relationship_assertion_repository import (
@@ -47,12 +46,7 @@ from src.logic.snapshot_attestation import (
     compute_graph_snapshot_hash,
     compute_repository_snapshot_hash,
 )
-from src.models.financial_models import (
-    AssetClass,
-    Equity,
-    RegulatoryActivity,
-    RegulatoryEvent,
-)
+from src.models.financial_models import AssetClass, Equity
 from tests.helpers.snapshot_attestation_fixtures import (
     create_sample_test_graph,
     setup_disposable_sqlite_db,
@@ -624,57 +618,12 @@ def test_staged_repository_digest_matches_loader_digest(tmp_path: Path) -> None:
     job_id = "job-symmetry-test"
     execution_id = "exec-symmetry-test"
 
-    with session_factory() as session:
-        job = RebuildJobORM(
-            job_id=job_id,
-            requested_by="test-operator",
-            status="running",
-            source="test",
-            created_at=datetime.now(tz=UTC),
-            updated_at=datetime.now(tz=UTC),
-            started_at=datetime.now(tz=UTC),
-            execution_id=execution_id,
-        )
-        session.add(job)
-        session.commit()
-
-    with session_factory() as session:
-        stage_graph_snapshot(session, graph)
-        session.flush()
-        staged_digest = compute_repository_snapshot_hash(AssetGraphRepository(session))
-
-        now = datetime.now(tz=UTC)
-        revision = ProjectionRevision(
-            purpose="test-current",
-            effective_at=now,
-            known_at=now,
-            contract_version="grac-v1",
-            projector_version="projector-v1",
-            edge_set_hash="0" * 64,
-            projection_hash="0" * 64,
-            edges=(),
-            governed_scopes=(),
-        )
-        assertion_repo = RelationshipAssertionRepository(session)
-        assertion_repo.finalize_projection_publication(
-            FinalizeProjectionPublicationRequest(
-                projection=PersistProjectionRequest(
-                    revision=revision,
-                    revision_id=f"rev-{uuid4().hex[:8]}",
-                    created_at=now,
-                ),
-                rebuild_job_id=job_id,
-                execution_id=execution_id,
-                node_count=len(graph.assets),
-                edge_count=sum(len(edges) for edges in graph.relationships.values()),
-                duration_ms=50,
-                published_at=now,
-                snapshot_sha256=staged_digest,
-            ),
-            pre_success_check=lambda: None,
-            pre_commit_check=lambda: None,
-        )
-        session.commit()
+    staged_digest = _publish_sample_graph(
+        session_factory,
+        graph,
+        job_id=job_id,
+        execution_id=execution_id,
+    )
 
     with session_factory() as session:
         _loaded_graph, loaded_digest = AssetGraphRepository(session).load_graph_with_attestation_hash()
