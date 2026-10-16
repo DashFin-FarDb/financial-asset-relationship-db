@@ -419,3 +419,70 @@ def compute_snapshot_attestation_hash(
         contract_version=contract_version,
     )
     return hashlib.sha256(payload_bytes).hexdigest()
+
+
+def compute_graph_snapshot_hash(
+    graph: Any,
+    *,
+    attestation_version: str = ATTESTATION_VERSION_V1,
+    contract_version: str = CONTRACT_VERSION_GRAC_V1,
+) -> str:
+    """Compute the SHA-256 snapshot attestation hash for an AssetRelationshipGraph instance.
+
+    Parameters:
+        graph: AssetRelationshipGraph instance.
+        attestation_version: Attestation schema version (defaults to 'v1').
+        contract_version: GRAC contract version (defaults to 'grac-v1').
+
+    Returns:
+        Hexadecimal SHA-256 digest string.
+    """
+    relationships = [
+        {
+            "source_id": source_id,
+            "target_id": target_id,
+            "relationship_type": rel_type,
+            "strength": strength,
+            "bidirectional": False,
+        }
+        for source_id, outgoing in getattr(graph, "relationships", {}).items()
+        for target_id, rel_type, strength in outgoing
+    ]
+    raw_assets = getattr(graph, "assets", {})
+    assets = raw_assets.values() if hasattr(raw_assets, "values") else raw_assets
+    regulatory_events = getattr(graph, "regulatory_events", [])
+    return compute_snapshot_attestation_hash(
+        assets=assets,
+        relationships=relationships,
+        regulatory_events=regulatory_events,
+        attestation_version=attestation_version,
+        contract_version=contract_version,
+    )
+
+
+def compute_repository_snapshot_hash(
+    repository: Any,
+    *,
+    attestation_version: str = ATTESTATION_VERSION_V1,
+    contract_version: str = CONTRACT_VERSION_GRAC_V1,
+) -> str:
+    """Compute the snapshot attestation hash directly from persisted repository rows.
+
+    Parameters:
+        repository: AssetGraphRepository instance.
+        attestation_version: Attestation schema version (defaults to 'v1').
+        contract_version: GRAC contract version (defaults to 'grac-v1').
+
+    Returns:
+        Hexadecimal SHA-256 digest string.
+    """
+    assets = repository.list_assets()
+    relationships = repository.list_relationships()
+    regulatory_events = repository.list_regulatory_events()
+    return compute_snapshot_attestation_hash(
+        assets=assets,
+        relationships=relationships,
+        regulatory_events=regulatory_events,
+        attestation_version=attestation_version,
+        contract_version=contract_version,
+    )

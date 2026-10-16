@@ -1275,6 +1275,7 @@ class AssetGraphRepository:
         node_count: int,
         edge_count: int,
         duration_ms: int,
+        snapshot_sha256: str | None = None,
     ) -> None:
         """
         Mark rebuild job as succeeded and persist success metadata atomatically.
@@ -1285,6 +1286,7 @@ class AssetGraphRepository:
             node_count: Number of nodes/assets in the rebuilt graph.
             edge_count: Number of edges/relationships in the rebuilt graph.
             duration_ms: Total rebuild duration in milliseconds.
+            snapshot_sha256: Optional SHA-256 digest of the persisted graph snapshot.
 
         Raises:
             ValueError: If the job does not exist, is not running, or execution_id mismatches.
@@ -1312,6 +1314,7 @@ class AssetGraphRepository:
                 node_count=node_count,
                 edge_count=edge_count,
                 duration_ms=duration_ms,
+                snapshot_sha256=snapshot_sha256,
             )
         )
         result = self.session.execute(stmt)

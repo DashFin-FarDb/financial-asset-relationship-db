@@ -140,6 +140,7 @@ class FinalizeProjectionPublicationRequest:
     duration_ms: int
     publication_id: str | None = None
     published_at: datetime | None = None
+    snapshot_sha256: str | None = None
 
 
 @dataclass(frozen=True)
@@ -151,6 +152,7 @@ class PublishedProjectionRevision:
     rebuild_job_id: str
     execution_id: str
     published_at: datetime
+    snapshot_sha256: str | None = None
 
 
 def _utcnow() -> datetime:
@@ -1069,6 +1071,7 @@ class RelationshipAssertionRepository:
             node_count=request.node_count,
             edge_count=request.edge_count,
             duration_ms=request.duration_ms,
+            snapshot_sha256=request.snapshot_sha256,
         )
         persisted = self.persist_projection_revision(request.projection)
 
@@ -1083,6 +1086,7 @@ class RelationshipAssertionRepository:
                         rebuild_job_id=request.rebuild_job_id,
                         execution_id=execution_id,
                         published_at=published_at,
+                        snapshot_sha256=request.snapshot_sha256,
                     )
                 )
                 self._session.flush()
@@ -1096,6 +1100,7 @@ class RelationshipAssertionRepository:
             rebuild_job_id=request.rebuild_job_id,
             execution_id=execution_id,
             published_at=published_at,
+            snapshot_sha256=request.snapshot_sha256,
         )
 
     def current_state(self, assertion_id: str) -> LifecycleState:

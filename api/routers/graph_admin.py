@@ -49,6 +49,7 @@ from src.logic.relationship_projection import (
     overlay_governed_relationships,
     project,
 )
+from src.logic.snapshot_attestation import compute_graph_snapshot_hash
 from src.observability.facade import ObservabilityEvent, log_event
 
 from ..api_models import (
@@ -1822,6 +1823,7 @@ def _finalize_rebuild_success(
             cancel_event,
         )
         stage_graph_snapshot(session, publication_graph)
+        snapshot_sha256 = compute_graph_snapshot_hash(publication_graph)
 
         _guard_publication_lock(coordination_session, lock_holder_id, lock_ttl_seconds, "publication-pre-success")
 
@@ -1841,6 +1843,7 @@ def _finalize_rebuild_success(
                 edge_count=response.relationship_count,
                 duration_ms=_duration_ms(job_started_at),
                 published_at=publication_time,
+                snapshot_sha256=snapshot_sha256,
             ),
             pre_success_check=pre_success_check,
             pre_commit_check=pre_commit_check,

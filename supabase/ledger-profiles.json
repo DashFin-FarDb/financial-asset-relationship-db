@@ -41,6 +41,11 @@
           "timestamp": "20260817153555",
           "filename": "20260817153555_cq_03b_r2_graph_forward_baseline.sql",
           "sha256": "9c52b0cb30b457c3d6b515f79ca3a45dcf59efca693d8ee8101588d297546df7"
+        },
+        {
+          "timestamp": "20261016120000",
+          "filename": "20261016120000_add_snapshot_attestation.sql",
+          "sha256": "8d8b84fa69926d7399742ab1361bc21c9968d5d56aec9b1149490fe7422b5e2d"
         }
       ]
     },

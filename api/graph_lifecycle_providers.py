@@ -6,6 +6,7 @@ import logging
 import threading
 from collections.abc import Callable
 from dataclasses import dataclass
+from enum import Enum
 from pathlib import Path
 from typing import Any, Literal, cast
 
@@ -16,14 +17,31 @@ from sqlalchemy.orm import Session  # pylint: disable=import-error
 
 from src.config.settings import DeploymentEnvironment, get_settings
 from src.data.database import create_engine_from_url, create_session_factory
-from src.data.db_models import AssetORM
+from src.data.db_models import AssetORM, RebuildJobORM
 from src.data.real_data_fetcher import DataAcquisitionIncompleteError
+from src.data.relationship_assertion_db_models import RelationshipProjectionPublicationORM
 from src.data.repository import AssetGraphRepository
 from src.logic.asset_graph import AssetRelationshipGraph
 from src.logic.reconciliation_engine import RebuildCancelledError
+from src.logic.snapshot_attestation import (
+    CanonicalizationValidationError,
+    compute_repository_snapshot_hash,
+)
 from src.observability.facade import ObservabilityEvent, log_event
 
 logger = logging.getLogger(__name__)
+
+
+class SnapshotProvenanceClassification(str, Enum):
+    """Internal classifications for persisted-graph provenance evaluation."""
+
+    VERIFIED = "verified"
+    CLEAN_INSTALLATION = "clean_installation"
+    MISSING_PROVENANCE = "missing_provenance"
+    INCONSISTENT_ATTESTATION = "inconsistent_attestation"
+    CONTAMINATION = "contamination"
+    DATABASE_UNAVAILABLE = "database_unavailable"
+
 
 GraphRebuildSource = Literal["cache", "real_data"]
 _GRAPH_PERSISTENCE_SAVE_ERROR_MESSAGE = "Failed to persist rebuilt graph."
@@ -561,27 +579,192 @@ def _log_in_memory_sqlite_persistence_skip() -> None:
 def _load_persisted_graph_from_configured_store(
     database_url: str,
 ) -> AssetRelationshipGraph | None:
+    """Load an AssetRelationshipGraph from the persistent store identified by database_url.
+
+    Validates that the persisted graph has a verifiable, immutable snapshot attestation
+    bound to a succeeded rebuild job and publication.
     """
-    Load an AssetRelationshipGraph from the persistent store identified by database_url.
+    try:
+        engine = create_engine_from_url(database_url)
+    except Exception as exc:
+        log_event(
+            logger,
+            logging.WARNING,
+            ObservabilityEvent(
+                event="graph_provenance_evaluation",
+                message=f"Database engine creation failed during startup graph provenance check: {exc.__class__.__name__}",
+                metadata={"classification": SnapshotProvenanceClassification.DATABASE_UNAVAILABLE.value},
+            ),
+        )
+        raise
 
-    If the persistent store contains no persisted graph rows, returns None.
-
-    Parameters:
-        database_url (str): Database connection URL for the persistent store.
-
-    Returns:
-        AssetRelationshipGraph | None: The loaded graph, or `None` when no persisted graph rows exist.
-    """
-    engine = create_engine_from_url(database_url)
     try:
         session_factory = create_session_factory(engine)
         session = session_factory()
         try:
-            if not _has_persisted_graph_rows(session):
+            # 1. Clean installation check
+            has_assets = _has_persisted_graph_rows(session)
+            has_publications = (
+                session.execute(select(RelationshipProjectionPublicationORM.id).limit(1)).scalar_one_or_none()
+                is not None
+            )
+            if not has_assets and not has_publications:
+                log_event(
+                    logger,
+                    logging.INFO,
+                    ObservabilityEvent(
+                        event="graph_provenance_evaluation",
+                        message="Clean installation detected; no persisted graph or publication",
+                        metadata={"classification": SnapshotProvenanceClassification.CLEAN_INSTALLATION.value},
+                    ),
+                )
                 return None
-            return AssetGraphRepository(session).load_graph()
+
+            # 2. Query latest publication linked to a succeeded rebuild job
+            stmt = (
+                select(RelationshipProjectionPublicationORM, RebuildJobORM)
+                .join(RebuildJobORM, RebuildJobORM.job_id == RelationshipProjectionPublicationORM.rebuild_job_id)
+                .where(RebuildJobORM.status == "succeeded")
+                .order_by(
+                    RelationshipProjectionPublicationORM.published_at.desc(),
+                    RelationshipProjectionPublicationORM.id.desc(),
+                )
+                .limit(1)
+            )
+            row = session.execute(stmt).first()
+            if row is None:
+                log_event(
+                    logger,
+                    logging.WARNING,
+                    ObservabilityEvent(
+                        event="graph_provenance_evaluation",
+                        message="Missing publication provenance: no publication found for a succeeded rebuild job",
+                        metadata={"classification": SnapshotProvenanceClassification.MISSING_PROVENANCE.value},
+                    ),
+                )
+                return None
+
+            publication, job = row
+
+            # 3. Check publication attestation digest presence
+            expected_digest = publication.snapshot_sha256
+            if not expected_digest or not expected_digest.strip():
+                log_event(
+                    logger,
+                    logging.WARNING,
+                    ObservabilityEvent(
+                        event="graph_provenance_evaluation",
+                        message="Missing attestation digest: publication lacks snapshot_sha256",
+                        metadata={
+                            "classification": SnapshotProvenanceClassification.MISSING_PROVENANCE.value,
+                            "publication_id": publication.id,
+                            "rebuild_job_id": publication.rebuild_job_id,
+                        },
+                    ),
+                )
+                return None
+
+            # 4. Check execution identity binding
+            if publication.execution_id and job.execution_id and publication.execution_id != job.execution_id:
+                log_event(
+                    logger,
+                    logging.WARNING,
+                    ObservabilityEvent(
+                        event="graph_provenance_evaluation",
+                        message="Inconsistent execution identity between publication and rebuild job",
+                        metadata={
+                            "classification": SnapshotProvenanceClassification.INCONSISTENT_ATTESTATION.value,
+                            "publication_id": publication.id,
+                            "job_id": job.job_id,
+                        },
+                    ),
+                )
+                return None
+
+            # 5. Check job snapshot_sha256 consistency if present
+            if job.snapshot_sha256 and job.snapshot_sha256 != expected_digest:
+                log_event(
+                    logger,
+                    logging.WARNING,
+                    ObservabilityEvent(
+                        event="graph_provenance_evaluation",
+                        message="Inconsistent attestation digest between rebuild job and publication",
+                        metadata={
+                            "classification": SnapshotProvenanceClassification.INCONSISTENT_ATTESTATION.value,
+                            "publication_id": publication.id,
+                            "job_id": job.job_id,
+                        },
+                    ),
+                )
+                return None
+
+            # 6. Recompute canonical digest from persisted rows
+            repo = AssetGraphRepository(session)
+            try:
+                actual_digest = compute_repository_snapshot_hash(repo)
+            except CanonicalizationValidationError as val_exc:
+                log_event(
+                    logger,
+                    logging.WARNING,
+                    ObservabilityEvent(
+                        event="graph_provenance_evaluation",
+                        message=f"Contaminated or invalid entity in persisted graph: {val_exc}",
+                        metadata={"classification": SnapshotProvenanceClassification.CONTAMINATION.value},
+                    ),
+                )
+                return None
+
+            if actual_digest != expected_digest:
+                log_event(
+                    logger,
+                    logging.WARNING,
+                    ObservabilityEvent(
+                        event="graph_provenance_evaluation",
+                        message=f"Persisted graph attestation mismatch: computed {actual_digest} != expected {expected_digest}",
+                        metadata={
+                            "classification": SnapshotProvenanceClassification.INCONSISTENT_ATTESTATION.value,
+                            "computed_hash": actual_digest,
+                            "expected_hash": expected_digest,
+                            "publication_id": publication.id,
+                            "job_id": job.job_id,
+                        },
+                    ),
+                )
+                return None
+
+            # 7. Verification succeeded
+            graph = repo.load_graph()
+            log_event(
+                logger,
+                logging.INFO,
+                ObservabilityEvent(
+                    event="graph_provenance_evaluation",
+                    message="Persisted graph provenance verified successfully",
+                    metadata={
+                        "classification": SnapshotProvenanceClassification.VERIFIED.value,
+                        "publication_id": publication.id,
+                        "job_id": job.job_id,
+                        "snapshot_sha256": expected_digest,
+                    },
+                ),
+            )
+            return graph
         finally:
             session.close()
+    except Exception as exc:
+        log_event(
+            logger,
+            logging.WARNING,
+            ObservabilityEvent(
+                event="graph_provenance_evaluation",
+                message=f"Database error during startup graph provenance check: {exc.__class__.__name__}",
+                metadata={
+                    "classification": SnapshotProvenanceClassification.DATABASE_UNAVAILABLE.value,
+                    "error": exc.__class__.__name__,
+                },
+            ),
+        )
+        raise
     finally:
         engine.dispose()
 

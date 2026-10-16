@@ -362,7 +362,11 @@ def _query_latest_successful_rebuild_job_id(
     settings: graph_lifecycle_providers.GraphLifecycleSettings,
 ) -> str | None:
     """Return the latest successful rebuild job id using durable persistence."""
+    from sqlalchemy import select
+
     from src.data.database import create_engine_from_url, create_session_factory
+    from src.data.db_models import RebuildJobORM
+    from src.data.relationship_assertion_db_models import RelationshipProjectionPublicationORM
     from src.data.repository import AssetGraphRepository, session_scope
 
     resolved_url = graph_lifecycle_providers.resolve_durable_graph_persistence_url(
@@ -372,6 +376,20 @@ def _query_latest_successful_rebuild_job_id(
     try:
         session_factory = create_session_factory(engine)
         with session_scope(session_factory) as session:
+            stmt = (
+                select(RelationshipProjectionPublicationORM.rebuild_job_id)
+                .join(RebuildJobORM, RebuildJobORM.job_id == RelationshipProjectionPublicationORM.rebuild_job_id)
+                .where(RebuildJobORM.status == "succeeded")
+                .where(RelationshipProjectionPublicationORM.snapshot_sha256.isnot(None))
+                .order_by(
+                    RelationshipProjectionPublicationORM.published_at.desc(),
+                    RelationshipProjectionPublicationORM.id.desc(),
+                )
+                .limit(1)
+            )
+            job_id = session.execute(stmt).scalar_one_or_none()
+            if job_id is not None:
+                return job_id
             repo = AssetGraphRepository(session)
             latest_job = repo.get_latest_successful_rebuild_job()
             if latest_job is None:
@@ -650,9 +668,6 @@ def sync_with_latest_rebuild() -> None:
         return
 
     try:
-        from src.data.database import create_engine_from_url, create_session_factory
-        from src.data.repository import AssetGraphRepository, session_scope
-
         latest_job_id = _query_latest_successful_rebuild_job_id(settings)
         if not latest_job_id:
             return
@@ -680,25 +695,20 @@ def sync_with_latest_rebuild() -> None:
         resolved_url = graph_lifecycle_providers.resolve_durable_graph_persistence_url(
             _settings_asset_graph_database_url(settings)
         )
-        engine = create_engine_from_url(resolved_url)
-        try:
-            session_factory = create_session_factory(engine)
-            with session_scope(session_factory) as session:
-                repo = AssetGraphRepository(session)
-                new_graph = repo.load_graph()
-            from .metrics import update_graph_metrics
+        new_graph = graph_lifecycle_providers._load_persisted_graph_from_configured_store(resolved_url)
+        if new_graph is None:
+            return
+        from .metrics import update_graph_metrics
 
-            if synchronize_runtime_graph(
-                new_graph,
-                job_id=latest_job_id,
-                expected_last_synced_job_id=expected_last_synced_job_id,
-            ):
-                update_graph_metrics(
-                    len(new_graph.assets),
-                    sum(len(items) for items in new_graph.relationships.values()),
-                )
-        finally:
-            engine.dispose()
+        if synchronize_runtime_graph(
+            new_graph,
+            job_id=latest_job_id,
+            expected_last_synced_job_id=expected_last_synced_job_id,
+        ):
+            update_graph_metrics(
+                len(new_graph.assets),
+                sum(len(items) for items in new_graph.relationships.values()),
+            )
     except Exception as exc:
         log_event(
             logger,

@@ -108,7 +108,7 @@ def test_manifest_and_profile_unions_are_deterministic() -> None:
     """The committed manifest must resolve exact, timestamp-ordered component unions."""
     manifest = ledger.load_and_validate_manifest()
 
-    assert manifest.sha256 == "d3625e9af90eed107cc90d392557308b0c339d9c23d792381e9f1658e8ec03fb"
+    assert manifest.sha256 == "bf7f3d2e0fd3d1b14245423984136f598d40dfc4f5806416c5edda1be9207730"
     assert (
         tuple(
             table_name
@@ -117,10 +117,13 @@ def test_manifest_and_profile_unions_are_deterministic() -> None:
         )
         == POSTGRESQL_MANAGED_TABLES
     )
-    assert tuple(entry.component for entry in manifest.migrations_for_profile("combined")) == ledger.COMPONENT_ORDER
+    assert (
+        tuple(dict.fromkeys(entry.component for entry in manifest.migrations_for_profile("combined")))
+        == ledger.COMPONENT_ORDER
+    )
     for profile, components in ledger.EXPECTED_PROFILES.items():
         selected = manifest.migrations_for_profile(profile)
-        assert tuple(entry.component for entry in selected) == components
+        assert tuple(dict.fromkeys(entry.component for entry in selected)) == components
         assert [entry.timestamp for entry in selected] == sorted(entry.timestamp for entry in selected)
         assert all(ledger.sha256_bytes(entry.path.read_bytes()) == entry.sha256 for entry in selected)
 
