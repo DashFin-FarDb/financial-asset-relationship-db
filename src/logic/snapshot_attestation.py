@@ -251,8 +251,11 @@ def canonicalize_relationship(relationship: Any, *, source_id: str | None = None
     except (InvalidOperation, TypeError) as exc:
         raise CanonicalizationValidationError(f"Invalid strength value: {strength!r}") from exc
 
-    if not Decimal("0.0") <= dec_strength <= Decimal("1.0"):
-        raise CanonicalizationValidationError(f"Relationship strength must be between 0.0 and 1.0, got {strength}")
+    if dec_strength.is_nan() or dec_strength.is_infinite():
+        raise CanonicalizationValidationError(f"Non-finite numeric value rejected for 'strength': {strength!r}")
+
+    if not Decimal("-1.0") <= dec_strength <= Decimal("1.0"):
+        raise CanonicalizationValidationError(f"Relationship strength must be between -1.0 and 1.0, got {strength}")
 
     strength_clean = normalize_decimal_string(dec_strength, field_name="strength", allow_none=False)
 
@@ -265,9 +268,25 @@ def canonicalize_relationship(relationship: Any, *, source_id: str | None = None
     }
 
 
+def _canonicalize_affected_asset_ids(raw_affected: Any) -> list[str]:
+    """Extract, validate, and sort affected asset IDs from strings or objects."""
+    affected_asset_ids: list[str] = []
+    for item in raw_affected:
+        clean_item: str | None = None
+        if isinstance(item, str):
+            clean_item = _normalize_string(item, "affected_asset_id")
+        elif hasattr(item, "asset_id"):
+            clean_item = _normalize_string(getattr(item, "asset_id", None), "affected_asset_id")
+        if clean_item is not None:
+            affected_asset_ids.append(clean_item)
+    affected_asset_ids.sort()
+    return affected_asset_ids
+
+
 def canonicalize_regulatory_event(event: Any) -> dict[str, Any]:
     """Canonicalize a single regulatory event into a deterministic dictionary."""
     event_id = _normalize_string(_extract_attr_or_key(event, "id"), "id")
+    owning_asset_id = _normalize_string(_extract_attr_or_key(event, "asset_id"), "asset_id")
     description = _normalize_string(_extract_attr_or_key(event, "description"), "description")
     date_val = _normalize_string(_extract_attr_or_key(event, "date"), "date")
 
@@ -283,6 +302,11 @@ def canonicalize_regulatory_event(event: Any) -> dict[str, Any]:
     except (InvalidOperation, TypeError) as exc:
         raise CanonicalizationValidationError(f"Invalid impact_score value: {impact_score_val!r}") from exc
 
+    if dec_impact.is_nan() or dec_impact.is_infinite():
+        raise CanonicalizationValidationError(
+            f"Non-finite numeric value rejected for 'impact_score': {impact_score_val!r}"
+        )
+
     if not Decimal("-1.0") <= dec_impact <= Decimal("1.0"):
         raise CanonicalizationValidationError(f"Impact score must be between -1.0 and 1.0, got {impact_score_val}")
 
@@ -294,20 +318,11 @@ def canonicalize_regulatory_event(event: Any) -> dict[str, Any]:
     raw_affected = (
         _extract_attr_or_key(event, "affected_asset_ids") or _extract_attr_or_key(event, "related_assets") or []
     )
-    affected_asset_ids: list[str] = []
-    for item in raw_affected:
-        if isinstance(item, str):
-            clean_item = _normalize_string(item, "affected_asset_id")
-            if clean_item is not None:
-                affected_asset_ids.append(clean_item)
-        elif hasattr(item, "asset_id"):
-            clean_item = _normalize_string(getattr(item, "asset_id"), "affected_asset_id")
-            if clean_item is not None:
-                affected_asset_ids.append(clean_item)
-    affected_asset_ids.sort()
+    affected_asset_ids = _canonicalize_affected_asset_ids(raw_affected)
 
     res: dict[str, Any] = {
         "affected_asset_ids": affected_asset_ids,
+        "asset_id": owning_asset_id,
         "date": date_val,
         "description": description,
         "event_type": event_type_str,

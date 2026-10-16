@@ -9,7 +9,6 @@ import pytest
 
 from src.logic.snapshot_attestation import (
     ATTESTATION_VERSION_V1,
-    CONTRACT_VERSION_GRAC_V1,
     CanonicalizationValidationError,
     canonical_json_dumps,
     canonicalize_asset,
@@ -44,6 +43,23 @@ VECTOR_2_CANONICAL_STR = (
 )
 VECTOR_2_BYTE_LEN = 1226
 VECTOR_2_SHA256 = "c5f111b206be321d66eefd338fa01728e0eb6d407bd1c9b00b31bcf8908f91f0"
+
+VECTOR_3_CANONICAL_STR = (
+    '{"assets":['
+    '{"asset_class":"Equity","book_value":null,"central_bank_rate":null,"contract_size":null,"country":null,'
+    '"coupon_rate":null,"credit_rating":null,"currency":"USD","delivery_date":null,"dividend_yield":"0.005500",'
+    '"earnings_per_share":"6.420000","exchange_rate":null,"id":"AAPL","issuer_id":null,'
+    '"market_cap":"3000000000000.000000","maturity_date":null,"name":"Apple Inc.","pe_ratio":"28.500000",'
+    '"price":"180.500000","sector":"Technology","symbol":"AAPL","volatility":null,"yield_to_maturity":null}'
+    '],"attestation_version":"v1","contract_version":"grac-v1",'
+    '"regulatory_events":['
+    '{"affected_asset_ids":["MSFT"],"asset_id":"AAPL","date":"2026-04-10",'
+    '"description":"Annual 10-K filing","event_type":"Regulatory Filing","id":"REG-001","impact_score":"0.100000"}'
+    "],"
+    '"relationships":[{"bidirectional":false,"relationship_type":"supplier","source_id":"AAPL","strength":"-0.500000","target_id":"MSFT"}]}'
+)
+VECTOR_3_BYTE_LEN = 897
+VECTOR_3_SHA256 = "fb0b7c8c5c70097ee9a64d5ef7bc71a0a5195090cb6282eb9d2660ade241884d"
 
 
 def test_golden_vector_1_empty_snapshot() -> None:
@@ -106,6 +122,51 @@ def test_golden_vector_2_two_asset_snapshot() -> None:
     assert (
         compute_snapshot_attestation_hash(assets=[aapl, msft], relationships=[rel], regulatory_events=[])
         == VECTOR_2_SHA256
+    )
+
+
+def test_golden_vector_3_regulatory_event_snapshot() -> None:
+    """Vector 3 (Asset + Negative Relationship + Regulatory Event with owner) produces exact digest."""
+    aapl = Equity(
+        id="AAPL",
+        symbol="AAPL",
+        name="Apple Inc.",
+        asset_class=AssetClass.EQUITY,
+        sector="Technology",
+        price=180.50,
+        market_cap=3000000000000.0,
+        currency="USD",
+        pe_ratio=28.5,
+        dividend_yield=0.0055,
+        earnings_per_share=6.42,
+    )
+    rel = {
+        "source_id": "AAPL",
+        "target_id": "MSFT",
+        "relationship_type": "supplier",
+        "strength": -0.5,
+        "bidirectional": False,
+    }
+    event = RegulatoryEvent(
+        id="REG-001",
+        asset_id="AAPL",
+        event_type=RegulatoryActivity.REGULATORY_FILING,
+        date="2026-04-10",
+        description="Annual 10-K filing",
+        impact_score=0.1,
+        related_assets=["MSFT"],
+    )
+    canon_str, canon_bytes = generate_snapshot_canonical_payload(
+        assets=[aapl],
+        relationships=[rel],
+        regulatory_events=[event],
+    )
+    assert canon_str == VECTOR_3_CANONICAL_STR
+    assert len(canon_bytes) == VECTOR_3_BYTE_LEN
+    assert hashlib.sha256(canon_bytes).hexdigest() == VECTOR_3_SHA256
+    assert (
+        compute_snapshot_attestation_hash(assets=[aapl], relationships=[rel], regulatory_events=[event])
+        == VECTOR_3_SHA256
     )
 
 
@@ -227,6 +288,20 @@ def test_field_modifications_change_digest() -> None:
     hash_ev_mod = compute_snapshot_attestation_hash(assets=[base_aapl], relationships=[], regulatory_events=[ev_mod])
     assert hash_ev != hash_ev_mod
 
+    # Event owner change
+    ev_owner = RegulatoryEvent(
+        id="EVT1",
+        asset_id="MSFT",
+        event_type=RegulatoryActivity.EARNINGS_REPORT,
+        date="2024-01-15T00:00:00Z",
+        description="Original",
+        impact_score=0.2,
+    )
+    hash_ev_owner = compute_snapshot_attestation_hash(
+        assets=[base_aapl], relationships=[], regulatory_events=[ev_owner]
+    )
+    assert hash_ev != hash_ev_owner
+
 
 def test_decimal_precision_and_rounding() -> None:
     """Banker's rounding (ROUND_HALF_EVEN) and strict 6-decimal quantization."""
@@ -253,16 +328,61 @@ def test_invalid_values_rejection() -> None:
     with pytest.raises(CanonicalizationValidationError, match="Non-finite numeric value"):
         normalize_decimal_string(float("-inf"))
 
-    # Invalid strength range
-    with pytest.raises(CanonicalizationValidationError, match="strength must be between 0.0 and 1.0"):
+    # Invalid strength range (must be [-1.0, 1.0])
+    with pytest.raises(CanonicalizationValidationError, match="strength must be between -1.0 and 1.0"):
         canonicalize_relationship({"source_id": "A", "target_id": "B", "relationship_type": "T", "strength": 1.01})
-    with pytest.raises(CanonicalizationValidationError, match="strength must be between 0.0 and 1.0"):
-        canonicalize_relationship({"source_id": "A", "target_id": "B", "relationship_type": "T", "strength": -0.01})
+    with pytest.raises(CanonicalizationValidationError, match="strength must be between -1.0 and 1.0"):
+        canonicalize_relationship({"source_id": "A", "target_id": "B", "relationship_type": "T", "strength": -1.01})
+    with pytest.raises(CanonicalizationValidationError, match="Non-finite numeric value"):
+        canonicalize_relationship(
+            {"source_id": "A", "target_id": "B", "relationship_type": "T", "strength": float("nan")}
+        )
+    with pytest.raises(CanonicalizationValidationError, match="Non-finite numeric value"):
+        canonicalize_relationship(
+            {"source_id": "A", "target_id": "B", "relationship_type": "T", "strength": float("inf")}
+        )
 
     # Empty string identifier
     with pytest.raises(CanonicalizationValidationError, match="cannot be empty"):
         canonicalize_asset(
             {"id": "  ", "symbol": "AAPL", "name": "Apple", "asset_class": "Equity", "sector": "Tech", "price": 100}
+        )
+
+
+def test_relationship_strength_range_inclusive_bounds() -> None:
+    """Accept finite relationship strengths across the inclusive interval [-1.0, 1.0]."""
+    for val in [-1.0, -0.75, -0.000001, 0.0, 0.000001, 0.75, 1.0]:
+        canon = canonicalize_relationship(
+            {"source_id": "A", "target_id": "B", "relationship_type": "T", "strength": val}
+        )
+        assert Decimal(canon["strength"]) == Decimal(str(val)).quantize(Decimal("0.000001"))
+
+
+def test_regulatory_event_ownership_validation() -> None:
+    """Event ownership must be non-empty string and missing/ambiguous owners are rejected."""
+    # Missing asset_id
+    with pytest.raises(CanonicalizationValidationError, match="Field 'asset_id' cannot be None"):
+        canonicalize_regulatory_event(
+            {
+                "id": "EVT1",
+                "event_type": "earnings_report",
+                "date": "2024-01-15",
+                "description": "Test",
+                "impact_score": 0.2,
+            }
+        )
+
+    # Empty string asset_id
+    with pytest.raises(CanonicalizationValidationError, match="Field 'asset_id' cannot be empty"):
+        canonicalize_regulatory_event(
+            {
+                "id": "EVT1",
+                "asset_id": "   ",
+                "event_type": "earnings_report",
+                "date": "2024-01-15",
+                "description": "Test",
+                "impact_score": 0.2,
+            }
         )
 
 
