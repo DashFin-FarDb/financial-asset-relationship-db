@@ -401,22 +401,13 @@ class AssetGraphRepository:
         self.replace_relationships_from_graph(graph.relationships)
         self.replace_regulatory_events(graph.regulatory_events)
 
-    def load_graph(self) -> AssetRelationshipGraph:
-        """
-        Reconstruct an in-memory asset relationship graph from persisted rows.
-
-        Loads only durable persisted data; does not derive relationships from other
-        sources or restore visualization/layout metadata. Legacy persisted rows with
-        bidirectional=True are expanded through AssetRelationshipGraph semantics only
-        when no explicit reverse row of the same (target, source, relationship_type) is
-        also persisted; an explicit reverse row always wins and is loaded as a directed
-        edge so its strength is preserved. save_graph() persists the resulting graph
-        back as directed rows.
-
-        Returns:
-            AssetRelationshipGraph: The reconstructed graph containing persisted assets,
-            relationship rows, and regulatory events.
-        """
+    def _build_graph_from_entities(
+        self,
+        assets: Iterable[Asset],
+        relationships: Iterable[Any],
+        regulatory_events: Iterable[RegulatoryEvent],
+    ) -> AssetRelationshipGraph:
+        """Construct an in-memory AssetRelationshipGraph from pre-fetched entity collections."""
         from src.config.settings import get_settings
 
         settings = get_settings()
@@ -424,11 +415,11 @@ class AssetGraphRepository:
             same_sector_strength=settings.same_sector_strength,
             corporate_bond_strength=settings.corporate_bond_strength,
         )
-        for asset in self.list_assets():
+        for asset in assets:
             graph.add_asset(asset)
-        for event in self.list_regulatory_events():
+        for event in regulatory_events:
             graph.add_regulatory_event(event)
-        persisted_relationships = self.list_relationships()
+        persisted_relationships = list(relationships)
         explicit_relationship_keys = {
             (rel.source_id, rel.target_id, rel.relationship_type) for rel in persisted_relationships
         }
@@ -450,6 +441,49 @@ class AssetGraphRepository:
                 bidirectional=expand_reverse,
             )
         return graph
+
+    def load_graph(self) -> AssetRelationshipGraph:
+        """
+        Reconstruct an in-memory asset relationship graph from persisted rows.
+
+        Loads only durable persisted data; does not derive relationships from other
+        sources or restore visualization/layout metadata. Legacy persisted rows with
+        bidirectional=True are expanded through AssetRelationshipGraph semantics only
+        when no explicit reverse row of the same (target, source, relationship_type) is
+        also persisted; an explicit reverse row always wins and is loaded as a directed
+        edge so its strength is preserved. save_graph() persists the resulting graph
+        back as directed rows.
+
+        Returns:
+            AssetRelationshipGraph: The reconstructed graph containing persisted assets,
+            relationship rows, and regulatory events.
+        """
+        return self._build_graph_from_entities(
+            self.list_assets(),
+            self.list_relationships(),
+            self.list_regulatory_events(),
+        )
+
+    def load_graph_with_attestation_hash(self) -> tuple[AssetRelationshipGraph, str]:
+        """
+        Load persisted graph rows in a single pass and compute their canonical attestation digest.
+
+        Returns:
+            tuple[AssetRelationshipGraph, str]: The reconstructed graph and its SHA-256 attestation digest.
+        """
+        from src.logic.snapshot_attestation import compute_snapshot_attestation_hash
+
+        assets = list(self.list_assets())
+        relationships = list(self.list_relationships())
+        regulatory_events = list(self.list_regulatory_events())
+
+        digest = compute_snapshot_attestation_hash(
+            assets=assets,
+            relationships=relationships,
+            regulatory_events=regulatory_events,
+        )
+        graph = self._build_graph_from_entities(assets, relationships, regulatory_events)
+        return graph, digest
 
     def replace_assets(self, assets: Iterable[Asset]) -> None:
         """

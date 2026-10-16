@@ -17,13 +17,15 @@ Tests all gate invariants:
 
 from __future__ import annotations
 
+import threading
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
+from unittest.mock import patch
 from uuid import uuid4
 
 import pytest
-from sqlalchemy import create_engine, select, update
+from sqlalchemy import create_engine, select, text, update
 
 from api.graph_lifecycle_providers import (
     _load_persisted_graph_from_configured_store,
@@ -512,3 +514,160 @@ def test_coordination_finalization_failure_resilience(tmp_path: Path) -> None:
     loaded = _load_persisted_graph_from_configured_store(db_url)
     assert loaded is not None
     assert compute_graph_snapshot_hash(loaded) == digest
+
+
+def test_interleaved_publication_rollover_preserves_consistent_snapshot(tmp_path: Path) -> None:
+    """A publication commit interleaved between publication query and graph loading does not produce a torn read."""
+    db_file = tmp_path / f"test_concurrency_{uuid4().hex}.db"
+    db_url = f"sqlite:///{db_file}"
+    engine = configure_sqlite_engine(create_engine(db_url, future=True))
+    with engine.connect() as conn:
+        conn.execute(text("PRAGMA journal_mode=WAL;"))
+        conn.commit()
+    init_db(engine)
+    session_factory = create_session_factory(engine)
+
+    # 1. Publish Generation 1
+    graph_1 = _create_sample_test_graph()
+    digest_1 = _publish_sample_graph(session_factory, graph_1, job_id="job-1", execution_id="exec-1")
+
+    # 2. Build Generation 2
+    graph_2 = AssetRelationshipGraph()
+    e2 = Equity(
+        id="GOOGL",
+        symbol="GOOGL",
+        name="Alphabet Inc.",
+        asset_class=AssetClass.EQUITY,
+        sector="Technology",
+        price=175.0,
+        currency="USD",
+    )
+    graph_2.add_asset(e2)
+
+    original_load = AssetGraphRepository.load_graph_with_attestation_hash
+    interleaved_publish_executed = False
+
+    def hook_load(self: AssetGraphRepository) -> tuple[AssetRelationshipGraph, str]:
+        nonlocal interleaved_publish_executed
+        if not interleaved_publish_executed:
+            interleaved_publish_executed = True
+            _publish_sample_graph(session_factory, graph_2, job_id="job-2", execution_id="exec-2")
+        return original_load(self)
+
+    with patch.object(AssetGraphRepository, "load_graph_with_attestation_hash", hook_load):
+        loaded = _load_persisted_graph_from_configured_store(db_url)
+
+    assert interleaved_publish_executed is True
+    assert loaded is not None
+    assert compute_graph_snapshot_hash(loaded) == digest_1
+    assert "AAPL" in loaded.assets
+    assert "GOOGL" not in loaded.assets
+
+
+def test_publication_rollover_after_verification_cannot_alter_returned_graph(tmp_path: Path) -> None:
+    """Once verified, publication rollover cannot alter the returned in-memory graph object."""
+    db_file = tmp_path / f"test_concurrency_after_verify_{uuid4().hex}.db"
+    db_url = f"sqlite:///{db_file}"
+    engine = configure_sqlite_engine(create_engine(db_url, future=True))
+    with engine.connect() as conn:
+        conn.execute(text("PRAGMA journal_mode=WAL;"))
+        conn.commit()
+    init_db(engine)
+    session_factory = create_session_factory(engine)
+
+    graph_1 = _create_sample_test_graph()
+    digest_1 = _publish_sample_graph(session_factory, graph_1, job_id="job-1", execution_id="exec-1")
+
+    graph_2 = AssetRelationshipGraph()
+    e2 = Equity(
+        id="NVDA",
+        symbol="NVDA",
+        name="NVIDIA Corp.",
+        asset_class=AssetClass.EQUITY,
+        sector="Technology",
+        price=900.0,
+        currency="USD",
+    )
+    graph_2.add_asset(e2)
+
+    original_load = AssetGraphRepository.load_graph_with_attestation_hash
+    interleaved_after_verify = False
+
+    def hook_load_after_verify(self: AssetGraphRepository) -> tuple[AssetRelationshipGraph, str]:
+        nonlocal interleaved_after_verify
+        res = original_load(self)
+        if not interleaved_after_verify:
+            interleaved_after_verify = True
+            # Publish Generation 2 to persistent store right after graph 1 is loaded and hashed
+            _publish_sample_graph(session_factory, graph_2, job_id="job-2", execution_id="exec-2")
+        return res
+
+    with patch.object(AssetGraphRepository, "load_graph_with_attestation_hash", hook_load_after_verify):
+        loaded = _load_persisted_graph_from_configured_store(db_url)
+
+    assert interleaved_after_verify is True
+    assert loaded is not None
+    assert compute_graph_snapshot_hash(loaded) == digest_1
+    assert "AAPL" in loaded.assets
+    assert "NVDA" not in loaded.assets
+
+
+def test_no_mixed_generation_graph_under_concurrency(tmp_path: Path) -> None:
+    """Repeated concurrent publications and reads never return a mixed-generation graph."""
+    db_file = tmp_path / f"test_concurrent_generations_{uuid4().hex}.db"
+    db_url = f"sqlite:///{db_file}"
+    engine = configure_sqlite_engine(create_engine(db_url, future=True))
+    with engine.connect() as conn:
+        conn.execute(text("PRAGMA journal_mode=WAL;"))
+        conn.commit()
+    init_db(engine)
+    session_factory = create_session_factory(engine)
+
+    g1 = _create_sample_test_graph()
+    d1 = _publish_sample_graph(session_factory, g1, job_id="job-1", execution_id="exec-1")
+
+    g2 = AssetRelationshipGraph()
+    e2 = Equity(
+        id="AMZN",
+        symbol="AMZN",
+        name="Amazon.com Inc.",
+        asset_class=AssetClass.EQUITY,
+        sector="Consumer Discretionary",
+        price=185.0,
+        currency="USD",
+    )
+    g2.add_asset(e2)
+    d2 = compute_graph_snapshot_hash(g2)
+
+    stop_event = threading.Event()
+    observed_graphs: list[AssetRelationshipGraph] = []
+    lock = threading.Lock()
+
+    def reader() -> None:
+        while not stop_event.is_set():
+            loaded = _load_persisted_graph_from_configured_store(db_url)
+            if loaded is not None:
+                with lock:
+                    observed_graphs.append(loaded)
+
+    t_reader = threading.Thread(target=reader)
+    t_reader.start()
+
+    for i in range(10):
+        target = g2 if i % 2 == 0 else g1
+        _publish_sample_graph(session_factory, target, job_id=f"job-gen-{i}", execution_id=f"exec-gen-{i}")
+
+    stop_event.set()
+    t_reader.join()
+
+    assert len(observed_graphs) > 0
+    for g in observed_graphs:
+        h = compute_graph_snapshot_hash(g)
+        if h == d1:
+            assert "AAPL" in g.assets
+            assert "AMZN" not in g.assets
+        elif h == d2:
+            assert "AMZN" in g.assets
+            assert "AAPL" not in g.assets
+        else:
+            pytest.fail(f"Torn/mixed generation graph detected with hash: {h}")

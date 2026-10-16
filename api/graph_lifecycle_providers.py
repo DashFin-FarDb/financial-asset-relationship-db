@@ -23,10 +23,7 @@ from src.data.relationship_assertion_db_models import RelationshipProjectionPubl
 from src.data.repository import AssetGraphRepository
 from src.logic.asset_graph import AssetRelationshipGraph
 from src.logic.reconciliation_engine import RebuildCancelledError
-from src.logic.snapshot_attestation import (
-    CanonicalizationValidationError,
-    compute_repository_snapshot_hash,
-)
+from src.logic.snapshot_attestation import CanonicalizationValidationError
 from src.observability.facade import ObservabilityEvent, log_event
 
 logger = logging.getLogger(__name__)
@@ -576,6 +573,88 @@ def _log_in_memory_sqlite_persistence_skip() -> None:
     )
 
 
+def _validate_publication_attestation_metadata(
+    publication: RelationshipProjectionPublicationORM,
+    job: RebuildJobORM,
+) -> str | None:
+    """Validate publication attestation digest and execution identity binding.
+
+    Returns the expected snapshot_sha256 digest if valid, or None if validation fails.
+    """
+    expected_digest = publication.snapshot_sha256
+    if not expected_digest or not expected_digest.strip():
+        log_event(
+            logger,
+            logging.WARNING,
+            ObservabilityEvent(
+                event="graph_provenance_evaluation",
+                message="Missing attestation digest: publication lacks snapshot_sha256",
+                metadata={
+                    "classification": SnapshotProvenanceClassification.MISSING_PROVENANCE.value,
+                    "publication_id": publication.id,
+                    "rebuild_job_id": publication.rebuild_job_id,
+                },
+            ),
+        )
+        return None
+
+    pub_exec_id = publication.execution_id
+    job_exec_id = job.execution_id
+    if not pub_exec_id or not pub_exec_id.strip() or not job_exec_id or not job_exec_id.strip():
+        log_event(
+            logger,
+            logging.WARNING,
+            ObservabilityEvent(
+                event="graph_provenance_evaluation",
+                message="Missing execution identity on publication or rebuild job",
+                metadata={
+                    "classification": SnapshotProvenanceClassification.MISSING_PROVENANCE.value,
+                    "publication_id": publication.id,
+                    "job_id": job.job_id,
+                    "publication_execution_id": pub_exec_id,
+                    "job_execution_id": job_exec_id,
+                },
+            ),
+        )
+        return None
+
+    if pub_exec_id != job_exec_id:
+        log_event(
+            logger,
+            logging.WARNING,
+            ObservabilityEvent(
+                event="graph_provenance_evaluation",
+                message="Inconsistent execution identity between publication and rebuild job",
+                metadata={
+                    "classification": SnapshotProvenanceClassification.INCONSISTENT_ATTESTATION.value,
+                    "publication_id": publication.id,
+                    "job_id": job.job_id,
+                    "publication_execution_id": pub_exec_id,
+                    "job_execution_id": job_exec_id,
+                },
+            ),
+        )
+        return None
+
+    if job.snapshot_sha256 and job.snapshot_sha256 != expected_digest:
+        log_event(
+            logger,
+            logging.WARNING,
+            ObservabilityEvent(
+                event="graph_provenance_evaluation",
+                message="Inconsistent attestation digest between rebuild job and publication",
+                metadata={
+                    "classification": SnapshotProvenanceClassification.INCONSISTENT_ATTESTATION.value,
+                    "publication_id": publication.id,
+                    "job_id": job.job_id,
+                },
+            ),
+        )
+        return None
+
+    return expected_digest
+
+
 def _load_persisted_graph_from_configured_store(
     database_url: str,
 ) -> AssetRelationshipGraph | None:
@@ -585,7 +664,12 @@ def _load_persisted_graph_from_configured_store(
     bound to a succeeded rebuild job and publication.
     """
     try:
-        engine = create_engine_from_url(database_url)
+        raw_engine = create_engine_from_url(database_url)
+        engine: Engine = (
+            raw_engine.execution_options(isolation_level="REPEATABLE READ")
+            if raw_engine.dialect.name == "postgresql"
+            else raw_engine
+        )
     except Exception as exc:
         log_event(
             logger,
@@ -601,6 +685,8 @@ def _load_persisted_graph_from_configured_store(
     try:
         session_factory = create_session_factory(engine)
         session = session_factory()
+        if engine.dialect.name == "sqlite":
+            session.connection().exec_driver_sql("BEGIN")
         try:
             # 1. Clean installation check
             has_assets = _has_persisted_graph_rows(session)
@@ -646,84 +732,15 @@ def _load_persisted_graph_from_configured_store(
 
             publication, job = row
 
-            # 3. Check publication attestation digest presence
-            expected_digest = publication.snapshot_sha256
-            if not expected_digest or not expected_digest.strip():
-                log_event(
-                    logger,
-                    logging.WARNING,
-                    ObservabilityEvent(
-                        event="graph_provenance_evaluation",
-                        message="Missing attestation digest: publication lacks snapshot_sha256",
-                        metadata={
-                            "classification": SnapshotProvenanceClassification.MISSING_PROVENANCE.value,
-                            "publication_id": publication.id,
-                            "rebuild_job_id": publication.rebuild_job_id,
-                        },
-                    ),
-                )
+            # 3. Check publication attestation metadata and execution identity binding
+            expected_digest = _validate_publication_attestation_metadata(publication, job)
+            if expected_digest is None:
                 return None
 
-            # 4. Check execution identity binding
-            pub_exec_id = publication.execution_id
-            job_exec_id = job.execution_id
-            if not pub_exec_id or not pub_exec_id.strip() or not job_exec_id or not job_exec_id.strip():
-                log_event(
-                    logger,
-                    logging.WARNING,
-                    ObservabilityEvent(
-                        event="graph_provenance_evaluation",
-                        message="Missing execution identity on publication or rebuild job",
-                        metadata={
-                            "classification": SnapshotProvenanceClassification.MISSING_PROVENANCE.value,
-                            "publication_id": publication.id,
-                            "job_id": job.job_id,
-                            "publication_execution_id": pub_exec_id,
-                            "job_execution_id": job_exec_id,
-                        },
-                    ),
-                )
-                return None
-
-            if pub_exec_id != job_exec_id:
-                log_event(
-                    logger,
-                    logging.WARNING,
-                    ObservabilityEvent(
-                        event="graph_provenance_evaluation",
-                        message="Inconsistent execution identity between publication and rebuild job",
-                        metadata={
-                            "classification": SnapshotProvenanceClassification.INCONSISTENT_ATTESTATION.value,
-                            "publication_id": publication.id,
-                            "job_id": job.job_id,
-                            "publication_execution_id": pub_exec_id,
-                            "job_execution_id": job_exec_id,
-                        },
-                    ),
-                )
-                return None
-
-            # 5. Check job snapshot_sha256 consistency if present
-            if job.snapshot_sha256 and job.snapshot_sha256 != expected_digest:
-                log_event(
-                    logger,
-                    logging.WARNING,
-                    ObservabilityEvent(
-                        event="graph_provenance_evaluation",
-                        message="Inconsistent attestation digest between rebuild job and publication",
-                        metadata={
-                            "classification": SnapshotProvenanceClassification.INCONSISTENT_ATTESTATION.value,
-                            "publication_id": publication.id,
-                            "job_id": job.job_id,
-                        },
-                    ),
-                )
-                return None
-
-            # 6. Recompute canonical digest from persisted rows
+            # 6. Load graph once from persisted rows and recompute canonical digest
             repo = AssetGraphRepository(session)
             try:
-                actual_digest = compute_repository_snapshot_hash(repo)
+                graph, actual_digest = repo.load_graph_with_attestation_hash()
             except CanonicalizationValidationError as val_exc:
                 log_event(
                     logger,
@@ -754,8 +771,7 @@ def _load_persisted_graph_from_configured_store(
                 )
                 return None
 
-            # 7. Verification succeeded
-            graph = repo.load_graph()
+            # 7. Verification succeeded - return the verified graph object directly
             log_event(
                 logger,
                 logging.INFO,
@@ -788,7 +804,7 @@ def _load_persisted_graph_from_configured_store(
         )
         raise
     finally:
-        engine.dispose()
+        raw_engine.dispose()
 
 
 def _has_persisted_graph_rows(session: Session) -> bool:
