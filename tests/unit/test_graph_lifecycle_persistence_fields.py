@@ -106,6 +106,7 @@ def test_lifecycle_persisted_startup_preserves_full_asset_and_event_fields(
     tmp_path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    """Assert persisted startup preserves complete asset attributes and regulatory-event fields."""
     database_url = f"sqlite:///{tmp_path / 'lifecycle-fields.db'}"
     graph = AssetRelationshipGraph()
     for asset_id in ("EQ_FULL", "REL_A", "REL_B"):

@@ -8,7 +8,6 @@ from decimal import Decimal
 import pytest
 
 from src.logic.snapshot_attestation import (
-    ATTESTATION_VERSION_V1,
     CanonicalizationValidationError,
     canonical_json_dumps,
     canonicalize_asset,
