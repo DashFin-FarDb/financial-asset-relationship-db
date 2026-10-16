@@ -359,9 +359,13 @@ def test_success_without_publication_fails_closed() -> None:
     assert graph_lifecycle.get_runtime_lifecycle_state() == graph_lifecycle.GraphRuntimeLifecycleState.FAILED
 
 
-def test_inconsistent_ready_without_graph_returns_unavailable() -> None:
+def test_inconsistent_ready_without_graph_returns_unavailable(monkeypatch: pytest.MonkeyPatch) -> None:
     """An inconsistent READY state must not attempt an invalid transition."""
-    graph_lifecycle.graph_state.lifecycle_state = graph_lifecycle.GraphRuntimeLifecycleState.READY
+    monkeypatch.setattr(
+        graph_lifecycle.graph_state,
+        "lifecycle_state",
+        graph_lifecycle.GraphRuntimeLifecycleState.READY,
+    )
     with pytest.raises(graph_lifecycle.AuthoritativeGraphUnavailableError):
         graph_lifecycle.get_graph()
     assert graph_lifecycle.graph_state.lifecycle_state == graph_lifecycle.GraphRuntimeLifecycleState.READY

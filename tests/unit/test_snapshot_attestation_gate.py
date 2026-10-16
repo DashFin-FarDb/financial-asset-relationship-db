@@ -53,6 +53,10 @@ from src.models.financial_models import (
     RegulatoryActivity,
     RegulatoryEvent,
 )
+from tests.helpers.snapshot_attestation_fixtures import (
+    create_sample_test_graph,
+    setup_disposable_sqlite_db,
+)
 
 pytestmark = pytest.mark.unit
 
@@ -61,57 +65,12 @@ UTC = timezone.utc
 
 def _create_sample_test_graph() -> AssetRelationshipGraph:
     """Create a deterministic graph with assets, relationships, and regulatory events."""
-    graph = AssetRelationshipGraph()
-    aapl = Equity(
-        id="AAPL",
-        symbol="AAPL",
-        name="Apple Inc.",
-        asset_class=AssetClass.EQUITY,
-        sector="Technology",
-        price=180.50,
-        market_cap=3000000000000.0,
-        currency="USD",
-        pe_ratio=28.5,
-        dividend_yield=0.0055,
-        earnings_per_share=6.42,
-    )
-    msft = Equity(
-        id="MSFT",
-        symbol="MSFT",
-        name="Microsoft Corporation",
-        asset_class=AssetClass.EQUITY,
-        sector="Technology",
-        price=420.10,
-        market_cap=3100000000000.0,
-        currency="USD",
-        pe_ratio=35.1,
-        dividend_yield=0.0072,
-        earnings_per_share=11.05,
-    )
-    graph.add_asset(aapl)
-    graph.add_asset(msft)
-    graph.add_relationship("AAPL", "MSFT", "same_sector", 0.50, bidirectional=True)
-    reg_event = RegulatoryEvent(
-        id="REG-001",
-        asset_id="AAPL",
-        event_type=RegulatoryActivity.REGULATORY_FILING,
-        date="2026-04-10",
-        description="Annual 10-K filing",
-        impact_score=0.10,
-        related_assets=["MSFT"],
-    )
-    graph.add_regulatory_event(reg_event)
-    return graph
+    return create_sample_test_graph()
 
 
 def _setup_disposable_db(tmp_path: Path) -> tuple[str, Any]:
     """Initialize a disposable SQLite test database."""
-    db_file = tmp_path / f"test_gate_{uuid4().hex}.db"
-    db_url = f"sqlite:///{db_file}"
-    engine = configure_sqlite_engine(create_engine(db_url, future=True))
-    init_db(engine)
-    session_factory = create_session_factory(engine)
-    return db_url, session_factory
+    return setup_disposable_sqlite_db(tmp_path, "test_gate")
 
 
 _UNSET = object()
@@ -491,10 +450,14 @@ def test_rollback_on_publication_failure(tmp_path: Path) -> None:
         session.commit()
 
     # Simulate failure in publication transaction
-    with pytest.raises(RuntimeError, match="Simulated publication error"), session_factory() as session:
-        stage_graph_snapshot(session, graph)
-        # Something fails before commit
-        raise RuntimeError("Simulated publication error")
+    def _fail_publication() -> None:
+        with session_factory() as session:
+            stage_graph_snapshot(session, graph)
+            # Something fails before commit
+            raise RuntimeError("Simulated publication error")
+
+    with pytest.raises(RuntimeError, match="Simulated publication error"):
+        _fail_publication()
 
     # Assert database has NO staged assets
     with session_factory() as session:
@@ -519,14 +482,7 @@ def test_coordination_finalization_failure_resilience(tmp_path: Path) -> None:
 
 def test_interleaved_publication_rollover_preserves_consistent_snapshot(tmp_path: Path) -> None:
     """A publication commit interleaved between publication query and graph loading does not produce a torn read."""
-    db_file = tmp_path / f"test_concurrency_{uuid4().hex}.db"
-    db_url = f"sqlite:///{db_file}"
-    engine = configure_sqlite_engine(create_engine(db_url, future=True))
-    with engine.connect() as conn:
-        conn.execute(text("PRAGMA journal_mode=WAL;"))
-        conn.commit()
-    init_db(engine)
-    session_factory = create_session_factory(engine)
+    db_url, session_factory = setup_disposable_sqlite_db(tmp_path, "test_concurrency", wal_mode=True)
 
     # 1. Publish Generation 1
     graph_1 = _create_sample_test_graph()
@@ -567,14 +523,7 @@ def test_interleaved_publication_rollover_preserves_consistent_snapshot(tmp_path
 
 def test_publication_rollover_after_verification_cannot_alter_returned_graph(tmp_path: Path) -> None:
     """Once verified, publication rollover cannot alter the returned in-memory graph object."""
-    db_file = tmp_path / f"test_concurrency_after_verify_{uuid4().hex}.db"
-    db_url = f"sqlite:///{db_file}"
-    engine = configure_sqlite_engine(create_engine(db_url, future=True))
-    with engine.connect() as conn:
-        conn.execute(text("PRAGMA journal_mode=WAL;"))
-        conn.commit()
-    init_db(engine)
-    session_factory = create_session_factory(engine)
+    db_url, session_factory = setup_disposable_sqlite_db(tmp_path, "test_concurrency_after_verify", wal_mode=True)
 
     graph_1 = _create_sample_test_graph()
     digest_1 = _publish_sample_graph(session_factory, graph_1, job_id="job-1", execution_id="exec-1")
@@ -615,14 +564,7 @@ def test_publication_rollover_after_verification_cannot_alter_returned_graph(tmp
 
 def test_no_mixed_generation_graph_under_concurrency(tmp_path: Path) -> None:
     """Repeated concurrent publications and reads never return a mixed-generation graph."""
-    db_file = tmp_path / f"test_concurrent_generations_{uuid4().hex}.db"
-    db_url = f"sqlite:///{db_file}"
-    engine = configure_sqlite_engine(create_engine(db_url, future=True))
-    with engine.connect() as conn:
-        conn.execute(text("PRAGMA journal_mode=WAL;"))
-        conn.commit()
-    init_db(engine)
-    session_factory = create_session_factory(engine)
+    db_url, session_factory = setup_disposable_sqlite_db(tmp_path, "test_concurrent_generations", wal_mode=True)
 
     g1 = _create_sample_test_graph()
     d1 = _publish_sample_graph(session_factory, g1, job_id="job-1", execution_id="exec-1")

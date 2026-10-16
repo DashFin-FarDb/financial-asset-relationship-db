@@ -10,9 +10,7 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
-from sqlalchemy import create_engine
 
-from src.data.database import configure_sqlite_engine, create_session_factory, init_db
 from src.data.repository import AssetGraphRepository
 from src.logic.asset_graph import AssetRelationshipGraph
 from src.logic.snapshot_attestation import (
@@ -25,51 +23,45 @@ from src.models.financial_models import (
     Bond,
     Commodity,
     Currency,
-    Equity,
     RegulatoryActivity,
     RegulatoryEvent,
+)
+from tests.helpers.snapshot_attestation_fixtures import (
+    create_sample_equity_pair,
+    setup_disposable_sqlite_db,
 )
 
 pytestmark = pytest.mark.unit
 
 
+def _extract_canonical_payload(graph: AssetRelationshipGraph) -> tuple[str, bytes]:
+    """Helper to extract canonical string and bytes from an AssetRelationshipGraph."""
+    return generate_snapshot_canonical_payload(
+        assets=graph.assets.values(),
+        relationships=[
+            {
+                "source_id": s,
+                "target_id": t,
+                "relationship_type": r,
+                "strength": strg,
+                "bidirectional": False,
+            }
+            for s, targets in graph.relationships.items()
+            for t, r, strg in targets
+        ],
+        regulatory_events=graph.regulatory_events,
+    )
+
+
 def test_snapshot_attestation_sqlite_roundtrip(tmp_path: Path) -> None:
     """A published graph and its reloaded repository graph produce identical attestation digests."""
-    db_path = tmp_path / "roundtrip_test.db"
-    engine = configure_sqlite_engine(create_engine(f"sqlite:///{db_path}", future=True))
-    init_db(engine)
-    session_factory = create_session_factory(engine)
+    _db_url, session_factory = setup_disposable_sqlite_db(tmp_path, "roundtrip_test")
 
     # 1. Construct in-memory graph with diverse asset classes, nullables, bidirectional rels, events
     graph = AssetRelationshipGraph()
 
-    # Asset with typical Equity nullable attributes (bond/commodity fields are None)
-    aapl = Equity(
-        id="AAPL",
-        symbol="AAPL",
-        name="Apple Inc.",
-        asset_class=AssetClass.EQUITY,
-        sector="Technology",
-        price=180.50,
-        market_cap=3000000000000.0,
-        currency="USD",
-        pe_ratio=28.5,
-        dividend_yield=0.0055,
-        earnings_per_share=6.42,
-    )
-    msft = Equity(
-        id="MSFT",
-        symbol="MSFT",
-        name="Microsoft Corporation",
-        asset_class=AssetClass.EQUITY,
-        sector="Technology",
-        price=420.10,
-        market_cap=3100000000000.0,
-        currency="USD",
-        pe_ratio=35.1,
-        dividend_yield=0.0072,
-        earnings_per_share=11.05,
-    )
+    # Equities with typical Equity nullable attributes (bond/commodity fields are None)
+    aapl, msft = create_sample_equity_pair()
     # Bond with specific nullable attributes
     corp_bond = Bond(
         id="CORP-BOND-1",
@@ -147,21 +139,7 @@ def test_snapshot_attestation_sqlite_roundtrip(tmp_path: Path) -> None:
     graph.add_regulatory_event(reg_event_2)
 
     # 2. Compute canonical payload and hash for published in-memory graph
-    published_canon_str, published_canon_bytes = generate_snapshot_canonical_payload(
-        assets=graph.assets.values(),
-        relationships=[
-            {
-                "source_id": s,
-                "target_id": t,
-                "relationship_type": r,
-                "strength": strg,
-                "bidirectional": False,
-            }
-            for s, targets in graph.relationships.items()
-            for t, r, strg in targets
-        ],
-        regulatory_events=graph.regulatory_events,
-    )
+    published_canon_str, published_canon_bytes = _extract_canonical_payload(graph)
     published_hash = compute_graph_snapshot_hash(graph)
 
     # 3. Persist graph snapshot into SQLite via AssetGraphRepository
@@ -177,22 +155,7 @@ def test_snapshot_attestation_sqlite_roundtrip(tmp_path: Path) -> None:
         repo_hash = compute_repository_snapshot_hash(repo)
 
     loaded_hash = compute_graph_snapshot_hash(loaded_graph)
-
-    loaded_canon_str, loaded_canon_bytes = generate_snapshot_canonical_payload(
-        assets=loaded_graph.assets.values(),
-        relationships=[
-            {
-                "source_id": s,
-                "target_id": t,
-                "relationship_type": r,
-                "strength": strg,
-                "bidirectional": False,
-            }
-            for s, targets in loaded_graph.relationships.items()
-            for t, r, strg in targets
-        ],
-        regulatory_events=loaded_graph.regulatory_events,
-    )
+    loaded_canon_str, loaded_canon_bytes = _extract_canonical_payload(loaded_graph)
 
     # 5. Invariant verification
     if published_hash != loaded_hash:
@@ -207,6 +170,3 @@ def test_snapshot_attestation_sqlite_roundtrip(tmp_path: Path) -> None:
     assert published_canon_str == loaded_canon_str
     assert published_hash == loaded_hash
     assert published_hash == repo_hash
-
-    # Clean up engine
-    engine.dispose()
