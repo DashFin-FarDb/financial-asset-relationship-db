@@ -22,6 +22,7 @@ from src.data.database import SchemaCompatibilityError, create_session_factory, 
 from src.data.repository import AssetGraphRepository
 from src.logic.asset_graph import AssetRelationshipGraph
 from src.models.financial_models import AssetClass, Equity, RegulatoryActivity, RegulatoryEvent
+from tests.integration.restart_recovery_helpers import publish_attested_graph
 
 pytestmark = pytest.mark.integration
 
@@ -68,15 +69,19 @@ def _init_empty_db(database_url: str) -> None:
 
 
 def _save_graph(database_url: str, graph: AssetRelationshipGraph) -> None:
-    """Persist a graph into the test database."""
+    """Persist an attested graph snapshot into the test database."""
     engine = providers.create_engine_from_url(database_url)
     init_db(engine)
-    session = create_session_factory(engine)()
+    session_factory = create_session_factory(engine)
     try:
-        AssetGraphRepository(session).save_graph(graph)
-        session.commit()
+        publish_attested_graph(
+            session_factory,
+            graph,
+            job_id="job-hosted-startup",
+            execution_id="exec-hosted-startup",
+            requested_by="hosted-fixture",
+        )
     finally:
-        session.close()
         engine.dispose()
 
 

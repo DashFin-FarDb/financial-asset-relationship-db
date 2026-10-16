@@ -12,11 +12,12 @@ from api.app_factory import create_app
 from api.auth import User, get_current_active_user
 from api.graph_lifecycle import get_graph, graph_state, reset_graph, sync_with_latest_rebuild
 from src.config.settings import get_settings
-from src.data.database import create_session_factory, init_db
+from src.data.database import create_engine_from_url, create_session_factory, init_db
 from src.data.distributed_lock import DistributedLock
 from src.data.repository import AssetGraphRepository, session_scope
 from src.logic.asset_graph import AssetRelationshipGraph
 from src.models.financial_models import AssetClass, Equity
+from tests.integration.restart_recovery_helpers import publish_attested_graph
 
 
 @pytest.fixture
@@ -113,15 +114,11 @@ async def test_instance_synchronization_detects_new_job(authorized_app):
     graph1.add_asset(Equity(id="A1", symbol="A1", name="A1", asset_class=AssetClass.EQUITY, sector="S1", price=10.0))
 
     # Manually persist it as a successful job
-    engine = create_engine(db_url)
+    engine = create_engine_from_url(db_url)
     session_factory = create_session_factory(engine)
-    with session_scope(session_factory) as session:
-        repo = AssetGraphRepository(session)
-        repo.save_graph(graph1)
-        job_id = repo.create_rebuild_job(requested_by="user1", source="sample")
-        execution_id = "exec-1"
-        repo.mark_rebuild_job_running(job_id, execution_id)
-        repo.mark_rebuild_job_succeeded(job_id, execution_id=execution_id, node_count=1, edge_count=0, duration_ms=100)
+    job_id = "job-sync-1"
+    execution_id = "exec-sync-1"
+    publish_attested_graph(session_factory, graph1, job_id=job_id, execution_id=execution_id, requested_by="user1")
 
     # Load it into the app
     sync_with_latest_rebuild()
@@ -132,15 +129,9 @@ async def test_instance_synchronization_detects_new_job(authorized_app):
     graph2 = AssetRelationshipGraph()
     graph2.add_asset(Equity(id="A2", symbol="A2", name="A2", asset_class=AssetClass.EQUITY, sector="S2", price=20.0))
 
-    with session_scope(session_factory) as session:
-        repo = AssetGraphRepository(session)
-        repo.save_graph(graph2)
-        job_id2 = repo.create_rebuild_job(requested_by="user2", source="sample")
-        execution_id2 = "exec-2"
-        repo.mark_rebuild_job_running(job_id2, execution_id2)
-        repo.mark_rebuild_job_succeeded(
-            job_id2, execution_id=execution_id2, node_count=1, edge_count=0, duration_ms=200
-        )
+    job_id2 = "job-sync-2"
+    execution_id2 = "exec-sync-2"
+    publish_attested_graph(session_factory, graph2, job_id=job_id2, execution_id=execution_id2, requested_by="user2")
 
     # 3. Trigger sync and verify it updated
     sync_with_latest_rebuild()

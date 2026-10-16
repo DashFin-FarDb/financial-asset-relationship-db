@@ -14,6 +14,7 @@ import api.graph_lifecycle_providers as providers
 from src.data.database import create_engine_from_url, create_session_factory, init_db
 from src.data.repository import AssetGraphRepository
 from tests.helpers.graph_scale_factory import build_scale_graph
+from tests.integration.restart_recovery_helpers import publish_attested_graph
 
 pytestmark = [pytest.mark.integration, pytest.mark.slow]
 
@@ -40,6 +41,30 @@ def _save_graph(database_url: str, asset_count: int, relationship_count: int) ->
         with session_factory() as session:
             AssetGraphRepository(session).save_graph(graph)
             session.commit()
+        return time.perf_counter() - start
+    finally:
+        engine.dispose()
+
+
+def _publish_scale_graph(database_url: str, asset_count: int, relationship_count: int) -> float:
+    """Persist and publish an attested scale graph snapshot, returning elapsed seconds."""
+    engine = create_engine_from_url(database_url)
+    try:
+        init_db(engine)
+        session_factory = create_session_factory(engine)
+        graph = build_scale_graph(
+            asset_count=asset_count,
+            relationship_count=relationship_count,
+            prefix=f"SCALE{asset_count}",
+        )
+        start = time.perf_counter()
+        publish_attested_graph(
+            session_factory,
+            graph,
+            job_id=f"job-scale-{asset_count}",
+            execution_id=f"exec-scale-{asset_count}",
+            requested_by="scale-fixture",
+        )
         return time.perf_counter() - start
     finally:
         engine.dispose()
@@ -127,7 +152,7 @@ def test_representative_scale_startup_load_records_baseline_timing(
     """Startup should load representative persisted graph truth within a generous regression guardrail."""
     database_url = _sqlite_url(tmp_path, "startup-scale.db")
     try:
-        _save_graph(database_url, 250, 1_000)
+        _publish_scale_graph(database_url, 250, 1_000)
         monkeypatch.setenv("ASSET_GRAPH_DATABASE_URL", database_url)
         providers.clear_graph_lifecycle_settings_cache()
         graph_lifecycle.reset_graph()
