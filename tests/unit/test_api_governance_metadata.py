@@ -272,10 +272,12 @@ def test_cache_primed_read_is_refreshed_after_admin_publication(
     state["assertion_id"] = "assertion-v2"
     state["revision_id"] = "revision-v2"
 
+    session_mock = MagicMock()
+
     @contextmanager
     def fake_publication_transactions(*_args: object, **_kwargs: object):
         """Return a bounded publication context with no database dependency."""
-        yield object(), None
+        yield session_mock, None
 
     class _FakeAssertionRepository:
         """Minimal publication repository double for finalize flow tests."""
@@ -303,6 +305,7 @@ def test_cache_primed_read_is_refreshed_after_admin_publication(
     monkeypatch.setattr(graph_admin, "_guard_publication_lock", lambda *_args, **_kwargs: None)
     monkeypatch.setattr(graph_admin, "RelationshipAssertionRepository", _FakeAssertionRepository)
     monkeypatch.setattr(graph_admin, "stage_graph_snapshot", lambda *_args, **_kwargs: None)
+    monkeypatch.setattr(graph_admin, "compute_repository_snapshot_hash", lambda *_args, **_kwargs: "0" * 64)
     monkeypatch.setattr(
         graph_admin,
         "_prepare_projection_publication",

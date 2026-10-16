@@ -49,7 +49,7 @@ from src.logic.relationship_projection import (
     overlay_governed_relationships,
     project,
 )
-from src.logic.snapshot_attestation import compute_graph_snapshot_hash
+from src.logic.snapshot_attestation import compute_repository_snapshot_hash
 from src.observability.facade import ObservabilityEvent, log_event
 
 from ..api_models import (
@@ -1823,7 +1823,8 @@ def _finalize_rebuild_success(
             cancel_event,
         )
         stage_graph_snapshot(session, publication_graph)
-        snapshot_sha256 = compute_graph_snapshot_hash(publication_graph)
+        session.flush()
+        snapshot_sha256 = compute_repository_snapshot_hash(AssetGraphRepository(session))
 
         _guard_publication_lock(coordination_session, lock_holder_id, lock_ttl_seconds, "publication-pre-success")
 

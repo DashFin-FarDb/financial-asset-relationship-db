@@ -45,6 +45,7 @@ from src.logic.asset_graph import AssetRelationshipGraph
 from src.logic.relationship_projection import ProjectionRevision
 from src.logic.snapshot_attestation import (
     compute_graph_snapshot_hash,
+    compute_repository_snapshot_hash,
 )
 from src.models.financial_models import (
     AssetClass,
@@ -144,7 +145,8 @@ def _publish_sample_graph(
 
     with session_factory() as session:
         stage_graph_snapshot(session, graph)
-        computed_sha = compute_graph_snapshot_hash(graph)
+        session.flush()
+        computed_sha = compute_repository_snapshot_hash(AssetGraphRepository(session))
         effective_sha = custom_snapshot_sha256 if custom_snapshot_sha256 is not None else computed_sha
 
         revision = ProjectionRevision(
@@ -489,11 +491,10 @@ def test_rollback_on_publication_failure(tmp_path: Path) -> None:
         session.commit()
 
     # Simulate failure in publication transaction
-    with pytest.raises(RuntimeError, match="Simulated publication error"):
-        with session_factory() as session:
-            stage_graph_snapshot(session, graph)
-            # Something fails before commit
-            raise RuntimeError("Simulated publication error")
+    with pytest.raises(RuntimeError, match="Simulated publication error"), session_factory() as session:
+        stage_graph_snapshot(session, graph)
+        # Something fails before commit
+        raise RuntimeError("Simulated publication error")
 
     # Assert database has NO staged assets
     with session_factory() as session:
@@ -671,3 +672,72 @@ def test_no_mixed_generation_graph_under_concurrency(tmp_path: Path) -> None:
             assert "AAPL" not in g.assets
         else:
             pytest.fail(f"Torn/mixed generation graph detected with hash: {h}")
+
+
+def test_staged_repository_digest_matches_loader_digest(tmp_path: Path) -> None:
+    """Flushed staged rows compute the exact same attestation digest as loader verification."""
+    db_url, session_factory = _setup_disposable_db(tmp_path)
+    graph = _create_sample_test_graph()
+
+    job_id = "job-symmetry-test"
+    execution_id = "exec-symmetry-test"
+
+    with session_factory() as session:
+        job = RebuildJobORM(
+            job_id=job_id,
+            requested_by="test-operator",
+            status="running",
+            source="test",
+            created_at=datetime.now(tz=UTC),
+            updated_at=datetime.now(tz=UTC),
+            started_at=datetime.now(tz=UTC),
+            execution_id=execution_id,
+        )
+        session.add(job)
+        session.commit()
+
+    with session_factory() as session:
+        stage_graph_snapshot(session, graph)
+        session.flush()
+        staged_digest = compute_repository_snapshot_hash(AssetGraphRepository(session))
+
+        now = datetime.now(tz=UTC)
+        revision = ProjectionRevision(
+            purpose="test-current",
+            effective_at=now,
+            known_at=now,
+            contract_version="grac-v1",
+            projector_version="projector-v1",
+            edge_set_hash="0" * 64,
+            projection_hash="0" * 64,
+            edges=(),
+            governed_scopes=(),
+        )
+        assertion_repo = RelationshipAssertionRepository(session)
+        assertion_repo.finalize_projection_publication(
+            FinalizeProjectionPublicationRequest(
+                projection=PersistProjectionRequest(
+                    revision=revision,
+                    revision_id=f"rev-{uuid4().hex[:8]}",
+                    created_at=now,
+                ),
+                rebuild_job_id=job_id,
+                execution_id=execution_id,
+                node_count=len(graph.assets),
+                edge_count=sum(len(edges) for edges in graph.relationships.values()),
+                duration_ms=50,
+                published_at=now,
+                snapshot_sha256=staged_digest,
+            ),
+            pre_success_check=lambda: None,
+            pre_commit_check=lambda: None,
+        )
+        session.commit()
+
+    with session_factory() as session:
+        _loaded_graph, loaded_digest = AssetGraphRepository(session).load_graph_with_attestation_hash()
+        assert loaded_digest == staged_digest
+
+    store_loaded = _load_persisted_graph_from_configured_store(db_url)
+    assert store_loaded is not None
+    assert compute_graph_snapshot_hash(store_loaded) == staged_digest

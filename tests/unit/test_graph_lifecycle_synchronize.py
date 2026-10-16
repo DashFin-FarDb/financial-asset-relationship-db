@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import sys
 import types
+from pathlib import Path
 from typing import cast
 
 import pytest  # pylint: disable=import-error
@@ -386,3 +387,62 @@ def test_failed_nonpersistent_initialization_recovers_single_flight(monkeypatch)
         results = list(executor.map(lambda _: graph_lifecycle.get_graph(), range(8)))
     assert all(result is graph for result in results)
     assert initializer.call_count == 2
+
+
+@pytest.mark.parametrize(
+    "in_memory_url",
+    [
+        "sqlite:///:memory:",
+        "sqlite://",
+        "sqlite:///file:memdb?mode=memory&cache=shared",
+    ],
+)
+def test_failed_in_memory_sqlite_initialization_recovers_on_retry(monkeypatch, in_memory_url: str) -> None:
+    """In-memory SQLite is non-durable and retries initialization after a transient failure."""
+    from unittest.mock import Mock
+
+    graph = cast(graph_lifecycle.AssetRelationshipGraph, object())
+    metadata = types.SimpleNamespace(source="cache")
+    initializer = Mock(side_effect=[RuntimeError("transient in-memory error"), (graph, metadata)])
+    monkeypatch.setattr(graph_lifecycle, "initialize_graph_runtime", initializer)
+    monkeypatch.setattr(
+        graph_lifecycle.graph_lifecycle_providers,
+        "get_graph_lifecycle_settings",
+        lambda: types.SimpleNamespace(asset_graph_database_url=in_memory_url),
+    )
+    with pytest.raises(RuntimeError, match="transient in-memory error"):
+        graph_lifecycle.get_graph()
+
+    assert graph_lifecycle.get_runtime_lifecycle_state() == graph_lifecycle.GraphRuntimeLifecycleState.FAILED
+
+    # Subsequent read retries rather than immediately throwing AuthoritativeGraphUnavailableError
+    retried_graph, _retried_metadata = graph_lifecycle.get_graph_with_startup_source()
+    assert retried_graph is graph
+    assert initializer.call_count == 2
+    assert graph_lifecycle.get_runtime_lifecycle_state() == graph_lifecycle.GraphRuntimeLifecycleState.READY
+
+
+def test_failed_durable_database_initialization_fails_closed(monkeypatch, tmp_path: Path) -> None:
+    """Durable database persistence remains fail-closed on subsequent reads after failure."""
+    from unittest.mock import Mock
+
+    durable_url = f"sqlite:///{tmp_path}/durable.db"
+    initializer = Mock(side_effect=RuntimeError("durable startup failed"))
+    monkeypatch.setattr(graph_lifecycle, "initialize_graph_runtime", initializer)
+    monkeypatch.setattr(
+        graph_lifecycle.graph_lifecycle_providers,
+        "get_graph_lifecycle_settings",
+        lambda: types.SimpleNamespace(asset_graph_database_url=durable_url),
+    )
+    with pytest.raises(RuntimeError, match="durable startup failed"):
+        graph_lifecycle.get_graph()
+
+    assert graph_lifecycle.get_runtime_lifecycle_state() == graph_lifecycle.GraphRuntimeLifecycleState.FAILED
+
+    # Subsequent read must fail closed immediately without calling initialize_graph_runtime again
+    with pytest.raises(
+        graph_lifecycle.AuthoritativeGraphUnavailableError,
+        match="No authoritative published graph available.",
+    ):
+        graph_lifecycle.get_graph()
+    assert initializer.call_count == 1

@@ -676,7 +676,9 @@ def _load_persisted_graph_from_configured_store(
             logging.WARNING,
             ObservabilityEvent(
                 event="graph_provenance_evaluation",
-                message=f"Database engine creation failed during startup graph provenance check: {exc.__class__.__name__}",
+                message=(
+                    f"Database engine creation failed during startup graph provenance check: {exc.__class__.__name__}"
+                ),
                 metadata={"classification": SnapshotProvenanceClassification.DATABASE_UNAVAILABLE.value},
             ),
         )
@@ -759,7 +761,10 @@ def _load_persisted_graph_from_configured_store(
                     logging.WARNING,
                     ObservabilityEvent(
                         event="graph_provenance_evaluation",
-                        message=f"Persisted graph attestation mismatch: computed {actual_digest} != expected {expected_digest}",
+                        message=(
+                            f"Persisted graph attestation mismatch: "
+                            f"computed {actual_digest} != expected {expected_digest}"
+                        ),
                         metadata={
                             "classification": SnapshotProvenanceClassification.INCONSISTENT_ATTESTATION.value,
                             "computed_hash": actual_digest,

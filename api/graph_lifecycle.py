@@ -267,9 +267,9 @@ def get_graph_with_startup_source() -> tuple[AssetRelationshipGraph, GraphStartu
                 raise AuthoritativeGraphUnavailableError("Authoritative graph is currently rebuilding.")
             if graph_state.lifecycle_state == GraphRuntimeLifecycleState.READY:
                 raise AuthoritativeGraphUnavailableError(_NO_AUTHORITATIVE_GRAPH_MESSAGE)
-            if graph_state.lifecycle_state == GraphRuntimeLifecycleState.FAILED and _settings_asset_graph_database_url(
-                graph_lifecycle_providers.get_graph_lifecycle_settings()
-            ):
+            settings = graph_lifecycle_providers.get_graph_lifecycle_settings()
+            db_url = _settings_asset_graph_database_url(settings)
+            if graph_state.lifecycle_state == GraphRuntimeLifecycleState.FAILED and _is_persistence_enabled(db_url):
                 raise AuthoritativeGraphUnavailableError(_NO_AUTHORITATIVE_GRAPH_MESSAGE)
             _normalize_shutdown_state()
             _transition_lifecycle_state(GraphRuntimeLifecycleState.INITIALIZING)
