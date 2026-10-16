@@ -20,14 +20,12 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
-from unittest.mock import MagicMock
 from uuid import uuid4
 
 import pytest
 from sqlalchemy import create_engine, select, update
 
 from api.graph_lifecycle_providers import (
-    SnapshotProvenanceClassification,
     _load_persisted_graph_from_configured_store,
     load_persisted_graph_if_available,
     stage_graph_snapshot,
@@ -113,12 +111,16 @@ def _setup_disposable_db(tmp_path: Path) -> tuple[str, Any]:
     return db_url, session_factory
 
 
+_UNSET = object()
+
+
 def _publish_sample_graph(
     session_factory: Any,
     graph: AssetRelationshipGraph,
     *,
     job_id: str = "job-001",
     execution_id: str = "exec-001",
+    publication_execution_id: Any = _UNSET,
     custom_snapshot_sha256: str | None = None,
 ) -> str:
     """Helper to atomically persist a graph, rebuild job, and projection publication."""
@@ -156,24 +158,52 @@ def _publish_sample_graph(
         )
 
         assertion_repo = RelationshipAssertionRepository(session)
-        assertion_repo.finalize_projection_publication(
-            FinalizeProjectionPublicationRequest(
-                projection=PersistProjectionRequest(
+        if publication_execution_id is _UNSET:
+            assertion_repo.finalize_projection_publication(
+                FinalizeProjectionPublicationRequest(
+                    projection=PersistProjectionRequest(
+                        revision=revision,
+                        revision_id=f"rev-{uuid4().hex[:8]}",
+                        created_at=now,
+                    ),
+                    rebuild_job_id=job_id,
+                    execution_id=execution_id,
+                    node_count=len(graph.assets),
+                    edge_count=sum(len(edges) for edges in graph.relationships.values()),
+                    duration_ms=100,
+                    published_at=now,
+                    snapshot_sha256=effective_sha,
+                ),
+                pre_success_check=lambda: None,
+                pre_commit_check=lambda: None,
+            )
+        else:
+            persisted = assertion_repo.persist_projection_revision(
+                PersistProjectionRequest(
                     revision=revision,
                     revision_id=f"rev-{uuid4().hex[:8]}",
                     created_at=now,
-                ),
-                rebuild_job_id=job_id,
+                )
+            )
+            graph_repo = AssetGraphRepository(session)
+            graph_repo.mark_rebuild_job_succeeded(
+                job_id,
                 execution_id=execution_id,
                 node_count=len(graph.assets),
                 edge_count=sum(len(edges) for edges in graph.relationships.values()),
                 duration_ms=100,
-                published_at=now,
                 snapshot_sha256=effective_sha,
-            ),
-            pre_success_check=lambda: None,
-            pre_commit_check=lambda: None,
-        )
+            )
+            session.add(
+                RelationshipProjectionPublicationORM(
+                    id=str(uuid4()),
+                    revision_id=persisted.revision_id,
+                    rebuild_job_id=job_id,
+                    execution_id=publication_execution_id,
+                    published_at=now,
+                    snapshot_sha256=effective_sha,
+                )
+            )
         session.commit()
 
     return effective_sha
@@ -341,6 +371,79 @@ def test_mismatched_rebuild_identity_rejected(tmp_path: Path) -> None:
     with session_factory() as session:
         session.execute(update(RebuildJobORM).values(execution_id="wrong-exec-id"))
         session.commit()
+
+    loaded = _load_persisted_graph_from_configured_store(db_url)
+    assert loaded is None
+    assert load_persisted_graph_if_available(db_url) is None
+
+
+def test_missing_publication_execution_id_rejected(tmp_path: Path) -> None:
+    """Publication with null execution_id fails closed."""
+    db_url, session_factory = _setup_disposable_db(tmp_path)
+    graph = _create_sample_test_graph()
+    _publish_sample_graph(session_factory, graph, publication_execution_id=None)
+
+    loaded = _load_persisted_graph_from_configured_store(db_url)
+    assert loaded is None
+    assert load_persisted_graph_if_available(db_url) is None
+
+
+def test_missing_rebuild_job_execution_id_rejected(tmp_path: Path) -> None:
+    """Rebuild job with null execution_id fails closed."""
+    db_url, session_factory = _setup_disposable_db(tmp_path)
+    graph = _create_sample_test_graph()
+    _publish_sample_graph(session_factory, graph)
+
+    with session_factory() as session:
+        session.execute(update(RebuildJobORM).values(execution_id=None))
+        session.commit()
+
+    loaded = _load_persisted_graph_from_configured_store(db_url)
+    assert loaded is None
+    assert load_persisted_graph_if_available(db_url) is None
+
+
+def test_both_missing_execution_id_rejected(tmp_path: Path) -> None:
+    """Both publication and rebuild job with null execution_id fail closed."""
+    db_url, session_factory = _setup_disposable_db(tmp_path)
+    graph = _create_sample_test_graph()
+    _publish_sample_graph(session_factory, graph, publication_execution_id=None)
+
+    with session_factory() as session:
+        session.execute(update(RebuildJobORM).values(execution_id=None))
+        session.commit()
+
+    loaded = _load_persisted_graph_from_configured_store(db_url)
+    assert loaded is None
+    assert load_persisted_graph_if_available(db_url) is None
+
+
+def test_unequal_non_null_execution_ids_rejected(tmp_path: Path) -> None:
+    """Unequal non-null execution IDs between publication and rebuild job fail closed."""
+    db_url, session_factory = _setup_disposable_db(tmp_path)
+    graph = _create_sample_test_graph()
+    _publish_sample_graph(
+        session_factory,
+        graph,
+        execution_id="exec-job-side",
+        publication_execution_id="exec-pub-side",
+    )
+
+    loaded = _load_persisted_graph_from_configured_store(db_url)
+    assert loaded is None
+    assert load_persisted_graph_if_available(db_url) is None
+
+
+def test_blank_execution_id_rejected(tmp_path: Path) -> None:
+    """Blank or whitespace-only execution_id fails closed."""
+    db_url, session_factory = _setup_disposable_db(tmp_path)
+    graph = _create_sample_test_graph()
+    _publish_sample_graph(
+        session_factory,
+        graph,
+        execution_id="   ",
+        publication_execution_id="   ",
+    )
 
     loaded = _load_persisted_graph_from_configured_store(db_url)
     assert loaded is None

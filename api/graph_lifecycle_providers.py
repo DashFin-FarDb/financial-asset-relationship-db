@@ -665,7 +665,27 @@ def _load_persisted_graph_from_configured_store(
                 return None
 
             # 4. Check execution identity binding
-            if publication.execution_id and job.execution_id and publication.execution_id != job.execution_id:
+            pub_exec_id = publication.execution_id
+            job_exec_id = job.execution_id
+            if not pub_exec_id or not pub_exec_id.strip() or not job_exec_id or not job_exec_id.strip():
+                log_event(
+                    logger,
+                    logging.WARNING,
+                    ObservabilityEvent(
+                        event="graph_provenance_evaluation",
+                        message="Missing execution identity on publication or rebuild job",
+                        metadata={
+                            "classification": SnapshotProvenanceClassification.MISSING_PROVENANCE.value,
+                            "publication_id": publication.id,
+                            "job_id": job.job_id,
+                            "publication_execution_id": pub_exec_id,
+                            "job_execution_id": job_exec_id,
+                        },
+                    ),
+                )
+                return None
+
+            if pub_exec_id != job_exec_id:
                 log_event(
                     logger,
                     logging.WARNING,
@@ -676,6 +696,8 @@ def _load_persisted_graph_from_configured_store(
                             "classification": SnapshotProvenanceClassification.INCONSISTENT_ATTESTATION.value,
                             "publication_id": publication.id,
                             "job_id": job.job_id,
+                            "publication_execution_id": pub_exec_id,
+                            "job_execution_id": job_exec_id,
                         },
                     ),
                 )
