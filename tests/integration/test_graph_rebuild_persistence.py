@@ -167,7 +167,7 @@ async def test_persistence_save_failure_returns_sanitized_500(
     fail_save = MagicMock(side_effect=ValueError(f"Failed to persist graph at {raw_url}"))
     monkeypatch.setattr(
         "api.routers.graph_admin.build_rebuild_graph",
-        MagicMock(return_value=(AssetRelationshipGraph(), "sample")),
+        MagicMock(return_value=(AssetRelationshipGraph(), "real_data")),
     )
     monkeypatch.setattr(RelationshipAssertionRepository, "finalize_projection_publication", fail_save)
 
@@ -266,7 +266,7 @@ async def test_rebuild_pipeline_execution_with_ttl(session_factory_provider, mon
     _configure_persistence(monkeypatch, db_url)
 
     monkeypatch.setattr(
-        "api.routers.graph_admin.build_rebuild_graph", MagicMock(return_value=(AssetRelationshipGraph(), "sample"))
+        "api.routers.graph_admin.build_rebuild_graph", MagicMock(return_value=(AssetRelationshipGraph(), "real_data"))
     )
 
     settings = get_settings()
@@ -447,7 +447,7 @@ async def test_lock_ttl_behavioral_contract(test_client: httpx.AsyncClient, sess
     with (
         patch("api.routers.graph_admin.DistributedLock", return_value=mock_lock),
         patch("api.routers.graph_admin._orchestrate_heartbeat", side_effect=mock_orchestrate_ctx) as mock_heartbeat,
-        patch("api.routers.graph_admin.build_rebuild_graph", return_value=(AssetRelationshipGraph(), "sample")),
+        patch("api.routers.graph_admin.build_rebuild_graph", return_value=(AssetRelationshipGraph(), "real_data")),
         patch("api.routers.graph_admin.CoordinationLockRepository.renew_owned_lock", return_value=True) as mock_renew,
     ):
         response = await test_client.post("/api/graph/rebuild")

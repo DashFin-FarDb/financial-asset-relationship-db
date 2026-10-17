@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from contextlib import contextmanager
-from typing import cast
+from typing import Any, cast
 from unittest.mock import MagicMock, call
 
 import pytest
@@ -26,9 +26,9 @@ pytestmark = pytest.mark.unit
 _TEST_ADMIN_PASSWORD = "strong-test-password"  # nosec B105 - synthetic unit-test value
 
 
-def _settings(**overrides) -> Settings:
+def _settings(**overrides: Any) -> Settings:
     """Build minimal operator settings with caller-selected database URLs."""
-    values = {
+    values: dict[str, Any] = {
         "secret_key": "s" * 32,
         "database_url": "sqlite:///auth.db",
     }

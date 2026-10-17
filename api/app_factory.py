@@ -10,10 +10,12 @@ import threading
 import time
 from collections.abc import AsyncGenerator, Callable
 from contextlib import asynccontextmanager
+from contextvars import ContextVar
 from typing import TYPE_CHECKING, Any
 from uuid import uuid4
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
 
 # pylint: disable=import-error
 from slowapi import _rate_limit_exceeded_handler  # type: ignore[import-not-found]
@@ -36,6 +38,7 @@ from .graph_lifecycle import (
     sync_with_latest_rebuild,
 )
 from .graph_lifecycle_providers import (
+    AuthoritativeGraphUnavailableError,
     resolve_hosted_graph_database_url,
     should_degrade_hosted_startup,
 )
@@ -63,6 +66,7 @@ logger = logging.getLogger(__name__)
 _STARTUP_RECONCILIATION_LOCK_TTL_SECONDS = 10.0
 _AUTH_DATABASE_VERIFICATION_TIMEOUT_SECONDS = 30.0
 _AUTH_DATABASE_SHUTDOWN_TIMEOUT_SECONDS = 5.0
+_STARTUP_BLOCKED_VERIFICATION_TIMEOUT_SECONDS = 30.0
 
 
 def _get_durable_graph_database_url(settings: GraphLifecycleSettings) -> str | None:
@@ -235,13 +239,13 @@ def _verify_auth_database(operation_guard: Any | None = None) -> None:
         raise SchemaCompatibilityError(f"API credential database verification failed ({type(exc).__name__})") from None
 
 
-def _consume_auth_database_verification_result(verification_task: asyncio.Task[None]) -> None:
+def _consume_auth_database_verification_result(verification_task: asyncio.Task[Any]) -> None:
     """Retrieve a completed background verification result without leaking its exception."""
     with contextlib.suppress(asyncio.CancelledError, Exception):
         verification_task.result()
 
 
-async def _stop_auth_database_verification(verification_task: asyncio.Task[None], operation_guard: Any) -> None:
+async def _stop_auth_database_verification(verification_task: asyncio.Task[Any], operation_guard: Any) -> None:
     """Stop a worker-owned auth verification and drain its task for a bounded interval."""
     operation_guard.cancel()
     done, _pending = await asyncio.wait(
@@ -342,6 +346,13 @@ async def _initialize_application_state(
     hosted_startup_degradation_allowed: bool,
 ) -> None:
     """Run startup reconciliation and initialize the graph, handling degraded startup."""
+    await _verify_startup_auth_database()
+    is_clean_install = await _reconcile_startup_graph(settings, has_persistence, hosted_startup_degradation_allowed)
+    _initialize_startup_graph(is_clean_install, hosted_startup_degradation_allowed)
+
+
+async def _verify_startup_auth_database() -> None:
+    """Prove credential authority before accepting HTTP traffic."""
     # Credential compatibility is an authority boundary, not an optional hosted
     # fallback. It must fail closed before any HTTP traffic is accepted.
     from .database import _PostgresOperationGuard
@@ -359,9 +370,16 @@ async def _initialize_application_state(
     except asyncio.CancelledError:
         await _stop_auth_database_verification(verification_task, operation_guard)
         raise
+
+
+async def _reconcile_startup_graph(
+    settings: GraphLifecycleSettings, has_persistence: bool, hosted_startup_degradation_allowed: bool
+) -> bool:
+    """Reconcile durable startup state with the existing hosted fallback policy."""
+    is_clean_install = False
     if has_persistence:
         try:
-            await _perform_startup_reconciliation(settings)
+            is_clean_install = await _perform_startup_reconciliation(settings)
         except SchemaCompatibilityError:
             raise
         except (SQLAlchemyError, OSError, RuntimeError) as exc:
@@ -381,18 +399,27 @@ async def _initialize_application_state(
                     },
                 ),
             )
+    return is_clean_install
+
+
+def _initialize_startup_graph(is_clean_install: bool, hosted_startup_degradation_allowed: bool) -> None:
+    """Load the graph or retain the explicitly allowed unavailable startup state."""
     # Required initialization for all environments to ensure state validity
     try:
         get_graph()
-    except (SQLAlchemyError, OSError) as exc:
-        if not hosted_startup_degradation_allowed:
+    except (SQLAlchemyError, OSError, AuthoritativeGraphUnavailableError) as exc:
+        if not (hosted_startup_degradation_allowed or is_clean_install):
             raise
         log_event(
             logger,
             logging.WARNING,
             ObservabilityEvent(
                 event="startup_degraded",
-                message="Hosted fallback graph bootstrap failed; continuing with degraded boot.",
+                message=(
+                    "No published graph at startup; awaiting initial rebuild."
+                    if is_clean_install
+                    else "Hosted fallback graph bootstrap failed; continuing with degraded boot."
+                ),
                 metadata={
                     "error": type(exc).__name__,
                     "phase": "graph_bootstrap",
@@ -464,8 +491,15 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     await _perform_orderly_shutdown(sync_task, slo_task, recon_task, has_persistence)
 
 
-async def _perform_startup_reconciliation(settings: GraphLifecycleSettings) -> None:
-    """Run startup reconciliation with timeout and error handling."""
+async def _perform_startup_reconciliation(settings: GraphLifecycleSettings) -> bool:
+    """
+    Run startup reconciliation with timeout and error handling.
+
+    Returns:
+        bool: True when startup may proceed without a published graph (verified clean install, or a verified
+            history in which no rebuild has ever published a graph). Graph reads stay unavailable until the
+            first rebuild publishes. False otherwise.
+    """
     from src.logic.recovery_gate import ExecutionBlockedError
 
     cancellation_event = threading.Event()
@@ -487,10 +521,11 @@ async def _perform_startup_reconciliation(settings: GraphLifecycleSettings) -> N
                 ),
             )
             raise RuntimeError("Startup reconciliation timed out") from None
+        return False
     except SchemaCompatibilityError:
         raise
     except ExecutionBlockedError as exc:
-        _handle_reconciliation_blocked(exc)
+        return await _handle_reconciliation_blocked_bounded(exc, settings)
     except Exception as exc:
         log_event(
             logger,
@@ -511,31 +546,257 @@ async def _perform_startup_reconciliation(settings: GraphLifecycleSettings) -> N
         raise RuntimeError("Failed to load persisted graph during startup") from None
 
 
-def _handle_reconciliation_blocked(exc: Any) -> None:
-    """Handle ExecutionBlockedError from RecoveryGate."""
-    if exc.action == "wait" and exc.inconsistency_type == "none":
-        log_event(
-            logger,
-            logging.INFO,
-            ObservabilityEvent(
-                event="startup_reconciliation_benign_clean_install",
-                message=(
-                    "Benign clean-install detected on startup (action=wait, inconsistency=none). "
-                    "Proceeding with startup."
-                ),
-            ),
-        )
-    else:
+class _BlockedVerification:
+    """Own one read-only worker deadline and its cancellable database connections."""
+
+    def __init__(self, seconds: float) -> None:
+        """Start a shared deadline covering all evidence probes."""
+        from .database import _PostgresOperationGuard
+
+        self.deadline = time.monotonic() + seconds
+        self.cancelled = threading.Event()
+        self.guard = _PostgresOperationGuard()
+
+    def remaining(self) -> float:
+        """Reject expired evidence before starting another operation."""
+        remaining = self.deadline - time.monotonic()
+        if self.cancelled.is_set() or remaining <= 0:
+            raise TimeoutError("Startup evidence deadline expired")
+        return remaining
+
+    def cancel(self) -> None:
+        """Stop subsequent work and cancel active PostgreSQL evidence connections."""
+        self.cancelled.set()
+        self.guard.cancel()
+
+
+_BLOCKED_VERIFICATION: ContextVar[_BlockedVerification | None] = ContextVar("blocked_verification", default=None)
+
+
+def _create_startup_evidence_engine(url: str) -> Any:
+    """Apply operation-local connection/query bounds without changing runtime engines."""
+    from sqlalchemy import event
+
+    from src.data.database import create_engine_from_url
+
+    operation = _BLOCKED_VERIFICATION.get()
+    engine = create_engine_from_url(url)
+    if operation is None:
+        return engine
+    try:
+        operation.remaining()
+        if engine.dialect.name == "postgresql":
+
+            @event.listens_for(engine, "do_connect")
+            def _bound_connect(_dialect: Any, _record: Any, _args: Any, params: Any) -> None:
+                """Bound initial connection and reject options that can override query limits."""
+                remaining = operation.remaining()
+                if params.get("options"):
+                    raise SchemaCompatibilityError("Startup evidence connection options are unsupported")
+                params["connect_timeout"] = max(1, min(5, int(remaining)))
+                params["options"] = f"-c statement_timeout={max(1, int(remaining * 1000))}"
+
+            @event.listens_for(engine, "connect")
+            def _track_connection(connection: Any, _record: Any) -> None:
+                """Cancel connections acquired after worker cancellation as well as active ones."""
+                operation.guard.register(connection)
+
+            @event.listens_for(engine, "before_cursor_execute")
+            def _bound_query(
+                _connection: Any, cursor: Any, _statement: Any, _params: Any, _context: Any, _many: Any
+            ) -> None:
+                """Clamp every query to the remaining shared deadline."""
+                remaining = operation.remaining()
+                cursor.execute("SET statement_timeout = %s", (max(1, int(remaining * 1000)),))
+
+        elif engine.dialect.name == "sqlite":
+
+            @event.listens_for(engine, "checkout")
+            def _bound_sqlite(connection: Any, _record: Any, _proxy: Any) -> None:
+                """Interrupt SQLite evidence work when the shared deadline expires."""
+                connection.execute(f"PRAGMA busy_timeout = {max(1, int(operation.remaining() * 1000))}")
+                connection.set_progress_handler(
+                    lambda: int(operation.cancelled.is_set() or time.monotonic() >= operation.deadline), 1000
+                )
+
+        else:
+            raise SchemaCompatibilityError("Unsupported startup evidence database driver")
+        return engine
+    except Exception:
+        engine.dispose()
+        raise
+
+
+def _run_blocked_verification(exc: Any, settings: GraphLifecycleSettings, operation: _BlockedVerification) -> bool:
+    """Bind the deadline across all evidence checks and reject late success."""
+    token = _BLOCKED_VERIFICATION.set(operation)
+    try:
+        operation.remaining()
+        result = _handle_reconciliation_blocked(exc, settings)
+        operation.remaining()
+        return result
+    finally:
+        _BLOCKED_VERIFICATION.reset(token)
+        operation.cancel()
+
+
+def _is_genuine_clean_install(settings: GraphLifecycleSettings) -> bool:
+    """Verify that durable persistence genuinely has zero rebuild jobs (clean install)."""
+    try:
+        from src.data.database import create_session_factory
+        from src.data.repository import AssetGraphRepository, session_scope
+
+        resolved_url = _resolve_startup_reconciliation_url(settings)
+        engine = _create_startup_evidence_engine(resolved_url)
+        try:
+            session_factory = create_session_factory(engine)
+            with session_scope(session_factory) as session:
+                repo = AssetGraphRepository(session)
+                return repo.get_latest_rebuild_job() is None
+        finally:
+            engine.dispose()
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("Clean-install verification failed: %s; failing closed.", type(exc).__name__)
+        return False
+
+
+def _is_quiescent_established_state(settings: GraphLifecycleSettings) -> bool:
+    """Verify that durable persistence has a terminal latest rebuild job (quiescent)."""
+    try:
+        from src.data.database import create_session_factory
+        from src.data.db_models import RebuildJobStatus
+        from src.data.repository import AssetGraphRepository, session_scope
+
+        resolved_url = _resolve_startup_reconciliation_url(settings)
+        engine = _create_startup_evidence_engine(resolved_url)
+        try:
+            session_factory = create_session_factory(engine)
+            with session_scope(session_factory) as session:
+                repo = AssetGraphRepository(session)
+                latest = repo.get_latest_rebuild_job()
+                return latest is not None and latest.status in (
+                    RebuildJobStatus.SUCCEEDED,
+                    RebuildJobStatus.FAILED,
+                    RebuildJobStatus.CANCELLED,
+                )
+        finally:
+            engine.dispose()
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("Quiescent state verification failed: %s; failing closed.", type(exc).__name__)
+        return False
+
+
+def _has_never_published_graph(settings: GraphLifecycleSettings) -> bool:
+    """
+    Verify that rebuild history exists but no rebuild has ever published a graph.
+
+    True only when the latest rebuild job is FAILED or CANCELLED and no SUCCEEDED job exists. A SUCCEEDED job
+    means a graph was published, so a missing graph is then an anomaly that must keep failing closed.
+    """
+    try:
+        from src.data.database import create_session_factory
+        from src.data.db_models import RebuildJobStatus
+        from src.data.repository import AssetGraphRepository, session_scope
+
+        resolved_url = _resolve_startup_reconciliation_url(settings)
+        engine = _create_startup_evidence_engine(resolved_url)
+        try:
+            session_factory = create_session_factory(engine)
+            with session_scope(session_factory) as session:
+                repo = AssetGraphRepository(session)
+                latest = repo.get_latest_rebuild_job()
+                if latest is None or latest.status not in (RebuildJobStatus.FAILED, RebuildJobStatus.CANCELLED):
+                    return False
+                return repo.get_latest_successful_rebuild_job() is None
+        finally:
+            engine.dispose()
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("Unpublished-history verification failed: %s; failing closed.", type(exc).__name__)
+        return False
+
+
+async def _handle_reconciliation_blocked_bounded(exc: Any, settings: GraphLifecycleSettings) -> bool:
+    """Run blocked-reconciliation verification off the event loop, bounded by a timeout.
+
+    The verification opens database connections, so it must not run on the async startup thread and must not
+    outlive the same kind of bound that protects the reconciliation worker itself.
+    """
+    operation = _BlockedVerification(_STARTUP_BLOCKED_VERIFICATION_TIMEOUT_SECONDS)
+    task = asyncio.create_task(asyncio.to_thread(_run_blocked_verification, exc, settings, operation))
+    try:
+        return await asyncio.wait_for(asyncio.shield(task), timeout=_STARTUP_BLOCKED_VERIFICATION_TIMEOUT_SECONDS)
+    except asyncio.CancelledError:
+        await _stop_auth_database_verification(task, operation)
+        raise
+    except TimeoutError:
+        await _stop_auth_database_verification(task, operation)
         log_event(
             logger,
             logging.CRITICAL,
             ObservabilityEvent(
-                event="startup_reconciliation_blocked",
-                message=f"Application startup BLOCKED by RecoveryGate safety invariant: {type(exc).__name__}",
-                metadata={"error": type(exc).__name__},
+                event="startup_reconciliation_timeout",
+                message=(
+                    "Startup blocked-state verification timed out after "
+                    f"{_STARTUP_BLOCKED_VERIFICATION_TIMEOUT_SECONDS:g}s"
+                ),
             ),
         )
-        raise exc from None
+        raise RuntimeError("Startup reconciliation timed out") from None
+
+
+def _handle_reconciliation_blocked(exc: Any, settings: GraphLifecycleSettings) -> bool:
+    """Handle ExecutionBlockedError from RecoveryGate with independent clean-install and quiescent-state proof."""
+    if exc.action == "wait" and exc.inconsistency_type == "none":
+        if _is_genuine_clean_install(settings):
+            log_event(
+                logger,
+                logging.INFO,
+                ObservabilityEvent(
+                    event="startup_reconciliation_benign_clean_install",
+                    message=(
+                        "Benign clean-install verified on startup (action=wait, inconsistency=none, "
+                        "zero prior rebuild jobs). Proceeding with startup."
+                    ),
+                ),
+            )
+            return True
+        if _has_never_published_graph(settings):
+            log_event(
+                logger,
+                logging.INFO,
+                ObservabilityEvent(
+                    event="startup_reconciliation_no_published_graph",
+                    message=(
+                        "No published graph verified on startup (action=wait, inconsistency=none, "
+                        "latest rebuild failed or cancelled, no successful rebuild recorded). "
+                        "Proceeding with startup; graph reads remain unavailable until a rebuild publishes."
+                    ),
+                ),
+            )
+            return True
+        if _is_quiescent_established_state(settings):
+            log_event(
+                logger,
+                logging.INFO,
+                ObservabilityEvent(
+                    event="startup_reconciliation_quiescent_state",
+                    message=(
+                        "Quiescent rebuild state verified on startup (action=wait, inconsistency=none, "
+                        "prior rebuild jobs terminated). Proceeding with startup."
+                    ),
+                ),
+            )
+            return False
+    log_event(
+        logger,
+        logging.CRITICAL,
+        ObservabilityEvent(
+            event="startup_reconciliation_blocked",
+            message=f"Application startup BLOCKED by RecoveryGate safety invariant: {type(exc).__name__}",
+            metadata={"error": type(exc).__name__},
+        ),
+    )
+    raise exc from None
 
 
 def _start_background_tasks(
@@ -749,6 +1010,15 @@ def create_app() -> FastAPI:
 
     app.state.limiter = limiter
     app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)  # type: ignore[arg-type]
+
+    @app.exception_handler(AuthoritativeGraphUnavailableError)
+    async def _graph_unavailable_handler(_request: Request, _exc: AuthoritativeGraphUnavailableError) -> JSONResponse:
+        """Return the bounded unavailable-graph response without provider details."""
+        return JSONResponse(
+            status_code=503,
+            content={"detail": "Graph not yet published; awaiting initial rebuild."},
+        )
+
     configure_cors(app)
 
     # Register RequestMetricsMiddleware before CorrelationMiddleware.

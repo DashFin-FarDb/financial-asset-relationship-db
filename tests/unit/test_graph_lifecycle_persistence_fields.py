@@ -8,7 +8,6 @@ from sqlalchemy import create_engine
 import api.graph_lifecycle as graph_lifecycle
 import api.graph_lifecycle_providers as graph_lifecycle_providers
 from src.data.database import create_session_factory, init_db
-from src.data.repository import AssetGraphRepository
 from src.logic.asset_graph import AssetRelationshipGraph
 from src.models.financial_models import AssetClass, Equity, RegulatoryActivity, RegulatoryEvent
 
@@ -25,7 +24,9 @@ def reset_graph_lifecycle(monkeypatch: pytest.MonkeyPatch) -> Iterator[None]:
 
 
 def _persist_graph(database_url: str, graph: AssetRelationshipGraph) -> None:
+    """Persist graph snapshot and finalize projection publication for test lifecycle."""
     from tests.conftest import enable_sqlite_foreign_keys
+    from tests.helpers.snapshot_attestation_fixtures import publish_test_graph_snapshot
 
     engine = create_engine(database_url)
     enable_sqlite_foreign_keys(engine)
@@ -33,7 +34,7 @@ def _persist_graph(database_url: str, graph: AssetRelationshipGraph) -> None:
         init_db(engine)
         session = create_session_factory(engine)()
         try:
-            AssetGraphRepository(session).save_graph(graph)
+            publish_test_graph_snapshot(session, graph)
             session.commit()
         finally:
             session.close()
@@ -45,6 +46,7 @@ def test_lifecycle_persisted_startup_preserves_full_asset_and_event_fields(
     tmp_path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    """Assert persisted startup preserves complete asset attributes and regulatory-event fields."""
     database_url = f"sqlite:///{tmp_path / 'lifecycle-fields.db'}"
     graph = AssetRelationshipGraph()
     for asset_id in ("EQ_FULL", "REL_A", "REL_B"):

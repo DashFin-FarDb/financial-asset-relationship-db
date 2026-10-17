@@ -49,6 +49,7 @@ from src.logic.relationship_projection import (
     overlay_governed_relationships,
     project,
 )
+from src.logic.snapshot_attestation import compute_repository_snapshot_hash
 from src.observability.facade import ObservabilityEvent, log_event
 
 from ..api_models import (
@@ -65,6 +66,7 @@ from ..graph_lifecycle import (
     synchronize_runtime_graph,
 )
 from ..graph_lifecycle_providers import (
+    AuthoritativeGraphUnavailableError,
     GraphLifecycleSettings,
     GraphPersistenceNonDurableError,
     GraphPersistenceNotConfiguredError,
@@ -157,8 +159,8 @@ class _RebuildRuntime:
         complete_rebuild(succeeded=succeeded)
 
     def clear_busy_after_contention(self) -> None:
-        """Clear transient REBUILDING state when work was rejected before execution."""
-        complete_rebuild(succeeded=True)
+        """Clear rejected work without claiming a successful graph publication."""
+        complete_rebuild(succeeded=False)
 
     def get_lock(self) -> asyncio.Lock:
         """Return a rebuild lock bound to the current event loop."""
@@ -273,7 +275,16 @@ def _map_rebuild_error(exc: Exception | asyncio.CancelledError) -> HTTPException
     ):
         return HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(root_exc))
 
-    if isinstance(root_exc, (GraphRebuildSourceError, GraphPersistenceSaveError)):
+    if isinstance(root_exc, AuthoritativeGraphUnavailableError):
+        return HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=str(root_exc),
+        )
+
+    if isinstance(
+        root_exc,
+        (GraphRebuildSourceError, GraphPersistenceSaveError),
+    ):
         return HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=str(root_exc),
@@ -302,7 +313,10 @@ def _rebuild_status_code(exc: Exception | asyncio.CancelledError) -> int:
         return status.HTTP_429_TOO_MANY_REQUESTS
     if isinstance(root_exc, RebuildCancelledError):
         return status.HTTP_409_CONFLICT
-    if isinstance(root_exc, (_DistributedLockLostError, ExecutionBlockedError)):
+    if isinstance(
+        root_exc,
+        (_DistributedLockLostError, ExecutionBlockedError, AuthoritativeGraphUnavailableError),
+    ):
         return status.HTTP_503_SERVICE_UNAVAILABLE
     if isinstance(
         root_exc,
@@ -432,6 +446,7 @@ def _rebuild_failure_category(exc: Exception | asyncio.CancelledError) -> str:
         GraphPersistenceNonDurableError: "persistence_non_durable",
         GraphRebuildSourceError: "rebuild_source_error",
         GraphPersistenceSaveError: "persistence_save_error",
+        AuthoritativeGraphUnavailableError: "authoritative_graph_unavailable",
     }
     return categories.get(type(root_exc), "unexpected_error")
 
@@ -537,6 +552,90 @@ def _unwrap_rebuild_error(exc: Exception | asyncio.CancelledError) -> Exception 
     return exc
 
 
+def _record_fallback_audit_failure(
+    *,
+    user_ref: str,
+    exc: Exception | asyncio.CancelledError,
+    started_at: float,
+    tracking_state: dict[str, bool],
+) -> None:
+    """Record a failure audit log if the execution path did not already emit one."""
+    if not tracking_state["audit_logged"]:
+        _log_rebuild_failed(
+            user_ref=user_ref,
+            exc=exc,
+            status_code=_rebuild_status_code(exc),
+            duration_ms=_duration_ms(started_at),
+        )
+        tracking_state["audit_logged"] = True
+
+
+async def _execute_rebuild_with_error_handling(
+    loop: asyncio.AbstractEventLoop,
+    settings: GraphLifecycleSettings,
+    *,
+    user_ref: str,
+    started_at: float,
+    tracking_state: dict[str, bool],
+) -> GraphRebuildResponse:
+    """Execute rebuild within the worker executor and map expected and unexpected failures."""
+    try:
+        return await _run_rebuild_in_executor(
+            loop,
+            settings,
+            user_ref=user_ref,
+            started_at=started_at,
+            tracking_state=tracking_state,
+        )
+    except (
+        HTTPException,
+        _RebuildExecutionError,
+        _DistributedLockAcquisitionError,
+        _DistributedLockLostError,
+        GraphPersistenceNonDurableError,
+        GraphPersistenceNotConfiguredError,
+        GraphPersistenceSaveError,
+        GraphRebuildSourceError,
+        AuthoritativeGraphUnavailableError,
+        ExecutionBlockedError,
+        RebuildCancelledError,
+        asyncio.CancelledError,
+    ) as exc:
+        root_exc = _unwrap_rebuild_error(exc)
+
+        # If it's a lock contention error, handle it cleanly as a rejection
+        if isinstance(root_exc, _DistributedLockAcquisitionError):
+            if _REBUILD_RUNTIME.is_busy():
+                _REBUILD_RUNTIME.clear_busy_after_contention()
+            _log_rebuild_rejected(user_ref=user_ref)
+            tracking_state["audit_logged"] = True
+        else:
+            _REBUILD_RUNTIME.mark_idle(succeeded=False)
+
+        # Defensive safety net: If the callback never completed to write any audit trace, write it now
+        _record_fallback_audit_failure(
+            user_ref=user_ref,
+            exc=exc,
+            started_at=started_at,
+            tracking_state=tracking_state,
+        )
+        raise _map_rebuild_error(exc) from None
+
+    except Exception as exc:
+        # Emit the structured critical alert sentinel identically to the callback path
+        _log_unexpected_rebuild_exception(user_ref=user_ref, exc=exc)
+        _REBUILD_RUNTIME.mark_idle(succeeded=False)
+
+        # Ensure structural audit coverage for general unexpected programming errors
+        _record_fallback_audit_failure(
+            user_ref=user_ref,
+            exc=exc,
+            started_at=started_at,
+            tracking_state=tracking_state,
+        )
+        raise _map_rebuild_error(exc) from None
+
+
 @router.post(_REBUILD_PATH)
 async def rebuild_graph(
     current_user: Annotated[User, Depends(get_current_rebuild_operator_user)],
@@ -564,65 +663,13 @@ async def rebuild_graph(
         await rebuild_lock.acquire()
         lock_acquired = True
 
-        try:
-            return await _run_rebuild_in_executor(
-                loop,
-                settings,
-                user_ref=user_ref,
-                started_at=started_at,
-                tracking_state=tracking_state,
-            )
-        except (
-            HTTPException,
-            _RebuildExecutionError,
-            _DistributedLockAcquisitionError,
-            _DistributedLockLostError,
-            GraphPersistenceNonDurableError,
-            GraphPersistenceNotConfiguredError,
-            GraphPersistenceSaveError,
-            GraphRebuildSourceError,
-            ExecutionBlockedError,
-            RebuildCancelledError,
-            asyncio.CancelledError,
-        ) as exc:
-            root_exc = _unwrap_rebuild_error(exc)
-
-            # If it's a lock contention error, handle it cleanly as a rejection
-            if isinstance(root_exc, _DistributedLockAcquisitionError):
-                _REBUILD_RUNTIME.clear_busy_after_contention()
-                _log_rebuild_rejected(user_ref=user_ref)
-                tracking_state["audit_logged"] = True
-            else:
-                _REBUILD_RUNTIME.mark_idle(succeeded=False)
-
-            # Defensive safety net: If the callback never completed to write any audit trace, write it now
-            if not tracking_state["audit_logged"]:
-                _log_rebuild_failed(
-                    user_ref=user_ref,
-                    exc=exc,
-                    status_code=_rebuild_status_code(exc),
-                    duration_ms=_duration_ms(started_at),
-                )
-                tracking_state["audit_logged"] = True
-
-            raise _map_rebuild_error(exc) from None
-
-        except Exception as exc:
-            # Emit the structured critical alert sentinel identically to the callback path
-            _log_unexpected_rebuild_exception(user_ref=user_ref, exc=exc)
-            _REBUILD_RUNTIME.mark_idle(succeeded=False)
-
-            # Ensure structural audit coverage for general unexpected programming errors
-            if not tracking_state["audit_logged"]:
-                _log_rebuild_failed(
-                    user_ref=user_ref,
-                    exc=exc,
-                    status_code=_rebuild_status_code(exc),
-                    duration_ms=_duration_ms(started_at),
-                )
-                tracking_state["audit_logged"] = True
-
-            raise _map_rebuild_error(exc) from None
+        return await _execute_rebuild_with_error_handling(
+            loop,
+            settings,
+            user_ref=user_ref,
+            started_at=started_at,
+            tracking_state=tracking_state,
+        )
     finally:
         if lock_acquired:
             rebuild_lock.release()
@@ -681,12 +728,13 @@ async def _run_rebuild_in_executor(
             GraphPersistenceNotConfiguredError,
             GraphPersistenceSaveError,
             GraphRebuildSourceError,
+            AuthoritativeGraphUnavailableError,
             ExecutionBlockedError,
             RebuildCancelledError,
             asyncio.CancelledError,
         ) as exc:
             if isinstance(_unwrap_rebuild_error(exc), _DistributedLockAcquisitionError):
-                _REBUILD_RUNTIME.mark_idle(succeeded=True)
+                _REBUILD_RUNTIME.clear_busy_after_contention()
                 _log_rebuild_rejected(user_ref=user_ref)
             else:
                 _REBUILD_RUNTIME.mark_idle(succeeded=False)
@@ -1544,6 +1592,7 @@ def _sanitize_failure_message(exc: Exception | asyncio.CancelledError) -> str:
         GraphPersistenceNonDurableError,
         GraphRebuildSourceError,
         GraphPersistenceSaveError,
+        AuthoritativeGraphUnavailableError,
         ExecutionBlockedError,
     )
 
@@ -1774,6 +1823,8 @@ def _finalize_rebuild_success(
             cancel_event,
         )
         stage_graph_snapshot(session, publication_graph)
+        session.flush()
+        snapshot_sha256 = compute_repository_snapshot_hash(AssetGraphRepository(session))
 
         _guard_publication_lock(coordination_session, lock_holder_id, lock_ttl_seconds, "publication-pre-success")
 
@@ -1793,6 +1844,7 @@ def _finalize_rebuild_success(
                 edge_count=response.relationship_count,
                 duration_ms=_duration_ms(job_started_at),
                 published_at=publication_time,
+                snapshot_sha256=snapshot_sha256,
             ),
             pre_success_check=pre_success_check,
             pre_commit_check=pre_commit_check,

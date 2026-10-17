@@ -41,8 +41,16 @@ def _assert_metrics_text_response(response) -> str:
 @pytest.fixture
 def client() -> Generator[TestClient, None, None]:
     """Create an isolated TestClient for /api/metrics tests with automatic teardown."""
-    with TestClient(create_app(), base_url="https://testserver") as test_client:
-        yield test_client
+    from api.graph_lifecycle import reset_graph, set_graph
+    from src.data.sample_data import create_sample_database
+
+    reset_graph()
+    set_graph(create_sample_database())
+    try:
+        with TestClient(create_app(), base_url="https://testserver") as test_client:
+            yield test_client
+    finally:
+        reset_graph()
 
 
 @pytest.mark.unit

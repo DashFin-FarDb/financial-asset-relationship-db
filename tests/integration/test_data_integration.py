@@ -9,7 +9,12 @@ This module contains tests that verify interactions between data components:
 
 import pytest
 
-from src.data.real_data_fetcher import RealDataFetcher, _deserialize_graph, _serialize_graph
+from src.data.real_data_fetcher import (
+    DataAcquisitionIncompleteError,
+    RealDataFetcher,
+    _deserialize_graph,
+    _serialize_graph,
+)
 from src.data.repository import AssetGraphRepository
 from src.data.sample_data import create_sample_database
 from src.logic.asset_graph import AssetRelationshipGraph
@@ -161,40 +166,22 @@ class TestSerializationRoundTrip:
         assert "TEST_2" in restored_graph.relationships
 
 
-class TestDataFetcherWithFallback:
-    """Test real data fetcher fallback mechanisms."""
+class TestDataFetcherFailClosed:
+    """Test real data fetcher fail-closed mechanisms."""
 
     @staticmethod
-    def test_fetcher_with_network_disabled_uses_fallback():
-        """Test that fetcher with network disabled uses fallback."""
+    def test_fetcher_with_network_disabled_raises_incomplete_error():
+        """Test that fetcher with network disabled raises DataAcquisitionIncompleteError."""
         fetcher = RealDataFetcher(enable_network=False)
-        graph = fetcher.create_real_database()
-
-        # Should have fallback data
-        assert len(graph.assets) > 0
+        with pytest.raises(DataAcquisitionIncompleteError):
+            fetcher.create_real_database()
 
     @staticmethod
-    def test_fetcher_with_custom_fallback():
-        """Test that fetcher uses custom fallback factory."""
-        custom_graph = AssetRelationshipGraph()
-        custom_asset = Equity(
-            id="CUSTOM_ASSET",
-            symbol="CUST",
-            name="Custom",
-            asset_class=AssetClass.EQUITY,
-            sector="Test",
-            price=999.0,
-        )
-        custom_graph.add_asset(custom_asset)
-
-        def custom_factory():
-            """Return a preconfigured AssetRelationshipGraph for fallback."""
-            return custom_graph
-
-        fetcher = RealDataFetcher(fallback_factory=custom_factory, enable_network=False)
-        result = fetcher.create_real_database()
-
-        assert "CUSTOM_ASSET" in result.assets
+    def test_fetcher_fallback_attributes_purged():
+        """Test that fallback attributes and methods are purged from RealDataFetcher."""
+        fetcher = RealDataFetcher(enable_network=False)
+        assert not hasattr(fetcher, "_fallback")
+        assert not hasattr(fetcher, "fallback_factory")
 
 
 class TestEdgeCasesAndRegressions:

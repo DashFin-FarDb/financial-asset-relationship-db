@@ -30,10 +30,11 @@ from api.auth import (
     User,
     get_current_active_user,
 )
-from api.graph_lifecycle import reset_graph
+from api.graph_lifecycle import reset_graph, set_graph
 from src.config.settings import get_settings
 from src.data.database import create_engine_from_url, create_session_factory, init_db
 from src.data.repository import AssetGraphRepository, RebuildFailureDetails, session_scope
+from src.data.sample_data import create_sample_database
 
 pytestmark = pytest.mark.integration
 
@@ -68,6 +69,7 @@ def _client_with_active_user(
 
     app.dependency_overrides[get_current_active_user] = active_user
 
+    set_graph(create_sample_database())
     try:
         with TestClient(app) as client:
             yield client
@@ -204,7 +206,7 @@ def test_rebuild_allows_active_authorized_operator_user(
         _ = execution_id
         return graph_admin.GraphRebuildResponse(
             status="persisted",
-            source="sample",
+            source="real_data",
             asset_count=0,
             relationship_count=0,
             regulatory_event_count=0,
@@ -222,7 +224,7 @@ def test_rebuild_allows_active_authorized_operator_user(
     data = _assert_successful_json_response(response)
     assert data == {
         "status": "persisted",
-        "source": "sample",
+        "source": "real_data",
         "asset_count": 0,
         "relationship_count": 0,
         "regulatory_event_count": 0,
@@ -234,7 +236,7 @@ def test_rebuild_lock_contention_does_not_mark_runtime_failed(
     monkeypatch: pytest.MonkeyPatch,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
-    """Distributed lock contention should return 429 while leaving runtime healthy."""
+    """Distributed lock contention returns 429 without claiming successful publication."""
 
     def fake_rebuild(
         _settings: graph_admin.GraphLifecycleSettings,
@@ -258,7 +260,7 @@ def test_rebuild_lock_contention_does_not_mark_runtime_failed(
             graph_admin._REBUILD_RUNTIME.mark_idle(succeeded=True)  # pylint: disable=protected-access
 
     assert response.status_code == 429
-    assert graph_admin.get_runtime_lifecycle_state() == graph_admin.GraphRuntimeLifecycleState.READY
+    assert graph_admin.get_runtime_lifecycle_state() == graph_admin.GraphRuntimeLifecycleState.FAILED
 
     audit_records = [record for record in caplog.records if getattr(record, "event", "").startswith("graph_rebuild_")]
     rejected_records = [
@@ -292,6 +294,7 @@ def test_rebuild_returns_503_when_operator_authorization_not_configured(
 
     app.dependency_overrides[get_current_active_user] = active_user
 
+    set_graph(create_sample_database())
     try:
         with TestClient(app) as client:
             response = client.post("/api/graph/rebuild")
@@ -335,13 +338,13 @@ async def test_rebuild_returns_429_when_rebuild_already_running(
     assert rej_meta["status_code"] == 429
 
 
-async def test_rebuild_contention_maps_to_429_without_failed_lifecycle_when_executor_raises_directly(
+async def test_rebuild_contention_maps_to_429_without_claiming_success_when_executor_raises_directly(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """Verify lock contention maps to HTTP 429 when executor raises error directly.
 
     Verifies that when the rebuild executor raises a distributed-lock acquisition error directly,
-    the request maps to HTTP 429 and the runtime lifecycle remains READY.
+    the request maps to HTTP 429 and rejected work does not claim successful publication.
     """
 
     async def _fake_executor_acquisition_error(*_args, **_kwargs):
@@ -353,7 +356,7 @@ async def test_rebuild_contention_maps_to_429_without_failed_lifecycle_when_exec
         with pytest.raises(HTTPException) as exc_info:
             await graph_admin.rebuild_graph(User(username="admin", disabled=False))
         assert exc_info.value.status_code == 429
-        assert graph_admin.get_runtime_lifecycle_state() == graph_admin.GraphRuntimeLifecycleState.READY
+        assert graph_admin.get_runtime_lifecycle_state() == graph_admin.GraphRuntimeLifecycleState.FAILED
     finally:
         graph_admin.shutdown_rebuild_executor_sync()
         if graph_admin._REBUILD_RUNTIME.is_busy():  # pylint: disable=protected-access
@@ -446,7 +449,7 @@ async def test_rebuild_outcome_logging_survives_request_cancellation_hardened(
         thread_reached.set()
         proceed_thread.wait(timeout=5.0)
         return graph_admin.GraphRebuildResponse(
-            status="persisted", source="sample", asset_count=5, relationship_count=2, regulatory_event_count=0
+            status="persisted", source="real_data", asset_count=5, relationship_count=2, regulatory_event_count=0
         )
 
     monkeypatch.setattr(graph_admin, "_perform_rebuild_and_persist_sync", coordinated_sync_rebuild)

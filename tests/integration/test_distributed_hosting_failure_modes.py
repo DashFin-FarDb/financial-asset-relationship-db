@@ -217,7 +217,7 @@ def test_rebuild_failure_after_persist_does_not_corrupt_durable_graph_truth(
         monkeypatch.setattr(
             graph_admin,
             "build_rebuild_graph",
-            lambda *_args, **_kwargs: (replacement, "sample"),
+            lambda *_args, **_kwargs: (replacement, "real_data"),
         )
 
         def fail_publication(*_args, **_kwargs):
@@ -275,7 +275,7 @@ def test_lock_lost_during_rebuild_aborts_before_success_marking(
             nonlocal graph_built
             graph_built = True
             lock_lost.set()
-            return built_graph, "sample"
+            return built_graph, "real_data"
 
         monkeypatch.setattr(graph_admin, "build_rebuild_graph", build_then_lose_lock)
 
