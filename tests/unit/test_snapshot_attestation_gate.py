@@ -49,6 +49,7 @@ from src.logic.snapshot_attestation import (
 from src.models.financial_models import AssetClass, Equity
 from tests.helpers.snapshot_attestation_fixtures import (
     create_sample_test_graph,
+    publish_test_graph_snapshot,
     setup_disposable_sqlite_db,
 )
 
@@ -80,6 +81,18 @@ def _publish_sample_graph(
     custom_snapshot_sha256: str | None = None,
 ) -> str:
     """Helper to atomically persist a graph, rebuild job, and projection publication."""
+    if publication_execution_id is _UNSET and custom_snapshot_sha256 is None:
+        with session_factory() as session:
+            digest = publish_test_graph_snapshot(
+                session,
+                graph,
+                job_id=job_id,
+                execution_id=execution_id,
+                duration_ms=100,
+            )
+            session.commit()
+            return digest
+
     now = datetime.now(UTC)
     with session_factory() as session:
         # 1. Create running job

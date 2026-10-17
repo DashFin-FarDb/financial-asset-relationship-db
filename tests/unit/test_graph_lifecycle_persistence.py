@@ -5,11 +5,9 @@ from __future__ import annotations
 import importlib
 import logging
 from collections.abc import Iterator
-from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Callable  # noqa: UP035  # Callable from typing for Prospector/Pylint compatibility
 from unittest.mock import Mock
-from uuid import uuid4
 
 import pytest
 from sqlalchemy import create_engine, text  # pylint: disable=import-error
@@ -18,17 +16,10 @@ import api.graph_lifecycle as graph_lifecycle
 import api.graph_lifecycle_providers as graph_lifecycle_providers
 from api.graph_lifecycle import GraphStartupMetadata
 from src.data.database import create_session_factory, init_db
-from src.data.db_models import RebuildJobORM
-from src.data.relationship_assertion_repository import (
-    FinalizeProjectionPublicationRequest,
-    RelationshipAssertionRepository,
-)
-from src.data.relationship_projection_persistence import PersistProjectionRequest
 from src.data.repository import AssetGraphRepository
 from src.logic.asset_graph import AssetRelationshipGraph
-from src.logic.relationship_projection import ProjectionRevision
-from src.logic.snapshot_attestation import compute_graph_snapshot_hash, compute_repository_snapshot_hash
 from src.models.financial_models import AssetClass, Equity, RegulatoryActivity, RegulatoryEvent
+from tests.helpers.snapshot_attestation_fixtures import publish_test_graph_snapshot
 
 pytestmark = pytest.mark.unit
 
@@ -107,56 +98,7 @@ def _init_empty_db(database_url: str) -> None:
 
 def _publish_graph_for_test(session: Any, graph: AssetRelationshipGraph) -> str:
     """Save graph and create matching rebuild job and publication record."""
-    AssetGraphRepository(session).save_graph(graph)
-    digest = compute_graph_snapshot_hash(graph)
-    now = datetime.now(timezone.utc)
-    job_id = f"job-{uuid4().hex[:8]}"
-    execution_id = f"exec-{uuid4().hex[:8]}"
-
-    job = RebuildJobORM(
-        job_id=job_id,
-        requested_by="test-operator",
-        status="running",
-        source="test",
-        created_at=now,
-        updated_at=now,
-        started_at=now,
-        execution_id=execution_id,
-    )
-    session.add(job)
-    session.flush()
-
-    revision = ProjectionRevision(
-        purpose="test-current",
-        effective_at=now,
-        known_at=now,
-        contract_version="grac-v1",
-        projector_version="projector-v1",
-        edge_set_hash="0" * 64,
-        projection_hash="0" * 64,
-        edges=(),
-        governed_scopes=(),
-    )
-    assertion_repo = RelationshipAssertionRepository(session)
-    assertion_repo.finalize_projection_publication(
-        FinalizeProjectionPublicationRequest(
-            projection=PersistProjectionRequest(
-                revision=revision,
-                revision_id=f"rev-{uuid4().hex[:8]}",
-                created_at=now,
-            ),
-            rebuild_job_id=job_id,
-            execution_id=execution_id,
-            node_count=len(graph.assets),
-            edge_count=sum(len(edges) for edges in graph.relationships.values()),
-            duration_ms=10,
-            published_at=now,
-            snapshot_sha256=digest,
-        ),
-        pre_success_check=lambda: None,
-        pre_commit_check=lambda: None,
-    )
-    return digest
+    return publish_test_graph_snapshot(session, graph)
 
 
 def _save_graph(database_url: str, graph: AssetRelationshipGraph) -> None:
@@ -546,53 +488,7 @@ def test_legacy_bidirectional_row_survives_startup_load(
             bidirectional=True,
         )
         session.flush()
-        digest = compute_repository_snapshot_hash(repository)
-        now = datetime.now(timezone.utc)
-        job_id = f"job-{uuid4().hex[:8]}"
-        execution_id = f"exec-{uuid4().hex[:8]}"
-        session.add(
-            RebuildJobORM(
-                job_id=job_id,
-                requested_by="test-operator",
-                status="running",
-                source="test",
-                created_at=now,
-                updated_at=now,
-                started_at=now,
-                execution_id=execution_id,
-            )
-        )
-        session.flush()
-        revision = ProjectionRevision(
-            purpose="test-current",
-            effective_at=now,
-            known_at=now,
-            contract_version="grac-v1",
-            projector_version="projector-v1",
-            edge_set_hash="0" * 64,
-            projection_hash="0" * 64,
-            edges=(),
-            governed_scopes=(),
-        )
-        assertion_repo = RelationshipAssertionRepository(session)
-        assertion_repo.finalize_projection_publication(
-            FinalizeProjectionPublicationRequest(
-                projection=PersistProjectionRequest(
-                    revision=revision,
-                    revision_id=f"rev-{uuid4().hex[:8]}",
-                    created_at=now,
-                ),
-                rebuild_job_id=job_id,
-                execution_id=execution_id,
-                node_count=2,
-                edge_count=2,
-                duration_ms=10,
-                published_at=now,
-                snapshot_sha256=digest,
-            ),
-            pre_success_check=lambda: None,
-            pre_commit_check=lambda: None,
-        )
+        publish_test_graph_snapshot(session)
         session.commit()
     finally:
         session.close()
