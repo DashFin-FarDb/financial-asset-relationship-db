@@ -359,13 +359,12 @@ def test_postgres_publication_immutability_and_rollback(
     )
 
     # 1. Attempt unauthorized direct UPDATE on publications table
+    update_stmt = update(RelationshipProjectionPublicationORM).values(
+        snapshot_sha256="deadbeef" * 8,
+    )
     with session_factory() as session:
         with pytest.raises(IntegrityError) as exc_info:
-            session.execute(
-                update(RelationshipProjectionPublicationORM).values(
-                    snapshot_sha256="deadbeef" * 8,
-                )
-            )
+            session.execute(update_stmt)
         assert "GRAC v1 immutability: UPDATE forbidden on relationship_projection_publications" in str(exc_info.value)
         session.rollback()
 
@@ -373,9 +372,10 @@ def test_postgres_publication_immutability_and_rollback(
     _assert_persisted_graph_matches_digest(target_url, v1_digest)
 
     # 3. Attempt unauthorized direct DELETE on publications table
+    delete_stmt = text("DELETE FROM public.relationship_projection_publications")
     with session_factory() as session:
         with pytest.raises(IntegrityError) as exc_info:
-            session.execute(text("DELETE FROM public.relationship_projection_publications"))
+            session.execute(delete_stmt)
         assert "GRAC v1 immutability: DELETE forbidden on relationship_projection_publications" in str(exc_info.value)
         session.rollback()
 
