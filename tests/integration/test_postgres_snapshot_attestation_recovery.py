@@ -77,6 +77,7 @@ from tests.integration.postgresql_disposable_cluster import (
 )
 
 pytestmark = pytest.mark.integration
+# pylint: disable=redefined-outer-name
 
 _ENABLE_ENV = "FARDB_EPHEMERAL_POSTGRES_LEDGER_TESTS"
 _URL_ENV = "FARDB_EPHEMERAL_POSTGRES_URL"
@@ -156,7 +157,7 @@ def _drop_database(base_url: str, database_name: str) -> None:
         connection.close()
 
 
-@pytest.fixture()
+@pytest.fixture
 def disposable_graph_database() -> Iterator[tuple[str, Engine, sessionmaker[Session]]]:
     """Provide an isolated disposable PostgreSQL database initialized via the graph ledger."""
     base_url = _ephemeral_postgres_url()
@@ -291,20 +292,73 @@ def _publish_attested_graph(
     return effective_sha
 
 
+def _assert_persisted_graph_matches_digest(target_url: str, expected_digest: str) -> AssetRelationshipGraph:
+    """Assert that the persisted graph can be loaded and its hash matches the expected digest."""
+    loaded = _load_persisted_graph_from_configured_store(target_url)
+    assert loaded is not None
+    assert compute_graph_snapshot_hash(loaded) == expected_digest
+    return loaded
+
+
+def _publish_and_verify_baseline(
+    session_factory: sessionmaker[Session],
+    target_url: str,
+    label: str,
+    job_id: str,
+    execution_id: str,
+) -> tuple[AssetRelationshipGraph, str]:
+    """Publish a baseline graph and verify that initial persistence loads and attestation match."""
+    graph = _create_deterministic_graph(label)
+    digest = _publish_attested_graph(session_factory, graph, job_id=job_id, execution_id=execution_id)
+    _assert_persisted_graph_matches_digest(target_url, digest)
+    return graph, digest
+
+
+def _assert_fail_closed_startup(target_url: str) -> None:
+    """Assert that store startup fails closed when attestation or provenance is compromised."""
+    assert _load_persisted_graph_from_configured_store(target_url) is None
+    assert load_persisted_graph_if_available(target_url) is None
+
+
+def _rebuild_and_verify_recovered_graph(
+    session_factory: sessionmaker[Session],
+    target_url: str,
+    *,
+    label: str,
+    job_id: str,
+    execution_id: str,
+    expected_new_asset_id: str,
+    excluded_prior_asset_id: str | None = None,
+) -> tuple[AssetRelationshipGraph, str]:
+    """Execute an authorized rebuild and verify that the recovered graph loads cleanly."""
+    _assert_fail_closed_startup(target_url)
+
+    graph_v2 = _create_deterministic_graph(label)
+    v2_digest = _publish_attested_graph(
+        session_factory,
+        graph_v2,
+        job_id=job_id,
+        execution_id=execution_id,
+    )
+
+    loaded_v2 = _assert_persisted_graph_matches_digest(target_url, v2_digest)
+    assert expected_new_asset_id in loaded_v2.assets
+    if excluded_prior_asset_id is not None:
+        assert excluded_prior_asset_id not in loaded_v2.assets
+
+    return graph_v2, v2_digest
+
+
 def test_postgres_publication_immutability_and_rollback(
     disposable_graph_database: tuple[str, Engine, sessionmaker[Session]],
 ) -> None:
     """PostgreSQL triggers must enforce GRAC v1 immutability and roll back mutations cleanly."""
     target_url, _engine, session_factory = disposable_graph_database
-    graph_v1 = _create_deterministic_graph("V1")
-    v1_digest = _publish_attested_graph(session_factory, graph_v1, job_id="job-imm-001", execution_id="exec-imm-001")
+    _graph_v1, v1_digest = _publish_and_verify_baseline(
+        session_factory, target_url, "V1", job_id="job-imm-001", execution_id="exec-imm-001"
+    )
 
-    # 1. Verify publication loaded successfully
-    loaded = _load_persisted_graph_from_configured_store(target_url)
-    assert loaded is not None
-    assert compute_graph_snapshot_hash(loaded) == v1_digest
-
-    # 2. Attempt unauthorized direct UPDATE on publications table
+    # 1. Attempt unauthorized direct UPDATE on publications table
     with session_factory() as session:
         with pytest.raises(IntegrityError) as exc_info:
             session.execute(
@@ -312,29 +366,21 @@ def test_postgres_publication_immutability_and_rollback(
                     snapshot_sha256="deadbeef" * 8,
                 )
             )
-            session.commit()
-
         assert "GRAC v1 immutability: UPDATE forbidden on relationship_projection_publications" in str(exc_info.value)
         session.rollback()
 
-    # 3. Verify failed UPDATE rolled back and original publication remains verified
-    reloaded_after_update = _load_persisted_graph_from_configured_store(target_url)
-    assert reloaded_after_update is not None
-    assert compute_graph_snapshot_hash(reloaded_after_update) == v1_digest
+    # 2. Verify failed UPDATE rolled back and original publication remains verified
+    _assert_persisted_graph_matches_digest(target_url, v1_digest)
 
-    # 4. Attempt unauthorized direct DELETE on publications table
+    # 3. Attempt unauthorized direct DELETE on publications table
     with session_factory() as session:
         with pytest.raises(IntegrityError) as exc_info:
             session.execute(text("DELETE FROM public.relationship_projection_publications"))
-            session.commit()
-
         assert "GRAC v1 immutability: DELETE forbidden on relationship_projection_publications" in str(exc_info.value)
         session.rollback()
 
-    # 5. Verify failed DELETE rolled back and original publication remains verified
-    reloaded_after_delete = _load_persisted_graph_from_configured_store(target_url)
-    assert reloaded_after_delete is not None
-    assert compute_graph_snapshot_hash(reloaded_after_delete) == v1_digest
+    # 4. Verify failed DELETE rolled back and original publication remains verified
+    _assert_persisted_graph_matches_digest(target_url, v1_digest)
 
 
 def test_postgres_recovery_tampered_asset(
@@ -342,38 +388,22 @@ def test_postgres_recovery_tampered_asset(
 ) -> None:
     """Mutating asset attributes in PostgreSQL breaks attestation and recovers via rebuild."""
     target_url, _engine, session_factory = disposable_graph_database
-    graph_v1 = _create_deterministic_graph("V1")
-    v1_digest = _publish_attested_graph(session_factory, graph_v1, job_id="job-ast-001", execution_id="exec-ast-001")
-
-    # Verify baseline startup
-    loaded_v1 = _load_persisted_graph_from_configured_store(target_url)
-    assert loaded_v1 is not None
-    assert compute_graph_snapshot_hash(loaded_v1) == v1_digest
+    _publish_and_verify_baseline(session_factory, target_url, "V1", job_id="job-ast-001", execution_id="exec-ast-001")
 
     # Out-of-band mutation: alter asset price in database
     with session_factory() as session:
         session.execute(update(AssetORM).where(AssetORM.id == "ASSET_V1_1").values(price=999999.0))
         session.commit()
 
-    # Verify fail-closed startup behavior
-    assert _load_persisted_graph_from_configured_store(target_url) is None
-    assert load_persisted_graph_if_available(target_url) is None
-
-    # Authorized rebuild execution: recover state with clean V2 graph
-    graph_v2 = _create_deterministic_graph("V2_AST_RECOVERED")
-    v2_digest = _publish_attested_graph(
+    _rebuild_and_verify_recovered_graph(
         session_factory,
-        graph_v2,
+        target_url,
+        label="V2_AST_RECOVERED",
         job_id="job-ast-002",
         execution_id="exec-ast-002",
+        expected_new_asset_id="ASSET_V2_AST_RECOVERED_1",
+        excluded_prior_asset_id="ASSET_V1_1",
     )
-
-    # Verify post-recovery startup verification succeeds cleanly
-    loaded_v2 = _load_persisted_graph_from_configured_store(target_url)
-    assert loaded_v2 is not None
-    assert compute_graph_snapshot_hash(loaded_v2) == v2_digest
-    assert "ASSET_V2_AST_RECOVERED_1" in loaded_v2.assets
-    assert "ASSET_V1_1" not in loaded_v2.assets
 
 
 def test_postgres_recovery_tampered_relationship(
@@ -381,13 +411,7 @@ def test_postgres_recovery_tampered_relationship(
 ) -> None:
     """Mutating edge strength in PostgreSQL breaks attestation and recovers via rebuild."""
     target_url, _engine, session_factory = disposable_graph_database
-    graph_v1 = _create_deterministic_graph("V1")
-    v1_digest = _publish_attested_graph(session_factory, graph_v1, job_id="job-rel-001", execution_id="exec-rel-001")
-
-    # Verify baseline startup
-    loaded_v1 = _load_persisted_graph_from_configured_store(target_url)
-    assert loaded_v1 is not None
-    assert compute_graph_snapshot_hash(loaded_v1) == v1_digest
+    _publish_and_verify_baseline(session_factory, target_url, "V1", job_id="job-rel-001", execution_id="exec-rel-001")
 
     # Out-of-band mutation: alter relationship strength
     with session_factory() as session:
@@ -398,24 +422,14 @@ def test_postgres_recovery_tampered_relationship(
         )
         session.commit()
 
-    # Verify fail-closed startup behavior
-    assert _load_persisted_graph_from_configured_store(target_url) is None
-    assert load_persisted_graph_if_available(target_url) is None
-
-    # Authorized rebuild execution
-    graph_v2 = _create_deterministic_graph("V2_REL_RECOVERED")
-    v2_digest = _publish_attested_graph(
+    _rebuild_and_verify_recovered_graph(
         session_factory,
-        graph_v2,
+        target_url,
+        label="V2_REL_RECOVERED",
         job_id="job-rel-002",
         execution_id="exec-rel-002",
+        expected_new_asset_id="ASSET_V2_REL_RECOVERED_1",
     )
-
-    # Verify post-recovery startup
-    loaded_v2 = _load_persisted_graph_from_configured_store(target_url)
-    assert loaded_v2 is not None
-    assert compute_graph_snapshot_hash(loaded_v2) == v2_digest
-    assert "ASSET_V2_REL_RECOVERED_1" in loaded_v2.assets
 
 
 def test_postgres_recovery_tampered_regulatory_event(
@@ -423,13 +437,7 @@ def test_postgres_recovery_tampered_regulatory_event(
 ) -> None:
     """Mutating event description in PostgreSQL breaks attestation and recovers via rebuild."""
     target_url, _engine, session_factory = disposable_graph_database
-    graph_v1 = _create_deterministic_graph("V1")
-    v1_digest = _publish_attested_graph(session_factory, graph_v1, job_id="job-reg-001", execution_id="exec-reg-001")
-
-    # Verify baseline startup
-    loaded_v1 = _load_persisted_graph_from_configured_store(target_url)
-    assert loaded_v1 is not None
-    assert compute_graph_snapshot_hash(loaded_v1) == v1_digest
+    _publish_and_verify_baseline(session_factory, target_url, "V1", job_id="job-reg-001", execution_id="exec-reg-001")
 
     # Out-of-band mutation: alter event description
     with session_factory() as session:
@@ -440,24 +448,14 @@ def test_postgres_recovery_tampered_regulatory_event(
         )
         session.commit()
 
-    # Verify fail-closed startup behavior
-    assert _load_persisted_graph_from_configured_store(target_url) is None
-    assert load_persisted_graph_if_available(target_url) is None
-
-    # Authorized rebuild execution
-    graph_v2 = _create_deterministic_graph("V2_REG_RECOVERED")
-    v2_digest = _publish_attested_graph(
+    _rebuild_and_verify_recovered_graph(
         session_factory,
-        graph_v2,
+        target_url,
+        label="V2_REG_RECOVERED",
         job_id="job-reg-002",
         execution_id="exec-reg-002",
+        expected_new_asset_id="ASSET_V2_REG_RECOVERED_1",
     )
-
-    # Verify post-recovery startup
-    loaded_v2 = _load_persisted_graph_from_configured_store(target_url)
-    assert loaded_v2 is not None
-    assert compute_graph_snapshot_hash(loaded_v2) == v2_digest
-    assert "ASSET_V2_REG_RECOVERED_1" in loaded_v2.assets
 
 
 def test_postgres_recovery_corrupted_publication_digest(
@@ -476,24 +474,14 @@ def test_postgres_recovery_corrupted_publication_digest(
         custom_snapshot_sha256="bad" * 21 + "a",
     )
 
-    # Verify fail-closed startup behavior
-    assert _load_persisted_graph_from_configured_store(target_url) is None
-    assert load_persisted_graph_if_available(target_url) is None
-
-    # Authorized rebuild execution
-    graph_v2 = _create_deterministic_graph("V2_DIG_RECOVERED")
-    v2_digest = _publish_attested_graph(
+    _rebuild_and_verify_recovered_graph(
         session_factory,
-        graph_v2,
+        target_url,
+        label="V2_DIG_RECOVERED",
         job_id="job-dig-002",
         execution_id="exec-dig-002",
+        expected_new_asset_id="ASSET_V2_DIG_RECOVERED_1",
     )
-
-    # Verify post-recovery startup
-    loaded_v2 = _load_persisted_graph_from_configured_store(target_url)
-    assert loaded_v2 is not None
-    assert compute_graph_snapshot_hash(loaded_v2) == v2_digest
-    assert "ASSET_V2_DIG_RECOVERED_1" in loaded_v2.assets
 
 
 def test_postgres_recovery_mismatched_execution_identity(
@@ -554,24 +542,14 @@ def test_postgres_recovery_mismatched_execution_identity(
         )
         session.commit()
 
-    # Verify fail-closed startup behavior
-    assert _load_persisted_graph_from_configured_store(target_url) is None
-    assert load_persisted_graph_if_available(target_url) is None
-
-    # Authorized rebuild execution
-    graph_v2 = _create_deterministic_graph("V2_MID_RECOVERED")
-    v2_digest = _publish_attested_graph(
+    _rebuild_and_verify_recovered_graph(
         session_factory,
-        graph_v2,
+        target_url,
+        label="V2_MID_RECOVERED",
         job_id="job-mid-002",
         execution_id="exec-mid-002-AUTHORIZED",
+        expected_new_asset_id="ASSET_V2_MID_RECOVERED_1",
     )
-
-    # Verify post-recovery startup
-    loaded_v2 = _load_persisted_graph_from_configured_store(target_url)
-    assert loaded_v2 is not None
-    assert compute_graph_snapshot_hash(loaded_v2) == v2_digest
-    assert "ASSET_V2_MID_RECOVERED_1" in loaded_v2.assets
 
 
 def test_postgres_recovery_missing_publication_provenance(
@@ -586,21 +564,11 @@ def test_postgres_recovery_missing_publication_provenance(
         stage_graph_snapshot(session, graph_v1)
         session.commit()
 
-    # Verify fail-closed startup behavior
-    assert _load_persisted_graph_from_configured_store(target_url) is None
-    assert load_persisted_graph_if_available(target_url) is None
-
-    # Authorized rebuild execution establishes initial attested publication
-    graph_v2 = _create_deterministic_graph("V2_LEG_RECOVERED")
-    v2_digest = _publish_attested_graph(
+    _rebuild_and_verify_recovered_graph(
         session_factory,
-        graph_v2,
+        target_url,
+        label="V2_LEG_RECOVERED",
         job_id="job-leg-002",
         execution_id="exec-leg-002",
+        expected_new_asset_id="ASSET_V2_LEG_RECOVERED_1",
     )
-
-    # Verify post-recovery startup
-    loaded_v2 = _load_persisted_graph_from_configured_store(target_url)
-    assert loaded_v2 is not None
-    assert compute_graph_snapshot_hash(loaded_v2) == v2_digest
-    assert "ASSET_V2_LEG_RECOVERED_1" in loaded_v2.assets
