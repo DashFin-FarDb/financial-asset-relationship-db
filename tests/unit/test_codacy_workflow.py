@@ -2,6 +2,10 @@
 
 from __future__ import annotations
 
+import itertools
+import os
+import shutil
+import subprocess  # nosec B404
 from pathlib import Path
 from typing import Any
 
@@ -9,18 +13,209 @@ import pytest
 import yaml
 
 WORKFLOW_PATH = Path(__file__).resolve().parents[2] / ".github" / "workflows" / "codacy.yml"
+CODACY_IMAGE = "codacy/codacy-analysis-cli@sha256:d412b2a84e72d0b541e29dd6cdffa78a73afcf35d8aa546988cd2a44edaab15c"
 
 
 @pytest.fixture(scope="module")
-def codacy_steps() -> list[dict[str, Any]]:
-    """Load the Codacy job steps from the repository workflow."""
-    workflow = yaml.safe_load(WORKFLOW_PATH.read_text(encoding="utf-8"))
-    return workflow["jobs"]["codacy-security-scan"]["steps"]
+def codacy_workflow() -> dict[str, Any]:
+    """Load workflow configuration without invoking any hosted scanner."""
+    return yaml.safe_load(WORKFLOW_PATH.read_text(encoding="utf-8"))
+
+
+@pytest.fixture(scope="module")
+def codacy_steps(codacy_workflow: dict[str, Any]) -> list[dict[str, Any]]:
+    """Return the Codacy job steps from the repository workflow."""
+    return codacy_workflow["jobs"]["codacy-security-scan"]["steps"]
 
 
 def _step(steps: list[dict[str, Any]], name: str) -> dict[str, Any]:
-    """Return one named workflow step."""
-    return next(step for step in steps if step.get("name") == name)
+    """Return exactly one named workflow step."""
+    matches = [step for step in steps if step.get("name") == name]
+    if len(matches) != 1:
+        raise ValueError(f"Expected exactly 1 step named {name!r}, found {len(matches)}")
+    return matches[0]
+
+
+@pytest.mark.unit
+def test_codacy_direct_image_transport(codacy_steps: list[dict[str, Any]]) -> None:
+    """Keep the direct image invocation free of a downloaded action wrapper."""
+    scan = _step(codacy_steps, "Run Codacy Analysis CLI")
+
+    assert "uses" not in scan
+    assert "with" not in scan
+    assert scan["shell"] == "bash"
+    assert scan["env"] == {
+        "CODACY_CODE": "${{ github.workspace }}",
+        "CODACY_PROJECT_TOKEN": "${{ secrets.CODACY_PROJECT_TOKEN }}",
+        "CODACY_COMMIT_SHA": "${{ github.event.pull_request.head.sha || github.sha }}",
+    }
+    assert "${{" not in scan["run"]
+    assert CODACY_IMAGE in scan["run"]
+
+
+@pytest.fixture(scope="module")
+def native_bash() -> str:
+    """Use native Bash for the stub, never launch WSL on Windows."""
+    if os.name == "nt":
+        git = shutil.which("git")
+        bash = Path(git).resolve().parents[1] / "bin" / "bash.exe" if git else None
+        if bash is None or not bash.is_file():
+            pytest.skip("Native Git Bash is required for local Windows command tests; do not launch WSL")
+        return str(bash)
+    bash_path = shutil.which("bash")
+    assert bash_path is not None, "Bash is required on the Linux CI runner"
+    return bash_path
+
+
+_SCENARIO_COMBINATIONS = list(
+    itertools.product(
+        [0, 1, 100, 101, 125],
+        ["/synthetic/repo", "/synthetic/FarDb space;$(false)/unicode-δ"],
+        ["", "synthetic token;$(false)"],
+    )
+)
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize("scenario", _SCENARIO_COMBINATIONS)
+def test_codacy_command_arguments_and_failure_propagation(
+    codacy_steps: list[dict[str, Any]], native_bash: str, scenario: tuple[int, str, str]
+) -> None:
+    """Exercise the workflow shell with an inert Docker function, not a real scanner."""
+    exit_code, workspace, token = scenario
+    scan = _step(codacy_steps, "Run Codacy Analysis CLI")
+    stub = """docker() {
+      printf '%s\\0' "$CODACY_CODE" "$CODACY_PROJECT_TOKEN" "$@"
+      return "$CODACY_STUB_STATUS"
+    }
+    readonly -f docker
+    """
+    # Use only synthetic input and minimal OS environment, not developer credentials or startup hooks.
+    environment = {key: os.environ[key] for key in ("SystemRoot", "WINDIR") if key in os.environ}
+    environment.update(
+        {
+            "PATH": "",
+            "LC_ALL": "C",
+            "CODACY_CODE": workspace,
+            "CODACY_PROJECT_TOKEN": token,
+            "CODACY_COMMIT_SHA": "1" * 40,
+            "CODACY_STUB_STATUS": str(exit_code),
+        }
+    )
+    result = subprocess.run(  # nosec B603
+        [native_bash, "--noprofile", "--norc", "-e", "-o", "pipefail", "-c", stub + scan["run"]],
+        env=environment,
+        capture_output=True,
+        encoding="utf-8",
+        timeout=10,
+        check=False,
+    )
+    assert result.returncode == exit_code, result.stderr
+    assert result.stderr == ""
+    fields = result.stdout.split("\0")
+    assert fields[:2] == [workspace, token]
+    # Full argv equality detects unquoted paths, leaked token values, new tools/flags or missing guards.
+    assert fields[2:] == [
+        "run",
+        "--rm",
+        "--env",
+        "CODACY_CODE",
+        "--env",
+        "CODACY_PROJECT_TOKEN",
+        "--volume",
+        "/var/run/docker.sock:/var/run/docker.sock",
+        "--volume",
+        f"{workspace}:{workspace}",
+        "--volume",
+        "/tmp:/tmp",  # nosec B108
+        CODACY_IMAGE,
+        "--",
+        "analyze",
+        "--directory",
+        workspace,
+        "--skip-commit-uuid-validation",
+        "--commit-uuid",
+        "1" * 40,
+        "--verbose",
+        "--output",
+        f"{workspace}/results.sarif",
+        "--format",
+        "sarif",
+        "--gh-code-scanning-compat",
+        "--max-allowed-issues",
+        "2147483647",
+        "--fail-if-incomplete",
+        "",
+    ]
+
+
+@pytest.mark.unit
+def test_step_helper_requires_exactly_one_match() -> None:
+    """_step raises ValueError when a step is missing or duplicated."""
+    steps = [{"name": "First"}, {"name": "Second"}]
+    assert _step(steps, "First") == {"name": "First"}
+
+    with pytest.raises(ValueError, match="Expected exactly 1 step named 'Missing', found 0"):
+        _step(steps, "Missing")
+
+    duplicate_steps = [{"name": "Step A"}, {"name": "Step A"}]
+    with pytest.raises(ValueError, match="Expected exactly 1 step named 'Step A', found 2"):
+        _step(duplicate_steps, "Step A")
+
+
+@pytest.mark.unit
+def test_codacy_job_authority_and_step_sequence_are_preserved(codacy_workflow: dict[str, Any]) -> None:
+    """Keep the diagnostic repair within the existing job authority and sequence."""
+    job = codacy_workflow["jobs"]["codacy-security-scan"]
+
+    assert codacy_workflow["permissions"] == {"contents": "read"}
+    assert job["permissions"] == {"contents": "read", "security-events": "write", "actions": "read"}
+    assert job["concurrency"] == {
+        "group": "codacy-${{ github.workflow }}-${{ github.ref }}",
+        "cancel-in-progress": True,
+    }
+    assert job["runs-on"] == "ubuntu-latest"
+    assert "continue-on-error" not in job
+    assert "if" not in job
+    assert [step["name"] for step in job["steps"]] == [
+        "Checkout code",
+        "Run Codacy Analysis CLI",
+        "Validate SARIF results file",
+        "Upload SARIF results file",
+        "Fail when Codacy produced no SARIF",
+        "Fail when Codacy analysis failed",
+    ]
+    assert _step(job["steps"], "Checkout code")["with"] == {"persist-credentials": False}
+
+
+@pytest.mark.unit
+def test_codacy_publication_triggers_are_preserved(codacy_workflow: dict[str, Any]) -> None:
+    """Do not add scan events or narrow the existing publication path filters."""
+    paths = [
+        "**/*.py",
+        "**/*.js",
+        "**/*.ts",
+        "**/*.tsx",
+        "**/*.jsx",
+        "**/*.java",
+        "**/*.go",
+        "**/*.rb",
+        "**/*.php",
+        "**/*.swift",
+        "**/*.cs",
+        "**/*.c",
+        "**/*.cpp",
+        "**/*.h",
+        "**/*.hpp",
+        ".github/workflows/codacy.yml",
+        "!**/*.md",
+        "!docs/**",
+    ]
+    assert codacy_workflow["on"] == {
+        "push": {"branches": ["main", "Default"], "paths": paths},
+        "pull_request": {"types": ["opened", "synchronize", "reopened"], "branches": ["main"], "paths": paths},
+        "schedule": [{"cron": "26 15 * * 3"}],
+    }
 
 
 @pytest.mark.unit
