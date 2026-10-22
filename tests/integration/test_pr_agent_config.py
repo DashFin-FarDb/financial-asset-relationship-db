@@ -23,7 +23,7 @@ def config() -> dict[str, Any]:
     if not CONFIG_FILE.exists():
         pytest.skip(f"Configuration file not found: {CONFIG_FILE}")
 
-    with open(CONFIG_FILE) as f:
+    with open(CONFIG_FILE, encoding="utf-8") as f:
         return yaml.safe_load(f)
 
 
@@ -38,7 +38,7 @@ class TestPRAgentConfigStructure:
     @staticmethod
     def test_config_is_valid_yaml():
         """Configuration file should be valid YAML."""
-        with open(CONFIG_FILE) as f:
+        with open(CONFIG_FILE, encoding="utf-8") as f:
             try:
                 yaml.safe_load(f)
             except yaml.YAMLError as e:
@@ -374,7 +374,7 @@ class TestConfigurationConsistency:
     @staticmethod
     def test_no_duplicate_keys():
         """YAML should not have duplicate keys."""
-        with open(CONFIG_FILE) as f:
+        with open(CONFIG_FILE, encoding="utf-8") as f:
             content = f.read()
 
         # Parse with duplicate key detection
@@ -474,7 +474,7 @@ class TestBestPractices:
     @staticmethod
     def test_config_is_documented():
         """Configuration file should have comments explaining sections."""
-        with open(CONFIG_FILE) as f:
+        with open(CONFIG_FILE, encoding="utf-8") as f:
             content = f.read()
 
         # Check for presence of comments

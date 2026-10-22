@@ -3,21 +3,24 @@
 import React, { useEffect, useState, useCallback, useRef } from "react";
 import { api } from "./lib/api";
 import NetworkVisualization from "./components/NetworkVisualization";
+import InstitutionalDemo from "./components/InstitutionalDemo";
 import MetricsDashboard from "./components/MetricsDashboard";
 import AssetList from "./components/AssetList";
 import type { Metrics, VisualizationData } from "./types/api";
 
-type HomeTab = "visualization" | "metrics" | "assets";
+type HomeTab = "demonstrator" | "visualization" | "metrics" | "assets";
 
 type HomeContentProps = Readonly<{
   activeTab: HomeTab;
   vizData: VisualizationData | null;
   metrics: Metrics | null;
-  visualizationLoading: boolean;
   metricsLoading: boolean;
-  visualizationError: string | null;
+  visualizationLoading: boolean;
   metricsError: string | null;
-  onRetry: () => void;
+  visualizationError: string | null;
+  onRetryMetrics: () => void;
+  onRetryVisualization: () => void;
+  onRetryAll: () => void;
 }>;
 
 type TabNavigationProps = Readonly<{
@@ -31,6 +34,7 @@ type TabDefinition = Readonly<{
 }>;
 
 const TAB_DEFINITIONS: readonly TabDefinition[] = [
+  { key: "demonstrator", label: "GRAC Demonstrator" },
   { key: "visualization", label: "3D Visualization" },
   { key: "metrics", label: "Metrics & Analytics" },
   { key: "assets", label: "Asset Explorer" },
@@ -53,10 +57,11 @@ function getTabClassName(isActive: boolean): string {
 }
 
 /**
- * Render the home page's tabbed content area with per-resource loading, data, and error states.
+ * Render the home page's tabbed content area based on loading, error, and the active tab.
  *
- * Each resource (visualization, metrics) is rendered independently from its own lifecycle.
- * A global error is shown only when neither resource has usable data.
+ * The demonstrator renders immediately; data-dependent tabs show loading and error states as needed.
+ * When `error` is set and no data is retained, shows an error panel with a retry action; otherwise renders the active tab
+ * ("demonstrator", "visualization", "metrics", or "assets") preserving retained data on refresh failures.
  *
  * @returns The JSX element for the content area, or `null` if no content is applicable.
  */
@@ -64,130 +69,64 @@ function HomeContent({
   activeTab,
   vizData,
   metrics,
-  visualizationLoading,
   metricsLoading,
-  visualizationError,
+  visualizationLoading,
   metricsError,
-  onRetry,
+  visualizationError,
+  onRetryMetrics,
+  onRetryVisualization,
+  onRetryAll,
 }: HomeContentProps) {
-  if (activeTab === "visualization") {
-    if (visualizationLoading && !vizData) {
-      return (
-        <div className="text-center py-12">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600" />
-          <p className="mt-4 text-gray-600">Loading data...</p>
-        </div>
-      );
-    }
+  const tabPanelProps = {
+    role: "tabpanel" as const,
+    id: `tabpanel-${activeTab}`,
+    "aria-labelledby": `tab-${activeTab}`,
+    tabIndex: 0,
+  };
 
-    if (visualizationError && !vizData) {
-      return (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
-          <p className="text-red-800">{visualizationError}</p>
-          <button
-            type="button"
-            onClick={onRetry}
-            className="mt-4 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
-          >
-            Retry
-          </button>
-        </div>
-      );
-    }
-
-    if (vizData) {
-      return (
-        <div className="bg-white rounded-lg shadow-lg p-6">
-          {visualizationError && (
-            <div className="mb-4 flex items-center justify-between gap-4 rounded-md border border-amber-200 bg-amber-50 p-4">
-              <output className="block text-sm text-amber-700">
-                The latest refresh failed — showing the last successfully loaded
-                graph.
-              </output>
-              <button
-                type="button"
-                onClick={onRetry}
-                className="px-3 py-1 text-xs font-medium bg-amber-600 text-white rounded hover:bg-amber-700 transition-colors"
-              >
-                Retry
-              </button>
-            </div>
-          )}
-          <NetworkVisualization data={vizData} />
-        </div>
-      );
-    }
-  }
-
-  if (activeTab === "metrics") {
-    if (metricsLoading && !metrics) {
-      return (
-        <div className="text-center py-12">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600" />
-          <p className="mt-4 text-gray-600">Loading data...</p>
-        </div>
-      );
-    }
-
-    if (metricsError && !metrics) {
-      return (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
-          <p className="text-red-800">{metricsError}</p>
-          <button
-            type="button"
-            onClick={onRetry}
-            className="mt-4 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
-          >
-            Retry
-          </button>
-        </div>
-      );
-    }
-
-    if (metrics) {
-      return (
-        <div>
-          {metricsError && (
-            <div className="mb-4 flex items-center justify-between gap-4 rounded-md border border-amber-200 bg-amber-50 p-4">
-              <output className="block text-sm text-amber-700">
-                The latest refresh failed — showing the last successfully loaded
-                metrics.
-              </output>
-              <button
-                type="button"
-                onClick={onRetry}
-                className="px-3 py-1 text-xs font-medium bg-amber-600 text-white rounded hover:bg-amber-700 transition-colors"
-              >
-                Retry
-              </button>
-            </div>
-          )}
-          <MetricsDashboard metrics={metrics} />
-        </div>
-      );
-    }
+  if (activeTab === "demonstrator") {
+    return (
+      <div {...tabPanelProps}>
+        <InstitutionalDemo
+          data={vizData}
+          isGraphLoading={
+            visualizationLoading && vizData === null && !visualizationError
+          }
+          isGraphStale={Boolean(visualizationError) && vizData !== null}
+          graphError={visualizationError}
+          onRetry={onRetryVisualization}
+        />
+      </div>
+    );
   }
 
   if (activeTab === "assets") {
-    return <AssetList />;
+    return (
+      <div {...tabPanelProps}>
+        <AssetList />
+      </div>
+    );
   }
 
-  const showGenericError =
+  if (
     !vizData &&
     !metrics &&
     !visualizationLoading &&
     !metricsLoading &&
-    (visualizationError || metricsError);
-
-  if (showGenericError) {
+    visualizationError &&
+    metricsError
+  ) {
     return (
-      <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
+      <div
+        {...tabPanelProps}
+        className="bg-red-50 border border-red-200 rounded-lg p-6 text-center"
+      >
         <p className="text-red-800">
           Failed to load data. Please ensure the API server is running.
         </p>
         <button
           type="button"
-          onClick={onRetry}
+          onClick={onRetryAll}
           className="mt-4 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
         >
           Retry
@@ -196,7 +135,110 @@ function HomeContent({
     );
   }
 
-  return null;
+  if (
+    activeTab === "visualization" &&
+    visualizationLoading &&
+    !vizData &&
+    !visualizationError
+  ) {
+    return (
+      <div {...tabPanelProps} className="text-center py-12">
+        <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600" />
+        <p className="mt-4 text-gray-600">Loading data...</p>
+      </div>
+    );
+  }
+
+  if (activeTab === "metrics" && metricsLoading && !metrics && !metricsError) {
+    return (
+      <div {...tabPanelProps} className="text-center py-12">
+        <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600" />
+        <p className="mt-4 text-gray-600">Loading data...</p>
+      </div>
+    );
+  }
+
+  if (activeTab === "visualization") {
+    return (
+      <div {...tabPanelProps} className="bg-white rounded-lg shadow-lg p-6">
+        {vizData ? (
+          <>
+            {visualizationError && (
+              <div className="mb-4 flex items-center justify-between gap-4 rounded-md border border-amber-200 bg-amber-50 p-4">
+                <output className="block text-sm text-amber-700">
+                  The latest refresh failed — showing the last successfully
+                  loaded graph.
+                </output>
+                <button
+                  type="button"
+                  onClick={onRetryVisualization}
+                  className="px-3 py-1 text-xs font-medium bg-amber-600 text-white rounded hover:bg-amber-700 transition-colors"
+                >
+                  Retry
+                </button>
+              </div>
+            )}
+            <NetworkVisualization data={vizData} />
+          </>
+        ) : (
+          <div className="text-center py-12 text-gray-600" role="alert">
+            <p>{visualizationError ?? "Visualization data is unavailable."}</p>
+            <div>
+              <button
+                type="button"
+                onClick={onRetryVisualization}
+                className="mt-4 px-4 py-2 bg-gray-800 text-white rounded-md hover:bg-gray-900 transition-colors"
+              >
+                Retry
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  if (activeTab === "metrics") {
+    return (
+      <div {...tabPanelProps} className="bg-white rounded-lg shadow-lg p-6">
+        {metrics ? (
+          <>
+            {metricsError && (
+              <div className="mb-4 flex items-center justify-between gap-4 rounded-md border border-amber-200 bg-amber-50 p-4">
+                <output className="block text-sm text-amber-700">
+                  The latest refresh failed — showing the last successfully
+                  loaded metrics.
+                </output>
+                <button
+                  type="button"
+                  onClick={onRetryMetrics}
+                  className="px-3 py-1 text-xs font-medium bg-amber-600 text-white rounded hover:bg-amber-700 transition-colors"
+                >
+                  Retry
+                </button>
+              </div>
+            )}
+            <MetricsDashboard metrics={metrics} />
+          </>
+        ) : (
+          <div className="text-center py-12 text-gray-600" role="alert">
+            <p>{metricsError ?? "Metrics data is unavailable."}</p>
+            <div>
+              <button
+                type="button"
+                onClick={onRetryMetrics}
+                className="mt-4 px-4 py-2 bg-gray-800 text-white rounded-md hover:bg-gray-900 transition-colors"
+              >
+                Retry
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  return <div {...tabPanelProps} />;
 }
 
 /**
@@ -207,20 +249,65 @@ function HomeContent({
  * @returns A JSX element containing the tab buttons with appropriate active/inactive styling.
  */
 function TabNavigation({ activeTab, onTabChange }: TabNavigationProps) {
+  const tabRefs = useRef<Partial<Record<HomeTab, HTMLButtonElement>>>({});
+
+  const handleTabKeyDown = (event: React.KeyboardEvent<HTMLButtonElement>) => {
+    const currentIndex = TAB_DEFINITIONS.findIndex(
+      (tab) => tab.key === activeTab,
+    );
+    if (currentIndex < 0) return;
+
+    let nextIndex: number | null = null;
+    if (event.key === "ArrowRight") {
+      nextIndex = (currentIndex + 1) % TAB_DEFINITIONS.length;
+    } else if (event.key === "ArrowLeft") {
+      nextIndex =
+        (currentIndex - 1 + TAB_DEFINITIONS.length) % TAB_DEFINITIONS.length;
+    } else if (event.key === "Home") {
+      nextIndex = 0;
+    } else if (event.key === "End") {
+      nextIndex = TAB_DEFINITIONS.length - 1;
+    }
+
+    if (nextIndex === null) return;
+
+    event.preventDefault();
+    const nextTab = TAB_DEFINITIONS[nextIndex].key;
+    onTabChange(nextTab);
+    tabRefs.current[nextTab]?.focus();
+  };
+
   return (
-    <nav className="bg-white border-b border-gray-200">
+    <nav
+      className="bg-white border-b border-gray-200"
+      role="tablist"
+      aria-label="Dashboard sections"
+    >
       <div className="container mx-auto px-4">
-        <div className="flex space-x-8">
-          {TAB_DEFINITIONS.map((tab) => (
-            <button
-              key={tab.key}
-              onClick={() => onTabChange(tab.key)}
-              className={getTabClassName(activeTab === tab.key)}
-              type="button"
-            >
-              {tab.label}
-            </button>
-          ))}
+        <div className="overflow-x-auto">
+          <div className="flex min-w-max gap-x-8">
+            {TAB_DEFINITIONS.map((tab) => (
+              <button
+                key={tab.key}
+                onClick={() => onTabChange(tab.key)}
+                className={getTabClassName(activeTab === tab.key)}
+                onKeyDown={handleTabKeyDown}
+                role="tab"
+                id={`tab-${tab.key}`}
+                aria-controls={
+                  activeTab === tab.key ? `tabpanel-${tab.key}` : undefined
+                }
+                aria-selected={activeTab === tab.key}
+                tabIndex={activeTab === tab.key ? 0 : -1}
+                ref={(node) => {
+                  tabRefs.current[tab.key] = node ?? undefined;
+                }}
+                type="button"
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
     </nav>
@@ -228,9 +315,8 @@ function TabNavigation({ activeTab, onTabChange }: TabNavigationProps) {
 }
 
 /**
- * Manages dashboard data fetching with independent per-resource request tracking.
- * Each resource (metrics, visualization) has its own loading and error state,
- * allowing one to fail or remain pending without blocking the other.
+ * Fetches metrics and visualization independently so one resource can render,
+ * fail, or be retried without waiting for the other.
  */
 function useDashboardData() {
   const [metrics, setMetrics] = useState<Metrics | null>(null);
@@ -264,7 +350,6 @@ function useDashboardData() {
         return;
       }
       setMetrics(result);
-      setMetricsError(null);
     } catch (error) {
       if (!mountedRef.current || requestId !== metricsRequestIdRef.current) {
         return;
@@ -289,13 +374,18 @@ function useDashboardData() {
 
     try {
       const result = await api.getVisualizationData();
-      if (!mountedRef.current || requestId !== visualizationRequestIdRef.current) {
+      if (
+        !mountedRef.current ||
+        requestId !== visualizationRequestIdRef.current
+      ) {
         return;
       }
       setVizData(result);
-      setVisualizationError(null);
     } catch (error) {
-      if (!mountedRef.current || requestId !== visualizationRequestIdRef.current) {
+      if (
+        !mountedRef.current ||
+        requestId !== visualizationRequestIdRef.current
+      ) {
         return;
       }
       if (process.env.NODE_ENV === "production") {
@@ -317,8 +407,10 @@ function useDashboardData() {
   }, []);
 
   useEffect(() => {
-    void fetchMetrics();
-    void fetchVisualization();
+    void Promise.resolve().then(() => {
+      void fetchMetrics();
+      void fetchVisualization();
+    });
   }, [fetchMetrics, fetchVisualization]);
 
   const handleRetry = useCallback(async () => {
@@ -332,20 +424,21 @@ function useDashboardData() {
     visualizationLoading,
     metricsError,
     visualizationError,
-    onRetry: handleRetry,
+    onRetryMetrics: fetchMetrics,
+    onRetryVisualization: fetchVisualization,
+    onRetryAll: handleRetry,
   };
 }
 
 /**
- * Render the dashboard home page with a tabbed interface for Visualization, Metrics, and Assets.
+ * Render the dashboard home page with a tabbed interface for the GRAC demonstrator, Visualization, Metrics, and Assets.
  *
- * Loads metrics and visualization data independently on mount, displays per-resource loading
- * and error states, and exposes a retry action.
+ * Loads metrics and visualization data independently on mount, displays loading and bounded per-tab error states, and exposes a retry action.
  *
  * @returns The top-level JSX element for the home page
  */
 export default function Home() {
-  const [activeTab, setActiveTab] = useState<HomeTab>("visualization");
+  const [activeTab, setActiveTab] = useState<HomeTab>("demonstrator");
   const {
     metrics,
     vizData,
@@ -353,46 +446,52 @@ export default function Home() {
     visualizationLoading,
     metricsError,
     visualizationError,
-    onRetry,
+    onRetryMetrics,
+    onRetryVisualization,
+    onRetryAll,
   } = useDashboardData();
-
   const handleTabChange = useCallback((tab: HomeTab) => {
     setActiveTab(tab);
   }, []);
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
+      {/* Header */}
       <header className="bg-white shadow-md">
         <div className="container mx-auto px-4 py-6">
           <h1 className="text-3xl font-bold text-gray-800">
-            🏦 Financial Asset Relationship Network
+            FarDb — Financial Asset Relationship Database
           </h1>
           <p className="text-gray-600 mt-2">
-            Interactive 3D visualization of interconnected financial assets
+            Governed relationship infrastructure with an institutional
+            demonstration surface
           </p>
         </div>
       </header>
 
+      {/* Navigation */}
       <TabNavigation activeTab={activeTab} onTabChange={handleTabChange} />
 
+      {/* Content */}
       <div className="container mx-auto px-4 py-8">
         <HomeContent
           activeTab={activeTab}
           vizData={vizData}
           metrics={metrics}
-          visualizationLoading={visualizationLoading}
           metricsLoading={metricsLoading}
-          visualizationError={visualizationError}
+          visualizationLoading={visualizationLoading}
           metricsError={metricsError}
-          onRetry={onRetry}
+          visualizationError={visualizationError}
+          onRetryMetrics={onRetryMetrics}
+          onRetryVisualization={onRetryVisualization}
+          onRetryAll={onRetryAll}
         />
       </div>
 
+      {/* Footer */}
       <footer className="bg-white border-t border-gray-200 mt-12">
         <div className="container mx-auto px-4 py-6 text-center text-gray-600 text-sm">
-          <p>
-            Financial Asset Relationship Database - Powered by Next.js & FastAPI
-          </p>
+          <p>FarDb — Governed Relationship Assertion Contract demonstrator</p>
         </div>
       </footer>
     </main>
