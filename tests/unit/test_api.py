@@ -61,9 +61,10 @@ def isolated_graph_publication_state():
     with graph_lock:
         original_graph = graph_state.graph
         original_job_id = graph_state.last_synced_job_id
-        graph_state.last_synced_job_id = None
 
     try:
+        with graph_lock:
+            graph_state.last_synced_job_id = None
         yield
     finally:
         with graph_lock:

@@ -14,7 +14,7 @@ from sqlalchemy import (
     inspect,
     text,
 )
-from sqlalchemy.engine import Engine, make_url
+from sqlalchemy.engine import URL, Engine, make_url
 from sqlalchemy.exc import ArgumentError
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool
@@ -167,6 +167,13 @@ def configure_sqlite_engine(engine: Engine) -> Engine:
 _configure_sqlite_engine = configure_sqlite_engine
 
 
+def _normalize_postgresql_driver(url: URL) -> URL:
+    """Select the declared psycopg2 driver for bare PostgreSQL URL schemes."""
+    if url.drivername in {"postgres", "postgresql"}:
+        return url.set(drivername="postgresql+psycopg2")
+    return url
+
+
 def create_engine_from_url(url: str | None = None) -> Engine:
     """
     Resolve a database URL and create a SQLAlchemy Engine for the asset store.
@@ -206,6 +213,7 @@ def create_engine_from_url(url: str | None = None) -> Engine:
             raise
         return _configure_sqlite_engine(create_engine(DEFAULT_DATABASE_URL, future=True))
 
+    parsed_url = _normalize_postgresql_driver(parsed_url)
     is_sqlite = parsed_url.get_backend_name() == "sqlite"
     database = parsed_url.database or ""
     query: dict = dict(parsed_url.query) if getattr(parsed_url, "query", None) else {}
@@ -230,9 +238,6 @@ def create_engine_from_url(url: str | None = None) -> Engine:
                 connect_args=connect_args,
             )
         )
-
-    if parsed_url.drivername == "postgresql":
-        parsed_url = parsed_url.set(drivername="postgresql+psycopg2")
 
     return create_engine(parsed_url, future=True)
 
