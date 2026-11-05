@@ -168,9 +168,14 @@ _configure_sqlite_engine = configure_sqlite_engine
 
 
 def _normalize_postgresql_driver(url: URL) -> URL:
-    """Select the declared psycopg2 driver for bare PostgreSQL URL schemes."""
-    if url.drivername in {"postgres", "postgresql"}:
+    """Canonicalize PostgreSQL URL aliases and select psycopg2 for bare schemes."""
+    backend, separator, driver = url.drivername.partition("+")
+    if backend not in {"postgres", "postgresql"}:
+        return url
+    if not separator:
         return url.set(drivername="postgresql+psycopg2")
+    if backend == "postgres":
+        return url.set(drivername=f"postgresql+{driver}")
     return url
 
 

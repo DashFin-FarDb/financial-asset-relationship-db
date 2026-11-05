@@ -592,8 +592,17 @@ class TestEngineCreation:
         assert captured_urls[0].drivername == "postgresql+psycopg2"
         assert captured_urls[0].query == {"sslmode": "verify-full", "application_name": "fardb-test"}
 
-    @pytest.mark.parametrize("drivername", ("postgresql+psycopg", "postgresql+psycopg2", "postgres+psycopg2"))
-    def test_explicit_postgres_driver_is_preserved(self, drivername: str, monkeypatch) -> None:
+    @pytest.mark.parametrize(
+        ("drivername", "expected_drivername"),
+        (
+            ("postgresql+psycopg", "postgresql+psycopg"),
+            ("postgresql+psycopg2", "postgresql+psycopg2"),
+            ("postgres+psycopg2", "postgresql+psycopg2"),
+        ),
+    )
+    def test_explicit_postgres_driver_is_preserved(
+        self, drivername: str, expected_drivername: str, monkeypatch
+    ) -> None:
         """Explicit PostgreSQL drivers and their query parameters are preserved."""
         captured_urls = []
 
@@ -609,7 +618,7 @@ class TestEngineCreation:
 
         create_engine_from_url(f"{drivername}://user@localhost/testdb?sslmode=require&application_name=fardb-test")
 
-        assert captured_urls[0].drivername == drivername
+        assert captured_urls[0].drivername == expected_drivername
         assert captured_urls[0].query == {"sslmode": "require", "application_name": "fardb-test"}
 
 
