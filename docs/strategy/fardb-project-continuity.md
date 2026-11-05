@@ -129,6 +129,18 @@ Primary authorities:
 
 ## Active commitments
 
+### FPC-2026-11-05-01 — Record the one-time CI-policy exception for PR #1885
+
+- **Type:** CI evidence exception / release qualification
+- **Status:** Exception exercised for merged PR #1885 only; commercial deployment remains gated on applicable hosted checks.
+- **Decision or objective:** Accept owner-approved exact-head local substitutes for GitHub Actions jobs blocked by repository billing limits, without changing repository-wide protections or fabricating hosted statuses.
+- **Rationale and constraints:** On 2026-11-05 the repository owner authorized a one-time exception for PR #1885 exact head `042df88d9d4b7f778260b7e118762af8a0540d53`, relying on the recorded local Python 3.10/3.11/3.12, security, and production-container smoke validation, passing CircleCI and Sonar checks, and approved reviews. PR #1885 was verified at that head and merged by the permitted squash method as `ac2ecd0ccbff9f3f7671ddd94ca1109a035abd46`. The exception applies to that PR and head only; it does not waive future checks, change branch rules, or establish commercial-release qualification.
+- **Repository scope:** PR #1885 and its exact-head evidence. The PR description records the same exception and its release conditions.
+- **Dependencies or blockers:** Before commercial deployment, run the applicable hosted checks that were billing-blocked and resolve the remaining analyzer and coverage evidence limitations. No hosted database access or deployment was part of this exception.
+- **Evidence and provenance:** GitHub Actions could not start `Test Python 3.10`, `Test Python 3.11`, `Test Python 3.12`, `build-and-smoke-test`, `Codacy Security Scan`, or `pysa` because of billing/quota restrictions; the dependent `Security checks` job was skipped. CircleCI Python/build/frontend checks and Sonar passed. Exact-head local substitutes covered Python 3.10/3.11/3.12, security checks, and production container build/smoke using disposable local targets. DeepSource Python analysis retained 12 findings verified as baseline findings; its coverage artifact was unavailable after the producer failed to submit coverage. Aikido SAST/IaC analysis remained incomplete. Sanitized local evidence is retained in the owner-controlled artifact directory `~/.local/share/fardb/evidence/pr1885-042df88`; no credentials are included.
+- **Next action and completion test:** Before commercial deployment, execute the applicable hosted checks against the promoted source and obtain current analyzer/coverage evidence. Do not represent the local substitutes as passing GitHub Actions jobs.
+- **Last updated:** 2026-11-05
+
 ### FPC-2026-08-27-01 — Govern GNC after Phase 2 completion
 
 - **Type:** Repository governance / exact-head evidence
