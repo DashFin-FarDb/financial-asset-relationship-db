@@ -1,0 +1,24 @@
+tests/unit/test_database.py
+  s_19e9c8ef28a978::t_b378d814e73dc0 575-577,581,590,595,601
+src/data/database.py
+  s_19e9c8ef28a978::t_b378d814e73dc0 170-176,216
+  s_19e9c8ef28a978::t_60e5e6e84733a7 17
+tests/unit/test_api.py
+  s_19e9c8ef28a978::t_b378d814e73dc0 66-67
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "1a2352262f06ef8abbca9521879407cec2274c1d",
+  "prompts": {},
+  "sessions": {
+    "s_19e9c8ef28a978": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1a63a-a145-7e81-adf7-2f509b91917e",
+        "model": "gpt-6-luna"
+      },
+      "human_author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}
