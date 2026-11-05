@@ -231,7 +231,10 @@ def create_engine_from_url(url: str | None = None) -> Engine:
             )
         )
 
-    return create_engine(resolved_url, future=True)
+    if parsed_url.drivername == "postgresql":
+        parsed_url = parsed_url.set(drivername="postgresql+psycopg2")
+
+    return create_engine(parsed_url, future=True)
 
 
 def create_session_factory(engine: Engine) -> sessionmaker[Session]:
