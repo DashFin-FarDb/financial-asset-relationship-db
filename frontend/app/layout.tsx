@@ -3,9 +3,9 @@ import type { Metadata } from "next";
 import { Analytics } from "@vercel/analytics/next";
 
 export const metadata: Metadata = {
-  title: "Financial Asset Relationship Network",
+  title: "FarDb — Governed Relationship Assertion Contract",
   description:
-    "Interactive 3D visualization of interconnected financial assets",
+    "FarDb institutional demonstrator for governed relationships, evidence, temporal context, lifecycle history, and publication provenance",
 };
 
 /**
