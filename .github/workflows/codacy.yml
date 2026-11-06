@@ -90,6 +90,9 @@ jobs:
         # CLI 7.10.1, including its runtime, is digest-pinned; no launcher is downloaded.
         # Remote rule metadata and downstream analyser images are not pinned by this digest.
         # The Docker socket retains high authority on this disposable hosted runner only.
+        # No "--" separator before the subcommand: the CLI parses with caseapp 1.2.0, which
+        # reads a leading "--" as end-of-options, selects no command, prints help and exits 0
+        # without writing any SARIF.
         shell: bash
         env:
           CODACY_CODE: ${{ github.workspace }}
@@ -103,7 +106,7 @@ jobs:
             --volume /var/run/docker.sock:/var/run/docker.sock \
             --volume "$CODACY_CODE:$CODACY_CODE" \
             --volume /tmp:/tmp \
-            codacy/codacy-analysis-cli@sha256:d412b2a84e72d0b541e29dd6cdffa78a73afcf35d8aa546988cd2a44edaab15c -- \
+            codacy/codacy-analysis-cli@sha256:d412b2a84e72d0b541e29dd6cdffa78a73afcf35d8aa546988cd2a44edaab15c \
             analyze \
             --directory "$CODACY_CODE" \
             --skip-commit-uuid-validation \

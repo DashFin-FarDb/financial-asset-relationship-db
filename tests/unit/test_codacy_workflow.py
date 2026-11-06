@@ -129,7 +129,6 @@ def test_codacy_command_arguments_and_failure_propagation(
         "--volume",
         "/tmp:/tmp",  # nosec B108
         CODACY_IMAGE,
-        "--",
         "analyze",
         "--directory",
         workspace,
@@ -147,6 +146,11 @@ def test_codacy_command_arguments_and_failure_propagation(
         "--fail-if-incomplete",
         "",
     ]
+    # No option terminator before the subcommand: the CLI parses with caseapp, which reads a
+    # leading "--" as end-of-options. That selects no command, so "analyze" is never dispatched
+    # and the process prints help, exits 0 and writes no SARIF.
+    image_index = fields.index(CODACY_IMAGE)
+    assert fields[image_index + 1] == "analyze"
 
 
 @pytest.mark.unit
