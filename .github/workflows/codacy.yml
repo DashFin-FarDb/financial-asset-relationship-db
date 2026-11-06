@@ -92,7 +92,7 @@ jobs:
         # The Docker socket is required: every analyser runs through a Docker daemon
         # (BinaryDockerRunner) and the CLI has no socket-free mode. Socket access is therefore
         # root-equivalent, so it is confined to this step on an ephemeral hosted runner and the
-        # job holds only contents:read and security-events:write. True isolation needs a
+        # job holds only contents:read, actions:read, and security-events:write. True isolation needs a
         # dedicated runner/VM and is out of scope for this change.
         # No "--" separator before the subcommand: the CLI parses with caseapp 1.2.0, which
         # reads a leading "--" as end-of-options, selects no command, prints help and exits 0
