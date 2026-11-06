@@ -107,10 +107,12 @@ def test_codacy_command_arguments_and_failure_propagation(
             "CODACY_STUB_STATUS": str(exit_code),
         }
     )
-    # Pass the script on stdin: the command vector then carries only constant arguments and no
-    # shell code is assembled into an executable argument.
+    # The command vector is entirely literal; the resolved interpreter path is supplied through
+    # `executable`, and the step's shell body is passed on stdin. No shell code is assembled into
+    # an executable argument and no argument is built from variables.
     result = subprocess.run(  # nosec B603
-        [native_bash, "--noprofile", "--norc", "-e", "-o", "pipefail"],
+        ["bash", "--noprofile", "--norc", "-e", "-o", "pipefail"],
+        executable=native_bash,
         input=stub + scan["run"],
         env=environment,
         capture_output=True,
