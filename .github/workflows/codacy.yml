@@ -89,7 +89,11 @@ jobs:
         continue-on-error: true
         # CLI 7.10.1, including its runtime, is digest-pinned; no launcher is downloaded.
         # Remote rule metadata and downstream analyser images are not pinned by this digest.
-        # The Docker socket retains high authority on this disposable hosted runner only.
+        # The Docker socket is required: every analyser runs through a Docker daemon
+        # (BinaryDockerRunner) and the CLI has no socket-free mode. Socket access is therefore
+        # root-equivalent, so it is confined to this step on an ephemeral hosted runner and the
+        # job holds only contents:read and security-events:write. True isolation needs a
+        # dedicated runner/VM and is out of scope for this change.
         # No "--" separator before the subcommand: the CLI parses with caseapp 1.2.0, which
         # reads a leading "--" as end-of-options, selects no command, prints help and exits 0
         # without writing any SARIF.
