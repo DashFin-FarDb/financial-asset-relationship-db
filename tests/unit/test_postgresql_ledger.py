@@ -15,6 +15,28 @@ from src.data.database import POSTGRESQL_MANAGED_TABLES
 
 pytestmark = pytest.mark.unit
 
+EXPECTED_PROFILE_MIGRATION_IDENTITIES = {
+    "auth": (("auth", "20260817153547_cq_03b_r2_auth_forward_baseline.sql"),),
+    "graph": (
+        ("graph", "20260817153555_cq_03b_r2_graph_forward_baseline.sql"),
+        ("graph", "20260822164127_add_graph_foreign_key_indexes.sql"),
+    ),
+    "coordination": (("coordination", "20260817153557_cq_03b_r2_coordination_forward_baseline.sql"),),
+    "combined": (
+        ("auth", "20260817153547_cq_03b_r2_auth_forward_baseline.sql"),
+        ("graph", "20260817153555_cq_03b_r2_graph_forward_baseline.sql"),
+        ("coordination", "20260817153557_cq_03b_r2_coordination_forward_baseline.sql"),
+        ("graph", "20260822164127_add_graph_foreign_key_indexes.sql"),
+    ),
+}
+
+
+def _assert_profile_migration_identities(profile: str, selected: tuple[ledger.MigrationEntry, ...]) -> None:
+    """Require the exact ordered component and filename identity sequence for a profile."""
+    actual = tuple((entry.component, entry.filename) for entry in selected)
+    expected = EXPECTED_PROFILE_MIGRATION_IDENTITIES[profile]
+    assert actual == expected, f"profile {profile} migrations do not match the exact ordered identity contract"
+
 
 def _copy_manifest(tmp_path: Path) -> Path:
     """Copy the canonical Supabase source tree into an isolated test root."""
@@ -108,7 +130,7 @@ def test_manifest_and_profile_unions_are_deterministic() -> None:
     """The committed manifest must resolve exact, timestamp-ordered component unions."""
     manifest = ledger.load_and_validate_manifest()
 
-    assert manifest.sha256 == "d3625e9af90eed107cc90d392557308b0c339d9c23d792381e9f1658e8ec03fb"
+    assert manifest.sha256 == "bf58ff217c1d1743eb0aee55d3d5d8820fada3a7fa335224424d662adbb0382c"
     assert (
         tuple(
             table_name
@@ -117,12 +139,23 @@ def test_manifest_and_profile_unions_are_deterministic() -> None:
         )
         == POSTGRESQL_MANAGED_TABLES
     )
-    assert tuple(entry.component for entry in manifest.migrations_for_profile("combined")) == ledger.COMPONENT_ORDER
-    for profile, components in ledger.EXPECTED_PROFILES.items():
+    for profile in ledger.EXPECTED_PROFILES:
         selected = manifest.migrations_for_profile(profile)
-        assert tuple(entry.component for entry in selected) == components
+        _assert_profile_migration_identities(profile, selected)
         assert [entry.timestamp for entry in selected] == sorted(entry.timestamp for entry in selected)
         assert all(ledger.sha256_bytes(entry.path.read_bytes()) == entry.sha256 for entry in selected)
+
+
+def test_profile_migration_identity_assertion_rejects_duplicates_and_wrong_order() -> None:
+    """Exact profile identities reject repeated entries and reordered migrations."""
+    selected = ledger.load_and_validate_manifest().migrations_for_profile("combined")
+    duplicate_selection = (*selected, selected[-1])
+    reordered_selection = (selected[0], selected[2], selected[1], selected[3])
+
+    with pytest.raises(AssertionError, match="exact ordered identity contract"):
+        _assert_profile_migration_identities("combined", duplicate_selection)
+    with pytest.raises(AssertionError, match="exact ordered identity contract"):
+        _assert_profile_migration_identities("combined", reordered_selection)
 
 
 def test_digest_algorithms_have_stable_unicode_vectors() -> None:
