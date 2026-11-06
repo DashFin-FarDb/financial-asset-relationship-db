@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import itertools
 import os
+import re
 import shutil
 import subprocess  # nosec B404
 from pathlib import Path
@@ -14,6 +15,7 @@ import yaml
 
 WORKFLOW_PATH = Path(__file__).resolve().parents[2] / ".github" / "workflows" / "codacy.yml"
 CODACY_IMAGE = "codacy/codacy-analysis-cli@sha256:d412b2a84e72d0b541e29dd6cdffa78a73afcf35d8aa546988cd2a44edaab15c"
+SECRET_REFERENCE = re.compile(r"\$\{\{ secrets\.(?P<name>[A-Z0-9_]+) \}\}")
 
 
 @pytest.fixture(scope="module")
@@ -44,11 +46,14 @@ def test_codacy_direct_image_transport(codacy_steps: list[dict[str, Any]]) -> No
     assert "uses" not in scan
     assert "with" not in scan
     assert scan["shell"] == "bash"
-    assert scan["env"] == {
-        "CODACY_CODE": "${{ github.workspace }}",
-        "CODACY_PROJECT_TOKEN": "${{ secrets.CODACY_PROJECT_TOKEN }}",
-        "CODACY_COMMIT_SHA": "${{ github.event.pull_request.head.sha || github.sha }}",
-    }
+    environment = scan["env"]
+    assert set(environment) == {"CODACY_CODE", "CODACY_PROJECT_TOKEN", "CODACY_COMMIT_SHA"}
+    assert environment["CODACY_CODE"] == "${{ github.workspace }}"
+    assert environment["CODACY_COMMIT_SHA"] == "${{ github.event.pull_request.head.sha || github.sha }}"
+    # The token must stay a repository-secret reference; a literal credential must never appear here.
+    token_reference = SECRET_REFERENCE.fullmatch(environment["CODACY_PROJECT_TOKEN"])
+    assert token_reference is not None, "CODACY_PROJECT_TOKEN must be a secrets expression"
+    assert token_reference.group("name") == "CODACY_PROJECT_TOKEN"
     assert "${{" not in scan["run"]
     assert CODACY_IMAGE in scan["run"]
 
@@ -102,8 +107,11 @@ def test_codacy_command_arguments_and_failure_propagation(
             "CODACY_STUB_STATUS": str(exit_code),
         }
     )
+    # Pass the script on stdin: the command vector then carries only constant arguments and no
+    # shell code is assembled into an executable argument.
     result = subprocess.run(  # nosec B603
-        [native_bash, "--noprofile", "--norc", "-e", "-o", "pipefail", "-c", stub + scan["run"]],
+        [native_bash, "--noprofile", "--norc", "-e", "-o", "pipefail"],
+        input=stub + scan["run"],
         env=environment,
         capture_output=True,
         encoding="utf-8",
