@@ -1,0 +1,19 @@
+docs/strategy/fardb-project-continuity.md
+  s_360ee0f372c38e::t_68cb201ee383f9 141-148
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "f3f9f082fd7824ec77ba5d63e1dfd37995349c52",
+  "prompts": {},
+  "sessions": {
+    "s_360ee0f372c38e": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1b833-9b36-73d0-968f-b709133964a3",
+        "model": "gpt-6-luna"
+      },
+      "human_author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}
