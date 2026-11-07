@@ -11,6 +11,10 @@
 - **GNC:** Phases 1 and 2 are complete; Phase 3 remains unauthorised.
 - **Hosted preflight:** no CQ-03D-02 target or permit is approved, and no hosted preflight has been executed.
 
+**Cutoff scope:** The 2026-09-01 broad repository review and its source list describe `main` at
+`0984f6225cc0f42ff02a9f7eda7b314566d759d0`. Later dated entries are PR-specific post-cutoff addenda; they do
+not imply a new whole-repository audit. The handoff records a separately verified later `main` SHA.
+
 This ledger preserves durable project decisions, plans, milestones, and handoffs across ChatGPT, Codex, and
 repository work. It is an index of authoritative evidence, not a replacement for detailed specifications, issues,
 pull requests, ADRs, runbooks, or release evidence packs.
@@ -132,13 +136,19 @@ Primary authorities:
 ### FPC-2026-11-05-01 — Record the one-time CI-policy exception for PR #1885
 
 - **Type:** CI evidence exception / release qualification
-- **Status:** Exception exercised for merged PR #1885 only; commercial deployment remains gated on applicable hosted checks.
-- **Decision or objective:** Accept owner-approved exact-head local substitutes for GitHub Actions jobs blocked by repository billing limits, without changing repository-wide protections or fabricating hosted statuses.
-- **Rationale and constraints:** On 2026-11-05 the repository owner authorized a one-time exception for PR #1885 exact head `042df88d9d4b7f778260b7e118762af8a0540d53`, relying on the recorded local Python 3.10/3.11/3.12, security, and production-container smoke validation, passing CircleCI and Sonar checks, and approved reviews. PR #1885 was verified at that head and merged by the permitted squash method as `ac2ecd0ccbff9f3f7671ddd94ca1109a035abd46`. The exception applies to that PR and head only; it does not waive future checks, change branch rules, or establish commercial-release qualification.
-- **Repository scope:** PR #1885 and its exact-head evidence. The PR description records the same exception and its release conditions.
-- **Dependencies or blockers:** Before commercial deployment, run the applicable hosted checks that were billing-blocked and resolve the remaining analyzer and coverage evidence limitations. No hosted database access or deployment was part of this exception.
-- **Evidence and provenance:** GitHub Actions could not start `Test Python 3.10`, `Test Python 3.11`, `Test Python 3.12`, `build-and-smoke-test`, `Codacy Security Scan`, or `pysa` because of billing/quota restrictions; the dependent `Security checks` job was skipped. CircleCI Python/build/frontend checks and Sonar passed. Exact-head local substitutes covered Python 3.10/3.11/3.12, security checks, and production container build/smoke using disposable local targets. DeepSource Python analysis retained 12 findings verified as baseline findings; its coverage artifact was unavailable after the producer failed to submit coverage. Aikido SAST/IaC analysis remained incomplete. Sanitized local evidence is retained in the owner-controlled artifact directory `~/.local/share/fardb/evidence/pr1885-042df88`; no credentials are included.
-- **Next action and completion test:** Before commercial deployment, execute the applicable hosted checks against the promoted source and obtain current analyzer/coverage evidence. Do not represent the local substitutes as passing GitHub Actions jobs.
+- **Status:** The one-time exception was exercised for merged PR #1885 at its exact head only. This is a post-cutoff addendum; commercial deployment remains gated.
+- **Decision or objective:** Accept owner-approved local substitutes for billing-blocked GitHub Actions jobs at exact head `042df88d9d4b7f778260b7e118762af8a0540d53`. PR [#1885](https://github.com/DashFin-FarDb/financial-asset-relationship-db/pull/1885) was squash-merged as `ac2ecd0ccbff9f3f7671ddd94ca1109a035abd46`. The exception changes no repository-wide protection and applies only to this PR and head.
+- **Evidence and provenance:** Exact-head local Python 3.10/3.11/3.12, security and production-container smoke checks substituted for billing-blocked GitHub Actions checks. CircleCI `python-test` and Sonar passed. CircleCI `python-lint`, `python-security`, `frontend-lint`, `frontend-build` and `docker-build` are compatibility-only dummy jobs, per [CI policy](../ci-required-checks-policy.md#platform-deduplication). DeepSource retained 12 baseline findings and lacked a coverage submission; Aikido SAST/IaC analysis was incomplete. The public PR records the exception and check history. Owner-held sanitized evidence is at `~/.local/share/fardb/evidence/pr1885-042df88`; `validation-summary.md` SHA-256 is `6bc940008265fa0205ed9912f8b2c22505016f0882311a4f3188ed231c13f892` and `logs.sha256` SHA-256 is `fbf80ef1bc0849658797cb0bd6a8bea093fc09c34deefe407db35458de4c6726`.
+- **Dependencies or blockers:** Before commercial deployment, run applicable hosted checks and obtain current analyzer and coverage evidence tied to the exact promoted commit and immutable artifact digest. Local substitutes are not passing GitHub Actions statuses. No hosted database operation or deployment was part of the exception.
+- **Last updated:** 2026-11-05
+
+### FPC-2026-11-05-02 — Record DB-ADV-01 PR #1672 integration
+
+- **Type:** PostgreSQL ledger performance / exact-head CI exception
+- **Status:** Repository change merged; hosted application remains subject to separate gates. This is a post-cutoff addendum.
+- **Decision or objective:** Integrate the three-index graph foreign-key migration and ordered migration-identity tests. PR [#1672](https://github.com/DashFin-FarDb/financial-asset-relationship-db/pull/1672) candidate `9afaa0706a9c19fd5d8fef2ba3c5df3a5970eeb4`, parent `95728000834ffb4523d3089269ec517ad39b3729`, was squash-merged as `231aafa06107bcdf9cdb4ad79ae33894312703b4`; its merge tree `87676a5b09309d1db606a2868b278683ea3af201` matches the candidate tree. Migration SHA-256: `43f59301fa01ade5449d76375b8778d8257063248f87c28de3937004ca8f338e`.
+- **Evidence and provenance:** Candidate `9afaa0706a9c19fd5d8fef2ba3c5df3a5970eeb4` passed 83 focused ledger/drift tests and file-scoped pre-commit; Aikido reported zero issues in the changed test file. Broader Python 3.10/3.11/3.12, security, production-container and disposable PostgreSQL 15/16 results belong to parent `95728000834ffb4523d3089269ec517ad39b3729`. The later commit changed test assertions only; those results remain parent-SHA evidence. The owner-approved required-check exception covers the candidate SHA and repository integration only; blocked checks were not reported as passing.
+- **Dependencies or blockers:** PostgreSQL 17 evidence, hosted authority/support resolution, target-bound protected preflight, history-adoption approval and an approved maintenance window remain outstanding before hosted application. Before commercial deployment, obtain applicable hosted checks and analyzer/coverage evidence for the exact promoted source and artifact. Merging the migration does not establish resolution of the hosted adviser finding.
 - **Last updated:** 2026-11-05
 
 ### FPC-2026-08-27-01 — Govern GNC after Phase 2 completion
@@ -601,6 +611,7 @@ Primary authorities:
   documentation, and release-evidence mechanisms exist in the repository.
 - RC1 has candidate-specific approved hosted and restore evidence.
 - `main` is `0984f6225cc0f42ff02a9f7eda7b314566d759d0` at this cutoff.
+- `main` was separately verified at `231aafa06107bcdf9cdb4ad79ae33894312703b4` on 2026-11-05 for the PR #1885 and #1672 addenda; the broader historical review was not refreshed.
 - CQ-01/CQ-02 are closed through merged PR #1608 with exact PostgreSQL 15/16 authority evidence. QH-01 is closed
   through merged PR #1632. Provider rollout and production qualification remain separate evidence obligations.
 - CQ-03 is the active critical-path programme. CQ-03A is complete through accepted ADR 0009 and merged PR #1634;
