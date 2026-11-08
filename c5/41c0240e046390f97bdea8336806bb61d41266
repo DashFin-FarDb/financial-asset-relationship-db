@@ -1,0 +1,16 @@
+docs/governance/governed-relationship-assertion-contract-v1.md
+  h_f327e6ff3ec3c1 4
+docs/governance/staging-proof-result.json
+  h_f327e6ff3ec3c1 1-47
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.21",
+  "base_commit_sha": "c541c0240e046390f97bdea8336806bb61d41266",
+  "prompts": {},
+  "humans": {
+    "h_f327e6ff3ec3c1": {
+      "author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}

@@ -1,0 +1,27 @@
+scripts/check_hosted_readiness.py
+  s_a2375cdf388c42::t_d0787254cc7d74 378,386,395,404,479-483
+  s_a2375cdf388c42::t_20075e3dcad10b 292-299
+  s_a2375cdf388c42::t_599bb0c8979270 41
+  s_a2375cdf388c42::t_7fecad89cf6610 282-291,300-311,374,379,396-403,436-478,484-511,513-515,537-542,564-570
+  s_a2375cdf388c42::t_40f69db081ea74 42
+tests/unit/test_check_hosted_readiness.py
+  s_a2375cdf388c42::t_8bd2288cd0a894 658,695
+  s_a2375cdf388c42::t_080c180d5f5c83 6,636-657,659-694,696-721,725-727
+  s_a2375cdf388c42::t_20075e3dcad10b 722-724
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.3",
+  "base_commit_sha": "0247b44100ac10cc6ea6ef5ba730d9bc9aa9c57d",
+  "prompts": {},
+  "sessions": {
+    "s_a2375cdf388c42": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019ef40a-d392-79a0-94fb-198575f20fb1",
+        "model": "gpt-5.4-mini"
+      },
+      "human_author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}

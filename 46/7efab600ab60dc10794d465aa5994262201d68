@@ -1,0 +1,19 @@
+.mergify.yml
+  s_a9079a96cd0b29::t_131bb9924a0808 110,132
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "467efab600ab60dc10794d465aa5994262201d68",
+  "prompts": {},
+  "sessions": {
+    "s_a9079a96cd0b29": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f3bef-eab7-7292-8e06-0aa00e3538ed",
+        "model": "gpt-5.4-mini"
+      },
+      "human_author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}

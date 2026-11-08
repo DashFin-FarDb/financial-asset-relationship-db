@@ -1,0 +1,21 @@
+frontend/next.config.js
+  s_33a25107973364::t_fb7e04a6b05c64 4-6
+frontend/__tests__/config/next-config-validation.test.ts
+  s_33a25107973364::t_fb7e04a6b05c64 1-51
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "017c1fab48ee435b5d002701494a3e3fbf44f5cc",
+  "prompts": {},
+  "sessions": {
+    "s_33a25107973364": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a01ef3-688c-7872-bea6-edcd50fdb7a5",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}

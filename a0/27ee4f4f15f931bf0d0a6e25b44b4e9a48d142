@@ -1,0 +1,16 @@
+docs/governance/evidence/grac-v1-restart-health-observation.json
+  h_f327e6ff3ec3c1 1-8
+docs/governance/grac-v1-staging-evidence-2026-08-06.md
+  h_f327e6ff3ec3c1 59-76
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.21",
+  "base_commit_sha": "a027ee4f4f15f931bf0d0a6e25b44b4e9a48d142",
+  "prompts": {},
+  "humans": {
+    "h_f327e6ff3ec3c1": {
+      "author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}

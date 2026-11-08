@@ -1,0 +1,57 @@
+tests/unit/test_database_check_normalization_regression.py
+  s_1a4d3926661ace::t_d3f0651bac3445 52-57,59-67
+  s_1a4d3926661ace::t_ded8f34e239753 58
+tests/integration/test_production_container_workflow.py
+  s_951b443e5699cd::t_05b0cb276e4fd1 125,128-135
+  s_951b443e5699cd::t_926eb17ce9f155 11,149-151
+  s_1a4d3926661ace::t_70d8f8b49f9ac1 58
+  s_1a4d3926661ace::t_32c4814dd04118 115-124,127,136-139,142-143,145-148,152
+  s_1a4d3926661ace::t_9cc1f16f3663a6 57
+  s_1a4d3926661ace::t_cfaf22271c854f 126,144
+docker-compose.production.yml
+  s_1a4d3926661ace::t_32c4814dd04118 5,32-33,37-44,46-49,53
+  s_951b443e5699cd::t_05b0cb276e4fd1 34-36,45,50-52
+  s_1a4d3926661ace::t_16e1801efff1d0 54
+.github/workflows/production-container.yml
+  s_951b443e5699cd::t_05b0cb276e4fd1 68
+  s_1a4d3926661ace::t_32c4814dd04118 49,58-59,63,67,99-100,179
+docs/runbooks/database-migration-authority.md
+  s_1a4d3926661ace::t_32c4814dd04118 100-109,111-117
+  s_1a4d3926661ace::t_56a2452a5fda72 99
+  s_951b443e5699cd::t_05b0cb276e4fd1 110
+src/data/database.py
+  s_951b443e5699cd::t_904f5412330299 616,627-640,666-668,670,691,708,729
+tests/integration/test_runtime_authority_postgres.py
+  s_951b443e5699cd::t_904f5412330299 684-740
+  s_951b443e5699cd::t_f5692aa48409d2 682-683
+tests/unit/test_database.py
+  s_951b443e5699cd::t_904f5412330299 156-164
+src/data/check_constraint_normalization.py
+  s_1a4d3926661ace::t_d3f0651bac3445 129-186,209
+Dockerfile.api
+  s_1a4d3926661ace::t_32c4814dd04118 19-20
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "928fbebe51df3794a49ef581a61287e05ea7552c",
+  "prompts": {},
+  "sessions": {
+    "s_1a4d3926661ace": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fefd1-5047-7173-ae4c-e6962d4e9ad9",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    },
+    "s_951b443e5699cd": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019ff519-696e-7c60-b8fa-0b2080202bc9",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}

@@ -1,0 +1,35 @@
+tests/integration/test_financial_relationship_vertical_slice.py
+  s_8630f737cf5bfc::t_e5f03b9825f632 200-201,204-209
+  s_8630f737cf5bfc::t_931ff399dec396 28
+  s_8630f737cf5bfc::t_0de2549d42bc8a 105-112,134-138,217-219
+  s_8630f737cf5bfc::t_ccad2f129037a1 1-27,29-104,113-133,139-199,202-203,210-216,220-300
+api/graph_lifecycle_providers.py
+  s_8630f737cf5bfc::t_c64a24120141d7 354-374
+src/data/relationship_assertion_repository.py
+  s_8630f737cf5bfc::t_ac5bd208a47a24 21-22,64,71,74-75,120-154,730-829,831-839
+  s_8630f737cf5bfc::t_8f1adaef8309cf 830
+  s_8630f737cf5bfc::t_4aea7330b09ac9 15
+  s_8630f737cf5bfc::t_4f95b6a67edad5 840
+src/logic/relationship_projection.py
+  s_8630f737cf5bfc::t_931ff399dec396 15
+  s_8630f737cf5bfc::t_69f993f2a8da87 98-100,463-510
+api/routers/graph_admin.py
+  s_8630f737cf5bfc::t_6a5500fbfa9861 28-32,39,71,115,1080-1081,1083,1619-1620,1622-1675
+  s_8630f737cf5bfc::t_931ff399dec396 43
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.19",
+  "base_commit_sha": "ff9e1b4ff2578f1c6277918c554b37ace644ac64",
+  "prompts": {},
+  "sessions": {
+    "s_8630f737cf5bfc": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fbc00-9ecc-7473-b6de-74c7d06b262a",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}

@@ -1,0 +1,30 @@
+docs/audits/enterprise-readiness-audit.md
+  s_a2375cdf388c42::t_ac3254380afb4d 19-21,35,103,159,174,194
+docs/roadmap/enterprise-readiness-roadmap.md
+  s_a2375cdf388c42::t_ac3254380afb4d 49,58,77
+docs/testing/operational-drill-and-scale-validation-pack.md
+  s_a2375cdf388c42::t_ac3254380afb4d 1-166
+docs/roadmap/enterprise-readiness-pr-board.md
+  s_a2375cdf388c42::t_ac3254380afb4d 39,49
+docs/enterprise-readiness-index.md
+  s_a2375cdf388c42::t_ac3254380afb4d 17,72
+  s_a2375cdf388c42::t_851f5777071c7c 32,46
+docs/validation-gap-audit.md
+  s_a2375cdf388c42::t_ac3254380afb4d 86-87
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.3",
+  "base_commit_sha": "b05115b8a66a75925c6158425d91782e6d2b4bc3",
+  "prompts": {},
+  "sessions": {
+    "s_a2375cdf388c42": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019ef40a-d392-79a0-94fb-198575f20fb1",
+        "model": "gpt-5.4-mini"
+      },
+      "human_author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}

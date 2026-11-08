@@ -1,0 +1,40 @@
+api/middleware/__init__.py
+  s_07988e54548e4c::t_b927c2676c3f8a 1
+src/api/routers/dependencies.py
+  s_07988e54548e4c::t_b927c2676c3f8a 1-2
+mcp_server.py
+  s_07988e54548e4c::t_4750e3aa8996e3 45
+  s_07988e54548e4c::t_b927c2676c3f8a 34,63-65
+run_tests.py
+  s_07988e54548e4c::t_b927c2676c3f8a 1
+  s_07988e54548e4c::t_4750e3aa8996e3 10,23
+src/analysis/__init__.py
+  s_07988e54548e4c::t_b927c2676c3f8a 1
+src/visualizations/formulaic_visuals.py
+  s_07988e54548e4c::t_b927c2676c3f8a 234,236-238
+  s_07988e54548e4c::t_560d266de99f6a 304,349,414,512,585,616,672,822,885
+scripts/validate_manifest.py
+  s_07988e54548e4c::t_b927c2676c3f8a 120
+src/models/financial_models.py
+  s_07988e54548e4c::t_b927c2676c3f8a 35,135,145,156,165,174
+src/logic/relationship_parser.py
+  s_07988e54548e4c::t_b927c2676c3f8a 84,122
+scripts/deduplicate_manifest.py
+  s_07988e54548e4c::t_4750e3aa8996e3 178
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "fc5a14c73461a8b1b834651055925657111f46e2",
+  "prompts": {},
+  "sessions": {
+    "s_07988e54548e4c": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f40b3-6869-7bf2-85af-d257a6f063bb",
+        "model": "gpt-5.4-mini"
+      },
+      "human_author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}

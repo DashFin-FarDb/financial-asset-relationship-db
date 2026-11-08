@@ -1,0 +1,34 @@
+tests/unit/test_settings.py
+  s_33a25107973364::t_6361b947fd5ad3 392
+  s_33a25107973364::t_c054fff107f56c 132,153,172,287,308,330,393-403
+  s_33a25107973364::t_130f664f845544 404
+api/database.py
+  s_33a25107973364::t_c054fff107f56c 704-706
+.env.example
+  s_33a25107973364::t_c054fff107f56c 24
+  s_33a25107973364::t_6361b947fd5ad3 23
+docs/runbooks/database-migration-authority.md
+  s_33a25107973364::t_c054fff107f56c 76,85
+  s_33a25107973364::t_6361b947fd5ad3 77-84
+src/config/settings.py
+  s_33a25107973364::t_6361b947fd5ad3 91,130
+  s_33a25107973364::t_c054fff107f56c 88-90,92-93,125,132-139,144-149,213-214,247-249
+tests/unit/test_api_database.py
+  s_33a25107973364::t_c054fff107f56c 197-215,222,237-271
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "46be499c63121d36f805e32a817f231809d2b005",
+  "prompts": {},
+  "sessions": {
+    "s_33a25107973364": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a01ef3-688c-7872-bea6-edcd50fdb7a5",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}

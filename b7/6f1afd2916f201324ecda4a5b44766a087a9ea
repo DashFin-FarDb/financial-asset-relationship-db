@@ -1,0 +1,21 @@
+docs/runbooks/database-migration-authority.md
+  s_951b443e5699cd::t_3bfade1d38bab8 110
+tests/integration/test_production_container_workflow.py
+  s_951b443e5699cd::t_3bfade1d38bab8 166-169
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "b76f1afd2916f201324ecda4a5b44766a087a9ea",
+  "prompts": {},
+  "sessions": {
+    "s_951b443e5699cd": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019ff519-696e-7c60-b8fa-0b2080202bc9",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}

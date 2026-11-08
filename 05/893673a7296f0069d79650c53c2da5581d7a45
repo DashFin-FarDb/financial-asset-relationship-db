@@ -1,0 +1,19 @@
+scripts/verify_staging_promotion.py
+  s_ebae7f3448d420::t_76ec71bc65e496 4,19-22,25-27,30,37-129,131,133-135,140-143,145-147,149-172,177-182,187-189,192-193,197-201,205-206
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "05893673a7296f0069d79650c53c2da5581d7a45",
+  "prompts": {},
+  "sessions": {
+    "s_ebae7f3448d420": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f3760-85c1-7991-b0f7-7ffd254a3193",
+        "model": "gpt-5.4-mini"
+      },
+      "human_author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}

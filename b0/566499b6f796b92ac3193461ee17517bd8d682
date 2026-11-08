@@ -1,0 +1,22 @@
+api/routers/graph_admin.py
+  h_f327e6ff3ec3c1 1801-1805
+api/services/relationship_index.py
+  h_f327e6ff3ec3c1 379-408
+src/data/relationship_assertion_repository.py
+  h_f327e6ff3ec3c1 926-950,952-953
+tests/unit/test_api_governance_metadata.py
+  h_f327e6ff3ec3c1 283-286,305-320,322-327,329
+tests/unit/test_relationship_index_publication_binding.py
+  h_f327e6ff3ec3c1 39-40,61,67,96,100,114-115,135,144-145,158-159,195,206,209,220
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.20",
+  "base_commit_sha": "b0566499b6f796b92ac3193461ee17517bd8d682",
+  "prompts": {},
+  "humans": {
+    "h_f327e6ff3ec3c1": {
+      "author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}

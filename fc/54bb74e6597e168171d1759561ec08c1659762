@@ -1,0 +1,22 @@
+src/config/settings.py
+  s_33a25107973364::t_686829135af390 30,35,38-47,66,187-188
+tests/unit/test_settings.py
+  s_33a25107973364::t_686829135af390 174-175,182-186
+  s_33a25107973364::t_4fceb2cd078745 187
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "fc54bb74e6597e168171d1759561ec08c1659762",
+  "prompts": {},
+  "sessions": {
+    "s_33a25107973364": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a01ef3-688c-7872-bea6-edcd50fdb7a5",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}

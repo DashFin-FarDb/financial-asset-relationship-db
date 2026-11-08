@@ -1,0 +1,91 @@
+src/data/migrations.py
+  s_07988e54548e4c::t_042f92f00ca218 366,369
+tests/integration/test_agent_instructions_documentation.py
+  s_07988e54548e4c::t_b548853e928f80 168-170,440-442,467-469
+tests/integration/test_bearer_workflow.py
+  s_07988e54548e4c::t_4dc456fac9806e 183-185,205-207,278-280,319-321,487-489,520-522
+tests/integration/test_branch_integration.py
+  s_07988e54548e4c::t_04a90e71b1f705 101-103,283-285,310-312
+tests/integration/test_distributed_hosting_failure_modes.py
+  s_07988e54548e4c::t_dd39c474c2c29a 308-310
+tests/integration/test_documentation_validation.py
+  s_07988e54548e4c::t_38055790ef4493 78-80,107-109,128-130,166-168,173-175,190-192,259-261
+tests/integration/test_github_workflows.py
+  s_07988e54548e4c::t_e13df1d0dd510f 221-223,227-229,412-414,601-603,977-979,1000-1002,1036-1038,1050-1052,1065-1067,1112-1114,1192-1194,1220-1222,1263-1265,1427-1429,1484-1486,1669-1671,1832-1834,1857-1859,2085-2087,2184-2186,2271-2273,2435-2437,2536-2538,2625-2627
+tests/integration/test_hosted_readiness_workflow.py
+  s_07988e54548e4c::t_6bdf0b0f9e17aa 116-118,128-130,140-142,151-153,234-236,243-245,251-253,259-261,301-303,355-357,367-369,380-382,396-398,409-411,429-431,438-443,456-458,463-468,476-478,489-491
+tests/integration/test_lock_refresh_flow.py
+  s_07988e54548e4c::t_97a5cda8dbc18d 356-358
+tests/integration/test_mergify_workflow.py
+  s_07988e54548e4c::t_587c8fe7147c2f 102-104,120-122,139-141,143-145,206-211,253-255,274-279,301-303,345-347,364-366,383-385
+tests/integration/test_modified_config_files_validation.py
+  s_07988e54548e4c::t_6013e66e56fcc3 98-100,377-379
+tests/integration/test_pr_agent_workflow_specific.py
+  s_07988e54548e4c::t_2b2b31e16ab260 58-60,95-97
+tests/integration/test_pr_guardrails_documentation.py
+  s_07988e54548e4c::t_fe7345c783bc7d 239-241,252-257
+tests/integration/test_production_architecture_documentation.py
+  s_07988e54548e4c::t_91fa2701142bcf 536-538,573-575,581-583,993-995,1022-1027,1081-1083
+tests/integration/test_pyproject_dev_deps.py
+  s_07988e54548e4c::t_868f20b86fb2b9 96-98,125-127,142-144
+tests/integration/test_requirements.py
+  s_07988e54548e4c::t_996bca7530093d 367-369,437-439
+tests/integration/test_requirements_pyyaml.py
+  s_07988e54548e4c::t_bc72e6dfc9c286 118-120
+tests/integration/test_requirements_validation.py
+  s_07988e54548e4c::t_f9b60b73428f2f 111-113
+tests/integration/test_summary_workflow.py
+  s_07988e54548e4c::t_a7943c9f2656a4 166-168,182-184,247-249,259-261,271-273,283-285,343-345,360-362,374-376,408-410,419-421,430-435,492-494,505-507,573-578,587-592,611-613
+tests/integration/test_workflow_changes_validation.py
+  s_07988e54548e4c::t_e1d7606d1061aa 256-258,306-308
+tests/integration/test_workflow_documentation.py
+  s_07988e54548e4c::t_32dd9ef7e4d92f 45-47
+tests/integration/test_workflow_requirements_integration.py
+  s_07988e54548e4c::t_534db6c6494b2f 171-173,239-241
+tests/integration/test_workflow_security_advanced.py
+  s_07988e54548e4c::t_8dbe1a1766b91f 130-132,156-158,205-207,254-256,308-310
+tests/integration/test_workflow_yaml_validation.py
+  s_07988e54548e4c::t_929afeb6aa53d2 69-71
+tests/unit/test_api_database_comprehensive.py
+  s_07988e54548e4c::t_3df4c353f52eb8 223-225,235-240,263-265,315-317,441-443,449-451
+tests/unit/test_check_coordination_invariants.py
+  s_07988e54548e4c::t_e3e44360943291 30-32,41-43
+tests/unit/test_config_validation.py
+  s_07988e54548e4c::t_f9786689abc5ee 240-242,524-526,915-917,928-930,951-953,959-961
+tests/unit/test_documentation_validation.py
+  s_07988e54548e4c::t_0a3d1de6ff150a 454-456,538-540,618-620,776-778,942-944,947-949,977-979,999-1001
+tests/unit/test_generate_status.py
+  s_07988e54548e4c::t_bcd30118fb56e5 1432-1434
+tests/unit/test_graph_lifecycle_providers.py
+  s_07988e54548e4c::t_35919f520194db 124-126,146-148
+tests/unit/test_manifest_scripts.py
+  s_07988e54548e4c::t_11580f35166cbd 221-223
+tests/unit/test_mergify_config.py
+  s_07988e54548e4c::t_5c9efd306bf2ff 79-81,97-99,257-259,300-302,625-627,830-832,961-963,1020-1022,1033-1035,1075-1077
+tests/unit/test_microagent_validation.py
+  s_07988e54548e4c::t_52dbbd92b4dd67 192-194,216-218,277-279,346-348,390-392,405-407,486-488,496-498
+tests/unit/test_real_data_fetcher.py
+  s_07988e54548e4c::t_7b648a25c3ee06 1442-1444
+tests/unit/test_sample_data.py
+  s_07988e54548e4c::t_d25866bf47addd 160-162,265-267
+tests/unit/test_schema_report.py
+  s_07988e54548e4c::t_3096d2ec051849 263-265,289-291
+tests/unit/test_summary_documentation.py
+  s_07988e54548e4c::t_0855364ead06f7 124-126
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "91ebe23f6b517a5884bd035ecf76b36c888ec60c",
+  "prompts": {},
+  "sessions": {
+    "s_07988e54548e4c": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f40b3-6869-7bf2-85af-d257a6f063bb",
+        "model": "gpt-5.4-mini"
+      },
+      "human_author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}

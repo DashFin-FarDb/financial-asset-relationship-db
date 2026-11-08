@@ -1,0 +1,20 @@
+api/database.py
+  h_f327e6ff3ec3c1 187-188,215-216
+src/data/database.py
+  h_f327e6ff3ec3c1 583-584
+tests/unit/test_api_database.py
+  h_f327e6ff3ec3c1 260-261,263,627,669,672
+tests/unit/test_postgresql_preflight.py
+  h_f327e6ff3ec3c1 12,664,667,700
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "b131f36dc406e6e1a3f7b868dcab173cb5ff0e77",
+  "prompts": {},
+  "humans": {
+    "h_f327e6ff3ec3c1": {
+      "author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}

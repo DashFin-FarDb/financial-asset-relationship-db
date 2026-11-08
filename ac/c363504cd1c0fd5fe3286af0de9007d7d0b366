@@ -1,0 +1,45 @@
+src/data/relationship_assertion_repository.py
+  s_8630f737cf5bfc::t_09dc250f710aae 823,825-827
+  s_8630f737cf5bfc::t_540af0c6cba990 820-821,828-848,853,866
+  s_8630f737cf5bfc::t_a637814c81477e 824
+  s_8630f737cf5bfc::t_a66f20c0df9efe 822
+  s_8630f737cf5bfc::t_1b2e33ea248a42 64,731-745,749-753,761-765,769-773,781-785,787-790,877
+tests/integration/test_financial_relationship_vertical_slice.py
+  s_8630f737cf5bfc::t_225260e7ab6493 219,222-228,231,306,314,323
+  s_8630f737cf5bfc::t_07cea509255304 341-342,353,355,362,370-371,382,387,394-402
+  s_8630f737cf5bfc::t_76eb2646b63916 10,27,78,81-91,93,159,176-218,220-221,229-230,232-279
+  s_8630f737cf5bfc::t_4548c9106e5753 153
+  s_8630f737cf5bfc::t_194759b754ddd7 280-282
+  s_8630f737cf5bfc::t_aa631ee4139e30 315-317,320-322
+  s_8630f737cf5bfc::t_ce9ff775812687 131-132,283,285-289,291-294,310,318-319,326-328
+src/data/repository.py
+  s_8630f737cf5bfc::t_540af0c6cba990 222
+  s_8630f737cf5bfc::t_b74bf2ab820563 219-221
+  s_8630f737cf5bfc::t_8b5dd3cafa3f5c 223-225
+  s_8630f737cf5bfc::t_d1eb98d65573e6 212-218,226-227
+api/routers/graph_admin.py
+  s_8630f737cf5bfc::t_0875d88376110b 1218,1630-1639,1649,1652-1655
+  s_8630f737cf5bfc::t_76eb2646b63916 1650
+  s_8630f737cf5bfc::t_219f7517bda6e0 1007-1008,1046-1049,1052-1053,1258-1259,1579-1629,1640-1648,1651,1656-1682,1693-1696,1701-1713,1716-1723,1725-1733,1745-1754,1756
+  s_8630f737cf5bfc::t_4c55a6315e9efb 1005-1006
+  s_8630f737cf5bfc::t_ef7b4839bb8e14 1256-1257
+  s_8630f737cf5bfc::t_e30105fcf7bd28 15,36,45-50,1758
+src/logic/relationship_projection.py
+  s_8630f737cf5bfc::t_c5f5797227e6ab 465,468-469,471,480-506,517
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.19",
+  "base_commit_sha": "acc363504cd1c0fd5fe3286af0de9007d7d0b366",
+  "prompts": {},
+  "sessions": {
+    "s_8630f737cf5bfc": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fbc00-9ecc-7473-b6de-74c7d06b262a",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}

@@ -1,0 +1,30 @@
+scripts/verify_staging_promotion.py
+  s_8d43d0750b87ca::t_4e47e5451e7b13 18
+  s_8d43d0750b87ca::t_eae0722ede8b0b 12-15,17,19-20,32
+  s_8d43d0750b87ca::t_b34f038e2cc607 11,16,213,217-224
+  s_8d43d0750b87ca::t_b7ec6c523f24be 225-226
+tests/unit/test_settings.py
+  s_8d43d0750b87ca::t_74f884e02f06e7 222-231
+src/config/settings.py
+  s_8d43d0750b87ca::t_68969b9518f542 143-144
+tests/unit/test_verify_staging_promotion.py
+  s_8d43d0750b87ca::t_dab9e4931f0478 46-56,215-221
+  s_8d43d0750b87ca::t_da63c63f174c3a 45
+  s_8d43d0750b87ca::t_dc3209f6784dc1 222
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "3438f324c935ef46fe16e96fd9d21c9cba1b4367",
+  "prompts": {},
+  "sessions": {
+    "s_8d43d0750b87ca": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f32c2-fafe-7da1-b16e-6cbcc1cdb886",
+        "model": "gpt-5.5"
+      },
+      "human_author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}

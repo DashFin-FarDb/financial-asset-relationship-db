@@ -1,0 +1,27 @@
+frontend/__tests__/config/package-lock-validation.test.ts
+  s_33a25107973364::t_8aeaa8ddd64fd9 119,121,128,566,584,588
+frontend/__tests__/config/package-integration.test.ts
+  s_33a25107973364::t_8aeaa8ddd64fd9 76-77,89-90,262,285-286,293,336
+frontend/__tests__/config/package-validation.test.ts
+  s_33a25107973364::t_8aeaa8ddd64fd9 557,559
+frontend/package-lock.json
+  s_33a25107973364::t_90edeb163e7ee2 12,4914-4916,4920
+frontend/package.json
+  s_33a25107973364::t_3801b72277b495 22
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "40e0985239ba43d388ff1476b94d683be8a3efcb",
+  "prompts": {},
+  "sessions": {
+    "s_33a25107973364": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a01ef3-688c-7872-bea6-edcd50fdb7a5",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}

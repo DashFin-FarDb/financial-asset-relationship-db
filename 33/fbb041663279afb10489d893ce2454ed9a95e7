@@ -1,0 +1,14 @@
+frontend/app/components/RelationshipExplanationPanel.tsx
+  h_f327e6ff3ec3c1 391-424,447,450,454-455
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.20",
+  "base_commit_sha": "33fbb041663279afb10489d893ce2454ed9a95e7",
+  "prompts": {},
+  "humans": {
+    "h_f327e6ff3ec3c1": {
+      "author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}

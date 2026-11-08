@@ -1,0 +1,25 @@
+docs/roadmap/enterprise-readiness-pr-board.md
+  s_a2375cdf388c42::t_9062e8806223ac 39,49
+docs/roadmap/enterprise-readiness-roadmap.md
+  s_a2375cdf388c42::t_af0a5d7b54e150 49,58
+docs/testing/operational-drill-execution-records.md
+  s_a2375cdf388c42::t_27dff027912168 1-99
+docs/testing/operational-drill-and-scale-validation-pack.md
+  s_a2375cdf388c42::t_a4a37e775bd661 150,168
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.3",
+  "base_commit_sha": "d02b0a2dffbd7c723b708bde0a1fb0f3eeef7e54",
+  "prompts": {},
+  "sessions": {
+    "s_a2375cdf388c42": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019ef40a-d392-79a0-94fb-198575f20fb1",
+        "model": "gpt-5.4-mini"
+      },
+      "human_author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}

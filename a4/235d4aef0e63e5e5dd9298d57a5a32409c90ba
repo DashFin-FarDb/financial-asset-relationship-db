@@ -1,0 +1,21 @@
+api/routers/relationships.py
+  s_8d478941b92cbb::t_9b5d012d00989f 11,13-14,29-77,82-85,94,102-121,138,140,178,180
+api/routers/visualization.py
+  s_8d478941b92cbb::t_becb4c97f82996 20,26,38,53,80,82-98,117
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.19",
+  "base_commit_sha": "a4235d4aef0e63e5e5dd9298d57a5a32409c90ba",
+  "prompts": {},
+  "sessions": {
+    "s_8d478941b92cbb": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "019fbd72-bfea-71d0-87a8-8bd4e0570b7e",
+        "model": "unknown"
+      },
+      "human_author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}

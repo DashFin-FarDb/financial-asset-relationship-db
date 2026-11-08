@@ -1,0 +1,19 @@
+frontend/app/types/api.ts
+  s_e11e1b7a855681::t_cb1b035ecaa716 16-21
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.20",
+  "base_commit_sha": "cdc2074073fe82d234335e0b73de19bc8e9d87de",
+  "prompts": {},
+  "sessions": {
+    "s_e11e1b7a855681": {
+      "agent_id": {
+        "tool": "github-copilot-cli",
+        "id": "96539b92-3573-4274-93af-64a55df563e7",
+        "model": "unknown"
+      },
+      "human_author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}

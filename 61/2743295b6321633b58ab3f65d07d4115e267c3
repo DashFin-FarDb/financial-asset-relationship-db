@@ -1,0 +1,21 @@
+.github/ISSUE_TEMPLATE/operational_drill_evidence.md
+  s_a2375cdf388c42::t_597fe121fdb0e7 1-150
+.github/ISSUE_TEMPLATE/restore_rehearsal_evidence.md
+  s_a2375cdf388c42::t_597fe121fdb0e7 1-109
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.3",
+  "base_commit_sha": "612743295b6321633b58ab3f65d07d4115e267c3",
+  "prompts": {},
+  "sessions": {
+    "s_a2375cdf388c42": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019ef40a-d392-79a0-94fb-198575f20fb1",
+        "model": "gpt-5.4-mini"
+      },
+      "human_author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}

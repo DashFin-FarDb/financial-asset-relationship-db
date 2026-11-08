@@ -1,0 +1,21 @@
+tests/integration/test_rebuild_job_list_contract.py
+  s_a2375cdf388c42::t_acf7f5ccf07a92 102-109,111-112,114,117,122
+tests/integration/test_restart_recovery_clean_path.py
+  s_a2375cdf388c42::t_4734c5a4567e76 11-12,102,130,135-138,140-141,149,157
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.3",
+  "base_commit_sha": "e9b99c661acdd8574917a8f89b755302882e658a",
+  "prompts": {},
+  "sessions": {
+    "s_a2375cdf388c42": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019ef40a-d392-79a0-94fb-198575f20fb1",
+        "model": "unknown"
+      },
+      "human_author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}

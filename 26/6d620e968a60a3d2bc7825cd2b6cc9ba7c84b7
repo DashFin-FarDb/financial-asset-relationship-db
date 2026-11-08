@@ -1,0 +1,25 @@
+tests/unit/test_verify_staging_promotion.py
+  s_8d43d0750b87ca::t_b7177635b32bc3 246,249,260,263,286-287,305-306
+  s_8d43d0750b87ca::t_5cfd751d1e4b6a 280-281,289-290
+  s_8d43d0750b87ca::t_edc68f5e15ec3a 288
+  s_8d43d0750b87ca::t_cebc0973274771 282-285
+scripts/verify_staging_promotion.py
+  s_8d43d0750b87ca::t_1515ff5d348e5d 11-12,238-253,256-257,259,263,265-266,270,272,279-280
+  s_8d43d0750b87ca::t_3e89004601be65 325
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "266d620e968a60a3d2bc7825cd2b6cc9ba7c84b7",
+  "prompts": {},
+  "sessions": {
+    "s_8d43d0750b87ca": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f32c2-fafe-7da1-b16e-6cbcc1cdb886",
+        "model": "gpt-5.5"
+      },
+      "human_author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}

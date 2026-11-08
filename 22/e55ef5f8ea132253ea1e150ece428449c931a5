@@ -1,0 +1,39 @@
+tests/integration/test_runtime_authority_postgres.py
+  s_951b443e5699cd::t_d108b70c99586a 49,68,422-471,786-839
+  s_951b443e5699cd::t_a39459b6c9f2c7 840-841
+tests/unit/test_database.py
+  s_951b443e5699cd::t_7dcae27349d15c 147-148,177,204,814
+api/database.py
+  s_951b443e5699cd::t_7dcae27349d15c 118-119,990-991,1044-1045
+tests/unit/test_api_database.py
+  s_951b443e5699cd::t_7dcae27349d15c 472
+tests/unit/test_api_database_auth_grantees.py
+  s_951b443e5699cd::t_7dcae27349d15c 9,25,94-95
+tests/integration/test_production_container_workflow.py
+  s_951b443e5699cd::t_7dcae27349d15c 160
+  s_951b443e5699cd::t_fa1418a5d9da93 162,164-166
+  s_951b443e5699cd::t_04b2c0640819f5 163
+docs/runbooks/database-migration-authority.md
+  s_951b443e5699cd::t_fa1418a5d9da93 103-115,129-132,145,160-166,168
+  s_951b443e5699cd::t_7dcae27349d15c 149
+  s_951b443e5699cd::t_595497bd26e548 167
+  s_951b443e5699cd::t_0fde2bc4494659 169
+src/data/database.py
+  s_951b443e5699cd::t_7dcae27349d15c 472-473,669-670,710-711,1108-1109
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "22e55ef5f8ea132253ea1e150ece428449c931a5",
+  "prompts": {},
+  "sessions": {
+    "s_951b443e5699cd": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019ff519-696e-7c60-b8fa-0b2080202bc9",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}

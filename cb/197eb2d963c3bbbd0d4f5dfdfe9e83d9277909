@@ -1,0 +1,19 @@
+docs/evidence-records/rc1-objective-2-follow-up.md
+  s_a2375cdf388c42::t_d58c8b7398e400 104,113
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.3",
+  "base_commit_sha": "cb197eb2d963c3bbbd0d4f5dfdfe9e83d9277909",
+  "prompts": {},
+  "sessions": {
+    "s_a2375cdf388c42": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019ef40a-d392-79a0-94fb-198575f20fb1",
+        "model": "gpt-5.4-mini"
+      },
+      "human_author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}

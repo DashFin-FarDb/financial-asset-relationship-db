@@ -1,0 +1,22 @@
+docker-compose.production.yml
+  s_ebae7f3448d420::t_b7e7dc32c7593d 20-21
+Dockerfile.api
+  s_ebae7f3448d420::t_b7e7dc32c7593d 9-10,22
+  s_ebae7f3448d420::t_39f2a33536ecef 23
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "023f2a851ee94829ba7be67943a1d6c6968fa7d2",
+  "prompts": {},
+  "sessions": {
+    "s_ebae7f3448d420": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f3760-85c1-7991-b0f7-7ffd254a3193",
+        "model": "gpt-5.4-mini"
+      },
+      "human_author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}

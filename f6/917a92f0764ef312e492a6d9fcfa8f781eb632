@@ -1,0 +1,16 @@
+scripts/check_relationship_assertion_proof.py
+  h_f327e6ff3ec3c1 145-147,150-153,156,158-162,248-261,265-271,275-283,313-328,418-423,481-482,507-508,534-558,570-571,577,592-593,595-597,605-616,618-621,723-739,748,1100-1140,1150-1152
+tests/unit/test_relationship_assertion_proof_contract.py
+  h_f327e6ff3ec3c1 135,154
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.21",
+  "base_commit_sha": "f6917a92f0764ef312e492a6d9fcfa8f781eb632",
+  "prompts": {},
+  "humans": {
+    "h_f327e6ff3ec3c1": {
+      "author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}

@@ -1,0 +1,28 @@
+.github/ISSUE_TEMPLATE/release_candidate_evidence.md
+  s_a2375cdf388c42::t_994bc34d3a7139 32
+docs/release-evidence-pack.md
+  s_a2375cdf388c42::t_5ce51ed7e18e57 303
+  s_a2375cdf388c42::t_ade6b68ead1ddc 291-292
+  s_a2375cdf388c42::t_535c83ef7e3219 49-50
+  s_a2375cdf388c42::t_994bc34d3a7139 144-145
+docs/operations/hosted-readiness-evidence-guide.md
+  s_a2375cdf388c42::t_994bc34d3a7139 1-190
+docs/staging-deployment-operating-baseline.md
+  s_a2375cdf388c42::t_994bc34d3a7139 170
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.3",
+  "base_commit_sha": "95d7bbe74ff950f2901b725abe0363e188671b62",
+  "prompts": {},
+  "sessions": {
+    "s_a2375cdf388c42": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019ef40a-d392-79a0-94fb-198575f20fb1",
+        "model": "gpt-5.4-mini"
+      },
+      "human_author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}

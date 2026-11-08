@@ -1,0 +1,28 @@
+src/logic/reconciliation_engine.py
+  s_8d43d0750b87ca::t_aa8ca999b674d7 22
+src/utils/enum_compat.py
+  s_8d43d0750b87ca::t_d3ea46e6d104fc 1-16
+tests/integration/test_pr_agent_config_validation.py
+  s_8d43d0750b87ca::t_1bed6ea9f168fc 18
+  s_8d43d0750b87ca::t_b2abd66cbfd76d 19
+src/utils/__init__.py
+  s_8d43d0750b87ca::t_4d814520394e99 1
+src/data/db_models.py
+  s_8d43d0750b87ca::t_0d7f4fba6179e3 22,33
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "11591ceac74dc61cbbc4addda5255626cc9a7320",
+  "prompts": {},
+  "sessions": {
+    "s_8d43d0750b87ca": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f32c2-fafe-7da1-b16e-6cbcc1cdb886",
+        "model": "gpt-5.4-mini"
+      },
+      "human_author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}

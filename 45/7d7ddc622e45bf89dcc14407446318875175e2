@@ -1,0 +1,14 @@
+frontend/__tests__/integration/component-integration.test.tsx
+  h_f327e6ff3ec3c1 358-584
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.20",
+  "base_commit_sha": "457d7ddc622e45bf89dcc14407446318875175e2",
+  "prompts": {},
+  "humans": {
+    "h_f327e6ff3ec3c1": {
+      "author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}

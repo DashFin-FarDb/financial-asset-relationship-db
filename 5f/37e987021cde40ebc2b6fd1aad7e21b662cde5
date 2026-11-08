@@ -1,0 +1,23 @@
+frontend/app/components/NetworkVisualization.tsx
+  s_e11e1b7a855681::t_e3a6e373942937 249-252,264
+frontend/app/components/RelationshipExplanationPanel.tsx
+  s_e11e1b7a855681::t_adfd975171438b 119,121,128,131,134,142,145,153,155
+  s_e11e1b7a855681::t_3b3ec3eeb3b0e4 325,331
+  s_e11e1b7a855681::t_ba8d30ea61a34b 344
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.20",
+  "base_commit_sha": "5f37e987021cde40ebc2b6fd1aad7e21b662cde5",
+  "prompts": {},
+  "sessions": {
+    "s_e11e1b7a855681": {
+      "agent_id": {
+        "tool": "github-copilot-cli",
+        "id": "96539b92-3573-4274-93af-64a55df563e7",
+        "model": "unknown"
+      },
+      "human_author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}
