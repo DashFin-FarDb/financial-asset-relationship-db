@@ -1,0 +1,20 @@
+requirements-ci-security.txt
+  s_19e9c8ef28a978::t_701908c1bad02f 5
+  s_19e9c8ef28a978::t_1b001516661339 19-21,27-29
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "d94ff36d4d2cd03b36610a500cdd65b13dec97d7",
+  "prompts": {},
+  "sessions": {
+    "s_19e9c8ef28a978": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1a63a-a145-7e81-adf7-2f509b91917e",
+        "model": "gpt-6.1-terra"
+      },
+      "human_author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}
