@@ -273,7 +273,7 @@ describe("Package-lock.json Validation", () => {
   });
 
   describe("Nanoid Lock Security Upgrade", () => {
-    it("resolves nanoid to 3.3.18 without making it a direct dependency", () => {
+    it("resolves nanoid to 3.3.20 without making it a direct dependency", () => {
       const nanoidLock = packageLock.packages?.["node_modules/nanoid"];
 
       expect(nanoidLock?.version).toBe("3.3.20");
