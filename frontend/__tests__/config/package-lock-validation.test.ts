@@ -232,11 +232,11 @@ describe("Package-lock.json Validation", () => {
   });
 
   describe("Next.js Runtime Security Upgrade", () => {
-    it("pins Next.js 16.3.3 in the manifest and lockfile", () => {
+    it("pins Next.js 16.4.5 in the manifest and lockfile", () => {
       const nextLock = packageLock.packages?.["node_modules/next"];
 
-      expect(packageJson.dependencies.next).toBe("16.3.3");
-      expect(nextLock?.version).toBe("16.3.3");
+      expect(packageJson.dependencies.next).toBe("16.4.5");
+      expect(nextLock?.version).toBe("16.4.5");
     });
 
     it("keeps the Next.js PostCSS runtime separate from the root toolchain", () => {
@@ -250,12 +250,12 @@ describe("Package-lock.json Validation", () => {
       expect(hoistedPostcss?.version).toBe("8.5.26");
     });
 
-    it("resolves the optional Sharp runtime to 0.35.3", () => {
+    it("resolves the optional Sharp runtime to 0.35.5", () => {
       const nextLock = packageLock.packages?.["node_modules/next"];
       const sharpLock = packageLock.packages?.["node_modules/sharp"];
 
-      expect(nextLock?.optionalDependencies?.sharp).toBe("^0.35.3");
-      expect(sharpLock?.version).toBe("0.35.3");
+      expect(nextLock?.optionalDependencies?.sharp).toBe("^0.35.5");
+      expect(sharpLock?.version).toBe("0.35.5");
     });
 
     it("does not retain the vulnerable PostCSS or Sharp runtime versions", () => {
