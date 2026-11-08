@@ -247,7 +247,7 @@ describe("Package-lock.json Validation", () => {
 
       expect(nextLock?.dependencies?.postcss).toBe("8.5.23");
       expect(nestedPostcss?.version).toBe("8.5.23");
-      expect(hoistedPostcss?.version).toBe("8.5.26");
+      expect(hoistedPostcss?.version).toBe("8.5.32");
     });
 
     it("resolves the optional Sharp runtime to 0.35.5", () => {
@@ -276,7 +276,7 @@ describe("Package-lock.json Validation", () => {
     it("resolves nanoid to 3.3.18 without making it a direct dependency", () => {
       const nanoidLock = packageLock.packages?.["node_modules/nanoid"];
 
-      expect(nanoidLock?.version).toBe("3.3.18");
+      expect(nanoidLock?.version).toBe("3.3.20");
       expect(packageJson.dependencies).not.toHaveProperty("nanoid");
       expect(packageJson.devDependencies).not.toHaveProperty("nanoid");
       expect(packageJson.optionalDependencies?.nanoid).toBeUndefined();
@@ -290,8 +290,8 @@ describe("Package-lock.json Validation", () => {
     it("preserves the PostCSS parent relationship", () => {
       const postcssLock = packageLock.packages?.["node_modules/postcss"];
 
-      expect(postcssLock?.version).toBe("8.5.26");
-      expect(postcssLock?.dependencies?.nanoid).toBe("^3.3.17");
+      expect(postcssLock?.version).toBe("8.5.32");
+      expect(postcssLock?.dependencies?.nanoid).toBe("^3.3.20");
     });
   });
 
