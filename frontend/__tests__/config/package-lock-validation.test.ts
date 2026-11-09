@@ -16,6 +16,7 @@
 
 import { readFileSync, existsSync } from "fs";
 import { isAbsolute, join, relative, resolve, sep } from "path";
+import { gte, major, satisfies, validRange } from "semver";
 
 const approvedRegistryHosts = new Set([
   "registry.npmjs.org",
@@ -93,6 +94,33 @@ interface PackageLock {
   lockfileVersion?: number;
   requires?: boolean;
   packages: Record<string, LockPackage>;
+}
+
+type LockedPackageResolution = Readonly<{
+  path: string;
+  package: LockPackage;
+}>;
+
+function resolveLockedDependency(
+  packages: Record<string, LockPackage>,
+  parentPackagePath: string,
+  dependencyName: string,
+): LockedPackageResolution | undefined {
+  const parentSegments = parentPackagePath.split("/node_modules/");
+
+  for (let depth = parentSegments.length; depth >= 0; depth -= 1) {
+    const parentPath = parentSegments.slice(0, depth).join("/node_modules/");
+    const dependencyPath = parentPath
+      ? `${parentPath}/node_modules/${dependencyName}`
+      : `node_modules/${dependencyName}`;
+    const dependencyPackage = packages[dependencyPath];
+
+    if (dependencyPackage) {
+      return { path: dependencyPath, package: dependencyPackage };
+    }
+  }
+
+  return undefined;
 }
 
 describe("Package-lock.json Validation", () => {
@@ -295,50 +323,120 @@ describe("Package-lock.json Validation", () => {
     });
   });
 
-  describe("Root js-yaml Lock Security Upgrade", () => {
-    it("resolves the shared js-yaml node to 4.3.1", () => {
-      const jsYamlLock = packageLock.packages?.["node_modules/js-yaml"];
+  describe("js-yaml security and lock-graph compatibility", () => {
+    const rootJsYamlPath = "node_modules/js-yaml";
 
-      expect(jsYamlLock?.version).toBe("4.3.1");
+    it("keeps root js-yaml transitive and at the patched 4.x floor", () => {
+      const rootJsYaml = packageLock.packages?.[rootJsYamlPath];
+
+      expect(rootJsYaml?.version).toBeDefined();
+      expect(gte(rootJsYaml?.version ?? "0.0.0", "4.3.2")).toBe(true);
       expect(packageJson.dependencies).not.toHaveProperty("js-yaml");
       expect(packageJson.devDependencies).not.toHaveProperty("js-yaml");
     });
 
-    it("preserves the current ESLint js-yaml parent range", () => {
-      const eslintConfig =
-        packageLock.packages?.["node_modules/@eslint/eslintrc"];
+    it.each([
+      "node_modules/@eslint/eslintrc",
+      "node_modules/@microsoft/eslint-formatter-sarif/node_modules/@eslint/eslintrc",
+      "node_modules/@microsoft/eslint-formatter-sarif/node_modules/eslint",
+    ])("resolves js-yaml compatibly for %s", (parentPath) => {
+      const parentPackage = packageLock.packages?.[parentPath];
+      const dependencyRange = parentPackage?.dependencies?.["js-yaml"];
+      const resolution = resolveLockedDependency(
+        packageLock.packages ?? {},
+        parentPath,
+        "js-yaml",
+      );
 
-      expect(eslintConfig?.dependencies?.["js-yaml"]).toBe("^4.3.0");
+      expect(dependencyRange).toBeDefined();
+      expect(validRange(dependencyRange ?? "")).not.toBeNull();
+      expect(resolution).toBeDefined();
+      expect(satisfies(resolution?.package.version ?? "0.0.0", dependencyRange ?? "")).toBe(true);
+      expect(gte(resolution?.package.version ?? "0.0.0", "4.3.2")).toBe(true);
     });
 
-    it("preserves the legacy ESLint config js-yaml parent range", () => {
-      const legacyEslintConfig =
-        packageLock.packages?.[
-          "node_modules/@microsoft/eslint-formatter-sarif/node_modules/@eslint/eslintrc"
-        ];
+    it("keeps the nested js-yaml 3.x resolver boundary separately patched", () => {
+      const parentPath = "node_modules/@istanbuljs/load-nyc-config";
+      const dependencyRange =
+        packageLock.packages?.[parentPath]?.dependencies?.["js-yaml"];
+      const resolution = resolveLockedDependency(
+        packageLock.packages ?? {},
+        parentPath,
+        "js-yaml",
+      );
 
-      expect(legacyEslintConfig?.dependencies?.["js-yaml"]).toBe("^4.1.0");
+      expect(dependencyRange).toBeDefined();
+      expect(validRange(dependencyRange ?? "")).not.toBeNull();
+      expect(resolution?.path).toBe(
+        "node_modules/@istanbuljs/load-nyc-config/node_modules/js-yaml",
+      );
+      expect(
+        satisfies(resolution?.package.version ?? "0.0.0", dependencyRange ?? ""),
+      ).toBe(true);
+      expect(gte(resolution?.package.version ?? "0.0.0", "3.15.2")).toBe(
+        true,
+      );
     });
+  });
 
-    it("preserves the legacy ESLint js-yaml parent range", () => {
-      const legacyEslint =
-        packageLock.packages?.[
-          "node_modules/@microsoft/eslint-formatter-sarif/node_modules/eslint"
-        ];
+  describe("React runtime and type-package peer compatibility", () => {
+    it("checks resolved React types against manifest ranges and package peers", () => {
+      const runtimePackages = ["react", "react-dom", "next"] as const;
+      const typePackages = ["@types/react", "@types/react-dom"] as const;
+      const resolved = Object.fromEntries(
+        [...runtimePackages, ...typePackages].map((name) => [
+          name,
+          packageLock.packages?.[`node_modules/${name}`],
+        ]),
+      ) as Record<(typeof runtimePackages)[number] | (typeof typePackages)[number], LockPackage | undefined>;
 
-      expect(legacyEslint?.dependencies?.["js-yaml"]).toBe("^4.1.0");
-    });
+      for (const packageName of runtimePackages) {
+        const declaredRange = packageJson.dependencies[packageName];
+        const lockedPackage = resolved[packageName];
 
-    it("keeps the nested js-yaml 3.x resolver boundary separate", () => {
-      const loadNycConfig =
-        packageLock.packages?.["node_modules/@istanbuljs/load-nyc-config"];
-      const nestedJsYaml =
-        packageLock.packages?.[
-          "node_modules/@istanbuljs/load-nyc-config/node_modules/js-yaml"
-        ];
+        expect(lockedPackage?.version).toBeDefined();
+        expect(validRange(declaredRange)).not.toBeNull();
+        expect(satisfies(lockedPackage?.version ?? "0.0.0", declaredRange)).toBe(
+          true,
+        );
+      }
 
-      expect(loadNycConfig?.dependencies?.["js-yaml"]).toBe("^3.13.1");
-      expect(nestedJsYaml?.version).toBe("3.15.0");
+      for (const packageName of typePackages) {
+        const declaredRange = packageJson.devDependencies[packageName];
+        const lockedPackage = resolved[packageName];
+
+        expect(lockedPackage?.version).toBeDefined();
+        expect(validRange(declaredRange)).not.toBeNull();
+        expect(satisfies(lockedPackage?.version ?? "0.0.0", declaredRange)).toBe(
+          true,
+        );
+        expect(major(lockedPackage?.version ?? "0.0.0")).toBe(
+          major(resolved.react?.version ?? "0.0.0"),
+        );
+      }
+
+      const typeReactPeerRange =
+        resolved["@types/react-dom"]?.peerDependencies?.["@types/react"];
+      const reactPeerRange = resolved["react-dom"]?.peerDependencies?.react;
+      const nextReactPeerRange = resolved.next?.peerDependencies?.react;
+      const nextReactDomPeerRange = resolved.next?.peerDependencies?.["react-dom"];
+
+      expect(typeReactPeerRange).toBeDefined();
+      expect(satisfies(resolved["@types/react"]?.version ?? "0.0.0", typeReactPeerRange ?? "")).toBe(
+        true,
+      );
+      expect(reactPeerRange).toBeDefined();
+      expect(satisfies(resolved.react?.version ?? "0.0.0", reactPeerRange ?? "")).toBe(
+        true,
+      );
+      expect(nextReactPeerRange).toBeDefined();
+      expect(satisfies(resolved.react?.version ?? "0.0.0", nextReactPeerRange ?? "")).toBe(
+        true,
+      );
+      expect(nextReactDomPeerRange).toBeDefined();
+      expect(
+        satisfies(resolved["react-dom"]?.version ?? "0.0.0", nextReactDomPeerRange ?? ""),
+      ).toBe(true);
     });
   });
 

@@ -353,19 +353,6 @@ describe("Package.json Validation", () => {
       expect(reactMajorMinor).toBe(reactDomMajorMinor);
     });
 
-    it("should have matching @types/react and @types/react-dom versions", () => {
-      const typesReact = packageJson.devDependencies["@types/react"];
-      const typesReactDom = packageJson.devDependencies["@types/react-dom"];
-
-      expect(typesReact).toBeDefined();
-      expect(typesReactDom).toBeDefined();
-
-      const reactMajorMinor = typesReact.match(/\d+\.\d+/)?.[0];
-      const reactDomMajorMinor = typesReactDom.match(/\d+\.\d+/)?.[0];
-
-      expect(reactMajorMinor).toBe(reactDomMajorMinor);
-    });
-
     it("Next.js version should be compatible with React version", () => {
       const reactVersion = packageJson.dependencies.react;
       const nextVersion = packageJson.dependencies.next;
