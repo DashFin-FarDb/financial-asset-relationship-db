@@ -363,8 +363,7 @@ describe("Package-lock.json Validation", () => {
       expect(parentPackage).toBeDefined();
       if (!parentPackage) return;
 
-      const dependencyRange: unknown =
-        parentPackage.dependencies?.["js-yaml"];
+      const dependencyRange: unknown = parentPackage.dependencies?.["js-yaml"];
       const resolution = resolveLockedDependency(
         packageLock.packages ?? {},
         parentPath,
@@ -388,8 +387,7 @@ describe("Package-lock.json Validation", () => {
       expect(parentPackage).toBeDefined();
       if (!parentPackage) return;
 
-      const dependencyRange: unknown =
-        parentPackage.dependencies?.["js-yaml"];
+      const dependencyRange: unknown = parentPackage.dependencies?.["js-yaml"];
       const resolution = resolveLockedDependency(
         packageLock.packages ?? {},
         parentPath,
@@ -425,19 +423,17 @@ describe("Package-lock.json Validation", () => {
       { version: "4.3.2", range: "*" },
       { version: "4.3.2", range: "^4.1.0" },
       { version: "3.15.2", range: "^3.13.1" },
-    ])("accepts a valid compatible range: $version satisfies $range", ({
-      version,
-      range,
-    }) => {
-      expect(isValidDependencyRange(range)).toBe(true);
-      expect(isCompatibleDependencyResolution(version, range)).toBe(true);
-    });
+    ])(
+      "accepts a valid compatible range: $version satisfies $range",
+      ({ version, range }) => {
+        expect(isValidDependencyRange(range)).toBe(true);
+        expect(isCompatibleDependencyResolution(version, range)).toBe(true);
+      },
+    );
 
     it("rejects a valid range when the resolved version is incompatible", () => {
       expect(isValidDependencyRange("^4.0.0")).toBe(true);
-      expect(isCompatibleDependencyResolution("3.15.2", "^4.0.0")).toBe(
-        false,
-      );
+      expect(isCompatibleDependencyResolution("3.15.2", "^4.0.0")).toBe(false);
     });
   });
 
