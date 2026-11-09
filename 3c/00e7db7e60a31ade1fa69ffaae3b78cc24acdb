@@ -1,0 +1,19 @@
+frontend/package-lock.json
+  s_19e9c8ef28a978::t_075ecbd126a8d8 4171-4173,5240-5242,7753-7755,13176-13178,13218-13220
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "3c00e7db7e60a31ade1fa69ffaae3b78cc24acdb",
+  "prompts": {},
+  "sessions": {
+    "s_19e9c8ef28a978": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1a63a-a145-7e81-adf7-2f509b91917e",
+        "model": "gpt-6-luna"
+      },
+      "human_author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}
