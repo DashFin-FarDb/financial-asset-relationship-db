@@ -3,7 +3,13 @@
  */
 
 import React from "react";
-import { act, render, screen, waitFor, fireEvent } from "@testing-library/react";
+import {
+  act,
+  render,
+  screen,
+  waitFor,
+  fireEvent,
+} from "@testing-library/react";
 import "@testing-library/jest-dom";
 import Home from "../../app/page";
 import { api } from "../../app/lib/api";
@@ -390,7 +396,9 @@ describe("Loading States", () => {
     const metricsRequest = deferred<Metrics>();
     const visualizationRequest = deferred<VisualizationData>();
     mockedApi.getMetrics.mockReturnValue(metricsRequest.promise);
-    mockedApi.getVisualizationData.mockReturnValue(visualizationRequest.promise);
+    mockedApi.getVisualizationData.mockReturnValue(
+      visualizationRequest.promise,
+    );
 
     render(<Home />);
     fireEvent.click(screen.getByText("Metrics & Analytics"));
@@ -409,14 +417,18 @@ describe("Loading States", () => {
     const visualizationRequest = deferred<VisualizationData>();
     const consoleError = jest.spyOn(console, "error").mockImplementation();
     mockedApi.getMetrics.mockReturnValue(metricsRequest.promise);
-    mockedApi.getVisualizationData.mockReturnValue(visualizationRequest.promise);
+    mockedApi.getVisualizationData.mockReturnValue(
+      visualizationRequest.promise,
+    );
 
     render(<Home />);
     fireEvent.click(screen.getByText("Metrics & Analytics"));
 
     await act(async () => metricsRequest.reject(new Error("metrics failed")));
 
-    expect(screen.getByText("Failed to load metrics data.")).toBeInTheDocument();
+    expect(
+      screen.getByText("Failed to load metrics data."),
+    ).toBeInTheDocument();
     fireEvent.click(screen.getByText("3D Visualization"));
     expect(screen.getByText("Loading data...")).toBeInTheDocument();
 
@@ -459,7 +471,9 @@ describe("Loading States", () => {
 
     fireEvent.click(screen.getByText("Metrics & Analytics"));
     expect(screen.getByText("Loading data...")).toBeInTheDocument();
-    expect(screen.queryByText("Failed to load metrics data.")).not.toBeInTheDocument();
+    expect(
+      screen.queryByText("Failed to load metrics data."),
+    ).not.toBeInTheDocument();
 
     await act(async () => {
       retryMetrics.resolve(mockMetrics);
@@ -524,7 +538,9 @@ describe("Loading States", () => {
     render(<Home />);
     fireEvent.click(screen.getByText("Metrics & Analytics"));
     await waitFor(() => {
-      expect(screen.getByText("Failed to load metrics data.")).toBeInTheDocument();
+      expect(
+        screen.getByText("Failed to load metrics data."),
+      ).toBeInTheDocument();
     });
     fireEvent.click(screen.getByText("Retry"));
     await waitFor(() => {

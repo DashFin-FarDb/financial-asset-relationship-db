@@ -266,13 +266,16 @@ function useDashboardData() {
     };
   }, []);
 
-  const applyMetricsResult = useCallback((requestId: number, result: Metrics) => {
-    if (!mountedRef.current || requestId !== metricsRequestIdRef.current) {
-      return;
-    }
-    setMetrics(result);
-    setMetricsError(null);
-  }, []);
+  const applyMetricsResult = useCallback(
+    (requestId: number, result: Metrics) => {
+      if (!mountedRef.current || requestId !== metricsRequestIdRef.current) {
+        return;
+      }
+      setMetrics(result);
+      setMetricsError(null);
+    },
+    [],
+  );
 
   const applyMetricsError = useCallback((requestId: number, error: unknown) => {
     if (!mountedRef.current || requestId !== metricsRequestIdRef.current) {
@@ -327,10 +330,7 @@ function useDashboardData() {
   );
 
   const finishVisualizationRequest = useCallback((requestId: number) => {
-    if (
-      mountedRef.current &&
-      requestId === visualizationRequestIdRef.current
-    ) {
+    if (mountedRef.current && requestId === visualizationRequestIdRef.current) {
       setVisualizationLoading(false);
     }
   }, []);
