@@ -15,6 +15,7 @@ import Home from "../../app/page";
 import { api } from "../../app/lib/api";
 import type { Metrics, VisualizationData } from "../../app/types/api";
 import { mockMetrics, mockVisualizationData } from "../test-utils";
+import { expectVisualizationFailureAndMetricsAvailable } from "../../test-helpers/resource-error-assertions";
 
 jest.mock("../../app/lib/api");
 jest.mock("../../app/components/NetworkVisualization", () => {
@@ -137,9 +138,12 @@ describe("Home Page", () => {
     mockedApi.getMetrics.mockRejectedValue(new Error("API Error"));
 
     render(<Home />);
+    fireEvent.click(screen.getByText("Metrics & Analytics"));
 
     await waitFor(() => {
-      expect(screen.getByText(/Failed to load data/i)).toBeInTheDocument();
+      expect(
+        screen.getByText("Failed to load metrics data."),
+      ).toBeInTheDocument();
     });
 
     consoleError.mockRestore();
@@ -150,9 +154,12 @@ describe("Home Page", () => {
     mockedApi.getMetrics.mockResolvedValueOnce(mockMetrics);
 
     render(<Home />);
+    fireEvent.click(screen.getByText("Metrics & Analytics"));
 
     await waitFor(() => {
-      expect(screen.getByText(/Failed to load data/i)).toBeInTheDocument();
+      expect(
+        screen.getByText("Failed to load metrics data."),
+      ).toBeInTheDocument();
     });
 
     const retryButton = screen.getByText("Retry");
@@ -160,6 +167,10 @@ describe("Home Page", () => {
 
     await waitFor(() => {
       expect(mockedApi.getMetrics).toHaveBeenCalledTimes(2);
+      expect(screen.getByTestId("metrics-dashboard")).toBeInTheDocument();
+      expect(
+        screen.queryByText("Failed to load metrics data."),
+      ).not.toBeInTheDocument();
     });
   });
 });
@@ -202,21 +213,22 @@ describe("Error Handling and Recovery", () => {
 
     render(<Home />);
 
-    await waitFor(() => {
-      expect(screen.getByText(/Failed to load data/i)).toBeInTheDocument();
-    });
+    await expectVisualizationFailureAndMetricsAvailable();
 
     consoleError.mockRestore();
   });
 
-  it("should show generic error message for unknown errors", async () => {
+  it("should show the metrics error message when the underlying error has no message", async () => {
     mockedApi.getMetrics.mockRejectedValue(new Error());
     const consoleError = jest.spyOn(console, "error").mockImplementation();
 
     render(<Home />);
+    fireEvent.click(screen.getByText("Metrics & Analytics"));
 
     await waitFor(() => {
-      expect(screen.getByText(/Failed to load data/i)).toBeInTheDocument();
+      expect(
+        screen.getByText("Failed to load metrics data."),
+      ).toBeInTheDocument();
     });
 
     consoleError.mockRestore();
@@ -230,17 +242,21 @@ describe("Error Handling and Recovery", () => {
 
     const consoleError = jest.spyOn(console, "error").mockImplementation();
     render(<Home />);
+    fireEvent.click(screen.getByText("Metrics & Analytics"));
 
     await waitFor(() => {
-      expect(screen.getByText(/Failed to load data/i)).toBeInTheDocument();
+      expect(
+        screen.getByText("Failed to load metrics data."),
+      ).toBeInTheDocument();
     });
 
     fireEvent.click(screen.getByText("Retry"));
 
     await waitFor(() => {
       expect(
-        screen.queryByText(/Failed to load data/i),
+        screen.queryByText("Failed to load metrics data."),
       ).not.toBeInTheDocument();
+      expect(screen.getByTestId("metrics-dashboard")).toBeInTheDocument();
     });
 
     consoleError.mockRestore();
@@ -386,8 +402,11 @@ describe("Loading States", () => {
 
     await waitFor(() => {
       expect(screen.queryByText("Loading data...")).not.toBeInTheDocument();
-      expect(screen.getByText(/Failed to load data/i)).toBeInTheDocument();
     });
+    fireEvent.click(screen.getByText("Metrics & Analytics"));
+    expect(
+      screen.getByText("Failed to load metrics data."),
+    ).toBeInTheDocument();
 
     consoleError.mockRestore();
   });
