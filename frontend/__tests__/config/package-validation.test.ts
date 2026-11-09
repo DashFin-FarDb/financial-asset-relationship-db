@@ -594,13 +594,7 @@ describe("Package.json Validation", () => {
     it("should handle empty optional fields gracefully", () => {
       const optionalFields: Array<
         "description" | "keywords" | "author" | "license" | "repository"
-      > = [
-        "description",
-        "keywords",
-        "author",
-        "license",
-        "repository",
-      ];
+      > = ["description", "keywords", "author", "license", "repository"];
 
       optionalFields.forEach((field) => {
         if (packageJson[field]) {

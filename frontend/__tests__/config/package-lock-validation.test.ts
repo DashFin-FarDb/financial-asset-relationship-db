@@ -351,7 +351,12 @@ describe("Package-lock.json Validation", () => {
       expect(dependencyRange).toBeDefined();
       expect(validRange(dependencyRange ?? "")).not.toBeNull();
       expect(resolution).toBeDefined();
-      expect(satisfies(resolution?.package.version ?? "0.0.0", dependencyRange ?? "")).toBe(true);
+      expect(
+        satisfies(
+          resolution?.package.version ?? "0.0.0",
+          dependencyRange ?? "",
+        ),
+      ).toBe(true);
       expect(gte(resolution?.package.version ?? "0.0.0", "4.3.2")).toBe(true);
     });
 
@@ -371,11 +376,12 @@ describe("Package-lock.json Validation", () => {
         "node_modules/@istanbuljs/load-nyc-config/node_modules/js-yaml",
       );
       expect(
-        satisfies(resolution?.package.version ?? "0.0.0", dependencyRange ?? ""),
+        satisfies(
+          resolution?.package.version ?? "0.0.0",
+          dependencyRange ?? "",
+        ),
       ).toBe(true);
-      expect(gte(resolution?.package.version ?? "0.0.0", "3.15.2")).toBe(
-        true,
-      );
+      expect(gte(resolution?.package.version ?? "0.0.0", "3.15.2")).toBe(true);
     });
   });
 
@@ -388,7 +394,10 @@ describe("Package-lock.json Validation", () => {
           name,
           packageLock.packages?.[`node_modules/${name}`],
         ]),
-      ) as Record<(typeof runtimePackages)[number] | (typeof typePackages)[number], LockPackage | undefined>;
+      ) as Record<
+        (typeof runtimePackages)[number] | (typeof typePackages)[number],
+        LockPackage | undefined
+      >;
 
       for (const packageName of runtimePackages) {
         const declaredRange = packageJson.dependencies[packageName];
@@ -396,9 +405,9 @@ describe("Package-lock.json Validation", () => {
 
         expect(lockedPackage?.version).toBeDefined();
         expect(validRange(declaredRange)).not.toBeNull();
-        expect(satisfies(lockedPackage?.version ?? "0.0.0", declaredRange)).toBe(
-          true,
-        );
+        expect(
+          satisfies(lockedPackage?.version ?? "0.0.0", declaredRange),
+        ).toBe(true);
       }
 
       for (const packageName of typePackages) {
@@ -407,9 +416,9 @@ describe("Package-lock.json Validation", () => {
 
         expect(lockedPackage?.version).toBeDefined();
         expect(validRange(declaredRange)).not.toBeNull();
-        expect(satisfies(lockedPackage?.version ?? "0.0.0", declaredRange)).toBe(
-          true,
-        );
+        expect(
+          satisfies(lockedPackage?.version ?? "0.0.0", declaredRange),
+        ).toBe(true);
         expect(major(lockedPackage?.version ?? "0.0.0")).toBe(
           major(resolved.react?.version ?? "0.0.0"),
         );
@@ -419,23 +428,30 @@ describe("Package-lock.json Validation", () => {
         resolved["@types/react-dom"]?.peerDependencies?.["@types/react"];
       const reactPeerRange = resolved["react-dom"]?.peerDependencies?.react;
       const nextReactPeerRange = resolved.next?.peerDependencies?.react;
-      const nextReactDomPeerRange = resolved.next?.peerDependencies?.["react-dom"];
+      const nextReactDomPeerRange =
+        resolved.next?.peerDependencies?.["react-dom"];
 
       expect(typeReactPeerRange).toBeDefined();
-      expect(satisfies(resolved["@types/react"]?.version ?? "0.0.0", typeReactPeerRange ?? "")).toBe(
-        true,
-      );
+      expect(
+        satisfies(
+          resolved["@types/react"]?.version ?? "0.0.0",
+          typeReactPeerRange ?? "",
+        ),
+      ).toBe(true);
       expect(reactPeerRange).toBeDefined();
-      expect(satisfies(resolved.react?.version ?? "0.0.0", reactPeerRange ?? "")).toBe(
-        true,
-      );
+      expect(
+        satisfies(resolved.react?.version ?? "0.0.0", reactPeerRange ?? ""),
+      ).toBe(true);
       expect(nextReactPeerRange).toBeDefined();
-      expect(satisfies(resolved.react?.version ?? "0.0.0", nextReactPeerRange ?? "")).toBe(
-        true,
-      );
+      expect(
+        satisfies(resolved.react?.version ?? "0.0.0", nextReactPeerRange ?? ""),
+      ).toBe(true);
       expect(nextReactDomPeerRange).toBeDefined();
       expect(
-        satisfies(resolved["react-dom"]?.version ?? "0.0.0", nextReactDomPeerRange ?? ""),
+        satisfies(
+          resolved["react-dom"]?.version ?? "0.0.0",
+          nextReactDomPeerRange ?? "",
+        ),
       ).toBe(true);
     });
   });
