@@ -24,7 +24,7 @@ import {
   mockAssetClasses,
   mockSectors,
 } from "../test-utils";
-import { expectVisualizationFailureAndMetricsAvailable } from "../helpers/resource-error-assertions";
+import { expectVisualizationFailureAndMetricsAvailable } from "../../test-helpers/resource-error-assertions";
 
 jest.mock("../../app/lib/api");
 jest.mock("../../app/components/NetworkVisualization", () => {
