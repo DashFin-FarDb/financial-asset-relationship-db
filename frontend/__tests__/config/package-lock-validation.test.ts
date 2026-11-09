@@ -123,6 +123,25 @@ function resolveLockedDependency(
   return undefined;
 }
 
+function isValidDependencyRange(range: unknown): range is string {
+  return (
+    typeof range === "string" &&
+    range.trim().length > 0 &&
+    validRange(range) !== null
+  );
+}
+
+function isCompatibleDependencyResolution(
+  version: unknown,
+  range: unknown,
+): boolean {
+  return (
+    typeof version === "string" &&
+    isValidDependencyRange(range) &&
+    satisfies(version, range)
+  );
+}
+
 describe("Package-lock.json Validation", () => {
   const packageJsonPath = join(process.cwd(), "package.json");
   const packageLockPath = join(process.cwd(), "package-lock.json");
@@ -341,20 +360,23 @@ describe("Package-lock.json Validation", () => {
       "node_modules/@microsoft/eslint-formatter-sarif/node_modules/eslint",
     ])("resolves js-yaml compatibly for %s", (parentPath) => {
       const parentPackage = packageLock.packages?.[parentPath];
-      const dependencyRange = parentPackage?.dependencies?.["js-yaml"];
+      expect(parentPackage).toBeDefined();
+      if (!parentPackage) return;
+
+      const dependencyRange: unknown =
+        parentPackage.dependencies?.["js-yaml"];
       const resolution = resolveLockedDependency(
         packageLock.packages ?? {},
         parentPath,
         "js-yaml",
       );
 
-      expect(dependencyRange).toBeDefined();
-      expect(validRange(dependencyRange ?? "")).not.toBeNull();
+      expect(isValidDependencyRange(dependencyRange)).toBe(true);
       expect(resolution).toBeDefined();
       expect(
-        satisfies(
-          resolution?.package.version ?? "0.0.0",
-          dependencyRange ?? "",
+        isCompatibleDependencyResolution(
+          resolution?.package.version,
+          dependencyRange,
         ),
       ).toBe(true);
       expect(gte(resolution?.package.version ?? "0.0.0", "4.3.2")).toBe(true);
@@ -362,26 +384,60 @@ describe("Package-lock.json Validation", () => {
 
     it("keeps the nested js-yaml 3.x resolver boundary separately patched", () => {
       const parentPath = "node_modules/@istanbuljs/load-nyc-config";
-      const dependencyRange =
-        packageLock.packages?.[parentPath]?.dependencies?.["js-yaml"];
+      const parentPackage = packageLock.packages?.[parentPath];
+      expect(parentPackage).toBeDefined();
+      if (!parentPackage) return;
+
+      const dependencyRange: unknown =
+        parentPackage.dependencies?.["js-yaml"];
       const resolution = resolveLockedDependency(
         packageLock.packages ?? {},
         parentPath,
         "js-yaml",
       );
 
-      expect(dependencyRange).toBeDefined();
-      expect(validRange(dependencyRange ?? "")).not.toBeNull();
+      expect(isValidDependencyRange(dependencyRange)).toBe(true);
       expect(resolution?.path).toBe(
         "node_modules/@istanbuljs/load-nyc-config/node_modules/js-yaml",
       );
       expect(
-        satisfies(
-          resolution?.package.version ?? "0.0.0",
-          dependencyRange ?? "",
+        isCompatibleDependencyResolution(
+          resolution?.package.version,
+          dependencyRange,
         ),
       ).toBe(true);
       expect(gte(resolution?.package.version ?? "0.0.0", "3.15.2")).toBe(true);
+    });
+  });
+
+  describe("semver dependency range validation", () => {
+    it.each([
+      { description: "missing", range: undefined },
+      { description: "non-string", range: 42 },
+      { description: "empty", range: "" },
+      { description: "whitespace-only", range: " \t\n" },
+      { description: "malformed", range: "not a semver range" },
+    ])("rejects $description dependency ranges", ({ range }) => {
+      expect(isValidDependencyRange(range)).toBe(false);
+    });
+
+    it.each([
+      { version: "4.3.2", range: "*" },
+      { version: "4.3.2", range: "^4.1.0" },
+      { version: "3.15.2", range: "^3.13.1" },
+    ])("accepts a valid compatible range: $version satisfies $range", ({
+      version,
+      range,
+    }) => {
+      expect(isValidDependencyRange(range)).toBe(true);
+      expect(isCompatibleDependencyResolution(version, range)).toBe(true);
+    });
+
+    it("rejects a valid range when the resolved version is incompatible", () => {
+      expect(isValidDependencyRange("^4.0.0")).toBe(true);
+      expect(isCompatibleDependencyResolution("3.15.2", "^4.0.0")).toBe(
+        false,
+      );
     });
   });
 
@@ -404,9 +460,12 @@ describe("Package-lock.json Validation", () => {
         const lockedPackage = resolved[packageName];
 
         expect(lockedPackage?.version).toBeDefined();
-        expect(validRange(declaredRange)).not.toBeNull();
+        expect(isValidDependencyRange(declaredRange)).toBe(true);
         expect(
-          satisfies(lockedPackage?.version ?? "0.0.0", declaredRange),
+          isCompatibleDependencyResolution(
+            lockedPackage?.version,
+            declaredRange,
+          ),
         ).toBe(true);
       }
 
@@ -415,9 +474,12 @@ describe("Package-lock.json Validation", () => {
         const lockedPackage = resolved[packageName];
 
         expect(lockedPackage?.version).toBeDefined();
-        expect(validRange(declaredRange)).not.toBeNull();
+        expect(isValidDependencyRange(declaredRange)).toBe(true);
         expect(
-          satisfies(lockedPackage?.version ?? "0.0.0", declaredRange),
+          isCompatibleDependencyResolution(
+            lockedPackage?.version,
+            declaredRange,
+          ),
         ).toBe(true);
         expect(major(lockedPackage?.version ?? "0.0.0")).toBe(
           major(resolved.react?.version ?? "0.0.0"),
@@ -431,26 +493,28 @@ describe("Package-lock.json Validation", () => {
       const nextReactDomPeerRange =
         resolved.next?.peerDependencies?.["react-dom"];
 
-      expect(typeReactPeerRange).toBeDefined();
       expect(
-        satisfies(
-          resolved["@types/react"]?.version ?? "0.0.0",
-          typeReactPeerRange ?? "",
+        isCompatibleDependencyResolution(
+          resolved["@types/react"]?.version,
+          typeReactPeerRange,
         ),
       ).toBe(true);
-      expect(reactPeerRange).toBeDefined();
       expect(
-        satisfies(resolved.react?.version ?? "0.0.0", reactPeerRange ?? ""),
+        isCompatibleDependencyResolution(
+          resolved.react?.version,
+          reactPeerRange,
+        ),
       ).toBe(true);
-      expect(nextReactPeerRange).toBeDefined();
       expect(
-        satisfies(resolved.react?.version ?? "0.0.0", nextReactPeerRange ?? ""),
+        isCompatibleDependencyResolution(
+          resolved.react?.version,
+          nextReactPeerRange,
+        ),
       ).toBe(true);
-      expect(nextReactDomPeerRange).toBeDefined();
       expect(
-        satisfies(
-          resolved["react-dom"]?.version ?? "0.0.0",
-          nextReactDomPeerRange ?? "",
+        isCompatibleDependencyResolution(
+          resolved["react-dom"]?.version,
+          nextReactDomPeerRange,
         ),
       ).toBe(true);
     });
