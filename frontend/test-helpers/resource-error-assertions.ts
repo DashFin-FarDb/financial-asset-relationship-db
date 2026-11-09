@@ -1,3 +1,4 @@
+import "@testing-library/jest-dom";
 import { fireEvent, screen, waitFor } from "@testing-library/react";
 
 export async function expectVisualizationFailureAndMetricsAvailable() {
