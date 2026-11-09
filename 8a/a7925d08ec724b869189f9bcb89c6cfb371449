@@ -1,0 +1,20 @@
+frontend/__tests__/config/package-lock-validation.test.ts
+  s_19e9c8ef28a978::t_0c8d5e78591b1c 99-125,326-330,332,338-349,351,353,358-366,368,370-373,375,377-378,380,382-397,400-402,404-408,411-412,415-416,418-422,424,426-428,430-432,434-437,439
+  s_19e9c8ef28a978::t_602c89603af867 19,333,352,354-355,369,374,376,398-399,409-410,413-414,425,429,433,438
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "8aa7925d08ec724b869189f9bcb89c6cfb371449",
+  "prompts": {},
+  "sessions": {
+    "s_19e9c8ef28a978": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1a63a-a145-7e81-adf7-2f509b91917e",
+        "model": "gpt-6-luna"
+      },
+      "human_author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}
