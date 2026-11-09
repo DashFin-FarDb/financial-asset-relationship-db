@@ -1,0 +1,24 @@
+frontend/__tests__/app/page.test.tsx
+  s_19e9c8ef28a978::t_0aa2910bdb3803 404-405
+  s_19e9c8ef28a978::t_83b65ca24c87a9 210-214,217-219,223,228,231,245,248,255,257
+  s_19e9c8ef28a978::t_9e3dc33d8e2c2e 140,143,154,157,166-167
+frontend/__tests__/integration/component-integration.test.tsx
+  s_19e9c8ef28a978::t_ebacf17c05886f 216-221
+  s_19e9c8ef28a978::t_0aa2910bdb3803 168-172,175-179,200-204
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "e99790ec96925b564ae04496989572bcb7584d56",
+  "prompts": {},
+  "sessions": {
+    "s_19e9c8ef28a978": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1a63a-a145-7e81-adf7-2f509b91917e",
+        "model": "gpt-6-luna"
+      },
+      "human_author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}
