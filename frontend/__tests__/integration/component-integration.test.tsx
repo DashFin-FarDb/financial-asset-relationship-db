@@ -165,10 +165,18 @@ describe("Component Integration Tests", () => {
       render(<Home />);
 
       await waitFor(() => {
-        expect(screen.getByText(/Failed to load data/i)).toBeInTheDocument();
+        expect(
+          screen.getByText(
+            "Failed to load visualization data. Please ensure the API server is running.",
+          ),
+        ).toBeInTheDocument();
       });
 
-      // Metrics were loaded, but error prevents showing any component
+      fireEvent.click(screen.getByText("Metrics & Analytics"));
+      expect(screen.getByTestId("metrics-dashboard")).toBeInTheDocument();
+      expect(screen.getByTestId("total-assets")).toHaveTextContent(
+        mockMetrics.total_assets.toString(),
+      );
       expect(mockedApi.getMetrics).toHaveBeenCalled();
       expect(mockedApi.getVisualizationData).toHaveBeenCalled();
 
@@ -189,7 +197,11 @@ describe("Component Integration Tests", () => {
       render(<Home />);
 
       await waitFor(() => {
-        expect(screen.getByText(/Failed to load data/i)).toBeInTheDocument();
+        expect(
+          screen.getByText(
+            "Failed to load visualization data. Please ensure the API server is running.",
+          ),
+        ).toBeInTheDocument();
       });
 
       fireEvent.click(screen.getByText("Retry"));
@@ -200,6 +212,12 @@ describe("Component Integration Tests", () => {
 
       expect(mockedApi.getMetrics).toHaveBeenCalledTimes(2);
       expect(mockedApi.getVisualizationData).toHaveBeenCalledTimes(2);
+
+      fireEvent.click(screen.getByText("Metrics & Analytics"));
+      expect(screen.getByTestId("metrics-dashboard")).toBeInTheDocument();
+      expect(screen.getByTestId("total-assets")).toHaveTextContent(
+        mockMetrics.total_assets.toString(),
+      );
 
       consoleError.mockRestore();
     });
