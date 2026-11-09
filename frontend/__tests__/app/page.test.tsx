@@ -15,6 +15,7 @@ import Home from "../../app/page";
 import { api } from "../../app/lib/api";
 import type { Metrics, VisualizationData } from "../../app/types/api";
 import { mockMetrics, mockVisualizationData } from "../test-utils";
+import { expectVisualizationFailureAndMetricsAvailable } from "../helpers/resource-error-assertions";
 
 jest.mock("../../app/lib/api");
 jest.mock("../../app/components/NetworkVisualization", () => {
@@ -166,11 +167,11 @@ describe("Home Page", () => {
 
     await waitFor(() => {
       expect(mockedApi.getMetrics).toHaveBeenCalledTimes(2);
+      expect(screen.getByTestId("metrics-dashboard")).toBeInTheDocument();
+      expect(
+        screen.queryByText("Failed to load metrics data."),
+      ).not.toBeInTheDocument();
     });
-    expect(screen.getByTestId("metrics-dashboard")).toBeInTheDocument();
-    expect(
-      screen.queryByText("Failed to load metrics data."),
-    ).not.toBeInTheDocument();
   });
 });
 
@@ -212,16 +213,7 @@ describe("Error Handling and Recovery", () => {
 
     render(<Home />);
 
-    await waitFor(() => {
-      expect(
-        screen.getByText(
-          "Failed to load visualization data. Please ensure the API server is running.",
-        ),
-      ).toBeInTheDocument();
-    });
-
-    fireEvent.click(screen.getByText("Metrics & Analytics"));
-    expect(screen.getByTestId("metrics-dashboard")).toBeInTheDocument();
+    await expectVisualizationFailureAndMetricsAvailable();
 
     consoleError.mockRestore();
   });

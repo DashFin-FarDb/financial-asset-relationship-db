@@ -24,6 +24,7 @@ import {
   mockAssetClasses,
   mockSectors,
 } from "../test-utils";
+import { expectVisualizationFailureAndMetricsAvailable } from "../helpers/resource-error-assertions";
 
 jest.mock("../../app/lib/api");
 jest.mock("../../app/components/NetworkVisualization", () => {
@@ -164,16 +165,7 @@ describe("Component Integration Tests", () => {
 
       render(<Home />);
 
-      await waitFor(() => {
-        expect(
-          screen.getByText(
-            "Failed to load visualization data. Please ensure the API server is running.",
-          ),
-        ).toBeInTheDocument();
-      });
-
-      fireEvent.click(screen.getByText("Metrics & Analytics"));
-      expect(screen.getByTestId("metrics-dashboard")).toBeInTheDocument();
+      await expectVisualizationFailureAndMetricsAvailable();
       expect(screen.getByTestId("total-assets")).toHaveTextContent(
         mockMetrics.total_assets.toString(),
       );
