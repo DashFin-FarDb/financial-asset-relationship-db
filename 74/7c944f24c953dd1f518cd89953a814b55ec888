@@ -1,0 +1,23 @@
+frontend/__tests__/app/page.test.tsx
+  s_19e9c8ef28a978::t_65c48a45d1d495 18,170-173,216
+frontend/__tests__/helpers/resource-error-assertions.ts
+  s_19e9c8ef28a978::t_c1fc577f1b5665 1-14
+frontend/__tests__/integration/component-integration.test.tsx
+  s_19e9c8ef28a978::t_a677ecd3dbc57f 27,168
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "747c944f24c953dd1f518cd89953a814b55ec888",
+  "prompts": {},
+  "sessions": {
+    "s_19e9c8ef28a978": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1a63a-a145-7e81-adf7-2f509b91917e",
+        "model": "gpt-6-luna"
+      },
+      "human_author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}
