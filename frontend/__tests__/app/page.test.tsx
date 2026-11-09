@@ -140,7 +140,9 @@ describe("Home Page", () => {
     fireEvent.click(screen.getByText("Metrics & Analytics"));
 
     await waitFor(() => {
-      expect(screen.getByText("Failed to load metrics data.")).toBeInTheDocument();
+      expect(
+        screen.getByText("Failed to load metrics data."),
+      ).toBeInTheDocument();
     });
 
     consoleError.mockRestore();
@@ -154,7 +156,9 @@ describe("Home Page", () => {
     fireEvent.click(screen.getByText("Metrics & Analytics"));
 
     await waitFor(() => {
-      expect(screen.getByText("Failed to load metrics data.")).toBeInTheDocument();
+      expect(
+        screen.getByText("Failed to load metrics data."),
+      ).toBeInTheDocument();
     });
 
     const retryButton = screen.getByText("Retry");
@@ -164,7 +168,9 @@ describe("Home Page", () => {
       expect(mockedApi.getMetrics).toHaveBeenCalledTimes(2);
     });
     expect(screen.getByTestId("metrics-dashboard")).toBeInTheDocument();
-    expect(screen.queryByText("Failed to load metrics data.")).not.toBeInTheDocument();
+    expect(
+      screen.queryByText("Failed to load metrics data."),
+    ).not.toBeInTheDocument();
   });
 });
 
@@ -228,7 +234,9 @@ describe("Error Handling and Recovery", () => {
     fireEvent.click(screen.getByText("Metrics & Analytics"));
 
     await waitFor(() => {
-      expect(screen.getByText("Failed to load metrics data.")).toBeInTheDocument();
+      expect(
+        screen.getByText("Failed to load metrics data."),
+      ).toBeInTheDocument();
     });
 
     consoleError.mockRestore();
@@ -245,7 +253,9 @@ describe("Error Handling and Recovery", () => {
     fireEvent.click(screen.getByText("Metrics & Analytics"));
 
     await waitFor(() => {
-      expect(screen.getByText("Failed to load metrics data.")).toBeInTheDocument();
+      expect(
+        screen.getByText("Failed to load metrics data."),
+      ).toBeInTheDocument();
     });
 
     fireEvent.click(screen.getByText("Retry"));
@@ -402,7 +412,9 @@ describe("Loading States", () => {
       expect(screen.queryByText("Loading data...")).not.toBeInTheDocument();
     });
     fireEvent.click(screen.getByText("Metrics & Analytics"));
-    expect(screen.getByText("Failed to load metrics data.")).toBeInTheDocument();
+    expect(
+      screen.getByText("Failed to load metrics data."),
+    ).toBeInTheDocument();
 
     consoleError.mockRestore();
   });
