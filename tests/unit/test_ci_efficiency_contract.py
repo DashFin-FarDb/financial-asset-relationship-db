@@ -109,8 +109,9 @@ def test_pr_copilot_publishes_read_only_exact_head_status():
     assert "updateComment" not in serialized_status_job
 
 
-def test_circleci_python_pilot_is_two_way_and_timing_balanced():
+def test_circleci_python_pilot_uses_two_way_testsuite():
     config = _load_yaml(".circleci/config.yml")
+    suite = _load_yaml(".circleci/test-suites.yml")
     job = config["jobs"]["python-test"]
     commands = "\n".join(
         step.get("run", {}).get("command", "")
@@ -120,14 +121,17 @@ def test_circleci_python_pilot_is_two_way_and_timing_balanced():
 
     assert job["parallelism"] == 2
     assert job["executor"] == "python-test-executor"
-    assert "circleci tests run" in commands
-    assert "--split-by=timings" in commands
-    assert "--timings-type=file" in commands
-    assert "--junitxml=" in commands
-    assert "-o junit_family=legacy" in commands
-    assert '"tests/**/test_*.py"' in commands
-    assert '"tests/**/*_test.py"' in commands
-    assert "grep -v '^tests/benchmarks/'" in commands
+    assert 'circleci testsuite run "python-test"' in commands
+    assert suite["name"] == "python-test"
+    assert "options" not in suite
+    assert "test_*.py" in suite["discover"]
+    assert "*_test.py" in suite["discover"]
+    assert "tests/benchmarks/" in suite["discover"]
+    assert "pytest" in suite["run"]
+    assert "--junitxml=" in suite["run"]
+    assert "junit_family=legacy" in suite["run"]
+    assert "<< outputs.junit >>" in suite["run"]
+    assert "<< test.atoms >>" in suite["run"]
 
 
 def test_circleci_pilot_does_not_claim_other_stub_jobs_are_real_checks():
