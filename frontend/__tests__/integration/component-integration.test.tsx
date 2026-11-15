@@ -24,7 +24,6 @@ import {
   mockAssetClasses,
   mockSectors,
 } from "../test-utils";
-import { expectVisualizationFailureAndMetricsAvailable } from "../../test-helpers/resource-error-assertions";
 
 jest.mock("../../app/lib/api");
 jest.mock("../../app/components/NetworkVisualization", () => {
@@ -165,13 +164,28 @@ describe("Component Integration Tests", () => {
 
       render(<Home />);
 
-      fireEvent.click(screen.getByRole("tab", { name: "3D Visualization" }));
-      await expectVisualizationFailureAndMetricsAvailable();
-      expect(screen.getByTestId("total-assets")).toHaveTextContent(
-        mockMetrics.total_assets.toString(),
-      );
+      await waitFor(() => {
+        expect(
+          screen.getByText(/Failed to load visualization data/i),
+        ).toBeInTheDocument();
+      });
+
+      // Metrics remain available while the visualization reports its own bounded failure.
       expect(mockedApi.getMetrics).toHaveBeenCalled();
       expect(mockedApi.getVisualizationData).toHaveBeenCalled();
+      expect(
+        screen.getByText(/Synthetic governance walkthrough/i),
+      ).toBeInTheDocument();
+
+      fireEvent.click(screen.getByText("Metrics & Analytics"));
+      const totalAssets = await screen.findByTestId("total-assets");
+      expect(totalAssets).toHaveTextContent(
+        mockMetrics.total_assets.toString(),
+      );
+      const totalRels = await screen.findByTestId("total-relationships");
+      expect(totalRels).toHaveTextContent(
+        mockMetrics.total_relationships.toString(),
+      );
 
       consoleError.mockRestore();
     });
@@ -353,8 +367,9 @@ describe("Component Integration Tests", () => {
 
       render(<Home />);
 
-      fireEvent.click(screen.getByRole("tab", { name: "3D Visualization" }));
-      expect(screen.getByText("Loading data...")).toBeInTheDocument();
+      expect(
+        screen.getByText("Loading relationship graph..."),
+      ).toBeInTheDocument();
 
       // Resolve in reverse order
       visualizationDeferred.resolve(mockVisualizationData);
@@ -362,7 +377,9 @@ describe("Component Integration Tests", () => {
       metricsDeferred.resolve(mockMetrics);
 
       await waitFor(() => {
-        expect(screen.queryByText("Loading data...")).not.toBeInTheDocument();
+        expect(
+          screen.queryByText("Loading relationship graph..."),
+        ).not.toBeInTheDocument();
         expect(screen.getByTestId("network-visualization")).toBeInTheDocument();
       });
     });
@@ -613,6 +630,27 @@ describe("Component Integration Tests", () => {
         expect(screen.getByText("A1 has exposure to A2")).toBeInTheDocument();
         expect(screen.getByText("pub-B")).toBeInTheDocument();
       });
+    });
+
+    it("removes the loaded graph on a 503 refresh and restores it after a retry", async () => {
+      mockedApi.getVisualizationData
+        .mockResolvedValueOnce(dataA)
+        .mockRejectedValueOnce({ isAxiosError: true, response: { status: 503 } })
+        .mockResolvedValueOnce(dataB);
+      const dashboard = (mode: "visible" | "hidden") => (
+        <React.Activity mode={mode}><Home /></React.Activity>
+      );
+      const view = render(dashboard("visible"));
+      expect(await screen.findByTestId("viz-node-count")).toHaveTextContent(String(dataA.nodes.length));
+
+      // Reconnect Home's effects with its previously loaded graph still in state.
+      view.rerender(dashboard("hidden"));
+      view.rerender(dashboard("visible"));
+      expect(await screen.findByRole("alert")).toHaveTextContent("Failed to load visualization data");
+      expect(screen.queryByTestId("network-visualization")).not.toBeInTheDocument();
+      fireEvent.click(screen.getByRole("button", { name: "Retry" }));
+      expect(await screen.findByTestId("viz-node-count")).toHaveTextContent(String(dataB.nodes.length));
+      expect(screen.queryByRole("alert")).not.toBeInTheDocument();
     });
   });
 });

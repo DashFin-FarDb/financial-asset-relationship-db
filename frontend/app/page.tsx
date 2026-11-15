@@ -3,6 +3,7 @@
 import React, { useEffect, useState, useCallback, useRef } from "react";
 import { api } from "./lib/api";
 import NetworkVisualization from "./components/NetworkVisualization";
+import axios from "axios";
 import InstitutionalDemo from "./components/InstitutionalDemo";
 import MetricsDashboard from "./components/MetricsDashboard";
 import AssetList from "./components/AssetList";
@@ -407,6 +408,9 @@ function useDashboardData() {
         console.error("Error loading visualization");
       } else {
         console.error("Error loading visualization:", error);
+      }
+      if (axios.isAxiosError(error) && error.response?.status === 503) {
+        setVizData(null);
       }
       setVisualizationError(
         "Failed to load visualization data. Please ensure the API server is running.",
