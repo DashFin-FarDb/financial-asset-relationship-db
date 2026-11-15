@@ -779,7 +779,7 @@ class ContainerCliRunner:
                         raise DisposableTargetError("CLI transfer requires exact regular projection files")
                     with path.open("rb") as source:
                         digest = hashlib.sha256()
-                        for chunk in iter(lambda: source.read(1024 * 1024), b""):
+                        while chunk := source.read(1024 * 1024):
                             digest.update(chunk)
                         info = tarfile.TarInfo(name)
                         info.size = source.tell()

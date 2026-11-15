@@ -126,6 +126,8 @@ def _run_startup_reconciliation(
 
 
 class _ReconciliationSessions(NamedTuple):
+    """Retained graph and coordination sessions and their verified topology."""
+
     graph_connection: Any
     coordination_connection: Any
     graph_identity: Any
