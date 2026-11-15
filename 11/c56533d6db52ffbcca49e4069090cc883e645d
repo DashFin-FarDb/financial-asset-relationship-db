@@ -1,0 +1,18 @@
+.circleci/config.yml
+  h_f327e6ff3ec3c1 48-49
+.circleci/test-suites.yml
+  h_f327e6ff3ec3c1 1-4
+tests/unit/test_ci_efficiency_contract.py
+  h_f327e6ff3ec3c1 112,114,124-134
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "11c56533d6db52ffbcca49e4069090cc883e645d",
+  "prompts": {},
+  "humans": {
+    "h_f327e6ff3ec3c1": {
+      "author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}
