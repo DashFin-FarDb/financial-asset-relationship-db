@@ -1,0 +1,14 @@
+.github/workflows/codeql.yml
+  h_f327e6ff3ec3c1 38,45
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "7dfd5dd55b44c5097b16103df9cae108b028b5fd",
+  "prompts": {},
+  "humans": {
+    "h_f327e6ff3ec3c1": {
+      "author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}
