@@ -24,7 +24,7 @@ ruamel.yaml==0.19.1  # updated for Python 3.12 compatibility
 # Serverless / database dependencies
 mangum==0.22.0  # pinned for consistency with pyproject.toml
 psycopg2-binary>=2.9.9
-sqlalchemy>=2.0.0
+sqlalchemy>=2.0.0,<2.1.0  # SQLAlchemy 2.1 defaults postgresql:// to psycopg3; this project uses psycopg2-binary
 
 # MCP (Model Context Protocol) dependencies
 mcp>=1.23.0,<2.0.0  # >=1.9.4 for DoS fix, >=1.23.0 for DNS rebinding protection fix

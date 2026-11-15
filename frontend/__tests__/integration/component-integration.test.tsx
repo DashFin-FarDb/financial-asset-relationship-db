@@ -165,6 +165,7 @@ describe("Component Integration Tests", () => {
 
       render(<Home />);
 
+      fireEvent.click(screen.getByRole("tab", { name: "3D Visualization" }));
       await expectVisualizationFailureAndMetricsAvailable();
       expect(screen.getByTestId("total-assets")).toHaveTextContent(
         mockMetrics.total_assets.toString(),
@@ -188,10 +189,11 @@ describe("Component Integration Tests", () => {
       const consoleError = jest.spyOn(console, "error").mockImplementation();
       render(<Home />);
 
+      fireEvent.click(screen.getByRole("tab", { name: "3D Visualization" }));
       await waitFor(() => {
         expect(
           screen.getByText(
-            "Failed to load visualization data. Please ensure the API server is running.",
+            "Failed to load data. Please ensure the API server is running.",
           ),
         ).toBeInTheDocument();
       });
@@ -351,6 +353,7 @@ describe("Component Integration Tests", () => {
 
       render(<Home />);
 
+      fireEvent.click(screen.getByRole("tab", { name: "3D Visualization" }));
       expect(screen.getByText("Loading data...")).toBeInTheDocument();
 
       // Resolve in reverse order

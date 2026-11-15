@@ -10,6 +10,6 @@ export async function expectVisualizationFailureAndMetricsAvailable() {
     ).toBeInTheDocument();
   });
 
-  fireEvent.click(screen.getByRole("button", { name: "Metrics & Analytics" }));
+  fireEvent.click(screen.getByRole("tab", { name: "Metrics & Analytics" }));
   expect(screen.getByTestId("metrics-dashboard")).toBeInTheDocument();
 }
