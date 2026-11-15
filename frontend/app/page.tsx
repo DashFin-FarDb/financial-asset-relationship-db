@@ -44,6 +44,19 @@ const ACTIVE_TAB_CLASS = "border-blue-500 text-blue-600";
 const INACTIVE_TAB_CLASS =
   "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300";
 
+function observeRequest<T>(
+  request: Promise<T>,
+  requestId: number,
+  onSuccess: (requestId: number, result: T) => void,
+  onError: (requestId: number, error: unknown) => void,
+  onFinally: (requestId: number) => void,
+) {
+  void request
+    .then((result) => onSuccess(requestId, result))
+    .catch((error: unknown) => onError(requestId, error))
+    .finally(() => onFinally(requestId));
+}
+
 /**
  * Builds the CSS class string for a tab according to its active state.
  *
@@ -339,41 +352,37 @@ function useDashboardData() {
     };
   }, []);
 
-  const fetchMetrics = useCallback(async () => {
-    const requestId = ++metricsRequestIdRef.current;
-    setMetricsLoading(true);
-    setMetricsError(null);
-
-    try {
-      const result = await api.getMetrics();
+  const applyMetricsResult = useCallback(
+    (requestId: number, result: Metrics) => {
       if (!mountedRef.current || requestId !== metricsRequestIdRef.current) {
         return;
       }
       setMetrics(result);
-    } catch (error) {
-      if (!mountedRef.current || requestId !== metricsRequestIdRef.current) {
-        return;
-      }
-      if (process.env.NODE_ENV === "production") {
-        console.error("Error loading metrics");
-      } else {
-        console.error("Error loading metrics:", error);
-      }
-      setMetricsError("Failed to load metrics data.");
-    } finally {
-      if (mountedRef.current && requestId === metricsRequestIdRef.current) {
-        setMetricsLoading(false);
-      }
+      setMetricsError(null);
+    },
+    [],
+  );
+
+  const applyMetricsError = useCallback((requestId: number, error: unknown) => {
+    if (!mountedRef.current || requestId !== metricsRequestIdRef.current) {
+      return;
+    }
+    if (process.env.NODE_ENV === "production") {
+      console.error("Error loading metrics");
+    } else {
+      console.error("Error loading metrics:", error);
+    }
+    setMetricsError("Failed to load metrics data.");
+  }, []);
+
+  const finishMetricsRequest = useCallback((requestId: number) => {
+    if (mountedRef.current && requestId === metricsRequestIdRef.current) {
+      setMetricsLoading(false);
     }
   }, []);
 
-  const fetchVisualization = useCallback(async () => {
-    const requestId = ++visualizationRequestIdRef.current;
-    setVisualizationLoading(true);
-    setVisualizationError(null);
-
-    try {
-      const result = await api.getVisualizationData();
+  const applyVisualizationResult = useCallback(
+    (requestId: number, result: VisualizationData) => {
       if (
         !mountedRef.current ||
         requestId !== visualizationRequestIdRef.current
@@ -381,7 +390,13 @@ function useDashboardData() {
         return;
       }
       setVizData(result);
-    } catch (error) {
+      setVisualizationError(null);
+    },
+    [],
+  );
+
+  const applyVisualizationError = useCallback(
+    (requestId: number, error: unknown) => {
       if (
         !mountedRef.current ||
         requestId !== visualizationRequestIdRef.current
@@ -396,24 +411,74 @@ function useDashboardData() {
       setVisualizationError(
         "Failed to load visualization data. Please ensure the API server is running.",
       );
-    } finally {
-      if (
-        mountedRef.current &&
-        requestId === visualizationRequestIdRef.current
-      ) {
-        setVisualizationLoading(false);
-      }
+    },
+    [],
+  );
+
+  const finishVisualizationRequest = useCallback((requestId: number) => {
+    if (mountedRef.current && requestId === visualizationRequestIdRef.current) {
+      setVisualizationLoading(false);
     }
   }, []);
 
+  const fetchMetrics = useCallback(async () => {
+    const requestId = ++metricsRequestIdRef.current;
+    try {
+      applyMetricsResult(requestId, await api.getMetrics());
+    } catch (error) {
+      applyMetricsError(requestId, error);
+    } finally {
+      finishMetricsRequest(requestId);
+    }
+  }, [applyMetricsError, applyMetricsResult, finishMetricsRequest]);
+
+  const fetchVisualization = useCallback(async () => {
+    const requestId = ++visualizationRequestIdRef.current;
+    try {
+      applyVisualizationResult(requestId, await api.getVisualizationData());
+    } catch (error) {
+      applyVisualizationError(requestId, error);
+    } finally {
+      finishVisualizationRequest(requestId);
+    }
+  }, [
+    applyVisualizationError,
+    applyVisualizationResult,
+    finishVisualizationRequest,
+  ]);
+
   useEffect(() => {
-    void Promise.resolve().then(() => {
-      void fetchMetrics();
-      void fetchVisualization();
-    });
-  }, [fetchMetrics, fetchVisualization]);
+    const metricsRequestId = ++metricsRequestIdRef.current;
+    observeRequest(
+      api.getMetrics(),
+      metricsRequestId,
+      applyMetricsResult,
+      applyMetricsError,
+      finishMetricsRequest,
+    );
+
+    const visualizationRequestId = ++visualizationRequestIdRef.current;
+    observeRequest(
+      api.getVisualizationData(),
+      visualizationRequestId,
+      applyVisualizationResult,
+      applyVisualizationError,
+      finishVisualizationRequest,
+    );
+  }, [
+    applyMetricsError,
+    applyMetricsResult,
+    applyVisualizationError,
+    applyVisualizationResult,
+    finishMetricsRequest,
+    finishVisualizationRequest,
+  ]);
 
   const handleRetry = useCallback(async () => {
+    setMetricsLoading(true);
+    setVisualizationLoading(true);
+    setMetricsError(null);
+    setVisualizationError(null);
     await Promise.all([fetchMetrics(), fetchVisualization()]);
   }, [fetchMetrics, fetchVisualization]);
 

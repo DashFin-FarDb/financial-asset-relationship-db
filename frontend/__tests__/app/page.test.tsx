@@ -13,7 +13,7 @@ import {
 import "@testing-library/jest-dom";
 import Home from "../../app/page";
 import { api } from "../../app/lib/api";
-import type { VisualizationData } from "../../app/types/api";
+import type { Metrics, VisualizationData } from "../../app/types/api";
 import { mockMetrics, mockVisualizationData } from "../test-utils";
 
 jest.mock("../../app/lib/api");
@@ -34,6 +34,17 @@ jest.mock("../../app/components/AssetList", () => {
 });
 
 const mockedApi = api as jest.Mocked<typeof api>;
+
+function deferred<T>() {
+  let resolve!: (value: T | PromiseLike<T>) => void;
+  let reject!: (reason?: unknown) => void;
+  const promise = new Promise<T>((resolvePromise, rejectPromise) => {
+    resolve = resolvePromise;
+    reject = rejectPromise;
+  });
+
+  return { promise, resolve, reject };
+}
 
 beforeEach(() => {
   jest.clearAllMocks();
@@ -761,6 +772,124 @@ describe("Loading States", () => {
 
     consoleError.mockRestore();
   });
+});
+
+describe("Independent resource loading and retries", () => {
+  it("shows metrics when they resolve while visualization remains pending", async () => {
+    const metricsRequest = deferred<Metrics>();
+    const visualizationRequest = deferred<VisualizationData>();
+    mockedApi.getMetrics.mockReturnValue(metricsRequest.promise);
+    mockedApi.getVisualizationData.mockReturnValue(
+      visualizationRequest.promise,
+    );
+
+    render(<Home />);
+    fireEvent.click(screen.getByText("Metrics & Analytics"));
+
+    await act(async () => metricsRequest.resolve(mockMetrics));
+
+    expect(screen.getByTestId("metrics-dashboard")).toBeInTheDocument();
+    fireEvent.click(screen.getByText("3D Visualization"));
+    expect(screen.getByText("Loading data...")).toBeInTheDocument();
+
+    await act(async () => visualizationRequest.resolve(mockVisualizationData));
+  });
+
+  it("shows a metrics error while visualization remains pending", async () => {
+    const metricsRequest = deferred<Metrics>();
+    const visualizationRequest = deferred<VisualizationData>();
+    const consoleError = jest.spyOn(console, "error").mockImplementation();
+    mockedApi.getMetrics.mockReturnValue(metricsRequest.promise);
+    mockedApi.getVisualizationData.mockReturnValue(
+      visualizationRequest.promise,
+    );
+
+    render(<Home />);
+    fireEvent.click(screen.getByText("Metrics & Analytics"));
+
+    await act(async () => metricsRequest.reject(new Error("metrics failed")));
+
+    expect(
+      screen.getByText("Failed to load metrics data."),
+    ).toBeInTheDocument();
+    fireEvent.click(screen.getByText("3D Visualization"));
+    expect(screen.getByText("Loading data...")).toBeInTheDocument();
+
+    await act(async () => visualizationRequest.resolve(mockVisualizationData));
+    consoleError.mockRestore();
+  });
+
+  it("resets both resource states and retries both requests", async () => {
+    const retryMetrics = deferred<Metrics>();
+    const retryVisualization = deferred<VisualizationData>();
+    const consoleError = jest.spyOn(console, "error").mockImplementation();
+    mockedApi.getMetrics
+      .mockRejectedValueOnce(new Error("metrics failed"))
+      .mockReturnValueOnce(retryMetrics.promise);
+    mockedApi.getVisualizationData
+      .mockRejectedValueOnce(new Error("visualization failed"))
+      .mockReturnValueOnce(retryVisualization.promise);
+
+    render(<Home />);
+    fireEvent.click(screen.getByText("3D Visualization"));
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(
+          "Failed to load data. Please ensure the API server is running.",
+        ),
+      ).toBeInTheDocument();
+    });
+    fireEvent.click(screen.getByText("Retry"));
+
+    await waitFor(() => {
+      expect(mockedApi.getMetrics).toHaveBeenCalledTimes(2);
+      expect(mockedApi.getVisualizationData).toHaveBeenCalledTimes(2);
+    });
+    expect(screen.getByText("Loading data...")).toBeInTheDocument();
+    expect(
+      screen.queryByText(
+        "Failed to load data. Please ensure the API server is running.",
+      ),
+    ).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByText("Metrics & Analytics"));
+    expect(screen.getByText("Loading data...")).toBeInTheDocument();
+    expect(
+      screen.queryByText("Failed to load metrics data."),
+    ).not.toBeInTheDocument();
+
+    await act(async () => {
+      retryMetrics.resolve(mockMetrics);
+      retryVisualization.resolve(mockVisualizationData);
+    });
+    consoleError.mockRestore();
+  });
+
+  it("ignores stale Metrics responses after a second mount effect", async () => {
+    const first = deferred<Metrics>();
+    const second = deferred<Metrics>();
+    mockedApi.getMetrics.mockReturnValueOnce(first.promise).mockReturnValueOnce(second.promise);
+    render(<React.StrictMode><Home /></React.StrictMode>);
+    fireEvent.click(screen.getByText("Metrics & Analytics"));
+    await act(async () => first.resolve(mockMetrics));
+    expect(screen.getByText("Loading data...")).toBeInTheDocument();
+    await act(async () => second.resolve(mockMetrics));
+    expect(screen.queryByText("Loading data...")).not.toBeInTheDocument();
+  });
+
+  it("ignores stale VisualizationData responses after a second mount effect", async () => {
+    const first = deferred<VisualizationData>();
+    const second = deferred<VisualizationData>();
+    mockedApi.getVisualizationData.mockReturnValueOnce(first.promise).mockReturnValueOnce(second.promise);
+    render(<React.StrictMode><Home /></React.StrictMode>);
+    fireEvent.click(screen.getByText("3D Visualization"));
+    await act(async () => first.resolve(mockVisualizationData));
+    expect(screen.getByText("Loading data...")).toBeInTheDocument();
+    await act(async () => second.resolve(mockVisualizationData));
+    expect(screen.queryByText("Loading data...")).not.toBeInTheDocument();
+  });
+
 });
 
 describe("Footer and Static Content", () => {
