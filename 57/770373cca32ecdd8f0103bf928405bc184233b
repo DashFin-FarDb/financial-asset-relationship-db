@@ -1,0 +1,25 @@
+api/graph_lifecycle_providers.py
+  s_88cbb3d0ce7f6b::t_7970d1dcd984f0 746
+docs/governance/state-machine-and-operating-authority.md
+  s_88cbb3d0ce7f6b::t_66c739bd3447c0 215-220
+tests/unit/test_graph_lifecycle_synchronize.py
+  s_88cbb3d0ce7f6b::t_d55827d5096f72 384,392,418
+tests/unit/test_snapshot_attestation_gate.py
+  s_88cbb3d0ce7f6b::t_ca718a32c6d96f 337-348
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "57770373cca32ecdd8f0103bf928405bc184233b",
+  "prompts": {},
+  "sessions": {
+    "s_88cbb3d0ce7f6b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "01a1e158-5454-78a2-8033-2b9f7eff8206",
+        "model": "unknown"
+      },
+      "human_author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}
