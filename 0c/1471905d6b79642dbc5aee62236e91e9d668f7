@@ -1,0 +1,22 @@
+.github/workflows/autofix.yml
+  h_f327e6ff3ec3c1 20,23
+.github/workflows/ci-gate-spec.yaml
+  h_f327e6ff3ec3c1 38
+.pre-commit-config.yaml
+  h_f327e6ff3ec3c1 16,22,29,35
+pyproject.toml
+  h_f327e6ff3ec3c1 70
+requirements-dev.txt
+  h_f327e6ff3ec3c1 21,23
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "0c1471905d6b79642dbc5aee62236e91e9d668f7",
+  "prompts": {},
+  "humans": {
+    "h_f327e6ff3ec3c1": {
+      "author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}
