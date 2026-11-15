@@ -1,0 +1,16 @@
+frontend/package-lock.json
+  h_f327e6ff3ec3c1 34-35,49,3973-3975,3980-3983,3996,4002-4004,4012-4014,4018-4021,4037-4039,4043-4044,4059-4061,4065-4066,4077-4079,4094-4096,4100-4102,4119-4121,4133-4135,4139-4142,4171-4173,4200-4202,4207-4209,4224-4226,4230,13617-13619,13623-13626
+frontend/package.json
+  h_f327e6ff3ec3c1 44-45,59
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "2acb677bbf6f66a7f0fb7e1d9ecef0f9ea50895b",
+  "prompts": {},
+  "humans": {
+    "h_f327e6ff3ec3c1": {
+      "author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}
