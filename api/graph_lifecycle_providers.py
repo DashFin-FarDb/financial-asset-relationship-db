@@ -82,6 +82,10 @@ class AuthoritativeGraphUnavailableError(RuntimeError):
     """Raised when no authoritative published graph is available."""
 
 
+class LegacyPublicationNeedsRebuild(AuthoritativeGraphUnavailableError):
+    """An identified pre-attestation publication requires an authorized rebuild."""
+
+
 class GraphRebuildSourceError(RuntimeError):
     """Raised when a fresh rebuild graph could not be constructed."""
 
@@ -199,6 +203,8 @@ def load_persisted_graph_if_available(
 
     try:
         return _load_persisted_graph_from_configured_store(resolved_url)
+    except LegacyPublicationNeedsRebuild:
+        raise
     except Exception as exc:
         log_event(
             logger,
@@ -733,6 +739,13 @@ def _load_persisted_graph_from_configured_store(
                 return None
 
             publication, job = row
+            if (
+                publication.snapshot_sha256 is None
+                and job.snapshot_sha256 is None
+                and publication.execution_id
+                and publication.execution_id == job.execution_id
+            ):
+                raise LegacyPublicationNeedsRebuild("Legacy publication requires an authorized rebuild.")
 
             # 3. Check publication attestation metadata and execution identity binding
             expected_digest = _validate_publication_attestation_metadata(publication, job)
@@ -794,6 +807,8 @@ def _load_persisted_graph_from_configured_store(
             return graph
         finally:
             session.close()
+    except LegacyPublicationNeedsRebuild:
+        raise
     except Exception as exc:
         log_event(
             logger,

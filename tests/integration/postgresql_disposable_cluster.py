@@ -12,7 +12,7 @@ from collections.abc import Iterator, Mapping
 from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
+from typing import Any, BinaryIO
 from urllib.parse import parse_qs, urlsplit
 
 import psycopg2
@@ -499,13 +499,13 @@ def _docker_operation_type(command: list[str]) -> str:
     return f"docker {subcommand}"
 
 
-def _docker_command(command: list[str], *, input_bytes: bytes | None = None, timeout: int = 30):
+def _docker_command(command: list[str], *, stdin: BinaryIO | None = None, timeout: int = 30):
     """Run a fixed Docker argv without publishing captured credentials."""
     import subprocess
 
     operation = _docker_operation_type(command)
     try:
-        result = subprocess.run(command, input=input_bytes, capture_output=True, timeout=timeout, check=False)
+        result = subprocess.run(command, stdin=stdin, capture_output=True, timeout=timeout, check=False)
     except subprocess.TimeoutExpired:
         raise DisposableTargetError(
             f"owned Docker transport timeout during {operation} ({timeout}s)",
@@ -524,7 +524,7 @@ def _docker_command(command: list[str], *, input_bytes: bytes | None = None, tim
     if result.returncode:
         raise DisposableTargetError(
             f"owned Docker operation failed during {operation} (exit status {result.returncode})",
-            category="command_failed",
+            category="nonzero_exit",
             operation=operation,
             returncode=result.returncode,
         ) from None
@@ -636,22 +636,10 @@ def _internal_cli_url(database_url: str, record: dict) -> str:
     """Bind the selected host database to the verified container-local endpoint."""
     from urllib.parse import urlencode, urlunsplit
 
-    validate_effective_loopback_url(database_url)
+    _validate_owned_host_endpoint(database_url, record)
     parsed = urlsplit(database_url)
     query = parse_qs(parsed.query, keep_blank_values=True)
-    if (
-        parsed.scheme not in ("postgresql", "postgres")
-        or parsed.port != record["port"]
-        or parsed.hostname not in ("127.0.0.1", "localhost")
-        or parsed.username != "test"
-        or parsed.password != "test"
-        or not re.fullmatch(r"/[a-zA-Z0-9_]+", parsed.path)
-        or parsed.fragment
-        or set(query) - {"host", "hostaddr", "sslmode"}
-        or query.get("sslmode") != ["disable"]
-        or any(value not in ("127.0.0.1", "localhost") for value in query.get("host", []))
-        or any(value != "127.0.0.1" for value in query.get("hostaddr", []))
-    ):
+    if parsed.username != "test" or parsed.password != "test" or query.get("sslmode") != ["disable"]:
         raise DisposableTargetError("CLI target does not match the harness-owned published endpoint")
     return urlunsplit(("postgresql", "test:test@127.0.0.1:5432", parsed.path, urlencode({"sslmode": "disable"}), ""))
 
@@ -778,40 +766,42 @@ class ContainerCliRunner:
 
     def _copy_files(self, files: dict) -> None:
         """Transfer regular validated bytes and reject any container checksum mismatch."""
-        import io
         import tarfile
+        import tempfile
 
         if self.directory is None:
             raise DisposableTargetError("CLI runner context is not active")
         self._validate_private_directory(self.directory)
-        buffer = io.BytesIO()
-        digests = {}
-        with tarfile.open(fileobj=buffer, mode="w") as archive:
-            for name, path in files.items():
-                if path.is_symlink() or not path.is_file() or name.startswith("/") or ".." in name.split("/"):
-                    raise DisposableTargetError("CLI transfer requires exact regular projection files")
-                data = path.read_bytes()
-                digests[name] = hashlib.sha256(data).hexdigest()
-                info = tarfile.TarInfo(name)
-                info.size = len(data)
-                info.mode = 0o700 if name == "supabase" else 0o600
-                archive.addfile(info, io.BytesIO(data))
-        _docker_command([self.cli, "cp", "-", self.record["id"] + ":" + self.directory], input_bytes=buffer.getvalue())
-        self.digests.update(digests)
+        with tempfile.TemporaryFile() as buffer:
+            with tarfile.open(fileobj=buffer, mode="w") as archive:
+                for name, path in files.items():
+                    if path.is_symlink() or not path.is_file() or name.startswith("/") or ".." in name.split("/"):
+                        raise DisposableTargetError("CLI transfer requires exact regular projection files")
+                    with path.open("rb") as source:
+                        digest = hashlib.sha256()
+                        for chunk in iter(lambda: source.read(1024 * 1024), b""):
+                            digest.update(chunk)
+                        info = tarfile.TarInfo(name)
+                        info.size = source.tell()
+                        info.mode = 0o700 if name == "supabase" else 0o600
+                        source.seek(0)
+                        archive.addfile(info, source)
+                        self.digests[name] = digest.hexdigest()
+            buffer.seek(0)
+            _docker_command([self.cli, "cp", "-", self.record["id"] + ":" + self.directory], stdin=buffer)
         self._verify_transferred_bytes()
 
     def _verify_transferred_bytes(self) -> None:
-        """Check that container-local executable and projection bytes remain exact."""
+        """Verify each exact path and digest in one container invocation."""
         if self.directory is None:
             raise DisposableTargetError("CLI runner context is not active")
-        for name, digest in self.digests.items():
-            actual = (
-                _docker_command([self.cli, "exec", self.record["id"], "sha256sum", self.directory + "/" + name])
-                .stdout.decode()
-                .split()[0]
-            )
-            if actual != digest:
-                raise DisposableTargetError("CLI executable or profile transfer checksum mismatch")
+        if not self.digests:
+            return
+        paths = [self.directory + "/" + name for name in self.digests]
+        result = _docker_command([self.cli, "exec", self.record["id"], "sha256sum", "--", *paths])
+        expected = [f"{digest}  {path}" for digest, path in zip(self.digests.values(), paths, strict=True)]
+        if result.stdout.decode().splitlines() != expected:
+            raise DisposableTargetError("CLI executable or profile transfer checksum mismatch")
 
     def _execute(self, argv: list[str], timeout: int):
         """Keep CLI cwd/state private and stop only the owned container on timeout."""

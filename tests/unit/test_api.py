@@ -60,6 +60,25 @@ def client(monkeypatch: pytest.MonkeyPatch):
 
 
 @pytest.fixture
+def isolated_graph_publication_state():
+    """Keep endpoint tests independent of stale publication state and restore the prior state."""
+    from api.graph_lifecycle import graph_lock, graph_state
+
+    with graph_lock:
+        original_graph = graph_state.graph
+        original_job_id = graph_state.last_synced_job_id
+
+    try:
+        with graph_lock:
+            graph_state.last_synced_job_id = None
+        yield
+    finally:
+        with graph_lock:
+            graph_state.graph = original_graph
+            graph_state.last_synced_job_id = original_job_id
+
+
+@pytest.fixture
 def mock_graph():
     """
     Create an in-memory AssetRelationshipGraph populated with four sample assets and their relationships.
@@ -391,7 +410,9 @@ class TestRelationshipsEndpoint:
     """Test relationship endpoints."""
 
     @patch("api.graph_lifecycle.graph_state.graph")
-    def test_get_asset_relationships(self, mock_graph_instance, client, mock_graph, apply_mock_graph):
+    def test_get_asset_relationships(
+        self, mock_graph_instance, client, mock_graph, apply_mock_graph, isolated_graph_publication_state
+    ):
         """Test retrieving relationships for a specific asset."""
         apply_mock_graph(mock_graph_instance, mock_graph)
 
@@ -417,7 +438,9 @@ class TestRelationshipsEndpoint:
         assert response.status_code == 404
 
     @patch("api.graph_lifecycle.graph_state.graph")
-    def test_get_all_relationships(self, mock_graph_instance, client, mock_graph, apply_mock_graph):
+    def test_get_all_relationships(
+        self, mock_graph_instance, client, mock_graph, apply_mock_graph, isolated_graph_publication_state
+    ):
         """Test retrieving all relationships in the graph."""
         apply_mock_graph(mock_graph_instance, mock_graph)
 
@@ -440,7 +463,9 @@ class TestVisualizationEndpoint:
     """Test 3D visualization data endpoint."""
 
     @patch("api.graph_lifecycle.graph_state.graph")
-    def test_get_visualization_data(self, mock_graph_instance, client, mock_graph, apply_mock_graph):
+    def test_get_visualization_data(
+        self, mock_graph_instance, client, mock_graph, apply_mock_graph, isolated_graph_publication_state
+    ):
         """Test retrieving visualization data."""
         apply_mock_graph(mock_graph_instance, mock_graph)
 
@@ -455,7 +480,9 @@ class TestVisualizationEndpoint:
         assert len(data["nodes"]) == 4
 
     @patch("api.graph_lifecycle.graph_state.graph")
-    def test_visualization_node_structure(self, mock_graph_instance, client, mock_graph, apply_mock_graph):
+    def test_visualization_node_structure(
+        self, mock_graph_instance, client, mock_graph, apply_mock_graph, isolated_graph_publication_state
+    ):
         """Test visualization node data structure."""
         apply_mock_graph(mock_graph_instance, mock_graph)
 
@@ -479,7 +506,9 @@ class TestVisualizationEndpoint:
         assert isinstance(node["z"], float)
 
     @patch("api.graph_lifecycle.graph_state.graph")
-    def test_visualization_edge_structure(self, mock_graph_instance, client, mock_graph, apply_mock_graph):
+    def test_visualization_edge_structure(
+        self, mock_graph_instance, client, mock_graph, apply_mock_graph, isolated_graph_publication_state
+    ):
         """Test visualization edge data structure."""
         apply_mock_graph(mock_graph_instance, mock_graph)
 
@@ -621,7 +650,9 @@ class TestResponseValidation:
                 assert isinstance(asset["market_cap"], (int, float))
 
     @patch("api.graph_lifecycle.graph_state.graph")
-    def test_relationship_response_schema(self, mock_graph_instance, client, mock_graph, apply_mock_graph):
+    def test_relationship_response_schema(
+        self, mock_graph_instance, client, mock_graph, apply_mock_graph, isolated_graph_publication_state
+    ):
         """Test relationship response matches schema."""
         apply_mock_graph(mock_graph_instance, mock_graph)
 

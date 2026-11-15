@@ -18,6 +18,20 @@ USABLE_ROLE_MEMBERSHIP_CTE_SQL = (
     "OR role_membership.member_is_superuser OR member_role.rolsuper)) "
 )
 
+
+def login_membership_sql(*, require_login_principals: bool, dbapi: bool) -> str:
+    """Check role membership against approved logins with the caller's bind syntax."""
+    grantees = (
+        "FROM pg_roles AS grantee WHERE grantee.rolcanlogin "
+        "AND grantee.oid <> (SELECT datdba FROM pg_database WHERE datname = current_database()) "
+        "AND EXISTS (SELECT 1 FROM role_membership WHERE role_membership.member = grantee.oid "
+        "AND role_membership.roleid = role.oid)"
+    )
+    count = f"(SELECT COUNT(*) {grantees}) >= 1 AND " if require_login_principals else ""
+    approved = "grantee.rolname = ANY(%s)" if dbapi else "grantee.rolname IN :approved_logins"
+    return f"{USABLE_ROLE_MEMBERSHIP_CTE_SQL}SELECT {count}NOT EXISTS (SELECT 1 {grantees} AND NOT ({approved}))"
+
+
 AUTH_RUNTIME_ROLE = "fardb_runtime_auth"
 GRAPH_RUNTIME_ROLE = "fardb_runtime_graph"
 COORDINATION_RUNTIME_ROLE = "fardb_runtime_coordination"

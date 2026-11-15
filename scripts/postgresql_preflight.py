@@ -687,7 +687,7 @@ def _retained_target_identity(identity, route, target, expected_identity=None):
 
 def _psycopg_database_identity(connection):
     """Read cluster and database identity from a retained DBAPI session."""
-    from src.data.postgresql_topology import DatabaseIdentity
+    from src.data.postgresql_topology import validated_database_identity
 
     with connection.cursor() as cursor:
         cursor.execute(
@@ -696,19 +696,10 @@ def _psycopg_database_identity(connection):
             "ON database.datname = pg_catalog.current_database()"
         )
         rows = cursor.fetchall()
-    if len(rows) != 1 or len(rows[0]) != 3:
-        raise TargetIdentityError()
-    identifier, oid, name = rows[0]
-    if (
-        not isinstance(identifier, str)
-        or not identifier.isascii()
-        or not identifier.isdecimal()
-        or int(identifier) <= 0
-    ):
-        raise TargetIdentityError()
-    if not isinstance(oid, int) or oid <= 0 or not isinstance(name, str) or not name:
-        raise TargetIdentityError()
-    return DatabaseIdentity(identifier, oid, name)
+    try:
+        return validated_database_identity(rows)
+    except (ValueError, TypeError) as exc:
+        raise TargetIdentityError() from exc
 
 
 @contextmanager

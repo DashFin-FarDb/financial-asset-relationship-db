@@ -81,10 +81,10 @@ def _publish_sample_graph(
     job_id: str = "job-001",
     execution_id: str = "exec-001",
     publication_execution_id: Any = _UNSET,
-    custom_snapshot_sha256: str | None = None,
+    custom_snapshot_sha256: Any = _UNSET,
 ) -> str:
     """Helper to atomically persist a graph, rebuild job, and projection publication."""
-    if publication_execution_id is _UNSET and custom_snapshot_sha256 is None:
+    if publication_execution_id is _UNSET and custom_snapshot_sha256 is _UNSET:
         with session_factory() as session:
             digest = publish_test_graph_snapshot(
                 session,
@@ -116,7 +116,7 @@ def _publish_sample_graph(
         stage_graph_snapshot(session, graph)
         session.flush()
         computed_sha = compute_repository_snapshot_hash(AssetGraphRepository(session))
-        effective_sha = custom_snapshot_sha256 if custom_snapshot_sha256 is not None else computed_sha
+        effective_sha = computed_sha if custom_snapshot_sha256 is _UNSET else custom_snapshot_sha256
 
         revision = ProjectionRevision(
             purpose="test-current",
@@ -332,6 +332,27 @@ def test_missing_attestation_digest_rejected(tmp_path: Path) -> None:
     loaded = _load_persisted_graph_from_configured_store(db_url)
     assert loaded is None
     assert load_persisted_graph_if_available(db_url) is None
+
+
+def test_legacy_publication_allows_rebuild_without_serving_old_graph(tmp_path: Path, monkeypatch) -> None:
+    from api import app_factory, graph_lifecycle
+    from api.graph_lifecycle_providers import AuthoritativeGraphUnavailableError
+
+    url, sessions = _setup_disposable_db(tmp_path)
+    graph = _create_sample_test_graph()
+    _publish_sample_graph(sessions, graph, custom_snapshot_sha256=None, publication_execution_id="exec-001")
+    monkeypatch.setenv("ASSET_GRAPH_DATABASE_URL", url)
+    graph_lifecycle.reset_graph()
+    try:
+        app_factory._initialize_startup_graph(False, False)
+        with pytest.raises(AuthoritativeGraphUnavailableError):
+            graph_lifecycle.get_graph()
+        _publish_sample_graph(sessions, graph, job_id="new-job", execution_id="new-execution")
+        restored = load_persisted_graph_if_available(url)
+        assert restored is not None
+        assert compute_graph_snapshot_hash(restored) == compute_graph_snapshot_hash(graph)
+    finally:
+        graph_lifecycle.reset_graph()
 
 
 def test_mismatched_rebuild_identity_rejected(tmp_path: Path) -> None:

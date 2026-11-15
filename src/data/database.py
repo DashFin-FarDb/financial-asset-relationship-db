@@ -15,7 +15,7 @@ from sqlalchemy import (
     inspect,
     text,
 )
-from sqlalchemy.engine import Connection, Engine, make_url
+from sqlalchemy.engine import URL, Connection, Engine, make_url
 from sqlalchemy.exc import ArgumentError
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool
@@ -29,7 +29,7 @@ from .relationship_assertion_schema import SchemaCompatibilityError
 # Canonical transaction helper lives in repository.py per tech spec.
 # Re-export here for backward compatibility with older imports.
 from .repository import session_scope  # noqa: F401, E402
-from .runtime_role_membership import USABLE_ROLE_MEMBERSHIP_CTE_SQL, get_approved_login_principals
+from .runtime_role_membership import get_approved_login_principals, login_membership_sql
 
 DEFAULT_DATABASE_URL = "sqlite:///./asset_graph.db"
 ASSET_GRAPH_DATABASE_URL_ENV_VAR = "ASSET_GRAPH_DATABASE_URL"
@@ -165,6 +165,18 @@ def configure_sqlite_engine(engine: Engine) -> Engine:
 _configure_sqlite_engine = configure_sqlite_engine
 
 
+def _normalize_postgresql_driver(url: URL) -> URL:
+    """Canonicalize PostgreSQL URL aliases and select psycopg2 for bare schemes."""
+    backend, separator, driver = url.drivername.partition("+")
+    if backend not in {"postgres", "postgresql"}:
+        return url
+    if not separator:
+        return url.set(drivername="postgresql+psycopg2")
+    if backend == "postgres":
+        return url.set(drivername=f"postgresql+{driver}")
+    return url
+
+
 def create_engine_from_url(url: str | None = None) -> Engine:
     """
     Resolve a database URL and create a SQLAlchemy Engine for the asset store.
@@ -204,6 +216,7 @@ def create_engine_from_url(url: str | None = None) -> Engine:
             raise
         return _configure_sqlite_engine(create_engine(DEFAULT_DATABASE_URL, future=True))
 
+    parsed_url = _normalize_postgresql_driver(parsed_url)
     is_sqlite = parsed_url.get_backend_name() == "sqlite"
     database = parsed_url.database or ""
     query: dict = dict(parsed_url.query) if getattr(parsed_url, "query", None) else {}
@@ -229,7 +242,7 @@ def create_engine_from_url(url: str | None = None) -> Engine:
             )
         )
 
-    return create_engine(resolved_url, future=True)
+    return create_engine(parsed_url, future=True)
 
 
 def create_session_factory(engine: Engine) -> sessionmaker[Session]:
@@ -501,14 +514,6 @@ def _verify_runtime_capability_roles(
         is_combined = combined_topology
     else:
         is_combined = {GRAPH_RUNTIME_CAPABILITY, COORDINATION_RUNTIME_CAPABILITY}.issubset(capabilities)
-    grantee_count_clause = (
-        "(SELECT COUNT(*) FROM pg_roles AS grantee WHERE grantee.rolcanlogin "
-        "AND grantee.oid <> (SELECT datdba FROM pg_database WHERE datname = current_database()) "
-        "AND EXISTS (SELECT 1 FROM role_membership WHERE role_membership.member = grantee.oid "
-        "AND role_membership.roleid = role.oid)) >= 1 AND "
-        if require_login_principals
-        else ""
-    )
     for capability in capabilities:
         role_name = RUNTIME_CAPABILITY_ROLES[capability]
         safe_role = connection.execute(
@@ -580,14 +585,8 @@ def _verify_runtime_capability_roles(
                         "WHERE membership.roleid = role.oid AND membership.admin_option "
                         "AND membership.member <> "
                         "(SELECT datdba FROM pg_database WHERE datname = current_database())) AND (",
-                        USABLE_ROLE_MEMBERSHIP_CTE_SQL,
-                        "SELECT ",
-                        grantee_count_clause,
-                        "NOT EXISTS (SELECT 1 FROM pg_roles AS grantee WHERE grantee.rolcanlogin "
-                        "AND grantee.oid <> (SELECT datdba FROM pg_database WHERE datname = current_database()) "
-                        "AND EXISTS (SELECT 1 FROM role_membership WHERE role_membership.member = grantee.oid "
-                        "AND role_membership.roleid = role.oid) "
-                        "AND NOT (grantee.rolname IN :approved_logins)))",
+                        login_membership_sql(require_login_principals=require_login_principals, dbapi=False),
+                        ")",
                     )
                 )
             ).bindparams(

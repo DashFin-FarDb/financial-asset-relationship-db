@@ -56,21 +56,13 @@ def _cluster_and_database_identity(connection: PsycopgConnection) -> tuple[str, 
             "ON database.datname = pg_catalog.current_database()"
         )
         rows = cursor.fetchall()
-    if len(rows) != 1:
-        raise BootstrapTargetError("mapped database identity is unavailable or ambiguous")
-    system_identifier, database_oid, database_name = rows[0]
-    if (
-        not isinstance(system_identifier, str)
-        or not system_identifier.isascii()
-        or not system_identifier.isdecimal()
-        or int(system_identifier) <= 0
-        or not isinstance(database_oid, int)
-        or database_oid <= 0
-        or not isinstance(database_name, str)
-        or not database_name
-    ):
-        raise BootstrapTargetError("mapped database identity is invalid")
-    return system_identifier, database_oid, database_name
+    from src.data.postgresql_topology import validated_database_identity
+
+    try:
+        identity = validated_database_identity(rows)
+    except (TypeError, ValueError) as exc:
+        raise BootstrapTargetError("mapped database identity is invalid or ambiguous") from exc
+    return identity.system_identifier, identity.database_oid, identity.database_name
 
 
 def _coordinator_targets(cursor, mapping: dict[str, list[str]]) -> dict[str, tuple[int, str]]:
