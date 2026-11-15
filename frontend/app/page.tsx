@@ -10,11 +10,13 @@ import type { Metrics, VisualizationData } from "./types/api";
 type HomeTab = "visualization" | "metrics" | "assets";
 
 type HomeContentProps = Readonly<{
-  loading: boolean;
-  error: string | null;
   activeTab: HomeTab;
   vizData: VisualizationData | null;
   metrics: Metrics | null;
+  visualizationLoading: boolean;
+  metricsLoading: boolean;
+  visualizationError: string | null;
+  metricsError: string | null;
   onRetry: () => void;
 }>;
 
@@ -38,6 +40,19 @@ const ACTIVE_TAB_CLASS = "border-blue-500 text-blue-600";
 const INACTIVE_TAB_CLASS =
   "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300";
 
+function observeRequest<T>(
+  request: Promise<T>,
+  requestId: number,
+  onSuccess: (requestId: number, result: T) => void,
+  onError: (requestId: number, error: unknown) => void,
+  onFinally: (requestId: number) => void,
+) {
+  void request
+    .then((result) => onSuccess(requestId, result))
+    .catch((error: unknown) => onError(requestId, error))
+    .finally(() => onFinally(requestId));
+}
+
 /**
  * Builds the CSS class string for a tab according to its active state.
  *
@@ -51,35 +66,140 @@ function getTabClassName(isActive: boolean): string {
 }
 
 /**
- * Render the home page's tabbed content area based on loading, error, and the active tab.
+ * Render the home page's tabbed content area with per-resource loading, data, and error states.
  *
- * When `loading` is true, shows a loading indicator; when `error` is set, shows an error panel with a retry action;
- * otherwise renders the content for the active tab ("visualization", "metrics", or "assets").
+ * Each resource (visualization, metrics) is rendered independently from its own lifecycle.
+ * A global error is shown only when neither resource has usable data.
  *
  * @returns The JSX element for the content area, or `null` if no content is applicable.
  */
 function HomeContent({
-  loading,
-  error,
   activeTab,
   vizData,
   metrics,
+  visualizationLoading,
+  metricsLoading,
+  visualizationError,
+  metricsError,
   onRetry,
 }: HomeContentProps) {
-  if (loading) {
-    return (
-      <div className="text-center py-12">
-        <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600" />
-        <p className="mt-4 text-gray-600">Loading data...</p>
-      </div>
-    );
+  if (activeTab === "visualization") {
+    if (visualizationLoading && !vizData) {
+      return (
+        <div className="text-center py-12">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600" />
+          <p className="mt-4 text-gray-600">Loading data...</p>
+        </div>
+      );
+    }
+
+    if (visualizationError && !vizData) {
+      return (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
+          <p className="text-red-800">{visualizationError}</p>
+          <button
+            type="button"
+            onClick={onRetry}
+            className="mt-4 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
+          >
+            Retry
+          </button>
+        </div>
+      );
+    }
+
+    if (vizData) {
+      return (
+        <div className="bg-white rounded-lg shadow-lg p-6">
+          {visualizationError && (
+            <div className="mb-4 flex items-center justify-between gap-4 rounded-md border border-amber-200 bg-amber-50 p-4">
+              <output className="block text-sm text-amber-700">
+                The latest refresh failed — showing the last successfully loaded
+                graph.
+              </output>
+              <button
+                type="button"
+                onClick={onRetry}
+                className="px-3 py-1 text-xs font-medium bg-amber-600 text-white rounded hover:bg-amber-700 transition-colors"
+              >
+                Retry
+              </button>
+            </div>
+          )}
+          <NetworkVisualization data={vizData} />
+        </div>
+      );
+    }
   }
 
-  if (error) {
+  if (activeTab === "metrics") {
+    if (metricsLoading && !metrics) {
+      return (
+        <div className="text-center py-12">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600" />
+          <p className="mt-4 text-gray-600">Loading data...</p>
+        </div>
+      );
+    }
+
+    if (metricsError && !metrics) {
+      return (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
+          <p className="text-red-800">{metricsError}</p>
+          <button
+            type="button"
+            onClick={onRetry}
+            className="mt-4 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
+          >
+            Retry
+          </button>
+        </div>
+      );
+    }
+
+    if (metrics) {
+      return (
+        <div>
+          {metricsError && (
+            <div className="mb-4 flex items-center justify-between gap-4 rounded-md border border-amber-200 bg-amber-50 p-4">
+              <output className="block text-sm text-amber-700">
+                The latest refresh failed — showing the last successfully loaded
+                metrics.
+              </output>
+              <button
+                type="button"
+                onClick={onRetry}
+                className="px-3 py-1 text-xs font-medium bg-amber-600 text-white rounded hover:bg-amber-700 transition-colors"
+              >
+                Retry
+              </button>
+            </div>
+          )}
+          <MetricsDashboard metrics={metrics} />
+        </div>
+      );
+    }
+  }
+
+  if (activeTab === "assets") {
+    return <AssetList />;
+  }
+
+  const showGenericError =
+    !vizData &&
+    !metrics &&
+    !visualizationLoading &&
+    !metricsLoading &&
+    (visualizationError || metricsError);
+
+  if (showGenericError) {
     return (
       <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
-        <p className="text-red-800">{error}</p>
+        <p className="text-red-800">
+          Failed to load data. Please ensure the API server is running.
+        </p>
         <button
+          type="button"
           onClick={onRetry}
           className="mt-4 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
         >
@@ -87,22 +207,6 @@ function HomeContent({
         </button>
       </div>
     );
-  }
-
-  if (activeTab === "visualization" && vizData) {
-    return (
-      <div className="bg-white rounded-lg shadow-lg p-6">
-        <NetworkVisualization data={vizData} />
-      </div>
-    );
-  }
-
-  if (activeTab === "metrics" && metrics) {
-    return <MetricsDashboard metrics={metrics} />;
-  }
-
-  if (activeTab === "assets") {
-    return <AssetList />;
   }
 
   return null;
@@ -125,6 +229,7 @@ function TabNavigation({ activeTab, onTabChange }: TabNavigationProps) {
               key={tab.key}
               onClick={() => onTabChange(tab.key)}
               className={getTabClassName(activeTab === tab.key)}
+              type="button"
             >
               {tab.label}
             </button>
@@ -136,20 +241,22 @@ function TabNavigation({ activeTab, onTabChange }: TabNavigationProps) {
 }
 
 /**
- * Render the dashboard home page with a tabbed interface for Visualization, Metrics, and Assets.
- *
- * Loads metrics and visualization data on mount, displays loading and error states, and exposes a retry action.
- *
- * @returns The top-level JSX element for the home page
+ * Manages dashboard data fetching with independent per-resource request tracking.
+ * Each resource (metrics, visualization) has its own loading and error state,
+ * allowing one to fail or remain pending without blocking the other.
  */
-export default function Home() {
-  const [activeTab, setActiveTab] = useState<HomeTab>("visualization");
+function useDashboardData() {
   const [metrics, setMetrics] = useState<Metrics | null>(null);
   const [vizData, setVizData] = useState<VisualizationData | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
+  const [metricsLoading, setMetricsLoading] = useState(true);
+  const [visualizationLoading, setVisualizationLoading] = useState(true);
+  const [metricsError, setMetricsError] = useState<string | null>(null);
+  const [visualizationError, setVisualizationError] = useState<string | null>(
+    null,
+  );
 
-  const requestIdRef = useRef(0);
+  const metricsRequestIdRef = useRef(0);
+  const visualizationRequestIdRef = useRef(0);
   const mountedRef = useRef(true);
 
   useEffect(() => {
@@ -159,73 +266,166 @@ export default function Home() {
     };
   }, []);
 
-  /**
-   * Loads metrics and visualization data from the API.
-   * Sets loading states during fetch and handles errors by logging and setting error message.
-   */
-  const fetchDashboardData = useCallback(async () => {
-    const requestId = ++requestIdRef.current;
-    try {
-      const [metricsData, visualizationData] = await Promise.all([
-        api.getMetrics(),
-        api.getVisualizationData(),
-      ]);
-      return { metricsData, visualizationData, error: null, requestId };
-    } catch (err) {
-      if (process.env.NODE_ENV === "production") {
-        console.error("Error loading data");
-      } else {
-        console.error("Error loading data:", err);
-      }
-      return {
-        metricsData: null,
-        visualizationData: null,
-        error: "Failed to load data. Please ensure the API server is running.",
-        requestId,
-      };
-    }
-  }, []);
-  const applyResult = useCallback(
-    (result: {
-      metricsData: Metrics | null;
-      visualizationData: VisualizationData | null;
-      error: string | null;
-      requestId: number;
-    }) => {
-      if (result.requestId !== requestIdRef.current || !mountedRef.current)
+  const applyMetricsResult = useCallback(
+    (requestId: number, result: Metrics) => {
+      if (!mountedRef.current || requestId !== metricsRequestIdRef.current) {
         return;
-      if (result.error) {
-        setError(result.error);
-      } else {
-        setMetrics(result.metricsData);
-        setVizData(result.visualizationData);
-        setError(null);
       }
-      setLoading(false);
+      setMetrics(result);
+      setMetricsError(null);
     },
     [],
   );
+
+  const applyMetricsError = useCallback((requestId: number, error: unknown) => {
+    if (!mountedRef.current || requestId !== metricsRequestIdRef.current) {
+      return;
+    }
+    if (process.env.NODE_ENV === "production") {
+      console.error("Error loading metrics");
+    } else {
+      console.error("Error loading metrics:", error);
+    }
+    setMetricsError("Failed to load metrics data.");
+  }, []);
+
+  const finishMetricsRequest = useCallback((requestId: number) => {
+    if (mountedRef.current && requestId === metricsRequestIdRef.current) {
+      setMetricsLoading(false);
+    }
+  }, []);
+
+  const applyVisualizationResult = useCallback(
+    (requestId: number, result: VisualizationData) => {
+      if (
+        !mountedRef.current ||
+        requestId !== visualizationRequestIdRef.current
+      ) {
+        return;
+      }
+      setVizData(result);
+      setVisualizationError(null);
+    },
+    [],
+  );
+
+  const applyVisualizationError = useCallback(
+    (requestId: number, error: unknown) => {
+      if (
+        !mountedRef.current ||
+        requestId !== visualizationRequestIdRef.current
+      ) {
+        return;
+      }
+      if (process.env.NODE_ENV === "production") {
+        console.error("Error loading visualization");
+      } else {
+        console.error("Error loading visualization:", error);
+      }
+      setVisualizationError(
+        "Failed to load visualization data. Please ensure the API server is running.",
+      );
+    },
+    [],
+  );
+
+  const finishVisualizationRequest = useCallback((requestId: number) => {
+    if (mountedRef.current && requestId === visualizationRequestIdRef.current) {
+      setVisualizationLoading(false);
+    }
+  }, []);
+
+  const fetchMetrics = useCallback(async () => {
+    const requestId = ++metricsRequestIdRef.current;
+    try {
+      applyMetricsResult(requestId, await api.getMetrics());
+    } catch (error) {
+      applyMetricsError(requestId, error);
+    } finally {
+      finishMetricsRequest(requestId);
+    }
+  }, [applyMetricsError, applyMetricsResult, finishMetricsRequest]);
+
+  const fetchVisualization = useCallback(async () => {
+    const requestId = ++visualizationRequestIdRef.current;
+    try {
+      applyVisualizationResult(requestId, await api.getVisualizationData());
+    } catch (error) {
+      applyVisualizationError(requestId, error);
+    } finally {
+      finishVisualizationRequest(requestId);
+    }
+  }, [
+    applyVisualizationError,
+    applyVisualizationResult,
+    finishVisualizationRequest,
+  ]);
+
   useEffect(() => {
-    /**
-     * Executes the initial data fetch and updates component state.
-     * Evaluates the result and sets appropriate UI states (loading, error, data).
-     */
-    const load = async () => {
-      const result = await fetchDashboardData();
-      applyResult(result);
-    };
-    load();
-  }, [fetchDashboardData, applyResult]);
-  /**
-   * Refetches the dashboard data and updates component state.
-   * Useful when the previous fetch failed or manual refresh is required.
-   */
+    const metricsRequestId = ++metricsRequestIdRef.current;
+    observeRequest(
+      api.getMetrics(),
+      metricsRequestId,
+      applyMetricsResult,
+      applyMetricsError,
+      finishMetricsRequest,
+    );
+
+    const visualizationRequestId = ++visualizationRequestIdRef.current;
+    observeRequest(
+      api.getVisualizationData(),
+      visualizationRequestId,
+      applyVisualizationResult,
+      applyVisualizationError,
+      finishVisualizationRequest,
+    );
+  }, [
+    applyMetricsError,
+    applyMetricsResult,
+    applyVisualizationError,
+    applyVisualizationResult,
+    finishMetricsRequest,
+    finishVisualizationRequest,
+  ]);
+
   const handleRetry = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    const result = await fetchDashboardData();
-    applyResult(result);
-  }, [fetchDashboardData, applyResult]);
+    setMetricsLoading(true);
+    setVisualizationLoading(true);
+    setMetricsError(null);
+    setVisualizationError(null);
+    await Promise.all([fetchMetrics(), fetchVisualization()]);
+  }, [fetchMetrics, fetchVisualization]);
+
+  return {
+    metrics,
+    vizData,
+    metricsLoading,
+    visualizationLoading,
+    metricsError,
+    visualizationError,
+    onRetry: handleRetry,
+  };
+}
+
+/**
+ * Render the dashboard home page with a tabbed interface for Visualization, Metrics, and Assets.
+ *
+ * Loads metrics and visualization data independently on mount, displays per-resource loading
+ * and error states, and exposes a retry action.
+ *
+ * @returns The top-level JSX element for the home page
+ */
+export default function Home() {
+  const [activeTab, setActiveTab] = useState<HomeTab>("visualization");
+  const {
+    metrics,
+    vizData,
+    metricsLoading,
+    visualizationLoading,
+    metricsError,
+    visualizationError,
+    onRetry,
+  } = useDashboardData();
 
   const handleTabChange = useCallback((tab: HomeTab) => {
     setActiveTab(tab);
@@ -233,7 +433,6 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
-      {/* Header */}
       <header className="bg-white shadow-md">
         <div className="container mx-auto px-4 py-6">
           <h1 className="text-3xl font-bold text-gray-800">
@@ -245,22 +444,21 @@ export default function Home() {
         </div>
       </header>
 
-      {/* Navigation */}
       <TabNavigation activeTab={activeTab} onTabChange={handleTabChange} />
 
-      {/* Content */}
       <div className="container mx-auto px-4 py-8">
         <HomeContent
-          loading={loading}
-          error={error}
           activeTab={activeTab}
           vizData={vizData}
           metrics={metrics}
-          onRetry={handleRetry}
+          visualizationLoading={visualizationLoading}
+          metricsLoading={metricsLoading}
+          visualizationError={visualizationError}
+          metricsError={metricsError}
+          onRetry={onRetry}
         />
       </div>
 
-      {/* Footer */}
       <footer className="bg-white border-t border-gray-200 mt-12">
         <div className="container mx-auto px-4 py-6 text-center text-gray-600 text-sm">
           <p>

@@ -1,0 +1,4 @@
+---
+name: python-test
+discover: find tests -type f \( -name 'test_*.py' -o -name '*_test.py' \) ! -path 'tests/benchmarks/*'
+run: python -m pytest --durations=25 --override-ini=junit_family=legacy --junitxml="<< outputs.junit >>" << test.atoms >>
