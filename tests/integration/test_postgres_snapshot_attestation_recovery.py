@@ -152,7 +152,7 @@ def _drop_database(base_url: str, database_name: str) -> None:
                 "WHERE datname = %s AND pid <> pg_backend_pid()",
                 (database_name,),
             )
-            cursor.execute(sql.SQL("DROP DATABASE {}").format(sql.Identifier(database_name)))
+            cursor.execute(sql.SQL("DROP DATABASE IF EXISTS {}").format(sql.Identifier(database_name)))
     finally:
         connection.close()
 
@@ -173,17 +173,17 @@ def disposable_graph_database() -> Iterator[tuple[str, Engine, sessionmaker[Sess
         database_url=target_url,
     )
 
-    _bootstrap_roles_and_create_database(base_url, database_name)
-    with ContainerCliRunner(target_url) as runner:
-        apply_profile_to_database(target, manifest, runner=runner)
-
-    engine = create_attested_engine(target_url, future=True)
-    session_factory = sessionmaker(bind=engine, autocommit=False, autoflush=False, future=True)
-
     try:
-        yield target_url, engine, session_factory
+        _bootstrap_roles_and_create_database(base_url, database_name)
+        with ContainerCliRunner(target_url) as runner:
+            apply_profile_to_database(target, manifest, runner=runner)
+
+        engine = create_attested_engine(target_url, future=True)
+        try:
+            yield target_url, engine, sessionmaker(bind=engine, autocommit=False, autoflush=False, future=True)
+        finally:
+            engine.dispose()
     finally:
-        engine.dispose()
         _drop_database(base_url, database_name)
 
 

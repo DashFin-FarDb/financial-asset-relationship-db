@@ -374,22 +374,47 @@ def test_inconsistent_ready_without_graph_returns_unavailable(monkeypatch: pytes
 def test_failed_nonpersistent_initialization_recovers_single_flight(monkeypatch) -> None:
     """Concurrent reads retry one transient failure and share the published result."""
     from concurrent.futures import ThreadPoolExecutor
+    from threading import Barrier, Event
     from unittest.mock import Mock
 
     graph = cast(graph_lifecycle.AssetRelationshipGraph, object())
     metadata = types.SimpleNamespace(source="cache")
-    initializer = Mock(side_effect=[RuntimeError("transient"), (graph, metadata)])
+    release = Event()
+    entered = Event()
+    start = Barrier(5)
+    clock = Mock(return_value=100.0)
+
+    def initialize():
+        if not entered.is_set():
+            entered.set()
+            raise RuntimeError("transient")
+        assert release.wait(timeout=5)
+        return graph, metadata
+
+    initializer = Mock(side_effect=initialize)
+    monkeypatch.setattr(graph_lifecycle, "monotonic", clock)
     monkeypatch.setattr(graph_lifecycle, "initialize_graph_runtime", initializer)
     monkeypatch.setattr(
         graph_lifecycle.graph_lifecycle_providers,
         "get_graph_lifecycle_settings",
-        lambda: types.SimpleNamespace(asset_graph_database_url=None),
+        lambda: types.SimpleNamespace(asset_graph_database_url=None, use_real_data_fetcher=True),
     )
     with pytest.raises(RuntimeError, match="transient"):
         graph_lifecycle.get_graph()
+    with pytest.raises(graph_lifecycle.AuthoritativeGraphUnavailableError):
+        graph_lifecycle.get_graph()
+    assert initializer.call_count == 1
+    clock.return_value = 106.0
+
+    def read():
+        start.wait(timeout=5)
+        return graph_lifecycle.get_graph()
+
     with ThreadPoolExecutor(max_workers=4) as executor:
-        results = list(executor.map(lambda _: graph_lifecycle.get_graph(), range(8)))
-    assert all(result is graph for result in results)
+        futures = [executor.submit(read) for _ in range(4)]
+        start.wait(timeout=5)
+        release.set()
+        assert all(future.result(timeout=5) is graph for future in futures)
     assert initializer.call_count == 2
 
 

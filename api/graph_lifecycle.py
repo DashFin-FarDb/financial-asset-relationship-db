@@ -13,6 +13,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from enum import Enum
+from time import monotonic
 from typing import Any, Final
 
 from src.logic.asset_graph import AssetRelationshipGraph
@@ -195,6 +196,7 @@ class _GraphState:
 
     def __init__(self) -> None:
         """Create empty graph lifecycle state."""
+        self.provider_retry_after = 0.0
         self.graph: AssetRelationshipGraph | None = None
         self.graph_factory: Callable[[], AssetRelationshipGraph] | None = None
 
@@ -204,6 +206,7 @@ class _GraphState:
 
     def clear_graph_runtime_state(self) -> None:
         """Clear graph instance state that must not survive lifecycle resets."""
+        self.provider_retry_after = 0.0
         self.graph = None
         self.startup_metadata = None
         self.last_synced_job_id = None
@@ -269,13 +272,17 @@ def get_graph_with_startup_source() -> tuple[AssetRelationshipGraph, GraphStartu
                 raise AuthoritativeGraphUnavailableError(_NO_AUTHORITATIVE_GRAPH_MESSAGE)
             settings = graph_lifecycle_providers.get_graph_lifecycle_settings()
             db_url = _settings_asset_graph_database_url(settings)
-            if graph_state.lifecycle_state == GraphRuntimeLifecycleState.FAILED and _is_persistence_enabled(db_url):
+            if graph_state.lifecycle_state == GraphRuntimeLifecycleState.FAILED and (
+                _is_persistence_enabled(db_url) or monotonic() < graph_state.provider_retry_after
+            ):
                 raise AuthoritativeGraphUnavailableError(_NO_AUTHORITATIVE_GRAPH_MESSAGE)
             _normalize_shutdown_state()
             _transition_lifecycle_state(GraphRuntimeLifecycleState.INITIALIZING)
             try:
                 graph, startup_metadata = initialize_graph_runtime()
             except Exception:
+                if getattr(settings, "use_real_data_fetcher", False):
+                    graph_state.provider_retry_after = monotonic() + 5.0
                 _transition_lifecycle_state(GraphRuntimeLifecycleState.FAILED)
                 raise
             graph_state.graph = graph
@@ -405,6 +412,7 @@ def set_graph_factory(
     """Configure the callable used to lazily construct the global graph."""
     with graph_lock:
         graph_state.graph_factory = factory
+        graph_state.provider_retry_after = 0.0
         graph_state.graph = None
         graph_state.startup_metadata = None
         graph_state.last_synced_job_id = None
@@ -424,6 +432,7 @@ def reset_graph() -> None:
     graph_lifecycle_providers.clear_graph_lifecycle_settings_cache()
     with graph_lock:
         graph_state.graph_factory = None
+        graph_state.provider_retry_after = 0.0
         graph_state.graph = None
         graph_state.startup_metadata = None
         graph_state.last_synced_job_id = None

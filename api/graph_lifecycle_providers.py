@@ -636,7 +636,7 @@ def _validate_publication_attestation_metadata(
         )
         return None
 
-    if job.snapshot_sha256 and job.snapshot_sha256 != expected_digest:
+    if job.snapshot_sha256 != expected_digest:
         log_event(
             logger,
             logging.WARNING,

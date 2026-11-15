@@ -728,7 +728,7 @@ async def _handle_reconciliation_blocked_bounded(exc: Any, settings: GraphLifecy
     except asyncio.CancelledError:
         await _stop_auth_database_verification(task, operation)
         raise
-    except TimeoutError:
+    except asyncio.TimeoutError:
         await _stop_auth_database_verification(task, operation)
         log_event(
             logger,

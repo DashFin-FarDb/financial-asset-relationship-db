@@ -302,10 +302,18 @@ def test_field_modifications_change_digest() -> None:
     assert hash_ev != hash_ev_owner
 
 
+def test_fractional_contract_sizes_remain_distinct_with_empty_sector() -> None:
+    asset = {"id": "A", "symbol": "A", "name": "A", "asset_class": "Commodity", "sector": "", "price": 1}
+    first = canonicalize_asset({**asset, "contract_size": 1.25})
+    second = canonicalize_asset({**asset, "contract_size": 1.75})
+    assert first["contract_size"] == "1.250000"
+    assert second["contract_size"] == "1.750000"
+    assert first["sector"] == ""
+
+
 def test_decimal_precision_and_rounding() -> None:
     """Banker's rounding (ROUND_HALF_EVEN) and strict 6-decimal quantization."""
-    # 2.5555555 rounds to 2.555556
-    assert normalize_decimal_string(2.5555556) == "2.555556"
+    assert normalize_decimal_string("2.5555545") == "2.555554"
     assert normalize_decimal_string("180.5") == "180.500000"
     assert normalize_decimal_string(Decimal("100")) == "100.000000"
     assert normalize_decimal_string(None, allow_none=True) is None

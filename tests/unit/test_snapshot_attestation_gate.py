@@ -33,7 +33,10 @@ from api.graph_lifecycle_providers import (
     stage_graph_snapshot,
 )
 from src.data.db_models import AssetORM, AssetRelationshipORM, RebuildJobORM, RegulatoryEventORM
-from src.data.relationship_assertion_db_models import RelationshipProjectionPublicationORM
+from src.data.relationship_assertion_db_models import (
+    RelationshipProjectionPublicationORM,
+    RelationshipProjectionRevisionORM,
+)
 from src.data.relationship_assertion_repository import (
     FinalizeProjectionPublicationRequest,
     RelationshipAssertionRepository,
@@ -324,7 +327,7 @@ def test_missing_attestation_digest_rejected(tmp_path: Path) -> None:
     db_url, session_factory = _setup_disposable_db(tmp_path)
     graph = _create_sample_test_graph()
     # Publish with empty/null digest (simulating legacy data)
-    _publish_sample_graph(session_factory, graph, custom_snapshot_sha256="")
+    _publish_sample_graph(session_factory, graph, custom_snapshot_sha256="", publication_execution_id="exec-001")
 
     loaded = _load_persisted_graph_from_configured_store(db_url)
     assert loaded is None
@@ -420,7 +423,8 @@ def test_blank_execution_id_rejected(tmp_path: Path) -> None:
     assert load_persisted_graph_if_available(db_url) is None
 
 
-def test_mismatched_job_snapshot_sha256_rejected(tmp_path: Path) -> None:
+@pytest.mark.parametrize("job_digest", [None, "", "0" * 64])
+def test_mismatched_job_snapshot_sha256_rejected(tmp_path: Path, job_digest: str | None) -> None:
     """Job snapshot_sha256 differing from publication snapshot_sha256 fails closed."""
     db_url, session_factory = _setup_disposable_db(tmp_path)
     graph = _create_sample_test_graph()
@@ -428,7 +432,7 @@ def test_mismatched_job_snapshot_sha256_rejected(tmp_path: Path) -> None:
 
     # Tamper with job snapshot_sha256
     with session_factory() as session:
-        session.execute(update(RebuildJobORM).values(snapshot_sha256="0" * 64))
+        session.execute(update(RebuildJobORM).values(snapshot_sha256=job_digest))
         session.commit()
 
     loaded = _load_persisted_graph_from_configured_store(db_url)
@@ -441,35 +445,22 @@ def test_rollback_on_publication_failure(tmp_path: Path) -> None:
     db_url, session_factory = _setup_disposable_db(tmp_path)
     graph = _create_sample_test_graph()
 
-    now = datetime.now(UTC)
+    from api.routers.graph_admin import _publication_transactions
+
+    def fail_before_commit() -> None:
+        raise RuntimeError("Simulated publication error")
+
+    with (
+        pytest.raises(RuntimeError, match="Simulated publication error"),
+        _publication_transactions(
+            session_factory, None, coordination_is_domain=True, pre_domain_commit=fail_before_commit
+        ) as (domain, _),
+    ):
+        publish_test_graph_snapshot(domain, graph)
+
     with session_factory() as session:
-        job = RebuildJobORM(
-            job_id="job-fail",
-            requested_by="test-operator",
-            status="running",
-            source="test",
-            created_at=now,
-            updated_at=now,
-            started_at=now,
-            execution_id="exec-fail",
-        )
-        session.add(job)
-        session.commit()
-
-    # Simulate failure in publication transaction
-    def _fail_publication() -> None:
-        with session_factory() as session:
-            stage_graph_snapshot(session, graph)
-            # Something fails before commit
-            raise RuntimeError("Simulated publication error")
-
-    with pytest.raises(RuntimeError, match="Simulated publication error"):
-        _fail_publication()
-
-    # Assert database has NO staged assets
-    with session_factory() as session:
-        asset_count = session.execute(select(AssetORM.id)).scalars().all()
-        assert len(asset_count) == 0
+        for model in (AssetORM, RebuildJobORM, RelationshipProjectionPublicationORM, RelationshipProjectionRevisionORM):
+            assert session.execute(select(model)).first() is None
 
     # Gate still fails closed cleanly
     assert _load_persisted_graph_from_configured_store(db_url) is None
@@ -479,9 +470,17 @@ def test_coordination_finalization_failure_resilience(tmp_path: Path) -> None:
     """In split persistence, coordination lease renewal failure after domain commit preserves durable graph."""
     db_url, session_factory = _setup_disposable_db(tmp_path)
     graph = _create_sample_test_graph()
-    digest = _publish_sample_graph(session_factory, graph)
+    from api.routers.graph_admin import _publication_transactions
 
-    # Even if coordination lease failed downstream, domain rows committed cleanly:
+    coordination = session_factory()
+    with patch.object(coordination, "commit", side_effect=RuntimeError("lease renewal failed")) as commit:
+        with _publication_transactions(session_factory, lambda: coordination, coordination_is_domain=False) as (
+            domain,
+            _,
+        ):
+            digest = publish_test_graph_snapshot(domain, graph)
+        commit.assert_called_once()
+
     loaded = _load_persisted_graph_from_configured_store(db_url)
     assert loaded is not None
     assert compute_graph_snapshot_hash(loaded) == digest

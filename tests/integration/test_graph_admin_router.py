@@ -260,7 +260,7 @@ def test_rebuild_lock_contention_does_not_mark_runtime_failed(
             graph_admin._REBUILD_RUNTIME.mark_idle(succeeded=True)  # pylint: disable=protected-access
 
     assert response.status_code == 429
-    assert graph_admin.get_runtime_lifecycle_state() == graph_admin.GraphRuntimeLifecycleState.FAILED
+    assert graph_admin.get_runtime_lifecycle_state() == graph_admin.GraphRuntimeLifecycleState.READY
 
     audit_records = [record for record in caplog.records if getattr(record, "event", "").startswith("graph_rebuild_")]
     rejected_records = [

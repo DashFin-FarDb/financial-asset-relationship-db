@@ -111,7 +111,8 @@ def canonicalize_asset(asset: Any) -> dict[str, Any]:
     else:
         asset_class_str = _normalize_string(raw_asset_class, "asset_class")
 
-    sector = _normalize_string(_extract_attr_or_key(asset, "sector"), "sector")
+    sector_value = _extract_attr_or_key(asset, "sector")
+    sector = "" if sector_value == "" else _normalize_string(sector_value, "sector")
     currency = _normalize_string(_extract_attr_or_key(asset, "currency", "USD"), "currency")
 
     price_str = normalize_decimal_string(
@@ -163,7 +164,7 @@ def canonicalize_asset(asset: Any) -> dict[str, Any]:
     contract_size_val = _extract_attr_or_key(asset, "contract_size")
     if contract_size_val is not None and not isinstance(contract_size_val, (int, float, Decimal)):
         raise CanonicalizationValidationError(f"Invalid contract_size: {contract_size_val!r}")
-    contract_size = int(contract_size_val) if contract_size_val is not None else None
+    contract_size = normalize_decimal_string(contract_size_val, field_name="contract_size", allow_none=True)
 
     delivery_date = _normalize_string(_extract_attr_or_key(asset, "delivery_date"), "delivery_date", allow_none=True)
     volatility_str = normalize_decimal_string(

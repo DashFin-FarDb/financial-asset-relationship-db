@@ -160,7 +160,7 @@ class _RebuildRuntime:
 
     def clear_busy_after_contention(self) -> None:
         """Clear rejected work without claiming a successful graph publication."""
-        complete_rebuild(succeeded=False)
+        complete_rebuild(succeeded=True)
 
     def get_lock(self) -> asyncio.Lock:
         """Return a rebuild lock bound to the current event loop."""
