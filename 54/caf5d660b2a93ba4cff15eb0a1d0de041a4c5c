@@ -1,0 +1,37 @@
+api/app_factory.py
+  s_88cbb3d0ce7f6b::t_15c84e51964913 13,123-131,155,205,207-209,212,214-216,218-222
+api/database.py
+  s_88cbb3d0ce7f6b::t_69401df47a9b5e 57,202-203
+scripts/bootstrap_database_capability_roles.py
+  s_88cbb3d0ce7f6b::t_a86986584c0a6c 59-65
+scripts/postgresql_preflight.py
+  s_88cbb3d0ce7f6b::t_6196c6e5ea7532 690,699-702
+src/data/database.py
+  s_88cbb3d0ce7f6b::t_0b6640fec2d23e 18,32,168-179,219,245,588-589
+src/data/postgresql_topology.py
+  s_88cbb3d0ce7f6b::t_de7ff72d331329 25-36,47
+src/data/runtime_role_membership.py
+  s_88cbb3d0ce7f6b::t_c5536e869d91ee 21-34
+tests/integration/postgresql_disposable_cluster.py
+  s_88cbb3d0ce7f6b::t_13375ca18383ec 15,502,508,527,639,642,770,775-791,795,798-804
+tests/unit/test_postgresql_disposable_cluster.py
+  s_88cbb3d0ce7f6b::t_234c49911a588f 361,439
+tests/unit/test_postgresql_ledger.py
+  s_88cbb3d0ce7f6b::t_184737db95d6ff 18-39,133,142,144,149-160,769-778
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "54caf5d660b2a93ba4cff15eb0a1d0de041a4c5c",
+  "prompts": {},
+  "sessions": {
+    "s_88cbb3d0ce7f6b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "01a1e158-5454-78a2-8033-2b9f7eff8206",
+        "model": "unknown"
+      },
+      "human_author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}
