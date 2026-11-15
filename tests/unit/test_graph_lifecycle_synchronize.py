@@ -381,6 +381,7 @@ def test_failed_nonpersistent_initialization_recovers_single_flight(monkeypatch)
     metadata = types.SimpleNamespace(source="cache")
     release = Event()
     entered = Event()
+    retry_entered = Event()
     start = Barrier(5)
     clock = Mock(return_value=100.0)
 
@@ -388,6 +389,7 @@ def test_failed_nonpersistent_initialization_recovers_single_flight(monkeypatch)
         if not entered.is_set():
             entered.set()
             raise RuntimeError("transient")
+        retry_entered.set()
         assert release.wait(timeout=5)
         return graph, metadata
 
@@ -413,6 +415,7 @@ def test_failed_nonpersistent_initialization_recovers_single_flight(monkeypatch)
     with ThreadPoolExecutor(max_workers=4) as executor:
         futures = [executor.submit(read) for _ in range(4)]
         start.wait(timeout=5)
+        assert retry_entered.wait(timeout=5)
         release.set()
         assert all(future.result(timeout=5) is graph for future in futures)
     assert initializer.call_count == 2

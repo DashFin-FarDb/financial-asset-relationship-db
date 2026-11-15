@@ -212,6 +212,12 @@ Persistence invariants:
 - `SUCCEEDED` means graph persistence and success metadata were both completed for the owning execution attempt;
 - bounded readiness is not durable graph truth.
 
+A new publication records the same canonical SHA-256 snapshot digest on the publication and its successful rebuild job.
+Startup verifies the execution identity, both digests and the persisted graph before serving it. On upgrade, a legacy
+publication and matching job may both have null digests. After startup reconciliation succeeds, the API can accept an
+authorized rebuild while graph reads return HTTP 503. The rebuild produces a fresh attested publication. Computing a
+digest over existing rows during migration would supply no evidence about the data originally published.
+
 The bounded-health versus durable-truth rule is strict: `GET /api/health/detailed` can prove bounded service health,
 in-memory graph availability, and application DB reachability. It cannot prove staging/production durable graph truth
 unless accompanied by persisted startup evidence such as `graph.persistence_loaded == true`,

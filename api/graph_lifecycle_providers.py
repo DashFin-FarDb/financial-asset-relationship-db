@@ -743,6 +743,7 @@ def _load_persisted_graph_from_configured_store(
                 publication.snapshot_sha256 is None
                 and job.snapshot_sha256 is None
                 and publication.execution_id
+                and publication.execution_id.strip()
                 and publication.execution_id == job.execution_id
             ):
                 raise LegacyPublicationNeedsRebuild("Legacy publication requires an authorized rebuild.")

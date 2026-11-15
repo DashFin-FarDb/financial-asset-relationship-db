@@ -334,6 +334,18 @@ def test_missing_attestation_digest_rejected(tmp_path: Path) -> None:
     assert load_persisted_graph_if_available(db_url) is None
 
 
+@pytest.mark.parametrize("digest", ["", "short", "g" * 64])
+def test_invalid_publication_digest_cannot_mark_job_succeeded(tmp_path: Path, digest: str) -> None:
+    from src.data.relationship_assertion_repository import ValidationError
+
+    _, sessions = _setup_disposable_db(tmp_path)
+    with pytest.raises(ValidationError, match="SHA-256"):
+        _publish_sample_graph(sessions, _create_sample_test_graph(), custom_snapshot_sha256=digest)
+    with sessions() as session:
+        assert session.get(RebuildJobORM, "job-001").status == "running"
+        assert session.execute(select(RelationshipProjectionPublicationORM)).first() is None
+
+
 def test_legacy_publication_allows_rebuild_without_serving_old_graph(tmp_path: Path, monkeypatch) -> None:
     from api import app_factory, graph_lifecycle
     from api.graph_lifecycle_providers import AuthoritativeGraphUnavailableError
