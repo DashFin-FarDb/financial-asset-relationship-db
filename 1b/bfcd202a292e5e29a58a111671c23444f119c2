@@ -1,0 +1,14 @@
+tests/unit/test_codacy_workflow.py
+  h_f327e6ff3ec3c1 111-114
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "1bbfcd202a292e5e29a58a111671c23444f119c2",
+  "prompts": {},
+  "humans": {
+    "h_f327e6ff3ec3c1": {
+      "author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}
