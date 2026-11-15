@@ -45,17 +45,8 @@ jobs:
           paths:
             - ~/.cache/pip
       - run:
-          name: Run timing-balanced pytest shard
-          command: |
-            mkdir -p test-results/pytest
-            circleci tests glob \
-              "tests/**/test_*.py" \
-              "tests/**/*_test.py" \
-              | grep -v '^tests/benchmarks/' \
-              | circleci tests run \
-                  --command="xargs -r python -m pytest --durations=25 --junitxml=test-results/pytest/results-${CIRCLE_NODE_INDEX}.xml -o junit_family=legacy" \
-                  --split-by=timings \
-                  --timings-type=file
+          name: Run python-test testsuite
+          command: circleci testsuite run "python-test"
       - store_test_results:
           path: test-results/pytest
   python-security:
