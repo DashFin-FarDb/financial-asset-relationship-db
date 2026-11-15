@@ -41,8 +41,8 @@
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.3.0",
     "@types/semver": "7.8.0",
-    "@typescript-eslint/eslint-plugin": "^8.68.0",
-    "@typescript-eslint/parser": "^8.69.0",
+    "@typescript-eslint/eslint-plugin": "^8.72.1",
+    "@typescript-eslint/parser": "^8.72.1",
     "autoprefixer": "^10.5.5",
     "eslint": "^9.39.5",
     "eslint-config-next": "16.3.5",
@@ -56,7 +56,7 @@
     "semver": "7.8.6",
     "tailwindcss": "^4.3.2",
     "typescript": "~5.9.3",
-    "typescript-eslint": "^8.69.0"
+    "typescript-eslint": "^8.72.1"
   },
   "overrides": {
     "@jest/reporters": {
