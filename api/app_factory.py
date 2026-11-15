@@ -10,7 +10,7 @@ import threading
 import time
 from collections.abc import AsyncGenerator, Callable
 from contextlib import asynccontextmanager
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, NamedTuple
 from uuid import uuid4
 
 from fastapi import FastAPI
@@ -120,7 +120,15 @@ def _run_startup_reconciliation(
             coord_engine.dispose()
 
 
-def _reconciliation_sessions(stack: Any, engine: Any, coord_engine: Any) -> tuple[Any, ...]:
+class _ReconciliationSessions(NamedTuple):
+    graph_connection: Any
+    coordination_connection: Any
+    graph_identity: Any
+    coordination_identity: Any
+    combined: bool
+
+
+def _reconciliation_sessions(stack: Any, engine: Any, coord_engine: Any) -> _ReconciliationSessions:
     """Open and prove the exact sessions retained for reconciliation verification."""
     from sqlalchemy.engine import make_url
 
@@ -144,7 +152,7 @@ def _reconciliation_sessions(stack: Any, engine: Any, coord_engine: Any) -> tupl
         if graph_identity is None or coord_identity is None:
             raise SchemaCompatibilityError("runtime topology requires both live database identities")
         combined = same_database(graph_identity, coord_identity)
-    return graph_connection, coord_connection, graph_identity, coord_identity, combined
+    return _ReconciliationSessions(graph_connection, coord_connection, graph_identity, coord_identity, combined)
 
 
 def _verify_reconciliation_target(engine: Any, connection: Any, capabilities: set[str], combined: bool) -> None:
@@ -194,20 +202,24 @@ def _verify_reconciliation_schemas(engine: Any, coord_engine: Any) -> None:
     if coord_engine is engine:
         graph_capabilities.add(COORDINATION_RUNTIME_CAPABILITY)
     with ExitStack() as stack:
-        graph_connection, coord_connection, graph_identity, coord_identity, combined = _reconciliation_sessions(
-            stack, engine, coord_engine
-        )
+        sessions = _reconciliation_sessions(stack, engine, coord_engine)
         coordination_capabilities = {COORDINATION_RUNTIME_CAPABILITY}
-        if _has_shared_reconciliation_login(graph_connection, coord_connection, combined):
+        if _has_shared_reconciliation_login(
+            sessions.graph_connection, sessions.coordination_connection, sessions.combined
+        ):
             graph_capabilities.add(COORDINATION_RUNTIME_CAPABILITY)
             coordination_capabilities.add(GRAPH_RUNTIME_CAPABILITY)
-        _verify_reconciliation_target(engine, graph_connection, graph_capabilities, combined)
+        _verify_reconciliation_target(engine, sessions.graph_connection, graph_capabilities, sessions.combined)
         if coord_engine is not engine:
-            _verify_reconciliation_target(coord_engine, coord_connection, coordination_capabilities, combined)
+            _verify_reconciliation_target(
+                coord_engine, sessions.coordination_connection, coordination_capabilities, sessions.combined
+            )
         # Detect identity drift before publication/recovery is allowed to start.
-        _verify_reconciliation_identity(graph_connection, graph_identity, "graph")
-        if coord_connection is not graph_connection:
-            _verify_reconciliation_identity(coord_connection, coord_identity, "coordination")
+        _verify_reconciliation_identity(sessions.graph_connection, sessions.graph_identity, "graph")
+        if sessions.coordination_connection is not sessions.graph_connection:
+            _verify_reconciliation_identity(
+                sessions.coordination_connection, sessions.coordination_identity, "coordination"
+            )
 
 
 def _verify_auth_database(operation_guard: Any | None = None) -> None:

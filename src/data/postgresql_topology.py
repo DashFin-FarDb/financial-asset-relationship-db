@@ -22,6 +22,18 @@ class DatabaseIdentity:
     database_name: str
 
 
+def validated_database_identity(rows) -> DatabaseIdentity:
+    """Require one unambiguous PostgreSQL cluster and database identity."""
+    if len(rows) != 1 or len(rows[0]) != 3:
+        raise ValueError("ambiguous identity")
+    identifier, oid, name = rows[0]
+    if not isinstance(identifier, str) or not identifier.isascii() or not identifier.isdecimal():
+        raise ValueError("invalid cluster identity")
+    if int(identifier) <= 0 or not isinstance(oid, int) or oid <= 0 or not isinstance(name, str) or not name:
+        raise ValueError("invalid database identity")
+    return DatabaseIdentity(identifier, oid, name)
+
+
 def read_database_identity(connection) -> DatabaseIdentity:
     """Read identity on the connection that will perform authority verification."""
     try:
@@ -32,14 +44,7 @@ def read_database_identity(connection) -> DatabaseIdentity:
                 "JOIN pg_catalog.pg_database AS database ON database.datname = pg_catalog.current_database()"
             )
         ).fetchall()
-        if len(rows) != 1 or len(rows[0]) != 3:
-            raise ValueError("ambiguous identity")
-        identifier, oid, name = rows[0]
-        if not isinstance(identifier, str) or not identifier.isascii() or not identifier.isdecimal():
-            raise ValueError("invalid cluster identity")
-        if int(identifier) <= 0 or not isinstance(oid, int) or oid <= 0 or not isinstance(name, str) or not name:
-            raise ValueError("invalid database identity")
-        return DatabaseIdentity(identifier, oid, name)
+        return validated_database_identity(rows)
     except Exception as exc:
         raise RuntimeIdentityUnavailable("runtime cluster/database identity could not be established") from exc
 

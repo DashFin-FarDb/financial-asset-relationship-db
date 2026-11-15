@@ -53,8 +53,8 @@ from urllib.parse import unquote, urlparse
 from src.config.settings import get_settings
 from src.data.database import POSTGRESQL_MANAGED_TABLES, SchemaCompatibilityError
 from src.data.runtime_role_membership import (
-    USABLE_ROLE_MEMBERSHIP_CTE_SQL,
     get_approved_login_principals,
+    login_membership_sql,
 )
 
 AUTH_RUNTIME_ROLE = "fardb_runtime_auth"
@@ -183,16 +183,6 @@ def _cross_profile_authority_sql(role_alias: str) -> str:
 
 def _auth_safe_role_sql(require_login_principals: bool = True) -> str:
     """Build the read-only auth capability role SQL verification query."""
-    grantee_count_clause = (
-        "(SELECT COUNT(*) FROM pg_roles AS grantee "
-        "WHERE grantee.rolcanlogin AND grantee.oid <> "
-        "(SELECT datdba FROM pg_database WHERE datname = current_database()) "
-        "AND EXISTS (SELECT 1 FROM role_membership "
-        "WHERE role_membership.member = grantee.oid AND role_membership.roleid = role.oid)) >= 1 "
-        "AND "
-        if require_login_principals
-        else ""
-    )
     return "".join(
         (
             "SELECT COUNT(*) = 1 FROM pg_roles AS role WHERE role.rolname = %s "
@@ -209,15 +199,8 @@ def _auth_safe_role_sql(require_login_principals: bool = True) -> str:
             "WHERE membership.roleid = role.oid AND membership.admin_option "
             "AND membership.member <> (SELECT datdba FROM pg_database WHERE datname = current_database())) "
             "AND (",
-            USABLE_ROLE_MEMBERSHIP_CTE_SQL,
-            "SELECT ",
-            grantee_count_clause,
-            "NOT EXISTS (SELECT 1 FROM pg_roles AS grantee "
-            "WHERE grantee.rolcanlogin AND grantee.oid <> "
-            "(SELECT datdba FROM pg_database WHERE datname = current_database()) "
-            "AND EXISTS (SELECT 1 FROM role_membership "
-            "WHERE role_membership.member = grantee.oid AND role_membership.roleid = role.oid) "
-            "AND NOT (grantee.rolname = ANY(%s))))",
+            login_membership_sql(require_login_principals=require_login_principals, dbapi=True),
+            ")",
         )
     )
 

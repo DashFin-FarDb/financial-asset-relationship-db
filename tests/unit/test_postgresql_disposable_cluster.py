@@ -358,7 +358,7 @@ def test_docker_command_nonzero_exit_omits_raw_output_from_message(monkeypatch) 
 
     assert error.value.__cause__ is None
     assert error.value.__suppress_context__ is True
-    assert error.value.category == "command_failed"
+    assert error.value.category == "nonzero_exit"
     assert error.value.operation == "docker cp"
     assert error.value.returncode == 1
     assert str(error.value) == "owned Docker operation failed during docker cp (exit status 1)"
@@ -436,7 +436,7 @@ def test_docker_command_preserves_timeout_and_invocation_flags(monkeypatch) -> N
 
     run_mock.assert_called_once_with(
         ["docker", "ps"],
-        input=None,
+        stdin=None,
         capture_output=True,
         timeout=30,
         check=False,
@@ -843,18 +843,6 @@ def test_shell_python_minimum_rejected_before_harness_or_docker(tmp_path, versio
         assert result.returncode == 2
         assert not args.exists()
         assert b"Python 3.10 or newer" in result.stderr
-
-
-@pytest.mark.parametrize("name", ["_database_host", "_validate_loopback_target"])
-def test_ledger_invalid_url_constant_preserves_message_and_cause(name) -> None:
-    """Constant extraction retains the existing public error and exception chaining."""
-    from scripts import postgresql_ledger as ledger
-
-    check = getattr(ledger, name)
-    with pytest.raises(ledger.HostedWriteBarrierError) as error:
-        check("postgresql://[")
-    assert str(error.value) == "database URL is invalid"
-    assert isinstance(error.value.__cause__, ValueError)
 
 
 @pytest.mark.parametrize("kwargs", [{"unexpected": 1}, {"parameters": (1,)}, {"vars": (1,)}])

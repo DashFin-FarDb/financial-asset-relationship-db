@@ -17,7 +17,7 @@ describe("InstitutionalDemo", () => {
       screen.getByText("FarDb Institutional Demonstrator"),
     ).toBeInTheDocument();
     expect(
-      screen.getByText("Synthetic governance walkthrough"),
+      screen.getByText(/Synthetic governance walkthrough/),
     ).toBeInTheDocument();
     expect(
       screen.getByText(

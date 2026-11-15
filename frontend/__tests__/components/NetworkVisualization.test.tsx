@@ -75,6 +75,10 @@ describe("NetworkVisualization Component", () => {
   it("should render plot with data", async () => {
     render(<NetworkVisualization data={mockVisualizationData} />);
 
+    expect(
+      screen.getByRole("region", { name: "3D FarDb relationship graph" }),
+    ).toBeInTheDocument();
+
     await waitFor(() => {
       expect(screen.getByTestId("mock-plot")).toBeInTheDocument();
     });
@@ -340,6 +344,53 @@ describe("NetworkVisualization Component", () => {
       });
     });
 
+    it("selects and toggles off a relationship via keyboard navigation using Enter key", async () => {
+      mockedApi.getPublishedEdgeExplanation.mockResolvedValue(
+        createMockExplanation(
+          "pedge-1",
+          "ASSET_2",
+          "ASSET_1",
+          "ASSET_2 is the issuer of ASSET_1",
+        ),
+      );
+
+      const user = userEvent.setup();
+      render(<NetworkVisualization data={governedData} />);
+
+      const canonicalButton = screen.getByRole("button", {
+        name: /ASSET_2.*ASSET_1.*CORPORATE_LINK.*Governed/,
+      });
+
+      canonicalButton.focus();
+      expect(document.activeElement).toBe(canonicalButton);
+
+      // Verify Enter key activation
+      await user.keyboard("{Enter}");
+
+      expect(canonicalButton).toHaveAttribute("aria-pressed", "true");
+      expect(screen.getByText("Relationship selected")).toBeInTheDocument();
+      await waitFor(() => {
+        expect(mockedApi.getPublishedEdgeExplanation).toHaveBeenCalledWith(
+          "pub-1",
+          "pedge-1",
+          expect.anything(),
+        );
+      });
+      await waitFor(() => {
+        expect(
+          screen.getByText("ASSET_2 is the issuer of ASSET_1"),
+        ).toBeInTheDocument();
+      });
+
+      // Verify Enter key toggle-off
+      await user.keyboard("{Enter}");
+      expect(canonicalButton).toHaveAttribute("aria-pressed", "false");
+      expect(screen.getByText("Select a relationship")).toBeInTheDocument();
+      expect(
+        screen.getByText("Select a relationship to see how it was determined."),
+      ).toBeInTheDocument();
+    });
+
     it("selects a relationship via Plotly customdata click", async () => {
       mockedApi.getPublishedEdgeExplanation.mockResolvedValue(
         createMockExplanation(
@@ -368,6 +419,145 @@ describe("NetworkVisualization Component", () => {
           expect.anything(),
         );
       });
+    });
+
+    it("visibly marks the selected relationship in the graph data and relationship index", async () => {
+      render(<NetworkVisualization data={governedData} />);
+
+      const plotDataBefore = JSON.parse(
+        screen.getByTestId("plot-data").textContent || "[]",
+      );
+      const canonicalBefore = plotDataBefore.find(
+        (trace: { customdata?: string[] }) =>
+          trace.customdata?.[0] === "edge-canonical",
+      );
+      expect(canonicalBefore).toBeDefined();
+      expect(canonicalBefore.line.color).toBe("rgba(125, 125, 125, 0.9)");
+
+      const user = userEvent.setup();
+      await user.click(screen.getByTestId("plot-click-trigger"));
+
+      const plotDataAfter = JSON.parse(
+        screen.getByTestId("plot-data").textContent || "[]",
+      );
+      const selectedTrace = plotDataAfter.find(
+        (trace: { customdata?: string[] }) =>
+          trace.customdata?.[0] === "edge-canonical",
+      );
+      const otherTrace = plotDataAfter.find(
+        (trace: { customdata?: string[] }) =>
+          trace.customdata?.[0] === "edge-reverse",
+      );
+
+      expect(selectedTrace.line.color).toBe("rgba(212, 175, 55, 0.95)");
+      expect(selectedTrace.line.width).toBeGreaterThanOrEqual(6);
+      expect(otherTrace.opacity).toBe(0.45);
+      expect(screen.getByText("Selected")).toBeInTheDocument();
+    });
+
+    it("clears stored selection when refreshed data removes the selected relationship and preserves deselection upon restoration", async () => {
+      mockedApi.getPublishedEdgeExplanation.mockResolvedValue(
+        createMockExplanation(
+          "pedge-1",
+          "ASSET_2",
+          "ASSET_1",
+          "ASSET_2 is the issuer of ASSET_1",
+        ),
+      );
+
+      const { rerender } = render(<NetworkVisualization data={governedData} />);
+
+      const user = userEvent.setup();
+      await user.click(screen.getByTestId("plot-click-trigger"));
+      expect(screen.getByText("Selected")).toBeInTheDocument();
+
+      // 1. Removal: refreshed data removes the selected relationship
+      const refreshedData: VisualizationData = {
+        ...governedData,
+        edges: [governedData.edges[0]],
+      };
+      rerender(<NetworkVisualization data={refreshedData} />);
+
+      expect(screen.getByText("Select a relationship")).toBeInTheDocument();
+      expect(screen.queryByText("Selected")).not.toBeInTheDocument();
+
+      const plotData = JSON.parse(
+        screen.getByTestId("plot-data").textContent || "[]",
+      );
+      const legacyTrace = plotData.find(
+        (trace: { customdata?: string[] }) =>
+          trace.customdata?.[0] === "legacy-edge-1",
+      );
+      expect(legacyTrace.opacity).toBe(1);
+
+      // 2. Restoration: restored data brings back the edge, confirming stored selectedEdgeId was cleared
+      rerender(<NetworkVisualization data={governedData} />);
+
+      expect(screen.getByText("Select a relationship")).toBeInTheDocument();
+      expect(screen.queryByText("Selected")).not.toBeInTheDocument();
+
+      const restoredPlotData = JSON.parse(
+        screen.getByTestId("plot-data").textContent || "[]",
+      );
+      const canonicalRestored = restoredPlotData.find(
+        (trace: { customdata?: string[] }) =>
+          trace.customdata?.[0] === "edge-canonical",
+      );
+      expect(canonicalRestored.line.color).toBe("rgba(125, 125, 125, 0.9)");
+    });
+
+    it("clears selection cleanly and suppresses stale dossier when data transitions to null while an edge is selected", async () => {
+      mockedApi.getPublishedEdgeExplanation.mockResolvedValue(
+        createMockExplanation(
+          "pedge-1",
+          "ASSET_2",
+          "ASSET_1",
+          "ASSET_2 is the issuer of ASSET_1",
+        ),
+      );
+
+      const user = userEvent.setup();
+      const { rerender } = render(<NetworkVisualization data={governedData} />);
+
+      const canonicalButton = screen.getByRole("button", {
+        name: /ASSET_2.*ASSET_1.*CORPORATE_LINK.*Governed/,
+      });
+      await user.click(canonicalButton);
+
+      expect(screen.getByText("Relationship selected")).toBeInTheDocument();
+      await waitFor(() => {
+        expect(
+          screen.getByText("ASSET_2 is the issuer of ASSET_1"),
+        ).toBeInTheDocument();
+      });
+      expect(
+        screen.getByTestId("institutional-action-context"),
+      ).toHaveTextContent("edge-canonical");
+
+      // Transition to null data
+      rerender(<NetworkVisualization data={null} />);
+
+      expect(
+        screen.getByText("No visualization data available."),
+      ).toBeInTheDocument();
+      expect(
+        screen.queryByText("Relationship selected"),
+      ).not.toBeInTheDocument();
+      expect(
+        screen.queryByText("ASSET_2 is the issuer of ASSET_1"),
+      ).not.toBeInTheDocument();
+      expect(
+        screen.queryByTestId("institutional-action-context"),
+      ).not.toBeInTheDocument();
+
+      // Restoration: confirm stored selectedEdgeId was cleared and does not resurrect
+      rerender(<NetworkVisualization data={governedData} />);
+
+      expect(screen.getByText("Select a relationship")).toBeInTheDocument();
+      expect(screen.queryByText("Selected")).not.toBeInTheDocument();
+      expect(
+        screen.getByText("Select a relationship to see how it was determined."),
+      ).toBeInTheDocument();
     });
 
     it("allows canonical and reverse representations to select independently by their edge_id", async () => {
@@ -425,6 +615,124 @@ describe("NetworkVisualization Component", () => {
           screen.getByText("ASSET_2 is the issuer of ASSET_1"),
         ).toBeInTheDocument();
       });
+    });
+
+    it("deselects a relationship when the header Deselect button is clicked", async () => {
+      const user = userEvent.setup();
+      render(<NetworkVisualization data={governedData} />);
+
+      const canonicalButton = screen.getByRole("button", {
+        name: /ASSET_2.*ASSET_1.*CORPORATE_LINK.*Governed/,
+      });
+      await user.click(canonicalButton);
+
+      expect(screen.getByText("Relationship selected")).toBeInTheDocument();
+      const deselectButton = screen.getByRole("button", {
+        name: "Deselect relationship",
+      });
+      expect(deselectButton).toBeInTheDocument();
+
+      await user.click(deselectButton);
+      expect(screen.getByText("Select a relationship")).toBeInTheDocument();
+      expect(
+        screen.queryByRole("button", { name: "Deselect relationship" }),
+      ).not.toBeInTheDocument();
+      expect(canonicalButton).toHaveAttribute("aria-pressed", "false");
+    });
+
+    it("clears parent selection state when the dossier Clear selection button is clicked", async () => {
+      mockedApi.getPublishedEdgeExplanation.mockResolvedValue(
+        createMockExplanation(
+          "pedge-1",
+          "ASSET_2",
+          "ASSET_1",
+          "ASSET_2 is the issuer of ASSET_1",
+        ),
+      );
+
+      const user = userEvent.setup();
+      render(<NetworkVisualization data={governedData} />);
+
+      const canonicalButton = screen.getByRole("button", {
+        name: /ASSET_2.*ASSET_1.*CORPORATE_LINK.*Governed/,
+      });
+      await user.click(canonicalButton);
+
+      expect(screen.getByText("Relationship selected")).toBeInTheDocument();
+      await waitFor(() => {
+        expect(
+          screen.getByText("ASSET_2 is the issuer of ASSET_1"),
+        ).toBeInTheDocument();
+      });
+
+      const clearSelectionBtn = screen.getByRole("button", {
+        name: "Clear relationship selection",
+      });
+      expect(clearSelectionBtn).toBeInTheDocument();
+
+      await user.click(clearSelectionBtn);
+
+      expect(screen.getByText("Select a relationship")).toBeInTheDocument();
+      expect(
+        screen.queryByRole("button", { name: "Deselect relationship" }),
+      ).not.toBeInTheDocument();
+      expect(canonicalButton).toHaveAttribute("aria-pressed", "false");
+      expect(
+        screen.getByText("Select a relationship to see how it was determined."),
+      ).toBeInTheDocument();
+    });
+
+    it("toggles off selection when the currently selected relationship is clicked again in the list", async () => {
+      const user = userEvent.setup();
+      render(<NetworkVisualization data={governedData} />);
+
+      const canonicalButton = screen.getByRole("button", {
+        name: /ASSET_2.*ASSET_1.*CORPORATE_LINK.*Governed/,
+      });
+
+      // First click: select
+      await user.click(canonicalButton);
+      expect(canonicalButton).toHaveAttribute("aria-pressed", "true");
+      expect(screen.getByText("Relationship selected")).toBeInTheDocument();
+
+      // Second click: toggle off
+      await user.click(canonicalButton);
+      expect(canonicalButton).toHaveAttribute("aria-pressed", "false");
+      expect(screen.getByText("Select a relationship")).toBeInTheDocument();
+    });
+
+    it("toggles off selection when the currently selected relationship is clicked again in the plot", async () => {
+      const user = userEvent.setup();
+      render(<NetworkVisualization data={governedData} />);
+
+      const trigger = screen.getByTestId("plot-click-trigger");
+
+      // First click: select
+      await user.click(trigger);
+      expect(screen.getByText("Relationship selected")).toBeInTheDocument();
+
+      // Second click: toggle off
+      await user.click(trigger);
+      expect(screen.getByText("Select a relationship")).toBeInTheDocument();
+    });
+
+    it("displays edge ID, source, target, and relationship type in the inspector", async () => {
+      const user = userEvent.setup();
+      render(<NetworkVisualization data={governedData} />);
+
+      const legacyButton = screen.getByRole("button", {
+        name: /ASSET_1.*ASSET_2.*SAME_SECTOR.*Legacy/,
+      });
+      await user.click(legacyButton);
+
+      expect(screen.getByText("Edge ID")).toBeInTheDocument();
+      expect(screen.getByText("legacy-edge-1")).toBeInTheDocument();
+      expect(screen.getByText("Relationship type")).toBeInTheDocument();
+      expect(screen.getByText("SAME_SECTOR")).toBeInTheDocument();
+      expect(screen.getByText("Source node")).toBeInTheDocument();
+      expect(screen.getByText("ASSET_1")).toBeInTheDocument();
+      expect(screen.getByText("Target node")).toBeInTheDocument();
+      expect(screen.getByText("ASSET_2")).toBeInTheDocument();
     });
   });
 });
