@@ -16,6 +16,7 @@
 
 import { readFileSync, existsSync } from "fs";
 import { isAbsolute, join, relative, resolve, sep } from "path";
+import { gte, major, satisfies, validRange } from "semver";
 
 const approvedRegistryHosts = new Set([
   "registry.npmjs.org",
@@ -93,6 +94,52 @@ interface PackageLock {
   lockfileVersion?: number;
   requires?: boolean;
   packages: Record<string, LockPackage>;
+}
+
+type LockedPackageResolution = Readonly<{
+  path: string;
+  package: LockPackage;
+}>;
+
+function resolveLockedDependency(
+  packages: Record<string, LockPackage>,
+  parentPackagePath: string,
+  dependencyName: string,
+): LockedPackageResolution | undefined {
+  const parentSegments = parentPackagePath.split("/node_modules/");
+
+  for (let depth = parentSegments.length; depth >= 0; depth -= 1) {
+    const parentPath = parentSegments.slice(0, depth).join("/node_modules/");
+    const dependencyPath = parentPath
+      ? `${parentPath}/node_modules/${dependencyName}`
+      : `node_modules/${dependencyName}`;
+    const dependencyPackage = packages[dependencyPath];
+
+    if (dependencyPackage) {
+      return { path: dependencyPath, package: dependencyPackage };
+    }
+  }
+
+  return undefined;
+}
+
+function isValidDependencyRange(range: unknown): range is string {
+  return (
+    typeof range === "string" &&
+    range.trim().length > 0 &&
+    validRange(range) !== null
+  );
+}
+
+function isCompatibleDependencyResolution(
+  version: unknown,
+  range: unknown,
+): boolean {
+  return (
+    typeof version === "string" &&
+    isValidDependencyRange(range) &&
+    satisfies(version, range)
+  );
 }
 
 describe("Package-lock.json Validation", () => {
@@ -232,11 +279,11 @@ describe("Package-lock.json Validation", () => {
   });
 
   describe("Next.js Runtime Security Upgrade", () => {
-    it("pins Next.js 16.3.3 in the manifest and lockfile", () => {
+    it("pins Next.js 16.4.5 in the manifest and lockfile", () => {
       const nextLock = packageLock.packages?.["node_modules/next"];
 
-      expect(packageJson.dependencies.next).toBe("16.3.3");
-      expect(nextLock?.version).toBe("16.3.3");
+      expect(packageJson.dependencies.next).toBe("16.4.5");
+      expect(nextLock?.version).toBe("16.4.5");
     });
 
     it("keeps the Next.js PostCSS runtime separate from the root toolchain", () => {
@@ -247,15 +294,15 @@ describe("Package-lock.json Validation", () => {
 
       expect(nextLock?.dependencies?.postcss).toBe("8.5.23");
       expect(nestedPostcss?.version).toBe("8.5.23");
-      expect(hoistedPostcss?.version).toBe("8.5.26");
+      expect(hoistedPostcss?.version).toBe("8.5.32");
     });
 
-    it("resolves the optional Sharp runtime to 0.35.3", () => {
+    it("resolves the optional Sharp runtime to 0.35.5", () => {
       const nextLock = packageLock.packages?.["node_modules/next"];
       const sharpLock = packageLock.packages?.["node_modules/sharp"];
 
-      expect(nextLock?.optionalDependencies?.sharp).toBe("^0.35.3");
-      expect(sharpLock?.version).toBe("0.35.3");
+      expect(nextLock?.optionalDependencies?.sharp).toBe("^0.35.5");
+      expect(sharpLock?.version).toBe("0.35.5");
     });
 
     it("does not retain the vulnerable PostCSS or Sharp runtime versions", () => {
@@ -273,10 +320,10 @@ describe("Package-lock.json Validation", () => {
   });
 
   describe("Nanoid Lock Security Upgrade", () => {
-    it("resolves nanoid to 3.3.18 without making it a direct dependency", () => {
+    it("resolves nanoid to 3.3.20 without making it a direct dependency", () => {
       const nanoidLock = packageLock.packages?.["node_modules/nanoid"];
 
-      expect(nanoidLock?.version).toBe("3.3.18");
+      expect(nanoidLock?.version).toBe("3.3.20");
       expect(packageJson.dependencies).not.toHaveProperty("nanoid");
       expect(packageJson.devDependencies).not.toHaveProperty("nanoid");
       expect(packageJson.optionalDependencies?.nanoid).toBeUndefined();
@@ -290,55 +337,182 @@ describe("Package-lock.json Validation", () => {
     it("preserves the PostCSS parent relationship", () => {
       const postcssLock = packageLock.packages?.["node_modules/postcss"];
 
-      expect(postcssLock?.version).toBe("8.5.26");
-      expect(postcssLock?.dependencies?.nanoid).toBe("^3.3.17");
+      expect(postcssLock?.version).toBe("8.5.32");
+      expect(postcssLock?.dependencies?.nanoid).toBe("^3.3.20");
     });
   });
 
-  describe("Root js-yaml Lock Security Upgrade", () => {
-    it("resolves the shared js-yaml node to 4.3.1", () => {
-      const jsYamlLock = packageLock.packages?.["node_modules/js-yaml"];
+  describe("js-yaml security and lock-graph compatibility", () => {
+    const rootJsYamlPath = "node_modules/js-yaml";
 
-      expect(jsYamlLock?.version).toBe("4.3.1");
+    it("keeps root js-yaml transitive and at the patched 4.x floor", () => {
+      const rootJsYaml = packageLock.packages?.[rootJsYamlPath];
+
+      expect(rootJsYaml?.version).toBeDefined();
+      expect(gte(rootJsYaml?.version ?? "0.0.0", "4.3.2")).toBe(true);
       expect(packageJson.dependencies).not.toHaveProperty("js-yaml");
       expect(packageJson.devDependencies).not.toHaveProperty("js-yaml");
     });
 
-    it("preserves the current ESLint js-yaml parent range", () => {
-      const eslintConfig =
-        packageLock.packages?.["node_modules/@eslint/eslintrc"];
+    it.each([
+      "node_modules/@eslint/eslintrc",
+      "node_modules/@microsoft/eslint-formatter-sarif/node_modules/@eslint/eslintrc",
+      "node_modules/@microsoft/eslint-formatter-sarif/node_modules/eslint",
+    ])("resolves js-yaml compatibly for %s", (parentPath) => {
+      const parentPackage = packageLock.packages?.[parentPath];
+      expect(parentPackage).toBeDefined();
+      if (!parentPackage) return;
 
-      expect(eslintConfig?.dependencies?.["js-yaml"]).toBe("^4.3.0");
+      const dependencyRange: unknown = parentPackage.dependencies?.["js-yaml"];
+      const resolution = resolveLockedDependency(
+        packageLock.packages ?? {},
+        parentPath,
+        "js-yaml",
+      );
+
+      expect(isValidDependencyRange(dependencyRange)).toBe(true);
+      expect(resolution).toBeDefined();
+      expect(
+        isCompatibleDependencyResolution(
+          resolution?.package.version,
+          dependencyRange,
+        ),
+      ).toBe(true);
+      expect(gte(resolution?.package.version ?? "0.0.0", "4.3.2")).toBe(true);
     });
 
-    it("preserves the legacy ESLint config js-yaml parent range", () => {
-      const legacyEslintConfig =
-        packageLock.packages?.[
-          "node_modules/@microsoft/eslint-formatter-sarif/node_modules/@eslint/eslintrc"
-        ];
+    it("keeps the nested js-yaml 3.x resolver boundary separately patched", () => {
+      const parentPath = "node_modules/@istanbuljs/load-nyc-config";
+      const parentPackage = packageLock.packages?.[parentPath];
+      expect(parentPackage).toBeDefined();
+      if (!parentPackage) return;
 
-      expect(legacyEslintConfig?.dependencies?.["js-yaml"]).toBe("^4.1.0");
+      const dependencyRange: unknown = parentPackage.dependencies?.["js-yaml"];
+      const resolution = resolveLockedDependency(
+        packageLock.packages ?? {},
+        parentPath,
+        "js-yaml",
+      );
+
+      expect(isValidDependencyRange(dependencyRange)).toBe(true);
+      expect(resolution?.path).toBe(
+        "node_modules/@istanbuljs/load-nyc-config/node_modules/js-yaml",
+      );
+      expect(
+        isCompatibleDependencyResolution(
+          resolution?.package.version,
+          dependencyRange,
+        ),
+      ).toBe(true);
+      expect(gte(resolution?.package.version ?? "0.0.0", "3.15.2")).toBe(true);
+    });
+  });
+
+  describe("semver dependency range validation", () => {
+    it.each([
+      { description: "missing", range: undefined },
+      { description: "non-string", range: 42 },
+      { description: "empty", range: "" },
+      { description: "whitespace-only", range: " \t\n" },
+      { description: "malformed", range: "not a semver range" },
+    ])("rejects $description dependency ranges", ({ range }) => {
+      expect(isValidDependencyRange(range)).toBe(false);
     });
 
-    it("preserves the legacy ESLint js-yaml parent range", () => {
-      const legacyEslint =
-        packageLock.packages?.[
-          "node_modules/@microsoft/eslint-formatter-sarif/node_modules/eslint"
-        ];
+    it.each([
+      { version: "4.3.2", range: "*" },
+      { version: "4.3.2", range: "^4.1.0" },
+      { version: "3.15.2", range: "^3.13.1" },
+    ])(
+      "accepts a valid compatible range: $version satisfies $range",
+      ({ version, range }) => {
+        expect(isValidDependencyRange(range)).toBe(true);
+        expect(isCompatibleDependencyResolution(version, range)).toBe(true);
+      },
+    );
 
-      expect(legacyEslint?.dependencies?.["js-yaml"]).toBe("^4.1.0");
+    it("rejects a valid range when the resolved version is incompatible", () => {
+      expect(isValidDependencyRange("^4.0.0")).toBe(true);
+      expect(isCompatibleDependencyResolution("3.15.2", "^4.0.0")).toBe(false);
     });
+  });
 
-    it("keeps the nested js-yaml 3.x resolver boundary separate", () => {
-      const loadNycConfig =
-        packageLock.packages?.["node_modules/@istanbuljs/load-nyc-config"];
-      const nestedJsYaml =
-        packageLock.packages?.[
-          "node_modules/@istanbuljs/load-nyc-config/node_modules/js-yaml"
-        ];
+  describe("React runtime and type-package peer compatibility", () => {
+    it("checks resolved React types against manifest ranges and package peers", () => {
+      const runtimePackages = ["react", "react-dom", "next"] as const;
+      const typePackages = ["@types/react", "@types/react-dom"] as const;
+      const resolved = Object.fromEntries(
+        [...runtimePackages, ...typePackages].map((name) => [
+          name,
+          packageLock.packages?.[`node_modules/${name}`],
+        ]),
+      ) as Record<
+        (typeof runtimePackages)[number] | (typeof typePackages)[number],
+        LockPackage | undefined
+      >;
 
-      expect(loadNycConfig?.dependencies?.["js-yaml"]).toBe("^3.13.1");
-      expect(nestedJsYaml?.version).toBe("3.15.0");
+      for (const packageName of runtimePackages) {
+        const declaredRange = packageJson.dependencies[packageName];
+        const lockedPackage = resolved[packageName];
+
+        expect(lockedPackage?.version).toBeDefined();
+        expect(isValidDependencyRange(declaredRange)).toBe(true);
+        expect(
+          isCompatibleDependencyResolution(
+            lockedPackage?.version,
+            declaredRange,
+          ),
+        ).toBe(true);
+      }
+
+      for (const packageName of typePackages) {
+        const declaredRange = packageJson.devDependencies[packageName];
+        const lockedPackage = resolved[packageName];
+
+        expect(lockedPackage?.version).toBeDefined();
+        expect(isValidDependencyRange(declaredRange)).toBe(true);
+        expect(
+          isCompatibleDependencyResolution(
+            lockedPackage?.version,
+            declaredRange,
+          ),
+        ).toBe(true);
+        expect(major(lockedPackage?.version ?? "0.0.0")).toBe(
+          major(resolved.react?.version ?? "0.0.0"),
+        );
+      }
+
+      const typeReactPeerRange =
+        resolved["@types/react-dom"]?.peerDependencies?.["@types/react"];
+      const reactPeerRange = resolved["react-dom"]?.peerDependencies?.react;
+      const nextReactPeerRange = resolved.next?.peerDependencies?.react;
+      const nextReactDomPeerRange =
+        resolved.next?.peerDependencies?.["react-dom"];
+
+      expect(
+        isCompatibleDependencyResolution(
+          resolved["@types/react"]?.version,
+          typeReactPeerRange,
+        ),
+      ).toBe(true);
+      expect(
+        isCompatibleDependencyResolution(
+          resolved.react?.version,
+          reactPeerRange,
+        ),
+      ).toBe(true);
+      expect(
+        isCompatibleDependencyResolution(
+          resolved.react?.version,
+          nextReactPeerRange,
+        ),
+      ).toBe(true);
+      expect(
+        isCompatibleDependencyResolution(
+          resolved["react-dom"]?.version,
+          nextReactDomPeerRange,
+        ),
+      ).toBe(true);
     });
   });
 
