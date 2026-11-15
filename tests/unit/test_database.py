@@ -572,6 +572,55 @@ class TestEngineCreation:
         postgres_engine = create_engine_from_url(postgres_url)
         assert "postgresql" in str(postgres_engine.url).lower()
 
+    @pytest.mark.parametrize("scheme", ("postgresql", "postgres"))
+    def test_bare_postgres_url_selects_declared_psycopg2_driver(self, scheme: str, monkeypatch) -> None:
+        """Bare PostgreSQL URL schemes use psycopg2 and retain query parameters."""
+        captured_urls = []
+
+        def capture_engine(resolved_url, **kwargs):
+            """Capture the normalized URL passed to SQLAlchemy engine creation."""
+            captured_urls.append(resolved_url)
+            return Mock()
+
+        monkeypatch.setattr(
+            "src.data.database.create_engine",
+            capture_engine,
+        )
+
+        create_engine_from_url(f"{scheme}://user@localhost/testdb?sslmode=verify-full&application_name=fardb-test")
+
+        assert captured_urls[0].drivername == "postgresql+psycopg2"
+        assert captured_urls[0].query == {"sslmode": "verify-full", "application_name": "fardb-test"}
+
+    @pytest.mark.parametrize(
+        ("drivername", "expected_drivername"),
+        (
+            ("postgresql+psycopg", "postgresql+psycopg"),
+            ("postgresql+psycopg2", "postgresql+psycopg2"),
+            ("postgres+psycopg2", "postgresql+psycopg2"),
+        ),
+    )
+    def test_explicit_postgres_driver_is_preserved(
+        self, drivername: str, expected_drivername: str, monkeypatch
+    ) -> None:
+        """Explicit PostgreSQL drivers and their query parameters are preserved."""
+        captured_urls = []
+
+        def capture_engine(resolved_url, **kwargs):
+            """Capture an explicitly selected PostgreSQL driver URL."""
+            captured_urls.append(resolved_url)
+            return Mock()
+
+        monkeypatch.setattr(
+            "src.data.database.create_engine",
+            capture_engine,
+        )
+
+        create_engine_from_url(f"{drivername}://user@localhost/testdb?sslmode=require&application_name=fardb-test")
+
+        assert captured_urls[0].drivername == expected_drivername
+        assert captured_urls[0].query == {"sslmode": "require", "application_name": "fardb-test"}
+
 
 # ---------------------------------------------------------------------------
 # Session factory tests
