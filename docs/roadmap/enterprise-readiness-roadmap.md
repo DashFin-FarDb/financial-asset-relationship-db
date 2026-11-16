@@ -1,6 +1,8 @@
 # Enterprise Readiness Remediation Roadmap
 
 For the broader enterprise-readiness index, see [docs/enterprise-readiness-index.md](../enterprise-readiness-index.md).
+For per-item completion criteria and non-negotiable boundaries, see the
+[Enterprise Readiness Completion Checklist](enterprise-readiness-completion-checklist.md).
 
 **Publication date:** 2026-06-25
 **Last updated:** 2026-09-01
