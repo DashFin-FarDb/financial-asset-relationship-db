@@ -204,7 +204,7 @@ def migrate_configured_databases(
         with bind_database_url(_auth_binding_url(auth_url)):
             if _is_postgresql_url(auth_url):
                 verify_schema_compatibility()
-                verify_runtime_access_catalog()
+                verify_runtime_access_catalog(require_login_principals=False)
             else:
                 initialize_schema()
             seed_credentials_from_settings(user_repository, resolved_settings)

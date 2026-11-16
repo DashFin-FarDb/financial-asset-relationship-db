@@ -34,7 +34,7 @@ def restore_database_module(monkeypatch: pytest.MonkeyPatch) -> Iterator[None]:
     with different database configurations.
 
     Yields control to the test. On teardown, closes any in-memory connection stored
-    in api.database._MEMORY_CONNECTION, restores the original DATABASE_URL and POSTGRES_URL
+    in api.database._CONNECTION_STATE.connection, restores the original DATABASE_URL and POSTGRES_URL
     environment variables, clears the settings cache, and reloads api.database to reset its state.
     """
     from src.config.settings import get_settings
@@ -46,10 +46,7 @@ def restore_database_module(monkeypatch: pytest.MonkeyPatch) -> Iterator[None]:
     yield
 
     # Close any in-memory connection that may have been created during the test
-    memory_conn = getattr(database, "_MEMORY_CONNECTION", None)
-    if memory_conn is not None:
-        memory_conn.close()
-        database._MEMORY_CONNECTION = None
+    database._cleanup_memory_connection()
 
     # Restore original environment variables
     if original_database_url is None:

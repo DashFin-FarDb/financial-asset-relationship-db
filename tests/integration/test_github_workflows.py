@@ -8,7 +8,11 @@ duplicate keys, invalid syntax, and missing required fields.
 
 import contextlib
 import copy
+import json
+import os
 import re
+import subprocess
+import sys
 from pathlib import Path
 from typing import Any
 
@@ -1177,8 +1181,6 @@ class TestAutoAssignWorkflow:
 
     def test_auto_assign_security_no_hardcoded_secrets(self, auto_assign_workflow: dict[str, Any]):
         """Test that no secrets are hardcoded in the workflow."""
-        import json
-
         workflow_str = json.dumps(auto_assign_workflow)
         suspicious_patterns = [
             r"ghp_[a-zA-Z0-9]{36}",
@@ -1224,8 +1226,6 @@ class TestAutoAssignWorkflow:
 
     def test_auto_assign_security_no_deprecated_syntax(self, auto_assign_workflow: dict[str, Any]):
         """Test that the workflow doesn't use deprecated GitHub Actions syntax."""
-        import json
-
         workflow_str = json.dumps(auto_assign_workflow)
         assert "::set-output" not in workflow_str, "Should not use deprecated ::set-output syntax"
         assert "::set-env" not in workflow_str, "Should not use deprecated ::set-env syntax"
@@ -2879,7 +2879,6 @@ class TestTestSuiteCompleteness:
         """Ensure we have multiple test categories."""
         # Count test classes in this module
         import inspect
-        import sys
 
         current_module = sys.modules[__name__]
         test_classes = [
@@ -2888,3 +2887,91 @@ class TestTestSuiteCompleteness:
 
         # Should have many test classes (original + new ones)
         assert len(test_classes) >= 15, f"Should have at least 15 test classes, found {len(test_classes)}"
+
+
+def _exactly_one_workflow_step(steps: list[dict[str, Any]], prefix: str) -> dict[str, Any]:
+    """Require one named step so missing and duplicate workflow contracts fail clearly."""
+    matches = [step for step in steps if isinstance(step.get("name"), str) and step["name"].startswith(prefix)]
+    assert len(matches) == 1, f"Expected exactly one {prefix!r} step; found {len(matches)}"
+    return matches[0]
+
+
+@pytest.mark.parametrize(
+    "missing",
+    [
+        None,
+        "PG_SERVICE_ID",
+        "FARDB_EPHEMERAL_POSTGRES_SYSTEM_IDENTIFIER",
+        "FARDB_EPHEMERAL_POSTGRES_CONTAINER_RECORD",
+        "FARDB_EPHEMERAL_POSTGRES_INVOCATION_ID",
+    ],
+)
+def test_postgres_attestation_shell_handoff_inherits_nonempty_values(tmp_path, missing) -> None:
+    """Execute workflow handoff commands; absent attestation fails before pytest."""
+    workflow = Path(__file__).parents[2] / ".github/workflows/ci.yml"
+    data = yaml.load(workflow.read_text(), Loader=GitHubActionsYamlLoader)
+    steps = data["jobs"]["postgres-ledger-profiles"]["steps"]
+    producer = _exactly_one_workflow_step(steps, "Attest this job")
+    consumer = _exactly_one_workflow_step(steps, "Build every profile twice")
+    assert producer["env"]["PG_SERVICE_ID"] == "${{ job.services.postgres.id }}"
+    keys = (
+        "FARDB_EPHEMERAL_POSTGRES_SYSTEM_IDENTIFIER",
+        "FARDB_EPHEMERAL_POSTGRES_CONTAINER_RECORD",
+        "FARDB_EPHEMERAL_POSTGRES_INVOCATION_ID",
+        "PG_SERVICE_ID",
+    )
+    assert not set(keys).intersection(consumer["env"])
+    exported = tmp_path / "github-env"
+    env = {
+        **os.environ,
+        "GITHUB_ENV": str(exported),
+        "PG_SERVICE_ID": "c" * 64,
+        "record_path": str(tmp_path / "owned.json"),
+        "system_identifier": "123456",
+        "GITHUB_RUN_ID": "42",
+        "GITHUB_RUN_ATTEMPT": "1",
+    }
+    commands = "\n".join(
+        line for line in producer["run"].splitlines() if line.startswith(("printf 'FARDB_", "printf 'PG_SERVICE_ID="))
+    )
+    commands = commands.replace("${{ matrix.postgres-version }}", "16")
+    subprocess.run(["/bin/bash", "-euc", commands], env=env, check=True, capture_output=True)
+    inherited = dict(line.split("=", 1) for line in exported.read_text().splitlines())
+    assert set(inherited) == set(keys)
+    assert inherited[keys[0]] == "123456"
+    assert inherited[keys[1]] == env["record_path"]
+    assert inherited[keys[2]] == "42-1-pg16"
+    assert inherited["PG_SERVICE_ID"] == env["PG_SERVICE_ID"]
+    invocation = tmp_path / "pytest-env.json"
+    python = tmp_path / "python"
+    python.write_text(
+        f"#!{sys.executable}\nimport os,json\n"
+        f"keys = {list(keys)!r}\n"
+        "with open(os.environ['HANDOFF_CAPTURE'], 'w') as output:\n"
+        "    json.dump({key: os.environ[key] for key in keys}, output)\n"
+    )
+    python.chmod(0o700)
+    env.update(inherited)
+    env.update(consumer["env"])
+    env.update({"PATH": str(tmp_path) + os.pathsep + env.get("PATH", ""), "HANDOFF_CAPTURE": str(invocation)})
+    if missing:
+        env[missing] = ""
+    result = subprocess.run(["/bin/bash", "-c", consumer["run"]], env=env, capture_output=True, check=False)
+    if missing:
+        assert result.returncode != 0
+        assert not invocation.exists()
+    else:
+        assert result.returncode == 0
+        captured = json.loads(invocation.read_text())
+        assert all(captured[key] == inherited[key] for key in keys)
+
+
+@pytest.mark.parametrize("prefix", ["Attest this job", "Build every profile twice"])
+@pytest.mark.parametrize("count", [0, 2])
+def test_workflow_handoff_rejects_missing_or_duplicate_steps(prefix, count) -> None:
+    """Missing or duplicate attestation steps fail with their exact identity and count."""
+    steps = [{"name": prefix + " contract"} for _ in range(count)]
+    steps.append({"uses": "unrelated-action"})
+    message = f"Expected exactly one {prefix!r} step; found {count}"
+    with pytest.raises(AssertionError, match=re.escape(message)):
+        _exactly_one_workflow_step(steps, prefix)

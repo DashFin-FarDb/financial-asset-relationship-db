@@ -16,6 +16,7 @@ from unittest.mock import PropertyMock, patch
 import pytest
 from fastapi.testclient import TestClient
 
+from api.graph_lifecycle import graph_state
 from api.main import app, validate_origin
 from src.config.settings import get_settings
 from src.logic.asset_graph import AssetRelationshipGraph
@@ -43,12 +44,17 @@ def asset_items(page: dict[str, Any]) -> list[dict[str, Any]]:
 
 
 @pytest.fixture
-def client():
-    """Create a test client for the FastAPI app.
+def client(monkeypatch: pytest.MonkeyPatch):
+    """Create a test client with isolated graph-publication state.
+
+    These API tests patch the graph instance directly and do not represent a
+    graph published by a rebuild job. Clear any job binding left by another test
+    so governed relationship reads use the intended unbound/mock-graph path.
 
     Note: TestClient uses internal ASGI transport, not actual network requests.
     The base_url is only used for URL construction in tests, not for real HTTP calls.
     """
+    monkeypatch.setattr(graph_state, "last_synced_job_id", None)
     # nosec B113 - TestClient uses ASGI transport, no actual localhost network access
     return TestClient(app, base_url="http://testserver")
 

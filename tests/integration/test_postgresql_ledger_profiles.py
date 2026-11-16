@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import os
 from collections.abc import Callable
-from pathlib import Path
-from urllib.parse import urlsplit, urlunsplit
+from dataclasses import replace
+from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 from uuid import uuid4
 
 import psycopg2
@@ -40,6 +40,7 @@ from scripts.postgresql_ledger import (
     MigrationEntry,
     PlannedTarget,
     apply_profile_to_database,
+    assert_profile_write_allowed,
     load_and_validate_manifest,
 )
 from src.data.database import (
@@ -48,12 +49,22 @@ from src.data.database import (
     verify_database_schema,
     verify_runtime_database_authority,
 )
+from tests.integration.postgresql_disposable_cluster import (
+    ContainerCliRunner,
+    attested_connection,
+    connect_owned_attested,
+    create_attested_engine,
+    execute_capability_bootstrap,
+    invocation_id,
+    owned_role_oid,
+    record_created_role,
+    verify_applied_profile,
+)
 
 pytestmark = pytest.mark.integration
 
 _ENABLE_ENV = "FARDB_EPHEMERAL_POSTGRES_LEDGER_TESTS"
 _URL_ENV = "FARDB_EPHEMERAL_POSTGRES_URL"
-_BOOTSTRAP_PATH = Path(__file__).resolve().parents[2] / "scripts" / "bootstrap_database_capability_roles.sql"
 
 
 def _ephemeral_postgres_url() -> str:
@@ -64,6 +75,22 @@ def _ephemeral_postgres_url() -> str:
     if not value:
         pytest.fail(f"{_URL_ENV} is required when {_ENABLE_ENV}=1")
     assert value is not None
+    target = PlannedTarget(
+        logical_targets=("graph",),
+        profile="graph",
+        lineage="fresh-v1",
+        execution_class="loopback",
+        fingerprint="0" * 64,
+        database_url=value,
+    )
+    assert_profile_write_allowed(target)
+    parsed = urlsplit(value)
+    query = dict(parse_qsl(parsed.query, keep_blank_values=True))
+    query["sslmode"] = "disable"
+    value = urlunsplit((parsed.scheme, parsed.netloc, parsed.path, urlencode(query), parsed.fragment))
+    assert_profile_write_allowed(replace(target, database_url=value))
+    with attested_connection(value):
+        pass
     return value
 
 
@@ -75,12 +102,23 @@ def _database_url(base_url: str, database_name: str) -> str:
 
 def _bootstrap_roles_and_create_database(base_url: str, database_name: str) -> None:
     """Create stable capability roles and one empty disposable database."""
-    bootstrap_sql = _BOOTSTRAP_PATH.read_text(encoding="utf-8")
-    connection = psycopg2.connect(base_url)
+    connection = connect_owned_attested(base_url)
     connection.autocommit = True
     try:
         with connection.cursor() as cursor:
-            cursor.execute(bootstrap_sql)
+            cursor.execute(
+                "SELECT rolname FROM pg_roles WHERE rolname = ANY(%s)",
+                (["fardb_runtime_auth", "fardb_runtime_graph", "fardb_runtime_coordination"],),
+            )
+            preexisting_capabilities = {row[0] for row in cursor.fetchall()}
+            execute_capability_bootstrap(cursor)
+            cursor.execute(
+                "SELECT rolname FROM pg_roles WHERE rolname = ANY(%s)",
+                (["fardb_runtime_auth", "fardb_runtime_graph", "fardb_runtime_coordination"],),
+            )
+            for (name,) in cursor.fetchall():
+                if name not in preexisting_capabilities:
+                    record_created_role(connection, name, canonical_test_role=True)
             cursor.execute(sql.SQL("CREATE DATABASE {}").format(sql.Identifier(database_name)))
     finally:
         connection.close()
@@ -88,7 +126,7 @@ def _bootstrap_roles_and_create_database(base_url: str, database_name: str) -> N
 
 def _drop_database(base_url: str, database_name: str) -> None:
     """Remove one generated database after terminating only its own sessions."""
-    connection = psycopg2.connect(base_url)
+    connection = connect_owned_attested(base_url)
     connection.autocommit = True
     try:
         with connection.cursor() as cursor:
@@ -113,7 +151,7 @@ def _runtime_url(database_url: str, login_name: str, password: str) -> str:
 
 def _create_runtime_login(base_url: str, login_name: str, capability_roles: tuple[str, ...], password: str) -> None:
     """Create one disposable restricted login with only its selected memberships."""
-    connection = psycopg2.connect(base_url)
+    connection = connect_owned_attested(base_url)
     connection.autocommit = True
     try:
         with connection.cursor() as cursor:
@@ -136,9 +174,11 @@ def _create_runtime_login(base_url: str, login_name: str, capability_roles: tupl
 
 def _drop_runtime_login(base_url: str, login_name: str) -> None:
     """Drop one disposable cluster login after its database has been removed."""
-    connection = psycopg2.connect(base_url)
+    connection = connect_owned_attested(base_url)
     connection.autocommit = True
     try:
+        if owned_role_oid(login_name) is None:
+            return
         with connection.cursor() as cursor:
             cursor.execute(sql.SQL("DROP ROLE IF EXISTS {}").format(sql.Identifier(login_name)))
     finally:
@@ -147,7 +187,7 @@ def _drop_runtime_login(base_url: str, login_name: str) -> None:
 
 def _set_runtime_schema_create(database_url: str, login_name: str, *, enabled: bool) -> None:
     """Introduce or remove one deliberate direct-authority drift fixture."""
-    connection = psycopg2.connect(database_url)
+    connection = connect_owned_attested(database_url)
     connection.autocommit = True
     try:
         with connection.cursor() as cursor:
@@ -165,7 +205,7 @@ def _set_runtime_schema_create(database_url: str, login_name: str, *, enabled: b
 
 def _set_runtime_table_select(database_url: str, login_name: str, table_name: str, *, enabled: bool) -> None:
     """Introduce or remove one direct cross-component table grant."""
-    connection = psycopg2.connect(database_url)
+    connection = connect_owned_attested(database_url)
     connection.autocommit = True
     try:
         with connection.cursor() as cursor:
@@ -184,7 +224,7 @@ def _set_runtime_table_select(database_url: str, login_name: str, table_name: st
 
 def _set_auth_cross_profile_view(database_url: str, login_name: str, *, enabled: bool) -> None:
     """Create or remove a managed-name view directly readable by the auth login."""
-    connection = psycopg2.connect(database_url)
+    connection = connect_owned_attested(database_url)
     connection.autocommit = True
     try:
         with connection.cursor() as cursor:
@@ -233,12 +273,12 @@ def _verify_operator_contract(engine: sqlalchemy.Engine, target_url: str, profil
     if "auth" in EXPECTED_PROFILES[profile]:
         with bind_database_url(target_url):
             verify_schema_compatibility()
-            verify_runtime_access_catalog()
+            verify_runtime_access_catalog(require_login_principals=False)
 
 
 def _evaluate_drift(target_url: str, manifest: LedgerManifest, profile: str, runtime_check) -> DriftReport:
     """Run the read-only profile drift gate with an explicit compatibility check."""
-    connection = psycopg2.connect(target_url)
+    connection = connect_owned_attested(target_url)
     try:
         return evaluate_profile_drift(
             connection,
@@ -296,7 +336,7 @@ class _HistoryUnavailableConnection:
 
 def _migration_history(target_url: str) -> tuple[tuple[str, str], ...]:
     """Read the exact disposable provider history for no-mutation comparison."""
-    connection = psycopg2.connect(target_url)
+    connection = connect_owned_attested(target_url)
     try:
         with connection.cursor() as cursor:
             cursor.execute("SELECT version, name FROM supabase_migrations.schema_migrations ORDER BY version")
@@ -307,7 +347,7 @@ def _migration_history(target_url: str) -> tuple[tuple[str, str], ...]:
 
 def _execute_operator_sql(target_url: str, statement: object, parameters: tuple[object, ...] = ()) -> None:
     """Apply or restore one deliberate disposable drift fixture."""
-    connection = psycopg2.connect(target_url)
+    connection = connect_owned_attested(target_url)
     connection.autocommit = True
     try:
         with connection.cursor() as cursor:
@@ -318,7 +358,7 @@ def _execute_operator_sql(target_url: str, statement: object, parameters: tuple[
 
 def _replace_migration_history(target_url: str, history: tuple[tuple[str, str], ...]) -> None:
     """Replace only disposable provider-history rows for adoption-prefix calibration."""
-    connection = psycopg2.connect(target_url)
+    connection = connect_owned_attested(target_url)
     try:
         with connection.cursor() as cursor:
             cursor.execute("DELETE FROM supabase_migrations.schema_migrations")
@@ -342,7 +382,7 @@ def _verify_hosted_adoption_prefix(
 
     def evaluate_marker(marker: MigrationEntry) -> DriftReport:
         """Evaluate one marker through a fresh read-only connection."""
-        connection = psycopg2.connect(target_url)
+        connection = connect_owned_attested(target_url)
         try:
             return evaluate_profile_drift(
                 connection,
@@ -411,7 +451,7 @@ def _verify_history_and_catalog_drift(
         catalog_drift = _evaluate_drift(target_url, manifest, profile, runtime_check)
         assert catalog_drift.status == DRIFT_DETECTED
         assert catalog_drift.primary_category == PROVIDER_SCHEMA_DRIFT
-        connection = psycopg2.connect(target_url)
+        connection = connect_owned_attested(target_url)
         try:
             incomplete_history = evaluate_profile_drift(
                 _HistoryUnavailableConnection(connection),  # type: ignore[arg-type]
@@ -455,7 +495,7 @@ def _verify_profile_drift_contract(
     _verify_history_and_catalog_drift(target_url, manifest, profile, runtime_check)
 
     if "graph" in EXPECTED_PROFILES[profile]:
-        owner_role = f"cq03c_owner_{uuid4().hex[:12]}"
+        owner_role = f"fdbt_{invocation_id()}_cq03c_owner_{uuid4().hex[:8]}"
         _execute_operator_sql(target_url, sql.SQL("CREATE ROLE {} NOLOGIN").format(sql.Identifier(owner_role)))
         try:
             _execute_operator_sql(
@@ -560,7 +600,7 @@ def _verify_capability_runtime(
     capabilities = _profile_capabilities(profile)
     if not capabilities:
         return
-    login_name = f"{database_name}_cap_runtime"
+    login_name = "fardb_login_graph" if "graph" in capabilities else "fardb_login_coordination"
     capability_roles = tuple(
         RUNTIME_CAPABILITY_ROLES[capability] for capability in ("graph", "coordination") if capability in capabilities
     )
@@ -601,7 +641,7 @@ def _verify_zero_capability_runtime(
     """Prove a no-capability login cannot retain direct managed-relation grants."""
     if "graph" not in EXPECTED_PROFILES[profile]:
         return
-    login_name = f"{database_name}_zero_runtime"
+    login_name = f"fdbt_{invocation_id()}_zero_{uuid4().hex[:8]}"
     runtime_logins.append(login_name)
     _create_runtime_login(base_url, login_name, (), password)
     engine = sqlalchemy.create_engine(_runtime_url(target_url, login_name, password), future=True)
@@ -628,7 +668,7 @@ def _verify_auth_runtime(
     """Verify auth runtime authority, including table and view cross-profile drift."""
     if "auth" not in EXPECTED_PROFILES[profile]:
         return
-    login_name = f"{database_name}_auth_runtime"
+    login_name = "fardb_login_auth"
     runtime_logins.append(login_name)
     _create_runtime_login(base_url, login_name, (AUTH_RUNTIME_ROLE,), password)
     runtime_url = _runtime_url(target_url, login_name, password)
@@ -690,11 +730,14 @@ def test_clean_profile_build_and_history(profile: str) -> None:
     runtime_engines: list[sqlalchemy.Engine] = []
     runtime_logins: list[str] = []
     try:
-        apply_profile_to_database(target, manifest)
-        # A second projection must be an exact no-op, not a second history identity.
-        apply_profile_to_database(target, manifest)
+        with ContainerCliRunner(target_url) as runner:
+            apply_profile_to_database(target, manifest, runner=runner)
+            verify_applied_profile(target_url, manifest, profile)
+            # A second projection must be an exact no-op, not a second history identity.
+            apply_profile_to_database(target, manifest, runner=runner)
+            verify_applied_profile(target_url, manifest, profile)
 
-        operator_engine = sqlalchemy.create_engine(target_url, future=True)
+        operator_engine = create_attested_engine(target_url, future=True)
         _assert_profile_catalog(operator_engine, manifest, profile)
         _verify_operator_contract(operator_engine, target_url, profile)
         _verify_profile_drift_contract(operator_engine, target_url, manifest, profile)
