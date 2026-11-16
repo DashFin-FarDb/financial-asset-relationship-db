@@ -40,7 +40,7 @@ multi-target acceptance; the SQL artifact is the coordinator transaction body us
 
 ```bash
 export FARDB_BOOTSTRAP_DATABASE_URL="postgresql://superuser:PASSWORD@HOST:PORT/COORDINATOR_DB"
-python -m scripts.bootstrap_database_capability_roles \
+python3 -m scripts.bootstrap_database_capability_roles \
   --targets-json '{"fardb_runtime_auth":["auth_db"],"fardb_runtime_graph":["graph_db"],"fardb_runtime_coordination":["coordination_db"]}'
 unset FARDB_BOOTSTRAP_DATABASE_URL
 ```

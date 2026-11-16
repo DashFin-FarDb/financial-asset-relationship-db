@@ -689,16 +689,16 @@ def _psycopg_database_identity(connection):
     """Read cluster and database identity from a retained DBAPI session."""
     from src.data.postgresql_topology import validated_database_identity
 
-    with connection.cursor() as cursor:
-        cursor.execute(
-            "SELECT control.system_identifier::text, database.oid::bigint, database.datname "
-            "FROM pg_catalog.pg_control_system() AS control JOIN pg_catalog.pg_database AS database "
-            "ON database.datname = pg_catalog.current_database()"
-        )
-        rows = cursor.fetchall()
     try:
+        with connection.cursor() as cursor:
+            cursor.execute(
+                "SELECT control.system_identifier::text, database.oid::bigint, database.datname "
+                "FROM pg_catalog.pg_control_system() AS control JOIN pg_catalog.pg_database AS database "
+                "ON database.datname = pg_catalog.current_database()"
+            )
+            rows = cursor.fetchall()
         return validated_database_identity(rows)
-    except (ValueError, TypeError) as exc:
+    except Exception as exc:
         raise TargetIdentityError() from exc
 
 

@@ -35,6 +35,7 @@ _CANONICAL_TEST_LOGIN_ROLES = {"fardb_login_auth", "fardb_login_graph", "fardb_l
 _ROLE_IDENTIFIER = r'(?:"(?:[^"]|"")+"|[a-zA-Z_][a-zA-Z0-9_$]*)'
 _SQL_QUOTED_TOKEN = re.compile(r"'(?:[^'\\]|'')*'|\"(?:[^\"]|\"\")*\"")
 _owned_roles: dict[str, int] = {}
+_renamed_roles: dict[str, tuple[str, int, bool]] = {}
 
 
 class DisposableTargetError(RuntimeError):
@@ -360,6 +361,39 @@ class OwnedRoleCursor(PsycopgCursor):
         if command.startswith("DROP ROLE"):
             self._validate_role_cleanup(command, role_name)
 
+    def _validate_role_rename(self, rendered: str, source: str) -> tuple[str, int, bool]:
+        """Allow only canonical-to-owned-backup moves and their recorded reversal."""
+        statement = rendered.strip().rstrip(";").rstrip()
+        match = re.fullmatch(
+            rf"ALTER ROLE\s+{_ROLE_IDENTIFIER}\s+RENAME TO\s+({_ROLE_IDENTIFIER})",
+            statement,
+            re.I,
+        )
+        if match is None:
+            raise DisposableTargetError("unsupported role rename")
+        identifier = match.group(1)
+        target = identifier[1:-1].replace('""', '"') if identifier.startswith('"') else identifier.lower()
+        backup_prefix = f"{_ROLE_PREFIX}{invocation_id()}_saved_"
+        if source in _CANONICAL_CAPABILITY_ROLES and target.startswith(backup_prefix):
+            was_owned = source in _owned_roles
+        elif source in _renamed_roles and _renamed_roles[source][0] == target:
+            was_owned = _renamed_roles[source][2]
+        else:
+            raise DisposableTargetError("role rename is outside recorded capability restoration")
+        with self.connection.cursor(cursor_factory=PsycopgCursor) as check:
+            check.execute("SELECT oid FROM pg_roles WHERE rolname = %s", (source,))
+            source_row = check.fetchone()
+            check.execute("SELECT oid FROM pg_roles WHERE rolname = %s", (target,))
+            target_row = check.fetchone()
+        if source_row is None or target_row is not None:
+            raise DisposableTargetError("role rename source is absent or target already exists")
+        oid = int(source_row[0])
+        if source in _renamed_roles and _renamed_roles[source][1] != oid:
+            raise DisposableTargetError("role rename source OID changed")
+        if was_owned and _owned_roles.get(source) != oid and source not in _renamed_roles:
+            raise DisposableTargetError("role rename source OID is not invocation-owned")
+        return target, oid, was_owned
+
     def _validate_role_cleanup(self, command: str, role_name: str | None) -> None:
         """Permit an absent IF EXISTS target or require its recorded live role identity."""
         oid = owned_role_oid(role_name or "")
@@ -380,7 +414,20 @@ class OwnedRoleCursor(PsycopgCursor):
         parsed = _parse_role_ddl(rendered)
         command, role_name = parsed if parsed else ("", None)
         self._validate_role_mutation(command, role_name)
+        rename = self._validate_role_rename(rendered, role_name) if command == "ALTER ROLE" else None
         result = self._execute_driver(query, parameters)
+        if rename is not None:
+            target, oid, was_owned = rename
+            if role_name in _renamed_roles:
+                _renamed_roles.pop(role_name)
+                _owned_roles.pop(role_name, None)
+                if was_owned:
+                    _owned_roles[target] = oid
+            else:
+                _renamed_roles[target] = (role_name, oid, was_owned)
+                _owned_roles.pop(role_name, None)
+                if was_owned:
+                    _owned_roles[target] = oid
         if command == "CREATE ROLE" and role_name:
             record_created_role(
                 self.connection,

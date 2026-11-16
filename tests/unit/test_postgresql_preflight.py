@@ -896,3 +896,14 @@ def test_auth_authority_catalog_uses_retained_connection(monkeypatch) -> None:
     api_database.verify_runtime_authority(verification_connection=connection)
     get_connection.assert_not_called()
     assert connection.cursor.call_count > 3
+
+
+def test_psycopg_identity_query_failure_is_classified() -> None:
+    """Denied control-file access keeps the documented failure classification."""
+    from unittest.mock import MagicMock
+
+    connection = MagicMock()
+    cursor = connection.cursor.return_value.__enter__.return_value
+    cursor.execute.side_effect = PermissionError("pg_control_system denied")
+    with pytest.raises(TargetIdentityError, match=preflight.TARGET_IDENTITY_INDETERMINATE):
+        preflight._psycopg_database_identity(connection)
