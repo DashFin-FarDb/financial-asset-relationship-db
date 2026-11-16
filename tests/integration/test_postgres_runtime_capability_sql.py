@@ -289,16 +289,11 @@ def test_runtime_capability_verifier_sql_executes_against_postgres() -> None:
                 runtime_database._managed_table_names(capabilities),
             )
     finally:
-        verification_failed = sys.exc_info()[0] is not None
         try:
-            try:
-                if engine is not None:
-                    engine.dispose()
-            finally:
-                _drop_logins(url, created_logins, created_memberships)
-        except Exception:
-            if not verification_failed:
-                raise
+            if engine is not None:
+                engine.dispose()
+        finally:
+            _drop_logins(url, created_logins, created_memberships)
 
 
 @pytest.mark.parametrize("url", [None, "", "sqlite:///not-postgresql", "postgresql://test@192.0.2.1/test_db"])

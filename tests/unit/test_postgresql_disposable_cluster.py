@@ -1189,3 +1189,36 @@ def test_record_cannot_select_a_fake_docker_executable(monkeypatch) -> None:
         guard._validate_harness_container({"docker_cli": "/tmp/fake-docker"}, "unused")
     inspect.assert_not_called()
     command.assert_not_called()
+
+
+@pytest.mark.parametrize(
+    ("source", "target"),
+    [
+        ("unrelated", "fdbt_invocation_saved_auth"),
+        ("fardb_runtime_auth", "unrelated"),
+        ("fdbt_invocation_saved_auth", "fardb_runtime_auth"),
+    ],
+)
+def test_role_rename_rejects_unrecorded_identities_before_database_access(
+    monkeypatch: pytest.MonkeyPatch, source: str, target: str
+) -> None:
+    """Only recorded canonical capability moves may reach the role catalog."""
+    monkeypatch.setattr(guard, "invocation_id", lambda: "invocation")
+    cursor = MagicMock()
+    statement = f'ALTER ROLE "{source}" RENAME TO "{target}"'
+    with pytest.raises(guard.DisposableTargetError, match="outside recorded"):
+        guard.OwnedRoleCursor._validate_role_rename(cursor, statement, source)
+    cursor.connection.cursor.assert_not_called()
+
+
+def test_role_rename_rejects_changed_backup_oid(monkeypatch: pytest.MonkeyPatch) -> None:
+    """A replacement of the saved role cannot be restored as the original."""
+    backup = "fdbt_invocation_saved_auth"
+    monkeypatch.setattr(guard, "invocation_id", lambda: "invocation")
+    monkeypatch.setitem(guard._renamed_roles, backup, ("fardb_runtime_auth", 42, False))
+    cursor = MagicMock()
+    check = cursor.connection.cursor.return_value.__enter__.return_value
+    check.fetchone.side_effect = [(99,), None]
+    statement = f'ALTER ROLE "{backup}" RENAME TO "fardb_runtime_auth"'
+    with pytest.raises(guard.DisposableTargetError, match="OID changed"):
+        guard.OwnedRoleCursor._validate_role_rename(cursor, statement, backup)

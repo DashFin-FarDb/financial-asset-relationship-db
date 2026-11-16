@@ -92,6 +92,11 @@ BEGIN
                       SELECT 1
                       FROM pg_namespace AS namespace
                       WHERE has_schema_privilege(role.oid, namespace.oid, 'CREATE')
+                        AND EXISTS (
+                            SELECT 1
+                            FROM jsonb_array_elements_text(target_mapping -> capability_role) AS target(name)
+                            WHERE target.name = current_database()
+                        )
                   )
                   OR EXISTS (
                       SELECT 1 FROM pg_auth_members AS membership
