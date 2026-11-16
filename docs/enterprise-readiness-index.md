@@ -10,6 +10,7 @@
 | ------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
 | `docs/audits/enterprise-readiness-audit.md`                   | Full audit of what is implemented, evidence-backed, manually gated, and still deferred                                     |
 | `docs/roadmap/enterprise-readiness-roadmap.md`                | High-level release-execution roadmap after the PR #1287-#1301 reconciliation point                                         |
+| `docs/roadmap/enterprise-readiness-completion-checklist.md`   | Completion-criteria checklist and non-negotiable boundaries for the 14 remaining roadmap items                             |
 | `docs/roadmap/enterprise-readiness-pr-plan.md`                | PR-by-PR execution plan with validation commands                                                                           |
 | `docs/roadmap/enterprise-readiness-pr-board.md`               | Operational PR board with status and exit criteria                                                                         |
 | `docs/release-checklist.md`                                   | Release gates and enterprise exit criteria                                                                                 |
@@ -102,4 +103,5 @@ Repository tests and documentation may satisfy implementation evidence, but stag
 - [docs/adr/0006-release-and-deployment-automation.md](./adr/0006-release-and-deployment-automation.md) — release and deployment automation strategy
 - [docs/adr/0005-backup-restore-dr-strategy.md](./adr/0005-backup-restore-dr-strategy.md) — backup, restore, and DR strategy
 - [docs/runbooks/backup-restore-dr.md](./runbooks/backup-restore-dr.md) — backup and restore operating procedure
+- [docs/roadmap/enterprise-readiness-completion-checklist.md](./roadmap/enterprise-readiness-completion-checklist.md) — per-item completion criteria, boundaries, and single-decision PR mapping for the remaining roadmap items
 - [docs/enterprise-deployment-operating-model.md](./enterprise-deployment-operating-model.md) — promotion, rollback, and DR operating model
