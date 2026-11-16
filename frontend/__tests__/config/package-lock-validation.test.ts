@@ -408,6 +408,56 @@ describe("Package-lock.json Validation", () => {
     });
   });
 
+  describe("zod security and lock-graph compatibility", () => {
+    const rootZodPath = "node_modules/zod";
+
+    it("keeps root zod transitive and at the GHSA-mrhx-c7xc-m3w5 patched floor", () => {
+      const rootZod = packageLock.packages?.[rootZodPath];
+
+      expect(rootZod?.version).toBeDefined();
+      expect(gte(rootZod?.version ?? "0.0.0", "4.6.6")).toBe(true);
+      expect(packageJson.dependencies).not.toHaveProperty("zod");
+      expect(packageJson.devDependencies).not.toHaveProperty("zod");
+    });
+
+    it("resolves zod compatibly for eslint-plugin-react-hooks", () => {
+      const parentPath = "node_modules/eslint-plugin-react-hooks";
+      const parentPackage = packageLock.packages?.[parentPath];
+      expect(parentPackage).toBeDefined();
+      if (!parentPackage) return;
+
+      const dependencyRange: unknown = parentPackage.dependencies?.zod;
+      const resolution = resolveLockedDependency(
+        packageLock.packages ?? {},
+        parentPath,
+        "zod",
+      );
+
+      expect(isValidDependencyRange(dependencyRange)).toBe(true);
+      expect(resolution?.path).toBe(rootZodPath);
+      expect(
+        isCompatibleDependencyResolution(
+          resolution?.package.version,
+          dependencyRange,
+        ),
+      ).toBe(true);
+    });
+
+    it("satisfies the zod-validation-error peer range", () => {
+      const peerRange: unknown =
+        packageLock.packages?.["node_modules/zod-validation-error"]
+          ?.peerDependencies?.zod;
+
+      expect(isValidDependencyRange(peerRange)).toBe(true);
+      expect(
+        isCompatibleDependencyResolution(
+          packageLock.packages?.[rootZodPath]?.version,
+          peerRange,
+        ),
+      ).toBe(true);
+    });
+  });
+
   describe("semver dependency range validation", () => {
     it.each([
       { description: "missing", range: undefined },
