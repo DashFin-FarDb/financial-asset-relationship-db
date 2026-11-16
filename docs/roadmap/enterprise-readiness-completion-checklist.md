@@ -42,8 +42,8 @@ General rules that apply to every item:
 
 ## Summary
 
-| #   | Item                                     | Status at publication                | Depends on | Tracking |
-| --- | ---------------------------------------- | ------------------------------------ | ---------- | -------- |
+| #   | Item                                     | Status at publication                | Depends on | Tracking                                                                              |
+| --- | ---------------------------------------- | ------------------------------------ | ---------- | ------------------------------------------------------------------------------------- |
 | 1   | CQ-03D-02 hosted read-only preflight     | Partially satisfied                  | —          | [#1907](https://github.com/DashFin-FarDb/financial-asset-relationship-db/issues/1907) |
 | 2   | CQ-03D migration-history marker          | Not authorized                       | 1          | [#1908](https://github.com/DashFin-FarDb/financial-asset-relationship-db/issues/1908) |
 | 3   | RC1 release evidence capture             | Satisfied - manual evidence required | 4, 5, 6, 8 | [#1909](https://github.com/DashFin-FarDb/financial-asset-relationship-db/issues/1909) |
