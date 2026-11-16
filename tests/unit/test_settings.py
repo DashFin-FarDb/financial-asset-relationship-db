@@ -7,6 +7,7 @@ to ensure environment variables are correctly parsed and cached.
 from __future__ import annotations
 
 import os
+import secrets
 from typing import Any
 from unittest.mock import patch
 
@@ -22,6 +23,7 @@ from src.config.settings import (
 )
 
 pytestmark = pytest.mark.unit
+_TEST_ENV_SECRET = secrets.token_urlsafe(32)
 
 
 @pytest.fixture(autouse=True)
@@ -222,7 +224,7 @@ class TestSettingsModel:
     )
     def test_production_rejects_empty_required_runtime_values(self, field_name: str, field_value: str) -> None:
         """Test that production rejects missing required runtime values."""
-        values = {
+        values: dict[str, Any] = {
             "env": DeploymentEnvironment.PRODUCTION,
             "secret_key": "secret-key-that-is-at-least-32-bytes",
             "admin_username": "admin",
@@ -308,7 +310,7 @@ class TestLoadSettings:
             "ENV": "production",
             "VERCEL_ENV": "preview",
             "ALLOWED_ORIGINS": "https://example.com,https://example.org",
-            "SECRET_KEY": "test-secret-that-is-at-least-32-bytes",
+            "SECRET_KEY": _TEST_ENV_SECRET,
             "ADMIN_USERNAME": "admin",
             "ADMIN_PASSWORD": "adminpass",
             "ADMIN_EMAIL": "admin@example.com",
@@ -330,7 +332,7 @@ class TestLoadSettings:
         assert settings.env == DeploymentEnvironment.PRODUCTION
         assert settings.vercel_env == DeploymentEnvironment.PREVIEW
         assert settings.allowed_origins_raw == "https://example.com,https://example.org"
-        assert settings.secret_key == "test-secret-that-is-at-least-32-bytes"
+        assert settings.secret_key == _TEST_ENV_SECRET
         assert settings.admin_username == "admin"
         assert settings.admin_password == "adminpass"
         assert settings.admin_email == "admin@example.com"

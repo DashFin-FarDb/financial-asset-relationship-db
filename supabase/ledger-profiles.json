@@ -46,6 +46,11 @@
           "timestamp": "20260822164127",
           "filename": "20260822164127_add_graph_foreign_key_indexes.sql",
           "sha256": "43f59301fa01ade5449d76375b8778d8257063248f87c28de3937004ca8f338e"
+        },
+        {
+          "timestamp": "20261016120000",
+          "filename": "20261016120000_add_snapshot_attestation.sql",
+          "sha256": "8d8b84fa69926d7399742ab1361bc21c9968d5d56aec9b1149490fe7422b5e2d"
         }
       ]
     },
@@ -68,7 +73,7 @@
     },
     "graph": {
       "components": ["graph"],
-      "catalog_sha256": "e0d6c0f90de1fb2553bc0da926c465a5a11ad15c67c7789f67a1a159cca48949"
+      "catalog_sha256": "8ffd95b33a84ce1f2ffa770330194edeb08bf6a57fbacf0b3c6ca943645020fd"
     },
     "coordination": {
       "components": ["coordination"],
@@ -76,7 +81,7 @@
     },
     "combined": {
       "components": ["auth", "graph", "coordination"],
-      "catalog_sha256": "e0098c988d47be32c0d0b5e97a1d25dc1332c0625d6ac04de2effadae9007b70"
+      "catalog_sha256": "e84e306d58c4470ae62d44835bab8baacafd3250cc0c51391d3c3e6d8813b9ad"
     }
   },
   "lineages": {

@@ -20,6 +20,7 @@ EXPECTED_PROFILE_MIGRATION_IDENTITIES = {
     "graph": (
         ("graph", "20260817153555_cq_03b_r2_graph_forward_baseline.sql"),
         ("graph", "20260822164127_add_graph_foreign_key_indexes.sql"),
+        ("graph", "20261016120000_add_snapshot_attestation.sql"),
     ),
     "coordination": (("coordination", "20260817153557_cq_03b_r2_coordination_forward_baseline.sql"),),
     "combined": (
@@ -27,6 +28,7 @@ EXPECTED_PROFILE_MIGRATION_IDENTITIES = {
         ("graph", "20260817153555_cq_03b_r2_graph_forward_baseline.sql"),
         ("coordination", "20260817153557_cq_03b_r2_coordination_forward_baseline.sql"),
         ("graph", "20260822164127_add_graph_foreign_key_indexes.sql"),
+        ("graph", "20261016120000_add_snapshot_attestation.sql"),
     ),
 }
 
@@ -130,7 +132,7 @@ def test_manifest_and_profile_unions_are_deterministic() -> None:
     """The committed manifest must resolve exact, timestamp-ordered component unions."""
     manifest = ledger.load_and_validate_manifest()
 
-    assert manifest.sha256 == "bf58ff217c1d1743eb0aee55d3d5d8820fada3a7fa335224424d662adbb0382c"
+    assert manifest.sha256 == "15a59c54d629afad166b1f69c297b88debd5b9820ab8725ec0883979b75af03c"
     assert (
         tuple(
             table_name

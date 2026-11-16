@@ -36,6 +36,7 @@ def _graph_with_assets(count: int) -> AssetRelationshipGraph:
 def client() -> Iterator[TestClient]:
     """Provide a TestClient with a clean graph state reset after each test."""
     api_main.reset_graph()
+    api_main.set_graph(_graph_with_assets(0))
     with TestClient(api_main.app) as test_client:
         yield test_client
     api_main.reset_graph()

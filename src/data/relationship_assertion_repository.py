@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass, replace
 from datetime import datetime, timedelta, timezone
@@ -138,6 +139,7 @@ class FinalizeProjectionPublicationRequest:
     node_count: int
     edge_count: int
     duration_ms: int
+    snapshot_sha256: str
     publication_id: str | None = None
     published_at: datetime | None = None
 
@@ -151,6 +153,7 @@ class PublishedProjectionRevision:
     rebuild_job_id: str
     execution_id: str
     published_at: datetime
+    snapshot_sha256: str | None = None
 
 
 def _utcnow() -> datetime:
@@ -842,6 +845,7 @@ class RelationshipAssertionRepository:
             rebuild_job_id=publication.rebuild_job_id,
             execution_id=self._require_publication_execution_id(publication.execution_id),
             published_at=published_at,
+            snapshot_sha256=publication.snapshot_sha256,
         )
 
     def _require_single_publication_for_rebuild_job(self, rebuild_job_id: str) -> None:
@@ -915,6 +919,7 @@ class RelationshipAssertionRepository:
             rebuild_job_id=publication.rebuild_job_id,
             execution_id=self._require_publication_execution_id(publication.execution_id),
             published_at=published_at,
+            snapshot_sha256=publication.snapshot_sha256,
         )
 
         self._require_single_publication_for_rebuild_job(
@@ -1055,6 +1060,8 @@ class RelationshipAssertionRepository:
         concurrent first publishers for the rebuild job. Any failure rolls the
         candidate, success transition, and publication back together.
         """
+        if not isinstance(request.snapshot_sha256, str) or not re.fullmatch(r"[0-9a-f]{64}", request.snapshot_sha256):
+            raise ValidationError("publication requires a lowercase SHA-256 snapshot digest")
         execution_id = request.execution_id
         if not isinstance(execution_id, str) or not execution_id.strip():
             raise ValidationError("publication execution_id must be non-null and non-empty")
@@ -1069,6 +1076,7 @@ class RelationshipAssertionRepository:
             node_count=request.node_count,
             edge_count=request.edge_count,
             duration_ms=request.duration_ms,
+            snapshot_sha256=request.snapshot_sha256,
         )
         persisted = self.persist_projection_revision(request.projection)
 
@@ -1083,6 +1091,7 @@ class RelationshipAssertionRepository:
                         rebuild_job_id=request.rebuild_job_id,
                         execution_id=execution_id,
                         published_at=published_at,
+                        snapshot_sha256=request.snapshot_sha256,
                     )
                 )
                 self._session.flush()
@@ -1096,6 +1105,7 @@ class RelationshipAssertionRepository:
             rebuild_job_id=request.rebuild_job_id,
             execution_id=execution_id,
             published_at=published_at,
+            snapshot_sha256=request.snapshot_sha256,
         )
 
     def current_state(self, assertion_id: str) -> LifecycleState:

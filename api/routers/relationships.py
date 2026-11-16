@@ -10,6 +10,7 @@ from fastapi import APIRouter, HTTPException
 from src.observability.facade import ObservabilityEvent, log_event
 
 from ..api_models import RelationshipResponse
+from ..graph_lifecycle_providers import AuthoritativeGraphUnavailableError
 from ..router_helpers import get_graph, logger, raise_asset_not_found
 from ..services.relationship_index import (
     GovernedRelationshipIndex,
@@ -60,7 +61,8 @@ async def get_asset_relationships(asset_id: str) -> list[RelationshipResponse]:
             _relationship_response(asset_id, relationship, governed_index)
             for relationship in g.relationships.get(asset_id, [])
         ]
-    except HTTPException:
+    except (HTTPException, AuthoritativeGraphUnavailableError):
+        # Unavailable graph is mapped to 503 by the app-level handler; never mask it as a 500.
         raise
     except Exception as e:
         log_event(
@@ -101,7 +103,8 @@ async def get_all_relationships() -> list[RelationshipResponse]:
             for source_id, rels in g.relationships.items()
             for relationship in rels
         ]
-    except HTTPException:
+    except (HTTPException, AuthoritativeGraphUnavailableError):
+        # Unavailable graph is mapped to 503 by the app-level handler; never mask it as a 500.
         raise
     except Exception as e:
         log_event(

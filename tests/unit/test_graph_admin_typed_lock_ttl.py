@@ -47,6 +47,7 @@ def _is_getattr_for_rebuild_lock_ttl(node: ast.AST) -> bool:
 
 
 def _is_non_positive_lock_ttl_compare(node: ast.AST) -> bool:
+    """Provide is non positive lock ttl compare for this regression."""
     if not (isinstance(node, ast.Compare) and isinstance(node.left, ast.Name) and node.left.id == "lock_ttl"):
         return False
     for op, comp in zip(node.ops, node.comparators, strict=False):
@@ -58,6 +59,7 @@ def _is_non_positive_lock_ttl_compare(node: ast.AST) -> bool:
 
 
 def _is_lock_ttl_isinstance_check(node: ast.AST) -> bool:
+    """Provide is lock ttl isinstance check for this regression."""
     return (
         isinstance(node, ast.Call)
         and isinstance(node.func, ast.Name)
@@ -133,7 +135,7 @@ def test_perform_rebuild_uses_typed_lock_ttl_for_distributed_lock(
         graph_admin,
         "_run_rebuild_pipeline",
         lambda *_args, **_kwargs: GraphRebuildResponse(
-            source="sample",
+            source="real_data",
             asset_count=0,
             relationship_count=0,
             regulatory_event_count=0,
@@ -148,4 +150,4 @@ def test_perform_rebuild_uses_typed_lock_ttl_for_distributed_lock(
 
     assert captured["ttl_seconds"] == settings.rebuild_lock_ttl_seconds
     assert captured["ttl_seconds"] == 42
-    assert response.source == "sample"
+    assert response.source == "real_data"

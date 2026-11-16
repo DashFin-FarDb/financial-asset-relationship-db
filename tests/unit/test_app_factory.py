@@ -50,6 +50,7 @@ async def test_lifespan_calls_shutdown_rebuild_executor_on_exit(
     )
     # FIX: Correct parameter count mapping across all lambda hooks
     monkeypatch.setattr(app_factory, "_run_startup_reconciliation", lambda s, ce=None: None)
+    monkeypatch.setattr(app_factory, "get_graph", lambda: None)
     monkeypatch.setattr(app_factory, "init_rebuild_executor", lambda s: None)
     monkeypatch.setattr(app_factory, "shutdown_rebuild_executor", fake_shutdown)
 
@@ -932,6 +933,264 @@ def test_start_background_tasks_floors_rebuild_lock_ttl_seconds(monkeypatch) -> 
     _assert_start_background_tasks_lock_ttl(monkeypatch, configured_ttl=0, expected_ttl=1)
 
 
+def test_authoritative_graph_unavailable_returns_503() -> None:
+    """AuthoritativeGraphUnavailableError must be mapped to HTTP 503."""
+    from fastapi.testclient import TestClient
+
+    from api.app_factory import create_app
+    from api.graph_lifecycle_providers import AuthoritativeGraphUnavailableError
+
+    test_app = create_app()
+
+    @test_app.get("/test-graph-unavailable")
+    def _trigger_unavailable():
+        """Provide trigger unavailable for this regression."""
+        raise AuthoritativeGraphUnavailableError("Graph not yet published")
+
+    client = TestClient(test_app, raise_server_exceptions=False)
+    response = client.get("/test-graph-unavailable")
+    assert response.status_code == 503
+    assert response.json() == {"detail": "Graph not yet published; awaiting initial rebuild."}
+
+
+def test_reconciliation_blocked_clean_install_requires_zero_jobs(monkeypatch) -> None:
+    """_handle_reconciliation_blocked must require independent evidence (zero rebuild jobs or quiescent state)."""
+    from api.app_factory import _handle_reconciliation_blocked
+
+    exc = ExecutionBlockedError("waiting", action="wait", inconsistency_type="none")
+    dummy_settings = MagicMock()
+    monkeypatch.setattr("api.app_factory._has_never_published_graph", lambda s: False)
+
+    # Case 1: Genuine clean install (zero rebuild jobs) -> returns True
+    monkeypatch.setattr("api.app_factory._is_genuine_clean_install", lambda s: True)
+    monkeypatch.setattr("api.app_factory._is_quiescent_established_state", lambda s: False)
+    assert _handle_reconciliation_blocked(exc, dummy_settings) is True
+
+    # Case 2: Established deployment with terminal latest job (quiescent restart) -> returns False
+    monkeypatch.setattr("api.app_factory._is_genuine_clean_install", lambda s: False)
+    monkeypatch.setattr("api.app_factory._is_quiescent_established_state", lambda s: True)
+    assert _handle_reconciliation_blocked(exc, dummy_settings) is False
+
+    # Case 3: Established deployment with active/non-terminal job -> fails closed and raises
+    monkeypatch.setattr("api.app_factory._is_quiescent_established_state", lambda s: False)
+    with pytest.raises(ExecutionBlockedError):
+        _handle_reconciliation_blocked(exc, dummy_settings)
+
+    # Case 4a: Non-wait action with benign inconsistency -> fails closed regardless of clean/quiescent state
+    exc_non_wait = ExecutionBlockedError("non-wait", action="resume", inconsistency_type="none")
+    monkeypatch.setattr("api.app_factory._is_genuine_clean_install", lambda s: True)
+    monkeypatch.setattr("api.app_factory._is_quiescent_established_state", lambda s: True)
+    with pytest.raises(ExecutionBlockedError):
+        _handle_reconciliation_blocked(exc_non_wait, dummy_settings)
+
+    # Case 4b: Wait action with drift inconsistency -> fails closed regardless of clean/quiescent state
+    exc_drift = ExecutionBlockedError("drift", action="wait", inconsistency_type="orphaned_running")
+    monkeypatch.setattr("api.app_factory._is_genuine_clean_install", lambda s: True)
+    monkeypatch.setattr("api.app_factory._is_quiescent_established_state", lambda s: True)
+    with pytest.raises(ExecutionBlockedError):
+        _handle_reconciliation_blocked(exc_drift, dummy_settings)
+
+    # Case 4c: Non-wait action with drift inconsistency -> fails closed regardless of clean/quiescent state
+    exc_both = ExecutionBlockedError("both", action="resume", inconsistency_type="orphaned_running")
+    monkeypatch.setattr("api.app_factory._is_genuine_clean_install", lambda s: True)
+    monkeypatch.setattr("api.app_factory._is_quiescent_established_state", lambda s: True)
+    with pytest.raises(ExecutionBlockedError):
+        _handle_reconciliation_blocked(exc_both, dummy_settings)
+
+
+def test_reconciliation_blocked_never_published_graph_allows_empty_startup(monkeypatch) -> None:
+    """A verified history with no published graph (failed/cancelled first rebuild) may start without a graph."""
+    from api.app_factory import _handle_reconciliation_blocked
+
+    exc = ExecutionBlockedError("waiting", action="wait", inconsistency_type="none")
+    monkeypatch.setattr("api.app_factory._is_genuine_clean_install", lambda s: False)
+    monkeypatch.setattr("api.app_factory._has_never_published_graph", lambda s: True)
+    monkeypatch.setattr("api.app_factory._is_quiescent_established_state", lambda s: True)
+    assert _handle_reconciliation_blocked(exc, MagicMock()) is True
+
+    # Without that proof the established quiescent path keeps requiring a published graph.
+    monkeypatch.setattr("api.app_factory._has_never_published_graph", lambda s: False)
+    assert _handle_reconciliation_blocked(exc, MagicMock()) is False
+
+    # The allowance never applies to non-benign blocks.
+    monkeypatch.setattr("api.app_factory._has_never_published_graph", lambda s: True)
+    for blocked in (
+        ExecutionBlockedError("drift", action="wait", inconsistency_type="orphaned_running"),
+        ExecutionBlockedError("resume", action="resume", inconsistency_type="none"),
+    ):
+        settings = MagicMock()
+        with pytest.raises(ExecutionBlockedError):
+            _handle_reconciliation_blocked(blocked, settings)
+
+
+@pytest.mark.parametrize(
+    ("statuses", "expected"),
+    [
+        ([], False),
+        (["failed"], True),
+        (["cancelled"], True),
+        (["failed", "cancelled"], True),
+        (["succeeded"], False),
+        (["succeeded", "failed"], False),
+        (["failed", "succeeded"], False),
+        (["failed", "pending"], False),
+        (["failed", "running"], False),
+    ],
+)
+def test_has_never_published_graph_uses_rebuild_history(tmp_path, statuses, expected) -> None:
+    """Only a failed/cancelled latest job with no successful job proves that nothing was ever published."""
+    from datetime import datetime, timedelta, timezone
+
+    from src.data.database import create_engine_from_url, create_session_factory, init_db
+    from src.data.db_models import RebuildJobORM, RebuildJobStatus
+    from src.data.repository import AssetGraphRepository, session_scope
+
+    url = f"sqlite:///{tmp_path / 'history.db'}"
+    engine = create_engine_from_url(url)
+    try:
+        init_db(engine)
+        session_factory = create_session_factory(engine)
+        base = datetime(2026, 1, 1, tzinfo=timezone.utc)
+        with session_scope(session_factory) as session:
+            repo = AssetGraphRepository(session)
+            for offset, status in enumerate(statuses):
+                job_id = repo.create_rebuild_job(requested_by="tester")
+                job = session.get(RebuildJobORM, job_id)
+                assert job is not None
+                job.status = RebuildJobStatus(status)
+                job.created_at = base + timedelta(minutes=offset)
+                job.completed_at = base + timedelta(minutes=offset, seconds=30)
+    finally:
+        engine.dispose()
+
+    settings = SimpleNamespace(database_url=url, has_durable_graph_persistence=True)
+    assert app_factory._has_never_published_graph(cast(Any, settings)) is expected
+
+
+def test_has_never_published_graph_fails_closed_when_store_unreadable() -> None:
+    """Verification errors must never be read as proof that no graph was published."""
+    settings = SimpleNamespace(database_url=None, has_durable_graph_persistence=True)
+    assert app_factory._has_never_published_graph(cast(Any, settings)) is False
+
+
+@pytest.mark.asyncio
+async def test_blocked_reconciliation_verification_does_not_block_event_loop(monkeypatch) -> None:
+    """Blocked-state database verification must run off the event loop thread."""
+    import time
+
+    def _raise_block(*_args, **_kwargs):
+        """Simulate a benign blocked reconciliation result."""
+        raise ExecutionBlockedError("waiting", action="wait", inconsistency_type="none")
+
+    def _slow_handler(_exc, _settings) -> bool:
+        """Simulate synchronous database verification taking time."""
+        time.sleep(0.4)
+        return True
+
+    monkeypatch.setattr(app_factory, "_run_startup_reconciliation", _raise_block)
+    monkeypatch.setattr(app_factory, "_handle_reconciliation_blocked", _slow_handler)
+
+    max_gap = 0.0
+    stop = asyncio.Event()
+
+    async def _ticker() -> None:
+        """Measure event loop responsiveness during verification."""
+        nonlocal max_gap
+        last = time.perf_counter()
+        while not stop.is_set():
+            await asyncio.sleep(0.01)
+            now = time.perf_counter()
+            max_gap = max(max_gap, now - last)
+            last = now
+
+    ticker = asyncio.create_task(_ticker())
+    await asyncio.sleep(0.05)  # let the ticker establish a baseline before startup work begins
+    try:
+        result = await app_factory._perform_startup_reconciliation(cast(Any, MagicMock()))
+        await asyncio.sleep(0.05)  # let the ticker observe any stall caused by the verification
+    finally:
+        stop.set()
+        await ticker
+
+    assert result is True
+    assert max_gap < 0.2, f"event loop was blocked for {max_gap:.3f}s"
+
+
+@pytest.mark.asyncio
+async def test_blocked_reconciliation_verification_is_time_bounded(monkeypatch) -> None:
+    """A stuck blocked-state verification must fail startup instead of hanging it."""
+    import time
+
+    def _raise_block(*_args, **_kwargs):
+        """Simulate a benign blocked reconciliation result."""
+        raise ExecutionBlockedError("waiting", action="wait", inconsistency_type="none")
+
+    def _slow_handler(_exc, _settings) -> bool:
+        """Simulate verification that exceeds the startup timeout."""
+        time.sleep(0.3)
+        return True
+
+    monkeypatch.setattr(app_factory, "_run_startup_reconciliation", _raise_block)
+    monkeypatch.setattr(app_factory, "_handle_reconciliation_blocked", _slow_handler)
+    monkeypatch.setattr(app_factory, "_STARTUP_BLOCKED_VERIFICATION_TIMEOUT_SECONDS", 0.05)
+
+    settings = cast(Any, MagicMock())
+    with pytest.raises(RuntimeError, match="timed out"):
+        await app_factory._perform_startup_reconciliation(settings)
+
+
+@pytest.mark.parametrize(
+    "path",
+    [
+        "/api/assets",
+        "/api/assets/ANY",
+        "/api/assets/ANY/relationships",
+        "/api/relationships",
+        "/api/graph/metrics",
+        "/api/visualization",
+    ],
+)
+def test_graph_read_routes_return_503_when_no_graph_is_published(monkeypatch, path) -> None:
+    """Empty-store startup must surface 503 (pending publication), not a masked generic 500."""
+    from fastapi.testclient import TestClient
+
+    from api import graph_lifecycle
+    from api.graph_lifecycle_providers import AuthoritativeGraphUnavailableError
+
+    def _no_graph():
+        """Simulate an authoritative store awaiting first publication."""
+        raise AuthoritativeGraphUnavailableError("No authoritative published graph found in persistent storage.")
+
+    graph_lifecycle.reset_graph()
+    monkeypatch.setattr(graph_lifecycle, "initialize_graph_runtime", _no_graph)
+    try:
+        client = TestClient(app_factory.create_app(), raise_server_exceptions=False)
+        response = client.get(path)
+    finally:
+        graph_lifecycle.reset_graph()
+
+    assert response.status_code == 503
+    assert response.json() == {"detail": "Graph not yet published; awaiting initial rebuild."}
+
+
+def test_graph_read_during_first_rebuild_returns_503_and_preserves_rebuilding_state() -> None:
+    """A read before the first publication must stay a typed 503 and never disturb the REBUILDING lifecycle state."""
+    from fastapi.testclient import TestClient
+
+    from api import graph_lifecycle
+
+    graph_lifecycle.reset_graph()
+    try:
+        graph_lifecycle.begin_rebuild()
+        client = TestClient(app_factory.create_app(), raise_server_exceptions=False)
+        response = client.get("/api/assets")
+
+        assert response.status_code == 503
+        assert graph_lifecycle.get_runtime_lifecycle_state() == graph_lifecycle.GraphRuntimeLifecycleState.REBUILDING
+    finally:
+        graph_lifecycle.reset_graph()
+
+
 @pytest.mark.parametrize("same_login", [True, False])
 def test_reconciliation_same_database_distinct_sessions_capabilities(monkeypatch, same_login) -> None:
     """Combined requirements apply only to identity-proved same-database shared logins."""
@@ -956,3 +1215,235 @@ def test_reconciliation_same_database_distinct_sessions_capabilities(monkeypatch
         assert (
             verifier.call_args_list[1].kwargs["verification_connection"] is coordination_engine.identity_connections[0]
         )
+
+
+@pytest.mark.asyncio
+async def test_blocked_verification_cancels_owned_connection_and_observes_worker(monkeypatch) -> None:
+    """Timeout cancels the actual worker connection rather than only its awaitable."""
+    import threading
+
+    finished = threading.Event()
+    cancelled = threading.Event()
+    connection = MagicMock()
+    connection.cancel.side_effect = cancelled.set
+
+    def blocked_handler(_exc, _settings):
+        """Wait until the operation guard cancels this simulated database query."""
+        operation = app_factory._BLOCKED_VERIFICATION.get()
+        assert operation is not None
+        operation.guard.register(connection)
+        assert cancelled.wait(1)
+        finished.set()
+        return True
+
+    monkeypatch.setattr(app_factory, "_handle_reconciliation_blocked", blocked_handler)
+    monkeypatch.setattr(app_factory, "_STARTUP_BLOCKED_VERIFICATION_TIMEOUT_SECONDS", 0.02)
+    with pytest.raises(RuntimeError, match="Startup reconciliation timed out"):
+        await app_factory._handle_reconciliation_blocked_bounded(MagicMock(), MagicMock())
+    assert finished.is_set()
+    connection.cancel.assert_called_once()
+    assert connection.close.called
+
+
+def test_startup_evidence_postgres_connect_and_query_share_deadline(monkeypatch) -> None:
+    """Driver limits and cancellation registration cover every retained evidence connection."""
+    from sqlalchemy import create_engine
+
+    engine = create_engine("postgresql://localhost/test")
+    monkeypatch.setattr("src.data.database.create_engine_from_url", lambda _url: engine)
+    operation = app_factory._BlockedVerification(10)
+    token = app_factory._BLOCKED_VERIFICATION.set(operation)
+    try:
+        assert app_factory._create_startup_evidence_engine("postgresql://localhost/test") is engine
+        params: dict[str, Any] = {}
+        engine.dialect.dispatch.do_connect(engine.dialect, None, [], params)
+        assert 1 <= params["connect_timeout"] <= 5
+        assert "statement_timeout=" in params["options"]
+        override = {"options": "-c statement_timeout=0"}
+        with pytest.raises(SchemaCompatibilityError):
+            engine.dialect.dispatch.do_connect(engine.dialect, None, [], override)
+        cursor = MagicMock()
+        engine.dispatch.before_cursor_execute(None, cursor, "SELECT 1", (), None, False)
+        assert cursor.execute.call_args.args[0] == "SET statement_timeout = %s"
+        assert 0 < cursor.execute.call_args.args[1][0] <= 10000
+        operation.guard.cancel()
+        connection = MagicMock()
+        with pytest.raises(RuntimeError, match="cancelled"):
+            list(engine.pool.dispatch.connect)[-1](connection, None)
+        connection.close.assert_called_once()
+    finally:
+        app_factory._BLOCKED_VERIFICATION.reset(token)
+        engine.dispose()
+
+
+def test_expired_evidence_does_not_accept_late_success(monkeypatch) -> None:
+    """Even a positive evidence result is rejected if it finishes after the deadline."""
+    operation = app_factory._BlockedVerification(1)
+
+    def late_handler(_exc, _settings):
+        """Expire the operation before returning a positive result."""
+        operation.deadline = 0
+        return True
+
+    monkeypatch.setattr(app_factory, "_handle_reconciliation_blocked", late_handler)
+    with pytest.raises(TimeoutError):
+        app_factory._run_blocked_verification(MagicMock(), MagicMock(), operation)
+    assert app_factory._BLOCKED_VERIFICATION.get() is None
+
+
+def test_sqlite_startup_evidence_query_is_interrupted_by_deadline() -> None:
+    """Real SQLite work cannot continue past the evidence deadline."""
+    import sqlite3
+
+    from sqlalchemy.exc import OperationalError
+
+    operation = app_factory._BlockedVerification(1)
+    token = app_factory._BLOCKED_VERIFICATION.set(operation)
+    engine = app_factory._create_startup_evidence_engine("sqlite:///:memory:")
+    try:
+        with engine.connect() as connection:
+            operation.deadline = 0
+            with pytest.raises(OperationalError) as captured:
+                connection.exec_driver_sql(
+                    "WITH RECURSIVE counter(n) AS (SELECT 1 UNION ALL SELECT n+1 FROM counter WHERE n<100000) "
+                    "SELECT sum(n) FROM counter"
+                )
+            assert isinstance(captured.value.orig, sqlite3.OperationalError)
+    finally:
+        app_factory._BLOCKED_VERIFICATION.reset(token)
+        engine.dispose()
+
+
+def test_cancelled_startup_evidence_cannot_open_another_probe() -> None:
+    """Cancellation prevents another evidence query even before the deadline expires."""
+    operation = app_factory._BlockedVerification(30)
+    operation.cancel()
+    with pytest.raises(TimeoutError):
+        operation.remaining()
+
+
+def test_postgres_startup_evidence_real_deadline_and_cancellation() -> None:
+    """A harness-owned PostgreSQL query stops on deadline and cannot be reused after cancellation."""
+    import os
+    import time
+
+    from sqlalchemy.exc import DBAPIError
+
+    from tests.integration.postgresql_disposable_cluster import URL_ENV, attested_connection
+
+    database_url = os.environ.get(URL_ENV)
+    if not database_url:
+        pytest.skip("requires the fresh disposable PostgreSQL harness")
+    assert database_url is not None
+    with attested_connection(database_url):
+        pass
+
+    operation = app_factory._BlockedVerification(2)
+    token = app_factory._BLOCKED_VERIFICATION.set(operation)
+    engine = app_factory._create_startup_evidence_engine(database_url)
+    try:
+        started = time.monotonic()
+        with pytest.raises(DBAPIError):
+            with engine.connect() as connection:
+                connection.exec_driver_sql("SELECT pg_sleep(8)")
+        assert time.monotonic() - started < 7
+        operation.cancel()
+        with pytest.raises(TimeoutError):
+            operation.remaining()
+        engine.dispose()
+        with pytest.raises(TimeoutError):
+            engine.connect()
+    finally:
+        operation.cancel()
+        app_factory._BLOCKED_VERIFICATION.reset(token)
+        engine.dispose()
+
+
+def test_postgres_startup_evidence_rejects_real_options_override() -> None:
+    """A connection option cannot disable the bounded evidence query on the disposable target."""
+    import os
+    from urllib.parse import quote
+
+    from tests.integration.postgresql_disposable_cluster import URL_ENV, attested_connection
+
+    database_url = os.environ.get(URL_ENV)
+    if not database_url:
+        pytest.skip("requires the fresh disposable PostgreSQL harness")
+    assert database_url is not None
+    with attested_connection(database_url):
+        pass
+    separator = "&" if "?" in database_url else "?"
+    overridden_url = database_url + separator + "options=" + quote("-c statement_timeout=0")
+    operation = app_factory._BlockedVerification(5)
+    token = app_factory._BLOCKED_VERIFICATION.set(operation)
+    engine = app_factory._create_startup_evidence_engine(overridden_url)
+    try:
+        with pytest.raises(SchemaCompatibilityError, match="options are unsupported"):
+            engine.connect()
+    finally:
+        operation.cancel()
+        app_factory._BLOCKED_VERIFICATION.reset(token)
+        engine.dispose()
+
+
+def test_postgres_startup_evidence_cancels_active_real_query() -> None:
+    """Cancellation interrupts an observed PostgreSQL query before its server deadline."""
+    import os
+    import time
+
+    from sqlalchemy.exc import DBAPIError
+
+    from tests.integration.postgresql_disposable_cluster import URL_ENV, attested_connection
+
+    database_url = os.environ.get(URL_ENV)
+    if not database_url:
+        pytest.skip("requires the fresh disposable PostgreSQL harness")
+    assert database_url is not None
+    operation = app_factory._BlockedVerification(20)
+    token = app_factory._BLOCKED_VERIFICATION.set(operation)
+    engine = app_factory._create_startup_evidence_engine(database_url)
+    backend_pid: list[int] = []
+    errors: list[Exception] = []
+    connected = threading.Event()
+
+    def run_query() -> None:
+        """Run a bounded query on the connection registered with the operation guard."""
+        try:
+            with engine.connect() as connection:
+                backend_pid.append(connection.exec_driver_sql("SELECT pg_backend_pid()").scalar_one())
+                connected.set()
+                connection.exec_driver_sql("SELECT pg_sleep(12)")
+        except Exception as exc:  # noqa: BLE001 - preserve the real driver outcome for the assertion
+            errors.append(exc)
+            connected.set()
+
+    worker = threading.Thread(target=run_query)
+    try:
+        with attested_connection(database_url) as observer:
+            observer.autocommit = True
+            worker.start()
+            assert connected.wait(8), "PostgreSQL query did not acquire a connection"
+            assert backend_pid, f"PostgreSQL connection failed: {[type(error).__name__ for error in errors]}"
+            deadline = time.monotonic() + 5
+            active = False
+            with observer.cursor() as cursor:
+                while time.monotonic() < deadline:
+                    cursor.execute("SELECT state, query FROM pg_stat_activity WHERE pid = %s", (backend_pid[0],))
+                    row = cursor.fetchone()
+                    if row and row[0] == "active" and "pg_sleep(12)" in row[1]:
+                        active = True
+                        break
+                    time.sleep(0.05)
+            assert active, "PostgreSQL query did not become active"
+            cancelled_at = time.monotonic()
+            operation.cancel()
+            worker.join(8)
+            assert not worker.is_alive(), "cancelled PostgreSQL query did not finish"
+            assert time.monotonic() - cancelled_at < 8
+            assert len(errors) == 1 and isinstance(errors[0], DBAPIError)
+    finally:
+        operation.cancel()
+        if worker.ident is not None:
+            worker.join(8)
+        app_factory._BLOCKED_VERIFICATION.reset(token)
+        engine.dispose()

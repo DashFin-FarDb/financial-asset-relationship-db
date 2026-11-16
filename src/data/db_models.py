@@ -267,6 +267,9 @@ class RebuildJobORM(Base):
         nullable=True,
     )
 
+    # Persisted Graph Snapshot Attestation
+    snapshot_sha256: Mapped[str | None] = mapped_column(String(64), nullable=True)
+
 
 class DistributedLockORM(Base):
     """Persistent representation of a distributed lock."""

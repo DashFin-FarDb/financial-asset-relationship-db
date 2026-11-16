@@ -9,6 +9,7 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from types import ModuleType, SimpleNamespace
 from typing import cast
+from unittest.mock import MagicMock
 
 import pytest
 from fastapi.testclient import TestClient
@@ -50,7 +51,11 @@ _ = (configure_graph_persistence, initialize_assertion_store, seed_users)
 @pytest.fixture
 def client() -> Iterator[TestClient]:
     """Return a lifespan-managed client with isolated graph lifecycle state."""
+    from api.graph_lifecycle import set_graph
+    from src.data.sample_data import create_sample_database
+
     reset_graph()
+    set_graph(create_sample_database())
     try:
         with TestClient(app) as test_client:
             yield test_client
@@ -267,10 +272,12 @@ def test_cache_primed_read_is_refreshed_after_admin_publication(
     state["assertion_id"] = "assertion-v2"
     state["revision_id"] = "revision-v2"
 
+    session_mock = MagicMock()
+
     @contextmanager
     def fake_publication_transactions(*_args: object, **_kwargs: object):
         """Return a bounded publication context with no database dependency."""
-        yield object(), None
+        yield session_mock, None
 
     class _FakeAssertionRepository:
         """Minimal publication repository double for finalize flow tests."""
@@ -298,6 +305,7 @@ def test_cache_primed_read_is_refreshed_after_admin_publication(
     monkeypatch.setattr(graph_admin, "_guard_publication_lock", lambda *_args, **_kwargs: None)
     monkeypatch.setattr(graph_admin, "RelationshipAssertionRepository", _FakeAssertionRepository)
     monkeypatch.setattr(graph_admin, "stage_graph_snapshot", lambda *_args, **_kwargs: None)
+    monkeypatch.setattr(graph_admin, "compute_repository_snapshot_hash", lambda *_args, **_kwargs: "0" * 64)
     monkeypatch.setattr(
         graph_admin,
         "_prepare_projection_publication",
@@ -310,11 +318,11 @@ def test_cache_primed_read_is_refreshed_after_admin_publication(
 
     try:
         graph_admin._finalize_rebuild_success(
-            session_factory=lambda: None,
+            session_factory=MagicMock(),
             job_id="job-test",
             execution_id="exec-test",
             graph=graph,
-            source="sample",
+            source="real_data",
             job_started_at=0.0,
             lock_lost=threading.Event(),
             cancel_event=threading.Event(),

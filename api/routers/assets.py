@@ -8,6 +8,7 @@ from fastapi import APIRouter, HTTPException, Query
 from src.observability.facade import ObservabilityEvent, log_event
 
 from ..api_models import AssetPageResponse, AssetResponse
+from ..graph_lifecycle_providers import AuthoritativeGraphUnavailableError
 from ..router_helpers import (
     get_graph,
     logger,
@@ -56,7 +57,8 @@ async def get_assets(
         start = (page - 1) * per_page
         end = start + per_page
         page_assets = assets[start:end]
-    except HTTPException:
+    except (HTTPException, AuthoritativeGraphUnavailableError):
+        # Unavailable graph is mapped to 503 by the app-level handler; never mask it as a 500.
         raise
     except Exception as e:
         log_event(
@@ -100,7 +102,8 @@ async def get_asset_detail(asset_id: str) -> AssetResponse:
         if asset_id not in g.assets:
             raise_asset_not_found(asset_id)
         return AssetResponse(**serialize_asset(g.assets[asset_id], include_issuer=True))
-    except HTTPException:
+    except (HTTPException, AuthoritativeGraphUnavailableError):
+        # Unavailable graph is mapped to 503 by the app-level handler; never mask it as a 500.
         raise
     except Exception as e:
         log_event(

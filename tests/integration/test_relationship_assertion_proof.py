@@ -223,6 +223,7 @@ def test_proof_validator_rejects_unrelated_events_and_ambiguity(
 
     # Find the assertion seeded
     event = session.query(RelationshipAssertionEventORM).filter_by(correlation_id=run_id).first()
+    assert event is not None
     assertion_id = event.assertion_id
 
     # Create another det event to introduce ambiguity

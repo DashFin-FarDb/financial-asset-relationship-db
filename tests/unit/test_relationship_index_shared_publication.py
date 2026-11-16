@@ -124,7 +124,10 @@ def test_persistence_runtime_reuses_engine_and_disposes_on_url_change(
 
     def create_factory(engine: Engine) -> Mock:
         """Return the factory associated with the supplied fake engine."""
-        return factories[engines.index(engine)]
+        for candidate, factory in zip(engines, factories, strict=True):
+            if candidate is engine:
+                return factory
+        raise ValueError("Unknown test engine")
 
     relationship_index_service._reset_governance_persistence_runtime()
     monkeypatch.setattr(relationship_index_service, "create_engine_from_url", create_engine)

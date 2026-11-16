@@ -30,6 +30,7 @@ ALLOWED_MIGRATIONS = frozenset(
         "002_add_heartbeat_columns.sql",
         "003_add_execution_identity_and_checkpoint_columns.sql",
         "004_add_cancellation_columns.sql",
+        "007_add_snapshot_attestation.sql",
     ]
 )
 
@@ -59,6 +60,7 @@ def apply_migrations(db_path: Path | str) -> None:
     2. 002_add_heartbeat_columns.sql - Upgrade migration (applied conditionally)
     3. 003_add_execution_identity_and_checkpoint_columns.sql - Upgrade migration (applied conditionally)
     4. 004_add_cancellation_columns.sql - Upgrade migration (applied conditionally)
+    5. 007_add_snapshot_attestation.sql - Upgrade migration (applied conditionally)
 
     Args:
         db_path: Path to the SQLite database file.
@@ -84,6 +86,9 @@ def apply_migrations(db_path: Path | str) -> None:
 
         # Migration 004: Add cancellation columns (conditional)
         _apply_upgrade_004_cancellation_columns(connection)
+
+        # Migration 007: Add snapshot attestation columns (conditional)
+        _apply_upgrade_007_snapshot_attestation_columns(connection)
 
 
 # ---------------------------------------------------------------------------
@@ -261,6 +266,29 @@ def _apply_upgrade_004_cancellation_columns(connection: sqlite3.Connection) -> N
     finally:
         # Always turn foreign keys back on
         connection.execute("PRAGMA foreign_keys=ON")
+
+
+def _apply_upgrade_007_snapshot_attestation_columns(connection: sqlite3.Connection) -> None:
+    """
+    Apply migration 007 (add snapshot attestation columns) conditionally.
+
+    Args:
+        connection: SQLite connection.
+    """
+    cursor = connection.execute(_REBUILD_JOBS_TABLE_INFO_QUERY)
+    existing_job_columns = {row[1] for row in cursor}
+    if "snapshot_sha256" not in existing_job_columns:
+        connection.execute("ALTER TABLE rebuild_jobs ADD COLUMN snapshot_sha256 TEXT")
+
+    # If relationship_projection_publications exists, upgrade it as well
+    tables_cursor = connection.execute(
+        "SELECT name FROM sqlite_master WHERE type='table' AND name='relationship_projection_publications'"
+    )
+    if tables_cursor.fetchone() is not None:
+        pub_cursor = connection.execute("PRAGMA table_info(relationship_projection_publications)")
+        existing_pub_columns = {row[1] for row in pub_cursor}
+        if "snapshot_sha256" not in existing_pub_columns:
+            connection.execute("ALTER TABLE relationship_projection_publications ADD COLUMN snapshot_sha256 TEXT")
 
 
 # ---------------------------------------------------------------------------

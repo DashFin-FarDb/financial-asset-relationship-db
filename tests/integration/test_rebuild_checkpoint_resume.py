@@ -175,7 +175,7 @@ async def test_checkpoint_resume_integration(session_factory_provider, raw_engin
                 # Crash after 1st checkpoint but before 2nd
                 raise RuntimeError("Simulated crash at 70")
 
-        return graph, "sample"
+        return graph, "real_data"
 
     monkeypatch.setattr("api.routers.graph_admin.build_rebuild_graph", mock_build_crash)
 
@@ -240,7 +240,7 @@ async def test_checkpoint_resume_integration(session_factory_provider, raw_engin
             initial_checkpoint=initial_checkpoint,
             cancel_event=cancel_event,
         )
-        return graph, "sample"
+        return graph, "real_data"
 
     monkeypatch.setattr("api.routers.graph_admin.build_rebuild_graph", mock_build_resume)
 

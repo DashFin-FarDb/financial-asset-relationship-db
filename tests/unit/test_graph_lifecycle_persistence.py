@@ -7,6 +7,7 @@ import logging
 from collections.abc import Iterator
 from pathlib import Path
 from typing import Any, Callable  # noqa: UP035  # Callable from typing for Prospector/Pylint compatibility
+from unittest.mock import Mock
 
 import pytest
 from sqlalchemy import create_engine, text  # pylint: disable=import-error
@@ -18,6 +19,7 @@ from src.data.database import create_session_factory, init_db
 from src.data.repository import AssetGraphRepository
 from src.logic.asset_graph import AssetRelationshipGraph
 from src.models.financial_models import AssetClass, Equity, RegulatoryActivity, RegulatoryEvent
+from tests.helpers.snapshot_attestation_fixtures import publish_test_graph_snapshot
 
 pytestmark = pytest.mark.unit
 
@@ -94,13 +96,18 @@ def _init_empty_db(database_url: str) -> None:
         engine.dispose()
 
 
+def _publish_graph_for_test(session: Any, graph: AssetRelationshipGraph) -> str:
+    """Save graph and create matching rebuild job and publication record."""
+    return publish_test_graph_snapshot(session, graph)
+
+
 def _save_graph(database_url: str, graph: AssetRelationshipGraph) -> None:
-    """Persist the given graph into the database."""
+    """Persist the given graph into the database with verified publication."""
     engine = create_engine(database_url)
     init_db(engine)
     session = create_session_factory(engine)()
     try:
-        AssetGraphRepository(session).save_graph(graph)
+        _publish_graph_for_test(session, graph)
         session.commit()
     finally:
         session.close()
@@ -204,41 +211,6 @@ def _patch_session_close_counter(monkeypatch: pytest.MonkeyPatch) -> Callable[[]
 # ---------------------------------------------------------------------------
 
 
-def _assert_empty_db_uses_configured_source(
-    tmp_path: Path,
-    monkeypatch: pytest.MonkeyPatch,
-    provider_attr: str,
-    expected_source: str,
-) -> None:
-    """Verify empty DB falls through to configured provider."""
-    database_url = _sqlite_url(tmp_path)
-    _init_empty_db(database_url)
-    _configure_persistence_url(monkeypatch, database_url)
-
-    # Guard against accidental save during fallback
-    save_calls = []
-    monkeypatch.setattr(AssetGraphRepository, "save_graph", lambda *a, **kw: save_calls.append(("save_graph", a, kw)))
-
-    configured_graph = _asset_only_graph()
-
-    def load_configured_graph(*_args: Any, **_kwargs: Any) -> tuple[AssetRelationshipGraph, str]:
-        """Provide the preconfigured fallback graph."""
-        return configured_graph, expected_source
-
-    monkeypatch.setattr(
-        graph_lifecycle_providers,
-        provider_attr,
-        load_configured_graph,
-    )
-
-    graph, startup_source = _get_graph_with_source_for_test()
-    assert len(save_calls) == 0, "save_graph should not be called during empty-DB fallback"
-    assert graph is configured_graph
-    assert set(graph.assets) == {"ASSET_ONLY"}
-    assert startup_source is not None
-    assert startup_source.source == graph_lifecycle.GraphStartupSource.EMPTY_PERSISTENCE_FALLBACK
-
-
 # ---------------------------------------------------------------------------
 # Tests: factory and persistence-disabled precedence
 # ---------------------------------------------------------------------------
@@ -269,11 +241,11 @@ def test_factory_precedence_skips_persistence_load(
 
 
 @pytest.mark.parametrize("configured_value", [None, "", "   "])
-def test_persistence_disabled_preserves_sample_fallback(
+def test_persistence_disabled_fails_closed_without_sources(
     configured_value: str | None,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """Unset or blank graph persistence should preserve existing fallback behavior."""
+    """Unset or blank graph persistence should fail closed when no cache or real data is available."""
     if configured_value is None:
         monkeypatch.delenv("ASSET_GRAPH_DATABASE_URL", raising=False)
     else:
@@ -285,10 +257,49 @@ def test_persistence_disabled_preserves_sample_fallback(
 
     monkeypatch.setattr(graph_lifecycle_providers, "create_engine_from_url", fail_create_engine)
 
-    graph = _initialize_graph_for_test()
+    with pytest.raises(
+        graph_lifecycle.AuthoritativeGraphUnavailableError,
+        match="No authoritative published graph available.",
+    ):
+        _initialize_graph_for_test()
 
-    assert graph.assets
-    assert graph_lifecycle.graph_state.startup_metadata is None
+
+def test_persistence_disabled_loads_configured_cache(monkeypatch: pytest.MonkeyPatch) -> None:
+    """When persistence is disabled, a valid cache source should be loaded."""
+    monkeypatch.delenv("ASSET_GRAPH_DATABASE_URL", raising=False)
+    monkeypatch.setenv("GRAPH_CACHE_PATH", "fake_cache.json")
+    fake_graph = _asset_only_graph()
+    monkeypatch.setattr(
+        graph_lifecycle_providers,
+        "load_graph_from_cache_path",
+        lambda *a, **kw: (fake_graph, "cache"),
+    )
+
+    graph, startup_source = _get_graph_with_source_for_test()
+    assert graph is fake_graph
+    assert startup_source is not None
+    assert startup_source.source == graph_lifecycle.GraphStartupSource.CACHE
+    assert startup_source.persistence_enabled is False
+
+
+def test_startup_cache_probe_stays_offline_before_one_live_fallback(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Cache failure triggers exactly one live source call after an offline probe."""
+    settings = graph_lifecycle_providers.GraphLifecycleSettings(
+        graph_cache_path="startup-cache.json", use_real_data_fetcher=True
+    )
+    monkeypatch.setattr(graph_lifecycle_providers, "get_graph_lifecycle_settings", lambda: settings)
+    cache = Mock(side_effect=graph_lifecycle_providers.DataAcquisitionIncompleteError("cache unavailable"))
+    graph = _asset_only_graph()
+    live = Mock(return_value=(graph, "real_data"))
+    monkeypatch.setattr(graph_lifecycle_providers, "load_graph_from_cache_path", cache)
+    monkeypatch.setattr(graph_lifecycle_providers, "load_graph_from_real_data_fetcher", live)
+
+    loaded, metadata = graph_lifecycle.initialize_graph_runtime()
+
+    cache.assert_called_once_with("startup-cache.json", enable_network=False)
+    live.assert_called_once_with(None)
+    assert loaded is graph
+    assert metadata.source == graph_lifecycle.GraphStartupSource.REAL_DATA
 
 
 def test_initialize_graph_does_not_commit_startup_source_state(
@@ -296,6 +307,12 @@ def test_initialize_graph_does_not_commit_startup_source_state(
 ) -> None:
     """Direct `_initialize_graph()` calls should not mutate active lifecycle source state."""
     monkeypatch.delenv("ASSET_GRAPH_DATABASE_URL", raising=False)
+    monkeypatch.setenv("GRAPH_CACHE_PATH", "fake_cache.json")
+    monkeypatch.setattr(
+        graph_lifecycle_providers,
+        "load_graph_from_cache_path",
+        lambda *a, **kw: (_asset_only_graph(), "cache"),
+    )
 
     graph = _initialize_graph_for_test()
 
@@ -320,7 +337,7 @@ def test_in_memory_sqlite_url_skips_persistence_load(
     in_memory_url: str,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """In-memory SQLite URLs must be skipped."""
+    """In-memory SQLite URLs must be skipped and fail closed when no fallback source exists."""
     _configure_persistence_url(monkeypatch, in_memory_url)
 
     def fail_create_engine(_url: str) -> Any:
@@ -329,40 +346,46 @@ def test_in_memory_sqlite_url_skips_persistence_load(
 
     monkeypatch.setattr(graph_lifecycle_providers, "create_engine_from_url", fail_create_engine)
 
-    graph = _initialize_graph_for_test()
-
-    assert graph.assets  # falls back to sample data
+    with pytest.raises(graph_lifecycle.AuthoritativeGraphUnavailableError):
+        _initialize_graph_for_test()
 
 
 # ---------------------------------------------------------------------------
-# Tests: empty-store fallback honors configured sources
+# Tests: empty-store failure paths
 # ---------------------------------------------------------------------------
 
 
 @pytest.mark.parametrize(
-    ("env_var", "env_val", "provider_attr", "expected_source"),
+    ("env_var", "env_val", "provider_attr"),
     [
-        ("GRAPH_CACHE_PATH", "fake_tmp/graph-cache.json", "load_graph_from_cache_path", "cache"),
-        ("USE_REAL_DATA_FETCHER", "1", "load_graph_from_real_data_fetcher", "real_data"),
+        ("GRAPH_CACHE_PATH", "fake_tmp/graph-cache.json", "load_graph_from_cache_path"),
+        ("USE_REAL_DATA_FETCHER", "1", "load_graph_from_real_data_fetcher"),
     ],
 )
-def test_empty_configured_db_honors_fallback_provider(
+def test_empty_configured_db_fails_closed_without_fallback(
     env_var: str,
     env_val: str,
     provider_attr: str,
-    expected_source: str,
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    # pylint: disable=too-many-positional-arguments
-    """Empty persistence should fall through to configured fallback providers before sample data."""
+    """Empty persistence must fail closed and never fall back to cache or real data."""
+    database_url = _sqlite_url(tmp_path)
+    _init_empty_db(database_url)
+    _configure_persistence_url(monkeypatch, database_url)
     monkeypatch.setenv(env_var, env_val)
-    _assert_empty_db_uses_configured_source(
-        tmp_path,
-        monkeypatch,
-        provider_attr,
-        expected_source,
-    )
+
+    def fail_fallback(*_args: Any, **_kwargs: Any) -> Any:
+        """Reject fallback use when durable persistence is empty."""
+        raise AssertionError("Fallback provider should not be called when persistence is empty")
+
+    monkeypatch.setattr(graph_lifecycle_providers, provider_attr, fail_fallback)
+
+    with pytest.raises(
+        graph_lifecycle.AuthoritativeGraphUnavailableError,
+        match="No authoritative published graph found in persistent storage.",
+    ):
+        _get_graph_with_source_for_test()
 
 
 # ---------------------------------------------------------------------------
@@ -464,6 +487,8 @@ def test_legacy_bidirectional_row_survives_startup_load(
             0.7,
             bidirectional=True,
         )
+        session.flush()
+        publish_test_graph_snapshot(session)
         session.commit()
     finally:
         session.close()
@@ -532,6 +557,24 @@ def test_malformed_asset_class_persisted_row_fails_without_fallback(
                 " VALUES ('BAD_ASSET', 'BAD', 'Bad Asset', 'NOT_A_VALID_CLASS', 'Tech', 1.0, 'USD')"
             )
         )
+        conn.execute(
+            text(
+                "INSERT INTO rebuild_jobs (job_id, requested_by, status, source, created_at, updated_at, started_at, completed_at, execution_id, node_count, edge_count, duration_ms, snapshot_sha256)"
+                " VALUES ('job-bad', 'test', 'succeeded', 'test', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'exec-bad', 1, 0, 10, 'dummy-digest')"
+            )
+        )
+        conn.execute(
+            text(
+                "INSERT INTO relationship_projection_revisions (id, purpose, effective_at, known_at, contract_version, projector_version, edge_set_hash, projection_hash, governed_scopes, created_at)"
+                " VALUES ('rev-bad', 'test-current', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'grac-v1', 'projector-v1', '0000000000000000000000000000000000000000000000000000000000000000', '0000000000000000000000000000000000000000000000000000000000000000', '[]', CURRENT_TIMESTAMP)"
+            )
+        )
+        conn.execute(
+            text(
+                "INSERT INTO relationship_projection_publications (id, revision_id, rebuild_job_id, execution_id, published_at, snapshot_sha256)"
+                " VALUES ('pub-bad', 'rev-bad', 'job-bad', 'exec-bad', CURRENT_TIMESTAMP, 'dummy-digest')"
+            )
+        )
         conn.commit()
     engine.dispose()
 
@@ -550,10 +593,10 @@ def test_malformed_asset_class_persisted_row_fails_without_fallback(
     ("setup_fn", "expect_error", "expected_close_count"),
     [
         (lambda db_url: _save_graph(db_url, _asset_only_graph()), False, 1),
-        (_init_empty_db, False, 2),
+        (_init_empty_db, True, 1),
         (lambda db_url: None, True, 1),
     ],
-    ids=["persisted_load_success", "empty_persistence_fallback", "persistence_failure"],
+    ids=["persisted_load_success", "empty_persistence_fails_closed", "persistence_failure"],
 )
 def test_startup_load_closes_session(
     setup_fn: Callable[[str], None],
