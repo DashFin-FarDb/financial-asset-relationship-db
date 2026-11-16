@@ -281,7 +281,9 @@ def get_graph_with_startup_source() -> tuple[AssetRelationshipGraph, GraphStartu
             try:
                 graph, startup_metadata = initialize_graph_runtime()
             except Exception:
-                if getattr(settings, "use_real_data_fetcher", False):
+                if not _is_persistence_enabled(db_url) and (
+                    getattr(settings, "graph_cache_path", None) or getattr(settings, "use_real_data_fetcher", False)
+                ):
                     graph_state.provider_retry_after = monotonic() + 5.0
                 _transition_lifecycle_state(GraphRuntimeLifecycleState.FAILED)
                 raise

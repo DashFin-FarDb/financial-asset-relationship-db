@@ -371,7 +371,8 @@ def test_inconsistent_ready_without_graph_returns_unavailable(monkeypatch: pytes
     assert graph_lifecycle.graph_state.lifecycle_state == graph_lifecycle.GraphRuntimeLifecycleState.READY
 
 
-def test_failed_nonpersistent_initialization_recovers_single_flight(monkeypatch) -> None:
+@pytest.mark.parametrize("use_real_data_fetcher", [True, False])
+def test_failed_nonpersistent_initialization_recovers_single_flight(monkeypatch, use_real_data_fetcher) -> None:
     """Concurrent reads retry one transient failure and share the published result."""
     from concurrent.futures import ThreadPoolExecutor
     from threading import Barrier, Event
@@ -399,7 +400,11 @@ def test_failed_nonpersistent_initialization_recovers_single_flight(monkeypatch)
     monkeypatch.setattr(
         graph_lifecycle.graph_lifecycle_providers,
         "get_graph_lifecycle_settings",
-        lambda: types.SimpleNamespace(asset_graph_database_url=None, use_real_data_fetcher=True),
+        lambda: types.SimpleNamespace(
+            asset_graph_database_url=None,
+            graph_cache_path="cache.json",
+            use_real_data_fetcher=use_real_data_fetcher,
+        ),
     )
     with pytest.raises(RuntimeError, match="transient"):
         graph_lifecycle.get_graph()
