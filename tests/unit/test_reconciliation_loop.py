@@ -6,7 +6,6 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from api.app_factory import GraphRuntimeLifecycleState
 from src.logic.reconciliation_engine import (
     ActionType,
     ExecutionMode,
@@ -258,10 +257,7 @@ def test_run_sync_reconciliation_blocked_error_propagates(
 
 @pytest.mark.asyncio
 async def test_periodic_reconciliation_loop_skips_when_not_ready(monkeypatch):
-    """Verify loop skips iteration when runtime lifecycle state is not READY."""
-    lifecycle_mock = MagicMock(return_value=GraphRuntimeLifecycleState.INITIALIZING)
-    monkeypatch.setattr("api.app_factory.get_runtime_lifecycle_state", lifecycle_mock)
-
+    """Verify loop skips iteration when is_ready_fn reports not ready."""
     # Mock DB engines setup
     monkeypatch.setattr(
         "src.logic.reconciliation_loop._setup_engines", lambda url, coord_url: (MagicMock(), MagicMock())
@@ -294,10 +290,7 @@ async def test_periodic_reconciliation_loop_skips_when_not_ready(monkeypatch):
 
 @pytest.mark.asyncio
 async def test_periodic_reconciliation_loop_runs_iteration_when_ready(monkeypatch):
-    """Verify loop executes iteration when runtime lifecycle state is READY."""
-    lifecycle_mock = MagicMock(return_value=GraphRuntimeLifecycleState.READY)
-    monkeypatch.setattr("api.app_factory.get_runtime_lifecycle_state", lifecycle_mock)
-
+    """Verify loop executes iteration when is_ready_fn reports ready."""
     monkeypatch.setattr(
         "src.logic.reconciliation_loop._setup_engines", lambda url, coord_url: (MagicMock(), MagicMock())
     )
@@ -333,8 +326,6 @@ async def test_periodic_reconciliation_loop_runs_iteration_when_ready(monkeypatc
 async def test_periodic_reconciliation_loop_backoff_on_error(monkeypatch):
     """Verify loop backs off on error and resets on success."""
     original_sleep = asyncio.sleep
-    lifecycle_mock = MagicMock(return_value=GraphRuntimeLifecycleState.READY)
-    monkeypatch.setattr("api.app_factory.get_runtime_lifecycle_state", lifecycle_mock)
 
     monkeypatch.setattr(
         "src.logic.reconciliation_loop._setup_engines", lambda url, coord_url: (MagicMock(), MagicMock())
@@ -398,8 +389,6 @@ async def test_periodic_reconciliation_loop_backoff_on_error(monkeypatch):
 async def test_periodic_reconciliation_loop_does_not_backoff_on_blocked_state(monkeypatch):
     """Verify expected recovery gate blocks do not trigger transient-error backoff."""
     original_sleep = asyncio.sleep
-    lifecycle_mock = MagicMock(return_value=GraphRuntimeLifecycleState.READY)
-    monkeypatch.setattr("api.app_factory.get_runtime_lifecycle_state", lifecycle_mock)
 
     monkeypatch.setattr(
         "src.logic.reconciliation_loop._setup_engines", lambda url, coord_url: (MagicMock(), MagicMock())
