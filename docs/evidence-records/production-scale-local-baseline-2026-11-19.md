@@ -181,14 +181,17 @@ The calibrated profile catalog digests are recorded in `supabase/ledger-profiles
 `a222c7689cf1e235ab607feb8e9ee84a35d5f9efdc5c77be5db1992409ffaab0`. Auth and coordination digests remained
 unchanged at `e3eed4d9506f6737b888e8d8182964bf2952635316fde33ff203c7d22010be2e` (auth) and
 `475c75ae7b9a78f3e528cbab80ff06278383c805ddba774ab7683fef0069217a` (coordination). The repository-local static
-ledger validator passes on the PR candidate with manifest SHA-256
-`6dc33c8d60da35c9360f4214eaa1aeeb6d75c8c215ecca9bd318a60e2fcc32a1`; the host report did not independently record
-that manifest SHA. The disposable profile proof validates migration/catalog profiles, not hosted state or production-
+ledger validator passes on the PR candidate with canonical manifest SHA-256
+`aa432e2e7c5bf35f857322bd12e0d41d255bdbcd90b2de22c4b5fd900ac7b0e6` (the hash of the tracked LF bytes). The earlier
+Windows shared-checkout run observed `6dc33c8d60da35c9360f4214eaa1aeeb6d75c8c215ecca9bd318a60e2fcc32a1` because
+Git had checked this JSON file out with CRLF. `.gitattributes` now pins this control file to LF so manifest identity is
+stable across hosts. The disposable profile proof validates migration/catalog profiles, not hosted state or production-
 scale asset-graph workload.
 
 **Review-time exact-revision repeat:** On 2026-11-19, commit `27b0e24d22d219b3e8816b6f89065cfbed780a7f` was run
 through the repository's ownership-attested disposable PostgreSQL 16 harness with Supabase CLI `2.114.0`. The
-manifest validator reported SHA-256 `6dc33c8d60da35c9360f4214eaa1aeeb6d75c8c215ecca9bd318a60e2fcc32a1`; all four
+manifest validator reported SHA-256 `6dc33c8d60da35c9360f4214eaa1aeeb6d75c8c215ecca9bd318a60e2fcc32a1` from the
+CRLF working copy; the tracked LF bytes hash to `aa432e2e7c5bf35f857322bd12e0d41d255bdbcd90b2de22c4b5fd900ac7b0e6`. All four
 profiles (auth, graph, coordination, combined) passed in 1837.49 seconds. The harness reported
 `cli_compatible: true`, `host_attested: true`, `exit_code: 0`, `container_removed: true`,
 `owned_volume_removed: true`, and preservation of pre-existing containers and volumes. The later documentation and
