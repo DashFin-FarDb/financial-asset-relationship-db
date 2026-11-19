@@ -161,10 +161,7 @@ def test_rebuild_lock_acquisition_records_each_outcome(
     monkeypatch.setattr(graph_admin, "_validate_coordination_database_primary", lambda _factory: None)
     monkeypatch.setattr(graph_admin, "DistributedLock", lambda **_kwargs: lock)
     outcomes = ("acquired", "timeout", "error", "lost", "invalid")
-    before = {
-        status: _get_counter_value(REBUILD_LOCK_ACQUISITION_TOTAL, status=status)
-        for status in outcomes
-    }
+    before = {status: _get_counter_value(REBUILD_LOCK_ACQUISITION_TOTAL, status=status) for status in outcomes}
 
     if error_type is None:
         assert graph_admin._acquire_rebuild_lock(MagicMock(), 30) is lock
@@ -172,9 +169,6 @@ def test_rebuild_lock_acquisition_records_each_outcome(
         with pytest.raises(error_type):
             graph_admin._acquire_rebuild_lock(MagicMock(), 30)
 
-    after = {
-        status: _get_counter_value(REBUILD_LOCK_ACQUISITION_TOTAL, status=status)
-        for status in outcomes
-    }
+    after = {status: _get_counter_value(REBUILD_LOCK_ACQUISITION_TOTAL, status=status) for status in outcomes}
     assert after[outcome] - before[outcome] == 1
     assert all(after[status] - before[status] == 0 for status in outcomes if status != outcome)
