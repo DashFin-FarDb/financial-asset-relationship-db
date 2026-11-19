@@ -27,17 +27,17 @@ The run initialized a temporary SQLite graph database, built the fixed synthetic
 `AssetGraphRepository.save_graph`, loaded it through `AssetGraphRepository.load_graph`, and checked exact asset and
 relationship counts. A separate temporary SQLite coordination database was used for lock acquisition and refresh.
 
-| Measurement | Result |
-| --- | ---: |
-| Graph construction | 0.836 s |
-| Snapshot persistence, including local schema initialization | 14.395 s |
-| Persistence load | 2.660 s |
-| Lock refreshes | 25 / 25 succeeded |
-| Lock refresh median | 0.015414 s |
-| Lock refresh maximum | 0.026638 s |
-| Temporary graph database size | 9,175,040 bytes |
-| Peak traced Python allocation | 172,278,510 bytes |
-| Loaded assets / directed relationships | 10,000 / 50,000 |
+| Measurement                                                 |            Result |
+| ----------------------------------------------------------- | ----------------: |
+| Graph construction                                          |           0.836 s |
+| Snapshot persistence, including local schema initialization |          14.395 s |
+| Persistence load                                            |           2.660 s |
+| Lock refreshes                                              | 25 / 25 succeeded |
+| Lock refresh median                                         |        0.015414 s |
+| Lock refresh maximum                                        |        0.026638 s |
+| Temporary graph database size                               |   9,175,040 bytes |
+| Peak traced Python allocation                               | 172,278,510 bytes |
+| Loaded assets / directed relationships                      |   10,000 / 50,000 |
 
 The allocation figure is Python `tracemalloc` peak, not process RSS. The database file size and timings describe this
 local run only.
@@ -75,14 +75,14 @@ export-unit guarantee. The first probe's persisted market-cap values were unders
 superseded by the corrected mapping below. Metric definitions and units were interpreted from the export documentation
 supplied with the task.
 
-| Measurement | Result |
-| --- | ---: |
-| Loaded assets | 148 / 148 |
-| Loaded directed relationships | 14,520 / 14,520 |
-| Temporary SQLite snapshot persistence | 4.043 s |
-| Persistence load | 0.772 s |
-| Temporary graph database size | 1,495,040 bytes |
-| Peak traced Python allocation | 48,242,470 bytes |
+| Measurement                           |           Result |
+| ------------------------------------- | ---------------: |
+| Loaded assets                         |        148 / 148 |
+| Loaded directed relationships         |  14,520 / 14,520 |
+| Temporary SQLite snapshot persistence |          4.043 s |
+| Persistence load                      |          0.772 s |
+| Temporary graph database size         |  1,495,040 bytes |
+| Peak traced Python allocation         | 48,242,470 bytes |
 
 The export credential was used only for the request and was not written to the evidence, repository, or dataset. The
 CSV response itself was not retained; the fingerprint identifies this run but does not make the changing live
@@ -105,18 +105,18 @@ market cap, P/E, dividend yield, and EPS. EPS was derived as exported price divi
 not directly reported EPS and must not be interpreted as independently sourced earnings. At the time of this probe,
 FarDB did not persist PEG, P/S, forward P/E, or EPS growth.
 
-| Existing field / source metric | Populated rows |
-| --- | ---: |
-| Market cap (corrected USD) | 148 / 148 |
-| P/E | 137 / 148 |
-| EPS (derived as price / P/E) | 137 / 148 |
-| Dividend yield | 148 / 148 |
-| PEG available in source | 122 / 148 |
-| P/S available in source | 146 / 148 |
-| Forward P/E / P/B available in source | 138 / 148; 142 / 148 |
-| EPS growth next year / next 5 years | 139 / 148; 131 / 148 |
-| Earnings date available in source | 146 / 148 |
-| ROA / ROE / ROIC available in source | 146 / 148; 142 / 148; 145 / 148 |
+| Existing field / source metric                        |                  Populated rows |
+| ----------------------------------------------------- | ------------------------------: |
+| Market cap (corrected USD)                            |                       148 / 148 |
+| P/E                                                   |                       137 / 148 |
+| EPS (derived as price / P/E)                          |                       137 / 148 |
+| Dividend yield                                        |                       148 / 148 |
+| PEG available in source                               |                       122 / 148 |
+| P/S available in source                               |                       146 / 148 |
+| Forward P/E / P/B available in source                 |            138 / 148; 142 / 148 |
+| EPS growth next year / next 5 years                   |            139 / 148; 131 / 148 |
+| Earnings date available in source                     |                       146 / 148 |
+| ROA / ROE / ROIC available in source                  | 146 / 148; 142 / 148; 145 / 148 |
 | Gross / operating / profit margin available in source | 145 / 148; 146 / 148; 146 / 148 |
 
 The expanded check built a 148-asset graph with 14,520 directed links derived from shared industry and country labels,
@@ -143,14 +143,14 @@ The same three matching screener views were mapped into the new fields and passe
 database using FarDB initialization and `AssetGraphRepository`. The loaded graph was validated with `AssetResponse`
 for all 148 assets and its v2 hash matched the in-memory graph hash.
 
-| New persisted field | Screener values mapped |
-| --- | ---: |
-| Forward P/E | 138 / 148 |
-| PEG | 122 / 148 |
-| Price-to-sales | 146 / 148 |
-| Price-to-book | 142 / 148 |
-| EPS growth next year | 139 / 148 |
-| EPS growth next five years | 131 / 148 |
+| New persisted field        | Screener values mapped |
+| -------------------------- | ---------------------: |
+| Forward P/E                |              138 / 148 |
+| PEG                        |              122 / 148 |
+| Price-to-sales             |              146 / 148 |
+| Price-to-book              |              142 / 148 |
+| EPS growth next year       |              139 / 148 |
+| EPS growth next five years |              131 / 148 |
 
 The round-trip retained 148 assets and 14,520 directed metadata-derived links. `FormulaicAnalyzer` completed and
 returned 11 formulas. This check exercises live source mapping into the schema, persistence, v2 integrity hashing,

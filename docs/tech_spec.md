@@ -5499,18 +5499,18 @@ The `assets` table uses a **wide table design** with nullable type-specific colu
 
 #### Equity-Specific Columns
 
-| Column               | Type | Constraints | Description             |
-| -------------------- | ---- | ----------- | ----------------------- |
-| `pe_ratio`           | REAL | NULLABLE    | Price-to-earnings ratio |
-| `dividend_yield`     | REAL | NULLABLE    | Annual dividend yield   |
-| `earnings_per_share` | REAL | NULLABLE    | EPS value               |
-| `book_value`         | REAL | NULLABLE    | Book value per share    |
-| `forward_pe_ratio`   | REAL | NULLABLE    | Forward price-to-earnings ratio |
-| `peg_ratio`          | REAL | NULLABLE    | Price/earnings-to-growth ratio |
-| `price_to_sales_ratio` | REAL | NULLABLE  | Price-to-sales ratio    |
-| `price_to_book_ratio`  | REAL | NULLABLE  | Price-to-book ratio     |
-| `eps_growth_next_year` | REAL | NULLABLE  | Expected EPS growth next year, fraction |
-| `eps_growth_next_5_years` | REAL | NULLABLE | Expected annualized EPS growth over the next five years, fraction |
+| Column                    | Type | Constraints | Description                                                       |
+| ------------------------- | ---- | ----------- | ----------------------------------------------------------------- |
+| `pe_ratio`                | REAL | NULLABLE    | Price-to-earnings ratio                                           |
+| `dividend_yield`          | REAL | NULLABLE    | Annual dividend yield                                             |
+| `earnings_per_share`      | REAL | NULLABLE    | EPS value                                                         |
+| `book_value`              | REAL | NULLABLE    | Book value per share                                              |
+| `forward_pe_ratio`        | REAL | NULLABLE    | Forward price-to-earnings ratio                                   |
+| `peg_ratio`               | REAL | NULLABLE    | Price/earnings-to-growth ratio                                    |
+| `price_to_sales_ratio`    | REAL | NULLABLE    | Price-to-sales ratio                                              |
+| `price_to_book_ratio`     | REAL | NULLABLE    | Price-to-book ratio                                               |
+| `eps_growth_next_year`    | REAL | NULLABLE    | Expected EPS growth next year, fraction                           |
+| `eps_growth_next_5_years` | REAL | NULLABLE    | Expected annualized EPS growth over the next five years, fraction |
 
 #### Fixed Income Columns
 
@@ -8854,11 +8854,11 @@ flowchart TB
 
 **Location**: `tests/integration/`
 
-| Test File                    | Purpose                           |
-| ---------------------------- | --------------------------------- |
-| `test_requirements.py`       | Validate production dependencies  |
-| `test_requirements_dev.py`   | Validate development dependencies |
-| `test_github_workflows.py`   | CI/CD workflow validation         |
+| Test File                  | Purpose                           |
+| -------------------------- | --------------------------------- |
+| `test_requirements.py`     | Validate production dependencies  |
+| `test_requirements_dev.py` | Validate development dependencies |
+| `test_github_workflows.py` | CI/CD workflow validation         |
 
 ---
 
@@ -9075,11 +9075,11 @@ flowchart TB
 
 #### 6.6.6.2 Software Composition Analysis (SCA)
 
-| Tool             | Workflow                                   | Scope                  |
-| ---------------- | ------------------------------------------ | ---------------------- |
-| Safety           | CircleCI                                   | Python dependencies    |
-| Snyk Open Source | `.github/workflows/snyk-security.yml`      | All dependencies       |
-| OSV Scanner      | `.github/workflows/osv-scanner.yml`        | Vulnerability database |
+| Tool             | Workflow                              | Scope                  |
+| ---------------- | ------------------------------------- | ---------------------- |
+| Safety           | CircleCI                              | Python dependencies    |
+| Snyk Open Source | `.github/workflows/snyk-security.yml` | All dependencies       |
+| OSV Scanner      | `.github/workflows/osv-scanner.yml`   | Vulnerability database |
 
 #### 6.6.6.3 Container Security
 
