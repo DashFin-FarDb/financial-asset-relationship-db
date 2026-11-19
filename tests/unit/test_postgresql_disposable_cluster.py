@@ -2,11 +2,24 @@
 
 from __future__ import annotations
 
+from pathlib import Path
 from unittest.mock import MagicMock, Mock
 
 import pytest
 
 from tests.integration import postgresql_disposable_cluster as guard
+
+
+def test_cli_projection_archive_uses_posix_paths_on_all_hosts(tmp_path: Path) -> None:
+    """Windows path separators must not leak into the Linux container archive."""
+    nested_file = tmp_path / "supabase" / "migrations" / "migration.sql"
+    nested_file.parent.mkdir(parents=True)
+    nested_file.write_text("SELECT 1;", encoding="utf-8")
+
+    projection = guard._cli_projection_files(tmp_path)
+
+    assert list(projection) == ["projection/supabase/migrations/migration.sql"]
+    assert projection["projection/supabase/migrations/migration.sql"] == nested_file
 
 
 def test_unverified_cluster_is_rejected_before_connect_or_mutation(monkeypatch: pytest.MonkeyPatch) -> None:

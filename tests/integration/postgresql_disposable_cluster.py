@@ -719,6 +719,15 @@ def _validate_harness_container(record: dict, database_url: str) -> None:
         raise DisposableTargetError("owned container cluster identity changed")
 
 
+def _cli_projection_files(projection: Path) -> dict[str, Path]:
+    """Map projection files to POSIX archive names on every host platform."""
+    return {
+        "projection/" + path.relative_to(projection).as_posix(): path
+        for path in projection.rglob("*")
+        if path.is_file()
+    }
+
+
 class ContainerCliRunner:
     """Execute pinned CLI mutations in the exact owned PostgreSQL container namespace."""
 
@@ -903,7 +912,7 @@ class ContainerCliRunner:
             projection = Path(command[2])
             if any(p.is_symlink() for p in projection.rglob("*")):
                 raise DisposableTargetError("symlink in CLI projection")
-            files = {"projection/" + str(p.relative_to(projection)): p for p in projection.rglob("*") if p.is_file()}
+            files = _cli_projection_files(projection)
             self._copy_files(files)
             argv = [
                 self.directory + "/supabase",
