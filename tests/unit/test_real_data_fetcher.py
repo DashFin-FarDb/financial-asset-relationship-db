@@ -531,7 +531,7 @@ class TestFetchMethods:
         mock_ticker.info = {
             "marketCap": 1e12,
             "trailingPE": 30.0,
-            "dividendYield": 0.01,
+            "trailingAnnualDividendYield": 0.01,
             "trailingEps": 5.0,
             "bookValue": 16.5,
             "forwardPE": 24.0,
