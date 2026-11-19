@@ -133,6 +133,23 @@ Primary authorities:
 
 ## Active commitments
 
+### FPC-2026-11-19-01 — Reconcile the CQ-03D-02 Supabase routing prerequisite
+
+- **Type:** PostgreSQL hosted-preflight documentation reconciliation
+- **Status:** Repository routing documentation reconciled; no target or permit approved and no hosted preflight executed.
+- **Decision or objective:** A documented Supabase direct route or IPv4 port-5432 session-pooler route is acceptable
+  to the CQ-03D-01 adapter when `sslmode=verify-full` and an explicit protected trust root are used. IPv6 and a
+  generic support response are not prerequisites when an accepted route is available. Port-6543 transaction pooling
+  remains prohibited.
+- **Rationale and constraints:** ADR 0010, the database-migration-authority runbook, preflight implementation, and
+  unit tests already encode this route policy. The enterprise-readiness roadmap, PR board, checklist, and issue #1907
+  had retained older IPv6/support-response wording. This reconciliation changes only that prerequisite; it does not
+  select or authorize a hosted target, issue a permit, or authorize the later migration-history marker.
+- **Next action and completion test:** Separately select and approve one target, prepare the protected exact-SHA
+  single-use permit, then run the bounded read-only preflight. Do not treat the IPv4 route clarification as target
+  approval or preflight evidence.
+- **Last updated:** 2026-11-19
+
 ### FPC-2026-11-05-01 — Record the one-time CI-policy exception for PR #1885
 
 - **Type:** CI evidence exception / release qualification
@@ -649,10 +666,10 @@ Primary authorities:
 
 ### Next highest-value action
 
-The database lane under **FPC-2026-08-13-01** remains externally gated. A target-bound database maintenance window
-is approved in principle, but execution still requires the outstanding Supabase support response, IPv6-capable
-connectivity, and one protected single-use permit binding the approved target to the exact reviewed repository SHA.
-Only after those conditions are reconciled may the bounded read-only hosted-preflight collect
+The database lane under **FPC-2026-08-13-01** remains externally gated. The supported IPv4 port-5432 session route
+does not require IPv6 or a generic support response when its documented TLS and trust-root requirements are met.
+Execution still requires one selected and approved target and a protected single-use permit binding that target to the
+exact reviewed repository SHA. Only after those conditions are met may the bounded read-only hosted preflight collect
 evidence. Do not authorize the later migration-history marker in this step.
 Do not replay or reconstruct SQL under historical timestamps, run `supabase db pull` against hosted state, retain
 provider link state, apply DDL, or select `hosted-legacy-v1` as adopted before the separate history-action decision.
