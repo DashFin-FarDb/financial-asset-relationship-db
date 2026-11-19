@@ -697,7 +697,7 @@ class RealDataFetcher:
                     price=current_price,
                     market_cap=_optional_finite_float(info.get("marketCap")),
                     pe_ratio=_optional_finite_float(info.get("trailingPE")),
-                    dividend_yield=_optional_finite_float(info.get("dividendYield")),
+                    dividend_yield=_optional_finite_float(info.get("trailingAnnualDividendYield")),
                     earnings_per_share=_optional_finite_float(info.get("trailingEps")),
                     book_value=_optional_finite_float(info.get("bookValue")),
                     forward_pe_ratio=_optional_finite_float(info.get("forwardPE")),

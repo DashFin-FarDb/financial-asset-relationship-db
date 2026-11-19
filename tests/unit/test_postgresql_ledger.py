@@ -134,7 +134,7 @@ def test_manifest_and_profile_unions_are_deterministic() -> None:
     """The committed manifest must resolve exact, timestamp-ordered component unions."""
     manifest = ledger.load_and_validate_manifest()
 
-    assert manifest.sha256 == "6dc33c8d60da35c9360f4214eaa1aeeb6d75c8c215ecca9bd318a60e2fcc32a1"
+    assert manifest.sha256 == "aa432e2e7c5bf35f857322bd12e0d41d255bdbcd90b2de22c4b5fd900ac7b0e6"
     assert (
         tuple(
             table_name

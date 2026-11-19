@@ -58,6 +58,7 @@ def test_repository_round_trip_preserves_asset_fields(tmp_path) -> None:
     assert asset.price == pytest.approx(123.45)
     assert asset.currency == "GBP"
     assert asset.asset_class == AssetClass.EQUITY
+    assert asset.pe_ratio == pytest.approx(30.5)
     assert asset.forward_pe_ratio == pytest.approx(25.2)
     assert asset.peg_ratio == pytest.approx(1.45)
     assert asset.price_to_sales_ratio == pytest.approx(8.3)
