@@ -802,10 +802,12 @@ async def test_lifespan_emits_failure_event_on_startup_exception(
     )
 
     logged_events = []
+    logged_contexts: list[tuple[str | None, str | None]] = []
 
     def fake_log_event(logger: Any, level: Any, event: Any) -> None:
-        """Append logged events to a local list for assertion."""
+        """Append logged events and active trace context to local lists for assertion."""
         logged_events.append(event)
+        logged_contexts.append((app_factory.get_trace_id(), app_factory.get_span_id()))
 
     monkeypatch.setattr(app_factory, "log_event", fake_log_event)
 
@@ -842,6 +844,10 @@ async def test_lifespan_emits_failure_event_on_startup_exception(
     # Continuity: ensure the reconciliation trace context propagates to the outer startup event
     assert logged_events[0].metadata["trace_id"] == logged_events[1].metadata["trace_id"], "Trace ID mismatch"
     assert logged_events[0].metadata["span_id"] == logged_events[1].metadata["span_id"], "Span ID mismatch"
+    assert logged_contexts[1] == (
+        logged_events[1].metadata["trace_id"],
+        logged_events[1].metadata["span_id"],
+    )
 
 
 @pytest.mark.asyncio

@@ -23,7 +23,7 @@ from slowapi.errors import RateLimitExceeded  # type: ignore[import-not-found]
 from sqlalchemy.exc import SQLAlchemyError
 
 from src.data.database import SchemaCompatibilityError
-from src.observability.context import async_trace_context, get_span_id, get_trace_id
+from src.observability.context import async_trace_context, get_span_id, get_trace_id, trace_context
 from src.observability.events import APPLICATION_STARTUP_FAILED_EVENT, ObservabilityEvent
 from src.observability.logger import log_event
 from src.observability.logging import setup_logging
@@ -482,19 +482,20 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         sync_task, slo_task, recon_task = _start_background_tasks(has_persistence, settings)
         APPLICATION_STARTUP_SUCCESS_TOTAL.inc()
     except Exception as exc:
-        log_event(
-            logger,
-            logging.CRITICAL,
-            ObservabilityEvent(
-                event=APPLICATION_STARTUP_FAILED_EVENT,
-                message=f"Application startup failed: {type(exc).__name__}",
-                metadata={
-                    "error": type(exc).__name__,
-                    "trace_id": trace_id,
-                    "span_id": span_id,
-                },
-            ),
-        )
+        with trace_context(trace_id=trace_id, span_id=span_id):
+            log_event(
+                logger,
+                logging.CRITICAL,
+                ObservabilityEvent(
+                    event=APPLICATION_STARTUP_FAILED_EVENT,
+                    message=f"Application startup failed: {type(exc).__name__}",
+                    metadata={
+                        "error": type(exc).__name__,
+                        "trace_id": trace_id,
+                        "span_id": span_id,
+                    },
+                ),
+            )
         APPLICATION_STARTUP_FAILURE_TOTAL.inc()
         raise
     finally:
