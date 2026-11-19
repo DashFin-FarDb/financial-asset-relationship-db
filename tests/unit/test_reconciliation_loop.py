@@ -378,6 +378,7 @@ async def test_periodic_reconciliation_loop_backoff_on_error(monkeypatch):
         database_url="sqlite://",
         is_shutdown_fn=mock_is_shutdown,
         run_with_trace_fn=lambda fn, **kwargs: asyncio.to_thread(fn),
+        is_ready_fn=lambda: True,
     )
 
     # Assert loop ran twice
@@ -439,6 +440,7 @@ async def test_periodic_reconciliation_loop_does_not_backoff_on_blocked_state(mo
         database_url="sqlite://",
         is_shutdown_fn=mock_is_shutdown,
         run_with_trace_fn=lambda fn, **kwargs: asyncio.to_thread(fn),
+        is_ready_fn=lambda: True,
     )
 
     assert iter_calls == 2

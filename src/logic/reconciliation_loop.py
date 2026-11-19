@@ -198,8 +198,8 @@ async def periodic_reconciliation_loop(
                 if is_shutdown_fn():
                     return
 
-                # Skip drift evaluation while the app is still initializing or paused
-                if is_ready_fn is not None and not is_ready_fn():
+                # Fail closed: skip drift evaluation unless caller explicitly reports READY
+                if is_ready_fn is None or not is_ready_fn():
                     continue
 
                 await _perform_reconciliation_iteration(
