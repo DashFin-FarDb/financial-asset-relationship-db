@@ -1,3 +1,5 @@
+/* tsqllint-disable set-quoted-identifier */
+-- This is SQLite DDL; the SQL Server-only SET QUOTED_IDENTIFIER directive is invalid here.
 -- SQLite compatibility upgrade 008; applied conditionally by src.data.migrations.
 -- All values are nullable; existing assets and non-equity records remain valid.
 ALTER TABLE assets ADD COLUMN forward_pe_ratio REAL;
