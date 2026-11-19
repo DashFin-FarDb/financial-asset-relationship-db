@@ -172,3 +172,10 @@ def test_rebuild_lock_acquisition_records_each_outcome(
     after = {status: _get_counter_value(REBUILD_LOCK_ACQUISITION_TOTAL, status=status) for status in outcomes}
     assert after[outcome] - before[outcome] == 1
     assert all(after[status] - before[status] == 0 for status in outcomes if status != outcome)
+    emitted_statuses = {
+        sample.labels.get("status")
+        for metric_family in REBUILD_LOCK_ACQUISITION_TOTAL.collect()
+        for sample in metric_family.samples
+        if sample.name == "rebuild_lock_acquisition_total"
+    }
+    assert emitted_statuses <= set(outcomes)

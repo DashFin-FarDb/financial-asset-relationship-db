@@ -60,9 +60,13 @@ class TestMetricsEndpoint:
 
     def test_metrics_happy_path(self, client: TestClient) -> None:
         """Metrics endpoint returns a valid OpenMetrics payload."""
+        from api.metrics import REBUILD_LOCK_ACQUISITION_TOTAL
+
+        REBUILD_LOCK_ACQUISITION_TOTAL.labels(status="acquired").inc()
         body = _assert_metrics_text_response(client.get("/api/metrics"))
         assert "# HELP graph_rebuild_requests_total" in body
         assert "# TYPE graph_rebuild_requests_total counter" in body
+        assert 'rebuild_lock_acquisition_total{status="acquired"}' in body
 
     def test_metrics_returns_error_when_generation_fails(self, client: TestClient) -> None:
         """Metrics generation failures return HTTP 500 plaintext errors."""
