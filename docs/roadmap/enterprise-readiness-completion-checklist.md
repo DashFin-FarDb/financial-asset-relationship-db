@@ -348,24 +348,27 @@ already defines related collectors (`graph_rebuild_state_transition_total`, `reb
 The implementation PRs below are open and unmerged. Their local focused validation passed, but the checkboxes above
 remain open until the PRs merge and this snapshot is reconciled to merged commit references.
 
-| Sub-item | Current PR                                                                          | Scope in PR                                                     | Local validation                                    |
-| -------- | ----------------------------------------------------------------------------------- | --------------------------------------------------------------- | --------------------------------------------------- |
-| 1.4.a    | [#1929](https://github.com/DashFin-FarDb/financial-asset-relationship-db/pull/1929) | Fail-fast admission counter and corrected criterion             | 3 focused tests passed; Ruff and diff checks passed |
-| 1.4.b    | [#1930](https://github.com/DashFin-FarDb/financial-asset-relationship-db/pull/1930) | Lifecycle transition assertions and RecoveryGate reset emission | 9 focused tests passed; Ruff and diff checks passed |
-| 1.4.c    | [#1931](https://github.com/DashFin-FarDb/financial-asset-relationship-db/pull/1931) | Lock acquisition outcome assertions                             | 6 focused tests passed; Ruff and diff checks passed |
-| 1.4.d    | [#1932](https://github.com/DashFin-FarDb/financial-asset-relationship-db/pull/1932) | Startup success, failure, duration assertions                   | 3 focused tests passed; Ruff and diff checks passed |
+| Sub-item | Current PR                                                                          | Scope in PR                                                     | Local validation                                     |
+| -------- | ----------------------------------------------------------------------------------- | --------------------------------------------------------------- | ---------------------------------------------------- |
+| 1.4.a    | [#1929](https://github.com/DashFin-FarDb/financial-asset-relationship-db/pull/1929) | Fail-fast admission counter and corrected criterion             | 2 focused tests passed; Ruff and diff checks passed  |
+| 1.4.b    | [#1930](https://github.com/DashFin-FarDb/financial-asset-relationship-db/pull/1930) | Lifecycle transition assertions and RecoveryGate reset emission | 19 focused tests passed; Ruff and diff checks passed |
+| 1.4.c    | [#1931](https://github.com/DashFin-FarDb/financial-asset-relationship-db/pull/1931) | Lock acquisition outcome assertions                             | 6 focused tests passed; Ruff and diff checks passed  |
+| 1.4.d    | [#1932](https://github.com/DashFin-FarDb/financial-asset-relationship-db/pull/1932) | Startup success, failure, duration assertions                   | 4 focused tests passed; Ruff and diff checks passed  |
 
-The separate Grafana deliverable is [FarDB Control Plane — Observability, SLOs & Lifecycle](https://dasshfin.grafana.net/d/mogdpxw/8c11bb1)
-(UID `mogdpxw`, 54 panels). Its description identifies it as anticipatory and says panels may show no data until service
+The separate Grafana deliverable is **FarDB Control Plane — Observability, SLOs & Lifecycle** (dashboard UID
+`mogdpxw`, 54 panels). Its description identifies it as anticipatory and says panels may show no data until service
 instrumentation is present. The current repo and dashboard mappings are not aligned for Phase 1.4: the startup panel
 queries `fardb_startup_success_total` and `fardb_startup_total` rather than the repo's `application_startup_*` metrics;
 the transition panel queries `fardb_rebuild_jobs_total{status=...}` rather than
 `graph_rebuild_state_transition_total{from_state,to_state}`; the queue panel uses future Celery metric
-`fardb_queue_depth`; and no panel query was found for `rebuild_lock_acquisition_total`.
+`fardb_queue_depth`; and no panel query was found for `graph_rebuild_admission_total` or
+`rebuild_lock_acquisition_total`.
 
-A live Prometheus query on 2026-11-19 returned `up{job="fardb_fastapi"} = 0` for the configured production target
-(`localhost:8000`) and no series for the Phase 1.4 metric families. Thus the separate dashboard artifact exists, but
-hosted scrape and metric ingestion have not been evidenced. Do not treat its presence as runtime validation. Reconcile
+A live Prometheus query on 2026-11-19 returned `up{job="fardb_fastapi"} = 0` for target `localhost:8000`, which is
+consistent with the local launcher configuration and does not establish a production target. Queries for the existing
+state-transition, lock-acquisition, and startup-duration families returned no series. Thus the separate dashboard
+artifact exists, but hosted scrape and metric ingestion have not been evidenced. Do not treat its presence as runtime
+validation. Reconcile
 the panel queries and record a successful target/series observation before claiming the Grafana side operationally
 verified. Metrics endpoint lockdown H-P3-01 remains separate.
 
