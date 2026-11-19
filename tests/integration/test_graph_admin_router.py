@@ -322,9 +322,7 @@ async def test_rebuild_admission_metrics_count_admitted_and_busy_rejections(
             if sample.name == "graph_rebuild_admission_total" and sample.labels == {"result": result}
         )
 
-    before = {
-        result: counter_value(result) for result in ("accepted", "rejected_busy")
-    }
+    before = {result: counter_value(result) for result in ("accepted", "rejected_busy")}
 
     valid_lock = MagicMock()
     valid_lock.check_state.return_value = LockState.VALID
