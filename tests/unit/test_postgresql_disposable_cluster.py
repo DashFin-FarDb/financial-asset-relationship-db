@@ -712,7 +712,6 @@ def test_shell_entrypoint_uses_python3_without_python_alias(tmp_path, monkeypatc
     """Resolve the explicit interpreter or python3 before launching any Docker work."""
     import os
     import subprocess
-    from pathlib import Path
 
     binary = tmp_path / ("configured-python" if configured else "python3")
     binary.write_text('#!/bin/sh\nif [ "$1" = "-c" ]; then exit 0; fi\nprintf "%s\\n" "$@" > "$ARGV_FILE"\n')
@@ -753,7 +752,6 @@ def test_shell_rejects_non_python3_interpreter_before_launch(tmp_path) -> None:
     """A configured executable that fails the Python 3 probe cannot launch tests."""
     import os
     import subprocess
-    from pathlib import Path
 
     binary = tmp_path / "not-python3"
     binary.write_text("#!/bin/sh\nexit 1\n")
@@ -818,8 +816,6 @@ def test_role_metadata_and_owned_object_mutations_never_reach_driver(statement, 
 
 def test_only_exact_reviewed_bootstrap_bypasses_ad_hoc_ddl_parser() -> None:
     """Preserve the attested bootstrap path without accepting arbitrary DO blocks."""
-    from pathlib import Path
-
     bootstrap = Path(__file__).parents[2] / "scripts/bootstrap_database_capability_roles.sql"
     text = bootstrap.read_text(encoding="utf-8")
     assert guard._parse_role_ddl(text) is None
@@ -834,7 +830,6 @@ def test_shell_python_minimum_rejected_before_harness_or_docker(tmp_path, versio
     import os
     import subprocess
     import sys
-    from pathlib import Path
 
     interpreter = tmp_path / "configured-python"
     args = tmp_path / "harness-args"

@@ -13,6 +13,7 @@ pytestmark = pytest.mark.unit
 
 
 def test_repository_round_trip_preserves_asset_fields(tmp_path) -> None:
+    """Persist all supported asset fields across a repository round trip."""
     engine = create_engine(f"sqlite:///{tmp_path / 'fields.db'}")
     enable_sqlite_foreign_keys(engine)
     init_db(engine)
