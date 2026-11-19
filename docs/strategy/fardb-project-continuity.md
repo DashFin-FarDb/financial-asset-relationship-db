@@ -172,8 +172,7 @@ Primary authorities:
   records a 10,000-asset / 50,000-edge SQLite run; a 148-asset / 14,520-edge functionality probe; and an
   operator-reported host-attested PostgreSQL 16.14 disposable four-profile pass. The host report did not capture the
   exact Git SHA or manifest SHA used at execution; the evidence record states that limitation rather than claiming
-  exact-SHA CI evidence. The repository-local candidate manifest validator reports
-  `6dc33c8d60da35c9360f4214eaa1aeeb6d75c8c215ecca9bd318a60e2fcc32a1`.
+  exact-SHA CI evidence.
 - **Dependencies or blockers:** Stable retained data, an agreed performance budget, PostgreSQL asset-graph workload
   measurements, hosted staging, sustained load, production hardware, and exact-source evidence for the host run remain
   outstanding. The June 2026 RC1 staging smoke applies only to its recorded candidate and must not be inherited by this

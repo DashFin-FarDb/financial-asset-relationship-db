@@ -5,7 +5,7 @@ For per-item completion criteria and non-negotiable boundaries, see the
 [Enterprise Readiness Completion Checklist](enterprise-readiness-completion-checklist.md).
 
 **Publication date:** 2026-06-25
-**Last updated:** 2026-09-01
+**Last updated:** 2026-11-19
 **Format:** Release evidence / Target-environment proof / Follow-up hardening
 **Purpose:** Sequence the remaining work after the PR #1287-#1301 enterprise-readiness reconciliation point
 
@@ -83,7 +83,7 @@ These items are valid but should not be bundled into the release-evidence reconc
 | ------------------------------------------- | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------- |
 | `RebuildJobListResponse` truncation signal  | Satisfied - automated  | Rebuild job-list responses expose `total` and `hasMore`; tests cover default cap, explicit pagination, and status-filtered truncation semantics                                                  | None                                                                               |
 | Strict stale-owner restart composition test | Satisfied - automated  | The dedicated restart/recovery integration test now covers owner death, lock expiry, RecoveryGate reset, persisted restart load, and stale-owner fencing                                         | Existing restart/recovery helpers, distributed lock test fixtures                  |
-| Production-scale validation                 | Partially satisfied    | PR #1925 adds advisory 10k/50k SQLite persistence, real-data functionality, and disposable PostgreSQL 16.14 ledger-profile evidence; production-scale asset-graph workload remains unproven      | Stable dataset, agreed budget, PostgreSQL workload, hosted staging, sustained load |
+| Production-scale validation                 | Partially satisfied    | Draft PR #1925 adds advisory 10k/50k SQLite persistence, real-data functionality, and operator-reported PostgreSQL 16.14 ledger-profile evidence (without exact source/manifest SHA); production-scale rebuild, lock refresh, memory, and persistence-latency measurements remain unproven | Stable dataset, agreed budget, observability dashboards, PostgreSQL workload, hosted staging, sustained load, production hardware, exact-source evidence |
 | Continuous operational drills               | Satisfied - documented | The operational drill pack defines representative incident drills, metrics, dashboard panels, alert surfaces, and runbook responses; the execution-record register captures actual run artifacts | Observability stack, runbooks, named operators                                     |
 | Multi-region / advanced hosting strategy    | Partially satisfied    | Too early until single-region durable staging/prod evidence and restore rehearsal are complete                                                                                                   | Release evidence, DR evidence, cost and provider model                             |
 

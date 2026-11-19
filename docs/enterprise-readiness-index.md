@@ -45,15 +45,6 @@ restart composition is Satisfied - automated. Neither result is inherited by a l
 
 The remaining work is no longer primarily architectural. It is concentrated in live release evidence and bounded follow-up hardening:
 
-### Dated evidence update — 2026-11-19
-
-Draft PR [#1925](https://github.com/DashFin-FarDb/financial-asset-relationship-db/pull/1925) adds advisory local
-scale and functionality observations plus an operator-reported host-attested PostgreSQL 16.14 disposable ledger-profile
-proof. These results improve coverage of the project’s persistence and analysis behavior but do not establish a
-production-scale asset-graph workload or hosted staging. The PostgreSQL run’s exact source SHA was not captured. See
-the [production-scale checklist item](roadmap/enterprise-readiness-completion-checklist.md#12-production-scale-validation)
-for the evidence boundary and remaining criteria.
-
 - fresh SHA-bound database authorization evidence when a production artefact is selected for promotion;
 - hosted promotion evidence showing durable graph truth in the target environment (coordinated via
   `.github/workflows/release-evidence-verify.yml` and attached target-environment outputs);
@@ -65,6 +56,16 @@ for the evidence boundary and remaining criteria.
 - production-scale validation and evidence-capture discipline for operational drills that stays bounded outside normal CI.
 
 The DR documentation gap is closed at the strategy and runbook level through [ADR 0005](adr/0005-backup-restore-dr-strategy.md) and the [backup/restore/DR runbook](runbooks/backup-restore-dr.md). Final enterprise release readiness still requires operators to rehearse restore at least once and record the evidence in the release process.
+
+### Dated evidence update — 2026-11-19
+
+Draft PR [#1925](https://github.com/DashFin-FarDb/financial-asset-relationship-db/pull/1925) adds advisory local
+scale and functionality observations plus an operator-reported host-attested PostgreSQL 16.14 disposable ledger-profile
+proof. These results improve coverage of the project’s persistence and analysis behavior but do not establish a
+production-scale asset-graph workload or hosted staging. The PostgreSQL run’s exact source SHA and manifest SHA were
+not captured. See the
+[production-scale checklist item](roadmap/enterprise-readiness-completion-checklist.md#12-production-scale-validation)
+for the evidence boundary and remaining criteria.
 
 ## Roadmap Status Snapshot
 
