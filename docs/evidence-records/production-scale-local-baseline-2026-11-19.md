@@ -3,8 +3,21 @@
 **Evidence ID:** FARDB-SCALE-LOCAL-2026-11-19-01
 **Gate:** Enterprise readiness item 12 — production-scale validation
 **Classification:** Advisory local synthetic and real-data probes; not production-scale qualification
-**Repository SHA:** `81400e3d5e55cbc76abb4ee018a5780e5f031be1`
-**Captured:** 2026-11-19 06:27 UTC
+**Baseline-run repository SHA:** `81400e3d5e55cbc76abb4ee018a5780e5f031be1`
+**Initial run captured:** 2026-11-19 06:27 UTC
+
+## Source revision binding
+
+The 06:27 synthetic SQLite run is bound to the baseline SHA above. The later one-time screener and valuation probes
+were run from the task working tree; their exact Git SHA was not captured. The corresponding valuation-persistence
+implementation was subsequently committed in PR #1925, beginning at `0fdac009f`, but that commit identifies the
+reviewed implementation and does not prove the exact working-tree revision used by each earlier probe.
+
+The host-attested PostgreSQL profile report identifies the shared working-tree path, pinned Supabase CLI version,
+PostgreSQL version, profile results, and cleanup outcome, but it does not include the run-time Git SHA or a retained
+raw test-output artifact. Therefore, the profile results are recorded as operator-reported host-attested evidence,
+not as exact-SHA CI evidence. The source SHA must be added if it can be recovered from the host run record; otherwise
+this limitation remains attached to the evidence.
 
 ## Claim being checked
 
@@ -166,6 +179,10 @@ the owned container and volume were removed.
 The calibrated profile catalog digests are recorded in `supabase/ledger-profiles.json`: graph
 `80e3cc895a8507348ef3c7f0bbab61793f5faece6295eae673c5da246a7ebed3` and combined
 `a222c7689cf1e235ab607feb8e9ee84a35d5f9efdc5c77be5db1992409ffaab0`. Auth and coordination digests remained
-unchanged. The local static ledger manifest validator passes against the updated manifest. This disposable proof
-does not test a hosted PostgreSQL target or establish production-scale readiness.
+unchanged at `e3eed4d9506f6737b888e8d8182964bf2952635316fde33ff203c7d22010be2e` (auth) and
+`475c75ae7b9a78f3e528cbab80ff06278383c805ddba774ab7683fef0069217a` (coordination). The repository-local static
+ledger validator passes on the PR candidate with manifest SHA-256
+`6dc33c8d60da35c9360f4214eaa1aeeb6d75c8c215ecca9bd318a60e2fcc32a1`; the host report did not independently record
+that manifest SHA. The disposable profile proof validates migration/catalog profiles, not hosted state or production-
+scale asset-graph workload.
 **Redaction:** No credentials, raw export URL, or production data were recorded.
