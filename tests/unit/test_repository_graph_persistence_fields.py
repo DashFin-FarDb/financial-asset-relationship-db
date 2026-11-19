@@ -53,6 +53,7 @@ def test_repository_round_trip_preserves_asset_fields(tmp_path) -> None:
         engine.dispose()
 
     asset = loaded.assets["EQ_FULL"]
+    assert isinstance(asset, Equity)
     assert asset.symbol == "EQF"
     assert asset.name == "Full Fidelity Equity"
     assert asset.sector == "Healthcare"

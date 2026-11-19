@@ -201,6 +201,7 @@ def test_v2_valuation_attestation_survives_startup_validation(tmp_path: Path) ->
     """A v2 publication validates using its stored canonicalization version."""
     db_url, session_factory = _setup_disposable_db(tmp_path)
     graph = _create_sample_test_graph()
+    assert isinstance(graph.assets["AAPL"], Equity)
     graph.assets["AAPL"].forward_pe_ratio = 24.2
     graph.assets["AAPL"].peg_ratio = 1.6
     graph.assets["AAPL"].price_to_sales_ratio = 8.4
@@ -212,6 +213,7 @@ def test_v2_valuation_attestation_survives_startup_validation(tmp_path: Path) ->
     loaded = _load_persisted_graph_from_configured_store(db_url)
 
     assert loaded is not None
+    assert isinstance(loaded.assets["AAPL"], Equity)
     assert loaded.assets["AAPL"].peg_ratio == pytest.approx(1.6)
     assert loaded.assets["AAPL"].price_to_sales_ratio == pytest.approx(8.4)
     assert loaded.assets["AAPL"].forward_pe_ratio == pytest.approx(24.2)

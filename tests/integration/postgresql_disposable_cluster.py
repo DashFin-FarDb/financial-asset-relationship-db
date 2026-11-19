@@ -12,7 +12,7 @@ from collections.abc import Iterator, Mapping
 from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, BinaryIO
+from typing import IO, Any
 from urllib.parse import parse_qs, urlsplit
 
 import psycopg2
@@ -546,7 +546,7 @@ def _docker_operation_type(command: list[str]) -> str:
     return f"docker {subcommand}"
 
 
-def _docker_command(command: list[str], *, stdin: BinaryIO | None = None, timeout: int = 30):
+def _docker_command(command: list[str], *, stdin: IO[bytes] | None = None, timeout: int = 30):
     """Run a fixed Docker argv without publishing captured credentials."""
     import subprocess
 
