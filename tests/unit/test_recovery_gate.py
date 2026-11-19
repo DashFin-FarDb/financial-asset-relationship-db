@@ -651,6 +651,7 @@ def test_reset_active_job_blocks_on_lock_loss_and_guards_rollback(mock_session_f
 
 def test_reset_active_job_ignores_transition_metric_failure(mock_session_factory, mock_lock):
     """Recovery commit remains authoritative if the optional transition metric callback fails."""
+
     def fail_metric(_source, _target):
         """Simulate a metrics registry failure."""
         raise RuntimeError("metric unavailable")
