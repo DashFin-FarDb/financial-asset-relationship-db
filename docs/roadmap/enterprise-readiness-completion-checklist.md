@@ -383,6 +383,11 @@ authorization changes update the canonical state-machine authority. SQLite compa
 **Status at publication:** Partially satisfied — representative CI fixtures exist; production-scale evidence is not yet
 recorded.
 
+Post-publication evidence: [Local Scale and Third-Party Screener Functionality Baselines](../evidence-records/production-scale-local-baseline-2026-11-19.md)
+records an advisory 10,000-asset / 50,000-relationship synthetic SQLite run plus a one-time third-party screener functionality
+probe with 148 stocks / 14,520 metadata-derived relationships. These local runs do not close this item; a stable
+retained dataset, PostgreSQL, hosted staging, sustained-load, and production-hardware evidence remain outstanding.
+
 **Sources:** [Roadmap — Follow-up Hardening Later](enterprise-readiness-roadmap.md#follow-up-hardening-later),
 [Index — Roadmap Status Snapshot](../enterprise-readiness-index.md#roadmap-status-snapshot),
 [Operational drill and scale-validation pack — Scale-Validation Guidance](../testing/operational-drill-and-scale-validation-pack.md#scale-validation-guidance).

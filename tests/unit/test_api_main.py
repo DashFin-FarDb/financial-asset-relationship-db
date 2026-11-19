@@ -1666,6 +1666,12 @@ class TestSerializeAsset:
             dividend_yield=0.006,
             earnings_per_share=6.15,
             book_value=3.85,
+            forward_pe_ratio=21.2,
+            peg_ratio=1.3,
+            price_to_sales_ratio=4.6,
+            price_to_book_ratio=8.1,
+            eps_growth_next_year=0.17,
+            eps_growth_next_5_years=0.11,
         )
 
         result = serialize_asset(equity)
@@ -1674,6 +1680,12 @@ class TestSerializeAsset:
         assert result["additional_fields"]["dividend_yield"] == 0.006
         assert result["additional_fields"]["earnings_per_share"] == 6.15
         assert result["additional_fields"]["book_value"] == 3.85
+        assert result["additional_fields"]["forward_pe_ratio"] == 21.2
+        assert result["additional_fields"]["peg_ratio"] == 1.3
+        assert result["additional_fields"]["price_to_sales_ratio"] == 4.6
+        assert result["additional_fields"]["price_to_book_ratio"] == 8.1
+        assert result["additional_fields"]["eps_growth_next_year"] == 0.17
+        assert result["additional_fields"]["eps_growth_next_5_years"] == 0.11
 
     def test_serialize_asset_exclude_issuer_by_default(self):
         """serialize_asset() should not include issuer_id by default."""

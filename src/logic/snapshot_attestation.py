@@ -15,6 +15,7 @@ from enum import Enum
 from typing import Any, Final
 
 ATTESTATION_VERSION_V1: Final[str] = "v1"
+ATTESTATION_VERSION_V2: Final[str] = "v2"
 CONTRACT_VERSION_GRAC_V1: Final[str] = "grac-v1"
 CANONICAL_DECIMAL_PLACES: Final[Decimal] = Decimal("0.000001")
 
@@ -89,14 +90,14 @@ def _extract_attr_or_key(obj: Any, key: str, default: Any = None) -> Any:
     return getattr(obj, key, default)
 
 
-def canonicalize_asset(asset: Any) -> dict[str, Any]:
-    """Canonicalize a single Asset entity into a deterministic 23-property dictionary.
+def canonicalize_asset(asset: Any, *, attestation_version: str = ATTESTATION_VERSION_V1) -> dict[str, Any]:
+    """Canonicalize an asset using the exact field set defined by its attestation version.
 
     Parameters:
         asset: Domain Asset instance, ORM model, or dictionary.
 
     Returns:
-        Canonicalized dictionary with exactly 23 sorted keys.
+        Canonicalized dictionary with the versioned set of sorted keys.
 
     Raises:
         CanonicalizationValidationError: If any required attribute is missing or invalid.
@@ -185,7 +186,7 @@ def canonicalize_asset(asset: Any) -> dict[str, Any]:
         allow_none=True,
     )
 
-    return {
+    canonical_asset = {
         "asset_class": asset_class_str,
         "book_value": book_value_str,
         "central_bank_rate": central_bank_rate_str,
@@ -210,6 +211,23 @@ def canonicalize_asset(asset: Any) -> dict[str, Any]:
         "volatility": volatility_str,
         "yield_to_maturity": yield_to_maturity_str,
     }
+    if attestation_version == ATTESTATION_VERSION_V2:
+        for field_name in (
+            "forward_pe_ratio",
+            "peg_ratio",
+            "price_to_sales_ratio",
+            "price_to_book_ratio",
+            "eps_growth_next_year",
+            "eps_growth_next_5_years",
+        ):
+            canonical_asset[field_name] = normalize_decimal_string(
+                _extract_attr_or_key(asset, field_name),
+                field_name=field_name,
+                allow_none=True,
+            )
+    elif attestation_version != ATTESTATION_VERSION_V1:
+        raise CanonicalizationValidationError(f"Unsupported attestation_version: {attestation_version!r}")
+    return canonical_asset
 
 
 def _unpack_relationship_fields(
@@ -374,7 +392,7 @@ def generate_snapshot_canonical_payload(
     Raises:
         CanonicalizationValidationError: On duplicate IDs, unsupported versions, or invalid values.
     """
-    if attestation_version != ATTESTATION_VERSION_V1:
+    if attestation_version not in (ATTESTATION_VERSION_V1, ATTESTATION_VERSION_V2):
         raise CanonicalizationValidationError(f"Unsupported attestation_version: {attestation_version!r}")
     if contract_version != CONTRACT_VERSION_GRAC_V1:
         raise CanonicalizationValidationError(f"Unsupported contract_version: {contract_version!r}")
@@ -383,7 +401,7 @@ def generate_snapshot_canonical_payload(
     canonical_assets: list[dict[str, Any]] = []
     seen_asset_ids: set[str] = set()
     for raw_asset in assets:
-        canonical_item = canonicalize_asset(raw_asset)
+        canonical_item = canonicalize_asset(raw_asset, attestation_version=attestation_version)
         asset_id = canonical_item["id"]
         if asset_id in seen_asset_ids:
             raise CanonicalizationValidationError(f"Duplicate asset id in snapshot: {asset_id}")

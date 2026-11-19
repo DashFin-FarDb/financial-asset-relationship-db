@@ -464,7 +464,9 @@ class AssetGraphRepository:
             self.list_regulatory_events(),
         )
 
-    def load_graph_with_attestation_hash(self) -> tuple[AssetRelationshipGraph, str]:
+    def load_graph_with_attestation_hash(
+        self, *, attestation_version: str = "v1"
+    ) -> tuple[AssetRelationshipGraph, str]:
         """
         Load persisted graph rows in a single pass and compute their canonical attestation digest.
 
@@ -481,6 +483,7 @@ class AssetGraphRepository:
             assets=assets,
             relationships=relationships,
             regulatory_events=regulatory_events,
+            attestation_version=attestation_version,
         )
         graph = self._build_graph_from_entities(assets, relationships, regulatory_events)
         return graph, digest
@@ -1053,6 +1056,12 @@ class AssetGraphRepository:
         orm.dividend_yield = getattr(asset, "dividend_yield", None)
         orm.earnings_per_share = getattr(asset, "earnings_per_share", None)
         orm.book_value = getattr(asset, "book_value", None)
+        orm.forward_pe_ratio = getattr(asset, "forward_pe_ratio", None)
+        orm.peg_ratio = getattr(asset, "peg_ratio", None)
+        orm.price_to_sales_ratio = getattr(asset, "price_to_sales_ratio", None)
+        orm.price_to_book_ratio = getattr(asset, "price_to_book_ratio", None)
+        orm.eps_growth_next_year = getattr(asset, "eps_growth_next_year", None)
+        orm.eps_growth_next_5_years = getattr(asset, "eps_growth_next_5_years", None)
 
         orm.yield_to_maturity = getattr(asset, "yield_to_maturity", None)
         orm.coupon_rate = getattr(asset, "coupon_rate", None)
@@ -1098,6 +1107,12 @@ class AssetGraphRepository:
                 dividend_yield=orm.dividend_yield,
                 earnings_per_share=orm.earnings_per_share,
                 book_value=orm.book_value,
+                forward_pe_ratio=orm.forward_pe_ratio,
+                peg_ratio=orm.peg_ratio,
+                price_to_sales_ratio=orm.price_to_sales_ratio,
+                price_to_book_ratio=orm.price_to_book_ratio,
+                eps_growth_next_year=orm.eps_growth_next_year,
+                eps_growth_next_5_years=orm.eps_growth_next_5_years,
             )
         if asset_class == AssetClass.FIXED_INCOME:
             return Bond(
@@ -1310,6 +1325,7 @@ class AssetGraphRepository:
         edge_count: int,
         duration_ms: int,
         snapshot_sha256: str | None = None,
+        snapshot_attestation_version: str = "v1",
     ) -> None:
         """
         Mark rebuild job as succeeded and persist success metadata atomatically.
@@ -1349,6 +1365,7 @@ class AssetGraphRepository:
                 edge_count=edge_count,
                 duration_ms=duration_ms,
                 snapshot_sha256=snapshot_sha256,
+                snapshot_attestation_version=snapshot_attestation_version,
             )
         )
         result = self.session.execute(stmt)

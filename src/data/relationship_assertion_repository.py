@@ -140,6 +140,7 @@ class FinalizeProjectionPublicationRequest:
     edge_count: int
     duration_ms: int
     snapshot_sha256: str
+    snapshot_attestation_version: str = "v1"
     publication_id: str | None = None
     published_at: datetime | None = None
 
@@ -154,6 +155,7 @@ class PublishedProjectionRevision:
     execution_id: str
     published_at: datetime
     snapshot_sha256: str | None = None
+    snapshot_attestation_version: str = "v1"
 
 
 def _utcnow() -> datetime:
@@ -846,6 +848,7 @@ class RelationshipAssertionRepository:
             execution_id=self._require_publication_execution_id(publication.execution_id),
             published_at=published_at,
             snapshot_sha256=publication.snapshot_sha256,
+            snapshot_attestation_version=publication.snapshot_attestation_version,
         )
 
     def _require_single_publication_for_rebuild_job(self, rebuild_job_id: str) -> None:
@@ -920,6 +923,7 @@ class RelationshipAssertionRepository:
             execution_id=self._require_publication_execution_id(publication.execution_id),
             published_at=published_at,
             snapshot_sha256=publication.snapshot_sha256,
+            snapshot_attestation_version=publication.snapshot_attestation_version,
         )
 
         self._require_single_publication_for_rebuild_job(
@@ -1062,6 +1066,8 @@ class RelationshipAssertionRepository:
         """
         if not isinstance(request.snapshot_sha256, str) or not re.fullmatch(r"[0-9a-f]{64}", request.snapshot_sha256):
             raise ValidationError("publication requires a lowercase SHA-256 snapshot digest")
+        if request.snapshot_attestation_version not in {"v1", "v2"}:
+            raise ValidationError("publication snapshot attestation version is unsupported")
         execution_id = request.execution_id
         if not isinstance(execution_id, str) or not execution_id.strip():
             raise ValidationError("publication execution_id must be non-null and non-empty")
@@ -1077,6 +1083,7 @@ class RelationshipAssertionRepository:
             edge_count=request.edge_count,
             duration_ms=request.duration_ms,
             snapshot_sha256=request.snapshot_sha256,
+            snapshot_attestation_version=request.snapshot_attestation_version,
         )
         persisted = self.persist_projection_revision(request.projection)
 
@@ -1092,6 +1099,7 @@ class RelationshipAssertionRepository:
                         execution_id=execution_id,
                         published_at=published_at,
                         snapshot_sha256=request.snapshot_sha256,
+                        snapshot_attestation_version=request.snapshot_attestation_version,
                     )
                 )
                 self._session.flush()
@@ -1106,6 +1114,7 @@ class RelationshipAssertionRepository:
             execution_id=execution_id,
             published_at=published_at,
             snapshot_sha256=request.snapshot_sha256,
+            snapshot_attestation_version=request.snapshot_attestation_version,
         )
 
     def current_state(self, assertion_id: str) -> LifecycleState:

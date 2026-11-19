@@ -31,6 +31,7 @@ ALLOWED_MIGRATIONS = frozenset(
         "003_add_execution_identity_and_checkpoint_columns.sql",
         "004_add_cancellation_columns.sql",
         "007_add_snapshot_attestation.sql",
+        "008_add_equity_valuation_metrics.sql",
     ]
 )
 
@@ -89,6 +90,9 @@ def apply_migrations(db_path: Path | str) -> None:
 
         # Migration 007: Add snapshot attestation columns (conditional)
         _apply_upgrade_007_snapshot_attestation_columns(connection)
+
+        # Migration 008: Add valuation metrics and snapshot attestation versions (conditional)
+        _apply_upgrade_008_equity_valuation_metrics(connection)
 
 
 # ---------------------------------------------------------------------------
@@ -289,6 +293,39 @@ def _apply_upgrade_007_snapshot_attestation_columns(connection: sqlite3.Connecti
         existing_pub_columns = {row[1] for row in pub_cursor}
         if "snapshot_sha256" not in existing_pub_columns:
             connection.execute("ALTER TABLE relationship_projection_publications ADD COLUMN snapshot_sha256 TEXT")
+
+
+def _apply_upgrade_008_equity_valuation_metrics(connection: sqlite3.Connection) -> None:
+    """Add optional equity valuation metrics and versioned snapshot attestations to SQLite."""
+    asset_columns = {row[1] for row in connection.execute("PRAGMA table_info(assets)")}
+    valuation_columns = {
+        "forward_pe_ratio": 'ALTER TABLE assets ADD COLUMN "forward_pe_ratio" REAL',
+        "peg_ratio": 'ALTER TABLE assets ADD COLUMN "peg_ratio" REAL',
+        "price_to_sales_ratio": 'ALTER TABLE assets ADD COLUMN "price_to_sales_ratio" REAL',
+        "price_to_book_ratio": 'ALTER TABLE assets ADD COLUMN "price_to_book_ratio" REAL',
+        "eps_growth_next_year": 'ALTER TABLE assets ADD COLUMN "eps_growth_next_year" REAL',
+        "eps_growth_next_5_years": 'ALTER TABLE assets ADD COLUMN "eps_growth_next_5_years" REAL',
+    }
+    for name, statement in valuation_columns.items():
+        if name not in asset_columns:
+            connection.execute(statement)  # nosec B608 - static allowlisted statements
+
+    job_columns = {row[1] for row in connection.execute(_REBUILD_JOBS_TABLE_INFO_QUERY)}
+    if "snapshot_attestation_version" not in job_columns:
+        connection.execute(
+            "ALTER TABLE rebuild_jobs ADD COLUMN snapshot_attestation_version TEXT NOT NULL DEFAULT 'v1'"
+        )
+
+    tables = connection.execute(
+        "SELECT name FROM sqlite_master WHERE type='table' AND name='relationship_projection_publications'"
+    )
+    if tables.fetchone() is not None:
+        pub_columns = {row[1] for row in connection.execute("PRAGMA table_info(relationship_projection_publications)")}
+        if "snapshot_attestation_version" not in pub_columns:
+            connection.execute(
+                "ALTER TABLE relationship_projection_publications "
+                "ADD COLUMN snapshot_attestation_version TEXT NOT NULL DEFAULT 'v1'"
+            )
 
 
 # ---------------------------------------------------------------------------

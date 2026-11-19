@@ -138,6 +138,12 @@ class Equity(Asset):
     dividend_yield: float | None = None
     earnings_per_share: float | None = None
     book_value: float | None = None
+    forward_pe_ratio: float | None = None
+    peg_ratio: float | None = None
+    price_to_sales_ratio: float | None = None
+    price_to_book_ratio: float | None = None
+    eps_growth_next_year: float | None = None
+    eps_growth_next_5_years: float | None = None
 
 
 @dataclass

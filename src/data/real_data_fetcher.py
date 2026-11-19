@@ -30,6 +30,15 @@ UTC = timezone.utc
 logger = logging.getLogger(__name__)
 
 
+def _optional_finite_float(value: Any) -> float | None:
+    """Return a finite optional numeric provider value, ignoring missing or non-finite values."""
+    try:
+        normalized = float(value) if value is not None else None
+    except (TypeError, ValueError):
+        return None
+    return normalized if normalized is not None and math.isfinite(normalized) else None
+
+
 class FetchCancelledError(RebuildCancelledError):
     """Raised when data fetching is aborted via a cancellation signal."""
 
@@ -686,7 +695,15 @@ class RealDataFetcher:
                     asset_class=AssetClass.EQUITY,
                     sector=sector,
                     price=current_price,
-                    market_cap=info.get("marketCap"),
+                    market_cap=_optional_finite_float(info.get("marketCap")),
+                    pe_ratio=_optional_finite_float(info.get("trailingPE")),
+                    dividend_yield=_optional_finite_float(info.get("dividendYield")),
+                    earnings_per_share=_optional_finite_float(info.get("trailingEps")),
+                    book_value=_optional_finite_float(info.get("bookValue")),
+                    forward_pe_ratio=_optional_finite_float(info.get("forwardPE")),
+                    peg_ratio=_optional_finite_float(info.get("pegRatio")),
+                    price_to_sales_ratio=_optional_finite_float(info.get("priceToSalesTrailing12Months")),
+                    price_to_book_ratio=_optional_finite_float(info.get("priceToBook")),
                 )
                 equities.append(equity)
 

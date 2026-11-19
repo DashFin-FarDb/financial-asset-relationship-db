@@ -14,6 +14,7 @@ import pytest
 from src.data.repository import AssetGraphRepository
 from src.logic.asset_graph import AssetRelationshipGraph
 from src.logic.snapshot_attestation import (
+    ATTESTATION_VERSION_V2,
     compute_graph_snapshot_hash,
     compute_repository_snapshot_hash,
     generate_snapshot_canonical_payload,
@@ -62,6 +63,12 @@ def test_snapshot_attestation_sqlite_roundtrip(tmp_path: Path) -> None:
 
     # Equities with typical Equity nullable attributes (bond/commodity fields are None)
     aapl, msft = create_sample_equity_pair()
+    aapl.forward_pe_ratio = 27.0
+    aapl.peg_ratio = 1.5
+    aapl.price_to_sales_ratio = 10.2
+    aapl.price_to_book_ratio = 42.0
+    aapl.eps_growth_next_year = 0.14
+    aapl.eps_growth_next_5_years = 0.11
     # Bond with specific nullable attributes
     corp_bond = Bond(
         id="CORP-BOND-1",
@@ -141,6 +148,7 @@ def test_snapshot_attestation_sqlite_roundtrip(tmp_path: Path) -> None:
     # 2. Compute canonical payload and hash for published in-memory graph
     published_canon_str, published_canon_bytes = _extract_canonical_payload(graph)
     published_hash = compute_graph_snapshot_hash(graph)
+    published_hash_v2 = compute_graph_snapshot_hash(graph, attestation_version=ATTESTATION_VERSION_V2)
 
     # 3. Persist graph snapshot into SQLite via AssetGraphRepository
     with session_factory() as session:
@@ -153,8 +161,10 @@ def test_snapshot_attestation_sqlite_roundtrip(tmp_path: Path) -> None:
         repo = AssetGraphRepository(session)
         loaded_graph = repo.load_graph()
         repo_hash = compute_repository_snapshot_hash(repo)
+        repo_hash_v2 = compute_repository_snapshot_hash(repo, attestation_version=ATTESTATION_VERSION_V2)
 
     loaded_hash = compute_graph_snapshot_hash(loaded_graph)
+    loaded_hash_v2 = compute_graph_snapshot_hash(loaded_graph, attestation_version=ATTESTATION_VERSION_V2)
     loaded_canon_str, loaded_canon_bytes = _extract_canonical_payload(loaded_graph)
 
     # 5. Invariant verification
@@ -170,3 +180,4 @@ def test_snapshot_attestation_sqlite_roundtrip(tmp_path: Path) -> None:
     assert published_canon_str == loaded_canon_str
     assert published_hash == loaded_hash
     assert published_hash == repo_hash
+    assert published_hash_v2 == loaded_hash_v2 == repo_hash_v2

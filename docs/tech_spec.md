@@ -4303,6 +4303,12 @@ classDiagram
         +Optional[float] dividend_yield
         +Optional[float] earnings_per_share
         +Optional[float] book_value
+        +Optional[float] forward_pe_ratio
+        +Optional[float] peg_ratio
+        +Optional[float] price_to_sales_ratio
+        +Optional[float] price_to_book_ratio
+        +Optional[float] eps_growth_next_year
+        +Optional[float] eps_growth_next_5_years
     }
 
     class Bond {
@@ -5499,6 +5505,12 @@ The `assets` table uses a **wide table design** with nullable type-specific colu
 | `dividend_yield`     | REAL | NULLABLE    | Annual dividend yield   |
 | `earnings_per_share` | REAL | NULLABLE    | EPS value               |
 | `book_value`         | REAL | NULLABLE    | Book value per share    |
+| `forward_pe_ratio`   | REAL | NULLABLE    | Forward price-to-earnings ratio |
+| `peg_ratio`          | REAL | NULLABLE    | Price/earnings-to-growth ratio |
+| `price_to_sales_ratio` | REAL | NULLABLE  | Price-to-sales ratio    |
+| `price_to_book_ratio`  | REAL | NULLABLE  | Price-to-book ratio     |
+| `eps_growth_next_year` | REAL | NULLABLE  | Expected EPS growth next year, fraction |
+| `eps_growth_next_5_years` | REAL | NULLABLE | Expected annualized EPS growth over the next five years, fraction |
 
 #### Fixed Income Columns
 

@@ -8,6 +8,7 @@ from decimal import Decimal
 import pytest
 
 from src.logic.snapshot_attestation import (
+    ATTESTATION_VERSION_V2,
     CanonicalizationValidationError,
     canonical_json_dumps,
     canonicalize_asset,
@@ -72,6 +73,44 @@ def test_golden_vector_1_empty_snapshot() -> None:
     assert len(canon_bytes) == VECTOR_1_BYTE_LEN
     assert hashlib.sha256(canon_bytes).hexdigest() == VECTOR_1_SHA256
     assert compute_snapshot_attestation_hash(assets=[], relationships=[], regulatory_events=[]) == VECTOR_1_SHA256
+
+
+def test_v2_attestation_covers_equity_valuation_metrics() -> None:
+    """V2 hashes valuation metrics while V1 remains backward-compatible."""
+    asset = Equity(
+        id="VAL1",
+        symbol="VAL1",
+        name="Valuation Test",
+        asset_class=AssetClass.EQUITY,
+        sector="Technology",
+        price=100.0,
+        forward_pe_ratio=20.0,
+        peg_ratio=1.4,
+        price_to_sales_ratio=5.2,
+        price_to_book_ratio=7.3,
+        eps_growth_next_year=0.12,
+        eps_growth_next_5_years=0.10,
+    )
+    v1_hash = compute_snapshot_attestation_hash(assets=[asset], relationships=[], regulatory_events=[])
+    v2_hash = compute_snapshot_attestation_hash(
+        assets=[asset], relationships=[], regulatory_events=[], attestation_version=ATTESTATION_VERSION_V2
+    )
+    changed_asset = Equity(
+        id="VAL1",
+        symbol="VAL1",
+        name="Valuation Test",
+        asset_class=AssetClass.EQUITY,
+        sector="Technology",
+        price=100.0,
+        peg_ratio=1.5,
+    )
+    assert compute_snapshot_attestation_hash(assets=[changed_asset], relationships=[], regulatory_events=[]) == v1_hash
+    assert (
+        compute_snapshot_attestation_hash(
+            assets=[changed_asset], relationships=[], regulatory_events=[], attestation_version=ATTESTATION_VERSION_V2
+        )
+        != v2_hash
+    )
 
 
 def test_golden_vector_2_two_asset_snapshot() -> None:
@@ -435,7 +474,7 @@ def test_unsupported_versions_rejection() -> None:
             assets=[aapl],
             relationships=[],
             regulatory_events=[],
-            attestation_version="v2",
+            attestation_version="v3",
         )
 
     with pytest.raises(CanonicalizationValidationError, match="Unsupported contract_version"):
