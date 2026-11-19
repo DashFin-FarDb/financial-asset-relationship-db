@@ -305,17 +305,32 @@ def test_rebuild_returns_503_when_operator_authorization_not_configured(
     assert response.json()["detail"] == REBUILD_OPERATOR_NOT_CONFIGURED_DETAIL
 
 
-async def test_rebuild_admission_metrics_count_accepted_and_rejected_requests() -> None:
+async def test_rebuild_admission_metrics_count_admitted_and_busy_rejections(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     """Fail-fast admission metrics distinguish admitted work from busy rejection."""
-    before = {
-        result: sum(
+    from unittest.mock import MagicMock
+
+    from src.data.distributed_lock import LockAcquisitionTimeout, LockState
+
+    def counter_value(result: str) -> float:
+        """Read one bounded admission outcome counter."""
+        return sum(
             sample.value
             for family in graph_admin.GRAPH_REBUILD_ADMISSION_TOTAL.collect()
             for sample in family.samples
             if sample.name == "graph_rebuild_admission_total" and sample.labels == {"result": result}
         )
-        for result in ("accepted", "rejected_busy")
+
+    before = {
+        result: counter_value(result) for result in ("accepted", "rejected_busy")
     }
+
+    valid_lock = MagicMock()
+    valid_lock.check_state.return_value = LockState.VALID
+    monkeypatch.setattr(graph_admin, "_validate_coordination_database_primary", lambda _factory: None)
+    monkeypatch.setattr(graph_admin, "DistributedLock", lambda **_kwargs: valid_lock)
+    graph_admin._acquire_rebuild_lock(MagicMock(), 30)  # pylint: disable=protected-access
 
     try:
         graph_admin._claim_rebuild_or_raise()  # pylint: disable=protected-access
@@ -324,18 +339,16 @@ async def test_rebuild_admission_metrics_count_accepted_and_rejected_requests() 
     finally:
         graph_admin._REBUILD_RUNTIME.mark_idle(succeeded=True)  # pylint: disable=protected-access
 
+    timeout_lock = MagicMock()
+    timeout_lock.acquire.side_effect = LockAcquisitionTimeout("busy")
+    monkeypatch.setattr(graph_admin, "DistributedLock", lambda **_kwargs: timeout_lock)
+    with pytest.raises(graph_admin._DistributedLockAcquisitionError):  # pylint: disable=protected-access
+        graph_admin._acquire_rebuild_lock(MagicMock(), 30)  # pylint: disable=protected-access
+
     assert exc_info.value.status_code == 429
-    after = {
-        result: sum(
-            sample.value
-            for family in graph_admin.GRAPH_REBUILD_ADMISSION_TOTAL.collect()
-            for sample in family.samples
-            if sample.name == "graph_rebuild_admission_total" and sample.labels == {"result": result}
-        )
-        for result in ("accepted", "rejected_busy")
-    }
+    after = {result: counter_value(result) for result in ("accepted", "rejected_busy")}
     assert after["accepted"] - before["accepted"] == 1
-    assert after["rejected_busy"] - before["rejected_busy"] == 1
+    assert after["rejected_busy"] - before["rejected_busy"] == 2
 
 
 async def test_rebuild_returns_429_when_rebuild_already_running(

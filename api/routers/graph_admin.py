@@ -229,7 +229,6 @@ def _claim_rebuild_or_raise() -> asyncio.Lock:
         GRAPH_REBUILD_ADMISSION_TOTAL.labels(result="rejected_busy").inc()
         raise _rebuild_in_progress_error()
     _REBUILD_RUNTIME.mark_busy()
-    GRAPH_REBUILD_ADMISSION_TOTAL.labels(result="accepted").inc()
     return rebuild_lock
 
 
@@ -1226,6 +1225,7 @@ def _acquire_rebuild_lock(
         dist_lock.acquire()
     except LockAcquisitionTimeout as exc:
         record_rebuild_lock_acquisition("timeout")
+        GRAPH_REBUILD_ADMISSION_TOTAL.labels(result="rejected_busy").inc()
         raise _DistributedLockAcquisitionError(str(exc)) from exc
     except Exception:
         record_rebuild_lock_acquisition("error")
@@ -1239,6 +1239,7 @@ def _acquire_rebuild_lock(
         record_rebuild_lock_acquisition("invalid")
         raise RuntimeError(f"Unexpected coordination state after acquisition: {lock_state}")
 
+    GRAPH_REBUILD_ADMISSION_TOTAL.labels(result="accepted").inc()
     record_rebuild_lock_acquisition("acquired")
     return dist_lock
 
