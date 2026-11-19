@@ -5473,6 +5473,15 @@ flowchart TB
 
 The base database schema is defined in `migrations/001_initial.sql`. Current installations apply the ordered compatibility upgrades in `src/data/migrations.py`; migration 008 adds the nullable equity valuation columns and attestation-version fields described below. The table below therefore documents the base schema plus the applicable incremental migrations, not `001_initial.sql` alone.
 
+#### Snapshot Attestation Version Columns
+
+The `snapshot_attestation_version` field defaults to `v1` for existing records. SQLite applies the upgrade conditionally through `_apply_upgrade_008_equity_valuation_metrics` in `src/data/migrations.py`. PostgreSQL applies the equivalent graph-ledger change through `supabase/ledgers/graph/migrations/20261119070000_add_equity_valuation_metrics.sql`.
+
+| Table | Column | Type | Constraints | Purpose |
+| --- | --- | --- | --- | --- |
+| `rebuild_jobs` | `snapshot_attestation_version` | TEXT / VARCHAR(16) | NOT NULL, default `v1` | Selects the canonical field set used to verify the rebuild snapshot. |
+| `relationship_projection_publications` | `snapshot_attestation_version` | TEXT / VARCHAR(16) | NOT NULL, default `v1` | Binds the published projection to the snapshot attestation version. |
+
 #### Entity Tables Summary
 
 | Table                     | Purpose                      | Primary Key    | Record Count Expectation     |

@@ -122,6 +122,7 @@ def test_snapshot_attestation_checks_cancellation_during_large_asset_pass() -> N
     checks = 0
 
     def cancel_after_initial_check() -> None:
+        """Raise on the second interval check to simulate an active rebuild cancellation."""
         nonlocal checks
         checks += 1
         if checks == 2:
