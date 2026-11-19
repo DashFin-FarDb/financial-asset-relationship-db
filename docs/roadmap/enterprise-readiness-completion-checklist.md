@@ -353,7 +353,7 @@ remain open until the PRs merge and this snapshot is reconciled to merged commit
 | 1.4.a    | [#1929](https://github.com/DashFin-FarDb/financial-asset-relationship-db/pull/1929) | Fail-fast admission counter and corrected criterion             | 2 focused tests passed; Ruff and diff checks passed  |
 | 1.4.b    | [#1930](https://github.com/DashFin-FarDb/financial-asset-relationship-db/pull/1930) | Lifecycle transition assertions and RecoveryGate reset emission | 19 focused tests passed; Ruff and diff checks passed |
 | 1.4.c    | [#1931](https://github.com/DashFin-FarDb/financial-asset-relationship-db/pull/1931) | Lock acquisition outcome assertions                             | 6 focused tests passed; Ruff and diff checks passed  |
-| 1.4.d    | [#1932](https://github.com/DashFin-FarDb/financial-asset-relationship-db/pull/1932) | Startup success, failure, duration assertions                   | 4 focused tests passed; Ruff and diff checks passed  |
+| 1.4.d    | [#1932](https://github.com/DashFin-FarDb/financial-asset-relationship-db/pull/1932) | Startup success, failure, duration assertions                   | 5 focused tests passed; Ruff and diff checks passed  |
 
 At this audit snapshot, all five PRs are open with merge state **BLOCKED**. GitHub Actions Python matrix and coverage
 checks are failing across the PRs; the latest inspected jobs on PR #1929 failed before any step started (job step list
