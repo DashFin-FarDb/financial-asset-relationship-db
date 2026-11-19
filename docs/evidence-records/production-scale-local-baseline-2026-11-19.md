@@ -168,5 +168,4 @@ The calibrated profile catalog digests are recorded in `supabase/ledger-profiles
 `a222c7689cf1e235ab607feb8e9ee84a35d5f9efdc5c77be5db1992409ffaab0`. Auth and coordination digests remained
 unchanged. The local static ledger manifest validator passes against the updated manifest. This disposable proof
 does not test a hosted PostgreSQL target or establish production-scale readiness.
-
 **Redaction:** No credentials, raw export URL, or production data were recorded.
