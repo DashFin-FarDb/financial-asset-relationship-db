@@ -13,6 +13,11 @@ import pytest
 from fastapi import FastAPI
 
 from api import app_factory
+from api.metrics import (
+    APPLICATION_STARTUP_DURATION,
+    APPLICATION_STARTUP_FAILURE_TOTAL,
+    APPLICATION_STARTUP_SUCCESS_TOTAL,
+)
 from src.config.settings import DeploymentEnvironment
 from src.data.database import SchemaCompatibilityError
 from src.data.sample_data import create_sample_database
@@ -58,6 +63,76 @@ async def test_lifespan_calls_shutdown_rebuild_executor_on_exit(
         assert shutdown_calls == []
 
     assert shutdown_calls == [True]
+
+
+def _mock_startup_lifecycle(monkeypatch: pytest.MonkeyPatch, settings: SimpleNamespace) -> None:
+    """Replace startup dependencies with a minimal deterministic lifecycle."""
+    monkeypatch.setattr("api.graph_lifecycle_providers.get_graph_lifecycle_settings", lambda: settings)
+    monkeypatch.setattr(app_factory, "_get_durable_graph_database_url", lambda _settings: None)
+    monkeypatch.setattr(app_factory, "should_degrade_hosted_startup", lambda _settings: False)
+    monkeypatch.setattr(app_factory, "_start_background_tasks", lambda *_args: (None, None, None))
+
+    async def initialize(*_args) -> None:
+        """Complete startup state initialization."""
+
+    async def shutdown(*_args) -> None:
+        """Complete orderly shutdown."""
+
+    monkeypatch.setattr(app_factory, "_initialize_application_state", initialize)
+    monkeypatch.setattr(app_factory, "_perform_orderly_shutdown", shutdown)
+
+
+@pytest.mark.asyncio
+async def test_lifespan_emits_startup_success_and_duration(
+    monkeypatch: pytest.MonkeyPatch,
+    base_settings: SimpleNamespace,
+) -> None:
+    """Successful lifespan startup increments success and observes duration."""
+    success = MagicMock()
+    failure = MagicMock()
+    duration = MagicMock()
+    monkeypatch.setattr(APPLICATION_STARTUP_SUCCESS_TOTAL, "inc", success)
+    monkeypatch.setattr(APPLICATION_STARTUP_FAILURE_TOTAL, "inc", failure)
+    monkeypatch.setattr(APPLICATION_STARTUP_DURATION, "observe", duration)
+    _mock_startup_lifecycle(monkeypatch, base_settings)
+
+    async with app_factory.lifespan(FastAPI()):
+        pass
+
+    success.assert_called_once_with()
+    failure.assert_not_called()
+    duration.assert_called_once()
+    assert duration.call_args.args[0] >= 0
+
+
+@pytest.mark.asyncio
+async def test_lifespan_emits_startup_failure_and_duration(
+    monkeypatch: pytest.MonkeyPatch,
+    base_settings: SimpleNamespace,
+) -> None:
+    """Failed lifespan startup increments failure and still observes duration."""
+    success = MagicMock()
+    failure = MagicMock()
+    duration = MagicMock()
+    monkeypatch.setattr(APPLICATION_STARTUP_SUCCESS_TOTAL, "inc", success)
+    monkeypatch.setattr(APPLICATION_STARTUP_FAILURE_TOTAL, "inc", failure)
+    monkeypatch.setattr(APPLICATION_STARTUP_DURATION, "observe", duration)
+    _mock_startup_lifecycle(monkeypatch, base_settings)
+
+    async def fail_initialization(*_args) -> None:
+        """Fail startup state initialization."""
+        raise RuntimeError("startup failed")
+
+    monkeypatch.setattr(app_factory, "_initialize_application_state", fail_initialization)
+
+    with pytest.raises(RuntimeError, match="startup failed"):
+        async with app_factory.lifespan(FastAPI()):
+            pass
+
+    success.assert_not_called()
+    failure.assert_called_once_with()
+    duration.assert_called_once()
+    assert duration.call_args.args[0] >= 0
 
 
 @pytest.mark.asyncio
