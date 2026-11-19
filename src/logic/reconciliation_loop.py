@@ -56,7 +56,12 @@ def _run_sync_reconciliation(
     """Execute a single synchronous reconciliation pass."""
     import time
 
-    from api.metrics import RECONCILIATION_DURATION, increment_recovery_trigger, record_drift_metric
+    from api.metrics import (
+        RECONCILIATION_DURATION,
+        increment_recovery_trigger,
+        record_drift_metric,
+        record_rebuild_state_transition,
+    )
     from src.logic.recovery_gate import RecoveryGate
 
     start_time = time.perf_counter()
@@ -74,6 +79,7 @@ def _run_sync_reconciliation(
         lock_ttl_seconds=bounded_lock_ttl,
         enable_automatic_recovery=True,
         record_drift_metric=record_drift_metric,
+        record_state_transition=record_rebuild_state_transition,
     )
 
     try:

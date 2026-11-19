@@ -279,7 +279,7 @@ def _execute_recovery_gate(engine: Any, coord_engine: Any, cancellation_event: t
     from src.data.distributed_lock import DistributedLock
     from src.logic.recovery_gate import RecoveryGate
 
-    from .metrics import increment_recovery_trigger
+    from .metrics import increment_recovery_trigger, record_rebuild_state_transition
 
     session_factory = create_session_factory(engine)
     coord_session_factory = create_session_factory(coord_engine) if coord_engine is not engine else session_factory
@@ -296,6 +296,7 @@ def _execute_recovery_gate(engine: Any, coord_engine: Any, cancellation_event: t
         runtime_has_active_executor=False,
         lock_ttl_seconds=int(_STARTUP_RECONCILIATION_LOCK_TTL_SECONDS),
         enable_automatic_recovery=False,
+        record_state_transition=record_rebuild_state_transition,
     )
 
     try:

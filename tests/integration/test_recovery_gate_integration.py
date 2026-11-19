@@ -120,15 +120,16 @@ def test_recovery_gate_resets_orphaned_running_job(session_factory):
         lock_name=_LOCK_NAME,
         ttl_seconds=_LOCK_TTL,
     )
+    from api.metrics import GRAPH_REBUILD_STATE_TRANSITION_TOTAL, record_rebuild_state_transition
+
     gate = RecoveryGate(
         session_factory=session_factory,
         lock=lock,
         runtime_has_active_executor=False,
         lock_ttl_seconds=_LOCK_TTL,
         enable_automatic_recovery=True,
+        record_state_transition=record_rebuild_state_transition,
     )
-
-    from api.metrics import GRAPH_REBUILD_STATE_TRANSITION_TOTAL
 
     before = sum(
         sample.value

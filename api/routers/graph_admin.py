@@ -1307,6 +1307,7 @@ def _perform_rebuild_and_persist_sync(
             increment_recovery_trigger=increment_recovery_trigger,
             runtime_has_active_executor=False,
             lock_ttl_seconds=lock_ttl,
+            record_state_transition=record_rebuild_state_transition,
         ).ensure_safe_to_execute()
 
         # Create rebuild job

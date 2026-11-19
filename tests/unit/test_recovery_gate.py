@@ -647,3 +647,34 @@ def test_reset_active_job_blocks_on_lock_loss_and_guards_rollback(mock_session_f
         gate._reset_active_job(DummyJob(), repo, mock_session, "test_drift")
 
     assert mock_session.rollback.call_count == 1
+
+
+def test_reset_active_job_ignores_transition_metric_failure(mock_session_factory, mock_lock):
+    """Recovery commit remains authoritative if the optional transition metric callback fails."""
+    def fail_metric(_source, _target):
+        """Simulate a metrics registry failure."""
+        raise RuntimeError("metric unavailable")
+
+    gate = RecoveryGate(
+        session_factory=mock_session_factory,
+        lock=mock_lock,
+        runtime_has_active_executor=False,
+        record_state_transition=fail_metric,
+    )
+    mock_lock.check_state.return_value = LockState.VALID
+    mock_lock.holder_id = "current-worker"
+    repo = MagicMock()
+    mock_session = mock_session_factory.return_value
+
+    class OrphanedJob:
+        """Minimal stale job record for reset-path verification."""
+
+        job_id = "job-1"
+        active_worker_id = "stale-worker"
+        execution_id = "exec-1"
+        last_heartbeat_at = None
+
+    gate._reset_active_job(OrphanedJob(), repo, mock_session, "orphaned_running")
+
+    repo.mark_rebuild_job_failed.assert_called_once()
+    mock_session.commit.assert_called_once()
