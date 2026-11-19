@@ -835,7 +835,7 @@ async def test_lifespan_emits_failure_event_on_startup_exception(
     assert logged_events[1].event == "startup_failed"
     assert "RuntimeError" in logged_events[1].message
     assert logged_events[1].metadata["error"] == "RuntimeError"
-    assert "Failed to load persisted graph during startup" in logged_events[1].metadata["message"]
+    assert "message" not in logged_events[1].metadata
     assert "trace_id" in logged_events[1].metadata
     assert "span_id" in logged_events[1].metadata
 
