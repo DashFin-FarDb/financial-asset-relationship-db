@@ -5,6 +5,10 @@ For the broader enterprise-readiness audit and rollout plan, see [docs/enterpris
 **Date:** June 18, 2026
 **Status:** Implemented
 
+**Verification note (2026-11-19):** This status records the observability design and catalog, not live hosted scrape
+validation or Phase 1.4 completion. Current repo and dashboard metric-name reconciliation, open implementation PRs, and
+hosted target evidence are tracked in the [Phase 1.4 checklist](roadmap/enterprise-readiness-completion-checklist.md#10-phase-14-observability-metrics-ad).
+
 ## 1. Executive Summary
 This document serves as the single source of truth for the project's observability architecture, Service Level Objectives (SLOs), and telemetry design. It catalogs all telemetry emitted by the application, outlines the required Prometheus and Grafana infrastructure, and documents the explicit engineering decisions made to ensure the observability layer is scalable, safe, and maintainable at an enterprise scale.
 
