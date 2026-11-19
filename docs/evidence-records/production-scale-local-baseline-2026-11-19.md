@@ -170,4 +170,3 @@ unchanged. The local static ledger manifest validator passes against the updated
 does not test a hosted PostgreSQL target or establish production-scale readiness.
 
 **Redaction:** No credentials, raw export URL, or production data were recorded.
-
