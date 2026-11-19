@@ -383,6 +383,13 @@ authorization changes update the canonical state-machine authority. SQLite compa
 **Status at publication:** Partially satisfied — representative CI fixtures exist; production-scale evidence is not yet
 recorded.
 
+**Evidence update — 2026-11-19:** Draft PR [#1925](https://github.com/DashFin-FarDb/financial-asset-relationship-db/pull/1925)
+records a deterministic 10,000-asset / 50,000-edge SQLite persistence run; a one-time 148-asset / 14,520-edge market-
+data functionality probe; persistence, API, and analysis observations; and an operator-reported host-attested
+PostgreSQL 16.14 disposable migration-profile proof (auth, graph, coordination, combined: 4/4 passed). The host proof's
+exact source SHA was not captured. It validates ledger/catalog profiles, not the asset-graph workload, hosted staging,
+or production capacity. The item remains partially satisfied.
+
 **Sources:** [Roadmap — Follow-up Hardening Later](enterprise-readiness-roadmap.md#follow-up-hardening-later),
 [Index — Roadmap Status Snapshot](../enterprise-readiness-index.md#roadmap-status-snapshot),
 [Operational drill and scale-validation pack — Scale-Validation Guidance](../testing/operational-drill-and-scale-validation-pack.md#scale-validation-guidance).

@@ -1,7 +1,7 @@
 # Enterprise Readiness Index
 
 **Publication date:** 2026-07-15
-**Last reconciled:** 2026-08-21
+**Last reconciled:** 2026-11-19 (limited evidence and tracking update; not a new full-repository audit)
 **Purpose:** Single entry point for enterprise-readiness audit, roadmap, PR plan, release criteria, and release evidence
 
 ## What To Read
@@ -44,6 +44,15 @@ Staging H-P0-04 is Satisfied by the SHA-bound record `db_authz: PASS|run-3000200
 restart composition is Satisfied - automated. Neither result is inherited by a later hosted target or release SHA.
 
 The remaining work is no longer primarily architectural. It is concentrated in live release evidence and bounded follow-up hardening:
+
+### Dated evidence update — 2026-11-19
+
+Draft PR [#1925](https://github.com/DashFin-FarDb/financial-asset-relationship-db/pull/1925) adds advisory local
+scale and functionality observations plus an operator-reported host-attested PostgreSQL 16.14 disposable ledger-profile
+proof. These results improve coverage of the project’s persistence and analysis behavior but do not establish a
+production-scale asset-graph workload or hosted staging. The PostgreSQL run’s exact source SHA was not captured. See
+the [production-scale checklist item](roadmap/enterprise-readiness-completion-checklist.md#12-production-scale-validation)
+for the evidence boundary and remaining criteria.
 
 - fresh SHA-bound database authorization evidence when a production artefact is selected for promotion;
 - hosted promotion evidence showing durable graph truth in the target environment (coordinated via
