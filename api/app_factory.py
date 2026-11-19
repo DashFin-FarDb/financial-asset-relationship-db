@@ -457,19 +457,18 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         APPLICATION_STARTUP_SUCCESS_TOTAL,
     )
 
-    settings = get_graph_lifecycle_settings()
-    database_url = _get_durable_graph_database_url(settings)
-    has_persistence_flag = getattr(settings, "has_durable_graph_persistence", None)
-    has_persistence = bool(has_persistence_flag) if has_persistence_flag is not None else bool(database_url)
-    hosted_startup_degradation_allowed = should_degrade_hosted_startup(settings)
-
-    trace_id, span_id = _generate_startup_trace_ids()
-
-    # Wrap the entire state initialization in a dedicated trace context.
-    # This guarantees a fail-fast startup: if context initialization or graph
-    # load fails, it will raise immediately before FastAPI accepts HTTP traffic.
     start_time = time.perf_counter()
     try:
+        settings = get_graph_lifecycle_settings()
+        database_url = _get_durable_graph_database_url(settings)
+        has_persistence_flag = getattr(settings, "has_durable_graph_persistence", None)
+        has_persistence = bool(has_persistence_flag) if has_persistence_flag is not None else bool(database_url)
+        hosted_startup_degradation_allowed = should_degrade_hosted_startup(settings)
+        trace_id, span_id = _generate_startup_trace_ids()
+
+        # Wrap the entire state initialization in a dedicated trace context.
+        # This guarantees a fail-fast startup: if context initialization or graph
+        # load fails, it will raise immediately before FastAPI accepts HTTP traffic.
         async with async_trace_context(trace_id=trace_id, span_id=span_id):
             logger.debug("Initiating traced startup sequence (trace_id=%s, span_id=%s)", trace_id, span_id)
             try:

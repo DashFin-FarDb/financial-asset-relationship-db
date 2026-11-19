@@ -136,6 +136,36 @@ async def test_lifespan_emits_startup_failure_and_duration(
 
 
 @pytest.mark.asyncio
+async def test_lifespan_emits_metrics_when_settings_resolution_fails(
+    monkeypatch: pytest.MonkeyPatch,
+    base_settings: SimpleNamespace,
+) -> None:
+    """Configuration failures before state initialization still increment startup failure and duration."""
+    success = MagicMock()
+    failure = MagicMock()
+    duration = MagicMock()
+    monkeypatch.setattr(APPLICATION_STARTUP_SUCCESS_TOTAL, "inc", success)
+    monkeypatch.setattr(APPLICATION_STARTUP_FAILURE_TOTAL, "inc", failure)
+    monkeypatch.setattr(APPLICATION_STARTUP_DURATION, "observe", duration)
+    _mock_startup_lifecycle(monkeypatch, base_settings)
+
+    def fail_settings_resolution():
+        """Simulate invalid configuration before startup state initialization."""
+        raise RuntimeError("settings resolution failed")
+
+    monkeypatch.setattr("api.graph_lifecycle_providers.get_graph_lifecycle_settings", fail_settings_resolution)
+
+    with pytest.raises(RuntimeError, match="settings resolution failed"):
+        async with app_factory.lifespan(FastAPI()):
+            pass
+
+    success.assert_not_called()
+    failure.assert_called_once_with()
+    duration.assert_called_once()
+    assert duration.call_args.args[0] >= 0
+
+
+@pytest.mark.asyncio
 async def test_sync_loop_stops_without_syncing_when_shutting_down(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
