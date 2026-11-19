@@ -567,7 +567,15 @@ class RecoveryGate:
         try:
             self.record_state_transition("running", "failed")
         except Exception as exc:  # Observability must not alter recovery behavior.
-            logger.debug("Recovery transition metric failed: %s", type(exc).__name__)
+            log_event(
+                logger,
+                logging.WARNING,
+                ObservabilityEvent(
+                    event="recovery_transition_metric_failed",
+                    message="Failed to record recovery state transition metric.",
+                    metadata={"error": type(exc).__name__},
+                ),
+            )
 
     def _perform_reset_recovery(
         self,

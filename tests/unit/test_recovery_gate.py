@@ -656,11 +656,12 @@ def test_reset_active_job_ignores_transition_metric_failure(mock_session_factory
         """Simulate a metrics registry failure."""
         raise RuntimeError("metric unavailable")
 
+    record_transition = MagicMock(side_effect=fail_metric)
     gate = RecoveryGate(
         session_factory=mock_session_factory,
         lock=mock_lock,
         runtime_has_active_executor=False,
-        record_state_transition=fail_metric,
+        record_state_transition=record_transition,
     )
     mock_lock.check_state.return_value = LockState.VALID
     mock_lock.holder_id = "current-worker"
@@ -679,3 +680,4 @@ def test_reset_active_job_ignores_transition_metric_failure(mock_session_factory
 
     repo.mark_rebuild_job_failed.assert_called_once()
     mock_session.commit.assert_called_once()
+    record_transition.assert_called_once_with("running", "failed")
