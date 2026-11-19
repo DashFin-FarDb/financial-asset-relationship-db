@@ -80,6 +80,7 @@ from ..graph_lifecycle_providers import (
     stage_graph_snapshot,
 )
 from ..metrics import (
+    GRAPH_REBUILD_ADMISSION_TOTAL,
     HEARTBEAT_LAST_SUCCESS_TIMESTAMP,
     HEARTBEAT_UPDATE_TOTAL,
     LOCK_REFRESH_DURATION,
@@ -225,8 +226,10 @@ def _claim_rebuild_or_raise() -> asyncio.Lock:
     """Claim rebuild execution or raise a fail-fast HTTP error."""
     rebuild_lock = _REBUILD_RUNTIME.get_lock()
     if _REBUILD_RUNTIME.is_busy() or rebuild_lock.locked():
+        GRAPH_REBUILD_ADMISSION_TOTAL.labels(result="rejected_busy").inc()
         raise _rebuild_in_progress_error()
     _REBUILD_RUNTIME.mark_busy()
+    GRAPH_REBUILD_ADMISSION_TOTAL.labels(result="accepted").inc()
     return rebuild_lock
 
 

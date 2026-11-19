@@ -305,6 +305,39 @@ def test_rebuild_returns_503_when_operator_authorization_not_configured(
     assert response.json()["detail"] == REBUILD_OPERATOR_NOT_CONFIGURED_DETAIL
 
 
+async def test_rebuild_admission_metrics_count_accepted_and_rejected_requests() -> None:
+    """Fail-fast admission metrics distinguish admitted work from busy rejection."""
+    before = {
+        result: sum(
+            sample.value
+            for family in graph_admin.GRAPH_REBUILD_ADMISSION_TOTAL.collect()
+            for sample in family.samples
+            if sample.name == "graph_rebuild_admission_total" and sample.labels == {"result": result}
+        )
+        for result in ("accepted", "rejected_busy")
+    }
+
+    try:
+        graph_admin._claim_rebuild_or_raise()  # pylint: disable=protected-access
+        with pytest.raises(HTTPException) as exc_info:
+            graph_admin._claim_rebuild_or_raise()  # pylint: disable=protected-access
+    finally:
+        graph_admin._REBUILD_RUNTIME.mark_idle(succeeded=True)  # pylint: disable=protected-access
+
+    assert exc_info.value.status_code == 429
+    after = {
+        result: sum(
+            sample.value
+            for family in graph_admin.GRAPH_REBUILD_ADMISSION_TOTAL.collect()
+            for sample in family.samples
+            if sample.name == "graph_rebuild_admission_total" and sample.labels == {"result": result}
+        )
+        for result in ("accepted", "rejected_busy")
+    }
+    assert after["accepted"] - before["accepted"] == 1
+    assert after["rejected_busy"] - before["rejected_busy"] == 1
+
+
 async def test_rebuild_returns_429_when_rebuild_already_running(
     caplog: pytest.LogCaptureFixture,
     mock_settings: Any,
