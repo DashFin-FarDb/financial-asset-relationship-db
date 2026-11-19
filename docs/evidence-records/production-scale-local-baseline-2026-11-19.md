@@ -185,6 +185,16 @@ ledger validator passes on the PR candidate with manifest SHA-256
 `6dc33c8d60da35c9360f4214eaa1aeeb6d75c8c215ecca9bd318a60e2fcc32a1`; the host report did not independently record
 that manifest SHA. The disposable profile proof validates migration/catalog profiles, not hosted state or production-
 scale asset-graph workload.
+
+**Review-time exact-revision repeat:** On 2026-11-19, commit `27b0e24d22d219b3e8816b6f89065cfbed780a7f` was run
+through the repository's ownership-attested disposable PostgreSQL 16 harness with Supabase CLI `2.114.0`. The
+manifest validator reported SHA-256 `6dc33c8d60da35c9360f4214eaa1aeeb6d75c8c215ecca9bd318a60e2fcc32a1`; all four
+profiles (auth, graph, coordination, combined) passed in 1837.49 seconds. The harness reported
+`cli_compatible: true`, `host_attested: true`, `exit_code: 0`, `container_removed: true`,
+`owned_volume_removed: true`, and preservation of pre-existing containers and volumes. The later documentation and
+style commits `9160292142f7e0356ee76d8cc10681941341a2d6` and `16933a307921a43bbad37071cef11d5dbff10aa8` did not
+change `supabase/ledger-profiles.json` or the valuation graph-ledger migration, so the catalog proof remains bound to
+the ledger inputs in the current PR head. This remains local disposable evidence, not hosted or production proof.
 **Redaction:** No credentials, raw export URL, or production data were recorded.
 
 ### Review follow-up: source mapping and revision limits
