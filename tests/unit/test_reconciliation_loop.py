@@ -285,6 +285,7 @@ async def test_periodic_reconciliation_loop_skips_when_not_ready(monkeypatch):
         database_url="sqlite://",
         is_shutdown_fn=mock_is_shutdown,
         run_with_trace_fn=lambda fn, **kwargs: asyncio.to_thread(fn),
+        is_ready_fn=lambda: False,
     )
 
     # The iteration should not be called
@@ -321,6 +322,7 @@ async def test_periodic_reconciliation_loop_runs_iteration_when_ready(monkeypatc
         database_url="sqlite://",
         is_shutdown_fn=mock_is_shutdown,
         run_with_trace_fn=lambda fn, **kwargs: asyncio.to_thread(fn),
+        is_ready_fn=lambda: True,
     )
 
     # The iteration should be called

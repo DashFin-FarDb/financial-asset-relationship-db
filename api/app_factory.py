@@ -850,6 +850,7 @@ def _start_background_tasks(
                         GraphRuntimeLifecycleState.STOPPED,
                     )
                 ),
+                is_ready_fn=lambda: get_runtime_lifecycle_state() == GraphRuntimeLifecycleState.READY,
                 run_with_trace_fn=_run_with_generated_trace,
                 cancel_event=None,
                 lock_ttl_seconds=lock_ttl_seconds,

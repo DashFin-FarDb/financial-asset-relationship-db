@@ -173,6 +173,7 @@ async def periodic_reconciliation_loop(
     coordination_database_url: str | None = None,
     cancel_event: threading.Event | None = None,
     lock_ttl_seconds: int = 300,
+    is_ready_fn: Callable[[], bool] | None = None,
 ) -> None:
     """Periodically run drift planning and execute automatic recovery.
 
@@ -197,10 +198,8 @@ async def periodic_reconciliation_loop(
                 if is_shutdown_fn():
                     return
 
-                from api.app_factory import GraphRuntimeLifecycleState, get_runtime_lifecycle_state
-
                 # Skip drift evaluation while the app is still initializing or paused
-                if get_runtime_lifecycle_state() != GraphRuntimeLifecycleState.READY:
+                if is_ready_fn is not None and not is_ready_fn():
                     continue
 
                 await _perform_reconciliation_iteration(
