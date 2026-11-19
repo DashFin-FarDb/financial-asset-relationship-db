@@ -51,6 +51,11 @@
           "timestamp": "20261016120000",
           "filename": "20261016120000_add_snapshot_attestation.sql",
           "sha256": "8d8b84fa69926d7399742ab1361bc21c9968d5d56aec9b1149490fe7422b5e2d"
+        },
+        {
+          "timestamp": "20261119070000",
+          "filename": "20261119070000_add_equity_valuation_metrics.sql",
+          "sha256": "324f0a8fc44eb47f3b709f3b93f18a0c74bdaa91031f19f199523fd6e8ccc9bb"
         }
       ]
     },
@@ -73,7 +78,7 @@
     },
     "graph": {
       "components": ["graph"],
-      "catalog_sha256": "8ffd95b33a84ce1f2ffa770330194edeb08bf6a57fbacf0b3c6ca943645020fd"
+      "catalog_sha256": "80e3cc895a8507348ef3c7f0bbab61793f5faece6295eae673c5da246a7ebed3"
     },
     "coordination": {
       "components": ["coordination"],
@@ -81,7 +86,7 @@
     },
     "combined": {
       "components": ["auth", "graph", "coordination"],
-      "catalog_sha256": "e84e306d58c4470ae62d44835bab8baacafd3250cc0c51391d3c3e6d8813b9ad"
+      "catalog_sha256": "a222c7689cf1e235ab607feb8e9ee84a35d5f9efdc5c77be5db1992409ffaab0"
     }
   },
   "lineages": {
