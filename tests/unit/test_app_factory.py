@@ -114,9 +114,11 @@ async def test_lifespan_emits_startup_failure_and_duration(
     success = MagicMock()
     failure = MagicMock()
     duration = MagicMock()
+    startup_event = MagicMock()
     monkeypatch.setattr(APPLICATION_STARTUP_SUCCESS_TOTAL, "inc", success)
     monkeypatch.setattr(APPLICATION_STARTUP_FAILURE_TOTAL, "inc", failure)
     monkeypatch.setattr(APPLICATION_STARTUP_DURATION, "observe", duration)
+    monkeypatch.setattr(app_factory, "log_event", startup_event)
     _mock_startup_lifecycle(monkeypatch, base_settings)
 
     async def fail_initialization(*_args) -> None:
@@ -133,6 +135,7 @@ async def test_lifespan_emits_startup_failure_and_duration(
     failure.assert_called_once_with()
     duration.assert_called_once()
     assert duration.call_args.args[0] >= 0
+    assert startup_event.call_args.args[2].event == app_factory.APPLICATION_STARTUP_FAILED_EVENT
 
 
 @pytest.mark.asyncio
@@ -144,9 +147,11 @@ async def test_lifespan_emits_metrics_when_settings_resolution_fails(
     success = MagicMock()
     failure = MagicMock()
     duration = MagicMock()
+    startup_event = MagicMock()
     monkeypatch.setattr(APPLICATION_STARTUP_SUCCESS_TOTAL, "inc", success)
     monkeypatch.setattr(APPLICATION_STARTUP_FAILURE_TOTAL, "inc", failure)
     monkeypatch.setattr(APPLICATION_STARTUP_DURATION, "observe", duration)
+    monkeypatch.setattr(app_factory, "log_event", startup_event)
     _mock_startup_lifecycle(monkeypatch, base_settings)
 
     def fail_settings_resolution():
@@ -163,6 +168,7 @@ async def test_lifespan_emits_metrics_when_settings_resolution_fails(
     failure.assert_called_once_with()
     duration.assert_called_once()
     assert duration.call_args.args[0] >= 0
+    assert startup_event.call_args.args[2].event == app_factory.APPLICATION_STARTUP_FAILED_EVENT
 
 
 @pytest.mark.asyncio

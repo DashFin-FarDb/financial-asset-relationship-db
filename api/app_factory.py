@@ -458,6 +458,8 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     )
 
     start_time = time.perf_counter()
+    trace_id: str | None = None
+    span_id: str | None = None
     try:
         settings = get_graph_lifecycle_settings()
         database_url = _get_durable_graph_database_url(settings)
@@ -471,32 +473,28 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         # load fails, it will raise immediately before FastAPI accepts HTTP traffic.
         async with async_trace_context(trace_id=trace_id, span_id=span_id):
             logger.debug("Initiating traced startup sequence (trace_id=%s, span_id=%s)", trace_id, span_id)
-            try:
-                await _initialize_application_state(
-                    settings,
-                    has_persistence,
-                    hosted_startup_degradation_allowed,
-                )
-            except Exception as exc:
-                log_event(
-                    logger,
-                    logging.CRITICAL,
-                    ObservabilityEvent(
-                        event=APPLICATION_STARTUP_FAILED_EVENT,
-                        message=f"Application startup failed: {type(exc).__name__}",
-                        metadata={
-                            "error": type(exc).__name__,
-                            "message": str(exc),
-                            "trace_id": trace_id,
-                            "span_id": span_id,
-                        },
-                    ),
-                )
-                raise
+            await _initialize_application_state(
+                settings,
+                has_persistence,
+                hosted_startup_degradation_allowed,
+            )
 
         sync_task, slo_task, recon_task = _start_background_tasks(has_persistence, settings)
         APPLICATION_STARTUP_SUCCESS_TOTAL.inc()
-    except Exception:
+    except Exception as exc:
+        log_event(
+            logger,
+            logging.CRITICAL,
+            ObservabilityEvent(
+                event=APPLICATION_STARTUP_FAILED_EVENT,
+                message=f"Application startup failed: {type(exc).__name__}",
+                metadata={
+                    "error": type(exc).__name__,
+                    "trace_id": trace_id,
+                    "span_id": span_id,
+                },
+            ),
+        )
         APPLICATION_STARTUP_FAILURE_TOTAL.inc()
         raise
     finally:
