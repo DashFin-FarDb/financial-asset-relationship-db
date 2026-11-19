@@ -2,3 +2,4 @@
   base = "frontend"
   command = "npm ci && npm run build"
   publish = ".next"
+  ignore = "git -C .. diff --quiet $CACHED_COMMIT_REF $COMMIT_REF -- frontend netlify.toml"
