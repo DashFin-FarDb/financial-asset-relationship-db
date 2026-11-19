@@ -163,9 +163,11 @@ repository tests alone.
 **Historical evidence update — 2026-11-19:** The [RC1 evidence record](../evidence-records/rc1-objective-2-follow-up.md)
 reports a successful staging `--require-persistence` smoke on 2026-06-29 for release candidate
 `c54323552e44032c79f99d377b0881a1ddaf6368`, with persisted startup and 19 assets / 73 relationships. It also records
-the Supabase database boundaries and Vercel target mapping. This proves the documented criteria for that candidate
-and target at that time; it is not inherited by PR #1925 or a later release. Item 4 remains open for current target
-mapping and boundary evidence.
+the Supabase provider, database boundary labels, and Vercel target mapping. For that candidate and target at that time,
+this evidences the historical hosted persistence smoke and topology labels only; it does not establish environment
+variable presence/distinctness, staging GitHub Environment secrets, preview durability labels, or Promotion Decision
+Rule state, and it is not inherited by PR #1925 or a later release. Item 4 remains open for current target mapping,
+boundary, secret, preview-label, and promotion evidence.
 
 **Sources:** [Roadmap — Target-Environment Proof Next](enterprise-readiness-roadmap.md#target-environment-proof-next),
 [Staging Deployment Operating Baseline](../staging-deployment-operating-baseline.md#staging-promotion-checklist),
