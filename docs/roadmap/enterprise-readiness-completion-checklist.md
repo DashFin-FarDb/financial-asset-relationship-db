@@ -355,6 +355,13 @@ remain open until the PRs merge and this snapshot is reconciled to merged commit
 | 1.4.c    | [#1931](https://github.com/DashFin-FarDb/financial-asset-relationship-db/pull/1931) | Lock acquisition outcome assertions                             | 6 focused tests passed; Ruff and diff checks passed  |
 | 1.4.d    | [#1932](https://github.com/DashFin-FarDb/financial-asset-relationship-db/pull/1932) | Startup success, failure, duration assertions                   | 4 focused tests passed; Ruff and diff checks passed  |
 
+At this audit snapshot, all five PRs are open with merge state **BLOCKED**. GitHub Actions Python matrix and coverage
+checks are failing across the PRs; the latest inspected jobs on PR #1929 failed before any step started (job step list
+and output were empty). The Snyk code check on PR #1929 reports `Code test limit reached`. CircleCI's Python test job
+passes on PR #1929. Hosted checks are not green; recheck their
+exact-head status after the CI usage/billing lock is addressed. These results do not identify a failing implementation
+test, because the affected GitHub jobs did not execute their steps.
+
 The separate Grafana deliverable is **FarDB Control Plane — Observability, SLOs & Lifecycle** (dashboard UID
 `mogdpxw`, 54 panels). Its description identifies it as anticipatory and says panels may show no data until service
 instrumentation is present. The current repo and dashboard mappings are not aligned for Phase 1.4: the startup panel
