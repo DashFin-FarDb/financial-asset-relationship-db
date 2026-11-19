@@ -17,6 +17,7 @@ import re
 import threading
 from unittest.mock import MagicMock, Mock, patch
 
+import pandas as pd
 import pytest
 
 from src.data.real_data_fetcher import (
@@ -539,6 +540,7 @@ class TestFetchMethods:
             "priceToSalesTrailing12Months": 6.2,
             "priceToBook": 9.1,
         }
+        mock_ticker.growth_estimates = pd.DataFrame({"stockTrend": [0.12, 0.10]}, index=["+1y", "+5y"])
         mock_ticker.history.return_value = _make_history_mock(150.0)
         mock_yf.Ticker.return_value = mock_ticker
         mock_get_yfinance.return_value = mock_yf
@@ -558,6 +560,8 @@ class TestFetchMethods:
         assert all(eq.peg_ratio == 1.4 for eq in equities)
         assert all(eq.price_to_sales_ratio == 6.2 for eq in equities)
         assert all(eq.price_to_book_ratio == 9.1 for eq in equities)
+        assert all(eq.eps_growth_next_year == 0.12 for eq in equities)
+        assert all(eq.eps_growth_next_5_years == 0.10 for eq in equities)
         assert mock_yf.Ticker.call_count == 4
 
     @patch("src.data.real_data_fetcher._get_yfinance")

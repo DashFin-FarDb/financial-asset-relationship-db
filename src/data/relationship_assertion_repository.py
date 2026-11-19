@@ -64,6 +64,7 @@ from src.governance.relationship_assertion_lifecycle import (
 )
 from src.logic.reconciliation_engine import RebuildCancelledError
 from src.logic.relationship_projection import GovernedScope, ProjectionEdge
+from src.logic.snapshot_attestation import ATTESTATION_VERSION_V1, ATTESTATION_VERSION_V2
 
 UTC = timezone.utc
 _SUPERSESSION_LOCK_NAMESPACE = 0x46415244
@@ -140,9 +141,9 @@ class FinalizeProjectionPublicationRequest:
     edge_count: int
     duration_ms: int
     snapshot_sha256: str
-    snapshot_attestation_version: str = "v1"
     publication_id: str | None = None
     published_at: datetime | None = None
+    snapshot_attestation_version: str = "v1"
 
 
 @dataclass(frozen=True)
@@ -1066,7 +1067,7 @@ class RelationshipAssertionRepository:
         """
         if not isinstance(request.snapshot_sha256, str) or not re.fullmatch(r"[0-9a-f]{64}", request.snapshot_sha256):
             raise ValidationError("publication requires a lowercase SHA-256 snapshot digest")
-        if request.snapshot_attestation_version not in {"v1", "v2"}:
+        if request.snapshot_attestation_version not in (ATTESTATION_VERSION_V1, ATTESTATION_VERSION_V2):
             raise ValidationError("publication snapshot attestation version is unsupported")
         execution_id = request.execution_id
         if not isinstance(execution_id, str) or not execution_id.strip():

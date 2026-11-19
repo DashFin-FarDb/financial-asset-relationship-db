@@ -182,7 +182,15 @@ The calibrated profile catalog digests are recorded in `supabase/ledger-profiles
 unchanged at `e3eed4d9506f6737b888e8d8182964bf2952635316fde33ff203c7d22010be2e` (auth) and
 `475c75ae7b9a78f3e528cbab80ff06278383c805ddba774ab7683fef0069217a` (coordination). The repository-local static
 ledger validator passes on the PR candidate with manifest SHA-256
-`aa432e2e7c5bf35f857322bd12e0d41d255bdbcd90b2de22c4b5fd900ac7b0e6`; the host report did not independently record
+`6dc33c8d60da35c9360f4214eaa1aeeb6d75c8c215ecca9bd318a60e2fcc32a1`; the host report did not independently record
 that manifest SHA. The disposable profile proof validates migration/catalog profiles, not hosted state or production-
 scale asset-graph workload.
 **Redaction:** No credentials, raw export URL, or production data were recorded.
+
+### Review follow-up: source mapping and revision limits
+
+The one-time screener probe supplied the EPS-growth values used in the 148-asset persistence exercise. The PR's live
+Yahoo Finance path now also reads the documented `+1y` and `+5y` rows from the provider's growth-estimates table;
+unit tests exercise that mapping with a fixture. The historical screener round-trip does not itself prove a live
+Yahoo Finance rebuild returned those fields. The exact working-tree SHA for the 07:20 probe was not captured and
+cannot be reconstructed from the retained host report.

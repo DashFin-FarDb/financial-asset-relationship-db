@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import hashlib
 import json
-from collections.abc import Iterable
+from collections.abc import Callable, Iterable
 from decimal import ROUND_HALF_EVEN, Decimal, InvalidOperation
 from enum import Enum
 from typing import Any, Final
@@ -230,6 +230,12 @@ def canonicalize_asset(asset: Any, *, attestation_version: str = ATTESTATION_VER
     return canonical_asset
 
 
+def _check_cancelled_periodically(check_cancelled: Callable[[], None] | None, index: int) -> None:
+    """Check long canonicalization passes at bounded intervals when a callback is supplied."""
+    if check_cancelled is not None and index % 128 == 0:
+        check_cancelled()
+
+
 def _unpack_relationship_fields(
     relationship: Any,
     source_id: str | None = None,
@@ -386,6 +392,7 @@ def generate_snapshot_canonical_payload(
     regulatory_events: Iterable[Any],
     attestation_version: str = ATTESTATION_VERSION_V1,
     contract_version: str = CONTRACT_VERSION_GRAC_V1,
+    check_cancelled: Callable[[], None] | None = None,
 ) -> tuple[str, bytes]:
     """Produce the canonical JSON string and bytes for a complete graph snapshot.
 
@@ -400,7 +407,8 @@ def generate_snapshot_canonical_payload(
     # Canonicalize and sort assets by id; detect duplicates
     canonical_assets: list[dict[str, Any]] = []
     seen_asset_ids: set[str] = set()
-    for raw_asset in assets:
+    for index, raw_asset in enumerate(assets):
+        _check_cancelled_periodically(check_cancelled, index)
         canonical_item = canonicalize_asset(raw_asset, attestation_version=attestation_version)
         asset_id = canonical_item["id"]
         if asset_id in seen_asset_ids:
@@ -412,7 +420,8 @@ def generate_snapshot_canonical_payload(
     # Canonicalize and sort relationships; detect duplicates
     canonical_rels: list[dict[str, Any]] = []
     seen_rel_keys: set[tuple[str, str, str]] = set()
-    for raw_rel in relationships:
+    for index, raw_rel in enumerate(relationships):
+        _check_cancelled_periodically(check_cancelled, index)
         canonical_rel = canonicalize_relationship(raw_rel)
         rel_key = (canonical_rel["source_id"], canonical_rel["target_id"], canonical_rel["relationship_type"])
         if rel_key in seen_rel_keys:
@@ -424,7 +433,8 @@ def generate_snapshot_canonical_payload(
     # Canonicalize and sort regulatory events; detect duplicates
     canonical_events: list[dict[str, Any]] = []
     seen_event_ids: set[str] = set()
-    for raw_event in regulatory_events:
+    for index, raw_event in enumerate(regulatory_events):
+        _check_cancelled_periodically(check_cancelled, index)
         canonical_event = canonicalize_regulatory_event(raw_event)
         event_id = canonical_event["id"]
         if event_id in seen_event_ids:
@@ -451,6 +461,7 @@ def compute_snapshot_attestation_hash(
     regulatory_events: Iterable[Any],
     attestation_version: str = ATTESTATION_VERSION_V1,
     contract_version: str = CONTRACT_VERSION_GRAC_V1,
+    check_cancelled: Callable[[], None] | None = None,
 ) -> str:
     """Compute the SHA-256 hex digest of the canonical snapshot payload."""
     _, payload_bytes = generate_snapshot_canonical_payload(
@@ -459,6 +470,7 @@ def compute_snapshot_attestation_hash(
         regulatory_events=regulatory_events,
         attestation_version=attestation_version,
         contract_version=contract_version,
+        check_cancelled=check_cancelled,
     )
     return hashlib.sha256(payload_bytes).hexdigest()
 
@@ -507,6 +519,7 @@ def compute_repository_snapshot_hash(
     *,
     attestation_version: str = ATTESTATION_VERSION_V1,
     contract_version: str = CONTRACT_VERSION_GRAC_V1,
+    check_cancelled: Callable[[], None] | None = None,
 ) -> str:
     """Compute the snapshot attestation hash directly from persisted repository rows.
 
@@ -518,8 +531,11 @@ def compute_repository_snapshot_hash(
     Returns:
         Hexadecimal SHA-256 digest string.
     """
+    _check_cancelled_periodically(check_cancelled, 0)
     assets = repository.list_assets()
+    _check_cancelled_periodically(check_cancelled, 0)
     relationships = repository.list_relationships()
+    _check_cancelled_periodically(check_cancelled, 0)
     regulatory_events = repository.list_regulatory_events()
     return compute_snapshot_attestation_hash(
         assets=assets,
@@ -527,4 +543,5 @@ def compute_repository_snapshot_hash(
         regulatory_events=regulatory_events,
         attestation_version=attestation_version,
         contract_version=contract_version,
+        check_cancelled=check_cancelled,
     )

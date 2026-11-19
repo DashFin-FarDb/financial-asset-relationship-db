@@ -135,7 +135,15 @@ class IAssetGraphRepository(Protocol):
         ...
 
     def mark_rebuild_job_succeeded(  # pylint: disable=too-many-arguments
-        self, job_id: str, *, execution_id: str, node_count: int, edge_count: int, duration_ms: int
+        self,
+        job_id: str,
+        *,
+        execution_id: str,
+        node_count: int,
+        edge_count: int,
+        duration_ms: int,
+        snapshot_sha256: str | None = None,
+        snapshot_attestation_version: str = "v1",
     ) -> None:
         """Transition a job to SUCCEEDED and record metrics."""
         ...

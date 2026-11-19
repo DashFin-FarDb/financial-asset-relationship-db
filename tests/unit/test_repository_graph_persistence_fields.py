@@ -68,6 +68,7 @@ def test_repository_round_trip_preserves_asset_fields(tmp_path) -> None:
 
 
 def test_repository_round_trip_preserves_regulatory_event_fields(tmp_path) -> None:
+    """The repository round-trip preserves regulatory event scalar and relation fields."""
     engine = create_engine(f"sqlite:///{tmp_path / 'events.db'}")
     enable_sqlite_foreign_keys(engine)
     init_db(engine)

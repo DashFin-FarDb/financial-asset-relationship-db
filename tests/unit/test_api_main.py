@@ -1741,6 +1741,24 @@ class TestSerializeAsset:
             if field in result["additional_fields"]:
                 assert result["additional_fields"][field] is not None
 
+    def test_serialize_asset_skips_nonfinite_optional_metrics(self):
+        """Non-finite optional values are omitted from API output."""
+        equity = Equity(
+            id="AAPL",
+            symbol="AAPL",
+            name="Apple Inc.",
+            asset_class=AssetClass.EQUITY,
+            sector="Technology",
+            price=150.0,
+            eps_growth_next_year=float("inf"),
+            eps_growth_next_5_years=float("nan"),
+        )
+
+        result = serialize_asset(equity)
+
+        assert "eps_growth_next_year" not in result["additional_fields"]
+        assert "eps_growth_next_5_years" not in result["additional_fields"]
+
 
 @pytest.mark.unit
 class TestRaiseAssetNotFound:

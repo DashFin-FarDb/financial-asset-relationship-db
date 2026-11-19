@@ -1,6 +1,7 @@
 """Shared helper functions for API routers."""
 
 import logging
+import math
 from typing import Any, NoReturn
 
 from fastapi import HTTPException
@@ -106,7 +107,7 @@ def serialize_asset(
 
     for field in optional_fields:
         value = getattr(asset, field, None)
-        if value is not None:
+        if value is not None and not (isinstance(value, (int, float)) and not math.isfinite(value)):
             asset_dict["additional_fields"][field] = value
 
     if include_issuer:

@@ -14,6 +14,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, selectinload
 
 from src.logic.asset_graph import AssetRelationshipGraph
+from src.logic.snapshot_attestation import ATTESTATION_VERSION_V1, ATTESTATION_VERSION_V2
 from src.models.financial_models import (
     Asset,
     AssetClass,
@@ -1341,6 +1342,8 @@ class AssetGraphRepository:
         Raises:
             ValueError: If the job does not exist, is not running, or execution_id mismatches.
         """
+        if snapshot_attestation_version not in (ATTESTATION_VERSION_V1, ATTESTATION_VERSION_V2):
+            raise ValueError("Unsupported snapshot attestation version")
         self._validate_non_negative_metrics(
             duration_ms=duration_ms,
             node_count=node_count,

@@ -31,7 +31,6 @@ ALLOWED_MIGRATIONS = frozenset(
         "003_add_execution_identity_and_checkpoint_columns.sql",
         "004_add_cancellation_columns.sql",
         "007_add_snapshot_attestation.sql",
-        "008_add_equity_valuation_metrics.sql",
     ]
 )
 
@@ -62,6 +61,7 @@ def apply_migrations(db_path: Path | str) -> None:
     3. 003_add_execution_identity_and_checkpoint_columns.sql - Upgrade migration (applied conditionally)
     4. 004_add_cancellation_columns.sql - Upgrade migration (applied conditionally)
     5. 007_add_snapshot_attestation.sql - Upgrade migration (applied conditionally)
+    6. 008 valuation fields and attestation versions (applied conditionally)
 
     Args:
         db_path: Path to the SQLite database file.

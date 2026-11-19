@@ -201,8 +201,12 @@ def test_v2_valuation_attestation_survives_startup_validation(tmp_path: Path) ->
     """A v2 publication validates using its stored canonicalization version."""
     db_url, session_factory = _setup_disposable_db(tmp_path)
     graph = _create_sample_test_graph()
+    graph.assets["AAPL"].forward_pe_ratio = 24.2
     graph.assets["AAPL"].peg_ratio = 1.6
     graph.assets["AAPL"].price_to_sales_ratio = 8.4
+    graph.assets["AAPL"].price_to_book_ratio = 10.2
+    graph.assets["AAPL"].eps_growth_next_year = 0.13
+    graph.assets["AAPL"].eps_growth_next_5_years = 0.09
     _publish_sample_graph(session_factory, graph, attestation_version=ATTESTATION_VERSION_V2)
 
     loaded = _load_persisted_graph_from_configured_store(db_url)
@@ -210,6 +214,10 @@ def test_v2_valuation_attestation_survives_startup_validation(tmp_path: Path) ->
     assert loaded is not None
     assert loaded.assets["AAPL"].peg_ratio == pytest.approx(1.6)
     assert loaded.assets["AAPL"].price_to_sales_ratio == pytest.approx(8.4)
+    assert loaded.assets["AAPL"].forward_pe_ratio == pytest.approx(24.2)
+    assert loaded.assets["AAPL"].price_to_book_ratio == pytest.approx(10.2)
+    assert loaded.assets["AAPL"].eps_growth_next_year == pytest.approx(0.13)
+    assert loaded.assets["AAPL"].eps_growth_next_5_years == pytest.approx(0.09)
 
 
 def test_mismatched_publication_attestation_version_fails_closed(tmp_path: Path) -> None:

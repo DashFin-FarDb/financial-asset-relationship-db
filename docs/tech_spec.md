@@ -5471,7 +5471,7 @@ flowchart TB
 
 #### 6.2.2.1 Core Entity Model
 
-The database schema is defined in `migrations/001_initial.sql` and implements a graph-oriented relational design supporting financial asset relationships.
+The base database schema is defined in `migrations/001_initial.sql`. Current installations apply the ordered compatibility upgrades in `src/data/migrations.py`; migration 008 adds the nullable equity valuation columns and attestation-version fields described below. The table below therefore documents the base schema plus the applicable incremental migrations, not `001_initial.sql` alone.
 
 #### Entity Tables Summary
 

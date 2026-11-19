@@ -1828,6 +1828,12 @@ def _finalize_rebuild_success(
         snapshot_sha256 = compute_repository_snapshot_hash(
             AssetGraphRepository(session),
             attestation_version=snapshot_attestation_version,
+            check_cancelled=partial(
+                _verify_execution_state,
+                lock_lost,
+                cancel_event,
+                "publication-snapshot-attestation",
+            ),
         )
 
         _guard_publication_lock(coordination_session, lock_holder_id, lock_ttl_seconds, "publication-pre-success")
