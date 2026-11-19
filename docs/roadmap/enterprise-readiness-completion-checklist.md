@@ -348,12 +348,12 @@ already defines related collectors (`graph_rebuild_state_transition_total`, `reb
 The implementation PRs below are open and unmerged. Their local focused validation passed, but the checkboxes above
 remain open until the PRs merge and this snapshot is reconciled to merged commit references.
 
-| Sub-item | Current PR | Scope in PR | Local validation |
-| --- | --- | --- | --- |
-| 1.4.a | [#1929](https://github.com/DashFin-FarDb/financial-asset-relationship-db/pull/1929) | Fail-fast admission counter and corrected criterion | 3 focused tests passed; Ruff and diff checks passed |
-| 1.4.b | [#1930](https://github.com/DashFin-FarDb/financial-asset-relationship-db/pull/1930) | Lifecycle transition assertions and RecoveryGate reset emission | 9 focused tests passed; Ruff and diff checks passed |
-| 1.4.c | [#1931](https://github.com/DashFin-FarDb/financial-asset-relationship-db/pull/1931) | Lock acquisition outcome assertions | 6 focused tests passed; Ruff and diff checks passed |
-| 1.4.d | [#1932](https://github.com/DashFin-FarDb/financial-asset-relationship-db/pull/1932) | Startup success, failure, duration assertions | 3 focused tests passed; Ruff and diff checks passed |
+| Sub-item | Current PR                                                                          | Scope in PR                                                     | Local validation                                    |
+| -------- | ----------------------------------------------------------------------------------- | --------------------------------------------------------------- | --------------------------------------------------- |
+| 1.4.a    | [#1929](https://github.com/DashFin-FarDb/financial-asset-relationship-db/pull/1929) | Fail-fast admission counter and corrected criterion             | 3 focused tests passed; Ruff and diff checks passed |
+| 1.4.b    | [#1930](https://github.com/DashFin-FarDb/financial-asset-relationship-db/pull/1930) | Lifecycle transition assertions and RecoveryGate reset emission | 9 focused tests passed; Ruff and diff checks passed |
+| 1.4.c    | [#1931](https://github.com/DashFin-FarDb/financial-asset-relationship-db/pull/1931) | Lock acquisition outcome assertions                             | 6 focused tests passed; Ruff and diff checks passed |
+| 1.4.d    | [#1932](https://github.com/DashFin-FarDb/financial-asset-relationship-db/pull/1932) | Startup success, failure, duration assertions                   | 3 focused tests passed; Ruff and diff checks passed |
 
 The separate Grafana deliverable is [FarDB Control Plane — Observability, SLOs & Lifecycle](https://dasshfin.grafana.net/d/mogdpxw/8c11bb1)
 (UID `mogdpxw`, 54 panels). Its description identifies it as anticipatory and says panels may show no data until service
