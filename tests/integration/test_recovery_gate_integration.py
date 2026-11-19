@@ -128,8 +128,27 @@ def test_recovery_gate_resets_orphaned_running_job(session_factory):
         enable_automatic_recovery=True,
     )
 
+    from api.metrics import GRAPH_REBUILD_STATE_TRANSITION_TOTAL
+
+    before = sum(
+        sample.value
+        for family in GRAPH_REBUILD_STATE_TRANSITION_TOTAL.collect()
+        for sample in family.samples
+        if sample.name == "graph_rebuild_state_transition_total"
+        and sample.labels == {"from_state": "running", "to_state": "failed"}
+    )
+
     # Gate should detect ORPHANED_RUNNING → perform RESET → allow execution.
     gate.ensure_safe_to_execute()
+
+    after = sum(
+        sample.value
+        for family in GRAPH_REBUILD_STATE_TRANSITION_TOTAL.collect()
+        for sample in family.samples
+        if sample.name == "graph_rebuild_state_transition_total"
+        and sample.labels == {"from_state": "running", "to_state": "failed"}
+    )
+    assert after - before == 1
 
     # Verify the orphaned job was transitioned to FAILED.
     with session_scope(session_factory) as session:

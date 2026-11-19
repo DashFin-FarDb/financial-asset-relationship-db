@@ -11,6 +11,7 @@ from typing import Any
 from sqlalchemy import exc as sqlalchemy_exc
 from sqlalchemy.orm import Session
 
+from api.metrics import record_rebuild_state_transition
 from src.data.distributed_lock import MAX_TTL, DistributedLock, LockAcquisitionTimeout, LockState
 from src.data.repository import AssetGraphRepository, RebuildFailureDetails
 from src.logic.rebuild_drift_evaluator import RebuildDriftEvaluator
@@ -562,6 +563,7 @@ class RecoveryGate:
                 inconsistency_type=drift_type,
             )
         session.commit()
+        record_rebuild_state_transition("running", "failed")
 
     def _perform_reset_recovery(
         self,
