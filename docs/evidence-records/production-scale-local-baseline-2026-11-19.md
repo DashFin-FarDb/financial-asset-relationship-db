@@ -157,8 +157,17 @@ returned 11 formulas. This check exercises live source mapping into the schema, 
 API model validation, and analysis. It does not retain a repeatable market-data fixture, test a hosted PostgreSQL
 target, or close production-scale readiness.
 
-The code change also adds a forward-only PostgreSQL graph-ledger migration. Its profile catalog digest still needs to
-be generated and verified against the exact disposable PostgreSQL catalog before the ledger can be considered fully
-validated for application.
+The code change also adds a forward-only PostgreSQL graph-ledger migration. On 2026-11-19, the disposable PostgreSQL
+16.14 proof ran with pinned Supabase CLI v2.114.0 from Linux/WSL against the host working tree. All four ledger
+profiles passed (auth, graph, coordination, combined): `tests/integration/test_postgresql_ledger_profiles.py`
+reported 4 passed in 257.24s. The harness attested `cli_compatible: true`, `host_attested: true`, and exit code 0;
+the owned container and volume were removed.
+
+The calibrated profile catalog digests are recorded in `supabase/ledger-profiles.json`: graph
+`80e3cc895a8507348ef3c7f0bbab61793f5faece6295eae673c5da246a7ebed3` and combined
+`a222c7689cf1e235ab607feb8e9ee84a35d5f9efdc5c77be5db1992409ffaab0`. Auth and coordination digests remained
+unchanged. The local static ledger manifest validator passes against the updated manifest. This disposable proof
+does not test a hosted PostgreSQL target or establish production-scale readiness.
 
 **Redaction:** No credentials, raw export URL, or production data were recorded.
+
