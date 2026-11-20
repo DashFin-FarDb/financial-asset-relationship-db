@@ -1,0 +1,133 @@
+.gitattributes
+  s_f999ea469e6b3e::t_1ca86f08d79b24 1-2
+.github/workflows/codeql.yml
+  s_f999ea469e6b3e::t_fe76862e31f1a0 14-16
+.github/workflows/dependency-check.yml
+  s_f999ea469e6b3e::t_57bddd87d03f59 20-22
+.github/workflows/semgrep.yml
+  s_f999ea469e6b3e::t_cf47ffa3c4ecf4 10-11
+README.md
+  s_f999ea469e6b3e::t_16df0abf05fdfe 122-124,174-177
+api/app_factory.py
+  s_f999ea469e6b3e::t_fe2601fb0cbb20 26,282,299,462-463,465-474,477-481,485-499,851
+api/graph_lifecycle_providers.py
+  s_f999ea469e6b3e::t_458773e549c027 661-680,779-781
+api/metrics.py
+  s_f999ea469e6b3e::t_a913f1539c200f 49-54
+api/router_helpers.py
+  s_f999ea469e6b3e::t_1debe32d3936bd 4,90-95,110
+api/routers/graph_admin.py
+  s_f999ea469e6b3e::t_dd72debd97526d 52,83,229,1228,1242,1314,1832-1842,1863
+docs/enterprise-deployment-operating-model.md
+  s_f999ea469e6b3e::t_445ae5d39005fa 13-15
+docs/enterprise-readiness-index.md
+  s_f999ea469e6b3e::t_319c71db3f5c70 4,60-69
+docs/evidence-records/production-scale-local-baseline-2026-11-19.md
+  s_f999ea469e6b3e::t_d8005fdb41adee 1-209
+docs/governance/state-machine-and-operating-authority.md
+  s_f999ea469e6b3e::t_e0f3c05c46216c 215-218
+docs/roadmap/enterprise-readiness-pr-board.md
+  s_f999ea469e6b3e::t_c99e0d4178df5a 5,9-18,22-24
+docs/roadmap/enterprise-readiness-roadmap.md
+  s_f999ea469e6b3e::t_aed4440287aa79 8,21-32,40-42,53,55-57,91-97
+docs/runbooks/hosted-ui-api-and-supabase-data-path.md
+  s_f999ea469e6b3e::t_e18fd93a85cef7 1-320
+docs/staging-deployment-operating-baseline.md
+  s_f999ea469e6b3e::t_8b521c253ae4ae 13-15
+docs/strategy/fardb-project-continuity.md
+  s_f999ea469e6b3e::t_54db00b0147ed5 136-154,182-200,690-693
+docs/tech_spec.md
+  s_f999ea469e6b3e::t_d50f8a7d2e8d24 4306-4311,5474-5483,5511-5522,8866-8870,9087-9091
+frontend/app/lib/api.ts
+  s_f999ea469e6b3e::t_f39792cd169d65 16-18
+frontend/next.config.js
+  s_f999ea469e6b3e::t_86033548e7d5db 2-34,36,39,41-51,53
+netlify.toml
+  s_f999ea469e6b3e::t_907b16db31ff59 2-8
+src/data/db_models.py
+  s_f999ea469e6b3e::t_339da4d3bb15f2 71-76,278-280
+src/data/migrations.py
+  s_f999ea469e6b3e::t_88f76272707a74 64,94-96,298-330
+src/data/protocols.py
+  s_f999ea469e6b3e::t_a1124036c3ece7 138-146,175,179
+src/data/real_data_fetcher.py
+  s_f999ea469e6b3e::t_3d30e123d5560d 33-54,711-721
+src/data/relationship_assertion_db_models.py
+  s_f999ea469e6b3e::t_6121313c5cc449 281-283
+src/data/relationship_assertion_repository.py
+  s_f999ea469e6b3e::t_3692fd8c1dfd29 67,146,159,852,927,1070-1071,1087,1103,1118
+src/data/repository.py
+  s_f999ea469e6b3e::t_7a109fe4d464b5 17,468-470,487,1060-1065,1111-1116,1329,1345-1346,1371
+src/logic/reconciliation_loop.py
+  s_f999ea469e6b3e::t_b38da32bc5fc66 59-64,82,176,201-202
+src/logic/recovery_gate.py
+  s_f999ea469e6b3e::t_970323a143a075 62,72,567-578
+src/logic/snapshot_attestation.py
+  s_f999ea469e6b3e::t_a2ba0344db8a0b 12,18,93-94,100,189,214-236,395,402,410-412,423-424,436-437,464,473,522,534,536,538,546
+src/models/financial_models.py
+  s_f999ea469e6b3e::t_38e702caf877ca 141-146
+supabase/ledger-profiles.json
+  s_f999ea469e6b3e::t_7dcba17e8d6520 54-58,81,89
+supabase/ledgers/graph/migrations/20261119070000_add_equity_valuation_metrics.sql
+  s_f999ea469e6b3e::t_ab7bea34aa0a50 1-19
+tests/integration/postgresql_disposable_cluster.py
+  s_f999ea469e6b3e::t_4f5854b9ca3163 15,549,722-730,915
+tests/integration/test_cq03b_r1_adjudication_docs.py
+  s_f999ea469e6b3e::t_004ec9d3f790b4 262
+tests/integration/test_graph_admin_router.py
+  s_f999ea469e6b3e::t_7aa6feaee9fd69 308-431
+tests/integration/test_recovery_gate_integration.py
+  s_f999ea469e6b3e::t_e8ad190998ef53 123-124,131-139,145-153
+tests/integration/test_valuation_metric_migration.py
+  s_f999ea469e6b3e::t_5cf471b043b552 1-67
+tests/unit/test_api_main.py
+  s_f999ea469e6b3e::t_c60adc6e012cf9 1669-1674,1683-1688,1744-1761
+tests/unit/test_app_factory.py
+  s_f999ea469e6b3e::t_e7686b72b12c44 16-20,68-173,769,806,809,811,841,848-851
+tests/unit/test_config_validation.py
+  s_f999ea469e6b3e::t_7add0c820d0212 83-94
+tests/unit/test_metrics.py
+  s_f999ea469e6b3e::t_af23c1c0382252 12,17-18,67-88,155-205
+tests/unit/test_metrics_endpoint.py
+  s_f999ea469e6b3e::t_59c87657f41f80 33-37,43,68-70,74
+tests/unit/test_postgresql_disposable_cluster.py
+  s_f999ea469e6b3e::t_2891fbe217fd07 5,13-24
+tests/unit/test_postgresql_ledger.py
+  s_f999ea469e6b3e::t_589f1e725c9934 24,33,137
+tests/unit/test_real_data_fetcher.py
+  s_f999ea469e6b3e::t_ab2cbc66861767 20,534-541,543,555-564,567-583
+tests/unit/test_reconciliation_loop.py
+  s_f999ea469e6b3e::t_370defd0eb77f6 260,284,293,318,372,432
+tests/unit/test_recovery_gate.py
+  s_f999ea469e6b3e::t_c3367c59e024e5 650-683
+tests/unit/test_repository_graph_persistence_fields.py
+  s_f999ea469e6b3e::t_df9fadc24c8614 16,34-40,56,63-69,73
+tests/unit/test_repository_rebuild_jobs.py
+  s_f999ea469e6b3e::t_cdacab3f14d1c8 195-210
+tests/unit/test_snapshot_attestation.py
+  s_f999ea469e6b3e::t_0327b96c5a7f32 6,12,79-151,513
+tests/unit/test_snapshot_attestation_gate.py
+  s_f999ea469e6b3e::t_34302a189a8d00 49,86,89,120-122,153,174,184,200-235,589,594,628-630,632
+tests/unit/test_snapshot_attestation_roundtrip.py
+  s_f999ea469e6b3e::t_8af84a2ac7168b 17,66-71,151,164,167,183
+tests/unit/test_workflow_yaml_files.py
+  s_f999ea469e6b3e::t_be990c785c2a9a 485-496
+vercel.json
+  s_f999ea469e6b3e::t_b21f16353a3a0a 22-25
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "61ba6002e4445a5b17791c8f16a2e8885cdba95f",
+  "prompts": {},
+  "sessions": {
+    "s_f999ea469e6b3e": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1fa8f-4a65-7591-b4d1-15e080aaa398",
+        "model": "gpt-6.2-sol"
+      },
+      "human_author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}
