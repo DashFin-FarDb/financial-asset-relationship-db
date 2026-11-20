@@ -212,8 +212,10 @@ Persistence invariants:
 - `SUCCEEDED` means graph persistence and success metadata were both completed for the owning execution attempt;
 - bounded readiness is not durable graph truth.
 
-A new publication records the same canonical SHA-256 snapshot digest on the publication and its successful rebuild job.
-Startup verifies the execution identity, both digests and the persisted graph before serving it. On upgrade, a legacy
+A new publication records the same canonical SHA-256 snapshot digest and attestation version on the publication and
+its successful rebuild job. Version `v1` preserves the original asset field set; `v2` also covers optional equity
+valuation and forecast growth metrics. Startup verifies the execution identity, matching digest and version, and the
+persisted graph using the recorded canonicalization version before serving it. On upgrade, a legacy
 publication and matching job may both have null digests. After startup reconciliation succeeds, the API can accept an
 authorized rebuild while graph reads return HTTP 503. The rebuild produces a fresh attested publication. Computing a
 digest over existing rows during migration would supply no evidence about the data originally published.

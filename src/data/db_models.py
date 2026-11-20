@@ -68,6 +68,12 @@ class AssetORM(Base):
         nullable=True,
     )
     book_value: Mapped[float | None] = mapped_column(Float, nullable=True)
+    forward_pe_ratio: Mapped[float | None] = mapped_column(Float, nullable=True)
+    peg_ratio: Mapped[float | None] = mapped_column(Float, nullable=True)
+    price_to_sales_ratio: Mapped[float | None] = mapped_column(Float, nullable=True)
+    price_to_book_ratio: Mapped[float | None] = mapped_column(Float, nullable=True)
+    eps_growth_next_year: Mapped[float | None] = mapped_column(Float, nullable=True)
+    eps_growth_next_5_years: Mapped[float | None] = mapped_column(Float, nullable=True)
 
     # Bond-specific fields
     yield_to_maturity: Mapped[float | None] = mapped_column(
@@ -269,6 +275,9 @@ class RebuildJobORM(Base):
 
     # Persisted Graph Snapshot Attestation
     snapshot_sha256: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    snapshot_attestation_version: Mapped[str] = mapped_column(
+        String(16), nullable=False, default="v1", server_default="v1"
+    )
 
 
 class DistributedLockORM(Base):

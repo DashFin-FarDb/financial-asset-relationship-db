@@ -10,6 +10,9 @@ required for staging and production promotion.
 For staging-specific provider boundaries, Vercel environment mapping, preview durability labelling, and promotion
 evidence capture, see the [Staging Deployment Operating Baseline](staging-deployment-operating-baseline.md).
 
+For the operator procedure that maps the hosted UI, FastAPI API, Supabase Data API, and graph persistence settings, see
+the [Hosted UI, API, and Supabase Data Path runbook](runbooks/hosted-ui-api-and-supabase-data-path.md).
+
 For current rebuild/recovery/persistence state-machine semantics, ownership rules, and exception paths, see the canonical [State Machine and Operating Authority](governance/state-machine-and-operating-authority.md).
 
 ## Operating Topology

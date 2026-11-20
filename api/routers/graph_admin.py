@@ -49,7 +49,7 @@ from src.logic.relationship_projection import (
     overlay_governed_relationships,
     project,
 )
-from src.logic.snapshot_attestation import compute_repository_snapshot_hash
+from src.logic.snapshot_attestation import ATTESTATION_VERSION_V2, compute_repository_snapshot_hash
 from src.observability.facade import ObservabilityEvent, log_event
 
 from ..api_models import (
@@ -80,6 +80,7 @@ from ..graph_lifecycle_providers import (
     stage_graph_snapshot,
 )
 from ..metrics import (
+    GRAPH_REBUILD_ADMISSION_TOTAL,
     HEARTBEAT_LAST_SUCCESS_TIMESTAMP,
     HEARTBEAT_UPDATE_TOTAL,
     LOCK_REFRESH_DURATION,
@@ -225,6 +226,7 @@ def _claim_rebuild_or_raise() -> asyncio.Lock:
     """Claim rebuild execution or raise a fail-fast HTTP error."""
     rebuild_lock = _REBUILD_RUNTIME.get_lock()
     if _REBUILD_RUNTIME.is_busy() or rebuild_lock.locked():
+        GRAPH_REBUILD_ADMISSION_TOTAL.labels(result="rejected_busy").inc()
         raise _rebuild_in_progress_error()
     _REBUILD_RUNTIME.mark_busy()
     return rebuild_lock
@@ -1223,6 +1225,7 @@ def _acquire_rebuild_lock(
         dist_lock.acquire()
     except LockAcquisitionTimeout as exc:
         record_rebuild_lock_acquisition("timeout")
+        GRAPH_REBUILD_ADMISSION_TOTAL.labels(result="rejected_busy").inc()
         raise _DistributedLockAcquisitionError(str(exc)) from exc
     except Exception:
         record_rebuild_lock_acquisition("error")
@@ -1236,6 +1239,7 @@ def _acquire_rebuild_lock(
         record_rebuild_lock_acquisition("invalid")
         raise RuntimeError(f"Unexpected coordination state after acquisition: {lock_state}")
 
+    GRAPH_REBUILD_ADMISSION_TOTAL.labels(result="accepted").inc()
     record_rebuild_lock_acquisition("acquired")
     return dist_lock
 
@@ -1825,7 +1829,17 @@ def _finalize_rebuild_success(
         )
         stage_graph_snapshot(session, publication_graph)
         session.flush()
-        snapshot_sha256 = compute_repository_snapshot_hash(AssetGraphRepository(session))
+        snapshot_attestation_version = ATTESTATION_VERSION_V2
+        snapshot_sha256 = compute_repository_snapshot_hash(
+            AssetGraphRepository(session),
+            attestation_version=snapshot_attestation_version,
+            check_cancelled=partial(
+                _verify_execution_state,
+                lock_lost,
+                cancel_event,
+                "publication-snapshot-attestation",
+            ),
+        )
 
         _guard_publication_lock(coordination_session, lock_holder_id, lock_ttl_seconds, "publication-pre-success")
 
@@ -1846,6 +1860,7 @@ def _finalize_rebuild_success(
                 duration_ms=_duration_ms(job_started_at),
                 published_at=publication_time,
                 snapshot_sha256=snapshot_sha256,
+                snapshot_attestation_version=snapshot_attestation_version,
             ),
             pre_success_check=pre_success_check,
             pre_commit_check=pre_commit_check,

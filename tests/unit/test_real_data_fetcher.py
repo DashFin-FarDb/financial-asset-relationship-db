@@ -17,6 +17,7 @@ import re
 import threading
 from unittest.mock import MagicMock, Mock, patch
 
+import pandas as pd
 import pytest
 
 from src.data.real_data_fetcher import (
@@ -530,7 +531,16 @@ class TestFetchMethods:
         mock_ticker = Mock()
         mock_ticker.info = {
             "marketCap": 1e12,
+            "trailingPE": 30.0,
+            "trailingAnnualDividendYield": 0.01,
+            "trailingEps": 5.0,
+            "bookValue": 16.5,
+            "forwardPE": 24.0,
+            "pegRatio": 1.4,
+            "priceToSalesTrailing12Months": 6.2,
+            "priceToBook": 9.1,
         }
+        mock_ticker.growth_estimates = pd.DataFrame({"stockTrend": [0.12, 0.10]}, index=["+1y", "+5y"])
         mock_ticker.history.return_value = _make_history_mock(150.0)
         mock_yf.Ticker.return_value = mock_ticker
         mock_get_yfinance.return_value = mock_yf
@@ -542,7 +552,34 @@ class TestFetchMethods:
         assert all(isinstance(eq, Equity) for eq in equities)
         assert all(abs(eq.price - 150.0) < 1e-9 for eq in equities)
         assert all(eq.sector for eq in equities)
+        assert all(eq.pe_ratio == 30.0 for eq in equities)
+        assert all(eq.dividend_yield == 0.01 for eq in equities)
+        assert all(eq.earnings_per_share == 5.0 for eq in equities)
+        assert all(eq.book_value == 16.5 for eq in equities)
+        assert all(eq.forward_pe_ratio == 24.0 for eq in equities)
+        assert all(eq.peg_ratio == 1.4 for eq in equities)
+        assert all(eq.price_to_sales_ratio == 6.2 for eq in equities)
+        assert all(eq.price_to_book_ratio == 9.1 for eq in equities)
+        assert all(eq.eps_growth_next_year == 0.12 for eq in equities)
+        assert all(eq.eps_growth_next_5_years == 0.10 for eq in equities)
         assert mock_yf.Ticker.call_count == 4
+
+    @patch("src.data.real_data_fetcher._get_yfinance")
+    def test_fetch_equity_data_omits_nonfinite_optional_metrics(self, mock_get_yfinance):
+        """Non-finite optional provider values are treated as missing instead of breaking attestation."""
+        mock_yf = Mock()
+        mock_ticker = Mock()
+        mock_ticker.info = {"marketCap": float("nan"), "forwardPE": float("inf"), "pegRatio": "n/a"}
+        mock_ticker.history.return_value = _make_history_mock(150.0)
+        mock_yf.Ticker.return_value = mock_ticker
+        mock_get_yfinance.return_value = mock_yf
+
+        equities = RealDataFetcher._fetch_equity_data()
+
+        assert equities
+        assert all(asset.market_cap is None for asset in equities)
+        assert all(asset.forward_pe_ratio is None for asset in equities)
+        assert all(asset.peg_ratio is None for asset in equities)
 
     @patch("src.data.real_data_fetcher._get_yfinance")
     def test_fetch_equity_data_with_empty_history(self, mock_get_yfinance):

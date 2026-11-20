@@ -20,6 +20,10 @@
       "dest": "api/main.py"
     },
     {
+      "src": "/token/?",
+      "dest": "api/main.py"
+    },
+    {
       "src": "/(.*)",
       "dest": "frontend/$1"
     }
