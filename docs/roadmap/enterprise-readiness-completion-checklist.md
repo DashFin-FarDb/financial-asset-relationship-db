@@ -366,8 +366,8 @@ already defines related collectors (`graph_rebuild_state_transition_total`, `reb
 The implementation PRs below have merged since the 2026-11-19 audit snapshot. The checkboxes remain open pending
 Phase 1.4 evidence reconciliation, including hosted verification.
 
-| Sub-item | Implementation PR                                                                          | Scope in PR                                                     | Local validation                                     |
-| -------- | ----------------------------------------------------------------------------------- | --------------------------------------------------------------- | ---------------------------------------------------- |
+| Sub-item | Implementation PR                                                                                 | Scope in PR                                                     | Local validation                                     |
+| -------- | ------------------------------------------------------------------------------------------------- | --------------------------------------------------------------- | ---------------------------------------------------- |
 | 1.4.a    | [#1929](https://github.com/DashFin-FarDb/financial-asset-relationship-db/pull/1929) (`e3df86683`) | Fail-fast admission counter and corrected criterion             | 2 focused tests passed; Ruff and diff checks passed  |
 | 1.4.b    | [#1930](https://github.com/DashFin-FarDb/financial-asset-relationship-db/pull/1930) (`634cd54cb`) | Lifecycle transition assertions and RecoveryGate reset emission | 19 focused tests passed; Ruff and diff checks passed |
 | 1.4.c    | [#1931](https://github.com/DashFin-FarDb/financial-asset-relationship-db/pull/1931) (`d929086ee`) | Lock acquisition outcome assertions                             | 6 focused tests passed; Ruff and diff checks passed  |
