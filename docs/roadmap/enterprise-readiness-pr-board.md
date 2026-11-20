@@ -8,9 +8,10 @@ For the broader enterprise-readiness index, see [docs/enterprise-readiness-index
 
 **Current reconciliation checkpoint — 2026-11-19:** the 2026-09-01 reconciliation below remains the latest broad
 `main` review; it is not a new whole-repository audit. CQ-03D-02 has no approved target or permit and no hosted
-preflight has run. The accepted connection routes are a documented direct route or verified IPv4 port-5432 session
+preflight has run. The accepted connection routes are a documented direct route or IPv4 port-5432 session
 pooler with `sslmode=verify-full` and a protected trust root; IPv6 and a generic support response are not prerequisites
-when an accepted route is available. Port 6543 transaction pooling remains prohibited.
+when an accepted route is available. Target approval and the protected single-use permit remain required before the
+read-only preflight, and a passing preflight does not authorize the separate later history-marker decision. Port 6543 transaction pooling remains prohibited.
 
 **Historical reconciliation checkpoint — 2026-09-01:** `main@0984f6225cc0f42ff02a9f7eda7b314566d759d0` includes
 the GNC Phase 2 implementation (PR #1740), the local observability launcher and earlier unenrolled-input proof
