@@ -70,10 +70,11 @@ and drills, then multi-region strategy.
 approved in principle; target and permit absent; no hosted preflight executed.
 
 **Routing reconciliation — 2026-11-19:** The adapter and runbook accept a documented Supabase direct route or IPv4
-port-5432 session-pooler route with `sslmode=verify-full` and a protected trust root. IPv6 and a generic Supabase
-support response are not prerequisites when one of these supported routes is available. Port 6543 transaction-pooler
-routing remains prohibited. This corrects stale wording in the earlier roadmap snapshot; target approval and the
-protected permit remain required.
+port-5432 session-pooler route with `sslmode=verify-full` and a protected trust root. IPv6 is not required when using
+the IPv4 session pooler, whereas a direct route requires network connectivity compatible with the endpoint's resolved
+address (IPv6 or the IPv4 add-on); a generic Supabase support response is not a prerequisite when a supported route is
+available. Port 6543 transaction-pooler routing remains prohibited. This corrects stale wording in the earlier roadmap
+snapshot; target approval and the protected permit remain required.
 
 **Sources:** [Roadmap — CQ-03 programme](enterprise-readiness-roadmap.md#current-critical-path-programme--cq-03-postgresql-ledger-adoption),
 [Database migration authority runbook — CQ-03D](../runbooks/database-migration-authority.md#cq-03d-approval-pack-and-read-only-preflight),

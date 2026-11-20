@@ -9,8 +9,9 @@ For the broader enterprise-readiness index, see [docs/enterprise-readiness-index
 **Current reconciliation checkpoint — 2026-11-19:** the 2026-09-01 reconciliation below remains the latest broad
 `main` review; it is not a new whole-repository audit. CQ-03D-02 has no approved target or permit and no hosted
 preflight has run. The accepted connection routes are a documented direct route or IPv4 port-5432 session
-pooler with `sslmode=verify-full` and a protected trust root; IPv6 and a generic support response are not prerequisites
-when an accepted route is available. Target approval and the protected single-use permit remain required before the
+pooler with `sslmode=verify-full` and a protected trust root; IPv6 is not required when using the IPv4 session pooler,
+whereas a direct route requires network connectivity compatible with the endpoint's resolved address (IPv6 or the IPv4
+add-on), and a generic support response is not a prerequisite when an accepted route is available. Target approval and the protected single-use permit remain required before the
 read-only preflight, and a passing preflight does not authorize the separate later history-marker decision. Port 6543 transaction pooling remains prohibited.
 
 **Historical reconciliation checkpoint — 2026-09-01:** `main@0984f6225cc0f42ff02a9f7eda7b314566d759d0` includes
