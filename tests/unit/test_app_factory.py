@@ -655,6 +655,7 @@ async def test_periodic_reconciliation_loop_triggers_recovery(
             coordination_database_url=base_settings.database_url,
             cancel_event=None,
             lock_ttl_seconds=300,
+            is_ready_fn=lambda: True,
         )
 
     assert consume_plan_called == [True]

@@ -59,6 +59,7 @@ class RecoveryGate:
         lock_ttl_seconds: int = 300,
         enable_automatic_recovery: bool = False,
         record_drift_metric: Callable[[str, str, str], None] | None = None,
+        record_state_transition: Callable[[str, str], None] | None = None,
     ) -> None:
         """Initialize RecoveryGate."""
         self.session_factory = session_factory
@@ -68,6 +69,7 @@ class RecoveryGate:
         self.lock_ttl_seconds = max(1, min(int(lock_ttl_seconds), MAX_TTL))
         self.enable_automatic_recovery = enable_automatic_recovery
         self.record_drift_metric = record_drift_metric or (lambda _t, _s, _e: None)
+        self.record_state_transition = record_state_transition or (lambda _from_state, _to_state: None)
         self.lock_was_reacquired = False
 
     def _create_unsafe_plan_from_error(
@@ -562,6 +564,18 @@ class RecoveryGate:
                 inconsistency_type=drift_type,
             )
         session.commit()
+        try:
+            self.record_state_transition("running", "failed")
+        except Exception as exc:  # Observability must not alter recovery behavior.
+            log_event(
+                logger,
+                logging.WARNING,
+                ObservabilityEvent(
+                    event="recovery_transition_metric_failed",
+                    message="Failed to record recovery state transition metric.",
+                    metadata={"error": type(exc).__name__},
+                ),
+            )
 
     def _perform_reset_recovery(
         self,

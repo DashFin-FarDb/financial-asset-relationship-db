@@ -135,7 +135,15 @@ class IAssetGraphRepository(Protocol):
         ...
 
     def mark_rebuild_job_succeeded(  # pylint: disable=too-many-arguments
-        self, job_id: str, *, execution_id: str, node_count: int, edge_count: int, duration_ms: int
+        self,
+        job_id: str,
+        *,
+        execution_id: str,
+        node_count: int,
+        edge_count: int,
+        duration_ms: int,
+        snapshot_sha256: str | None = None,
+        snapshot_attestation_version: str = "v1",
     ) -> None:
         """Transition a job to SUCCEEDED and record metrics."""
         ...
@@ -164,11 +172,11 @@ class IAssetGraphRepository(Protocol):
 
     def count_rebuild_jobs(self, *, status: str | None = None) -> int:
         """Count rebuild jobs, optionally filtered by status."""
-        pass
+        ...
 
     def get_latest_successful_rebuild_job(self) -> RebuildJobORM | None:
         """Return the most recently completed SUCCEEDED job."""
-        pass
+        ...
 
     def update_rebuild_heartbeat(self, job_id: str, execution_id: str, worker_id: str) -> None:
         """Update the heartbeat timestamp for a running rebuild job."""

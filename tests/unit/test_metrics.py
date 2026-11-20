@@ -9,11 +9,13 @@ import pytest
 from prometheus_client import Counter
 
 from api.metrics import (
+    GRAPH_REBUILD_STATE_TRANSITION_TOTAL,
     HEARTBEAT_LAST_SUCCESS_TIMESTAMP,
     HEARTBEAT_UPDATE_TOTAL,
     LOCK_REFRESH_DURATION,
     LOCK_REFRESH_TOTAL,
     REBUILD_LOCK_ACQUISITION_TOTAL,
+    record_rebuild_state_transition,
     update_rebuild_state_metric,
 )
 from src.data.db_models import RebuildJobStatus
@@ -60,6 +62,28 @@ def test_update_rebuild_state_metric_maps_status_values(monkeypatch: pytest.Monk
     update_rebuild_state_metric(status)
 
     gauge_set.assert_called_once_with(expected)
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    ("from_state", "to_state"),
+    [
+        ("none", "pending"),
+        ("pending", "running"),
+        ("running", "succeeded"),
+        ("running", "failed"),
+        ("pending_or_running", "cancel_requested"),
+        ("cancel_requested", "cancelled"),
+    ],
+)
+def test_rebuild_state_transition_metric_records_bounded_transition(from_state: str, to_state: str) -> None:
+    """Each supported rebuild lifecycle transition is recorded with only state labels."""
+    before = _get_counter_value(GRAPH_REBUILD_STATE_TRANSITION_TOTAL, from_state=from_state, to_state=to_state)
+
+    record_rebuild_state_transition(from_state, to_state)
+
+    after = _get_counter_value(GRAPH_REBUILD_STATE_TRANSITION_TOTAL, from_state=from_state, to_state=to_state)
+    assert after - before == 1
 
 
 @pytest.mark.unit
