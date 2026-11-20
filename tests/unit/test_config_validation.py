@@ -81,6 +81,18 @@ class TestVercelConfig:
         assert api_route["dest"] == "api/main.py"
 
     @staticmethod
+    def test_vercel_routes_token_routing(vercel_config):
+        """Test that /token routes to FastAPI before the frontend catch-all."""
+        routes = vercel_config["routes"]
+        token_index = next((i for i, r in enumerate(routes) if r["src"] == "/token"), None)
+        frontend_index = next((i for i, r in enumerate(routes) if r["src"] == "/(.*)"), None)
+
+        assert token_index is not None, "/token route not found"
+        assert frontend_index is not None, "Frontend catch-all route not found"
+        assert routes[token_index]["dest"] == "api/main.py"
+        assert token_index < frontend_index
+
+    @staticmethod
     def test_vercel_routes_frontend_routing(vercel_config):
         """Test that frontend routes are configured correctly."""
         routes = vercel_config["routes"]
