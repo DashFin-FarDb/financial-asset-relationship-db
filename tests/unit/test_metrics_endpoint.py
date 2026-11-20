@@ -32,6 +32,9 @@ def _assert_metrics_text_response(response) -> str:
     assert "graph_relationships_count" in body
     assert "rebuild_lock_acquisition_total" in body
     assert "graph_rebuild_state_transition_total" in body
+    assert "application_startup_duration_seconds" in body
+    assert "application_startup_success_total" in body
+    assert "application_startup_failure_total" in body
     # Stage 5C.2: Lock refresh and heartbeat metrics
     assert "rebuild_lock_refresh_total" in body
     assert "rebuild_lock_refresh_duration_seconds" in body
