@@ -278,6 +278,9 @@ class RelationshipProjectionPublicationORM(Base):
     published_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     execution_id: Mapped[str | None] = mapped_column(String(64), nullable=True)
     snapshot_sha256: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    snapshot_attestation_version: Mapped[str] = mapped_column(
+        String(16), nullable=False, default="v1", server_default="v1"
+    )
 
 
 GRAC_TABLE_NAMES: tuple[str, ...] = (

@@ -658,6 +658,26 @@ def _validate_publication_attestation_metadata(
         )
         return None
 
+    if (
+        not publication.snapshot_attestation_version
+        or publication.snapshot_attestation_version != job.snapshot_attestation_version
+        or publication.snapshot_attestation_version not in {"v1", "v2"}
+    ):
+        log_event(
+            logger,
+            logging.WARNING,
+            ObservabilityEvent(
+                event="graph_provenance_evaluation",
+                message="Inconsistent or unsupported snapshot attestation version",
+                metadata={
+                    "classification": SnapshotProvenanceClassification.INCONSISTENT_ATTESTATION.value,
+                    "publication_id": publication.id,
+                    "job_id": job.job_id,
+                },
+            ),
+        )
+        return None
+
     return expected_digest
 
 
@@ -756,7 +776,9 @@ def _load_persisted_graph_from_configured_store(
             # 6. Load graph once from persisted rows and recompute canonical digest
             repo = AssetGraphRepository(session)
             try:
-                graph, actual_digest = repo.load_graph_with_attestation_hash()
+                graph, actual_digest = repo.load_graph_with_attestation_hash(
+                    attestation_version=publication.snapshot_attestation_version,
+                )
             except CanonicalizationValidationError as val_exc:
                 log_event(
                     logger,
