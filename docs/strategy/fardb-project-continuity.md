@@ -138,7 +138,8 @@ Primary authorities:
 - **Type:** PostgreSQL hosted-preflight documentation reconciliation
 - **Status:** Repository routing documentation reconciled; no target or permit approved and no hosted preflight executed.
 - **Decision or objective:** A documented Supabase direct route or IPv4 port-5432 session-pooler route is acceptable
-  to the CQ-03D-01 adapter when `sslmode=verify-full` and an explicit protected trust root are used. IPv6 is not
+  to the CQ-03D-01 adapter when `sslmode=verify-full` and an explicit protected trust root (the current
+  project-specific Supabase CA obtained from the Supabase Connect dialog, not an obsolete `prod-ca-2021.crt`) are used. IPv6 is not
   required when using the IPv4 session pooler, whereas a direct route requires network connectivity compatible with
   the endpoint's resolved address (IPv6 or the IPv4 add-on); a generic support response is not a prerequisite when an
   accepted route is available. Port-6543 transaction pooling remains prohibited.
