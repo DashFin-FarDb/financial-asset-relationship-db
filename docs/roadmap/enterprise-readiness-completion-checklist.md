@@ -353,7 +353,8 @@ already defines related collectors (`graph_rebuild_state_transition_total`, `reb
       accepted requests from rejected-busy requests, with tests. Concurrent rebuilds are intentionally rejected rather
       than queued; adding a queue would change rebuild semantics and is outside this observability item.
 - [ ] 1.4.b — State transition counters are emitted for every rebuild job transition, with tests.
-- [ ] 1.4.c — Lock acquisition metrics are emitted for acquire success/failure outcomes, with tests.
+- [ ] 1.4.c — Lock acquisition metrics are emitted for acquired, timeout, error, lost, and invalid outcomes, with
+      tests asserting one increment per outcome and bounded status labels.
 - [ ] 1.4.d — Startup metrics are emitted for startup duration and success/failure, with tests.
 - [ ] Each sub-item's status is reconciled in the current roadmap or release evidence pack (not by editing the frozen
       `ROADMAP_STATUS.md` snapshot) with its merged PR reference.

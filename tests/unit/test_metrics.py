@@ -14,6 +14,7 @@ from api.metrics import (
     HEARTBEAT_UPDATE_TOTAL,
     LOCK_REFRESH_DURATION,
     LOCK_REFRESH_TOTAL,
+    REBUILD_LOCK_ACQUISITION_TOTAL,
     record_rebuild_state_transition,
     update_rebuild_state_metric,
 )
@@ -151,3 +152,54 @@ def test_heartbeat_update_total_counter_labels() -> None:
 
     assert success_counter is not None
     assert failure_counter is not None
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    ("outcome", "acquire_error", "lock_state", "error_type"),
+    [
+        ("acquired", None, "valid", None),
+        ("timeout", "timeout", "valid", RuntimeError),
+        ("error", "error", "valid", RuntimeError),
+        ("lost", None, "lost", RuntimeError),
+        ("invalid", None, "unknown", RuntimeError),
+    ],
+)
+def test_rebuild_lock_acquisition_records_each_outcome(
+    monkeypatch: pytest.MonkeyPatch,
+    outcome: str,
+    acquire_error: str | None,
+    lock_state: str,
+    error_type,
+) -> None:
+    """Lock acquire success and failure outcomes each increment their bounded label."""
+    from api.routers import graph_admin
+    from src.data.distributed_lock import LockAcquisitionTimeout, LockState
+
+    lock = MagicMock()
+    if acquire_error == "timeout":
+        lock.acquire.side_effect = LockAcquisitionTimeout("timeout")
+    elif acquire_error == "error":
+        lock.acquire.side_effect = RuntimeError("database error")
+    lock.check_state.return_value = LockState(lock_state)
+    monkeypatch.setattr(graph_admin, "_validate_coordination_database_primary", lambda _factory: None)
+    monkeypatch.setattr(graph_admin, "DistributedLock", lambda **_kwargs: lock)
+    outcomes = ("acquired", "timeout", "error", "lost", "invalid")
+    before = {status: _get_counter_value(REBUILD_LOCK_ACQUISITION_TOTAL, status=status) for status in outcomes}
+
+    if error_type is None:
+        assert graph_admin._acquire_rebuild_lock(MagicMock(), 30) is lock
+    else:
+        with pytest.raises(error_type):
+            graph_admin._acquire_rebuild_lock(MagicMock(), 30)
+
+    after = {status: _get_counter_value(REBUILD_LOCK_ACQUISITION_TOTAL, status=status) for status in outcomes}
+    assert after[outcome] - before[outcome] == 1
+    assert all(after[status] - before[status] == 0 for status in outcomes if status != outcome)
+    emitted_statuses = {
+        sample.labels.get("status")
+        for metric_family in REBUILD_LOCK_ACQUISITION_TOTAL.collect()
+        for sample in metric_family.samples
+        if sample.name == "rebuild_lock_acquisition_total"
+    }
+    assert emitted_statuses <= set(outcomes)
