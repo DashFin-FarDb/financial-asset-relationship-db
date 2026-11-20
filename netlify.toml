@@ -1,3 +1,8 @@
 [build]
-  command = "cd frontend && npm ci && npm run build"
-  publish = "frontend/.next"
+  base = "frontend"
+  command = "npm ci && npm run build"
+  publish = "out"
+  ignore = "if [ \"$CONTEXT\" = \"production\" ]; then exit 1; fi; test \"$CACHED_COMMIT_REF\" != \"$COMMIT_REF\" && git -C .. diff --quiet \"$CACHED_COMMIT_REF\" \"$COMMIT_REF\" -- frontend netlify.toml"
+
+  [build.environment]
+    NETLIFY_NEXT_PLUGIN_SKIP = "true"

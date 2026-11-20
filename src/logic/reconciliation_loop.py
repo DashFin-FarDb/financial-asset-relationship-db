@@ -56,7 +56,12 @@ def _run_sync_reconciliation(
     """Execute a single synchronous reconciliation pass."""
     import time
 
-    from api.metrics import RECONCILIATION_DURATION, increment_recovery_trigger, record_drift_metric
+    from api.metrics import (
+        RECONCILIATION_DURATION,
+        increment_recovery_trigger,
+        record_drift_metric,
+        record_rebuild_state_transition,
+    )
     from src.logic.recovery_gate import RecoveryGate
 
     start_time = time.perf_counter()
@@ -74,6 +79,7 @@ def _run_sync_reconciliation(
         lock_ttl_seconds=bounded_lock_ttl,
         enable_automatic_recovery=True,
         record_drift_metric=record_drift_metric,
+        record_state_transition=record_rebuild_state_transition,
     )
 
     try:
@@ -167,6 +173,7 @@ async def periodic_reconciliation_loop(
     coordination_database_url: str | None = None,
     cancel_event: threading.Event | None = None,
     lock_ttl_seconds: int = 300,
+    is_ready_fn: Callable[[], bool] | None = None,
 ) -> None:
     """Periodically run drift planning and execute automatic recovery.
 
@@ -191,10 +198,8 @@ async def periodic_reconciliation_loop(
                 if is_shutdown_fn():
                     return
 
-                from api.app_factory import GraphRuntimeLifecycleState, get_runtime_lifecycle_state
-
-                # Skip drift evaluation while the app is still initializing or paused
-                if get_runtime_lifecycle_state() != GraphRuntimeLifecycleState.READY:
+                # Fail closed: skip drift evaluation unless caller explicitly reports READY
+                if is_ready_fn is None or not is_ready_fn():
                     continue
 
                 await _perform_reconciliation_iteration(

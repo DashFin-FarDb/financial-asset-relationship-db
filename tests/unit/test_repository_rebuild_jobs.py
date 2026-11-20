@@ -192,6 +192,22 @@ class TestRebuildJobRepository:
                 duration_ms=0,
             )
 
+    def test_mark_rebuild_job_succeeded_rejects_unknown_attestation_version(self, repository_factory):
+        """A rebuild cannot be committed with a version the provenance loader cannot verify."""
+        repo = repository_factory()
+        job_id = repo.create_rebuild_job(requested_by="test_user")
+        repo.mark_rebuild_job_running(job_id, "test_exec_id")
+
+        with pytest.raises(ValueError, match="Unsupported snapshot attestation version"):
+            repo.mark_rebuild_job_succeeded(
+                job_id,
+                execution_id="test_exec_id",
+                node_count=0,
+                edge_count=0,
+                duration_ms=0,
+                snapshot_attestation_version="v999",
+            )
+
     def test_mark_rebuild_job_succeeded_invalid_transition(self, repository_factory):
         """Test that marking a non-running job as succeeded raises ValueError."""
         repo = repository_factory()

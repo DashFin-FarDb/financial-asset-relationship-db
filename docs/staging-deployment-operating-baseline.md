@@ -10,6 +10,9 @@ This baseline makes staging deployment operations auditable without introducing 
 required provider boundaries, Vercel environment mapping, environment-variable expectations, preview durability labels,
 and staging promotion evidence path.
 
+For the operator procedure that distinguishes frontend API routing from Supabase Data API and database persistence,
+see the [Hosted UI, API, and Supabase Data Path runbook](runbooks/hosted-ui-api-and-supabase-data-path.md).
+
 This document does not contain secret values, raw connection strings, access tokens, provider credentials, or full
 deployment logs.
 

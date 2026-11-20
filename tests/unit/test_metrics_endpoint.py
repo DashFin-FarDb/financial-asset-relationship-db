@@ -30,6 +30,8 @@ def _assert_metrics_text_response(response) -> str:
     assert "graph_rebuild_requests_total" in body
     assert "graph_assets_count" in body
     assert "graph_relationships_count" in body
+    assert "rebuild_lock_acquisition_total" in body
+    assert "graph_rebuild_state_transition_total" in body
     assert "application_startup_duration_seconds" in body
     assert "application_startup_success_total" in body
     assert "application_startup_failure_total" in body
@@ -38,6 +40,7 @@ def _assert_metrics_text_response(response) -> str:
     assert "rebuild_lock_refresh_duration_seconds" in body
     assert "rebuild_heartbeat_update_total" in body
     assert "rebuild_heartbeat_last_success_timestamp" in body
+    assert "graph_rebuild_admission_total" in body
     return body
 
 
@@ -62,9 +65,13 @@ class TestMetricsEndpoint:
 
     def test_metrics_happy_path(self, client: TestClient) -> None:
         """Metrics endpoint returns a valid OpenMetrics payload."""
+        from api.metrics import REBUILD_LOCK_ACQUISITION_TOTAL
+
+        REBUILD_LOCK_ACQUISITION_TOTAL.labels(status="acquired").inc()
         body = _assert_metrics_text_response(client.get("/api/metrics"))
         assert "# HELP graph_rebuild_requests_total" in body
         assert "# TYPE graph_rebuild_requests_total counter" in body
+        assert 'rebuild_lock_acquisition_total{status="acquired"}' in body
 
     def test_metrics_returns_error_when_generation_fails(self, client: TestClient) -> None:
         """Metrics generation failures return HTTP 500 plaintext errors."""
