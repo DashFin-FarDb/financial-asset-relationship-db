@@ -13,6 +13,11 @@ import pytest
 from fastapi import FastAPI
 
 from api import app_factory
+from api.metrics import (
+    APPLICATION_STARTUP_DURATION,
+    APPLICATION_STARTUP_FAILURE_TOTAL,
+    APPLICATION_STARTUP_SUCCESS_TOTAL,
+)
 from src.config.settings import DeploymentEnvironment
 from src.data.database import SchemaCompatibilityError
 from src.data.sample_data import create_sample_database
@@ -58,6 +63,112 @@ async def test_lifespan_calls_shutdown_rebuild_executor_on_exit(
         assert shutdown_calls == []
 
     assert shutdown_calls == [True]
+
+
+def _mock_startup_lifecycle(monkeypatch: pytest.MonkeyPatch, settings: SimpleNamespace) -> None:
+    """Replace startup dependencies with a minimal deterministic lifecycle."""
+    monkeypatch.setattr("api.graph_lifecycle_providers.get_graph_lifecycle_settings", lambda: settings)
+    monkeypatch.setattr(app_factory, "_get_durable_graph_database_url", lambda _settings: None)
+    monkeypatch.setattr(app_factory, "should_degrade_hosted_startup", lambda _settings: False)
+    monkeypatch.setattr(app_factory, "_start_background_tasks", lambda *_args: (None, None, None))
+
+    async def initialize(*_args) -> None:
+        """Complete startup state initialization."""
+
+    async def shutdown(*_args) -> None:
+        """Complete orderly shutdown."""
+
+    monkeypatch.setattr(app_factory, "_initialize_application_state", initialize)
+    monkeypatch.setattr(app_factory, "_perform_orderly_shutdown", shutdown)
+
+
+@pytest.mark.asyncio
+async def test_lifespan_emits_startup_success_and_duration(
+    monkeypatch: pytest.MonkeyPatch,
+    base_settings: SimpleNamespace,
+) -> None:
+    """Successful lifespan startup increments success and observes duration."""
+    success = MagicMock()
+    failure = MagicMock()
+    duration = MagicMock()
+    monkeypatch.setattr(APPLICATION_STARTUP_SUCCESS_TOTAL, "inc", success)
+    monkeypatch.setattr(APPLICATION_STARTUP_FAILURE_TOTAL, "inc", failure)
+    monkeypatch.setattr(APPLICATION_STARTUP_DURATION, "observe", duration)
+    _mock_startup_lifecycle(monkeypatch, base_settings)
+
+    async with app_factory.lifespan(FastAPI()):
+        pass
+
+    success.assert_called_once_with()
+    failure.assert_not_called()
+    duration.assert_called_once()
+    assert duration.call_args.args[0] >= 0
+
+
+@pytest.mark.asyncio
+async def test_lifespan_emits_startup_failure_and_duration(
+    monkeypatch: pytest.MonkeyPatch,
+    base_settings: SimpleNamespace,
+) -> None:
+    """Failed lifespan startup increments failure and still observes duration."""
+    success = MagicMock()
+    failure = MagicMock()
+    duration = MagicMock()
+    startup_event = MagicMock()
+    monkeypatch.setattr(APPLICATION_STARTUP_SUCCESS_TOTAL, "inc", success)
+    monkeypatch.setattr(APPLICATION_STARTUP_FAILURE_TOTAL, "inc", failure)
+    monkeypatch.setattr(APPLICATION_STARTUP_DURATION, "observe", duration)
+    monkeypatch.setattr(app_factory, "log_event", startup_event)
+    _mock_startup_lifecycle(monkeypatch, base_settings)
+
+    async def fail_initialization(*_args) -> None:
+        """Fail startup state initialization."""
+        raise RuntimeError("startup failed")
+
+    monkeypatch.setattr(app_factory, "_initialize_application_state", fail_initialization)
+
+    with pytest.raises(RuntimeError, match="startup failed"):
+        async with app_factory.lifespan(FastAPI()):
+            pass
+
+    success.assert_not_called()
+    failure.assert_called_once_with()
+    duration.assert_called_once()
+    assert duration.call_args.args[0] >= 0
+    assert startup_event.call_args.args[2].event == app_factory.APPLICATION_STARTUP_FAILED_EVENT
+
+
+@pytest.mark.asyncio
+async def test_lifespan_emits_metrics_when_settings_resolution_fails(
+    monkeypatch: pytest.MonkeyPatch,
+    base_settings: SimpleNamespace,
+) -> None:
+    """Configuration failures before state initialization still increment startup failure and duration."""
+    success = MagicMock()
+    failure = MagicMock()
+    duration = MagicMock()
+    startup_event = MagicMock()
+    monkeypatch.setattr(APPLICATION_STARTUP_SUCCESS_TOTAL, "inc", success)
+    monkeypatch.setattr(APPLICATION_STARTUP_FAILURE_TOTAL, "inc", failure)
+    monkeypatch.setattr(APPLICATION_STARTUP_DURATION, "observe", duration)
+    monkeypatch.setattr(app_factory, "log_event", startup_event)
+    _mock_startup_lifecycle(monkeypatch, base_settings)
+
+    def fail_settings_resolution():
+        """Simulate invalid configuration before startup state initialization."""
+        raise RuntimeError("settings resolution failed")
+
+    monkeypatch.setattr("api.graph_lifecycle_providers.get_graph_lifecycle_settings", fail_settings_resolution)
+
+    with pytest.raises(RuntimeError, match="settings resolution failed"):
+        async with app_factory.lifespan(FastAPI()):
+            pass
+
+    success.assert_not_called()
+    failure.assert_called_once_with()
+    duration.assert_called_once()
+    assert duration.call_args.args[0] >= 0
+    assert startup_event.call_args.args[2].event == app_factory.APPLICATION_STARTUP_FAILED_EVENT
 
 
 @pytest.mark.asyncio
@@ -655,6 +766,7 @@ async def test_periodic_reconciliation_loop_triggers_recovery(
             coordination_database_url=base_settings.database_url,
             cancel_event=None,
             lock_ttl_seconds=300,
+            is_ready_fn=lambda: True,
         )
 
     assert consume_plan_called == [True]
@@ -691,10 +803,12 @@ async def test_lifespan_emits_failure_event_on_startup_exception(
     )
 
     logged_events = []
+    logged_contexts: list[tuple[str | None, str | None]] = []
 
     def fake_log_event(logger: Any, level: Any, event: Any) -> None:
-        """Append logged events to a local list for assertion."""
+        """Append logged events and active trace context to local lists for assertion."""
         logged_events.append(event)
+        logged_contexts.append((app_factory.get_trace_id(), app_factory.get_span_id()))
 
     monkeypatch.setattr(app_factory, "log_event", fake_log_event)
 
@@ -724,13 +838,17 @@ async def test_lifespan_emits_failure_event_on_startup_exception(
     assert logged_events[1].event == "startup_failed"
     assert "RuntimeError" in logged_events[1].message
     assert logged_events[1].metadata["error"] == "RuntimeError"
-    assert "Failed to load persisted graph during startup" in logged_events[1].metadata["message"]
+    assert "message" not in logged_events[1].metadata
     assert "trace_id" in logged_events[1].metadata
     assert "span_id" in logged_events[1].metadata
 
     # Continuity: ensure the reconciliation trace context propagates to the outer startup event
     assert logged_events[0].metadata["trace_id"] == logged_events[1].metadata["trace_id"], "Trace ID mismatch"
     assert logged_events[0].metadata["span_id"] == logged_events[1].metadata["span_id"], "Span ID mismatch"
+    assert logged_contexts[1] == (
+        logged_events[1].metadata["trace_id"],
+        logged_events[1].metadata["span_id"],
+    )
 
 
 @pytest.mark.asyncio

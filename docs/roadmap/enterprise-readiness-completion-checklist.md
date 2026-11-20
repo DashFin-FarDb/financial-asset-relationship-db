@@ -69,13 +69,22 @@ and drills, then multi-region strategy.
 **Status at publication:** Partially satisfied — CQ-03D-01 merged and verified at repository scope; maintenance window
 approved in principle; target and permit absent; no hosted preflight executed.
 
+**Routing reconciliation — 2026-11-19:** The adapter and runbook accept a documented Supabase direct route or IPv4
+port-5432 session-pooler route with `sslmode=verify-full` and a protected trust root (the current project-specific
+Supabase CA obtained from the Supabase Connect dialog). IPv6 is not required when using
+the IPv4 session pooler, whereas a direct route requires network connectivity compatible with the endpoint's resolved
+address (IPv6 or the IPv4 add-on); a generic Supabase support response is not a prerequisite when a supported route is
+available. Port 6543 transaction-pooler routing remains prohibited. This corrects stale wording in the earlier roadmap
+snapshot; target approval and the protected permit remain required.
+
 **Sources:** [Roadmap — CQ-03 programme](enterprise-readiness-roadmap.md#current-critical-path-programme--cq-03-postgresql-ledger-adoption),
 [Database migration authority runbook — CQ-03D](../runbooks/database-migration-authority.md#cq-03d-approval-pack-and-read-only-preflight),
 [Operating model — PostgreSQL migration authority](../enterprise-deployment-operating-model.md#postgresql-migration-authority).
 
 ### Completion criteria
 
-- [ ] Supabase support and IPv6-capable connectivity are reconciled for the selected hosted target.
+- [ ] The selected target has an adapter-supported, documented route: direct or IPv4 port-5432 session pooling with
+      `sslmode=verify-full` and a protected trust root. Transaction-pooler port 6543 is rejected.
 - [ ] Exactly one hosted target is separately approved.
 - [ ] A protected single-use permit (`fardb-cq03d-preflight-permit-v1`, state `approved`, `history_only: true`,
       `ddl_authorized: false`) is issued, binding the exact reviewed SHA, `fardb-ledger-profiles-v1` manifest SHA-256,
@@ -159,6 +168,15 @@ repository tests alone.
 ## 4. Staging deployment operating baseline
 
 **Status at publication:** Partially satisfied (roadmap) / Satisfied - manual evidence required (PR board).
+
+**Historical evidence update — 2026-11-19:** The [RC1 evidence record](../evidence-records/rc1-objective-2-follow-up.md)
+reports a successful staging `--require-persistence` smoke on 2026-06-29 for release candidate
+`c54323552e44032c79f99d377b0881a1ddaf6368`, with persisted startup and 19 assets / 73 relationships. It also records
+the Supabase provider, database boundary labels, and Vercel target mapping. For that candidate and target at that time,
+this evidences the historical hosted persistence smoke and topology labels only; it does not establish environment
+variable presence/distinctness, staging GitHub Environment secrets, preview durability labels, or Promotion Decision
+Rule state, and it is not inherited by PR #1925 or a later release. Item 4 remains open for current target mapping,
+boundary, secret, preview-label, and promotion evidence.
 
 **Sources:** [Roadmap — Target-Environment Proof Next](enterprise-readiness-roadmap.md#target-environment-proof-next),
 [Staging Deployment Operating Baseline](../staging-deployment-operating-baseline.md#staging-promotion-checklist),
@@ -336,7 +354,7 @@ already defines related collectors (`graph_rebuild_state_transition_total`, `reb
       than queued; adding a queue would change rebuild semantics and is outside this observability item.
 - [ ] 1.4.b — State transition counters are emitted for every rebuild job transition, including RecoveryGate orphan-reset
       transitions, with tests asserting the lifecycle emission seams.
-- [ ] 1.4.c — Lock acquisition metrics are emitted for acquired, timeout, error, lost, and invalid-state outcomes, with
+- [ ] 1.4.c — Lock acquisition metrics are emitted for acquired, timeout, error, lost, and invalid outcomes, with
       tests asserting one increment per outcome and bounded status labels.
 - [ ] 1.4.d — Startup metrics are exposed and emitted for startup duration and success/failure, with tests asserting
       duration observation on both successful and failed startup paths.
@@ -345,17 +363,17 @@ already defines related collectors (`graph_rebuild_state_transition_total`, `reb
 
 ### Current evidence snapshot — 2026-11-19
 
-The implementation PRs below are open and unmerged. Their local focused validation passed, but the checkboxes above
-remain open until the PRs merge and this snapshot is reconciled to merged commit references.
+The implementation PRs below have merged since the 2026-11-19 audit snapshot. The checkboxes remain open pending
+Phase 1.4 evidence reconciliation, including hosted verification.
 
-| Sub-item | Current PR                                                                          | Scope in PR                                                     | Local validation                                     |
+| Sub-item | Implementation PR                                                                          | Scope in PR                                                     | Local validation                                     |
 | -------- | ----------------------------------------------------------------------------------- | --------------------------------------------------------------- | ---------------------------------------------------- |
-| 1.4.a    | [#1929](https://github.com/DashFin-FarDb/financial-asset-relationship-db/pull/1929) | Fail-fast admission counter and corrected criterion             | 2 focused tests passed; Ruff and diff checks passed  |
-| 1.4.b    | [#1930](https://github.com/DashFin-FarDb/financial-asset-relationship-db/pull/1930) | Lifecycle transition assertions and RecoveryGate reset emission | 19 focused tests passed; Ruff and diff checks passed |
-| 1.4.c    | [#1931](https://github.com/DashFin-FarDb/financial-asset-relationship-db/pull/1931) | Lock acquisition outcome assertions                             | 6 focused tests passed; Ruff and diff checks passed  |
-| 1.4.d    | [#1932](https://github.com/DashFin-FarDb/financial-asset-relationship-db/pull/1932) | Startup success, failure, duration assertions                   | 5 focused tests passed; Ruff and diff checks passed  |
+| 1.4.a    | [#1929](https://github.com/DashFin-FarDb/financial-asset-relationship-db/pull/1929) (`e3df86683`) | Fail-fast admission counter and corrected criterion             | 2 focused tests passed; Ruff and diff checks passed  |
+| 1.4.b    | [#1930](https://github.com/DashFin-FarDb/financial-asset-relationship-db/pull/1930) (`634cd54cb`) | Lifecycle transition assertions and RecoveryGate reset emission | 19 focused tests passed; Ruff and diff checks passed |
+| 1.4.c    | [#1931](https://github.com/DashFin-FarDb/financial-asset-relationship-db/pull/1931) (`d929086ee`) | Lock acquisition outcome assertions                             | 6 focused tests passed; Ruff and diff checks passed  |
+| 1.4.d    | [#1932](https://github.com/DashFin-FarDb/financial-asset-relationship-db/pull/1932) (`780281f56`) | Startup success, failure, duration assertions                   | 5 focused tests passed; Ruff and diff checks passed  |
 
-At this audit snapshot, all five PRs are open with merge state **BLOCKED**. On PR #1929, the inspected GitHub Actions
+At the November 19 audit, all five PRs were open with merge state **BLOCKED**. On PR #1929, the inspected GitHub Actions
 Python matrix and coverage checks failed before any step started (job step list and output were empty). GitHub Actions
 jobs on PRs #1930–#1933 were not inspected for this snapshot; no implementation-test conclusion is drawn for those
 PRs. The Snyk code check on PR #1929 reports `Code test limit reached`. CircleCI's Python test job passes on PR #1929.
@@ -423,6 +441,14 @@ authorization changes update the canonical state-machine authority. SQLite compa
 
 **Status at publication:** Partially satisfied — representative CI fixtures exist; production-scale evidence is not yet
 recorded.
+
+Post-publication evidence: [Local Scale and Third-Party Screener Functionality Baselines](../evidence-records/production-scale-local-baseline-2026-11-19.md)
+records an advisory 10,000-asset / 50,000-relationship synthetic SQLite run plus a one-time third-party screener functionality
+probe with 148 stocks / 14,520 metadata-derived relationships. The record also reports an operator-attested disposable
+PostgreSQL 16.14 run with all four ledger profiles passing. Its exact source SHA was not captured. That profile proof
+does not exercise production-scale PostgreSQL asset-graph load or hosted staging. This item remains partial; stable
+retained data, an agreed performance budget, PostgreSQL graph-workload, sustained-load, and production-hardware
+evidence remain outstanding.
 
 **Sources:** [Roadmap — Follow-up Hardening Later](enterprise-readiness-roadmap.md#follow-up-hardening-later),
 [Index — Roadmap Status Snapshot](../enterprise-readiness-index.md#roadmap-status-snapshot),

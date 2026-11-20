@@ -133,6 +133,25 @@ Primary authorities:
 
 ## Active commitments
 
+### FPC-2026-11-19-01 — Reconcile the CQ-03D-02 Supabase routing prerequisite
+
+- **Type:** PostgreSQL hosted-preflight documentation reconciliation
+- **Status:** Repository routing documentation reconciled; no target or permit approved and no hosted preflight executed.
+- **Decision or objective:** A documented Supabase direct route or IPv4 port-5432 session-pooler route is acceptable
+  to the CQ-03D-01 adapter when `sslmode=verify-full` and an explicit protected trust root (the current
+  project-specific Supabase CA obtained from the Supabase Connect dialog) are used. IPv6 is not
+  required when using the IPv4 session pooler, whereas a direct route requires network connectivity compatible with
+  the endpoint's resolved address (IPv6 or the IPv4 add-on); a generic support response is not a prerequisite when an
+  accepted route is available. Port-6543 transaction pooling remains prohibited.
+- **Rationale and constraints:** ADR 0010, the database-migration-authority runbook, preflight implementation, and
+  unit tests already encode this route policy. The enterprise-readiness roadmap, PR board, checklist, and issue #1907
+  had retained older IPv6/support-response wording. This reconciliation changes only that prerequisite; it does not
+  select or authorize a hosted target, issue a permit, or authorize the later migration-history marker.
+- **Next action and completion test:** Separately select and approve one target, prepare the protected exact-SHA
+  single-use permit, then run the bounded read-only preflight. Do not treat the IPv4 route clarification as target
+  approval or preflight evidence.
+- **Last updated:** 2026-11-19
+
 ### FPC-2026-11-05-01 — Record the one-time CI-policy exception for PR #1885
 
 - **Type:** CI evidence exception / release qualification
@@ -159,6 +178,25 @@ Primary authorities:
 - **Evidence and provenance:** Candidate `9afaa0706a9c19fd5d8fef2ba3c5df3a5970eeb4` passed 83 focused ledger/drift tests and file-scoped pre-commit; Aikido reported zero issues in the changed test file. Broader Python 3.10/3.11/3.12, security, production-container and disposable PostgreSQL 15/16 results belong to parent `95728000834ffb4523d3089269ec517ad39b3729`. The later commit changed test assertions only; those results remain parent-SHA evidence. The owner-approved required-check exception covers the candidate SHA and repository integration only; blocked checks were not reported as passing.
 - **Dependencies or blockers:** PostgreSQL 17 evidence, hosted authority/support resolution, target-bound protected preflight, history-adoption approval and an approved maintenance window remain outstanding before hosted application. Before commercial deployment, obtain applicable hosted checks and analyzer/coverage evidence for the exact promoted source and artifact. Merging the migration does not establish resolution of the hosted adviser finding.
 - **Last updated:** 2026-11-05
+
+### FPC-2026-11-19-02 — Record valuation and scale-validation evidence limits
+
+- **Type:** Product persistence evidence / production-scale qualification
+- **Status:** PR #1925 is draft; its evidence adds useful functionality and database-profile coverage but does not close
+  production-scale qualification.
+- **Decision or objective:** Persist optional equity valuation and forecast-growth fields and use a one-time real-data
+  graph probe to exercise database, API, attestation, and analysis behavior alongside deterministic synthetic scale
+  testing.
+- **Evidence and provenance:** PR [#1925](https://github.com/DashFin-FarDb/financial-asset-relationship-db/pull/1925)
+  records a 10,000-asset / 50,000-edge SQLite run; a 148-asset / 14,520-edge functionality probe; and an
+  operator-reported host-attested PostgreSQL 16.14 disposable four-profile pass. The host report did not capture the
+  exact Git SHA or manifest SHA used at execution; the evidence record states that limitation rather than claiming
+  exact-SHA CI evidence.
+- **Dependencies or blockers:** Stable retained data, an agreed performance budget, PostgreSQL asset-graph workload
+  measurements, hosted staging, sustained load, production hardware, and exact-source evidence for the host run remain
+  outstanding. The June 2026 RC1 staging smoke applies only to its recorded candidate and must not be inherited by this
+  branch.
+- **Last updated:** 2026-11-19
 
 ### FPC-2026-08-27-01 — Govern GNC after Phase 2 completion
 
@@ -649,10 +687,10 @@ Primary authorities:
 
 ### Next highest-value action
 
-The database lane under **FPC-2026-08-13-01** remains externally gated. A target-bound database maintenance window
-is approved in principle, but execution still requires the outstanding Supabase support response, IPv6-capable
-connectivity, and one protected single-use permit binding the approved target to the exact reviewed repository SHA.
-Only after those conditions are reconciled may the bounded read-only hosted-preflight collect
+The database lane under **FPC-2026-08-13-01** remains externally gated. The supported IPv4 port-5432 session route
+does not require IPv6 or a generic support response when its documented TLS and trust-root requirements are met.
+Execution still requires one selected and approved target and a protected single-use permit binding that target to the
+exact reviewed repository SHA. Only after those conditions are met may the bounded read-only hosted preflight collect
 evidence. Do not authorize the later migration-history marker in this step.
 Do not replay or reconstruct SQL under historical timestamps, run `supabase db pull` against hosted state, retain
 provider link state, apply DDL, or select `hosted-legacy-v1` as adopted before the separate history-action decision.

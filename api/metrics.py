@@ -46,6 +46,12 @@ GRAPH_REBUILD_STATE_TRANSITION_TOTAL = Counter(
     "graph_rebuild_state_transition_total", "Total number of rebuild job state transitions.", ["from_state", "to_state"]
 )
 
+GRAPH_REBUILD_ADMISSION_TOTAL = Counter(
+    "graph_rebuild_admission_total",
+    "Total rebuild requests admitted or rejected by fail-fast admission.",
+    ["result"],
+)
+
 GRAPH_REBUILD_CANCELLED_TOTAL = Counter("graph_rebuild_cancelled_total", "Total number of cancelled graph rebuilds.")
 
 REBUILD_LOCK_ACQUISITION_TOTAL = Counter(

@@ -30,6 +30,28 @@ UTC = timezone.utc
 logger = logging.getLogger(__name__)
 
 
+def _optional_finite_float(value: Any) -> float | None:
+    """Return a finite optional numeric provider value, ignoring missing or non-finite values."""
+    try:
+        normalized = float(value) if value is not None else None
+    except (TypeError, ValueError):
+        return None
+    return normalized if normalized is not None and math.isfinite(normalized) else None
+
+
+def _equity_growth_estimate(ticker: Any, period: str) -> float | None:
+    """Read one stock growth estimate from yfinance's growth-estimates table."""
+    try:
+        growth_estimates = getattr(ticker, "growth_estimates", None)
+        if growth_estimates is None:
+            return None
+        estimate_row = growth_estimates.loc[period]
+        value = estimate_row.get("stock", estimate_row.get("stockTrend"))
+        return _optional_finite_float(value)
+    except Exception:  # pylint: disable=broad-exception-caught
+        return None
+
+
 class FetchCancelledError(RebuildCancelledError):
     """Raised when data fetching is aborted via a cancellation signal."""
 
@@ -686,7 +708,17 @@ class RealDataFetcher:
                     asset_class=AssetClass.EQUITY,
                     sector=sector,
                     price=current_price,
-                    market_cap=info.get("marketCap"),
+                    market_cap=_optional_finite_float(info.get("marketCap")),
+                    pe_ratio=_optional_finite_float(info.get("trailingPE")),
+                    dividend_yield=_optional_finite_float(info.get("trailingAnnualDividendYield")),
+                    earnings_per_share=_optional_finite_float(info.get("trailingEps")),
+                    book_value=_optional_finite_float(info.get("bookValue")),
+                    forward_pe_ratio=_optional_finite_float(info.get("forwardPE")),
+                    peg_ratio=_optional_finite_float(info.get("pegRatio")),
+                    price_to_sales_ratio=_optional_finite_float(info.get("priceToSalesTrailing12Months")),
+                    price_to_book_ratio=_optional_finite_float(info.get("priceToBook")),
+                    eps_growth_next_year=_equity_growth_estimate(ticker, "+1y"),
+                    eps_growth_next_5_years=_equity_growth_estimate(ticker, "+5y"),
                 )
                 equities.append(equity)
 

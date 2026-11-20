@@ -6,7 +6,7 @@ For the broader enterprise-readiness audit and rollout plan, see [docs/enterpris
 **Status:** Implemented
 
 **Verification note (2026-11-19):** This status records the observability design and catalog, not live hosted scrape
-validation or Phase 1.4 completion. Current repo and dashboard metric-name reconciliation, open implementation PRs, and
+validation or Phase 1.4 completion. Current repo and dashboard metric-name reconciliation, implementation PR evidence, and
 hosted target evidence are tracked in the [Phase 1.4 checklist](roadmap/enterprise-readiness-completion-checklist.md#10-phase-14-observability-metrics-ad).
 
 ## 1. Executive Summary

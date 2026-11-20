@@ -14,8 +14,6 @@ name: Bandit
 
 permissions:
   contents: read
-  security-events: write
-  actions: read
 
 on:
   schedule:

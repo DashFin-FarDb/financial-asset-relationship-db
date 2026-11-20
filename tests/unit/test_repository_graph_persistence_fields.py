@@ -13,6 +13,7 @@ pytestmark = pytest.mark.unit
 
 
 def test_repository_round_trip_preserves_asset_fields(tmp_path) -> None:
+    """Persist all supported asset fields across a repository round trip."""
     engine = create_engine(f"sqlite:///{tmp_path / 'fields.db'}")
     enable_sqlite_foreign_keys(engine)
     init_db(engine)
@@ -30,6 +31,13 @@ def test_repository_round_trip_preserves_asset_fields(tmp_path) -> None:
                 sector="Healthcare",
                 price=123.45,
                 currency="gbp",
+                pe_ratio=30.5,
+                forward_pe_ratio=25.2,
+                peg_ratio=1.45,
+                price_to_sales_ratio=8.3,
+                price_to_book_ratio=12.1,
+                eps_growth_next_year=0.18,
+                eps_growth_next_5_years=0.12,
             )
         )
         repo.save_graph(graph)
@@ -45,15 +53,24 @@ def test_repository_round_trip_preserves_asset_fields(tmp_path) -> None:
         engine.dispose()
 
     asset = loaded.assets["EQ_FULL"]
+    assert isinstance(asset, Equity)
     assert asset.symbol == "EQF"
     assert asset.name == "Full Fidelity Equity"
     assert asset.sector == "Healthcare"
     assert asset.price == pytest.approx(123.45)
     assert asset.currency == "GBP"
     assert asset.asset_class == AssetClass.EQUITY
+    assert asset.pe_ratio == pytest.approx(30.5)
+    assert asset.forward_pe_ratio == pytest.approx(25.2)
+    assert asset.peg_ratio == pytest.approx(1.45)
+    assert asset.price_to_sales_ratio == pytest.approx(8.3)
+    assert asset.price_to_book_ratio == pytest.approx(12.1)
+    assert asset.eps_growth_next_year == pytest.approx(0.18)
+    assert asset.eps_growth_next_5_years == pytest.approx(0.12)
 
 
 def test_repository_round_trip_preserves_regulatory_event_fields(tmp_path) -> None:
+    """The repository round-trip preserves regulatory event scalar and relation fields."""
     engine = create_engine(f"sqlite:///{tmp_path / 'events.db'}")
     enable_sqlite_foreign_keys(engine)
     init_db(engine)
