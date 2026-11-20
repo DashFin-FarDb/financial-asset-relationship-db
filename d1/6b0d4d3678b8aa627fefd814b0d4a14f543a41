@@ -1,0 +1,145 @@
+vercel.json
+  s_f999ea469e6b3e::t_8c929dd2a29175 23-25
+  s_f999ea469e6b3e::t_e807d709228284 22
+tests/unit/test_postgresql_ledger.py
+  s_f999ea469e6b3e::t_8c929dd2a29175 24,33,137
+src/models/financial_models.py
+  s_f999ea469e6b3e::t_8c929dd2a29175 141-146
+frontend/next.config.js
+  s_f999ea469e6b3e::t_8c929dd2a29175 2-34,36,39,41-51,53
+README.md
+  s_f999ea469e6b3e::t_8c929dd2a29175 122-124,174-176
+  s_f999ea469e6b3e::t_ecfd11bffc908c 177
+tests/unit/test_snapshot_attestation.py
+  s_f999ea469e6b3e::t_8c929dd2a29175 6,12,79-151,513
+tests/unit/test_workflow_yaml_files.py
+  s_f999ea469e6b3e::t_8c929dd2a29175 485-496
+docs/evidence-records/production-scale-local-baseline-2026-11-19.md
+  s_f999ea469e6b3e::t_8c929dd2a29175 1-209
+tests/unit/test_recovery_gate.py
+  s_f999ea469e6b3e::t_8c929dd2a29175 650-683
+src/data/db_models.py
+  s_f999ea469e6b3e::t_8c929dd2a29175 71-76,278-280
+tests/unit/test_api_main.py
+  s_f999ea469e6b3e::t_8c929dd2a29175 1669-1674,1683-1688,1744-1760
+  s_f999ea469e6b3e::t_8ea2fb676a874a 1761
+src/data/migrations.py
+  s_f999ea469e6b3e::t_8c929dd2a29175 64,94-96,298-328
+  s_f999ea469e6b3e::t_f498daabc02c4b 329-330
+docs/roadmap/enterprise-readiness-completion-checklist.md
+  s_f999ea469e6b3e::t_8c929dd2a29175 72-79,86-87,172-180,352-354,356-357,408-414
+  s_f999ea469e6b3e::t_bb016b7d0fecb3 415
+tests/integration/postgresql_disposable_cluster.py
+  s_f999ea469e6b3e::t_8c929dd2a29175 15,549,722-730,915
+netlify.toml
+  s_f999ea469e6b3e::t_8c929dd2a29175 2-8
+api/router_helpers.py
+  s_f999ea469e6b3e::t_8c929dd2a29175 4,90-95,110
+src/data/protocols.py
+  s_f999ea469e6b3e::t_8c929dd2a29175 138-146,175,179
+docs/roadmap/enterprise-readiness-roadmap.md
+  s_f999ea469e6b3e::t_8c929dd2a29175 8,21-32,40-42,53,55-57,91-97
+src/data/real_data_fetcher.py
+  s_f999ea469e6b3e::t_8c929dd2a29175 33-54,711-721
+tests/integration/test_valuation_metric_migration.py
+  s_f999ea469e6b3e::t_8c929dd2a29175 1-67
+api/routers/graph_admin.py
+  s_f999ea469e6b3e::t_8c929dd2a29175 52,83,229,1228,1242,1314,1832-1842,1863
+api/app_factory.py
+  s_f999ea469e6b3e::t_8c929dd2a29175 282,299,851
+docs/roadmap/enterprise-readiness-pr-board.md
+  s_f999ea469e6b3e::t_8c929dd2a29175 5,9-18,22-24
+tests/unit/test_metrics.py
+  s_f999ea469e6b3e::t_8c929dd2a29175 12,17-18,67-88,155-205
+tests/integration/test_recovery_gate_integration.py
+  s_f999ea469e6b3e::t_8c929dd2a29175 123-124,131-139,145-152
+  s_f999ea469e6b3e::t_d08b46d6a4f6cd 153
+.github/workflows/semgrep.yml
+  s_f999ea469e6b3e::t_8c929dd2a29175 10-11
+api/metrics.py
+  s_f999ea469e6b3e::t_8c929dd2a29175 49-54
+tests/unit/test_snapshot_attestation_gate.py
+  s_f999ea469e6b3e::t_8c929dd2a29175 49,86,89,120-122,153,174,184,200-235,589,594,628-630,632
+frontend/app/lib/api.ts
+  s_f999ea469e6b3e::t_8c929dd2a29175 16-18
+api/graph_lifecycle_providers.py
+  s_f999ea469e6b3e::t_8c929dd2a29175 661-680,779-781
+src/data/relationship_assertion_repository.py
+  s_f999ea469e6b3e::t_8c929dd2a29175 67,146,159,852,927,1070-1071,1087,1103,1118
+src/data/repository.py
+  s_f999ea469e6b3e::t_8c929dd2a29175 17,468-470,487,1060-1065,1111-1116,1329,1345-1346,1371
+supabase/ledgers/graph/migrations/20261119070000_add_equity_valuation_metrics.sql
+  s_f999ea469e6b3e::t_8c929dd2a29175 1-19
+tests/unit/test_app_factory.py
+  s_f999ea469e6b3e::t_8c929dd2a29175 769
+tests/unit/test_repository_rebuild_jobs.py
+  s_f999ea469e6b3e::t_8c929dd2a29175 195-210
+docs/tech_spec.md
+  s_f999ea469e6b3e::t_8c929dd2a29175 4306-4311,5474-5483,5511-5522,8866-8870,9087-9091
+src/logic/snapshot_attestation.py
+  s_f999ea469e6b3e::t_8c929dd2a29175 12,18,93-94,100,189,214-236,395,402,410-412,423-424,436-437,464,473,522,534,536,538,546
+docs/enterprise-readiness-index.md
+  s_f999ea469e6b3e::t_8c929dd2a29175 4,60-68
+  s_f999ea469e6b3e::t_d28111abd2bbaf 69
+tests/integration/test_cq03b_r1_adjudication_docs.py
+  s_f999ea469e6b3e::t_8c929dd2a29175 262
+docs/strategy/fardb-project-continuity.md
+  s_f999ea469e6b3e::t_8c929dd2a29175 136-154,182-200,690-693
+src/data/relationship_assertion_db_models.py
+  s_f999ea469e6b3e::t_8c929dd2a29175 281-283
+.github/workflows/codeql.yml
+  s_f999ea469e6b3e::t_8c929dd2a29175 14-16
+tests/unit/test_reconciliation_loop.py
+  s_f999ea469e6b3e::t_8c929dd2a29175 260,284,293,318,372,432
+tests/unit/test_repository_graph_persistence_fields.py
+  s_f999ea469e6b3e::t_8c929dd2a29175 16,34-40,56,63-69,73
+tests/unit/test_real_data_fetcher.py
+  s_f999ea469e6b3e::t_8c929dd2a29175 20,534-541,543,555-564,567-582
+  s_f999ea469e6b3e::t_c3e15aee6ee4b2 583
+docs/enterprise-deployment-operating-model.md
+  s_f999ea469e6b3e::t_8c929dd2a29175 13-15
+tests/integration/test_graph_admin_router.py
+  s_f999ea469e6b3e::t_8c929dd2a29175 308-431
+src/logic/recovery_gate.py
+  s_f999ea469e6b3e::t_8c929dd2a29175 62,72,567-578
+src/logic/reconciliation_loop.py
+  s_f999ea469e6b3e::t_8c929dd2a29175 59-64,82,176,201-202
+tests/unit/test_metrics_endpoint.py
+  s_f999ea469e6b3e::t_bea4a29055ba3f 33-34
+  s_f999ea469e6b3e::t_8c929dd2a29175 43,68-70,74
+tests/unit/test_postgresql_disposable_cluster.py
+  s_f999ea469e6b3e::t_8c929dd2a29175 5,13-24
+tests/unit/test_snapshot_attestation_roundtrip.py
+  s_f999ea469e6b3e::t_8c929dd2a29175 17,66-71,151,164,167,183
+supabase/ledger-profiles.json
+  s_f999ea469e6b3e::t_8c929dd2a29175 54-58,81,89
+tests/unit/test_config_validation.py
+  s_f999ea469e6b3e::t_8c929dd2a29175 84-94
+  s_f999ea469e6b3e::t_4b743595d1ec4d 83
+.github/workflows/dependency-check.yml
+  s_f999ea469e6b3e::t_8c929dd2a29175 20-22
+.gitattributes
+  s_f999ea469e6b3e::t_8c929dd2a29175 1-2
+docs/runbooks/hosted-ui-api-and-supabase-data-path.md
+  s_f999ea469e6b3e::t_8c929dd2a29175 1-320
+docs/staging-deployment-operating-baseline.md
+  s_f999ea469e6b3e::t_8c929dd2a29175 13-15
+docs/governance/state-machine-and-operating-authority.md
+  s_f999ea469e6b3e::t_8c929dd2a29175 215-218
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "d16b0d4d3678b8aa627fefd814b0d4a14f543a41",
+  "prompts": {},
+  "sessions": {
+    "s_f999ea469e6b3e": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1fa8f-4a65-7591-b4d1-15e080aaa398",
+        "model": "gpt-6.2-sol"
+      },
+      "human_author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}
