@@ -349,7 +349,9 @@ already defines related collectors (`graph_rebuild_state_transition_total`, `reb
 
 ### Completion criteria
 
-- [ ] 1.4.a — Rebuild queue metrics are exposed and emitted at the rebuild enqueue/dequeue seam, with tests.
+- [ ] 1.4.a — Rebuild admission metrics are exposed and emitted at the existing fail-fast admission seam, distinguishing
+      accepted requests from rejected-busy requests, with tests. Concurrent rebuilds are intentionally rejected rather
+      than queued; adding a queue would change rebuild semantics and is outside this observability item.
 - [ ] 1.4.b — State transition counters are emitted for every rebuild job transition, with tests.
 - [ ] 1.4.c — Lock acquisition metrics are emitted for acquire success/failure outcomes, with tests.
 - [ ] 1.4.d — Startup metrics are emitted for startup duration and success/failure, with tests.
