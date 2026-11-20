@@ -20,7 +20,7 @@
       "dest": "api/main.py"
     },
     {
-      "src": "/token",
+      "src": "/token/?",
       "dest": "api/main.py"
     },
     {

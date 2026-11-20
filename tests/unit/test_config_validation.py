@@ -82,12 +82,12 @@ class TestVercelConfig:
 
     @staticmethod
     def test_vercel_routes_token_routing(vercel_config):
-        """Test that /token routes to FastAPI before the frontend catch-all."""
+        """Test that /token (with optional trailing slash) routes to FastAPI before the frontend catch-all."""
         routes = vercel_config["routes"]
-        token_index = next((i for i, r in enumerate(routes) if r["src"] == "/token"), None)
+        token_index = next((i for i, r in enumerate(routes) if r["src"] == "/token/?"), None)
         frontend_index = next((i for i, r in enumerate(routes) if r["src"] == "/(.*)"), None)
 
-        assert token_index is not None, "/token route not found"
+        assert token_index is not None, "/token/? route not found"
         assert frontend_index is not None, "Frontend catch-all route not found"
         assert routes[token_index]["dest"] == "api/main.py"
         assert token_index < frontend_index
