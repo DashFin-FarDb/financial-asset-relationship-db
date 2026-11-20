@@ -289,8 +289,8 @@ Primary authorities:
   2026-08-18; and CQ-03D-01 PR #1646, reviewed head `31229b2455b8e9962030d71a9a7dcf477c0e5f55`, verified squash
   `790274c1b0dbdb43d4bbbbf35c4565dae36c9fe3`, passing exact-head Python 3.10-3.12, PostgreSQL 15/16,
   container-boundary, security, Sonar, and independent-review gates, and zero unresolved review threads.
-- **Next action and completion test:** Before CQ-03D-02 execution, separately approve one target and a protected
-  single-use permit; only then run the target-bound hosted preflight from the reviewed repository SHA. Every required
+- **Next action and completion test:** Complete the selected target's protected binding and exact-SHA single-use
+  permit; only then run the target-bound hosted preflight from the reviewed repository SHA. Every required
   identity, history, catalog, compatibility, authorization, and parity check must report `PASS`, with bounded redacted
   evidence attached. This step stops after read-only evidence collection and does not authorize the later history
   action. Any single migration-history marker remains a future, separate decision with no DDL, DML beyond exactly
