@@ -15,7 +15,8 @@ Browser -> hosted Next.js UI -> FastAPI API -> PostgreSQL graph store (Supabase)
 The Netlify static export is a UI host. It fetches data from the separate API; publishing the UI does not start FastAPI
 or configure the graph database. The repository's staging target architecture uses Vercel for the Next.js UI and
 FastAPI API. When a different UI host is used, configure that host's build with the API origin for the matching
-environment.
+environment (the fail-fast build guard in `frontend/next.config.js` covers Netlify builds; other static hosts must set
+`NEXT_PUBLIC_API_URL` explicitly).
 
 ## Settings by responsibility
 
@@ -46,8 +47,8 @@ Supabase variables to connected Vercel project environments; it does not configu
    that same environment: app/auth (`DATABASE_URL`), graph (`ASSET_GRAPH_DATABASE_URL`), and coordination
    (`COORDINATION_DATABASE_URL`) when using a separate boundary. Give each one the approved environment-specific,
    role-scoped connection string. Do not copy production connection strings into Preview.
-   The root certificate `prod-ca-2021.crt` is present in the repository and is not excluded by `vercel.json`; use it
-   only with the documented `sslmode=verify-full` trust-root path for the matching Supabase endpoint.
+   Obtain the current project-specific CA trust root from Supabase's Connect dialog for `sslmode=verify-full` (do not
+   use the expired `prod-ca-2021.crt` certificate).
 3. Do not set `NEXT_PUBLIC_API_URL` on Vercel. The build forces same-origin calls so the browser requests
    `https://<this-deployment>/api/visualization` and the other API paths from `vercel.json`.
 4. Build and deploy. Verify the deployment URL's `/api/health`, `/api/visualization`, and hosted readiness before
@@ -199,13 +200,32 @@ release qualification; repeat it after deployment configuration or code changes.
 | Latest Vercel production build (`main`, `53eadc2`)                                        | Deployment status on 2026-11-20                                         | Error `IMMUTABLE_STATIC_PATCH_PREVIEW_COMMENTS`                                    | Vercel reports deployment failed; no working production API origin is established.                   |
 | Same Vercel API origin                                                                    | `check_hosted_readiness.py --require-persistence --assets-smoke --json` | Failed: `/api/health`, `/api/health/detailed`, and `/api/assets` returned HTTP 500 | Durable graph persistence was **not verified**. No persistence PASS should be claimed from this run. |
 
+#### Follow-up: PR #1926 Netlify build restored (2026-11-20)
+
+The maintainer shared a failed Deploy Preview #1926 log for commit `70ed512` at 07:53 UTC. It resolved the site base
+to `/opt/build/repo/frontend` while still running `cd frontend && npm ci && npm run build` and publishing
+`frontend/.next`, so the command failed before Next.js ran. A signed update, commit
+[`20a04949`](https://github.com/DashFin-FarDb/financial-asset-relationship-db/commit/20a04949f1de2621e33380107bb5ab257a6462b0),
+synced PR #1926 with current `main` deployment configuration. The PR comparison remains limited to its four
+documentation files. Netlify then completed Deploy Preview #1926 as deploy `6b000360cbcd5c22a9c32da2` in 1m25s;
+the resolved current directory was `/opt/build/repo/frontend`, the command was `npm ci && npm run build`, and the
+static output contained `out/index.html`. The preview root returned HTTP 200. This resolves the reported Netlify
+build-directory failure.
+
+The rebuilt UI still embeds `https://financial-asset-relationship-db-nine.vercel.app` as its API origin. On the same
+check, `GET /api/health` and `GET /api/visualization` on that origin both returned HTTP 500. The Netlify page now
+serves, but the graph is still unavailable until the API deployment and its database schema are healthy. Keep the
+Vercel static-export/Toolbar fix in the separate frontend configuration change; do not add it to documentation-only
+PR #1926.
+
 The test shows a live mismatch between UI availability and API availability. Follow-up inspection of Vercel runtime
 logs on 2026-11-19 identifies that the compiled Netlify preview calls a stale Vercel alias. The alias resolves to
 deployment `dpl_Fw4HjUUwtBsYtEa7as1VA7ph4jVn`, branch `mohavro-patch-4`, commit
 `c0cd0721e2011ed9b8b4aa14b64098d517367522`, rather than the current PR #1930 Vercel deployment. Requests to
 `/api/health`, `/api/health/detailed`, `/api/visualization`, and `/api/graph/metrics` on the stale alias fail during
-Python module import: `api.auth` calls `initialize_schema()` at import time, which attempts its configured database
-connection. Logs report a shared-pooler username of `postgres` and that SSL is required at
+Python module import: in that stale `c0cd072` deployment, `api.auth` called `initialize_schema()` at import time, which
+attempted its configured database connection (current `main` does not call `initialize_schema()` at import time). Logs
+report a shared-pooler username of `postgres` and that SSL is required at
 `aws-1-us-east-1.pooler.supabase.com:5432`. Supabase's shared session-pooler format requires the project-qualified
 username `postgres.<project-ref>`; its connection guide also requires SSL, and recommends `verify-full` with the
 project root certificate when hostname verification is required. Use the exact host and username from the project's

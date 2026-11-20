@@ -14,7 +14,7 @@ import type {
 
 const envUrl = process.env.NEXT_PUBLIC_API_URL;
 const API_URL =
-  envUrl ??
+  envUrl ||
   (process.env.NODE_ENV === "development" ? "http://localhost:8000" : "");
 
 const apiClient = axios.create({
