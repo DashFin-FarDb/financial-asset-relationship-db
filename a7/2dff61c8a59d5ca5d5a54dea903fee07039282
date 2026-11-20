@@ -1,0 +1,19 @@
+docs/roadmap/enterprise-readiness-completion-checklist.md
+  s_f999ea469e6b3e::t_96be7ac91ca858 364,376-377
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "a72dff61c8a59d5ca5d5a54dea903fee07039282",
+  "prompts": {},
+  "sessions": {
+    "s_f999ea469e6b3e": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1fa8f-4a65-7591-b4d1-15e080aaa398",
+        "model": "gpt-6.2-sol"
+      },
+      "human_author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}
