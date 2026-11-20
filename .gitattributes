@@ -1,0 +1,2 @@
+supabase/ledgers/**/migrations/*.sql text eol=lf
+supabase/ledger-profiles.json text eol=lf

@@ -3,11 +3,13 @@
 from __future__ import annotations
 
 import hashlib
+from dataclasses import replace
 from decimal import Decimal
 
 import pytest
 
 from src.logic.snapshot_attestation import (
+    ATTESTATION_VERSION_V2,
     CanonicalizationValidationError,
     canonical_json_dumps,
     canonicalize_asset,
@@ -72,6 +74,79 @@ def test_golden_vector_1_empty_snapshot() -> None:
     assert len(canon_bytes) == VECTOR_1_BYTE_LEN
     assert hashlib.sha256(canon_bytes).hexdigest() == VECTOR_1_SHA256
     assert compute_snapshot_attestation_hash(assets=[], relationships=[], regulatory_events=[]) == VECTOR_1_SHA256
+
+
+@pytest.mark.parametrize(
+    "field_name",
+    (
+        "forward_pe_ratio",
+        "peg_ratio",
+        "price_to_sales_ratio",
+        "price_to_book_ratio",
+        "eps_growth_next_year",
+        "eps_growth_next_5_years",
+    ),
+)
+def test_v2_attestation_covers_each_equity_valuation_metric(field_name: str) -> None:
+    """V2 hashes valuation metrics while V1 remains backward-compatible."""
+    asset = Equity(
+        id="VAL1",
+        symbol="VAL1",
+        name="Valuation Test",
+        asset_class=AssetClass.EQUITY,
+        sector="Technology",
+        price=100.0,
+        forward_pe_ratio=20.0,
+        peg_ratio=1.4,
+        price_to_sales_ratio=5.2,
+        price_to_book_ratio=7.3,
+        eps_growth_next_year=0.12,
+        eps_growth_next_5_years=0.10,
+    )
+    v1_hash = compute_snapshot_attestation_hash(assets=[asset], relationships=[], regulatory_events=[])
+    v2_hash = compute_snapshot_attestation_hash(
+        assets=[asset], relationships=[], regulatory_events=[], attestation_version=ATTESTATION_VERSION_V2
+    )
+    changed_asset = replace(asset, **{field_name: getattr(asset, field_name) + 0.1})
+    assert compute_snapshot_attestation_hash(assets=[changed_asset], relationships=[], regulatory_events=[]) == v1_hash
+    assert (
+        compute_snapshot_attestation_hash(
+            assets=[changed_asset], relationships=[], regulatory_events=[], attestation_version=ATTESTATION_VERSION_V2
+        )
+        != v2_hash
+    )
+
+
+def test_snapshot_attestation_checks_cancellation_during_large_asset_pass() -> None:
+    """Long canonicalization passes invoke the supplied cancellation check periodically."""
+    checks = 0
+
+    def cancel_after_initial_check() -> None:
+        """Raise on the second interval check to simulate an active rebuild cancellation."""
+        nonlocal checks
+        checks += 1
+        if checks == 2:
+            raise RuntimeError("cancelled")
+
+    assets = [
+        Equity(
+            id=f"EQ-{index:03}",
+            symbol=f"EQ-{index:03}",
+            name="Equity",
+            asset_class=AssetClass.EQUITY,
+            sector="Technology",
+            price=1.0,
+        )
+        for index in range(129)
+    ]
+    with pytest.raises(RuntimeError, match="cancelled"):
+        compute_snapshot_attestation_hash(
+            assets=assets,
+            relationships=[],
+            regulatory_events=[],
+            check_cancelled=cancel_after_initial_check,
+        )
+    assert checks == 2
 
 
 def test_golden_vector_2_two_asset_snapshot() -> None:
@@ -435,7 +510,7 @@ def test_unsupported_versions_rejection() -> None:
             assets=[aapl],
             relationships=[],
             regulatory_events=[],
-            attestation_version="v2",
+            attestation_version="v3",
         )
 
     with pytest.raises(CanonicalizationValidationError, match="Unsupported contract_version"):

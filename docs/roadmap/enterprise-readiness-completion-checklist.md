@@ -69,13 +69,22 @@ and drills, then multi-region strategy.
 **Status at publication:** Partially satisfied — CQ-03D-01 merged and verified at repository scope; maintenance window
 approved in principle; target and permit absent; no hosted preflight executed.
 
+**Routing reconciliation — 2026-11-19:** The adapter and runbook accept a documented Supabase direct route or IPv4
+port-5432 session-pooler route with `sslmode=verify-full` and a protected trust root (the current project-specific
+Supabase CA obtained from the Supabase Connect dialog). IPv6 is not required when using
+the IPv4 session pooler, whereas a direct route requires network connectivity compatible with the endpoint's resolved
+address (IPv6 or the IPv4 add-on); a generic Supabase support response is not a prerequisite when a supported route is
+available. Port 6543 transaction-pooler routing remains prohibited. This corrects stale wording in the earlier roadmap
+snapshot; target approval and the protected permit remain required.
+
 **Sources:** [Roadmap — CQ-03 programme](enterprise-readiness-roadmap.md#current-critical-path-programme--cq-03-postgresql-ledger-adoption),
 [Database migration authority runbook — CQ-03D](../runbooks/database-migration-authority.md#cq-03d-approval-pack-and-read-only-preflight),
 [Operating model — PostgreSQL migration authority](../enterprise-deployment-operating-model.md#postgresql-migration-authority).
 
 ### Completion criteria
 
-- [ ] Supabase support and IPv6-capable connectivity are reconciled for the selected hosted target.
+- [ ] The selected target has an adapter-supported, documented route: direct or IPv4 port-5432 session pooling with
+      `sslmode=verify-full` and a protected trust root. Transaction-pooler port 6543 is rejected.
 - [ ] Exactly one hosted target is separately approved.
 - [ ] A protected single-use permit (`fardb-cq03d-preflight-permit-v1`, state `approved`, `history_only: true`,
       `ddl_authorized: false`) is issued, binding the exact reviewed SHA, `fardb-ledger-profiles-v1` manifest SHA-256,
@@ -382,6 +391,14 @@ authorization changes update the canonical state-machine authority. SQLite compa
 
 **Status at publication:** Partially satisfied — representative CI fixtures exist; production-scale evidence is not yet
 recorded.
+
+Post-publication evidence: [Local Scale and Third-Party Screener Functionality Baselines](../evidence-records/production-scale-local-baseline-2026-11-19.md)
+records an advisory 10,000-asset / 50,000-relationship synthetic SQLite run plus a one-time third-party screener functionality
+probe with 148 stocks / 14,520 metadata-derived relationships. The record also reports an operator-attested disposable
+PostgreSQL 16.14 run with all four ledger profiles passing. Its exact source SHA was not captured. That profile proof
+does not exercise production-scale PostgreSQL asset-graph load or hosted staging. This item remains partial; stable
+retained data, an agreed performance budget, PostgreSQL graph-workload, sustained-load, and production-hardware
+evidence remain outstanding.
 
 **Sources:** [Roadmap — Follow-up Hardening Later](enterprise-readiness-roadmap.md#follow-up-hardening-later),
 [Index — Roadmap Status Snapshot](../enterprise-readiness-index.md#roadmap-status-snapshot),

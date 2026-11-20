@@ -259,7 +259,7 @@ def test_cq03d_progress_preserves_separate_authority_and_history_only_boundary()
     assert "target/permit approval and hosted preflight remain unexecuted" not in continuity
     assert "no DML beyond one permit-bound history marker" in roadmap
     assert "**Publication date:** 2026-06-25" in roadmap
-    assert "**Last updated:** 2026-09-01" in roadmap
+    assert "**Last updated:** 2026-11-20" in roadmap
 
     delivery_order = roadmap.split("## Proposed Delivery Order", maxsplit=1)[1]
     assert delivery_order.lstrip().startswith(

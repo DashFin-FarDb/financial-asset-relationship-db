@@ -4303,6 +4303,12 @@ classDiagram
         +Optional[float] dividend_yield
         +Optional[float] earnings_per_share
         +Optional[float] book_value
+        +Optional[float] forward_pe_ratio
+        +Optional[float] peg_ratio
+        +Optional[float] price_to_sales_ratio
+        +Optional[float] price_to_book_ratio
+        +Optional[float] eps_growth_next_year
+        +Optional[float] eps_growth_next_5_years
     }
 
     class Bond {
@@ -5465,7 +5471,16 @@ flowchart TB
 
 #### 6.2.2.1 Core Entity Model
 
-The database schema is defined in `migrations/001_initial.sql` and implements a graph-oriented relational design supporting financial asset relationships.
+The base database schema is defined in `migrations/001_initial.sql`. Current installations apply the ordered compatibility upgrades in `src/data/migrations.py`; migration 008 adds the nullable equity valuation columns and attestation-version fields described below. The table below therefore documents the base schema plus the applicable incremental migrations, not `001_initial.sql` alone.
+
+#### Snapshot Attestation Version Columns
+
+The `snapshot_attestation_version` field defaults to `v1` for existing records. SQLite applies the upgrade conditionally through `_apply_upgrade_008_equity_valuation_metrics` in `src/data/migrations.py`. PostgreSQL applies the equivalent graph-ledger change through `supabase/ledgers/graph/migrations/20261119070000_add_equity_valuation_metrics.sql`.
+
+| Table                                  | Column                         | Type               | Constraints            | Purpose                                                              |
+| -------------------------------------- | ------------------------------ | ------------------ | ---------------------- | -------------------------------------------------------------------- |
+| `rebuild_jobs`                         | `snapshot_attestation_version` | TEXT / VARCHAR(16) | NOT NULL, default `v1` | Selects the canonical field set used to verify the rebuild snapshot. |
+| `relationship_projection_publications` | `snapshot_attestation_version` | TEXT / VARCHAR(16) | NOT NULL, default `v1` | Binds the published projection to the snapshot attestation version.  |
 
 #### Entity Tables Summary
 
@@ -5493,12 +5508,18 @@ The `assets` table uses a **wide table design** with nullable type-specific colu
 
 #### Equity-Specific Columns
 
-| Column               | Type | Constraints | Description             |
-| -------------------- | ---- | ----------- | ----------------------- |
-| `pe_ratio`           | REAL | NULLABLE    | Price-to-earnings ratio |
-| `dividend_yield`     | REAL | NULLABLE    | Annual dividend yield   |
-| `earnings_per_share` | REAL | NULLABLE    | EPS value               |
-| `book_value`         | REAL | NULLABLE    | Book value per share    |
+| Column                    | Type | Constraints | Description                                                       |
+| ------------------------- | ---- | ----------- | ----------------------------------------------------------------- |
+| `pe_ratio`                | REAL | NULLABLE    | Price-to-earnings ratio                                           |
+| `dividend_yield`          | REAL | NULLABLE    | Annual dividend yield                                             |
+| `earnings_per_share`      | REAL | NULLABLE    | EPS value                                                         |
+| `book_value`              | REAL | NULLABLE    | Book value per share                                              |
+| `forward_pe_ratio`        | REAL | NULLABLE    | Forward price-to-earnings ratio                                   |
+| `peg_ratio`               | REAL | NULLABLE    | Price/earnings-to-growth ratio                                    |
+| `price_to_sales_ratio`    | REAL | NULLABLE    | Price-to-sales ratio                                              |
+| `price_to_book_ratio`     | REAL | NULLABLE    | Price-to-book ratio                                               |
+| `eps_growth_next_year`    | REAL | NULLABLE    | Expected EPS growth next year, fraction                           |
+| `eps_growth_next_5_years` | REAL | NULLABLE    | Expected annualized EPS growth over the next five years, fraction |
 
 #### Fixed Income Columns
 
@@ -8842,11 +8863,11 @@ flowchart TB
 
 **Location**: `tests/integration/`
 
-| Test File                    | Purpose                           |
-| ---------------------------- | --------------------------------- |
-| `test_requirements.py`       | Validate production dependencies  |
-| `test_requirements_dev.py`   | Validate development dependencies |
-| `test_github_workflows.py`   | CI/CD workflow validation         |
+| Test File                  | Purpose                           |
+| -------------------------- | --------------------------------- |
+| `test_requirements.py`     | Validate production dependencies  |
+| `test_requirements_dev.py` | Validate development dependencies |
+| `test_github_workflows.py` | CI/CD workflow validation         |
 
 ---
 
@@ -9063,11 +9084,11 @@ flowchart TB
 
 #### 6.6.6.2 Software Composition Analysis (SCA)
 
-| Tool             | Workflow                                   | Scope                  |
-| ---------------- | ------------------------------------------ | ---------------------- |
-| Safety           | CircleCI                                   | Python dependencies    |
-| Snyk Open Source | `.github/workflows/snyk-security.yml`      | All dependencies       |
-| OSV Scanner      | `.github/workflows/osv-scanner.yml`        | Vulnerability database |
+| Tool             | Workflow                              | Scope                  |
+| ---------------- | ------------------------------------- | ---------------------- |
+| Safety           | CircleCI                              | Python dependencies    |
+| Snyk Open Source | `.github/workflows/snyk-security.yml` | All dependencies       |
+| OSV Scanner      | `.github/workflows/osv-scanner.yml`   | Vulnerability database |
 
 #### 6.6.6.3 Container Security
 

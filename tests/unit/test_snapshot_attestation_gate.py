@@ -46,6 +46,7 @@ from src.data.repository import AssetGraphRepository
 from src.logic.asset_graph import AssetRelationshipGraph
 from src.logic.relationship_projection import ProjectionRevision
 from src.logic.snapshot_attestation import (
+    ATTESTATION_VERSION_V2,
     compute_graph_snapshot_hash,
     compute_repository_snapshot_hash,
 )
@@ -82,9 +83,10 @@ def _publish_sample_graph(
     execution_id: str = "exec-001",
     publication_execution_id: Any = _UNSET,
     custom_snapshot_sha256: Any = _UNSET,
+    attestation_version: str = "v1",
 ) -> str:
     """Helper to atomically persist a graph, rebuild job, and projection publication."""
-    if publication_execution_id is _UNSET and custom_snapshot_sha256 is _UNSET:
+    if publication_execution_id is _UNSET and custom_snapshot_sha256 is _UNSET and attestation_version == "v1":
         with session_factory() as session:
             digest = publish_test_graph_snapshot(
                 session,
@@ -115,7 +117,9 @@ def _publish_sample_graph(
     with session_factory() as session:
         stage_graph_snapshot(session, graph)
         session.flush()
-        computed_sha = compute_repository_snapshot_hash(AssetGraphRepository(session))
+        computed_sha = compute_repository_snapshot_hash(
+            AssetGraphRepository(session), attestation_version=attestation_version
+        )
         effective_sha = computed_sha if custom_snapshot_sha256 is _UNSET else custom_snapshot_sha256
 
         revision = ProjectionRevision(
@@ -146,6 +150,7 @@ def _publish_sample_graph(
                     duration_ms=100,
                     published_at=now,
                     snapshot_sha256=effective_sha,
+                    snapshot_attestation_version=attestation_version,
                 ),
                 pre_success_check=lambda: None,
                 pre_commit_check=lambda: None,
@@ -166,6 +171,7 @@ def _publish_sample_graph(
                 edge_count=sum(len(edges) for edges in graph.relationships.values()),
                 duration_ms=100,
                 snapshot_sha256=effective_sha,
+                snapshot_attestation_version=attestation_version,
             )
             session.add(
                 RelationshipProjectionPublicationORM(
@@ -175,6 +181,7 @@ def _publish_sample_graph(
                     execution_id=publication_execution_id,
                     published_at=now,
                     snapshot_sha256=effective_sha,
+                    snapshot_attestation_version=attestation_version,
                 )
             )
         session.commit()
@@ -188,6 +195,42 @@ def test_clean_installation_classification(tmp_path: Path) -> None:
     loaded = _load_persisted_graph_from_configured_store(db_url)
     assert loaded is None
     assert load_persisted_graph_if_available(db_url) is None
+
+
+def test_v2_valuation_attestation_survives_startup_validation(tmp_path: Path) -> None:
+    """A v2 publication validates using its stored canonicalization version."""
+    db_url, session_factory = _setup_disposable_db(tmp_path)
+    graph = _create_sample_test_graph()
+    assert isinstance(graph.assets["AAPL"], Equity)
+    graph.assets["AAPL"].forward_pe_ratio = 24.2
+    graph.assets["AAPL"].peg_ratio = 1.6
+    graph.assets["AAPL"].price_to_sales_ratio = 8.4
+    graph.assets["AAPL"].price_to_book_ratio = 10.2
+    graph.assets["AAPL"].eps_growth_next_year = 0.13
+    graph.assets["AAPL"].eps_growth_next_5_years = 0.09
+    _publish_sample_graph(session_factory, graph, attestation_version=ATTESTATION_VERSION_V2)
+
+    loaded = _load_persisted_graph_from_configured_store(db_url)
+
+    assert loaded is not None
+    assert isinstance(loaded.assets["AAPL"], Equity)
+    assert loaded.assets["AAPL"].peg_ratio == pytest.approx(1.6)
+    assert loaded.assets["AAPL"].price_to_sales_ratio == pytest.approx(8.4)
+    assert loaded.assets["AAPL"].forward_pe_ratio == pytest.approx(24.2)
+    assert loaded.assets["AAPL"].price_to_book_ratio == pytest.approx(10.2)
+    assert loaded.assets["AAPL"].eps_growth_next_year == pytest.approx(0.13)
+    assert loaded.assets["AAPL"].eps_growth_next_5_years == pytest.approx(0.09)
+
+
+def test_mismatched_publication_attestation_version_fails_closed(tmp_path: Path) -> None:
+    """Publication and rebuild job must bind the same canonicalization version."""
+    db_url, session_factory = _setup_disposable_db(tmp_path)
+    _publish_sample_graph(session_factory, _create_sample_test_graph())
+    with session_factory() as session:
+        session.execute(update(RebuildJobORM).values(snapshot_attestation_version="v2"))
+        session.commit()
+
+    assert _load_persisted_graph_from_configured_store(db_url) is None
 
 
 def test_successful_publication_and_verified_startup(tmp_path: Path) -> None:
@@ -543,12 +586,12 @@ def test_interleaved_publication_rollover_preserves_consistent_snapshot(tmp_path
     original_load = AssetGraphRepository.load_graph_with_attestation_hash
     interleaved_publish_executed = False
 
-    def hook_load(self: AssetGraphRepository) -> tuple[AssetRelationshipGraph, str]:
+    def hook_load(self: AssetGraphRepository, *, attestation_version: str = "v1") -> tuple[AssetRelationshipGraph, str]:
         nonlocal interleaved_publish_executed
         if not interleaved_publish_executed:
             interleaved_publish_executed = True
             _publish_sample_graph(session_factory, graph_2, job_id="job-2", execution_id="exec-2")
-        return original_load(self)
+        return original_load(self, attestation_version=attestation_version)
 
     with patch.object(AssetGraphRepository, "load_graph_with_attestation_hash", hook_load):
         loaded = _load_persisted_graph_from_configured_store(db_url)
@@ -582,9 +625,11 @@ def test_publication_rollover_after_verification_cannot_alter_returned_graph(tmp
     original_load = AssetGraphRepository.load_graph_with_attestation_hash
     interleaved_after_verify = False
 
-    def hook_load_after_verify(self: AssetGraphRepository) -> tuple[AssetRelationshipGraph, str]:
+    def hook_load_after_verify(
+        self: AssetGraphRepository, *, attestation_version: str = "v1"
+    ) -> tuple[AssetRelationshipGraph, str]:
         nonlocal interleaved_after_verify
-        res = original_load(self)
+        res = original_load(self, attestation_version=attestation_version)
         if not interleaved_after_verify:
             interleaved_after_verify = True
             # Publish Generation 2 to persistent store right after graph 1 is loaded and hashed

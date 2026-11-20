@@ -49,7 +49,7 @@ from src.logic.relationship_projection import (
     overlay_governed_relationships,
     project,
 )
-from src.logic.snapshot_attestation import compute_repository_snapshot_hash
+from src.logic.snapshot_attestation import ATTESTATION_VERSION_V2, compute_repository_snapshot_hash
 from src.observability.facade import ObservabilityEvent, log_event
 
 from ..api_models import (
@@ -1824,7 +1824,17 @@ def _finalize_rebuild_success(
         )
         stage_graph_snapshot(session, publication_graph)
         session.flush()
-        snapshot_sha256 = compute_repository_snapshot_hash(AssetGraphRepository(session))
+        snapshot_attestation_version = ATTESTATION_VERSION_V2
+        snapshot_sha256 = compute_repository_snapshot_hash(
+            AssetGraphRepository(session),
+            attestation_version=snapshot_attestation_version,
+            check_cancelled=partial(
+                _verify_execution_state,
+                lock_lost,
+                cancel_event,
+                "publication-snapshot-attestation",
+            ),
+        )
 
         _guard_publication_lock(coordination_session, lock_holder_id, lock_ttl_seconds, "publication-pre-success")
 
@@ -1845,6 +1855,7 @@ def _finalize_rebuild_success(
                 duration_ms=_duration_ms(job_started_at),
                 published_at=publication_time,
                 snapshot_sha256=snapshot_sha256,
+                snapshot_attestation_version=snapshot_attestation_version,
             ),
             pre_success_check=pre_success_check,
             pre_commit_check=pre_commit_check,
