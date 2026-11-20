@@ -361,7 +361,7 @@ already defines related collectors (`graph_rebuild_state_transition_total`, `reb
 - [ ] Each sub-item's status is reconciled in the current roadmap or release evidence pack (not by editing the frozen
       `ROADMAP_STATUS.md` snapshot) with its merged PR reference.
 
-### Current evidence snapshot — 2026-11-19
+### Implementation merge status — 2026-11-20
 
 The implementation PRs below have merged since the 2026-11-19 audit snapshot. The checkboxes remain open pending
 Phase 1.4 evidence reconciliation, including hosted verification.
@@ -372,6 +372,8 @@ Phase 1.4 evidence reconciliation, including hosted verification.
 | 1.4.b    | [#1930](https://github.com/DashFin-FarDb/financial-asset-relationship-db/pull/1930) (`634cd54cb`) | Lifecycle transition assertions and RecoveryGate reset emission | 19 focused tests passed; Ruff and diff checks passed |
 | 1.4.c    | [#1931](https://github.com/DashFin-FarDb/financial-asset-relationship-db/pull/1931) (`d929086ee`) | Lock acquisition outcome assertions                             | 6 focused tests passed; Ruff and diff checks passed  |
 | 1.4.d    | [#1932](https://github.com/DashFin-FarDb/financial-asset-relationship-db/pull/1932) (`780281f56`) | Startup success, failure, duration assertions                   | 5 focused tests passed; Ruff and diff checks passed  |
+
+### Audit observations — 2026-11-19
 
 At the November 19 audit, all five PRs were open with merge state **BLOCKED**. On PR #1929, the inspected GitHub Actions
 Python matrix and coverage checks failed before any step started (job step list and output were empty). GitHub Actions
