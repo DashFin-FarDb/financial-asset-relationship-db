@@ -23,8 +23,7 @@ The remaining roadmap is about release execution: attaching target-environment e
 The 2026-09-01 checkpoint below is retained as a historical snapshot. The current database lane remains CQ-03D-02:
 no target or permit has been approved and no hosted preflight has run. The accepted routing contract supports a
 documented direct Supabase route or IPv4 port-5432 session-pooler route with `sslmode=verify-full` and a protected
-trust root (the current project-specific Supabase CA obtained from the Supabase Connect dialog, not an obsolete
-`prod-ca-2021.crt`); IPv6 is not required when using the IPv4 session pooler, whereas a direct route requires network
+trust root (the current project-specific Supabase CA obtained from the Supabase Connect dialog); IPv6 is not required when using the IPv4 session pooler, whereas a direct route requires network
 connectivity compatible with the endpoint's resolved address (IPv6 or the IPv4 add-on), and a generic support response
 is not a prerequisite when a supported route is available.
 Transaction-pooler port 6543 remains prohibited. Target approval and the protected single-use permit are still
