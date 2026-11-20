@@ -1,0 +1,39 @@
+api/app_factory.py
+  s_88cbb3d0ce7f6b::t_b869b44caa27a8 731
+api/graph_lifecycle.py
+  s_88cbb3d0ce7f6b::t_bf78cff448859c 16,199,209,275-277,284-285,415,435
+api/graph_lifecycle_providers.py
+  s_88cbb3d0ce7f6b::t_0080eb2d54f6dd 639
+api/routers/graph_admin.py
+  s_88cbb3d0ce7f6b::t_8e6a5d54aa4cb4 163
+src/data/relationship_assertion_repository.py
+  s_88cbb3d0ce7f6b::t_d12177b6111d72 5,142,848,922,1063-1064
+src/logic/snapshot_attestation.py
+  s_88cbb3d0ce7f6b::t_c6b0008bee52d0 114-115,167
+tests/integration/test_graph_admin_router.py
+  s_88cbb3d0ce7f6b::t_d1e18a4e024b75 263
+tests/integration/test_postgres_snapshot_attestation_recovery.py
+  s_88cbb3d0ce7f6b::t_b0540ec35b15cb 155,177-185
+tests/unit/test_graph_lifecycle_synchronize.py
+  s_88cbb3d0ce7f6b::t_8e9b4b61761e7a 377,382-395,400,404-412,414-417
+tests/unit/test_snapshot_attestation.py
+  s_88cbb3d0ce7f6b::t_11e34611bdfbcb 305-313,316
+tests/unit/test_snapshot_attestation_gate.py
+  s_88cbb3d0ce7f6b::t_2668ea7bc4a37f 36-39,330,426-427,435,448,450-451,453-459,462-463,473-482
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "2e483d2933f2a2b922fa93d3061a1a91a80e50b8",
+  "prompts": {},
+  "sessions": {
+    "s_88cbb3d0ce7f6b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "01a1e158-5454-78a2-8033-2b9f7eff8206",
+        "model": "unknown"
+      },
+      "human_author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}

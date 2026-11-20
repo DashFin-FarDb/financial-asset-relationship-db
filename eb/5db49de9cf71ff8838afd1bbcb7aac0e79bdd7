@@ -1,0 +1,21 @@
+api/app_factory.py
+  s_88cbb3d0ce7f6b::t_baec793f1d3847 124-125
+tests/integration/postgresql_disposable_cluster.py
+  s_88cbb3d0ce7f6b::t_ba3b97ebc86a54 782
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "eb5db49de9cf71ff8838afd1bbcb7aac0e79bdd7",
+  "prompts": {},
+  "sessions": {
+    "s_88cbb3d0ce7f6b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "01a1e158-5454-78a2-8033-2b9f7eff8206",
+        "model": "unknown"
+      },
+      "human_author": "mmo80 <33737944+mohavro@users.noreply.github.com>"
+    }
+  }
+}
