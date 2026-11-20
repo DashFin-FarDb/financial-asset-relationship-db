@@ -19,13 +19,13 @@ environment.
 
 ## Settings by responsibility
 
-| Setting | Configured on | Controls | Does not control |
-| --- | --- | --- | --- |
-| `NEXT_PUBLIC_API_URL` | Netlify static UI build; optional elsewhere | Browser requests to FastAPI endpoints such as `/api/visualization` | Database credentials, graph persistence, or Supabase Data API access |
-| `DATABASE_URL` (or documented `POSTGRES_URL` fallback) | FastAPI runtime environment | Auth/application database connection | Frontend routing; it is not a substitute for `ASSET_GRAPH_DATABASE_URL` in durable staging configuration |
-| `ASSET_GRAPH_DATABASE_URL` | FastAPI runtime environment | Authoritative durable graph database connection | Browser API routing |
-| `COORDINATION_DATABASE_URL` | FastAPI runtime environment, when separately configured | Rebuild job and lock coordination database | Graph storage unless an explicitly documented shared boundary applies |
-| `NEXT_PUBLIC_SUPABASE_URL` and a Supabase publishable key | A frontend only if it intentionally uses a Supabase client | Supabase project API URL and public client authentication | The FastAPI origin or backend SQL persistence connection |
+| Setting                                                   | Configured on                                              | Controls                                                           | Does not control                                                                                         |
+| --------------------------------------------------------- | ---------------------------------------------------------- | ------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------- |
+| `NEXT_PUBLIC_API_URL`                                     | Netlify static UI build; optional elsewhere                | Browser requests to FastAPI endpoints such as `/api/visualization` | Database credentials, graph persistence, or Supabase Data API access                                     |
+| `DATABASE_URL` (or documented `POSTGRES_URL` fallback)    | FastAPI runtime environment                                | Auth/application database connection                               | Frontend routing; it is not a substitute for `ASSET_GRAPH_DATABASE_URL` in durable staging configuration |
+| `ASSET_GRAPH_DATABASE_URL`                                | FastAPI runtime environment                                | Authoritative durable graph database connection                    | Browser API routing                                                                                      |
+| `COORDINATION_DATABASE_URL`                               | FastAPI runtime environment, when separately configured    | Rebuild job and lock coordination database                         | Graph storage unless an explicitly documented shared boundary applies                                    |
+| `NEXT_PUBLIC_SUPABASE_URL` and a Supabase publishable key | A frontend only if it intentionally uses a Supabase client | Supabase project API URL and public client authentication          | The FastAPI origin or backend SQL persistence connection                                                 |
 
 `NEXT_PUBLIC_API_URL` is embedded into the built frontend. On Vercel, this repository serves FastAPI at the same host
 under `/api`, so the frontend uses same-origin API requests and the Vercel build deliberately ignores this variable.
@@ -188,16 +188,16 @@ root serves the UI before checking `NEXT_PUBLIC_API_URL` and the separate API re
 The following read-only requests were made to the published sites on this date. This is a diagnostic snapshot, not a
 release qualification; repeat it after deployment configuration or code changes.
 
-| Target | Check | Observed result | Meaning |
-| --- | --- | --- | --- |
-| `https://fardb-grac.netlify.app` | Production UI root | HTTP 404 on 2026-11-20 | The production Netlify root did not serve the UI at the time of the check. |
-| `https://deploy-preview-1936--fardb-grac.netlify.app` | PR preview UI root | HTTP 200 | Static UI is served. This does not establish API health or graph persistence. |
-| `https://deploy-preview-1936--fardb-grac.netlify.app` | Inspect built JavaScript for the API origin | Contains `https://financial-asset-relationship-db-nine.vercel.app/` | The preview UI is configured to call this Vercel origin. |
-| `https://deploy-preview-1936--fardb-grac.netlify.app` | UI root on 2026-11-20 | HTTP 200 | Netlify can serve this preview's static UI. |
-| `https://financial-asset-relationship-db-nine.vercel.app` | `GET /api/health` and `GET /api/visualization` | HTTP 500 for both (earlier check) | The previously configured API origin was not serving these requests successfully. |
-| Vercel main alias `financial-asset-relationship-db-git-main-mohavros-projects.vercel.app` | `GET /api/health` and `GET /api/visualization` on 2026-11-20 | HTTP 500 for both | The current Vercel API alias is not returning API data. |
-| Latest Vercel production build (`main`, `53eadc2`) | Deployment status on 2026-11-20 | Error `IMMUTABLE_STATIC_PATCH_PREVIEW_COMMENTS` | Vercel reports deployment failed; no working production API origin is established. |
-| Same Vercel API origin | `check_hosted_readiness.py --require-persistence --assets-smoke --json` | Failed: `/api/health`, `/api/health/detailed`, and `/api/assets` returned HTTP 500 | Durable graph persistence was **not verified**. No persistence PASS should be claimed from this run. |
+| Target                                                                                    | Check                                                                   | Observed result                                                                    | Meaning                                                                                              |
+| ----------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- | ---------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| `https://fardb-grac.netlify.app`                                                          | Production UI root                                                      | HTTP 404 on 2026-11-20                                                             | The production Netlify root did not serve the UI at the time of the check.                           |
+| `https://deploy-preview-1936--fardb-grac.netlify.app`                                     | PR preview UI root                                                      | HTTP 200                                                                           | Static UI is served. This does not establish API health or graph persistence.                        |
+| `https://deploy-preview-1936--fardb-grac.netlify.app`                                     | Inspect built JavaScript for the API origin                             | Contains `https://financial-asset-relationship-db-nine.vercel.app/`                | The preview UI is configured to call this Vercel origin.                                             |
+| `https://deploy-preview-1936--fardb-grac.netlify.app`                                     | UI root on 2026-11-20                                                   | HTTP 200                                                                           | Netlify can serve this preview's static UI.                                                          |
+| `https://financial-asset-relationship-db-nine.vercel.app`                                 | `GET /api/health` and `GET /api/visualization`                          | HTTP 500 for both (earlier check)                                                  | The previously configured API origin was not serving these requests successfully.                    |
+| Vercel main alias `financial-asset-relationship-db-git-main-mohavros-projects.vercel.app` | `GET /api/health` and `GET /api/visualization` on 2026-11-20            | HTTP 500 for both                                                                  | The current Vercel API alias is not returning API data.                                              |
+| Latest Vercel production build (`main`, `53eadc2`)                                        | Deployment status on 2026-11-20                                         | Error `IMMUTABLE_STATIC_PATCH_PREVIEW_COMMENTS`                                    | Vercel reports deployment failed; no working production API origin is established.                   |
+| Same Vercel API origin                                                                    | `check_hosted_readiness.py --require-persistence --assets-smoke --json` | Failed: `/api/health`, `/api/health/detailed`, and `/api/assets` returned HTTP 500 | Durable graph persistence was **not verified**. No persistence PASS should be claimed from this run. |
 
 The test shows a live mismatch between UI availability and API availability. Follow-up inspection of Vercel runtime
 logs on 2026-11-19 identifies that the compiled Netlify preview calls a stale Vercel alias. The alias resolves to
