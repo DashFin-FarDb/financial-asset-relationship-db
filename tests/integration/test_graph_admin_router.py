@@ -305,6 +305,86 @@ def test_rebuild_returns_503_when_operator_authorization_not_configured(
     assert response.json()["detail"] == REBUILD_OPERATOR_NOT_CONFIGURED_DETAIL
 
 
+def test_rebuild_transition_emitters_cover_job_lifecycle(
+    session_factory,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Creation, execution, terminal, and cancellation seams emit lifecycle transitions."""
+    from unittest.mock import MagicMock
+
+    transitions: list[tuple[str, str]] = []
+    monkeypatch.setattr(
+        graph_admin,
+        "record_rebuild_state_transition",
+        lambda source, target: transitions.append((source, target)),
+    )
+
+    failed_job_id, started_at = graph_admin._create_and_start_rebuild_job(  # pylint: disable=protected-access
+        session_factory, "admin", "worker", "exec-failed"
+    )
+    graph_admin._finalize_rebuild_failure(  # pylint: disable=protected-access
+        session_factory=session_factory,
+        job_id=failed_job_id,
+        execution_id="exec-failed",
+        exc=RuntimeError("rebuild failed"),
+        job_started_at=started_at,
+    )
+
+    success_job_id, _ = graph_admin._create_and_start_rebuild_job(  # pylint: disable=protected-access
+        session_factory, "admin", "worker", "exec-success"
+    )
+    graph = object()
+    response = graph_admin.GraphRebuildResponse(
+        status="persisted", source="real_data", asset_count=0, relationship_count=0, regulatory_event_count=0
+    )
+    monkeypatch.setattr(graph_admin, "_load_initial_checkpoint", lambda *_args: None)
+    monkeypatch.setattr(graph_admin, "_create_on_checkpoint_callback", lambda *_args: lambda *_a, **_k: None)
+    monkeypatch.setattr(graph_admin, "_verify_execution_state", lambda *_args: None)
+    monkeypatch.setattr(graph_admin, "build_rebuild_graph", lambda *_args, **_kwargs: (graph, "real_data"))
+    monkeypatch.setattr(graph_admin, "_update_job_source_safe", lambda *_args: None)
+    monkeypatch.setattr(graph_admin, "_finalize_rebuild_success", lambda **_kwargs: response)
+    monkeypatch.setattr(graph_admin, "synchronize_runtime_graph", lambda *_args, **_kwargs: True)
+    graph_admin._run_rebuild_pipeline(  # pylint: disable=protected-access
+        session_factory,
+        MagicMock(),
+        "sqlite:///unused",
+        success_job_id,
+        "exec-success",
+        0.0,
+        threading.Event(),
+        threading.Event(),
+    )
+
+    cancel_job_id, _ = graph_admin._create_and_start_rebuild_job(  # pylint: disable=protected-access
+        session_factory, "admin", "worker", "exec-cancel"
+    )
+
+    @contextlib.contextmanager
+    def persistence_session():
+        """Use the test database for the cancellation endpoint."""
+        with session_scope(session_factory) as session:
+            yield session
+
+    monkeypatch.setattr(graph_admin, "_rebuild_persistence_session", persistence_session)
+    graph_admin.cancel_rebuild_job(cancel_job_id, User(username="admin", disabled=False))
+    graph_admin._finalize_cancellation_safe(  # pylint: disable=protected-access
+        session_factory, cancel_job_id, "exec-cancel"
+    )
+
+    assert transitions == [
+        ("none", "pending"),
+        ("pending", "running"),
+        ("running", "failed"),
+        ("none", "pending"),
+        ("pending", "running"),
+        ("running", "succeeded"),
+        ("none", "pending"),
+        ("pending", "running"),
+        ("pending_or_running", "cancel_requested"),
+        ("cancel_requested", "cancelled"),
+    ]
+
+
 async def test_rebuild_admission_metrics_count_admitted_and_busy_rejections(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
