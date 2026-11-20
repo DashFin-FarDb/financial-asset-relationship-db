@@ -6,9 +6,15 @@ For the broader enterprise-readiness index, see [docs/enterprise-readiness-index
 **Format:** Release evidence board
 **Purpose:** Track enterprise-readiness PR outcomes and the remaining release-evidence gates after PR #1287-#1301
 
-**Current reconciliation checkpoint — 2026-11-19:** the 2026-09-01 reconciliation below remains the latest broad
-`main` review; it is not a new whole-repository audit. CQ-03D-02 has no approved target or permit and no hosted
-preflight has run. The accepted connection routes are a documented direct route or IPv4 port-5432 session
+**Current reconciliation checkpoint — 2026-11-20:** the named human ratifier selected the existing production FarDb
+Supabase project as the single target for CQ-03D-02 read-only preflight. No separate project or branch is designated
+as FarDb staging. The protected target binding and exact-SHA single-use permit are pending; no hosted preflight has run.
+This target decision authorizes no DDL, DML, migration-history adoption, provider configuration change, credential
+change, or deployment. The earlier routing reconciliation remains unchanged.
+
+**Historical reconciliation checkpoint — 2026-11-19:** the 2026-09-01 reconciliation below remains the latest broad
+`main` review; it is not a new whole-repository audit. As of 2026-11-19, CQ-03D-02 had no approved target or permit
+and no hosted preflight had run. The accepted connection routes are a documented direct route or IPv4 port-5432 session
 pooler with `sslmode=verify-full` and a protected trust root (the current project-specific Supabase CA obtained from
 the Supabase Connect dialog); IPv6 is not required when using the IPv4 session pooler,
 whereas a direct route requires network connectivity compatible with the endpoint's resolved address (IPv6 or the IPv4

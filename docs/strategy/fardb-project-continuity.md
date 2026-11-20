@@ -9,7 +9,9 @@
 
 - **CQ-03:** CQ-03B-R1, CQ-03B-R2, CQ-03C, CQ-03D-00, and CQ-03D-01 are merged.
 - **GNC:** Phases 1 and 2 are complete; Phase 3 remains unauthorised.
-- **Hosted preflight:** no CQ-03D-02 target or permit is approved, and no hosted preflight has been executed.
+- **Hosted preflight:** the named human ratifier selected the existing production FarDb Supabase project for CQ-03D-02
+  read-only preflight only on 2026-11-20. No separate project or branch is designated as FarDb staging. The protected
+  target binding and single-use permit are still pending, and no CQ-03D-02 hosted preflight has been executed.
 
 **Cutoff scope:** The 2026-09-01 broad repository review and its source list describe `main` at
 `0984f6225cc0f42ff02a9f7eda7b314566d759d0`. Later dated entries are PR-specific post-cutoff addenda; they do
@@ -133,6 +135,29 @@ Primary authorities:
 
 ## Active commitments
 
+### FPC-2026-11-20-01 — Record the CQ-03D-02 production target decision
+
+- **Type:** Hosted preflight target-selection and status reconciliation
+- **Status:** One production target is approved for read-only preflight only; protected target binding and single-use
+  permit are pending; no hosted preflight has run.
+- **Decision or objective:** The named human ratifier selected the existing FarDb production Supabase project as the
+  single CQ-03D-02 target on 2026-11-20. This is not a staging target. Approval is limited to the
+  repository's permit-bound, read-only preflight; it does not authorize DDL, DML, migration-history adoption, provider
+  configuration changes, credential changes, or deployment.
+- **Rationale and constraints:** The connected Supabase inventory confirms the selected project's production
+  designation and only its `main` branch. No other project or branch is designated as a FarDb staging target. Keep
+  project references, database URLs, live OIDs, target bindings, permit
+  contents, and raw provider evidence outside the repository. The issue's route and target checkboxes do not replace
+  the protected permit required by ADR 0010 and the migration-authority runbook.
+- **Dependencies or blockers:** Freeze the reviewed post-merge repository SHA; validate the ledger manifest on that
+  exact SHA; establish target identity, build profile, lineage, and required evidence in the protected operator
+  surface; then issue the exact-SHA, single-use history-only permit. No connected preflight is authorized until that
+  permit is valid. A passing preflight does not authorize the later history marker.
+- **Next action and completion test:** Prepare the protected target binding and permit for the selected production
+  target, then run the documented read-only preflight from the exact reviewed SHA. Record only the bounded JSON result
+  and timestamp count. Stop on any missing evidence or non-PASS outcome.
+- **Last updated:** 2026-11-20
+
 ### FPC-2026-11-19-01 — Reconcile the CQ-03D-02 Supabase routing prerequisite
 
 - **Type:** PostgreSQL hosted-preflight documentation reconciliation
@@ -228,9 +253,9 @@ Primary authorities:
 ### FPC-2026-08-13-01 — Establish one profile-scoped PostgreSQL migration authority and drift gate
 
 - **Type:** Database architecture / production qualification blocker
-- **Status:** In progress — CQ-03B-R1/R2, CQ-03C, CQ-03D-00, and CQ-03D-01 are verified through merged PRs #1640,
-  #1641, #1643, #1644, and #1646; CQ-03D-02 has no approved target or permit and no hosted preflight evidence;
-  separate approval is required before execution
+- **Status:** In progress — historical status as of 2026-08-18 is superseded for target selection by
+  FPC-2026-11-20-01. One production target is now approved for read-only preflight only; the protected permit and
+  hosted preflight remain pending.
 - **Decision or objective:** Keep one repository-owned PostgreSQL schema authority while composing immutable auth,
   graph, and coordination component ledgers through one target-profile manifest. Preserve exact provider
   `statements[]` as lineage evidence, build clean targets from new forward-dated baselines, and retain ADR 0009's
@@ -244,8 +269,8 @@ Primary authorities:
   Canonical SQL belongs under `supabase/ledgers/<component>/migrations/`; `supabase/ledger-profiles.json` is the sole
   composition authority. `fresh-v1` and non-executable `hosted-legacy-v1` lineage records explain truthful target
   history without creating a second schema authority.
-- **Dependencies or blockers:** CQ-03B-R1/R2, CQ-03C, CQ-03D-00, and CQ-03D-01 merge gates are satisfied. CQ-03D has
-  no approved target, permit, or hosted preflight evidence. CQ-03D-02 retains separate human approval and a
+- **Dependencies or blockers:** CQ-03B-R1/R2, CQ-03C, CQ-03D-00, and CQ-03D-01 merge gates are satisfied. CQ-03D-02
+  requires the protected target binding and single-use permit before a hosted preflight. It retains a
   single-use permit bound to exact SHA, profile, target fingerprint, digest, and one timestamp before any hosted
   preflight. A passing preflight does not authorize the later migration-history marker.
 - **Evidence and provenance:** merged CQ-03A PR #1634 and squash
