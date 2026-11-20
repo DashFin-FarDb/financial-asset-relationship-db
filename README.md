@@ -119,6 +119,9 @@ See [DEPLOYMENT.md](DEPLOYMENT.md) for detailed deployment instructions and Verc
 **Hosted Deployment**: For the hosted deployment and durable persistence decision, see
 [docs/adr/0002-hosted-deployment-and-persistence.md](docs/adr/0002-hosted-deployment-and-persistence.md).
 
+For the operator steps that distinguish the hosted UI's FastAPI target from Supabase Data API and database settings,
+see the [Hosted UI, API, and Supabase Data Path runbook](docs/runbooks/hosted-ui-api-and-supabase-data-path.md).
+
 For the full enterprise-readiness package, see
 [docs/enterprise-readiness-index.md](./docs/enterprise-readiness-index.md).
 
@@ -167,6 +170,10 @@ curl http://localhost:${BACKEND_PORT:-8000}/api/visualization
 
 If `/api/health` fails, fix the backend startup first. If `/api/health` works but the frontend still
 fails, check `NEXT_PUBLIC_API_URL` and the browser Network tab.
+
+For the host-specific setup path, including which API URL to use on Netlify versus Vercel and how to
+verify that the graph came from persistence, see the
+[Hosted UI, API, and Supabase Data Path runbook](docs/runbooks/hosted-ui-api-and-supabase-data-path.md).
 
 FastAPI startup verifies database compatibility but never creates tables, repairs guards/grants, or
 seeds credentials. Run `python -m scripts.migrate_database` explicitly before the first start and
