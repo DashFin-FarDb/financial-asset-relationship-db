@@ -1,6 +1,6 @@
 # Hosted UI, API, and Supabase Data Path
 
-**Status:** Active operator reference  
+**Status:** Active operator reference
 **Scope:** Identify which hosted URL and database setting controls each part of graph display and persistence.
 
 ## Request and persistence path
