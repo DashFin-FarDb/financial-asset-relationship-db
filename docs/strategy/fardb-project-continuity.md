@@ -179,6 +179,25 @@ Primary authorities:
 - **Dependencies or blockers:** PostgreSQL 17 evidence, hosted authority/support resolution, target-bound protected preflight, history-adoption approval and an approved maintenance window remain outstanding before hosted application. Before commercial deployment, obtain applicable hosted checks and analyzer/coverage evidence for the exact promoted source and artifact. Merging the migration does not establish resolution of the hosted adviser finding.
 - **Last updated:** 2026-11-05
 
+### FPC-2026-11-19-02 — Record valuation and scale-validation evidence limits
+
+- **Type:** Product persistence evidence / production-scale qualification
+- **Status:** PR #1925 is draft; its evidence adds useful functionality and database-profile coverage but does not close
+  production-scale qualification.
+- **Decision or objective:** Persist optional equity valuation and forecast-growth fields and use a one-time real-data
+  graph probe to exercise database, API, attestation, and analysis behavior alongside deterministic synthetic scale
+  testing.
+- **Evidence and provenance:** PR [#1925](https://github.com/DashFin-FarDb/financial-asset-relationship-db/pull/1925)
+  records a 10,000-asset / 50,000-edge SQLite run; a 148-asset / 14,520-edge functionality probe; and an
+  operator-reported host-attested PostgreSQL 16.14 disposable four-profile pass. The host report did not capture the
+  exact Git SHA or manifest SHA used at execution; the evidence record states that limitation rather than claiming
+  exact-SHA CI evidence.
+- **Dependencies or blockers:** Stable retained data, an agreed performance budget, PostgreSQL asset-graph workload
+  measurements, hosted staging, sustained load, production hardware, and exact-source evidence for the host run remain
+  outstanding. The June 2026 RC1 staging smoke applies only to its recorded candidate and must not be inherited by this
+  branch.
+- **Last updated:** 2026-11-19
+
 ### FPC-2026-08-27-01 — Govern GNC after Phase 2 completion
 
 - **Type:** Repository governance / exact-head evidence
