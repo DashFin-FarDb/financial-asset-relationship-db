@@ -352,13 +352,52 @@ already defines related collectors (`graph_rebuild_state_transition_total`, `reb
 - [ ] 1.4.a — Rebuild admission metrics are exposed and emitted at the existing fail-fast admission seam, distinguishing
       accepted requests from rejected-busy requests, with tests. Concurrent rebuilds are intentionally rejected rather
       than queued; adding a queue would change rebuild semantics and is outside this observability item.
-- [ ] 1.4.b — State transition counters are emitted for every rebuild job transition, with tests.
+- [ ] 1.4.b — State transition counters are emitted for every rebuild job transition, including RecoveryGate orphan-reset
+      transitions, with tests asserting the lifecycle emission seams.
 - [ ] 1.4.c — Lock acquisition metrics are emitted for acquired, timeout, error, lost, and invalid outcomes, with
       tests asserting one increment per outcome and bounded status labels.
 - [ ] 1.4.d — Startup metrics are exposed and emitted for startup duration and success/failure, with tests asserting
       duration observation on both successful and failed startup paths.
 - [ ] Each sub-item's status is reconciled in the current roadmap or release evidence pack (not by editing the frozen
       `ROADMAP_STATUS.md` snapshot) with its merged PR reference.
+
+### Implementation merge status — 2026-11-20
+
+The implementation PRs below have merged since the 2026-11-19 audit snapshot. The checkboxes remain open pending
+Phase 1.4 evidence reconciliation, including hosted verification.
+
+| Sub-item | Implementation PR                                                                                 | Scope in PR                                                     | Local validation                                     |
+| -------- | ------------------------------------------------------------------------------------------------- | --------------------------------------------------------------- | ---------------------------------------------------- |
+| 1.4.a    | [#1929](https://github.com/DashFin-FarDb/financial-asset-relationship-db/pull/1929) (`e3df86683`) | Fail-fast admission counter and corrected criterion             | 2 focused tests passed; Ruff and diff checks passed  |
+| 1.4.b    | [#1930](https://github.com/DashFin-FarDb/financial-asset-relationship-db/pull/1930) (`634cd54cb`) | Lifecycle transition assertions and RecoveryGate reset emission | 19 focused tests passed; Ruff and diff checks passed |
+| 1.4.c    | [#1931](https://github.com/DashFin-FarDb/financial-asset-relationship-db/pull/1931) (`d929086ee`) | Lock acquisition outcome assertions                             | 6 focused tests passed; Ruff and diff checks passed  |
+| 1.4.d    | [#1932](https://github.com/DashFin-FarDb/financial-asset-relationship-db/pull/1932) (`780281f56`) | Startup success, failure, duration assertions                   | 5 focused tests passed; Ruff and diff checks passed  |
+
+### Audit observations — 2026-11-19
+
+At the November 19 audit, all five PRs were open with merge state **BLOCKED**. On PR #1929, the inspected GitHub Actions
+Python matrix and coverage checks failed before any step started (job step list and output were empty). GitHub Actions
+jobs on PRs #1930–#1933 were not inspected for this snapshot; no implementation-test conclusion is drawn for those
+PRs. The Snyk code check on PR #1929 reports `Code test limit reached`. CircleCI's Python test job passes on PR #1929.
+Hosted checks are not green; recheck their exact-head status after the CI usage/billing lock is addressed. The inspected
+GitHub jobs on PR #1929 did not execute their steps, so they do not identify a failing implementation test.
+
+The separate Grafana deliverable is **FarDB Control Plane — Observability, SLOs & Lifecycle** (dashboard UID
+`mogdpxw`, 54 panels). Its description identifies it as anticipatory and says panels may show no data until service
+instrumentation is present. The current repo and dashboard mappings are not aligned for Phase 1.4: the startup panel
+queries `fardb_startup_success_total` and `fardb_startup_total` rather than the repo's `application_startup_*` metrics;
+the transition panel queries `fardb_rebuild_jobs_total{status=...}` rather than
+`graph_rebuild_state_transition_total{from_state,to_state}`; the queue panel uses future Celery metric
+`fardb_queue_depth`; and no panel query was found for `graph_rebuild_admission_total` or
+`rebuild_lock_acquisition_total`.
+
+A live Prometheus query on 2026-11-19 returned `up{job="fardb_fastapi"} = 0` for target `localhost:8000`, which is
+consistent with the local launcher configuration and does not establish a production target. Queries for the existing
+state-transition, lock-acquisition, and startup-duration families returned no series. Thus the separate dashboard
+artifact exists, but hosted scrape and metric ingestion have not been evidenced. Do not treat its presence as runtime
+validation. Reconcile
+the panel queries and record a successful target/series observation before claiming the Grafana side operationally
+verified. Metrics endpoint lockdown H-P3-01 remains separate.
 
 ### Non-negotiable boundary
 
