@@ -503,6 +503,7 @@ def _evaluate_runtime_callback(kwargs):
     except preflight.RuntimeCheckUnavailable:
         return SimpleNamespace(status=EVALUATION_INCOMPLETE)
     pytest.fail("the runtime identity failure should be represented as unavailable inside the evaluator")
+    return None
 
 
 def test_collection_uses_five_ratified_checks_without_migration_parity(tmp_path: Path, monkeypatch) -> None:
