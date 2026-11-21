@@ -143,13 +143,14 @@ Primary authorities:
 - **Status:** The bounded collection procedure is ratified; no production connection or collection run is authorized
   until its collection-only invocation is reviewed and validated. Permit and hosted preflight remain pending.
 - **Decision or objective:** The named human ratifier approved one use of a read-only evidence-collection stage before
-  permit issuance. The approval must be bound at execution to the exact reviewed SHA, manifest digest, protected target
-  fingerprint, `combined` / `hosted-legacy-v1`, and proposed marker `20260817153547`.
+  permit issuance. The approval must be bound at execution to the exact reviewed SHA, the
+  `fardb-ledger-profiles-v1` manifest SHA-256, protected target fingerprint, `combined` / `hosted-legacy-v1`, and proposed marker `20260817153547`.
 - **Rationale and constraints:** The existing CQ-03D-01 command requires the permit whose production evidence it would
   need to produce. The separate collection stage resolves that sequencing gap while retaining live identity checks,
   complete history, normalized catalog, runtime compatibility, and runtime authority as prerequisites for permit
-  review. It is one-use and read-only; failures or incomplete checks stop collection. Retain only the bounded result
-  and timestamp count in protected storage. Do not write migration history or perform DDL, DML, grants, role changes,
+  review. It is one-use and read-only; failures or incomplete checks stop collection. Keep the authorization, target
+  binding, connection inputs, bounded result, and timestamp count in protected operator storage. Discard raw provider
+  output. Do not write migration history or perform DDL, DML, grants, role changes,
   credential changes, provider configuration changes, or deployment.
 - **Dependencies or blockers:** A reviewed and validated collection-only invocation is required before connecting.
   The existing permit-bound invocation cannot be used for this stage, and no provisional permit or placeholder evidence
