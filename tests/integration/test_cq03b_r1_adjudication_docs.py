@@ -206,7 +206,10 @@ def test_continuity_records_merged_r2_without_claiming_provider_delivery() -> No
     assert "return `EVALUATION_INCOMPLETE`" in continuity
     assert "startup and readiness prove they cannot mutate schema or migration history" in _compact(continuity)
     assert "credential-bootstrap authority" in continuity
-    assert "CQ-03D-02 retains separate human approval" in continuity
+    assert (
+        "CQ-03D-02\n  requires the protected target binding and single-use permit before a hosted preflight"
+        in continuity
+    )
     assert "No hosted schema, migration history, credential, provider link state" in continuity
     assert "CQ-03B-R1 merged through PR #1640" in continuity
 
@@ -220,9 +223,9 @@ def test_continuity_records_merged_cq03c_without_claiming_hosted_adoption() -> N
     assert CQ03C_MERGE in header
     assert "CQ-03C is implemented in draft PR #1643" not in continuity
     assert "CQ-03C was human-ratified" in continuity
-    assert "CQ-03D has no approved target, permit, or hosted preflight evidence" in _compact(continuity)
-    assert "no CQ-03D-02 target or permit is approved" in header
-    assert "no hosted preflight has been executed" in header
+    assert "selected the existing production FarDb Supabase project for CQ-03D-02" in header
+    assert "target binding and single-use permit are still pending" in header
+    assert "no CQ-03D-02 hosted preflight has been executed" in header
 
 
 def test_continuity_current_main_cutoffs_agree() -> None:
@@ -248,22 +251,26 @@ def test_cq03d_progress_preserves_separate_authority_and_history_only_boundary()
     continuity = _compact(_load(CONTINUITY))
     roadmap = _compact(_load(ROADMAP))
     assert "CQ-03D-01 is ratified, verified, and merged through PR #1646" in continuity
-    assert "Before CQ-03D-02 execution, separately approve one target" in continuity
+    assert "Complete the selected target's protected binding and exact-SHA single-use permit" in continuity
     assert "does not authorize the later history action" in continuity
-    assert "CQ-03D has no approved target, permit, or hosted preflight evidence" in continuity
-    assert "D-01 merged and verified at repository scope; target/permit absent" in roadmap
-    assert "D-02: separately approve one target and protected single-use permit" in roadmap
-    assert "No CQ-03D-02 target or permit is approved" in continuity
+    assert "One production target is approved for read-only preflight only" in continuity
+    assert "protected target binding and single-use permit are still pending" in continuity
+    assert (
+        "D-01 merged; one production target approved for read-only preflight; permit and preflight pending" in roadmap
+    )
+    assert "D-02: prepare the protected target binding and exact-SHA single-use permit" in roadmap
+    current_header = continuity.split("\nThis ledger preserves", maxsplit=1)[0]
+    assert "no CQ-03D-02 target or permit is approved" not in current_header
     assert "separately approved target" not in roadmap
     assert "separately ratified, target-bound hosted preflight" not in continuity
     assert "target/permit approval and hosted preflight remain unexecuted" not in continuity
-    assert "no DML beyond one permit-bound history marker" in roadmap
+    assert "no DML beyond one separately authorized permit-bound history marker" in roadmap
     assert "**Publication date:** 2026-06-25" in roadmap
     assert "**Last updated:** 2026-11-20" in roadmap
 
     delivery_order = roadmap.split("## Proposed Delivery Order", maxsplit=1)[1]
     assert delivery_order.lstrip().startswith(
-        "1. Obtain separate approval for one target and protected single-use permit, then run the CQ-03D-02 hosted"
+        "1. Complete the selected target's protected connection binding and exact-SHA single-use permit, then run the CQ-03D-02"
     )
     assert "Source-of-truth reconciliation after PR #1287-#1301" not in delivery_order
     assert "truncation signal PR completed" not in delivery_order

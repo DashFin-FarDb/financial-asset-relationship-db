@@ -18,9 +18,17 @@ The release evidence pack also exists and governs release-proof capture.
 
 The remaining roadmap is about release execution: attaching target-environment evidence, rehearsing restore, and closing bounded follow-up seams without reopening the architecture.
 
-## Current execution checkpoint — 2026-11-19
+## Current execution checkpoint — 2026-11-20
 
-The 2026-09-01 checkpoint below is retained as a historical snapshot. The current database lane remains CQ-03D-02:
+The named human ratifier selected the existing production FarDb Supabase project as the single CQ-03D-02 target for
+read-only preflight on 2026-11-20. No separate project or branch is designated as FarDb staging. The protected target
+binding and exact-SHA single-use permit are still pending, and no hosted preflight has run. This approval authorizes no DDL,
+DML, migration-history adoption, provider configuration change, credential change, or deployment. The accepted
+routing contract and separate history-marker decision remain as stated below.
+
+## Historical execution checkpoint — 2026-11-19
+
+The 2026-09-01 checkpoint below is retained as a historical snapshot. As of 2026-11-19, the database lane remained CQ-03D-02:
 no target or permit has been approved and no hosted preflight has run. The accepted routing contract supports a
 documented direct Supabase route or IPv4 port-5432 session-pooler route with `sslmode=verify-full` and a protected
 trust root (the current project-specific Supabase CA obtained from the Supabase Connect dialog); IPv6 is not required when using the IPv4 session pooler, whereas a direct route requires network
@@ -50,15 +58,17 @@ were reconciled and closed unmerged; they are not an active merge queue.
 CQ-03A, CQ-03B-R1/R2, CQ-03C, CQ-03D-00, and CQ-03D-01 are complete at repository scope through merged PRs #1634,
 with PRs #1640, #1641, #1643, #1644, and #1646 completing the remaining units. The repository can build the explicit
 auth, graph, coordination, and combined profiles on supported PostgreSQL versions and can run a target-bound,
-permit-bound, read-only hosted preflight. No target or permit is approved and no hosted preflight has been executed.
+permit-bound, read-only hosted preflight. One production target is approved for read-only preflight only; its protected
+binding and permit are pending, and no hosted preflight has been executed.
 
-| Item                                     | Status                                                                                                        | Next evidence required                                                                                                                                                          | Non-negotiable boundary                                                                                                                                      |
-| ---------------------------------------- | ------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| CQ-03D hosted migration-history adoption | Partially satisfied — D-01 merged and verified at repository scope; target/permit absent; no hosted preflight | D-02: separately approve one target and protected single-use permit (using an adapter-supported route), bind the reviewed SHA, then obtain a passing hosted read-only preflight | History-only reconciliation; no DDL; no DML beyond one permit-bound history marker; no grant, role, credential, deployment, or provider-configuration change |
+| Item                                     | Status                                                                                                                  | Next evidence required                                                                                                       | Non-negotiable boundary                                                                                                                                                            |
+| ---------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| CQ-03D hosted migration-history adoption | Partially satisfied — D-01 merged; one production target approved for read-only preflight; permit and preflight pending | D-02: prepare the protected target binding and exact-SHA single-use permit, then obtain a passing hosted read-only preflight | History-only reconciliation; no DDL; no DML beyond one separately authorized permit-bound history marker; no grant, role, credential, deployment, or provider-configuration change |
 
 The CQ-03D-01 target adapter contract was human-ratified on 2026-08-18 and merged through PR #1646 at verified squash
-`790274c1b0dbdb43d4bbbbf35c4565dae36c9fe3`. The command may collect only preflight evidence. CQ-03D-02 must
-separately approve one target and a protected single-use permit before a connected hosted preflight. That preflight
+`790274c1b0dbdb43d4bbbbf35c4565dae36c9fe3`. The command may collect only preflight evidence. CQ-03D-02 now has one
+approved production target for read-only inspection; a protected single-use permit remains mandatory before a
+connected hosted preflight. That preflight
 does not authorize the later single migration-history marker, which remains a separate decision.
 
 ## Release Evidence Now
@@ -114,8 +124,8 @@ These items are valid but should not be bundled into the release-evidence reconc
 
 ## Proposed Delivery Order
 
-1. Obtain separate approval for one target and protected single-use permit, then run the CQ-03D-02 hosted read-only
-   preflight to `PASS`.
+1. Complete the selected target's protected connection binding and exact-SHA single-use permit, then run the CQ-03D-02
+   hosted read-only preflight to `PASS`.
 2. If separately ratified, exactly one permit-bound migration-history marker and its post-action evidence.
 3. RC1 release evidence capture issue.
 4. Staging deployment operating baseline.
