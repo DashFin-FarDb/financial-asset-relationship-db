@@ -549,7 +549,7 @@ def consume_collection_authorization(
                 )
                 try:
                     metadata = os.fstat(descriptor)
-                    if not stat.S_ISREG(metadata.st_mode):
+                    if not stat.S_ISREG(metadata.st_mode) or metadata.st_nlink != 1:
                         raise PreflightContractError(PERMIT_INVALID)
                     if os.name != "nt" and (
                         stat.S_IMODE(metadata.st_mode) != 0o600

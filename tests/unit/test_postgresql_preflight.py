@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import inspect
 import json
+import os
 import subprocess  # nosec B404 - fixed-command test doubles only
 import sys
 from concurrent.futures import ThreadPoolExecutor
@@ -234,6 +235,28 @@ def test_collection_authorization_is_bound_to_the_ratified_profile_and_marker(tm
         )
 
 
+@pytest.mark.parametrize("case", ["expired", "scope", "operator", "ratifier", "consumed"])
+def test_collection_authorization_rejects_invalid_approval_envelope(tmp_path: Path, case: str) -> None:
+    """Expiry, scope, named approval, and final-state requirements fail closed."""
+    manifest = load_and_validate_manifest()
+    document = _collection_authorization_document()
+    now = datetime(2026, 11, 21, 10, tzinfo=timezone.utc)
+    if case == "expired":
+        now = datetime(2100, 1, 1, tzinfo=timezone.utc)
+    elif case == "scope":
+        document["scope"] = "read-write"
+    elif case == "operator":
+        document["operator"] = ""
+    elif case == "ratifier":
+        document["ratifier"] = ""
+    else:
+        document["state"] = "consumed"
+    path = _write_collection_authorization(tmp_path, document)
+
+    with pytest.raises(preflight.PreflightContractError, match=preflight.PERMIT_INVALID):
+        preflight.load_collection_authorization(path, manifest, now=now)
+
+
 def test_collection_authorization_concurrent_consumption_has_one_winner(tmp_path: Path) -> None:
     """Concurrent invocations cannot both consume the same protected record."""
     path = _write_collection_authorization(tmp_path)
@@ -295,6 +318,22 @@ def test_collection_authorization_replace_failure_preserves_unused_json(tmp_path
     )
 
 
+def test_collection_authorization_rejects_hard_link_alias(tmp_path: Path) -> None:
+    """A replacement cannot leave a second filename with a reusable unused inode."""
+    path = _write_collection_authorization(tmp_path)
+    alias_path = tmp_path / "authorization-alias.json"
+    try:
+        os.link(path, alias_path)
+    except OSError as exc:
+        pytest.skip(f"hard-link creation unavailable: {exc}")
+
+    with pytest.raises(preflight.PreflightContractError, match=preflight.PERMIT_INVALID):
+        preflight.consume_collection_authorization(path, load_and_validate_manifest())
+
+    assert json.loads(path.read_text(encoding="utf-8"))["state"] == "unused"
+    assert json.loads(alias_path.read_text(encoding="utf-8"))["state"] == "unused"
+
+
 def test_collection_authorization_is_consumed_when_first_connection_fails(tmp_path: Path, monkeypatch) -> None:
     """A failed first connection still spends the authorization before any retry."""
     path = _write_collection_authorization(tmp_path)
@@ -315,8 +354,8 @@ def test_collection_rechecks_sha_after_consumption_before_connecting(tmp_path: P
     """A changed reviewed SHA consumes authorization and stops before connection."""
     path = _write_collection_authorization(tmp_path)
     _collection_run_target(tmp_path, monkeypatch)
-    sha_values = iter(("1" * 40, "2" * 40))
-    monkeypatch.setattr(preflight, "_repository_sha", lambda: next(sha_values))
+    sha_values = ["1" * 40, "2" * 40]
+    monkeypatch.setattr(preflight, "_repository_sha", lambda: sha_values.pop(0))
     monkeypatch.setattr(
         preflight,
         "_connect_verified",
@@ -375,6 +414,7 @@ def test_collection_runtime_identity_mismatch_stops_authority_check(monkeypatch)
     )
 
     def fail_authority(*_args):
+        """Fail if runtime authority runs after runtime identity could not be proved."""
         pytest.fail("runtime authority must not follow a failed runtime identity proof")
 
     monkeypatch.setattr(preflight, "_runtime_authority", fail_authority)
@@ -408,6 +448,7 @@ def _evaluate_runtime_callback(kwargs):
     except preflight.RuntimeCheckUnavailable:
         return SimpleNamespace(status=EVALUATION_INCOMPLETE)
     pytest.fail("the runtime identity failure should be represented as unavailable inside the evaluator")
+    return None
 
 
 def test_collection_uses_five_ratified_checks_without_migration_parity(tmp_path: Path, monkeypatch) -> None:

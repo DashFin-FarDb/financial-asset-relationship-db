@@ -353,12 +353,14 @@ requires fresh approval. The authorization is a strict JSON object with exactly 
 Use the version `fardb-cq03d-collection-authorization-v1`, initial state `unused`, and scope
 `read-only-evidence-collection`. Use an absolute owner-only regular file with mode `0600`; symlinks and duplicate or
 unknown fields are rejected. Before use, the ratifier may revoke it by changing only its state to `revoked` while it
-remains in protected operator storage. Immediately before the first connection, the invocation locks the persistent
-sibling file `.<authorization-filename>.lock`, validates the authorization again, writes a complete `consumed` JSON
-record to a protected temporary file, flushes it, and atomically replaces the authorization. The shared sibling lock
+remains in protected operator storage and no collection invocation is running. Immediately before the first
+connection, the invocation locks the persistent sibling file `.<authorization-filename>.lock`, validates the
+authorization again, writes a complete `consumed` JSON record to a protected temporary file, flushes it, and
+atomically replaces the authorization. The shared sibling lock
 allows only one concurrent consumer; it stays in protected storage and must not be deleted because all consumers
 must coordinate on the same lock inode. A crash before replacement leaves the authorization unused and no connection
-has occurred; after replacement it is consumed. This avoids exposing a partially truncated JSON document. `consumed` and `revoked`
+has occurred; after replacement it is consumed. This avoids exposing a partially truncated JSON document. `consumed`
+and `revoked`
 are final states. The invocation rejects expired, consumed, or revoked records. The attempt consumes the authorization
 even if connection, identity proof, or a later check fails. Any retry requires a new ratifier approval and
 authorization.
@@ -381,13 +383,15 @@ After approval, the operator must:
 4. Prove live target identity for the inspection and required runtime routes before reading migration history or
    catalog state. Stop on an identity mismatch or indeterminate identity.
 5. In read-only transactions, evaluate complete migration history against the six `hosted-legacy-v1` receipts and
-   the already-adopted canonical markers strictly before the proposed marker; compute the normalized catalog digest;
-   and run runtime-compatibility and runtime-authority checks through their respective restricted runtime routes.
-   The proposed marker must be the next canonical marker. Do not write or repair migration history.
-6. Stop after an identity mismatch, or if any required check fails, is unavailable, or incomplete; do not run later
-   evidence checks after a failed prerequisite. Stop if the history is not the exact expected prefix or if the actual
-   catalog digest differs from the manifest's expected digest. Preserve only the bounded result and timestamp count in
-   protected storage; discard raw provider output.
+   already-adopted canonical markers strictly before the proposed marker, the normalized catalog digest, and runtime
+   compatibility through the restricted runtime routes. These are returned as one drift result; runtime compatibility
+   may be evaluated even when history or catalog has a non-pass result. Only when the drift result is `PASS`, run
+   runtime authority through the restricted runtime routes. The proposed marker must be the next canonical marker. Do
+   not write or repair migration history.
+6. Stop immediately after identity mismatch or indeterminate identity. If drift is non-pass, do not run runtime
+   authority. Stop if any required result is unavailable or incomplete, if history is not the exact expected prefix,
+   or if the actual catalog digest differs from the manifest's expected digest. Preserve only the bounded result and
+   timestamp count in protected storage; discard raw provider output.
 
 Run Stage 1 with the separate authorization file:
 
