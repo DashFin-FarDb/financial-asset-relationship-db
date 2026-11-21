@@ -99,8 +99,9 @@ the later permit remains a separate binding.
       `sslmode=verify-full` and a protected trust root. Transaction-pooler port 6543 is rejected.
 - [x] Exactly one hosted target is separately approved for read-only preflight only; target details remain protected.
 - [x] The ratifier approved a separate, one-use read-only evidence-collection stage bound to the exact SHA, manifest,
-      target fingerprint, `combined` / `hosted-legacy-v1`, and proposed marker. This authorization does not itself
-      authorize a connection; the reviewed collection-only invocation must be available and validated first.
+      target fingerprint, `combined` / `hosted-legacy-v1`, and proposed marker. Before connecting, the reviewed and
+      validated invocation must require an unused authorization with a named operator and ratifier, approval time and
+      expiry, and explicit read-only evidence-collection scope.
 - [ ] `python -m scripts.postgresql_preflight --collection-authorization-file "$FARDB_CQ03D_COLLECTION_AUTHORIZATION_FILE"` validates the exact one-use Stage 1
       authorization and target binding, then proves live identity before collecting complete history, normalized
       catalog digest, runtime compatibility, and runtime authority. Disposable PostgreSQL tests
@@ -118,7 +119,8 @@ the later permit remains a separate binding.
       runtime authority, and migration parity, and matching expected/actual catalog digests.
 - [ ] Only the bounded JSON result and timestamp count are recorded; raw provider output is discarded.
 
-The marker action remains a separate authorization tracked by [issue #1908](https://github.com/DashFin-FarDb/financial-asset-relationship-db/issues/1908).
+The marker action remains a separate authorization tracked
+by [issue #1908](https://github.com/DashFin-FarDb/financial-asset-relationship-db/issues/1908).
 
 ### Non-negotiable boundary
 
