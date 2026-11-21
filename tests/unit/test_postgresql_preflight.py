@@ -8,6 +8,7 @@ import os
 import subprocess  # nosec B404 - fixed-command test doubles only
 import sys
 from concurrent.futures import ThreadPoolExecutor
+from contextlib import nullcontext
 from datetime import datetime, timezone
 from pathlib import Path
 from threading import Event
@@ -317,6 +318,25 @@ def test_collection_authorization_replace_failure_preserves_unused_json(tmp_path
     )
 
 
+def test_collection_authorization_rejects_changed_record_before_consuming(tmp_path: Path) -> None:
+    """A replaced authorization cannot be consumed by an invocation that loaded another record."""
+    path = _write_collection_authorization(tmp_path)
+    manifest = load_and_validate_manifest()
+    expected = preflight.load_collection_authorization(path, manifest, now=datetime(2026, 11, 21, tzinfo=timezone.utc))
+    replacement = _collection_authorization_document()
+    replacement["operator"] = "replacement-operator"
+    path.write_text(json.dumps(replacement), encoding="utf-8")
+    path.chmod(0o600)
+
+    with pytest.raises(preflight.PreflightContractError, match=preflight.PERMIT_INVALID):
+        preflight.consume_collection_authorization(
+            path, manifest, expected, now=datetime(2026, 11, 21, tzinfo=timezone.utc)
+        )
+
+    assert json.loads(path.read_text(encoding="utf-8"))["state"] == "unused"
+    assert json.loads(path.read_text(encoding="utf-8"))["operator"] == "replacement-operator"
+
+
 def test_collection_authorization_rejects_hard_link_alias(tmp_path: Path) -> None:
     """A replacement cannot leave a second filename with a reusable unused inode."""
     path = _write_collection_authorization(tmp_path)
@@ -411,16 +431,68 @@ def test_collection_rechecks_authorization_window_after_consumption(tmp_path: Pa
         "_validate_permit_window",
         expire_after_consumption,
     )
-    monkeypatch.setattr(
-        preflight,
-        "_connect_verified",
-        lambda *_args: pytest.fail("an expired authorization must stop before the first connection"),
-    )
+
+    def fail_expired_connection(_route, _target, before_connection=None):
+        """Run the newly enforced window guard before rejecting a connection attempt."""
+        before_connection()
+        pytest.fail("an expired authorization must stop before the first connection")
+
+    monkeypatch.setattr(preflight, "_connect_verified", fail_expired_connection)
 
     with pytest.raises(preflight.PreflightContractError, match=preflight.PERMIT_INVALID):
         preflight.run_collection(path)
 
     consumed.assert_called_once()
+
+
+def test_collection_rechecks_authorization_window_before_each_connection(tmp_path: Path, monkeypatch) -> None:
+    """An approval that expires between Stage 1 connections blocks the next connection."""
+    path = _write_collection_authorization(tmp_path)
+    _collection_run_target(tmp_path, monkeypatch)
+    authorization = preflight.load_collection_authorization(
+        path, load_and_validate_manifest(), now=datetime(2026, 11, 21, 10, tzinfo=timezone.utc)
+    )
+    monkeypatch.setattr(preflight, "load_collection_authorization", lambda *_args: authorization)
+    consumed = Mock(return_value=authorization)
+    monkeypatch.setattr(preflight, "consume_collection_authorization", consumed)
+    connection = MagicMock()
+    connect_count = 0
+    window_checks = 0
+
+    def connect(_route, _target, before_connection=None):
+        """Run the Stage 1 window guard before simulating a new connection."""
+        nonlocal connect_count
+        connect_count += 1
+        before_connection()
+        return connection
+
+    def validate_window(_document, *, now):
+        """Expire approval only when Stage 1 attempts its second connection."""
+        nonlocal window_checks
+        window_checks += 1
+        assert now is None
+        if window_checks == 2:
+            raise preflight.PreflightContractError(preflight.PERMIT_INVALID)
+
+    def attempt_drift(*args):
+        """Ask the runner to validate approval at the next connection seam."""
+        args[-1]()
+        pytest.fail("the expired approval must stop before drift evidence")
+
+    monkeypatch.setattr(preflight, "_validate_permit_window", validate_window)
+    monkeypatch.setattr(preflight, "_connect_verified", connect)
+    monkeypatch.setattr(preflight, "_psycopg_database_identity", lambda _connection: object())
+    monkeypatch.setattr(preflight, "_retained_target_identity", lambda *_args: None)
+    monkeypatch.setattr(preflight, "_evaluate_verified_drift", attempt_drift)
+
+    with pytest.raises(preflight.PreflightContractError, match=preflight.PERMIT_INVALID):
+        preflight.run_collection(path)
+
+    assert connect_count == 1
+    assert window_checks == 2
+    assert connection.close.call_count == 1
+    consumed.assert_called_once()
+    assert json.loads(path.read_text(encoding="utf-8"))["state"] == "unused"
 
 
 def test_collection_identity_failure_stops_all_evidence_queries(tmp_path: Path, monkeypatch) -> None:
@@ -1229,6 +1301,26 @@ def test_preflight_rejects_unavailable_live_identity(monkeypatch) -> None:
     assert preflight._runtime_authority({"graph": route}) == preflight.NOT_EVALUATED
     verifier.assert_not_called()
     engine.dispose.assert_called_once()
+
+
+def test_runtime_authority_preserves_target_identity_failure(monkeypatch) -> None:
+    """A later authority-stage identity failure remains a fail-closed identity error."""
+    from src.data import database as data_database
+
+    route = preflight.RouteIdentity("postgresql://runtime@host/postgres", "same_project")
+    monkeypatch.setattr(
+        preflight,
+        "_verified_non_auth_connections",
+        lambda *_args: nullcontext(({"graph": (Mock(), Mock())}, False)),
+    )
+    monkeypatch.setattr(
+        data_database,
+        "verify_runtime_database_authority",
+        Mock(side_effect=TargetIdentityError()),
+    )
+
+    with pytest.raises(TargetIdentityError):
+        preflight._runtime_authority({"graph": route})
 
 
 def test_preflight_preserves_union_for_identical_runtime_credentials(monkeypatch) -> None:

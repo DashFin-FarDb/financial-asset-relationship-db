@@ -379,7 +379,9 @@ After approval, the operator must:
    transaction pooling and any route or trust-root mismatch before proceeding.
 3. Immediately before connecting, atomically consume the unused collection authorization as described above, then
    recheck the exact clean repository SHA. Stop if consumption fails or the SHA changed; the consumed authorization
-   is not reusable.
+   is not reusable. Recheck the approval window immediately before every new Stage 1 database connection. If the
+   window expires during collection, stop before opening another connection; the consumed authorization remains
+   spent and a retry requires fresh approval.
 4. Prove live target identity for the inspection and required runtime routes before reading migration history or
    catalog state. Stop on an identity mismatch or indeterminate identity.
 5. In read-only transactions, evaluate complete migration history against the six `hosted-legacy-v1` receipts and

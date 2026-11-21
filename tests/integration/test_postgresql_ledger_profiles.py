@@ -5,8 +5,10 @@ from __future__ import annotations
 import json
 import os
 from collections.abc import Callable
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import replace
 from pathlib import Path
+from threading import Barrier
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 from uuid import uuid4
 
@@ -857,30 +859,36 @@ def test_collection_only_runner_passes_against_disposable_combined_postgres(tmp_
             encoding="utf-8",
         )
         binding_path.chmod(0o600)
-        authorization_path = tmp_path / "collection-authorization.json"
-        authorization_path.write_text(
-            json.dumps(
-                {
-                    "version": postgresql_preflight.COLLECTION_AUTHORIZATION_VERSION,
-                    "state": "unused",
-                    "repository_sha": "1" * 40,
-                    "manifest_sha256": manifest.sha256,
-                    "profile": "combined",
-                    "lineage": "hosted-legacy-v1",
-                    "target_fingerprint_algorithm": TARGET_FINGERPRINT_ALGORITHM,
-                    "target_fingerprint": fingerprint,
-                    "migration_timestamp": postgresql_preflight.COLLECTION_MARKER,
-                    "expected_catalog_digest": manifest.catalog_digest_for_profile("combined"),
-                    "operator": "disposable-test-operator",
-                    "ratifier": "disposable-test-ratifier",
-                    "approved_at": "2020-01-01T00:00:00Z",
-                    "expires_at": "2099-01-01T00:00:00Z",
-                    "scope": "read-only-evidence-collection",
-                }
-            ),
-            encoding="utf-8",
-        )
-        authorization_path.chmod(0o600)
+
+        def write_authorization(name: str, bound_fingerprint: str = fingerprint) -> Path:
+            """Write a fresh disposable-only Stage 1 approval for this target fixture."""
+            authorization_path = tmp_path / name
+            authorization_path.write_text(
+                json.dumps(
+                    {
+                        "version": postgresql_preflight.COLLECTION_AUTHORIZATION_VERSION,
+                        "state": "unused",
+                        "repository_sha": "1" * 40,
+                        "manifest_sha256": manifest.sha256,
+                        "profile": "combined",
+                        "lineage": "hosted-legacy-v1",
+                        "target_fingerprint_algorithm": TARGET_FINGERPRINT_ALGORITHM,
+                        "target_fingerprint": bound_fingerprint,
+                        "migration_timestamp": postgresql_preflight.COLLECTION_MARKER,
+                        "expected_catalog_digest": manifest.catalog_digest_for_profile("combined"),
+                        "operator": "disposable-test-operator",
+                        "ratifier": "disposable-test-ratifier",
+                        "approved_at": "2020-01-01T00:00:00Z",
+                        "expires_at": "2099-01-01T00:00:00Z",
+                        "scope": "read-only-evidence-collection",
+                    }
+                ),
+                encoding="utf-8",
+            )
+            authorization_path.chmod(0o600)
+            return authorization_path
+
+        authorization_path = write_authorization("collection-authorization.json")
         monkeypatch.setattr(postgresql_preflight, "_repository_sha", lambda: "1" * 40)
         monkeypatch.setattr(
             postgresql_preflight,
@@ -897,9 +905,36 @@ def test_collection_only_runner_passes_against_disposable_combined_postgres(tmp_
         monkeypatch.setenv(postgresql_preflight.RUNTIME_DATABASE_URL_ENVS["graph"], graph_runtime_url)
         monkeypatch.setenv(postgresql_preflight.RUNTIME_DATABASE_URL_ENVS["coordination"], graph_runtime_url)
 
-        report = postgresql_preflight.run_collection(authorization_path)
+        # Both runners load the unused record before either competes for its lock.
+        real_loader = postgresql_preflight.load_collection_authorization
+        loaded = Barrier(2)
 
+        def synchronize_load(path: Path, selected_manifest: LedgerManifest):
+            """Ensure competing disposable invocations both begin from the same unused record."""
+            authorization = real_loader(path, selected_manifest)
+            loaded.wait(timeout=30)
+            return authorization
+
+        monkeypatch.setattr(postgresql_preflight, "load_collection_authorization", synchronize_load)
+
+        def collect_once():
+            """Return the bounded runner result or expected single-use rejection."""
+            try:
+                return postgresql_preflight.run_collection(authorization_path)
+            except postgresql_preflight.PreflightContractError as exc:
+                return exc
+
+        with ThreadPoolExecutor(max_workers=2) as executor:
+            outcomes = [
+                future.result(timeout=120) for future in (executor.submit(collect_once), executor.submit(collect_once))
+            ]
+        reports = [outcome for outcome in outcomes if not isinstance(outcome, Exception)]
+        rejected = [outcome for outcome in outcomes if isinstance(outcome, postgresql_preflight.PreflightContractError)]
+
+        assert len(reports) == len(rejected) == 1
+        report = reports[0]
         assert report.status == PASS, json.dumps(report.as_public_dict(), sort_keys=True)
+        assert str(rejected[0]) == postgresql_preflight.PERMIT_INVALID
         assert report.identity == "PASSED"
         assert report.history == "PASSED"
         assert report.catalog == "PASSED"
@@ -910,6 +945,40 @@ def test_collection_only_runner_passes_against_disposable_combined_postgres(tmp_
         assert "migration_parity" not in report.as_public_dict()
         assert report.expected_catalog_digest == report.actual_catalog_digest
         assert json.loads(authorization_path.read_text(encoding="utf-8"))["state"] == "consumed"
+
+        # A failed first connection consumes a separate approval before trying to connect.
+        monkeypatch.setattr(postgresql_preflight, "load_collection_authorization", real_loader)
+        failed_path = write_authorization("failed-connection-authorization.json")
+        parsed_target = urlsplit(target_url)
+        monkeypatch.setenv(
+            postgresql_preflight.INSPECTION_DATABASE_URL_ENV,
+            urlunsplit((parsed_target.scheme, "127.0.0.1:1", parsed_target.path, parsed_target.query, "")),
+        )
+        with pytest.raises(postgresql_preflight.TargetIdentityError):
+            postgresql_preflight.run_collection(failed_path)
+        assert json.loads(failed_path.read_text(encoding="utf-8"))["state"] == "consumed"
+        monkeypatch.setenv(postgresql_preflight.INSPECTION_DATABASE_URL_ENV, target_url)
+
+        # A bound-but-wrong database OID fails on live identity before drift evidence starts.
+        mismatch_database_id = str(int(database_id) + 1)
+        mismatch_identity = (postgresql_preflight.TARGET_ADAPTER_ID, project_ref, mismatch_database_id)
+        mismatch_fingerprint = target_fingerprint(*mismatch_identity)
+        binding_document = json.loads(binding_path.read_text(encoding="utf-8"))
+        for binding in binding_document["targets"]:
+            binding["database_id"] = mismatch_database_id
+        binding_path.write_text(json.dumps(binding_document), encoding="utf-8")
+        binding_path.chmod(0o600)
+        mismatch_path = write_authorization("identity-mismatch-authorization.json", mismatch_fingerprint)
+
+        def fail_if_drift_runs(*_args, **_kwargs):
+            """Prove no history, catalog, compatibility, or authority stage follows mismatch."""
+            pytest.fail("identity mismatch must stop before later evidence queries")
+
+        monkeypatch.setattr(postgresql_preflight, "evaluate_profile_drift", fail_if_drift_runs)
+        monkeypatch.setattr(postgresql_preflight, "_runtime_authority", fail_if_drift_runs)
+        with pytest.raises(postgresql_preflight.TargetIdentityError):
+            postgresql_preflight.run_collection(mismatch_path)
+        assert json.loads(mismatch_path.read_text(encoding="utf-8"))["state"] == "consumed"
         assert _migration_history(target_url) == before_history
     finally:
         try:

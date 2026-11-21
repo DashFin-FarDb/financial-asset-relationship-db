@@ -587,7 +587,11 @@ def _replace_collection_control(path: Path, metadata: os.stat_result, payload: b
 
 
 def consume_collection_authorization(
-    path: Path | str, manifest: LedgerManifest, *, now: datetime | None = None
+    path: Path | str,
+    manifest: LedgerManifest,
+    expected: CollectionAuthorization | None = None,
+    *,
+    now: datetime | None = None,
 ) -> CollectionAuthorization:
     """Atomically spend one protected collection authorization before connecting."""
     control_path = _resolved_permit_path(Path(path))
@@ -602,6 +606,8 @@ def consume_collection_authorization(
             with _exclusive_control_file_lock(lock_handle):
                 document, metadata = _read_collection_control(control_path)
                 authorization = _validated_collection_authorization(document, manifest, now)
+                if expected is not None and authorization != expected:
+                    raise PreflightContractError(PERMIT_INVALID)
                 consumed = dict(document, state="consumed")
                 payload = json.dumps(consumed, sort_keys=True, separators=(",", ":")).encode("utf-8")
                 _replace_collection_control(control_path, metadata, payload)
@@ -790,12 +796,14 @@ def _discard_identity_connection(connection) -> None:
         connection.close()
 
 
-def _connect_verified(route: RouteIdentity, target: PlannedTarget):
+def _connect_verified(route: RouteIdentity, target: PlannedTarget, before_connection=None):
     """Open one read-only connection and bind its live database OID to the route."""
     connection = None
     try:
         import psycopg2  # type: ignore[import-untyped]
 
+        if before_connection is not None:
+            before_connection()
         connection = psycopg2.connect(route.database_url, connect_timeout=10)
         connection.set_session(readonly=True, autocommit=False)
         _prove_live_database_identity(connection, route, target)
@@ -851,9 +859,9 @@ def _runtime_routes(target: PlannedTarget) -> dict[str, RouteIdentity]:
     return routes
 
 
-def _prove_route(route: RouteIdentity, target: PlannedTarget) -> None:
+def _prove_route(route: RouteIdentity, target: PlannedTarget, before_connection=None) -> None:
     """Prove one route and close its read-only identity transaction."""
-    connection = _connect_verified(route, target)
+    connection = _connect_verified(route, target, before_connection)
     try:
         connection.close()
     except Exception as exc:  # noqa: BLE001 - cleanup is a required preflight invariant
@@ -935,13 +943,13 @@ def _psycopg_database_identity(connection):
 
 
 @contextmanager
-def _verified_auth_connection(routes, target=None, expected_identity=None):
+def _verified_auth_connection(routes, target=None, expected_identity=None, before_connection=None):
     """Keep auth catalog checks on the exact permit-proved session."""
     route = routes.get("auth")
     if route is None or target is None:
         yield None
         return
-    connection = _connect_verified(route, target)
+    connection = _connect_verified(route, target, before_connection)
     try:
         identity = _psycopg_database_identity(connection)
         _retained_target_identity(identity, route, target, expected_identity)
@@ -953,7 +961,7 @@ def _verified_auth_connection(routes, target=None, expected_identity=None):
 
 
 @contextmanager
-def _verified_non_auth_connections(routes, target=None, expected_identity=None):
+def _verified_non_auth_connections(routes, target=None, expected_identity=None, before_connection=None):
     """Hold identity-proved runtime sessions through their catalog verification."""
     from src.data.database import create_engine_from_url
     from src.data.postgresql_topology import read_database_identity, same_database
@@ -967,6 +975,8 @@ def _verified_non_auth_connections(routes, target=None, expected_identity=None):
                 continue
             engine = create_engine_from_url(_read_only_url(route))
             stack.callback(engine.dispose)
+            if before_connection is not None:
+                before_connection()
             connection = stack.enter_context(engine.connect())
             sessions[component] = (engine, connection)
             identities[component] = read_database_identity(connection)
@@ -1026,11 +1036,13 @@ def _runtime_compatibility(
             engine.dispose()
 
 
-def _runtime_routes_compatible(routes: Mapping[str, RouteIdentity], target=None, expected_identity=None) -> None:
+def _runtime_routes_compatible(
+    routes: Mapping[str, RouteIdentity], target=None, expected_identity=None, before_connection=None
+) -> None:
     """Require compatibility through identity-proved runtime credentials."""
     with (
-        _verified_auth_connection(routes, target, expected_identity) as auth_connection,
-        _verified_non_auth_connections(routes, target, expected_identity) as (sessions, combined),
+        _verified_auth_connection(routes, target, expected_identity, before_connection) as auth_connection,
+        _verified_non_auth_connections(routes, target, expected_identity, before_connection) as (sessions, combined),
     ):
         for component in COMPONENT_ORDER:
             route = routes.get(component)
@@ -1061,7 +1073,9 @@ def _group_non_auth_routes(
     return tuple(grouped.values())
 
 
-def _runtime_authority(routes: Mapping[str, RouteIdentity], target=None, expected_identity=None) -> str:
+def _runtime_authority(
+    routes: Mapping[str, RouteIdentity], target=None, expected_identity=None, before_connection=None
+) -> str:
     """Verify each configured runtime login has only its required capability."""
     from src.data.database import (
         SchemaCompatibilityError,
@@ -1075,11 +1089,14 @@ def _runtime_authority(routes: Mapping[str, RouteIdentity], target=None, expecte
             read_only_url = _read_only_url(auth_route)
             api_database = _import_api_database(read_only_url)
             with (
-                _verified_auth_connection(routes, target, expected_identity) as connection,
+                _verified_auth_connection(routes, target, expected_identity, before_connection) as connection,
                 api_database.bind_database_url(read_only_url),
             ):
                 api_database.verify_runtime_authority(**({"verification_connection": connection} if connection else {}))
-        with _verified_non_auth_connections(routes, target, expected_identity) as (sessions, combined):
+        with _verified_non_auth_connections(routes, target, expected_identity, before_connection) as (
+            sessions,
+            combined,
+        ):
             for _route, capabilities in _group_non_auth_routes(routes):
                 if len(capabilities) > 1 and not combined:
                     raise TargetIdentityError()
@@ -1093,6 +1110,8 @@ def _runtime_authority(routes: Mapping[str, RouteIdentity], target=None, expecte
                 )
     except RuntimeIdentityUnavailable:
         return NOT_EVALUATED
+    except TargetIdentityError:
+        raise
     except SchemaCompatibilityError:
         return CHECK_DRIFT
     except Exception:  # noqa: BLE001 - dependency/provider failures are not proof of drift
@@ -1206,14 +1225,15 @@ def _evaluate_verified_drift(
     manifest: LedgerManifest,
     permit: PreflightPermit | CollectionAuthorization,
     expected_identity=None,
+    before_connection=None,
 ) -> DriftReport:
     """Prove every route and evaluate drift while always closing inspection access."""
-    inspection_connection = _connect_verified(inspection_route, target)
+    inspection_connection = _connect_verified(inspection_route, target, before_connection)
     try:
         inspection_identity = _psycopg_database_identity(inspection_connection)
         _retained_target_identity(inspection_identity, inspection_route, target, expected_identity)
         for route in runtime_routes.values():
-            _prove_route(route, target)
+            _prove_route(route, target, before_connection)
         try:
             inspection_connection.rollback()
         except Exception as exc:  # noqa: BLE001 - release the identity transaction before the evidence snapshot
@@ -1224,7 +1244,7 @@ def _evaluate_verified_drift(
             """Preserve an identity mismatch that the generic evaluator would classify as unavailable."""
             nonlocal identity_failure
             try:
-                _runtime_routes_compatible(runtime_routes, target, inspection_identity)
+                _runtime_routes_compatible(runtime_routes, target, inspection_identity, before_connection)
             except TargetIdentityError:
                 identity_failure = True
                 raise RuntimeCheckUnavailable("runtime identity verification failed")
@@ -1358,26 +1378,33 @@ def run_collection(authorization_path: Path | str) -> CollectionReport:
     # Spend the one-use record only after all local checks and route parsing pass,
     # immediately before the first connection attempt. A race or changed record
     # fails closed without connecting.
-    consumed = consume_collection_authorization(authorization_path, manifest)
+    consumed = consume_collection_authorization(authorization_path, manifest, authorization)
     if consumed != authorization:
         raise PreflightContractError(PERMIT_INVALID)
     if _repository_sha() != authorization.repository_sha:
         raise PreflightContractError(REPOSITORY_HEAD_MISMATCH)
-    _validate_permit_window(
-        {"approved_at": authorization.approved_at, "expires_at": authorization.expires_at},
-        now=None,
-    )
 
-    identity_connection = _connect_verified(inspection_route, target)
+    def window_check() -> None:
+        """Require approval to remain current immediately before each new connection."""
+        _validate_permit_window(
+            {"approved_at": authorization.approved_at, "expires_at": authorization.expires_at},
+            now=None,
+        )
+
+    identity_connection = _connect_verified(inspection_route, target, window_check)
     try:
         planned_identity = _psycopg_database_identity(identity_connection)
         _retained_target_identity(planned_identity, inspection_route, target)
     finally:
         identity_connection.close()
     drift = _evaluate_verified_drift(
-        inspection_route, runtime_routes, target, manifest, authorization, planned_identity
+        inspection_route, runtime_routes, target, manifest, authorization, planned_identity, window_check
     )
-    authority = _runtime_authority(runtime_routes, target, planned_identity) if drift.status == PASS else NOT_EVALUATED
+    authority = (
+        _runtime_authority(runtime_routes, target, planned_identity, window_check)
+        if drift.status == PASS
+        else NOT_EVALUATED
+    )
     if _repository_sha() != authorization.repository_sha:
         raise PreflightContractError(REPOSITORY_HEAD_MISMATCH)
 

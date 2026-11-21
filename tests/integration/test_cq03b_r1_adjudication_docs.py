@@ -307,6 +307,8 @@ def test_cq03d_runbook_documents_preflight_without_authorizing_execution() -> No
     stage_one = runbook.split("### Stage 1", maxsplit=1)[1].split("### Approval pack", maxsplit=1)[0]
     assert "runtime authority" in stage_one
     assert "migration parity" not in stage_one
+    assert "Recheck the approval window immediately before every new Stage 1 database connection" in stage_one
+    assert "runtime compatibility may be evaluated even when history or catalog has a non-pass result" in stage_one
     assert "pinned Supabase CLI `2.114.0` runs read-only `migration list`" in runbook
     assert "`supabase migration repair <timestamp> --status applied --db-url <permit-bound-dsn>`" in runbook
     assert "reject an operator-supplied target override, `--linked`, `--project-ref`, `--local`" in runbook
