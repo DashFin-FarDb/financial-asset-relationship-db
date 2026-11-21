@@ -445,6 +445,25 @@ def test_collection_rechecks_authorization_window_after_consumption(tmp_path: Pa
     consumed.assert_called_once()
 
 
+def test_connect_verified_preserves_expired_collection_authorization(monkeypatch) -> None:
+    """The per-connection approval guard retains its permit error instead of becoming identity drift."""
+    import psycopg2
+
+    route = preflight.RouteIdentity("postgresql://runtime@host/postgres", PROJECT_REF)
+    target = _collection_target(route.database_url)
+    connect = Mock()
+    monkeypatch.setattr(psycopg2, "connect", connect)
+
+    def expired() -> None:
+        """Reject a connection after the one-use approval expires."""
+        raise preflight.PreflightContractError(preflight.PERMIT_INVALID)
+
+    with pytest.raises(preflight.PreflightContractError, match=preflight.PERMIT_INVALID):
+        preflight._connect_verified(route, target, expired)
+
+    connect.assert_not_called()
+
+
 def test_collection_rechecks_authorization_window_before_each_connection(tmp_path: Path, monkeypatch) -> None:
     """An approval that expires between Stage 1 connections blocks the next connection."""
     path = _write_collection_authorization(tmp_path)

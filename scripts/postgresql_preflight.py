@@ -808,6 +808,9 @@ def _connect_verified(route: RouteIdentity, target: PlannedTarget, before_connec
         connection.set_session(readonly=True, autocommit=False)
         _prove_live_database_identity(connection, route, target)
         return connection
+    except PreflightContractError:
+        _discard_identity_connection(connection)
+        raise
     except TargetIdentityError:
         _discard_identity_connection(connection)
         raise
