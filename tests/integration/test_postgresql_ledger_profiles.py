@@ -873,8 +873,8 @@ def test_collection_only_runner_passes_against_disposable_combined_postgres(tmp_
                     "expected_catalog_digest": manifest.catalog_digest_for_profile("combined"),
                     "operator": "disposable-test-operator",
                     "ratifier": "disposable-test-ratifier",
-                    "approved_at": "2026-11-21T09:00:00Z",
-                    "expires_at": "2026-11-22T11:00:00Z",
+                    "approved_at": "2020-01-01T00:00:00Z",
+                    "expires_at": "2099-01-01T00:00:00Z",
                     "scope": "read-only-evidence-collection",
                 }
             ),
