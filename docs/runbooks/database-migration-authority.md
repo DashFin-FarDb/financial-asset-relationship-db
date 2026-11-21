@@ -348,9 +348,10 @@ The collection authorization, target binding, connection inputs, and bounded res
 storage. Never put them or raw provider output in the repository, an issue, or a workflow log. The approval applies to
 this SHA, manifest, target, profile, lineage, marker, operator, and validity window only. Any mismatch or expiry
 requires fresh approval. Immediately before the first production connection, the collection-only invocation must
-atomically change the authorization from `unused` to `consumed`; it must reject expired, consumed, or revoked records.
-The attempt consumes the authorization even if identity proof or a later check fails. Any retry requires a new
-ratifier approval and authorization.
+atomically compare-and-set the authorization from `unused` to `consumed`; the ratifier may instead move an unused
+authorization to `revoked` before use. These are the only state transitions, and both destination states are final.
+The invocation must reject expired, consumed, or revoked records. The attempt consumes the authorization even if
+identity proof or a later check fails. Any retry requires a new ratifier approval and authorization.
 
 After approval, the operator must:
 
