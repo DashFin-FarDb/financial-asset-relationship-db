@@ -75,7 +75,7 @@ runtime authority. The current CQ-03D-01 command still requires a permit, so a r
 must be available and validated before any production connection; the stage has not run. Passing results must be
 reviewed before permit issuance. A permit-bound preflight does not authorize the later single migration-history
 marker, which remains a separate decision under issue #1908. See the
-[Stage 1 runbook](runbooks/database-migration-authority.md#stage-1--bounded-read-only-evidence-collection).
+[Stage 1 runbook](../runbooks/database-migration-authority.md#stage-1--bounded-read-only-evidence-collection).
 
 ## Release Evidence Now
 
