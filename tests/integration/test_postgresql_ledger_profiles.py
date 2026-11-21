@@ -2,9 +2,11 @@
 
 from __future__ import annotations
 
+import json
 import os
 from collections.abc import Callable
 from dataclasses import replace
+from pathlib import Path
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 from uuid import uuid4
 
@@ -20,6 +22,7 @@ from api.database import (
     verify_runtime_authority,
     verify_schema_compatibility,
 )
+from scripts import postgresql_preflight
 from scripts.postgresql_drift import (
     DRIFT_DETECTED,
     EVALUATION_INCOMPLETE,
@@ -36,12 +39,15 @@ from scripts.postgresql_ledger import (
     EXPECTED_MANAGED_TABLES,
     EXPECTED_PROFILES,
     LOGICAL_TARGET_ORDER,
+    TARGET_BINDING_VERSION,
+    TARGET_FINGERPRINT_ALGORITHM,
     LedgerManifest,
     MigrationEntry,
     PlannedTarget,
     apply_profile_to_database,
     assert_profile_write_allowed,
     load_and_validate_manifest,
+    target_fingerprint,
 )
 from src.data.database import (
     RUNTIME_CAPABILITY_ROLES,
@@ -767,6 +773,145 @@ def test_clean_profile_build_and_history(profile: str) -> None:
             runtime_engine.dispose()
         if operator_engine is not None:
             operator_engine.dispose()
+        try:
+            _drop_database(base_url, database_name)
+        finally:
+            for runtime_login in runtime_logins:
+                _drop_runtime_login(base_url, runtime_login)
+
+
+def test_collection_only_runner_passes_against_disposable_combined_postgres(tmp_path: Path, monkeypatch) -> None:
+    """The actual collection runner proves the hosted prefix on one disposable combined database."""
+    base_url = _ephemeral_postgres_url()
+    database_name = f"cq03d_collect_{uuid4().hex[:12]}"
+    target_url = _database_url(base_url, database_name)
+    manifest = load_and_validate_manifest()
+    target = PlannedTarget(
+        logical_targets=LOGICAL_TARGET_ORDER,
+        profile="combined",
+        lineage="fresh-v1",
+        execution_class="loopback",
+        fingerprint="0" * 64,
+        database_url=target_url,
+    )
+    _bootstrap_roles_and_create_database(base_url, database_name)
+    runtime_logins: list[str] = []
+    try:
+        with ContainerCliRunner(target_url) as runner:
+            apply_profile_to_database(target, manifest, runner=runner)
+        login_prefix = f"fdbt_{invocation_id()}_cq03d"
+        auth_login = f"{login_prefix}_auth_{uuid4().hex[:6]}"[:63]
+        graph_login = f"{login_prefix}_graph_{uuid4().hex[:6]}"[:63]
+        auth_password = f"cq03d-{uuid4().hex}"
+        graph_password = f"cq03d-{uuid4().hex}"
+        runtime_logins.extend((auth_login, graph_login))
+        _create_runtime_login(base_url, auth_login, (AUTH_RUNTIME_ROLE,), auth_password)
+        _create_runtime_login(
+            base_url,
+            graph_login,
+            (RUNTIME_CAPABILITY_ROLES["graph"], RUNTIME_CAPABILITY_ROLES["coordination"]),
+            graph_password,
+        )
+
+        receipts = tuple(
+            (str(receipt["timestamp"]), str(receipt["name"]))
+            for receipt in manifest.data["lineages"]["hosted-legacy-v1"]["receipts"]
+        )
+        _replace_migration_history(target_url, receipts)
+        before_history = _migration_history(target_url)
+        identity_connection = connect_owned_attested(target_url)
+        try:
+            with identity_connection.cursor() as cursor:
+                cursor.execute(
+                    "SELECT oid::text FROM pg_catalog.pg_database WHERE datname = pg_catalog.current_database()"
+                )
+                database_id = str(cursor.fetchone()[0])
+        finally:
+            identity_connection.close()
+
+        project_ref = "abcdefghijklmnopqrst"
+        canonical_identity = (postgresql_preflight.TARGET_ADAPTER_ID, project_ref, database_id)
+        fingerprint = target_fingerprint(*canonical_identity)
+        binding_path = tmp_path / "target-bindings.json"
+        binding_path.write_text(
+            json.dumps(
+                {
+                    "binding_version": TARGET_BINDING_VERSION,
+                    "manifest_sha256": manifest.sha256,
+                    "target_fingerprint_algorithm": TARGET_FINGERPRINT_ALGORITHM,
+                    "targets": [
+                        {
+                            "logical_target": component,
+                            "profile": "combined",
+                            "lineage": "hosted-legacy-v1",
+                            "execution_class": "hosted",
+                            "identity_assurance": "operator-attested-immutable-v1",
+                            "adapter_id": canonical_identity[0],
+                            "authority_namespace_id": canonical_identity[1],
+                            "database_id": canonical_identity[2],
+                        }
+                        for component in LOGICAL_TARGET_ORDER
+                    ],
+                }
+            ),
+            encoding="utf-8",
+        )
+        binding_path.chmod(0o600)
+        authorization_path = tmp_path / "collection-authorization.json"
+        authorization_path.write_text(
+            json.dumps(
+                {
+                    "version": postgresql_preflight.COLLECTION_AUTHORIZATION_VERSION,
+                    "state": "unused",
+                    "repository_sha": "1" * 40,
+                    "manifest_sha256": manifest.sha256,
+                    "profile": "combined",
+                    "lineage": "hosted-legacy-v1",
+                    "target_fingerprint_algorithm": TARGET_FINGERPRINT_ALGORITHM,
+                    "target_fingerprint": fingerprint,
+                    "migration_timestamp": postgresql_preflight.COLLECTION_MARKER,
+                    "expected_catalog_digest": manifest.catalog_digest_for_profile("combined"),
+                    "operator": "disposable-test-operator",
+                    "ratifier": "disposable-test-ratifier",
+                    "approved_at": "2020-01-01T00:00:00Z",
+                    "expires_at": "2099-01-01T00:00:00Z",
+                    "scope": "read-only-evidence-collection",
+                }
+            ),
+            encoding="utf-8",
+        )
+        authorization_path.chmod(0o600)
+        monkeypatch.setattr(postgresql_preflight, "_repository_sha", lambda: "1" * 40)
+        monkeypatch.setattr(
+            postgresql_preflight,
+            "_supabase_route_identity",
+            lambda value: postgresql_preflight.RouteIdentity(value, project_ref),
+        )
+        monkeypatch.setenv(postgresql_preflight.TARGET_BINDINGS_ENV, str(binding_path))
+        monkeypatch.setenv(postgresql_preflight.INSPECTION_DATABASE_URL_ENV, target_url)
+        monkeypatch.setenv(
+            postgresql_preflight.RUNTIME_DATABASE_URL_ENVS["auth"],
+            _runtime_url(target_url, auth_login, auth_password),
+        )
+        graph_runtime_url = _runtime_url(target_url, graph_login, graph_password)
+        monkeypatch.setenv(postgresql_preflight.RUNTIME_DATABASE_URL_ENVS["graph"], graph_runtime_url)
+        monkeypatch.setenv(postgresql_preflight.RUNTIME_DATABASE_URL_ENVS["coordination"], graph_runtime_url)
+
+        report = postgresql_preflight.run_collection(authorization_path)
+
+        assert report.status == PASS, report.as_public_dict()
+        assert report.identity == "PASSED"
+        assert report.history == "PASSED"
+        assert report.catalog == "PASSED"
+        assert report.runtime_compatibility == "PASSED"
+        assert report.runtime_authority == "PASSED"
+        assert report.required_check_count == report.evaluated_check_count == 5
+        assert report.history_timestamp_count == 6
+        assert "migration_parity" not in report.as_public_dict()
+        assert report.expected_catalog_digest == report.actual_catalog_digest
+        assert json.loads(authorization_path.read_text(encoding="utf-8"))["state"] == "consumed"
+        assert _migration_history(target_url) == before_history
+    finally:
         try:
             _drop_database(base_url, database_name)
         finally:
