@@ -523,6 +523,69 @@ def _validated_collection_authorization(
     )
 
 
+def _read_collection_control(path: Path) -> tuple[Mapping[str, object], os.stat_result]:
+    """Read one protected, unaliased control file while holding its sidecar lock."""
+    flags = os.O_RDONLY | getattr(os, "O_CLOEXEC", 0) | getattr(os, "O_NOFOLLOW", 0)
+    descriptor = os.open(path, flags)
+    try:
+        metadata = os.fstat(descriptor)
+        _validate_collection_file(metadata)
+        if metadata.st_nlink != 1:
+            raise PreflightContractError(PERMIT_INVALID)
+        with os.fdopen(descriptor, "rb") as handle:
+            descriptor = -1
+            return _decode_permit_document(handle), metadata
+    finally:
+        if descriptor >= 0:
+            os.close(descriptor)
+
+
+def _validate_collection_file(metadata: os.stat_result) -> None:
+    """Require a regular file with owner-only permissions on POSIX."""
+    if not stat.S_ISREG(metadata.st_mode):
+        raise PreflightContractError(PERMIT_INVALID)
+    if os.name != "nt" and (
+        stat.S_IMODE(metadata.st_mode) != 0o600 or metadata.st_uid != getattr(os, "geteuid", lambda: 0)()
+    ):
+        raise PreflightContractError(PERMIT_INVALID)
+
+
+def _sync_collection_directory(directory: Path) -> None:
+    """Persist the authorization rename on POSIX."""
+    if os.name == "nt":
+        return
+    descriptor = os.open(directory, os.O_RDONLY | getattr(os, "O_DIRECTORY", 0))
+    try:
+        os.fsync(descriptor)
+    finally:
+        os.close(descriptor)
+
+
+def _replace_collection_control(path: Path, metadata: os.stat_result, payload: bytes) -> None:
+    """Durably replace the control file with its consumed record under the lock."""
+    descriptor, temporary_name = tempfile.mkstemp(prefix=f".{path.name}.", dir=path.parent)
+    temporary_path = Path(temporary_name)
+    try:
+        if os.name != "nt":
+            os.chmod(temporary_path, 0o600)
+        with os.fdopen(descriptor, "wb") as handle:
+            descriptor = -1
+            if handle.write(payload) != len(payload):
+                raise OSError("authorization state update was incomplete")
+            handle.flush()
+            os.fsync(handle.fileno())
+        current = os.stat(path, follow_symlinks=False)
+        if (current.st_dev, current.st_ino) != (metadata.st_dev, metadata.st_ino):
+            raise PreflightContractError(PERMIT_INVALID)
+        os.replace(temporary_path, path)
+        _sync_collection_directory(path.parent)
+    finally:
+        if descriptor >= 0:
+            os.close(descriptor)
+        with suppress(OSError):
+            temporary_path.unlink()
+
+
 def consume_collection_authorization(
     path: Path | str, manifest: LedgerManifest, *, now: datetime | None = None
 ) -> CollectionAuthorization:
@@ -530,79 +593,25 @@ def consume_collection_authorization(
     control_path = _resolved_permit_path(Path(path))
     lock_path = control_path.with_name(f".{control_path.name}.lock")
     lock_descriptor = -1
-    temporary_path: Path | None = None
     try:
         flags = os.O_RDWR | os.O_CREAT | getattr(os, "O_CLOEXEC", 0) | getattr(os, "O_NOFOLLOW", 0)
         lock_descriptor = os.open(lock_path, flags, 0o600)
-        lock_metadata = os.fstat(lock_descriptor)
-        if not stat.S_ISREG(lock_metadata.st_mode):
-            raise PreflightContractError(PERMIT_INVALID)
-        if os.name != "nt" and (
-            stat.S_IMODE(lock_metadata.st_mode) != 0o600 or lock_metadata.st_uid != getattr(os, "geteuid", lambda: 0)()
-        ):
-            raise PreflightContractError(PERMIT_INVALID)
+        _validate_collection_file(os.fstat(lock_descriptor))
         with os.fdopen(lock_descriptor, "r+b") as lock_handle:
             lock_descriptor = -1
             with _exclusive_control_file_lock(lock_handle):
-                descriptor = os.open(
-                    control_path, os.O_RDONLY | getattr(os, "O_CLOEXEC", 0) | getattr(os, "O_NOFOLLOW", 0)
-                )
-                try:
-                    metadata = os.fstat(descriptor)
-                    if not stat.S_ISREG(metadata.st_mode) or metadata.st_nlink != 1:
-                        raise PreflightContractError(PERMIT_INVALID)
-                    if os.name != "nt" and (
-                        stat.S_IMODE(metadata.st_mode) != 0o600
-                        or metadata.st_uid != getattr(os, "geteuid", lambda: 0)()
-                    ):
-                        raise PreflightContractError(PERMIT_INVALID)
-                    with os.fdopen(descriptor, "rb") as handle:
-                        descriptor = -1
-                        document = _decode_permit_document(handle)
-                finally:
-                    if descriptor >= 0:
-                        os.close(descriptor)
+                document, metadata = _read_collection_control(control_path)
                 authorization = _validated_collection_authorization(document, manifest, now)
-                consumed = dict(document)
-                consumed["state"] = "consumed"
+                consumed = dict(document, state="consumed")
                 payload = json.dumps(consumed, sort_keys=True, separators=(",", ":")).encode("utf-8")
-                temp_fd, temp_name = tempfile.mkstemp(prefix=f".{control_path.name}.", dir=control_path.parent)
-                temporary_path = Path(temp_name)
-                try:
-                    if os.name != "nt":
-                        os.chmod(temporary_path, 0o600)
-                    with os.fdopen(temp_fd, "wb") as temp_handle:
-                        temp_fd = -1
-                        if temp_handle.write(payload) != len(payload):
-                            raise OSError("authorization state update was incomplete")
-                        temp_handle.flush()
-                        os.fsync(temp_handle.fileno())
-                finally:
-                    if temp_fd >= 0:
-                        os.close(temp_fd)
-                current = os.stat(control_path, follow_symlinks=False)
-                if (current.st_dev, current.st_ino) != (metadata.st_dev, metadata.st_ino):
-                    raise PreflightContractError(PERMIT_INVALID)
-                os.replace(temporary_path, control_path)
-                temporary_path = None
-                if os.name != "nt":
-                    directory_fd = os.open(control_path.parent, os.O_RDONLY | getattr(os, "O_DIRECTORY", 0))
-                    try:
-                        os.fsync(directory_fd)
-                    finally:
-                        os.close(directory_fd)
+                _replace_collection_control(control_path, metadata, payload)
                 return authorization
-    except PreflightContractError:
-        raise
     except (OSError, ValueError) as exc:
         raise PreflightContractError(PERMIT_INVALID) from exc
     finally:
         if lock_descriptor >= 0:
             with suppress(OSError):
                 os.close(lock_descriptor)
-        if temporary_path is not None:
-            with suppress(OSError):
-                temporary_path.unlink()
 
 
 def load_collection_authorization(
@@ -1424,38 +1433,25 @@ def _build_parser() -> argparse.ArgumentParser:
     return parser
 
 
+def _run_selected_stage(arguments: argparse.Namespace) -> CollectionReport | PreflightReport:
+    """Select one stage, preferring an explicit option over environment defaults."""
+    permit = arguments.permit_file
+    collection = arguments.collection_authorization_file
+    if permit is None and collection is None:
+        permit = os.environ.get(PERMIT_FILE_ENV)
+        collection = os.environ.get(COLLECTION_AUTHORIZATION_FILE_ENV)
+    if collection is not None and permit is None:
+        return run_collection(Path(collection))
+    if permit is not None and collection is None:
+        return run_preflight(Path(permit))
+    raise PreflightContractError(PERMIT_INVALID)
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     """Emit only a bounded public report or a fixed failure code."""
     arguments = _build_parser().parse_args(argv)
-    if arguments.permit_file is not None and arguments.collection_authorization_file is not None:
-        print(PERMIT_INVALID, file=sys.stderr)
-        return 1
-    permit_value = arguments.permit_file or os.environ.get(PERMIT_FILE_ENV)
-    collection_value = arguments.collection_authorization_file or os.environ.get(COLLECTION_AUTHORIZATION_FILE_ENV)
-    if arguments.permit_file is not None:
-        collection_value = None
-    elif arguments.collection_authorization_file is not None:
-        permit_value = None
-    if permit_value is not None and collection_value is not None:
-        print(PERMIT_INVALID, file=sys.stderr)
-        return 1
-    if collection_value is not None:
-        collection_path = Path(collection_value)
-        permit_path = None
-    elif permit_value is not None:
-        collection_path = None
-        permit_path = Path(permit_value)
-    else:
-        print(PERMIT_INVALID, file=sys.stderr)
-        return 1
-    report: CollectionReport | PreflightReport
     try:
-        if collection_path is not None:
-            report = run_collection(collection_path)
-        elif permit_path is not None:
-            report = run_preflight(permit_path)
-        else:
-            raise PreflightContractError(PERMIT_INVALID)
+        report = _run_selected_stage(arguments)
     except TargetIdentityError:
         print(TARGET_IDENTITY_INDETERMINATE, file=sys.stderr)
         return 1

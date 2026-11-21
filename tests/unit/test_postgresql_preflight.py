@@ -508,6 +508,14 @@ def _evaluate_runtime_callback(kwargs):
 
 def test_collection_uses_five_ratified_checks_without_migration_parity(tmp_path: Path, monkeypatch) -> None:
     """Collection reports only identity, history, catalog, compatibility, and authority."""
+
+    class FrozenDateTime(datetime):
+        @classmethod
+        def now(cls, tz=None):
+            frozen = cls(2026, 11, 21, 12, 30, tzinfo=timezone.utc)
+            return frozen if tz is not None else frozen.replace(tzinfo=None)
+
+    monkeypatch.setattr(preflight, "datetime", FrozenDateTime)
     authorization = preflight.CollectionAuthorization(
         "1" * 40,
         load_and_validate_manifest().sha256,
