@@ -161,7 +161,7 @@ def test_permit_binds_one_current_marker_and_exact_repository_state(tmp_path: Pa
     permit = preflight.load_preflight_permit(
         _write_permit(tmp_path, document),
         manifest,
-        now=datetime(2026, 11, 21, 10, tzinfo=timezone.utc),
+        now=datetime(2026, 8, 18, 10, tzinfo=timezone.utc),
     )
 
     assert permit.repository_sha == "1" * 40
