@@ -1382,7 +1382,8 @@ def test_preflight_rejects_identical_credentials_with_conflicting_live_identitie
     verifier = Mock()
     monkeypatch.setattr(data_database, "verify_runtime_database_authority", verifier)
     route = preflight.RouteIdentity("postgresql://runtime@db.shared.supabase.co/postgres", "shared")
-    assert preflight._runtime_authority({"graph": route, "coordination": route}) == preflight.NOT_EVALUATED
+    with pytest.raises(TargetIdentityError, match=preflight.TARGET_IDENTITY_INDETERMINATE):
+        preflight._runtime_authority({"graph": route, "coordination": route})
     verifier.assert_not_called()
 
 
@@ -1425,7 +1426,7 @@ def test_auth_retained_session_rejects_reroute_before_verification(tmp_path, mon
     route = preflight._supabase_route_identity(_database_url(tmp_path))
     target = _target(route.database_url)
     connection = Mock()
-    monkeypatch.setattr(preflight, "_connect_verified", lambda _route, _target: connection)
+    monkeypatch.setattr(preflight, "_connect_verified", lambda _route, _target, _before_connection=None: connection)
     monkeypatch.setattr(
         preflight,
         "_psycopg_database_identity",
