@@ -329,9 +329,57 @@ CQ-03D is not an extension of the normal PostgreSQL migration command. It is a s
 workflow for one selected hosted target after read-only evidence proves that its schema already equals the reviewed
 repository ledger. This section prepares that decision; it does not authorize a connected target operation.
 
+### Stage 1 — bounded read-only evidence collection
+
+The evidence needed to decide whether to issue a preflight permit must be collected before that permit exists. This is
+a separate, one-use authorization from the permit and authorizes only the read-only evidence collection described
+here. It does not authorize a migration-history action, DDL, DML, or any provider configuration change.
+
+Before any production connection, the named ratifier must approve and the operator must preserve a protected,
+single-use collection authorization binding all of the following:
+
+- exact reviewed repository SHA and `fardb-ledger-profiles-v1` manifest SHA-256;
+- selected `combined` build profile and `hosted-legacy-v1` lineage;
+- the approved target's opaque fingerprint and the proposed next canonical marker;
+- the named operator, approval time, expiry, and unused state; and
+- an explicit read-only evidence-collection scope with no history-marker action.
+
+The collection authorization, target binding, connection inputs, and bounded result remain in protected operator
+storage. Never put them or raw provider output in the repository, an issue, or a workflow log. The approval applies to
+this SHA, manifest, target, profile, lineage, marker, operator, and validity window only. Any mismatch or expiry
+requires fresh approval.
+
+After approval, the operator must:
+
+1. Reconfirm the exact clean SHA, validate the manifest offline, confirm its digest against the authorization, and
+   verify the protected target binding, profile, lineage, and proposed marker. Stop on any mismatch.
+2. Use only the documented direct or port-5432 Supabase session-pooler routes with `sslmode=verify-full`, an explicit
+   protected trust root, and the selected target's restricted runtime credentials. Reject transaction pooling and
+   any route or trust-root mismatch.
+3. Prove live target identity for the inspection and required runtime routes before reading migration history or
+   catalog state. Stop on an identity mismatch or indeterminate identity.
+4. In read-only transactions, evaluate complete migration history against the six `hosted-legacy-v1` receipts and
+   the already-adopted canonical markers strictly before the proposed marker; compute the normalized catalog digest;
+   and run runtime-compatibility and runtime-authority checks through their respective restricted runtime routes.
+   The proposed marker must be the next canonical marker. Do not write or repair migration history.
+5. Stop if any required check fails, is unavailable, or is incomplete, if the history is not the exact expected
+   prefix, or if the actual catalog digest differs from the manifest's expected digest. Preserve only the bounded
+   result and timestamp count in protected storage; discard raw provider output.
+
+The CQ-03D-01 `python -m scripts.postgresql_preflight --permit-file ...` command remains permit-bound and cannot run
+this first stage. Do not create a provisional permit or substitute placeholder evidence to bypass that guard. A
+reviewed collection-only invocation implementing the steps above is a prerequisite to connecting under this
+authorization. Until that invocation is available and validated, keep the collection authorization unused and the
+hosted connection on hold.
+
+After a passing collection result, the ratifier reviews the result and the exact-head CQ-03B/C repository evidence.
+Only then may the ratifier separately issue the exact-SHA, single-use preflight permit below, with references to the
+protected passing results. The later migration-history marker remains a separate decision under issue #1908.
+
 ### Approval pack
 
-The ratifier must receive a protected, single-use permit that binds exactly one proposed history marker. Keep the
+After Stage 1 passes and is reviewed, the ratifier may issue a protected, single-use permit that binds exactly one
+proposed history marker. Keep the
 permit and its raw target evidence outside the repository and do not place its values in a pull request, issue,
 workflow log, or this runbook.
 
@@ -350,7 +398,7 @@ Do not issue a permit from an incomplete, stale, or substituted artifact. A chan
 target fingerprint, timestamp, expected or actual catalog digest, runtime authority, approval expiry, or evidence
 status invalidates it before any command is considered.
 
-### Read-only preflight sequence
+### Permit-bound read-only preflight sequence
 
 1. Confirm the checked-out SHA equals the permit SHA and the worktree contains no unreviewed migration, manifest, or
    normalizer change. Run the repository-only integrity check:

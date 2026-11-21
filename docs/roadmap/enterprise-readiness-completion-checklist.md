@@ -71,8 +71,14 @@ approved in principle; target and permit absent; no hosted preflight executed.
 
 **Target decision — 2026-11-20:** The named human ratifier selected the existing production FarDb Supabase project as
 the single target for CQ-03D-02 read-only preflight. No separate project or branch is designated as FarDb staging.
-This resolves target selection only. The protected target binding and exact-SHA single-use permit are still required
-before any connection; no hosted preflight has run, and no DDL, DML, or migration-history action is authorized.
+This resolves target selection only; it does not authorize a connection.
+
+**Staged evidence decision — 2026-11-21:** The named human ratifier approved a separate, one-use, bounded read-only
+evidence-collection stage before permit issuance. It is bound to the exact reviewed SHA, manifest digest, protected
+target fingerprint, `combined` / `hosted-legacy-v1`, and proposed marker `20260817153547`. The connection remains on
+hold until a reviewed collection-only invocation is available and validated. No production evidence collection or
+permit-bound hosted preflight has run; no DDL, DML, or migration-history action is authorized. See the
+[database migration authority runbook](../runbooks/database-migration-authority.md#stage-1--bounded-read-only-evidence-collection).
 
 **Routing reconciliation — 2026-11-19:** The adapter and runbook accept a documented Supabase direct route or IPv4
 port-5432 session-pooler route with `sslmode=verify-full` and a protected trust root (the current project-specific
@@ -80,7 +86,8 @@ Supabase CA obtained from the Supabase Connect dialog). IPv6 is not required whe
 the IPv4 session pooler, whereas a direct route requires network connectivity compatible with the endpoint's resolved
 address (IPv6 or the IPv4 add-on); a generic Supabase support response is not a prerequisite when a supported route is
 available. Port 6543 transaction-pooler routing remains prohibited. This corrects stale wording in the earlier roadmap
-snapshot. The approved route still must be bound to the protected target identity and permit.
+snapshot. The approved route must be bound to the protected target identity and first-stage collection authorization;
+the later permit remains a separate binding.
 
 **Sources:** [Roadmap — CQ-03 programme](enterprise-readiness-roadmap.md#current-critical-path-programme--cq-03-postgresql-ledger-adoption),
 [Database migration authority runbook — CQ-03D](../runbooks/database-migration-authority.md#cq-03d-approval-pack-and-read-only-preflight),
@@ -91,6 +98,13 @@ snapshot. The approved route still must be bound to the protected target identit
 - [x] The selected target has an adapter-supported, documented route: direct or IPv4 port-5432 session pooling with
       `sslmode=verify-full` and a protected trust root. Transaction-pooler port 6543 is rejected.
 - [x] Exactly one hosted target is separately approved for read-only preflight only; target details remain protected.
+- [x] The ratifier approved a separate, one-use read-only evidence-collection stage bound to the exact SHA, manifest,
+      target fingerprint, `combined` / `hosted-legacy-v1`, and proposed marker. This authorization does not itself
+      authorize a connection; the reviewed collection-only invocation must be available and validated first.
+- [ ] The protected collection-only invocation verifies live identity before collecting complete history, normalized
+      catalog digest, runtime compatibility, and runtime authority; it stops on any mismatch, failure, or incomplete
+      result and preserves only the bounded report and timestamp count.
+- [ ] The ratifier reviews passing collection results and exact-head CQ-03B/C references before issuing the permit.
 - [ ] A protected single-use permit (`fardb-cq03d-preflight-permit-v1`, state `approved`, `history_only: true`,
       `ddl_authorized: false`) is issued, binding the exact reviewed SHA, `fardb-ledger-profiles-v1` manifest SHA-256,
       build and lineage profile IDs, opaque target fingerprint, one canonical migration timestamp, the required evidence
@@ -100,6 +114,8 @@ snapshot. The approved route still must be bound to the protected target identit
       required/evaluated counts, separate `PASSED` results for identity, history, catalog, runtime compatibility,
       runtime authority, and migration parity, and matching expected/actual catalog digests.
 - [ ] Only the bounded JSON result and timestamp count are recorded; raw provider output is discarded.
+
+The marker action remains a separate authorization tracked by [issue #1908](https://github.com/DashFin-FarDb/financial-asset-relationship-db/issues/1908).
 
 ### Non-negotiable boundary
 
