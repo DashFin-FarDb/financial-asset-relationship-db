@@ -10,8 +10,9 @@
 - **CQ-03:** CQ-03B-R1, CQ-03B-R2, CQ-03C, CQ-03D-00, and CQ-03D-01 are merged.
 - **GNC:** Phases 1 and 2 are complete; Phase 3 remains unauthorised.
 - **Hosted preflight:** the named human ratifier selected the existing production FarDb Supabase project for CQ-03D-02
-  read-only preflight only on 2026-11-20. No separate project or branch is designated as FarDb staging. The protected
-  target binding and single-use permit are still pending, and no CQ-03D-02 hosted preflight has been executed.
+  on 2026-11-20 and approved a separate bounded read-only evidence-collection stage on 2026-11-21. No separate project
+  or branch is designated as FarDb staging. The reviewed collection-only invocation is not available, so no production
+  connection is authorized; collection results, the single-use permit, and hosted preflight remain pending.
 
 **Cutoff scope:** The 2026-09-01 broad repository review and its source list describe `main` at
 `0984f6225cc0f42ff02a9f7eda7b314566d759d0`. Later dated entries are PR-specific post-cutoff addenda; they do
@@ -134,6 +135,32 @@ Primary authorities:
 - [The Big Read](the-big-read.md)
 
 ## Active commitments
+
+### FPC-2026-11-21-01 — Ratify staged CQ-03D-02 evidence collection
+
+- **Type:** Read-only production evidence-collection procedure and status reconciliation
+- **Status:** The bounded collection procedure is ratified; no production connection or collection run is authorized
+  until its collection-only invocation is reviewed and validated. Permit and hosted preflight remain pending.
+- **Decision or objective:** The named human ratifier approved one use of a read-only evidence-collection stage before
+  permit issuance. The approval must be bound at execution to the exact reviewed SHA, manifest digest, protected target
+  fingerprint, `combined` / `hosted-legacy-v1`, and proposed marker `20260817153547`.
+- **Rationale and constraints:** The existing CQ-03D-01 command requires the permit whose production evidence it would
+  need to produce. The separate collection stage resolves that sequencing gap while retaining live identity checks,
+  complete history, normalized catalog, runtime compatibility, and runtime authority as prerequisites for permit
+  review. It is one-use and read-only; failures or incomplete checks stop collection. Retain only the bounded result
+  and timestamp count in protected storage. Do not write migration history or perform DDL, DML, grants, role changes,
+  credential changes, provider configuration changes, or deployment.
+- **Dependencies or blockers:** A reviewed and validated collection-only invocation is required before connecting.
+  The existing permit-bound invocation cannot be used for this stage, and no provisional permit or placeholder evidence
+  may bypass that guard. After a passing collection, the ratifier must review the results and exact-head CQ-03B/C
+  references before separately issuing the exact-SHA permit. Issue #1908 remains the separate history-marker decision.
+- **Next action and completion test:** Provide and validate the collection-only invocation against the approved
+  procedure; then collect and review all required evidence without exposing raw provider output. Issue the permit only
+  after every required result passes and actual/expected catalog digests match. Keep CQ-03D-02 on hold until then.
+- **Evidence:** [Database migration authority runbook](../runbooks/database-migration-authority.md#stage-1--bounded-read-only-evidence-collection),
+  [completion checklist item 1](../roadmap/enterprise-readiness-completion-checklist.md#1-cq-03d-02-hosted-read-only-preflight),
+  and [issue #1907](https://github.com/DashFin-FarDb/financial-asset-relationship-db/issues/1907).
+- **Last updated:** 2026-11-21
 
 ### FPC-2026-11-20-01 — Record the CQ-03D-02 production target decision
 

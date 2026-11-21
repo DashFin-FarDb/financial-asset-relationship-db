@@ -224,7 +224,8 @@ def test_continuity_records_merged_cq03c_without_claiming_hosted_adoption() -> N
     assert "CQ-03C is implemented in draft PR #1643" not in continuity
     assert "CQ-03C was human-ratified" in continuity
     assert "selected the existing production FarDb Supabase project for CQ-03D-02" in header
-    assert "target binding and single-use permit are still pending" in header
+    assert "The reviewed collection-only invocation is not available" in header
+    assert "collection results, the single-use permit, and hosted preflight remain pending" in header
     assert "no CQ-03D-02 hosted preflight has been executed" in header
 
 
@@ -254,23 +255,27 @@ def test_cq03d_progress_preserves_separate_authority_and_history_only_boundary()
     assert "Complete the selected target's protected binding and exact-SHA single-use permit" in continuity
     assert "does not authorize the later history action" in continuity
     assert "One production target is approved for read-only preflight only" in continuity
-    assert "protected target binding and single-use permit are still pending" in continuity
+    assert "protected target binding and single-use permit are pending" in continuity
     assert (
-        "D-01 merged; one production target approved for read-only preflight; permit and preflight pending" in roadmap
+        "D-01 merged; one production target approved; staged evidence collection ratified but not run; permit and preflight pending"
+        in roadmap
     )
-    assert "D-02: prepare the protected target binding and exact-SHA single-use permit" in roadmap
+    assert (
+        "D-02: validate the protected collection-only invocation, collect and review passing read-only evidence"
+        in roadmap
+    )
     current_header = continuity.split("\nThis ledger preserves", maxsplit=1)[0]
     assert "no CQ-03D-02 target or permit is approved" not in current_header
     assert "separately approved target" not in roadmap
     assert "separately ratified, target-bound hosted preflight" not in continuity
     assert "target/permit approval and hosted preflight remain unexecuted" not in continuity
-    assert "no DML beyond one separately authorized permit-bound history marker" in roadmap
+    assert "Evidence collection is read-only and one-use; no history marker until separately authorized" in roadmap
     assert "**Publication date:** 2026-06-25" in roadmap
-    assert "**Last updated:** 2026-11-20" in roadmap
+    assert "**Last updated:** 2026-11-21" in roadmap
 
     delivery_order = roadmap.split("## Proposed Delivery Order", maxsplit=1)[1]
     assert delivery_order.lstrip().startswith(
-        "1. Complete the selected target's protected connection binding and exact-SHA single-use permit, then run the CQ-03D-02"
+        "1. Validate the protected collection-only invocation; collect and review passing read-only evidence; issue the"
     )
     assert "Source-of-truth reconciliation after PR #1287-#1301" not in delivery_order
     assert "truncation signal PR completed" not in delivery_order
