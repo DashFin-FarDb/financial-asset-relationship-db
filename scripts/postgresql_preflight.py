@@ -1244,12 +1244,18 @@ def _evaluate_verified_drift(
         except Exception as exc:  # noqa: BLE001 - release the identity transaction before the evidence snapshot
             raise PreflightContractError(EVALUATION_INCOMPLETE) from exc
         identity_failure = False
+        authorization_failure: PreflightContractError | None = None
 
         def runtime_check() -> None:
-            """Preserve an identity mismatch that the generic evaluator would classify as unavailable."""
-            nonlocal identity_failure
+            """Preserve identity and authorization failures the evaluator would downgrade."""
+            nonlocal identity_failure, authorization_failure
             try:
                 _runtime_routes_compatible(runtime_routes, target, inspection_identity, before_connection)
+            except PreflightContractError as exc:
+                if exc.reason_code != PERMIT_INVALID:
+                    raise
+                authorization_failure = exc
+                raise RuntimeCheckUnavailable("runtime authorization expired") from exc
             except TargetIdentityError:
                 identity_failure = True
                 raise RuntimeCheckUnavailable("runtime identity verification failed")
@@ -1265,6 +1271,8 @@ def _evaluate_verified_drift(
         )
         if identity_failure:
             raise TargetIdentityError()
+        if authorization_failure is not None:
+            raise authorization_failure
         return drift
     finally:
         try:

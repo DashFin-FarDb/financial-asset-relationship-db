@@ -584,6 +584,57 @@ def test_collection_runtime_identity_mismatch_stops_authority_check(monkeypatch)
     connection.close.assert_called()
 
 
+def test_collection_runtime_expiry_preserves_authorization_error(monkeypatch) -> None:
+    """A runtime compatibility expiry remains an authorization failure."""
+    target = _collection_target("postgresql://operator:secret@localhost:5432/postgres")
+    route = preflight.RouteIdentity(target.database_url, PROJECT_REF)
+    connection = MagicMock()
+    monkeypatch.setattr(preflight, "_connect_verified", lambda *_args: connection)
+    monkeypatch.setattr(preflight, "_psycopg_database_identity", lambda _connection: object())
+    monkeypatch.setattr(preflight, "_retained_target_identity", lambda *_args: None)
+    monkeypatch.setattr(preflight, "_prove_route", lambda *_args: None)
+
+    def expire_authorization(*_args):
+        """Reject runtime compatibility after the approved window expires."""
+        raise preflight.PreflightContractError(preflight.PERMIT_INVALID)
+
+    def evaluate_runtime(*_args, **kwargs):
+        """Model the drift evaluator treating callback failures as unavailable."""
+        return _evaluate_runtime_callback(kwargs)
+
+    monkeypatch.setattr(
+        preflight,
+        "_runtime_routes_compatible",
+        expire_authorization,
+    )
+    monkeypatch.setattr(preflight, "evaluate_profile_drift", evaluate_runtime)
+
+    manifest = load_and_validate_manifest()
+    authorization = preflight.CollectionAuthorization(
+        "1" * 40,
+        manifest.sha256,
+        "combined",
+        "hosted-legacy-v1",
+        "a" * 64,
+        preflight.COLLECTION_MARKER,
+        manifest.catalog_digest_for_profile("combined"),
+        "operator",
+        "ratifier",
+        "2026-11-21T12:00:00Z",
+        "2026-11-21T13:00:00Z",
+    )
+    with pytest.raises(preflight.PreflightContractError, match=preflight.PERMIT_INVALID):
+        preflight._evaluate_verified_drift(
+            route,
+            {key: route for key in target.logical_targets},
+            target,
+            manifest,
+            authorization,
+        )
+
+    connection.close.assert_called_once()
+
+
 def _evaluate_runtime_callback(kwargs):
     """Model the drift evaluator swallowing runtime failures as unavailable evidence."""
     try:
