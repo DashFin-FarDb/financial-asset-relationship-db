@@ -304,6 +304,9 @@ def test_cq03d_runbook_documents_preflight_without_authorizing_execution() -> No
     assert "Its contract ratification is not a target approval" in runbook
     assert "cannot substitute a connector, runtime check, target, or subprocess runner" in runbook
     assert "separate `PASSED` results" in runbook
+    stage_one = runbook.split("Run Stage 1", maxsplit=1)[0].rsplit("####", maxsplit=1)[-1]
+    assert "runtime-authority checks" in stage_one
+    assert "migration parity" not in stage_one
     assert "pinned Supabase CLI `2.114.0` runs read-only `migration list`" in runbook
     assert "`supabase migration repair <timestamp> --status applied --db-url <permit-bound-dsn>`" in runbook
     assert "reject an operator-supplied target override, `--linked`, `--project-ref`, `--local`" in runbook

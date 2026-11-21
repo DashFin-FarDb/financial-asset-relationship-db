@@ -905,7 +905,9 @@ def test_collection_only_runner_passes_against_disposable_combined_postgres(tmp_
         assert report.catalog == "PASSED"
         assert report.runtime_compatibility == "PASSED"
         assert report.runtime_authority == "PASSED"
-        assert report.migration_parity == "PASSED"
+        assert report.required_check_count == report.evaluated_check_count == 5
+        assert report.history_timestamp_count == 6
+        assert "migration_parity" not in report.as_public_dict()
         assert report.expected_catalog_digest == report.actual_catalog_digest
         assert json.loads(authorization_path.read_text(encoding="utf-8"))["state"] == "consumed"
         assert _migration_history(target_url) == before_history

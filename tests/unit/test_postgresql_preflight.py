@@ -250,7 +250,7 @@ def test_collection_authorization_is_consumed_when_first_connection_fails(tmp_pa
 
 
 def test_collection_identity_failure_stops_all_evidence_queries(tmp_path: Path, monkeypatch) -> None:
-    """A live identity failure prevents history, catalog, runtime, and parity evidence checks."""
+    """A live identity failure prevents all five collection evidence checks."""
     path = _write_collection_authorization(tmp_path)
     manifest = load_and_validate_manifest()
     target = _collection_target("postgresql://operator:secret@localhost:5432/postgres")
@@ -263,13 +263,85 @@ def test_collection_identity_failure_stops_all_evidence_queries(tmp_path: Path, 
     monkeypatch.setenv(preflight.TARGET_BINDINGS_ENV, str(tmp_path / "bindings.json"))
     monkeypatch.setenv(preflight.INSPECTION_DATABASE_URL_ENV, target.database_url)
     monkeypatch.setattr(preflight, "_connect_verified", lambda *_args: (_ for _ in ()).throw(TargetIdentityError()))
-    for name in ("_evaluate_verified_drift", "_runtime_authority", "_evaluate_migration_parity"):
-        monkeypatch.setattr(preflight, name, lambda *_args, **_kwargs: pytest.fail(f"{name} must not run"))
+
+    def fail_if_evidence_runs(*_args, **_kwargs):
+        """Fail if any post-identity evidence collector is reached."""
+        pytest.fail("evidence checks must not run")
+
+    for name in ("_evaluate_verified_drift", "_runtime_authority"):
+        monkeypatch.setattr(preflight, name, fail_if_evidence_runs)
 
     with pytest.raises(TargetIdentityError):
         preflight.run_collection(path)
 
     assert json.loads(path.read_text(encoding="utf-8"))["state"] == "consumed"
+
+
+def test_collection_uses_five_ratified_checks_without_migration_parity(tmp_path: Path, monkeypatch) -> None:
+    """Collection reports only identity, history, catalog, compatibility, and authority."""
+    authorization = preflight.CollectionAuthorization(
+        "1" * 40,
+        load_and_validate_manifest().sha256,
+        "combined",
+        "hosted-legacy-v1",
+        "2" * 64,
+        preflight.COLLECTION_MARKER,
+        load_and_validate_manifest().catalog_digest_for_profile("combined"),
+        "operator",
+        "ratifier",
+        "2026-11-21T12:00:00Z",
+        "2026-11-21T13:00:00Z",
+    )
+    manifest = load_and_validate_manifest()
+    target = _collection_target("postgresql://operator:secret@localhost:5432/postgres")
+    route = preflight.RouteIdentity(target.database_url, PROJECT_REF)
+    drift = SimpleNamespace(
+        status=PASS,
+        reason_codes=(),
+        history="PASSED",
+        catalog="PASSED",
+        runtime_compatibility="PASSED",
+        required_check_count=3,
+        evaluated_check_count=3,
+        application_owned_count=1,
+        provider_owned_count=0,
+        unknown_count=0,
+        expected_catalog_digest="a" * 64,
+        actual_catalog_digest="a" * 64,
+    )
+    connection = MagicMock()
+    monkeypatch.setattr(preflight, "load_and_validate_manifest", lambda: manifest)
+    monkeypatch.setattr(preflight, "load_collection_authorization", lambda *_args: authorization)
+    monkeypatch.setattr(preflight, "consume_collection_authorization", lambda *_args: authorization)
+    monkeypatch.setattr(preflight, "_repository_sha", lambda: authorization.repository_sha)
+    monkeypatch.setattr(preflight, "_supabase_route_identity", lambda _value: route)
+    monkeypatch.setattr(preflight, "_verified_target", lambda *_args: target)
+    monkeypatch.setattr(preflight, "_runtime_routes", lambda _target: {key: route for key in target.logical_targets})
+    monkeypatch.setattr(preflight, "_connect_verified", lambda *_args: connection)
+    monkeypatch.setattr(preflight, "_psycopg_database_identity", lambda _connection: object())
+    monkeypatch.setattr(preflight, "_retained_target_identity", lambda *_args: None)
+    monkeypatch.setattr(preflight, "_evaluate_verified_drift", lambda *_args: drift)
+    monkeypatch.setattr(preflight, "_runtime_authority", lambda *_args: CHECK_PASSED)
+    monkeypatch.setattr(
+        preflight,
+        "expected_adoption_history",
+        lambda *_args: tuple((str(index), "receipt") for index in range(6)),
+    )
+    monkeypatch.setattr(
+        preflight,
+        "_evaluate_migration_parity",
+        lambda *_args: pytest.fail("collection must not evaluate migration parity"),
+    )
+    monkeypatch.setenv(preflight.TARGET_BINDINGS_ENV, str(tmp_path / "bindings.json"))
+    monkeypatch.setenv(preflight.INSPECTION_DATABASE_URL_ENV, target.database_url)
+
+    report = preflight.run_collection(tmp_path / "authorization.json")
+
+    assert report.status == PASS
+    assert report.required_check_count == report.evaluated_check_count == 5
+    assert report.history_timestamp_count == 6
+    assert "migration_parity" not in report.as_public_dict()
+    connection.close.assert_called_once()
 
 
 def test_permit_descriptor_closes_when_handle_creation_fails(tmp_path: Path, monkeypatch) -> None:
@@ -1037,8 +1109,6 @@ def test_auth_authority_catalog_uses_retained_connection(monkeypatch) -> None:
 
 def test_psycopg_identity_query_failure_is_classified() -> None:
     """Denied control-file access keeps the documented failure classification."""
-    from unittest.mock import MagicMock
-
     connection = MagicMock()
     cursor = connection.cursor.return_value.__enter__.return_value
     cursor.execute.side_effect = PermissionError("pg_control_system denied")

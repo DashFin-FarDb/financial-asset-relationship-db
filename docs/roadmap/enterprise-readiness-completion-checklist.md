@@ -103,7 +103,7 @@ the later permit remains a separate binding.
       authorize a connection; the reviewed collection-only invocation must be available and validated first.
 - [ ] `python -m scripts.postgresql_preflight --collection-authorization-file ...` validates the exact one-use Stage 1
       authorization and target binding, then proves live identity before collecting complete history, normalized
-      catalog digest, runtime compatibility, runtime authority, and migration parity. Disposable PostgreSQL tests
+      catalog digest, runtime compatibility, and runtime authority. Disposable PostgreSQL tests
       prove concurrent attempts cannot reuse authorization, a failed connection consumes it, and identity mismatch
       prevents subsequent evidence queries. The invocation stops on any mismatch, failure, or incomplete result and
       preserves only the bounded report and timestamp count.

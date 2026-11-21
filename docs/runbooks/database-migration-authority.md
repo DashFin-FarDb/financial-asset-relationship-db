@@ -464,7 +464,7 @@ status invalidates it before any command is considered.
    projection containing that one marker and an explicit permit-bound `--db-url`. The allowlist rejects `--linked`,
    `--project-ref`, `--local`, password flags, dry-run, repair, push, reset, pull, and retained link or branch state.
 6. Require overall `PASS`, equal required/evaluated counts, separate `PASSED` results for identity, history, catalog,
-   runtime compatibility, runtime authority, and migration parity, and matching expected/actual catalog digests.
+   runtime compatibility, runtime authority, and matching expected/actual catalog digests.
    Record only the bounded JSON result and timestamp count; discard raw provider output. Any non-pass result stops.
 7. Recheck the permit bindings immediately before any later history action. A target or evidence change after the
    earlier read-only checks is not a warning: revoke the permit and begin again with fresh evidence.

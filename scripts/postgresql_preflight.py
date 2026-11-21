@@ -241,6 +241,61 @@ class PreflightReport:
         }
 
 
+@dataclass(frozen=True, slots=True)
+class CollectionReport:
+    """Bounded CQ-03D collection evidence for the five ratified checks."""
+
+    status: str
+    reason_codes: tuple[str, ...]
+    repository_sha: str
+    manifest_sha256: str
+    profile: str
+    lineage: str
+    target_fingerprint_algorithm: str
+    target_fingerprint: str
+    migration_timestamp: str
+    identity: str
+    history: str
+    catalog: str
+    runtime_compatibility: str
+    runtime_authority: str
+    required_check_count: int
+    evaluated_check_count: int
+    history_timestamp_count: int | None
+    application_owned_count: int
+    provider_owned_count: int
+    unknown_count: int
+    expected_catalog_digest: str | None
+    actual_catalog_digest: str | None
+
+    def as_public_dict(self) -> dict[str, object]:
+        """Return deterministic JSON-safe collection diagnostics."""
+        return {
+            "status": self.status,
+            "reason_codes": list(self.reason_codes),
+            "repository_sha": self.repository_sha,
+            "manifest_sha256": self.manifest_sha256,
+            "profile": self.profile,
+            "lineage": self.lineage,
+            "target_fingerprint_algorithm": self.target_fingerprint_algorithm,
+            "target_fingerprint": self.target_fingerprint,
+            "migration_timestamp": self.migration_timestamp,
+            "identity": self.identity,
+            "history": self.history,
+            "catalog": self.catalog,
+            "runtime_compatibility": self.runtime_compatibility,
+            "runtime_authority": self.runtime_authority,
+            "required_check_count": self.required_check_count,
+            "evaluated_check_count": self.evaluated_check_count,
+            "history_timestamp_count": self.history_timestamp_count,
+            "application_owned_count": self.application_owned_count,
+            "provider_owned_count": self.provider_owned_count,
+            "unknown_count": self.unknown_count,
+            "expected_catalog_digest": self.expected_catalog_digest,
+            "actual_catalog_digest": self.actual_catalog_digest,
+        }
+
+
 def _object_without_duplicate_keys(pairs: list[tuple[str, object]]) -> dict[str, object]:
     """Reject duplicate protected JSON keys."""
     result: dict[str, object] = {}
@@ -439,11 +494,12 @@ def _exclusive_control_file_lock(handle: BinaryIO):
             import msvcrt
 
             handle.seek(0)
-            msvcrt.locking(handle.fileno(), msvcrt.LK_NBLCK, 1)
+            msvcrt.locking(handle.fileno(), msvcrt.LK_NBLCK, 1)  # type: ignore[attr-defined]
 
             def unlock() -> None:
+                """Release the non-blocking Windows control-file lock."""
                 handle.seek(0)
-                msvcrt.locking(handle.fileno(), msvcrt.LK_UNLCK, 1)
+                msvcrt.locking(handle.fileno(), msvcrt.LK_UNLCK, 1)  # type: ignore[attr-defined]
 
         else:
             import fcntl
@@ -451,6 +507,7 @@ def _exclusive_control_file_lock(handle: BinaryIO):
             fcntl.flock(handle.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)  # type: ignore[attr-defined]
 
             def unlock() -> None:
+                """Release the non-blocking POSIX control-file lock."""
                 fcntl.flock(handle.fileno(), fcntl.LOCK_UN)  # type: ignore[attr-defined]
 
     except (ImportError, OSError) as exc:
@@ -1278,7 +1335,7 @@ def run_preflight(permit_path: Path | str) -> PreflightReport:
     )
 
 
-def run_collection(authorization_path: Path | str) -> PreflightReport:
+def run_collection(authorization_path: Path | str) -> CollectionReport:
     """Collect bounded CQ-03D evidence after atomically consuming its separate authorization."""
     manifest = load_and_validate_manifest()
     authorization = load_collection_authorization(authorization_path, manifest)
@@ -1311,14 +1368,25 @@ def run_collection(authorization_path: Path | str) -> PreflightReport:
         inspection_route, runtime_routes, target, manifest, authorization, planned_identity
     )
     authority = _runtime_authority(runtime_routes, target, planned_identity)
-    parity, parity_row_count = _evaluate_migration_parity(manifest, target, authorization, drift.status, authority)
     if _repository_sha() != authorization.repository_sha:
         raise PreflightContractError(REPOSITORY_HEAD_MISMATCH)
 
-    status, preflight_reasons = _report_status(drift.status, authority, parity)
-    reasons = tuple(sorted(set(drift.reason_codes + preflight_reasons)))
-    evaluated = 1 + drift.evaluated_check_count + int(authority != NOT_EVALUATED) + int(parity != NOT_EVALUATED)
-    return PreflightReport(
+    collection_reasons: tuple[str, ...]
+    if drift.status != PASS:
+        status, collection_reasons = drift.status, ()
+    elif authority == NOT_EVALUATED:
+        status, collection_reasons = EVALUATION_INCOMPLETE, (REQUIRED_CHECK_NOT_EVALUATED,)
+    elif authority == CHECK_DRIFT:
+        status, collection_reasons = DRIFT_DETECTED, (RUNTIME_AUTHORITY_MISMATCH,)
+    else:
+        status, collection_reasons = PASS, ()
+    reasons = tuple(sorted(set(drift.reason_codes + collection_reasons)))
+    expected_history = expected_adoption_history(
+        manifest, target.profile, target.lineage, authorization.migration_timestamp
+    )
+    history_timestamp_count = len(expected_history) if drift.history == CHECK_PASSED and expected_history else None
+    evaluated = 1 + drift.evaluated_check_count + int(authority != NOT_EVALUATED)
+    return CollectionReport(
         status,
         reasons,
         repository_sha,
@@ -1333,15 +1401,14 @@ def run_collection(authorization_path: Path | str) -> PreflightReport:
         drift.catalog,
         drift.runtime_compatibility,
         authority,
-        parity,
-        drift.required_check_count + 3,
+        drift.required_check_count + 2,
         evaluated,
+        history_timestamp_count,
         drift.application_owned_count,
         drift.provider_owned_count,
         drift.unknown_count,
         drift.expected_catalog_digest,
         drift.actual_catalog_digest,
-        parity_row_count,
     )
 
 
@@ -1372,6 +1439,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     else:
         print(PERMIT_INVALID, file=sys.stderr)
         return 1
+    report: CollectionReport | PreflightReport
     try:
         if collection_path is not None:
             report = run_collection(collection_path)
