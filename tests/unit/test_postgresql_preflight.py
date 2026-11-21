@@ -257,7 +257,7 @@ def test_collection_authorization_rejects_invalid_approval_envelope(tmp_path: Pa
         preflight.load_collection_authorization(path, manifest, now=now)
 
 
-def test_collection_authorization_concurrent_consumption_has_one_winner(tmp_path: Path) -> None:
+def test_collection_authorization_concurrent_consumption_has_one_winner(tmp_path: Path, monkeypatch) -> None:
     """Concurrent invocations cannot both consume the same protected record."""
     path = _write_collection_authorization(tmp_path)
     manifest = load_and_validate_manifest()
@@ -276,7 +276,7 @@ def test_collection_authorization_concurrent_consumption_has_one_winner(tmp_path
             assert allow_first_to_finish.wait(timeout=5)
         return real_validate(document, current_manifest, current_now)
 
-    preflight._validated_collection_authorization = pause_first_after_validation
+    monkeypatch.setattr(preflight, "_validated_collection_authorization", pause_first_after_validation)
 
     def consume() -> str:
         """Race one authorization consumer and expose only its bounded outcome."""
@@ -296,7 +296,6 @@ def test_collection_authorization_concurrent_consumption_has_one_winner(tmp_path
             assert first.result(timeout=5) == "consumed"
     finally:
         allow_first_to_finish.set()
-        preflight._validated_collection_authorization = real_validate
 
     assert json.loads(path.read_text(encoding="utf-8"))["state"] == "consumed"
 
