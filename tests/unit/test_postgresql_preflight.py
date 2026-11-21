@@ -368,6 +368,45 @@ def test_collection_rechecks_sha_after_consumption_before_connecting(tmp_path: P
     assert json.loads(path.read_text(encoding="utf-8"))["state"] == "consumed"
 
 
+def test_collection_rechecks_authorization_window_after_consumption(tmp_path: Path, monkeypatch) -> None:
+    """An authorization that expires during pre-connect checks cannot start a connection."""
+    path = _write_collection_authorization(tmp_path)
+    _collection_run_target(tmp_path, monkeypatch)
+    authorization = preflight.load_collection_authorization(
+        path,
+        load_and_validate_manifest(),
+        now=datetime(2026, 11, 21, 10, tzinfo=timezone.utc),
+    )
+    monkeypatch.setattr(preflight, "load_collection_authorization", lambda *_args: authorization)
+    consumed = Mock(return_value=authorization)
+    monkeypatch.setattr(preflight, "consume_collection_authorization", consumed)
+
+    def expire_after_consumption(document, *, now):
+        """Simulate expiry between atomic consumption and connection startup."""
+        assert document == {
+            "approved_at": authorization.approved_at,
+            "expires_at": authorization.expires_at,
+        }
+        assert now is None
+        raise preflight.PreflightContractError(preflight.PERMIT_INVALID)
+
+    monkeypatch.setattr(
+        preflight,
+        "_validate_permit_window",
+        expire_after_consumption,
+    )
+    monkeypatch.setattr(
+        preflight,
+        "_connect_verified",
+        lambda *_args: pytest.fail("an expired authorization must stop before the first connection"),
+    )
+
+    with pytest.raises(preflight.PreflightContractError, match=preflight.PERMIT_INVALID):
+        preflight.run_collection(path)
+
+    consumed.assert_called_once()
+
+
 def test_collection_identity_failure_stops_all_evidence_queries(tmp_path: Path, monkeypatch) -> None:
     """A live identity failure prevents all five collection evidence checks."""
     path = _write_collection_authorization(tmp_path)

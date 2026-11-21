@@ -1354,6 +1354,10 @@ def run_collection(authorization_path: Path | str) -> CollectionReport:
         raise PreflightContractError(PERMIT_INVALID)
     if _repository_sha() != authorization.repository_sha:
         raise PreflightContractError(REPOSITORY_HEAD_MISMATCH)
+    _validate_permit_window(
+        {"approved_at": authorization.approved_at, "expires_at": authorization.expires_at},
+        now=None,
+    )
 
     identity_connection = _connect_verified(inspection_route, target)
     try:

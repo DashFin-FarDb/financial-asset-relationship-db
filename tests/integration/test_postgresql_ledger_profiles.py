@@ -167,6 +167,7 @@ def _create_runtime_login(base_url: str, login_name: str, capability_roles: tupl
                 ).format(sql.Identifier(login_name)),
                 (password,),
             )
+            record_created_role(connection, login_name, canonical_test_role=True)
             for capability_role in capability_roles:
                 cursor.execute(
                     sql.SQL("GRANT {} TO {}").format(
@@ -799,9 +800,8 @@ def test_collection_only_runner_passes_against_disposable_combined_postgres(tmp_
     try:
         with ContainerCliRunner(target_url) as runner:
             apply_profile_to_database(target, manifest, runner=runner)
-        login_prefix = f"fdbt_{invocation_id()}_cq03d"
-        auth_login = f"{login_prefix}_auth_{uuid4().hex[:6]}"[:63]
-        graph_login = f"{login_prefix}_graph_{uuid4().hex[:6]}"[:63]
+        auth_login = "fardb_login_auth"
+        graph_login = "fardb_login_graph"
         auth_password = f"cq03d-{uuid4().hex}"
         graph_password = f"cq03d-{uuid4().hex}"
         runtime_logins.extend((auth_login, graph_login))
@@ -899,7 +899,7 @@ def test_collection_only_runner_passes_against_disposable_combined_postgres(tmp_
 
         report = postgresql_preflight.run_collection(authorization_path)
 
-        assert report.status == PASS, report.as_public_dict()
+        assert report.status == PASS, json.dumps(report.as_public_dict(), sort_keys=True)
         assert report.identity == "PASSED"
         assert report.history == "PASSED"
         assert report.catalog == "PASSED"
