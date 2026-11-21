@@ -2,9 +2,13 @@
 
 from __future__ import annotations
 
+import json
 import os
 from collections.abc import Callable
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import replace
+from pathlib import Path
+from threading import Barrier
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 from uuid import uuid4
 
@@ -20,6 +24,7 @@ from api.database import (
     verify_runtime_authority,
     verify_schema_compatibility,
 )
+from scripts import postgresql_preflight
 from scripts.postgresql_drift import (
     DRIFT_DETECTED,
     EVALUATION_INCOMPLETE,
@@ -36,12 +41,15 @@ from scripts.postgresql_ledger import (
     EXPECTED_MANAGED_TABLES,
     EXPECTED_PROFILES,
     LOGICAL_TARGET_ORDER,
+    TARGET_BINDING_VERSION,
+    TARGET_FINGERPRINT_ALGORITHM,
     LedgerManifest,
     MigrationEntry,
     PlannedTarget,
     apply_profile_to_database,
     assert_profile_write_allowed,
     load_and_validate_manifest,
+    target_fingerprint,
 )
 from src.data.database import (
     RUNTIME_CAPABILITY_ROLES,
@@ -161,6 +169,7 @@ def _create_runtime_login(base_url: str, login_name: str, capability_roles: tupl
                 ).format(sql.Identifier(login_name)),
                 (password,),
             )
+            record_created_role(connection, login_name, canonical_test_role=True)
             for capability_role in capability_roles:
                 cursor.execute(
                     sql.SQL("GRANT {} TO {}").format(
@@ -767,6 +776,211 @@ def test_clean_profile_build_and_history(profile: str) -> None:
             runtime_engine.dispose()
         if operator_engine is not None:
             operator_engine.dispose()
+        try:
+            _drop_database(base_url, database_name)
+        finally:
+            for runtime_login in runtime_logins:
+                _drop_runtime_login(base_url, runtime_login)
+
+
+def test_collection_only_runner_passes_against_disposable_combined_postgres(tmp_path: Path, monkeypatch) -> None:
+    """The actual collection runner proves the hosted prefix on one disposable combined database."""
+    base_url = _ephemeral_postgres_url()
+    database_name = f"cq03d_collect_{uuid4().hex[:12]}"
+    target_url = _database_url(base_url, database_name)
+    manifest = load_and_validate_manifest()
+    target = PlannedTarget(
+        logical_targets=LOGICAL_TARGET_ORDER,
+        profile="combined",
+        lineage="fresh-v1",
+        execution_class="loopback",
+        fingerprint="0" * 64,
+        database_url=target_url,
+    )
+    _bootstrap_roles_and_create_database(base_url, database_name)
+    runtime_logins: list[str] = []
+    try:
+        with ContainerCliRunner(target_url) as runner:
+            apply_profile_to_database(target, manifest, runner=runner)
+        auth_login = "fardb_login_auth"
+        graph_login = "fardb_login_graph"
+        auth_password = f"cq03d-{uuid4().hex}"
+        graph_password = f"cq03d-{uuid4().hex}"
+        runtime_logins.extend((auth_login, graph_login))
+        _create_runtime_login(base_url, auth_login, (AUTH_RUNTIME_ROLE,), auth_password)
+        _create_runtime_login(
+            base_url,
+            graph_login,
+            (RUNTIME_CAPABILITY_ROLES["graph"], RUNTIME_CAPABILITY_ROLES["coordination"]),
+            graph_password,
+        )
+
+        receipts = tuple(
+            (str(receipt["timestamp"]), str(receipt["name"]))
+            for receipt in manifest.data["lineages"]["hosted-legacy-v1"]["receipts"]
+        )
+        _replace_migration_history(target_url, receipts)
+        before_history = _migration_history(target_url)
+        identity_connection = connect_owned_attested(target_url)
+        try:
+            with identity_connection.cursor() as cursor:
+                cursor.execute(
+                    "SELECT oid::text FROM pg_catalog.pg_database WHERE datname = pg_catalog.current_database()"
+                )
+                database_id = str(cursor.fetchone()[0])
+        finally:
+            identity_connection.close()
+
+        project_ref = "abcdefghijklmnopqrst"
+        canonical_identity = (postgresql_preflight.TARGET_ADAPTER_ID, project_ref, database_id)
+        fingerprint = target_fingerprint(*canonical_identity)
+        binding_path = tmp_path / "target-bindings.json"
+        binding_path.write_text(
+            json.dumps(
+                {
+                    "binding_version": TARGET_BINDING_VERSION,
+                    "manifest_sha256": manifest.sha256,
+                    "target_fingerprint_algorithm": TARGET_FINGERPRINT_ALGORITHM,
+                    "targets": [
+                        {
+                            "logical_target": component,
+                            "profile": "combined",
+                            "lineage": "hosted-legacy-v1",
+                            "execution_class": "hosted",
+                            "identity_assurance": "operator-attested-immutable-v1",
+                            "adapter_id": canonical_identity[0],
+                            "authority_namespace_id": canonical_identity[1],
+                            "database_id": canonical_identity[2],
+                        }
+                        for component in LOGICAL_TARGET_ORDER
+                    ],
+                }
+            ),
+            encoding="utf-8",
+        )
+        binding_path.chmod(0o600)
+
+        def write_authorization(name: str, bound_fingerprint: str = fingerprint) -> Path:
+            """Write a fresh disposable-only Stage 1 approval for this target fixture."""
+            authorization_path = tmp_path / name
+            authorization_path.write_text(
+                json.dumps(
+                    {
+                        "version": postgresql_preflight.COLLECTION_AUTHORIZATION_VERSION,
+                        "state": "unused",
+                        "repository_sha": "1" * 40,
+                        "manifest_sha256": manifest.sha256,
+                        "profile": "combined",
+                        "lineage": "hosted-legacy-v1",
+                        "target_fingerprint_algorithm": TARGET_FINGERPRINT_ALGORITHM,
+                        "target_fingerprint": bound_fingerprint,
+                        "migration_timestamp": postgresql_preflight.COLLECTION_MARKER,
+                        "expected_catalog_digest": manifest.catalog_digest_for_profile("combined"),
+                        "operator": "disposable-test-operator",
+                        "ratifier": "disposable-test-ratifier",
+                        "approved_at": "2020-01-01T00:00:00Z",
+                        "expires_at": "2099-01-01T00:00:00Z",
+                        "scope": "read-only-evidence-collection",
+                    }
+                ),
+                encoding="utf-8",
+            )
+            authorization_path.chmod(0o600)
+            return authorization_path
+
+        authorization_path = write_authorization("collection-authorization.json")
+        monkeypatch.setattr(postgresql_preflight, "_repository_sha", lambda: "1" * 40)
+        monkeypatch.setattr(
+            postgresql_preflight,
+            "_supabase_route_identity",
+            lambda value: postgresql_preflight.RouteIdentity(value, project_ref),
+        )
+        monkeypatch.setenv(postgresql_preflight.TARGET_BINDINGS_ENV, str(binding_path))
+        monkeypatch.setenv(postgresql_preflight.INSPECTION_DATABASE_URL_ENV, target_url)
+        monkeypatch.setenv(
+            postgresql_preflight.RUNTIME_DATABASE_URL_ENVS["auth"],
+            _runtime_url(target_url, auth_login, auth_password),
+        )
+        graph_runtime_url = _runtime_url(target_url, graph_login, graph_password)
+        monkeypatch.setenv(postgresql_preflight.RUNTIME_DATABASE_URL_ENVS["graph"], graph_runtime_url)
+        monkeypatch.setenv(postgresql_preflight.RUNTIME_DATABASE_URL_ENVS["coordination"], graph_runtime_url)
+
+        # Both runners load the unused record before either competes for its lock.
+        real_loader = postgresql_preflight.load_collection_authorization
+        loaded = Barrier(2)
+
+        def synchronize_load(path: Path, selected_manifest: LedgerManifest):
+            """Ensure competing disposable invocations both begin from the same unused record."""
+            authorization = real_loader(path, selected_manifest)
+            loaded.wait(timeout=30)
+            return authorization
+
+        monkeypatch.setattr(postgresql_preflight, "load_collection_authorization", synchronize_load)
+
+        def collect_once():
+            """Return the bounded runner result or expected single-use rejection."""
+            try:
+                return postgresql_preflight.run_collection(authorization_path)
+            except postgresql_preflight.PreflightContractError as exc:
+                return exc
+
+        with ThreadPoolExecutor(max_workers=2) as executor:
+            outcomes = [
+                future.result(timeout=120) for future in (executor.submit(collect_once), executor.submit(collect_once))
+            ]
+        reports = [outcome for outcome in outcomes if not isinstance(outcome, Exception)]
+        rejected = [outcome for outcome in outcomes if isinstance(outcome, postgresql_preflight.PreflightContractError)]
+
+        assert len(reports) == len(rejected) == 1
+        report = reports[0]
+        assert report.status == PASS, json.dumps(report.as_public_dict(), sort_keys=True)
+        assert str(rejected[0]) == postgresql_preflight.PERMIT_INVALID
+        assert report.identity == "PASSED"
+        assert report.history == "PASSED"
+        assert report.catalog == "PASSED"
+        assert report.runtime_compatibility == "PASSED"
+        assert report.runtime_authority == "PASSED"
+        assert report.required_check_count == report.evaluated_check_count == 5
+        assert report.history_timestamp_count == 6
+        assert "migration_parity" not in report.as_public_dict()
+        assert report.expected_catalog_digest == report.actual_catalog_digest
+        assert json.loads(authorization_path.read_text(encoding="utf-8"))["state"] == "consumed"
+
+        # A failed first connection consumes a separate approval before trying to connect.
+        monkeypatch.setattr(postgresql_preflight, "load_collection_authorization", real_loader)
+        failed_path = write_authorization("failed-connection-authorization.json")
+        parsed_target = urlsplit(target_url)
+        monkeypatch.setenv(
+            postgresql_preflight.INSPECTION_DATABASE_URL_ENV,
+            urlunsplit((parsed_target.scheme, "127.0.0.1:1", parsed_target.path, parsed_target.query, "")),
+        )
+        with pytest.raises(postgresql_preflight.TargetIdentityError):
+            postgresql_preflight.run_collection(failed_path)
+        assert json.loads(failed_path.read_text(encoding="utf-8"))["state"] == "consumed"
+        monkeypatch.setenv(postgresql_preflight.INSPECTION_DATABASE_URL_ENV, target_url)
+
+        # A bound-but-wrong database OID fails on live identity before drift evidence starts.
+        mismatch_database_id = str(int(database_id) + 1)
+        mismatch_identity = (postgresql_preflight.TARGET_ADAPTER_ID, project_ref, mismatch_database_id)
+        mismatch_fingerprint = target_fingerprint(*mismatch_identity)
+        binding_document = json.loads(binding_path.read_text(encoding="utf-8"))
+        for binding in binding_document["targets"]:
+            binding["database_id"] = mismatch_database_id
+        binding_path.write_text(json.dumps(binding_document), encoding="utf-8")
+        binding_path.chmod(0o600)
+        mismatch_path = write_authorization("identity-mismatch-authorization.json", mismatch_fingerprint)
+
+        def fail_if_drift_runs(*_args, **_kwargs):
+            """Prove no history, catalog, compatibility, or authority stage follows mismatch."""
+            pytest.fail("identity mismatch must stop before later evidence queries")
+
+        monkeypatch.setattr(postgresql_preflight, "evaluate_profile_drift", fail_if_drift_runs)
+        monkeypatch.setattr(postgresql_preflight, "_runtime_authority", fail_if_drift_runs)
+        with pytest.raises(postgresql_preflight.TargetIdentityError):
+            postgresql_preflight.run_collection(mismatch_path)
+        assert json.loads(mismatch_path.read_text(encoding="utf-8"))["state"] == "consumed"
+        assert _migration_history(target_url) == before_history
+    finally:
         try:
             _drop_database(base_url, database_name)
         finally:

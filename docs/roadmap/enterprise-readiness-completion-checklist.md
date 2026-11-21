@@ -102,9 +102,14 @@ the later permit remains a separate binding.
       target fingerprint, `combined` / `hosted-legacy-v1`, and proposed marker. Before connecting, the reviewed and
       validated invocation must require an unused authorization with a named operator and ratifier, approval time and
       expiry, and explicit read-only evidence-collection scope.
-- [ ] The protected collection-only invocation verifies live identity before collecting complete history, normalized
-      catalog digest, runtime compatibility, and runtime authority; it stops on any mismatch, failure, or incomplete
-      result and preserves only the bounded report and timestamp count.
+- [ ] `python -m scripts.postgresql_preflight --collection-authorization-file "$FARDB_CQ03D_COLLECTION_AUTHORIZATION_FILE"` validates the exact one-use Stage 1
+      authorization and target binding, then proves live identity before collecting complete history, normalized
+      catalog digest, runtime compatibility, and runtime authority. Identity mismatch stops collection immediately.
+      Runtime compatibility may still run when history or catalog is non-pass, but runtime authority must not run
+      unless the drift result passes. Disposable PostgreSQL tests prove concurrent attempts cannot reuse
+      authorization, a failed connection consumes it, and identity mismatch prevents subsequent evidence queries.
+      The invocation stops on any failed or incomplete required result and preserves only the bounded report and
+      timestamp count.
 - [ ] The ratifier reviews passing collection results and exact-head CQ-03B/C references before issuing the permit.
 - [ ] A protected single-use permit (`fardb-cq03d-preflight-permit-v1`, state `approved`, `history_only: true`,
       `ddl_authorized: false`) is issued, binding the exact reviewed SHA, `fardb-ledger-profiles-v1` manifest SHA-256,

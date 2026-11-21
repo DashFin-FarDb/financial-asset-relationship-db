@@ -14,7 +14,7 @@ import sys
 import tempfile
 from collections.abc import Mapping, Sequence
 from contextlib import ExitStack, contextmanager, suppress
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 from types import ModuleType
@@ -61,6 +61,11 @@ from scripts.postgresql_ledger import (
 )
 
 PREFLIGHT_PERMIT_VERSION = "fardb-cq03d-preflight-permit-v1"
+COLLECTION_AUTHORIZATION_VERSION = "fardb-cq03d-collection-authorization-v1"
+COLLECTION_AUTHORIZATION_FILE_ENV = "FARDB_CQ03D_COLLECTION_AUTHORIZATION_FILE"
+COLLECTION_PROFILE = "combined"
+COLLECTION_LINEAGE = "hosted-legacy-v1"
+COLLECTION_MARKER = "20260817153547"
 TARGET_ADAPTER_ID = "supabase-postgresql-routing-v1"
 INSPECTION_DATABASE_URL_ENV = "FARDB_CQ03D_INSPECTION_DATABASE_URL"
 PERMIT_FILE_ENV = "FARDB_CQ03D_PERMIT_FILE"
@@ -113,6 +118,23 @@ _EVIDENCE_KEYS = {
     "runtime_compatibility",
     "runtime_authority",
 }
+_COLLECTION_AUTHORIZATION_KEYS = {
+    "version",
+    "state",
+    "repository_sha",
+    "manifest_sha256",
+    "profile",
+    "lineage",
+    "target_fingerprint_algorithm",
+    "target_fingerprint",
+    "migration_timestamp",
+    "expected_catalog_digest",
+    "operator",
+    "ratifier",
+    "approved_at",
+    "expires_at",
+    "scope",
+}
 
 
 class PreflightContractError(RuntimeError):
@@ -138,6 +160,23 @@ class PreflightPermit:
 
 
 @dataclass(frozen=True, slots=True)
+class CollectionAuthorization:
+    """One protected authorization for bounded read-only evidence collection."""
+
+    repository_sha: str
+    manifest_sha256: str
+    profile: str
+    lineage: str
+    target_fingerprint: str
+    migration_timestamp: str
+    expected_catalog_digest: str
+    operator: str
+    ratifier: str
+    approved_at: str
+    expires_at: str
+
+
+@dataclass(frozen=True, slots=True)
 class RouteIdentity:
     """Protected route metadata retained only inside the adapter."""
 
@@ -146,8 +185,8 @@ class RouteIdentity:
 
 
 @dataclass(frozen=True, slots=True)
-class PreflightReport:
-    """Bounded public CQ-03D preflight evidence without target secrets."""
+class _BoundedReport:
+    """Shared target-bound fields for sanitized CQ-03D evidence."""
 
     status: str
     reason_codes: tuple[str, ...]
@@ -163,7 +202,6 @@ class PreflightReport:
     catalog: str
     runtime_compatibility: str
     runtime_authority: str
-    migration_parity: str
     required_check_count: int
     evaluated_check_count: int
     application_owned_count: int
@@ -171,35 +209,32 @@ class PreflightReport:
     unknown_count: int
     expected_catalog_digest: str | None
     actual_catalog_digest: str | None
-    parity_row_count: int
 
     def as_public_dict(self) -> dict[str, object]:
         """Return deterministic JSON-safe diagnostics."""
-        return {
-            "status": self.status,
-            "reason_codes": list(self.reason_codes),
-            "repository_sha": self.repository_sha,
-            "manifest_sha256": self.manifest_sha256,
-            "profile": self.profile,
-            "lineage": self.lineage,
-            "target_fingerprint_algorithm": self.target_fingerprint_algorithm,
-            "target_fingerprint": self.target_fingerprint,
-            "migration_timestamp": self.migration_timestamp,
-            "identity": self.identity,
-            "history": self.history,
-            "catalog": self.catalog,
-            "runtime_compatibility": self.runtime_compatibility,
-            "runtime_authority": self.runtime_authority,
-            "migration_parity": self.migration_parity,
-            "required_check_count": self.required_check_count,
-            "evaluated_check_count": self.evaluated_check_count,
-            "application_owned_count": self.application_owned_count,
-            "provider_owned_count": self.provider_owned_count,
-            "unknown_count": self.unknown_count,
-            "expected_catalog_digest": self.expected_catalog_digest,
-            "actual_catalog_digest": self.actual_catalog_digest,
-            "parity_row_count": self.parity_row_count,
-        }
+        return _public_report_dict(self)
+
+
+@dataclass(frozen=True, slots=True)
+class PreflightReport(_BoundedReport):
+    """Bounded public CQ-03D preflight evidence without target secrets."""
+
+    migration_parity: str
+    parity_row_count: int
+
+
+@dataclass(frozen=True, slots=True)
+class CollectionReport(_BoundedReport):
+    """Bounded CQ-03D collection evidence for the five ratified checks."""
+
+    history_timestamp_count: int | None
+
+
+def _public_report_dict(report: _BoundedReport) -> dict[str, object]:
+    """Convert either bounded report to deterministic JSON-safe diagnostics."""
+    result = asdict(report)
+    result["reason_codes"] = list(report.reason_codes)
+    return result
 
 
 def _object_without_duplicate_keys(pairs: list[tuple[str, object]]) -> dict[str, object]:
@@ -236,7 +271,9 @@ def _open_permit_handle(path: Path) -> BinaryIO:
         metadata = os.fstat(descriptor)
         if not stat.S_ISREG(metadata.st_mode):
             raise PreflightContractError(PERMIT_INVALID)
-        if os.name != "nt" and (stat.S_IMODE(metadata.st_mode) != 0o600 or metadata.st_uid != os.geteuid()):
+        if os.name != "nt" and (
+            stat.S_IMODE(metadata.st_mode) != 0o600 or metadata.st_uid != getattr(os, "geteuid", lambda: 0)()
+        ):
             raise PreflightContractError(PERMIT_INVALID)
         handle = os.fdopen(descriptor, "rb")
         return handle
@@ -390,6 +427,207 @@ def load_preflight_permit(
     return _validated_permit_binding(document, manifest)
 
 
+@contextmanager
+def _exclusive_control_file_lock(handle: BinaryIO):
+    """Hold one non-blocking exclusive lock on a protected control file."""
+    try:
+        if os.name == "nt":
+            import msvcrt
+
+            handle.seek(0)
+            msvcrt.locking(handle.fileno(), msvcrt.LK_NBLCK, 1)  # type: ignore[attr-defined]
+
+            def unlock() -> None:
+                """Release the non-blocking Windows control-file lock."""
+                handle.seek(0)
+                msvcrt.locking(handle.fileno(), msvcrt.LK_UNLCK, 1)  # type: ignore[attr-defined]
+
+        else:
+            import fcntl
+
+            fcntl.flock(handle.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)  # type: ignore[attr-defined]
+
+            def unlock() -> None:
+                """Release the non-blocking POSIX control-file lock."""
+                fcntl.flock(handle.fileno(), fcntl.LOCK_UN)  # type: ignore[attr-defined]
+
+    except (ImportError, OSError) as exc:
+        raise PreflightContractError(PERMIT_INVALID) from exc
+    try:
+        yield
+    finally:
+        with suppress(OSError):
+            unlock()
+
+
+def _validated_collection_authorization(
+    document: Mapping[str, object], manifest: LedgerManifest, now: datetime | None
+) -> CollectionAuthorization:
+    """Validate the exact approved collection scope and its bounded target binding."""
+    if set(document) != _COLLECTION_AUTHORIZATION_KEYS:
+        raise PreflightContractError(PERMIT_INVALID)
+    operator = document["operator"]
+    ratifier = document["ratifier"]
+    checks = (
+        document["version"] == COLLECTION_AUTHORIZATION_VERSION,
+        document["state"] == "unused",
+        document["profile"] == COLLECTION_PROFILE,
+        document["lineage"] == COLLECTION_LINEAGE,
+        document["migration_timestamp"] == COLLECTION_MARKER,
+        document["target_fingerprint_algorithm"] == TARGET_FINGERPRINT_ALGORITHM,
+        isinstance(operator, str) and bool(operator.strip()) and operator == operator.strip(),
+        isinstance(ratifier, str) and bool(ratifier.strip()) and ratifier == ratifier.strip(),
+        document["scope"] == "read-only-evidence-collection",
+    )
+    if not all(checks):
+        raise PreflightContractError(PERMIT_INVALID)
+    _validate_permit_window(document, now)
+    names = (
+        "repository_sha",
+        "manifest_sha256",
+        "profile",
+        "lineage",
+        "target_fingerprint",
+        "migration_timestamp",
+        "expected_catalog_digest",
+    )
+    values = tuple(document[name] for name in names)
+    if not all(isinstance(value, str) for value in values):
+        raise PreflightContractError(PERMIT_INVALID)
+    repository_sha, manifest_sha256, profile, lineage, fingerprint, timestamp, expected_digest = map(str, values)
+    format_checks = (
+        _LOWER_HEX_40.fullmatch(repository_sha) is not None,
+        manifest_sha256 == manifest.sha256,
+        profile == COLLECTION_PROFILE,
+        lineage == COLLECTION_LINEAGE,
+        _LOWER_HEX_64.fullmatch(fingerprint) is not None,
+        timestamp == COLLECTION_MARKER,
+        _LOWER_HEX_64.fullmatch(expected_digest) is not None,
+        expected_digest == manifest.catalog_digest_for_profile(COLLECTION_PROFILE),
+        timestamp in {entry.timestamp for entry in manifest.migrations_for_profile(COLLECTION_PROFILE)},
+    )
+    if not all(format_checks):
+        raise PreflightContractError(PERMIT_INVALID)
+    return CollectionAuthorization(
+        repository_sha,
+        manifest_sha256,
+        profile,
+        lineage,
+        fingerprint,
+        timestamp,
+        expected_digest,
+        str(operator),
+        str(ratifier),
+        str(document["approved_at"]),
+        str(document["expires_at"]),
+    )
+
+
+def _read_collection_control(path: Path) -> tuple[Mapping[str, object], os.stat_result]:
+    """Read one protected, unaliased control file while holding its sidecar lock."""
+    flags = os.O_RDONLY | getattr(os, "O_CLOEXEC", 0) | getattr(os, "O_NOFOLLOW", 0)
+    descriptor = os.open(path, flags)
+    try:
+        metadata = os.fstat(descriptor)
+        _validate_collection_file(metadata)
+        if metadata.st_nlink != 1:
+            raise PreflightContractError(PERMIT_INVALID)
+        with os.fdopen(descriptor, "rb") as handle:
+            descriptor = -1
+            return _decode_permit_document(handle), metadata
+    finally:
+        if descriptor >= 0:
+            os.close(descriptor)
+
+
+def _validate_collection_file(metadata: os.stat_result) -> None:
+    """Require a regular file with owner-only permissions on POSIX."""
+    if not stat.S_ISREG(metadata.st_mode):
+        raise PreflightContractError(PERMIT_INVALID)
+    if os.name != "nt" and (
+        stat.S_IMODE(metadata.st_mode) != 0o600 or metadata.st_uid != getattr(os, "geteuid", lambda: 0)()
+    ):
+        raise PreflightContractError(PERMIT_INVALID)
+
+
+def _sync_collection_directory(directory: Path) -> None:
+    """Persist the authorization rename on POSIX."""
+    if os.name == "nt":
+        return
+    descriptor = os.open(directory, os.O_RDONLY | getattr(os, "O_DIRECTORY", 0))
+    try:
+        os.fsync(descriptor)
+    finally:
+        os.close(descriptor)
+
+
+def _replace_collection_control(path: Path, metadata: os.stat_result, payload: bytes) -> None:
+    """Durably replace the control file with its consumed record under the lock."""
+    descriptor, temporary_name = tempfile.mkstemp(prefix=f".{path.name}.", dir=path.parent)
+    temporary_path = Path(temporary_name)
+    try:
+        if os.name != "nt":
+            os.chmod(temporary_path, 0o600)
+        with os.fdopen(descriptor, "wb") as handle:
+            descriptor = -1
+            if handle.write(payload) != len(payload):
+                raise OSError("authorization state update was incomplete")
+            handle.flush()
+            os.fsync(handle.fileno())
+        current = os.stat(path, follow_symlinks=False)
+        if (current.st_dev, current.st_ino) != (metadata.st_dev, metadata.st_ino):
+            raise PreflightContractError(PERMIT_INVALID)
+        os.replace(temporary_path, path)
+        _sync_collection_directory(path.parent)
+    finally:
+        if descriptor >= 0:
+            os.close(descriptor)
+        with suppress(OSError):
+            temporary_path.unlink()
+
+
+def consume_collection_authorization(
+    path: Path | str,
+    manifest: LedgerManifest,
+    expected: CollectionAuthorization | None = None,
+    *,
+    now: datetime | None = None,
+) -> CollectionAuthorization:
+    """Atomically spend one protected collection authorization before connecting."""
+    control_path = _resolved_permit_path(Path(path))
+    lock_path = control_path.with_name(f".{control_path.name}.lock")
+    lock_descriptor = -1
+    try:
+        flags = os.O_RDWR | os.O_CREAT | getattr(os, "O_CLOEXEC", 0) | getattr(os, "O_NOFOLLOW", 0)
+        lock_descriptor = os.open(lock_path, flags, 0o600)
+        _validate_collection_file(os.fstat(lock_descriptor))
+        with os.fdopen(lock_descriptor, "r+b") as lock_handle:
+            lock_descriptor = -1
+            with _exclusive_control_file_lock(lock_handle):
+                document, metadata = _read_collection_control(control_path)
+                authorization = _validated_collection_authorization(document, manifest, now)
+                if expected is not None and authorization != expected:
+                    raise PreflightContractError(PERMIT_INVALID)
+                consumed = dict(document, state="consumed")
+                payload = json.dumps(consumed, sort_keys=True, separators=(",", ":")).encode("utf-8")
+                _replace_collection_control(control_path, metadata, payload)
+                return authorization
+    except (OSError, ValueError) as exc:
+        raise PreflightContractError(PERMIT_INVALID) from exc
+    finally:
+        if lock_descriptor >= 0:
+            with suppress(OSError):
+                os.close(lock_descriptor)
+
+
+def load_collection_authorization(
+    path: Path | str, manifest: LedgerManifest, *, now: datetime | None = None
+) -> CollectionAuthorization:
+    """Validate one unused collection authorization without consuming it."""
+    document = _protected_permit_document(Path(path))
+    return _validated_collection_authorization(document, manifest, now)
+
+
 def _repository_sha() -> str:
     """Return the exact checked-out repository head only from a clean worktree."""
     git_environment = {name: value for name, value in os.environ.items() if not name.startswith("GIT_")}
@@ -508,7 +746,7 @@ def _validate_trust_root(value: str) -> None:
         raise
     except (OSError, RuntimeError, ValueError) as exc:
         raise TargetIdentityError() from exc
-    permitted_owners = {os.geteuid(), 0} if os.name != "nt" else set()
+    permitted_owners = {getattr(os, "geteuid", lambda: 0)(), 0} if os.name != "nt" else set()
     checks = (
         stat.S_ISREG(metadata.st_mode),
         not metadata.st_mode & (stat.S_IWGRP | stat.S_IWOTH),
@@ -558,16 +796,21 @@ def _discard_identity_connection(connection) -> None:
         connection.close()
 
 
-def _connect_verified(route: RouteIdentity, target: PlannedTarget):
+def _connect_verified(route: RouteIdentity, target: PlannedTarget, before_connection=None):
     """Open one read-only connection and bind its live database OID to the route."""
     connection = None
     try:
         import psycopg2  # type: ignore[import-untyped]
 
+        if before_connection is not None:
+            before_connection()
         connection = psycopg2.connect(route.database_url, connect_timeout=10)
         connection.set_session(readonly=True, autocommit=False)
         _prove_live_database_identity(connection, route, target)
         return connection
+    except PreflightContractError:
+        _discard_identity_connection(connection)
+        raise
     except TargetIdentityError:
         _discard_identity_connection(connection)
         raise
@@ -578,7 +821,7 @@ def _connect_verified(route: RouteIdentity, target: PlannedTarget):
 
 def _verified_target(
     manifest: LedgerManifest,
-    permit: PreflightPermit,
+    permit: PreflightPermit | CollectionAuthorization,
     binding_path: Path,
     inspection_route: RouteIdentity,
 ) -> PlannedTarget:
@@ -619,9 +862,9 @@ def _runtime_routes(target: PlannedTarget) -> dict[str, RouteIdentity]:
     return routes
 
 
-def _prove_route(route: RouteIdentity, target: PlannedTarget) -> None:
+def _prove_route(route: RouteIdentity, target: PlannedTarget, before_connection=None) -> None:
     """Prove one route and close its read-only identity transaction."""
-    connection = _connect_verified(route, target)
+    connection = _connect_verified(route, target, before_connection)
     try:
         connection.close()
     except Exception as exc:  # noqa: BLE001 - cleanup is a required preflight invariant
@@ -703,13 +946,13 @@ def _psycopg_database_identity(connection):
 
 
 @contextmanager
-def _verified_auth_connection(routes, target=None, expected_identity=None):
+def _verified_auth_connection(routes, target=None, expected_identity=None, before_connection=None):
     """Keep auth catalog checks on the exact permit-proved session."""
     route = routes.get("auth")
     if route is None or target is None:
         yield None
         return
-    connection = _connect_verified(route, target)
+    connection = _connect_verified(route, target, before_connection)
     try:
         identity = _psycopg_database_identity(connection)
         _retained_target_identity(identity, route, target, expected_identity)
@@ -721,7 +964,7 @@ def _verified_auth_connection(routes, target=None, expected_identity=None):
 
 
 @contextmanager
-def _verified_non_auth_connections(routes, target=None, expected_identity=None):
+def _verified_non_auth_connections(routes, target=None, expected_identity=None, before_connection=None):
     """Hold identity-proved runtime sessions through their catalog verification."""
     from src.data.database import create_engine_from_url
     from src.data.postgresql_topology import read_database_identity, same_database
@@ -735,6 +978,8 @@ def _verified_non_auth_connections(routes, target=None, expected_identity=None):
                 continue
             engine = create_engine_from_url(_read_only_url(route))
             stack.callback(engine.dispose)
+            if before_connection is not None:
+                before_connection()
             connection = stack.enter_context(engine.connect())
             sessions[component] = (engine, connection)
             identities[component] = read_database_identity(connection)
@@ -794,11 +1039,13 @@ def _runtime_compatibility(
             engine.dispose()
 
 
-def _runtime_routes_compatible(routes: Mapping[str, RouteIdentity], target=None, expected_identity=None) -> None:
+def _runtime_routes_compatible(
+    routes: Mapping[str, RouteIdentity], target=None, expected_identity=None, before_connection=None
+) -> None:
     """Require compatibility through identity-proved runtime credentials."""
     with (
-        _verified_auth_connection(routes, target, expected_identity) as auth_connection,
-        _verified_non_auth_connections(routes, target, expected_identity) as (sessions, combined),
+        _verified_auth_connection(routes, target, expected_identity, before_connection) as auth_connection,
+        _verified_non_auth_connections(routes, target, expected_identity, before_connection) as (sessions, combined),
     ):
         for component in COMPONENT_ORDER:
             route = routes.get(component)
@@ -829,7 +1076,9 @@ def _group_non_auth_routes(
     return tuple(grouped.values())
 
 
-def _runtime_authority(routes: Mapping[str, RouteIdentity], target=None, expected_identity=None) -> str:
+def _runtime_authority(
+    routes: Mapping[str, RouteIdentity], target=None, expected_identity=None, before_connection=None
+) -> str:
     """Verify each configured runtime login has only its required capability."""
     from src.data.database import (
         SchemaCompatibilityError,
@@ -843,11 +1092,14 @@ def _runtime_authority(routes: Mapping[str, RouteIdentity], target=None, expecte
             read_only_url = _read_only_url(auth_route)
             api_database = _import_api_database(read_only_url)
             with (
-                _verified_auth_connection(routes, target, expected_identity) as connection,
+                _verified_auth_connection(routes, target, expected_identity, before_connection) as connection,
                 api_database.bind_database_url(read_only_url),
             ):
                 api_database.verify_runtime_authority(**({"verification_connection": connection} if connection else {}))
-        with _verified_non_auth_connections(routes, target, expected_identity) as (sessions, combined):
+        with _verified_non_auth_connections(routes, target, expected_identity, before_connection) as (
+            sessions,
+            combined,
+        ):
             for _route, capabilities in _group_non_auth_routes(routes):
                 if len(capabilities) > 1 and not combined:
                     raise TargetIdentityError()
@@ -861,6 +1113,10 @@ def _runtime_authority(routes: Mapping[str, RouteIdentity], target=None, expecte
                 )
     except RuntimeIdentityUnavailable:
         return NOT_EVALUATED
+    except TargetIdentityError:
+        raise
+    except PreflightContractError:
+        raise
     except SchemaCompatibilityError:
         return CHECK_DRIFT
     except Exception:  # noqa: BLE001 - dependency/provider failures are not proof of drift
@@ -972,25 +1228,44 @@ def _evaluate_verified_drift(
     runtime_routes: Mapping[str, RouteIdentity],
     target: PlannedTarget,
     manifest: LedgerManifest,
-    permit: PreflightPermit,
+    permit: PreflightPermit | CollectionAuthorization,
     expected_identity=None,
+    before_connection=None,
 ) -> DriftReport:
     """Prove every route and evaluate drift while always closing inspection access."""
-    inspection_connection = _connect_verified(inspection_route, target)
+    inspection_connection = _connect_verified(inspection_route, target, before_connection)
     try:
         inspection_identity = _psycopg_database_identity(inspection_connection)
         _retained_target_identity(inspection_identity, inspection_route, target, expected_identity)
         for route in runtime_routes.values():
-            _prove_route(route, target)
-        return evaluate_profile_drift(
+            _prove_route(route, target, before_connection)
+        try:
+            inspection_connection.rollback()
+        except Exception as exc:  # noqa: BLE001 - release the identity transaction before the evidence snapshot
+            raise PreflightContractError(EVALUATION_INCOMPLETE) from exc
+        identity_failure = False
+
+        def runtime_check() -> None:
+            """Preserve an identity mismatch that the generic evaluator would classify as unavailable."""
+            nonlocal identity_failure
+            try:
+                _runtime_routes_compatible(runtime_routes, target, inspection_identity, before_connection)
+            except TargetIdentityError:
+                identity_failure = True
+                raise RuntimeCheckUnavailable("runtime identity verification failed")
+
+        drift = evaluate_profile_drift(
             inspection_connection,
             manifest,
             target.profile,
             target.lineage,
             target.execution_class,
-            runtime_check=lambda: _runtime_routes_compatible(runtime_routes, target, inspection_identity),
+            runtime_check=runtime_check,
             adoption_timestamp=permit.migration_timestamp,
         )
+        if identity_failure:
+            raise TargetIdentityError()
+        return drift
     finally:
         try:
             inspection_connection.close()
@@ -1001,7 +1276,7 @@ def _evaluate_verified_drift(
 def _evaluate_migration_parity(
     manifest: LedgerManifest,
     target: PlannedTarget,
-    permit: PreflightPermit,
+    permit: PreflightPermit | CollectionAuthorization,
     drift_status: str,
     authority: str,
 ) -> tuple[str, int]:
@@ -1063,47 +1338,152 @@ def run_preflight(permit_path: Path | str) -> PreflightReport:
     reasons = tuple(sorted(set(drift.reason_codes + preflight_reasons)))
     evaluated = 1 + drift.evaluated_check_count + int(authority != NOT_EVALUATED) + int(parity != NOT_EVALUATED)
     return PreflightReport(
-        status,
-        reasons,
-        repository_sha,
-        manifest.sha256,
-        target.profile,
-        target.lineage,
-        TARGET_FINGERPRINT_ALGORITHM,
-        target.fingerprint,
-        permit.migration_timestamp,
-        CHECK_PASSED,
-        drift.history,
-        drift.catalog,
-        drift.runtime_compatibility,
-        authority,
-        parity,
-        drift.required_check_count + 3,
-        evaluated,
-        drift.application_owned_count,
-        drift.provider_owned_count,
-        drift.unknown_count,
-        drift.expected_catalog_digest,
-        drift.actual_catalog_digest,
-        parity_row_count,
+        status=status,
+        reason_codes=reasons,
+        repository_sha=repository_sha,
+        manifest_sha256=manifest.sha256,
+        profile=target.profile,
+        lineage=target.lineage,
+        target_fingerprint_algorithm=TARGET_FINGERPRINT_ALGORITHM,
+        target_fingerprint=target.fingerprint,
+        migration_timestamp=permit.migration_timestamp,
+        identity=CHECK_PASSED,
+        history=drift.history,
+        catalog=drift.catalog,
+        runtime_compatibility=drift.runtime_compatibility,
+        runtime_authority=authority,
+        required_check_count=drift.required_check_count + 3,
+        evaluated_check_count=evaluated,
+        application_owned_count=drift.application_owned_count,
+        provider_owned_count=drift.provider_owned_count,
+        unknown_count=drift.unknown_count,
+        expected_catalog_digest=drift.expected_catalog_digest,
+        actual_catalog_digest=drift.actual_catalog_digest,
+        migration_parity=parity,
+        parity_row_count=parity_row_count,
+    )
+
+
+def run_collection(authorization_path: Path | str) -> CollectionReport:
+    """Collect bounded CQ-03D evidence after atomically consuming its separate authorization."""
+    manifest = load_and_validate_manifest()
+    authorization = load_collection_authorization(authorization_path, manifest)
+    repository_sha = _repository_sha()
+    if authorization.repository_sha != repository_sha:
+        raise PreflightContractError(REPOSITORY_HEAD_MISMATCH)
+    binding_value = os.environ.get(TARGET_BINDINGS_ENV)
+    inspection_value = os.environ.get(INSPECTION_DATABASE_URL_ENV)
+    if not binding_value or not inspection_value:
+        raise TargetIdentityError()
+    binding_path = Path(binding_value)
+    inspection_route = _supabase_route_identity(inspection_value)
+    target = _verified_target(manifest, authorization, binding_path, inspection_route)
+    runtime_routes = _runtime_routes(target)
+
+    # Spend the one-use record only after all local checks and route parsing pass,
+    # immediately before the first connection attempt. A race or changed record
+    # fails closed without connecting.
+    consumed = consume_collection_authorization(authorization_path, manifest, authorization)
+    if consumed != authorization:
+        raise PreflightContractError(PERMIT_INVALID)
+    if _repository_sha() != authorization.repository_sha:
+        raise PreflightContractError(REPOSITORY_HEAD_MISMATCH)
+
+    def window_check() -> None:
+        """Require approval to remain current immediately before each new connection."""
+        _validate_permit_window(
+            {"approved_at": authorization.approved_at, "expires_at": authorization.expires_at},
+            now=None,
+        )
+
+    identity_connection = _connect_verified(inspection_route, target, window_check)
+    try:
+        planned_identity = _psycopg_database_identity(identity_connection)
+        _retained_target_identity(planned_identity, inspection_route, target)
+    finally:
+        identity_connection.close()
+    drift = _evaluate_verified_drift(
+        inspection_route, runtime_routes, target, manifest, authorization, planned_identity, window_check
+    )
+    authority = (
+        _runtime_authority(runtime_routes, target, planned_identity, window_check)
+        if drift.status == PASS
+        else NOT_EVALUATED
+    )
+    if _repository_sha() != authorization.repository_sha:
+        raise PreflightContractError(REPOSITORY_HEAD_MISMATCH)
+
+    collection_reasons: tuple[str, ...]
+    if drift.status != PASS:
+        status, collection_reasons = drift.status, ()
+    elif authority == NOT_EVALUATED:
+        status, collection_reasons = EVALUATION_INCOMPLETE, (REQUIRED_CHECK_NOT_EVALUATED,)
+    elif authority == CHECK_DRIFT:
+        status, collection_reasons = DRIFT_DETECTED, (RUNTIME_AUTHORITY_MISMATCH,)
+    else:
+        status, collection_reasons = PASS, ()
+    reasons = tuple(sorted(set(drift.reason_codes + collection_reasons)))
+    expected_history = expected_adoption_history(
+        manifest, target.profile, target.lineage, authorization.migration_timestamp
+    )
+    history_timestamp_count = len(expected_history) if drift.history == CHECK_PASSED and expected_history else None
+    evaluated = 1 + drift.evaluated_check_count + int(authority != NOT_EVALUATED)
+    return CollectionReport(
+        status=status,
+        reason_codes=reasons,
+        repository_sha=repository_sha,
+        manifest_sha256=manifest.sha256,
+        profile=target.profile,
+        lineage=target.lineage,
+        target_fingerprint_algorithm=TARGET_FINGERPRINT_ALGORITHM,
+        target_fingerprint=target.fingerprint,
+        migration_timestamp=authorization.migration_timestamp,
+        identity=CHECK_PASSED,
+        history=drift.history,
+        catalog=drift.catalog,
+        runtime_compatibility=drift.runtime_compatibility,
+        runtime_authority=authority,
+        required_check_count=drift.required_check_count + 2,
+        evaluated_check_count=evaluated,
+        history_timestamp_count=history_timestamp_count,
+        application_owned_count=drift.application_owned_count,
+        provider_owned_count=drift.provider_owned_count,
+        unknown_count=drift.unknown_count,
+        expected_catalog_digest=drift.expected_catalog_digest,
+        actual_catalog_digest=drift.actual_catalog_digest,
     )
 
 
 def _build_parser() -> argparse.ArgumentParser:
     """Build the no-DSN command-line surface."""
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--permit-file", default=os.environ.get(PERMIT_FILE_ENV), type=Path)
+    parser.add_argument("--permit-file", type=Path)
+    parser.add_argument(
+        "--collection-authorization-file",
+        type=Path,
+    )
     return parser
+
+
+def _run_selected_stage(arguments: argparse.Namespace) -> CollectionReport | PreflightReport:
+    """Select one stage, preferring an explicit option over environment defaults."""
+    permit = arguments.permit_file
+    collection = arguments.collection_authorization_file
+    if permit is None and collection is None:
+        permit = os.environ.get(PERMIT_FILE_ENV)
+        collection = os.environ.get(COLLECTION_AUTHORIZATION_FILE_ENV)
+    if collection is not None and permit is None:
+        return run_collection(Path(collection))
+    if permit is not None and collection is None:
+        return run_preflight(Path(permit))
+    raise PreflightContractError(PERMIT_INVALID)
 
 
 def main(argv: Sequence[str] | None = None) -> int:
     """Emit only a bounded public report or a fixed failure code."""
     arguments = _build_parser().parse_args(argv)
-    if arguments.permit_file is None:
-        print(PERMIT_INVALID, file=sys.stderr)
-        return 1
     try:
-        report = run_preflight(arguments.permit_file)
+        report = _run_selected_stage(arguments)
     except TargetIdentityError:
         print(TARGET_IDENTITY_INDETERMINATE, file=sys.stderr)
         return 1

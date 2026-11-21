@@ -195,7 +195,7 @@ def test_continuity_records_merged_r2_without_claiming_provider_delivery() -> No
     continuity = _load(CONTINUITY)
     marker = "\nThis ledger preserves"
     assert continuity.count(marker) == 1
-    header = continuity.split(marker, maxsplit=1)[0]
+    header = _compact(continuity.split(marker, maxsplit=1)[0])
     assert SETUP_BASELINE in header
     assert "CQ-03B-R1 ratified on 2026-08-17" in header
     assert "ADR 0010" in continuity
@@ -219,14 +219,14 @@ def test_continuity_records_merged_cq03c_without_claiming_hosted_adoption() -> N
     continuity = _load(CONTINUITY)
     marker = "\nThis ledger preserves"
     assert continuity.count(marker) == 1
-    header = continuity.split(marker, maxsplit=1)[0]
+    header = _compact(continuity.split(marker, maxsplit=1)[0])
     assert CQ03C_MERGE in header
     assert "CQ-03C is implemented in draft PR #1643" not in continuity
     assert "CQ-03C was human-ratified" in continuity
     assert "selected the existing production FarDb Supabase project for CQ-03D-02" in header
     assert "The reviewed collection-only invocation is not available" in header
     assert "collection results, the single-use permit, and hosted preflight remain pending" in header
-    assert "no CQ-03D-02 hosted preflight has been executed" in header
+    assert "no production connection is authorized" in header
 
 
 def test_continuity_current_main_cutoffs_agree() -> None:
@@ -292,6 +292,10 @@ def test_cq03d_runbook_documents_preflight_without_authorizing_execution() -> No
     assert "exactly one allowlisted canonical migration timestamp" in runbook
     assert "python -m scripts.postgresql_ledger validate" in runbook
     assert "python -m scripts.postgresql_preflight --permit-file" in runbook
+    assert "python -m scripts.postgresql_preflight --collection-authorization-file" in runbook
+    assert "fardb-cq03d-collection-authorization-v1" in runbook
+    assert "writes a complete `consumed` JSON" in runbook
+    assert "allows only one concurrent consumer" in runbook
     assert "`supabase-postgresql-routing-v1`" in runbook
     assert "live positive `pg_database.oid`" in runbook
     assert "TARGET_IDENTITY_INDETERMINATE" in runbook
@@ -300,6 +304,11 @@ def test_cq03d_runbook_documents_preflight_without_authorizing_execution() -> No
     assert "Its contract ratification is not a target approval" in runbook
     assert "cannot substitute a connector, runtime check, target, or subprocess runner" in runbook
     assert "separate `PASSED` results" in runbook
+    stage_one = runbook.split("### Stage 1", maxsplit=1)[1].split("### Approval pack", maxsplit=1)[0]
+    assert "runtime authority" in stage_one
+    assert "migration parity" not in stage_one
+    assert "Recheck the approval window immediately before every new Stage 1 database connection" in stage_one
+    assert "runtime compatibility may be evaluated even when history or catalog has a non-pass result" in stage_one
     assert "pinned Supabase CLI `2.114.0` runs read-only `migration list`" in runbook
     assert "`supabase migration repair <timestamp> --status applied --db-url <permit-bound-dsn>`" in runbook
     assert "reject an operator-supplied target override, `--linked`, `--project-ref`, `--local`" in runbook
