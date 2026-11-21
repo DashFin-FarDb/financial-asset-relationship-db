@@ -1115,6 +1115,8 @@ def _runtime_authority(
         return NOT_EVALUATED
     except TargetIdentityError:
         raise
+    except PreflightContractError:
+        raise
     except SchemaCompatibilityError:
         return CHECK_DRIFT
     except Exception:  # noqa: BLE001 - dependency/provider failures are not proof of drift

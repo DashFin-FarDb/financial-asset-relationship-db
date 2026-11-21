@@ -475,14 +475,16 @@ def test_collection_rechecks_authorization_window_before_each_connection(tmp_pat
     consumed = Mock(return_value=authorization)
     monkeypatch.setattr(preflight, "consume_collection_authorization", consumed)
     connection = MagicMock()
-    connect_count = 0
+    connection_attempts = 0
+    connections_opened = 0
     window_checks = 0
 
     def connect(_route, _target, before_connection=None):
         """Run the Stage 1 window guard before simulating a new connection."""
-        nonlocal connect_count
-        connect_count += 1
+        nonlocal connection_attempts, connections_opened
+        connection_attempts += 1
         before_connection()
+        connections_opened += 1
         return connection
 
     def validate_window(_document, *, now):
@@ -493,21 +495,16 @@ def test_collection_rechecks_authorization_window_before_each_connection(tmp_pat
         if window_checks == 2:
             raise preflight.PreflightContractError(preflight.PERMIT_INVALID)
 
-    def attempt_drift(*args):
-        """Ask the runner to validate approval at the next connection seam."""
-        args[-1]()
-        pytest.fail("the expired approval must stop before drift evidence")
-
     monkeypatch.setattr(preflight, "_validate_permit_window", validate_window)
     monkeypatch.setattr(preflight, "_connect_verified", connect)
     monkeypatch.setattr(preflight, "_psycopg_database_identity", lambda _connection: object())
     monkeypatch.setattr(preflight, "_retained_target_identity", lambda *_args: None)
-    monkeypatch.setattr(preflight, "_evaluate_verified_drift", attempt_drift)
 
     with pytest.raises(preflight.PreflightContractError, match=preflight.PERMIT_INVALID):
         preflight.run_collection(path)
 
-    assert connect_count == 1
+    assert connection_attempts == 2
+    assert connections_opened == 1
     assert window_checks == 2
     assert connection.close.call_count == 1
     consumed.assert_called_once()
@@ -1339,6 +1336,17 @@ def test_runtime_authority_preserves_target_identity_failure(monkeypatch) -> Non
     )
 
     with pytest.raises(TargetIdentityError):
+        preflight._runtime_authority({"graph": route})
+
+
+def test_runtime_authority_preserves_expired_collection_window(monkeypatch) -> None:
+    """An expired Stage 1 approval is not downgraded to unavailable authority evidence."""
+    route = preflight.RouteIdentity("postgresql://runtime@host/postgres", "same_project")
+    connection_context = MagicMock()
+    connection_context.__enter__.side_effect = preflight.PreflightContractError(preflight.PERMIT_INVALID)
+    monkeypatch.setattr(preflight, "_verified_non_auth_connections", lambda *_args: connection_context)
+
+    with pytest.raises(preflight.PreflightContractError, match=preflight.PERMIT_INVALID):
         preflight._runtime_authority({"graph": route})
 
 
