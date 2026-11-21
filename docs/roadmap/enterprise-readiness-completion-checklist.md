@@ -101,7 +101,7 @@ the later permit remains a separate binding.
 - [x] The ratifier approved a separate, one-use read-only evidence-collection stage bound to the exact SHA, manifest,
       target fingerprint, `combined` / `hosted-legacy-v1`, and proposed marker. This authorization does not itself
       authorize a connection; the reviewed collection-only invocation must be available and validated first.
-- [ ] `python -m scripts.postgresql_preflight --collection-authorization-file ...` validates the exact one-use Stage 1
+- [ ] `python -m scripts.postgresql_preflight --collection-authorization-file "$FARDB_CQ03D_COLLECTION_AUTHORIZATION_FILE"` validates the exact one-use Stage 1
       authorization and target binding, then proves live identity before collecting complete history, normalized
       catalog digest, runtime compatibility, and runtime authority. Disposable PostgreSQL tests
       prove concurrent attempts cannot reuse authorization, a failed connection consumes it, and identity mismatch

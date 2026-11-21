@@ -347,16 +347,21 @@ single-use collection authorization binding all of the following:
 The collection authorization, target binding, connection inputs, and bounded result remain in protected operator
 storage. Never put them or raw provider output in the repository, an issue, or a workflow log. The approval applies to
 this SHA, manifest, target, profile, lineage, marker, operator, and validity window only. Any mismatch or expiry
-requires fresh approval. The authorization is a strict JSON object with version
-`fardb-cq03d-collection-authorization-v1`, state `unused`, the listed binding fields, `expected_catalog_digest`, named
-`operator` and `ratifier`, `approved_at`, `expires_at`, and scope `read-only-evidence-collection`. Use an absolute
-owner-only regular file with mode `0600`; symlinks and duplicate or unknown fields are rejected. Before use, the
-ratifier may revoke it by changing only its state to `revoked` while it remains in protected operator storage.
-Immediately before the first connection, the invocation takes an exclusive lock on the authorization file, validates
-it again, and durably changes `unused` to `consumed`. The lock and durable state update allow only one concurrent
-consumer. `consumed` and `revoked` are final states. The invocation rejects expired, consumed, or revoked records.
-The attempt consumes the authorization even if connection, identity proof, or a later check fails. Any retry requires
-a new ratifier approval and authorization.
+requires fresh approval. The authorization is a strict JSON object with exactly these keys: `version`, `state`,
+`repository_sha`, `manifest_sha256`, `profile`, `lineage`, `target_fingerprint_algorithm`, `target_fingerprint`,
+`migration_timestamp`, `expected_catalog_digest`, `operator`, `ratifier`, `approved_at`, `expires_at`, and `scope`.
+Use the version `fardb-cq03d-collection-authorization-v1`, initial state `unused`, and scope
+`read-only-evidence-collection`. Use an absolute owner-only regular file with mode `0600`; symlinks and duplicate or
+unknown fields are rejected. Before use, the ratifier may revoke it by changing only its state to `revoked` while it
+remains in protected operator storage. Immediately before the first connection, the invocation locks the persistent
+sibling file `.<authorization-filename>.lock`, validates the authorization again, writes a complete `consumed` JSON
+record to a protected temporary file, flushes it, and atomically replaces the authorization. The shared sibling lock
+allows only one concurrent consumer; it stays in protected storage and must not be deleted because all consumers
+must coordinate on the same lock inode. A crash before replacement leaves the authorization unused and no connection
+has occurred; after replacement it is consumed. This avoids exposing a partially truncated JSON document. `consumed` and `revoked`
+are final states. The invocation rejects expired, consumed, or revoked records. The attempt consumes the authorization
+even if connection, identity proof, or a later check fails. Any retry requires a new ratifier approval and
+authorization.
 
 After approval, the operator must:
 
@@ -365,28 +370,42 @@ After approval, the operator must:
 2. Verify offline that only the documented direct or port-5432 Supabase session-pooler routes with
    `sslmode=verify-full`, the current
    project-specific Supabase CA obtained from the Supabase Connect dialog as the protected trust root, and the
-   selected target's restricted runtime credentials are configured. Reject transaction pooling and any route or
-   trust-root mismatch before proceeding.
-3. Immediately before connecting, atomically consume the unused collection authorization as described above. Stop if
-   it cannot be consumed once.
+   selected target's restricted runtime credentials are configured. For `combined`, require
+   `FARDB_AUTH_RUNTIME_DATABASE_URL`, `FARDB_GRAPH_RUNTIME_DATABASE_URL`, and
+   `FARDB_COORDINATION_RUNTIME_DATABASE_URL`; also require `FARDB_POSTGRES_TARGET_BINDINGS_FILE` and
+   `FARDB_CQ03D_INSPECTION_DATABASE_URL`. Confirm each variable is non-empty before invoking the runner. Reject
+   transaction pooling and any route or trust-root mismatch before proceeding.
+3. Immediately before connecting, atomically consume the unused collection authorization as described above, then
+   recheck the exact clean repository SHA. Stop if consumption fails or the SHA changed; the consumed authorization
+   is not reusable.
 4. Prove live target identity for the inspection and required runtime routes before reading migration history or
    catalog state. Stop on an identity mismatch or indeterminate identity.
 5. In read-only transactions, evaluate complete migration history against the six `hosted-legacy-v1` receipts and
    the already-adopted canonical markers strictly before the proposed marker; compute the normalized catalog digest;
    and run runtime-compatibility and runtime-authority checks through their respective restricted runtime routes.
    The proposed marker must be the next canonical marker. Do not write or repair migration history.
-6. Stop if any required check fails, is unavailable, or is incomplete, if the history is not the exact expected
-   prefix, or if the actual catalog digest differs from the manifest's expected digest. Preserve only the bounded
-   result and timestamp count in protected storage; discard raw provider output.
+6. Stop after an identity mismatch, or if any required check fails, is unavailable, or incomplete; do not run later
+   evidence checks after a failed prerequisite. Stop if the history is not the exact expected prefix or if the actual
+   catalog digest differs from the manifest's expected digest. Preserve only the bounded result and timestamp count in
+   protected storage; discard raw provider output.
 
 Run Stage 1 with the separate authorization file:
 
 ```sh
+: "${FARDB_POSTGRES_TARGET_BINDINGS_FILE:?protected target-binding path required}"
+: "${FARDB_CQ03D_INSPECTION_DATABASE_URL:?protected inspection DSN required}"
+: "${FARDB_AUTH_RUNTIME_DATABASE_URL:?protected auth runtime DSN required}"
+: "${FARDB_GRAPH_RUNTIME_DATABASE_URL:?protected graph runtime DSN required}"
+: "${FARDB_COORDINATION_RUNTIME_DATABASE_URL:?protected coordination runtime DSN required}"
+: "${FARDB_CQ03D_COLLECTION_AUTHORIZATION_FILE:?protected collection authorization path required}"
 python -m scripts.postgresql_preflight --collection-authorization-file "$FARDB_CQ03D_COLLECTION_AUTHORIZATION_FILE"
 ```
 
-The CLI also accepts `FARDB_CQ03D_COLLECTION_AUTHORIZATION_FILE` as its default path. It rejects simultaneous
-collection-authorization and preflight-permit arguments. The CQ-03D-01
+The CLI accepts `FARDB_CQ03D_COLLECTION_AUTHORIZATION_FILE` or `FARDB_CQ03D_PERMIT_FILE` when the corresponding
+argument is omitted. An explicit `--collection-authorization-file` selects Stage 1 and ignores a permit-file
+environment default; an explicit `--permit-file` selects the permit-bound stage and ignores a collection-file
+environment default. Supplying both explicit arguments, or setting both environment defaults without an explicit
+selector, is rejected. The CQ-03D-01
 `python -m scripts.postgresql_preflight --permit-file ...` command remains permit-bound and cannot run this first
 stage. Do not create a provisional permit or substitute placeholder evidence to bypass that guard. Before any
 production use, validate the exact invocation against disposable PostgreSQL, including concurrent consumption,
@@ -464,7 +483,7 @@ status invalidates it before any command is considered.
    projection containing that one marker and an explicit permit-bound `--db-url`. The allowlist rejects `--linked`,
    `--project-ref`, `--local`, password flags, dry-run, repair, push, reset, pull, and retained link or branch state.
 6. Require overall `PASS`, equal required/evaluated counts, separate `PASSED` results for identity, history, catalog,
-   runtime compatibility, runtime authority, and matching expected/actual catalog digests.
+   runtime compatibility, runtime authority, and migration parity, plus matching expected/actual catalog digests.
    Record only the bounded JSON result and timestamp count; discard raw provider output. Any non-pass result stops.
 7. Recheck the permit bindings immediately before any later history action. A target or evidence change after the
    earlier read-only checks is not a warning: revoke the permit and begin again with fresh evidence.

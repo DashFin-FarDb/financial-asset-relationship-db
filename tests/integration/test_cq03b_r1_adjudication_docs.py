@@ -294,8 +294,8 @@ def test_cq03d_runbook_documents_preflight_without_authorizing_execution() -> No
     assert "python -m scripts.postgresql_preflight --permit-file" in runbook
     assert "python -m scripts.postgresql_preflight --collection-authorization-file" in runbook
     assert "fardb-cq03d-collection-authorization-v1" in runbook
-    assert "durably changes `unused` to `consumed`" in runbook
-    assert "allow only one concurrent consumer" in runbook
+    assert "writes a complete `consumed` JSON" in runbook
+    assert "allows only one concurrent consumer" in runbook
     assert "`supabase-postgresql-routing-v1`" in runbook
     assert "live positive `pg_database.oid`" in runbook
     assert "TARGET_IDENTITY_INDETERMINATE" in runbook
@@ -304,7 +304,7 @@ def test_cq03d_runbook_documents_preflight_without_authorizing_execution() -> No
     assert "Its contract ratification is not a target approval" in runbook
     assert "cannot substitute a connector, runtime check, target, or subprocess runner" in runbook
     assert "separate `PASSED` results" in runbook
-    stage_one = runbook.split("Run Stage 1", maxsplit=1)[0].rsplit("####", maxsplit=1)[-1]
+    stage_one = runbook.split("### Stage 1", maxsplit=1)[1].split("### Approval pack", maxsplit=1)[0]
     assert "runtime-authority checks" in stage_one
     assert "migration parity" not in stage_one
     assert "pinned Supabase CLI `2.114.0` runs read-only `migration list`" in runbook

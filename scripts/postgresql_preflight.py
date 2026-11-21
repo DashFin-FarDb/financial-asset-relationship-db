@@ -528,45 +528,81 @@ def consume_collection_authorization(
 ) -> CollectionAuthorization:
     """Atomically spend one protected collection authorization before connecting."""
     control_path = _resolved_permit_path(Path(path))
-    descriptor = -1
+    lock_path = control_path.with_name(f".{control_path.name}.lock")
+    lock_descriptor = -1
+    temporary_path: Path | None = None
     try:
-        flags = os.O_RDWR | getattr(os, "O_CLOEXEC", 0) | getattr(os, "O_NOFOLLOW", 0)
-        descriptor = os.open(control_path, flags)
-        metadata = os.fstat(descriptor)
-        if not stat.S_ISREG(metadata.st_mode):
+        flags = os.O_RDWR | os.O_CREAT | getattr(os, "O_CLOEXEC", 0) | getattr(os, "O_NOFOLLOW", 0)
+        lock_descriptor = os.open(lock_path, flags, 0o600)
+        lock_metadata = os.fstat(lock_descriptor)
+        if not stat.S_ISREG(lock_metadata.st_mode):
             raise PreflightContractError(PERMIT_INVALID)
         if os.name != "nt" and (
-            stat.S_IMODE(metadata.st_mode) != 0o600 or metadata.st_uid != getattr(os, "geteuid", lambda: 0)()
+            stat.S_IMODE(lock_metadata.st_mode) != 0o600 or lock_metadata.st_uid != getattr(os, "geteuid", lambda: 0)()
         ):
             raise PreflightContractError(PERMIT_INVALID)
-        with os.fdopen(descriptor, "r+b") as handle:
-            descriptor = -1
-            with _exclusive_control_file_lock(handle):
-                handle.seek(0)
-                document = _decode_permit_document(handle)
+        with os.fdopen(lock_descriptor, "r+b") as lock_handle:
+            lock_descriptor = -1
+            with _exclusive_control_file_lock(lock_handle):
+                descriptor = os.open(
+                    control_path, os.O_RDONLY | getattr(os, "O_CLOEXEC", 0) | getattr(os, "O_NOFOLLOW", 0)
+                )
+                try:
+                    metadata = os.fstat(descriptor)
+                    if not stat.S_ISREG(metadata.st_mode):
+                        raise PreflightContractError(PERMIT_INVALID)
+                    if os.name != "nt" and (
+                        stat.S_IMODE(metadata.st_mode) != 0o600
+                        or metadata.st_uid != getattr(os, "geteuid", lambda: 0)()
+                    ):
+                        raise PreflightContractError(PERMIT_INVALID)
+                    with os.fdopen(descriptor, "rb") as handle:
+                        descriptor = -1
+                        document = _decode_permit_document(handle)
+                finally:
+                    if descriptor >= 0:
+                        os.close(descriptor)
                 authorization = _validated_collection_authorization(document, manifest, now)
                 consumed = dict(document)
                 consumed["state"] = "consumed"
                 payload = json.dumps(consumed, sort_keys=True, separators=(",", ":")).encode("utf-8")
-                handle.seek(0)
-                handle.truncate()
-                offset = 0
-                while offset < len(payload):
-                    written = handle.write(payload[offset:])
-                    if written <= 0:
-                        raise OSError("authorization state update was incomplete")
-                    offset += written
-                handle.flush()
-                os.fsync(handle.fileno())
+                temp_fd, temp_name = tempfile.mkstemp(prefix=f".{control_path.name}.", dir=control_path.parent)
+                temporary_path = Path(temp_name)
+                try:
+                    if os.name != "nt":
+                        os.chmod(temporary_path, 0o600)
+                    with os.fdopen(temp_fd, "wb") as temp_handle:
+                        temp_fd = -1
+                        if temp_handle.write(payload) != len(payload):
+                            raise OSError("authorization state update was incomplete")
+                        temp_handle.flush()
+                        os.fsync(temp_handle.fileno())
+                finally:
+                    if temp_fd >= 0:
+                        os.close(temp_fd)
+                current = os.stat(control_path, follow_symlinks=False)
+                if (current.st_dev, current.st_ino) != (metadata.st_dev, metadata.st_ino):
+                    raise PreflightContractError(PERMIT_INVALID)
+                os.replace(temporary_path, control_path)
+                temporary_path = None
+                if os.name != "nt":
+                    directory_fd = os.open(control_path.parent, os.O_RDONLY | getattr(os, "O_DIRECTORY", 0))
+                    try:
+                        os.fsync(directory_fd)
+                    finally:
+                        os.close(directory_fd)
                 return authorization
     except PreflightContractError:
         raise
     except (OSError, ValueError) as exc:
         raise PreflightContractError(PERMIT_INVALID) from exc
     finally:
-        if descriptor >= 0:
+        if lock_descriptor >= 0:
             with suppress(OSError):
-                os.close(descriptor)
+                os.close(lock_descriptor)
+        if temporary_path is not None:
+            with suppress(OSError):
+                temporary_path.unlink()
 
 
 def load_collection_authorization(
@@ -1169,15 +1205,33 @@ def _evaluate_verified_drift(
         _retained_target_identity(inspection_identity, inspection_route, target, expected_identity)
         for route in runtime_routes.values():
             _prove_route(route, target)
-        return evaluate_profile_drift(
+        try:
+            inspection_connection.rollback()
+        except Exception as exc:  # noqa: BLE001 - release the identity transaction before the evidence snapshot
+            raise PreflightContractError(EVALUATION_INCOMPLETE) from exc
+        identity_failure = False
+
+        def runtime_check() -> None:
+            """Preserve an identity mismatch that the generic evaluator would classify as unavailable."""
+            nonlocal identity_failure
+            try:
+                _runtime_routes_compatible(runtime_routes, target, inspection_identity)
+            except TargetIdentityError:
+                identity_failure = True
+                raise RuntimeCheckUnavailable("runtime identity verification failed")
+
+        drift = evaluate_profile_drift(
             inspection_connection,
             manifest,
             target.profile,
             target.lineage,
             target.execution_class,
-            runtime_check=lambda: _runtime_routes_compatible(runtime_routes, target, inspection_identity),
+            runtime_check=runtime_check,
             adoption_timestamp=permit.migration_timestamp,
         )
+        if identity_failure:
+            raise TargetIdentityError()
+        return drift
     finally:
         try:
             inspection_connection.close()
@@ -1298,6 +1352,8 @@ def run_collection(authorization_path: Path | str) -> CollectionReport:
     consumed = consume_collection_authorization(authorization_path, manifest)
     if consumed != authorization:
         raise PreflightContractError(PERMIT_INVALID)
+    if _repository_sha() != authorization.repository_sha:
+        raise PreflightContractError(REPOSITORY_HEAD_MISMATCH)
 
     identity_connection = _connect_verified(inspection_route, target)
     try:
@@ -1308,7 +1364,7 @@ def run_collection(authorization_path: Path | str) -> CollectionReport:
     drift = _evaluate_verified_drift(
         inspection_route, runtime_routes, target, manifest, authorization, planned_identity
     )
-    authority = _runtime_authority(runtime_routes, target, planned_identity)
+    authority = _runtime_authority(runtime_routes, target, planned_identity) if drift.status == PASS else NOT_EVALUATED
     if _repository_sha() != authorization.repository_sha:
         raise PreflightContractError(REPOSITORY_HEAD_MISMATCH)
 
@@ -1356,10 +1412,9 @@ def run_collection(authorization_path: Path | str) -> CollectionReport:
 def _build_parser() -> argparse.ArgumentParser:
     """Build the no-DSN command-line surface."""
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--permit-file", default=os.environ.get(PERMIT_FILE_ENV), type=Path)
+    parser.add_argument("--permit-file", type=Path)
     parser.add_argument(
         "--collection-authorization-file",
-        default=os.environ.get(COLLECTION_AUTHORIZATION_FILE_ENV),
         type=Path,
     )
     return parser
@@ -1371,12 +1426,21 @@ def main(argv: Sequence[str] | None = None) -> int:
     if arguments.permit_file is not None and arguments.collection_authorization_file is not None:
         print(PERMIT_INVALID, file=sys.stderr)
         return 1
-    if arguments.collection_authorization_file is not None:
-        collection_path = arguments.collection_authorization_file
+    permit_value = arguments.permit_file or os.environ.get(PERMIT_FILE_ENV)
+    collection_value = arguments.collection_authorization_file or os.environ.get(COLLECTION_AUTHORIZATION_FILE_ENV)
+    if arguments.permit_file is not None:
+        collection_value = None
+    elif arguments.collection_authorization_file is not None:
+        permit_value = None
+    if permit_value is not None and collection_value is not None:
+        print(PERMIT_INVALID, file=sys.stderr)
+        return 1
+    if collection_value is not None:
+        collection_path = Path(collection_value)
         permit_path = None
-    elif arguments.permit_file is not None:
+    elif permit_value is not None:
         collection_path = None
-        permit_path = arguments.permit_file
+        permit_path = Path(permit_value)
     else:
         print(PERMIT_INVALID, file=sys.stderr)
         return 1

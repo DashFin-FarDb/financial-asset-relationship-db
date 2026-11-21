@@ -9,6 +9,7 @@ import sys
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
 from pathlib import Path
+from threading import Event
 from types import SimpleNamespace
 from unittest.mock import MagicMock, Mock
 
@@ -87,7 +88,7 @@ def _collection_target(database_url: str) -> PlannedTarget:
 
 
 def _collection_run_target(tmp_path: Path, monkeypatch):
-    """Configure one mock Stage 1 target and return its approved identities."""
+    """Configure one mock Stage 1 target and its approved identity inputs."""
     manifest = load_and_validate_manifest()
     target = _collection_target("postgresql://operator:secret@localhost:5432/postgres")
     route = preflight.RouteIdentity(target.database_url, PROJECT_REF)
@@ -98,7 +99,6 @@ def _collection_run_target(tmp_path: Path, monkeypatch):
     monkeypatch.setattr(preflight, "_runtime_routes", lambda _target: {key: route for key in target.logical_targets})
     monkeypatch.setenv(preflight.TARGET_BINDINGS_ENV, str(tmp_path / "bindings.json"))
     monkeypatch.setenv(preflight.INSPECTION_DATABASE_URL_ENV, target.database_url)
-    return manifest, target, route
 
 
 def _migration_parity_fixture(tmp_path: Path):
@@ -239,6 +239,21 @@ def test_collection_authorization_concurrent_consumption_has_one_winner(tmp_path
     path = _write_collection_authorization(tmp_path)
     manifest = load_and_validate_manifest()
     now = datetime(2026, 11, 21, 10, tzinfo=timezone.utc)
+    validation_entered = Event()
+    allow_first_to_finish = Event()
+    real_validate = preflight._validated_collection_authorization
+    validation_count = 0
+
+    def pause_first_after_validation(document, current_manifest, current_now):
+        """Hold the first consumer inside the lock while the competing call starts."""
+        nonlocal validation_count
+        validation_count += 1
+        if validation_count == 1:
+            validation_entered.set()
+            assert allow_first_to_finish.wait(timeout=5)
+        return real_validate(document, current_manifest, current_now)
+
+    preflight._validated_collection_authorization = pause_first_after_validation
 
     def consume() -> str:
         """Race one authorization consumer and expose only its bounded outcome."""
@@ -248,17 +263,42 @@ def test_collection_authorization_concurrent_consumption_has_one_winner(tmp_path
             return "rejected"
         return "consumed"
 
-    with ThreadPoolExecutor(max_workers=2) as executor:
-        outcomes = tuple(executor.map(lambda _index: consume(), range(2)))
+    try:
+        with ThreadPoolExecutor(max_workers=2) as executor:
+            first = executor.submit(consume)
+            assert validation_entered.wait(timeout=5)
+            second = executor.submit(consume)
+            assert second.result(timeout=5) == "rejected"
+            allow_first_to_finish.set()
+            assert first.result(timeout=5) == "consumed"
+    finally:
+        allow_first_to_finish.set()
+        preflight._validated_collection_authorization = real_validate
 
-    assert sorted(outcomes) == ["consumed", "rejected"]
     assert json.loads(path.read_text(encoding="utf-8"))["state"] == "consumed"
+
+
+def test_collection_authorization_replace_failure_preserves_unused_json(tmp_path: Path, monkeypatch) -> None:
+    """A failed atomic replacement leaves a complete, still-unused authorization."""
+    path = _write_collection_authorization(tmp_path)
+    manifest = load_and_validate_manifest()
+    original = path.read_text(encoding="utf-8")
+    monkeypatch.setattr(preflight.os, "replace", lambda *_args: (_ for _ in ()).throw(OSError("replace failed")))
+
+    with pytest.raises(preflight.PreflightContractError, match=preflight.PERMIT_INVALID):
+        preflight.consume_collection_authorization(path, manifest, now=datetime(2026, 11, 21, tzinfo=timezone.utc))
+
+    assert path.read_text(encoding="utf-8") == original
+    assert json.loads(original)["state"] == "unused"
+    assert tuple(item.name for item in tmp_path.glob(".collection-authorization.json.*")) == (
+        ".collection-authorization.json.lock",
+    )
 
 
 def test_collection_authorization_is_consumed_when_first_connection_fails(tmp_path: Path, monkeypatch) -> None:
     """A failed first connection still spends the authorization before any retry."""
     path = _write_collection_authorization(tmp_path)
-    manifest, target, route = _collection_run_target(tmp_path, monkeypatch)
+    _collection_run_target(tmp_path, monkeypatch)
 
     def fail_connection(*_args, **_kwargs):
         """Represent the first database connection failure without making a network call."""
@@ -271,10 +311,28 @@ def test_collection_authorization_is_consumed_when_first_connection_fails(tmp_pa
     assert json.loads(path.read_text(encoding="utf-8"))["state"] == "consumed"
 
 
+def test_collection_rechecks_sha_after_consumption_before_connecting(tmp_path: Path, monkeypatch) -> None:
+    """A changed reviewed SHA consumes authorization and stops before connection."""
+    path = _write_collection_authorization(tmp_path)
+    _collection_run_target(tmp_path, monkeypatch)
+    sha_values = iter(("1" * 40, "2" * 40))
+    monkeypatch.setattr(preflight, "_repository_sha", lambda: next(sha_values))
+    monkeypatch.setattr(
+        preflight,
+        "_connect_verified",
+        lambda *_args: pytest.fail("a changed SHA must stop before the first connection"),
+    )
+
+    with pytest.raises(preflight.PreflightContractError, match=preflight.REPOSITORY_HEAD_MISMATCH):
+        preflight.run_collection(path)
+
+    assert json.loads(path.read_text(encoding="utf-8"))["state"] == "consumed"
+
+
 def test_collection_identity_failure_stops_all_evidence_queries(tmp_path: Path, monkeypatch) -> None:
     """A live identity failure prevents all five collection evidence checks."""
     path = _write_collection_authorization(tmp_path)
-    manifest, target, route = _collection_run_target(tmp_path, monkeypatch)
+    _collection_run_target(tmp_path, monkeypatch)
     monkeypatch.setattr(preflight, "_connect_verified", lambda *_args: (_ for _ in ()).throw(TargetIdentityError()))
 
     def fail_if_evidence_runs(*_args, **_kwargs):
@@ -288,6 +346,68 @@ def test_collection_identity_failure_stops_all_evidence_queries(tmp_path: Path, 
         preflight.run_collection(path)
 
     assert json.loads(path.read_text(encoding="utf-8"))["state"] == "consumed"
+
+
+def test_collection_runtime_identity_mismatch_stops_authority_check(monkeypatch) -> None:
+    """A runtime route identity failure is not downgraded to a later authority check."""
+    target = _collection_target("postgresql://operator:secret@localhost:5432/postgres")
+    route = preflight.RouteIdentity(target.database_url, PROJECT_REF)
+    connection = MagicMock()
+    monkeypatch.setattr(preflight, "_connect_verified", lambda *_args: connection)
+    monkeypatch.setattr(preflight, "_psycopg_database_identity", lambda _connection: object())
+    monkeypatch.setattr(preflight, "_retained_target_identity", lambda *_args: None)
+    monkeypatch.setattr(
+        preflight,
+        "_runtime_routes_compatible",
+        lambda *_args: (_ for _ in ()).throw(TargetIdentityError()),
+    )
+    monkeypatch.setattr(preflight, "_prove_route", lambda *_args: None)
+
+    def evaluate_after_identity_rollback(*_args, **kwargs):
+        """The drift evaluator starts only after the identity transaction is released."""
+        connection.rollback.assert_called_once()
+        return _evaluate_runtime_callback(kwargs)
+
+    monkeypatch.setattr(
+        preflight,
+        "evaluate_profile_drift",
+        evaluate_after_identity_rollback,
+    )
+
+    def fail_authority(*_args):
+        pytest.fail("runtime authority must not follow a failed runtime identity proof")
+
+    monkeypatch.setattr(preflight, "_runtime_authority", fail_authority)
+    with pytest.raises(TargetIdentityError):
+        preflight._evaluate_verified_drift(
+            route,
+            {key: route for key in target.logical_targets},
+            target,
+            load_and_validate_manifest(),
+            preflight.CollectionAuthorization(
+                "1" * 40,
+                load_and_validate_manifest().sha256,
+                "combined",
+                "hosted-legacy-v1",
+                "a" * 64,
+                preflight.COLLECTION_MARKER,
+                load_and_validate_manifest().catalog_digest_for_profile("combined"),
+                "operator",
+                "ratifier",
+                "2026-11-21T12:00:00Z",
+                "2026-11-21T13:00:00Z",
+            ),
+        )
+    connection.close.assert_called()
+
+
+def _evaluate_runtime_callback(kwargs):
+    """Model the drift evaluator swallowing runtime failures as unavailable evidence."""
+    try:
+        kwargs["runtime_check"]()
+    except preflight.RuntimeCheckUnavailable:
+        return SimpleNamespace(status=EVALUATION_INCOMPLETE)
+    pytest.fail("the runtime identity failure should be represented as unavailable inside the evaluator")
 
 
 def test_collection_uses_five_ratified_checks_without_migration_parity(tmp_path: Path, monkeypatch) -> None:
@@ -730,7 +850,7 @@ def test_migration_list_parser_rejects_unbounded_or_malformed_rows(stdout: str) 
 
 def test_migration_parity_projects_only_permit_and_requires_exact_remote_prefix(tmp_path: Path, monkeypatch) -> None:
     """Pinned CLI parity accepts legacy remote rows plus one local-only marker."""
-    route, target, manifest, migration, expected_history, rows = _migration_parity_fixture(tmp_path)
+    _route, target, _manifest, migration, expected_history, rows = _migration_parity_fixture(tmp_path)
     commands: list[tuple[str, ...]] = []
 
     monkeypatch.setattr(preflight, "_resolve_supabase_cli", lambda: "/bin/supabase")
@@ -754,7 +874,7 @@ def test_migration_parity_projects_only_permit_and_requires_exact_remote_prefix(
 
 def test_migration_parity_cleanup_failure_is_incomplete(tmp_path: Path, monkeypatch) -> None:
     """A CLI state directory that cannot be cleaned up prevents a passing result."""
-    route, target, manifest, migration, expected_history, rows = _migration_parity_fixture(tmp_path)
+    _route, target, _manifest, migration, expected_history, rows = _migration_parity_fixture(tmp_path)
     real_rmtree = preflight.shutil.rmtree
 
     monkeypatch.setattr(preflight, "_resolve_supabase_cli", lambda: "/bin/supabase")
@@ -791,6 +911,58 @@ def test_preflight_status_and_public_surface_fail_closed() -> None:
         EVALUATION_INCOMPLETE,
         (preflight.MIGRATION_PARITY_UNAVAILABLE,),
     )
+
+
+def test_explicit_collection_argument_ignores_permit_environment_default(monkeypatch, capsys) -> None:
+    """An explicit stage selector is not blocked by the other stage's environment default."""
+    monkeypatch.setenv(preflight.PERMIT_FILE_ENV, "protected-permit.json")
+    selected: list[Path] = []
+
+    def run_collection(path: Path):
+        """Record selected Stage 1 path and return a bounded successful report."""
+        selected.append(path)
+        return SimpleNamespace(status=PASS, as_public_dict=lambda: {"status": PASS})
+
+    monkeypatch.setattr(preflight, "run_collection", run_collection)
+
+    assert preflight.main(("--collection-authorization-file", "protected-authorization.json")) == 0
+    assert selected == [Path("protected-authorization.json")]
+    assert json.loads(capsys.readouterr().out)["status"] == PASS
+
+
+def test_explicit_permit_argument_ignores_collection_environment_default(monkeypatch, capsys) -> None:
+    """An explicit permit selector is not blocked by the collection environment default."""
+    monkeypatch.setenv(preflight.COLLECTION_AUTHORIZATION_FILE_ENV, "protected-authorization.json")
+    selected: list[Path] = []
+
+    def run_preflight(path: Path):
+        """Record selected permit-bound path and return a bounded successful report."""
+        selected.append(path)
+        return SimpleNamespace(status=PASS, as_public_dict=lambda: {"status": PASS})
+
+    monkeypatch.setattr(preflight, "run_preflight", run_preflight)
+
+    assert preflight.main(("--permit-file", "protected-permit.json")) == 0
+    assert selected == [Path("protected-permit.json")]
+    assert json.loads(capsys.readouterr().out)["status"] == PASS
+
+
+def test_two_environment_defaults_without_explicit_selector_are_rejected(monkeypatch, capsys) -> None:
+    """Ambiguous environment-only stage selection fails closed."""
+    monkeypatch.setenv(preflight.PERMIT_FILE_ENV, "protected-permit.json")
+    monkeypatch.setenv(preflight.COLLECTION_AUTHORIZATION_FILE_ENV, "protected-authorization.json")
+
+    assert preflight.main(()) == 1
+    assert capsys.readouterr().err.strip() == preflight.PERMIT_INVALID
+
+
+def test_two_explicit_stage_arguments_are_rejected(monkeypatch, capsys) -> None:
+    """The command cannot select collection and permit-bound execution together."""
+    monkeypatch.delenv(preflight.PERMIT_FILE_ENV, raising=False)
+    monkeypatch.delenv(preflight.COLLECTION_AUTHORIZATION_FILE_ENV, raising=False)
+
+    assert preflight.main(("--permit-file", "permit.json", "--collection-authorization-file", "auth.json")) == 1
+    assert capsys.readouterr().err.strip() == preflight.PERMIT_INVALID
 
 
 def test_repository_state_rejects_unreviewed_worktree_changes(monkeypatch) -> None:
