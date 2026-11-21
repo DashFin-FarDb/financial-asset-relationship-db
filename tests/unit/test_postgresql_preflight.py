@@ -368,6 +368,23 @@ def test_collection_rechecks_sha_after_consumption_before_connecting(tmp_path: P
     assert json.loads(path.read_text(encoding="utf-8"))["state"] == "consumed"
 
 
+def test_collection_rejects_authorization_for_different_repository_sha_before_consumption(
+    tmp_path: Path, monkeypatch
+) -> None:
+    """A stale authorization is rejected without spending it or connecting."""
+    path = _write_collection_authorization(tmp_path)
+    _collection_run_target(tmp_path, monkeypatch)
+    monkeypatch.setattr(preflight, "_repository_sha", lambda: "2" * 40)
+    consume = Mock(side_effect=AssertionError("a stale authorization must not be consumed"))
+    monkeypatch.setattr(preflight, "consume_collection_authorization", consume)
+
+    with pytest.raises(preflight.PreflightContractError, match=preflight.REPOSITORY_HEAD_MISMATCH):
+        preflight.run_collection(path)
+
+    consume.assert_not_called()
+    assert json.loads(path.read_text(encoding="utf-8"))["state"] == "unused"
+
+
 def test_collection_rechecks_authorization_window_after_consumption(tmp_path: Path, monkeypatch) -> None:
     """An authorization that expires during pre-connect checks cannot start a connection."""
     path = _write_collection_authorization(tmp_path)
@@ -487,7 +504,6 @@ def _evaluate_runtime_callback(kwargs):
     except preflight.RuntimeCheckUnavailable:
         return SimpleNamespace(status=EVALUATION_INCOMPLETE)
     pytest.fail("the runtime identity failure should be represented as unavailable inside the evaluator")
-    return None
 
 
 def test_collection_uses_five_ratified_checks_without_migration_parity(tmp_path: Path, monkeypatch) -> None:
