@@ -13,6 +13,7 @@
   on 2026-11-20 and approved a separate bounded read-only evidence-collection stage on 2026-11-21. No separate project
   or branch is designated as FarDb staging. The reviewed collection-only invocation is not available, so no production
   connection is authorized; collection results, the single-use permit, and hosted preflight remain pending.
+  The record confirms that no CQ-03D-02 hosted preflight has been executed.
 
 **Cutoff scope:** The 2026-09-01 broad repository review and its source list describe `main` at
 `0984f6225cc0f42ff02a9f7eda7b314566d759d0`. Later dated entries are PR-specific post-cutoff addenda; they do
