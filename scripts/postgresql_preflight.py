@@ -14,7 +14,7 @@ import sys
 import tempfile
 from collections.abc import Mapping, Sequence
 from contextlib import ExitStack, contextmanager, suppress
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 from types import ModuleType
@@ -214,31 +214,7 @@ class PreflightReport:
 
     def as_public_dict(self) -> dict[str, object]:
         """Return deterministic JSON-safe diagnostics."""
-        return {
-            "status": self.status,
-            "reason_codes": list(self.reason_codes),
-            "repository_sha": self.repository_sha,
-            "manifest_sha256": self.manifest_sha256,
-            "profile": self.profile,
-            "lineage": self.lineage,
-            "target_fingerprint_algorithm": self.target_fingerprint_algorithm,
-            "target_fingerprint": self.target_fingerprint,
-            "migration_timestamp": self.migration_timestamp,
-            "identity": self.identity,
-            "history": self.history,
-            "catalog": self.catalog,
-            "runtime_compatibility": self.runtime_compatibility,
-            "runtime_authority": self.runtime_authority,
-            "migration_parity": self.migration_parity,
-            "required_check_count": self.required_check_count,
-            "evaluated_check_count": self.evaluated_check_count,
-            "application_owned_count": self.application_owned_count,
-            "provider_owned_count": self.provider_owned_count,
-            "unknown_count": self.unknown_count,
-            "expected_catalog_digest": self.expected_catalog_digest,
-            "actual_catalog_digest": self.actual_catalog_digest,
-            "parity_row_count": self.parity_row_count,
-        }
+        return _public_report_dict(self)
 
 
 @dataclass(frozen=True, slots=True)
@@ -270,30 +246,14 @@ class CollectionReport:
 
     def as_public_dict(self) -> dict[str, object]:
         """Return deterministic JSON-safe collection diagnostics."""
-        return {
-            "status": self.status,
-            "reason_codes": list(self.reason_codes),
-            "repository_sha": self.repository_sha,
-            "manifest_sha256": self.manifest_sha256,
-            "profile": self.profile,
-            "lineage": self.lineage,
-            "target_fingerprint_algorithm": self.target_fingerprint_algorithm,
-            "target_fingerprint": self.target_fingerprint,
-            "migration_timestamp": self.migration_timestamp,
-            "identity": self.identity,
-            "history": self.history,
-            "catalog": self.catalog,
-            "runtime_compatibility": self.runtime_compatibility,
-            "runtime_authority": self.runtime_authority,
-            "required_check_count": self.required_check_count,
-            "evaluated_check_count": self.evaluated_check_count,
-            "history_timestamp_count": self.history_timestamp_count,
-            "application_owned_count": self.application_owned_count,
-            "provider_owned_count": self.provider_owned_count,
-            "unknown_count": self.unknown_count,
-            "expected_catalog_digest": self.expected_catalog_digest,
-            "actual_catalog_digest": self.actual_catalog_digest,
-        }
+        return _public_report_dict(self)
+
+
+def _public_report_dict(report: PreflightReport | CollectionReport) -> dict[str, object]:
+    """Convert either bounded report to deterministic JSON-safe diagnostics."""
+    result = asdict(report)
+    result["reason_codes"] = list(report.reason_codes)
+    return result
 
 
 def _object_without_duplicate_keys(pairs: list[tuple[str, object]]) -> dict[str, object]:

@@ -195,9 +195,10 @@ def test_collection_authorization_is_bound_to_the_ratified_profile_and_marker(tm
     assert authorization.migration_timestamp == "20260817153547"
 
     document["migration_timestamp"] = "0" * 14
+    invalid_authorization_path = _write_collection_authorization(tmp_path, document)
     with pytest.raises(preflight.PreflightContractError, match=preflight.PERMIT_INVALID):
         preflight.load_collection_authorization(
-            _write_collection_authorization(tmp_path, document),
+            invalid_authorization_path,
             manifest,
             now=datetime(2026, 11, 21, 10, tzinfo=timezone.utc),
         )
