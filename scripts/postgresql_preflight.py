@@ -185,8 +185,8 @@ class RouteIdentity:
 
 
 @dataclass(frozen=True, slots=True)
-class PreflightReport:
-    """Bounded public CQ-03D preflight evidence without target secrets."""
+class _BoundedReport:
+    """Shared target-bound fields for sanitized CQ-03D evidence."""
 
     status: str
     reason_codes: tuple[str, ...]
@@ -202,7 +202,6 @@ class PreflightReport:
     catalog: str
     runtime_compatibility: str
     runtime_authority: str
-    migration_parity: str
     required_check_count: int
     evaluated_check_count: int
     application_owned_count: int
@@ -210,7 +209,6 @@ class PreflightReport:
     unknown_count: int
     expected_catalog_digest: str | None
     actual_catalog_digest: str | None
-    parity_row_count: int
 
     def as_public_dict(self) -> dict[str, object]:
         """Return deterministic JSON-safe diagnostics."""
@@ -218,38 +216,21 @@ class PreflightReport:
 
 
 @dataclass(frozen=True, slots=True)
-class CollectionReport:
+class PreflightReport(_BoundedReport):
+    """Bounded public CQ-03D preflight evidence without target secrets."""
+
+    migration_parity: str
+    parity_row_count: int
+
+
+@dataclass(frozen=True, slots=True)
+class CollectionReport(_BoundedReport):
     """Bounded CQ-03D collection evidence for the five ratified checks."""
 
-    status: str
-    reason_codes: tuple[str, ...]
-    repository_sha: str
-    manifest_sha256: str
-    profile: str
-    lineage: str
-    target_fingerprint_algorithm: str
-    target_fingerprint: str
-    migration_timestamp: str
-    identity: str
-    history: str
-    catalog: str
-    runtime_compatibility: str
-    runtime_authority: str
-    required_check_count: int
-    evaluated_check_count: int
     history_timestamp_count: int | None
-    application_owned_count: int
-    provider_owned_count: int
-    unknown_count: int
-    expected_catalog_digest: str | None
-    actual_catalog_digest: str | None
-
-    def as_public_dict(self) -> dict[str, object]:
-        """Return deterministic JSON-safe collection diagnostics."""
-        return _public_report_dict(self)
 
 
-def _public_report_dict(report: PreflightReport | CollectionReport) -> dict[str, object]:
+def _public_report_dict(report: _BoundedReport) -> dict[str, object]:
     """Convert either bounded report to deterministic JSON-safe diagnostics."""
     result = asdict(report)
     result["reason_codes"] = list(report.reason_codes)
@@ -1269,29 +1250,29 @@ def run_preflight(permit_path: Path | str) -> PreflightReport:
     reasons = tuple(sorted(set(drift.reason_codes + preflight_reasons)))
     evaluated = 1 + drift.evaluated_check_count + int(authority != NOT_EVALUATED) + int(parity != NOT_EVALUATED)
     return PreflightReport(
-        status,
-        reasons,
-        repository_sha,
-        manifest.sha256,
-        target.profile,
-        target.lineage,
-        TARGET_FINGERPRINT_ALGORITHM,
-        target.fingerprint,
-        permit.migration_timestamp,
-        CHECK_PASSED,
-        drift.history,
-        drift.catalog,
-        drift.runtime_compatibility,
-        authority,
-        parity,
-        drift.required_check_count + 3,
-        evaluated,
-        drift.application_owned_count,
-        drift.provider_owned_count,
-        drift.unknown_count,
-        drift.expected_catalog_digest,
-        drift.actual_catalog_digest,
-        parity_row_count,
+        status=status,
+        reason_codes=reasons,
+        repository_sha=repository_sha,
+        manifest_sha256=manifest.sha256,
+        profile=target.profile,
+        lineage=target.lineage,
+        target_fingerprint_algorithm=TARGET_FINGERPRINT_ALGORITHM,
+        target_fingerprint=target.fingerprint,
+        migration_timestamp=permit.migration_timestamp,
+        identity=CHECK_PASSED,
+        history=drift.history,
+        catalog=drift.catalog,
+        runtime_compatibility=drift.runtime_compatibility,
+        runtime_authority=authority,
+        required_check_count=drift.required_check_count + 3,
+        evaluated_check_count=evaluated,
+        application_owned_count=drift.application_owned_count,
+        provider_owned_count=drift.provider_owned_count,
+        unknown_count=drift.unknown_count,
+        expected_catalog_digest=drift.expected_catalog_digest,
+        actual_catalog_digest=drift.actual_catalog_digest,
+        migration_parity=parity,
+        parity_row_count=parity_row_count,
     )
 
 
@@ -1347,28 +1328,28 @@ def run_collection(authorization_path: Path | str) -> CollectionReport:
     history_timestamp_count = len(expected_history) if drift.history == CHECK_PASSED and expected_history else None
     evaluated = 1 + drift.evaluated_check_count + int(authority != NOT_EVALUATED)
     return CollectionReport(
-        status,
-        reasons,
-        repository_sha,
-        manifest.sha256,
-        target.profile,
-        target.lineage,
-        TARGET_FINGERPRINT_ALGORITHM,
-        target.fingerprint,
-        authorization.migration_timestamp,
-        CHECK_PASSED,
-        drift.history,
-        drift.catalog,
-        drift.runtime_compatibility,
-        authority,
-        drift.required_check_count + 2,
-        evaluated,
-        history_timestamp_count,
-        drift.application_owned_count,
-        drift.provider_owned_count,
-        drift.unknown_count,
-        drift.expected_catalog_digest,
-        drift.actual_catalog_digest,
+        status=status,
+        reason_codes=reasons,
+        repository_sha=repository_sha,
+        manifest_sha256=manifest.sha256,
+        profile=target.profile,
+        lineage=target.lineage,
+        target_fingerprint_algorithm=TARGET_FINGERPRINT_ALGORITHM,
+        target_fingerprint=target.fingerprint,
+        migration_timestamp=authorization.migration_timestamp,
+        identity=CHECK_PASSED,
+        history=drift.history,
+        catalog=drift.catalog,
+        runtime_compatibility=drift.runtime_compatibility,
+        runtime_authority=authority,
+        required_check_count=drift.required_check_count + 2,
+        evaluated_check_count=evaluated,
+        history_timestamp_count=history_timestamp_count,
+        application_owned_count=drift.application_owned_count,
+        provider_owned_count=drift.provider_owned_count,
+        unknown_count=drift.unknown_count,
+        expected_catalog_digest=drift.expected_catalog_digest,
+        actual_catalog_digest=drift.actual_catalog_digest,
     )
 
 
