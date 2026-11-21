@@ -347,11 +347,16 @@ single-use collection authorization binding all of the following:
 The collection authorization, target binding, connection inputs, and bounded result remain in protected operator
 storage. Never put them or raw provider output in the repository, an issue, or a workflow log. The approval applies to
 this SHA, manifest, target, profile, lineage, marker, operator, and validity window only. Any mismatch or expiry
-requires fresh approval. Immediately before the first production connection, the collection-only invocation must
-atomically compare-and-set the authorization from `unused` to `consumed`; the ratifier may instead move an unused
-authorization to `revoked` before use. These are the only state transitions, and both destination states are final.
-The invocation must reject expired, consumed, or revoked records. The attempt consumes the authorization even if
-identity proof or a later check fails. Any retry requires a new ratifier approval and authorization.
+requires fresh approval. The authorization is a strict JSON object with version
+`fardb-cq03d-collection-authorization-v1`, state `unused`, the listed binding fields, `expected_catalog_digest`, named
+`operator` and `ratifier`, `approved_at`, `expires_at`, and scope `read-only-evidence-collection`. Use an absolute
+owner-only regular file with mode `0600`; symlinks and duplicate or unknown fields are rejected. Before use, the
+ratifier may revoke it by changing only its state to `revoked` while it remains in protected operator storage.
+Immediately before the first connection, the invocation takes an exclusive lock on the authorization file, validates
+it again, and durably changes `unused` to `consumed`. The lock and durable state update allow only one concurrent
+consumer. `consumed` and `revoked` are final states. The invocation rejects expired, consumed, or revoked records.
+The attempt consumes the authorization even if connection, identity proof, or a later check fails. Any retry requires
+a new ratifier approval and authorization.
 
 After approval, the operator must:
 
@@ -374,11 +379,20 @@ After approval, the operator must:
    prefix, or if the actual catalog digest differs from the manifest's expected digest. Preserve only the bounded
    result and timestamp count in protected storage; discard raw provider output.
 
-The CQ-03D-01 `python -m scripts.postgresql_preflight --permit-file ...` command remains permit-bound and cannot run
-this first stage. Do not create a provisional permit or substitute placeholder evidence to bypass that guard. A
-reviewed collection-only invocation implementing the steps above, including atomic one-use consumption, is a
-prerequisite to connecting under this authorization. Until that invocation is available and validated, keep the
-collection authorization unused and the hosted connection on hold.
+Run Stage 1 with the separate authorization file:
+
+```sh
+python -m scripts.postgresql_preflight --collection-authorization-file "$FARDB_CQ03D_COLLECTION_AUTHORIZATION_FILE"
+```
+
+The CLI also accepts `FARDB_CQ03D_COLLECTION_AUTHORIZATION_FILE` as its default path. It rejects simultaneous
+collection-authorization and preflight-permit arguments. The CQ-03D-01
+`python -m scripts.postgresql_preflight --permit-file ...` command remains permit-bound and cannot run this first
+stage. Do not create a provisional permit or substitute placeholder evidence to bypass that guard. Before any
+production use, validate the exact invocation against disposable PostgreSQL, including concurrent consumption,
+consumption on failed connection, and stopping after identity mismatch before history/catalog/runtime evidence
+queries. Until that reviewed validation is available, keep the collection authorization unused and the hosted
+connection on hold.
 
 After a passing collection result, the ratifier reviews the result and the exact-head CQ-03B/C repository evidence.
 Only then may the ratifier separately issue the exact-SHA, single-use preflight permit below, with references to the

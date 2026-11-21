@@ -61,6 +61,11 @@ from scripts.postgresql_ledger import (
 )
 
 PREFLIGHT_PERMIT_VERSION = "fardb-cq03d-preflight-permit-v1"
+COLLECTION_AUTHORIZATION_VERSION = "fardb-cq03d-collection-authorization-v1"
+COLLECTION_AUTHORIZATION_FILE_ENV = "FARDB_CQ03D_COLLECTION_AUTHORIZATION_FILE"
+COLLECTION_PROFILE = "combined"
+COLLECTION_LINEAGE = "hosted-legacy-v1"
+COLLECTION_MARKER = "20260817153547"
 TARGET_ADAPTER_ID = "supabase-postgresql-routing-v1"
 INSPECTION_DATABASE_URL_ENV = "FARDB_CQ03D_INSPECTION_DATABASE_URL"
 PERMIT_FILE_ENV = "FARDB_CQ03D_PERMIT_FILE"
@@ -113,6 +118,23 @@ _EVIDENCE_KEYS = {
     "runtime_compatibility",
     "runtime_authority",
 }
+_COLLECTION_AUTHORIZATION_KEYS = {
+    "version",
+    "state",
+    "repository_sha",
+    "manifest_sha256",
+    "profile",
+    "lineage",
+    "target_fingerprint_algorithm",
+    "target_fingerprint",
+    "migration_timestamp",
+    "expected_catalog_digest",
+    "operator",
+    "ratifier",
+    "approved_at",
+    "expires_at",
+    "scope",
+}
 
 
 class PreflightContractError(RuntimeError):
@@ -135,6 +157,23 @@ class PreflightPermit:
     target_fingerprint: str
     migration_timestamp: str
     expected_catalog_digest: str
+
+
+@dataclass(frozen=True, slots=True)
+class CollectionAuthorization:
+    """One protected authorization for bounded read-only evidence collection."""
+
+    repository_sha: str
+    manifest_sha256: str
+    profile: str
+    lineage: str
+    target_fingerprint: str
+    migration_timestamp: str
+    expected_catalog_digest: str
+    operator: str
+    ratifier: str
+    approved_at: str
+    expires_at: str
 
 
 @dataclass(frozen=True, slots=True)
@@ -236,7 +275,9 @@ def _open_permit_handle(path: Path) -> BinaryIO:
         metadata = os.fstat(descriptor)
         if not stat.S_ISREG(metadata.st_mode):
             raise PreflightContractError(PERMIT_INVALID)
-        if os.name != "nt" and (stat.S_IMODE(metadata.st_mode) != 0o600 or metadata.st_uid != os.geteuid()):
+        if os.name != "nt" and (
+            stat.S_IMODE(metadata.st_mode) != 0o600 or metadata.st_uid != getattr(os, "geteuid", lambda: 0)()
+        ):
             raise PreflightContractError(PERMIT_INVALID)
         handle = os.fdopen(descriptor, "rb")
         return handle
@@ -390,6 +431,154 @@ def load_preflight_permit(
     return _validated_permit_binding(document, manifest)
 
 
+@contextmanager
+def _exclusive_control_file_lock(handle: BinaryIO):
+    """Hold one non-blocking exclusive lock on a protected control file."""
+    try:
+        if os.name == "nt":
+            import msvcrt
+
+            handle.seek(0)
+            msvcrt.locking(handle.fileno(), msvcrt.LK_NBLCK, 1)
+
+            def unlock() -> None:
+                handle.seek(0)
+                msvcrt.locking(handle.fileno(), msvcrt.LK_UNLCK, 1)
+
+        else:
+            import fcntl
+
+            fcntl.flock(handle.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)  # type: ignore[attr-defined]
+
+            def unlock() -> None:
+                fcntl.flock(handle.fileno(), fcntl.LOCK_UN)  # type: ignore[attr-defined]
+
+    except (ImportError, OSError) as exc:
+        raise PreflightContractError(PERMIT_INVALID) from exc
+    try:
+        yield
+    finally:
+        with suppress(OSError):
+            unlock()
+
+
+def _validated_collection_authorization(
+    document: Mapping[str, object], manifest: LedgerManifest, now: datetime | None
+) -> CollectionAuthorization:
+    """Validate the exact approved collection scope and its bounded target binding."""
+    if set(document) != _COLLECTION_AUTHORIZATION_KEYS:
+        raise PreflightContractError(PERMIT_INVALID)
+    operator = document["operator"]
+    ratifier = document["ratifier"]
+    checks = (
+        document["version"] == COLLECTION_AUTHORIZATION_VERSION,
+        document["state"] == "unused",
+        document["profile"] == COLLECTION_PROFILE,
+        document["lineage"] == COLLECTION_LINEAGE,
+        document["migration_timestamp"] == COLLECTION_MARKER,
+        document["target_fingerprint_algorithm"] == TARGET_FINGERPRINT_ALGORITHM,
+        isinstance(operator, str) and bool(operator.strip()) and operator == operator.strip(),
+        isinstance(ratifier, str) and bool(ratifier.strip()) and ratifier == ratifier.strip(),
+        document["scope"] == "read-only-evidence-collection",
+    )
+    if not all(checks):
+        raise PreflightContractError(PERMIT_INVALID)
+    _validate_permit_window(document, now)
+    names = (
+        "repository_sha",
+        "manifest_sha256",
+        "profile",
+        "lineage",
+        "target_fingerprint",
+        "migration_timestamp",
+        "expected_catalog_digest",
+    )
+    values = tuple(document[name] for name in names)
+    if not all(isinstance(value, str) for value in values):
+        raise PreflightContractError(PERMIT_INVALID)
+    repository_sha, manifest_sha256, profile, lineage, fingerprint, timestamp, expected_digest = map(str, values)
+    format_checks = (
+        _LOWER_HEX_40.fullmatch(repository_sha) is not None,
+        manifest_sha256 == manifest.sha256,
+        profile == COLLECTION_PROFILE,
+        lineage == COLLECTION_LINEAGE,
+        _LOWER_HEX_64.fullmatch(fingerprint) is not None,
+        timestamp == COLLECTION_MARKER,
+        _LOWER_HEX_64.fullmatch(expected_digest) is not None,
+        expected_digest == manifest.catalog_digest_for_profile(COLLECTION_PROFILE),
+        timestamp in {entry.timestamp for entry in manifest.migrations_for_profile(COLLECTION_PROFILE)},
+    )
+    if not all(format_checks):
+        raise PreflightContractError(PERMIT_INVALID)
+    return CollectionAuthorization(
+        repository_sha,
+        manifest_sha256,
+        profile,
+        lineage,
+        fingerprint,
+        timestamp,
+        expected_digest,
+        str(operator),
+        str(ratifier),
+        str(document["approved_at"]),
+        str(document["expires_at"]),
+    )
+
+
+def consume_collection_authorization(
+    path: Path | str, manifest: LedgerManifest, *, now: datetime | None = None
+) -> CollectionAuthorization:
+    """Atomically spend one protected collection authorization before connecting."""
+    control_path = _resolved_permit_path(Path(path))
+    descriptor = -1
+    try:
+        flags = os.O_RDWR | getattr(os, "O_CLOEXEC", 0) | getattr(os, "O_NOFOLLOW", 0)
+        descriptor = os.open(control_path, flags)
+        metadata = os.fstat(descriptor)
+        if not stat.S_ISREG(metadata.st_mode):
+            raise PreflightContractError(PERMIT_INVALID)
+        if os.name != "nt" and (
+            stat.S_IMODE(metadata.st_mode) != 0o600 or metadata.st_uid != getattr(os, "geteuid", lambda: 0)()
+        ):
+            raise PreflightContractError(PERMIT_INVALID)
+        with os.fdopen(descriptor, "r+b") as handle:
+            descriptor = -1
+            with _exclusive_control_file_lock(handle):
+                handle.seek(0)
+                document = _decode_permit_document(handle)
+                authorization = _validated_collection_authorization(document, manifest, now)
+                consumed = dict(document)
+                consumed["state"] = "consumed"
+                payload = json.dumps(consumed, sort_keys=True, separators=(",", ":")).encode("utf-8")
+                handle.seek(0)
+                handle.truncate()
+                offset = 0
+                while offset < len(payload):
+                    written = handle.write(payload[offset:])
+                    if written <= 0:
+                        raise OSError("authorization state update was incomplete")
+                    offset += written
+                handle.flush()
+                os.fsync(handle.fileno())
+                return authorization
+    except PreflightContractError:
+        raise
+    except (OSError, ValueError) as exc:
+        raise PreflightContractError(PERMIT_INVALID) from exc
+    finally:
+        if descriptor >= 0:
+            with suppress(OSError):
+                os.close(descriptor)
+
+
+def load_collection_authorization(
+    path: Path | str, manifest: LedgerManifest, *, now: datetime | None = None
+) -> CollectionAuthorization:
+    """Validate one unused collection authorization without consuming it."""
+    document = _protected_permit_document(Path(path))
+    return _validated_collection_authorization(document, manifest, now)
+
+
 def _repository_sha() -> str:
     """Return the exact checked-out repository head only from a clean worktree."""
     git_environment = {name: value for name, value in os.environ.items() if not name.startswith("GIT_")}
@@ -508,7 +697,7 @@ def _validate_trust_root(value: str) -> None:
         raise
     except (OSError, RuntimeError, ValueError) as exc:
         raise TargetIdentityError() from exc
-    permitted_owners = {os.geteuid(), 0} if os.name != "nt" else set()
+    permitted_owners = {getattr(os, "geteuid", lambda: 0)(), 0} if os.name != "nt" else set()
     checks = (
         stat.S_ISREG(metadata.st_mode),
         not metadata.st_mode & (stat.S_IWGRP | stat.S_IWOTH),
@@ -578,7 +767,7 @@ def _connect_verified(route: RouteIdentity, target: PlannedTarget):
 
 def _verified_target(
     manifest: LedgerManifest,
-    permit: PreflightPermit,
+    permit: PreflightPermit | CollectionAuthorization,
     binding_path: Path,
     inspection_route: RouteIdentity,
 ) -> PlannedTarget:
@@ -972,7 +1161,7 @@ def _evaluate_verified_drift(
     runtime_routes: Mapping[str, RouteIdentity],
     target: PlannedTarget,
     manifest: LedgerManifest,
-    permit: PreflightPermit,
+    permit: PreflightPermit | CollectionAuthorization,
     expected_identity=None,
 ) -> DriftReport:
     """Prove every route and evaluate drift while always closing inspection access."""
@@ -1001,7 +1190,7 @@ def _evaluate_verified_drift(
 def _evaluate_migration_parity(
     manifest: LedgerManifest,
     target: PlannedTarget,
-    permit: PreflightPermit,
+    permit: PreflightPermit | CollectionAuthorization,
     drift_status: str,
     authority: str,
 ) -> tuple[str, int]:
@@ -1089,21 +1278,107 @@ def run_preflight(permit_path: Path | str) -> PreflightReport:
     )
 
 
+def run_collection(authorization_path: Path | str) -> PreflightReport:
+    """Collect bounded CQ-03D evidence after atomically consuming its separate authorization."""
+    manifest = load_and_validate_manifest()
+    authorization = load_collection_authorization(authorization_path, manifest)
+    repository_sha = _repository_sha()
+    if authorization.repository_sha != repository_sha:
+        raise PreflightContractError(REPOSITORY_HEAD_MISMATCH)
+    binding_value = os.environ.get(TARGET_BINDINGS_ENV)
+    inspection_value = os.environ.get(INSPECTION_DATABASE_URL_ENV)
+    if not binding_value or not inspection_value:
+        raise TargetIdentityError()
+    binding_path = Path(binding_value)
+    inspection_route = _supabase_route_identity(inspection_value)
+    target = _verified_target(manifest, authorization, binding_path, inspection_route)
+    runtime_routes = _runtime_routes(target)
+
+    # Spend the one-use record only after all local checks and route parsing pass,
+    # immediately before the first connection attempt. A race or changed record
+    # fails closed without connecting.
+    consumed = consume_collection_authorization(authorization_path, manifest)
+    if consumed != authorization:
+        raise PreflightContractError(PERMIT_INVALID)
+
+    identity_connection = _connect_verified(inspection_route, target)
+    try:
+        planned_identity = _psycopg_database_identity(identity_connection)
+        _retained_target_identity(planned_identity, inspection_route, target)
+    finally:
+        identity_connection.close()
+    drift = _evaluate_verified_drift(
+        inspection_route, runtime_routes, target, manifest, authorization, planned_identity
+    )
+    authority = _runtime_authority(runtime_routes, target, planned_identity)
+    parity, parity_row_count = _evaluate_migration_parity(manifest, target, authorization, drift.status, authority)
+    if _repository_sha() != authorization.repository_sha:
+        raise PreflightContractError(REPOSITORY_HEAD_MISMATCH)
+
+    status, preflight_reasons = _report_status(drift.status, authority, parity)
+    reasons = tuple(sorted(set(drift.reason_codes + preflight_reasons)))
+    evaluated = 1 + drift.evaluated_check_count + int(authority != NOT_EVALUATED) + int(parity != NOT_EVALUATED)
+    return PreflightReport(
+        status,
+        reasons,
+        repository_sha,
+        manifest.sha256,
+        target.profile,
+        target.lineage,
+        TARGET_FINGERPRINT_ALGORITHM,
+        target.fingerprint,
+        authorization.migration_timestamp,
+        CHECK_PASSED,
+        drift.history,
+        drift.catalog,
+        drift.runtime_compatibility,
+        authority,
+        parity,
+        drift.required_check_count + 3,
+        evaluated,
+        drift.application_owned_count,
+        drift.provider_owned_count,
+        drift.unknown_count,
+        drift.expected_catalog_digest,
+        drift.actual_catalog_digest,
+        parity_row_count,
+    )
+
+
 def _build_parser() -> argparse.ArgumentParser:
     """Build the no-DSN command-line surface."""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--permit-file", default=os.environ.get(PERMIT_FILE_ENV), type=Path)
+    parser.add_argument(
+        "--collection-authorization-file",
+        default=os.environ.get(COLLECTION_AUTHORIZATION_FILE_ENV),
+        type=Path,
+    )
     return parser
 
 
 def main(argv: Sequence[str] | None = None) -> int:
     """Emit only a bounded public report or a fixed failure code."""
     arguments = _build_parser().parse_args(argv)
-    if arguments.permit_file is None:
+    if arguments.permit_file is not None and arguments.collection_authorization_file is not None:
+        print(PERMIT_INVALID, file=sys.stderr)
+        return 1
+    if arguments.collection_authorization_file is not None:
+        collection_path = arguments.collection_authorization_file
+        permit_path = None
+    elif arguments.permit_file is not None:
+        collection_path = None
+        permit_path = arguments.permit_file
+    else:
         print(PERMIT_INVALID, file=sys.stderr)
         return 1
     try:
-        report = run_preflight(arguments.permit_file)
+        if collection_path is not None:
+            report = run_collection(collection_path)
+        elif permit_path is not None:
+            report = run_preflight(permit_path)
+        else:
+            raise PreflightContractError(PERMIT_INVALID)
     except TargetIdentityError:
         print(TARGET_IDENTITY_INDETERMINATE, file=sys.stderr)
         return 1
