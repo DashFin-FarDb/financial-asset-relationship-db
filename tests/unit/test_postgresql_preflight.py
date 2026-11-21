@@ -86,6 +86,36 @@ def _collection_target(database_url: str) -> PlannedTarget:
     )
 
 
+def _collection_run_target(tmp_path: Path, monkeypatch):
+    """Configure one mock Stage 1 target and return its approved identities."""
+    manifest = load_and_validate_manifest()
+    target = _collection_target("postgresql://operator:secret@localhost:5432/postgres")
+    route = preflight.RouteIdentity(target.database_url, PROJECT_REF)
+    monkeypatch.setattr(preflight, "load_and_validate_manifest", lambda: manifest)
+    monkeypatch.setattr(preflight, "_repository_sha", lambda: "1" * 40)
+    monkeypatch.setattr(preflight, "_supabase_route_identity", lambda _value: route)
+    monkeypatch.setattr(preflight, "_verified_target", lambda *_args: target)
+    monkeypatch.setattr(preflight, "_runtime_routes", lambda _target: {key: route for key in target.logical_targets})
+    monkeypatch.setenv(preflight.TARGET_BINDINGS_ENV, str(tmp_path / "bindings.json"))
+    monkeypatch.setenv(preflight.INSPECTION_DATABASE_URL_ENV, target.database_url)
+    return manifest, target, route
+
+
+def _migration_parity_fixture(tmp_path: Path):
+    """Build the shared local-only migration-list expectation for parity tests."""
+    route = preflight._supabase_route_identity(_database_url(tmp_path))
+    target = _target(route.database_url)
+    manifest = load_and_validate_manifest()
+    migration = manifest.migrations_for_profile("graph")[0]
+    expected = tuple(
+        (str(receipt["timestamp"]), str(receipt["name"]))
+        for receipt in manifest.data["lineages"]["hosted-legacy-v1"]["receipts"]
+    )
+    rows = [{"local": "", "remote": timestamp, "time": ""} for timestamp, _name in expected]
+    rows.append({"local": migration.timestamp, "remote": "", "time": ""})
+    return route, target, manifest, migration, expected, rows
+
+
 def _permit_document(repository_sha: str, profile: str = "graph") -> dict[str, object]:
     """Build one valid, protected permit document."""
     manifest = load_and_validate_manifest()
@@ -228,16 +258,7 @@ def test_collection_authorization_concurrent_consumption_has_one_winner(tmp_path
 def test_collection_authorization_is_consumed_when_first_connection_fails(tmp_path: Path, monkeypatch) -> None:
     """A failed first connection still spends the authorization before any retry."""
     path = _write_collection_authorization(tmp_path)
-    manifest = load_and_validate_manifest()
-    target = _collection_target("postgresql://operator:secret@localhost:5432/postgres")
-    route = preflight.RouteIdentity(target.database_url, PROJECT_REF)
-    monkeypatch.setattr(preflight, "load_and_validate_manifest", lambda: manifest)
-    monkeypatch.setattr(preflight, "_repository_sha", lambda: "1" * 40)
-    monkeypatch.setattr(preflight, "_supabase_route_identity", lambda value: route)
-    monkeypatch.setattr(preflight, "_verified_target", lambda *_args: target)
-    monkeypatch.setattr(preflight, "_runtime_routes", lambda _target: {key: route for key in target.logical_targets})
-    monkeypatch.setenv(preflight.TARGET_BINDINGS_ENV, str(tmp_path / "bindings.json"))
-    monkeypatch.setenv(preflight.INSPECTION_DATABASE_URL_ENV, target.database_url)
+    manifest, target, route = _collection_run_target(tmp_path, monkeypatch)
 
     def fail_connection(*_args, **_kwargs):
         """Represent the first database connection failure without making a network call."""
@@ -253,16 +274,7 @@ def test_collection_authorization_is_consumed_when_first_connection_fails(tmp_pa
 def test_collection_identity_failure_stops_all_evidence_queries(tmp_path: Path, monkeypatch) -> None:
     """A live identity failure prevents all five collection evidence checks."""
     path = _write_collection_authorization(tmp_path)
-    manifest = load_and_validate_manifest()
-    target = _collection_target("postgresql://operator:secret@localhost:5432/postgres")
-    route = preflight.RouteIdentity(target.database_url, PROJECT_REF)
-    monkeypatch.setattr(preflight, "load_and_validate_manifest", lambda: manifest)
-    monkeypatch.setattr(preflight, "_repository_sha", lambda: "1" * 40)
-    monkeypatch.setattr(preflight, "_supabase_route_identity", lambda value: route)
-    monkeypatch.setattr(preflight, "_verified_target", lambda *_args: target)
-    monkeypatch.setattr(preflight, "_runtime_routes", lambda _target: {key: route for key in target.logical_targets})
-    monkeypatch.setenv(preflight.TARGET_BINDINGS_ENV, str(tmp_path / "bindings.json"))
-    monkeypatch.setenv(preflight.INSPECTION_DATABASE_URL_ENV, target.database_url)
+    manifest, target, route = _collection_run_target(tmp_path, monkeypatch)
     monkeypatch.setattr(preflight, "_connect_verified", lambda *_args: (_ for _ in ()).throw(TargetIdentityError()))
 
     def fail_if_evidence_runs(*_args, **_kwargs):
@@ -718,16 +730,7 @@ def test_migration_list_parser_rejects_unbounded_or_malformed_rows(stdout: str) 
 
 def test_migration_parity_projects_only_permit_and_requires_exact_remote_prefix(tmp_path: Path, monkeypatch) -> None:
     """Pinned CLI parity accepts legacy remote rows plus one local-only marker."""
-    route = preflight._supabase_route_identity(_database_url(tmp_path))
-    target = _target(route.database_url)
-    manifest = load_and_validate_manifest()
-    migration = manifest.migrations_for_profile("graph")[0]
-    expected_history = tuple(
-        (str(receipt["timestamp"]), str(receipt["name"]))
-        for receipt in manifest.data["lineages"]["hosted-legacy-v1"]["receipts"]
-    )
-    rows = [{"local": "", "remote": timestamp, "time": ""} for timestamp, _name in expected_history]
-    rows.append({"local": migration.timestamp, "remote": "", "time": ""})
+    route, target, manifest, migration, expected_history, rows = _migration_parity_fixture(tmp_path)
     commands: list[tuple[str, ...]] = []
 
     monkeypatch.setattr(preflight, "_resolve_supabase_cli", lambda: "/bin/supabase")
@@ -751,16 +754,7 @@ def test_migration_parity_projects_only_permit_and_requires_exact_remote_prefix(
 
 def test_migration_parity_cleanup_failure_is_incomplete(tmp_path: Path, monkeypatch) -> None:
     """A CLI state directory that cannot be cleaned up prevents a passing result."""
-    route = preflight._supabase_route_identity(_database_url(tmp_path))
-    target = _target(route.database_url)
-    manifest = load_and_validate_manifest()
-    migration = manifest.migrations_for_profile("graph")[0]
-    expected_history = tuple(
-        (str(receipt["timestamp"]), str(receipt["name"]))
-        for receipt in manifest.data["lineages"]["hosted-legacy-v1"]["receipts"]
-    )
-    rows = [{"local": "", "remote": timestamp, "time": ""} for timestamp, _name in expected_history]
-    rows.append({"local": migration.timestamp, "remote": "", "time": ""})
+    route, target, manifest, migration, expected_history, rows = _migration_parity_fixture(tmp_path)
     real_rmtree = preflight.shutil.rmtree
 
     monkeypatch.setattr(preflight, "_resolve_supabase_cli", lambda: "/bin/supabase")
