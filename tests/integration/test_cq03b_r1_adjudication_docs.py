@@ -195,7 +195,7 @@ def test_continuity_records_merged_r2_without_claiming_provider_delivery() -> No
     continuity = _load(CONTINUITY)
     marker = "\nThis ledger preserves"
     assert continuity.count(marker) == 1
-    header = continuity.split(marker, maxsplit=1)[0]
+    header = _compact(continuity.split(marker, maxsplit=1)[0])
     assert SETUP_BASELINE in header
     assert "CQ-03B-R1 ratified on 2026-08-17" in header
     assert "ADR 0010" in continuity
@@ -219,13 +219,14 @@ def test_continuity_records_merged_cq03c_without_claiming_hosted_adoption() -> N
     continuity = _load(CONTINUITY)
     marker = "\nThis ledger preserves"
     assert continuity.count(marker) == 1
-    header = continuity.split(marker, maxsplit=1)[0]
+    header = _compact(continuity.split(marker, maxsplit=1)[0])
     assert CQ03C_MERGE in header
     assert "CQ-03C is implemented in draft PR #1643" not in continuity
     assert "CQ-03C was human-ratified" in continuity
     assert "selected the existing production FarDb Supabase project for CQ-03D-02" in header
-    assert "target binding and single-use permit are still pending" in header
-    assert "no CQ-03D-02 hosted preflight has been executed" in header
+    assert "The reviewed collection-only invocation is not available" in header
+    assert "collection results, the single-use permit, and hosted preflight remain pending" in header
+    assert "no production connection is authorized" in header
 
 
 def test_continuity_current_main_cutoffs_agree() -> None:
@@ -254,23 +255,27 @@ def test_cq03d_progress_preserves_separate_authority_and_history_only_boundary()
     assert "Complete the selected target's protected binding and exact-SHA single-use permit" in continuity
     assert "does not authorize the later history action" in continuity
     assert "One production target is approved for read-only preflight only" in continuity
-    assert "protected target binding and single-use permit are still pending" in continuity
+    assert "protected target binding and single-use permit are pending" in continuity
     assert (
-        "D-01 merged; one production target approved for read-only preflight; permit and preflight pending" in roadmap
+        "D-01 merged; one production target approved; staged evidence collection ratified but not run; permit and preflight pending"
+        in roadmap
     )
-    assert "D-02: prepare the protected target binding and exact-SHA single-use permit" in roadmap
+    assert (
+        "D-02: validate the protected collection-only invocation, collect and review passing read-only evidence"
+        in roadmap
+    )
     current_header = continuity.split("\nThis ledger preserves", maxsplit=1)[0]
     assert "no CQ-03D-02 target or permit is approved" not in current_header
     assert "separately approved target" not in roadmap
     assert "separately ratified, target-bound hosted preflight" not in continuity
     assert "target/permit approval and hosted preflight remain unexecuted" not in continuity
-    assert "no DML beyond one separately authorized permit-bound history marker" in roadmap
+    assert "Evidence collection is read-only and one-use; no history marker until separately authorized" in roadmap
     assert "**Publication date:** 2026-06-25" in roadmap
-    assert "**Last updated:** 2026-11-20" in roadmap
+    assert "**Last updated:** 2026-11-21" in roadmap
 
     delivery_order = roadmap.split("## Proposed Delivery Order", maxsplit=1)[1]
     assert delivery_order.lstrip().startswith(
-        "1. Complete the selected target's protected connection binding and exact-SHA single-use permit, then run the CQ-03D-02"
+        "1. Validate the protected collection-only invocation; collect and review passing read-only evidence; issue the"
     )
     assert "Source-of-truth reconciliation after PR #1287-#1301" not in delivery_order
     assert "truncation signal PR completed" not in delivery_order
@@ -287,6 +292,10 @@ def test_cq03d_runbook_documents_preflight_without_authorizing_execution() -> No
     assert "exactly one allowlisted canonical migration timestamp" in runbook
     assert "python -m scripts.postgresql_ledger validate" in runbook
     assert "python -m scripts.postgresql_preflight --permit-file" in runbook
+    assert "python -m scripts.postgresql_preflight --collection-authorization-file" in runbook
+    assert "fardb-cq03d-collection-authorization-v1" in runbook
+    assert "writes a complete `consumed` JSON" in runbook
+    assert "allows only one concurrent consumer" in runbook
     assert "`supabase-postgresql-routing-v1`" in runbook
     assert "live positive `pg_database.oid`" in runbook
     assert "TARGET_IDENTITY_INDETERMINATE" in runbook
@@ -295,6 +304,11 @@ def test_cq03d_runbook_documents_preflight_without_authorizing_execution() -> No
     assert "Its contract ratification is not a target approval" in runbook
     assert "cannot substitute a connector, runtime check, target, or subprocess runner" in runbook
     assert "separate `PASSED` results" in runbook
+    stage_one = runbook.split("### Stage 1", maxsplit=1)[1].split("### Approval pack", maxsplit=1)[0]
+    assert "runtime authority" in stage_one
+    assert "migration parity" not in stage_one
+    assert "Recheck the approval window immediately before every new Stage 1 database connection" in stage_one
+    assert "runtime compatibility may be evaluated even when history or catalog has a non-pass result" in stage_one
     assert "pinned Supabase CLI `2.114.0` runs read-only `migration list`" in runbook
     assert "`supabase migration repair <timestamp> --status applied --db-url <permit-bound-dsn>`" in runbook
     assert "reject an operator-supplied target override, `--linked`, `--project-ref`, `--local`" in runbook
