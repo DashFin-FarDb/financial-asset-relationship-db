@@ -22,6 +22,7 @@ on:
 
 permissions:
   contents: read
+  id-token: write
 
 jobs:
   # Check-run name must stay unique and match docs/ci-required-checks-policy.md (H-P1-04).
@@ -46,6 +47,15 @@ jobs:
             npm run lint
             npm run test:coverage -- --ci
           build: npm run build
+
+      - name: Upload coverage to Qlty
+        if: github.event.pull_request.head.repo.fork != true
+        uses: qltysh/qlty-action/coverage@v2
+        with:
+          oidc: true
+          files: frontend/coverage/lcov.info
+          add-prefix: frontend/
+          tag: frontend
 
       - name: Upload Test Results
         if: always()

@@ -9,6 +9,7 @@ name: Python CI
 
 permissions:
   contents: read
+  id-token: write
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -117,6 +118,14 @@ jobs:
           fail_ci_if_error: false
           verbose: true
         continue-on-error: true
+
+      - name: Upload coverage to Qlty
+        if: matrix.python-version == '3.11' && github.event.pull_request.head.repo.fork != true
+        uses: qltysh/qlty-action/coverage@v2
+        with:
+          oidc: true
+          files: coverage.xml
+          tag: python
 
   postgres-ledger-profiles:
     name: PostgreSQL ledger profiles (${{ matrix.postgres-version }})
