@@ -432,7 +432,7 @@ def test_collection_rechecks_authorization_window_after_consumption(tmp_path: Pa
         expire_after_consumption,
     )
 
-    def fail_expired_connection(_route, _target, before_connection=None):
+    def fail_expired_connection(_route, _target, before_connection=None, _route_label=None):
         """Run the newly enforced window guard before rejecting a connection attempt."""
         before_connection()
         pytest.fail("an expired authorization must stop before the first connection")
@@ -479,7 +479,7 @@ def test_collection_rechecks_authorization_window_before_each_connection(tmp_pat
     connections_opened = 0
     window_checks = 0
 
-    def connect(_route, _target, before_connection=None):
+    def connect(_route, _target, before_connection=None, _route_label=None):
         """Run the Stage 1 window guard before simulating a new connection."""
         nonlocal connection_attempts, connections_opened
         connection_attempts += 1
@@ -989,6 +989,85 @@ def test_live_database_oid_is_bound_to_the_protected_fingerprint(tmp_path: Path,
     assert connection.rollbacks == 1
 
 
+@pytest.mark.parametrize(
+    ("failure_stage", "expected_category"),
+    [
+        ("open", preflight.CONNECTION_OPEN_FAILED),
+        ("session", preflight.READ_ONLY_SESSION_SETUP_FAILED),
+        ("identity", preflight.LIVE_IDENTITY_VERIFICATION_FAILED),
+    ],
+)
+def test_connection_failures_report_sanitized_stage_and_route(
+    tmp_path: Path, monkeypatch, capsys, failure_stage: str, expected_category: str
+) -> None:
+    """Connection diagnostics identify a fixed stage without exposing provider errors."""
+    secret = "provider-secret-must-not-appear"
+    route = preflight.RouteIdentity(_database_url(tmp_path), PROJECT_REF)
+    target = _target(route.database_url)
+
+    class Cursor:
+        """Raise a provider-like failure while proving live identity."""
+
+        def __enter__(self):
+            """Enter the cursor fixture."""
+            return self
+
+        def __exit__(self, *_args):
+            """Leave the cursor fixture without suppressing failures."""
+            return None
+
+        def execute(self, _query: str) -> None:
+            """Raise the fake provider exception."""
+            raise RuntimeError(secret)
+
+    class Connection:
+        """Record cleanup and fail at the selected post-open stage."""
+
+        def __init__(self) -> None:
+            self.rollbacks = 0
+            self.closed = False
+
+        def set_session(self, **_kwargs) -> None:
+            if failure_stage == "session":
+                raise RuntimeError(secret)
+
+        def cursor(self):
+            """Open the identity proof cursor."""
+            return Cursor()
+
+        def rollback(self) -> None:
+            self.rollbacks += 1
+
+        def close(self) -> None:
+            self.closed = True
+
+    connection = Connection()
+
+    def connect(*_args, **_kwargs):
+        """Raise at connection open or return the staged fake session."""
+        if failure_stage == "open":
+            raise RuntimeError(secret)
+        return connection
+
+    monkeypatch.setitem(sys.modules, "psycopg2", SimpleNamespace(connect=connect))
+    monkeypatch.setattr(
+        preflight,
+        "_run_selected_stage",
+        lambda _arguments: preflight._connect_verified(route, target, route_label="inspection"),
+    )
+
+    assert preflight.main(()) == 1
+    captured = capsys.readouterr()
+    assert captured.out == ""
+    assert captured.err == (
+        f"{preflight.TARGET_IDENTITY_INDETERMINATE} diagnostic={expected_category} route=inspection\n"
+    )
+    assert secret not in captured.out + captured.err
+    if failure_stage != "open":
+        assert connection.rollbacks == 1
+        assert connection.closed
+
+
 def test_live_database_oid_mismatch_fails_before_checks(tmp_path: Path, monkeypatch) -> None:
     """An attested binding for another database cannot authorize this route."""
 
@@ -1477,7 +1556,9 @@ def test_auth_retained_session_rejects_reroute_before_verification(tmp_path, mon
     route = preflight._supabase_route_identity(_database_url(tmp_path))
     target = _target(route.database_url)
     connection = Mock()
-    monkeypatch.setattr(preflight, "_connect_verified", lambda _route, _target, _before_connection=None: connection)
+    monkeypatch.setattr(
+        preflight, "_connect_verified", lambda _route, _target, _before_connection=None, _route_label=None: connection
+    )
     monkeypatch.setattr(
         preflight,
         "_psycopg_database_identity",
