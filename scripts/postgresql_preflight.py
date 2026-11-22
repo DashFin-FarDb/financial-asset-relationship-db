@@ -87,6 +87,28 @@ RUNTIME_AUTHORITY_MISMATCH = "RUNTIME_AUTHORITY_MISMATCH"
 MIGRATION_PARITY_MISMATCH = "MIGRATION_PARITY_MISMATCH"
 MIGRATION_PARITY_UNAVAILABLE = "MIGRATION_PARITY_UNAVAILABLE"
 
+CONNECTION_OPEN_FAILED = "CONNECTION_OPEN_FAILED"
+READ_ONLY_SESSION_SETUP_FAILED = "READ_ONLY_SESSION_SETUP_FAILED"
+LIVE_IDENTITY_VERIFICATION_FAILED = "LIVE_IDENTITY_VERIFICATION_FAILED"
+_CONNECTION_DIAGNOSTIC_CATEGORIES = frozenset(
+    {CONNECTION_OPEN_FAILED, READ_ONLY_SESSION_SETUP_FAILED, LIVE_IDENTITY_VERIFICATION_FAILED}
+)
+_CONNECTION_ROUTE_LABELS = frozenset({"inspection", "auth", "graph", "coordination"})
+
+
+class _ConnectionVerificationError(TargetIdentityError):
+    """Carry only allowlisted connection stage and route labels to the CLI."""
+
+    def __init__(self, category: str, route_label: str | None = None) -> None:
+        if not isinstance(category, str) or category not in _CONNECTION_DIAGNOSTIC_CATEGORIES:
+            raise ValueError("invalid connection diagnostic category")
+        super().__init__()
+        self.category = category
+        self.route_label = (
+            route_label if isinstance(route_label, str) and route_label in _CONNECTION_ROUTE_LABELS else None
+        )
+
+
 _PROJECT_REF = re.compile(r"^[a-z0-9]{20}$", re.ASCII)
 _DIRECT_HOST = re.compile(r"^db[.](?P<ref>[a-z0-9]{20})[.]supabase[.]co$", re.ASCII)
 _POOLER_HOST = re.compile(r"^[a-z0-9-]+[.]pooler[.]supabase[.]com$", re.ASCII)
@@ -796,27 +818,35 @@ def _discard_identity_connection(connection) -> None:
         connection.close()
 
 
-def _connect_verified(route: RouteIdentity, target: PlannedTarget, before_connection=None):
-    """Open one read-only connection and bind its live database OID to the route."""
-    connection = None
+def _connect_verified(
+    route: RouteIdentity, target: PlannedTarget, before_connection=None, route_label: str | None = None
+):
+    """Open a read-only connection and report sanitized failures by verification stage."""
     try:
         import psycopg2  # type: ignore[import-untyped]
+    except Exception:
+        raise _ConnectionVerificationError(CONNECTION_OPEN_FAILED, route_label) from None
 
-        if before_connection is not None:
-            before_connection()
+    if before_connection is not None:
+        before_connection()
+
+    try:
         connection = psycopg2.connect(route.database_url, connect_timeout=10)
+    except Exception:
+        raise _ConnectionVerificationError(CONNECTION_OPEN_FAILED, route_label) from None
+
+    try:
         connection.set_session(readonly=True, autocommit=False)
+    except Exception:
+        _discard_identity_connection(connection)
+        raise _ConnectionVerificationError(READ_ONLY_SESSION_SETUP_FAILED, route_label) from None
+
+    try:
         _prove_live_database_identity(connection, route, target)
-        return connection
-    except PreflightContractError:
+    except Exception:
         _discard_identity_connection(connection)
-        raise
-    except TargetIdentityError:
-        _discard_identity_connection(connection)
-        raise
-    except Exception as exc:  # noqa: BLE001 - provider failures collapse to one identity result
-        _discard_identity_connection(connection)
-        raise TargetIdentityError() from exc
+        raise _ConnectionVerificationError(LIVE_IDENTITY_VERIFICATION_FAILED, route_label) from None
+    return connection
 
 
 def _verified_target(
@@ -862,9 +892,11 @@ def _runtime_routes(target: PlannedTarget) -> dict[str, RouteIdentity]:
     return routes
 
 
-def _prove_route(route: RouteIdentity, target: PlannedTarget, before_connection=None) -> None:
+def _prove_route(
+    route: RouteIdentity, target: PlannedTarget, before_connection=None, route_label: str | None = None
+) -> None:
     """Prove one route and close its read-only identity transaction."""
-    connection = _connect_verified(route, target, before_connection)
+    connection = _connect_verified(route, target, before_connection, route_label)
     try:
         connection.close()
     except Exception as exc:  # noqa: BLE001 - cleanup is a required preflight invariant
@@ -952,7 +984,7 @@ def _verified_auth_connection(routes, target=None, expected_identity=None, befor
     if route is None or target is None:
         yield None
         return
-    connection = _connect_verified(route, target, before_connection)
+    connection = _connect_verified(route, target, before_connection, "auth")
     try:
         identity = _psycopg_database_identity(connection)
         _retained_target_identity(identity, route, target, expected_identity)
@@ -1233,12 +1265,12 @@ def _evaluate_verified_drift(
     before_connection=None,
 ) -> DriftReport:
     """Prove every route and evaluate drift while always closing inspection access."""
-    inspection_connection = _connect_verified(inspection_route, target, before_connection)
+    inspection_connection = _connect_verified(inspection_route, target, before_connection, "inspection")
     try:
         inspection_identity = _psycopg_database_identity(inspection_connection)
         _retained_target_identity(inspection_identity, inspection_route, target, expected_identity)
-        for route in runtime_routes.values():
-            _prove_route(route, target, before_connection)
+        for component, route in runtime_routes.items():
+            _prove_route(route, target, before_connection, component)
         try:
             inspection_connection.rollback()
         except Exception as exc:  # noqa: BLE001 - release the identity transaction before the evidence snapshot
@@ -1329,7 +1361,7 @@ def run_preflight(permit_path: Path | str) -> PreflightReport:
     inspection_route = _supabase_route_identity(inspection_value)
     target = _verified_target(manifest, permit, binding_path, inspection_route)
     runtime_routes = _runtime_routes(target)
-    identity_connection = _connect_verified(inspection_route, target)
+    identity_connection = _connect_verified(inspection_route, target, None, "inspection")
     try:
         planned_identity = _psycopg_database_identity(identity_connection)
         _retained_target_identity(planned_identity, inspection_route, target)
@@ -1404,7 +1436,7 @@ def run_collection(authorization_path: Path | str) -> CollectionReport:
             now=None,
         )
 
-    identity_connection = _connect_verified(inspection_route, target, window_check)
+    identity_connection = _connect_verified(inspection_route, target, window_check, "inspection")
     try:
         planned_identity = _psycopg_database_identity(identity_connection)
         _retained_target_identity(planned_identity, inspection_route, target)
@@ -1492,8 +1524,13 @@ def main(argv: Sequence[str] | None = None) -> int:
     arguments = _build_parser().parse_args(argv)
     try:
         report = _run_selected_stage(arguments)
-    except TargetIdentityError:
-        print(TARGET_IDENTITY_INDETERMINATE, file=sys.stderr)
+    except TargetIdentityError as exc:
+        message = TARGET_IDENTITY_INDETERMINATE
+        if isinstance(exc, _ConnectionVerificationError):
+            message += f" diagnostic={exc.category}"
+            if exc.route_label is not None:
+                message += f" route={exc.route_label}"
+        print(message, file=sys.stderr)
         return 1
     except PreflightContractError as exc:
         print(exc.reason_code, file=sys.stderr)
