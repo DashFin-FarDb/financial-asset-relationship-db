@@ -284,6 +284,21 @@ class TestSettingsModel:
 class TestLoadSettings:
     """Test the load_settings function."""
 
+    @pytest.mark.parametrize(("env_value", "expected"), [(None, 20), ("0", 0), ("5", 5)])
+    def test_load_settings_slo_api_latency_min_requests(self, env_value: str | None, expected: int) -> None:
+        """SLO_API_LATENCY_MIN_REQUESTS defaults to 20 and accepts 0 to disable the sample gate."""
+        env = {} if env_value is None else {"SLO_API_LATENCY_MIN_REQUESTS": env_value}
+        with patch.dict(os.environ, env, clear=True):
+            assert load_settings().slo_api_latency_min_requests == expected
+
+    @patch.dict(os.environ, {"SLO_API_LATENCY_MIN_REQUESTS": "-1"}, clear=True)
+    def test_load_settings_rejects_negative_slo_api_latency_min_requests(self) -> None:
+        """Negative minimum latency sample sizes are rejected."""
+        from pydantic import ValidationError
+
+        with pytest.raises(ValidationError, match="slo_api_latency_min_requests"):
+            load_settings()
+
     @patch.dict(os.environ, {}, clear=True)
     def test_load_settings_with_defaults(self) -> None:
         """Test loading settings with no environment variables set."""
