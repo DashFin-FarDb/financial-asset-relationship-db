@@ -506,6 +506,17 @@ class TestSpecificWorkflows:
         for job_name, job in config["jobs"].items():
             assert "permissions" in job, f"{workflow_name}:{job_name} must declare job-level permissions"
 
+    def test_apisec_job_keeps_sarif_upload_permissions(self):
+        """The APIsec job keeps the scopes it needs to upload SARIF after the top-level token became read-only."""
+        workflow_path = PROJECT_ROOT / ".github" / "workflows" / "apisec-scan.yml"
+        with open(workflow_path, encoding="utf-8") as f:
+            config = yaml.safe_load(f)
+
+        assert config["jobs"]["Trigger_APIsec_scan"]["permissions"] == {
+            "security-events": "write",
+            "actions": "read",
+        }
+
     def test_codeql_workflow_languages(self):
         """The CodeQL workflow specifies languages to analyze."""
         workflow_path = PROJECT_ROOT / ".github" / "workflows" / "codeql.yml"
