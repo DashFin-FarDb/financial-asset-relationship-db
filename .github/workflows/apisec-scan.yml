@@ -69,11 +69,13 @@ name: APIsec
   workflow_dispatch:
 
 permissions:
-  security-events: write # for github/codeql-action/upload-sarif to upload SARIF results
-  actions: read # only required for a private repository by github/codeql-action/upload-sarif to get the Action run status
+  contents: read
 
 jobs:
   Trigger_APIsec_scan:
+    permissions:
+      security-events: write # for github/codeql-action/upload-sarif to upload SARIF results
+      actions: read # only required for a private repository by github/codeql-action/upload-sarif to get the Action run status
     # Note: APIsec secret verification is performed at step level since secrets context
     # is not available in job-level 'if' conditions
     concurrency:
