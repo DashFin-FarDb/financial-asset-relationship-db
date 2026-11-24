@@ -515,7 +515,9 @@ def _classify_legacy_object(item: Mapping[str, object], safe_tables: set[str]) -
     return False
 
 
-def _public_scope(cursor: Cursor, profile: str) -> tuple[int, int, int, int, tuple[str, ...]]:
+def _public_scope(
+    cursor: Cursor, profile: str, *, allow_loopback_test_owner: bool = False
+) -> tuple[int, int, int, int, tuple[str, ...]]:
     """Totally classify contracted schemas and independently addressable objects."""
     managed_tables = expected_managed_tables(profile)
     objects = _rows(
@@ -644,6 +646,12 @@ def _public_scope(cursor: Cursor, profile: str) -> tuple[int, int, int, int, tup
             and (
                 extension.get("owner_role") == "supabase_admin"
                 or (not legacy_present and not helper_present and extension.get("owner_role") == "postgres")
+                or (
+                    allow_loopback_test_owner
+                    and not legacy_present
+                    and not helper_present
+                    and extension.get("owner_role") == "test"
+                )
             )
         ):
             provider_count += 1
@@ -954,9 +962,13 @@ def _catalog_check(
     cursor: Cursor,
     manifest: LedgerManifest,
     profile: str,
+    *,
+    allow_loopback_test_owner: bool = False,
 ) -> tuple[CheckResult, int, int, int, int, int]:
     """Classify scope and compare the normalized profile catalog digest."""
-    application_count, provider_count, legacy_count, helper_count, unknown = _public_scope(cursor, profile)
+    application_count, provider_count, legacy_count, helper_count, unknown = _public_scope(
+        cursor, profile, allow_loopback_test_owner=allow_loopback_test_owner
+    )
     if unknown:
         return (
             CheckResult("catalog", PROVIDER_SCHEMA_DRIFT, NOT_EVALUATED, OUTSIDE_MANAGED_SCOPE),
@@ -1079,6 +1091,7 @@ def _profile_catalog_checks(
     profile: str,
     lineage: str,
     adoption_timestamp: str | None,
+    target_class: str,
 ) -> tuple[CheckResult, CheckResult, int, int, int, int, int]:
     """Evaluate history and catalog in one always-rolled-back read-only snapshot."""
     history = CheckResult("history", LEDGER_HISTORY_MISMATCH, NOT_EVALUATED, REQUIRED_CHECK_NOT_EVALUATED)
@@ -1090,7 +1103,10 @@ def _profile_catalog_checks(
             else:
                 history = _history_check(cursor, manifest, profile, lineage, adoption_timestamp)
             catalog, application_count, provider_count, legacy_count, helper_count, unknown_count = _catalog_check(
-                cursor, manifest, profile
+                cursor,
+                manifest,
+                profile,
+                allow_loopback_test_owner=lineage == "fresh-v1" and target_class == "loopback",
             )
     except Exception:  # noqa: BLE001 - transaction/catalog unavailability is a bounded required-check result
         catalog = CheckResult("catalog", PROVIDER_SCHEMA_DRIFT, NOT_EVALUATED, REQUIRED_CHECK_NOT_EVALUATED)
@@ -1112,7 +1128,7 @@ def evaluate_profile_drift(
         return _incomplete_profile_report(target_class, profile, lineage)
 
     history, catalog, application_count, provider_count, legacy_count, helper_count, unknown_count = (
-        _profile_catalog_checks(connection, manifest, profile, lineage, adoption_timestamp)
+        _profile_catalog_checks(connection, manifest, profile, lineage, adoption_timestamp, target_class)
     )
     runtime = _runtime_check(runtime_check)
     checks = (history, catalog, runtime)

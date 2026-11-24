@@ -226,7 +226,7 @@ def test_history_and_catalog_helpers_cover_pass_and_unknown_scope(monkeypatch) -
     assert _history_check(history_cursor, manifest, "auth", "fresh-v1").state == CHECK_PASSED
 
     expected = manifest.catalog_digest_for_profile("auth")
-    monkeypatch.setattr("scripts.postgresql_drift._public_scope", lambda cursor, profile: (1, 0, 0, 0, ()))
+    monkeypatch.setattr("scripts.postgresql_drift._public_scope", lambda cursor, profile, **kwargs: (1, 0, 0, 0, ()))
     monkeypatch.setattr(
         "scripts.postgresql_drift.normalized_managed_catalog", lambda cursor, profile: {"profile": profile}
     )
@@ -236,7 +236,7 @@ def test_history_and_catalog_helpers_cover_pass_and_unknown_scope(monkeypatch) -
     assert (application, provider, legacy, helper, unknown) == (1, 0, 0, 0, 0)
 
     monkeypatch.setattr(
-        "scripts.postgresql_drift._public_scope", lambda cursor, profile: (1, 0, 0, 0, ("restricted-name",))
+        "scripts.postgresql_drift._public_scope", lambda cursor, profile, **kwargs: (1, 0, 0, 0, ("restricted-name",))
     )
     monkeypatch.setattr(
         "scripts.postgresql_drift.normalized_managed_catalog",
@@ -273,7 +273,7 @@ def test_evaluator_enforces_read_only_transaction_and_rollback(monkeypatch) -> N
     )
     monkeypatch.setattr(
         "scripts.postgresql_drift._catalog_check",
-        lambda cursor, manifest, profile: (_check(PROVIDER_SCHEMA_DRIFT, CHECK_PASSED), 1, 0, 0, 0, 0),
+        lambda cursor, manifest, profile, **kwargs: (_check(PROVIDER_SCHEMA_DRIFT, CHECK_PASSED), 1, 0, 0, 0, 0),
     )
     connection = StubConnection(StubCursor([]))
     report = evaluate_profile_drift(
@@ -306,7 +306,7 @@ def test_evaluator_fails_closed_when_transaction_cleanup_is_unavailable(monkeypa
     )
     monkeypatch.setattr(
         "scripts.postgresql_drift._catalog_check",
-        lambda cursor, manifest, profile: (_check(PROVIDER_SCHEMA_DRIFT, CHECK_PASSED), 1, 0, 0, 0, 0),
+        lambda cursor, manifest, profile, **kwargs: (_check(PROVIDER_SCHEMA_DRIFT, CHECK_PASSED), 1, 0, 0, 0, 0),
     )
     connection = CleanupUnavailable(StubCursor([]))
     report = evaluate_profile_drift(
@@ -561,7 +561,7 @@ def test_public_report_separates_protected_legacy_and_helper_counts(monkeypatch)
     )
     monkeypatch.setattr(
         "scripts.postgresql_drift._catalog_check",
-        lambda cursor, manifest, profile: (_check(PROVIDER_SCHEMA_DRIFT, CHECK_PASSED), 1, 11, 45, 1, 0),
+        lambda cursor, manifest, profile, **kwargs: (_check(PROVIDER_SCHEMA_DRIFT, CHECK_PASSED), 1, 11, 45, 1, 0),
     )
     report = evaluate_profile_drift(
         StubConnection(StubCursor([])),
@@ -577,3 +577,16 @@ def test_public_report_separates_protected_legacy_and_helper_counts(monkeypatch)
     assert public["provider_owned_count"] == 11
     assert public["protected_legacy_count"] == 45
     assert public["restricted_helper_count"] == 1
+
+
+def test_plpgsql_test_owner_requires_explicit_local_scope() -> None:
+    """The disposable test role cannot be accepted on a hosted scope."""
+    responses = [
+        (("object_type", "name", "kind", "parent_table", "identity_arguments"), ()),
+        (("name", "system_schema"), ()),
+        (("name", "schema_name", "owner_role"), (("plpgsql", "pg_catalog", "test"),)),
+    ]
+    default = _public_scope(StubCursor(responses), "auth")
+    local = _public_scope(StubCursor(responses), "auth", allow_loopback_test_owner=True)
+    assert default[4] == ("extension:plpgsql",)
+    assert local == (0, 1, 0, 0, ())
