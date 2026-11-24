@@ -142,10 +142,16 @@ a `combined` target.
 - **Database-specific exceptions:** SQLite and explicit migration connections retain their existing behavior.
 
 CQ-03C evaluates `fresh-v1` targets through the read-only
-`fardb-pg-catalog-v1+fardb-pg-scope-v1` gate. It compares exact ordered migration identities, the selected profile's
+`fardb-pg-catalog-v1+fardb-pg-scope-v2` gate. It compares exact ordered migration identities, the selected profile's
 normalized catalog digest, and an explicit runtime-compatibility callback. The evaluator forces a read-only database
 transaction, rolls it back after catalog access, and exposes only bounded counts, digests, status, category, and
 reason codes. It never repairs schema or migration history.
+
+Scope v2 classifies the eight reviewed legacy tables, eight composite types, 29 indexes, and restricted
+`public.is_requester_admin()` separately from application and provider ownership. Each legacy identity must match
+its parent and owner; tables must retain forced RLS, zero policies, and the reviewed ACL. Index flags and helper
+EXECUTE posture are checked. Eleven extensions require exact name, schema, and owner. A partial or changed legacy
+set remains `OUTSIDE_MANAGED_SCOPE`, and the public report gives separate bounded legacy and helper counts.
 
 The public result is `PASS`, `DRIFT_DETECTED`, or `EVALUATION_INCOMPLETE`. A detected primary category follows this
 fixed precedence: `LEDGER_HISTORY_MISMATCH`, `PROVIDER_SCHEMA_DRIFT`, then `RUNTIME_COMPATIBILITY_MISMATCH`. An

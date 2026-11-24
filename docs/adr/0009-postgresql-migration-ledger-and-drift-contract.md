@@ -298,10 +298,23 @@ The first contract also excludes:
 
 Every exclusion is named and versioned. A wildcard exclusion without a documented provider owner is not acceptable.
 
+### CQ-03D scope amendment
+
+Scope v2 adds an exact protected legacy category: eight base tables, eight composite row types, 29 indexes,
+and the restricted `public.is_requester_admin()` helper. Tables require owner `postgres`, forced RLS, zero
+policies, and only the reviewed non-grantable postgres/service-role ACL. Types and indexes require exact
+parent and owner; indexes also require reviewed unique and primary flags. The helper requires its reviewed
+signature, security mode, owner, ACL, and no effective EXECUTE for untrusted or runtime roles. Eleven provider
+extensions require exact name, schema, and owner, with a plain PostgreSQL `plpgsql` owner exception for fresh
+local targets. A partial or changed legacy inventory remains outside managed scope. The public
+`protected_legacy_count` and `restricted_helper_count` are separate from application and provider counts. The new
+scope version requires recalibrated portable catalog digests; it neither adopts receipts nor authorizes a hosted connection.
+
 ### Normalization profile
 
 Define `fardb-pg-catalog-v1` as a versioned catalog normalization profile. The effective drift-contract identity is
-`fardb-pg-catalog-v1+fardb-pg-scope-v1`; changing either component requires review and a new expected digest:
+`fardb-pg-catalog-v1+fardb-pg-scope-v2` after the CQ-03D amendment; changing either component requires review
+and a new expected digest:
 
 - obtain definitions through PostgreSQL catalog and `pg_get_*def` functions;
 - sort schemas, identities, columns, role sets, policy commands, and ACL items deterministically;

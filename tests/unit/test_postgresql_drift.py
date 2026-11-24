@@ -189,11 +189,11 @@ def test_rows_and_public_scope_classify_without_a_live_database() -> None:
                 ),
             ),
             (("name", "system_schema"), (("pg_catalog", True), ("supabase_migrations", False))),
-            (("name",), (("plpgsql",),)),
+            (("name", "schema_name", "owner_role"), (("plpgsql", "pg_catalog", "postgres"),)),
         ]
     )
-    application, provider, unknown = _public_scope(scope_cursor, "auth")
-    assert (application, provider) == (2, 3)
+    application, provider, legacy, helper, unknown = _public_scope(scope_cursor, "auth")
+    assert (application, provider, legacy, helper) == (2, 3, 0, 0)
     assert len(unknown) == 1
 
 
@@ -209,11 +209,11 @@ def test_public_scope_requires_exact_function_identity_and_known_schema() -> Non
                 ),
             ),
             (("name", "system_schema"), (("private_extension", False),)),
-            (("name",), (("plpgsql",),)),
+            (("name", "schema_name", "owner_role"), (("plpgsql", "pg_catalog", "postgres"),)),
         ]
     )
-    application, provider, unknown = _public_scope(cursor, "graph")
-    assert (application, provider) == (1, 1)
+    application, provider, legacy, helper, unknown = _public_scope(cursor, "graph")
+    assert (application, provider, legacy, helper) == (1, 1, 0, 0)
     assert len(unknown) == 2
 
 
@@ -226,21 +226,23 @@ def test_history_and_catalog_helpers_cover_pass_and_unknown_scope(monkeypatch) -
     assert _history_check(history_cursor, manifest, "auth", "fresh-v1").state == CHECK_PASSED
 
     expected = manifest.catalog_digest_for_profile("auth")
-    monkeypatch.setattr("scripts.postgresql_drift._public_scope", lambda cursor, profile: (1, 0, ()))
+    monkeypatch.setattr("scripts.postgresql_drift._public_scope", lambda cursor, profile: (1, 0, 0, 0, ()))
     monkeypatch.setattr(
         "scripts.postgresql_drift.normalized_managed_catalog", lambda cursor, profile: {"profile": profile}
     )
     monkeypatch.setattr("scripts.postgresql_drift.catalog_digest", lambda document: expected)
-    catalog, application, provider, unknown = _catalog_check(StubCursor([]), manifest, "auth")
+    catalog, application, provider, legacy, helper, unknown = _catalog_check(StubCursor([]), manifest, "auth")
     assert catalog.state == CHECK_PASSED
-    assert (application, provider, unknown) == (1, 0, 0)
+    assert (application, provider, legacy, helper, unknown) == (1, 0, 0, 0, 0)
 
-    monkeypatch.setattr("scripts.postgresql_drift._public_scope", lambda cursor, profile: (1, 0, ("restricted-name",)))
+    monkeypatch.setattr(
+        "scripts.postgresql_drift._public_scope", lambda cursor, profile: (1, 0, 0, 0, ("restricted-name",))
+    )
     monkeypatch.setattr(
         "scripts.postgresql_drift.normalized_managed_catalog",
         lambda cursor, profile: (_ for _ in ()).throw(AssertionError("unknown scope must not be compared")),
     )
-    incomplete, _application, _provider, unknown = _catalog_check(StubCursor([]), manifest, "auth")
+    incomplete, _application, _provider, _legacy, _helper, unknown = _catalog_check(StubCursor([]), manifest, "auth")
     assert incomplete.state == NOT_EVALUATED
     assert incomplete.reason_code == OUTSIDE_MANAGED_SCOPE
     assert unknown == 1
@@ -271,7 +273,7 @@ def test_evaluator_enforces_read_only_transaction_and_rollback(monkeypatch) -> N
     )
     monkeypatch.setattr(
         "scripts.postgresql_drift._catalog_check",
-        lambda cursor, manifest, profile: (_check(PROVIDER_SCHEMA_DRIFT, CHECK_PASSED), 1, 0, 0),
+        lambda cursor, manifest, profile: (_check(PROVIDER_SCHEMA_DRIFT, CHECK_PASSED), 1, 0, 0, 0, 0),
     )
     connection = StubConnection(StubCursor([]))
     report = evaluate_profile_drift(
@@ -304,7 +306,7 @@ def test_evaluator_fails_closed_when_transaction_cleanup_is_unavailable(monkeypa
     )
     monkeypatch.setattr(
         "scripts.postgresql_drift._catalog_check",
-        lambda cursor, manifest, profile: (_check(PROVIDER_SCHEMA_DRIFT, CHECK_PASSED), 1, 0, 0),
+        lambda cursor, manifest, profile: (_check(PROVIDER_SCHEMA_DRIFT, CHECK_PASSED), 1, 0, 0, 0, 0),
     )
     connection = CleanupUnavailable(StubCursor([]))
     report = evaluate_profile_drift(
@@ -449,3 +451,129 @@ def test_unknown_runtime_callback_failure_is_unavailable() -> None:
     result = _runtime_check(driver_failure)
     assert result.state == NOT_EVALUATED
     assert result.reason_code == REQUIRED_CHECK_NOT_EVALUATED
+
+
+def test_exact_legacy_inventory_requires_parent_owner_index_flags_and_access(monkeypatch) -> None:
+    """All reviewed identities pass; a changed or added identity remains unknown."""
+    from scripts.postgresql_drift import _LEGACY_INDEXES, _LEGACY_TABLES, _PROVIDER_EXTENSION_IDENTITIES
+
+    columns = (
+        "object_type",
+        "name",
+        "kind",
+        "parent_table",
+        "identity_arguments",
+        "owner_role",
+        "is_unique",
+        "is_primary",
+        "type_kind",
+    )
+    objects = (
+        [("relation", name, "r", None, None, "postgres", None, None, None) for name in sorted(_LEGACY_TABLES)]
+        + [
+            ("relation", name, "i", parent, None, "postgres", unique, primary, None)
+            for name, (parent, unique, primary) in sorted(_LEGACY_INDEXES.items())
+        ]
+        + [("type", name, None, name, None, "postgres", None, None, "c") for name in sorted(_LEGACY_TABLES)]
+        + [("function", "is_requester_admin", None, None, "", "postgres", None, None, None)]
+    )
+    extensions = [(name, schema, owner) for name, (schema, owner) in sorted(_PROVIDER_EXTENSION_IDENTITIES.items())]
+    monkeypatch.setattr("scripts.postgresql_drift._legacy_table_posture", lambda cursor: set(_LEGACY_TABLES))
+    monkeypatch.setattr("scripts.postgresql_drift._restricted_helper_posture", lambda cursor: True)
+
+    def classify(rows):
+        cursor = StubCursor(
+            [
+                (columns, rows),
+                (("name", "system_schema"), ()),
+                (("name", "schema_name", "owner_role"), extensions),
+            ]
+        )
+        return _public_scope(cursor, "combined")
+
+    assert classify(objects) == (0, 11, 45, 1, ())
+    assert classify(objects[:-2])[4] == ("legacy:incomplete",)
+    altered = list(objects)
+    index = next(i for i, row in enumerate(altered) if row[1] == "idx_news_articles_url")
+    altered[index] = (*altered[index][:6], False, False, None)
+    assert "relation:idx_news_articles_url" in classify(altered)[4]
+    altered = list(objects) + [
+        ("relation", "idx_unreviewed", "i", "financial_data", None, "postgres", False, False, None)
+    ]
+    assert "relation:idx_unreviewed" in classify(altered)[4]
+    extensions[0] = (extensions[0][0], "public", extensions[0][2])
+    assert any(value.startswith("extension:") for value in classify(objects)[4])
+
+
+def test_legacy_table_access_posture_fails_closed() -> None:
+    """An extra grant or disabled RLS must not protect a legacy table."""
+    from scripts.postgresql_drift import _LEGACY_TABLE_ACL, _legacy_table_posture
+
+    grants = sorted(f"{role}:{privilege}:false" for role, privilege, _ in _LEGACY_TABLE_ACL)
+    columns = ("name", "owner_role", "row_security", "force_row_security", "policy_count", "grants")
+
+    def classify(rows):
+        return _legacy_table_posture(StubCursor([(columns, rows)]))
+
+    valid = ("financial_data", "postgres", True, True, 0, grants)
+    assert "financial_data" in classify([valid])
+    assert not classify([(*valid[:5], grants + ["anon:SELECT:false"])])
+    assert not classify([(*valid[:2], False, *valid[3:])])
+    assert not classify([(*valid[:4], 1, valid[5])])
+
+
+def test_restricted_helper_requires_exact_signature_and_denies_runtime_execute() -> None:
+    """A grant or changed function metadata leaves the helper outside scope."""
+    from scripts.postgresql_drift import _restricted_helper_posture
+
+    columns = (
+        "name",
+        "arguments",
+        "return_type",
+        "language",
+        "volatility",
+        "security_definer",
+        "owner_role",
+        "raw_acl",
+        "effective_untrusted_roles",
+    )
+    valid: tuple[Any, ...] = (
+        "is_requester_admin",
+        "",
+        "boolean",
+        "sql",
+        "v",
+        True,
+        "postgres",
+        "{postgres=X/postgres,service_role=X/postgres}",
+        [],
+    )
+    assert _restricted_helper_posture(StubCursor([(columns, [valid])]))
+    assert not _restricted_helper_posture(StubCursor([(columns, [(*valid[:-1], ["anon"])])]))
+    assert not _restricted_helper_posture(StubCursor([(columns, [(*valid[:5], False, *valid[6:])])]))
+
+
+def test_public_report_separates_protected_legacy_and_helper_counts(monkeypatch) -> None:
+    """Restricted legacy identities never inflate provider-owned counts."""
+    monkeypatch.setattr(
+        "scripts.postgresql_drift._history_check",
+        lambda cursor, manifest, profile, lineage: _check(LEDGER_HISTORY_MISMATCH, CHECK_PASSED),
+    )
+    monkeypatch.setattr(
+        "scripts.postgresql_drift._catalog_check",
+        lambda cursor, manifest, profile: (_check(PROVIDER_SCHEMA_DRIFT, CHECK_PASSED), 1, 11, 45, 1, 0),
+    )
+    report = evaluate_profile_drift(
+        StubConnection(StubCursor([])),
+        load_and_validate_manifest(),
+        "combined",
+        "fresh-v1",
+        "loopback",
+        runtime_check=lambda: None,
+    )
+    public = report.as_public_dict()
+    assert report.status == PASS
+    assert public["application_owned_count"] == 1
+    assert public["provider_owned_count"] == 11
+    assert public["protected_legacy_count"] == 45
+    assert public["restricted_helper_count"] == 1
