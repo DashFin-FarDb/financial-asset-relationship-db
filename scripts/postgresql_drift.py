@@ -411,7 +411,7 @@ def _psycopg_error_types() -> tuple[type[BaseException], ...]:
     """Load the optional driver error type only when handling a database failure."""
     try:
         from psycopg2 import Error as PsycopgError
-    except ImportError:
+    except (ImportError, AttributeError, TypeError):
         return ()
     return (PsycopgError,)
 
