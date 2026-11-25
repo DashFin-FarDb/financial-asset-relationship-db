@@ -447,12 +447,10 @@ def test_collection_rechecks_authorization_window_after_consumption(tmp_path: Pa
 
 def test_connect_verified_preserves_expired_collection_authorization(monkeypatch) -> None:
     """The per-connection approval guard retains its permit error instead of becoming identity drift."""
-    import psycopg2
-
     route = preflight.RouteIdentity("postgresql://runtime@host/postgres", PROJECT_REF)
     target = _collection_target(route.database_url)
     connect = Mock()
-    monkeypatch.setattr(psycopg2, "connect", connect)
+    monkeypatch.setitem(sys.modules, "psycopg2", SimpleNamespace(connect=connect))
 
     def expired() -> None:
         """Reject a connection after the one-use approval expires."""
@@ -466,12 +464,10 @@ def test_connect_verified_preserves_expired_collection_authorization(monkeypatch
 
 def test_connect_verified_preserves_contract_errors_from_identity_proof(monkeypatch) -> None:
     """Identity proof must preserve bounded contract and target errors during cleanup."""
-    import psycopg2
-
     route = preflight.RouteIdentity("postgresql://runtime@host/postgres", PROJECT_REF)
     target = _collection_target(route.database_url)
     connection = Mock()
-    monkeypatch.setattr(psycopg2, "connect", Mock(return_value=connection))
+    monkeypatch.setitem(sys.modules, "psycopg2", SimpleNamespace(connect=Mock(return_value=connection)))
 
     for expected in (preflight.PreflightContractError(preflight.PERMIT_INVALID), TargetIdentityError()):
         monkeypatch.setattr(preflight, "_prove_live_database_identity", Mock(side_effect=expected))
@@ -485,12 +481,10 @@ def test_connect_verified_preserves_contract_errors_from_identity_proof(monkeypa
 
 def test_connect_verified_sanitizes_unexpected_preconnection_guard_failure(monkeypatch, capsys) -> None:
     """Unexpected guard failures stop before connecting and emit the fixed identity diagnostic."""
-    import psycopg2
-
     route = preflight.RouteIdentity("postgresql://runtime@host/postgres", PROJECT_REF)
     target = _collection_target(route.database_url)
     connect = Mock()
-    monkeypatch.setattr(psycopg2, "connect", connect)
+    monkeypatch.setitem(sys.modules, "psycopg2", SimpleNamespace(connect=connect))
     secret = "untrusted guard failure detail"
 
     def fail_guard() -> None:

@@ -834,7 +834,7 @@ def _connect_verified(
             before_connection()
         except (PreflightContractError, TargetIdentityError):
             raise
-        except Exception:
+        except Exception:  # noqa: BLE001 - guard failures map to a fixed target-identity diagnostic
             raise TargetIdentityError() from None
 
     try:
@@ -844,7 +844,7 @@ def _connect_verified(
 
     try:
         connection.set_session(readonly=True, autocommit=False)
-    except Exception:
+    except Exception:  # noqa: BLE001 - provider identity errors remain sanitized
         _discard_identity_connection(connection)
         raise _ConnectionVerificationError(READ_ONLY_SESSION_SETUP_FAILED, route_label) from None
 
