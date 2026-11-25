@@ -1,6 +1,13 @@
 # FarDb staging and hosting credential control
 
-Proposed for review under #1907. Adoption requires review and verification. This document records a procedure and grants no live permit.
+Proposed for review under [#1907](/issues/1907) (canonical tracking issue for review/approvals and links to execution evidence). Adoption requires review and verification. This document records a procedure and grants no live permit.
+
+## Definitions
+
+- **Custodian**: The operator responsible for preparing and executing credential rotations/updates, producing the inventory and non-secret evidence, and stopping execution on partial failure to follow the approved recovery method.
+- **Ratifier**: The reviewer/approver responsible for verifying the inventory digest and change plan, authorizing the change window, and issuing the one-use permit(s) described below.
+- **Authorized launcher**: The operator permitted to initiate a live connection/collection run using an issued permit, after checking the permit matches the exact checkout/commit and target.
+- **Permit (Stage 1 permit)**: A one-use approval token issued by the ratifier for a specific collector commit and target. It is consumed by a single live attempt; a new permit is required for retries or for hosted preflight as noted below.
 
 ## Authority and inventory
 
