@@ -378,7 +378,7 @@ def test_collection_rechecks_sha_after_consumption_before_connecting(tmp_path: P
     monkeypatch.setattr(
         preflight,
         "_connect_verified",
-        lambda *_args: pytest.fail("a changed SHA must stop before the first connection"),
+        lambda *_args, **_kwargs: pytest.fail("a changed SHA must stop before the first connection"),
     )
 
     with pytest.raises(preflight.PreflightContractError, match=preflight.REPOSITORY_HEAD_MISMATCH):
@@ -432,7 +432,7 @@ def test_collection_rechecks_authorization_window_after_consumption(tmp_path: Pa
         expire_after_consumption,
     )
 
-    def fail_expired_connection(_route, _target, before_connection=None, _route_label=None):
+    def fail_expired_connection(_route, _target, before_connection=None, *, route_label=None):
         """Run the newly enforced window guard before rejecting a connection attempt."""
         before_connection()
         pytest.fail("an expired authorization must stop before the first connection")
@@ -494,7 +494,7 @@ def test_connect_verified_sanitizes_unexpected_preconnection_guard_failure(monke
     monkeypatch.setattr(
         preflight,
         "_run_selected_stage",
-        lambda _arguments: preflight._connect_verified(route, target, fail_guard, "inspection"),
+        lambda _arguments: preflight._connect_verified(route, target, fail_guard, route_label="inspection"),
     )
 
     assert preflight.main(()) == 1
@@ -520,7 +520,7 @@ def test_collection_rechecks_authorization_window_before_each_connection(tmp_pat
     connections_opened = 0
     window_checks = 0
 
-    def connect(_route, _target, before_connection=None, _route_label=None):
+    def connect(_route, _target, before_connection=None, *, route_label=None):
         """Run the Stage 1 window guard before simulating a new connection."""
         nonlocal connection_attempts, connections_opened
         connection_attempts += 1
@@ -556,7 +556,11 @@ def test_collection_identity_failure_stops_all_evidence_queries(tmp_path: Path, 
     """A live identity failure prevents all five collection evidence checks."""
     path = _write_collection_authorization(tmp_path)
     _collection_run_target(tmp_path, monkeypatch)
-    monkeypatch.setattr(preflight, "_connect_verified", lambda *_args: (_ for _ in ()).throw(TargetIdentityError()))
+    monkeypatch.setattr(
+        preflight,
+        "_connect_verified",
+        lambda *_args, **_kwargs: (_ for _ in ()).throw(TargetIdentityError()),
+    )
 
     def fail_if_evidence_runs(*_args, **_kwargs):
         """Fail if any post-identity evidence collector is reached."""
@@ -576,7 +580,7 @@ def test_collection_runtime_identity_mismatch_stops_authority_check(monkeypatch)
     target = _collection_target("postgresql://operator:secret@localhost:5432/postgres")
     route = preflight.RouteIdentity(target.database_url, PROJECT_REF)
     connection = MagicMock()
-    monkeypatch.setattr(preflight, "_connect_verified", lambda *_args: connection)
+    monkeypatch.setattr(preflight, "_connect_verified", lambda *_args, **_kwargs: connection)
     monkeypatch.setattr(preflight, "_psycopg_database_identity", lambda _connection: object())
     monkeypatch.setattr(preflight, "_retained_target_identity", lambda *_args: None)
     verification_error = preflight._ConnectionVerificationError(preflight.CONNECTION_OPEN_FAILED, "graph")
@@ -638,7 +642,7 @@ def test_collection_runtime_expiry_preserves_authorization_error(monkeypatch) ->
     target = _collection_target("postgresql://operator:secret@localhost:5432/postgres")
     route = preflight.RouteIdentity(target.database_url, PROJECT_REF)
     connection = MagicMock()
-    monkeypatch.setattr(preflight, "_connect_verified", lambda *_args: connection)
+    monkeypatch.setattr(preflight, "_connect_verified", lambda *_args, **_kwargs: connection)
     monkeypatch.setattr(preflight, "_psycopg_database_identity", lambda _connection: object())
     monkeypatch.setattr(preflight, "_retained_target_identity", lambda *_args: None)
     monkeypatch.setattr(preflight, "_prove_route", lambda *_args: None)
@@ -744,7 +748,7 @@ def test_collection_uses_five_ratified_checks_without_migration_parity(tmp_path:
     monkeypatch.setattr(preflight, "_supabase_route_identity", lambda _value: route)
     monkeypatch.setattr(preflight, "_verified_target", lambda *_args: target)
     monkeypatch.setattr(preflight, "_runtime_routes", lambda _target: {key: route for key in target.logical_targets})
-    monkeypatch.setattr(preflight, "_connect_verified", lambda *_args: connection)
+    monkeypatch.setattr(preflight, "_connect_verified", lambda *_args, **_kwargs: connection)
     monkeypatch.setattr(preflight, "_psycopg_database_identity", lambda _connection: object())
     monkeypatch.setattr(preflight, "_retained_target_identity", lambda *_args: None)
     monkeypatch.setattr(preflight, "_evaluate_verified_drift", lambda *_args: drift)
@@ -1201,7 +1205,7 @@ def test_runtime_route_cleanup_failure_is_incomplete(tmp_path: Path, monkeypatch
             """Fail the required cleanup invariant."""
             raise OSError("close failed")
 
-    monkeypatch.setattr(preflight, "_connect_verified", lambda *_args: Connection())
+    monkeypatch.setattr(preflight, "_connect_verified", lambda *_args, **_kwargs: Connection())
 
     with pytest.raises(preflight.PreflightContractError, match=preflight.EVALUATION_INCOMPLETE):
         preflight._prove_route(route, target)
@@ -1631,7 +1635,9 @@ def test_auth_retained_session_rejects_reroute_before_verification(tmp_path, mon
     target = _target(route.database_url)
     connection = Mock()
     monkeypatch.setattr(
-        preflight, "_connect_verified", lambda _route, _target, _before_connection=None, _route_label=None: connection
+        preflight,
+        "_connect_verified",
+        lambda _route, _target, _before_connection=None, *, route_label=None: connection,
     )
     monkeypatch.setattr(
         preflight,

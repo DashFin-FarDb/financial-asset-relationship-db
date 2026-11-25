@@ -821,7 +821,7 @@ def _discard_identity_connection(connection) -> None:
 
 
 def _connect_verified(
-    route: RouteIdentity, target: PlannedTarget, before_connection=None, route_label: str | None = None
+    route: RouteIdentity, target: PlannedTarget, before_connection=None, *, route_label: str | None = None
 ):
     """Open a read-only connection and report sanitized failures by verification stage."""
     try:
@@ -906,7 +906,7 @@ def _prove_route(
     route: RouteIdentity, target: PlannedTarget, before_connection=None, route_label: str | None = None
 ) -> None:
     """Prove one route and close its read-only identity transaction."""
-    connection = _connect_verified(route, target, before_connection, route_label)
+    connection = _connect_verified(route, target, before_connection, route_label=route_label)
     try:
         connection.close()
     except Exception as exc:  # noqa: BLE001 - cleanup is a required preflight invariant
@@ -994,7 +994,7 @@ def _verified_auth_connection(routes, target=None, expected_identity=None, befor
     if route is None or target is None:
         yield None
         return
-    connection = _connect_verified(route, target, before_connection, "auth")
+    connection = _connect_verified(route, target, before_connection, route_label="auth")
     try:
         identity = _psycopg_database_identity(connection)
         _retained_target_identity(identity, route, target, expected_identity)
@@ -1275,7 +1275,7 @@ def _evaluate_verified_drift(
     before_connection=None,
 ) -> DriftReport:
     """Prove every route and evaluate drift while always closing inspection access."""
-    inspection_connection = _connect_verified(inspection_route, target, before_connection, "inspection")
+    inspection_connection = _connect_verified(inspection_route, target, before_connection, route_label="inspection")
     try:
         inspection_identity = _psycopg_database_identity(inspection_connection)
         _retained_target_identity(inspection_identity, inspection_route, target, expected_identity)
@@ -1371,7 +1371,7 @@ def run_preflight(permit_path: Path | str) -> PreflightReport:
     inspection_route = _supabase_route_identity(inspection_value)
     target = _verified_target(manifest, permit, binding_path, inspection_route)
     runtime_routes = _runtime_routes(target)
-    identity_connection = _connect_verified(inspection_route, target, None, "inspection")
+    identity_connection = _connect_verified(inspection_route, target, route_label="inspection")
     try:
         planned_identity = _psycopg_database_identity(identity_connection)
         _retained_target_identity(planned_identity, inspection_route, target)
@@ -1448,7 +1448,7 @@ def run_collection(authorization_path: Path | str) -> CollectionReport:
             now=None,
         )
 
-    identity_connection = _connect_verified(inspection_route, target, window_check, "inspection")
+    identity_connection = _connect_verified(inspection_route, target, window_check, route_label="inspection")
     try:
         planned_identity = _psycopg_database_identity(identity_connection)
         _retained_target_identity(planned_identity, inspection_route, target)
