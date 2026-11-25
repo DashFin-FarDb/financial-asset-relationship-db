@@ -726,6 +726,7 @@ def test_exact_legacy_inventory_requires_parent_owner_index_flags_and_access() -
         "server_version_num",
         "grants",
         "restricted_effective_privileges",
+        "has_column_acl",
     )
     helper_columns = (
         "name",
@@ -744,7 +745,7 @@ def test_exact_legacy_inventory_requires_parent_owner_index_flags_and_access() -
 
     def classify(rows, *, require_legacy_inventory=False, owner="postgres"):
         """Evaluate one catalog fixture with the requested legacy posture."""
-        legacy_tables = [(name, owner, True, True, 0, 170000, grants, []) for name in sorted(_LEGACY_TABLES)]
+        legacy_tables = [(name, owner, True, True, 0, 170000, grants, [], False) for name in sorted(_LEGACY_TABLES)]
         helper = (
             "is_requester_admin",
             "",
@@ -916,6 +917,7 @@ def test_legacy_table_access_posture_fails_closed() -> None:
         "server_version_num",
         "grants",
         "restricted_effective_privileges",
+        "has_column_acl",
     )
 
     def classify(rows):
@@ -924,17 +926,18 @@ def test_legacy_table_access_posture_fails_closed() -> None:
 
     for version in (150000, 160000):
         grants = sorted(pg15_16_grants)
-        valid: tuple[Any, ...] = ("financial_data", "postgres", True, True, 0, version, grants, [])
+        valid: tuple[Any, ...] = ("financial_data", "postgres", True, True, 0, version, grants, [], False)
         assert "financial_data" in classify([valid])
-        assert not classify([(*valid[:6], None, [])])
-        assert not classify([(*valid[:6], grants + ["anon:SELECT:false"], [])])
+        assert not classify([(*valid[:6], None, [], False)])
+        assert not classify([(*valid[:6], grants + ["anon:SELECT:false"], [], False)])
         assert not classify([(*valid[:2], False, *valid[3:])])
         assert not classify([(*valid[:4], 1, *valid[5:])])
-        assert not classify([(*valid[:7], ["fardb_runtime_graph:SELECT"])])
+        assert not classify([(*valid[:7], ["fardb_runtime_graph:SELECT"], False)])
+        assert not classify([(*valid[:-1], True)])
 
-    pg17_valid: tuple[Any, ...] = ("financial_data", "postgres", True, True, 0, 170000, sorted(pg17_grants), [])
+    pg17_valid: tuple[Any, ...] = ("financial_data", "postgres", True, True, 0, 170000, sorted(pg17_grants), [], False)
     assert "financial_data" in classify([pg17_valid])
-    assert not classify([(*pg17_valid[:6], sorted(pg17_grants)[:-1], [])])
+    assert not classify([(*pg17_valid[:6], sorted(pg17_grants)[:-1], [], False)])
 
 
 def test_restricted_helper_requires_ratified_definition_and_exact_posture(monkeypatch) -> None:

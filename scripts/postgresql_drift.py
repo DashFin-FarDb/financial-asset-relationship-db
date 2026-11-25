@@ -461,7 +461,7 @@ def _legacy_table_posture(cursor: Cursor) -> set[str]:
             ARRAY(
                 SELECT restricted_role.rolname || ':' || privilege.privilege_type
                 FROM pg_catalog.pg_roles restricted_role
-                JOIN pg_catalog.pg_roles reachable ON pg_catalog.pg_has_role(
+                JOIN pg_catalog.pg_roles reachable ON reachable.oid = restricted_role.oid OR pg_catalog.pg_has_role(
                     restricted_role.oid, reachable.oid,
                     CASE WHEN current_setting('server_version_num')::integer >= 160000 THEN 'SET' ELSE 'MEMBER' END
                 )
@@ -484,7 +484,12 @@ def _legacy_table_posture(cursor: Cursor) -> set[str]:
                       )
                   )
                 ORDER BY 1
-            ) AS restricted_effective_privileges
+            ) AS restricted_effective_privileges,
+            EXISTS (
+                SELECT 1 FROM pg_catalog.pg_attribute a
+                WHERE a.attrelid = c.oid AND a.attnum > 0 AND NOT a.attisdropped
+                  AND cardinality(a.attacl) > 0
+            ) AS has_column_acl
         FROM pg_catalog.pg_class c
         JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace
         JOIN pg_catalog.pg_roles owner ON owner.oid = c.relowner
@@ -513,6 +518,7 @@ def _legacy_table_posture(cursor: Cursor) -> set[str]:
                 set(grants) == expected_grants,
                 len(grants) == len(expected_grants),
                 restricted_privileges == [],
+                row["has_column_acl"] is False,
             )
         ):
             safe_tables.add(str(row["name"]))
@@ -543,7 +549,7 @@ def _restricted_helper_posture(cursor: Cursor) -> bool:
             ) AS acl_entries,
             ARRAY(
                 SELECT role.rolname FROM pg_catalog.pg_roles role
-                JOIN pg_catalog.pg_roles reachable ON pg_catalog.pg_has_role(
+                JOIN pg_catalog.pg_roles reachable ON reachable.oid = role.oid OR pg_catalog.pg_has_role(
                     role.oid, reachable.oid,
                     CASE WHEN current_setting('server_version_num')::integer >= 160000 THEN 'SET' ELSE 'MEMBER' END
                 )
