@@ -22,7 +22,35 @@ Use the following checklist when deciding where credentials and identifiers live
 5. **Downstream consumers:** A provider's deployed copy is a downstream consumer.
 6. **Exclusions:** Personal variable collections are outside the deployment path.
 
-At the reviewed source commit, trace every credential read from launcher, workflow and application to its source. Include aliases, reusable workflows, fallback order and inherited bindings. Inspect deployed binding metadata for consumers outside the repository. Record one row per consumer with environment, source store and binding name, effective runtime key, evidence, update owner, recovery owner and recovery method. Mark opaque or unresolved mappings as unconfirmed. The Stage 1 auth route is a candidate. Inventory app/auth (`DATABASE_URL`, then `POSTGRES_URL`), durable graph storage (`ASSET_GRAPH_DATABASE_URL`, explicitly configured for durable staging), and rebuild coordination (`COORDINATION_DATABASE_URL`, then `DATABASE_URL`, then `POSTGRES_URL`). Include a binding in the reset only if its effective role is `fardb_login_auth`. A candidate or a matching variable name alone cannot establish the deployed role. Retain exclusions with their evidence.
+At the reviewed source commit, produce a deterministic credential inventory by following the checklist below and completing the credential-class table.
+
+### Inventory checklist (deterministic)
+
+1. **Trace reads to sources (per consumer):** For each consumer (launcher, workflow, application, and any deployed copies), trace every credential/identifier read at runtime back to its source store.
+   - Include: aliases, reusable workflows, fallback order, and inherited bindings.
+2. **Inspect deployed consumers outside the repo:** Inspect deployed binding metadata for consumers outside the repository (a provider’s deployed copy is a consumer).
+3. **Record one row per consumer:** Record **one row per consumer** with:
+   - environment
+   - source store and binding name
+   - effective runtime key
+   - evidence (non-secret)
+   - update owner
+   - recovery owner
+   - recovery method
+4. **Mark uncertainty explicitly:** Mark opaque or unresolved mappings as **unconfirmed**.
+5. **Treat Stage 1 routing as a candidate:** The Stage 1 auth route is a candidate consumer path and must be evaluated like any other path (confirmed or marked unconfirmed).
+6. **Apply inclusion criteria for resets:** Include a binding in the reset **only if** its **effective role** is `fardb_login_auth`.
+   - A candidate path or a matching variable name alone **cannot** establish the deployed role.
+7. **Retain exclusions with evidence:** Exclusions remain out of scope, but retain them in the inventory with their evidence.
+
+### Credential classes to inventory (keys, consumers, evidence, inclusion)
+
+| Credential class | Keys to check (in order) | Typical consumers to enumerate | Confirmation evidence required (non-secret) | Inclusion / exclusion criteria |
+|---|---|---|---|---|
+| App/auth connection | `DATABASE_URL` → `POSTGRES_URL` | launcher; workflow job steps; application runtime; deployed provider copy | where the effective key is read; source store + binding name; deployed env binding metadata; runtime config reference (redacted) | Include in reset **only** if effective role is `fardb_login_auth`; otherwise exclude but keep row + evidence |
+| Durable graph storage (durable staging) | `ASSET_GRAPH_DATABASE_URL` (must be explicitly configured for durable staging) | application runtime; deployed provider copy | deployed env binding metadata showing explicit durable staging config; source store + binding name | Include in reset **only** if effective role is `fardb_login_auth`; otherwise exclude but keep row + evidence |
+| Rebuild coordination | `COORDINATION_DATABASE_URL` → `DATABASE_URL` → `POSTGRES_URL` | launcher; workflow job steps; application runtime; deployed provider copy | where fallback resolves; deployed env binding metadata; source store + binding name | Include in reset **only** if effective role is `fardb_login_auth`; otherwise exclude but keep row + evidence |
+| Stage 1 auth route (candidate path) | N/A (treat as a candidate consumer path, not a single env var) | any route/path that can initiate or authorize a live collection attempt | evidence of routing/config that would cause it to consume credentials or authorize execution (redacted) | Must be confirmed or marked unconfirmed; include in reset only if it resolves to role `fardb_login_auth` |
 
 ## Review and execution order
 
