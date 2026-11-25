@@ -193,10 +193,27 @@ def test_rows_and_public_scope_classify_without_a_live_database() -> None:
                     "is_unique",
                     "is_primary",
                     "nulls_not_distinct",
+                    "index_definition",
+                    "is_valid",
+                    "is_ready",
                     "type_kind",
                 ),
                 (
-                    ("relation", "user_credentials", "r", None, None, "postgres", None, None, None, None),
+                    (
+                        "relation",
+                        "user_credentials",
+                        "r",
+                        None,
+                        None,
+                        "postgres",
+                        None,
+                        None,
+                        None,
+                        None,
+                        None,
+                        None,
+                        None,
+                    ),
                     (
                         "relation",
                         "user_credentials_id_seq",
@@ -208,9 +225,40 @@ def test_rows_and_public_scope_classify_without_a_live_database() -> None:
                         None,
                         None,
                         None,
+                        None,
+                        None,
+                        None,
                     ),
-                    ("relation", "unmanaged_view", "v", None, None, "postgres", None, None, None, None),
-                    ("policy", "idx_news_articles_url", None, "user_credentials", None, None, None, None, None, None),
+                    (
+                        "relation",
+                        "unmanaged_view",
+                        "v",
+                        None,
+                        None,
+                        "postgres",
+                        None,
+                        None,
+                        None,
+                        None,
+                        None,
+                        None,
+                        None,
+                    ),
+                    (
+                        "policy",
+                        "idx_news_articles_url",
+                        None,
+                        "user_credentials",
+                        None,
+                        None,
+                        None,
+                        None,
+                        None,
+                        None,
+                        None,
+                        None,
+                        None,
+                    ),
                 ),
             ),
             (("name", "system_schema"), (("pg_catalog", True), ("supabase_migrations", False))),
@@ -237,11 +285,42 @@ def test_public_scope_requires_exact_function_identity_and_known_schema() -> Non
                     "is_unique",
                     "is_primary",
                     "nulls_not_distinct",
+                    "index_definition",
+                    "is_valid",
+                    "is_ready",
                     "type_kind",
                 ),
                 (
-                    ("function", "grac_v1_reject_mutation", None, None, "", "postgres", None, None, None, None),
-                    ("function", "grac_v1_reject_mutation", None, None, "integer", "postgres", None, None, None, None),
+                    (
+                        "function",
+                        "grac_v1_reject_mutation",
+                        None,
+                        None,
+                        "",
+                        "postgres",
+                        None,
+                        None,
+                        None,
+                        None,
+                        None,
+                        None,
+                        None,
+                    ),
+                    (
+                        "function",
+                        "grac_v1_reject_mutation",
+                        None,
+                        None,
+                        "integer",
+                        "postgres",
+                        None,
+                        None,
+                        None,
+                        None,
+                        None,
+                        None,
+                        None,
+                    ),
                 ),
             ),
             (("name", "system_schema"), (("private_extension", False),)),
@@ -576,16 +655,39 @@ def test_exact_legacy_inventory_requires_parent_owner_index_flags_and_access() -
         "is_unique",
         "is_primary",
         "nulls_not_distinct",
+        "index_definition",
+        "is_valid",
+        "is_ready",
         "type_kind",
     )
     objects = (
-        [("relation", name, "r", None, None, "postgres", None, None, None, None) for name in sorted(_LEGACY_TABLES)]
+        [
+            ("relation", name, "r", None, None, "postgres", None, None, None, None, None, None, None)
+            for name in sorted(_LEGACY_TABLES)
+        ]
         + [
-            ("relation", name, "i", parent, None, "postgres", unique, primary, None if unique else False, None)
+            (
+                "relation",
+                name,
+                "i",
+                parent,
+                None,
+                "postgres",
+                unique,
+                primary,
+                False,
+                f"CREATE INDEX {name} ON public.{parent} USING btree (id)",
+                True,
+                True,
+                None,
+            )
             for name, (parent, unique, primary) in sorted(_LEGACY_INDEXES.items())
         ]
-        + [("type", name, None, name, None, "postgres", None, None, None, "c") for name in sorted(_LEGACY_TABLES)]
-        + [("function", "is_requester_admin", None, None, "", "postgres", None, None, None, None)]
+        + [
+            ("type", name, None, name, None, "postgres", None, None, None, None, None, None, "c")
+            for name in sorted(_LEGACY_TABLES)
+        ]
+        + [("function", "is_requester_admin", None, None, "", "postgres", None, None, None, None, None, None, None)]
     )
     extensions = [(name, schema, owner) for name, (schema, owner) in sorted(_PROVIDER_EXTENSION_IDENTITIES.items())]
     grants = sorted(_legacy_table_grants(170000))
@@ -642,14 +744,29 @@ def test_exact_legacy_inventory_requires_parent_owner_index_flags_and_access() -
         return _public_scope(cursor, "combined", require_legacy_inventory=require_legacy_inventory)
 
     all_objects = classify(objects)
-    assert all_objects[:4] == (0, 11, 35, 0)
+    assert all_objects[:4] == (0, 11, 16, 0)
     assert "function:is_requester_admin" in all_objects[4]
     assert "relation:financial_data_pkey" in all_objects[4]
+    assert "relation:idx_financial_data_symbol" in all_objects[4]
     assert "legacy:incomplete" in classify(objects[:-2])[4]
     assert "legacy:incomplete" in classify((), require_legacy_inventory=True)[4]
     assert "relation:financial_data" in classify(objects, owner="unexpected_owner")[4]
     colliding_name = list(objects) + [
-        ("policy", "idx_news_articles_url", None, "financial_data", None, None, None, None, None, None)
+        (
+            "policy",
+            "idx_news_articles_url",
+            None,
+            "financial_data",
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+        )
     ]
     collision_result = classify(colliding_name)
     assert "legacy:incomplete" not in collision_result[4]
@@ -657,15 +774,29 @@ def test_exact_legacy_inventory_requires_parent_owner_index_flags_and_access() -
     altered = list(objects)
     indices = [i for i, row in enumerate(altered) if row[1] == "idx_news_articles_url"]
     assert len(indices) == 1
-    altered[indices[0]] = (*altered[indices[0]][:6], False, False, False, None)
+    altered[indices[0]] = (*altered[indices[0]][:6], False, False, False, *altered[indices[0]][9:])
     assert "relation:idx_news_articles_url" in classify(altered)[4]
     altered = list(objects)
     indices = [i for i, row in enumerate(altered) if row[1] == "idx_financial_data_symbol"]
     assert len(indices) == 1
-    altered[indices[0]] = (*altered[indices[0]][:8], True, None)
+    altered[indices[0]] = (*altered[indices[0]][:8], True, *altered[indices[0]][9:])
     assert "relation:idx_financial_data_symbol" in classify(altered)[4]
     altered = list(objects) + [
-        ("relation", "idx_unreviewed", "i", "financial_data", None, "postgres", False, False, False, None)
+        (
+            "relation",
+            "idx_unreviewed",
+            "i",
+            "financial_data",
+            None,
+            "postgres",
+            False,
+            False,
+            False,
+            "CREATE INDEX idx_unreviewed ON public.financial_data USING btree (id)",
+            True,
+            True,
+            None,
+        )
     ]
     assert "relation:idx_unreviewed" in classify(altered)[4]
     extensions[0] = (extensions[0][0], "public", extensions[0][2])
@@ -685,9 +816,40 @@ def test_partitioned_legacy_index_is_not_an_inventory_candidate() -> None:
         "is_unique": True,
         "is_primary": True,
         "nulls_not_distinct": False,
+        "index_definition": "CREATE UNIQUE INDEX financial_data_pkey ON public.financial_data USING btree (id)",
+        "is_valid": True,
+        "is_ready": True,
     }
     assert not _is_legacy_inventory_candidate(item)
     assert not _classify_legacy_object(item, {"financial_data"})
+
+
+def test_legacy_index_requires_matching_approved_definition_and_posture(monkeypatch) -> None:
+    """A ratified index passes only with its exact definition, NULL mode and usable flags."""
+    from scripts.postgresql_drift import _classify_legacy_object
+
+    name = "idx_news_articles_url"
+    definition = "CREATE UNIQUE INDEX idx_news_articles_url ON public.news_articles USING btree (url)"
+    digest = hashlib.sha256(_normalize_sql_text(definition).encode("utf-8")).hexdigest()
+    monkeypatch.setattr("scripts.postgresql_drift._LEGACY_INDEX_BASELINES", {name: (digest, False, True, True)})
+    item = {
+        "object_type": "relation",
+        "name": name,
+        "kind": "i",
+        "parent_table": "news_articles",
+        "owner_role": "postgres",
+        "is_unique": True,
+        "is_primary": False,
+        "nulls_not_distinct": False,
+        "index_definition": definition,
+        "is_valid": True,
+        "is_ready": True,
+    }
+    assert _classify_legacy_object(item, {"news_articles"})
+    assert not _classify_legacy_object({**item, "index_definition": "CREATE INDEX changed"}, {"news_articles"})
+    assert not _classify_legacy_object({**item, "nulls_not_distinct": True}, {"news_articles"})
+    assert not _classify_legacy_object({**item, "is_valid": False}, {"news_articles"})
+    assert not _classify_legacy_object({**item, "is_ready": False}, {"news_articles"})
 
 
 def test_legacy_table_access_posture_fails_closed() -> None:

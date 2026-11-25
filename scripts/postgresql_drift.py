@@ -118,9 +118,10 @@ _LEGACY_INDEXES: Mapping[str, tuple[str, bool, bool]] = MappingProxyType(
         "idx_user_preferences_user_id": ("user_preferences", False, False),
     }
 )
-# Unique legacy indexes stay outside the protected scope until their NULL semantics are ratified.
-_LEGACY_INDEX_NULLS_NOT_DISTINCT: Mapping[str, bool | None] = MappingProxyType(
-    {name: None if unique else False for name, (_parent, unique, _primary) in _LEGACY_INDEXES.items()}
+# Values bind the normalized index definition digest, applicable NULL semantics, and ready/valid posture.
+# Every baseline is absent until the ratifier supplies approved catalog evidence.
+_LEGACY_INDEX_BASELINES: Mapping[str, tuple[str, bool | None, bool, bool] | None] = MappingProxyType(
+    {name: None for name in _LEGACY_INDEXES}
 )
 # The helper is fail-closed until a custodian supplies its approved definition digest and pinned proconfig.
 _RESTRICTED_HELPER_DEFINITION_SHA256: str | None = None
@@ -154,7 +155,9 @@ _RESTRICTED_ROLES = frozenset(
 )
 _LEGACY_TABLE_PRIVILEGES = ("DELETE", "INSERT", "REFERENCES", "SELECT", "TRIGGER", "TRUNCATE", "UPDATE")
 
-_SQL_TEXT_COLUMNS = frozenset({"check_expression", "default_expression", "definition", "using_expression"})
+_SQL_TEXT_COLUMNS = frozenset(
+    {"check_expression", "default_expression", "definition", "index_definition", "using_expression"}
+)
 
 
 class Cursor(Protocol):
@@ -550,11 +553,24 @@ def _classify_legacy_object(item: Mapping[str, object], safe_tables: set[str]) -
             return name in safe_tables and item.get("parent_table") is None
         if item.get("kind") == "i":
             expected = _LEGACY_INDEXES.get(str(name))
+            baseline = _LEGACY_INDEX_BASELINES.get(str(name))
+            definition = item.get("index_definition")
+            null_semantics_match = expected is not None and (
+                not expected[1]
+                or expected[2]
+                or (baseline is not None and item.get("nulls_not_distinct") is baseline[1])
+            )
             return (
                 expected is not None
-                and _LEGACY_INDEX_NULLS_NOT_DISTINCT.get(str(name)) is not None
+                and baseline is not None
+                and isinstance(definition, str)
+                and hashlib.sha256(definition.encode("utf-8")).hexdigest() == baseline[0]
                 and (item.get("parent_table"), item.get("is_unique"), item.get("is_primary")) == expected
-                and item.get("nulls_not_distinct") is _LEGACY_INDEX_NULLS_NOT_DISTINCT.get(str(name))
+                and null_semantics_match
+                and baseline[2] is True
+                and item.get("is_valid") is baseline[2]
+                and baseline[3] is True
+                and item.get("is_ready") is baseline[3]
                 and expected[0] in safe_tables
             )
     if item.get("object_type") == "type":
@@ -699,7 +715,8 @@ def _public_scope(
             COALESCE(owned.relname, indexed.relname) AS parent_table,
             NULL::text AS identity_arguments, owner.rolname AS owner_role,
             idx.indisunique AS is_unique, idx.indisprimary AS is_primary, idx.indnullsnotdistinct AS nulls_not_distinct,
-            NULL::text AS type_kind
+            CASE WHEN c.relkind IN ('i', 'I') THEN pg_catalog.pg_get_indexdef(c.oid) END AS index_definition,
+            idx.indisvalid AS is_valid, idx.indisready AS is_ready, NULL::text AS type_kind
         FROM pg_catalog.pg_class AS c
         JOIN pg_catalog.pg_namespace AS n ON n.oid = c.relnamespace
         JOIN pg_catalog.pg_roles AS owner ON owner.oid = c.relowner
@@ -711,26 +728,26 @@ def _public_scope(
         WHERE n.nspname = 'public' AND c.relkind IN ('r', 'p', 'v', 'm', 'S', 'f', 'i', 'I')
         UNION ALL
         SELECT 'function', p.proname, NULL, NULL,
-            pg_catalog.pg_get_function_identity_arguments(p.oid), owner.rolname, NULL, NULL, NULL, NULL
+            pg_catalog.pg_get_function_identity_arguments(p.oid), owner.rolname, NULL, NULL, NULL, NULL, NULL, NULL, NULL
         FROM pg_catalog.pg_proc AS p
         JOIN pg_catalog.pg_namespace AS n ON n.oid = p.pronamespace
         JOIN pg_catalog.pg_roles AS owner ON owner.oid = p.proowner
         WHERE n.nspname = 'public'
         UNION ALL
-        SELECT 'policy', pol.polname, NULL, c.relname, NULL, NULL, NULL, NULL, NULL, NULL
+        SELECT 'policy', pol.polname, NULL, c.relname, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL
         FROM pg_catalog.pg_policy AS pol
         JOIN pg_catalog.pg_class AS c ON c.oid = pol.polrelid
         JOIN pg_catalog.pg_namespace AS n ON n.oid = c.relnamespace
         WHERE n.nspname = 'public'
         UNION ALL
-        SELECT 'trigger', t.tgname, NULL, c.relname, NULL, NULL, NULL, NULL, NULL, NULL
+        SELECT 'trigger', t.tgname, NULL, c.relname, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL
         FROM pg_catalog.pg_trigger AS t
         JOIN pg_catalog.pg_class AS c ON c.oid = t.tgrelid
         JOIN pg_catalog.pg_namespace AS n ON n.oid = c.relnamespace
         WHERE n.nspname = 'public' AND NOT t.tgisinternal
         UNION ALL
         SELECT 'type', typ.typname, NULL, relation.relname, NULL,
-            owner.rolname, NULL, NULL, NULL, typ.typtype::text
+            owner.rolname, NULL, NULL, NULL, NULL, NULL, NULL, typ.typtype::text
         FROM pg_catalog.pg_type AS typ
         JOIN pg_catalog.pg_namespace AS n ON n.oid = typ.typnamespace
         JOIN pg_catalog.pg_roles AS owner ON owner.oid = typ.typowner
