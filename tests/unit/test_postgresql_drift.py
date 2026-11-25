@@ -192,7 +192,7 @@ def test_rows_and_public_scope_classify_without_a_live_database() -> None:
             (("name", "schema_name", "owner_role"), (("plpgsql", "pg_catalog", "postgres"),)),
         ]
     )
-    application, provider, legacy, helper, unknown = _public_scope(scope_cursor, "auth")
+    application, provider, legacy, helper, unknown = _public_scope(scope_cursor, "auth", allow_loopback_test_owner=True)
     assert (application, provider, legacy, helper) == (2, 3, 0, 0)
     assert len(unknown) == 1
 
@@ -212,7 +212,7 @@ def test_public_scope_requires_exact_function_identity_and_known_schema() -> Non
             (("name", "schema_name", "owner_role"), (("plpgsql", "pg_catalog", "postgres"),)),
         ]
     )
-    application, provider, legacy, helper, unknown = _public_scope(cursor, "graph")
+    application, provider, legacy, helper, unknown = _public_scope(cursor, "graph", allow_loopback_test_owner=True)
     assert (application, provider, legacy, helper) == (1, 1, 0, 0)
     assert len(unknown) == 2
 
@@ -481,7 +481,7 @@ def test_exact_legacy_inventory_requires_parent_owner_index_flags_and_access(mon
     monkeypatch.setattr("scripts.postgresql_drift._legacy_table_posture", lambda cursor: set(_LEGACY_TABLES))
     monkeypatch.setattr("scripts.postgresql_drift._restricted_helper_posture", lambda cursor: True)
 
-    def classify(rows):
+    def classify(rows, *, require_legacy_inventory=False):
         cursor = StubCursor(
             [
                 (columns, rows),
@@ -489,10 +489,11 @@ def test_exact_legacy_inventory_requires_parent_owner_index_flags_and_access(mon
                 (("name", "schema_name", "owner_role"), extensions),
             ]
         )
-        return _public_scope(cursor, "combined")
+        return _public_scope(cursor, "combined", require_legacy_inventory=require_legacy_inventory)
 
     assert classify(objects) == (0, 11, 45, 1, ())
     assert classify(objects[:-2])[4] == ("legacy:incomplete",)
+    assert "legacy:incomplete" in classify((), require_legacy_inventory=True)[4]
     altered = list(objects)
     index = next(i for i, row in enumerate(altered) if row[1] == "idx_news_articles_url")
     altered[index] = (*altered[index][:6], False, False, None)

@@ -516,7 +516,7 @@ def _classify_legacy_object(item: Mapping[str, object], safe_tables: set[str]) -
 
 
 def _public_scope(
-    cursor: Cursor, profile: str, *, allow_loopback_test_owner: bool = False
+    cursor: Cursor, profile: str, *, allow_loopback_test_owner: bool = False, require_legacy_inventory: bool = False
 ) -> tuple[int, int, int, int, tuple[str, ...]]:
     """Totally classify contracted schemas and independently addressable objects."""
     managed_tables = expected_managed_tables(profile)
@@ -613,7 +613,9 @@ def _public_scope(
     legacy_count = 0
     helper_count = 0
     unknown = []
-    if (legacy_present or helper_present) and (legacy_found != legacy_expected or not helper_present):
+    if (require_legacy_inventory or legacy_present or helper_present) and (
+        legacy_found != legacy_expected or not helper_present
+    ):
         unknown.append("legacy:incomplete")
     for item in objects:
         if _classify_public_object(item, managed_tables, profile):
@@ -634,9 +636,9 @@ def _public_scope(
             provider_count += 1
         else:
             unknown.append(f"schema:{schema['name']}")
-    if (legacy_present or helper_present) and {extension["name"] for extension in extensions} != set(
-        _PROVIDER_EXTENSION_IDENTITIES
-    ):
+    if (require_legacy_inventory or legacy_present or helper_present) and {
+        extension["name"] for extension in extensions
+    } != set(_PROVIDER_EXTENSION_IDENTITIES):
         unknown.append("extension:incomplete")
     for extension in extensions:
         expected = _PROVIDER_EXTENSION_IDENTITIES.get(str(extension["name"]))
@@ -645,7 +647,12 @@ def _public_scope(
             and extension.get("schema_name") == "pg_catalog"
             and (
                 extension.get("owner_role") == "supabase_admin"
-                or (not legacy_present and not helper_present and extension.get("owner_role") == "postgres")
+                or (
+                    allow_loopback_test_owner
+                    and not legacy_present
+                    and not helper_present
+                    and extension.get("owner_role") == "postgres"
+                )
                 or (
                     allow_loopback_test_owner
                     and not legacy_present
@@ -964,10 +971,14 @@ def _catalog_check(
     profile: str,
     *,
     allow_loopback_test_owner: bool = False,
+    require_legacy_inventory: bool = False,
 ) -> tuple[CheckResult, int, int, int, int, int]:
     """Classify scope and compare the normalized profile catalog digest."""
     application_count, provider_count, legacy_count, helper_count, unknown = _public_scope(
-        cursor, profile, allow_loopback_test_owner=allow_loopback_test_owner
+        cursor,
+        profile,
+        allow_loopback_test_owner=allow_loopback_test_owner,
+        require_legacy_inventory=require_legacy_inventory,
     )
     if unknown:
         return (
@@ -1107,6 +1118,7 @@ def _profile_catalog_checks(
                 manifest,
                 profile,
                 allow_loopback_test_owner=lineage == "fresh-v1" and target_class == "loopback",
+                require_legacy_inventory=lineage == "hosted-legacy-v1",
             )
     except Exception:  # noqa: BLE001 - transaction/catalog unavailability is a bounded required-check result
         catalog = CheckResult("catalog", PROVIDER_SCHEMA_DRIFT, NOT_EVALUATED, REQUIRED_CHECK_NOT_EVALUATED)
