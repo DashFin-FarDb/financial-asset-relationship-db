@@ -538,11 +538,13 @@ def test_collection_runtime_identity_mismatch_stops_authority_check(monkeypatch)
     monkeypatch.setattr(preflight, "_connect_verified", lambda *_args: connection)
     monkeypatch.setattr(preflight, "_psycopg_database_identity", lambda _connection: object())
     monkeypatch.setattr(preflight, "_retained_target_identity", lambda *_args: None)
-    monkeypatch.setattr(
-        preflight,
-        "_runtime_routes_compatible",
-        lambda *_args: (_ for _ in ()).throw(TargetIdentityError()),
-    )
+    verification_error = preflight._ConnectionVerificationError(preflight.CONNECTION_OPEN_FAILED, "graph")
+
+    def fail_runtime_route(*_args):
+        """Return a sanitized route error that the evaluator would otherwise downgrade."""
+        raise verification_error
+
+    monkeypatch.setattr(preflight, "_runtime_routes_compatible", fail_runtime_route)
     monkeypatch.setattr(preflight, "_prove_route", lambda *_args: None)
 
     def evaluate_after_identity_rollback(*_args, **kwargs):
@@ -561,7 +563,7 @@ def test_collection_runtime_identity_mismatch_stops_authority_check(monkeypatch)
         pytest.fail("runtime authority must not follow a failed runtime identity proof")
 
     monkeypatch.setattr(preflight, "_runtime_authority", fail_authority)
-    with pytest.raises(TargetIdentityError):
+    with pytest.raises(preflight._ConnectionVerificationError) as captured:
         preflight._evaluate_verified_drift(
             route,
             {key: route for key in target.logical_targets},
@@ -581,6 +583,9 @@ def test_collection_runtime_identity_mismatch_stops_authority_check(monkeypatch)
                 "2026-11-21T13:00:00Z",
             ),
         )
+    assert captured.value is verification_error
+    assert captured.value.category == preflight.CONNECTION_OPEN_FAILED
+    assert captured.value.route_label == "graph"
     connection.close.assert_called()
 
 

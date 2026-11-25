@@ -1277,7 +1277,7 @@ def _evaluate_verified_drift(
             inspection_connection.rollback()
         except Exception as exc:  # noqa: BLE001 - release the identity transaction before the evidence snapshot
             raise PreflightContractError(EVALUATION_INCOMPLETE) from exc
-        identity_failure = False
+        identity_failure: TargetIdentityError | None = None
         authorization_failure: PreflightContractError | None = None
 
         def runtime_check() -> None:
@@ -1290,9 +1290,9 @@ def _evaluate_verified_drift(
                     raise
                 authorization_failure = exc
                 raise RuntimeCheckUnavailable("runtime authorization expired") from exc
-            except TargetIdentityError:
-                identity_failure = True
-                raise RuntimeCheckUnavailable("runtime identity verification failed")
+            except TargetIdentityError as exc:
+                identity_failure = exc
+                raise RuntimeCheckUnavailable("runtime identity verification failed") from exc
 
         drift = evaluate_profile_drift(
             inspection_connection,
@@ -1303,8 +1303,8 @@ def _evaluate_verified_drift(
             runtime_check=runtime_check,
             adoption_timestamp=permit.migration_timestamp,
         )
-        if identity_failure:
-            raise TargetIdentityError()
+        if identity_failure is not None:
+            raise identity_failure
         if authorization_failure is not None:
             raise authorization_failure
         return drift
