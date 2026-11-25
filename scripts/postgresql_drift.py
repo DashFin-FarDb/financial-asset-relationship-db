@@ -1193,6 +1193,7 @@ def _profile_catalog_checks(
 ) -> tuple[CheckResult, CheckResult, int, int, int, int, int]:
     """Evaluate history and catalog in one always-rolled-back read-only snapshot."""
     history = CheckResult("history", LEDGER_HISTORY_MISMATCH, NOT_EVALUATED, REQUIRED_CHECK_NOT_EVALUATED)
+    catalog = CheckResult("catalog", PROVIDER_SCHEMA_DRIFT, NOT_EVALUATED, REQUIRED_CHECK_NOT_EVALUATED)
     application_count = provider_count = legacy_count = helper_count = unknown_count = 0
     try:
         with _read_only_cursor(connection) as cursor:
@@ -1200,13 +1201,17 @@ def _profile_catalog_checks(
                 history = _history_check(cursor, manifest, profile, lineage)
             else:
                 history = _history_check(cursor, manifest, profile, lineage, adoption_timestamp)
-            catalog, application_count, provider_count, legacy_count, helper_count, unknown_count = _catalog_check(
-                cursor,
-                manifest,
-                profile,
-                allow_loopback_test_owner=lineage == "fresh-v1" and target_class == "loopback",
-                require_legacy_inventory=lineage == "hosted-legacy-v1",
-            )
+            try:
+                catalog, application_count, provider_count, legacy_count, helper_count, unknown_count = _catalog_check(
+                    cursor,
+                    manifest,
+                    profile,
+                    allow_loopback_test_owner=lineage == "fresh-v1" and target_class == "loopback",
+                    require_legacy_inventory=lineage == "hosted-legacy-v1",
+                )
+            except Exception:  # noqa: BLE001 - catalog unavailability preserves completed history evidence
+                catalog = CheckResult("catalog", PROVIDER_SCHEMA_DRIFT, NOT_EVALUATED, REQUIRED_CHECK_NOT_EVALUATED)
+                application_count = provider_count = legacy_count = helper_count = unknown_count = 0
     except Exception:  # noqa: BLE001 - transaction/catalog unavailability is a bounded required-check result
         history = CheckResult("history", LEDGER_HISTORY_MISMATCH, NOT_EVALUATED, REQUIRED_CHECK_NOT_EVALUATED)
         catalog = CheckResult("catalog", PROVIDER_SCHEMA_DRIFT, NOT_EVALUATED, REQUIRED_CHECK_NOT_EVALUATED)

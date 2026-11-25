@@ -362,6 +362,35 @@ def test_evaluator_fails_closed_when_transaction_cleanup_is_unavailable(monkeypa
     assert connection.rolled_back is True
 
 
+def test_evaluator_preserves_completed_history_drift_when_catalog_fails(monkeypatch) -> None:
+    """A lower-priority catalog error must not erase a completed history finding."""
+    monkeypatch.setattr(
+        "scripts.postgresql_drift._history_check",
+        lambda cursor, manifest, profile, lineage: _check(LEDGER_HISTORY_MISMATCH, CHECK_DRIFT),
+    )
+
+    def catalog_unavailable(*_args, **_kwargs):
+        """Simulate catalog failure after migration history was checked."""
+        raise ConnectionError("catalog unavailable")
+
+    monkeypatch.setattr("scripts.postgresql_drift._catalog_check", catalog_unavailable)
+    connection = StubConnection(StubCursor([]))
+    report = evaluate_profile_drift(
+        connection,
+        load_and_validate_manifest(),
+        "auth",
+        "fresh-v1",
+        "loopback",
+        runtime_check=lambda: None,
+    )
+
+    assert report.status == DRIFT_DETECTED
+    assert report.primary_category == LEDGER_HISTORY_MISMATCH
+    assert report.history == CHECK_DRIFT
+    assert report.catalog == NOT_EVALUATED
+    assert connection.rolled_back is True
+
+
 def test_clean_required_checks_pass() -> None:
     """PASS requires every required check to complete without drift."""
     checks = tuple(
