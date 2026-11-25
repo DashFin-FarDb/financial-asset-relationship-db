@@ -558,6 +558,21 @@ def test_collection_runtime_identity_mismatch_stops_authority_check(monkeypatch)
         evaluate_after_identity_rollback,
     )
 
+    manifest = load_and_validate_manifest()
+    authorization = preflight.CollectionAuthorization(
+        "1" * 40,
+        manifest.sha256,
+        "combined",
+        "hosted-legacy-v1",
+        "a" * 64,
+        preflight.COLLECTION_MARKER,
+        manifest.catalog_digest_for_profile("combined"),
+        "operator",
+        "ratifier",
+        "2026-11-21T12:00:00Z",
+        "2026-11-21T13:00:00Z",
+    )
+
     def fail_authority(*_args):
         """Fail if runtime authority runs after runtime identity could not be proved."""
         pytest.fail("runtime authority must not follow a failed runtime identity proof")
@@ -568,20 +583,8 @@ def test_collection_runtime_identity_mismatch_stops_authority_check(monkeypatch)
             route,
             {key: route for key in target.logical_targets},
             target,
-            load_and_validate_manifest(),
-            preflight.CollectionAuthorization(
-                "1" * 40,
-                load_and_validate_manifest().sha256,
-                "combined",
-                "hosted-legacy-v1",
-                "a" * 64,
-                preflight.COLLECTION_MARKER,
-                load_and_validate_manifest().catalog_digest_for_profile("combined"),
-                "operator",
-                "ratifier",
-                "2026-11-21T12:00:00Z",
-                "2026-11-21T13:00:00Z",
-            ),
+            manifest,
+            authorization,
         )
     assert captured.value is verification_error
     assert captured.value.category == preflight.CONNECTION_OPEN_FAILED

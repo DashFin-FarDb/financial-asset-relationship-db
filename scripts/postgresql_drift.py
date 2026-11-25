@@ -571,6 +571,67 @@ def _is_provider_extension(
     )
 
 
+def _classify_public_objects(
+    objects: Sequence[Mapping[str, object]],
+    managed_tables: tuple[str, ...],
+    profile: str,
+    safe_tables: set[str],
+    helper_safe: bool,
+) -> tuple[int, int, int, tuple[str, ...]]:
+    """Return application, legacy, and helper counts plus unknown object identities."""
+    application_count = 0
+    legacy_count = 0
+    helper_count = 0
+    unknown: list[str] = []
+    for item in objects:
+        if _classify_public_object(item, managed_tables, profile):
+            application_count += 1
+        elif _classify_legacy_object(item, safe_tables):
+            legacy_count += 1
+        elif (
+            helper_safe
+            and item["object_type"] == "function"
+            and item["name"] == "is_requester_admin"
+            and item["identity_arguments"] == ""
+        ):
+            helper_count += 1
+        else:
+            unknown.append(f"{item['object_type']}:{item['name']}")
+    return application_count, legacy_count, helper_count, tuple(unknown)
+
+
+def _provider_scope_counts(
+    schemas: Sequence[Mapping[str, object]],
+    extensions: Sequence[Mapping[str, object]],
+    *,
+    inventory_applies: bool,
+    allow_loopback_test_owner: bool,
+    legacy_present: bool,
+    helper_present: bool,
+) -> tuple[int, tuple[str, ...]]:
+    """Count verified provider schemas/extensions and return unknown identities."""
+    provider_count = 0
+    unknown: list[str] = []
+    for schema in schemas:
+        if bool(schema["system_schema"]) or schema["name"] in _PROVIDER_SCHEMAS:
+            provider_count += 1
+        else:
+            unknown.append(f"schema:{schema['name']}")
+    if inventory_applies and {extension["name"] for extension in extensions} != set(_PROVIDER_EXTENSION_IDENTITIES):
+        unknown.append("extension:incomplete")
+    for extension in extensions:
+        if _is_provider_extension(
+            extension,
+            allow_loopback_test_owner=allow_loopback_test_owner,
+            legacy_present=legacy_present,
+            helper_present=helper_present,
+        ):
+            provider_count += 1
+        else:
+            unknown.append(f"extension:{extension['name']}")
+    return provider_count, tuple(unknown)
+
+
 def _public_scope(
     cursor: Cursor, profile: str, *, allow_loopback_test_owner: bool = False, require_legacy_inventory: bool = False
 ) -> tuple[int, int, int, int, tuple[str, ...]]:
@@ -649,11 +710,7 @@ def _public_scope(
     safe_tables = _legacy_table_posture(cursor) if legacy_present else set()
     helper_present = any(item["object_type"] == "function" and item["name"] == "is_requester_admin" for item in objects)
     helper_safe = _restricted_helper_posture(cursor) if helper_present else False
-    application_count = 0
-    provider_count = 0
-    legacy_count = 0
-    helper_count = 0
-    unknown = []
+    unknown: list[str] = []
     if not _legacy_inventory_is_complete(
         objects,
         require_inventory=require_legacy_inventory,
@@ -661,38 +718,20 @@ def _public_scope(
         helper_present=helper_present,
     ):
         unknown.append("legacy:incomplete")
-    for item in objects:
-        if _classify_public_object(item, managed_tables, profile):
-            application_count += 1
-        elif _classify_legacy_object(item, safe_tables):
-            legacy_count += 1
-        elif (
-            helper_safe
-            and item["object_type"] == "function"
-            and item["name"] == "is_requester_admin"
-            and item["identity_arguments"] == ""
-        ):
-            helper_count += 1
-        else:
-            unknown.append(f"{item['object_type']}:{item['name']}")
-    for schema in schemas:
-        if bool(schema["system_schema"]) or schema["name"] in _PROVIDER_SCHEMAS:
-            provider_count += 1
-        else:
-            unknown.append(f"schema:{schema['name']}")
     inventory_applies = require_legacy_inventory or legacy_present or helper_present
-    if inventory_applies and {extension["name"] for extension in extensions} != set(_PROVIDER_EXTENSION_IDENTITIES):
-        unknown.append("extension:incomplete")
-    for extension in extensions:
-        if _is_provider_extension(
-            extension,
-            allow_loopback_test_owner=allow_loopback_test_owner,
-            legacy_present=legacy_present,
-            helper_present=helper_present,
-        ):
-            provider_count += 1
-        else:
-            unknown.append(f"extension:{extension['name']}")
+    application_count, legacy_count, helper_count, object_unknown = _classify_public_objects(
+        objects, managed_tables, profile, safe_tables, helper_safe
+    )
+    provider_count, provider_unknown = _provider_scope_counts(
+        schemas,
+        extensions,
+        inventory_applies=inventory_applies,
+        allow_loopback_test_owner=allow_loopback_test_owner,
+        legacy_present=legacy_present,
+        helper_present=helper_present,
+    )
+    unknown.extend(object_unknown)
+    unknown.extend(provider_unknown)
     return application_count, provider_count, legacy_count, helper_count, tuple(unknown)
 
 
