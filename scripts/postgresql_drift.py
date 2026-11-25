@@ -10,6 +10,8 @@ from dataclasses import dataclass
 from types import MappingProxyType
 from typing import Any, Protocol
 
+import psycopg2
+
 from scripts.postgresql_ledger import (
     CATALOG_NORMALIZATION_VERSION,
     EXPECTED_MANAGED_TABLES,
@@ -116,6 +118,13 @@ _LEGACY_INDEXES: Mapping[str, tuple[str, bool, bool]] = MappingProxyType(
         "idx_user_preferences_user_id": ("user_preferences", False, False),
     }
 )
+# Unique legacy indexes stay outside the protected scope until their NULL semantics are ratified.
+_LEGACY_INDEX_NULLS_NOT_DISTINCT: Mapping[str, bool | None] = MappingProxyType(
+    {name: None if unique else False for name, (_parent, unique, _primary) in _LEGACY_INDEXES.items()}
+)
+# The helper is fail-closed until a custodian supplies its approved definition digest and pinned proconfig.
+_RESTRICTED_HELPER_DEFINITION_SHA256: str | None = None
+_RESTRICTED_HELPER_PROCONFIG: tuple[str, ...] | None = None
 _PROVIDER_EXTENSION_IDENTITIES: Mapping[str, tuple[str, str]] = MappingProxyType(
     {
         "hypopg": ("extensions", "supabase_admin"),
@@ -474,7 +483,7 @@ def _legacy_table_grants(server_version_num: int) -> frozenset[str]:
 
 
 def _restricted_helper_posture(cursor: Cursor) -> bool:
-    """Require the reviewed signature, owner, ACL and effective role restrictions."""
+    """Require the reviewed helper definition, configuration, signature and role restrictions."""
     rows = _rows(
         cursor,
         """
@@ -482,7 +491,8 @@ def _restricted_helper_posture(cursor: Cursor) -> bool:
             pg_catalog.format_type(p.prorettype, NULL) AS return_type,
             p.proretset AS returns_set,
             lang.lanname AS language, p.provolatile AS volatility, p.prosecdef AS security_definer,
-            owner.rolname AS owner_role,
+            owner.rolname AS owner_role, pg_catalog.pg_get_functiondef(p.oid) AS definition,
+            COALESCE(p.proconfig, ARRAY[]::text[]) AS proconfig,
             COALESCE(
                 ARRAY(SELECT acl::text FROM unnest(COALESCE(p.proacl, '{}'::aclitem[])) AS acl ORDER BY acl::text),
                 ARRAY[]::text[]
@@ -501,17 +511,31 @@ def _restricted_helper_posture(cursor: Cursor) -> bool:
         """,
         (sorted(_RESTRICTED_ROLES),),
     )
-    return len(rows) == 1 and all(
-        (
-            rows[0]["arguments"] == "",
-            rows[0]["return_type"] == "boolean",
-            rows[0]["returns_set"] is False,
-            rows[0]["language"] == "sql",
-            rows[0]["volatility"] == "v",
-            rows[0]["security_definer"] is True,
-            rows[0]["owner_role"] == "postgres",
-            rows[0]["acl_entries"] == ["postgres=X/postgres", "service_role=X/postgres"],
-            rows[0]["effective_untrusted_roles"] == [],
+    if len(rows) != 1 or _RESTRICTED_HELPER_DEFINITION_SHA256 is None or _RESTRICTED_HELPER_PROCONFIG is None:
+        return False
+    definition = rows[0]["definition"]
+    proconfig = rows[0]["proconfig"]
+    if not isinstance(definition, str) or not isinstance(proconfig, (tuple, list)):
+        return False
+    if not all(isinstance(value, str) for value in proconfig):
+        return False
+    definition_digest = hashlib.sha256(definition.encode("utf-8")).hexdigest()
+    normalized_proconfig = tuple(sorted(proconfig))
+    return (
+        definition_digest == _RESTRICTED_HELPER_DEFINITION_SHA256
+        and normalized_proconfig == tuple(sorted(_RESTRICTED_HELPER_PROCONFIG))
+        and all(
+            (
+                rows[0]["arguments"] == "",
+                rows[0]["return_type"] == "boolean",
+                rows[0]["returns_set"] is False,
+                rows[0]["language"] == "sql",
+                rows[0]["volatility"] == "v",
+                rows[0]["security_definer"] is True,
+                rows[0]["owner_role"] == "postgres",
+                rows[0]["acl_entries"] == ["postgres=X/postgres", "service_role=X/postgres"],
+                rows[0]["effective_untrusted_roles"] == [],
+            )
         )
     )
 
@@ -528,7 +552,9 @@ def _classify_legacy_object(item: Mapping[str, object], safe_tables: set[str]) -
             expected = _LEGACY_INDEXES.get(str(name))
             return (
                 expected is not None
+                and _LEGACY_INDEX_NULLS_NOT_DISTINCT.get(str(name)) is not None
                 and (item.get("parent_table"), item.get("is_unique"), item.get("is_primary")) == expected
+                and item.get("nulls_not_distinct") is _LEGACY_INDEX_NULLS_NOT_DISTINCT.get(str(name))
                 and expected[0] in safe_tables
             )
     if item.get("object_type") == "type":
@@ -542,7 +568,7 @@ def _is_legacy_inventory_candidate(item: Mapping[str, object]) -> bool:
     name = item["name"]
     kind = item["kind"]
     if object_type == "relation":
-        return (kind == "r" and name in _LEGACY_TABLES) or (kind in ("i", "I") and name in _LEGACY_INDEXES)
+        return (kind == "r" and name in _LEGACY_TABLES) or (kind == "i" and name in _LEGACY_INDEXES)
     return object_type == "type" and name in _LEGACY_TABLES
 
 
@@ -672,7 +698,7 @@ def _public_scope(
         SELECT 'relation' AS object_type, c.relname AS name, c.relkind AS kind,
             COALESCE(owned.relname, indexed.relname) AS parent_table,
             NULL::text AS identity_arguments, owner.rolname AS owner_role,
-            idx.indisunique AS is_unique, idx.indisprimary AS is_primary,
+            idx.indisunique AS is_unique, idx.indisprimary AS is_primary, idx.indnullsnotdistinct AS nulls_not_distinct,
             NULL::text AS type_kind
         FROM pg_catalog.pg_class AS c
         JOIN pg_catalog.pg_namespace AS n ON n.oid = c.relnamespace
@@ -685,26 +711,26 @@ def _public_scope(
         WHERE n.nspname = 'public' AND c.relkind IN ('r', 'p', 'v', 'm', 'S', 'f', 'i', 'I')
         UNION ALL
         SELECT 'function', p.proname, NULL, NULL,
-            pg_catalog.pg_get_function_identity_arguments(p.oid), owner.rolname, NULL, NULL, NULL
+            pg_catalog.pg_get_function_identity_arguments(p.oid), owner.rolname, NULL, NULL, NULL, NULL
         FROM pg_catalog.pg_proc AS p
         JOIN pg_catalog.pg_namespace AS n ON n.oid = p.pronamespace
         JOIN pg_catalog.pg_roles AS owner ON owner.oid = p.proowner
         WHERE n.nspname = 'public'
         UNION ALL
-        SELECT 'policy', pol.polname, NULL, c.relname, NULL, NULL, NULL, NULL, NULL
+        SELECT 'policy', pol.polname, NULL, c.relname, NULL, NULL, NULL, NULL, NULL, NULL
         FROM pg_catalog.pg_policy AS pol
         JOIN pg_catalog.pg_class AS c ON c.oid = pol.polrelid
         JOIN pg_catalog.pg_namespace AS n ON n.oid = c.relnamespace
         WHERE n.nspname = 'public'
         UNION ALL
-        SELECT 'trigger', t.tgname, NULL, c.relname, NULL, NULL, NULL, NULL, NULL
+        SELECT 'trigger', t.tgname, NULL, c.relname, NULL, NULL, NULL, NULL, NULL, NULL
         FROM pg_catalog.pg_trigger AS t
         JOIN pg_catalog.pg_class AS c ON c.oid = t.tgrelid
         JOIN pg_catalog.pg_namespace AS n ON n.oid = c.relnamespace
         WHERE n.nspname = 'public' AND NOT t.tgisinternal
         UNION ALL
         SELECT 'type', typ.typname, NULL, relation.relname, NULL,
-            owner.rolname, NULL, NULL, typ.typtype::text
+            owner.rolname, NULL, NULL, NULL, typ.typtype::text
         FROM pg_catalog.pg_type AS typ
         JOIN pg_catalog.pg_namespace AS n ON n.oid = typ.typnamespace
         JOIN pg_catalog.pg_roles AS owner ON owner.oid = typ.typowner
@@ -1046,7 +1072,7 @@ def _history_check(
     try:
         cursor.execute("SELECT version, name FROM supabase_migrations.schema_migrations ORDER BY version")
         actual = tuple((str(version), str(name)) for version, name in cursor.fetchall())
-    except Exception:  # noqa: BLE001 - unavailable history is a bounded required-check result
+    except psycopg2.Error:
         return CheckResult("history", LEDGER_HISTORY_MISMATCH, NOT_EVALUATED, REQUIRED_CHECK_NOT_EVALUATED)
     expected_digest = hashlib.sha256(canonical_catalog_bytes({"history": expected})).hexdigest()
     actual_digest = hashlib.sha256(canonical_catalog_bytes({"history": actual})).hexdigest()
@@ -1211,10 +1237,10 @@ def _profile_catalog_checks(
                     allow_loopback_test_owner=lineage == "fresh-v1" and target_class == "loopback",
                     require_legacy_inventory=lineage == "hosted-legacy-v1",
                 )
-            except Exception:  # noqa: BLE001 - catalog unavailability preserves completed history evidence
+            except psycopg2.Error:
                 catalog = CheckResult("catalog", PROVIDER_SCHEMA_DRIFT, NOT_EVALUATED, REQUIRED_CHECK_NOT_EVALUATED)
                 application_count = provider_count = legacy_count = helper_count = unknown_count = 0
-    except Exception:  # noqa: BLE001 - transaction/catalog unavailability is a bounded required-check result
+    except psycopg2.Error:
         history = CheckResult("history", LEDGER_HISTORY_MISMATCH, NOT_EVALUATED, REQUIRED_CHECK_NOT_EVALUATED)
         catalog = CheckResult("catalog", PROVIDER_SCHEMA_DRIFT, NOT_EVALUATED, REQUIRED_CHECK_NOT_EVALUATED)
         application_count = provider_count = legacy_count = helper_count = unknown_count = 0

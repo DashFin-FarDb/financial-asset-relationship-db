@@ -26,10 +26,12 @@ from api.database import (
 )
 from scripts import postgresql_preflight
 from scripts.postgresql_drift import (
+    CHECK_PASSED,
     DRIFT_DETECTED,
     EVALUATION_INCOMPLETE,
     HIGHER_PRIORITY_CHECK_NOT_EVALUATED,
     LEDGER_HISTORY_MISMATCH,
+    NOT_EVALUATED,
     OUTSIDE_MANAGED_SCOPE,
     PASS,
     PROVIDER_SCHEMA_DRIFT,
@@ -418,7 +420,7 @@ def _verify_hosted_adoption_prefix(
         for marker in selected:
             adoption = evaluate_marker(marker)
             assert adoption.status == EVALUATION_INCOMPLETE, adoption.as_public_dict()
-            assert adoption.history == "PASSED", adoption.as_public_dict()
+            assert adoption.history == CHECK_PASSED, adoption.as_public_dict()
             assert OUTSIDE_MANAGED_SCOPE in adoption.reason_codes
             assert _migration_history(target_url) == adopted_history
             adopted_history += ((marker.timestamp, marker.filename[15:-4]),)
@@ -939,11 +941,11 @@ def test_collection_only_runner_rejects_disposable_owner_on_hosted_scope(tmp_pat
         assert report.status == EVALUATION_INCOMPLETE, json.dumps(report.as_public_dict(), sort_keys=True)
         assert OUTSIDE_MANAGED_SCOPE in report.reason_codes
         assert str(rejected[0]) == postgresql_preflight.PERMIT_INVALID
-        assert report.identity == "PASSED"
-        assert report.history == "PASSED"
-        assert report.catalog == "NOT_EVALUATED"
-        assert report.runtime_compatibility == "PASSED"
-        assert report.runtime_authority == "NOT_EVALUATED"
+        assert report.identity == CHECK_PASSED
+        assert report.history == CHECK_PASSED
+        assert report.catalog == NOT_EVALUATED
+        assert report.runtime_compatibility == CHECK_PASSED
+        assert report.runtime_authority == NOT_EVALUATED
         assert report.required_check_count == 5
         assert report.evaluated_check_count == 3
         assert report.unknown_count == 1

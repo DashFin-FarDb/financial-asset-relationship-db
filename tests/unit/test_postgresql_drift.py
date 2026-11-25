@@ -2,12 +2,14 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 import re
 from collections import deque
 from collections.abc import Sequence
 from typing import Any
 
+import psycopg2
 import pytest
 
 from scripts.postgresql_drift import (
@@ -190,10 +192,11 @@ def test_rows_and_public_scope_classify_without_a_live_database() -> None:
                     "owner_role",
                     "is_unique",
                     "is_primary",
+                    "nulls_not_distinct",
                     "type_kind",
                 ),
                 (
-                    ("relation", "user_credentials", "r", None, None, "postgres", None, None, None),
+                    ("relation", "user_credentials", "r", None, None, "postgres", None, None, None, None),
                     (
                         "relation",
                         "user_credentials_id_seq",
@@ -204,9 +207,10 @@ def test_rows_and_public_scope_classify_without_a_live_database() -> None:
                         None,
                         None,
                         None,
+                        None,
                     ),
-                    ("relation", "unmanaged_view", "v", None, None, "postgres", None, None, None),
-                    ("policy", "idx_news_articles_url", None, "user_credentials", None, None, None, None, None),
+                    ("relation", "unmanaged_view", "v", None, None, "postgres", None, None, None, None),
+                    ("policy", "idx_news_articles_url", None, "user_credentials", None, None, None, None, None, None),
                 ),
             ),
             (("name", "system_schema"), (("pg_catalog", True), ("supabase_migrations", False))),
@@ -232,11 +236,12 @@ def test_public_scope_requires_exact_function_identity_and_known_schema() -> Non
                     "owner_role",
                     "is_unique",
                     "is_primary",
+                    "nulls_not_distinct",
                     "type_kind",
                 ),
                 (
-                    ("function", "grac_v1_reject_mutation", None, None, "", "postgres", None, None, None),
-                    ("function", "grac_v1_reject_mutation", None, None, "integer", "postgres", None, None, None),
+                    ("function", "grac_v1_reject_mutation", None, None, "", "postgres", None, None, None, None),
+                    ("function", "grac_v1_reject_mutation", None, None, "integer", "postgres", None, None, None, None),
                 ),
             ),
             (("name", "system_schema"), (("private_extension", False),)),
@@ -329,7 +334,7 @@ def test_evaluator_fails_closed_when_transaction_cleanup_is_unavailable(monkeypa
         def rollback(self) -> None:
             """Record cleanup and then make its completion unknowable."""
             super().rollback()
-            raise ConnectionError("cleanup unavailable")
+            raise psycopg2.OperationalError("cleanup unavailable")
 
     monkeypatch.setattr(
         "scripts.postgresql_drift._history_check",
@@ -371,7 +376,7 @@ def test_evaluator_preserves_completed_history_drift_when_catalog_fails(monkeypa
 
     def catalog_unavailable(*_args, **_kwargs):
         """Simulate catalog failure after migration history was checked."""
-        raise ConnectionError("catalog unavailable")
+        raise psycopg2.OperationalError("catalog unavailable")
 
     monkeypatch.setattr("scripts.postgresql_drift._catalog_check", catalog_unavailable)
     connection = StubConnection(StubCursor([]))
@@ -388,6 +393,31 @@ def test_evaluator_preserves_completed_history_drift_when_catalog_fails(monkeypa
     assert report.primary_category == LEDGER_HISTORY_MISMATCH
     assert report.history == CHECK_DRIFT
     assert report.catalog == NOT_EVALUATED
+    assert connection.rolled_back is True
+
+
+def test_evaluator_does_not_hide_catalog_programming_errors(monkeypatch) -> None:
+    """Unexpected evaluator bugs propagate instead of masquerading as database outages."""
+    monkeypatch.setattr(
+        "scripts.postgresql_drift._history_check",
+        lambda cursor, manifest, profile, lineage: _check(LEDGER_HISTORY_MISMATCH, CHECK_PASSED),
+    )
+
+    def catalog_bug(*_args, **_kwargs):
+        """Simulate a programmer error in the catalog evaluator."""
+        raise TypeError("unexpected catalog result shape")
+
+    monkeypatch.setattr("scripts.postgresql_drift._catalog_check", catalog_bug)
+    connection = StubConnection(StubCursor([]))
+    with pytest.raises(TypeError, match="unexpected catalog result shape"):
+        evaluate_profile_drift(
+            connection,
+            load_and_validate_manifest(),
+            "auth",
+            "fresh-v1",
+            "loopback",
+            runtime_check=lambda: None,
+        )
     assert connection.rolled_back is True
 
 
@@ -545,16 +575,17 @@ def test_exact_legacy_inventory_requires_parent_owner_index_flags_and_access() -
         "owner_role",
         "is_unique",
         "is_primary",
+        "nulls_not_distinct",
         "type_kind",
     )
     objects = (
-        [("relation", name, "r", None, None, "postgres", None, None, None) for name in sorted(_LEGACY_TABLES)]
+        [("relation", name, "r", None, None, "postgres", None, None, None, None) for name in sorted(_LEGACY_TABLES)]
         + [
-            ("relation", name, "i", parent, None, "postgres", unique, primary, None)
+            ("relation", name, "i", parent, None, "postgres", unique, primary, None if unique else False, None)
             for name, (parent, unique, primary) in sorted(_LEGACY_INDEXES.items())
         ]
-        + [("type", name, None, name, None, "postgres", None, None, "c") for name in sorted(_LEGACY_TABLES)]
-        + [("function", "is_requester_admin", None, None, "", "postgres", None, None, None)]
+        + [("type", name, None, name, None, "postgres", None, None, None, "c") for name in sorted(_LEGACY_TABLES)]
+        + [("function", "is_requester_admin", None, None, "", "postgres", None, None, None, None)]
     )
     extensions = [(name, schema, owner) for name, (schema, owner) in sorted(_PROVIDER_EXTENSION_IDENTITIES.items())]
     grants = sorted(_legacy_table_grants(170000))
@@ -576,6 +607,8 @@ def test_exact_legacy_inventory_requires_parent_owner_index_flags_and_access() -
         "volatility",
         "security_definer",
         "owner_role",
+        "definition",
+        "proconfig",
         "acl_entries",
         "effective_untrusted_roles",
     )
@@ -592,6 +625,8 @@ def test_exact_legacy_inventory_requires_parent_owner_index_flags_and_access() -
             "v",
             True,
             "postgres",
+            "CREATE FUNCTION public.is_requester_admin() RETURNS boolean LANGUAGE sql SECURITY DEFINER",
+            [],
             ["postgres=X/postgres", "service_role=X/postgres"],
             [],
         )
@@ -606,26 +641,53 @@ def test_exact_legacy_inventory_requires_parent_owner_index_flags_and_access() -
         )
         return _public_scope(cursor, "combined", require_legacy_inventory=require_legacy_inventory)
 
-    assert classify(objects) == (0, 11, 45, 1, ())
-    assert classify(objects[:-2])[4] == ("legacy:incomplete",)
+    all_objects = classify(objects)
+    assert all_objects[:4] == (0, 11, 35, 0)
+    assert "function:is_requester_admin" in all_objects[4]
+    assert "relation:financial_data_pkey" in all_objects[4]
+    assert "legacy:incomplete" in classify(objects[:-2])[4]
     assert "legacy:incomplete" in classify((), require_legacy_inventory=True)[4]
     assert "relation:financial_data" in classify(objects, owner="unexpected_owner")[4]
     colliding_name = list(objects) + [
-        ("policy", "idx_news_articles_url", None, "financial_data", None, None, None, None, None)
+        ("policy", "idx_news_articles_url", None, "financial_data", None, None, None, None, None, None)
     ]
     collision_result = classify(colliding_name)
     assert "legacy:incomplete" not in collision_result[4]
     assert "policy:idx_news_articles_url" in collision_result[4]
     altered = list(objects)
-    index = next(i for i, row in enumerate(altered) if row[1] == "idx_news_articles_url")
-    altered[index] = (*altered[index][:6], False, False, None)
+    indices = [i for i, row in enumerate(altered) if row[1] == "idx_news_articles_url"]
+    assert len(indices) == 1
+    altered[indices[0]] = (*altered[indices[0]][:6], False, False, False, None)
     assert "relation:idx_news_articles_url" in classify(altered)[4]
+    altered = list(objects)
+    indices = [i for i, row in enumerate(altered) if row[1] == "idx_financial_data_symbol"]
+    assert len(indices) == 1
+    altered[indices[0]] = (*altered[indices[0]][:8], True, None)
+    assert "relation:idx_financial_data_symbol" in classify(altered)[4]
     altered = list(objects) + [
-        ("relation", "idx_unreviewed", "i", "financial_data", None, "postgres", False, False, None)
+        ("relation", "idx_unreviewed", "i", "financial_data", None, "postgres", False, False, False, None)
     ]
     assert "relation:idx_unreviewed" in classify(altered)[4]
     extensions[0] = (extensions[0][0], "public", extensions[0][2])
     assert any(value.startswith("extension:") for value in classify(objects)[4])
+
+
+def test_partitioned_legacy_index_is_not_an_inventory_candidate() -> None:
+    """Partitioned-index catalog identities remain unknown rather than masquerading as legacy indexes."""
+    from scripts.postgresql_drift import _classify_legacy_object, _is_legacy_inventory_candidate
+
+    item = {
+        "object_type": "relation",
+        "name": "financial_data_pkey",
+        "kind": "I",
+        "parent_table": "financial_data",
+        "owner_role": "postgres",
+        "is_unique": True,
+        "is_primary": True,
+        "nulls_not_distinct": False,
+    }
+    assert not _is_legacy_inventory_candidate(item)
+    assert not _classify_legacy_object(item, {"financial_data"})
 
 
 def test_legacy_table_access_posture_fails_closed() -> None:
@@ -683,7 +745,7 @@ def test_legacy_table_access_posture_fails_closed() -> None:
     assert not classify([(*pg17_valid[:6], sorted(pg17_grants)[:-1])])
 
 
-def test_restricted_helper_requires_exact_signature_and_denies_runtime_execute() -> None:
+def test_restricted_helper_requires_ratified_definition_and_exact_posture(monkeypatch) -> None:
     """A grant or changed function metadata leaves the helper outside scope."""
     from scripts.postgresql_drift import _restricted_helper_posture
 
@@ -696,6 +758,8 @@ def test_restricted_helper_requires_exact_signature_and_denies_runtime_execute()
         "volatility",
         "security_definer",
         "owner_role",
+        "definition",
+        "proconfig",
         "acl_entries",
         "effective_untrusted_roles",
     )
@@ -708,13 +772,23 @@ def test_restricted_helper_requires_exact_signature_and_denies_runtime_execute()
         "v",
         True,
         "postgres",
+        "CREATE FUNCTION public.is_requester_admin() RETURNS boolean LANGUAGE sql SECURITY DEFINER",
+        [],
         ["postgres=X/postgres", "service_role=X/postgres"],
         [],
     )
+    assert not _restricted_helper_posture(StubCursor([(columns, [valid])]))
+    definition_digest = hashlib.sha256(valid[8].encode("utf-8")).hexdigest()
+    monkeypatch.setattr("scripts.postgresql_drift._RESTRICTED_HELPER_DEFINITION_SHA256", definition_digest)
+    monkeypatch.setattr("scripts.postgresql_drift._RESTRICTED_HELPER_PROCONFIG", ())
     assert _restricted_helper_posture(StubCursor([(columns, [valid])]))
     assert not _restricted_helper_posture(StubCursor([(columns, [(*valid[:3], True, *valid[4:])])]))
     assert not _restricted_helper_posture(StubCursor([(columns, [(*valid[:-1], ["anon"])])]))
     assert not _restricted_helper_posture(StubCursor([(columns, [(*valid[:6], False, *valid[7:])])]))
+    assert not _restricted_helper_posture(
+        StubCursor([(columns, [(*valid[:8], "CREATE FUNCTION altered", *valid[9:])])])
+    )
+    assert not _restricted_helper_posture(StubCursor([(columns, [(*valid[:9], ["search_path=public"], *valid[10:])])]))
 
 
 def test_public_report_separates_protected_legacy_and_helper_counts(monkeypatch) -> None:
