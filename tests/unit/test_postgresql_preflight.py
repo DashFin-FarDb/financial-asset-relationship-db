@@ -590,7 +590,7 @@ def test_collection_runtime_identity_mismatch_stops_authority_check(monkeypatch)
         raise verification_error
 
     monkeypatch.setattr(preflight, "_runtime_routes_compatible", fail_runtime_route)
-    monkeypatch.setattr(preflight, "_prove_route", lambda *_args: None)
+    monkeypatch.setattr(preflight, "_prove_route", lambda *_args, **_kwargs: None)
 
     def evaluate_after_identity_rollback(*_args, **kwargs):
         """The drift evaluator starts only after the identity transaction is released."""
@@ -645,7 +645,7 @@ def test_collection_runtime_expiry_preserves_authorization_error(monkeypatch) ->
     monkeypatch.setattr(preflight, "_connect_verified", lambda *_args, **_kwargs: connection)
     monkeypatch.setattr(preflight, "_psycopg_database_identity", lambda _connection, **_kwargs: object())
     monkeypatch.setattr(preflight, "_retained_target_identity", lambda *_args: None)
-    monkeypatch.setattr(preflight, "_prove_route", lambda *_args: None)
+    monkeypatch.setattr(preflight, "_prove_route", lambda *_args, **_kwargs: None)
 
     def expire_authorization(*_args):
         """Reject runtime compatibility after the approved window expires."""
@@ -1510,8 +1510,8 @@ def test_preflight_rejects_equal_project_routes_with_different_live_clusters(mon
         assert combined is False
 
 
-def test_preflight_rejects_unavailable_live_identity(monkeypatch) -> None:
-    """No readable identity means no authority verification or route fallback."""
+def test_preflight_reports_unavailable_live_identity_with_route(monkeypatch) -> None:
+    """A retained identity query failure keeps the fixed diagnostic and route label."""
     from src.data import database as data_database
     from tests.unit.test_postgresql_topology import identity_engine
 
@@ -1522,7 +1522,10 @@ def test_preflight_rejects_unavailable_live_identity(monkeypatch) -> None:
     verifier = Mock()
     monkeypatch.setattr(data_database, "verify_runtime_database_authority", verifier)
     route = preflight.RouteIdentity("postgresql://runtime@host/postgres", "same_project")
-    assert preflight._runtime_authority({"graph": route}) == preflight.NOT_EVALUATED
+    with pytest.raises(preflight._ConnectionVerificationError) as captured:
+        preflight._runtime_authority({"graph": route})
+    assert captured.value.category == preflight.LIVE_IDENTITY_VERIFICATION_FAILED
+    assert captured.value.route_label == "graph"
     verifier.assert_not_called()
     engine.dispose.assert_called_once()
 
@@ -1721,3 +1724,20 @@ def test_psycopg_identity_query_failure_is_classified() -> None:
         preflight._psycopg_database_identity(connection)
     assert captured.value.category == preflight.LIVE_IDENTITY_VERIFICATION_FAILED
     assert captured.value.route_label == "inspection"
+
+
+def test_retained_runtime_identity_query_failure_is_classified(monkeypatch) -> None:
+    """Runtime route identity-query failures retain fixed stage and route labels."""
+    from src.data import postgresql_topology
+
+    monkeypatch.setattr(
+        postgresql_topology,
+        "read_database_identity",
+        Mock(side_effect=PermissionError("provider identity query denied")),
+    )
+    with pytest.raises(preflight._ConnectionVerificationError) as captured:
+        preflight._runtime_database_identity(object(), "graph")
+
+    assert captured.value.category == preflight.LIVE_IDENTITY_VERIFICATION_FAILED
+    assert captured.value.route_label == "graph"
+    assert "provider identity query denied" not in str(captured.value)

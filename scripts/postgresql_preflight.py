@@ -903,7 +903,7 @@ def _runtime_routes(target: PlannedTarget) -> dict[str, RouteIdentity]:
 
 
 def _prove_route(
-    route: RouteIdentity, target: PlannedTarget, before_connection=None, route_label: str | None = None
+    route: RouteIdentity, target: PlannedTarget, before_connection=None, *, route_label: str | None = None
 ) -> None:
     """Prove one route and close its read-only identity transaction."""
     connection = _connect_verified(route, target, before_connection, route_label=route_label)
@@ -1005,11 +1005,21 @@ def _verified_auth_connection(routes, target=None, expected_identity=None, befor
         connection.close()
 
 
+def _runtime_database_identity(connection, route_label: str):
+    """Read a retained runtime identity and preserve its sanitized route diagnostic."""
+    from src.data.postgresql_topology import read_database_identity
+
+    try:
+        return read_database_identity(connection)
+    except Exception:  # noqa: BLE001 - provider identity errors use fixed diagnostics
+        raise _ConnectionVerificationError(LIVE_IDENTITY_VERIFICATION_FAILED, route_label) from None
+
+
 @contextmanager
 def _verified_non_auth_connections(routes, target=None, expected_identity=None, before_connection=None):
     """Hold identity-proved runtime sessions through their catalog verification."""
     from src.data.database import create_engine_from_url
-    from src.data.postgresql_topology import read_database_identity, same_database
+    from src.data.postgresql_topology import same_database
 
     with ExitStack() as stack:
         sessions = {}
@@ -1024,7 +1034,7 @@ def _verified_non_auth_connections(routes, target=None, expected_identity=None, 
                 before_connection()
             connection = stack.enter_context(engine.connect())
             sessions[component] = (engine, connection)
-            identities[component] = read_database_identity(connection)
+            identities[component] = _runtime_database_identity(connection, component)
             _retained_target_identity(identities[component], route, target, expected_identity)
         combined = (
             "graph" in identities
@@ -1035,7 +1045,7 @@ def _verified_non_auth_connections(routes, target=None, expected_identity=None, 
             raise TargetIdentityError()
         yield sessions, combined
         for component, (_, connection) in sessions.items():
-            if read_database_identity(connection) != identities[component]:
+            if _runtime_database_identity(connection, component) != identities[component]:
                 raise TargetIdentityError()
 
 
@@ -1280,7 +1290,7 @@ def _evaluate_verified_drift(
         inspection_identity = _psycopg_database_identity(inspection_connection, route_label="inspection")
         _retained_target_identity(inspection_identity, inspection_route, target, expected_identity)
         for component, route in runtime_routes.items():
-            _prove_route(route, target, before_connection, component)
+            _prove_route(route, target, before_connection, route_label=component)
         try:
             inspection_connection.rollback()
         except Exception as exc:  # noqa: BLE001 - release the identity transaction before the evidence snapshot

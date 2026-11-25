@@ -627,7 +627,9 @@ def _provider_scope_counts(
             provider_count += 1
         else:
             unknown.append(f"schema:{schema['name']}")
-    if inventory_applies and {extension["name"] for extension in extensions} != set(_PROVIDER_EXTENSION_IDENTITIES):
+    if inventory_applies and {str(extension["name"]) for extension in extensions} != set(
+        _PROVIDER_EXTENSION_IDENTITIES
+    ):
         unknown.append("extension:incomplete")
     for extension in extensions:
         if _is_provider_extension(
@@ -638,7 +640,7 @@ def _provider_scope_counts(
         ):
             provider_count += 1
         else:
-            unknown.append(f"extension:{extension['name']}")
+            unknown.append(f"extension:{str(extension['name'])}")
     return provider_count, tuple(unknown)
 
 
