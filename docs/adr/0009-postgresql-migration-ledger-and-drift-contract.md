@@ -482,3 +482,7 @@ CQ-03B/C to profile-scoped forward baselines, non-executable historical evidence
 **GitHub evidence link:** [PR #1960](https://github.com/DashFin-FarDb/financial-asset-relationship-db/pull/1960)
 **Boundary:** This amendment approves the classifier contract only. It does not authorize credential changes, another
 Stage 1 attempt, a hosted preflight, or closure of issue #1907 without its remaining evidence.
+
+Pending hosted baseline evidence includes the helper definition digest and exact proconfig (including search_path),
+and each legacy index definition digest, validity, readiness, and applicable NULL semantics. Approval of this
+amendment supplies none of those values. The helper and indexes remain outside protected scope until ratified.

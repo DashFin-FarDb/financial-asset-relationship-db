@@ -461,6 +461,10 @@ def _legacy_table_posture(cursor: Cursor) -> set[str]:
             ARRAY(
                 SELECT restricted_role.rolname || ':' || privilege.privilege_type
                 FROM pg_catalog.pg_roles restricted_role
+                JOIN pg_catalog.pg_roles reachable ON pg_catalog.pg_has_role(
+                    restricted_role.oid, reachable.oid,
+                    CASE WHEN current_setting('server_version_num')::integer >= 160000 THEN 'SET' ELSE 'MEMBER' END
+                )
                 CROSS JOIN LATERAL unnest(
                     ARRAY['DELETE', 'INSERT', 'REFERENCES', 'SELECT', 'TRIGGER', 'TRUNCATE', 'UPDATE']::text[]
                     || CASE
@@ -471,11 +475,11 @@ def _legacy_table_posture(cursor: Cursor) -> set[str]:
                 ) AS privilege(privilege_type)
                 WHERE restricted_role.rolname = ANY(%s)
                   AND (
-                      pg_catalog.has_table_privilege(restricted_role.oid, c.oid, privilege.privilege_type)
+                      pg_catalog.has_table_privilege(reachable.oid, c.oid, privilege.privilege_type)
                       OR (
                           privilege.privilege_type IN ('SELECT', 'INSERT', 'REFERENCES', 'UPDATE')
                           AND pg_catalog.has_any_column_privilege(
-                              restricted_role.oid, c.oid, privilege.privilege_type
+                              reachable.oid, c.oid, privilege.privilege_type
                           )
                       )
                   )
@@ -486,7 +490,7 @@ def _legacy_table_posture(cursor: Cursor) -> set[str]:
         JOIN pg_catalog.pg_roles owner ON owner.oid = c.relowner
         WHERE n.nspname = 'public' AND c.relkind = 'r' AND c.relname = ANY(%s)
         """,
-        (sorted(_LEGACY_TABLES), sorted(_RESTRICTED_ROLES)),
+        (sorted(_RESTRICTED_ROLES), sorted(_LEGACY_TABLES)),
     )
     safe_tables: set[str] = set()
     for row in rows:
@@ -530,7 +534,8 @@ def _restricted_helper_posture(cursor: Cursor) -> bool:
             pg_catalog.format_type(p.prorettype, NULL) AS return_type,
             p.proretset AS returns_set,
             lang.lanname AS language, p.provolatile AS volatility, p.prosecdef AS security_definer,
-            owner.rolname AS owner_role, pg_catalog.pg_get_functiondef(p.oid) AS definition,
+            owner.rolname AS owner_role,
+            CASE WHEN p.prokind = 'f' THEN pg_catalog.pg_get_functiondef(p.oid) END AS definition,
             COALESCE(p.proconfig, ARRAY[]::text[]) AS proconfig,
             COALESCE(
                 ARRAY(SELECT acl::text FROM unnest(COALESCE(p.proacl, '{}'::aclitem[])) AS acl ORDER BY acl::text),
@@ -538,8 +543,12 @@ def _restricted_helper_posture(cursor: Cursor) -> bool:
             ) AS acl_entries,
             ARRAY(
                 SELECT role.rolname FROM pg_catalog.pg_roles role
+                JOIN pg_catalog.pg_roles reachable ON pg_catalog.pg_has_role(
+                    role.oid, reachable.oid,
+                    CASE WHEN current_setting('server_version_num')::integer >= 160000 THEN 'SET' ELSE 'MEMBER' END
+                )
                 WHERE role.rolname = ANY(%s)
-                  AND pg_catalog.has_function_privilege(role.oid, p.oid, 'EXECUTE')
+                  AND pg_catalog.has_function_privilege(reachable.oid, p.oid, 'EXECUTE')
                 ORDER BY role.rolname
             ) AS effective_untrusted_roles
         FROM pg_catalog.pg_proc p
@@ -592,15 +601,17 @@ def _classify_legacy_object(item: Mapping[str, object], safe_tables: set[str]) -
             baseline = _LEGACY_INDEX_BASELINES.get(str(name))
             definition = item.get("index_definition")
             null_semantics_match = expected is not None and (
-                not expected[1]
-                or expected[2]
-                or (baseline is not None and item.get("nulls_not_distinct") is baseline[1])
+                baseline is not None
+                and (
+                    (baseline[1] is None and (not expected[1] or expected[2]))
+                    or (baseline[1] is not None and item.get("nulls_not_distinct") is baseline[1])
+                )
             )
             return (
                 expected is not None
                 and baseline is not None
                 and isinstance(definition, str)
-                and hashlib.sha256(definition.encode("utf-8")).hexdigest() == baseline[0]
+                and hashlib.sha256(_normalize_sql_text(definition).encode("utf-8")).hexdigest() == baseline[0]
                 and (item.get("parent_table"), item.get("is_unique"), item.get("is_primary")) == expected
                 and null_semantics_match
                 and baseline[2] is True
@@ -1294,7 +1305,6 @@ def _profile_catalog_checks(
                 catalog = CheckResult("catalog", PROVIDER_SCHEMA_DRIFT, NOT_EVALUATED, REQUIRED_CHECK_NOT_EVALUATED)
                 application_count = provider_count = legacy_count = helper_count = unknown_count = 0
     except _psycopg_error_types():
-        history = CheckResult("history", LEDGER_HISTORY_MISMATCH, NOT_EVALUATED, REQUIRED_CHECK_NOT_EVALUATED)
         catalog = CheckResult("catalog", PROVIDER_SCHEMA_DRIFT, NOT_EVALUATED, REQUIRED_CHECK_NOT_EVALUATED)
         application_count = provider_count = legacy_count = helper_count = unknown_count = 0
     return history, catalog, application_count, provider_count, legacy_count, helper_count, unknown_count

@@ -147,10 +147,11 @@ normalized catalog digest, and an explicit runtime-compatibility callback. The e
 transaction, rolls it back after catalog access, and exposes only bounded counts, digests, status, category, and
 reason codes. It never repairs schema or migration history.
 
-Scope v2 classifies the eight reviewed legacy tables, eight composite types, 29 indexes, and restricted
+Scope v2 defines the expected identities for the eight reviewed legacy tables, eight composite types, 29 indexes, and restricted
 `public.is_requester_admin()` separately from application and provider ownership. Each legacy identity must match
-its parent and owner; tables must retain forced RLS, zero policies, and the reviewed ACL. Index flags and helper
-EXECUTE posture are checked. A partial or changed legacy set remains `OUTSIDE_MANAGED_SCOPE`, and the public report
+its parent and owner; tables must retain forced RLS, zero policies, and the reviewed ACL. The helper and indexes remain outside protected scope until the approved helper definition digest and exact
+proconfig (including search_path), and per-index definition digests, validity, readiness, and applicable NULL
+semantics are ratified. A partial or changed legacy set remains `OUTSIDE_MANAGED_SCOPE`, and the public report
 gives separate bounded legacy and helper counts.
 
 The exact table ACL follows the connected server version: PostgreSQL 15 and 16 use the seven reviewed table

@@ -948,7 +948,8 @@ def test_collection_only_runner_rejects_disposable_owner_on_hosted_scope(tmp_pat
         assert report.runtime_authority == NOT_EVALUATED
         assert report.required_check_count == 5
         assert report.evaluated_check_count == 3
-        assert report.unknown_count == 1
+        # Missing legacy inventory, incomplete extension inventory, and the disposable plpgsql owner.
+        assert report.unknown_count == 3
         assert report.history_timestamp_count == 6
         assert "migration_parity" not in report.as_public_dict()
         assert report.expected_catalog_digest is report.actual_catalog_digest is None

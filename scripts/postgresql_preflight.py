@@ -1018,6 +1018,8 @@ def _runtime_database_identity(connection, route_label: str):
 @contextmanager
 def _verified_non_auth_connections(routes, target=None, expected_identity=None, before_connection=None):
     """Hold identity-proved runtime sessions through their catalog verification."""
+    from sqlalchemy.exc import DBAPIError
+
     from src.data.database import create_engine_from_url
     from src.data.postgresql_topology import same_database
 
@@ -1032,7 +1034,10 @@ def _verified_non_auth_connections(routes, target=None, expected_identity=None, 
             stack.callback(engine.dispose)
             if before_connection is not None:
                 before_connection()
-            connection = stack.enter_context(engine.connect())
+            try:
+                connection = stack.enter_context(engine.connect())
+            except DBAPIError:
+                raise _ConnectionVerificationError(CONNECTION_OPEN_FAILED, component) from None
             sessions[component] = (engine, connection)
             identities[component] = _runtime_database_identity(connection, component)
             _retained_target_identity(identities[component], route, target, expected_identity)

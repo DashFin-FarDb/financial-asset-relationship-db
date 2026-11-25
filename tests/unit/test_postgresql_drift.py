@@ -439,7 +439,7 @@ def test_evaluator_fails_closed_when_transaction_cleanup_is_unavailable(monkeypa
     )
     assert report.status == EVALUATION_INCOMPLETE
     assert report.primary_category is None
-    assert report.history == NOT_EVALUATED
+    assert report.history == CHECK_PASSED
     assert report.catalog == NOT_EVALUATED
     assert (
         report.application_owned_count,
@@ -873,6 +873,7 @@ def test_legacy_index_requires_matching_approved_definition_and_posture(monkeypa
         "is_ready": True,
     }
     assert _classify_legacy_object(item, {"news_articles"})
+    assert not _classify_legacy_object({**item, "is_unique": False}, {"news_articles"})
     assert not _classify_legacy_object({**item, "index_definition": "CREATE INDEX changed"}, {"news_articles"})
     assert not _classify_legacy_object({**item, "nulls_not_distinct": True}, {"news_articles"})
     assert not _classify_legacy_object({**item, "is_valid": False}, {"news_articles"})
