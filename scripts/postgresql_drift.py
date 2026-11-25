@@ -141,7 +141,7 @@ _RESTRICTED_ROLES = frozenset(
 _LEGACY_TABLE_ACL = frozenset(
     (role, privilege, False)
     for role in ("postgres", "service_role")
-    for privilege in ("DELETE", "INSERT", "MAINTAIN", "REFERENCES", "SELECT", "TRIGGER", "TRUNCATE", "UPDATE")
+    for privilege in ("DELETE", "INSERT", "REFERENCES", "SELECT", "TRIGGER", "TRUNCATE", "UPDATE")
 )
 
 _SQL_TEXT_COLUMNS = frozenset({"check_expression", "default_expression", "definition", "using_expression"})
@@ -466,7 +466,8 @@ def _restricted_helper_posture(cursor: Cursor) -> bool:
         SELECT p.proname AS name, pg_catalog.pg_get_function_identity_arguments(p.oid) AS arguments,
             pg_catalog.format_type(p.prorettype, NULL) AS return_type,
             lang.lanname AS language, p.provolatile AS volatility, p.prosecdef AS security_definer,
-            owner.rolname AS owner_role, p.proacl::text AS raw_acl,
+            owner.rolname AS owner_role,
+            ARRAY(SELECT acl::text FROM unnest(p.proacl) AS acl ORDER BY acl::text) AS acl_entries,
             ARRAY(
                 SELECT role.rolname FROM pg_catalog.pg_roles role
                 WHERE role.rolname = ANY(%s)
@@ -489,7 +490,7 @@ def _restricted_helper_posture(cursor: Cursor) -> bool:
             rows[0]["volatility"] == "v",
             rows[0]["security_definer"] is True,
             rows[0]["owner_role"] == "postgres",
-            rows[0]["raw_acl"] == "{postgres=X/postgres,service_role=X/postgres}",
+            rows[0]["acl_entries"] == ["postgres=X/postgres", "service_role=X/postgres"],
             rows[0]["effective_untrusted_roles"] == [],
         )
     )
@@ -591,7 +592,7 @@ def _public_scope(
     )
     legacy_present = any(
         (item["object_type"] == "relation" and item["name"] in _LEGACY_TABLES)
-        or item["name"] in _LEGACY_INDEXES
+        or (item["object_type"] == "relation" and item["kind"] in ("i", "I") and item["name"] in _LEGACY_INDEXES)
         or (item["object_type"] == "type" and item["name"] in _LEGACY_TABLES)
         for item in objects
     )

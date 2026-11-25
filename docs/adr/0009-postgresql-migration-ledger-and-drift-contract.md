@@ -259,8 +259,9 @@ The first contract manages application-owned objects in `public`:
 
 ### Exclusions
 
-The `fardb-pg-scope-v1` classifier is total and deterministic. It enumerates every `public` object in the included
-object classes before applying a classification:
+The original `fardb-pg-scope-v1` baseline classifier, accepted in the 2026-08-13 ratification record below, is total
+and deterministic. It enumerates every `public` object in the included object classes before applying a
+classification:
 
 - **Application-owned:** the exact object identity is produced by replaying the selected component profile or is
   declared in
@@ -309,6 +310,9 @@ extensions require exact name, schema, and owner, with a plain PostgreSQL `plpgs
 local targets; the attested loopback fresh-v1 harness may additionally use owner `test` for `plpgsql` alone. A partial or changed legacy inventory remains outside managed scope. The public
 `protected_legacy_count` and `restricted_helper_count` are separate from application and provider counts. The new
 scope version requires recalibrated portable catalog digests; it neither adopts receipts nor authorizes a hosted connection.
+The v1 ratification checklist below records approval of the baseline contract only. Approval of the CQ-03D v2
+amendment is tracked separately with PR #1960 review; merging the implementation does not authorize a hosted
+connection or credential change.
 
 ### Normalization profile
 

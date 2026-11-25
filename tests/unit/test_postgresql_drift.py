@@ -181,11 +181,32 @@ def test_rows_and_public_scope_classify_without_a_live_database() -> None:
     scope_cursor = StubCursor(
         [
             (
-                ("object_type", "name", "kind", "parent_table", "identity_arguments"),
                 (
-                    ("relation", "user_credentials", "r", None, None),
-                    ("relation", "user_credentials_id_seq", "S", "user_credentials", None),
-                    ("relation", "unmanaged_view", "v", None, None),
+                    "object_type",
+                    "name",
+                    "kind",
+                    "parent_table",
+                    "identity_arguments",
+                    "owner_role",
+                    "is_unique",
+                    "is_primary",
+                    "type_kind",
+                ),
+                (
+                    ("relation", "user_credentials", "r", None, None, "postgres", None, None, None),
+                    (
+                        "relation",
+                        "user_credentials_id_seq",
+                        "S",
+                        "user_credentials",
+                        None,
+                        "postgres",
+                        None,
+                        None,
+                        None,
+                    ),
+                    ("relation", "unmanaged_view", "v", None, None, "postgres", None, None, None),
+                    ("policy", "idx_news_articles_url", None, "user_credentials", None, None, None, None, None),
                 ),
             ),
             (("name", "system_schema"), (("pg_catalog", True), ("supabase_migrations", False))),
@@ -193,7 +214,7 @@ def test_rows_and_public_scope_classify_without_a_live_database() -> None:
         ]
     )
     application, provider, legacy, helper, unknown = _public_scope(scope_cursor, "auth", allow_loopback_test_owner=True)
-    assert (application, provider, legacy, helper) == (2, 3, 0, 0)
+    assert (application, provider, legacy, helper) == (3, 3, 0, 0)
     assert len(unknown) == 1
 
 
@@ -202,10 +223,20 @@ def test_public_scope_requires_exact_function_identity_and_known_schema() -> Non
     cursor = StubCursor(
         [
             (
-                ("object_type", "name", "kind", "parent_table", "identity_arguments"),
                 (
-                    ("function", "grac_v1_reject_mutation", None, None, ""),
-                    ("function", "grac_v1_reject_mutation", None, None, "integer"),
+                    "object_type",
+                    "name",
+                    "kind",
+                    "parent_table",
+                    "identity_arguments",
+                    "owner_role",
+                    "is_unique",
+                    "is_primary",
+                    "type_kind",
+                ),
+                (
+                    ("function", "grac_v1_reject_mutation", None, None, "", "postgres", None, None, None),
+                    ("function", "grac_v1_reject_mutation", None, None, "integer", "postgres", None, None, None),
                 ),
             ),
             (("name", "system_schema"), (("private_extension", False),)),
@@ -453,9 +484,14 @@ def test_unknown_runtime_callback_failure_is_unavailable() -> None:
     assert result.reason_code == REQUIRED_CHECK_NOT_EVALUATED
 
 
-def test_exact_legacy_inventory_requires_parent_owner_index_flags_and_access(monkeypatch) -> None:
+def test_exact_legacy_inventory_requires_parent_owner_index_flags_and_access() -> None:
     """All reviewed identities pass; a changed or added identity remains unknown."""
-    from scripts.postgresql_drift import _LEGACY_INDEXES, _LEGACY_TABLES, _PROVIDER_EXTENSION_IDENTITIES
+    from scripts.postgresql_drift import (
+        _LEGACY_INDEXES,
+        _LEGACY_TABLE_ACL,
+        _LEGACY_TABLES,
+        _PROVIDER_EXTENSION_IDENTITIES,
+    )
 
     columns = (
         "object_type",
@@ -478,15 +514,40 @@ def test_exact_legacy_inventory_requires_parent_owner_index_flags_and_access(mon
         + [("function", "is_requester_admin", None, None, "", "postgres", None, None, None)]
     )
     extensions = [(name, schema, owner) for name, (schema, owner) in sorted(_PROVIDER_EXTENSION_IDENTITIES.items())]
-    monkeypatch.setattr("scripts.postgresql_drift._legacy_table_posture", lambda cursor: set(_LEGACY_TABLES))
-    monkeypatch.setattr("scripts.postgresql_drift._restricted_helper_posture", lambda cursor: True)
+    grants = sorted(f"{role}:{privilege}:false" for role, privilege, _ in _LEGACY_TABLE_ACL)
+    legacy_table_columns = ("name", "owner_role", "row_security", "force_row_security", "policy_count", "grants")
+    helper_columns = (
+        "name",
+        "arguments",
+        "return_type",
+        "language",
+        "volatility",
+        "security_definer",
+        "owner_role",
+        "acl_entries",
+        "effective_untrusted_roles",
+    )
 
-    def classify(rows, *, require_legacy_inventory=False):
+    def classify(rows, *, require_legacy_inventory=False, owner="postgres"):
+        legacy_tables = [(name, owner, True, True, 0, grants) for name in sorted(_LEGACY_TABLES)]
+        helper = (
+            "is_requester_admin",
+            "",
+            "boolean",
+            "sql",
+            "v",
+            True,
+            "postgres",
+            ["postgres=X/postgres", "service_role=X/postgres"],
+            [],
+        )
         cursor = StubCursor(
             [
                 (columns, rows),
                 (("name", "system_schema"), ()),
                 (("name", "schema_name", "owner_role"), extensions),
+                (legacy_table_columns, legacy_tables),
+                (helper_columns, [helper]),
             ]
         )
         return _public_scope(cursor, "combined", require_legacy_inventory=require_legacy_inventory)
@@ -494,6 +555,7 @@ def test_exact_legacy_inventory_requires_parent_owner_index_flags_and_access(mon
     assert classify(objects) == (0, 11, 45, 1, ())
     assert classify(objects[:-2])[4] == ("legacy:incomplete",)
     assert "legacy:incomplete" in classify((), require_legacy_inventory=True)[4]
+    assert "relation:financial_data" in classify(objects, owner="unexpected_owner")[4]
     altered = list(objects)
     index = next(i for i, row in enumerate(altered) if row[1] == "idx_news_articles_url")
     altered[index] = (*altered[index][:6], False, False, None)
@@ -535,7 +597,7 @@ def test_restricted_helper_requires_exact_signature_and_denies_runtime_execute()
         "volatility",
         "security_definer",
         "owner_role",
-        "raw_acl",
+        "acl_entries",
         "effective_untrusted_roles",
     )
     valid: tuple[Any, ...] = (
@@ -546,7 +608,7 @@ def test_restricted_helper_requires_exact_signature_and_denies_runtime_execute()
         "v",
         True,
         "postgres",
-        "{postgres=X/postgres,service_role=X/postgres}",
+        ["postgres=X/postgres", "service_role=X/postgres"],
         [],
     )
     assert _restricted_helper_posture(StubCursor([(columns, [valid])]))

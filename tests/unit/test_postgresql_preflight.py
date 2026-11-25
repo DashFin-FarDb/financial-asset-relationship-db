@@ -681,6 +681,8 @@ def test_collection_uses_five_ratified_checks_without_migration_parity(tmp_path:
         evaluated_check_count=3,
         application_owned_count=1,
         provider_owned_count=0,
+        protected_legacy_count=0,
+        restricted_helper_count=0,
         unknown_count=0,
         expected_catalog_digest="a" * 64,
         actual_catalog_digest="a" * 64,

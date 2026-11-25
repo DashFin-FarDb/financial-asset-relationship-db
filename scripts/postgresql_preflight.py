@@ -228,6 +228,8 @@ class _BoundedReport:
     evaluated_check_count: int
     application_owned_count: int
     provider_owned_count: int
+    protected_legacy_count: int
+    restricted_helper_count: int
     unknown_count: int
     expected_catalog_digest: str | None
     actual_catalog_digest: str | None
@@ -824,7 +826,7 @@ def _connect_verified(
     """Open a read-only connection and report sanitized failures by verification stage."""
     try:
         import psycopg2  # type: ignore[import-untyped]
-    except Exception:
+    except ImportError:
         raise _ConnectionVerificationError(CONNECTION_OPEN_FAILED, route_label) from None
 
     if before_connection is not None:
@@ -1396,6 +1398,8 @@ def run_preflight(permit_path: Path | str) -> PreflightReport:
         evaluated_check_count=evaluated,
         application_owned_count=drift.application_owned_count,
         provider_owned_count=drift.provider_owned_count,
+        protected_legacy_count=drift.protected_legacy_count,
+        restricted_helper_count=drift.restricted_helper_count,
         unknown_count=drift.unknown_count,
         expected_catalog_digest=drift.expected_catalog_digest,
         actual_catalog_digest=drift.actual_catalog_digest,
@@ -1488,6 +1492,8 @@ def run_collection(authorization_path: Path | str) -> CollectionReport:
         history_timestamp_count=history_timestamp_count,
         application_owned_count=drift.application_owned_count,
         provider_owned_count=drift.provider_owned_count,
+        protected_legacy_count=drift.protected_legacy_count,
+        restricted_helper_count=drift.restricted_helper_count,
         unknown_count=drift.unknown_count,
         expected_catalog_digest=drift.expected_catalog_digest,
         actual_catalog_digest=drift.actual_catalog_digest,
