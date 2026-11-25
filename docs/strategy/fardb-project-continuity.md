@@ -236,8 +236,8 @@ Primary authorities:
 ### FPC-2026-11-19-02 — Record valuation and scale-validation evidence limits
 
 - **Type:** Product persistence evidence / production-scale qualification
-- **Status:** PR #1925 is draft; its evidence adds useful functionality and database-profile coverage but does not close
-  production-scale qualification.
+- **Status:** PR #1925 merged on 2026-11-19 as `966133f97`; its evidence adds useful functionality and
+  database-profile coverage but does not close production-scale qualification.
 - **Decision or objective:** Persist optional equity valuation and forecast-growth fields and use a one-time real-data
   graph probe to exercise database, API, attestation, and analysis behavior alongside deterministic synthetic scale
   testing.
@@ -250,7 +250,7 @@ Primary authorities:
   measurements, hosted staging, sustained load, production hardware, and exact-source evidence for the host run remain
   outstanding. The June 2026 RC1 staging smoke applies only to its recorded candidate and must not be inherited by this
   branch.
-- **Last updated:** 2026-11-19
+- **Last updated:** 2026-11-25
 
 ### FPC-2026-08-27-01 — Govern GNC after Phase 2 completion
 
