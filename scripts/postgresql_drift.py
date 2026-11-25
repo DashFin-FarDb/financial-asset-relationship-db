@@ -526,6 +526,51 @@ def _classify_legacy_object(item: Mapping[str, object], safe_tables: set[str]) -
     return False
 
 
+def _is_legacy_inventory_candidate(item: Mapping[str, object]) -> bool:
+    """Return whether one identity makes the reviewed legacy inventory present."""
+    object_type = item["object_type"]
+    name = item["name"]
+    kind = item["kind"]
+    if object_type == "relation":
+        return (kind == "r" and name in _LEGACY_TABLES) or (kind in ("i", "I") and name in _LEGACY_INDEXES)
+    return object_type == "type" and name in _LEGACY_TABLES
+
+
+def _legacy_inventory_is_complete(
+    objects: Sequence[Mapping[str, object]], *, require_inventory: bool, legacy_present: bool, helper_present: bool
+) -> bool:
+    """Require each exact legacy identity and the helper when legacy posture applies."""
+    expected = (
+        {("relation", name, "r") for name in _LEGACY_TABLES}
+        | {("relation", name, "i") for name in _LEGACY_INDEXES}
+        | {("type", name, None) for name in _LEGACY_TABLES}
+    )
+    found = {
+        (item["object_type"], item["name"], item["kind"]) for item in objects if _is_legacy_inventory_candidate(item)
+    }
+    inventory_applies = require_inventory or legacy_present or helper_present
+    return not inventory_applies or (found == expected and helper_present)
+
+
+def _is_provider_extension(
+    extension: Mapping[str, object], *, allow_loopback_test_owner: bool, legacy_present: bool, helper_present: bool
+) -> bool:
+    """Match the exact provider extension identity with the narrow loopback exception."""
+    name = str(extension["name"])
+    expected = _PROVIDER_EXTENSION_IDENTITIES.get(name)
+    if expected is None:
+        return False
+    if (extension.get("schema_name"), extension.get("owner_role")) == expected:
+        return True
+    loopback_owner = allow_loopback_test_owner and not legacy_present and not helper_present
+    return (
+        name == "plpgsql"
+        and extension.get("schema_name") == "pg_catalog"
+        and loopback_owner
+        and extension.get("owner_role") in {"postgres", "test"}
+    )
+
+
 def _public_scope(
     cursor: Cursor, profile: str, *, allow_loopback_test_owner: bool = False, require_legacy_inventory: bool = False
 ) -> tuple[int, int, int, int, tuple[str, ...]]:
@@ -600,39 +645,20 @@ def _public_scope(
         ORDER BY ext.extname
         """,
     )
-    legacy_present = any(
-        (item["object_type"] == "relation" and item["name"] in _LEGACY_TABLES)
-        or (item["object_type"] == "relation" and item["kind"] in ("i", "I") and item["name"] in _LEGACY_INDEXES)
-        or (item["object_type"] == "type" and item["name"] in _LEGACY_TABLES)
-        for item in objects
-    )
+    legacy_present = any(_is_legacy_inventory_candidate(item) for item in objects)
     safe_tables = _legacy_table_posture(cursor) if legacy_present else set()
     helper_present = any(item["object_type"] == "function" and item["name"] == "is_requester_admin" for item in objects)
     helper_safe = _restricted_helper_posture(cursor) if helper_present else False
-    legacy_expected = (
-        {("relation", name, "r") for name in _LEGACY_TABLES}
-        | {("relation", name, "i") for name in _LEGACY_INDEXES}
-        | {("type", name, None) for name in _LEGACY_TABLES}
-    )
-    legacy_found = {
-        (item["object_type"], item["name"], item["kind"])
-        for item in objects
-        if (
-            item["object_type"] == "relation"
-            and (
-                (item["kind"] == "r" and item["name"] in _LEGACY_TABLES)
-                or (item["kind"] in ("i", "I") and item["name"] in _LEGACY_INDEXES)
-            )
-        )
-        or (item["object_type"] == "type" and item["name"] in _LEGACY_TABLES)
-    }
     application_count = 0
     provider_count = 0
     legacy_count = 0
     helper_count = 0
     unknown = []
-    if (require_legacy_inventory or legacy_present or helper_present) and (
-        legacy_found != legacy_expected or not helper_present
+    if not _legacy_inventory_is_complete(
+        objects,
+        require_inventory=require_legacy_inventory,
+        legacy_present=legacy_present,
+        helper_present=helper_present,
     ):
         unknown.append("legacy:incomplete")
     for item in objects:
@@ -654,33 +680,16 @@ def _public_scope(
             provider_count += 1
         else:
             unknown.append(f"schema:{schema['name']}")
-    if (require_legacy_inventory or legacy_present or helper_present) and {
-        extension["name"] for extension in extensions
-    } != set(_PROVIDER_EXTENSION_IDENTITIES):
+    inventory_applies = require_legacy_inventory or legacy_present or helper_present
+    if inventory_applies and {extension["name"] for extension in extensions} != set(_PROVIDER_EXTENSION_IDENTITIES):
         unknown.append("extension:incomplete")
     for extension in extensions:
-        expected = _PROVIDER_EXTENSION_IDENTITIES.get(str(extension["name"]))
-        if (
-            extension["name"] == "plpgsql"
-            and extension.get("schema_name") == "pg_catalog"
-            and (
-                extension.get("owner_role") == "supabase_admin"
-                or (
-                    allow_loopback_test_owner
-                    and not legacy_present
-                    and not helper_present
-                    and extension.get("owner_role") == "postgres"
-                )
-                or (
-                    allow_loopback_test_owner
-                    and not legacy_present
-                    and not helper_present
-                    and extension.get("owner_role") == "test"
-                )
-            )
+        if _is_provider_extension(
+            extension,
+            allow_loopback_test_owner=allow_loopback_test_owner,
+            legacy_present=legacy_present,
+            helper_present=helper_present,
         ):
-            provider_count += 1
-        elif expected is not None and (extension.get("schema_name"), extension.get("owner_role")) == expected:
             provider_count += 1
         else:
             unknown.append(f"extension:{extension['name']}")

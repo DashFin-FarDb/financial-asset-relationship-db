@@ -602,6 +602,29 @@ def test_legacy_table_access_posture_fails_closed() -> None:
     """An extra grant or disabled RLS must not protect a legacy table."""
     from scripts.postgresql_drift import _legacy_table_grants, _legacy_table_posture
 
+    pg15_16_grants = frozenset(
+        {
+            "postgres:DELETE:false",
+            "postgres:INSERT:false",
+            "postgres:REFERENCES:false",
+            "postgres:SELECT:false",
+            "postgres:TRIGGER:false",
+            "postgres:TRUNCATE:false",
+            "postgres:UPDATE:false",
+            "service_role:DELETE:false",
+            "service_role:INSERT:false",
+            "service_role:REFERENCES:false",
+            "service_role:SELECT:false",
+            "service_role:TRIGGER:false",
+            "service_role:TRUNCATE:false",
+            "service_role:UPDATE:false",
+        }
+    )
+    pg17_grants = pg15_16_grants | {"postgres:MAINTAIN:false", "service_role:MAINTAIN:false"}
+    assert _legacy_table_grants(150000) == pg15_16_grants
+    assert _legacy_table_grants(160000) == pg15_16_grants
+    assert _legacy_table_grants(170000) == pg17_grants
+
     columns = (
         "name",
         "owner_role",
@@ -616,7 +639,7 @@ def test_legacy_table_access_posture_fails_closed() -> None:
         return _legacy_table_posture(StubCursor([(columns, rows)]))
 
     for version in (150000, 160000):
-        grants = sorted(_legacy_table_grants(version))
+        grants = sorted(pg15_16_grants)
         valid = ("financial_data", "postgres", True, True, 0, version, grants)
         assert "financial_data" in classify([valid])
         assert not classify([(*valid[:6], None)])
@@ -624,10 +647,9 @@ def test_legacy_table_access_posture_fails_closed() -> None:
         assert not classify([(*valid[:2], False, *valid[3:])])
         assert not classify([(*valid[:4], 1, *valid[5:])])
 
-    pg17_grants = sorted(_legacy_table_grants(170000))
-    pg17_valid = ("financial_data", "postgres", True, True, 0, 170000, pg17_grants)
+    pg17_valid = ("financial_data", "postgres", True, True, 0, 170000, sorted(pg17_grants))
     assert "financial_data" in classify([pg17_valid])
-    assert not classify([(*pg17_valid[:6], pg17_grants[:-1])])
+    assert not classify([(*pg17_valid[:6], sorted(pg17_grants)[:-1])])
 
 
 def test_restricted_helper_requires_exact_signature_and_denies_runtime_execute() -> None:
