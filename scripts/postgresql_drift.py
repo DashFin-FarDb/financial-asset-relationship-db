@@ -473,6 +473,7 @@ def _restricted_helper_posture(cursor: Cursor) -> bool:
         """
         SELECT p.proname AS name, pg_catalog.pg_get_function_identity_arguments(p.oid) AS arguments,
             pg_catalog.format_type(p.prorettype, NULL) AS return_type,
+            p.proretset AS returns_set,
             lang.lanname AS language, p.provolatile AS volatility, p.prosecdef AS security_definer,
             owner.rolname AS owner_role,
             ARRAY(SELECT acl::text FROM unnest(p.proacl) AS acl ORDER BY acl::text) AS acl_entries,
@@ -494,6 +495,7 @@ def _restricted_helper_posture(cursor: Cursor) -> bool:
         (
             rows[0]["arguments"] == "",
             rows[0]["return_type"] == "boolean",
+            rows[0]["returns_set"] is False,
             rows[0]["language"] == "sql",
             rows[0]["volatility"] == "v",
             rows[0]["security_definer"] is True,

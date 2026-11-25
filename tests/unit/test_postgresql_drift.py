@@ -542,6 +542,7 @@ def test_exact_legacy_inventory_requires_parent_owner_index_flags_and_access() -
         "name",
         "arguments",
         "return_type",
+        "returns_set",
         "language",
         "volatility",
         "security_definer",
@@ -556,6 +557,7 @@ def test_exact_legacy_inventory_requires_parent_owner_index_flags_and_access() -
             "is_requester_admin",
             "",
             "boolean",
+            False,
             "sql",
             "v",
             True,
@@ -636,6 +638,7 @@ def test_restricted_helper_requires_exact_signature_and_denies_runtime_execute()
         "name",
         "arguments",
         "return_type",
+        "returns_set",
         "language",
         "volatility",
         "security_definer",
@@ -647,6 +650,7 @@ def test_restricted_helper_requires_exact_signature_and_denies_runtime_execute()
         "is_requester_admin",
         "",
         "boolean",
+        False,
         "sql",
         "v",
         True,
@@ -655,8 +659,9 @@ def test_restricted_helper_requires_exact_signature_and_denies_runtime_execute()
         [],
     )
     assert _restricted_helper_posture(StubCursor([(columns, [valid])]))
+    assert not _restricted_helper_posture(StubCursor([(columns, [(*valid[:3], True, *valid[4:])])]))
     assert not _restricted_helper_posture(StubCursor([(columns, [(*valid[:-1], ["anon"])])]))
-    assert not _restricted_helper_posture(StubCursor([(columns, [(*valid[:5], False, *valid[6:])])]))
+    assert not _restricted_helper_posture(StubCursor([(columns, [(*valid[:6], False, *valid[7:])])]))
 
 
 def test_public_report_separates_protected_legacy_and_helper_counts(monkeypatch) -> None:
