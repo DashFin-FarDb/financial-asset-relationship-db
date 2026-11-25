@@ -215,10 +215,11 @@ boundary, secret, preview-label, and promotion evidence.
 
 **Hosted path observations — 2026-11-20:** PR [#1938](https://github.com/DashFin-FarDb/financial-asset-relationship-db/pull/1938) (`b53da3552`) added the
 [Hosted UI, API, and Supabase data path](../runbooks/hosted-ui-api-and-supabase-data-path.md) reference. Its dated
-observations record that the inspected Vercel Preview deployment had no explicit `DATABASE_URL`,
-`ASSET_GRAPH_DATABASE_URL`, or `COORDINATION_DATABASE_URL` and resolved through the `POSTGRES_URL` fallback, which does
-not meet the boundary criteria below; that the Supabase account listed only the production project's `main` branch and
-no staging project or branch; and that the maintainer reported, without target verification, that the `staging` and
+observations record that the Vercel project variable list showed no explicit `DATABASE_URL`,
+`ASSET_GRAPH_DATABASE_URL`, or `COORDINATION_DATABASE_URL` for Preview, so the repository settings code would fall back
+to the provider `POSTGRES_URL` (a settings-level inference, not a verified deployment binding), which does not meet the
+boundary criteria below; that the Supabase dashboard identified the project as `main PRODUCTION` with no database
+branches; and that the maintainer reported, without target verification, that the `staging` and
 `staging-manual-gate` GitHub Environments hold the database and readiness URL secrets. These observations satisfy no
 criterion below; item 4 remains open. PR [#1939](https://github.com/DashFin-FarDb/financial-asset-relationship-db/pull/1939) (`89789bd65`) routes `/token` to the FastAPI handler in
 `vercel.json` (asserted in `tests/unit/test_config_validation.py`); it is a routing fix, not staging mapping evidence.
