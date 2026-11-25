@@ -657,8 +657,8 @@ def test_unknown_runtime_callback_failure_is_unavailable() -> None:
     assert result.reason_code == REQUIRED_CHECK_NOT_EVALUATED
 
 
-def test_exact_legacy_inventory_requires_parent_owner_index_flags_and_access() -> None:
-    """All reviewed identities pass; a changed or added identity remains unknown."""
+def test_exact_legacy_inventory_requires_parent_owner_index_flags_and_access(monkeypatch) -> None:
+    """Distinguish missing baselines from changed or unexpected legacy identities."""
     from scripts.postgresql_drift import (
         _LEGACY_INDEXES,
         _LEGACY_TABLES,
@@ -799,6 +799,15 @@ def test_exact_legacy_inventory_requires_parent_owner_index_flags_and_access() -
     collision_result = classify(colliding_name)
     assert "legacy:incomplete" not in collision_result[4]
     assert "policy:idx_news_articles_url" in collision_result[4]
+    reviewed_indexes = {"idx_news_articles_url", "idx_financial_data_symbol"}
+    baselines = {
+        row[1]: (hashlib.sha256(_normalize_sql_text(row[9]).encode("utf-8")).hexdigest(), False, True, True)
+        for row in objects
+        if row[2] == "i" and row[1] in reviewed_indexes and row[9] is not None
+    }
+    monkeypatch.setattr("scripts.postgresql_drift._LEGACY_INDEX_BASELINES", baselines)
+    assert classify(objects)[2] == 18
+    assert all(f"relation:{name}" not in classify(objects)[4] for name in reviewed_indexes)
     altered = list(objects)
     indices = [i for i, row in enumerate(altered) if row[1] == "idx_news_articles_url"]
     assert len(indices) == 1
