@@ -41,6 +41,7 @@ At the reviewed source commit, produce a deterministic credential inventory by f
 5. **Treat Stage 1 routing as a candidate:** The Stage 1 auth route is a candidate consumer path and must be evaluated like any other path (confirmed or marked unconfirmed).
 6. **Apply inclusion criteria for resets:** Include a binding in the reset **only if** its **effective role** is `fardb_login_auth`.
    - A candidate path or a matching variable name alone **cannot** establish the deployed role.
+   - Inventory the separately approved `fardb_login_auth_prod` principal where deployed; record its effective bindings and exclusion evidence. Do not change its verifier under this `fardb_login_auth` plan.
 7. **Retain exclusions with evidence:** Exclusions remain out of scope, but retain them in the inventory with their evidence.
 
 ### Credential classes to inventory (keys, consumers, evidence, inclusion)
