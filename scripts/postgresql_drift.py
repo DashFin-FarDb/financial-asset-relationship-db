@@ -432,9 +432,9 @@ def _legacy_table_posture(cursor: Cursor) -> set[str]:
             c.relrowsecurity AS row_security, c.relforcerowsecurity AS force_row_security,
             (SELECT count(*) FROM pg_catalog.pg_policy pol WHERE pol.polrelid = c.oid) AS policy_count,
             ARRAY(
-                SELECT grantor.rolname || ':' || privilege_type || ':' || is_grantable::text
+                SELECT grantee.rolname || ':' || privilege_type || ':' || is_grantable::text
                 FROM pg_catalog.aclexplode(c.relacl) AS acl
-                LEFT JOIN pg_catalog.pg_roles grantor ON grantor.oid = acl.grantee
+                LEFT JOIN pg_catalog.pg_roles grantee ON grantee.oid = acl.grantee
                 ORDER BY 1
             ) AS grants
         FROM pg_catalog.pg_class c
