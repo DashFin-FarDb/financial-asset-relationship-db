@@ -453,13 +453,15 @@ def _legacy_table_posture(cursor: Cursor) -> set[str]:
         if not isinstance(version, int) or not isinstance(grants, (tuple, list)):
             continue
         expected_grants = _legacy_table_grants(version)
-        if (
-            row["owner_role"] == "postgres"
-            and row["row_security"] is True
-            and row["force_row_security"] is True
-            and row["policy_count"] == 0
-            and set(grants) == expected_grants
-            and len(grants) == len(expected_grants)
+        if all(
+            (
+                row["owner_role"] == "postgres",
+                row["row_security"] is True,
+                row["force_row_security"] is True,
+                row["policy_count"] == 0,
+                set(grants) == expected_grants,
+                len(grants) == len(expected_grants),
+            )
         ):
             safe_tables.add(str(row["name"]))
     return safe_tables
