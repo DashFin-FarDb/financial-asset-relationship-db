@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import builtins
 import hashlib
 import json
 import re
@@ -9,7 +10,6 @@ from collections import deque
 from collections.abc import Sequence
 from typing import Any
 
-import psycopg2
 import pytest
 
 from scripts.postgresql_drift import (
@@ -407,13 +407,18 @@ def test_evaluator_enforces_read_only_transaction_and_rollback(monkeypatch) -> N
 def test_evaluator_fails_closed_when_transaction_cleanup_is_unavailable(monkeypatch) -> None:
     """A failed rollback cannot leave a successful public evaluation."""
 
+    class CleanupUnavailableError(Exception):
+        """Test-only driver error returned by the lazy driver-type resolver."""
+
+    monkeypatch.setattr("scripts.postgresql_drift._psycopg_error_types", lambda: (CleanupUnavailableError,))
+
     class CleanupUnavailable(StubConnection):
         """Simulate a connection failure while releasing the read-only snapshot."""
 
         def rollback(self) -> None:
             """Record cleanup and then make its completion unknowable."""
             super().rollback()
-            raise psycopg2.OperationalError("cleanup unavailable")
+            raise CleanupUnavailableError("cleanup unavailable")
 
     monkeypatch.setattr(
         "scripts.postgresql_drift._history_check",
@@ -448,6 +453,11 @@ def test_evaluator_fails_closed_when_transaction_cleanup_is_unavailable(monkeypa
 
 def test_evaluator_preserves_completed_history_drift_when_catalog_fails(monkeypatch) -> None:
     """A lower-priority catalog error must not erase a completed history finding."""
+
+    class CatalogUnavailableError(Exception):
+        """Test-only driver error returned by the lazy driver-type resolver."""
+
+    monkeypatch.setattr("scripts.postgresql_drift._psycopg_error_types", lambda: (CatalogUnavailableError,))
     monkeypatch.setattr(
         "scripts.postgresql_drift._history_check",
         lambda cursor, manifest, profile, lineage: _check(LEDGER_HISTORY_MISMATCH, CHECK_DRIFT),
@@ -455,7 +465,7 @@ def test_evaluator_preserves_completed_history_drift_when_catalog_fails(monkeypa
 
     def catalog_unavailable(*_args, **_kwargs):
         """Simulate catalog failure after migration history was checked."""
-        raise psycopg2.OperationalError("catalog unavailable")
+        raise CatalogUnavailableError("catalog unavailable")
 
     monkeypatch.setattr("scripts.postgresql_drift._catalog_check", catalog_unavailable)
     connection = StubConnection(StubCursor([]))
@@ -498,6 +508,22 @@ def test_evaluator_does_not_hide_catalog_programming_errors(monkeypatch) -> None
             runtime_check=lambda: None,
         )
     assert connection.rolled_back is True
+
+
+def test_psycopg_driver_error_type_is_loaded_lazily(monkeypatch) -> None:
+    """Offline evaluator imports remain available when the optional driver is missing."""
+    from scripts.postgresql_drift import _psycopg_error_types
+
+    original_import = builtins.__import__
+
+    def import_without_psycopg(name, *args, **kwargs):
+        """Simulate a minimal offline environment without psycopg2 installed."""
+        if name == "psycopg2":
+            raise ImportError("driver unavailable")
+        return original_import(name, *args, **kwargs)
+
+    monkeypatch.setattr(builtins, "__import__", import_without_psycopg)
+    assert _psycopg_error_types() == ()
 
 
 def test_clean_required_checks_pass() -> None:

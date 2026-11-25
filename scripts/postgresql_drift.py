@@ -10,8 +10,6 @@ from dataclasses import dataclass
 from types import MappingProxyType
 from typing import Any, Protocol
 
-import psycopg2
-
 from scripts.postgresql_ledger import (
     CATALOG_NORMALIZATION_VERSION,
     EXPECTED_MANAGED_TABLES,
@@ -407,6 +405,15 @@ def _rows(cursor: Cursor, query: str, parameters: object | None = None) -> list[
                 mapped[column] = _normalize_sql_text(value)
         rows.append(mapped)
     return rows
+
+
+def _psycopg_error_types() -> tuple[type[BaseException], ...]:
+    """Load the optional driver error type only when handling a database failure."""
+    try:
+        from psycopg2 import Error as PsycopgError
+    except ImportError:
+        return ()
+    return (PsycopgError,)
 
 
 def expected_managed_tables(profile: str) -> tuple[str, ...]:
@@ -1089,7 +1096,7 @@ def _history_check(
     try:
         cursor.execute("SELECT version, name FROM supabase_migrations.schema_migrations ORDER BY version")
         actual = tuple((str(version), str(name)) for version, name in cursor.fetchall())
-    except psycopg2.Error:
+    except _psycopg_error_types():
         return CheckResult("history", LEDGER_HISTORY_MISMATCH, NOT_EVALUATED, REQUIRED_CHECK_NOT_EVALUATED)
     expected_digest = hashlib.sha256(canonical_catalog_bytes({"history": expected})).hexdigest()
     actual_digest = hashlib.sha256(canonical_catalog_bytes({"history": actual})).hexdigest()
@@ -1254,10 +1261,10 @@ def _profile_catalog_checks(
                     allow_loopback_test_owner=lineage == "fresh-v1" and target_class == "loopback",
                     require_legacy_inventory=lineage == "hosted-legacy-v1",
                 )
-            except psycopg2.Error:
+            except _psycopg_error_types():
                 catalog = CheckResult("catalog", PROVIDER_SCHEMA_DRIFT, NOT_EVALUATED, REQUIRED_CHECK_NOT_EVALUATED)
                 application_count = provider_count = legacy_count = helper_count = unknown_count = 0
-    except psycopg2.Error:
+    except _psycopg_error_types():
         history = CheckResult("history", LEDGER_HISTORY_MISMATCH, NOT_EVALUATED, REQUIRED_CHECK_NOT_EVALUATED)
         catalog = CheckResult("catalog", PROVIDER_SCHEMA_DRIFT, NOT_EVALUATED, REQUIRED_CHECK_NOT_EVALUATED)
         application_count = provider_count = legacy_count = helper_count = unknown_count = 0
