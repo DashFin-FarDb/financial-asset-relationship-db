@@ -26,7 +26,6 @@ from api.database import (
 )
 from scripts import postgresql_preflight
 from scripts.postgresql_drift import (
-    CHECK_PASSED,
     DRIFT_DETECTED,
     EVALUATION_INCOMPLETE,
     HIGHER_PRIORITY_CHECK_NOT_EVALUATED,
@@ -37,7 +36,6 @@ from scripts.postgresql_drift import (
     RUNTIME_COMPATIBILITY_MISMATCH,
     DriftReport,
     RuntimeCompatibilityMismatch,
-    _history_check,
     evaluate_profile_drift,
 )
 from scripts.postgresql_ledger import (
@@ -408,18 +406,6 @@ def _verify_hosted_adoption_prefix(
         finally:
             connection.close()
 
-    def check_marker_history(marker: MigrationEntry) -> None:
-        """Check the hosted prefix independently of the local extension owner."""
-        connection = connect_owned_attested(target_url)
-        try:
-            connection.set_session(readonly=True, autocommit=False)
-            with connection.cursor() as cursor:
-                check = _history_check(cursor, manifest, profile, "hosted-legacy-v1", marker.timestamp)
-                assert check.state == CHECK_PASSED, check
-        finally:
-            connection.rollback()
-            connection.close()
-
     selected = manifest.migrations_for_profile(profile)
     history_before = _migration_history(target_url)
     receipts = tuple(
@@ -430,9 +416,9 @@ def _verify_hosted_adoption_prefix(
     _replace_migration_history(target_url, adopted_history)
     try:
         for marker in selected:
-            check_marker_history(marker)
             adoption = evaluate_marker(marker)
             assert adoption.status == EVALUATION_INCOMPLETE, adoption.as_public_dict()
+            assert adoption.history == "PASSED", adoption.as_public_dict()
             assert OUTSIDE_MANAGED_SCOPE in adoption.reason_codes
             assert _migration_history(target_url) == adopted_history
             adopted_history += ((marker.timestamp, marker.filename[15:-4]),)

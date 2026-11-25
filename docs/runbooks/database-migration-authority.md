@@ -150,8 +150,14 @@ reason codes. It never repairs schema or migration history.
 Scope v2 classifies the eight reviewed legacy tables, eight composite types, 29 indexes, and restricted
 `public.is_requester_admin()` separately from application and provider ownership. Each legacy identity must match
 its parent and owner; tables must retain forced RLS, zero policies, and the reviewed ACL. Index flags and helper
-EXECUTE posture are checked. Hosted legacy requires all eleven extensions with exact name, schema, and owner. The attested loopback fresh-v1 test harness may use owner `test` or `postgres` for `plpgsql` alone; hosted legacy cannot. A partial or changed legacy
-set remains `OUTSIDE_MANAGED_SCOPE`, and the public report gives separate bounded legacy and helper counts.
+EXECUTE posture are checked. A partial or changed legacy set remains `OUTSIDE_MANAGED_SCOPE`, and the public report
+gives separate bounded legacy and helper counts.
+
+The exact table ACL follows the connected server version: PostgreSQL 15 and 16 use the seven reviewed table
+privileges; PostgreSQL 17 also includes `MAINTAIN`.
+
+Hosted legacy requires all eleven extensions with exact name, schema, and owner. The attested loopback fresh-v1 test
+harness may use owner `test` or `postgres` for `plpgsql` alone; hosted legacy cannot.
 
 The public result is `PASS`, `DRIFT_DETECTED`, or `EVALUATION_INCOMPLETE`. A detected primary category follows this
 fixed precedence: `LEDGER_HISTORY_MISMATCH`, `PROVIDER_SCHEMA_DRIFT`, then `RUNTIME_COMPATIBILITY_MISMATCH`. An

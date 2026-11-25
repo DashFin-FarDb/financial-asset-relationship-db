@@ -488,9 +488,9 @@ def test_exact_legacy_inventory_requires_parent_owner_index_flags_and_access() -
     """All reviewed identities pass; a changed or added identity remains unknown."""
     from scripts.postgresql_drift import (
         _LEGACY_INDEXES,
-        _LEGACY_TABLE_ACL,
         _LEGACY_TABLES,
         _PROVIDER_EXTENSION_IDENTITIES,
+        _legacy_table_grants,
     )
 
     columns = (
@@ -514,8 +514,16 @@ def test_exact_legacy_inventory_requires_parent_owner_index_flags_and_access() -
         + [("function", "is_requester_admin", None, None, "", "postgres", None, None, None)]
     )
     extensions = [(name, schema, owner) for name, (schema, owner) in sorted(_PROVIDER_EXTENSION_IDENTITIES.items())]
-    grants = sorted(f"{role}:{privilege}:false" for role, privilege, _ in _LEGACY_TABLE_ACL)
-    legacy_table_columns = ("name", "owner_role", "row_security", "force_row_security", "policy_count", "grants")
+    grants = sorted(_legacy_table_grants(170000))
+    legacy_table_columns = (
+        "name",
+        "owner_role",
+        "row_security",
+        "force_row_security",
+        "policy_count",
+        "server_version_num",
+        "grants",
+    )
     helper_columns = (
         "name",
         "arguments",
@@ -529,7 +537,7 @@ def test_exact_legacy_inventory_requires_parent_owner_index_flags_and_access() -
     )
 
     def classify(rows, *, require_legacy_inventory=False, owner="postgres"):
-        legacy_tables = [(name, owner, True, True, 0, grants) for name in sorted(_LEGACY_TABLES)]
+        legacy_tables = [(name, owner, True, True, 0, 170000, grants) for name in sorted(_LEGACY_TABLES)]
         helper = (
             "is_requester_admin",
             "",
@@ -556,6 +564,12 @@ def test_exact_legacy_inventory_requires_parent_owner_index_flags_and_access() -
     assert classify(objects[:-2])[4] == ("legacy:incomplete",)
     assert "legacy:incomplete" in classify((), require_legacy_inventory=True)[4]
     assert "relation:financial_data" in classify(objects, owner="unexpected_owner")[4]
+    colliding_name = list(objects) + [
+        ("policy", "idx_news_articles_url", None, "financial_data", None, None, None, None, None)
+    ]
+    collision_result = classify(colliding_name)
+    assert "legacy:incomplete" not in collision_result[4]
+    assert "policy:idx_news_articles_url" in collision_result[4]
     altered = list(objects)
     index = next(i for i, row in enumerate(altered) if row[1] == "idx_news_articles_url")
     altered[index] = (*altered[index][:6], False, False, None)
@@ -570,20 +584,34 @@ def test_exact_legacy_inventory_requires_parent_owner_index_flags_and_access() -
 
 def test_legacy_table_access_posture_fails_closed() -> None:
     """An extra grant or disabled RLS must not protect a legacy table."""
-    from scripts.postgresql_drift import _LEGACY_TABLE_ACL, _legacy_table_posture
+    from scripts.postgresql_drift import _legacy_table_grants, _legacy_table_posture
 
-    grants = sorted(f"{role}:{privilege}:false" for role, privilege, _ in _LEGACY_TABLE_ACL)
-    columns = ("name", "owner_role", "row_security", "force_row_security", "policy_count", "grants")
+    columns = (
+        "name",
+        "owner_role",
+        "row_security",
+        "force_row_security",
+        "policy_count",
+        "server_version_num",
+        "grants",
+    )
 
     def classify(rows):
         return _legacy_table_posture(StubCursor([(columns, rows)]))
 
-    valid = ("financial_data", "postgres", True, True, 0, grants)
-    assert "financial_data" in classify([valid])
-    assert not classify([(*valid[:5], None)])
-    assert not classify([(*valid[:5], grants + ["anon:SELECT:false"])])
-    assert not classify([(*valid[:2], False, *valid[3:])])
-    assert not classify([(*valid[:4], 1, valid[5])])
+    for version in (150000, 160000):
+        grants = sorted(_legacy_table_grants(version))
+        valid = ("financial_data", "postgres", True, True, 0, version, grants)
+        assert "financial_data" in classify([valid])
+        assert not classify([(*valid[:6], None)])
+        assert not classify([(*valid[:6], grants + ["anon:SELECT:false"])])
+        assert not classify([(*valid[:2], False, *valid[3:])])
+        assert not classify([(*valid[:4], 1, *valid[5:])])
+
+    pg17_grants = sorted(_legacy_table_grants(170000))
+    pg17_valid = ("financial_data", "postgres", True, True, 0, 170000, pg17_grants)
+    assert "financial_data" in classify([pg17_valid])
+    assert not classify([(*pg17_valid[:6], pg17_grants[:-1])])
 
 
 def test_restricted_helper_requires_exact_signature_and_denies_runtime_execute() -> None:

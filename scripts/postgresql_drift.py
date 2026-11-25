@@ -138,11 +138,7 @@ _RESTRICTED_ROLES = frozenset(
         "fardb_login_coordination",
     }
 )
-_LEGACY_TABLE_ACL = frozenset(
-    (role, privilege, False)
-    for role in ("postgres", "service_role")
-    for privilege in ("DELETE", "INSERT", "REFERENCES", "SELECT", "TRIGGER", "TRUNCATE", "UPDATE")
-)
+_LEGACY_TABLE_PRIVILEGES = ("DELETE", "INSERT", "REFERENCES", "SELECT", "TRIGGER", "TRUNCATE", "UPDATE")
 
 _SQL_TEXT_COLUMNS = frozenset({"check_expression", "default_expression", "definition", "using_expression"})
 
@@ -431,6 +427,7 @@ def _legacy_table_posture(cursor: Cursor) -> set[str]:
         SELECT c.relname AS name, owner.rolname AS owner_role,
             c.relrowsecurity AS row_security, c.relforcerowsecurity AS force_row_security,
             (SELECT count(*) FROM pg_catalog.pg_policy pol WHERE pol.polrelid = c.oid) AS policy_count,
+            current_setting('server_version_num')::integer AS server_version_num,
             ARRAY(
                 SELECT grantee.rolname || ':' || privilege_type || ':' || is_grantable::text
                 FROM pg_catalog.aclexplode(COALESCE(c.relacl, '{}'::aclitem[])) AS acl
@@ -444,7 +441,6 @@ def _legacy_table_posture(cursor: Cursor) -> set[str]:
         """,
         (sorted(_LEGACY_TABLES),),
     )
-    expected = {f"{role}:{privilege}:false" for role, privilege, _ in _LEGACY_TABLE_ACL}
     return {
         str(row["name"])
         for row in rows
@@ -452,10 +448,17 @@ def _legacy_table_posture(cursor: Cursor) -> set[str]:
         and row["row_security"] is True
         and row["force_row_security"] is True
         and row["policy_count"] == 0
+        and isinstance(row["server_version_num"], int)
         and isinstance(row["grants"], (tuple, list))
-        and set(row["grants"]) == expected
-        and len(row["grants"]) == len(expected)
+        and set(row["grants"]) == _legacy_table_grants(row["server_version_num"])
+        and len(row["grants"]) == len(_legacy_table_grants(row["server_version_num"]))
     }
+
+
+def _legacy_table_grants(server_version_num: int) -> frozenset[str]:
+    """Return the exact reviewed legacy ACL entries for the connected PostgreSQL version."""
+    privileges = _LEGACY_TABLE_PRIVILEGES + (("MAINTAIN",) if server_version_num >= 170000 else ())
+    return frozenset(f"{role}:{privilege}:false" for role in ("postgres", "service_role") for privilege in privileges)
 
 
 def _restricted_helper_posture(cursor: Cursor) -> bool:
@@ -607,7 +610,14 @@ def _public_scope(
     legacy_found = {
         (item["object_type"], item["name"], item["kind"])
         for item in objects
-        if item["name"] in _LEGACY_TABLES or item["name"] in _LEGACY_INDEXES
+        if (
+            item["object_type"] == "relation"
+            and (
+                (item["kind"] == "r" and item["name"] in _LEGACY_TABLES)
+                or (item["kind"] in ("i", "I") and item["name"] in _LEGACY_INDEXES)
+            )
+        )
+        or (item["object_type"] == "type" and item["name"] in _LEGACY_TABLES)
     }
     application_count = 0
     provider_count = 0

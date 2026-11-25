@@ -303,7 +303,8 @@ Every exclusion is named and versioned. A wildcard exclusion without a documente
 
 Scope v2 adds an exact protected legacy category: eight base tables, eight composite row types, 29 indexes,
 and the restricted `public.is_requester_admin()` helper. Tables require owner `postgres`, forced RLS, zero
-policies, and only the reviewed non-grantable postgres/service-role ACL. Types and indexes require exact
+policies, and only the reviewed non-grantable postgres/service-role ACL for the server version: PostgreSQL 15/16
+use seven table privileges, and PostgreSQL 17 adds `MAINTAIN`. Types and indexes require exact
 parent and owner; indexes also require reviewed unique and primary flags. The helper requires its reviewed
 signature, security mode, owner, ACL, and no effective EXECUTE for untrusted or runtime roles. Eleven provider
 extensions require exact name, schema, and owner, with a plain PostgreSQL `plpgsql` owner exception for fresh
@@ -311,8 +312,8 @@ local targets; the attested loopback fresh-v1 harness may additionally use owner
 `protected_legacy_count` and `restricted_helper_count` are separate from application and provider counts. The new
 scope version requires recalibrated portable catalog digests; it neither adopts receipts nor authorizes a hosted connection.
 The v1 ratification checklist below records approval of the baseline contract only. Approval of the CQ-03D v2
-amendment is tracked separately with PR #1960 review; merging the implementation does not authorize a hosted
-connection or credential change.
+amendment is recorded separately below; merging the implementation does not authorize a hosted connection or
+credential change.
 
 ### Normalization profile
 
@@ -469,3 +470,15 @@ CQ-03B/C to profile-scoped forward baselines, non-executable historical evidence
 **Ratifier:** Mohamed Abdel-Aziz Mohamed
 **Decision date:** 2026-08-13
 **GitHub evidence link:** [PR #1634](https://github.com/DashFin-FarDb/financial-asset-relationship-db/pull/1634)
+
+### CQ-03D scope-v2 amendment
+
+- [x] Approve the exact protected legacy inventory, PostgreSQL-version-specific table ACL, restricted helper,
+      provider extension inventory, separate counts, and recalibrated profile digests implemented in PR #1960.
+
+**Decision:** Accepted for implementation and merge
+**Ratifier:** Repository maintainer `mohavro`, by explicit task authorization
+**Decision date:** 2026-11-25
+**GitHub evidence link:** [PR #1960](https://github.com/DashFin-FarDb/financial-asset-relationship-db/pull/1960)
+**Boundary:** This amendment approves the classifier contract only. It does not authorize credential changes, another
+Stage 1 attempt, a hosted preflight, or closure of issue #1907 without its remaining evidence.
