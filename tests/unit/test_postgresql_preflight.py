@@ -1035,6 +1035,7 @@ def test_connection_failures_report_sanitized_stage_and_route(
             self.closed = False
 
         def set_session(self, **_kwargs) -> None:
+            """Fail at session setup when selected by the fixture."""
             if failure_stage == "session":
                 raise RuntimeError(secret)
 
@@ -1043,9 +1044,11 @@ def test_connection_failures_report_sanitized_stage_and_route(
             return Cursor()
 
         def rollback(self) -> None:
+            """Record cleanup of the staged fake session."""
             self.rollbacks += 1
 
         def close(self) -> None:
+            """Record closure of the staged fake session."""
             self.closed = True
 
     connection = Connection()

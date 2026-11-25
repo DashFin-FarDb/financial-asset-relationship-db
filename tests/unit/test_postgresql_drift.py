@@ -552,6 +552,7 @@ def test_exact_legacy_inventory_requires_parent_owner_index_flags_and_access() -
     )
 
     def classify(rows, *, require_legacy_inventory=False, owner="postgres"):
+        """Evaluate one catalog fixture with the requested legacy posture."""
         legacy_tables = [(name, owner, True, True, 0, 170000, grants) for name in sorted(_LEGACY_TABLES)]
         helper = (
             "is_requester_admin",
@@ -636,6 +637,7 @@ def test_legacy_table_access_posture_fails_closed() -> None:
     )
 
     def classify(rows):
+        """Evaluate the supplied legacy ACL posture rows."""
         return _legacy_table_posture(StubCursor([(columns, rows)]))
 
     for version in (150000, 160000):
