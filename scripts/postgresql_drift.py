@@ -457,19 +457,47 @@ def _legacy_table_posture(cursor: Cursor) -> set[str]:
                 FROM pg_catalog.aclexplode(COALESCE(c.relacl, '{}'::aclitem[])) AS acl
                 LEFT JOIN pg_catalog.pg_roles grantee ON grantee.oid = acl.grantee
                 ORDER BY 1
-            ) AS grants
+            ) AS grants,
+            ARRAY(
+                SELECT restricted_role.rolname || ':' || privilege.privilege_type
+                FROM pg_catalog.pg_roles restricted_role
+                CROSS JOIN LATERAL unnest(
+                    ARRAY['DELETE', 'INSERT', 'REFERENCES', 'SELECT', 'TRIGGER', 'TRUNCATE', 'UPDATE']::text[]
+                    || CASE
+                        WHEN current_setting('server_version_num')::integer >= 170000
+                        THEN ARRAY['MAINTAIN']::text[]
+                        ELSE ARRAY[]::text[]
+                    END
+                ) AS privilege(privilege_type)
+                WHERE restricted_role.rolname = ANY(%s)
+                  AND (
+                      pg_catalog.has_table_privilege(restricted_role.oid, c.oid, privilege.privilege_type)
+                      OR (
+                          privilege.privilege_type IN ('SELECT', 'INSERT', 'REFERENCES', 'UPDATE')
+                          AND pg_catalog.has_any_column_privilege(
+                              restricted_role.oid, c.oid, privilege.privilege_type
+                          )
+                      )
+                  )
+                ORDER BY 1
+            ) AS restricted_effective_privileges
         FROM pg_catalog.pg_class c
         JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace
         JOIN pg_catalog.pg_roles owner ON owner.oid = c.relowner
         WHERE n.nspname = 'public' AND c.relkind = 'r' AND c.relname = ANY(%s)
         """,
-        (sorted(_LEGACY_TABLES),),
+        (sorted(_LEGACY_TABLES), sorted(_RESTRICTED_ROLES)),
     )
     safe_tables: set[str] = set()
     for row in rows:
         version = row["server_version_num"]
         grants = row["grants"]
-        if not isinstance(version, int) or not isinstance(grants, (tuple, list)):
+        restricted_privileges = row["restricted_effective_privileges"]
+        if (
+            not isinstance(version, int)
+            or not isinstance(grants, (tuple, list))
+            or not isinstance(restricted_privileges, (tuple, list))
+        ):
             continue
         expected_grants = _legacy_table_grants(version)
         if all(
@@ -480,6 +508,7 @@ def _legacy_table_posture(cursor: Cursor) -> set[str]:
                 row["policy_count"] == 0,
                 set(grants) == expected_grants,
                 len(grants) == len(expected_grants),
+                restricted_privileges == [],
             )
         ):
             safe_tables.add(str(row["name"]))
