@@ -830,7 +830,12 @@ def _connect_verified(
         raise _ConnectionVerificationError(CONNECTION_OPEN_FAILED, route_label) from None
 
     if before_connection is not None:
-        before_connection()
+        try:
+            before_connection()
+        except (PreflightContractError, TargetIdentityError):
+            raise
+        except Exception:
+            raise TargetIdentityError() from None
 
     try:
         connection = psycopg2.connect(route.database_url, connect_timeout=10)
@@ -845,6 +850,9 @@ def _connect_verified(
 
     try:
         _prove_live_database_identity(connection, route, target)
+    except (PreflightContractError, TargetIdentityError):
+        _discard_identity_connection(connection)
+        raise
     except Exception:
         _discard_identity_connection(connection)
         raise _ConnectionVerificationError(LIVE_IDENTITY_VERIFICATION_FAILED, route_label) from None

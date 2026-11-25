@@ -464,6 +464,53 @@ def test_connect_verified_preserves_expired_collection_authorization(monkeypatch
     connect.assert_not_called()
 
 
+def test_connect_verified_preserves_contract_errors_from_identity_proof(monkeypatch) -> None:
+    """Identity proof must preserve bounded contract and target errors during cleanup."""
+    import psycopg2
+
+    route = preflight.RouteIdentity("postgresql://runtime@host/postgres", PROJECT_REF)
+    target = _collection_target(route.database_url)
+    connection = Mock()
+    monkeypatch.setattr(psycopg2, "connect", Mock(return_value=connection))
+
+    for expected in (preflight.PreflightContractError(preflight.PERMIT_INVALID), TargetIdentityError()):
+        monkeypatch.setattr(preflight, "_prove_live_database_identity", Mock(side_effect=expected))
+        with pytest.raises(type(expected)) as captured:
+            preflight._connect_verified(route, target)
+        assert captured.value is expected
+
+    assert connection.rollback.call_count == 2
+    assert connection.close.call_count == 2
+
+
+def test_connect_verified_sanitizes_unexpected_preconnection_guard_failure(monkeypatch, capsys) -> None:
+    """Unexpected guard failures stop before connecting and emit the fixed identity diagnostic."""
+    import psycopg2
+
+    route = preflight.RouteIdentity("postgresql://runtime@host/postgres", PROJECT_REF)
+    target = _collection_target(route.database_url)
+    connect = Mock()
+    monkeypatch.setattr(psycopg2, "connect", connect)
+    secret = "untrusted guard failure detail"
+
+    def fail_guard() -> None:
+        """Represent an unexpected protected pre-connection guard failure."""
+        raise RuntimeError(secret)
+
+    monkeypatch.setattr(
+        preflight,
+        "_run_selected_stage",
+        lambda _arguments: preflight._connect_verified(route, target, fail_guard, "inspection"),
+    )
+
+    assert preflight.main(()) == 1
+    captured = capsys.readouterr()
+    assert captured.out == ""
+    assert captured.err == f"{preflight.TARGET_IDENTITY_INDETERMINATE}\n"
+    assert secret not in captured.err
+    connect.assert_not_called()
+
+
 def test_collection_rechecks_authorization_window_before_each_connection(tmp_path: Path, monkeypatch) -> None:
     """An approval that expires between Stage 1 connections blocks the next connection."""
     path = _write_collection_authorization(tmp_path)

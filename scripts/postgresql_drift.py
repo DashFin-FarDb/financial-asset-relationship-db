@@ -446,18 +446,23 @@ def _legacy_table_posture(cursor: Cursor) -> set[str]:
         """,
         (sorted(_LEGACY_TABLES),),
     )
-    return {
-        str(row["name"])
-        for row in rows
-        if row["owner_role"] == "postgres"
-        and row["row_security"] is True
-        and row["force_row_security"] is True
-        and row["policy_count"] == 0
-        and isinstance(row["server_version_num"], int)
-        and isinstance(row["grants"], (tuple, list))
-        and set(row["grants"]) == _legacy_table_grants(row["server_version_num"])
-        and len(row["grants"]) == len(_legacy_table_grants(row["server_version_num"]))
-    }
+    safe_tables: set[str] = set()
+    for row in rows:
+        version = row["server_version_num"]
+        grants = row["grants"]
+        if not isinstance(version, int) or not isinstance(grants, (tuple, list)):
+            continue
+        expected_grants = _legacy_table_grants(version)
+        if (
+            row["owner_role"] == "postgres"
+            and row["row_security"] is True
+            and row["force_row_security"] is True
+            and row["policy_count"] == 0
+            and set(grants) == expected_grants
+            and len(grants) == len(expected_grants)
+        ):
+            safe_tables.add(str(row["name"]))
+    return safe_tables
 
 
 def _legacy_table_grants(server_version_num: int) -> frozenset[str]:
@@ -476,7 +481,10 @@ def _restricted_helper_posture(cursor: Cursor) -> bool:
             p.proretset AS returns_set,
             lang.lanname AS language, p.provolatile AS volatility, p.prosecdef AS security_definer,
             owner.rolname AS owner_role,
-            ARRAY(SELECT acl::text FROM unnest(p.proacl) AS acl ORDER BY acl::text) AS acl_entries,
+            COALESCE(
+                ARRAY(SELECT acl::text FROM unnest(COALESCE(p.proacl, '{}'::aclitem[])) AS acl ORDER BY acl::text),
+                ARRAY[]::text[]
+            ) AS acl_entries,
             ARRAY(
                 SELECT role.rolname FROM pg_catalog.pg_roles role
                 WHERE role.rolname = ANY(%s)
@@ -632,6 +640,23 @@ def _provider_scope_counts(
     return provider_count, tuple(unknown)
 
 
+def _legacy_posture_state(
+    cursor: Cursor, objects: Sequence[Mapping[str, object]], *, require_inventory: bool
+) -> tuple[bool, set[str], bool, bool, bool]:
+    """Return presence, verified posture, and completeness for restricted legacy identities."""
+    legacy_present = any(_is_legacy_inventory_candidate(item) for item in objects)
+    safe_tables = _legacy_table_posture(cursor) if legacy_present else set()
+    helper_present = any(item["object_type"] == "function" and item["name"] == "is_requester_admin" for item in objects)
+    helper_safe = _restricted_helper_posture(cursor) if helper_present else False
+    complete = _legacy_inventory_is_complete(
+        objects,
+        require_inventory=require_inventory,
+        legacy_present=legacy_present,
+        helper_present=helper_present,
+    )
+    return legacy_present, safe_tables, helper_present, helper_safe, complete
+
+
 def _public_scope(
     cursor: Cursor, profile: str, *, allow_loopback_test_owner: bool = False, require_legacy_inventory: bool = False
 ) -> tuple[int, int, int, int, tuple[str, ...]]:
@@ -706,17 +731,11 @@ def _public_scope(
         ORDER BY ext.extname
         """,
     )
-    legacy_present = any(_is_legacy_inventory_candidate(item) for item in objects)
-    safe_tables = _legacy_table_posture(cursor) if legacy_present else set()
-    helper_present = any(item["object_type"] == "function" and item["name"] == "is_requester_admin" for item in objects)
-    helper_safe = _restricted_helper_posture(cursor) if helper_present else False
+    legacy_present, safe_tables, helper_present, helper_safe, legacy_complete = _legacy_posture_state(
+        cursor, objects, require_inventory=require_legacy_inventory
+    )
     unknown: list[str] = []
-    if not _legacy_inventory_is_complete(
-        objects,
-        require_inventory=require_legacy_inventory,
-        legacy_present=legacy_present,
-        helper_present=helper_present,
-    ):
+    if not legacy_complete:
         unknown.append("legacy:incomplete")
     inventory_applies = require_legacy_inventory or legacy_present or helper_present
     application_count, legacy_count, helper_count, object_unknown = _classify_public_objects(

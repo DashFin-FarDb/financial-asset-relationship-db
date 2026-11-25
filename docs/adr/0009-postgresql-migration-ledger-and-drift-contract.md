@@ -307,8 +307,8 @@ policies, and only the reviewed non-grantable postgres/service-role ACL for the 
 use seven table privileges, and PostgreSQL 17 adds `MAINTAIN`. Types and indexes require exact
 parent and owner; indexes also require reviewed unique and primary flags. The helper requires its reviewed
 signature, security mode, owner, ACL, and no effective EXECUTE for untrusted or runtime roles. Eleven provider
-extensions require exact name, schema, and owner, with a plain PostgreSQL `plpgsql` owner exception for fresh
-local targets; the attested loopback fresh-v1 harness may additionally use owner `test` for `plpgsql` alone. A partial or changed legacy inventory remains outside managed scope. The public
+extensions require exact name, schema, and owner, with owner `postgres` allowed for `plpgsql` on fresh local
+targets; the attested loopback fresh-v1 harness may additionally use owner `test` for `plpgsql` alone. A partial or changed legacy inventory remains outside managed scope. The public
 `protected_legacy_count` and `restricted_helper_count` are separate from application and provider counts. The new
 scope version requires recalibrated portable catalog digests; it neither adopts receipts nor authorizes a hosted connection.
 The v1 ratification checklist below records approval of the baseline contract only. Approval of the CQ-03D v2
