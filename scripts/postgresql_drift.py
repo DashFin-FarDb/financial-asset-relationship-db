@@ -7,6 +7,7 @@ import json
 from collections.abc import Callable, Iterator, Mapping, Sequence
 from contextlib import contextmanager
 from dataclasses import dataclass
+from types import MappingProxyType
 from typing import Any, Protocol
 
 from scripts.postgresql_ledger import (
@@ -82,50 +83,54 @@ _LEGACY_TABLES = frozenset(
         "user_preferences",
     }
 )
-_LEGACY_INDEXES = {
-    "financial_data_pkey": ("financial_data", True, True),
-    "idx_financial_data_symbol": ("financial_data", False, False),
-    "idx_financial_data_symbol_timestamp": ("financial_data", False, False),
-    "idx_financial_data_timestamp": ("financial_data", False, False),
-    "fundamental_analysis_pkey": ("fundamental_analysis", True, True),
-    "idx_fundamental_analysis_created": ("fundamental_analysis", False, False),
-    "idx_fundamental_analysis_symbol": ("fundamental_analysis", False, False),
-    "market_alerts_pkey": ("market_alerts", True, True),
-    "idx_alerts_user_id": ("market_alerts", False, False),
-    "idx_market_alerts_active": ("market_alerts", False, False),
-    "idx_market_alerts_user": ("market_alerts", False, False),
-    "news_articles_pkey": ("news_articles", True, True),
-    "idx_news_articles_published": ("news_articles", False, False),
-    "idx_news_articles_source": ("news_articles", False, False),
-    "idx_news_articles_url": ("news_articles", True, False),
-    "portfolio_holdings_pkey": ("portfolio_holdings", True, True),
-    "idx_holdings_portfolio_id": ("portfolio_holdings", False, False),
-    "idx_portfolio_holdings_portfolio": ("portfolio_holdings", False, False),
-    "portfolios_pkey": ("portfolios", True, True),
-    "idx_portfolios_user": ("portfolios", False, False),
-    "idx_portfolios_user_id": ("portfolios", False, False),
-    "transactions_pkey": ("transactions", True, True),
-    "idx_transactions_date": ("transactions", False, False),
-    "idx_transactions_portfolio": ("transactions", False, False),
-    "idx_transactions_portfolio_id": ("transactions", False, False),
-    "user_preferences_pkey": ("user_preferences", True, True),
-    "user_preferences_user_id_key": ("user_preferences", True, False),
-    "idx_prefs_user_id": ("user_preferences", False, False),
-    "idx_user_preferences_user_id": ("user_preferences", False, False),
-}
-_PROVIDER_EXTENSION_IDENTITIES = {
-    "hypopg": ("extensions", "supabase_admin"),
-    "index_advisor": ("extensions", "supabase_admin"),
-    "pg_graphql": ("graphql", "supabase_admin"),
-    "pg_net": ("extensions", "supabase_admin"),
-    "pg_stat_statements": ("extensions", "supabase_admin"),
-    "pgcrypto": ("extensions", "supabase_admin"),
-    "pgmq": ("pgmq", "postgres"),
-    "plpgsql": ("pg_catalog", "supabase_admin"),
-    "supabase_vault": ("vault", "supabase_admin"),
-    "uuid-ossp": ("extensions", "supabase_admin"),
-    "wrappers": ("extensions", "supabase_admin"),
-}
+_LEGACY_INDEXES: Mapping[str, tuple[str, bool, bool]] = MappingProxyType(
+    {
+        "financial_data_pkey": ("financial_data", True, True),
+        "idx_financial_data_symbol": ("financial_data", False, False),
+        "idx_financial_data_symbol_timestamp": ("financial_data", False, False),
+        "idx_financial_data_timestamp": ("financial_data", False, False),
+        "fundamental_analysis_pkey": ("fundamental_analysis", True, True),
+        "idx_fundamental_analysis_created": ("fundamental_analysis", False, False),
+        "idx_fundamental_analysis_symbol": ("fundamental_analysis", False, False),
+        "market_alerts_pkey": ("market_alerts", True, True),
+        "idx_alerts_user_id": ("market_alerts", False, False),
+        "idx_market_alerts_active": ("market_alerts", False, False),
+        "idx_market_alerts_user": ("market_alerts", False, False),
+        "news_articles_pkey": ("news_articles", True, True),
+        "idx_news_articles_published": ("news_articles", False, False),
+        "idx_news_articles_source": ("news_articles", False, False),
+        "idx_news_articles_url": ("news_articles", True, False),
+        "portfolio_holdings_pkey": ("portfolio_holdings", True, True),
+        "idx_holdings_portfolio_id": ("portfolio_holdings", False, False),
+        "idx_portfolio_holdings_portfolio": ("portfolio_holdings", False, False),
+        "portfolios_pkey": ("portfolios", True, True),
+        "idx_portfolios_user": ("portfolios", False, False),
+        "idx_portfolios_user_id": ("portfolios", False, False),
+        "transactions_pkey": ("transactions", True, True),
+        "idx_transactions_date": ("transactions", False, False),
+        "idx_transactions_portfolio": ("transactions", False, False),
+        "idx_transactions_portfolio_id": ("transactions", False, False),
+        "user_preferences_pkey": ("user_preferences", True, True),
+        "user_preferences_user_id_key": ("user_preferences", True, False),
+        "idx_prefs_user_id": ("user_preferences", False, False),
+        "idx_user_preferences_user_id": ("user_preferences", False, False),
+    }
+)
+_PROVIDER_EXTENSION_IDENTITIES: Mapping[str, tuple[str, str]] = MappingProxyType(
+    {
+        "hypopg": ("extensions", "supabase_admin"),
+        "index_advisor": ("extensions", "supabase_admin"),
+        "pg_graphql": ("graphql", "supabase_admin"),
+        "pg_net": ("extensions", "supabase_admin"),
+        "pg_stat_statements": ("extensions", "supabase_admin"),
+        "pgcrypto": ("extensions", "supabase_admin"),
+        "pgmq": ("pgmq", "postgres"),
+        "plpgsql": ("pg_catalog", "supabase_admin"),
+        "supabase_vault": ("vault", "supabase_admin"),
+        "uuid-ossp": ("extensions", "supabase_admin"),
+        "wrappers": ("extensions", "supabase_admin"),
+    }
+)
 _RESTRICTED_ROLES = frozenset(
     {
         "anon",
@@ -1132,7 +1137,9 @@ def _profile_catalog_checks(
                 require_legacy_inventory=lineage == "hosted-legacy-v1",
             )
     except Exception:  # noqa: BLE001 - transaction/catalog unavailability is a bounded required-check result
+        history = CheckResult("history", LEDGER_HISTORY_MISMATCH, NOT_EVALUATED, REQUIRED_CHECK_NOT_EVALUATED)
         catalog = CheckResult("catalog", PROVIDER_SCHEMA_DRIFT, NOT_EVALUATED, REQUIRED_CHECK_NOT_EVALUATED)
+        application_count = provider_count = legacy_count = helper_count = unknown_count = 0
     return history, catalog, application_count, provider_count, legacy_count, helper_count, unknown_count
 
 

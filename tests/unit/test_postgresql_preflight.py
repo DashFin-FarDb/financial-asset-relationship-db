@@ -1075,6 +1075,26 @@ def test_connection_failures_report_sanitized_stage_and_route(
         assert connection.closed
 
 
+def test_missing_psycopg2_reports_sanitized_connection_open_failure(tmp_path: Path, monkeypatch, capsys) -> None:
+    """A missing driver produces the fixed open-stage diagnostic without import details."""
+    route = preflight.RouteIdentity(_database_url(tmp_path), PROJECT_REF)
+    target = _target(route.database_url)
+    monkeypatch.setitem(sys.modules, "psycopg2", None)
+    monkeypatch.setattr(
+        preflight,
+        "_run_selected_stage",
+        lambda _arguments: preflight._connect_verified(route, target, route_label="inspection"),
+    )
+
+    assert preflight.main(()) == 1
+    captured = capsys.readouterr()
+    assert captured.out == ""
+    assert captured.err == (
+        f"{preflight.TARGET_IDENTITY_INDETERMINATE} "
+        f"diagnostic={preflight.CONNECTION_OPEN_FAILED} route=inspection\n"
+    )
+
+
 def test_live_database_oid_mismatch_fails_before_checks(tmp_path: Path, monkeypatch) -> None:
     """An attested binding for another database cannot authorize this route."""
 

@@ -350,6 +350,15 @@ def test_evaluator_fails_closed_when_transaction_cleanup_is_unavailable(monkeypa
     )
     assert report.status == EVALUATION_INCOMPLETE
     assert report.primary_category is None
+    assert report.history == NOT_EVALUATED
+    assert report.catalog == NOT_EVALUATED
+    assert (
+        report.application_owned_count,
+        report.provider_owned_count,
+        report.unknown_count,
+        report.protected_legacy_count,
+        report.restricted_helper_count,
+    ) == (0, 0, 0, 0, 0)
     assert connection.rolled_back is True
 
 
@@ -492,6 +501,11 @@ def test_exact_legacy_inventory_requires_parent_owner_index_flags_and_access() -
         _PROVIDER_EXTENSION_IDENTITIES,
         _legacy_table_grants,
     )
+
+    with pytest.raises(TypeError):
+        _LEGACY_INDEXES["unexpected"] = ("financial_data", False, False)  # type: ignore[index]
+    with pytest.raises(TypeError):
+        _PROVIDER_EXTENSION_IDENTITIES["unexpected"] = ("extensions", "supabase_admin")  # type: ignore[index]
 
     columns = (
         "object_type",
