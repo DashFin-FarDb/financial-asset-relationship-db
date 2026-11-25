@@ -11,7 +11,16 @@ Proposed for review under [#1907](/issues/1907) (canonical tracking issue for re
 
 ## Authority and inventory
 
-Use GitHub Actions as the default distribution point for staging and hosted deployments until an explicitly reviewed change supersedes this procedure. Place sensitive inputs in Actions secrets and public target identifiers in Actions variables. Scope them to the target environment where available. Inventory same-named repository, environment and organization bindings and establish which one the job receives. A provider's deployed copy is a downstream consumer. Personal variable collections are outside the deployment path.
+Use the following checklist when deciding where credentials and identifiers live and how they are resolved at runtime:
+
+1. **Distribution point:** Use GitHub Actions as the default distribution point for staging and hosted deployments until an explicitly reviewed change supersedes this procedure.
+2. **Classification (secret vs variable):**
+   - Place sensitive inputs in Actions secrets.
+   - Place public target identifiers in Actions variables.
+3. **Scoping:** Scope secrets/variables to the target environment where available.
+4. **Precedence/resolve collisions:** If the same binding name exists at repository, environment, and organization scope, inventory all same-named bindings and establish which one the job receives.
+5. **Downstream consumers:** A provider's deployed copy is a downstream consumer.
+6. **Exclusions:** Personal variable collections are outside the deployment path.
 
 At the reviewed source commit, trace every credential read from launcher, workflow and application to its source. Include aliases, reusable workflows, fallback order and inherited bindings. Inspect deployed binding metadata for consumers outside the repository. Record one row per consumer with environment, source store and binding name, effective runtime key, evidence, update owner, recovery owner and recovery method. Mark opaque or unresolved mappings as unconfirmed. The Stage 1 auth route is a candidate. The hosted API accepts DATABASE_URL or POSTGRES_URL. A candidate or a matching variable name alone cannot establish the deployed role. Retain exclusions with their evidence.
 
