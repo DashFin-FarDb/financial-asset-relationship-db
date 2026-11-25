@@ -54,7 +54,17 @@ At the reviewed source commit, produce a deterministic credential inventory by f
 
 ## Review and execution order
 
-1. Generate the non-secret inventory deterministically in consumer/environment order. Bind its exact bytes to a SHA-256 digest. The custodian confirms completeness and the ratifier approves that digest, the change window and the partial-failure recovery plan.
+1. Generate the non-secret inventory deterministically and serialize it in a **canonical format** before hashing so that different operators produce identical bytes and the SHA-256 is reproducible:
+   - **File format:** CSV text file.
+   - **Encoding:** UTF-8 (no BOM).
+   - **Newlines:** LF (`\n`) only.
+   - **Header row:** Required, exactly once, with the **exact column order** below.
+   - **Column order (exact):** `consumer,environment,source_store,binding_name,effective_runtime_key,evidence,update_owner,recovery_owner,recovery_method,confirmation_status,notes`
+   - **Sorting (stable):** Sort rows by `consumer`, then `environment`, then `binding_name`, then `effective_runtime_key` (bytewise/lexicographic; missing values sort as empty string).
+   - **Whitespace normalization:** No trailing whitespace on any line. Field values must be trimmed of leading/trailing ASCII whitespace before serialization.
+   - **CSV escaping:** Use RFC 4180-style CSV rules: comma-separated; fields containing comma, quote, or newline must be double-quoted; literal quotes are escaped as `""`. Do not add extra spaces after commas.
+   - **Byte-for-byte hashing:** Compute SHA-256 over the exact UTF-8 bytes of the canonical CSV as written (do not add or remove a trailing newline beyond what the canonical writer emits).
+   Bind the resulting SHA-256 digest to the approval. The custodian confirms completeness and the ratifier approves that digest, the change window and the partial-failure recovery plan.
    The ratifier's approval is conditional on every dependent consumer being confirmed or mitigated under the approved recovery plan before the custodian changes the PostgreSQL password verifier for `fardb_login_auth` in step 3.
 2. The custodian generates one replacement value and prepares all approved consumers. Obtain connection parameters from the project's Connect dialog and encode the password component once when constructing a URL. While Actions is billing-locked, the custodian prepares protected local input for the step 3 updates to the scoped GitHub secret and approved consumers without activating the replacement. Local execution does not require reading an Actions secret back. Future automated distribution requires a reviewed synchronization step. When a host requires a stored runtime binding, update that copy through its deployment interface. A WSL or Supabase CLI invocation must have an explicitly identified credential source. No Supabase branch integration is required.
 3. Immediately before the change, recompute the inventory SHA-256 from the exact bytes and require a match with the ratifier-approved digest. During the approved window the custodian changes the verifier and updates each confirmed consumer. Record per-consumer completion or failure with non-secret provider receipts. On partial failure, stop. The ratifier decides whether the custodian completes the approved change or restores a consistent prior state under the recovery plan. Record the role change and each consumer’s effective state, including any required redeployment. After rollback, keep Stage 1 on hold. Advance only when the ratifier accepts receipts showing the replacement is active for all dependent consumers or their approved mitigations are in effect.
