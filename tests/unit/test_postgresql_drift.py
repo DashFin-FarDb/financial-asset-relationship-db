@@ -580,6 +580,7 @@ def test_legacy_table_access_posture_fails_closed() -> None:
 
     valid = ("financial_data", "postgres", True, True, 0, grants)
     assert "financial_data" in classify([valid])
+    assert not classify([(*valid[:5], None)])
     assert not classify([(*valid[:5], grants + ["anon:SELECT:false"])])
     assert not classify([(*valid[:2], False, *valid[3:])])
     assert not classify([(*valid[:4], 1, valid[5])])

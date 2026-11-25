@@ -433,7 +433,7 @@ def _legacy_table_posture(cursor: Cursor) -> set[str]:
             (SELECT count(*) FROM pg_catalog.pg_policy pol WHERE pol.polrelid = c.oid) AS policy_count,
             ARRAY(
                 SELECT grantee.rolname || ':' || privilege_type || ':' || is_grantable::text
-                FROM pg_catalog.aclexplode(c.relacl) AS acl
+                FROM pg_catalog.aclexplode(COALESCE(c.relacl, '{}'::aclitem[])) AS acl
                 LEFT JOIN pg_catalog.pg_roles grantee ON grantee.oid = acl.grantee
                 ORDER BY 1
             ) AS grants
