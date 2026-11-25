@@ -538,7 +538,7 @@ def test_collection_rechecks_authorization_window_before_each_connection(tmp_pat
 
     monkeypatch.setattr(preflight, "_validate_permit_window", validate_window)
     monkeypatch.setattr(preflight, "_connect_verified", connect)
-    monkeypatch.setattr(preflight, "_psycopg_database_identity", lambda _connection: object())
+    monkeypatch.setattr(preflight, "_psycopg_database_identity", lambda _connection, **_kwargs: object())
     monkeypatch.setattr(preflight, "_retained_target_identity", lambda *_args: None)
 
     with pytest.raises(preflight.PreflightContractError, match=preflight.PERMIT_INVALID):
@@ -581,7 +581,7 @@ def test_collection_runtime_identity_mismatch_stops_authority_check(monkeypatch)
     route = preflight.RouteIdentity(target.database_url, PROJECT_REF)
     connection = MagicMock()
     monkeypatch.setattr(preflight, "_connect_verified", lambda *_args, **_kwargs: connection)
-    monkeypatch.setattr(preflight, "_psycopg_database_identity", lambda _connection: object())
+    monkeypatch.setattr(preflight, "_psycopg_database_identity", lambda _connection, **_kwargs: object())
     monkeypatch.setattr(preflight, "_retained_target_identity", lambda *_args: None)
     verification_error = preflight._ConnectionVerificationError(preflight.CONNECTION_OPEN_FAILED, "graph")
 
@@ -643,7 +643,7 @@ def test_collection_runtime_expiry_preserves_authorization_error(monkeypatch) ->
     route = preflight.RouteIdentity(target.database_url, PROJECT_REF)
     connection = MagicMock()
     monkeypatch.setattr(preflight, "_connect_verified", lambda *_args, **_kwargs: connection)
-    monkeypatch.setattr(preflight, "_psycopg_database_identity", lambda _connection: object())
+    monkeypatch.setattr(preflight, "_psycopg_database_identity", lambda _connection, **_kwargs: object())
     monkeypatch.setattr(preflight, "_retained_target_identity", lambda *_args: None)
     monkeypatch.setattr(preflight, "_prove_route", lambda *_args: None)
 
@@ -749,7 +749,7 @@ def test_collection_uses_five_ratified_checks_without_migration_parity(tmp_path:
     monkeypatch.setattr(preflight, "_verified_target", lambda *_args: target)
     monkeypatch.setattr(preflight, "_runtime_routes", lambda _target: {key: route for key in target.logical_targets})
     monkeypatch.setattr(preflight, "_connect_verified", lambda *_args, **_kwargs: connection)
-    monkeypatch.setattr(preflight, "_psycopg_database_identity", lambda _connection: object())
+    monkeypatch.setattr(preflight, "_psycopg_database_identity", lambda _connection, **_kwargs: object())
     monkeypatch.setattr(preflight, "_retained_target_identity", lambda *_args: None)
     monkeypatch.setattr(preflight, "_evaluate_verified_drift", lambda *_args: drift)
     monkeypatch.setattr(preflight, "_runtime_authority", lambda *_args: CHECK_PASSED)
@@ -1642,7 +1642,7 @@ def test_auth_retained_session_rejects_reroute_before_verification(tmp_path, mon
     monkeypatch.setattr(
         preflight,
         "_psycopg_database_identity",
-        lambda _connection: DatabaseIdentity("99999", int(DATABASE_ID), "postgres"),
+        lambda _connection, **_kwargs: DatabaseIdentity("99999", int(DATABASE_ID), "postgres"),
     )
     _assert_context_entry_raises(
         preflight._verified_auth_connection(
@@ -1715,5 +1715,9 @@ def test_psycopg_identity_query_failure_is_classified() -> None:
     connection = MagicMock()
     cursor = connection.cursor.return_value.__enter__.return_value
     cursor.execute.side_effect = PermissionError("pg_control_system denied")
-    with pytest.raises(TargetIdentityError, match=preflight.TARGET_IDENTITY_INDETERMINATE):
+    with pytest.raises(
+        preflight._ConnectionVerificationError, match=preflight.TARGET_IDENTITY_INDETERMINATE
+    ) as captured:
         preflight._psycopg_database_identity(connection)
+    assert captured.value.category == preflight.LIVE_IDENTITY_VERIFICATION_FAILED
+    assert captured.value.route_label == "inspection"

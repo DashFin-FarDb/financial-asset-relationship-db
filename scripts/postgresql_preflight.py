@@ -970,7 +970,7 @@ def _retained_target_identity(identity, route, target, expected_identity=None):
         raise TargetIdentityError()
 
 
-def _psycopg_database_identity(connection):
+def _psycopg_database_identity(connection, *, route_label: str | None = "inspection"):
     """Read cluster and database identity from a retained DBAPI session."""
     from src.data.postgresql_topology import validated_database_identity
 
@@ -983,8 +983,8 @@ def _psycopg_database_identity(connection):
             )
             rows = cursor.fetchall()
         return validated_database_identity(rows)
-    except Exception as exc:
-        raise TargetIdentityError() from exc
+    except Exception:
+        raise _ConnectionVerificationError(LIVE_IDENTITY_VERIFICATION_FAILED, route_label) from None
 
 
 @contextmanager
@@ -996,10 +996,10 @@ def _verified_auth_connection(routes, target=None, expected_identity=None, befor
         return
     connection = _connect_verified(route, target, before_connection, route_label="auth")
     try:
-        identity = _psycopg_database_identity(connection)
+        identity = _psycopg_database_identity(connection, route_label="auth")
         _retained_target_identity(identity, route, target, expected_identity)
         yield connection
-        if _psycopg_database_identity(connection) != identity:
+        if _psycopg_database_identity(connection, route_label="auth") != identity:
             raise TargetIdentityError()
     finally:
         connection.close()
@@ -1277,7 +1277,7 @@ def _evaluate_verified_drift(
     """Prove every route and evaluate drift while always closing inspection access."""
     inspection_connection = _connect_verified(inspection_route, target, before_connection, route_label="inspection")
     try:
-        inspection_identity = _psycopg_database_identity(inspection_connection)
+        inspection_identity = _psycopg_database_identity(inspection_connection, route_label="inspection")
         _retained_target_identity(inspection_identity, inspection_route, target, expected_identity)
         for component, route in runtime_routes.items():
             _prove_route(route, target, before_connection, component)
@@ -1373,7 +1373,7 @@ def run_preflight(permit_path: Path | str) -> PreflightReport:
     runtime_routes = _runtime_routes(target)
     identity_connection = _connect_verified(inspection_route, target, route_label="inspection")
     try:
-        planned_identity = _psycopg_database_identity(identity_connection)
+        planned_identity = _psycopg_database_identity(identity_connection, route_label="inspection")
         _retained_target_identity(planned_identity, inspection_route, target)
     finally:
         identity_connection.close()
@@ -1450,7 +1450,7 @@ def run_collection(authorization_path: Path | str) -> CollectionReport:
 
     identity_connection = _connect_verified(inspection_route, target, window_check, route_label="inspection")
     try:
-        planned_identity = _psycopg_database_identity(identity_connection)
+        planned_identity = _psycopg_database_identity(identity_connection, route_label="inspection")
         _retained_target_identity(planned_identity, inspection_route, target)
     finally:
         identity_connection.close()
