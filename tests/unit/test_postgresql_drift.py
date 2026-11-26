@@ -37,6 +37,7 @@ from scripts.postgresql_drift import (
     _runtime_check,
     canonical_catalog_bytes,
     catalog_digest,
+    collect_legacy_catalog_evidence,
     evaluate_profile_drift,
     expected_adoption_history,
     expected_managed_tables,
@@ -1032,3 +1033,49 @@ def test_plpgsql_test_owner_requires_explicit_local_scope() -> None:
     local = _public_scope(StubCursor(responses), "auth", allow_loopback_test_owner=True)
     assert default[4] == ("extension:plpgsql",)
     assert local == (0, 1, 0, 0, ())
+
+
+def test_collect_legacy_catalog_evidence_retains_only_digests_and_posture() -> None:
+    """The protected diagnostic reports named objects and never prints definitions."""
+    helper_definition = "private helper definition"
+    index_definition = "CREATE INDEX example ON public.financial_data (symbol)"
+    cursor = StubCursor(
+        [
+            (("definition", "configuration"), [(helper_definition, ["search_path=public"])]),
+            (
+                ("name", "definition", "valid", "ready", "nulls_not_distinct"),
+                [("idx_financial_data_symbol", index_definition, True, False, None)],
+            ),
+        ]
+    )
+    report = collect_legacy_catalog_evidence(cursor)
+    assert report["helper"] == {
+        "definition_sha256": hashlib.sha256(helper_definition.encode()).hexdigest(),
+        "configuration": ["search_path=public"],
+    }
+    indexes = report["indexes"]
+    assert isinstance(indexes, dict)
+    assert indexes["idx_financial_data_symbol"] == {
+        "definition_sha256": hashlib.sha256(_normalize_sql_text(index_definition).encode()).hexdigest(),
+        "valid": True,
+        "ready": False,
+        "nulls_not_distinct": None,
+    }
+    assert indexes["financial_data_pkey"] is None
+    assert helper_definition not in json.dumps(report)
+    assert index_definition not in json.dumps(report)
+
+
+def test_collect_legacy_catalog_evidence_rejects_unreviewed_index() -> None:
+    """An unexpected object cannot enter the protected diagnostic."""
+    cursor = StubCursor(
+        [
+            (("definition", "configuration"), []),
+            (
+                ("name", "definition", "valid", "ready", "nulls_not_distinct"),
+                [("unreviewed_index", "private definition", True, True, None)],
+            ),
+        ]
+    )
+    with pytest.raises(ValueError, match="^invalid legacy index evidence$"):
+        collect_legacy_catalog_evidence(cursor)

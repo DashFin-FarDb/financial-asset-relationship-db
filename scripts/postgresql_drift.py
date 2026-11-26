@@ -532,6 +532,73 @@ def _legacy_table_grants(server_version_num: int) -> frozenset[str]:
     return frozenset(f"{role}:{privilege}:false" for role in ("postgres", "service_role") for privilege in privileges)
 
 
+def collect_legacy_catalog_evidence(cursor: Cursor) -> dict[str, object]:
+    """Build bounded protected evidence from an already verified read-only cursor.
+
+    The caller is responsible for authorization, identity and protected storage.
+    This report is diagnostic evidence and cannot be used as a Stage 1 result.
+    """
+    helper_rows = _rows(
+        cursor,
+        """
+        SELECT CASE WHEN p.prokind = 'f' THEN pg_catalog.pg_get_functiondef(p.oid) END AS definition,
+            COALESCE(p.proconfig, ARRAY[]::text[]) AS configuration
+        FROM pg_catalog.pg_proc p
+        JOIN pg_catalog.pg_namespace n ON n.oid = p.pronamespace
+        WHERE n.nspname = 'public' AND p.proname = 'is_requester_admin'
+        LIMIT 2
+        """,
+    )
+    if len(helper_rows) > 1:
+        raise ValueError("ambiguous restricted helper")
+    helper = None
+    if helper_rows:
+        definition = helper_rows[0]["definition"]
+        configuration = helper_rows[0]["configuration"]
+        if (
+            not isinstance(definition, str)
+            or not isinstance(configuration, (list, tuple))
+            or len(configuration) > 32
+            or any(not isinstance(value, str) or len(value) > 1024 for value in configuration)
+        ):
+            raise ValueError("restricted helper evidence unavailable")
+        # Match the helper classifier, which hashes the exact deparsed definition.
+        helper = {
+            "definition_sha256": hashlib.sha256(definition.encode("utf-8")).hexdigest(),
+            "configuration": sorted(configuration),
+        }
+    rows = _rows(
+        cursor,
+        """
+        SELECT c.relname AS name, pg_catalog.pg_get_indexdef(c.oid) AS definition,
+            idx.indisvalid AS valid, idx.indisready AS ready,
+            CASE WHEN idx.indisunique AND NOT idx.indisprimary
+                THEN idx.indnullsnotdistinct END AS nulls_not_distinct
+        FROM pg_catalog.pg_class c
+        JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace
+        JOIN pg_catalog.pg_index idx ON idx.indexrelid = c.oid
+        WHERE n.nspname = 'public' AND c.relname = ANY(%s)
+        """,
+        (sorted(_LEGACY_INDEXES),),
+    )
+    indexes: dict[str, object] = dict.fromkeys(sorted(_LEGACY_INDEXES))
+    for row in rows:
+        name = row["name"]
+        definition = row["definition"]
+        if name not in indexes or indexes[name] is not None or not isinstance(definition, str):
+            raise ValueError("invalid legacy index evidence")
+        valid, ready, nulls = row["valid"], row["ready"], row["nulls_not_distinct"]
+        if not isinstance(valid, bool) or not isinstance(ready, bool) or not isinstance(nulls, (bool, type(None))):
+            raise ValueError("legacy index posture unavailable")
+        indexes[name] = {
+            "definition_sha256": hashlib.sha256(_normalize_sql_text(definition).encode("utf-8")).hexdigest(),
+            "valid": valid,
+            "ready": ready,
+            "nulls_not_distinct": nulls,
+        }
+    return {"kind": "cq03d-legacy-catalog-diagnostic-v1", "helper": helper, "indexes": indexes}
+
+
 def _restricted_helper_posture(cursor: Cursor) -> bool:
     """Require the reviewed helper definition, configuration, signature and role restrictions."""
     rows = _rows(
