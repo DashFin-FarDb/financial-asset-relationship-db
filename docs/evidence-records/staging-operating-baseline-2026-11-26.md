@@ -15,13 +15,13 @@
 
 ## Named Operator Ownership
 
-| Role | Named Owner |
-| --- | --- |
-| Deploy owner | `mohavro` |
-| Promotion owner | `mohavro` |
-| Rollback owner | `mohavro` |
-| Restore owner | `mohavro` |
-| Persistence-verification owner | `mohavro` |
+| Role                           | Named Owner |
+| ------------------------------ | ----------- |
+| Deploy owner                   | `mohavro`   |
+| Promotion owner                | `mohavro`   |
+| Rollback owner                 | `mohavro`   |
+| Restore owner                  | `mohavro`   |
+| Persistence-verification owner | `mohavro`   |
 
 ## Staging Database Provider & Redacted Boundary Record
 
