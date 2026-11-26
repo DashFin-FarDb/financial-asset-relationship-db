@@ -151,7 +151,8 @@ Scope v2 defines the expected identities for eight legacy tables, eight composit
 restricted `public.is_requester_admin()` helper. Tables require forced RLS, zero policies, no column ACL entries,
 and the reviewed table ACL. Each legacy identity must match its parent and owner. The helper requires an
 approved definition digest and exact `proconfig`, including `search_path`. Each index requires its own approved
-definition digest, validity, readiness, and applicable NULL uniqueness semantics. A partial or changed legacy
+definition digest, validity, readiness, and applicable NULL uniqueness semantics. The helper and index baselines are currently unset, so hosted legacy remains
+`OUTSIDE_MANAGED_SCOPE` until they are ratified. A partial or changed legacy
 set remains `OUTSIDE_MANAGED_SCOPE`. The public report gives separate legacy and helper counts.
 
 The exact table ACL follows the connected server version: PostgreSQL 15 and 16 use the seven reviewed table

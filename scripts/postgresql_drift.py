@@ -147,6 +147,7 @@ _RESTRICTED_ROLES = frozenset(
         "fardb_runtime_graph",
         "fardb_runtime_coordination",
         "fardb_login_auth",
+        "fardb_login_auth_prod",
         "fardb_login_graph",
         "fardb_login_coordination",
     }
