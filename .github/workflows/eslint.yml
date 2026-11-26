@@ -19,6 +19,9 @@ name: ESLint
   schedule:
     - cron: "43 22 * * 3"
 
+permissions:
+  contents: read
+
 jobs:
   eslint:
     name: Run eslint scanning
