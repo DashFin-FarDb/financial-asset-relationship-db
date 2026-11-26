@@ -1231,20 +1231,20 @@ def _migration_list_rows(stdout: str) -> tuple[tuple[str, str], ...] | None:
     try:
         payload = json.loads(stdout)
         if not isinstance(payload, dict):
-            return None
+            raise ValueError("non-object payload")
         data = payload.get("data")
         rows = data["migrations"] if isinstance(data, dict) else payload["migrations"]
         if not isinstance(rows, list):
-            return None
+            raise ValueError("non-list migrations")
         actual: list[tuple[str, str]] = []
         for row in rows:
             if not isinstance(row, dict) or set(row) != {"local", "remote", "time"}:
-                return None
+                raise ValueError("malformed migration row")
             values = (row["local"], row["remote"], row["time"])
             if not all(isinstance(value, str) for value in values):
-                return None
+                raise ValueError("non-string migration values")
             actual.append((str(values[0]), str(values[1])))
-    except (KeyError, TypeError, json.JSONDecodeError):
+    except (KeyError, TypeError, ValueError, json.JSONDecodeError):
         return None
     return tuple(actual)
 
