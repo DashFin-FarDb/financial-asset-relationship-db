@@ -63,6 +63,13 @@ The `slo-alerts.yml` file implements the Google SRE standard for **Multi-Window 
 
 These alerts use both a short window (to detect spikes) and a long window (to ensure persistence) to minimize alert noise while preserving sensitivity.
 
+### 4. In-Process SLO Evaluator
+
+`api/slo_evaluator.py` periodically evaluates SLOs from the process-local Prometheus registry and logs an ERROR on each compliance breach transition.
+
+- `SLO_API_LATENCY_AVG_SECONDS` (default `0.1`): average request latency threshold.
+- `SLO_API_LATENCY_MIN_REQUESTS` (default `20`): the latency SLO is reported compliant until this many requests have been observed, so cold-start-dominated samples on new serverless instances do not raise breaches. During that warm-up `/api/slo/status` may show a negative margin while compliant. Set to `0` to disable the gate.
+
 ## Canonical Schema Usage
 
 All dashboards and alerts rely on the **Phase 3 Observability Layer**:

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass
 from unittest.mock import MagicMock
 
@@ -31,6 +32,7 @@ def mock_settings() -> Settings:
     """Provide a basic settings fixture."""
     return Settings(
         slo_api_latency_avg_seconds=0.1,
+        slo_api_latency_min_requests=10,
         slo_rebuild_duration_max_seconds=300,
         slo_error_rate_threshold=0.01,
     )
@@ -61,6 +63,14 @@ def mock_settings() -> Settings:
             slo_name="api_latency",
             is_compliant=True,
             value=0.0,
+            threshold=0.1,
+        ),
+        SLOExpectation(
+            method_name="evaluate_api_latency",
+            metrics={"http_duration_sum": 1.5, "http_duration_count": 9.0},
+            slo_name="api_latency",
+            is_compliant=True,
+            value=1.5 / 9.0,
             threshold=0.1,
         ),
         SLOExpectation(
@@ -191,3 +201,22 @@ def test_transition_safe_logging(mock_settings: Settings, monkeypatch: pytest.Mo
     mock_log.reset_mock()
     evaluator._record_and_log("api_latency", is_compliant=True, current_value=0.05, threshold=0.1)
     assert mock_log.call_count == 0
+
+
+def test_api_latency_breach_not_logged_below_min_sample(
+    mock_settings: Settings, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Regression for FARDB-API-9: a cold-start-skewed small sample must not emit a breach event."""
+    evaluator = SLOEvaluator(settings=mock_settings)
+    monkeypatch.setattr(SLOEvaluator, "_last_compliance", {})
+
+    mock_log = MagicMock()
+    monkeypatch.setattr("api.slo_evaluator.log_event", mock_log)
+    monkeypatch.setattr("api.slo_evaluator.update_slo_compliance_status", MagicMock())
+
+    evaluator.evaluate_api_latency({"http_duration_sum": 1.5, "http_duration_count": 9.0})
+    assert mock_log.call_count == 0
+
+    evaluator.evaluate_api_latency({"http_duration_sum": 1.6, "http_duration_count": 10.0})
+    assert mock_log.call_count == 1
+    assert mock_log.call_args[0][1] == logging.ERROR
