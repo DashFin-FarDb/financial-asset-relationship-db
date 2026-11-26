@@ -1800,3 +1800,18 @@ def test_catalog_diagnostic_spends_only_its_own_authorization(tmp_path, monkeypa
         connection.close.assert_called_once()
     assert preflight.main(args) == 1
     connector.assert_called_once()
+
+
+def test_migration_list_rows_parses_top_level_supabase_cli_2114_json() -> None:
+    """Real pinned Supabase CLI 2.114.0 emits a top-level migrations array."""
+    stdout = json.dumps(
+        {
+            "migrations": [
+                {"local": "", "remote": "20251019202442", "time": "2025-10-19 20:24:42"},
+                {"local": "20260817153547", "remote": "", "time": "2026-08-17 15:35:47"},
+            ],
+            "message": "Migrations listed",
+        }
+    )
+    assert preflight._migration_list_rows(stdout) == (("", "20251019202442"), ("20260817153547", ""))
+    assert preflight._migration_list_rows("[]") is None

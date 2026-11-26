@@ -1320,57 +1320,120 @@ def normalized_managed_catalog(cursor: Cursor, profile: str) -> dict[str, object
     return document
 
 
-_PROVIDER_ACL_ROLES = frozenset({"anon", "authenticated", "service_role"})
-_PROVIDER_DEFAULT_ACL_ROLES = frozenset({"anon", "authenticated", "service_role", "postgres"})
+_PROVIDER_SECTION_ACLS: Mapping[str, frozenset[str]] = MappingProxyType(
+    {
+        "schemas": frozenset(
+            {
+                "anon=U/pg_database_owner",
+                "authenticated=U/pg_database_owner",
+                "service_role=U/pg_database_owner",
+                "postgres=U/pg_database_owner",
+            }
+        ),
+        "tables": frozenset({"service_role=arwdDxt/postgres"}),
+        "sequences": frozenset({"service_role=rwU/postgres"}),
+        "functions": frozenset({"service_role=X/postgres"}),
+    }
+)
+_PROVIDER_TABLE_PRIVILEGES = ("DELETE", "INSERT", "REFERENCES", "SELECT", "TRIGGER", "TRUNCATE", "UPDATE")
+_PROVIDER_SEQ_PRIVILEGES = ("SELECT", "UPDATE", "USAGE")
+_PROVIDER_DEFAULT_PRIVILEGES: frozenset[tuple[str, str, tuple[str, ...]]] = frozenset(
+    {
+        (
+            "public",
+            "S",
+            tuple(
+                sorted(
+                    f"{role}={priv}"
+                    for role in ("anon", "authenticated", "postgres", "service_role")
+                    for priv in _PROVIDER_SEQ_PRIVILEGES
+                )
+            ),
+        ),
+        (
+            "public",
+            "S",
+            tuple(
+                sorted(f"{role}={priv}" for role in ("postgres", "service_role") for priv in _PROVIDER_SEQ_PRIVILEGES)
+            ),
+        ),
+        ("public", "f", ("anon=EXECUTE", "authenticated=EXECUTE", "postgres=EXECUTE", "service_role=EXECUTE")),
+        ("public", "f", ("postgres=EXECUTE", "service_role=EXECUTE")),
+        (
+            "public",
+            "r",
+            tuple(
+                sorted(
+                    f"{role}={priv}"
+                    for role in ("anon", "authenticated", "postgres", "service_role")
+                    for priv in _PROVIDER_TABLE_PRIVILEGES
+                )
+            ),
+        ),
+        (
+            "public",
+            "r",
+            tuple(
+                sorted(f"{role}={priv}" for role in ("postgres", "service_role") for priv in _PROVIDER_TABLE_PRIVILEGES)
+            ),
+        ),
+    }
+)
 
 
-def _normalize_acl_entry(entry: str, *, is_public_schema: bool = False) -> str | None:
-    """Filter Supabase provider-managed ACL grants and normalize PG17 MAINTAIN privilege."""
-    grantee, sep, rest = entry.partition("=")
-    if not sep:
+def _strip_pg17_maintain(section: str, entry: str) -> str:
+    """Remove PostgreSQL 17+ MAINTAIN privilege letter from table owner/provider ACLs."""
+    if section != "tables":
         return entry
-    if grantee in _PROVIDER_ACL_ROLES:
+    grantee, sep, rest = entry.partition("=")
+    if not sep or grantee not in {"postgres", "service_role"} or "/" not in rest:
+        return entry
+    privileges, grantor = rest.split("/", 1)
+    return f"{grantee}={privileges.replace('m', '')}/{grantor}"
+
+
+def _normalize_acl_entry(section: str, entry: str, *, is_public_schema: bool = False) -> str | None:
+    """Drop only exact reviewed Supabase provider ACL entries; retain any unexpected grant."""
+    normalized = _strip_pg17_maintain(section, entry)
+    if section == "schemas" and not is_public_schema:
+        return normalized
+    if normalized in _PROVIDER_SECTION_ACLS.get(section, frozenset()):
         return None
-    if is_public_schema and entry == "postgres=U/pg_database_owner":
-        return None
-    if grantee == "postgres" and rest.startswith("arwdDxtm/"):
-        return f"postgres=arwdDxt/{rest.split('/', 1)[1]}"
-    return entry
+    return normalized
+
+
+def _normalize_section_acls(section: str, rows: object) -> None:
+    """Apply exact-allowlist provider ACL normalization to one catalog section."""
+    if not isinstance(rows, list):
+        return
+    for row in rows:
+        if not isinstance(row, dict) or not isinstance(row.get("acl"), list):
+            continue
+        is_public = section == "schemas" and row.get("schema_name") == "public"
+        cleaned = [
+            value
+            for raw in row["acl"]
+            if isinstance(raw, str)
+            and (value := _normalize_acl_entry(section, raw, is_public_schema=is_public)) is not None
+        ]
+        row["acl"] = sorted(cleaned)
+
+
+def _is_reviewed_provider_default_privilege(row: object) -> bool:
+    """Return True only when a default_privileges row matches an exact reviewed Supabase baseline."""
+    if not isinstance(row, dict) or not isinstance(row.get("acl"), list):
+        return False
+    acl = tuple(sorted(raw for raw in row["acl"] if isinstance(raw, str) and not raw.endswith("=MAINTAIN")))
+    return (str(row.get("schema_name", "")), str(row.get("object_type", "")), acl) in _PROVIDER_DEFAULT_PRIVILEGES
 
 
 def _normalize_provider_acls(document: dict[str, object]) -> None:
-    """Normalize provider-managed ACLs and default privileges for hosted-portable parity."""
+    """Normalize exact reviewed provider ACLs and default privileges for hosted-portable parity."""
     for section in ("schemas", "tables", "columns", "sequences", "types", "functions"):
-        rows = document.get(section)
-        if not isinstance(rows, list):
-            continue
-        for row in rows:
-            if not isinstance(row, dict) or not isinstance(row.get("acl"), list):
-                continue
-            is_public_schema = section == "schemas" and row.get("schema_name") == "public"
-            normalized = [
-                cleaned
-                for raw in row["acl"]
-                if isinstance(raw, str)
-                and (cleaned := _normalize_acl_entry(raw, is_public_schema=is_public_schema)) is not None
-            ]
-            row["acl"] = sorted(normalized)
+        _normalize_section_acls(section, document.get(section))
     defaults = document.get("default_privileges")
     if isinstance(defaults, list):
-        filtered_defaults = []
-        for row in defaults:
-            if not isinstance(row, dict) or not isinstance(row.get("acl"), list):
-                filtered_defaults.append(row)
-                continue
-            non_provider = [
-                raw
-                for raw in row["acl"]
-                if isinstance(raw, str) and raw.partition("=")[0] not in _PROVIDER_DEFAULT_ACL_ROLES
-            ]
-            if non_provider:
-                row["acl"] = sorted(non_provider)
-                filtered_defaults.append(row)
-        document["default_privileges"] = filtered_defaults
+        document["default_privileges"] = [row for row in defaults if not _is_reviewed_provider_default_privilege(row)]
 
 
 def _migration_identity(entry: MigrationEntry) -> tuple[str, str]:

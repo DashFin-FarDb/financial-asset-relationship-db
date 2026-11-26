@@ -306,8 +306,9 @@ and the restricted `public.is_requester_admin()` helper. Tables require owner `p
 policies, no column ACL entries, and only the reviewed non-grantable postgres/service-role ACL for the server version: PostgreSQL 15/16
 use seven table privileges, and PostgreSQL 17 adds `MAINTAIN`. Types and indexes require exact
 parent and owner. Tables and their composite row types can be counted when their posture matches.
-Indexes also require reviewed unique and primary flags. The indexes and helper remain outside protected scope
-until their respective baselines are ratified. The helper requires its reviewed
+Indexes also require reviewed unique and primary flags. The 29 legacy index baselines and the
+`public.is_requester_admin()` helper baseline are ratified in `scripts/postgresql_drift.py` from bounded diagnostic
+evidence (`cq03d-legacy-catalog-diagnostic-v1`). The helper requires its reviewed
 signature, security mode, owner, ACL, and no effective EXECUTE for untrusted or runtime roles. Eleven provider
 extensions require exact name, schema, and owner, with one exception for `plpgsql`: an attested `fresh-v1` loopback target
 without legacy inventory or the helper may use owner `postgres` or `test`. A partial or changed legacy inventory
@@ -462,7 +463,7 @@ CQ-03B/C to profile-scoped forward baselines, non-executable historical evidence
 - [x] Approve the atomic `scripts.migrate_database` PostgreSQL ledger hand-off while preserving its SQLite path and
       existing operator, CI, Compose, test, and runbook entrypoints.
 - [x] Approve `fardb-pg-scope-v1`, its total ownership classifier, named exclusions, unknown-object non-pass rule,
-      and the `fardb-pg-catalog-v2` normalization contract.
+      and the `fardb-pg-catalog-v1` normalization contract.
 - [x] Approve the three failure categories, `EVALUATION_INCOMPLETE` status, exit behavior, and sanitized evidence
       boundary.
 - [x] Approve forward-only migrations and restore-based destructive rollback.

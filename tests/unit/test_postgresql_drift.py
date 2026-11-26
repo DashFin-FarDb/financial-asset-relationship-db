@@ -1079,3 +1079,67 @@ def test_collect_legacy_catalog_evidence_rejects_unreviewed_index() -> None:
     )
     with pytest.raises(ValueError, match="^invalid legacy index evidence$"):
         collect_legacy_catalog_evidence(cursor)
+
+
+def test_normalize_provider_acls_retains_unexpected_grants_and_strips_only_reviewed_baselines() -> None:
+    """Exact reviewed provider ACLs normalize cleanly while unexpected anon/authenticated grants remain drift."""
+    from scripts.postgresql_drift import _normalize_provider_acls
+
+    document: dict[str, object] = {
+        "schemas": [
+            {
+                "schema_name": "public",
+                "acl": [
+                    "=U/pg_database_owner",
+                    "anon=U/pg_database_owner",
+                    "authenticated=U/pg_database_owner",
+                    "service_role=U/pg_database_owner",
+                    "postgres=U/pg_database_owner",
+                    "anon=UC/pg_database_owner",
+                ],
+            }
+        ],
+        "tables": [
+            {
+                "table_name": "user_credentials",
+                "acl": [
+                    "fardb_runtime_auth=r/postgres",
+                    "postgres=arwdDxtm/postgres",
+                    "service_role=arwdDxtm/postgres",
+                    "anon=r/postgres",
+                ],
+            }
+        ],
+        "functions": [
+            {
+                "function_name": "grac_v1_reject_mutation",
+                "acl": ["postgres=X/postgres", "service_role=X/postgres", "authenticated=X/postgres"],
+            }
+        ],
+        "default_privileges": [
+            {
+                "schema_name": "public",
+                "object_type": "f",
+                "acl": ["anon=EXECUTE", "authenticated=EXECUTE", "postgres=EXECUTE", "service_role=EXECUTE"],
+            },
+            {
+                "schema_name": "public",
+                "object_type": "r",
+                "acl": ["anon=SELECT"],
+            },
+        ],
+    }
+    _normalize_provider_acls(document)
+    assert document["schemas"] == [
+        {"schema_name": "public", "acl": ["=U/pg_database_owner", "anon=UC/pg_database_owner"]}
+    ]
+    assert document["tables"] == [
+        {
+            "table_name": "user_credentials",
+            "acl": ["anon=r/postgres", "fardb_runtime_auth=r/postgres", "postgres=arwdDxt/postgres"],
+        }
+    ]
+    assert document["functions"] == [
+        {"function_name": "grac_v1_reject_mutation", "acl": ["authenticated=X/postgres", "postgres=X/postgres"]}
+    ]
+    assert document["default_privileges"] == [{"schema_name": "public", "object_type": "r", "acl": ["anon=SELECT"]}]
