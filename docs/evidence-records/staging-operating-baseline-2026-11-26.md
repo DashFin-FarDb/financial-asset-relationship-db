@@ -7,11 +7,21 @@
 
 ## Vercel Project & Environment Mapping
 
-- **Vercel Project:** `mohavros-projects/financial-asset-relationship-db`
+- **Vercel Project (standing reference):** `mohavros-projects/financial-asset-relationship-db`
 - **Routing (`vercel.json`):** `/api/*` and `/token` route to FastAPI (`api/main.py`); all other routes serve the Next.js frontend (`frontend/`). `app.py` (Gradio) is excluded.
-- **Verified Staging Preview URL:** `https://financial-asset-relationship-f7edx0v0b-mohavros-projects.vercel.app`
+- **Dated Staging Preview Snapshot (2026-11-26):** `https://financial-asset-relationship-f7edx0v0b-mohavros-projects.vercel.app` (ephemeral deployment snapshot used for this capture; not a permanent standing URL).
 - **Preview Durability Label:** **`durable`** (backed by Supabase PostgreSQL durable persistence; not SQLite or in-memory sample data).
-- **Production Alias (deferred cutover):** `https://financial-asset-relationship-db-nine.vercel.app`
+- **Standing Production Alias (deferred cutover):** `https://financial-asset-relationship-db-nine.vercel.app`
+
+## Named Operator Ownership
+
+| Role | Named Owner |
+| --- | --- |
+| Deploy owner | `mohavro` |
+| Promotion owner | `mohavro` |
+| Rollback owner | `mohavro` |
+| Restore owner | `mohavro` |
+| Persistence-verification owner | `mohavro` |
 
 ## Staging Database Provider & Redacted Boundary Record
 
@@ -50,7 +60,11 @@ Verified present via `gh api repos/DashFin-FarDb/financial-asset-relationship-db
   - `database.configured`: `true`
   - `database.type`: `"postgresql"`
   - `database.reachable`: `true`
+- **Redacted `/api/assets?per_page=1` Evidence (2026-11-26T23:57Z):**
+  - HTTP `200 OK`
+  - `total`: `13`, `page`: `1`, `per_page`: `1`, `hasMore`: `true`
+  - `items[0]`: `id: "AAPL"`, `symbol: "AAPL"`, `name: "Apple Inc."`, `asset_class: "Equity"`, `sector: "Technology"`, `currency: "USD"` (valuation fields present; zero credentials or raw DB details).
 
 ## Promotion Decision Rule
 
-No item in the staging Promotion Decision Rule is blocking for this durable staging baseline.
+No item in the staging Promotion Decision Rule is blocking for this durable staging baseline (provider boundaries, H-P0-04 GitHub `staging` secrets, named operator ownership, durable `--require-persistence` readiness smoke, and `/api/assets?per_page=1` persisted data proof are all recorded above).
