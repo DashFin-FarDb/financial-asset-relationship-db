@@ -117,13 +117,188 @@ _LEGACY_INDEXES: Mapping[str, tuple[str, bool, bool]] = MappingProxyType(
     }
 )
 # Values bind the normalized index definition digest, applicable NULL semantics, and ready/valid posture.
-# Every baseline is absent until the ratifier supplies approved catalog evidence.
+# Ratified from bounded legacy catalog diagnostic evidence (cq03d-legacy-catalog-diagnostic-v1).
 _LEGACY_INDEX_BASELINES: Mapping[str, tuple[str, bool | None, bool, bool] | None] = MappingProxyType(
-    {name: None for name in _LEGACY_INDEXES}
+    {
+        "financial_data_pkey": (
+            "17f7ffa150eb8ce4f02a1d79923ab7c8b9720388cfa565de67f2d960bc416263",
+            None,
+            True,
+            True,
+        ),
+        "fundamental_analysis_pkey": (
+            "683360a967fe73f81ce79770839964ad0f34702a55a1b813b2e8c4bdb084851e",
+            None,
+            True,
+            True,
+        ),
+        "idx_alerts_user_id": (
+            "7307c7bff7c9abb936ae0528fdb554d20a93ce30b7b2ee9523cab9eac246806d",
+            None,
+            True,
+            True,
+        ),
+        "idx_financial_data_symbol": (
+            "a89eb9d31b13388a88b68c5c06897a12b1856f28998c67a39dea9b62c4143b11",
+            None,
+            True,
+            True,
+        ),
+        "idx_financial_data_symbol_timestamp": (
+            "c7c3c62f4a9fc7cbf1a78a39ffd7d18f949c3424550bdd5a0f43317402ebb5da",
+            None,
+            True,
+            True,
+        ),
+        "idx_financial_data_timestamp": (
+            "7bebdb00034457c17b8434f4f3f76a27f8e1325c81e2b907d08a577b3b4d05f4",
+            None,
+            True,
+            True,
+        ),
+        "idx_fundamental_analysis_created": (
+            "e413784ee5cc4bb63e96937449dad47ca5004cf1e97b445008a6101781dddd22",
+            None,
+            True,
+            True,
+        ),
+        "idx_fundamental_analysis_symbol": (
+            "119fbce946a036ee077b63d637c144642e6005dc8848c4febf75aa8cc0843ae2",
+            None,
+            True,
+            True,
+        ),
+        "idx_holdings_portfolio_id": (
+            "cd503d22783c172309c4bcd3e539886b242622395e68598781c0480aced40b03",
+            None,
+            True,
+            True,
+        ),
+        "idx_market_alerts_active": (
+            "2e2e6c558fedefeffce95cb40694bb4f150e3de321465fb9a1ebe21487f9c9c8",
+            None,
+            True,
+            True,
+        ),
+        "idx_market_alerts_user": (
+            "a8fe685ee4971bbbbb3ceee7f9ec3f944cabe3ed3f124f9b5661f9ad17bf64c3",
+            None,
+            True,
+            True,
+        ),
+        "idx_news_articles_published": (
+            "133d02daf2422d3c6751957a38d5b3c4316b333e1ac690e3d197a59eb4b55a60",
+            None,
+            True,
+            True,
+        ),
+        "idx_news_articles_source": (
+            "75d737c7118701f20c1aff182b4b2884fbd42de2656a76556ea6c2febcca2627",
+            None,
+            True,
+            True,
+        ),
+        "idx_news_articles_url": (
+            "279696f2890b07873c43ce9f3dc4b6cf1af215c043fe315eedd040cbc1311717",
+            False,
+            True,
+            True,
+        ),
+        "idx_portfolio_holdings_portfolio": (
+            "cc17f0e54ebcec9cd578e2b9c46305ffe7580ee6fcb90bfbd9cbacff89418fef",
+            None,
+            True,
+            True,
+        ),
+        "idx_portfolios_user": (
+            "7b4997e6a76ce100ec40d1c4163730a1886359367b2715bfd777fc55b5c84f70",
+            None,
+            True,
+            True,
+        ),
+        "idx_portfolios_user_id": (
+            "6129e56142be818e4d9413e3bac0e5b7422155faa82ffd36fea4d7bf6f48ccb0",
+            None,
+            True,
+            True,
+        ),
+        "idx_prefs_user_id": (
+            "da129b9eed473a2bfe005b065db472711bf2e1bbaeffb48e79f9d50960f59c24",
+            None,
+            True,
+            True,
+        ),
+        "idx_transactions_date": (
+            "3a7e01aecfd85daa2436f0f731f1488ffe941abbeebeb41830d7b6255c51da8c",
+            None,
+            True,
+            True,
+        ),
+        "idx_transactions_portfolio": (
+            "e9b278490745c51521908d40ac13b6fb99a5d6298ac93c70dd9f9fbfad75954f",
+            None,
+            True,
+            True,
+        ),
+        "idx_transactions_portfolio_id": (
+            "b1d7af227248da727e809bb471ae9d52c7468542c4e90fc1f639c2373de1965c",
+            None,
+            True,
+            True,
+        ),
+        "idx_user_preferences_user_id": (
+            "33bb7e1f2e5c5cbe01feacfe7c02fea0df8d161953a3f6708c4b56f6b367f332",
+            None,
+            True,
+            True,
+        ),
+        "market_alerts_pkey": (
+            "f19dae67a6a604ab69e7e8a0b2e52a4f95e2f8662edad3468e2049b1777a15a3",
+            None,
+            True,
+            True,
+        ),
+        "news_articles_pkey": (
+            "ac5271bfab2228b824640d22ed7040a9221a016c51c08ed7e0879b409a7a0fea",
+            None,
+            True,
+            True,
+        ),
+        "portfolio_holdings_pkey": (
+            "340dd35e1ee0c1ba6eda284dfb690254181ccc35c61be174fc19b869a5e9bbb9",
+            None,
+            True,
+            True,
+        ),
+        "portfolios_pkey": (
+            "fc2080c52542cfac874fb8cecc6e8fed0043e726c260fbfff8835ad4b7418509",
+            None,
+            True,
+            True,
+        ),
+        "transactions_pkey": (
+            "ba770e2ede3c22f75c46a6d426f42ac7cf8e4d1fe7da18784ec39f6916bb9b83",
+            None,
+            True,
+            True,
+        ),
+        "user_preferences_pkey": (
+            "4a6c8865ea0c4652e7790a1423bbb93b07c632f24b266b1d4a9d0636f344f0fd",
+            None,
+            True,
+            True,
+        ),
+        "user_preferences_user_id_key": (
+            "1cc8022f985edfebb4700ee12fd1ee466323f7c0e8fbed824b5629725b5c2897",
+            False,
+            True,
+            True,
+        ),
+    }
 )
-# The helper is fail-closed until a custodian supplies its approved definition digest and pinned proconfig.
-_RESTRICTED_HELPER_DEFINITION_SHA256: str | None = None
-_RESTRICTED_HELPER_PROCONFIG: tuple[str, ...] | None = None
+# Ratified restricted helper definition digest and pinned proconfig (cq03d-legacy-catalog-diagnostic-v1).
+_RESTRICTED_HELPER_DEFINITION_SHA256: str | None = "32a926cbb84225b08e46ef8811d74cee42d6518ade399a0806264b07464c380c"
+_RESTRICTED_HELPER_PROCONFIG: tuple[str, ...] | None = ("search_path=pg_catalog, public",)
 _PROVIDER_EXTENSION_IDENTITIES: Mapping[str, tuple[str, str]] = MappingProxyType(
     {
         "hypopg": ("extensions", "supabase_admin"),
