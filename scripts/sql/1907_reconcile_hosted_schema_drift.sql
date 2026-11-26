@@ -44,4 +44,16 @@ ALTER TABLE public.rebuild_jobs
     ADD CONSTRAINT ck_rebuild_jobs_status
     CHECK (status IN ('pending', 'running', 'succeeded', 'failed', 'cancelled', 'cancel_requested'));
 
+-- 5. Align grac_v1_reject_mutation() body whitespace with the reviewed ledger definition
+CREATE OR REPLACE FUNCTION public.grac_v1_reject_mutation()
+RETURNS trigger
+LANGUAGE plpgsql
+SET search_path TO 'pg_catalog'
+AS $function$
+BEGIN
+    RAISE EXCEPTION 'GRAC v1 immutability: % forbidden on %', TG_OP, TG_TABLE_NAME
+        USING ERRCODE = 'integrity_constraint_violation';
+END;
+$function$;
+
 COMMIT;
