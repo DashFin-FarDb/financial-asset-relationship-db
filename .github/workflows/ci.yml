@@ -9,7 +9,6 @@ name: Python CI
 
 permissions:
   contents: read
-  id-token: write
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -17,6 +16,9 @@ concurrency:
 
 jobs:
   test:
+    permissions:
+      contents: read
+      id-token: write
     name: Test Python ${{ matrix.python-version }}
     runs-on: ubuntu-latest
 
@@ -120,8 +122,8 @@ jobs:
         continue-on-error: true
 
       - name: Upload coverage to Qlty
-        if: matrix.python-version == '3.11' && github.event.pull_request.head.repo.fork != true
-        uses: qltysh/qlty-action/coverage@v2
+        if: matrix.python-version == '3.11' && (github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository)
+        uses: qltysh/qlty-action/coverage@56bee2d751c94b7bd8de22f64c9b5f398048e13f # v2.8.1
         with:
           oidc: true
           files: coverage.xml

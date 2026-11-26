@@ -22,12 +22,14 @@ on:
 
 permissions:
   contents: read
-  id-token: write
 
 jobs:
   # Check-run name must stay unique and match docs/ci-required-checks-policy.md (H-P1-04).
   # Job id alone used to report as ambiguous "build".
   frontend-ci:
+    permissions:
+      contents: read
+      id-token: write
     name: frontend-ci
     runs-on: ubuntu-latest
     steps:
@@ -49,8 +51,8 @@ jobs:
           build: npm run build
 
       - name: Upload coverage to Qlty
-        if: github.event.pull_request.head.repo.fork != true
-        uses: qltysh/qlty-action/coverage@v2
+        if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
+        uses: qltysh/qlty-action/coverage@56bee2d751c94b7bd8de22f64c9b5f398048e13f # v2.8.1
         with:
           oidc: true
           files: frontend/coverage/lcov.info
