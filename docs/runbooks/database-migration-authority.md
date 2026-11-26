@@ -495,7 +495,10 @@ status invalidates it before any command is considered.
    normalized-catalog, and ADR 0007 runtime-authority checks with forced read-only helper connections, and runs each
    component's compatibility checks through that component's restricted runtime DSN. Missing, unavailable, or
    mismatched identity proof is `TARGET_IDENTITY_INDETERMINATE`; a caller cannot substitute a connector, runtime
-   check, target, or subprocess runner.
+   check, target, or subprocess runner. Failure to read or verify the identity of a retained runtime session
+   aborts the run during either drift evaluation or runtime authority. The CLI exits with status 1 and emits
+   only the bounded identity diagnostic on stderr, including a fixed reason and route label when available.
+   It emits no JSON report, even if drift evaluation already finished, and migration parity does not run.
 5. For `hosted-legacy-v1`, the actual history must be the six reviewed receipts plus already adopted canonical
    markers strictly before the permit timestamp. The permit timestamp must be the next canonical marker. Only after
    all earlier checks pass, pinned Supabase CLI `2.114.0` runs read-only `migration list` against a disposable
