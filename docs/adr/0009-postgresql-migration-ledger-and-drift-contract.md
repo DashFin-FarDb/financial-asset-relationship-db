@@ -490,3 +490,23 @@ Stage 1 attempt, a hosted preflight, or closure of issue #1907 without its remai
 Pending hosted baseline evidence includes the helper definition digest and exact proconfig (including search_path),
 and each legacy index definition digest, validity, readiness, and applicable NULL semantics. Approval of this
 amendment supplies none of those values. The helper and indexes remain outside protected scope until ratified.
+
+### CQ-03D baseline ratification and `fardb-pg-catalog-v2` amendment
+
+- [x] Ratify the `public.is_requester_admin()` helper baseline (definition digest and `search_path=pg_catalog, public`)
+      and all 29 legacy index baselines in `scripts/postgresql_drift.py` from bounded diagnostic evidence
+      (`cq03d-legacy-catalog-diagnostic-v1`), resolving the pending baseline condition recorded in PR #1960 above.
+- [x] Adopt `fardb-pg-catalog-v2` hosted-portable normalization (column-name ordering without physical `attnum`,
+      excluding synthetic PostgreSQL 18 `contype = 'n'` rows, exact-allowlist Supabase provider ACL and default
+      privilege filtering, and PG17 `MAINTAIN` normalization) and recalibrate all four profile digests in
+      `supabase/ledger-profiles.json` against disposable PostgreSQL 18 (`manifest_sha256`:
+      `fad32a19821c30bd33fbbfbf34be662e38b8d13447dcf8e4d598020c7be1ace5`; `auth`:
+      `3401ef419a805efb51b79ddbca6f73f21e11d95f2c718306b6aabac8a87ab931`; `graph`:
+      `305b895a31fd2baf6010dee66ad15d271a49c6ec2040513f292cf07e8331b8c3`; `coordination`:
+      `012d33d0332cfa0ecd95b8111f8f2e43c9fac0f5d5ee2c426da31413083092d2`; `combined`:
+      `3ce04c3afb0c9190824d661237234e18063a7befb34b4dc31fa3e4c5a6274801`).
+
+**Decision:** Accepted for implementation and merge
+**Ratifier:** Repository maintainer `mohavro`, by explicit task authorization
+**Decision date:** 2026-11-26
+**GitHub evidence link:** [PR #1963](https://github.com/DashFin-FarDb/financial-asset-relationship-db/pull/1963), [Issue #1907](https://github.com/DashFin-FarDb/financial-asset-relationship-db/issues/1907), [Issue #1908](https://github.com/DashFin-FarDb/financial-asset-relationship-db/issues/1908)

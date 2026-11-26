@@ -1002,8 +1002,8 @@ def test_live_database_oid_is_bound_to_the_protected_fingerprint(tmp_path: Path,
             return None
 
         def execute(self, query: str) -> None:
-            """Record the immutable catalog query."""
-            assert "pg_catalog.pg_database" in query
+            """Record the statement timeout and immutable catalog query."""
+            assert "statement_timeout" in query or "pg_catalog.pg_database" in query
 
         def fetchall(self):
             """Return one positive database OID."""

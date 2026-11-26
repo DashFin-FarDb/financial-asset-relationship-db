@@ -818,6 +818,7 @@ def _read_only_url(route: RouteIdentity) -> str:
 def _prove_live_database_identity(connection, route: RouteIdentity, target: PlannedTarget) -> None:
     """Read and bind the connected database-instance OID inside one read-only transaction."""
     with connection.cursor() as cursor:
+        cursor.execute("SET LOCAL statement_timeout = '10s'")
         cursor.execute(
             "SELECT database.oid::text FROM pg_catalog.pg_database AS database "
             "WHERE database.datname = pg_catalog.current_database()"
@@ -1610,6 +1611,7 @@ def run_catalog_diagnostic(authorization_path: Path, output_path: Path) -> None:
             {"approved_at": authorization.approved_at, "expires_at": authorization.expires_at}, now=None
         )
         with connection.cursor() as cursor:
+            cursor.execute("SET TRANSACTION READ ONLY")
             cursor.execute("SET LOCAL statement_timeout = '10s'")
             evidence = collect_legacy_catalog_evidence(cursor)
     finally:

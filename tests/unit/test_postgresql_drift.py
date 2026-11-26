@@ -1081,6 +1081,29 @@ def test_collect_legacy_catalog_evidence_rejects_unreviewed_index() -> None:
         collect_legacy_catalog_evidence(cursor)
 
 
+def test_collect_legacy_catalog_evidence_rejects_malformed_helper_and_index_posture() -> None:
+    """Fail-closed branches reject ambiguous helpers, oversized config, and non-boolean index flags."""
+    ambiguous = StubCursor([(("definition", "configuration"), [("def1", []), ("def2", [])])])
+    with pytest.raises(ValueError, match="^ambiguous restricted helper$"):
+        collect_legacy_catalog_evidence(ambiguous)
+
+    oversized = StubCursor([(("definition", "configuration"), [("def1", ["x=1"] * 33)])])
+    with pytest.raises(ValueError, match="^restricted helper evidence unavailable$"):
+        collect_legacy_catalog_evidence(oversized)
+
+    bad_posture = StubCursor(
+        [
+            (("definition", "configuration"), []),
+            (
+                ("name", "definition", "valid", "ready", "nulls_not_distinct"),
+                [("idx_financial_data_symbol", "CREATE INDEX x ON public.financial_data (symbol)", "yes", True, None)],
+            ),
+        ]
+    )
+    with pytest.raises(ValueError, match="^legacy index posture unavailable$"):
+        collect_legacy_catalog_evidence(bad_posture)
+
+
 def test_normalize_provider_acls_retains_unexpected_grants_and_strips_only_reviewed_baselines() -> None:
     """Exact reviewed provider ACLs normalize cleanly while unexpected anon/authenticated grants remain drift."""
     from scripts.postgresql_drift import _normalize_provider_acls
