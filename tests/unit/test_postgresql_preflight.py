@@ -1776,8 +1776,17 @@ def test_catalog_diagnostic_spends_only_its_own_authorization(tmp_path, monkeypa
         return connection
 
     connector = Mock(side_effect=connect)
+    events: list[str] = []
+    cursor = connection.cursor.return_value.__enter__.return_value
+    cursor.execute.side_effect = lambda sql: events.append(sql)
+
+    def fake_collect(_cursor):
+        """Record diagnostic collection after session/transaction setup."""
+        events.append("collect")
+        return {"protected": "report"}
+
     monkeypatch.setattr(preflight, "_connect_verified", connector)
-    monkeypatch.setattr(preflight, "collect_legacy_catalog_evidence", Mock(return_value={"protected": "report"}))
+    monkeypatch.setattr(preflight, "collect_legacy_catalog_evidence", Mock(side_effect=fake_collect))
     args = ("--catalog-diagnostic-authorization-file", str(path), "--catalog-diagnostic-output", str(output))
     assert preflight.main(args) == 1
     connector.assert_not_called()
@@ -1796,6 +1805,7 @@ def test_catalog_diagnostic_spends_only_its_own_authorization(tmp_path, monkeypa
         assert captured.out == "CATALOG_DIAGNOSTIC_RECORDED\n"
         assert output.stat().st_mode & 0o777 == 0o600
         assert json.loads(output.read_text())["evidence"] == {"protected": "report"}
+        assert events == ["SET TRANSACTION READ ONLY", "SET LOCAL statement_timeout = '10s'", "collect"]
         connection.rollback.assert_called_once()
         connection.close.assert_called_once()
     assert preflight.main(args) == 1

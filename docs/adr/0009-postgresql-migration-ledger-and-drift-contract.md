@@ -487,9 +487,10 @@ CQ-03B/C to profile-scoped forward baselines, non-executable historical evidence
 **Boundary:** This amendment approves the classifier contract only. It does not authorize credential changes, another
 Stage 1 attempt, a hosted preflight, or closure of issue #1907 without its remaining evidence.
 
-Pending hosted baseline evidence includes the helper definition digest and exact proconfig (including search_path),
-and each legacy index definition digest, validity, readiness, and applicable NULL semantics. Approval of this
-amendment supplies none of those values. The helper and indexes remain outside protected scope until ratified.
+At PR #1960 merge time, pending hosted baseline evidence included the helper definition digest and exact proconfig
+(including search_path), and each legacy index definition digest, validity, readiness, and applicable NULL semantics.
+Approval of that amendment supplied none of those values, so the helper and indexes remained outside protected scope
+until ratified in the 2026-11-26 amendment below.
 
 ### CQ-03D baseline ratification and `fardb-pg-catalog-v2` amendment
 
