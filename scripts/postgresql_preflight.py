@@ -1209,7 +1209,8 @@ def _migration_list_rows(stdout: str) -> tuple[tuple[str, str], ...] | None:
     """Parse only the bounded local/remote fields from pinned CLI JSON."""
     try:
         payload = json.loads(stdout)
-        rows = payload["data"]["migrations"]
+        data = payload.get("data") if isinstance(payload, dict) else None
+        rows = data["migrations"] if isinstance(data, dict) else payload["migrations"]
         if not isinstance(rows, list):
             return None
         actual: list[tuple[str, str]] = []
