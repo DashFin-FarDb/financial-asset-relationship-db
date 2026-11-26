@@ -463,7 +463,7 @@ def _legacy_table_posture(cursor: Cursor) -> set[str]:
                 FROM pg_catalog.pg_roles restricted_role
                 JOIN pg_catalog.pg_roles reachable ON reachable.oid = restricted_role.oid OR pg_catalog.pg_has_role(
                     restricted_role.oid, reachable.oid,
-                    CASE WHEN current_setting('server_version_num')::integer >= 160000 THEN 'USAGE' ELSE 'MEMBER' END
+                    CASE WHEN current_setting('server_version_num')::integer >= 160000 THEN 'SET' ELSE 'MEMBER' END
                 )
                 CROSS JOIN LATERAL unnest(
                     ARRAY['DELETE', 'INSERT', 'REFERENCES', 'SELECT', 'TRIGGER', 'TRUNCATE', 'UPDATE']::text[]
@@ -517,7 +517,7 @@ def _legacy_table_posture(cursor: Cursor) -> set[str]:
                 row["policy_count"] == 0,
                 set(grants) == expected_grants,
                 len(grants) == len(expected_grants),
-                restricted_privileges == [],
+                not restricted_privileges,
                 row["has_column_acl"] is False,
             )
         ):
