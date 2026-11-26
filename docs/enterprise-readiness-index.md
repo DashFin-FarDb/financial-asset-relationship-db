@@ -59,7 +59,8 @@ The DR documentation gap is closed at the strategy and runbook level through [AD
 
 ### Dated evidence update — 2026-11-19
 
-Draft PR [#1925](https://github.com/DashFin-FarDb/financial-asset-relationship-db/pull/1925) adds advisory local
+PR [#1925](https://github.com/DashFin-FarDb/financial-asset-relationship-db/pull/1925) (merged 2026-11-19, `966133f97`) adds
+advisory local
 scale and functionality observations plus an operator-reported host-attested PostgreSQL 16.14 disposable ledger-profile
 proof. These results improve coverage of the project’s persistence and analysis behavior but do not establish a
 production-scale asset-graph workload or hosted staging. The PostgreSQL run’s exact source SHA and manifest SHA were

@@ -73,6 +73,13 @@ approved in principle; target and permit absent; no hosted preflight executed.
 the single target for CQ-03D-02 read-only preflight. No separate project or branch is designated as FarDb staging.
 This resolves target selection only; it does not authorize a connection.
 
+**Credential-control runbook — 2026-11-25:** PR [#1961](https://github.com/DashFin-FarDb/financial-asset-relationship-db/pull/1961) (`e105155cf`) added
+[FarDb staging and hosting credential control](../runbooks/1907-credential-control.md), a procedure proposed for review
+under #1907 that defines the credential inventory, the digest-bound rotation order, and Stage 1 collection-authorization
+sequencing. The runbook states that adoption requires review and verification and that it authorizes no live
+connection, credential change, or hosted preflight. No inventory digest, credential change, collection authorization,
+or hosted preflight is recorded; item 1 status and checkboxes are unchanged.
+
 **Staged evidence decision — 2026-11-21:** The named human ratifier approved a separate, one-use, bounded read-only
 evidence-collection stage before permit issuance. It is bound to the exact reviewed SHA, manifest digest, protected
 target fingerprint, `combined` / `hosted-legacy-v1`, and proposed marker `20260817153547`. The connection remains on
@@ -205,6 +212,17 @@ this evidences the historical hosted persistence smoke and topology labels only;
 variable presence/distinctness, staging GitHub Environment secrets, preview durability labels, or Promotion Decision
 Rule state, and it is not inherited by PR #1925 or a later release. Item 4 remains open for current target mapping,
 boundary, secret, preview-label, and promotion evidence.
+
+**Hosted path observations — 2026-11-20:** PR [#1938](https://github.com/DashFin-FarDb/financial-asset-relationship-db/pull/1938) (`b53da3552`) added the
+[Hosted UI, API, and Supabase data path](../runbooks/hosted-ui-api-and-supabase-data-path.md) reference. Its dated
+observations record that the Vercel project variable list showed no explicit `DATABASE_URL`,
+`ASSET_GRAPH_DATABASE_URL`, or `COORDINATION_DATABASE_URL` for Preview, so the repository settings code would fall back
+to the provider `POSTGRES_URL` (a settings-level inference, not a verified deployment binding), which does not meet the
+boundary criteria below; that the Supabase dashboard identified the project as `main PRODUCTION` with no database
+branches; and that the maintainer reported, without target verification, that the `staging` and
+`staging-manual-gate` GitHub Environments hold the database and readiness URL secrets. These observations satisfy no
+criterion below; item 4 remains open. PR [#1939](https://github.com/DashFin-FarDb/financial-asset-relationship-db/pull/1939) (`89789bd65`) routes `/token` to the FastAPI handler in
+`vercel.json` (asserted in `tests/unit/test_config_validation.py`); it is a routing fix, not staging mapping evidence.
 
 **Sources:** [Roadmap — Target-Environment Proof Next](enterprise-readiness-roadmap.md#target-environment-proof-next),
 [Staging Deployment Operating Baseline](../staging-deployment-operating-baseline.md#staging-promotion-checklist),
