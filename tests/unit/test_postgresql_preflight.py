@@ -989,7 +989,6 @@ def test_supabase_adapter_rejects_unapproved_routing_or_tls(tmp_path: Path, muta
 
 def test_live_database_oid_is_bound_to_the_protected_fingerprint(tmp_path: Path, monkeypatch) -> None:
     """The same connection proves read-only posture, live OID, and canonical identity."""
-
     executed_queries: list[str] = []
 
     class Cursor:
@@ -1783,7 +1782,7 @@ def test_catalog_diagnostic_spends_only_its_own_authorization(tmp_path, monkeypa
     connector = Mock(side_effect=connect)
     events: list[str] = []
     cursor = connection.cursor.return_value.__enter__.return_value
-    cursor.execute.side_effect = lambda sql: events.append(sql)
+    cursor.execute.side_effect = events.append
 
     def fake_collect(_cursor):
         """Record diagnostic collection after session/transaction setup."""

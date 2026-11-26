@@ -707,12 +707,8 @@ def _legacy_table_grants(server_version_num: int) -> frozenset[str]:
     return frozenset(f"{role}:{privilege}:false" for role in ("postgres", "service_role") for privilege in privileges)
 
 
-def collect_legacy_catalog_evidence(cursor: Cursor) -> dict[str, object]:
-    """Build bounded protected evidence from an already verified read-only cursor.
-
-    The caller is responsible for authorization, identity and protected storage.
-    This report is diagnostic evidence and cannot be used as a Stage 1 result.
-    """
+def _collect_restricted_helper_evidence(cursor: Cursor) -> dict[str, object] | None:
+    """Return bounded digest and sorted config for public.is_requester_admin, or None if absent."""
     helper_rows = _rows(
         cursor,
         """
@@ -726,22 +722,23 @@ def collect_legacy_catalog_evidence(cursor: Cursor) -> dict[str, object]:
     )
     if len(helper_rows) > 1:
         raise ValueError("ambiguous restricted helper")
-    helper = None
-    if helper_rows:
-        definition = helper_rows[0]["definition"]
-        configuration = helper_rows[0]["configuration"]
-        if (
-            not isinstance(definition, str)
-            or not isinstance(configuration, (list, tuple))
-            or len(configuration) > 32
-            or any(not isinstance(value, str) or len(value) > 1024 for value in configuration)
-        ):
-            raise ValueError("restricted helper evidence unavailable")
-        # Match the helper classifier, which hashes the exact deparsed definition.
-        helper = {
-            "definition_sha256": hashlib.sha256(definition.encode("utf-8")).hexdigest(),
-            "configuration": sorted(configuration),
-        }
+    if not helper_rows:
+        return None
+    definition = helper_rows[0]["definition"]
+    configuration = helper_rows[0]["configuration"]
+    if not isinstance(definition, str) or not isinstance(configuration, (list, tuple)):
+        raise ValueError("restricted helper evidence unavailable")
+    if len(configuration) > 32 or any(not isinstance(value, str) or len(value) > 1024 for value in configuration):
+        raise ValueError("restricted helper evidence unavailable")
+    # Match the helper classifier, which hashes the exact deparsed definition.
+    return {
+        "definition_sha256": hashlib.sha256(definition.encode("utf-8")).hexdigest(),
+        "configuration": sorted(configuration),
+    }
+
+
+def _collect_legacy_index_evidence(cursor: Cursor) -> dict[str, object]:
+    """Return bounded digest and posture for every reviewed legacy index."""
     rows = _rows(
         cursor,
         """
@@ -771,7 +768,20 @@ def collect_legacy_catalog_evidence(cursor: Cursor) -> dict[str, object]:
             "ready": ready,
             "nulls_not_distinct": nulls,
         }
-    return {"kind": "cq03d-legacy-catalog-diagnostic-v1", "helper": helper, "indexes": indexes}
+    return indexes
+
+
+def collect_legacy_catalog_evidence(cursor: Cursor) -> dict[str, object]:
+    """Build bounded protected evidence from an already verified read-only cursor.
+
+    The caller is responsible for authorization, identity and protected storage.
+    This report is diagnostic evidence and cannot be used as a Stage 1 result.
+    """
+    return {
+        "kind": "cq03d-legacy-catalog-diagnostic-v1",
+        "helper": _collect_restricted_helper_evidence(cursor),
+        "indexes": _collect_legacy_index_evidence(cursor),
+    }
 
 
 def _restricted_helper_posture(cursor: Cursor) -> bool:
