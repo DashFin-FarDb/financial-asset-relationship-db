@@ -378,7 +378,7 @@ def test_collection_rechecks_sha_after_consumption_before_connecting(tmp_path: P
     monkeypatch.setattr(
         preflight,
         "_connect_verified",
-        lambda *_args: pytest.fail("a changed SHA must stop before the first connection"),
+        lambda *_args, **_kwargs: pytest.fail("a changed SHA must stop before the first connection"),
     )
 
     with pytest.raises(preflight.PreflightContractError, match=preflight.REPOSITORY_HEAD_MISMATCH):
@@ -432,7 +432,7 @@ def test_collection_rechecks_authorization_window_after_consumption(tmp_path: Pa
         expire_after_consumption,
     )
 
-    def fail_expired_connection(_route, _target, before_connection=None):
+    def fail_expired_connection(_route, _target, before_connection=None, *, route_label=None):
         """Run the newly enforced window guard before rejecting a connection attempt."""
         before_connection()
         pytest.fail("an expired authorization must stop before the first connection")
@@ -447,12 +447,10 @@ def test_collection_rechecks_authorization_window_after_consumption(tmp_path: Pa
 
 def test_connect_verified_preserves_expired_collection_authorization(monkeypatch) -> None:
     """The per-connection approval guard retains its permit error instead of becoming identity drift."""
-    import psycopg2
-
     route = preflight.RouteIdentity("postgresql://runtime@host/postgres", PROJECT_REF)
     target = _collection_target(route.database_url)
     connect = Mock()
-    monkeypatch.setattr(psycopg2, "connect", connect)
+    monkeypatch.setitem(sys.modules, "psycopg2", SimpleNamespace(connect=connect))
 
     def expired() -> None:
         """Reject a connection after the one-use approval expires."""
@@ -461,6 +459,49 @@ def test_connect_verified_preserves_expired_collection_authorization(monkeypatch
     with pytest.raises(preflight.PreflightContractError, match=preflight.PERMIT_INVALID):
         preflight._connect_verified(route, target, expired)
 
+    connect.assert_not_called()
+
+
+def test_connect_verified_preserves_contract_errors_from_identity_proof(monkeypatch) -> None:
+    """Identity proof must preserve bounded contract and target errors during cleanup."""
+    route = preflight.RouteIdentity("postgresql://runtime@host/postgres", PROJECT_REF)
+    target = _collection_target(route.database_url)
+    connection = Mock()
+    monkeypatch.setitem(sys.modules, "psycopg2", SimpleNamespace(connect=Mock(return_value=connection)))
+
+    for expected in (preflight.PreflightContractError(preflight.PERMIT_INVALID), TargetIdentityError()):
+        monkeypatch.setattr(preflight, "_prove_live_database_identity", Mock(side_effect=expected))
+        with pytest.raises(type(expected)) as captured:
+            preflight._connect_verified(route, target)
+        assert captured.value is expected
+
+    assert connection.rollback.call_count == 2
+    assert connection.close.call_count == 2
+
+
+def test_connect_verified_sanitizes_unexpected_preconnection_guard_failure(monkeypatch, capsys) -> None:
+    """Unexpected guard failures stop before connecting and emit the fixed identity diagnostic."""
+    route = preflight.RouteIdentity("postgresql://runtime@host/postgres", PROJECT_REF)
+    target = _collection_target(route.database_url)
+    connect = Mock()
+    monkeypatch.setitem(sys.modules, "psycopg2", SimpleNamespace(connect=connect))
+    secret = "untrusted guard failure detail"
+
+    def fail_guard() -> None:
+        """Represent an unexpected protected pre-connection guard failure."""
+        raise RuntimeError(secret)
+
+    monkeypatch.setattr(
+        preflight,
+        "_run_selected_stage",
+        lambda _arguments: preflight._connect_verified(route, target, fail_guard, route_label="inspection"),
+    )
+
+    assert preflight.main(()) == 1
+    captured = capsys.readouterr()
+    assert captured.out == ""
+    assert captured.err == f"{preflight.TARGET_IDENTITY_INDETERMINATE}\n"
+    assert secret not in captured.err
     connect.assert_not_called()
 
 
@@ -479,7 +520,7 @@ def test_collection_rechecks_authorization_window_before_each_connection(tmp_pat
     connections_opened = 0
     window_checks = 0
 
-    def connect(_route, _target, before_connection=None):
+    def connect(_route, _target, before_connection=None, *, route_label=None):
         """Run the Stage 1 window guard before simulating a new connection."""
         nonlocal connection_attempts, connections_opened
         connection_attempts += 1
@@ -497,7 +538,7 @@ def test_collection_rechecks_authorization_window_before_each_connection(tmp_pat
 
     monkeypatch.setattr(preflight, "_validate_permit_window", validate_window)
     monkeypatch.setattr(preflight, "_connect_verified", connect)
-    monkeypatch.setattr(preflight, "_psycopg_database_identity", lambda _connection: object())
+    monkeypatch.setattr(preflight, "_psycopg_database_identity", lambda _connection, **_kwargs: object())
     monkeypatch.setattr(preflight, "_retained_target_identity", lambda *_args: None)
 
     with pytest.raises(preflight.PreflightContractError, match=preflight.PERMIT_INVALID):
@@ -515,7 +556,11 @@ def test_collection_identity_failure_stops_all_evidence_queries(tmp_path: Path, 
     """A live identity failure prevents all five collection evidence checks."""
     path = _write_collection_authorization(tmp_path)
     _collection_run_target(tmp_path, monkeypatch)
-    monkeypatch.setattr(preflight, "_connect_verified", lambda *_args: (_ for _ in ()).throw(TargetIdentityError()))
+    monkeypatch.setattr(
+        preflight,
+        "_connect_verified",
+        lambda *_args, **_kwargs: (_ for _ in ()).throw(TargetIdentityError()),
+    )
 
     def fail_if_evidence_runs(*_args, **_kwargs):
         """Fail if any post-identity evidence collector is reached."""
@@ -535,15 +580,17 @@ def test_collection_runtime_identity_mismatch_stops_authority_check(monkeypatch)
     target = _collection_target("postgresql://operator:secret@localhost:5432/postgres")
     route = preflight.RouteIdentity(target.database_url, PROJECT_REF)
     connection = MagicMock()
-    monkeypatch.setattr(preflight, "_connect_verified", lambda *_args: connection)
-    monkeypatch.setattr(preflight, "_psycopg_database_identity", lambda _connection: object())
+    monkeypatch.setattr(preflight, "_connect_verified", lambda *_args, **_kwargs: connection)
+    monkeypatch.setattr(preflight, "_psycopg_database_identity", lambda _connection, **_kwargs: object())
     monkeypatch.setattr(preflight, "_retained_target_identity", lambda *_args: None)
-    monkeypatch.setattr(
-        preflight,
-        "_runtime_routes_compatible",
-        lambda *_args: (_ for _ in ()).throw(TargetIdentityError()),
-    )
-    monkeypatch.setattr(preflight, "_prove_route", lambda *_args: None)
+    verification_error = preflight._ConnectionVerificationError(preflight.CONNECTION_OPEN_FAILED, "graph")
+
+    def fail_runtime_route(*_args):
+        """Return a sanitized route error that the evaluator would otherwise downgrade."""
+        raise verification_error
+
+    monkeypatch.setattr(preflight, "_runtime_routes_compatible", fail_runtime_route)
+    monkeypatch.setattr(preflight, "_prove_route", lambda *_args, **_kwargs: None)
 
     def evaluate_after_identity_rollback(*_args, **kwargs):
         """The drift evaluator starts only after the identity transaction is released."""
@@ -556,31 +603,37 @@ def test_collection_runtime_identity_mismatch_stops_authority_check(monkeypatch)
         evaluate_after_identity_rollback,
     )
 
+    manifest = load_and_validate_manifest()
+    authorization = preflight.CollectionAuthorization(
+        "1" * 40,
+        manifest.sha256,
+        "combined",
+        "hosted-legacy-v1",
+        "a" * 64,
+        preflight.COLLECTION_MARKER,
+        manifest.catalog_digest_for_profile("combined"),
+        "operator",
+        "ratifier",
+        "2026-11-21T12:00:00Z",
+        "2026-11-21T13:00:00Z",
+    )
+
     def fail_authority(*_args):
         """Fail if runtime authority runs after runtime identity could not be proved."""
         pytest.fail("runtime authority must not follow a failed runtime identity proof")
 
     monkeypatch.setattr(preflight, "_runtime_authority", fail_authority)
-    with pytest.raises(TargetIdentityError):
+    with pytest.raises(preflight._ConnectionVerificationError) as captured:
         preflight._evaluate_verified_drift(
             route,
             {key: route for key in target.logical_targets},
             target,
-            load_and_validate_manifest(),
-            preflight.CollectionAuthorization(
-                "1" * 40,
-                load_and_validate_manifest().sha256,
-                "combined",
-                "hosted-legacy-v1",
-                "a" * 64,
-                preflight.COLLECTION_MARKER,
-                load_and_validate_manifest().catalog_digest_for_profile("combined"),
-                "operator",
-                "ratifier",
-                "2026-11-21T12:00:00Z",
-                "2026-11-21T13:00:00Z",
-            ),
+            manifest,
+            authorization,
         )
+    assert captured.value is verification_error
+    assert captured.value.category == preflight.CONNECTION_OPEN_FAILED
+    assert captured.value.route_label == "graph"
     connection.close.assert_called()
 
 
@@ -589,10 +642,10 @@ def test_collection_runtime_expiry_preserves_authorization_error(monkeypatch) ->
     target = _collection_target("postgresql://operator:secret@localhost:5432/postgres")
     route = preflight.RouteIdentity(target.database_url, PROJECT_REF)
     connection = MagicMock()
-    monkeypatch.setattr(preflight, "_connect_verified", lambda *_args: connection)
-    monkeypatch.setattr(preflight, "_psycopg_database_identity", lambda _connection: object())
+    monkeypatch.setattr(preflight, "_connect_verified", lambda *_args, **_kwargs: connection)
+    monkeypatch.setattr(preflight, "_psycopg_database_identity", lambda _connection, **_kwargs: object())
     monkeypatch.setattr(preflight, "_retained_target_identity", lambda *_args: None)
-    monkeypatch.setattr(preflight, "_prove_route", lambda *_args: None)
+    monkeypatch.setattr(preflight, "_prove_route", lambda *_args, **_kwargs: None)
 
     def expire_authorization(*_args):
         """Reject runtime compatibility after the approved window expires."""
@@ -681,6 +734,8 @@ def test_collection_uses_five_ratified_checks_without_migration_parity(tmp_path:
         evaluated_check_count=3,
         application_owned_count=1,
         provider_owned_count=0,
+        protected_legacy_count=0,
+        restricted_helper_count=0,
         unknown_count=0,
         expected_catalog_digest="a" * 64,
         actual_catalog_digest="a" * 64,
@@ -693,8 +748,8 @@ def test_collection_uses_five_ratified_checks_without_migration_parity(tmp_path:
     monkeypatch.setattr(preflight, "_supabase_route_identity", lambda _value: route)
     monkeypatch.setattr(preflight, "_verified_target", lambda *_args: target)
     monkeypatch.setattr(preflight, "_runtime_routes", lambda _target: {key: route for key in target.logical_targets})
-    monkeypatch.setattr(preflight, "_connect_verified", lambda *_args: connection)
-    monkeypatch.setattr(preflight, "_psycopg_database_identity", lambda _connection: object())
+    monkeypatch.setattr(preflight, "_connect_verified", lambda *_args, **_kwargs: connection)
+    monkeypatch.setattr(preflight, "_psycopg_database_identity", lambda _connection, **_kwargs: object())
     monkeypatch.setattr(preflight, "_retained_target_identity", lambda *_args: None)
     monkeypatch.setattr(preflight, "_evaluate_verified_drift", lambda *_args: drift)
     monkeypatch.setattr(preflight, "_runtime_authority", lambda *_args: CHECK_PASSED)
@@ -989,6 +1044,108 @@ def test_live_database_oid_is_bound_to_the_protected_fingerprint(tmp_path: Path,
     assert connection.rollbacks == 1
 
 
+@pytest.mark.parametrize(
+    ("failure_stage", "expected_category"),
+    [
+        ("open", preflight.CONNECTION_OPEN_FAILED),
+        ("session", preflight.READ_ONLY_SESSION_SETUP_FAILED),
+        ("identity", preflight.LIVE_IDENTITY_VERIFICATION_FAILED),
+    ],
+)
+def test_connection_failures_report_sanitized_stage_and_route(
+    tmp_path: Path, monkeypatch, capsys, failure_stage: str, expected_category: str
+) -> None:
+    """Connection diagnostics identify a fixed stage without exposing provider errors."""
+    secret = "provider-secret-must-not-appear"
+    route = preflight.RouteIdentity(_database_url(tmp_path), PROJECT_REF)
+    target = _target(route.database_url)
+
+    class Cursor:
+        """Raise a provider-like failure while proving live identity."""
+
+        def __enter__(self):
+            """Enter the cursor fixture."""
+            return self
+
+        def __exit__(self, *_args):
+            """Leave the cursor fixture without suppressing failures."""
+            return None
+
+        def execute(self, _query: str) -> None:
+            """Raise the fake provider exception."""
+            raise RuntimeError(secret)
+
+    class Connection:
+        """Record cleanup and fail at the selected post-open stage."""
+
+        def __init__(self) -> None:
+            self.rollbacks = 0
+            self.closed = False
+
+        def set_session(self, **_kwargs) -> None:
+            """Fail at session setup when selected by the fixture."""
+            if failure_stage == "session":
+                raise RuntimeError(secret)
+
+        def cursor(self):
+            """Open the identity proof cursor."""
+            return Cursor()
+
+        def rollback(self) -> None:
+            """Record cleanup of the staged fake session."""
+            self.rollbacks += 1
+
+        def close(self) -> None:
+            """Record closure of the staged fake session."""
+            self.closed = True
+
+    connection = Connection()
+
+    def connect(*_args, **_kwargs):
+        """Raise at connection open or return the staged fake session."""
+        if failure_stage == "open":
+            raise RuntimeError(secret)
+        return connection
+
+    monkeypatch.setitem(sys.modules, "psycopg2", SimpleNamespace(connect=connect))
+    monkeypatch.setattr(
+        preflight,
+        "_run_selected_stage",
+        lambda _arguments: preflight._connect_verified(route, target, route_label="inspection"),
+    )
+
+    assert preflight.main(()) == 1
+    captured = capsys.readouterr()
+    assert captured.out == ""
+    assert captured.err == (
+        f"{preflight.TARGET_IDENTITY_INDETERMINATE} diagnostic={expected_category} route=inspection\n"
+    )
+    assert secret not in captured.out + captured.err
+    if failure_stage != "open":
+        assert connection.rollbacks == 1
+        assert connection.closed
+
+
+def test_missing_psycopg2_reports_sanitized_connection_open_failure(tmp_path: Path, monkeypatch, capsys) -> None:
+    """A missing driver produces the fixed open-stage diagnostic without import details."""
+    route = preflight.RouteIdentity(_database_url(tmp_path), PROJECT_REF)
+    target = _target(route.database_url)
+    monkeypatch.setitem(sys.modules, "psycopg2", None)
+    monkeypatch.setattr(
+        preflight,
+        "_run_selected_stage",
+        lambda _arguments: preflight._connect_verified(route, target, route_label="inspection"),
+    )
+
+    assert preflight.main(()) == 1
+    captured = capsys.readouterr()
+    assert captured.out == ""
+    assert captured.err == (
+        f"{preflight.TARGET_IDENTITY_INDETERMINATE} "
+        f"diagnostic={preflight.CONNECTION_OPEN_FAILED} route=inspection\n"
+    )
+
+
 def test_live_database_oid_mismatch_fails_before_checks(tmp_path: Path, monkeypatch) -> None:
     """An attested binding for another database cannot authorize this route."""
 
@@ -1048,7 +1205,7 @@ def test_runtime_route_cleanup_failure_is_incomplete(tmp_path: Path, monkeypatch
             """Fail the required cleanup invariant."""
             raise OSError("close failed")
 
-    monkeypatch.setattr(preflight, "_connect_verified", lambda *_args: Connection())
+    monkeypatch.setattr(preflight, "_connect_verified", lambda *_args, **_kwargs: Connection())
 
     with pytest.raises(preflight.PreflightContractError, match=preflight.EVALUATION_INCOMPLETE):
         preflight._prove_route(route, target)
@@ -1353,8 +1510,8 @@ def test_preflight_rejects_equal_project_routes_with_different_live_clusters(mon
         assert combined is False
 
 
-def test_preflight_rejects_unavailable_live_identity(monkeypatch) -> None:
-    """No readable identity means no authority verification or route fallback."""
+def test_preflight_reports_unavailable_live_identity_with_route(monkeypatch) -> None:
+    """A retained identity query failure keeps the fixed diagnostic and route label."""
     from src.data import database as data_database
     from tests.unit.test_postgresql_topology import identity_engine
 
@@ -1365,7 +1522,10 @@ def test_preflight_rejects_unavailable_live_identity(monkeypatch) -> None:
     verifier = Mock()
     monkeypatch.setattr(data_database, "verify_runtime_database_authority", verifier)
     route = preflight.RouteIdentity("postgresql://runtime@host/postgres", "same_project")
-    assert preflight._runtime_authority({"graph": route}) == preflight.NOT_EVALUATED
+    with pytest.raises(preflight._ConnectionVerificationError) as captured:
+        preflight._runtime_authority({"graph": route})
+    assert captured.value.category == preflight.LIVE_IDENTITY_VERIFICATION_FAILED
+    assert captured.value.route_label == "graph"
     verifier.assert_not_called()
     engine.dispose.assert_called_once()
 
@@ -1477,11 +1637,15 @@ def test_auth_retained_session_rejects_reroute_before_verification(tmp_path, mon
     route = preflight._supabase_route_identity(_database_url(tmp_path))
     target = _target(route.database_url)
     connection = Mock()
-    monkeypatch.setattr(preflight, "_connect_verified", lambda _route, _target, _before_connection=None: connection)
+    monkeypatch.setattr(
+        preflight,
+        "_connect_verified",
+        lambda _route, _target, _before_connection=None, *, route_label=None: connection,
+    )
     monkeypatch.setattr(
         preflight,
         "_psycopg_database_identity",
-        lambda _connection: DatabaseIdentity("99999", int(DATABASE_ID), "postgres"),
+        lambda _connection, **_kwargs: DatabaseIdentity("99999", int(DATABASE_ID), "postgres"),
     )
     _assert_context_entry_raises(
         preflight._verified_auth_connection(
@@ -1554,5 +1718,26 @@ def test_psycopg_identity_query_failure_is_classified() -> None:
     connection = MagicMock()
     cursor = connection.cursor.return_value.__enter__.return_value
     cursor.execute.side_effect = PermissionError("pg_control_system denied")
-    with pytest.raises(TargetIdentityError, match=preflight.TARGET_IDENTITY_INDETERMINATE):
+    with pytest.raises(
+        preflight._ConnectionVerificationError, match=preflight.TARGET_IDENTITY_INDETERMINATE
+    ) as captured:
         preflight._psycopg_database_identity(connection)
+    assert captured.value.category == preflight.LIVE_IDENTITY_VERIFICATION_FAILED
+    assert captured.value.route_label == "inspection"
+
+
+def test_retained_runtime_identity_query_failure_is_classified(monkeypatch) -> None:
+    """Runtime route identity-query failures retain fixed stage and route labels."""
+    from src.data import postgresql_topology
+
+    monkeypatch.setattr(
+        postgresql_topology,
+        "read_database_identity",
+        Mock(side_effect=PermissionError("provider identity query denied")),
+    )
+    with pytest.raises(preflight._ConnectionVerificationError) as captured:
+        preflight._runtime_database_identity(object(), "graph")
+
+    assert captured.value.category == preflight.LIVE_IDENTITY_VERIFICATION_FAILED
+    assert captured.value.route_label == "graph"
+    assert "provider identity query denied" not in str(captured.value)

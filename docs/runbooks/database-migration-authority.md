@@ -142,10 +142,24 @@ a `combined` target.
 - **Database-specific exceptions:** SQLite and explicit migration connections retain their existing behavior.
 
 CQ-03C evaluates `fresh-v1` targets through the read-only
-`fardb-pg-catalog-v1+fardb-pg-scope-v1` gate. It compares exact ordered migration identities, the selected profile's
+`fardb-pg-catalog-v1+fardb-pg-scope-v2` gate. It compares exact ordered migration identities, the selected profile's
 normalized catalog digest, and an explicit runtime-compatibility callback. The evaluator forces a read-only database
 transaction, rolls it back after catalog access, and exposes only bounded counts, digests, status, category, and
 reason codes. It never repairs schema or migration history.
+
+Scope v2 defines the expected identities for eight legacy tables, eight composite types, 29 indexes, and the
+restricted `public.is_requester_admin()` helper. Tables require forced RLS, zero policies, no column ACL entries,
+and the reviewed table ACL. Each legacy identity must match its parent and owner. The helper requires an
+approved definition digest and exact `proconfig`, including `search_path`. Each index requires its own approved
+definition digest, validity, readiness, and applicable NULL uniqueness semantics. The helper and index baselines are currently unset, so hosted legacy remains
+`OUTSIDE_MANAGED_SCOPE` until they are ratified. A partial or changed legacy
+set remains `OUTSIDE_MANAGED_SCOPE`. The public report gives separate legacy and helper counts.
+
+The exact table ACL follows the connected server version: PostgreSQL 15 and 16 use the seven reviewed table
+privileges; PostgreSQL 17 also includes `MAINTAIN`.
+
+Hosted legacy requires all eleven extensions with exact name, schema, and owner. The attested loopback fresh-v1 test
+harness may use owner `test` or `postgres` for `plpgsql` alone when neither legacy inventory nor the helper is present.
 
 The public result is `PASS`, `DRIFT_DETECTED`, or `EVALUATION_INCOMPLETE`. A detected primary category follows this
 fixed precedence: `LEDGER_HISTORY_MISMATCH`, `PROVIDER_SCHEMA_DRIFT`, then `RUNTIME_COMPATIBILITY_MISMATCH`. An
@@ -482,7 +496,10 @@ status invalidates it before any command is considered.
    normalized-catalog, and ADR 0007 runtime-authority checks with forced read-only helper connections, and runs each
    component's compatibility checks through that component's restricted runtime DSN. Missing, unavailable, or
    mismatched identity proof is `TARGET_IDENTITY_INDETERMINATE`; a caller cannot substitute a connector, runtime
-   check, target, or subprocess runner.
+   check, target, or subprocess runner. Failure to read or verify the identity of a retained runtime session
+   aborts the run during either drift evaluation or runtime authority. The CLI exits with status 1 and emits
+   only the bounded identity diagnostic on stderr, including a fixed reason and route label when available.
+   It emits no JSON report, even if drift evaluation already finished, and migration parity does not run.
 5. For `hosted-legacy-v1`, the actual history must be the six reviewed receipts plus already adopted canonical
    markers strictly before the permit timestamp. The permit timestamp must be the next canonical marker. Only after
    all earlier checks pass, pinned Supabase CLI `2.114.0` runs read-only `migration list` against a disposable

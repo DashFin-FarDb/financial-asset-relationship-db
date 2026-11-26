@@ -7,6 +7,7 @@ import json
 from collections.abc import Callable, Iterator, Mapping, Sequence
 from contextlib import contextmanager
 from dataclasses import dataclass
+from types import MappingProxyType
 from typing import Any, Protocol
 
 from scripts.postgresql_ledger import (
@@ -70,7 +71,92 @@ _APPLICATION_EXTENSIONS: Mapping[str, tuple[str, ...]] = {
     "coordination": (),
     "combined": (),
 }
-_SQL_TEXT_COLUMNS = frozenset({"check_expression", "default_expression", "definition", "using_expression"})
+_LEGACY_TABLES = frozenset(
+    {
+        "financial_data",
+        "fundamental_analysis",
+        "market_alerts",
+        "news_articles",
+        "portfolio_holdings",
+        "portfolios",
+        "transactions",
+        "user_preferences",
+    }
+)
+_LEGACY_INDEXES: Mapping[str, tuple[str, bool, bool]] = MappingProxyType(
+    {
+        "financial_data_pkey": ("financial_data", True, True),
+        "idx_financial_data_symbol": ("financial_data", False, False),
+        "idx_financial_data_symbol_timestamp": ("financial_data", False, False),
+        "idx_financial_data_timestamp": ("financial_data", False, False),
+        "fundamental_analysis_pkey": ("fundamental_analysis", True, True),
+        "idx_fundamental_analysis_created": ("fundamental_analysis", False, False),
+        "idx_fundamental_analysis_symbol": ("fundamental_analysis", False, False),
+        "market_alerts_pkey": ("market_alerts", True, True),
+        "idx_alerts_user_id": ("market_alerts", False, False),
+        "idx_market_alerts_active": ("market_alerts", False, False),
+        "idx_market_alerts_user": ("market_alerts", False, False),
+        "news_articles_pkey": ("news_articles", True, True),
+        "idx_news_articles_published": ("news_articles", False, False),
+        "idx_news_articles_source": ("news_articles", False, False),
+        "idx_news_articles_url": ("news_articles", True, False),
+        "portfolio_holdings_pkey": ("portfolio_holdings", True, True),
+        "idx_holdings_portfolio_id": ("portfolio_holdings", False, False),
+        "idx_portfolio_holdings_portfolio": ("portfolio_holdings", False, False),
+        "portfolios_pkey": ("portfolios", True, True),
+        "idx_portfolios_user": ("portfolios", False, False),
+        "idx_portfolios_user_id": ("portfolios", False, False),
+        "transactions_pkey": ("transactions", True, True),
+        "idx_transactions_date": ("transactions", False, False),
+        "idx_transactions_portfolio": ("transactions", False, False),
+        "idx_transactions_portfolio_id": ("transactions", False, False),
+        "user_preferences_pkey": ("user_preferences", True, True),
+        "user_preferences_user_id_key": ("user_preferences", True, False),
+        "idx_prefs_user_id": ("user_preferences", False, False),
+        "idx_user_preferences_user_id": ("user_preferences", False, False),
+    }
+)
+# Values bind the normalized index definition digest, applicable NULL semantics, and ready/valid posture.
+# Every baseline is absent until the ratifier supplies approved catalog evidence.
+_LEGACY_INDEX_BASELINES: Mapping[str, tuple[str, bool | None, bool, bool] | None] = MappingProxyType(
+    {name: None for name in _LEGACY_INDEXES}
+)
+# The helper is fail-closed until a custodian supplies its approved definition digest and pinned proconfig.
+_RESTRICTED_HELPER_DEFINITION_SHA256: str | None = None
+_RESTRICTED_HELPER_PROCONFIG: tuple[str, ...] | None = None
+_PROVIDER_EXTENSION_IDENTITIES: Mapping[str, tuple[str, str]] = MappingProxyType(
+    {
+        "hypopg": ("extensions", "supabase_admin"),
+        "index_advisor": ("extensions", "supabase_admin"),
+        "pg_graphql": ("graphql", "supabase_admin"),
+        "pg_net": ("extensions", "supabase_admin"),
+        "pg_stat_statements": ("extensions", "supabase_admin"),
+        "pgcrypto": ("extensions", "supabase_admin"),
+        "pgmq": ("pgmq", "postgres"),
+        "plpgsql": ("pg_catalog", "supabase_admin"),
+        "supabase_vault": ("vault", "supabase_admin"),
+        "uuid-ossp": ("extensions", "supabase_admin"),
+        "wrappers": ("extensions", "supabase_admin"),
+    }
+)
+_RESTRICTED_ROLES = frozenset(
+    {
+        "anon",
+        "authenticated",
+        "fardb_runtime_auth",
+        "fardb_runtime_graph",
+        "fardb_runtime_coordination",
+        "fardb_login_auth",
+        "fardb_login_auth_prod",
+        "fardb_login_graph",
+        "fardb_login_coordination",
+    }
+)
+_LEGACY_TABLE_PRIVILEGES = ("DELETE", "INSERT", "REFERENCES", "SELECT", "TRIGGER", "TRUNCATE", "UPDATE")
+
+_SQL_TEXT_COLUMNS = frozenset(
+    {"check_expression", "default_expression", "definition", "index_definition", "using_expression"}
+)
 
 
 class Cursor(Protocol):
@@ -154,6 +240,8 @@ class DriftReport:
     unknown_count: int
     expected_catalog_digest: str | None
     actual_catalog_digest: str | None
+    protected_legacy_count: int = 0
+    restricted_helper_count: int = 0
 
     def as_public_dict(self) -> dict[str, object]:
         """Return deterministic JSON-safe public diagnostics."""
@@ -175,6 +263,8 @@ class DriftReport:
             "application_owned_count": self.application_owned_count,
             "provider_owned_count": self.provider_owned_count,
             "unknown_count": self.unknown_count,
+            "protected_legacy_count": self.protected_legacy_count,
+            "restricted_helper_count": self.restricted_helper_count,
             "expected_catalog_digest": self.expected_catalog_digest,
             "actual_catalog_digest": self.actual_catalog_digest,
         }
@@ -318,6 +408,15 @@ def _rows(cursor: Cursor, query: str, parameters: object | None = None) -> list[
     return rows
 
 
+def _psycopg_error_types() -> tuple[type[BaseException], ...]:
+    """Load the optional driver error type only when handling a database failure."""
+    try:
+        from psycopg2 import Error as PsycopgError
+    except (ImportError, AttributeError, TypeError):
+        return ()
+    return (PsycopgError,)
+
+
 def expected_managed_tables(profile: str) -> tuple[str, ...]:
     """Return the sorted managed-table set for one exact build profile."""
     components = EXPECTED_PROFILES.get(profile)
@@ -345,7 +444,322 @@ def _classify_public_object(item: Mapping[str, object], managed_tables: tuple[st
     return False
 
 
-def _public_scope(cursor: Cursor, profile: str) -> tuple[int, int, tuple[str, ...]]:
+def _legacy_table_posture(cursor: Cursor) -> set[str]:
+    """Identify only legacy tables whose live RLS and grants match reviewed evidence."""
+    rows = _rows(
+        cursor,
+        """
+        SELECT c.relname AS name, owner.rolname AS owner_role,
+            c.relrowsecurity AS row_security, c.relforcerowsecurity AS force_row_security,
+            (SELECT count(*) FROM pg_catalog.pg_policy pol WHERE pol.polrelid = c.oid) AS policy_count,
+            current_setting('server_version_num')::integer AS server_version_num,
+            ARRAY(
+                SELECT grantee.rolname || ':' || privilege_type || ':' || is_grantable::text
+                FROM pg_catalog.aclexplode(COALESCE(c.relacl, '{}'::aclitem[])) AS acl
+                LEFT JOIN pg_catalog.pg_roles grantee ON grantee.oid = acl.grantee
+                ORDER BY 1
+            ) AS grants,
+            ARRAY(
+                SELECT restricted_role.rolname || ':' || privilege.privilege_type
+                FROM pg_catalog.pg_roles restricted_role
+                JOIN pg_catalog.pg_roles reachable ON reachable.oid = restricted_role.oid OR pg_catalog.pg_has_role(
+                    restricted_role.oid, reachable.oid,
+                    CASE WHEN current_setting('server_version_num')::integer >= 160000 THEN 'SET' ELSE 'MEMBER' END
+                )
+                CROSS JOIN LATERAL unnest(
+                    ARRAY['DELETE', 'INSERT', 'REFERENCES', 'SELECT', 'TRIGGER', 'TRUNCATE', 'UPDATE']::text[]
+                    || CASE
+                        WHEN current_setting('server_version_num')::integer >= 170000
+                        THEN ARRAY['MAINTAIN']::text[]
+                        ELSE ARRAY[]::text[]
+                    END
+                ) AS privilege(privilege_type)
+                WHERE restricted_role.rolname = ANY(%s)
+                  AND (
+                      pg_catalog.has_table_privilege(reachable.oid, c.oid, privilege.privilege_type)
+                      OR (
+                          privilege.privilege_type IN ('SELECT', 'INSERT', 'REFERENCES', 'UPDATE')
+                          AND pg_catalog.has_any_column_privilege(
+                              reachable.oid, c.oid, privilege.privilege_type
+                          )
+                      )
+                  )
+                ORDER BY 1
+            ) AS restricted_effective_privileges,
+            EXISTS (
+                SELECT 1 FROM pg_catalog.pg_attribute a
+                WHERE a.attrelid = c.oid AND a.attnum > 0 AND NOT a.attisdropped
+                  AND cardinality(a.attacl) > 0
+            ) AS has_column_acl
+        FROM pg_catalog.pg_class c
+        JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace
+        JOIN pg_catalog.pg_roles owner ON owner.oid = c.relowner
+        WHERE n.nspname = 'public' AND c.relkind = 'r' AND c.relname = ANY(%s)
+        """,
+        (sorted(_RESTRICTED_ROLES), sorted(_LEGACY_TABLES)),
+    )
+    safe_tables: set[str] = set()
+    for row in rows:
+        version = row["server_version_num"]
+        grants = row["grants"]
+        restricted_privileges = row["restricted_effective_privileges"]
+        if (
+            not isinstance(version, int)
+            or not isinstance(grants, (tuple, list))
+            or not isinstance(restricted_privileges, (tuple, list))
+        ):
+            continue
+        expected_grants = _legacy_table_grants(version)
+        if all(
+            (
+                row["owner_role"] == "postgres",
+                row["row_security"] is True,
+                row["force_row_security"] is True,
+                row["policy_count"] == 0,
+                set(grants) == expected_grants,
+                len(grants) == len(expected_grants),
+                not restricted_privileges,
+                row["has_column_acl"] is False,
+            )
+        ):
+            safe_tables.add(str(row["name"]))
+    return safe_tables
+
+
+def _legacy_table_grants(server_version_num: int) -> frozenset[str]:
+    """Return the exact reviewed legacy ACL entries for the connected PostgreSQL version."""
+    privileges = _LEGACY_TABLE_PRIVILEGES + (("MAINTAIN",) if server_version_num >= 170000 else ())
+    return frozenset(f"{role}:{privilege}:false" for role in ("postgres", "service_role") for privilege in privileges)
+
+
+def _restricted_helper_posture(cursor: Cursor) -> bool:
+    """Require the reviewed helper definition, configuration, signature and role restrictions."""
+    rows = _rows(
+        cursor,
+        """
+        SELECT p.proname AS name, pg_catalog.pg_get_function_identity_arguments(p.oid) AS arguments,
+            pg_catalog.format_type(p.prorettype, NULL) AS return_type,
+            p.proretset AS returns_set,
+            lang.lanname AS language, p.provolatile AS volatility, p.prosecdef AS security_definer,
+            owner.rolname AS owner_role,
+            CASE WHEN p.prokind = 'f' THEN pg_catalog.pg_get_functiondef(p.oid) END AS definition,
+            COALESCE(p.proconfig, ARRAY[]::text[]) AS proconfig,
+            COALESCE(
+                ARRAY(SELECT acl::text FROM unnest(COALESCE(p.proacl, '{}'::aclitem[])) AS acl ORDER BY acl::text),
+                ARRAY[]::text[]
+            ) AS acl_entries,
+            ARRAY(
+                SELECT role.rolname FROM pg_catalog.pg_roles role
+                JOIN pg_catalog.pg_roles reachable ON reachable.oid = role.oid OR pg_catalog.pg_has_role(
+                    role.oid, reachable.oid,
+                    CASE WHEN current_setting('server_version_num')::integer >= 160000 THEN 'SET' ELSE 'MEMBER' END
+                )
+                WHERE role.rolname = ANY(%s)
+                  AND pg_catalog.has_function_privilege(reachable.oid, p.oid, 'EXECUTE')
+                ORDER BY role.rolname
+            ) AS effective_untrusted_roles
+        FROM pg_catalog.pg_proc p
+        JOIN pg_catalog.pg_namespace n ON n.oid = p.pronamespace
+        JOIN pg_catalog.pg_language lang ON lang.oid = p.prolang
+        JOIN pg_catalog.pg_roles owner ON owner.oid = p.proowner
+        WHERE n.nspname = 'public' AND p.proname = 'is_requester_admin'
+        """,
+        (sorted(_RESTRICTED_ROLES),),
+    )
+    if len(rows) != 1 or _RESTRICTED_HELPER_DEFINITION_SHA256 is None or _RESTRICTED_HELPER_PROCONFIG is None:
+        return False
+    definition = rows[0]["definition"]
+    proconfig = rows[0]["proconfig"]
+    if not isinstance(definition, str) or not isinstance(proconfig, (tuple, list)):
+        return False
+    if not all(isinstance(value, str) for value in proconfig):
+        return False
+    definition_digest = hashlib.sha256(definition.encode("utf-8")).hexdigest()
+    normalized_proconfig = tuple(sorted(proconfig))
+    return (
+        definition_digest == _RESTRICTED_HELPER_DEFINITION_SHA256
+        and normalized_proconfig == tuple(sorted(_RESTRICTED_HELPER_PROCONFIG))
+        and all(
+            (
+                rows[0]["arguments"] == "",
+                rows[0]["return_type"] == "boolean",
+                rows[0]["returns_set"] is False,
+                rows[0]["language"] == "sql",
+                rows[0]["volatility"] == "v",
+                rows[0]["security_definer"] is True,
+                rows[0]["owner_role"] == "postgres",
+                rows[0]["acl_entries"] == ["postgres=X/postgres", "service_role=X/postgres"],
+                rows[0]["effective_untrusted_roles"] == [],
+            )
+        )
+    )
+
+
+def _classify_legacy_object(item: Mapping[str, object], safe_tables: set[str]) -> bool:
+    """Accept a legacy identity only with its reviewed parent and owner."""
+    name = item.get("name")
+    if item.get("owner_role") != "postgres":
+        return False
+    if item.get("object_type") == "relation":
+        if item.get("kind") == "r":
+            return name in safe_tables and item.get("parent_table") is None
+        if item.get("kind") == "i":
+            expected = _LEGACY_INDEXES.get(str(name))
+            baseline = _LEGACY_INDEX_BASELINES.get(str(name))
+            definition = item.get("index_definition")
+            null_semantics_match = expected is not None and (
+                baseline is not None
+                and (
+                    (baseline[1] is None and (not expected[1] or expected[2]))
+                    or (baseline[1] is not None and item.get("nulls_not_distinct") is baseline[1])
+                )
+            )
+            return (
+                expected is not None
+                and baseline is not None
+                and isinstance(definition, str)
+                and hashlib.sha256(_normalize_sql_text(definition).encode("utf-8")).hexdigest() == baseline[0]
+                and (item.get("parent_table"), item.get("is_unique"), item.get("is_primary")) == expected
+                and null_semantics_match
+                and baseline[2] is True
+                and item.get("is_valid") is baseline[2]
+                and baseline[3] is True
+                and item.get("is_ready") is baseline[3]
+                and expected[0] in safe_tables
+            )
+    if item.get("object_type") == "type":
+        return name in safe_tables and item.get("parent_table") == name and item.get("type_kind") == "c"
+    return False
+
+
+def _is_legacy_inventory_candidate(item: Mapping[str, object]) -> bool:
+    """Return whether one identity makes the reviewed legacy inventory present."""
+    object_type = item["object_type"]
+    name = item["name"]
+    kind = item["kind"]
+    if object_type == "relation":
+        return (kind == "r" and name in _LEGACY_TABLES) or (kind == "i" and name in _LEGACY_INDEXES)
+    return object_type == "type" and name in _LEGACY_TABLES
+
+
+def _legacy_inventory_is_complete(
+    objects: Sequence[Mapping[str, object]], *, require_inventory: bool, legacy_present: bool, helper_present: bool
+) -> bool:
+    """Require each exact legacy identity and the helper when legacy posture applies."""
+    expected = (
+        {("relation", name, "r") for name in _LEGACY_TABLES}
+        | {("relation", name, "i") for name in _LEGACY_INDEXES}
+        | {("type", name, None) for name in _LEGACY_TABLES}
+    )
+    found = {
+        (item["object_type"], item["name"], item["kind"]) for item in objects if _is_legacy_inventory_candidate(item)
+    }
+    inventory_applies = require_inventory or legacy_present or helper_present
+    return not inventory_applies or (found == expected and helper_present)
+
+
+def _is_provider_extension(
+    extension: Mapping[str, object], *, allow_loopback_test_owner: bool, legacy_present: bool, helper_present: bool
+) -> bool:
+    """Match the exact provider extension identity with the narrow loopback exception."""
+    name = str(extension["name"])
+    expected = _PROVIDER_EXTENSION_IDENTITIES.get(name)
+    if expected is None:
+        return False
+    if (extension.get("schema_name"), extension.get("owner_role")) == expected:
+        return True
+    loopback_owner = allow_loopback_test_owner and not legacy_present and not helper_present
+    return (
+        name == "plpgsql"
+        and extension.get("schema_name") == "pg_catalog"
+        and loopback_owner
+        and extension.get("owner_role") in {"postgres", "test"}
+    )
+
+
+def _classify_public_objects(
+    objects: Sequence[Mapping[str, object]],
+    managed_tables: tuple[str, ...],
+    profile: str,
+    safe_tables: set[str],
+    helper_safe: bool,
+) -> tuple[int, int, int, tuple[str, ...]]:
+    """Return application, legacy, and helper counts plus unknown object identities."""
+    application_count = 0
+    legacy_count = 0
+    helper_count = 0
+    unknown: list[str] = []
+    for item in objects:
+        if _classify_public_object(item, managed_tables, profile):
+            application_count += 1
+        elif _classify_legacy_object(item, safe_tables):
+            legacy_count += 1
+        elif (
+            helper_safe
+            and item["object_type"] == "function"
+            and item["name"] == "is_requester_admin"
+            and item["identity_arguments"] == ""
+        ):
+            helper_count += 1
+        else:
+            unknown.append(f"{item['object_type']}:{item['name']}")
+    return application_count, legacy_count, helper_count, tuple(unknown)
+
+
+def _provider_scope_counts(
+    schemas: Sequence[Mapping[str, object]],
+    extensions: Sequence[Mapping[str, object]],
+    *,
+    inventory_applies: bool,
+    allow_loopback_test_owner: bool,
+    legacy_present: bool,
+    helper_present: bool,
+) -> tuple[int, tuple[str, ...]]:
+    """Count verified provider schemas/extensions and return unknown identities."""
+    provider_count = 0
+    unknown: list[str] = []
+    for schema in schemas:
+        if bool(schema["system_schema"]) or schema["name"] in _PROVIDER_SCHEMAS:
+            provider_count += 1
+        else:
+            unknown.append(f"schema:{schema['name']}")
+    if inventory_applies and {str(extension["name"]) for extension in extensions} != set(
+        _PROVIDER_EXTENSION_IDENTITIES
+    ):
+        unknown.append("extension:incomplete")
+    for extension in extensions:
+        if _is_provider_extension(
+            extension,
+            allow_loopback_test_owner=allow_loopback_test_owner,
+            legacy_present=legacy_present,
+            helper_present=helper_present,
+        ):
+            provider_count += 1
+        else:
+            unknown.append(f"extension:{str(extension['name'])}")
+    return provider_count, tuple(unknown)
+
+
+def _legacy_posture_state(
+    cursor: Cursor, objects: Sequence[Mapping[str, object]], *, require_inventory: bool
+) -> tuple[bool, set[str], bool, bool, bool]:
+    """Return presence, verified posture, and completeness for restricted legacy identities."""
+    legacy_present = any(_is_legacy_inventory_candidate(item) for item in objects)
+    safe_tables = _legacy_table_posture(cursor) if legacy_present else set()
+    helper_present = any(item["object_type"] == "function" and item["name"] == "is_requester_admin" for item in objects)
+    helper_safe = _restricted_helper_posture(cursor) if helper_present else False
+    complete = _legacy_inventory_is_complete(
+        objects,
+        require_inventory=require_inventory,
+        legacy_present=legacy_present,
+        helper_present=helper_present,
+    )
+    return legacy_present, safe_tables, helper_present, helper_safe, complete
+
+
+def _public_scope(
+    cursor: Cursor, profile: str, *, allow_loopback_test_owner: bool = False, require_legacy_inventory: bool = False
+) -> tuple[int, int, int, int, tuple[str, ...]]:
     """Totally classify contracted schemas and independently addressable objects."""
     managed_tables = expected_managed_tables(profile)
     objects = _rows(
@@ -353,9 +767,13 @@ def _public_scope(cursor: Cursor, profile: str) -> tuple[int, int, tuple[str, ..
         """
         SELECT 'relation' AS object_type, c.relname AS name, c.relkind AS kind,
             COALESCE(owned.relname, indexed.relname) AS parent_table,
-            NULL::text AS identity_arguments
+            NULL::text AS identity_arguments, owner.rolname AS owner_role,
+            idx.indisunique AS is_unique, idx.indisprimary AS is_primary, idx.indnullsnotdistinct AS nulls_not_distinct,
+            CASE WHEN c.relkind IN ('i', 'I') THEN pg_catalog.pg_get_indexdef(c.oid) END AS index_definition,
+            idx.indisvalid AS is_valid, idx.indisready AS is_ready, NULL::text AS type_kind
         FROM pg_catalog.pg_class AS c
         JOIN pg_catalog.pg_namespace AS n ON n.oid = c.relnamespace
+        JOIN pg_catalog.pg_roles AS owner ON owner.oid = c.relowner
         LEFT JOIN pg_catalog.pg_depend AS d
             ON c.relkind = 'S' AND d.objid = c.oid AND d.deptype IN ('a', 'i')
         LEFT JOIN pg_catalog.pg_class AS owned ON owned.oid = d.refobjid
@@ -364,26 +782,29 @@ def _public_scope(cursor: Cursor, profile: str) -> tuple[int, int, tuple[str, ..
         WHERE n.nspname = 'public' AND c.relkind IN ('r', 'p', 'v', 'm', 'S', 'f', 'i', 'I')
         UNION ALL
         SELECT 'function', p.proname, NULL, NULL,
-            pg_catalog.pg_get_function_identity_arguments(p.oid)
+            pg_catalog.pg_get_function_identity_arguments(p.oid), owner.rolname, NULL, NULL, NULL, NULL, NULL, NULL, NULL
         FROM pg_catalog.pg_proc AS p
         JOIN pg_catalog.pg_namespace AS n ON n.oid = p.pronamespace
+        JOIN pg_catalog.pg_roles AS owner ON owner.oid = p.proowner
         WHERE n.nspname = 'public'
         UNION ALL
-        SELECT 'policy', pol.polname, NULL, c.relname, NULL
+        SELECT 'policy', pol.polname, NULL, c.relname, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL
         FROM pg_catalog.pg_policy AS pol
         JOIN pg_catalog.pg_class AS c ON c.oid = pol.polrelid
         JOIN pg_catalog.pg_namespace AS n ON n.oid = c.relnamespace
         WHERE n.nspname = 'public'
         UNION ALL
-        SELECT 'trigger', t.tgname, NULL, c.relname, NULL
+        SELECT 'trigger', t.tgname, NULL, c.relname, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL
         FROM pg_catalog.pg_trigger AS t
         JOIN pg_catalog.pg_class AS c ON c.oid = t.tgrelid
         JOIN pg_catalog.pg_namespace AS n ON n.oid = c.relnamespace
         WHERE n.nspname = 'public' AND NOT t.tgisinternal
         UNION ALL
-        SELECT 'type', typ.typname, NULL, relation.relname, NULL
+        SELECT 'type', typ.typname, NULL, relation.relname, NULL,
+            owner.rolname, NULL, NULL, NULL, NULL, NULL, NULL, typ.typtype::text
         FROM pg_catalog.pg_type AS typ
         JOIN pg_catalog.pg_namespace AS n ON n.oid = typ.typnamespace
+        JOIN pg_catalog.pg_roles AS owner ON owner.oid = typ.typowner
         LEFT JOIN pg_catalog.pg_class AS relation ON relation.oid = typ.typrelid
         WHERE n.nspname = 'public' AND typ.typtype IN ('c', 'd', 'e')
         ORDER BY 1, 2, 5
@@ -404,29 +825,34 @@ def _public_scope(cursor: Cursor, profile: str) -> tuple[int, int, tuple[str, ..
     extensions = _rows(
         cursor,
         """
-        SELECT ext.extname AS name
+        SELECT ext.extname AS name, n.nspname AS schema_name, owner.rolname AS owner_role
         FROM pg_catalog.pg_extension AS ext
+        JOIN pg_catalog.pg_namespace AS n ON n.oid = ext.extnamespace
+        JOIN pg_catalog.pg_roles AS owner ON owner.oid = ext.extowner
         ORDER BY ext.extname
         """,
     )
-    application_count = sum(_classify_public_object(item, managed_tables, profile) for item in objects)
-    unknown = [
-        f"{item['object_type']}:{item['name']}"
-        for item in objects
-        if not _classify_public_object(item, managed_tables, profile)
-    ]
-    provider_count = 0
-    for schema in schemas:
-        if bool(schema["system_schema"]) or schema["name"] in _PROVIDER_SCHEMAS:
-            provider_count += 1
-        else:
-            unknown.append(f"schema:{schema['name']}")
-    for extension in extensions:
-        if extension["name"] in _PROVIDER_EXTENSIONS:
-            provider_count += 1
-        else:
-            unknown.append(f"extension:{extension['name']}")
-    return application_count, provider_count, tuple(unknown)
+    legacy_present, safe_tables, helper_present, helper_safe, legacy_complete = _legacy_posture_state(
+        cursor, objects, require_inventory=require_legacy_inventory
+    )
+    unknown: list[str] = []
+    if not legacy_complete:
+        unknown.append("legacy:incomplete")
+    inventory_applies = require_legacy_inventory or legacy_present or helper_present
+    application_count, legacy_count, helper_count, object_unknown = _classify_public_objects(
+        objects, managed_tables, profile, safe_tables, helper_safe
+    )
+    provider_count, provider_unknown = _provider_scope_counts(
+        schemas,
+        extensions,
+        inventory_applies=inventory_applies,
+        allow_loopback_test_owner=allow_loopback_test_owner,
+        legacy_present=legacy_present,
+        helper_present=helper_present,
+    )
+    unknown.extend(object_unknown)
+    unknown.extend(provider_unknown)
+    return application_count, provider_count, legacy_count, helper_count, tuple(unknown)
 
 
 def normalized_managed_catalog(cursor: Cursor, profile: str) -> dict[str, object]:
@@ -717,7 +1143,7 @@ def _history_check(
     try:
         cursor.execute("SELECT version, name FROM supabase_migrations.schema_migrations ORDER BY version")
         actual = tuple((str(version), str(name)) for version, name in cursor.fetchall())
-    except Exception:  # noqa: BLE001 - unavailable history is a bounded required-check result
+    except _psycopg_error_types():
         return CheckResult("history", LEDGER_HISTORY_MISMATCH, NOT_EVALUATED, REQUIRED_CHECK_NOT_EVALUATED)
     expected_digest = hashlib.sha256(canonical_catalog_bytes({"history": expected})).hexdigest()
     actual_digest = hashlib.sha256(canonical_catalog_bytes({"history": actual})).hexdigest()
@@ -729,14 +1155,24 @@ def _catalog_check(
     cursor: Cursor,
     manifest: LedgerManifest,
     profile: str,
-) -> tuple[CheckResult, int, int, int]:
+    *,
+    allow_loopback_test_owner: bool = False,
+    require_legacy_inventory: bool = False,
+) -> tuple[CheckResult, int, int, int, int, int]:
     """Classify scope and compare the normalized profile catalog digest."""
-    application_count, provider_count, unknown = _public_scope(cursor, profile)
+    application_count, provider_count, legacy_count, helper_count, unknown = _public_scope(
+        cursor,
+        profile,
+        allow_loopback_test_owner=allow_loopback_test_owner,
+        require_legacy_inventory=require_legacy_inventory,
+    )
     if unknown:
         return (
             CheckResult("catalog", PROVIDER_SCHEMA_DRIFT, NOT_EVALUATED, OUTSIDE_MANAGED_SCOPE),
             application_count,
             provider_count,
+            legacy_count,
+            helper_count,
             len(unknown),
         )
     expected = manifest.catalog_digest_for_profile(profile)
@@ -746,6 +1182,8 @@ def _catalog_check(
         CheckResult("catalog", PROVIDER_SCHEMA_DRIFT, state, None, str(expected), actual),
         application_count,
         provider_count,
+        legacy_count,
+        helper_count,
         0,
     )
 
@@ -850,20 +1288,33 @@ def _profile_catalog_checks(
     profile: str,
     lineage: str,
     adoption_timestamp: str | None,
-) -> tuple[CheckResult, CheckResult, int, int, int]:
+    target_class: str,
+) -> tuple[CheckResult, CheckResult, int, int, int, int, int]:
     """Evaluate history and catalog in one always-rolled-back read-only snapshot."""
     history = CheckResult("history", LEDGER_HISTORY_MISMATCH, NOT_EVALUATED, REQUIRED_CHECK_NOT_EVALUATED)
-    application_count = provider_count = unknown_count = 0
+    catalog = CheckResult("catalog", PROVIDER_SCHEMA_DRIFT, NOT_EVALUATED, REQUIRED_CHECK_NOT_EVALUATED)
+    application_count = provider_count = legacy_count = helper_count = unknown_count = 0
     try:
         with _read_only_cursor(connection) as cursor:
             if adoption_timestamp is None:
                 history = _history_check(cursor, manifest, profile, lineage)
             else:
                 history = _history_check(cursor, manifest, profile, lineage, adoption_timestamp)
-            catalog, application_count, provider_count, unknown_count = _catalog_check(cursor, manifest, profile)
-    except Exception:  # noqa: BLE001 - transaction/catalog unavailability is a bounded required-check result
+            try:
+                catalog, application_count, provider_count, legacy_count, helper_count, unknown_count = _catalog_check(
+                    cursor,
+                    manifest,
+                    profile,
+                    allow_loopback_test_owner=lineage == "fresh-v1" and target_class == "loopback",
+                    require_legacy_inventory=lineage == "hosted-legacy-v1",
+                )
+            except _psycopg_error_types():
+                catalog = CheckResult("catalog", PROVIDER_SCHEMA_DRIFT, NOT_EVALUATED, REQUIRED_CHECK_NOT_EVALUATED)
+                application_count = provider_count = legacy_count = helper_count = unknown_count = 0
+    except _psycopg_error_types():
         catalog = CheckResult("catalog", PROVIDER_SCHEMA_DRIFT, NOT_EVALUATED, REQUIRED_CHECK_NOT_EVALUATED)
-    return history, catalog, application_count, provider_count, unknown_count
+        application_count = provider_count = legacy_count = helper_count = unknown_count = 0
+    return history, catalog, application_count, provider_count, legacy_count, helper_count, unknown_count
 
 
 def evaluate_profile_drift(
@@ -880,8 +1331,8 @@ def evaluate_profile_drift(
     if profile not in EXPECTED_PROFILES or lineage not in ("fresh-v1", "hosted-legacy-v1"):
         return _incomplete_profile_report(target_class, profile, lineage)
 
-    history, catalog, application_count, provider_count, unknown_count = _profile_catalog_checks(
-        connection, manifest, profile, lineage, adoption_timestamp
+    history, catalog, application_count, provider_count, legacy_count, helper_count, unknown_count = (
+        _profile_catalog_checks(connection, manifest, profile, lineage, adoption_timestamp, target_class)
     )
     runtime = _runtime_check(runtime_check)
     checks = (history, catalog, runtime)
@@ -907,4 +1358,6 @@ def evaluate_profile_drift(
         unknown_count,
         catalog.expected_digest,
         catalog.actual_digest,
+        legacy_count,
+        helper_count,
     )

@@ -259,8 +259,9 @@ The first contract manages application-owned objects in `public`:
 
 ### Exclusions
 
-The `fardb-pg-scope-v1` classifier is total and deterministic. It enumerates every `public` object in the included
-object classes before applying a classification:
+The original `fardb-pg-scope-v1` baseline classifier, accepted in the 2026-08-13 ratification record below, is total
+and deterministic. It enumerates every `public` object in the included object classes before applying a
+classification:
 
 - **Application-owned:** the exact object identity is produced by replaying the selected component profile or is
   declared in
@@ -298,10 +299,30 @@ The first contract also excludes:
 
 Every exclusion is named and versioned. A wildcard exclusion without a documented provider owner is not acceptable.
 
+### CQ-03D scope amendment
+
+Scope v2 defines the expected legacy inventory: eight base tables, eight composite row types, 29 indexes,
+and the restricted `public.is_requester_admin()` helper. Tables require owner `postgres`, forced RLS, zero
+policies, no column ACL entries, and only the reviewed non-grantable postgres/service-role ACL for the server version: PostgreSQL 15/16
+use seven table privileges, and PostgreSQL 17 adds `MAINTAIN`. Types and indexes require exact
+parent and owner. Tables and their composite row types can be counted when their posture matches.
+Indexes also require reviewed unique and primary flags. The indexes and helper remain outside protected scope
+until their respective baselines are ratified. The helper requires its reviewed
+signature, security mode, owner, ACL, and no effective EXECUTE for untrusted or runtime roles. Eleven provider
+extensions require exact name, schema, and owner, with one exception for `plpgsql`: an attested `fresh-v1` loopback target
+without legacy inventory or the helper may use owner `postgres` or `test`. A partial or changed legacy inventory
+remains outside managed scope. The public
+`protected_legacy_count` and `restricted_helper_count` are separate from application and provider counts. The new
+scope version requires recalibrated portable catalog digests; it neither adopts receipts nor authorizes a hosted connection.
+The v1 ratification checklist below records approval of the baseline contract only. Approval of the CQ-03D v2
+amendment is recorded separately below; merging the implementation does not authorize a hosted connection or
+credential change.
+
 ### Normalization profile
 
 Define `fardb-pg-catalog-v1` as a versioned catalog normalization profile. The effective drift-contract identity is
-`fardb-pg-catalog-v1+fardb-pg-scope-v1`; changing either component requires review and a new expected digest:
+`fardb-pg-catalog-v1+fardb-pg-scope-v2` after the CQ-03D amendment; changing either component requires review
+and a new expected digest:
 
 - obtain definitions through PostgreSQL catalog and `pg_get_*def` functions;
 - sort schemas, identities, columns, role sets, policy commands, and ACL items deterministically;
@@ -452,3 +473,19 @@ CQ-03B/C to profile-scoped forward baselines, non-executable historical evidence
 **Ratifier:** Mohamed Abdel-Aziz Mohamed
 **Decision date:** 2026-08-13
 **GitHub evidence link:** [PR #1634](https://github.com/DashFin-FarDb/financial-asset-relationship-db/pull/1634)
+
+### CQ-03D scope-v2 amendment
+
+- [x] Approve the exact protected legacy inventory, PostgreSQL-version-specific table ACL, restricted helper,
+      provider extension inventory, separate counts, and recalibrated profile digests implemented in PR #1960.
+
+**Decision:** Accepted for implementation and merge
+**Ratifier:** Repository maintainer `mohavro`, by explicit task authorization
+**Decision date:** 2026-11-25
+**GitHub evidence link:** [PR #1960](https://github.com/DashFin-FarDb/financial-asset-relationship-db/pull/1960)
+**Boundary:** This amendment approves the classifier contract only. It does not authorize credential changes, another
+Stage 1 attempt, a hosted preflight, or closure of issue #1907 without its remaining evidence.
+
+Pending hosted baseline evidence includes the helper definition digest and exact proconfig (including search_path),
+and each legacy index definition digest, validity, readiness, and applicable NULL semantics. Approval of this
+amendment supplies none of those values. The helper and indexes remain outside protected scope until ratified.

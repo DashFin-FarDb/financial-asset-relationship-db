@@ -3,7 +3,7 @@
   "component_order": ["auth", "graph", "coordination"],
   "algorithms": {
     "catalog_normalization": "fardb-pg-catalog-v1",
-    "managed_scope": "fardb-pg-scope-v1",
+    "managed_scope": "fardb-pg-scope-v2",
     "migration_digest": "sha256",
     "provider_statements_digest": "fardb-provider-statements-v1",
     "target_fingerprint": "fardb-target-fingerprint-v1"
@@ -74,19 +74,19 @@
   "profiles": {
     "auth": {
       "components": ["auth"],
-      "catalog_sha256": "e3eed4d9506f6737b888e8d8182964bf2952635316fde33ff203c7d22010be2e"
+      "catalog_sha256": "d507f909fc5527103d868ef816f96857c66c02eda8aa576d69f69c04d7ba77df"
     },
     "graph": {
       "components": ["graph"],
-      "catalog_sha256": "80e3cc895a8507348ef3c7f0bbab61793f5faece6295eae673c5da246a7ebed3"
+      "catalog_sha256": "32549b8eb448494e20d0820b2e9ed6faf6e47a309c5c5ba02e296f4970331e3a"
     },
     "coordination": {
       "components": ["coordination"],
-      "catalog_sha256": "475c75ae7b9a78f3e528cbab80ff06278383c805ddba774ab7683fef0069217a"
+      "catalog_sha256": "19917e426c2ab9c9a733617ae8160948ea811c05f00348ac31988e1e46c6a984"
     },
     "combined": {
       "components": ["auth", "graph", "coordination"],
-      "catalog_sha256": "a222c7689cf1e235ab607feb8e9ee84a35d5f9efdc5c77be5db1992409ffaab0"
+      "catalog_sha256": "d757e1ed63c525a26bfd26738a914de468c7470a2e6a06a9f81424a5906aff89"
     }
   },
   "lineages": {
