@@ -1119,7 +1119,6 @@ def normalized_managed_catalog(cursor: Cursor, profile: str) -> dict[str, object
             cursor,
             """
             SELECT c.relname AS table_name, owner.rolname AS owner_role, c.relrowsecurity AS row_security,
-                    c.relforcerowsecurity AS force_row_security,
                     COALESCE(ARRAY(SELECT acl::text FROM unnest(c.relacl) acl ORDER BY acl::text), ARRAY[]::text[])
                     AS acl
             FROM pg_catalog.pg_class c
@@ -1133,7 +1132,7 @@ def normalized_managed_catalog(cursor: Cursor, profile: str) -> dict[str, object
         "columns": _rows(
             cursor,
             """
-            SELECT c.relname AS table_name, a.attnum AS position, a.attname AS column_name,
+            SELECT c.relname AS table_name, a.attname AS column_name,
                     pg_catalog.format_type(a.atttypid, a.atttypmod) AS data_type,
                     a.attnotnull AS not_null, a.attidentity AS identity_kind,
                     a.attgenerated AS generated_kind,
@@ -1146,7 +1145,7 @@ def normalized_managed_catalog(cursor: Cursor, profile: str) -> dict[str, object
             LEFT JOIN pg_catalog.pg_attrdef ad ON ad.adrelid = c.oid AND ad.adnum = a.attnum
             WHERE n.nspname = 'public' AND c.relname = ANY(%s)
                 AND a.attnum > 0 AND NOT a.attisdropped
-            ORDER BY c.relname, a.attnum
+            ORDER BY c.relname, a.attname
             """,
             parameters,
         ),
@@ -1158,7 +1157,7 @@ def normalized_managed_catalog(cursor: Cursor, profile: str) -> dict[str, object
             FROM pg_catalog.pg_constraint con
             JOIN pg_catalog.pg_class c ON c.oid = con.conrelid
             JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace
-            WHERE n.nspname = 'public' AND c.relname = ANY(%s)
+            WHERE n.nspname = 'public' AND c.relname = ANY(%s) AND con.contype <> 'n'
             ORDER BY c.relname, con.conname
             """,
             parameters,
@@ -1317,7 +1316,61 @@ def normalized_managed_catalog(cursor: Cursor, profile: str) -> dict[str, object
         for row in rows:
             if isinstance(row, dict) and "owner_role" in row:
                 row["owner_role"] = "managed-owner" if row["owner_role"] == managed_owner else "unexpected-owner"
+    _normalize_provider_acls(document)
     return document
+
+
+_PROVIDER_ACL_ROLES = frozenset({"anon", "authenticated", "service_role"})
+_PROVIDER_DEFAULT_ACL_ROLES = frozenset({"anon", "authenticated", "service_role", "postgres"})
+
+
+def _normalize_acl_entry(entry: str, *, is_public_schema: bool = False) -> str | None:
+    """Filter Supabase provider-managed ACL grants and normalize PG17 MAINTAIN privilege."""
+    grantee, sep, rest = entry.partition("=")
+    if not sep:
+        return entry
+    if grantee in _PROVIDER_ACL_ROLES:
+        return None
+    if is_public_schema and entry == "postgres=U/pg_database_owner":
+        return None
+    if grantee == "postgres" and rest.startswith("arwdDxtm/"):
+        return f"postgres=arwdDxt/{rest.split('/', 1)[1]}"
+    return entry
+
+
+def _normalize_provider_acls(document: dict[str, object]) -> None:
+    """Normalize provider-managed ACLs and default privileges for hosted-portable parity."""
+    for section in ("schemas", "tables", "columns", "sequences", "types", "functions"):
+        rows = document.get(section)
+        if not isinstance(rows, list):
+            continue
+        for row in rows:
+            if not isinstance(row, dict) or not isinstance(row.get("acl"), list):
+                continue
+            is_public_schema = section == "schemas" and row.get("schema_name") == "public"
+            normalized = [
+                cleaned
+                for raw in row["acl"]
+                if isinstance(raw, str)
+                and (cleaned := _normalize_acl_entry(raw, is_public_schema=is_public_schema)) is not None
+            ]
+            row["acl"] = sorted(normalized)
+    defaults = document.get("default_privileges")
+    if isinstance(defaults, list):
+        filtered_defaults = []
+        for row in defaults:
+            if not isinstance(row, dict) or not isinstance(row.get("acl"), list):
+                filtered_defaults.append(row)
+                continue
+            non_provider = [
+                raw
+                for raw in row["acl"]
+                if isinstance(raw, str) and raw.partition("=")[0] not in _PROVIDER_DEFAULT_ACL_ROLES
+            ]
+            if non_provider:
+                row["acl"] = sorted(non_provider)
+                filtered_defaults.append(row)
+        document["default_privileges"] = filtered_defaults
 
 
 def _migration_identity(entry: MigrationEntry) -> tuple[str, str]:

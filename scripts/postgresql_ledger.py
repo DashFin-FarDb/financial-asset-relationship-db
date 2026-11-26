@@ -34,7 +34,7 @@ TARGET_BINDING_VERSION = "fardb-target-bindings-v1"
 TARGET_FINGERPRINT_ALGORITHM = "fardb-target-fingerprint-v1"
 PROVIDER_STATEMENTS_ALGORITHM = "fardb-provider-statements-v1"
 TARGET_IDENTITY_INDETERMINATE = "TARGET_IDENTITY_INDETERMINATE"
-CATALOG_NORMALIZATION_VERSION = "fardb-pg-catalog-v1"
+CATALOG_NORMALIZATION_VERSION = "fardb-pg-catalog-v2"
 MANAGED_SCOPE_VERSION = "fardb-pg-scope-v2"
 PINNED_SUPABASE_CLI_VERSION = "2.114.0"
 DISPOSABLE_CLI_CONFIG = b'project_id = "fardb-ledger-projection"\n'

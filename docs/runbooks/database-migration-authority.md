@@ -142,7 +142,7 @@ a `combined` target.
 - **Database-specific exceptions:** SQLite and explicit migration connections retain their existing behavior.
 
 CQ-03C evaluates `fresh-v1` targets through the read-only
-`fardb-pg-catalog-v1+fardb-pg-scope-v2` gate. It compares exact ordered migration identities, the selected profile's
+`fardb-pg-catalog-v2+fardb-pg-scope-v2` gate. It compares exact ordered migration identities, the selected profile's
 normalized catalog digest, and an explicit runtime-compatibility callback. The evaluator forces a read-only database
 transaction, rolls it back after catalog access, and exposes only bounded counts, digests, status, category, and
 reason codes. It never repairs schema or migration history.

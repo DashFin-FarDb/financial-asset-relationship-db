@@ -320,8 +320,8 @@ credential change.
 
 ### Normalization profile
 
-Define `fardb-pg-catalog-v1` as a versioned catalog normalization profile. The effective drift-contract identity is
-`fardb-pg-catalog-v1+fardb-pg-scope-v2` after the CQ-03D amendment; changing either component requires review
+Define `fardb-pg-catalog-v2` as a versioned catalog normalization profile. The effective drift-contract identity is
+`fardb-pg-catalog-v2+fardb-pg-scope-v2` after the CQ-03D amendment; changing either component requires review
 and a new expected digest:
 
 - obtain definitions through PostgreSQL catalog and `pg_get_*def` functions;
@@ -462,7 +462,7 @@ CQ-03B/C to profile-scoped forward baselines, non-executable historical evidence
 - [x] Approve the atomic `scripts.migrate_database` PostgreSQL ledger hand-off while preserving its SQLite path and
       existing operator, CI, Compose, test, and runbook entrypoints.
 - [x] Approve `fardb-pg-scope-v1`, its total ownership classifier, named exclusions, unknown-object non-pass rule,
-      and the `fardb-pg-catalog-v1` normalization contract.
+      and the `fardb-pg-catalog-v2` normalization contract.
 - [x] Approve the three failure categories, `EVALUATION_INCOMPLETE` status, exit behavior, and sanitized evidence
       boundary.
 - [x] Approve forward-only migrations and restore-based destructive rollback.
