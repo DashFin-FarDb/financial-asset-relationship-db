@@ -241,16 +241,16 @@ describe("Package-lock.json Validation", () => {
       expect(axiosLock).toBeDefined();
     });
 
-    it("should have axios version 1.20.0", () => {
+    it("should have axios version 1.21.1", () => {
       const axiosLock = packageLock.packages?.["node_modules/axios"];
-      expect(axiosLock?.version).toBe("1.20.0");
+      expect(axiosLock?.version).toBe("1.21.1");
     });
 
     it("axios should have resolved URL pointing to registry", () => {
       const axiosLock = packageLock.packages?.["node_modules/axios"];
       expect(axiosLock?.resolved).toBeDefined();
       expect(axiosLock?.resolved).toContain("registry.npmjs.org");
-      expect(axiosLock?.resolved).toContain("axios-1.20.0.tgz");
+      expect(axiosLock?.resolved).toContain("axios-1.21.1.tgz");
     });
 
     it("axios should have integrity hash", () => {
@@ -279,11 +279,11 @@ describe("Package-lock.json Validation", () => {
   });
 
   describe("Next.js Runtime Security Upgrade", () => {
-    it("pins Next.js 16.4.5 in the manifest and lockfile", () => {
+    it("pins Next.js 16.4.6 in the manifest and lockfile", () => {
       const nextLock = packageLock.packages?.["node_modules/next"];
 
-      expect(packageJson.dependencies.next).toBe("16.4.5");
-      expect(nextLock?.version).toBe("16.4.5");
+      expect(packageJson.dependencies.next).toBe("16.4.6");
+      expect(nextLock?.version).toBe("16.4.6");
     });
 
     it("keeps the Next.js PostCSS runtime separate from the root toolchain", () => {
@@ -294,7 +294,7 @@ describe("Package-lock.json Validation", () => {
 
       expect(nextLock?.dependencies?.postcss).toBe("8.5.23");
       expect(nestedPostcss?.version).toBe("8.5.23");
-      expect(hoistedPostcss?.version).toBe("8.5.32");
+      expect(hoistedPostcss?.version).toBe("8.5.33");
     });
 
     it("resolves the optional Sharp runtime to 0.35.5", () => {
@@ -337,7 +337,7 @@ describe("Package-lock.json Validation", () => {
     it("preserves the PostCSS parent relationship", () => {
       const postcssLock = packageLock.packages?.["node_modules/postcss"];
 
-      expect(postcssLock?.version).toBe("8.5.32");
+      expect(postcssLock?.version).toBe("8.5.33");
       expect(postcssLock?.dependencies?.nanoid).toBe("^3.3.20");
     });
   });
@@ -994,7 +994,7 @@ describe("Package-lock.json Validation", () => {
 
       // Should only have one version of axios
       expect(axiosVersions.size).toBe(1);
-      expect(axiosVersions.has("1.20.0")).toBeTruthy();
+      expect(axiosVersions.has("1.21.1")).toBeTruthy();
     });
 
     it("axios dependencies should be compatible versions", () => {
@@ -1016,7 +1016,7 @@ describe("Package-lock.json Validation", () => {
       const axiosLock = packageLock.packages?.["node_modules/axios"];
       const version = axiosLock?.version;
 
-      expect(version).toBe("1.20.0");
+      expect(version).toBe("1.21.1");
 
       // Major version should be 1 for backward compatibility
       if (version == null) {
