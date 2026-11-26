@@ -17,6 +17,9 @@ name: Bearer
   schedule:
     - cron: "16 8 * * 1"
 
+permissions:
+  contents: read
+
 jobs:
   bearer:
     permissions:

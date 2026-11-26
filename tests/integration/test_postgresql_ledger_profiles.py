@@ -26,10 +26,13 @@ from api.database import (
 )
 from scripts import postgresql_preflight
 from scripts.postgresql_drift import (
+    CHECK_PASSED,
     DRIFT_DETECTED,
     EVALUATION_INCOMPLETE,
     HIGHER_PRIORITY_CHECK_NOT_EVALUATED,
     LEDGER_HISTORY_MISMATCH,
+    NOT_EVALUATED,
+    OUTSIDE_MANAGED_SCOPE,
     PASS,
     PROVIDER_SCHEMA_DRIFT,
     RUNTIME_COMPATIBILITY_MISMATCH,
@@ -416,7 +419,9 @@ def _verify_hosted_adoption_prefix(
     try:
         for marker in selected:
             adoption = evaluate_marker(marker)
-            assert adoption.status == PASS, adoption.as_public_dict()
+            assert adoption.status == EVALUATION_INCOMPLETE, adoption.as_public_dict()
+            assert adoption.history == CHECK_PASSED, adoption.as_public_dict()
+            assert OUTSIDE_MANAGED_SCOPE in adoption.reason_codes
             assert _migration_history(target_url) == adopted_history
             adopted_history += ((marker.timestamp, marker.filename[15:-4]),)
             _replace_migration_history(target_url, adopted_history)
@@ -783,8 +788,8 @@ def test_clean_profile_build_and_history(profile: str) -> None:
                 _drop_runtime_login(base_url, runtime_login)
 
 
-def test_collection_only_runner_passes_against_disposable_combined_postgres(tmp_path: Path, monkeypatch) -> None:
-    """The actual collection runner proves the hosted prefix on one disposable combined database."""
+def test_collection_only_runner_rejects_disposable_owner_on_hosted_scope(tmp_path: Path, monkeypatch) -> None:
+    """The collection runner consumes once and rejects a local owner in hosted scope."""
     base_url = _ephemeral_postgres_url()
     database_name = f"cq03d_collect_{uuid4().hex[:12]}"
     target_url = _database_url(base_url, database_name)
@@ -933,17 +938,21 @@ def test_collection_only_runner_passes_against_disposable_combined_postgres(tmp_
 
         assert len(reports) == len(rejected) == 1
         report = reports[0]
-        assert report.status == PASS, json.dumps(report.as_public_dict(), sort_keys=True)
+        assert report.status == EVALUATION_INCOMPLETE, json.dumps(report.as_public_dict(), sort_keys=True)
+        assert OUTSIDE_MANAGED_SCOPE in report.reason_codes
         assert str(rejected[0]) == postgresql_preflight.PERMIT_INVALID
-        assert report.identity == "PASSED"
-        assert report.history == "PASSED"
-        assert report.catalog == "PASSED"
-        assert report.runtime_compatibility == "PASSED"
-        assert report.runtime_authority == "PASSED"
-        assert report.required_check_count == report.evaluated_check_count == 5
+        assert report.identity == CHECK_PASSED
+        assert report.history == CHECK_PASSED
+        assert report.catalog == NOT_EVALUATED
+        assert report.runtime_compatibility == CHECK_PASSED
+        assert report.runtime_authority == NOT_EVALUATED
+        assert report.required_check_count == 5
+        assert report.evaluated_check_count == 3
+        # Missing legacy inventory, incomplete extension inventory, and the disposable plpgsql owner.
+        assert report.unknown_count == 3
         assert report.history_timestamp_count == 6
         assert "migration_parity" not in report.as_public_dict()
-        assert report.expected_catalog_digest == report.actual_catalog_digest
+        assert report.expected_catalog_digest is report.actual_catalog_digest is None
         assert json.loads(authorization_path.read_text(encoding="utf-8"))["state"] == "consumed"
 
         # A failed first connection consumes a separate approval before trying to connect.

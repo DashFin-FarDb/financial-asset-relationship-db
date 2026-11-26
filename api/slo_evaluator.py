@@ -81,14 +81,19 @@ class SLOEvaluator:
                     metrics["http_requests_error"] += sample.value
 
     def evaluate_api_latency(self, metrics: dict[str, float]) -> SLOEvaluationResult:
-        """Evaluate lifetime average API latency against the threshold."""
+        """Evaluate lifetime average API latency against the threshold.
+
+        Short-lived processes (for example serverless instances) observe only a handful of
+        requests, so the latency SLO is treated as compliant until the minimum sample size is met.
+        """
         total_duration = metrics.get("http_duration_sum", 0.0)
         total_requests = metrics.get("http_duration_count", 0.0)
 
         current_avg = total_duration / total_requests if total_requests > 0 else 0.0
         threshold = self.settings.slo_api_latency_avg_seconds
+        has_min_sample = total_requests >= self.settings.slo_api_latency_min_requests
 
-        is_compliant = current_avg <= threshold
+        is_compliant = not has_min_sample or current_avg <= threshold
         margin = threshold - current_avg
 
         self._record_and_log(

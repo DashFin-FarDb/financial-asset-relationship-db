@@ -482,7 +482,19 @@ class TestSpecificWorkflows:
             assert "security-events" in bandit_job["permissions"]
             assert bandit_job["permissions"]["security-events"] == "write"
 
-    @pytest.mark.parametrize("workflow_name", ["bandit.yml", "codeql.yml", "dependency-check.yml", "semgrep.yml"])
+    @pytest.mark.parametrize(
+        "workflow_name",
+        [
+            "apisec-scan.yml",
+            "bandit.yml",
+            "bearer.yml",
+            "codeql.yml",
+            "dependency-check.yml",
+            "devskim.yml",
+            "eslint.yml",
+            "semgrep.yml",
+        ],
+    )
     def test_security_scanner_workflow_top_level_permissions_read_only(self, workflow_name):
         """Scanner workflows keep a read-only top-level token and grant writes per job (Scorecard TokenPermissions)."""
         workflow_path = PROJECT_ROOT / ".github" / "workflows" / workflow_name
@@ -491,8 +503,13 @@ class TestSpecificWorkflows:
         assert isinstance(config, dict), f"{workflow_name} should parse to a mapping/dict"
 
         assert config.get("permissions") == {"contents": "read"}
+        required_job_permissions = {
+            "apisec-scan.yml": {"Trigger_APIsec_scan": {"security-events": "write", "actions": "read"}},
+        }.get(workflow_name, {})
+        assert required_job_permissions.keys() <= config["jobs"].keys()
         for job_name, job in config["jobs"].items():
             assert "permissions" in job, f"{workflow_name}:{job_name} must declare job-level permissions"
+            assert job["permissions"] == required_job_permissions.get(job_name, job["permissions"])
 
     def test_codeql_workflow_languages(self):
         """The CodeQL workflow specifies languages to analyze."""
