@@ -990,6 +990,8 @@ def test_supabase_adapter_rejects_unapproved_routing_or_tls(tmp_path: Path, muta
 def test_live_database_oid_is_bound_to_the_protected_fingerprint(tmp_path: Path, monkeypatch) -> None:
     """The same connection proves read-only posture, live OID, and canonical identity."""
 
+    executed_queries: list[str] = []
+
     class Cursor:
         """Return one immutable database OID."""
 
@@ -1003,7 +1005,7 @@ def test_live_database_oid_is_bound_to_the_protected_fingerprint(tmp_path: Path,
 
         def execute(self, query: str) -> None:
             """Record the statement timeout and immutable catalog query."""
-            assert "statement_timeout" in query or "pg_catalog.pg_database" in query
+            executed_queries.append(query)
 
         def fetchall(self):
             """Return one positive database OID."""
@@ -1042,6 +1044,9 @@ def test_live_database_oid_is_bound_to_the_protected_fingerprint(tmp_path: Path,
     assert returned is connection
     assert connection.session == (True, False)
     assert connection.rollbacks == 1
+    assert len(executed_queries) == 2
+    assert "statement_timeout" in executed_queries[0]
+    assert "pg_catalog.pg_database" in executed_queries[1]
 
 
 @pytest.mark.parametrize(
