@@ -37,6 +37,7 @@ from scripts.postgresql_drift import (
     _runtime_check,
     canonical_catalog_bytes,
     catalog_digest,
+    collect_legacy_catalog_evidence,
     evaluate_profile_drift,
     expected_adoption_history,
     expected_managed_tables,
@@ -1032,3 +1033,136 @@ def test_plpgsql_test_owner_requires_explicit_local_scope() -> None:
     local = _public_scope(StubCursor(responses), "auth", allow_loopback_test_owner=True)
     assert default[4] == ("extension:plpgsql",)
     assert local == (0, 1, 0, 0, ())
+
+
+def test_collect_legacy_catalog_evidence_retains_only_digests_and_posture() -> None:
+    """The protected diagnostic reports named objects and never prints definitions."""
+    helper_definition = "private helper definition"
+    index_definition = "CREATE INDEX example ON public.financial_data (symbol)"
+    cursor = StubCursor(
+        [
+            (("definition", "configuration"), [(helper_definition, ["search_path=public"])]),
+            (
+                ("name", "definition", "valid", "ready", "nulls_not_distinct"),
+                [("idx_financial_data_symbol", index_definition, True, False, None)],
+            ),
+        ]
+    )
+    report = collect_legacy_catalog_evidence(cursor)
+    assert report["helper"] == {
+        "definition_sha256": hashlib.sha256(helper_definition.encode()).hexdigest(),
+        "configuration": ["search_path=public"],
+    }
+    indexes = report["indexes"]
+    assert isinstance(indexes, dict)
+    assert indexes["idx_financial_data_symbol"] == {
+        "definition_sha256": hashlib.sha256(_normalize_sql_text(index_definition).encode()).hexdigest(),
+        "valid": True,
+        "ready": False,
+        "nulls_not_distinct": None,
+    }
+    assert indexes["financial_data_pkey"] is None
+    assert helper_definition not in json.dumps(report)
+    assert index_definition not in json.dumps(report)
+
+
+def test_collect_legacy_catalog_evidence_rejects_unreviewed_index() -> None:
+    """An unexpected object cannot enter the protected diagnostic."""
+    cursor = StubCursor(
+        [
+            (("definition", "configuration"), []),
+            (
+                ("name", "definition", "valid", "ready", "nulls_not_distinct"),
+                [("unreviewed_index", "private definition", True, True, None)],
+            ),
+        ]
+    )
+    with pytest.raises(ValueError, match="^invalid legacy index evidence$"):
+        collect_legacy_catalog_evidence(cursor)
+
+
+def test_collect_legacy_catalog_evidence_rejects_malformed_helper_and_index_posture() -> None:
+    """Fail-closed branches reject ambiguous helpers, oversized config, and non-boolean index flags."""
+    ambiguous = StubCursor([(("definition", "configuration"), [("def1", []), ("def2", [])])])
+    with pytest.raises(ValueError, match="^ambiguous restricted helper$"):
+        collect_legacy_catalog_evidence(ambiguous)
+
+    oversized = StubCursor([(("definition", "configuration"), [("def1", ["x=1"] * 33)])])
+    with pytest.raises(ValueError, match="^restricted helper evidence unavailable$"):
+        collect_legacy_catalog_evidence(oversized)
+
+    bad_posture = StubCursor(
+        [
+            (("definition", "configuration"), []),
+            (
+                ("name", "definition", "valid", "ready", "nulls_not_distinct"),
+                [("idx_financial_data_symbol", "CREATE INDEX x ON public.financial_data (symbol)", "yes", True, None)],
+            ),
+        ]
+    )
+    with pytest.raises(ValueError, match="^legacy index posture unavailable$"):
+        collect_legacy_catalog_evidence(bad_posture)
+
+
+def test_normalize_provider_acls_retains_unexpected_grants_and_strips_only_reviewed_baselines() -> None:
+    """Exact reviewed provider ACLs normalize cleanly while unexpected anon/authenticated grants remain drift."""
+    from scripts.postgresql_drift import _normalize_provider_acls
+
+    document: dict[str, object] = {
+        "schemas": [
+            {
+                "schema_name": "public",
+                "acl": [
+                    "=U/pg_database_owner",
+                    "anon=U/pg_database_owner",
+                    "authenticated=U/pg_database_owner",
+                    "service_role=U/pg_database_owner",
+                    "postgres=U/pg_database_owner",
+                    "anon=UC/pg_database_owner",
+                ],
+            }
+        ],
+        "tables": [
+            {
+                "table_name": "user_credentials",
+                "acl": [
+                    "fardb_runtime_auth=r/postgres",
+                    "postgres=arwdDxtm/postgres",
+                    "service_role=arwdDxtm/postgres",
+                    "anon=r/postgres",
+                ],
+            }
+        ],
+        "functions": [
+            {
+                "function_name": "grac_v1_reject_mutation",
+                "acl": ["postgres=X/postgres", "service_role=X/postgres", "authenticated=X/postgres"],
+            }
+        ],
+        "default_privileges": [
+            {
+                "schema_name": "public",
+                "object_type": "f",
+                "acl": ["anon=EXECUTE", "authenticated=EXECUTE", "postgres=EXECUTE", "service_role=EXECUTE"],
+            },
+            {
+                "schema_name": "public",
+                "object_type": "r",
+                "acl": ["anon=SELECT"],
+            },
+        ],
+    }
+    _normalize_provider_acls(document)
+    assert document["schemas"] == [
+        {"schema_name": "public", "acl": ["=U/pg_database_owner", "anon=UC/pg_database_owner"]}
+    ]
+    assert document["tables"] == [
+        {
+            "table_name": "user_credentials",
+            "acl": ["anon=r/postgres", "fardb_runtime_auth=r/postgres", "postgres=arwdDxt/postgres"],
+        }
+    ]
+    assert document["functions"] == [
+        {"function_name": "grac_v1_reject_mutation", "acl": ["authenticated=X/postgres", "postgres=X/postgres"]}
+    ]
+    assert document["default_privileges"] == [{"schema_name": "public", "object_type": "r", "acl": ["anon=SELECT"]}]

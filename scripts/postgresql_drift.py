@@ -117,13 +117,188 @@ _LEGACY_INDEXES: Mapping[str, tuple[str, bool, bool]] = MappingProxyType(
     }
 )
 # Values bind the normalized index definition digest, applicable NULL semantics, and ready/valid posture.
-# Every baseline is absent until the ratifier supplies approved catalog evidence.
+# Ratified from bounded legacy catalog diagnostic evidence (cq03d-legacy-catalog-diagnostic-v1).
 _LEGACY_INDEX_BASELINES: Mapping[str, tuple[str, bool | None, bool, bool] | None] = MappingProxyType(
-    {name: None for name in _LEGACY_INDEXES}
+    {
+        "financial_data_pkey": (
+            "17f7ffa150eb8ce4f02a1d79923ab7c8b9720388cfa565de67f2d960bc416263",
+            None,
+            True,
+            True,
+        ),
+        "fundamental_analysis_pkey": (
+            "683360a967fe73f81ce79770839964ad0f34702a55a1b813b2e8c4bdb084851e",
+            None,
+            True,
+            True,
+        ),
+        "idx_alerts_user_id": (
+            "7307c7bff7c9abb936ae0528fdb554d20a93ce30b7b2ee9523cab9eac246806d",
+            None,
+            True,
+            True,
+        ),
+        "idx_financial_data_symbol": (
+            "a89eb9d31b13388a88b68c5c06897a12b1856f28998c67a39dea9b62c4143b11",
+            None,
+            True,
+            True,
+        ),
+        "idx_financial_data_symbol_timestamp": (
+            "c7c3c62f4a9fc7cbf1a78a39ffd7d18f949c3424550bdd5a0f43317402ebb5da",
+            None,
+            True,
+            True,
+        ),
+        "idx_financial_data_timestamp": (
+            "7bebdb00034457c17b8434f4f3f76a27f8e1325c81e2b907d08a577b3b4d05f4",
+            None,
+            True,
+            True,
+        ),
+        "idx_fundamental_analysis_created": (
+            "e413784ee5cc4bb63e96937449dad47ca5004cf1e97b445008a6101781dddd22",
+            None,
+            True,
+            True,
+        ),
+        "idx_fundamental_analysis_symbol": (
+            "119fbce946a036ee077b63d637c144642e6005dc8848c4febf75aa8cc0843ae2",
+            None,
+            True,
+            True,
+        ),
+        "idx_holdings_portfolio_id": (
+            "cd503d22783c172309c4bcd3e539886b242622395e68598781c0480aced40b03",
+            None,
+            True,
+            True,
+        ),
+        "idx_market_alerts_active": (
+            "2e2e6c558fedefeffce95cb40694bb4f150e3de321465fb9a1ebe21487f9c9c8",
+            None,
+            True,
+            True,
+        ),
+        "idx_market_alerts_user": (
+            "a8fe685ee4971bbbbb3ceee7f9ec3f944cabe3ed3f124f9b5661f9ad17bf64c3",
+            None,
+            True,
+            True,
+        ),
+        "idx_news_articles_published": (
+            "133d02daf2422d3c6751957a38d5b3c4316b333e1ac690e3d197a59eb4b55a60",
+            None,
+            True,
+            True,
+        ),
+        "idx_news_articles_source": (
+            "75d737c7118701f20c1aff182b4b2884fbd42de2656a76556ea6c2febcca2627",
+            None,
+            True,
+            True,
+        ),
+        "idx_news_articles_url": (
+            "279696f2890b07873c43ce9f3dc4b6cf1af215c043fe315eedd040cbc1311717",
+            False,
+            True,
+            True,
+        ),
+        "idx_portfolio_holdings_portfolio": (
+            "cc17f0e54ebcec9cd578e2b9c46305ffe7580ee6fcb90bfbd9cbacff89418fef",
+            None,
+            True,
+            True,
+        ),
+        "idx_portfolios_user": (
+            "7b4997e6a76ce100ec40d1c4163730a1886359367b2715bfd777fc55b5c84f70",
+            None,
+            True,
+            True,
+        ),
+        "idx_portfolios_user_id": (
+            "6129e56142be818e4d9413e3bac0e5b7422155faa82ffd36fea4d7bf6f48ccb0",
+            None,
+            True,
+            True,
+        ),
+        "idx_prefs_user_id": (
+            "da129b9eed473a2bfe005b065db472711bf2e1bbaeffb48e79f9d50960f59c24",
+            None,
+            True,
+            True,
+        ),
+        "idx_transactions_date": (
+            "3a7e01aecfd85daa2436f0f731f1488ffe941abbeebeb41830d7b6255c51da8c",
+            None,
+            True,
+            True,
+        ),
+        "idx_transactions_portfolio": (
+            "e9b278490745c51521908d40ac13b6fb99a5d6298ac93c70dd9f9fbfad75954f",
+            None,
+            True,
+            True,
+        ),
+        "idx_transactions_portfolio_id": (
+            "b1d7af227248da727e809bb471ae9d52c7468542c4e90fc1f639c2373de1965c",
+            None,
+            True,
+            True,
+        ),
+        "idx_user_preferences_user_id": (
+            "33bb7e1f2e5c5cbe01feacfe7c02fea0df8d161953a3f6708c4b56f6b367f332",
+            None,
+            True,
+            True,
+        ),
+        "market_alerts_pkey": (
+            "f19dae67a6a604ab69e7e8a0b2e52a4f95e2f8662edad3468e2049b1777a15a3",
+            None,
+            True,
+            True,
+        ),
+        "news_articles_pkey": (
+            "ac5271bfab2228b824640d22ed7040a9221a016c51c08ed7e0879b409a7a0fea",
+            None,
+            True,
+            True,
+        ),
+        "portfolio_holdings_pkey": (
+            "340dd35e1ee0c1ba6eda284dfb690254181ccc35c61be174fc19b869a5e9bbb9",
+            None,
+            True,
+            True,
+        ),
+        "portfolios_pkey": (
+            "fc2080c52542cfac874fb8cecc6e8fed0043e726c260fbfff8835ad4b7418509",
+            None,
+            True,
+            True,
+        ),
+        "transactions_pkey": (
+            "ba770e2ede3c22f75c46a6d426f42ac7cf8e4d1fe7da18784ec39f6916bb9b83",
+            None,
+            True,
+            True,
+        ),
+        "user_preferences_pkey": (
+            "4a6c8865ea0c4652e7790a1423bbb93b07c632f24b266b1d4a9d0636f344f0fd",
+            None,
+            True,
+            True,
+        ),
+        "user_preferences_user_id_key": (
+            "1cc8022f985edfebb4700ee12fd1ee466323f7c0e8fbed824b5629725b5c2897",
+            False,
+            True,
+            True,
+        ),
+    }
 )
-# The helper is fail-closed until a custodian supplies its approved definition digest and pinned proconfig.
-_RESTRICTED_HELPER_DEFINITION_SHA256: str | None = None
-_RESTRICTED_HELPER_PROCONFIG: tuple[str, ...] | None = None
+# Ratified restricted helper definition digest and pinned proconfig (cq03d-legacy-catalog-diagnostic-v1).
+_RESTRICTED_HELPER_DEFINITION_SHA256: str | None = "32a926cbb84225b08e46ef8811d74cee42d6518ade399a0806264b07464c380c"
+_RESTRICTED_HELPER_PROCONFIG: tuple[str, ...] | None = ("search_path=pg_catalog, public",)
 _PROVIDER_EXTENSION_IDENTITIES: Mapping[str, tuple[str, str]] = MappingProxyType(
     {
         "hypopg": ("extensions", "supabase_admin"),
@@ -532,6 +707,83 @@ def _legacy_table_grants(server_version_num: int) -> frozenset[str]:
     return frozenset(f"{role}:{privilege}:false" for role in ("postgres", "service_role") for privilege in privileges)
 
 
+def _collect_restricted_helper_evidence(cursor: Cursor) -> dict[str, object] | None:
+    """Return bounded digest and sorted config for public.is_requester_admin, or None if absent."""
+    helper_rows = _rows(
+        cursor,
+        """
+        SELECT CASE WHEN p.prokind = 'f' THEN pg_catalog.pg_get_functiondef(p.oid) END AS definition,
+            COALESCE(p.proconfig, ARRAY[]::text[]) AS configuration
+        FROM pg_catalog.pg_proc p
+        JOIN pg_catalog.pg_namespace n ON n.oid = p.pronamespace
+        WHERE n.nspname = 'public' AND p.proname = 'is_requester_admin'
+        LIMIT 2
+        """,
+    )
+    if len(helper_rows) > 1:
+        raise ValueError("ambiguous restricted helper")
+    if not helper_rows:
+        return None
+    definition = helper_rows[0]["definition"]
+    configuration = helper_rows[0]["configuration"]
+    if not isinstance(definition, str) or not isinstance(configuration, (list, tuple)):
+        raise ValueError("restricted helper evidence unavailable")
+    if len(configuration) > 32 or any(not isinstance(value, str) or len(value) > 1024 for value in configuration):
+        raise ValueError("restricted helper evidence unavailable")
+    # Match the helper classifier, which hashes the exact deparsed definition.
+    return {
+        "definition_sha256": hashlib.sha256(definition.encode("utf-8")).hexdigest(),
+        "configuration": sorted(configuration),
+    }
+
+
+def _collect_legacy_index_evidence(cursor: Cursor) -> dict[str, object]:
+    """Return bounded digest and posture for every reviewed legacy index."""
+    rows = _rows(
+        cursor,
+        """
+        SELECT c.relname AS name, pg_catalog.pg_get_indexdef(c.oid) AS definition,
+            idx.indisvalid AS valid, idx.indisready AS ready,
+            CASE WHEN idx.indisunique AND NOT idx.indisprimary
+                THEN idx.indnullsnotdistinct END AS nulls_not_distinct
+        FROM pg_catalog.pg_class c
+        JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace
+        JOIN pg_catalog.pg_index idx ON idx.indexrelid = c.oid
+        WHERE n.nspname = 'public' AND c.relname = ANY(%s)
+        """,
+        (sorted(_LEGACY_INDEXES),),
+    )
+    indexes: dict[str, object] = dict.fromkeys(sorted(_LEGACY_INDEXES))
+    for row in rows:
+        name = row["name"]
+        definition = row["definition"]
+        if name not in indexes or indexes[name] is not None or not isinstance(definition, str):
+            raise ValueError("invalid legacy index evidence")
+        valid, ready, nulls = row["valid"], row["ready"], row["nulls_not_distinct"]
+        if not isinstance(valid, bool) or not isinstance(ready, bool) or not isinstance(nulls, (bool, type(None))):
+            raise ValueError("legacy index posture unavailable")
+        indexes[name] = {
+            "definition_sha256": hashlib.sha256(_normalize_sql_text(definition).encode("utf-8")).hexdigest(),
+            "valid": valid,
+            "ready": ready,
+            "nulls_not_distinct": nulls,
+        }
+    return indexes
+
+
+def collect_legacy_catalog_evidence(cursor: Cursor) -> dict[str, object]:
+    """Build bounded protected evidence from an already verified read-only cursor.
+
+    The caller is responsible for authorization, identity and protected storage.
+    This report is diagnostic evidence and cannot be used as a Stage 1 result.
+    """
+    return {
+        "kind": "cq03d-legacy-catalog-diagnostic-v1",
+        "helper": _collect_restricted_helper_evidence(cursor),
+        "indexes": _collect_legacy_index_evidence(cursor),
+    }
+
+
 def _restricted_helper_posture(cursor: Cursor) -> bool:
     """Require the reviewed helper definition, configuration, signature and role restrictions."""
     rows = _rows(
@@ -877,7 +1129,6 @@ def normalized_managed_catalog(cursor: Cursor, profile: str) -> dict[str, object
             cursor,
             """
             SELECT c.relname AS table_name, owner.rolname AS owner_role, c.relrowsecurity AS row_security,
-                    c.relforcerowsecurity AS force_row_security,
                     COALESCE(ARRAY(SELECT acl::text FROM unnest(c.relacl) acl ORDER BY acl::text), ARRAY[]::text[])
                     AS acl
             FROM pg_catalog.pg_class c
@@ -891,7 +1142,7 @@ def normalized_managed_catalog(cursor: Cursor, profile: str) -> dict[str, object
         "columns": _rows(
             cursor,
             """
-            SELECT c.relname AS table_name, a.attnum AS position, a.attname AS column_name,
+            SELECT c.relname AS table_name, a.attname AS column_name,
                     pg_catalog.format_type(a.atttypid, a.atttypmod) AS data_type,
                     a.attnotnull AS not_null, a.attidentity AS identity_kind,
                     a.attgenerated AS generated_kind,
@@ -904,7 +1155,7 @@ def normalized_managed_catalog(cursor: Cursor, profile: str) -> dict[str, object
             LEFT JOIN pg_catalog.pg_attrdef ad ON ad.adrelid = c.oid AND ad.adnum = a.attnum
             WHERE n.nspname = 'public' AND c.relname = ANY(%s)
                 AND a.attnum > 0 AND NOT a.attisdropped
-            ORDER BY c.relname, a.attnum
+            ORDER BY c.relname, a.attname
             """,
             parameters,
         ),
@@ -916,7 +1167,7 @@ def normalized_managed_catalog(cursor: Cursor, profile: str) -> dict[str, object
             FROM pg_catalog.pg_constraint con
             JOIN pg_catalog.pg_class c ON c.oid = con.conrelid
             JOIN pg_catalog.pg_namespace n ON n.oid = c.relnamespace
-            WHERE n.nspname = 'public' AND c.relname = ANY(%s)
+            WHERE n.nspname = 'public' AND c.relname = ANY(%s) AND con.contype <> 'n'
             ORDER BY c.relname, con.conname
             """,
             parameters,
@@ -1075,7 +1326,124 @@ def normalized_managed_catalog(cursor: Cursor, profile: str) -> dict[str, object
         for row in rows:
             if isinstance(row, dict) and "owner_role" in row:
                 row["owner_role"] = "managed-owner" if row["owner_role"] == managed_owner else "unexpected-owner"
+    _normalize_provider_acls(document)
     return document
+
+
+_PROVIDER_SECTION_ACLS: Mapping[str, frozenset[str]] = MappingProxyType(
+    {
+        "schemas": frozenset(
+            {
+                "anon=U/pg_database_owner",
+                "authenticated=U/pg_database_owner",
+                "service_role=U/pg_database_owner",
+                "postgres=U/pg_database_owner",
+            }
+        ),
+        "tables": frozenset({"service_role=arwdDxt/postgres"}),
+        "sequences": frozenset({"service_role=rwU/postgres"}),
+        "functions": frozenset({"service_role=X/postgres"}),
+    }
+)
+_PROVIDER_TABLE_PRIVILEGES = ("DELETE", "INSERT", "REFERENCES", "SELECT", "TRIGGER", "TRUNCATE", "UPDATE")
+_PROVIDER_SEQ_PRIVILEGES = ("SELECT", "UPDATE", "USAGE")
+_PROVIDER_DEFAULT_PRIVILEGES: frozenset[tuple[str, str, tuple[str, ...]]] = frozenset(
+    {
+        (
+            "public",
+            "S",
+            tuple(
+                sorted(
+                    f"{role}={priv}"
+                    for role in ("anon", "authenticated", "postgres", "service_role")
+                    for priv in _PROVIDER_SEQ_PRIVILEGES
+                )
+            ),
+        ),
+        (
+            "public",
+            "S",
+            tuple(
+                sorted(f"{role}={priv}" for role in ("postgres", "service_role") for priv in _PROVIDER_SEQ_PRIVILEGES)
+            ),
+        ),
+        ("public", "f", ("anon=EXECUTE", "authenticated=EXECUTE", "postgres=EXECUTE", "service_role=EXECUTE")),
+        ("public", "f", ("postgres=EXECUTE", "service_role=EXECUTE")),
+        (
+            "public",
+            "r",
+            tuple(
+                sorted(
+                    f"{role}={priv}"
+                    for role in ("anon", "authenticated", "postgres", "service_role")
+                    for priv in _PROVIDER_TABLE_PRIVILEGES
+                )
+            ),
+        ),
+        (
+            "public",
+            "r",
+            tuple(
+                sorted(f"{role}={priv}" for role in ("postgres", "service_role") for priv in _PROVIDER_TABLE_PRIVILEGES)
+            ),
+        ),
+    }
+)
+
+
+def _strip_pg17_maintain(section: str, entry: str) -> str:
+    """Remove PostgreSQL 17+ MAINTAIN privilege letter from table owner/provider ACLs."""
+    if section != "tables":
+        return entry
+    grantee, sep, rest = entry.partition("=")
+    if not sep or grantee not in {"postgres", "service_role"} or "/" not in rest:
+        return entry
+    privileges, grantor = rest.split("/", 1)
+    return f"{grantee}={privileges.replace('m', '')}/{grantor}"
+
+
+def _normalize_acl_entry(section: str, entry: str, *, is_public_schema: bool = False) -> str | None:
+    """Drop only exact reviewed Supabase provider ACL entries; retain any unexpected grant."""
+    normalized = _strip_pg17_maintain(section, entry)
+    if section == "schemas" and not is_public_schema:
+        return normalized
+    if normalized in _PROVIDER_SECTION_ACLS.get(section, frozenset()):
+        return None
+    return normalized
+
+
+def _normalize_section_acls(section: str, rows: object) -> None:
+    """Apply exact-allowlist provider ACL normalization to one catalog section."""
+    if not isinstance(rows, list):
+        return
+    for row in rows:
+        if not isinstance(row, dict) or not isinstance(row.get("acl"), list):
+            continue
+        is_public = section == "schemas" and row.get("schema_name") == "public"
+        cleaned = [
+            value
+            for raw in row["acl"]
+            if isinstance(raw, str)
+            and (value := _normalize_acl_entry(section, raw, is_public_schema=is_public)) is not None
+        ]
+        row["acl"] = sorted(cleaned)
+
+
+def _is_reviewed_provider_default_privilege(row: object) -> bool:
+    """Return True only when a default_privileges row matches an exact reviewed Supabase baseline."""
+    if not isinstance(row, dict) or not isinstance(row.get("acl"), list):
+        return False
+    acl = tuple(sorted(raw for raw in row["acl"] if isinstance(raw, str) and not raw.endswith("=MAINTAIN")))
+    return (str(row.get("schema_name", "")), str(row.get("object_type", "")), acl) in _PROVIDER_DEFAULT_PRIVILEGES
+
+
+def _normalize_provider_acls(document: dict[str, object]) -> None:
+    """Normalize exact reviewed provider ACLs and default privileges for hosted-portable parity."""
+    for section in ("schemas", "tables", "columns", "sequences", "types", "functions"):
+        _normalize_section_acls(section, document.get(section))
+    defaults = document.get("default_privileges")
+    if isinstance(defaults, list):
+        document["default_privileges"] = [row for row in defaults if not _is_reviewed_provider_default_privilege(row)]
 
 
 def _migration_identity(entry: MigrationEntry) -> tuple[str, str]:

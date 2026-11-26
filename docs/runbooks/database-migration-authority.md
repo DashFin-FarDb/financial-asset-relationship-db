@@ -142,7 +142,7 @@ a `combined` target.
 - **Database-specific exceptions:** SQLite and explicit migration connections retain their existing behavior.
 
 CQ-03C evaluates `fresh-v1` targets through the read-only
-`fardb-pg-catalog-v1+fardb-pg-scope-v2` gate. It compares exact ordered migration identities, the selected profile's
+`fardb-pg-catalog-v2+fardb-pg-scope-v2` gate. It compares exact ordered migration identities, the selected profile's
 normalized catalog digest, and an explicit runtime-compatibility callback. The evaluator forces a read-only database
 transaction, rolls it back after catalog access, and exposes only bounded counts, digests, status, category, and
 reason codes. It never repairs schema or migration history.
@@ -151,8 +151,8 @@ Scope v2 defines the expected identities for eight legacy tables, eight composit
 restricted `public.is_requester_admin()` helper. Tables require forced RLS, zero policies, no column ACL entries,
 and the reviewed table ACL. Each legacy identity must match its parent and owner. The helper requires an
 approved definition digest and exact `proconfig`, including `search_path`. Each index requires its own approved
-definition digest, validity, readiness, and applicable NULL uniqueness semantics. The helper and index baselines are currently unset, so hosted legacy remains
-`OUTSIDE_MANAGED_SCOPE` until they are ratified. A partial or changed legacy
+definition digest, validity, readiness, and applicable NULL uniqueness semantics. The helper and 29 legacy index baselines are ratified in `scripts/postgresql_drift.py`
+from bounded diagnostic evidence (`cq03d-legacy-catalog-diagnostic-v1`). A partial or changed legacy
 set remains `OUTSIDE_MANAGED_SCOPE`. The public report gives separate legacy and helper counts.
 
 The exact table ACL follows the connected server version: PostgreSQL 15 and 16 use the seven reviewed table

@@ -32,6 +32,7 @@ from scripts.postgresql_drift import (
     DriftReport,
     RuntimeCheckUnavailable,
     RuntimeCompatibilityMismatch,
+    collect_legacy_catalog_evidence,
     evaluate_profile_drift,
     expected_adoption_history,
 )
@@ -42,7 +43,6 @@ from scripts.postgresql_ledger import (
     TARGET_BINDINGS_ENV,
     TARGET_FINGERPRINT_ALGORITHM,
     TARGET_IDENTITY_INDETERMINATE,
-    LedgerContractError,
     LedgerManifest,
     MigrationEntry,
     PlannedTarget,
@@ -63,6 +63,8 @@ from scripts.postgresql_ledger import (
 PREFLIGHT_PERMIT_VERSION = "fardb-cq03d-preflight-permit-v1"
 COLLECTION_AUTHORIZATION_VERSION = "fardb-cq03d-collection-authorization-v1"
 COLLECTION_AUTHORIZATION_FILE_ENV = "FARDB_CQ03D_COLLECTION_AUTHORIZATION_FILE"
+COLLECTION_SCOPE = "read-only-evidence-collection"
+CATALOG_DIAGNOSTIC_SCOPE = "read-only-legacy-catalog-diagnostic"
 COLLECTION_PROFILE = "combined"
 COLLECTION_LINEAGE = "hosted-legacy-v1"
 COLLECTION_MARKER = "20260817153547"
@@ -485,7 +487,7 @@ def _exclusive_control_file_lock(handle: BinaryIO):
 
 
 def _validated_collection_authorization(
-    document: Mapping[str, object], manifest: LedgerManifest, now: datetime | None
+    document: Mapping[str, object], manifest: LedgerManifest, now: datetime | None, scope: str = COLLECTION_SCOPE
 ) -> CollectionAuthorization:
     """Validate the exact approved collection scope and its bounded target binding."""
     if set(document) != _COLLECTION_AUTHORIZATION_KEYS:
@@ -501,7 +503,7 @@ def _validated_collection_authorization(
         document["target_fingerprint_algorithm"] == TARGET_FINGERPRINT_ALGORITHM,
         isinstance(operator, str) and bool(operator.strip()) and operator == operator.strip(),
         isinstance(ratifier, str) and bool(ratifier.strip()) and ratifier == ratifier.strip(),
-        document["scope"] == "read-only-evidence-collection",
+        document["scope"] == scope,
     )
     if not all(checks):
         raise PreflightContractError(PERMIT_INVALID)
@@ -610,14 +612,14 @@ def _replace_collection_control(path: Path, metadata: os.stat_result, payload: b
             temporary_path.unlink()
 
 
-def consume_collection_authorization(
+def _consume_authorization_file(
     path: Path | str,
     manifest: LedgerManifest,
-    expected: CollectionAuthorization | None = None,
-    *,
-    now: datetime | None = None,
+    expected: CollectionAuthorization | None,
+    options: tuple[datetime | None, str],
 ) -> CollectionAuthorization:
-    """Atomically spend one protected collection authorization before connecting."""
+    """Atomically spend one protected authorization file under an exclusive lock."""
+    now, scope = options
     control_path = _resolved_permit_path(Path(path))
     lock_path = control_path.with_name(f".{control_path.name}.lock")
     lock_descriptor = -1
@@ -629,7 +631,7 @@ def consume_collection_authorization(
             lock_descriptor = -1
             with _exclusive_control_file_lock(lock_handle):
                 document, metadata = _read_collection_control(control_path)
-                authorization = _validated_collection_authorization(document, manifest, now)
+                authorization = _validated_collection_authorization(document, manifest, now, scope)
                 if expected is not None and authorization != expected:
                     raise PreflightContractError(PERMIT_INVALID)
                 consumed = dict(document, state="consumed")
@@ -644,12 +646,34 @@ def consume_collection_authorization(
                 os.close(lock_descriptor)
 
 
+def consume_collection_authorization(
+    path: Path | str,
+    manifest: LedgerManifest,
+    expected: CollectionAuthorization | None = None,
+    *,
+    now: datetime | None = None,
+) -> CollectionAuthorization:
+    """Atomically spend one protected Stage 1 collection authorization before connecting."""
+    return _consume_authorization_file(path, manifest, expected, (now, COLLECTION_SCOPE))
+
+
+def consume_diagnostic_authorization(
+    path: Path | str,
+    manifest: LedgerManifest,
+    expected: CollectionAuthorization | None = None,
+    *,
+    now: datetime | None = None,
+) -> CollectionAuthorization:
+    """Atomically spend one protected catalog diagnostic authorization before connecting."""
+    return _consume_authorization_file(path, manifest, expected, (now, CATALOG_DIAGNOSTIC_SCOPE))
+
+
 def load_collection_authorization(
-    path: Path | str, manifest: LedgerManifest, *, now: datetime | None = None
+    path: Path | str, manifest: LedgerManifest, *, now: datetime | None = None, scope: str = COLLECTION_SCOPE
 ) -> CollectionAuthorization:
     """Validate one unused collection authorization without consuming it."""
     document = _protected_permit_document(Path(path))
-    return _validated_collection_authorization(document, manifest, now)
+    return _validated_collection_authorization(document, manifest, now, scope)
 
 
 def _repository_sha() -> str:
@@ -794,6 +818,7 @@ def _read_only_url(route: RouteIdentity) -> str:
 def _prove_live_database_identity(connection, route: RouteIdentity, target: PlannedTarget) -> None:
     """Read and bind the connected database-instance OID inside one read-only transaction."""
     with connection.cursor() as cursor:
+        cursor.execute("SET LOCAL statement_timeout = '10s'")
         cursor.execute(
             "SELECT database.oid::text FROM pg_catalog.pg_database AS database "
             "WHERE database.datname = pg_catalog.current_database()"
@@ -1205,18 +1230,21 @@ def _migration_list_rows(stdout: str) -> tuple[tuple[str, str], ...] | None:
     """Parse only the bounded local/remote fields from pinned CLI JSON."""
     try:
         payload = json.loads(stdout)
-        rows = payload["data"]["migrations"]
+        if not isinstance(payload, dict):
+            raise ValueError("non-object payload")
+        data = payload.get("data")
+        rows = data["migrations"] if isinstance(data, dict) else payload["migrations"]
         if not isinstance(rows, list):
-            return None
+            raise ValueError("non-list migrations")
         actual: list[tuple[str, str]] = []
         for row in rows:
             if not isinstance(row, dict) or set(row) != {"local", "remote", "time"}:
-                return None
+                raise ValueError("malformed migration row")
             values = (row["local"], row["remote"], row["time"])
             if not all(isinstance(value, str) for value in values):
-                return None
+                raise ValueError("non-string migration values")
             actual.append((str(values[0]), str(values[1])))
-    except (KeyError, TypeError, json.JSONDecodeError):
+    except (KeyError, TypeError, ValueError, json.JSONDecodeError):
         return None
     return tuple(actual)
 
@@ -1523,10 +1551,94 @@ def run_collection(authorization_path: Path | str) -> CollectionReport:
     )
 
 
+def _diagnostic_output_path(path: Path) -> Path:
+    """Require a fresh receipt name in private storage outside the repository."""
+    if not path.is_absolute() or ".." in path.parts:
+        raise PreflightContractError(PERMIT_INVALID)
+    parent = path.parent.resolve(strict=True)
+    mode = parent.stat()
+    candidate = parent / path.name
+    valid_parent = (
+        os.name == "posix",
+        parent == path.parent,
+        not parent.is_relative_to(REPOSITORY_ROOT),
+        mode.st_uid == os.geteuid(),
+        stat.S_IMODE(mode.st_mode) == 0o700,
+    )
+    if not all(valid_parent) or candidate.exists() or candidate.is_symlink():
+        raise PreflightContractError(PERMIT_INVALID)
+    return candidate
+
+
+def _write_diagnostic_receipt(path: Path, report: Mapping[str, object]) -> None:
+    """Publish a complete owner-only receipt atomically without replacing existing evidence."""
+    with tempfile.NamedTemporaryFile(mode="w", encoding="utf-8", dir=path.parent) as handle:
+        _validate_collection_file(os.fstat(handle.fileno()))
+        json.dump(report, handle, sort_keys=True, separators=(",", ":"))
+        handle.flush()
+        os.fsync(handle.fileno())
+        os.link(handle.name, path)
+    _sync_collection_directory(path.parent)
+
+
+def run_catalog_diagnostic(authorization_path: Path, output_path: Path) -> None:
+    """Collect protected catalog metadata without using the Stage 1 or preflight entry points."""
+    output = _diagnostic_output_path(output_path)
+    manifest = load_and_validate_manifest()
+    authorization = load_collection_authorization(authorization_path, manifest, scope=CATALOG_DIAGNOSTIC_SCOPE)
+    repository_sha = _repository_sha()
+    if repository_sha != authorization.repository_sha:
+        raise PreflightContractError(REPOSITORY_HEAD_MISMATCH)
+    binding_value = os.environ.get(TARGET_BINDINGS_ENV)
+    inspection_value = os.environ.get(INSPECTION_DATABASE_URL_ENV)
+    if not binding_value or not inspection_value:
+        raise TargetIdentityError()
+    route = _supabase_route_identity(inspection_value)
+    target = _verified_target(manifest, authorization, Path(binding_value), route)
+
+    def verify_window_and_spend() -> None:
+        """Spend the diagnostic approval immediately before the single connection attempt."""
+        if _repository_sha() != repository_sha:
+            raise PreflightContractError(REPOSITORY_HEAD_MISMATCH)
+        consume_diagnostic_authorization(authorization_path, manifest, authorization)
+        _validate_permit_window(
+            {"approved_at": authorization.approved_at, "expires_at": authorization.expires_at}, now=None
+        )
+
+    connection = _connect_verified(route, target, verify_window_and_spend, route_label="inspection")
+    try:
+        _validate_permit_window(
+            {"approved_at": authorization.approved_at, "expires_at": authorization.expires_at}, now=None
+        )
+        with connection.cursor() as cursor:
+            cursor.execute("SET TRANSACTION READ ONLY")
+            cursor.execute("SET LOCAL statement_timeout = '10s'")
+            evidence = collect_legacy_catalog_evidence(cursor)
+    finally:
+        _discard_identity_connection(connection)
+    if _repository_sha() != repository_sha:
+        raise PreflightContractError(REPOSITORY_HEAD_MISMATCH)
+    _write_diagnostic_receipt(
+        output,
+        {
+            "repository_sha": repository_sha,
+            "manifest_sha256": manifest.sha256,
+            "target_fingerprint": target.fingerprint,
+            "profile": target.profile,
+            "lineage": target.lineage,
+            "expected_catalog_digest": authorization.expected_catalog_digest,
+            "collected_at": datetime.now(timezone.utc).isoformat(),
+            "evidence": evidence,
+        },
+    )
+
+
 def _build_parser() -> argparse.ArgumentParser:
     """Build the no-DSN command-line surface."""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--permit-file", type=Path)
+    parser.add_argument("--catalog-diagnostic-authorization-file", type=Path)
+    parser.add_argument("--catalog-diagnostic-output", type=Path)
     parser.add_argument(
         "--collection-authorization-file",
         type=Path,
@@ -1548,30 +1660,46 @@ def _run_selected_stage(arguments: argparse.Namespace) -> CollectionReport | Pre
     raise PreflightContractError(PERMIT_INVALID)
 
 
-def main(argv: Sequence[str] | None = None) -> int:
-    """Emit only a bounded public report or a fixed failure code."""
-    arguments = _build_parser().parse_args(argv)
-    try:
-        report = _run_selected_stage(arguments)
-    except TargetIdentityError as exc:
+def _dispatch_cli(arguments: argparse.Namespace) -> tuple[str, int]:
+    """Execute the requested CLI mode and return (stdout_line, exit_code)."""
+    diagnostic = arguments.catalog_diagnostic_authorization_file
+    output = arguments.catalog_diagnostic_output
+    if diagnostic is not None or output is not None:
+        has_other_stage = arguments.permit_file is not None or arguments.collection_authorization_file is not None
+        if diagnostic is None or output is None or has_other_stage:
+            raise PreflightContractError(PERMIT_INVALID)
+        run_catalog_diagnostic(diagnostic, output)
+        return "CATALOG_DIAGNOSTIC_RECORDED", 0
+    report = _run_selected_stage(arguments)
+    return json.dumps(report.as_public_dict(), sort_keys=True, separators=(",", ":")), (
+        0 if report.status == PASS else 1
+    )
+
+
+def _format_cli_error(exc: Exception) -> str:
+    """Map an execution exception to a bounded public failure code."""
+    if isinstance(exc, TargetIdentityError):
         message = TARGET_IDENTITY_INDETERMINATE
         if isinstance(exc, _ConnectionVerificationError):
             message += f" diagnostic={exc.category}"
             if exc.route_label is not None:
                 message += f" route={exc.route_label}"
-        print(message, file=sys.stderr)
+        return message
+    if isinstance(exc, PreflightContractError):
+        return exc.reason_code
+    return EVALUATION_INCOMPLETE
+
+
+def main(argv: Sequence[str] | None = None) -> int:
+    """Emit only a bounded public report or a fixed failure code."""
+    arguments = _build_parser().parse_args(argv)
+    try:
+        output_line, exit_code = _dispatch_cli(arguments)
+    except Exception as exc:  # noqa: BLE001 - never expose provider exceptions or protected inputs
+        print(_format_cli_error(exc), file=sys.stderr)
         return 1
-    except PreflightContractError as exc:
-        print(exc.reason_code, file=sys.stderr)
-        return 1
-    except LedgerContractError:
-        print(EVALUATION_INCOMPLETE, file=sys.stderr)
-        return 1
-    except Exception:  # noqa: BLE001 - never expose provider exceptions or protected inputs
-        print(EVALUATION_INCOMPLETE, file=sys.stderr)
-        return 1
-    print(json.dumps(report.as_public_dict(), sort_keys=True, separators=(",", ":")))
-    return 0 if report.status == PASS else 1
+    print(output_line)
+    return exit_code
 
 
 if __name__ == "__main__":

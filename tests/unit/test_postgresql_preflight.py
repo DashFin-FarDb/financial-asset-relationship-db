@@ -268,14 +268,14 @@ def test_collection_authorization_concurrent_consumption_has_one_winner(tmp_path
     real_validate = preflight._validated_collection_authorization
     validation_count = 0
 
-    def pause_first_after_validation(document, current_manifest, current_now):
+    def pause_first_after_validation(document, current_manifest, current_now, scope):
         """Hold the first consumer inside the lock while the competing call starts."""
         nonlocal validation_count
         validation_count += 1
         if validation_count == 1:
             validation_entered.set()
             assert allow_first_to_finish.wait(timeout=5)
-        return real_validate(document, current_manifest, current_now)
+        return real_validate(document, current_manifest, current_now, scope)
 
     monkeypatch.setattr(preflight, "_validated_collection_authorization", pause_first_after_validation)
 
@@ -989,6 +989,7 @@ def test_supabase_adapter_rejects_unapproved_routing_or_tls(tmp_path: Path, muta
 
 def test_live_database_oid_is_bound_to_the_protected_fingerprint(tmp_path: Path, monkeypatch) -> None:
     """The same connection proves read-only posture, live OID, and canonical identity."""
+    executed_queries: list[str] = []
 
     class Cursor:
         """Return one immutable database OID."""
@@ -1002,8 +1003,8 @@ def test_live_database_oid_is_bound_to_the_protected_fingerprint(tmp_path: Path,
             return None
 
         def execute(self, query: str) -> None:
-            """Record the immutable catalog query."""
-            assert "pg_catalog.pg_database" in query
+            """Record the statement timeout and immutable catalog query."""
+            executed_queries.append(query)
 
         def fetchall(self):
             """Return one positive database OID."""
@@ -1042,6 +1043,9 @@ def test_live_database_oid_is_bound_to_the_protected_fingerprint(tmp_path: Path,
     assert returned is connection
     assert connection.session == (True, False)
     assert connection.rollbacks == 1
+    assert len(executed_queries) == 2
+    assert "statement_timeout" in executed_queries[0]
+    assert "pg_catalog.pg_database" in executed_queries[1]
 
 
 @pytest.mark.parametrize(
@@ -1741,3 +1745,87 @@ def test_retained_runtime_identity_query_failure_is_classified(monkeypatch) -> N
     assert captured.value.category == preflight.LIVE_IDENTITY_VERIFICATION_FAILED
     assert captured.value.route_label == "graph"
     assert "provider identity query denied" not in str(captured.value)
+
+
+@pytest.mark.skipif(os.name != "posix", reason="POSIX protected receipt publication")
+@pytest.mark.parametrize("connection_fails", [False, True])
+def test_catalog_diagnostic_spends_only_its_own_authorization(tmp_path, monkeypatch, capsys, connection_fails):
+    """The diagnostic spends approval before connecting and publishes only protected evidence."""
+    tmp_path.chmod(0o700)
+    document = _collection_authorization_document()
+    path = _write_collection_authorization(tmp_path, document)
+    output = tmp_path / "diagnostic.json"
+    monkeypatch.setattr(preflight, "_repository_sha", lambda: document["repository_sha"])
+    monkeypatch.setenv(preflight.TARGET_BINDINGS_ENV, "fixture")
+    monkeypatch.setenv(preflight.INSPECTION_DATABASE_URL_ENV, "fixture")
+    monkeypatch.setattr(preflight, "_supabase_route_identity", Mock())
+    monkeypatch.setattr(
+        preflight,
+        "_verified_target",
+        Mock(
+            return_value=SimpleNamespace(
+                fingerprint=document["target_fingerprint"], profile=document["profile"], lineage=document["lineage"]
+            )
+        ),
+    )
+    connection = MagicMock()
+
+    def connect(_route, _target, before_connection, *, route_label):
+        """Assert spend ordering before the simulated connection result."""
+        assert route_label == "inspection"
+        before_connection()
+        assert json.loads(path.read_text())["state"] == "consumed"
+        if connection_fails:
+            raise RuntimeError("provider-private-error")
+        return connection
+
+    connector = Mock(side_effect=connect)
+    events: list[str] = []
+    cursor = connection.cursor.return_value.__enter__.return_value
+    cursor.execute.side_effect = events.append
+
+    def fake_collect(_cursor):
+        """Record diagnostic collection after session/transaction setup."""
+        events.append("collect")
+        return {"protected": "report"}
+
+    monkeypatch.setattr(preflight, "_connect_verified", connector)
+    monkeypatch.setattr(preflight, "collect_legacy_catalog_evidence", Mock(side_effect=fake_collect))
+    args = ("--catalog-diagnostic-authorization-file", str(path), "--catalog-diagnostic-output", str(output))
+    assert preflight.main(args) == 1
+    connector.assert_not_called()
+    assert json.loads(path.read_text())["state"] == "unused"
+    document["scope"] = preflight.CATALOG_DIAGNOSTIC_SCOPE
+    _write_collection_authorization(tmp_path, document)
+    with pytest.raises(preflight.PreflightContractError, match=preflight.PERMIT_INVALID):
+        preflight.load_collection_authorization(path, load_and_validate_manifest())
+    capsys.readouterr()
+    assert preflight.main(args) == int(connection_fails)
+    captured = capsys.readouterr()
+    assert "provider-private-error" not in captured.err
+    assert "protected" not in captured.out
+    assert output.exists() is not connection_fails
+    if not connection_fails:
+        assert captured.out == "CATALOG_DIAGNOSTIC_RECORDED\n"
+        assert output.stat().st_mode & 0o777 == 0o600
+        assert json.loads(output.read_text())["evidence"] == {"protected": "report"}
+        assert events == ["SET TRANSACTION READ ONLY", "SET LOCAL statement_timeout = '10s'", "collect"]
+        connection.rollback.assert_called_once()
+        connection.close.assert_called_once()
+    assert preflight.main(args) == 1
+    connector.assert_called_once()
+
+
+def test_migration_list_rows_parses_top_level_supabase_cli_2114_json() -> None:
+    """Real pinned Supabase CLI 2.114.0 emits a top-level migrations array."""
+    stdout = json.dumps(
+        {
+            "migrations": [
+                {"local": "", "remote": "20251019202442", "time": "2025-10-19 20:24:42"},
+                {"local": "20260817153547", "remote": "", "time": "2026-08-17 15:35:47"},
+            ],
+            "message": "Migrations listed",
+        }
+    )
+    assert preflight._migration_list_rows(stdout) == (("", "20251019202442"), ("20260817153547", ""))
+    assert preflight._migration_list_rows("[]") is None

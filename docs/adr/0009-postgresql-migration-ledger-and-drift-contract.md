@@ -306,8 +306,9 @@ and the restricted `public.is_requester_admin()` helper. Tables require owner `p
 policies, no column ACL entries, and only the reviewed non-grantable postgres/service-role ACL for the server version: PostgreSQL 15/16
 use seven table privileges, and PostgreSQL 17 adds `MAINTAIN`. Types and indexes require exact
 parent and owner. Tables and their composite row types can be counted when their posture matches.
-Indexes also require reviewed unique and primary flags. The indexes and helper remain outside protected scope
-until their respective baselines are ratified. The helper requires its reviewed
+Indexes also require reviewed unique and primary flags. The 29 legacy index baselines and the
+`public.is_requester_admin()` helper baseline are ratified in `scripts/postgresql_drift.py` from bounded diagnostic
+evidence (`cq03d-legacy-catalog-diagnostic-v1`). The helper requires its reviewed
 signature, security mode, owner, ACL, and no effective EXECUTE for untrusted or runtime roles. Eleven provider
 extensions require exact name, schema, and owner, with one exception for `plpgsql`: an attested `fresh-v1` loopback target
 without legacy inventory or the helper may use owner `postgres` or `test`. A partial or changed legacy inventory
@@ -320,8 +321,8 @@ credential change.
 
 ### Normalization profile
 
-Define `fardb-pg-catalog-v1` as a versioned catalog normalization profile. The effective drift-contract identity is
-`fardb-pg-catalog-v1+fardb-pg-scope-v2` after the CQ-03D amendment; changing either component requires review
+Define `fardb-pg-catalog-v2` as a versioned catalog normalization profile. The effective drift-contract identity is
+`fardb-pg-catalog-v2+fardb-pg-scope-v2` after the CQ-03D amendment; changing either component requires review
 and a new expected digest:
 
 - obtain definitions through PostgreSQL catalog and `pg_get_*def` functions;
@@ -486,6 +487,27 @@ CQ-03B/C to profile-scoped forward baselines, non-executable historical evidence
 **Boundary:** This amendment approves the classifier contract only. It does not authorize credential changes, another
 Stage 1 attempt, a hosted preflight, or closure of issue #1907 without its remaining evidence.
 
-Pending hosted baseline evidence includes the helper definition digest and exact proconfig (including search_path),
-and each legacy index definition digest, validity, readiness, and applicable NULL semantics. Approval of this
-amendment supplies none of those values. The helper and indexes remain outside protected scope until ratified.
+At PR #1960 merge time, pending hosted baseline evidence included the helper definition digest and exact proconfig
+(including search_path), and each legacy index definition digest, validity, readiness, and applicable NULL semantics.
+Approval of that amendment supplied none of those values, so the helper and indexes remained outside protected scope
+until ratified in the 2026-11-26 amendment below.
+
+### CQ-03D baseline ratification and `fardb-pg-catalog-v2` amendment
+
+- [x] Ratify the `public.is_requester_admin()` helper baseline (definition digest and `search_path=pg_catalog, public`)
+      and all 29 legacy index baselines in `scripts/postgresql_drift.py` from bounded diagnostic evidence
+      (`cq03d-legacy-catalog-diagnostic-v1`), resolving the pending baseline condition recorded in PR #1960 above.
+- [x] Adopt `fardb-pg-catalog-v2` hosted-portable normalization (column-name ordering without physical `attnum`,
+      excluding synthetic PostgreSQL 18 `contype = 'n'` rows, exact-allowlist Supabase provider ACL and default
+      privilege filtering, and PG17 `MAINTAIN` normalization) and recalibrate all four profile digests in
+      `supabase/ledger-profiles.json` against disposable PostgreSQL 18 (`manifest_sha256`:
+      `fad32a19821c30bd33fbbfbf34be662e38b8d13447dcf8e4d598020c7be1ace5`; `auth`:
+      `3401ef419a805efb51b79ddbca6f73f21e11d95f2c718306b6aabac8a87ab931`; `graph`:
+      `305b895a31fd2baf6010dee66ad15d271a49c6ec2040513f292cf07e8331b8c3`; `coordination`:
+      `012d33d0332cfa0ecd95b8111f8f2e43c9fac0f5d5ee2c426da31413083092d2`; `combined`:
+      `3ce04c3afb0c9190824d661237234e18063a7befb34b4dc31fa3e4c5a6274801`).
+
+**Decision:** Accepted for implementation and merge
+**Ratifier:** Repository maintainer `mohavro`, by explicit task authorization
+**Decision date:** 2026-11-26
+**GitHub evidence link:** [PR #1963](https://github.com/DashFin-FarDb/financial-asset-relationship-db/pull/1963), [Issue #1907](https://github.com/DashFin-FarDb/financial-asset-relationship-db/issues/1907), [Issue #1908](https://github.com/DashFin-FarDb/financial-asset-relationship-db/issues/1908)
