@@ -1,0 +1,248 @@
+{
+  "annotations": { "list": [] },
+  "description": "FarDB Control Plane observability dashboard wired to canonical Phase 1.4 lifecycle, lock, startup, SLO, RBAC, and resilience metrics from api/metrics.py.",
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "title": "Application Startups (1.4.d)",
+      "type": "stat",
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 0 },
+      "targets": [
+        {
+          "expr": "sum(application_startup_success_total{job=\"$job\"})",
+          "legendFormat": "Success"
+        },
+        {
+          "expr": "sum(application_startup_failure_total{job=\"$job\"})",
+          "legendFormat": "Failure"
+        }
+      ]
+    },
+    {
+      "title": "Rebuild State Status",
+      "type": "stat",
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 0 },
+      "targets": [
+        {
+          "expr": "max(graph_rebuild_state_status{job=\"$job\"})",
+          "legendFormat": "State"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "-1": { "text": "UNKNOWN", "color": "purple" },
+                "0": { "text": "NONE", "color": "blue" },
+                "1": { "text": "PENDING", "color": "yellow" },
+                "2": { "text": "RUNNING", "color": "orange" },
+                "3": { "text": "SUCCEEDED", "color": "green" },
+                "4": { "text": "FAILED", "color": "red" },
+                "5": { "text": "CANCELLED", "color": "semi-dark-yellow" }
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "title": "Last Heartbeat Age",
+      "type": "stat",
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 0 },
+      "targets": [
+        {
+          "expr": "time() - (rebuild_heartbeat_last_success_timestamp{job=\"$job\"} > 0)",
+          "legendFormat": "Age (s)"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "noValue": "No heartbeat yet",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "orange", "value": 60 },
+              { "color": "red", "value": 300 }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "title": "SLO Compliance",
+      "type": "stat",
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "gridPos": { "h": 4, "w": 6, "x": 18, "y": 0 },
+      "targets": [
+        {
+          "expr": "min(slo_compliance_status{job=\"$job\"})",
+          "legendFormat": "SLO"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "0": { "text": "BREACHED", "color": "red" },
+                "1": { "text": "COMPLIANT", "color": "green" }
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "title": "Rebuild Fail-Fast Admission & Cancellations (1.4.a)",
+      "type": "timeseries",
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 4 },
+      "targets": [
+        {
+          "expr": "sum by (result) (increase(graph_rebuild_admission_total{job=\"$job\"}[15m]))",
+          "legendFormat": "admission ({{result}})"
+        },
+        {
+          "expr": "sum(increase(graph_rebuild_cancelled_total{job=\"$job\"}[15m]))",
+          "legendFormat": "cancelled"
+        }
+      ]
+    },
+    {
+      "title": "Rebuild State Transitions & Recovery Triggers (1.4.b)",
+      "type": "timeseries",
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 4 },
+      "targets": [
+        {
+          "expr": "sum by (from_state, to_state) (increase(graph_rebuild_state_transition_total{job=\"$job\"}[15m]))",
+          "legendFormat": "{{from_state}} -> {{to_state}}"
+        },
+        {
+          "expr": "sum by (inconsistency_type) (increase(graph_rebuild_recovery_trigger_total{job=\"$job\"}[15m]))",
+          "legendFormat": "recovery ({{inconsistency_type}})"
+        }
+      ]
+    },
+    {
+      "title": "Distributed Lock Acquisitions & Refresh Latency (1.4.c)",
+      "type": "timeseries",
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 12 },
+      "targets": [
+        {
+          "expr": "sum by (status) (increase(rebuild_lock_acquisition_total{job=\"$job\"}[15m]))",
+          "legendFormat": "lock_acquire ({{status}})"
+        },
+        {
+          "expr": "histogram_quantile(0.95, sum by (le) (rate(rebuild_lock_refresh_duration_seconds_bucket{job=\"$job\"}[15m])))",
+          "legendFormat": "lock_refresh p95 (s)"
+        }
+      ]
+    },
+    {
+      "title": "Application Startup Duration (1.4.d)",
+      "type": "timeseries",
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 12 },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum by (le) (rate(application_startup_duration_seconds_bucket{job=\"$job\"}[15m])))",
+          "legendFormat": "Startup p95"
+        },
+        {
+          "expr": "sum(rate(application_startup_duration_seconds_sum{job=\"$job\"}[15m])) / clamp_min(sum(rate(application_startup_duration_seconds_count{job=\"$job\"}[15m])), 1e-9)",
+          "legendFormat": "Startup avg"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": { "unit": "s" }
+      }
+    },
+    {
+      "title": "Authentication, Token Revocations & RBAC Denials",
+      "type": "timeseries",
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 20 },
+      "targets": [
+        {
+          "expr": "sum by (outcome) (increase(auth_login_total{job=\"$job\"}[15m]))",
+          "legendFormat": "login ({{outcome}})"
+        },
+        {
+          "expr": "sum(increase(auth_token_revocations_total{job=\"$job\"}[15m]))",
+          "legendFormat": "token_revoked"
+        },
+        {
+          "expr": "sum by (required_role) (increase(auth_access_denied_total{job=\"$job\"}[15m]))",
+          "legendFormat": "rbac_denied ({{required_role}})"
+        }
+      ]
+    },
+    {
+      "title": "Rate Limiting, Idempotency & Ingestion Resilience",
+      "type": "timeseries",
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 20 },
+      "targets": [
+        {
+          "expr": "sum by (route) (increase(http_rate_limit_exceeded_total{job=\"$job\"}[15m]))",
+          "legendFormat": "rate_limited ({{route}})"
+        },
+        {
+          "expr": "sum by (outcome) (increase(rebuild_idempotency_total{job=\"$job\"}[15m]))",
+          "legendFormat": "idempotency ({{outcome}})"
+        },
+        {
+          "expr": "sum by (event_type) (increase(ingestion_resilience_events_total{job=\"$job\"}[15m]))",
+          "legendFormat": "ingestion ({{event_type}})"
+        }
+      ]
+    }
+  ],
+  "schemaVersion": 39,
+  "style": "dark",
+  "tags": ["fardb", "control-plane", "phase-1.4", "lifecycle", "observability"],
+  "templating": {
+    "list": [
+      {
+        "name": "datasource",
+        "type": "datasource",
+        "query": "prometheus",
+        "label": "Prometheus",
+        "hide": 0,
+        "refresh": 1
+      },
+      {
+        "name": "job",
+        "type": "custom",
+        "label": "Scrape Job",
+        "query": "fardb_fastapi,fardb-api",
+        "current": { "selected": true, "text": "fardb_fastapi", "value": "fardb_fastapi" },
+        "options": [
+          { "selected": true, "text": "fardb_fastapi", "value": "fardb_fastapi" },
+          { "selected": false, "text": "fardb-api", "value": "fardb-api" }
+        ],
+        "hide": 0
+      }
+    ]
+  },
+  "time": { "from": "now-1h", "to": "now" },
+  "timepicker": {},
+  "timezone": "",
+  "title": "FarDB Control Plane — Lifecycle, Phase 1.4 & Security",
+  "uid": "fardb-control-plane-lifecycle",
+  "version": 1
+}

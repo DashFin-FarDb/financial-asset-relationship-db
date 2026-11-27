@@ -16,6 +16,7 @@ monitoring/
 │   └── loki-recording.yml    # Log-to-Metric aggregations (pre-computed log counts)
 ├── dashboards/               # Grafana JSON exports (auto-provisioned into FarDB folder)
 │   ├── api-overview.json     # Global API health and performance
+│   ├── control-plane-lifecycle.json # Phase 1.4 admission, transitions, locks, startup & RBAC/security metrics
 │   ├── graph-postgres-bridge.json # Graph projection staleness, DB persistence latency & Postgres health
 │   ├── rebuild-operations.json # Graph rebuild lifecycle tracking
 │   └── slo-compliance.json   # SLO burn rates and compliance status

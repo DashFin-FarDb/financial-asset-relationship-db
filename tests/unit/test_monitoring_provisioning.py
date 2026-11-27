@@ -16,6 +16,7 @@ def test_grafana_dashboard_json_files_parse_and_have_panels() -> None:
     dashboards = sorted((MONITORING_DIR / "dashboards").glob("*.json"))
     expected = {
         "api-overview.json",
+        "control-plane-lifecycle.json",
         "graph-postgres-bridge.json",
         "rebuild-operations.json",
         "slo-compliance.json",
@@ -28,6 +29,23 @@ def test_grafana_dashboard_json_files_parse_and_have_panels() -> None:
         assert payload.get("title"), f"{dashboard_path.name} must have a non-empty title"
         panels = payload.get("panels", [])
         assert isinstance(panels, list) and len(panels) > 0, f"{dashboard_path.name} must define panels"
+
+
+def test_control_plane_lifecycle_dashboard_uses_canonical_phase14_metrics() -> None:
+    """Control-plane dashboard must query canonical Phase 1.4 metric names, not legacy placeholders."""
+    raw = (MONITORING_DIR / "dashboards" / "control-plane-lifecycle.json").read_text(encoding="utf-8")
+    for metric in (
+        "graph_rebuild_admission_total",
+        "graph_rebuild_state_transition_total",
+        "rebuild_lock_acquisition_total",
+        "application_startup_duration_seconds",
+        "application_startup_success_total",
+        "application_startup_failure_total",
+        "auth_access_denied_total",
+    ):
+        assert metric in raw, f"Missing canonical metric {metric} in control-plane-lifecycle.json"
+    for deprecated in ("fardb_startup_success_total", "fardb_rebuild_jobs_total", "fardb_queue_depth"):
+        assert deprecated not in raw, f"Deprecated placeholder metric {deprecated} must not appear"
 
 
 def test_grafana_provisioning_files_wire_datasources_and_dashboards() -> None:
