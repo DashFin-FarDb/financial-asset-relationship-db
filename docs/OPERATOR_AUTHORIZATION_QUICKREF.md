@@ -16,18 +16,25 @@ Ensures only designated **operator users** can execute destructive graph rebuild
 ```text
 Request
   └─► get_current_active_user()  [JWT auth + active check]
-        └─► get_current_rebuild_operator_user()  [operator username check]
-              ├─► ADMIN_USERNAME not set → 503 Service Unavailable
-              ├─► username != ADMIN_USERNAME → 403 Forbidden
+        └─► get_current_rebuild_operator_user()  [operator RBAC allowlist check]
+              ├─► REBUILD_OPERATOR_USERNAMES (if set) else ADMIN_USERNAME
+              ├─► Neither configured → 503 Service Unavailable
+              ├─► username not in allowlist → 403 Forbidden (audit-logged)
               └─► match → 200 OK (endpoint executes)
 ```
 
 ## Configuration
 
 ```bash
-# Required environment variables
-ADMIN_USERNAME=operator_username  # Designated operator
-ADMIN_PASSWORD=secure_password    # Operator credential
+# Operator RBAC allowlist (comma-separated; H-P3-03)
+REBUILD_OPERATOR_USERNAMES=ops_alice,ops_bob
+
+# Fallback single operator / bootstrap credential (used when REBUILD_OPERATOR_USERNAMES is unset)
+ADMIN_USERNAME=operator_username
+ADMIN_PASSWORD=secure_password
+
+# Boot-time admin credential upsert is blocked in staging/production unless explicitly opted in
+# ALLOW_BOOT_ADMIN_UPSERT=true
 ```
 
 ## Quick Verification
@@ -69,9 +76,9 @@ curl -X POST https://your-app.com/api/graph/rebuild \
 
 ✅ **No vulnerabilities identified**
 ✅ Bounded error messages (no secret leakage)
-✅ Centralized configuration
-✅ Audit logging for successful rebuild operations
-⚠️ Authorization failures (403) not currently logged
+✅ Centralized configuration (`src/config/settings.py`)
+✅ Audit logging for rebuild operations and 403 authorization denials
+✅ Boot-time admin credential upsert blocked in `staging`/`production` unless `ALLOW_BOOT_ADMIN_UPSERT=true` (H-P3-03)
 
 ## Deployment Readiness
 
@@ -91,5 +98,5 @@ curl -X POST https://your-app.com/api/graph/rebuild \
 
 ---
 
-**Last Updated**: 2026-05-23
-**Component Version**: Merged in PR #1143
+**Last Updated**: 2026-11-27
+**Component Version**: Hardened with H-P3-03 (`REBUILD_OPERATOR_USERNAMES` RBAC allowlist + boot-upsert guard, PR #1974)
