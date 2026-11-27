@@ -126,6 +126,10 @@ class Settings(BaseModel):
     admin_full_name: str | None = Field(default=None)
     admin_disabled: bool = Field(default=False)
 
+    # Multi-tenant isolation configuration
+    tenant_isolation_enforced: bool = Field(default=False)
+    default_tenant_id: str = Field(default="default")
+
     # Graph data source configuration
     graph_cache_path: str | None = Field(default=None)
     real_data_cache_path: str | None = Field(default=None)
@@ -312,6 +316,8 @@ def load_settings() -> Settings:
         admin_email=os.getenv("ADMIN_EMAIL"),
         admin_full_name=os.getenv("ADMIN_FULL_NAME"),
         admin_disabled=_parse_bool_env(os.getenv("ADMIN_DISABLED")),
+        tenant_isolation_enforced=_parse_bool_env(os.getenv("TENANT_ISOLATION_ENFORCED")),
+        default_tenant_id=(os.getenv("DEFAULT_TENANT_ID") or "default").strip().lower() or "default",
         graph_cache_path=os.getenv("GRAPH_CACHE_PATH"),
         real_data_cache_path=os.getenv("REAL_DATA_CACHE_PATH"),
         use_real_data_fetcher=_parse_bool_env(os.getenv("USE_REAL_DATA_FETCHER")),
