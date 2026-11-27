@@ -1058,6 +1058,7 @@ def _run_rebuild_pipeline(
     lock_ttl_seconds: int | None = None,
     coordination_session_factory: Callable[[], Session] | None = None,
     coordination_is_domain: bool = True,
+    fencing_token_getter: Callable[[], int] | None = None,
 ) -> GraphRebuildResponse:
     """Run a single rebuild of the asset relationship graph."""
     source: GraphRebuildSource | None = None
@@ -1099,6 +1100,7 @@ def _run_rebuild_pipeline(
             lock_ttl_seconds=lock_ttl_seconds,
             coordination_session_factory=coordination_session_factory,
             coordination_is_domain=coordination_is_domain,
+            fencing_token=fencing_token_getter() if fencing_token_getter is not None else None,
         )
         success_persisted = True
         update_rebuild_state_metric("succeeded")
@@ -1343,6 +1345,7 @@ def _perform_rebuild_and_persist_sync(
                 lock_ttl_seconds=lock_ttl,
                 coordination_session_factory=coordination_session_factory,
                 coordination_is_domain=coordination_engine is None,
+                fencing_token_getter=lambda: dist_lock.fencing_token,
             )
 
     finally:
@@ -1758,14 +1761,21 @@ def _renew_publication_lock(
     holder_id: str,
     ttl_seconds: int,
     stage: str,
-) -> None:
-    """Renew and transactionally hold the owner-validated publication lock."""
-    if not CoordinationLockRepository(session).renew_owned_lock(
+    expected_fencing_token: int | None = None,
+) -> int | None:
+    """Renew and transactionally hold the owner- and fencing-token-validated publication lock."""
+    repo = CoordinationLockRepository(session)
+    if not repo.renew_owned_lock(
         lock_name="graph_rebuild",
         holder_id=holder_id,
         ttl_seconds=ttl_seconds,
+        expected_fencing_token=expected_fencing_token,
     ):
-        raise _DistributedLockLostError(f"Lost distributed lock at stage={stage}")
+        raise _DistributedLockLostError(f"Lost distributed lock or fencing token mismatch at stage={stage}")
+    if expected_fencing_token is None:
+        return None
+    snapshot = repo.get_lock_state(lock_name="graph_rebuild", holder_id=holder_id)
+    return snapshot.fencing_token
 
 
 def _guard_publication_lock(
@@ -1773,13 +1783,21 @@ def _guard_publication_lock(
     holder_id: str | None,
     ttl_seconds: int | None,
     stage: str,
-) -> None:
-    """Validate optional lock inputs and renew the owned publication lease."""
+    *,
+    expected_fencing_token: int | None = None,
+) -> int | None:
+    """Validate optional lock inputs, check fencing token, and renew the owned publication lease."""
     if (holder_id is None) != (ttl_seconds is None):
         raise RuntimeError("Publication lock guard requires both holder identity and TTL")
     if holder_id is None or ttl_seconds is None:
-        return
-    _renew_publication_lock(session, holder_id=holder_id, ttl_seconds=ttl_seconds, stage=stage)
+        return None
+    return _renew_publication_lock(
+        session,
+        holder_id=holder_id,
+        ttl_seconds=ttl_seconds,
+        stage=stage,
+        expected_fencing_token=expected_fencing_token,
+    )
 
 
 def _finalize_rebuild_success(
@@ -1796,9 +1814,12 @@ def _finalize_rebuild_success(
     lock_ttl_seconds: int | None = None,
     coordination_session_factory: Callable[[], Session] | None = None,
     coordination_is_domain: bool = True,
+    fencing_token: int | None = None,
 ) -> GraphRebuildResponse:
     """Atomically persist the graph, candidate, success transition, and publication."""
     _verify_execution_state(lock_lost, cancel_event, "publication-transaction-start")
+
+    active_fencing_token = fencing_token
 
     with _publication_transactions(
         session_factory,
@@ -1811,11 +1832,12 @@ def _finalize_rebuild_success(
             "publication-domain-commit",
         ),
     ) as (session, coordination_session):
-        _guard_publication_lock(
+        active_fencing_token = _guard_publication_lock(
             coordination_session,
             lock_holder_id,
             lock_ttl_seconds,
             "publication-transaction-start",
+            expected_fencing_token=active_fencing_token,
         )
 
         assertion_repo = RelationshipAssertionRepository(session)
@@ -1841,13 +1863,26 @@ def _finalize_rebuild_success(
             ),
         )
 
-        _guard_publication_lock(coordination_session, lock_holder_id, lock_ttl_seconds, "publication-pre-success")
+        active_fencing_token = _guard_publication_lock(
+            coordination_session,
+            lock_holder_id,
+            lock_ttl_seconds,
+            "publication-pre-success",
+            expected_fencing_token=active_fencing_token,
+        )
 
         pre_success_check = partial(_verify_execution_state, lock_lost, cancel_event, "publication-pre-success")
 
         def pre_commit_check() -> None:
             """Renew the held lease and verify events immediately before publication commit."""
-            _guard_publication_lock(coordination_session, lock_holder_id, lock_ttl_seconds, "publication-pre-commit")
+            nonlocal active_fencing_token
+            active_fencing_token = _guard_publication_lock(
+                coordination_session,
+                lock_holder_id,
+                lock_ttl_seconds,
+                "publication-pre-commit",
+                expected_fencing_token=active_fencing_token,
+            )
             _verify_execution_state(lock_lost, cancel_event, "publication-pre-commit")
 
         assertion_repo.finalize_projection_publication(
