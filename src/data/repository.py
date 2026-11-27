@@ -10,6 +10,7 @@ from typing import Any, NoReturn, TypeAlias, TypedDict
 from uuid import uuid4
 
 from sqlalchemy import and_, delete, func, insert, or_, select, update
+from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, selectinload
 
@@ -655,19 +656,24 @@ class AssetGraphRepository:
             execution_options={"synchronize_session": "fetch"},
         )
         self.session.flush()
-        relationship_rows = [
-            AssetRelationshipORM(
-                source_asset_id=source_id,
-                target_asset_id=target_id,
-                relationship_type=relationship_type,
-                strength=self._validate_relationship_strength(strength),
-                bidirectional=False,
-            )
+        relationship_dicts = [
+            {
+                "source_asset_id": source_id,
+                "target_asset_id": target_id,
+                "relationship_type": relationship_type,
+                "strength": self._validate_relationship_strength(strength),
+                "bidirectional": False,
+            }
             for source_id, outgoing_relationships in relationships.items()
             for target_id, relationship_type, strength in outgoing_relationships
         ]
-        if relationship_rows:
-            self.session.add_all(relationship_rows)
+        if relationship_dicts:
+            chunk_size = 1000
+            for start in range(0, len(relationship_dicts), chunk_size):
+                self.session.execute(
+                    insert(AssetRelationshipORM),
+                    relationship_dicts[start : start + chunk_size],
+                )
 
     def replace_regulatory_events(self, events: Iterable[RegulatoryEvent]) -> None:
         """
@@ -764,6 +770,11 @@ class AssetGraphRepository:
         if not incoming_assets:
             return
 
+        bind = self.session.get_bind()
+        if bind is not None and bind.dialect.name == "postgresql":
+            self._bulk_upsert_assets_postgresql(incoming_assets)
+            return
+
         incoming_ids = list(dict.fromkeys(asset.id for asset in incoming_assets))
         existing_assets: dict[str, AssetORM] = {}
         for incoming_id_chunk in _iter_id_chunks(incoming_ids):
@@ -783,6 +794,20 @@ class AssetGraphRepository:
                 self.session.add(orm)
                 existing_assets[asset.id] = orm
             self._update_asset_orm(orm, asset)
+
+    def _bulk_upsert_assets_postgresql(self, incoming_assets: list[Asset]) -> None:
+        """PostgreSQL-native chunked INSERT ... ON CONFLICT (id) DO UPDATE fast path."""
+        deduped: dict[str, Asset] = {}
+        for asset in incoming_assets:
+            deduped[asset.id] = asset
+        rows = [self._asset_to_row_dict(asset) for asset in deduped.values()]
+        chunk_size = 500
+        for start in range(0, len(rows), chunk_size):
+            chunk = rows[start : start + chunk_size]
+            stmt = pg_insert(AssetORM).values(chunk)
+            update_cols = {col: stmt.excluded[col] for col in chunk[0] if col != "id"}
+            self.session.execute(stmt.on_conflict_do_update(index_elements=["id"], set_=update_cols))
+        self.session.expire_all()
 
     def list_assets(self) -> list[Asset]:
         """
@@ -1117,6 +1142,41 @@ class AssetGraphRepository:
     # ------------------------------------------------------------------
     # Conversion helpers
     # ------------------------------------------------------------------
+    @staticmethod
+    def _asset_to_row_dict(asset: Asset) -> dict[str, Any]:
+        """Serialize a domain Asset (or subclass) to a column dictionary for bulk upserts."""
+        return {
+            "id": asset.id,
+            "symbol": asset.symbol,
+            "name": asset.name,
+            "asset_class": asset.asset_class.value,
+            "sector": asset.sector,
+            "price": float(asset.price),
+            "market_cap": float(asset.market_cap) if asset.market_cap is not None else None,
+            "currency": asset.currency,
+            "pe_ratio": getattr(asset, "pe_ratio", None),
+            "dividend_yield": getattr(asset, "dividend_yield", None),
+            "earnings_per_share": getattr(asset, "earnings_per_share", None),
+            "book_value": getattr(asset, "book_value", None),
+            "forward_pe_ratio": getattr(asset, "forward_pe_ratio", None),
+            "peg_ratio": getattr(asset, "peg_ratio", None),
+            "price_to_sales_ratio": getattr(asset, "price_to_sales_ratio", None),
+            "price_to_book_ratio": getattr(asset, "price_to_book_ratio", None),
+            "eps_growth_next_year": getattr(asset, "eps_growth_next_year", None),
+            "eps_growth_next_5_years": getattr(asset, "eps_growth_next_5_years", None),
+            "yield_to_maturity": getattr(asset, "yield_to_maturity", None),
+            "coupon_rate": getattr(asset, "coupon_rate", None),
+            "maturity_date": getattr(asset, "maturity_date", None),
+            "credit_rating": getattr(asset, "credit_rating", None),
+            "issuer_id": getattr(asset, "issuer_id", None),
+            "contract_size": getattr(asset, "contract_size", None),
+            "delivery_date": getattr(asset, "delivery_date", None),
+            "volatility": getattr(asset, "volatility", None),
+            "exchange_rate": getattr(asset, "exchange_rate", None),
+            "country": getattr(asset, "country", None),
+            "central_bank_rate": getattr(asset, "central_bank_rate", None),
+        }
+
     @staticmethod
     def _update_asset_orm(orm: AssetORM, asset: Asset) -> None:
         """
