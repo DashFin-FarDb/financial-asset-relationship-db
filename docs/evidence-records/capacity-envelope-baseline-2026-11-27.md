@@ -8,23 +8,23 @@
 
 ## 1. Dense-Subgraph & Scaling Measurements (`topology=dense_hub`)
 
-| Tier | Assets / Edges | Hubs / Max Out-Degree | Build | Save | Load | Metrics | Query p50 / p95 / max | Peak `tracemalloc` | Max RSS |
-| --- | --- | --- | ---: | ---: | ---: | ---: | --- | ---: | ---: |
-| `1K-HUB` | `1,000 / 5,000` | `25 / 999` | `0.2454 s` | `0.5676 s` | `0.5030 s` | `0.0167 s` | `0.232 / 0.405 / 0.411 ms` | `12.2 MiB` | `105.9 MiB` |
-| `5K-HUB` | `5,000 / 25,000` | `25 / 4,999` | `4.1371 s` | `2.6672 s` | `5.3577 s` | `0.0525 s` | `3.377 / 6.495 / 8.182 ms` | `53.0 MiB` | `199.8 MiB` |
+| Tier     | Assets / Edges   | Hubs / Max Out-Degree |      Build |       Save |       Load |    Metrics | Query p50 / p95 / max      | Peak `tracemalloc` |     Max RSS |
+| -------- | ---------------- | --------------------- | ---------: | ---------: | ---------: | ---------: | -------------------------- | -----------------: | ----------: |
+| `1K-HUB` | `1,000 / 5,000`  | `25 / 999`            | `0.2454 s` | `0.5676 s` | `0.5030 s` | `0.0167 s` | `0.232 / 0.405 / 0.411 ms` |         `12.2 MiB` | `105.9 MiB` |
+| `5K-HUB` | `5,000 / 25,000` | `25 / 4,999`          | `4.1371 s` | `2.6672 s` | `5.3577 s` | `0.0525 s` | `3.377 / 6.495 / 8.182 ms` |         `53.0 MiB` | `199.8 MiB` |
 
-*Exact round-trip integrity verified (`loaded_asset_count == asset_count` and `loaded_relationship_count == relationship_count`) on every tier.*
+_Exact round-trip integrity verified (`loaded_asset_count == asset_count` and `loaded_relationship_count == relationship_count`) on every tier._
 
 ## 2. Multi-Worker Distributed Lock Contention (`workers=8, iterations=15`)
 
-| Metric | Observed Result |
-| --- | ---: |
-| Concurrent workers × attempts | `8 × 15 = 120` |
-| Successful lock acquisitions | `33` |
-| Fail-closed contention rejections | `87` |
-| Fencing-token monotonicity / verification violations | **`0`** |
-| Acquire latency p50 / p95 / max | `7.765 ms` / `117.102 ms` / `555.600 ms` |
-| Total elapsed time | `0.6892 s` |
+| Metric                                               |                          Observed Result |
+| ---------------------------------------------------- | ---------------------------------------: |
+| Concurrent workers × attempts                        |                           `8 × 15 = 120` |
+| Successful lock acquisitions                         |                                     `33` |
+| Fail-closed contention rejections                    |                                     `87` |
+| Fencing-token monotonicity / verification violations |                                  **`0`** |
+| Acquire latency p50 / p95 / max                      | `7.765 ms` / `117.102 ms` / `555.600 ms` |
+| Total elapsed time                                   |                               `0.6892 s` |
 
 ## 3. Scope & Non-Negotiable Boundary
 
