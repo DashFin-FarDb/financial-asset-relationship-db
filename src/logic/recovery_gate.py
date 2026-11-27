@@ -525,7 +525,9 @@ class RecoveryGate:
             )
 
         current_worker = self.lock.holder_id
-        if active_job.active_worker_id != current_worker and not self._is_heartbeat_stale(active_job):
+        if (
+            self.enable_automatic_recovery or active_job.active_worker_id != current_worker
+        ) and not self._is_heartbeat_stale(active_job):
             inconsistency = InconsistencyType.STALE_OWNERSHIP.value
             raise ExecutionBlockedError(
                 f"Cannot reset job {active_job.job_id}: active worker "
