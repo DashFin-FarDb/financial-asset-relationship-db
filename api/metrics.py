@@ -181,6 +181,47 @@ SLO_COMPLIANCE_STATUS = Gauge(
     ["slo_name"],
 )
 
+# Security, Rate-Limiting, Idempotency & Ingestion Resilience metrics
+AUTH_LOGIN_TOTAL = Counter(
+    "auth_login_total",
+    "Total authentication login attempts by outcome.",
+    ["outcome"],  # success | failure
+)
+
+AUTH_TOKEN_REVOCATIONS_TOTAL = Counter(
+    "auth_token_revocations_total",
+    "Total JWT access tokens revoked.",
+)
+
+RATE_LIMIT_STORE_BACKEND_INFO = Gauge(
+    "rate_limit_store_backend_info",
+    "Active rate-limit storage backend classification (1=active).",
+    ["backend"],
+)
+
+HTTP_RATE_LIMIT_EXCEEDED_TOTAL = Counter(
+    "http_rate_limit_exceeded_total",
+    "Total HTTP 429 rate-limit rejections by route template.",
+    ["route"],
+)
+
+REBUILD_IDEMPOTENCY_TOTAL = Counter(
+    "rebuild_idempotency_total",
+    "Total Idempotency-Key evaluations by outcome.",
+    ["outcome"],  # hit | miss | conflict
+)
+
+INGESTION_RESILIENCE_EVENTS_TOTAL = Counter(
+    "ingestion_resilience_events_total",
+    "Total data ingestion resilience events by provider and outcome.",
+    ["provider", "outcome"],  # success | retry | circuit_open | failure
+)
+
+_KNOWN_RATE_LIMIT_BACKENDS = frozenset({"memory", "redis", "memcached", "mongodb"})
+_KNOWN_IDEMPOTENCY_OUTCOMES = frozenset({"hit", "miss", "conflict"})
+_KNOWN_LOGIN_OUTCOMES = frozenset({"success", "failure"})
+_KNOWN_INGESTION_OUTCOMES = frozenset({"success", "retry", "circuit_open", "failure"})
+
 
 def update_graph_metrics(asset_count: int, relationship_count: int) -> None:
     """Update gauge metrics for the current graph state and publication timestamp."""
@@ -206,6 +247,43 @@ def observe_graph_db_persistence_duration(duration_seconds: float, dialect: str 
     normalized = (dialect or "").strip().lower()
     label = normalized if normalized in _KNOWN_DB_DIALECTS else "other"
     GRAPH_DB_PERSISTENCE_DURATION_SECONDS.labels(dialect=label).observe(max(0.0, float(duration_seconds)))
+
+
+def record_auth_login(outcome: str) -> None:
+    """Record an authentication login attempt with bounded outcome label."""
+    label = outcome if outcome in _KNOWN_LOGIN_OUTCOMES else "failure"
+    AUTH_LOGIN_TOTAL.labels(outcome=label).inc()
+
+
+def record_auth_token_revocation() -> None:
+    """Record a JWT access token revocation."""
+    AUTH_TOKEN_REVOCATIONS_TOTAL.inc()
+
+
+def record_rate_limit_backend(backend: str | None) -> None:
+    """Expose the active rate-limit storage backend as a binary info gauge."""
+    normalized = (backend or "").strip().lower()
+    active_label = normalized if normalized in _KNOWN_RATE_LIMIT_BACKENDS else "other"
+    for candidate in (*sorted(_KNOWN_RATE_LIMIT_BACKENDS), "other"):
+        RATE_LIMIT_STORE_BACKEND_INFO.labels(backend=candidate).set(1 if candidate == active_label else 0)
+
+
+def record_rate_limit_exceeded(route: str) -> None:
+    """Record an HTTP 429 rate-limit rejection for a resolved route template."""
+    HTTP_RATE_LIMIT_EXCEEDED_TOTAL.labels(route=route or "unknown").inc()
+
+
+def record_rebuild_idempotency(outcome: str) -> None:
+    """Record an Idempotency-Key evaluation outcome (hit, miss, or conflict)."""
+    label = outcome if outcome in _KNOWN_IDEMPOTENCY_OUTCOMES else "conflict"
+    REBUILD_IDEMPOTENCY_TOTAL.labels(outcome=label).inc()
+
+
+def record_ingestion_resilience_event(provider: str, outcome: str) -> None:
+    """Record a data ingestion resilience outcome for a provider."""
+    safe_provider = (provider or "unknown").strip().lower()[:32] or "unknown"
+    label = outcome if outcome in _KNOWN_INGESTION_OUTCOMES else "failure"
+    INGESTION_RESILIENCE_EVENTS_TOTAL.labels(provider=safe_provider, outcome=label).inc()
 
 
 def update_slo_compliance_status(slo_name: str, is_compliant: bool) -> None:

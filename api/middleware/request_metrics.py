@@ -7,7 +7,12 @@ import time
 from collections.abc import MutableMapping
 from typing import TYPE_CHECKING, Any
 
-from api.metrics import HTTP_REQUEST_DURATION_SECONDS, HTTP_REQUESTS_IN_FLIGHT, HTTP_REQUESTS_TOTAL
+from api.metrics import (
+    HTTP_REQUEST_DURATION_SECONDS,
+    HTTP_REQUESTS_IN_FLIGHT,
+    HTTP_REQUESTS_TOTAL,
+    record_rate_limit_exceeded,
+)
 from src.observability.context import get_request_id, get_trace_id
 from src.observability.facade import ObservabilityEvent, log_event
 from src.observability.tracing import start_span
@@ -118,6 +123,9 @@ class RequestMetricsMiddleware:
                         route=route_template,
                         status_group=status_group,
                     ).observe(duration)
+
+                    if status_code == 429:
+                        record_rate_limit_exceeded(route_template)
                 except Exception as metric_exc:
                     # Prevent metrics collection failure from masking the actual application result or exception
                     log_event(

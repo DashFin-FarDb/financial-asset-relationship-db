@@ -21,6 +21,7 @@ from ..auth import (
     oauth2_scheme,
     revoke_access_token,
 )
+from ..metrics import record_auth_login, record_auth_token_revocation
 from ..models import UserPublic
 from ..rate_limit import limiter
 
@@ -45,6 +46,7 @@ async def login_for_access_token(
     """
     user = authenticate_user(form_data.username, form_data.password)
     if user is None or user is False:
+        record_auth_login("failure")
         _log_security_event(
             _SecurityAuditEvent(
                 event_slug=_SECURITY_AUDIT_LOGIN_FAILURE,
@@ -65,6 +67,7 @@ async def login_for_access_token(
         data={"sub": user.username},  # type: ignore[union-attr]
         expires_delta=access_token_expires,
     )
+    record_auth_login("success")
     _log_security_event(
         _SecurityAuditEvent(
             event_slug=_SECURITY_AUDIT_LOGIN_SUCCESS,
@@ -106,6 +109,7 @@ async def logout_current_token(
 ) -> dict[str, str]:
     """Revoke the caller's active JWT access token via its ``jti`` claim."""
     revoke_access_token(token)
+    record_auth_token_revocation()
     _log_security_event(
         _SecurityAuditEvent(
             event_slug=_SECURITY_AUDIT_LOGOUT,
