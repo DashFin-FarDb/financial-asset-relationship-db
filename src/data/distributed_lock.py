@@ -228,6 +228,11 @@ class DistributedLock:
         """Return the current internal lifecycle state of the lock."""
         return self._state
 
+    @property
+    def fencing_token(self) -> int:
+        """Return the most recent monotonic fencing token from acquire/refresh (H-P2-02)."""
+        return self._fencing_token
+
     def _attempt_lock_acquisition(self) -> LockWriteResult:
         """
         Execute coordination repository lock acquisition within transaction scope.

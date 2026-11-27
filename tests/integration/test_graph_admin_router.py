@@ -354,6 +354,14 @@ def test_rebuild_transition_emitters_cover_job_lifecycle(
         threading.Event(),
         threading.Event(),
     )
+    with session_scope(session_factory) as session:
+        AssetGraphRepository(session).mark_rebuild_job_succeeded(
+            success_job_id,
+            execution_id="exec-success",
+            node_count=0,
+            edge_count=0,
+            duration_ms=1,
+        )
 
     cancel_job_id, _ = graph_admin._create_and_start_rebuild_job(  # pylint: disable=protected-access
         session_factory, "admin", "worker", "exec-cancel"

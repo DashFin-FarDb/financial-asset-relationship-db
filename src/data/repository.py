@@ -210,10 +210,35 @@ class CoordinationLockRepository:
             ttl_seconds=ttl_seconds,
         )
 
-    def renew_owned_lock(self, *, lock_name: str, holder_id: str, ttl_seconds: int) -> bool:
+    def verify_fencing_token(self, *, lock_name: str, holder_id: str, expected_fencing_token: int) -> bool:
+        """Verify that ``holder_id`` holds an unexpired lock matching ``expected_fencing_token`` (H-P2-02)."""
+        if expected_fencing_token <= 0:
+            return False
+        snapshot = self.get_lock_state(lock_name=lock_name, holder_id=holder_id)
+        return (
+            snapshot.exists
+            and snapshot.valid
+            and snapshot.fencing_token is not None
+            and snapshot.fencing_token == expected_fencing_token
+        )
+
+    def renew_owned_lock(
+        self,
+        *,
+        lock_name: str,
+        holder_id: str,
+        ttl_seconds: int,
+        expected_fencing_token: int | None = None,
+    ) -> bool:
         """Renew an unexpired lease owned by ``holder_id`` in the current transaction."""
         if ttl_seconds <= 0:
             raise ValueError("ttl_seconds must be greater than 0")
+        if expected_fencing_token is not None and not self.verify_fencing_token(
+            lock_name=lock_name,
+            holder_id=holder_id,
+            expected_fencing_token=expected_fencing_token,
+        ):
+            return False
         now = datetime.now(timezone.utc)  # noqa: UP017
         result = self.session.execute(
             update(DistributedLockORM)
