@@ -18,7 +18,7 @@ from functools import partial
 from time import perf_counter
 from typing import Annotated, Any, NoReturn, cast
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, Header, HTTPException, Query, status
 from sqlalchemy import text
 from sqlalchemy.engine import Engine, make_url
 from sqlalchemy.exc import SQLAlchemyError
@@ -78,6 +78,13 @@ from ..graph_lifecycle_providers import (
     resolve_durable_graph_persistence_url,
     resolve_hosted_graph_database_url,
     stage_graph_snapshot,
+)
+from ..idempotency import (
+    IdempotencyConflictError,
+    InvalidIdempotencyKeyError,
+    fingerprint_request,
+    normalize_idempotency_key,
+    rebuild_idempotency_store,
 )
 from ..metrics import (
     GRAPH_REBUILD_ADMISSION_TOTAL,
@@ -641,18 +648,40 @@ async def _execute_rebuild_with_error_handling(
 @router.post(_REBUILD_PATH)
 async def rebuild_graph(
     current_user: Annotated[User, Depends(get_current_rebuild_operator_user)],
+    idempotency_key: Annotated[str | None, Header(alias="Idempotency-Key")] = None,
 ) -> GraphRebuildResponse:
-    """Rebuild, persist, and synchronize graph state."""
+    """Rebuild, persist, and synchronize graph state (supports optional Idempotency-Key)."""
     settings = get_graph_lifecycle_settings()
     loop = asyncio.get_running_loop()
     started_at = perf_counter()
     user_ref = _resolve_user_ref(current_user)
+
+    try:
+        normalized_key = normalize_idempotency_key(idempotency_key)
+    except InvalidIdempotencyKeyError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from None
+
+    request_fp = fingerprint_request(_REBUILD_PATH, str(settings.use_real_data_fetcher))
+    if normalized_key is not None:
+        try:
+            is_replay, cached_response = rebuild_idempotency_store.begin(
+                scope=_REBUILD_PATH,
+                actor=user_ref,
+                key=normalized_key,
+                fingerprint=request_fp,
+            )
+        except IdempotencyConflictError as exc:
+            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc)) from None
+        if is_replay:
+            return cast(GraphRebuildResponse, cached_response)
 
     _log_rebuild_requested(user_ref=user_ref)
 
     try:
         rebuild_lock = _claim_rebuild_or_raise()
     except HTTPException as exc:
+        if normalized_key is not None:
+            rebuild_idempotency_store.abort(scope=_REBUILD_PATH, actor=user_ref, key=normalized_key)
         if exc.status_code == status.HTTP_429_TOO_MANY_REQUESTS:
             _log_rebuild_rejected(user_ref=user_ref)
         raise
@@ -665,13 +694,26 @@ async def rebuild_graph(
         await rebuild_lock.acquire()
         lock_acquired = True
 
-        return await _execute_rebuild_with_error_handling(
+        response = await _execute_rebuild_with_error_handling(
             loop,
             settings,
             user_ref=user_ref,
             started_at=started_at,
             tracking_state=tracking_state,
         )
+        if normalized_key is not None:
+            rebuild_idempotency_store.complete(
+                scope=_REBUILD_PATH,
+                actor=user_ref,
+                key=normalized_key,
+                fingerprint=request_fp,
+                response=response,
+            )
+        return response
+    except Exception:
+        if normalized_key is not None:
+            rebuild_idempotency_store.abort(scope=_REBUILD_PATH, actor=user_ref, key=normalized_key)
+        raise
     finally:
         if lock_acquired:
             rebuild_lock.release()
