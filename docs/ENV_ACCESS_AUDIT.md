@@ -106,7 +106,7 @@ For completeness, environment variable usage in non-runtime files:
 | `.github/scripts/schema_report_cli.py` | `SCHEMA_REPORT_LOG`                                                 | LEAVE LOCAL    | CLI tooling                    |
 | `main.py`                              | `DATABASE_URL`, `SUPABASE_URL`, `SUPABASE_KEY`                      | LEAVE LOCAL    | Dev/test script                |
 | `run_tests.py`                         | `TEST_SECRET_KEY`                                                   | LEAVE LOCAL    | Test runner                    |
-| `test_supabase.py`                     | `SUPABASE_URL`, `SUPABASE_KEY`, `RUN_SUPABASE_TESTS`, `LOAD_DOTENV` | LEAVE LOCAL    | Test file                      |
+| `tests/integration/test_supabase.py`   | `SUPABASE_URL`, `SUPABASE_KEY`, `RUN_SUPABASE_TESTS`, `LOAD_DOTENV` | LEAVE LOCAL    | Test file                      |
 | `test_postgres.py`                     | `ASSET_GRAPH_DATABASE_URL`, `DATABASE_URL`, `RUN_POSTGRES_TESTS`    | LEAVE LOCAL    | Test file                      |
 | `tests/**`                             | Various                                                             | LEAVE LOCAL    | Test files excluded from scope |
 

@@ -75,5 +75,5 @@ The database schema will be automatically created when you first connect to the 
 You can test the database connection using the provided test scripts:
 
 ```bash
-python test_db_module.py
+python scripts/test_db_module.py
 ```
