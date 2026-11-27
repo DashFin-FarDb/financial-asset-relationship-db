@@ -40,6 +40,7 @@ services:
       - GF_SECURITY_ADMIN_USER=${GF_SECURITY_ADMIN_USER:-admin}
       - GF_SECURITY_ADMIN_PASSWORD=${GF_SECURITY_ADMIN_PASSWORD:?Set GF_SECURITY_ADMIN_PASSWORD before starting Grafana}
       - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_INSTALL_PLUGINS=grafana-vercel-datasource,grafana-netlify-datasource
       - GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH=/etc/grafana/dashboards/api-overview.json
     volumes:
       - ./monitoring/provisioning/datasources.yml:/etc/grafana/provisioning/datasources/datasources.yml:ro
