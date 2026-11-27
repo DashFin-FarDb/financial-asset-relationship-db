@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 from collections.abc import Sequence
 from contextlib import AbstractContextManager, nullcontext
 
@@ -177,6 +178,18 @@ def _normalize_postgresql_driver(url: URL) -> URL:
     return url
 
 
+def _read_pool_int(env_var: str, default: int, *, minimum: int = 1) -> int:
+    """Parse a bounded integer pool setting from the environment, falling back to default."""
+    raw = os.getenv(env_var)
+    if raw is None or not raw.strip():
+        return default
+    try:
+        parsed = int(raw.strip())
+    except ValueError:
+        return default
+    return max(minimum, parsed)
+
+
 def create_engine_from_url(url: str | None = None) -> Engine:
     """
     Resolve a database URL and create a SQLAlchemy Engine for the asset store.
@@ -242,7 +255,15 @@ def create_engine_from_url(url: str | None = None) -> Engine:
             )
         )
 
-    return create_engine(parsed_url, future=True)
+    return create_engine(
+        parsed_url,
+        future=True,
+        pool_pre_ping=True,
+        pool_size=_read_pool_int("DB_POOL_SIZE", 5, minimum=1),
+        max_overflow=_read_pool_int("DB_MAX_OVERFLOW", 10, minimum=0),
+        pool_recycle=_read_pool_int("DB_POOL_RECYCLE_SECONDS", 300, minimum=1),
+        pool_timeout=_read_pool_int("DB_POOL_TIMEOUT_SECONDS", 30, minimum=1),
+    )
 
 
 def create_session_factory(engine: Engine) -> sessionmaker[Session]:
