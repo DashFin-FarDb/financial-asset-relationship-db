@@ -212,9 +212,7 @@ Target metrics for a healthy repository:
 
 ## 🔗 Related Documentation
 
-- [BRANCH_CLEANUP_ANALYSIS.md](BRANCH_CLEANUP_ANALYSIS.md) - Detailed analysis
-- [BRANCH_CLEANUP_SUMMARY.md](BRANCH_CLEANUP_SUMMARY.md) - Executive summary
-- [CONTRIBUTING.md](CONTRIBUTING.md) - Full contributing guidelines
+- [CONTRIBUTING.md](../../CONTRIBUTING.md) - Full contributing guidelines
 
 ## 💡 Tips
 

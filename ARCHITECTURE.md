@@ -370,6 +370,6 @@ High Traffic
 
 For more details, see:
 
-- [INTEGRATION_SUMMARY.md](INTEGRATION_SUMMARY.md) - Technical implementation
+- [AGENTS.md](AGENTS.md) - Repository orientation and architecture overview
 - [DEPLOYMENT.md](DEPLOYMENT.md) - Deployment procedures
 - [QUICK_START.md](QUICK_START.md) - Getting started guide

@@ -378,7 +378,7 @@ make test-fast
    - follow the naming conventions above
    - avoid generic names such as `test` or `temp`
 
-See [BRANCH_CLEANUP_ANALYSIS.md](BRANCH_CLEANUP_ANALYSIS.md) for more branch-management detail.
+See [docs/operations/branch-cleanup-quick-reference.md](docs/operations/branch-cleanup-quick-reference.md) for more branch-management detail.
 
 ## Project Structure
 

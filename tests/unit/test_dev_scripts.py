@@ -115,10 +115,8 @@ class TestDocumentationFiles:
         [
             "README.md",
             "DEPLOYMENT.md",
-            "INTEGRATION_SUMMARY.md",
             "ARCHITECTURE.md",
             "QUICK_START.md",
-            "UI_COMPARISON.md",
             "VERCEL_DEPLOYMENT_CHECKLIST.md",
         ],
     )
@@ -431,8 +429,8 @@ class TestShellScripts:
         with open("cleanup-branches.sh") as f:
             content = f.read()
 
-        # Should reference the analysis document
-        assert "BRANCH_CLEANUP_ANALYSIS.md" in content or "documentation" in content.lower()
+        # Should reference the branch cleanup documentation
+        assert "branch-cleanup-quick-reference.md" in content or "documentation" in content.lower()
 
     def test_shell_scripts_consistent_style(self):
         """Test that shell scripts use consistent coding style."""
