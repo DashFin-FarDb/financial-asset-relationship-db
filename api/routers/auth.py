@@ -22,6 +22,7 @@ from ..auth import (
     get_current_active_user,
     oauth2_scheme,
     resolve_user_roles,
+    resolve_user_tenant,
     revoke_access_token,
 )
 from ..metrics import record_auth_login, record_auth_token_revocation
@@ -66,9 +67,11 @@ async def login_for_access_token(
         )
 
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    user_roles = sorted(resolve_user_roles(user.username, get_settings()))  # type: ignore[union-attr]
+    auth_settings = get_settings()
+    user_roles = sorted(resolve_user_roles(user.username, auth_settings))  # type: ignore[union-attr]
+    user_tenant = resolve_user_tenant(user.username, auth_settings)  # type: ignore[union-attr]
     access_token = create_access_token(
-        data={"sub": user.username, "roles": user_roles},  # type: ignore[union-attr]
+        data={"sub": user.username, "roles": user_roles, "tenant_id": user_tenant},  # type: ignore[union-attr]
         expires_delta=access_token_expires,
     )
     record_auth_login("success")

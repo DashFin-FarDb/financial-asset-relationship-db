@@ -620,6 +620,7 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
     else:
         expire = datetime.now(UTC) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     to_encode.setdefault("jti", uuid.uuid4().hex)
+    to_encode.setdefault("tenant_id", "default")
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(
         to_encode,
@@ -665,6 +666,13 @@ async def get_current_user(  # noqa: RUF029  # NOSONAR
             )
         )
         raise credentials_exception
+    try:
+        token_payload = _decode_jwt_payload(token)
+        token_tenant = token_payload.get("tenant_id")
+        if isinstance(token_tenant, str) and token_tenant.strip():
+            return user.model_copy(update={"tenant_id": token_tenant.strip().lower()})
+    except InvalidTokenError:
+        pass
     return user
 
 
@@ -816,6 +824,21 @@ def _resolve_rebuild_operator_usernames(settings: Settings) -> frozenset[str]:
 
     operators.update(_parse_username_csv(os.getenv("REBUILD_OPERATOR_USERNAMES", "")))
     return frozenset(operators)
+
+
+def resolve_user_tenant(username: str, settings: Settings) -> str:
+    """Resolve the canonical tenant_id bound to username from TENANT_USER_BINDINGS."""
+    cleaned = username.strip()
+    raw_bindings = os.getenv("TENANT_USER_BINDINGS", "")
+    for entry in raw_bindings.split(","):
+        item = entry.strip()
+        if not item or ":" not in item:
+            continue
+        bound_user, bound_tenant = item.split(":", 1)
+        if bound_user.strip() == cleaned and bound_tenant.strip():
+            return bound_tenant.strip().lower()
+    default_tenant = (getattr(settings, "default_tenant_id", None) or "default").strip().lower()
+    return default_tenant or "default"
 
 
 def resolve_user_roles(username: str, settings: Settings) -> frozenset[str]:

@@ -10,6 +10,7 @@ class User(BaseModel):
     email: str | None = None
     full_name: str | None = None
     disabled: bool | None = None
+    tenant_id: str = "default"
 
 
 class UserPublic(User):
