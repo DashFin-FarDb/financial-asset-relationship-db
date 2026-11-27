@@ -223,6 +223,14 @@ INGESTION_RESILIENCE_EVENTS_TOTAL = Counter(
     ["provider", "outcome"],  # success | retry | circuit_open | failure
 )
 
+RESEARCH_RUNS_CREATED_TOTAL = Counter(
+    "research_runs_created_total",
+    "Total immutable ResearchRun provenance records created by domain.",
+    ["domain_id"],
+)
+
+_KNOWN_RESEARCH_DOMAINS = frozenset({"financial", "human_resources"})
+
 _KNOWN_RATE_LIMIT_BACKENDS = frozenset({"memory", "redis", "memcached", "mongodb"})
 _KNOWN_IDEMPOTENCY_OUTCOMES = frozenset({"hit", "miss", "conflict"})
 _KNOWN_LOGIN_OUTCOMES = frozenset({"success", "failure"})
@@ -239,6 +247,12 @@ def update_graph_metrics(asset_count: int, relationship_count: int) -> None:
 def update_graph_persistence_configured(configured: bool) -> None:
     """Record whether durable graph persistence is configured (1 or 0)."""
     GRAPH_PERSISTENCE_CONFIGURED.set(1 if configured else 0)
+
+
+def record_research_run_created(domain_id: str) -> None:
+    """Increment research_runs_created_total with bounded domain_id cardinality."""
+    bounded = domain_id if domain_id in _KNOWN_RESEARCH_DOMAINS else "other"
+    RESEARCH_RUNS_CREATED_TOTAL.labels(domain_id=bounded).inc()
 
 
 def record_graph_projection_published(timestamp_seconds: float | None = None) -> None:

@@ -56,6 +56,7 @@ from .routers.graph_admin import router as graph_admin_router
 from .routers.graph_admin import shutdown_rebuild_executor_sync as shutdown_rebuild_executor
 from .routers.metrics import router as metrics_router
 from .routers.relationships import router as relationships_router
+from .routers.research_runs import router as research_runs_router
 from .routers.system import router as system_router
 from .routers.visualization import router as visualization_router
 
@@ -1046,6 +1047,7 @@ def create_app() -> FastAPI:
 
     app.include_router(auth_router)
     app.include_router(assertions_router)
+    app.include_router(research_runs_router)
     app.include_router(system_router)
     app.include_router(graph_admin_router)
     app.include_router(assets_router)
