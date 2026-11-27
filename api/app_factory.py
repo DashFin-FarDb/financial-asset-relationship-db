@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 import contextlib
 import logging
+import os
 import random
 import threading
 import time
@@ -1014,15 +1015,28 @@ async def _slo_evaluation_loop() -> None:
             current_interval = min(current_interval * 2, max_interval)
 
 
+def _openapi_urls_for_environment() -> tuple[str | None, str | None, str | None]:
+    """Disable OpenAPI/Swagger/ReDoc endpoints in production unless explicitly enabled."""
+    env = os.getenv("ENV", "development").strip().lower()
+    explicit_enable = os.getenv("ENABLE_OPENAPI_DOCS", "").strip().lower() in {"1", "true", "yes"}
+    if env == "production" and not explicit_enable:
+        return None, None, None
+    return "/docs", "/redoc", "/openapi.json"
+
+
 def create_app() -> FastAPI:
     """Create and configure the FastAPI application instance."""
     setup_logging()
     initialize_sentry()
+    docs_url, redoc_url, openapi_url = _openapi_urls_for_environment()
     app = FastAPI(
         title="Financial Asset Relationship API",
         description="REST API for Financial Asset Relationship Database",
         version="1.0.0",
         lifespan=lifespan,
+        docs_url=docs_url,
+        redoc_url=redoc_url,
+        openapi_url=openapi_url,
     )
 
     app.state.limiter = limiter

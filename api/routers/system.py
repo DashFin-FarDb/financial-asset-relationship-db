@@ -1,9 +1,11 @@
 """System and metadata API routes."""
 
+import hmac
 import logging
+import os
 from typing import Any, Literal, NoReturn, cast
 
-from fastapi import APIRouter, HTTPException, Response
+from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from prometheus_client import CONTENT_TYPE_LATEST, generate_latest  # pylint: disable=import-error
 
 from src.models.financial_models import AssetClass
@@ -278,16 +280,46 @@ def detailed_health_check() -> DetailedHealthResponse:
     )
 
 
+async def _require_observability_access(request: Request) -> None:
+    """Require authentication for observability endpoints when running in production (H-P3-01)."""
+    if os.getenv("ENV", "development").strip().lower() != "production":
+        return
+    auth_header = request.headers.get("authorization", "")
+    scheme, _, token = auth_header.partition(" ")
+    if scheme.lower() != "bearer" or not token.strip():
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Authentication required for observability endpoints in production",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    token = token.strip()
+    configured_token = os.getenv("OBSERVABILITY_BEARER_TOKEN", "").strip()
+    if configured_token and hmac.compare_digest(token, configured_token):
+        return
+    from ..auth import get_current_active_user, get_current_user
+
+    user = await get_current_user(token=token, request=request)
+    await get_current_active_user(current_user=user, request=request)
+
+
 @router.get(
     "/api/slo/status",
-    responses={500: {"description": "SLO evaluation failed"}},
+    dependencies=[Depends(_require_observability_access)],
+    responses={
+        401: {"description": "Authentication required in production"},
+        500: {"description": "SLO evaluation failed"},
+    },
 )
 def get_slo_status() -> SLOSummary:
     """Return the current SLO compliance status."""
     return _get_slo_summary()
 
 
-@router.get("/api/metrics")
+@router.get(
+    "/api/metrics",
+    dependencies=[Depends(_require_observability_access)],
+    responses={401: {"description": "Authentication required in production"}},
+)
 async def metrics() -> Response:
     """
     Expose Prometheus metrics in OpenMetrics format.
