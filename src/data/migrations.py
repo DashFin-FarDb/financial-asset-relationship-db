@@ -94,6 +94,9 @@ def apply_migrations(db_path: Path | str) -> None:
         # Migration 008: Add valuation metrics and snapshot attestation versions (conditional)
         _apply_upgrade_008_equity_valuation_metrics(connection)
 
+        # Migration 009: Enforce at most one RUNNING rebuild job via partial unique index (H-P2-03)
+        _apply_upgrade_009_single_running_rebuild_index(connection)
+
 
 # ---------------------------------------------------------------------------
 # Private helpers for apply_migrations (SQLite)
@@ -326,6 +329,14 @@ def _apply_upgrade_008_equity_valuation_metrics(connection: sqlite3.Connection) 
                 "ALTER TABLE relationship_projection_publications "
                 "ADD COLUMN snapshot_attestation_version TEXT NOT NULL DEFAULT 'v1'"
             )
+
+
+def _apply_upgrade_009_single_running_rebuild_index(connection: sqlite3.Connection) -> None:
+    """Enforce at most one RUNNING rebuild job via a partial unique index on SQLite."""
+    connection.execute(
+        "CREATE UNIQUE INDEX IF NOT EXISTS uq_rebuild_jobs_single_running "
+        "ON rebuild_jobs (status) WHERE status = 'running'"
+    )
 
 
 # ---------------------------------------------------------------------------
