@@ -15,6 +15,7 @@ from sqlalchemy import (
     String,
     Text,
     UniqueConstraint,
+    text,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -233,6 +234,13 @@ class RebuildJobORM(Base):
         ),
         Index("ix_rebuild_jobs_created_at", "created_at"),
         Index("ix_rebuild_jobs_status_created_at", "status", "created_at"),
+        Index(
+            "uq_rebuild_jobs_single_running",
+            "status",
+            unique=True,
+            postgresql_where=text("status = 'running'"),
+            sqlite_where=text("status = 'running'"),
+        ),
     )
 
     job_id: Mapped[str] = mapped_column(String, primary_key=True)
