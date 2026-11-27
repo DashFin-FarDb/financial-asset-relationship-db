@@ -1,28 +1,5 @@
 # Changelog
 
-## [Unreleased]
-
-
-### Changed
-- Centralized settings in `src/config/settings.py` via `pydantic-settings`
-- Decoupled `RebuildExecutor` and `ReconciliationEngine`
-- Parameterized developer scripts and docs, removing hardcoded connection strengths and ports
-
-### Fixed
-
-- Removed inappropriate CI/CD workflow files that were causing build failures:
-  - Deleted `.github/workflows/objective-c-xcode.yml` - Xcode/Objective-C workflow not applicable to Python/JavaScript project
-  - Deleted `.github/workflows/go.yml` - Go workflow not applicable to Python/JavaScript project
-  - Deleted `.github/workflows/dotnet-desktop.yml` - .NET Desktop workflow not applicable to Python/JavaScript project
-
-### Improved
-
-- Cleaned up CI/CD configuration to only include relevant workflows for the project's tech stack (Python, JavaScript/TypeScript, Next.js)
-- Reduced CI/CD execution time and resource usage by removing unnecessary workflow runs
-- Improved maintainability by removing duplicate and conflicting workflow configurations
-
-# Changelog
-
 All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
@@ -32,37 +9,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Comprehensive testing infrastructure with pytest
-- Unit tests for financial models (test_financial_models.py)
-- Unit tests for asset graph logic (test_asset_graph.py)
-- Test fixtures in conftest.py for reusable test data
-- Development dependencies in requirements-dev.txt
-- Linting configuration (.flake8, pyproject.toml)
-- Code formatting tools (black, isort)
-- Type checking with mypy
-- Pre-commit hooks configuration
-- EditorConfig for consistent formatting
-- Consolidated CI workflow (.github/workflows/ci.yml)
-- Code coverage reporting with pytest-cov
-- Makefile for common development tasks
-- CONTRIBUTING.md guide for developers
-- AUDIT_REPORT.md comprehensive code audit
-- CHANGELOG.md (this file)
+- Enterprise readiness hardenings `H-P1-04`, `H-P2-01`–`H-P2-05`, and `H-P3-01`–`H-P3-05`:
+  - Distributed lock fencing tokens (`fencing_token` + `verify_fencing_token()`), live active-executor lock/heartbeat resolution, and unified stale-only orphan auto-recovery
+  - Partial unique index `uq_rebuild_jobs_single_running` enforcing single running rebuild job (applied to hosted Supabase) and cross-boundary Graph vs. Coordination skew checker (`scripts/check_restore_boundary_skew.py`)
+  - Production lockdown of `/docs`, `/redoc`, `/openapi.json`, `/api/metrics`, and `/api/slo/status` when `ENV=production`
+  - Global `slowapi` rate limiting (`RATE_LIMIT_STORAGE_URI`, proxy-aware `get_client_ip`), `REBUILD_OPERATOR_USERNAMES` RBAC allowlist, and staging/production boot-admin upsert guard
+  - Slim Vercel serverless `api/requirements.txt` and `psycopg2.pool.ThreadedConnectionPool` with `atexit` disposal
+  - Separation-of-duties (`--enforce-sod`) and evidence-expiry (`--enforce-expiry`) checks in `scripts/verify_staging_promotion.py`
+- Executed all 5 operational drills (`docs/testing/operational-drill-execution-records.md`), recorded PostgreSQL 18.6 `SCALE10K` (10,000 assets / 50,000 relationships) baseline, adopted `ADR 0012` Active-Passive multi-region strategy, and recorded SHA-bound operator sign-off
+- Production container stack (`Dockerfile.api`, `Dockerfile.frontend`, `docker-compose.production.yml`)
 
 ### Changed
 
-- Consolidated redundant Python workflows into single ci.yml
-- Updated .gitignore to include test artifacts and cache directories
-- Improved CI/CD pipeline with dependency caching
-- Enhanced workflow to include linting, type checking, and security scanning
+- Centralized settings in `src/config/settings.py` via `pydantic-settings`
+- Decoupled `RebuildExecutor` and `ReconciliationEngine`
+- Parameterized developer scripts and docs, removing hardcoded connection strengths and ports
+- Consolidated root testing entrypoint (`TESTING.md`), relocated root test scripts (`scripts/test_db_module.py`, `tests/integration/test_supabase.py`), and refreshed core developer documentation (`DATABASE.md`, `QUICK_START.md`, `DOCKER.md`, `DEPLOYMENT.md`, `ARCHITECTURE.md`, `README.md`, `AGENTS.md`, `VERCEL_DEPLOYMENT_CHECKLIST.md`)
 
 ### Removed
 
-- 23 irrelevant workflow files (docker, .NET, Next.js, Node.js, etc.)
-- python-app.yml (merged into ci.yml)
-- python-package.yml (merged into ci.yml)
-- pylint.yml (merged into ci.yml)
-- super-linter.yml (replaced with specific linters)
+- Archived 118 historical root and `docs/` files locally with SHA-256 manifests and removed 3 zero-byte CI log artifacts from the repository
+- Removed inappropriate CI/CD workflow files (`objective-c-xcode.yml`, `go.yml`, `dotnet-desktop.yml`) and consolidated legacy workflows into `ci.yml`
 
 ## [1.0.0] - 2024-10-30
 

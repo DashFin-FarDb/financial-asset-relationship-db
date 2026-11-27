@@ -35,16 +35,12 @@ for the full operating model.
 
 ### 4. Dependencies Check
 
-Python dependencies (requirements.txt):
+Python serverless dependencies (`api/requirements.txt` — slim production bundle excluding Gradio/MCP/yfinance/pandas/plotly):
 
-- [ ] fastapi>=0.104.0
-- [ ] uvicorn[standard]>=0.24.0
-- [ ] pydantic>=2.4.0
-- [ ] gradio>=4.0.0
-- [ ] plotly>=5.0.0
-- [ ] numpy>=1.21.0
-- [ ] yfinance>=0.2.0
-- [ ] pandas>=1.5.0
+- [ ] `fastapi` & `uvicorn`
+- [ ] `pydantic` & `pydantic-settings`
+- [ ] `sqlalchemy` & `psycopg2-binary`
+- [ ] `python-multipart`, `slowapi`, `pyjwt`
 
 Frontend dependencies (frontend/package.json):
 
@@ -105,7 +101,7 @@ In the Vercel dashboard, add:
   - Optional only for local or explicitly non-durable preview/demo deployments
   - Required for staging and production durable graph-persistence promotion
   - For hosted staging/production, use a durable PostgreSQL-compatible URL
-- [ ] Optional backend settings as needed: `ENV`, `ALLOWED_ORIGINS`, `GRAPH_CACHE_PATH`, `REAL_DATA_CACHE_PATH`, `USE_REAL_DATA_FETCHER`
+- [ ] Optional/hardening backend settings as needed: `ENV=production`, `ALLOWED_ORIGINS`, `REBUILD_OPERATOR_USERNAMES`, `RATE_LIMIT_STORAGE_URI`, `GRAPH_CACHE_PATH`, `REAL_DATA_CACHE_PATH`, `USE_REAL_DATA_FETCHER`
 
 #### Step 5: Deploy
 
@@ -182,10 +178,10 @@ vercel --prod
 - [ ] Check that frontend loads without errors
 - [ ] Verify API health: `https://your-project.vercel.app/api/health`
 - [ ] Verify detailed readiness: `https://your-project.vercel.app/api/health/detailed`
-- [ ] Confirm detailed readiness returns only bounded non-secret fields: `status`, `graph`, and `database`
+- [ ] Confirm detailed readiness returns only bounded non-secret fields: `status`, `graph_persistence_configured`, `graph`, and `database`
 - [ ] Confirm the response does not expose environment names, database URLs, paths, hostnames, usernames, provider names, exception messages, or secrets
 - [ ] Treat `GET /api/health/detailed` as a readiness check only, not as proof of durable graph-persistence startup
-- [ ] Test API docs: `https://your-project.vercel.app/docs`
+- [ ] Confirm `/docs`, `/redoc`, `/openapi.json`, `/api/metrics`, and `/api/slo/status` are locked down when `ENV=production` (H-P3-01)
 
 ### 1a. Staging/Production Durable Graph-Persistence Verification
 
@@ -234,7 +230,7 @@ Run this subsection for staging and production promotions. Do not use basic read
 - [ ] Verify all dependencies are in package.json
 - [ ] Test build locally: `cd frontend && npm run build`
 - [ ] Check for TypeScript errors
-- [ ] Ensure Node.js version is compatible (18+)
+- [ ] Ensure Node.js version is compatible (`22 LTS`, minimum `>=20.19.0`)
 
 #### Issue 2: API Not Found (404)
 
@@ -415,7 +411,7 @@ Before going live:
 cd frontend && npm run build
 
 # Test API
-python test_api.py
+pytest tests/unit/test_api_main.py -v
 
 # Deploy to Vercel
 vercel --prod

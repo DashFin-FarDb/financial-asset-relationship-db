@@ -209,13 +209,17 @@ Run `make help` for the full target list with descriptions.
 - `scripts/deduplicate_manifest.py` — Deduplicate level-2 sections in `.elastic-copilot/memory/systemManifest.md`.
   Note: the script currently contains a partial implementation; complete it before relying on this command.
 
+### Docker (Production stack)
+
+Production containers live in `docker-compose.production.yml` (`Dockerfile.api` with `runtime` and `operator`-profile `migrate` targets + `Dockerfile.frontend`). See `DOCKER.md` for full production container commands.
+
 ### Docker (Gradio app - NON-PRODUCTION)
 
 ```sh
-docker-compose up --build
+docker compose up --build
 ```
 
-Note: Docker configuration currently references Gradio. Aligning deployment artifacts with production architecture is deferred work per ADR 0001.
+Note: Root `Dockerfile` and `docker-compose.yml` reference the Gradio demo (`app.py`) for demos and internal testing only per ADR 0001.
 
 ### Hosted readiness smoke check
 
@@ -298,12 +302,13 @@ FastAPI graph initialization in `api/main.py`:
 
 ### FastAPI backend
 
-- `api/main.py`
+- `api/main.py` (thin entrypoint) + `api/app_factory.py` (app assembly, lifespan, middleware) + `api/routers/`
   - REST endpoints used by the Next.js app:
-    - `GET /api/assets`, `GET /api/assets/{asset_id}`, `GET /api/relationships`, `GET /api/metrics`, `GET /api/visualization`, etc.
-  - Assembles the FastAPI application, and the active endpoint implementations currently live in this file.
+    - `GET /api/assets`, `GET /api/assets/{asset_id}`, `GET /api/relationships`, `GET /api/graph/metrics`, `GET /api/visualization`, `GET /api/health/detailed`, etc.
+  - When `ENV=production`, `/docs`, `/redoc`, `/openapi.json`, `/api/metrics`, and `/api/slo/status` are locked down / auth-gated (H-P3-01).
   - CORS rules depend on `ENV` + `ALLOWED_ORIGINS` and include Vercel preview support.
-  - Rate limiting via `slowapi`.
+  - Global and per-route rate limiting via `slowapi` (`api/rate_limit.py`, optional `RATE_LIMIT_STORAGE_URI`).
+  - Rebuild/admin authorization uses `REBUILD_OPERATOR_USERNAMES` (comma-separated allowlist, falling back to `ADMIN_USERNAME` when unset).
 
 Configuration + persistence:
 
