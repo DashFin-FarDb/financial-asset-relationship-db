@@ -467,7 +467,7 @@ secrets or identifiers that leak topology appear in labels. Not bundled with met
 - [x] H-P2-01: active executor is derived from heartbeat + lock.
 - [x] H-P2-02: fencing token is checked on graph/job writes.
 - [x] H-P2-03: partial unique index enforces at most one `RUNNING` rebuild job on PostgreSQL.
-- [ ] H-P2-04: startup and periodic auto-recovery are unified for stale-only orphans under lock.
+- [x] H-P2-04: startup and periodic auto-recovery are unified for stale-only orphans under lock.
 - [ ] H-P2-05: cross-boundary restore skew check (Graph vs Coordination) exists.
 - [x] H-P3-01: metrics/SLO/OpenAPI are locked down or ACL'd in production.
 - [ ] H-P3-02: global rate limits with proxy-aware IP and a shared store.

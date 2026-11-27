@@ -47,6 +47,22 @@ def _create_reconciliation_dependencies(
     return session_factory, lock
 
 
+def run_unified_orphan_auto_recovery(
+    engine: Any,
+    coord_engine: Any,
+    *,
+    cancel_event: threading.Event | None = None,
+    lock_ttl: int = MAX_TTL,
+) -> None:
+    """Execute unified startup/periodic stale-only orphan auto-recovery under distributed lock (H-P2-04)."""
+    _run_sync_reconciliation(
+        engine=engine,
+        coord_engine=coord_engine,
+        cancel_event=cancel_event,
+        lock_ttl=lock_ttl,
+    )
+
+
 def _run_sync_reconciliation(
     engine: Any,
     coord_engine: Any,

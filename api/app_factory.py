@@ -275,38 +275,15 @@ async def _stop_auth_database_verification(verification_task: asyncio.Task[Any],
 
 
 def _execute_recovery_gate(engine: Any, coord_engine: Any, cancellation_event: threading.Event | None = None) -> None:
-    """Acquire lock and execute recovery gate evaluation."""
-    from src.data.database import create_session_factory
-    from src.data.distributed_lock import DistributedLock
-    from src.logic.recovery_gate import RecoveryGate
+    """Execute unified startup stale-only orphan auto-recovery under distributed lock (H-P2-04)."""
+    from src.logic.reconciliation_loop import run_unified_orphan_auto_recovery
 
-    from .metrics import increment_recovery_trigger, record_rebuild_state_transition
-
-    session_factory = create_session_factory(engine)
-    coord_session_factory = create_session_factory(coord_engine) if coord_engine is not engine else session_factory
-
-    lock = DistributedLock(
-        coordination_session_factory=coord_session_factory,
-        lock_name="graph_rebuild",
-        ttl_seconds=int(_STARTUP_RECONCILIATION_LOCK_TTL_SECONDS),
+    run_unified_orphan_auto_recovery(
+        engine,
+        coord_engine,
+        cancel_event=cancellation_event,
+        lock_ttl=int(_STARTUP_RECONCILIATION_LOCK_TTL_SECONDS),
     )
-    gate = RecoveryGate(
-        session_factory=session_factory,
-        lock=lock,
-        increment_recovery_trigger=increment_recovery_trigger,
-        runtime_has_active_executor=None,
-        lock_ttl_seconds=int(_STARTUP_RECONCILIATION_LOCK_TTL_SECONDS),
-        enable_automatic_recovery=False,
-        record_state_transition=record_rebuild_state_transition,
-    )
-
-    try:
-        # RecoveryGate methods are expected to check the cancellation_event
-        if hasattr(gate, "ensure_safe_to_execute"):
-            gate.ensure_safe_to_execute(cancellation_event=cancellation_event)
-    finally:
-        if getattr(gate, "lock_was_reacquired", False):
-            lock.release()
 
 
 def _generate_startup_trace_ids() -> tuple[str, str]:
