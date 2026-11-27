@@ -16,6 +16,7 @@ from typing import TYPE_CHECKING
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
+from src.data.db_models import RebuildJobStatus
 from src.data.distributed_lock import DistributedLock, LockState
 from src.data.repository import AssetGraphRepository
 from src.logic.rebuild_failure_detection import InconsistencyType, detect_rebuild_inconsistency
@@ -42,7 +43,7 @@ class RebuildDriftEvaluator:
         self,
         session_factory: Callable[[], Session],
         lock: DistributedLock,
-        runtime_has_active_executor: bool = False,
+        runtime_has_active_executor: bool | None = None,
         lock_ttl_seconds: int = 300,
     ) -> None:
         """
@@ -52,14 +53,40 @@ class RebuildDriftEvaluator:
             session_factory (Callable[[], Session]): Factory that produces SQLAlchemy
                 sessions used to load rebuild state.
             lock (DistributedLock): Distributed lock used to inspect lock state and holder id.
-            runtime_has_active_executor (bool): Whether this runtime currently has
-                an active rebuild executor; included in metadata and passed to inconsistency detection.
+            runtime_has_active_executor (bool | None): Explicit override for whether an active
+                rebuild executor exists. When ``None`` (default, H-P2-01), active executor presence
+                is derived from distributed lock ownership and job heartbeat freshness.
             lock_ttl_seconds (int): Time-to-live in seconds used to determine whether a heartbeat is considered stale.
         """
         self.session_factory = session_factory
         self.lock = lock
         self.runtime_has_active_executor = runtime_has_active_executor
         self.lock_ttl_seconds = lock_ttl_seconds
+
+    def _resolve_active_executor(self, job: RebuildJobORM | None, lock_state: LockState) -> bool:
+        """Derive active executor presence from distributed lock + heartbeat when not explicitly set."""
+        if self.runtime_has_active_executor is not None:
+            return self.runtime_has_active_executor
+
+        if job is None or getattr(job, "status", None) != RebuildJobStatus.RUNNING:
+            return False
+
+        active_worker_id = getattr(job, "active_worker_id", None)
+        if not active_worker_id:
+            return False
+
+        if self._is_heartbeat_stale(getattr(job, "last_heartbeat_at", None)):
+            return False
+
+        if lock_state == LockState.VALID and self.lock.holder_id == active_worker_id:
+            return True
+
+        get_active_holder = getattr(self.lock, "get_active_holder_id", None)
+        if callable(get_active_holder):
+            active_holder = get_active_holder()
+            return isinstance(active_holder, str) and active_holder == active_worker_id
+
+        return False
 
     def evaluate_drift(self) -> tuple[str, Severity, dict[str, str | int | float | bool | None]]:
         """
@@ -105,10 +132,13 @@ class RebuildDriftEvaluator:
                 },
             )
 
+        # Resolve active executor from heartbeat + distributed lock (H-P2-01)
+        has_active_executor = self._resolve_active_executor(job, lock_state)
+
         # Detect inconsistency using existing logic
         inconsistency = detect_rebuild_inconsistency(
             job=job,
-            runtime_has_active_executor=self.runtime_has_active_executor,
+            runtime_has_active_executor=has_active_executor,
             lock_ttl_seconds=self.lock_ttl_seconds,
         )
 
@@ -130,7 +160,7 @@ class RebuildDriftEvaluator:
             "reason": inconsistency.reason,
             "lock_state": lock_state.value,
             "lock_is_valid": lock_is_valid,
-            "runtime_has_active_executor": self.runtime_has_active_executor,
+            "runtime_has_active_executor": has_active_executor,
             "detected_at": inconsistency.detected_at.isoformat(),
         }
 

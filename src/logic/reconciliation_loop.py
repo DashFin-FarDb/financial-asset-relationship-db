@@ -75,7 +75,7 @@ def _run_sync_reconciliation(
         session_factory=session_factory,
         lock=lock,
         increment_recovery_trigger=increment_recovery_trigger,
-        runtime_has_active_executor=False,
+        runtime_has_active_executor=None,
         lock_ttl_seconds=bounded_lock_ttl,
         enable_automatic_recovery=True,
         record_drift_metric=record_drift_metric,
