@@ -61,8 +61,8 @@ COPY api/ ./api/
 # Required only for the preserved SQLite compatibility path.
 COPY migrations/ ./migrations/
 
-HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
-  CMD curl -f http://localhost:${PORT}/api/health || exit 1
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+  CMD curl -f http://localhost:${PORT}/api/ready || exit 1
 
 EXPOSE ${PORT}
 
