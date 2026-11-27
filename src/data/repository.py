@@ -85,6 +85,27 @@ class CoordinationLockRepository:
         """Initialize with an active database Session."""
         self.session = session
 
+    @staticmethod
+    def _ensure_utc(ts: datetime) -> datetime:
+        """Normalize naive timestamps to UTC."""
+        return ts if ts.tzinfo is not None else ts.replace(tzinfo=UTC)
+
+    @classmethod
+    def _fencing_token_from_timestamp(cls, ts: datetime) -> int:
+        """Compute microsecond fencing token from a timestamp."""
+        return int(cls._ensure_utc(ts).timestamp() * 1_000_000)
+
+    @classmethod
+    def _next_monotonic_updated_at(cls, now: datetime, previous: datetime | None) -> datetime:
+        """Guarantee strict monotonic timestamp/fencing-token progression even under clock skew."""
+        now_utc = cls._ensure_utc(now)
+        if previous is None:
+            return now_utc
+        prev_utc = cls._ensure_utc(previous)
+        if now_utc <= prev_utc:
+            return prev_utc + timedelta(microseconds=1)
+        return now_utc
+
     def acquire_lock(
         self,
         *,
@@ -95,7 +116,8 @@ class CoordinationLockRepository:
         """
         Try to acquire or refresh a distributed lock in the database.
 
-        Atomic compare-and-set semantics.
+        Atomic compare-and-set semantics with strictly monotonic fencing-token advancement
+        even under host wall-clock skew.
         Executes on PRIMARY only.
         Returns a fully materialized result with no follow-up reads required.
         """
@@ -103,6 +125,11 @@ class CoordinationLockRepository:
             raise ValueError("ttl_seconds must be greater than 0")
         now = datetime.now(timezone.utc)  # noqa: UP017
         expires_at = now + timedelta(seconds=ttl_seconds)
+
+        existing_updated = self.session.execute(
+            select(DistributedLockORM.updated_at).where(DistributedLockORM.lock_name == lock_name)
+        ).scalar_one_or_none()
+        next_updated_at = self._next_monotonic_updated_at(now, existing_updated)
 
         update_stmt = (
             update(DistributedLockORM)
@@ -116,7 +143,7 @@ class CoordinationLockRepository:
             .values(
                 holder_id=holder_id,
                 expires_at=expires_at,
-                updated_at=now,
+                updated_at=next_updated_at,
             )
         )
         update_result = self.session.execute(update_stmt)
@@ -124,10 +151,8 @@ class CoordinationLockRepository:
             stmt = select(DistributedLockORM).where(DistributedLockORM.lock_name == lock_name)
             record = self.session.execute(stmt).scalar_one_or_none()
             if record:
-                updated_at = record.updated_at
-                if updated_at.tzinfo is None:
-                    updated_at = updated_at.replace(tzinfo=timezone.utc)  # noqa: UP017
-                token = int(updated_at.timestamp() * 1_000_000)
+                updated_at = self._ensure_utc(record.updated_at)
+                token = self._fencing_token_from_timestamp(updated_at)
                 return LockWriteResult(
                     success=True,
                     fencing_token=token,
@@ -143,26 +168,43 @@ class CoordinationLockRepository:
                         holder_id=holder_id,
                         expires_at=expires_at,
                         created_at=now,
-                        updated_at=now,
+                        updated_at=next_updated_at,
                     )
                 )
             return LockWriteResult(
                 success=True,
-                fencing_token=int(now.timestamp() * 1_000_000),
-                updated_at=now,
+                fencing_token=self._fencing_token_from_timestamp(next_updated_at),
+                updated_at=next_updated_at,
                 contention=False,
             )
         except IntegrityError:
             # Retry conditional update in case of insert race
-            retry_result = self.session.execute(update_stmt)
+            retry_existing = self.session.execute(
+                select(DistributedLockORM.updated_at).where(DistributedLockORM.lock_name == lock_name)
+            ).scalar_one_or_none()
+            retry_updated_at = self._next_monotonic_updated_at(now, retry_existing)
+            retry_stmt = (
+                update(DistributedLockORM)
+                .where(
+                    DistributedLockORM.lock_name == lock_name,
+                    or_(
+                        DistributedLockORM.holder_id == holder_id,
+                        DistributedLockORM.expires_at < now,
+                    ),
+                )
+                .values(
+                    holder_id=holder_id,
+                    expires_at=expires_at,
+                    updated_at=retry_updated_at,
+                )
+            )
+            retry_result = self.session.execute(retry_stmt)
             if retry_result.rowcount and retry_result.rowcount > 0:  # type: ignore[attr-defined]
                 stmt = select(DistributedLockORM).where(DistributedLockORM.lock_name == lock_name)
                 record = self.session.execute(stmt).scalar_one_or_none()
                 if record:
-                    updated_at = record.updated_at
-                    if updated_at.tzinfo is None:
-                        updated_at = updated_at.replace(tzinfo=timezone.utc)  # noqa: UP017
-                    token = int(updated_at.timestamp() * 1_000_000)
+                    updated_at = self._ensure_utc(record.updated_at)
+                    token = self._fencing_token_from_timestamp(updated_at)
                     return LockWriteResult(
                         success=True,
                         fencing_token=token,
@@ -174,10 +216,8 @@ class CoordinationLockRepository:
             stmt = select(DistributedLockORM).where(DistributedLockORM.lock_name == lock_name)
             record = self.session.execute(stmt).scalar_one_or_none()
             if record:
-                updated_at = record.updated_at
-                if updated_at.tzinfo is None:
-                    updated_at = updated_at.replace(tzinfo=timezone.utc)  # noqa: UP017
-                token = int(updated_at.timestamp() * 1_000_000)
+                updated_at = self._ensure_utc(record.updated_at)
+                token = self._fencing_token_from_timestamp(updated_at)
                 return LockWriteResult(
                     success=False,
                     fencing_token=token,
@@ -230,24 +270,40 @@ class CoordinationLockRepository:
         ttl_seconds: int,
         expected_fencing_token: int | None = None,
     ) -> bool:
-        """Renew an unexpired lease owned by ``holder_id`` in the current transaction."""
+        """Atomically renew an unexpired lease owned by ``holder_id`` in the current transaction.
+
+        When ``expected_fencing_token`` is supplied, enforcement occurs inside the single
+        ``UPDATE ... WHERE`` CAS predicate (no separate SELECT/UPDATE race window) and
+        ``updated_at`` advances strictly monotonically.
+        """
         if ttl_seconds <= 0:
             raise ValueError("ttl_seconds must be greater than 0")
-        if expected_fencing_token is not None and not self.verify_fencing_token(
-            lock_name=lock_name,
-            holder_id=holder_id,
-            expected_fencing_token=expected_fencing_token,
-        ):
+        if expected_fencing_token is not None and expected_fencing_token <= 0:
             return False
+
         now = datetime.now(timezone.utc)  # noqa: UP017
+        where_clauses: list[Any] = [
+            DistributedLockORM.lock_name == lock_name,
+            DistributedLockORM.holder_id == holder_id,
+            DistributedLockORM.expires_at > now,
+        ]
+        prev_ts: datetime | None = None
+        if expected_fencing_token is not None:
+            expected_utc = datetime.fromtimestamp(expected_fencing_token / 1_000_000, tz=UTC)
+            expected_naive = expected_utc.replace(tzinfo=None)
+            where_clauses.append(
+                or_(
+                    DistributedLockORM.updated_at == expected_utc,
+                    DistributedLockORM.updated_at == expected_naive,
+                )
+            )
+            prev_ts = expected_utc
+
+        next_updated_at = self._next_monotonic_updated_at(now, prev_ts)
         result = self.session.execute(
             update(DistributedLockORM)
-            .where(
-                DistributedLockORM.lock_name == lock_name,
-                DistributedLockORM.holder_id == holder_id,
-                DistributedLockORM.expires_at > now,
-            )
-            .values(expires_at=now + timedelta(seconds=ttl_seconds), updated_at=now)
+            .where(*where_clauses)
+            .values(expires_at=now + timedelta(seconds=ttl_seconds), updated_at=next_updated_at)
         )
         return bool(result.rowcount and result.rowcount > 0)  # type: ignore[attr-defined]
 
