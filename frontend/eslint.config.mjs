@@ -16,6 +16,8 @@ export default tseslint.config(
       "dist/",
       "build/",
       "coverage/",
+      "playwright-report/",
+      "test-results/",
       "__tests__/test-utils.test.ts",
       "__tests__/test-utils.ts",
     ],
