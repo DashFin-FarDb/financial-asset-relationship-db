@@ -10,7 +10,9 @@ Provides:
 from __future__ import annotations
 
 import ipaddress
+import logging
 import os
+from urllib.parse import urlparse
 
 from fastapi import Request
 
@@ -20,8 +22,21 @@ from slowapi.util import get_remote_address  # type: ignore[import-not-found]
 
 # pylint: enable=import-error
 
+logger = logging.getLogger(__name__)
+
 DEFAULT_RATE_LIMIT = "120/minute"
 DEFAULT_STORAGE_URI = "memory://"
+_ALLOWED_STORAGE_SCHEMES = frozenset(
+    {
+        "memory",
+        "redis",
+        "rediss",
+        "redis+unix",
+        "memcached",
+        "mongodb",
+        "mongodb+srv",
+    }
+)
 
 
 def _trust_proxy_headers() -> bool:
@@ -79,10 +94,58 @@ def get_client_ip(request: Request) -> str:
     return str(get_remote_address(request) or "127.0.0.1")
 
 
+def _require_shared_rate_limit_store() -> bool:
+    """Return True when in-memory rate-limit storage must fail closed."""
+    raw = os.getenv("REQUIRE_SHARED_RATE_LIMIT_STORE", "false").strip().lower()
+    return raw in {"1", "true", "yes", "on"}
+
+
+def validate_rate_limit_storage_uri(uri: str) -> str:
+    """Validate the scheme of a rate-limit storage URI without echoing credentials."""
+    cleaned = uri.strip()
+    if not cleaned:
+        return DEFAULT_STORAGE_URI
+    parsed = urlparse(cleaned)
+    scheme = (parsed.scheme or "").lower()
+    if scheme not in _ALLOWED_STORAGE_SCHEMES:
+        raise ValueError(
+            f"Unsupported rate-limit storage scheme '{scheme or 'empty'}'. "
+            f"Allowed schemes: {', '.join(sorted(_ALLOWED_STORAGE_SCHEMES))}."
+        )
+    if scheme != "memory" and not parsed.netloc and not parsed.path:
+        raise ValueError(f"Rate-limit storage URI for scheme '{scheme}' must include a host or socket path.")
+    return cleaned
+
+
+def classify_rate_limit_backend(uri: str | None = None) -> str:
+    """Return a bounded, non-secret backend label for diagnostics and metrics."""
+    resolved = resolve_rate_limit_storage_uri() if uri is None else uri.strip()
+    scheme = (urlparse(resolved).scheme or "").lower()
+    if scheme == "memory" or not scheme:
+        return "memory"
+    if scheme in {"redis", "rediss", "redis+unix"}:
+        return "redis"
+    if scheme == "memcached":
+        return "memcached"
+    if scheme in {"mongodb", "mongodb+srv"}:
+        return "mongodb"
+    return "custom"
+
+
 def resolve_rate_limit_storage_uri() -> str:
-    """Return the configured rate-limit storage URI (shared store or in-memory fallback)."""
-    uri = (os.getenv("RATE_LIMIT_STORAGE_URI") or "").strip()
-    return uri or DEFAULT_STORAGE_URI
+    """Return the configured rate-limit storage URI (shared store or in-memory fallback).
+
+    Precedence:
+    1. ``RATE_LIMIT_STORAGE_URI``
+    2. ``UPSTASH_REDIS_URL`` (Vercel/Upstash integration)
+    3. ``REDIS_URL``
+    4. ``memory://`` fallback
+    """
+    for env_name in ("RATE_LIMIT_STORAGE_URI", "UPSTASH_REDIS_URL", "REDIS_URL"):
+        candidate = (os.getenv(env_name) or "").strip()
+        if candidate:
+            return validate_rate_limit_storage_uri(candidate)
+    return DEFAULT_STORAGE_URI
 
 
 def resolve_default_rate_limits() -> list[str]:
@@ -100,7 +163,21 @@ def build_limiter(
 ) -> Limiter:
     """Build a configured SlowAPI Limiter with proxy-aware IP extraction and shared-store support."""
     limits = resolve_default_rate_limits() if default_limits is None else default_limits
-    resolved_storage = resolve_rate_limit_storage_uri() if storage_uri is None else storage_uri
+    resolved_storage = (
+        resolve_rate_limit_storage_uri() if storage_uri is None else validate_rate_limit_storage_uri(storage_uri)
+    )
+    backend = classify_rate_limit_backend(resolved_storage)
+    if backend == "memory":
+        if _require_shared_rate_limit_store():
+            raise RuntimeError(
+                "REQUIRE_SHARED_RATE_LIMIT_STORE is enabled, but no shared RATE_LIMIT_STORAGE_URI "
+                "(e.g., rediss://... or UPSTASH_REDIS_URL) is configured."
+            )
+        if os.getenv("ENV", "").strip().lower() == "production":
+            logger.warning(
+                "Rate limiter is running with in-memory storage in production; "
+                "configure RATE_LIMIT_STORAGE_URI or UPSTASH_REDIS_URL for multi-instance enforcement."
+            )
     return Limiter(
         key_func=get_client_ip,
         default_limits=limits,  # type: ignore[arg-type]
