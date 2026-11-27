@@ -27,7 +27,6 @@ class TestDocumentationFilesValidation:
     def _is_excluded(path: Path) -> bool:
         """Check if a markdown file should be excluded from validation."""
         legacy_markdown_debt = {
-            "DashFin-financial-asset-relationship-db-wiki-v2.md",
             "tech_spec.md",
         }
         return path.name in legacy_markdown_debt
