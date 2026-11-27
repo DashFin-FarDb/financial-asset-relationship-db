@@ -69,11 +69,11 @@ and log observations during a run, refer to the Evidence Matrix in the [Operatio
 
 | Drill | Execution issue / evidence link | Environment | Commit SHA | Result | Notes | Follow-up issue |
 | --- | --- | --- | --- | --- | --- | --- |
-| Failed graph load |  |  |  | Not run |  |  |
-| Lock loss |  |  |  | Not run |  |  |
-| Stale owner |  |  |  | Not run |  |  |
-| Degraded DB |  |  |  | Not run |  |  |
-| Failed durable smoke |  |  |  | Not run |  |  |
+| Failed graph load | [#1977](https://github.com/DashFin-FarDb/financial-asset-relationship-db/issues/1977) (`DRILL-2026-11-27-01`) | `scratch` | `8eeec47b9` | Passed | Operator: `mohavro`; fail-closed `RuntimeError`, `application_startup_failure_total` +1 | None |
+| Lock loss | [#1978](https://github.com/DashFin-FarDb/financial-asset-relationship-db/issues/1978) (`DRILL-2026-11-27-02`) | `scratch` | `8eeec47b9` | Passed | Operator: `mohavro`; stale refresh failed & fencing token blocked commit | None |
+| Stale owner | [#1979](https://github.com/DashFin-FarDb/financial-asset-relationship-db/issues/1979) (`DRILL-2026-11-27-03`) | `scratch` | `8eeec47b9` | Passed | Operator: `mohavro`; fresh foreign owner blocked from reset, stale orphan reset under lock | None |
+| Degraded DB | [#1980](https://github.com/DashFin-FarDb/financial-asset-relationship-db/issues/1980) (`DRILL-2026-11-27-04`) | `scratch` | `8eeec47b9` | Passed | Operator: `mohavro`; Auth DB outage isolated (`status=degraded`, `database.reachable=false`, zero secret leakage) | None |
+| Failed durable smoke | [#1981](https://github.com/DashFin-FarDb/financial-asset-relationship-db/issues/1981) (`DRILL-2026-11-27-05`) | `scratch` | `8eeec47b9` | Passed | Operator: `mohavro`; non-durable target failed `--require-persistence` (exit 1) and blocked promotion | None |
 
 Allowed result values:
 

@@ -108,11 +108,11 @@ Record each drill with a compact evidence row. Use one row per drill execution.
 
 | Drill | Triggered in | Expected behavior | Metrics observed | Logs / events observed | Dashboard / alert observed | Runbook response verified | Result |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| Failed graph load |  |  |  |  |  |  | Not run |
-| Lock loss |  |  |  |  |  |  | Not run |
-| Stale owner |  |  |  |  |  |  | Not run |
-| Degraded DB |  |  |  |  |  |  | Not run |
-| Failed durable smoke |  |  |  |  |  |  | Not run |
+| Failed graph load | `scratch` (`8eeec47b`, #1977) | Startup fails closed; no false persisted claim | `application_startup_failure_total` (+1.0) | `startup_reconciliation_failed` (`OperationalError`), `startup_failed` (`RuntimeError`) | Scratch (not applicable) | Verified (`docs/runbooks/backup-restore-dr.md`) | Passed |
+| Lock loss | `scratch` (`8eeec47b`, #1978) | Stale refresh fails; fencing token blocks commit | `rebuild_lock_refresh_total{status="failure"}` (+1.0) | `_DistributedLockLostError` (fencing token mismatch at `publication-pre-commit`) | Scratch (not applicable) | Verified (pack §2; stale writer stopped) | Passed |
+| Stale owner | `scratch` (`8eeec47b`, #1979) | Fresh foreign owner protected; stale orphan reset under lock | `graph_rebuild_state_transition_total{from_state="running",to_state="failed"}` (+1.0) | `reconciliation_loop_blocked` (fresh foreign); `recovery_gate_orphaned_job_reset` & `recovery_gate_reset_recovery_succeeded` (stale orphan) | Scratch (not applicable) | Verified (`docs/governance/state-machine-and-operating-authority.md`) | Passed |
+| Degraded DB | `scratch` (`8eeec47b`, #1980) | Auth DB outage reports `degraded` & `database.reachable=false`; zero secret leakage | `/api/health/detailed` `status=degraded`, `database.reachable=false` | `health_check_database_unreachable` (`warning`, sanitized) | Scratch (not applicable) | Verified (pack §4; boundary isolated) | Passed |
+| Failed durable smoke | `scratch` (`8eeec47b`, #1981) | Non-durable target fails `--require-persistence` (exit 1) and blocks promotion | `persistence_loaded=false`, `startup_source=unknown`, exit status `1` | `health_check_graph_failed` (`warning`) | Scratch (promotion gate blocks non-durable evidence) | Verified (`docs/enterprise-deployment-operating-model.md`) | Passed |
 
 Allowed result values:
 

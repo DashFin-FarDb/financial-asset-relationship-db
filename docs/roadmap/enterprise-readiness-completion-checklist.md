@@ -529,14 +529,14 @@ in the source authorities.
 
 ### Completion criteria
 
-- [ ] Each drill is executed against a safe target: failed graph load, lock loss, stale owner, degraded DB, and failed
+- [x] Each drill is executed against a safe target: failed graph load, lock loss, stale owner, degraded DB, and failed
       durable smoke.
-- [ ] Each execution has an evidence-matrix row with metrics, logs/events, dashboard/alert, and runbook response
+- [x] Each execution has an evidence-matrix row with metrics, logs/events, dashboard/alert, and runbook response
       observed, using an allowed result value.
-- [ ] Execution records use `.github/ISSUE_TEMPLATE/operational_drill_evidence.md` and are captured in the
+- [x] Execution records use `.github/ISSUE_TEMPLATE/operational_drill_evidence.md` and are captured in the
       execution-record register.
-- [ ] Named operators are recorded for each run.
-- [ ] Every observability or runbook gap found is opened as a separate follow-up item.
+- [x] Named operators are recorded for each run.
+- [x] Every observability or runbook gap found is opened as a separate follow-up item.
 
 ### Non-negotiable boundary
 
