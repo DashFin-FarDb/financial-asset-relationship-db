@@ -21,6 +21,7 @@ from fastapi.responses import JSONResponse
 # pylint: disable=import-error
 from slowapi import _rate_limit_exceeded_handler  # type: ignore[import-not-found]
 from slowapi.errors import RateLimitExceeded  # type: ignore[import-not-found]
+from slowapi.middleware import SlowAPIMiddleware  # type: ignore[import-not-found]
 from sqlalchemy.exc import SQLAlchemyError
 
 from src.data.database import SchemaCompatibilityError
@@ -1018,6 +1019,7 @@ def create_app() -> FastAPI:
 
     app.state.limiter = limiter
     app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)  # type: ignore[arg-type]
+    app.add_middleware(SlowAPIMiddleware)
 
     @app.exception_handler(AuthoritativeGraphUnavailableError)
     async def _graph_unavailable_handler(_request: Request, _exc: AuthoritativeGraphUnavailableError) -> JSONResponse:
