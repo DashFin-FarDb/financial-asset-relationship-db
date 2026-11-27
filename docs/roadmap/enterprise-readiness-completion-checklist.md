@@ -395,17 +395,19 @@ already defines related collectors (`graph_rebuild_state_transition_total`, `reb
 
 ### Completion criteria
 
-- [ ] 1.4.a — Rebuild admission metrics are exposed and emitted at the existing fail-fast admission seam, distinguishing
-      accepted requests from rejected-busy requests, with tests. Concurrent rebuilds are intentionally rejected rather
+- [x] 1.4.a — Rebuild admission metrics are exposed and emitted at the existing fail-fast admission seam, distinguishing
+      accepted requests from rejected-busy requests, with tests (PR #1929). Concurrent rebuilds are intentionally rejected rather
       than queued; adding a queue would change rebuild semantics and is outside this observability item.
-- [ ] 1.4.b — State transition counters are emitted for every rebuild job transition, including RecoveryGate orphan-reset
-      transitions, with tests asserting the lifecycle emission seams.
-- [ ] 1.4.c — Lock acquisition metrics are emitted for acquired, timeout, error, lost, and invalid outcomes, with
-      tests asserting one increment per outcome and bounded status labels.
-- [ ] 1.4.d — Startup metrics are exposed and emitted for startup duration and success/failure, with tests asserting
-      duration observation on both successful and failed startup paths.
-- [ ] Each sub-item's status is reconciled in the current roadmap or release evidence pack (not by editing the frozen
-      `ROADMAP_STATUS.md` snapshot) with its merged PR reference.
+- [x] 1.4.b — State transition counters are emitted for every rebuild job transition, including RecoveryGate orphan-reset
+      transitions, with tests asserting the lifecycle emission seams (PR #1930).
+- [x] 1.4.c — Lock acquisition metrics are emitted for acquired, timeout, error, lost, and invalid outcomes, with
+      tests asserting one increment per outcome and bounded status labels (PR #1931).
+- [x] 1.4.d — Startup metrics are exposed and emitted for startup duration and success/failure, with tests asserting
+      duration observation on both successful and failed startup paths (PR #1932).
+- [x] Each sub-item's status is reconciled in the current roadmap or release evidence pack (not by editing the frozen
+      `ROADMAP_STATUS.md` snapshot) with its merged PR reference (local Grafana Cloud scrape/ingestion verified under
+      `job="fardb_fastapi"` and `monitoring/dashboards/graph-postgres-bridge.json` added in PR #2005; hosted-target
+      scrape remains tied to hosted promotion evidence).
 
 ### Implementation merge status — 2026-11-20
 
@@ -474,9 +476,9 @@ secrets or identifiers that leak topology appear in labels. Not bundled with met
 - [x] H-P3-03: rebuild RBAC exists and silent admin upsert on every boot is removed.
 - [x] H-P3-04: Vercel API dependencies are slimmed and connection pooling is in place.
 - [x] H-P3-05: separation of duties and evidence expiry are enforced on RC packets.
-- [ ] Each ID moves to `Satisfied - automated` only when enforced in the release-evidence Assert path, a promotion
+- [x] Each ID moves to `Satisfied - automated` only when enforced in the release-evidence Assert path, a promotion
       workflow, merge-required CI, or `ci-gate-spec.yaml`; the evidence pack and PR board rows are updated together.
-- [ ] `hardening_tier` gains P1–P3 values only when tier-specific checks are wired.
+- [x] `hardening_tier` gains P1–P3 values only when tier-specific checks are wired (`.github/workflows/release-evidence-verify.yml`, PR #2010).
 
 ### Non-negotiable boundary
 
