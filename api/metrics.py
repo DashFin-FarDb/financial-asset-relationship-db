@@ -1,6 +1,7 @@
 """Prometheus metrics for the Financial Asset Relationship API."""
 
 import logging
+import time
 
 from prometheus_client import Counter, Gauge, Histogram
 
@@ -91,6 +92,26 @@ GRAPH_RELATIONSHIPS = Gauge(
     "Current number of relationships in the graph.",
 )
 
+# Graph <-> Relational DB boundary metrics
+GRAPH_PERSISTENCE_CONFIGURED = Gauge(
+    "fardb_graph_persistence_configured",
+    "Whether durable graph persistence is configured (1=configured, 0=not configured).",
+)
+
+GRAPH_PROJECTION_LAST_PUBLISHED_TIMESTAMP = Gauge(
+    "graph_projection_last_published_timestamp_seconds",
+    "Unix timestamp of the last graph projection published or synchronized into runtime memory.",
+)
+
+GRAPH_DB_PERSISTENCE_DURATION_SECONDS = Histogram(
+    "graph_db_persistence_duration_seconds",
+    "Time spent persisting a graph snapshot into the relational database.",
+    ["dialect"],
+    buckets=(0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0, 10.0, 30.0, float("inf")),
+)
+
+_KNOWN_DB_DIALECTS = frozenset({"postgresql", "sqlite"})
+
 # Stage 5C.1: Recovery state metrics
 REBUILD_STATE_STATUS = Gauge(
     "graph_rebuild_state_status",
@@ -162,9 +183,29 @@ SLO_COMPLIANCE_STATUS = Gauge(
 
 
 def update_graph_metrics(asset_count: int, relationship_count: int) -> None:
-    """Update gauge metrics for the current graph state."""
+    """Update gauge metrics for the current graph state and publication timestamp."""
     GRAPH_ASSETS.set(asset_count)
     GRAPH_RELATIONSHIPS.set(relationship_count)
+    record_graph_projection_published()
+
+
+def update_graph_persistence_configured(configured: bool) -> None:
+    """Record whether durable graph persistence is configured (1 or 0)."""
+    GRAPH_PERSISTENCE_CONFIGURED.set(1 if configured else 0)
+
+
+def record_graph_projection_published(timestamp_seconds: float | None = None) -> None:
+    """Record the Unix timestamp of the latest published or synced graph projection."""
+    GRAPH_PROJECTION_LAST_PUBLISHED_TIMESTAMP.set(
+        time.time() if timestamp_seconds is None else float(timestamp_seconds)
+    )
+
+
+def observe_graph_db_persistence_duration(duration_seconds: float, dialect: str | None) -> None:
+    """Record relational database persistence duration with bounded dialect label."""
+    normalized = (dialect or "").strip().lower()
+    label = normalized if normalized in _KNOWN_DB_DIALECTS else "other"
+    GRAPH_DB_PERSISTENCE_DURATION_SECONDS.labels(dialect=label).observe(max(0.0, float(duration_seconds)))
 
 
 def update_slo_compliance_status(slo_name: str, is_compliant: bool) -> None:
