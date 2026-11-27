@@ -28,12 +28,20 @@ services:
       # Runtime operator identity only. Initial credential provisioning is a separate
       # `python -m scripts.migrate_database` operator action; do not expose its password here.
       - ADMIN_USERNAME=${ADMIN_USERNAME:?ADMIN_USERNAME is required for rebuild authorization}
+      # Optional production security, rate-limit, and observability settings
+      - JWT_KEY_ID=${JWT_KEY_ID:-}
+      - JWT_PREVIOUS_SECRET_KEYS=${JWT_PREVIOUS_SECRET_KEYS:-}
+      - RATE_LIMIT_STORAGE_URI=${RATE_LIMIT_STORAGE_URI:-}
+      - REQUIRE_SHARED_RATE_LIMIT_STORE=${REQUIRE_SHARED_RATE_LIMIT_STORE:-false}
+      - OTEL_EXPORTER_OTLP_ENDPOINT=${OTEL_EXPORTER_OTLP_ENDPOINT:-}
+      - OTEL_SERVICE_NAME=${OTEL_SERVICE_NAME:-fardb-api}
+      - LOG_FILE_PATH=${LOG_FILE_PATH:-}
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/ready"]
       interval: 30s
       timeout: 5s
       retries: 3
-      start_period: 5s
+      start_period: 10s
 
   migrate:
     image: ${FARDB_MIGRATION_IMAGE:-fardb-migration}
