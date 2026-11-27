@@ -55,7 +55,7 @@ class RecoveryGate:
         session_factory: Callable[[], Session],
         lock: DistributedLock,
         increment_recovery_trigger: Callable[[str], None] | None = None,
-        runtime_has_active_executor: bool = False,
+        runtime_has_active_executor: bool | None = None,
         lock_ttl_seconds: int = 300,
         enable_automatic_recovery: bool = False,
         record_drift_metric: Callable[[str, str, str], None] | None = None,

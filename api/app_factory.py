@@ -294,7 +294,7 @@ def _execute_recovery_gate(engine: Any, coord_engine: Any, cancellation_event: t
         session_factory=session_factory,
         lock=lock,
         increment_recovery_trigger=increment_recovery_trigger,
-        runtime_has_active_executor=False,
+        runtime_has_active_executor=None,
         lock_ttl_seconds=int(_STARTUP_RECONCILIATION_LOCK_TTL_SECONDS),
         enable_automatic_recovery=False,
         record_state_transition=record_rebuild_state_transition,

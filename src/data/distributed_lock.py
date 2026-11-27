@@ -742,6 +742,20 @@ class DistributedLock:
         except Exception as exc:
             return self._handle_check_state_error(exc)
 
+    def get_active_holder_id(self) -> str | None:
+        """Return the active (non-expired) holder_id for this lock, or None if unheld/expired."""
+        try:
+            with session_scope(self.coordination_session_factory) as session:
+                repo = CoordinationLockRepository(session)
+                snapshot = repo.get_lock_state(lock_name=self.lock_name, holder_id=self.holder_id)
+                if not snapshot.exists or snapshot.holder_id is None or snapshot.expires_at is None:
+                    return None
+                if snapshot.expires_at <= datetime.now(UTC):
+                    return None
+                return snapshot.holder_id
+        except (SQLAlchemyError, OSError):
+            return None
+
     def __enter__(self) -> DistributedLock:
         """
         Enter the context by acquiring the distributed lock.

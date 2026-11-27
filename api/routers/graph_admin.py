@@ -1309,7 +1309,7 @@ def _perform_rebuild_and_persist_sync(
             session_factory=domain_session_factory,
             lock=dist_lock,
             increment_recovery_trigger=increment_recovery_trigger,
-            runtime_has_active_executor=False,
+            runtime_has_active_executor=None,
             lock_ttl_seconds=lock_ttl,
             record_state_transition=record_rebuild_state_transition,
         ).ensure_safe_to_execute()
