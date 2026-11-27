@@ -97,16 +97,21 @@ class IdempotencyStore:
         """
         now = self._clock()
         composite = (scope, actor, key)
+        from .metrics import record_rebuild_idempotency
+
         with self._lock:
             self._prune_locked(now)
             existing = self._entries.get(composite)
             if existing is not None:
                 if existing.fingerprint != fingerprint:
+                    record_rebuild_idempotency("conflict")
                     raise IdempotencyConflictError(
                         "Idempotency-Key was already used with different request parameters."
                     )
                 if existing.in_progress:
+                    record_rebuild_idempotency("conflict")
                     raise IdempotencyConflictError("A request with this Idempotency-Key is already in progress.")
+                record_rebuild_idempotency("hit")
                 return True, existing.response
 
             self._entries[composite] = _IdempotencyEntry(
@@ -115,6 +120,7 @@ class IdempotencyStore:
                 expires_at=now + self._ttl,
                 response=None,
             )
+            record_rebuild_idempotency("miss")
             return False, None
 
     def complete(

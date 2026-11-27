@@ -437,10 +437,13 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         APPLICATION_STARTUP_DURATION,
         APPLICATION_STARTUP_FAILURE_TOTAL,
         APPLICATION_STARTUP_SUCCESS_TOTAL,
+        record_rate_limit_backend,
         update_graph_persistence_configured,
     )
+    from .rate_limit import classify_rate_limit_backend
 
     setup_tracing()
+    record_rate_limit_backend(classify_rate_limit_backend())
     start_time = time.perf_counter()
     trace_id: str | None = None
     span_id: str | None = None
