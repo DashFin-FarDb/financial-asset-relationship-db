@@ -63,6 +63,7 @@ from ..auth import (
     _build_credentials_exception,
     _build_expired_exception,
     _decode_username_from_token,
+    enforce_assertion_proposer_rbac,
     get_current_active_user,
     get_current_rebuild_operator_user,
     get_user,
@@ -410,6 +411,7 @@ def create_assertion(
     current_user: Annotated[User, Depends(get_current_active_user)],
 ) -> AssertionCommandResponse:
     """Create an assertion proposal or idempotently reuse the same proposer's prior proposal."""
+    enforce_assertion_proposer_rbac(current_user, get_settings(), request=request)
     proposal = AssertionProposal(
         assertion_id=payload.assertion_id,
         predicate_id=payload.predicate_id,

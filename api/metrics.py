@@ -193,6 +193,12 @@ AUTH_TOKEN_REVOCATIONS_TOTAL = Counter(
     "Total JWT access tokens revoked.",
 )
 
+AUTH_ACCESS_DENIED_TOTAL = Counter(
+    "auth_access_denied_total",
+    "Total RBAC 403/503 access denials by required role.",
+    ["required_role"],
+)
+
 RATE_LIMIT_STORE_BACKEND_INFO = Gauge(
     "rate_limit_store_backend_info",
     "Active rate-limit storage backend classification (1=active).",
@@ -258,6 +264,12 @@ def record_auth_login(outcome: str) -> None:
 def record_auth_token_revocation() -> None:
     """Record a JWT access token revocation."""
     AUTH_TOKEN_REVOCATIONS_TOTAL.inc()
+
+
+def record_auth_access_denied(required_role: str) -> None:
+    """Record an RBAC access denial for a bounded role label."""
+    safe_role = (required_role or "unknown").strip().lower()[:32] or "unknown"
+    AUTH_ACCESS_DENIED_TOTAL.labels(required_role=safe_role).inc()
 
 
 def record_rate_limit_backend(backend: str | None) -> None:

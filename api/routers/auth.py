@@ -6,6 +6,8 @@ from datetime import timedelta
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordRequestForm
 
+from src.config.settings import get_settings
+
 from ..auth import (
     _SECURITY_AUDIT_LOGIN_FAILURE,
     _SECURITY_AUDIT_LOGIN_SUCCESS,
@@ -19,6 +21,7 @@ from ..auth import (
     create_access_token,
     get_current_active_user,
     oauth2_scheme,
+    resolve_user_roles,
     revoke_access_token,
 )
 from ..metrics import record_auth_login, record_auth_token_revocation
@@ -63,8 +66,9 @@ async def login_for_access_token(
         )
 
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    user_roles = sorted(resolve_user_roles(user.username, get_settings()))  # type: ignore[union-attr]
     access_token = create_access_token(
-        data={"sub": user.username},  # type: ignore[union-attr]
+        data={"sub": user.username, "roles": user_roles},  # type: ignore[union-attr]
         expires_delta=access_token_expires,
     )
     record_auth_login("success")

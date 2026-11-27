@@ -802,6 +802,11 @@ async def get_current_active_user(  # noqa: RUF029  # NOSONAR
     return current_user
 
 
+def _parse_username_csv(raw: str) -> frozenset[str]:
+    """Parse a comma-separated username allowlist into a frozenset."""
+    return frozenset(item.strip() for item in raw.split(",") if item.strip())
+
+
 def _resolve_rebuild_operator_usernames(settings: Settings) -> frozenset[str]:
     """Return the authorized rebuild operator username set from RBAC env + admin setting (H-P3-03)."""
     operators: set[str] = set()
@@ -809,12 +814,102 @@ def _resolve_rebuild_operator_usernames(settings: Settings) -> frozenset[str]:
     if configured_admin:
         operators.add(configured_admin)
 
-    raw_operators = os.getenv("REBUILD_OPERATOR_USERNAMES", "")
-    for item in raw_operators.split(","):
-        cleaned = item.strip()
-        if cleaned:
-            operators.add(cleaned)
+    operators.update(_parse_username_csv(os.getenv("REBUILD_OPERATOR_USERNAMES", "")))
     return frozenset(operators)
+
+
+def resolve_user_roles(username: str, settings: Settings) -> frozenset[str]:
+    """Resolve effective RBAC roles for an active user.
+
+    Role hierarchy:
+    - ``viewer``: granted to every authenticated active user.
+    - ``analyst``: granted via ``ANALYST_USERNAMES`` (and inherited by operators/admins).
+    - ``operator``: granted via ``REBUILD_OPERATOR_USERNAMES`` (and inherited by admins).
+    - ``admin``: granted to ``ADMIN_USERNAME``.
+    """
+    cleaned = username.strip()
+    roles: set[str] = {"viewer"}
+    configured_admin = (settings.admin_username or "").strip()
+    if configured_admin and cleaned == configured_admin:
+        roles.update({"admin", "operator", "analyst"})
+    if cleaned in _parse_username_csv(os.getenv("REBUILD_OPERATOR_USERNAMES", "")):
+        roles.update({"operator", "analyst"})
+    if cleaned in _parse_username_csv(os.getenv("ANALYST_USERNAMES", "")):
+        roles.add("analyst")
+    return frozenset(roles)
+
+
+def require_roles(*allowed_roles: str):
+    """Build a FastAPI dependency that enforces at least one required RBAC role."""
+    required = frozenset(role.strip().lower() for role in allowed_roles if role.strip())
+    role_label = ",".join(sorted(required)) or "unknown"
+
+    def _dependency(
+        current_user: Annotated[User, Depends(get_current_active_user)],
+        settings: Annotated[Settings, Depends(get_settings)],
+        request: Request = None,  # type: ignore[assignment]
+    ) -> User:
+        user_roles = resolve_user_roles(current_user.username, settings)
+        if not (user_roles & required):
+            from .metrics import record_auth_access_denied
+
+            record_auth_access_denied(role_label)
+            _log_security_event(
+                _SecurityAuditEvent(
+                    event_slug=_SECURITY_AUDIT_ACCESS_DENIED,
+                    username=current_user.username,
+                    request=request,
+                    metadata={
+                        "reason": "insufficient_role",
+                        "required_roles": sorted(required),
+                        "user_roles": sorted(user_roles),
+                    },
+                    level=logging.WARNING,
+                )
+            )
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"Insufficient permissions: requires one of roles {sorted(required)}",
+            )
+        return current_user
+
+    return _dependency
+
+
+def enforce_assertion_proposer_rbac(
+    current_user: User,
+    settings: Settings,
+    request: Request | None = None,
+) -> User:
+    """Enforce analyst/operator/admin RBAC on assertion proposals when strict mode or ANALYST_USERNAMES is set."""
+    analysts_configured = bool(_parse_username_csv(os.getenv("ANALYST_USERNAMES", "")))
+    strict_mode = os.getenv("STRICT_ASSERTION_PROPOSER_RBAC", "false").strip().lower() in {"1", "true", "yes", "on"}
+    if not analysts_configured and not strict_mode:
+        return current_user
+
+    user_roles = resolve_user_roles(current_user.username, settings)
+    if not (user_roles & {"analyst", "operator", "admin"}):
+        from .metrics import record_auth_access_denied
+
+        record_auth_access_denied("analyst")
+        _log_security_event(
+            _SecurityAuditEvent(
+                event_slug=_SECURITY_AUDIT_ACCESS_DENIED,
+                username=current_user.username,
+                request=request,
+                metadata={
+                    "reason": "analyst_role_required",
+                    "required_roles": ["admin", "analyst", "operator"],
+                    "user_roles": sorted(user_roles),
+                },
+                level=logging.WARNING,
+            )
+        )
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Insufficient permissions: analyst, operator, or admin role required to propose assertions",
+        )
+    return current_user
 
 
 def get_current_rebuild_operator_user(
