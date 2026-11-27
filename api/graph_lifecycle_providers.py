@@ -396,13 +396,19 @@ def stage_graph_snapshot(session: Session, graph: AssetRelationshipGraph) -> Non
     GRAC publication uses this boundary so the read-model snapshot, candidate
     revision, rebuild success transition, and publication row commit together.
     """
+    from src.observability.tracing import start_span
+
     from .metrics import observe_graph_db_persistence_duration
 
     start = time.perf_counter()
     dialect = getattr(getattr(session, "bind", None), "dialect", None)
     dialect_name = getattr(dialect, "name", None)
     try:
-        AssetGraphRepository(session).save_graph(graph)
+        with start_span(
+            "db.graph.stage_snapshot",
+            attributes={"db.system": dialect_name or "unknown", "fardb.asset_count": len(graph.assets)},
+        ):
+            AssetGraphRepository(session).save_graph(graph)
         observe_graph_db_persistence_duration(time.perf_counter() - start, dialect_name)
     except Exception as exc:
         log_event(

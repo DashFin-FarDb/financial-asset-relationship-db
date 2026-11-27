@@ -6,7 +6,9 @@ request context (correlation_id and request_id).
 """
 
 import logging
+import os
 import threading
+from pathlib import Path
 from typing import Any
 
 import structlog
@@ -126,6 +128,18 @@ def setup_logging() -> None:
             root_logger.removeHandler(h)
 
         root_logger.addHandler(handler)
+
+        log_file_path = os.getenv("LOG_FILE_PATH", "").strip()
+        if log_file_path:
+            try:
+                log_path = Path(log_file_path)
+                log_path.parent.mkdir(parents=True, exist_ok=True)
+                file_handler = logging.FileHandler(log_path, encoding="utf-8")
+                file_handler.setFormatter(formatter)
+                root_logger.addHandler(file_handler)
+            except OSError as exc:
+                print(f"WARNING: Could not attach LOG_FILE_PATH '{log_file_path}': {type(exc).__name__}")
+
         root_logger.setLevel(log_level)
 
         _logging_state["initialized"] = True

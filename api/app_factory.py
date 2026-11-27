@@ -430,6 +430,8 @@ def _initialize_startup_graph(is_clean_install: bool, hosted_startup_degradation
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     """Manage application startup and shutdown tasks for the FastAPI application."""
+    from src.observability.tracing import setup_tracing, shutdown_tracing
+
     from .graph_lifecycle_providers import get_graph_lifecycle_settings
     from .metrics import (
         APPLICATION_STARTUP_DURATION,
@@ -438,6 +440,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         update_graph_persistence_configured,
     )
 
+    setup_tracing()
     start_time = time.perf_counter()
     trace_id: str | None = None
     span_id: str | None = None
@@ -486,6 +489,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     yield
 
     await _perform_orderly_shutdown(sync_task, slo_task, recon_task, has_persistence)
+    shutdown_tracing()
 
 
 async def _perform_startup_reconciliation(settings: GraphLifecycleSettings) -> bool:

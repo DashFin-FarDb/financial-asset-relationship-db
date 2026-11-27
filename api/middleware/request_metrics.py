@@ -8,7 +8,9 @@ from collections.abc import MutableMapping
 from typing import TYPE_CHECKING, Any
 
 from api.metrics import HTTP_REQUEST_DURATION_SECONDS, HTTP_REQUESTS_IN_FLIGHT, HTTP_REQUESTS_TOTAL
+from src.observability.context import get_request_id, get_trace_id
 from src.observability.facade import ObservabilityEvent, log_event
+from src.observability.tracing import start_span
 
 if TYPE_CHECKING:
     from starlette.types import ASGIApp, Receive, Scope, Send
@@ -63,54 +65,67 @@ class RequestMetricsMiddleware:
                 status_code = message.get("status", 500)
             await send(message)
 
-        try:
-            await self.app(scope, receive, send_wrapper)
-        except Exception as exc:
-            status_code = 500
-            log_event(
-                logger,
-                logging.ERROR,
-                ObservabilityEvent(
-                    event="request_execution_failed",
-                    message=f"Request failed with unhandled exception: {type(exc).__name__}",
-                    metadata={"error": type(exc).__name__},
-                ),
-            )
-            raise
-        finally:
-            HTTP_REQUESTS_IN_FLIGHT.dec()
-            duration = time.perf_counter() - start_time
-
-            # Resolve the route template dynamically from scope to keep cardinality low
-            route_template = "unknown"
-
-            # Check if Starlette route object is available in scope after routing
-            route = scope.get("route")
-            if route is not None and hasattr(route, "path"):
-                route_template = route.path
-
-            status_group = f"{status_code // 100}xx"
-
+        with start_span(
+            f"{method} {normalized_path}",
+            attributes={
+                "http.method": method,
+                "http.target": normalized_path,
+                "fardb.request_id": get_request_id(),
+                "fardb.trace_id": get_trace_id(),
+            },
+        ) as span:
             try:
-                HTTP_REQUESTS_TOTAL.labels(
-                    method=method,
-                    route=route_template,
-                    status_group=status_group,
-                ).inc()
-
-                HTTP_REQUEST_DURATION_SECONDS.labels(
-                    method=method,
-                    route=route_template,
-                    status_group=status_group,
-                ).observe(duration)
-            except Exception as metric_exc:
-                # Prevent metrics collection failure from masking the actual application result or exception
+                await self.app(scope, receive, send_wrapper)
+            except Exception as exc:
+                status_code = 500
+                span.record_exception(exc)
                 log_event(
                     logger,
-                    logging.WARNING,
+                    logging.ERROR,
                     ObservabilityEvent(
-                        event="metrics_recording_failed",
-                        message=f"Failed to record HTTP request metrics: {type(metric_exc).__name__}",
-                        metadata={"error": type(metric_exc).__name__},
+                        event="request_execution_failed",
+                        message=f"Request failed with unhandled exception: {type(exc).__name__}",
+                        metadata={"error": type(exc).__name__},
                     ),
                 )
+                raise
+            finally:
+                HTTP_REQUESTS_IN_FLIGHT.dec()
+                duration = time.perf_counter() - start_time
+
+                # Resolve the route template dynamically from scope to keep cardinality low
+                route_template = "unknown"
+
+                # Check if Starlette route object is available in scope after routing
+                route = scope.get("route")
+                if route is not None and hasattr(route, "path"):
+                    route_template = route.path
+
+                span.set_attribute("http.route", route_template)
+                span.set_attribute("http.status_code", status_code)
+
+                status_group = f"{status_code // 100}xx"
+
+                try:
+                    HTTP_REQUESTS_TOTAL.labels(
+                        method=method,
+                        route=route_template,
+                        status_group=status_group,
+                    ).inc()
+
+                    HTTP_REQUEST_DURATION_SECONDS.labels(
+                        method=method,
+                        route=route_template,
+                        status_group=status_group,
+                    ).observe(duration)
+                except Exception as metric_exc:
+                    # Prevent metrics collection failure from masking the actual application result or exception
+                    log_event(
+                        logger,
+                        logging.WARNING,
+                        ObservabilityEvent(
+                            event="metrics_recording_failed",
+                            message=f"Failed to record HTTP request metrics: {type(metric_exc).__name__}",
+                            metadata={"error": type(metric_exc).__name__},
+                        ),
+                    )
