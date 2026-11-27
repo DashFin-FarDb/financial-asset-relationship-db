@@ -1,301 +1,119 @@
-# Docker Guide (Gradio Demo Path)
+# Docker Guide
 
 > **Note:** These docs use the defaults `FRONTEND_PORT=3000`, `BACKEND_PORT=8000`, and `GRADIO_SERVER_PORT=7860` for simplicity. You can override them via environment variables. Example:
+>
 > ```bash
 > export FRONTEND_PORT=3000
 > export BACKEND_PORT=8000
 > export GRADIO_SERVER_PORT=7860
 > ```
 
+The declared production architecture is the **FastAPI backend + Next.js frontend** (see [docs/adr/0001-production-architecture.md](docs/adr/0001-production-architecture.md) and [DEPLOYMENT.md](DEPLOYMENT.md)).
 
-This guide explains how to run the Financial Asset Relationship Database's Gradio demo using Docker and Docker
-Compose.
+- **Production containers:** `Dockerfile.api`, `Dockerfile.frontend`, and `docker-compose.production.yml`
+- **Non-production Gradio demo containers:** `Dockerfile` and `docker-compose.yml` (`app.py` on port `7860`, for demos and internal testing only)
 
-The declared production architecture is the FastAPI backend plus Next.js frontend. This Dockerfile and
-`docker-compose.yml` currently start `app.py` on port `7860`, so they are for demos and internal testing, not the
-canonical production backend deployment path. For the production backend entrypoint and runtime requirements, see
-`DEPLOYMENT.md`.
+## Production Stack (FastAPI + Next.js)
 
-## Quick Start
+### Prerequisites
 
-### Using Docker Compose (Gradio demo)
+Set the required backend and frontend runtime environment variables (for example in a local uncommitted `.env` file):
 
-```bash
-# Build and start the application
-docker-compose up --build
+- `DATABASE_URL` (PostgreSQL URL for hosted/production; `sqlite:dev.db` for local dev)
+- `ASSET_GRAPH_DATABASE_URL` (durable graph store URL)
+- `SECRET_KEY` (strong random JWT signing key)
+- `ADMIN_USERNAME` and `ADMIN_PASSWORD` (for initial bootstrap migration only)
+- `NEXT_PUBLIC_API_URL` (backend URL reachable by the browser)
 
-# Access the Gradio demo at http://localhost:${GRADIO_SERVER_PORT:-7860}
-```
+### Run Database Migrations (Operator Profile)
 
-### Using Docker Directly
-
-```bash
-# Build the image
-docker build -t financial-asset-db .
-
-# Run the Gradio demo container
-docker run -p ${GRADIO_SERVER_PORT:-7860}:${GRADIO_SERVER_PORT:-7860} financial-asset-db
-
-# Access the Gradio demo at http://localhost:${GRADIO_SERVER_PORT:-7860}
-```
-
-## Docker Compose Options
-
-### Development Mode
-
-Mount your source code for live development:
+FastAPI startup does not auto-create tables. Run migrations first using the `operator` profile (`Dockerfile.api` `migration` target):
 
 ```bash
-# The docker-compose.yml already includes volume mounts
-docker-compose up
+docker compose -f docker-compose.production.yml --profile operator run --rm migrate
 ```
 
-Changes to `src/` will be reflected immediately (may require app restart).
-
-### Detached Demo Mode
-
-Build and run in detached mode:
+### Build and Start Production Services
 
 ```bash
-# Build and start in background
-docker-compose up -d --build
+# Build and start api (port 8000) and frontend (port 3000)
+docker compose -f docker-compose.production.yml up -d --build
 
-# View logs
-docker-compose logs -f
-
-# Stop the application
-docker-compose down
-```
-
-### With Database (PostgreSQL)
-
-Uncomment the `postgres` service in `docker-compose.yml`:
-
-```bash
-# Start with database
-docker-compose up -d
-
-# The database will be available at:
-# Host: localhost
-# Port: 5432
-# Database: financial_assets
-# User: finuser
-# Password: changeme
-```
-
-## Environment Variables
-
-Configure the application using environment variables in `docker-compose.yml`:
-
-```yaml
-environment:
-  - GRADIO_SERVER_NAME=0.0.0.0
-  - GRADIO_SERVER_PORT=7860
-  - DATABASE_URL=postgresql://finuser:changeme@postgres:5432/financial_assets
-```
-
-## Docker Commands
-
-### Build
-
-```bash
-# Build the Docker image
-docker build -t financial-asset-db .
-
-# Build with no cache
-docker build --no-cache -t financial-asset-db .
-```
-
-### Run
-
-```bash
-# Run container
-docker run -p ${GRADIO_SERVER_PORT:-7860}:${GRADIO_SERVER_PORT:-7860} financial-asset-db
-
-# Run in background
-docker run -d -p ${GRADIO_SERVER_PORT:-7860}:${GRADIO_SERVER_PORT:-7860} --name financial-asset-db financial-asset-db
-
-# Run with environment variables
-docker run -p ${GRADIO_SERVER_PORT:-7860}:${GRADIO_SERVER_PORT:-7860} -e GRADIO_SERVER_NAME=0.0.0.0 financial-asset-db
-```
-
-### Manage
-
-```bash
-# List running containers
-docker ps
-
-# View logs
-docker logs financial-asset-db
-
-# Follow logs
-docker logs -f financial-asset-db
-
-# Stop container
-docker stop financial-asset-db
-
-# Remove container
-docker rm financial-asset-db
-
-# Remove image
-docker rmi financial-asset-db
-```
-
-## Docker Compose Commands
-
-```bash
-# Start services
-docker-compose up
-
-# Start in background
-docker-compose up -d
+# Check container status and logs
+docker compose -f docker-compose.production.yml ps
+docker compose -f docker-compose.production.yml logs -f
 
 # Stop services
-docker-compose down
-
-# Stop and remove volumes
-docker-compose down -v
-
-# View logs
-docker-compose logs
-
-# Follow logs for specific service
-docker-compose logs -f app
-
-# Rebuild images
-docker-compose build
-
-# Rebuild and start
-docker-compose up --build
-
-# Scale services (if needed)
-docker-compose up --scale app=3
+docker compose -f docker-compose.production.yml down
 ```
 
-## Health Checks
-
-The application includes health checks:
+### Build Production Images Individually
 
 ```bash
-# Check container health
-docker inspect --format='{{.State.Health.Status}}' financial-asset-db
+# FastAPI backend runtime image (multi-stage python:3.12-slim)
+docker build -f Dockerfile.api --target runtime -t fardb-api:local .
 
-# View health check logs
-docker inspect --format='{{range .State.Health.Log}}{{.Output}}{{end}}' financial-asset-db
+# FastAPI migration image
+docker build -f Dockerfile.api --target migration -t fardb-migrate:local .
+
+# Next.js frontend image (node:20.19.0-slim)
+docker build -f Dockerfile.frontend -t fardb-frontend:local .
 ```
 
-## Troubleshooting
+## Non-Production Gradio Demo Path
 
-### Container Won't Start
+The root `Dockerfile` and `docker-compose.yml` start the **Gradio demo UI (`app.py`) on port `7860`**. They are for demos and internal testing only and are not the canonical production deployment path.
 
-Check logs:
+### Using Docker Compose (Gradio Demo)
 
 ```bash
-docker-compose logs app
+# Build and start the Gradio demo
+docker compose up --build
+
+# Run in background
+docker compose up -d --build
+
+# View logs / stop
+docker compose logs -f
+docker compose down
 ```
 
-### Port Already in Use
+Access the Gradio demo at `http://localhost:${GRADIO_SERVER_PORT:-7860}`.
 
-Change the port mapping in `docker-compose.yml`:
-
-```yaml
-ports:
-  - "8080:7860" # Use port 8080 instead
-```
-
-### Permission Issues
-
-Ensure the non-root user has permissions:
+### Using Docker Directly (Gradio Demo)
 
 ```bash
-# Rebuild with proper permissions
-docker-compose build --no-cache
+# Build the demo image
+docker build -t financial-asset-db:demo .
+
+# Run the demo container
+docker run -p ${GRADIO_SERVER_PORT:-7860}:${GRADIO_SERVER_PORT:-7860} financial-asset-db:demo
 ```
 
-### Database Connection Issues
+## Health Checks & Troubleshooting
 
-If using PostgreSQL:
+```bash
+# Inspect container health status
+docker inspect --format='{{.State.Health.Status}}' <container-name>
 
-1. Ensure the database service is running: `docker-compose ps`
-2. Check database logs: `docker-compose logs postgres`
-3. Verify connection string in environment variables
+# View recent health check output
+docker inspect --format='{{range .State.Health.Log}}{{.Output}}{{end}}' <container-name>
+
+# Rebuild cleanly without cache
+docker compose -f docker-compose.production.yml build --no-cache
+```
+
+- **Backend won't start:** Confirm `DATABASE_URL`, `SECRET_KEY`, and `ADMIN_USERNAME` are set and that `migrate` has been run.
+- **Port already in use:** Override `BACKEND_PORT`, `FRONTEND_PORT`, or `GRADIO_SERVER_PORT` in your environment.
 
 ## Best Practices
 
-1. **Security**
-   - The Dockerfile uses a non-root user (appuser)
-   - Change default database passwords in production
-   - Use secrets management for sensitive data
-
-2. **Performance**
-   - Use `.dockerignore` to exclude unnecessary files
-   - Leverage Docker layer caching
-   - Use multi-stage builds for smaller images (optional)
-
-3. **Development**
-   - Mount source code volumes for live development
-   - Use `docker-compose` for easier management
-   - Keep development and production configs separate
-
-4. **Demo Operations**
-   - Use specific image tags (not `latest`)
-   - Set resource limits (CPU, memory)
-   - Configure proper logging and monitoring
-   - Use health checks for auto-recovery
-
-## Multi-Stage Build (Advanced)
-
-For smaller Gradio demo images, create a multi-stage Dockerfile:
-
-```dockerfile
-# Build stage
-FROM python:3.11-slim as builder
-WORKDIR /app
-COPY requirements.txt .
-RUN pip install --user --no-cache-dir -r requirements.txt
-
-# Runtime stage
-FROM python:3.11-slim
-WORKDIR /app
-COPY --from=builder /root/.local /root/.local
-COPY . .
-ENV PATH=/root/.local/bin:$PATH
-CMD ["python", "app.py"]
-```
-
-## Kubernetes Demo Deployment (Optional)
-
-For Kubernetes demo deployment, create manifests:
-
-```yaml
-# deployment.yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: financial-asset-db
-spec:
-  replicas: 3
-  selector:
-    matchLabels:
-      app: financial-asset-db
-  template:
-    metadata:
-      labels:
-        app: financial-asset-db
-    spec:
-      containers:
-        - name: app
-          image: financial-asset-db:latest
-          ports:
-            - containerPort: 7860
-          env:
-            - name: GRADIO_SERVER_NAME
-              value: "0.0.0.0"
-```
+1. **Security:** Production images run as non-root users; inject secrets via environment or secret manager (never bake credentials into images).
+2. **Tagging:** Pin explicit image digests or version tags rather than `:latest`.
+3. **Migrations:** Always run the `operator` `migrate` target before rolling out new `api` containers.
 
 ## Resources
 
 - [Docker Documentation](https://docs.docker.com/)
 - [Docker Compose Documentation](https://docs.docker.com/compose/)
-- [Best Practices](https://docs.docker.com/develop/dev-best-practices/)
-- [Gradio Docker Guide](https://gradio.app/docs/)
+- [DEPLOYMENT.md](DEPLOYMENT.md)

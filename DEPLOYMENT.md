@@ -86,8 +86,8 @@ The API database layer supports both **SQLite** (local/dev) and **PostgreSQL** (
 
 ### Prerequisites
 
-- Python 3.10+
-- Node.js 18+ and npm
+- Python 3.10+ (3.12+ recommended)
+- Node.js 22 LTS (minimum `>=20.19.0`) and npm
 - Virtual environment (recommended for Python)
 
 ### Backend Setup (FastAPI - Production)
@@ -114,6 +114,8 @@ The API database layer supports both **SQLite** (local/dev) and **PostgreSQL** (
    export SECRET_KEY="replace-me-for-local-dev"
    export ADMIN_USERNAME="admin"
    export ADMIN_PASSWORD="replace-me-for-local-dev"
+   python -m scripts.migrate_database
+   unset ADMIN_PASSWORD
    python -m uvicorn api.main:app --reload --host 127.0.0.1 --port ${BACKEND_PORT:-8000}
    ```
 
@@ -254,8 +256,8 @@ The FastAPI backend exposes the following endpoints:
 
 ### Assets
 
-- `GET /api/assets` - Get all assets (with optional filters)
-  - Query params: `asset_class`, `sector`
+- `GET /api/assets` - Get paginated assets (with optional filters)
+  - Query params: `asset_class`, `sector`, `page`, `per_page`
 - `GET /api/assets/{asset_id}` - Get asset details
 - `GET /api/assets/{asset_id}/relationships` - Get asset relationships
 
@@ -265,7 +267,8 @@ The FastAPI backend exposes the following endpoints:
 
 ### Metrics
 
-- `GET /api/metrics` - Get network metrics
+- `GET /api/graph/metrics` - Get network metrics (JSON)
+- `GET /api/metrics` - Prometheus OpenMetrics scrape endpoint (auth-gated in production)
 
 ### Visualization
 
@@ -283,25 +286,27 @@ Use `GET /api/health/detailed` for hosted deployment diagnostics after the API i
 The response is intentionally bounded and non-secret. It reports:
 
 - overall readiness status: `healthy` or `degraded`
-- graph availability
-- graph asset and relationship counts
-- auth database configured/reachable status
-- auth database type: `sqlite`, `postgresql`, or `unknown`
+- `graph_persistence_configured`: whether durable graph persistence (`ASSET_GRAPH_DATABASE_URL`) is configured
+- `graph`: availability, counts, `lifecycle_state`, `startup_source`, and persistence flags (`persistence_enabled`, `persistence_loaded`, `persistence_saved`)
+- `database`: auth database `configured`, `type` (`sqlite`, `postgresql`, or `unknown`), and `reachable` status
 
-`GET /api/health/detailed` is a readiness signal only. It confirms bounded
-in-memory graph availability and auth/application database reachability. It
-does **not** prove the runtime graph was loaded from durable persisted graph
-truth, and it does not prove `ASSET_GRAPH_DATABASE_URL` is configured.
+`GET /api/health/detailed` is a readiness signal only. Confirm `graph_persistence_configured: true` and `graph.startup_source: "persisted_graph_store"` (alongside the controlled smoke checks below) before promoting to staging or production.
 
 Example healthy response:
 
 ```json
 {
   "status": "healthy",
+  "graph_persistence_configured": true,
   "graph": {
     "available": true,
     "asset_count": 19,
-    "relationship_count": 57
+    "relationship_count": 57,
+    "lifecycle_state": "ready",
+    "startup_source": "persisted_graph_store",
+    "persistence_enabled": true,
+    "persistence_loaded": true,
+    "persistence_saved": true
   },
   "database": {
     "configured": true,
@@ -316,10 +321,16 @@ Example degraded response:
 ```json
 {
   "status": "degraded",
+  "graph_persistence_configured": true,
   "graph": {
     "available": true,
     "asset_count": 19,
-    "relationship_count": 57
+    "relationship_count": 57,
+    "lifecycle_state": "ready",
+    "startup_source": "persisted_graph_store",
+    "persistence_enabled": true,
+    "persistence_loaded": true,
+    "persistence_saved": false
   },
   "database": {
     "configured": true,
@@ -406,7 +417,7 @@ are loaded through `src/config/settings.py` and applied by `api/cors_policy.py`;
    curl https://your-api-domain.vercel.app/api/health/detailed
    ```
 
-   The response should include only `status`, `graph`, and `database` at the top level.
+   The response should include only `status`, `graph_persistence_configured`, `graph`, and `database` at the top level.
 
 3. Verify the `NEXT_PUBLIC_API_URL` environment variable
 4. Check browser console for detailed error messages
@@ -451,18 +462,20 @@ pip install --upgrade -r requirements.txt
 
 For production deployments with higher traffic:
 
-1. Consider using Vercel's Edge Functions for the API
-2. Implement caching for frequently accessed data
-3. Use a persistent database instead of in-memory data
-4. Add Redis for session/state management
+1. Use durable PostgreSQL (`ASSET_GRAPH_DATABASE_URL` and `DATABASE_URL`) rather than SQLite or in-memory fallback
+2. Configure a shared rate-limit backend (`RATE_LIMIT_STORAGE_URI`, e.g., Redis) across multi-instance replicas
+3. Use `docker-compose.production.yml` (see [DOCKER.md](DOCKER.md)) or Vercel + Supabase PostgreSQL per [docs/adr/0012-multi-region-and-advanced-hosting-strategy.md](docs/adr/0012-multi-region-and-advanced-hosting-strategy.md)
+4. Verify hosted deployments with `python scripts/check_hosted_readiness.py <base_url>`
 
 ## Security
 
-1. Add authentication/authorization if needed
-2. Rate limiting for API endpoints
-3. Validate all input data
-4. Use HTTPS in production
-5. Set up CORS properly for your domain
+Production security controls already enforced in the codebase:
+
+1. JWT authentication (`/token`) and operator RBAC (`REBUILD_OPERATOR_USERNAMES`) for rebuild/admin routes
+2. Global and per-route API rate limiting via `slowapi` (`api/rate_limit.py`)
+3. Production lockdown of `/docs`, `/redoc`, `/openapi.json`, `/api/metrics`, and `/api/slo/status` when `ENV=production`
+4. Pydantic request/response validation and explicit `ALLOWED_ORIGINS` CORS enforcement (`api/cors_policy.py`)
+5. Least-privilege PostgreSQL runtime roles (see [docs/adr/0007-database-authorization-boundary.md](docs/adr/0007-database-authorization-boundary.md))
 
 ## Additional Resources
 

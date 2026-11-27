@@ -12,26 +12,38 @@ This guide will get you up and running with the new Next.js frontend in under 5 
 
 ## Prerequisites
 
-- Python 3.8 or higher
-- Node.js 18 or higher
+- Python 3.10+ (3.12+ recommended)
+- Node.js 22 LTS (minimum `>=20.19.0`)
 - Git
 
 ## Option 1: Automated Setup (Recommended)
 
+Export the required backend environment variables and initialize the local database before starting both servers:
+
 ### Linux/macOS
 
 ```bash
-# Make the script executable
-chmod +x run-dev.sh
+export DATABASE_URL=sqlite:dev.db
+export SECRET_KEY=replace-with-a-long-random-secret
+export ADMIN_USERNAME=admin
+export ADMIN_PASSWORD=replace-with-a-strong-password
+python -m scripts.migrate_database
+unset ADMIN_PASSWORD
 
-# Run the development environment
+# Make the script executable and start backend + frontend
+chmod +x run-dev.sh
 ./run-dev.sh
 ```
 
 ### Windows
 
 ```cmd
-# Run the development environment
+set DATABASE_URL=sqlite:dev.db
+set SECRET_KEY=replace-with-a-long-random-secret
+set ADMIN_USERNAME=admin
+set ADMIN_PASSWORD=replace-with-a-strong-password
+python -m scripts.migrate_database
+set ADMIN_PASSWORD=
 run-dev.bat
 ```
 
@@ -65,6 +77,14 @@ source .venv/bin/activate
 
 # Install dependencies
 pip install -r requirements.txt
+
+# Configure required runtime environment variables and run migrations
+export DATABASE_URL=sqlite:dev.db
+export SECRET_KEY=replace-with-a-long-random-secret
+export ADMIN_USERNAME=admin
+export ADMIN_PASSWORD=replace-with-a-strong-password
+python -m scripts.migrate_database
+unset ADMIN_PASSWORD
 
 # Start the backend
 python -m uvicorn api.main:app --reload --port ${BACKEND_PORT:-8000}
@@ -139,15 +159,15 @@ curl http://localhost:${BACKEND_PORT:-8000}/api/health
 # Get all assets
 curl http://localhost:${BACKEND_PORT:-8000}/api/assets
 
-# Get metrics
-curl http://localhost:${BACKEND_PORT:-8000}/api/metrics
+# Get graph network metrics
+curl http://localhost:${BACKEND_PORT:-8000}/api/graph/metrics
 ```
 
-### Using Python
+### Using pytest
 
 ```bash
-# Run the test script
-python test_api.py
+# Run API unit tests (or run `python run_tests.py` for the full suite)
+pytest tests/unit/test_api_main.py -v
 ```
 
 ### Using Browser
@@ -248,7 +268,7 @@ npm run lint
 ## Next Steps
 
 1. **Explore the code**
-   - Backend: `api/main.py`
+   - Backend entrypoint & routers: `api/main.py`, `api/app_factory.py`, `api/routers/`
    - Frontend: `frontend/app/page.tsx`
    - Components: `frontend/app/components/`
 
@@ -262,7 +282,7 @@ npm run lint
 
 4. **Customize**
    - Modify components in `frontend/app/components/`
-   - Add new API endpoints in `api/main.py`
+   - Add new API endpoints in `api/routers/` (registered in `api/app_factory.py`)
    - Update styles in `frontend/app/globals.css`
 
 ## Getting Help
@@ -272,17 +292,17 @@ npm run lint
 3. Visit the API docs at http://localhost:${BACKEND_PORT:-8000}/docs
 4. See [DEPLOYMENT.md](./DEPLOYMENT.md) for detailed troubleshooting
 
-## Compare with Gradio UI
+## Gradio Demo UI (Non-Production)
 
-You can still use the original Gradio interface:
+For local demos and internal testing only, you can also run the non-production Gradio interface:
 
 ```bash
 python app.py
 ```
 
-Access at http://localhost:${GRADIO_SERVER_PORT:-7860}
+Access at http://localhost:${GRADIO_SERVER_PORT:-7860}.
 
-Both UIs use the same underlying data and logic, so you can use whichever you prefer!
+**Note:** FastAPI + Next.js is the declared production architecture (see [docs/adr/0001-production-architecture.md](docs/adr/0001-production-architecture.md)); Gradio is for local demos and internal testing only.
 
 ---
 
