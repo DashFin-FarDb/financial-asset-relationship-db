@@ -9,6 +9,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 from ..auth import (
     _SECURITY_AUDIT_LOGIN_FAILURE,
     _SECURITY_AUDIT_LOGIN_SUCCESS,
+    _SECURITY_AUDIT_LOGOUT,
     ACCESS_TOKEN_EXPIRE_MINUTES,
     Token,
     User,
@@ -17,6 +18,8 @@ from ..auth import (
     authenticate_user,
     create_access_token,
     get_current_active_user,
+    oauth2_scheme,
+    revoke_access_token,
 )
 from ..models import UserPublic
 from ..rate_limit import limiter
@@ -92,3 +95,24 @@ async def read_users_me(
     """
     # Defense in depth: current_user may be a UserInDB at runtime.
     return UserPublic.model_validate(current_user.model_dump(exclude={"hashed_password"}))
+
+
+@router.post("/api/auth/logout")
+@limiter.limit("20/minute")
+async def logout_current_token(
+    request: Request,  # Required by slowapi for rate-limit key extraction.
+    token: str = Depends(oauth2_scheme),  # noqa: B008
+    current_user: User = Depends(get_current_active_user),  # noqa: B008
+) -> dict[str, str]:
+    """Revoke the caller's active JWT access token via its ``jti`` claim."""
+    revoke_access_token(token)
+    _log_security_event(
+        _SecurityAuditEvent(
+            event_slug=_SECURITY_AUDIT_LOGOUT,
+            username=current_user.username,
+            request=request,
+            metadata={"reason": "user_logout"},
+            level=logging.INFO,
+        )
+    )
+    return {"status": "logged_out"}

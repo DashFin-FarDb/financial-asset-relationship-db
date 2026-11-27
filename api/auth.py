@@ -5,6 +5,8 @@ from __future__ import annotations
 # pylint: disable=import-error
 import logging
 import os
+import threading
+import uuid
 from collections.abc import Mapping
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
@@ -13,7 +15,7 @@ from typing import Annotated, Any
 import jwt
 from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordBearer
-from jwt import ExpiredSignatureError, InvalidTokenError
+from jwt import ExpiredSignatureError, InvalidSignatureError, InvalidTokenError
 from passlib.context import CryptContext  # pyright: ignore[reportMissingModuleSource]
 from pydantic import BaseModel
 from typing_extensions import TypedDict
@@ -40,8 +42,10 @@ REBUILD_OPERATOR_FORBIDDEN_DETAIL = "You do not have permission to perform destr
 REBUILD_OPERATOR_NOT_CONFIGURED_DETAIL = "Rebuild operator authorization is not configured."
 _SECURITY_AUDIT_LOGIN_SUCCESS = "auth_login_success"
 _SECURITY_AUDIT_LOGIN_FAILURE = "auth_login_failure"
+_SECURITY_AUDIT_LOGOUT = "auth_logout"
 _SECURITY_AUDIT_TOKEN_EXPIRED = "auth_token_expired"  # noqa: S105
 _SECURITY_AUDIT_TOKEN_INVALID = "auth_token_invalid"  # noqa: S105
+_SECURITY_AUDIT_TOKEN_REVOKED = "auth_token_revoked"  # noqa: S105
 _SECURITY_AUDIT_USER_DISABLED = "auth_user_disabled"
 _SECURITY_AUDIT_ACCESS_DENIED = "auth_access_denied"
 _SENSITIVE_METADATA_KEYS = frozenset(
@@ -67,12 +71,141 @@ __all__ = [
     "_SECURITY_AUDIT_ACCESS_DENIED",
     "_SECURITY_AUDIT_LOGIN_FAILURE",
     "_SECURITY_AUDIT_LOGIN_SUCCESS",
+    "_SECURITY_AUDIT_LOGOUT",
     "_SECURITY_AUDIT_TOKEN_EXPIRED",
     "_SECURITY_AUDIT_TOKEN_INVALID",
+    "_SECURITY_AUDIT_TOKEN_REVOKED",
     "_SECURITY_AUDIT_USER_DISABLED",
     "_SecurityAuditEvent",
     "_log_security_event",
+    "TokenRevocationStore",
+    "is_token_revoked",
+    "revoke_access_token",
+    "revoke_token",
 ]
+
+
+class TokenRevocationStore:
+    """Thread-safe TTL-bounded JWT revocation blocklist keyed by ``jti``."""
+
+    def __init__(self) -> None:
+        """Initialize an empty revocation store."""
+        self._lock = threading.RLock()
+        self._revoked: dict[str, datetime] = {}
+
+    def _prune_expired_locked(self, now: datetime) -> None:
+        expired = [jti for jti, exp in self._revoked.items() if exp <= now]
+        for jti in expired:
+            del self._revoked[jti]
+
+    def revoke(self, jti: str, *, expires_at: datetime | None = None) -> None:
+        """Record a token ID as revoked until its expiry timestamp."""
+        cleaned = jti.strip()
+        if not cleaned:
+            return
+        now = datetime.now(UTC)
+        expiry = expires_at or (now + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
+        if expiry.tzinfo is None:
+            expiry = expiry.replace(tzinfo=UTC)
+        with self._lock:
+            self._prune_expired_locked(now)
+            if expiry > now:
+                self._revoked[cleaned] = expiry
+
+    def is_revoked(self, jti: str | None) -> bool:
+        """Return True if ``jti`` is currently revoked and unexpired."""
+        if not jti:
+            return False
+        now = datetime.now(UTC)
+        with self._lock:
+            self._prune_expired_locked(now)
+            return jti in self._revoked
+
+    def clear(self) -> None:
+        """Remove all revoked entries (primarily for tests)."""
+        with self._lock:
+            self._revoked.clear()
+
+    def count(self) -> int:
+        """Return the number of active unexpired revoked token IDs."""
+        now = datetime.now(UTC)
+        with self._lock:
+            self._prune_expired_locked(now)
+            return len(self._revoked)
+
+
+_TOKEN_REVOCATION_STORE = TokenRevocationStore()
+
+
+def revoke_token(jti: str, *, expires_at: datetime | None = None) -> None:
+    """Revoke a JWT identifier in the active revocation store."""
+    _TOKEN_REVOCATION_STORE.revoke(jti, expires_at=expires_at)
+
+
+def is_token_revoked(jti: str | None) -> bool:
+    """Return True if the given JWT identifier has been revoked."""
+    return _TOKEN_REVOCATION_STORE.is_revoked(jti)
+
+
+def _resolve_active_jwt_key_id() -> str:
+    """Return the active JWT ``kid`` header value from centralized settings."""
+    return get_settings().jwt_key_id
+
+
+def _resolve_verification_keys(token_kid: str | None) -> list[tuple[str | None, str]]:
+    """Return ordered ``(kid, secret)`` candidates for verifying an incoming JWT.
+
+    Prioritizes an exact ``kid`` match, while preserving backward compatibility with
+    the module-level ``SECRET_KEY`` and tokens issued without a ``kid`` header.
+    """
+    settings = get_settings()
+    candidates: list[tuple[str | None, str]] = [(settings.jwt_key_id, SECRET_KEY)]
+    if settings.secret_key and settings.secret_key != SECRET_KEY:
+        candidates.append((settings.jwt_key_id, settings.secret_key))
+    candidates.extend(settings.jwt_previous_keys)
+
+    if token_kid is None:
+        return candidates
+
+    exact_matches = [pair for pair in candidates if pair[0] == token_kid]
+    others = [pair for pair in candidates if pair[0] != token_kid]
+    return exact_matches + others
+
+
+def _decode_jwt_payload(token: str) -> dict[str, Any]:
+    """Decode and verify a JWT across the active and rotated verification keys."""
+    try:
+        header = jwt.get_unverified_header(token)
+        token_kid = header.get("kid") if isinstance(header, dict) else None
+    except InvalidTokenError:
+        token_kid = None
+
+    last_sig_error: InvalidSignatureError | None = None
+    for _kid, candidate_secret in _resolve_verification_keys(token_kid):
+        try:
+            # Explicitly specify algorithms parameter to prevent algorithm confusion attacks
+            return dict(jwt.decode(token, candidate_secret, algorithms=[ALGORITHM]))
+        except ExpiredSignatureError:
+            raise
+        except InvalidSignatureError as exc:
+            last_sig_error = exc
+            continue
+    if last_sig_error is not None:
+        raise last_sig_error
+    raise InvalidTokenError("No verification keys configured")
+
+
+def revoke_access_token(token: str) -> str | None:
+    """Decode a valid bearer JWT and revoke its ``jti`` until ``exp``."""
+    payload = _decode_jwt_payload(token)
+    jti = payload.get("jti")
+    if not isinstance(jti, str) or not jti.strip():
+        return None
+    exp_raw = payload.get("exp")
+    expires_at = datetime.fromtimestamp(float(exp_raw), tz=UTC) if exp_raw is not None else None
+    revoke_token(jti, expires_at=expires_at)
+    return jti
+
 
 # Password hashing
 pwd_context = CryptContext(schemes=["pbkdf2_sha256"], deprecated="auto")
@@ -486,8 +619,14 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
         expire = datetime.now(UTC) + expires_delta
     else:
         expire = datetime.now(UTC) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    to_encode.setdefault("jti", uuid.uuid4().hex)
     to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    encoded_jwt = jwt.encode(
+        to_encode,
+        SECRET_KEY,
+        algorithm=ALGORITHM,
+        headers={"kid": _resolve_active_jwt_key_id()},
+    )
     return encoded_jwt
 
 
@@ -582,8 +721,22 @@ def _decode_username_from_token(
         HTTPException: `credentials_exception` if the token is invalid or the `sub` claim is missing.
     """
     try:
-        # Explicitly specify algorithms parameter to prevent algorithm confusion attacks
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        payload = _decode_jwt_payload(token)
+        if is_token_revoked(payload.get("jti")):
+            _log_security_event(
+                _SecurityAuditEvent(
+                    event_slug=_SECURITY_AUDIT_TOKEN_REVOKED,
+                    username=payload.get("sub"),
+                    request=request,
+                    metadata={"reason": "revoked_jti"},
+                    level=logging.WARNING,
+                )
+            )
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Token has been revoked",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
         username = payload.get("sub")
         if username is None:
             _log_security_event(
