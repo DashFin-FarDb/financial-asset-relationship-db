@@ -469,7 +469,7 @@ secrets or identifiers that leak topology appear in labels. Not bundled with met
 - [ ] H-P2-03: partial unique index enforces at most one `RUNNING` rebuild job on PostgreSQL.
 - [ ] H-P2-04: startup and periodic auto-recovery are unified for stale-only orphans under lock.
 - [ ] H-P2-05: cross-boundary restore skew check (Graph vs Coordination) exists.
-- [ ] H-P3-01: metrics/SLO/OpenAPI are locked down or ACL'd in production.
+- [x] H-P3-01: metrics/SLO/OpenAPI are locked down or ACL'd in production.
 - [ ] H-P3-02: global rate limits with proxy-aware IP and a shared store.
 - [ ] H-P3-03: rebuild RBAC exists and silent admin upsert on every boot is removed.
 - [ ] H-P3-04: Vercel API dependencies are slimmed and connection pooling is in place.
