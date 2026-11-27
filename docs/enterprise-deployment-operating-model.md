@@ -99,7 +99,10 @@ target bindings, and the fixed command barrier.
 ## Distributed Hosting Semantics
 
 For the historical decision record, see
-[ADR 0004: Distributed Hosting Semantics](adr/0004-distributed-hosting-semantics.md). For current state-machine, ownership, and exception authority, see the canonical [State Machine and Operating Authority](governance/state-machine-and-operating-authority.md).
+[ADR 0004: Distributed Hosting Semantics](adr/0004-distributed-hosting-semantics.md). For future multi-region
+topology, RPO/RTO tiers, and provider cost modeling (single-writer primary region + multi-region read serving),
+see [ADR 0012: Multi-Region and Advanced Hosting Strategy](adr/0012-multi-region-and-advanced-hosting-strategy.md).
+For current state-machine, ownership, and exception authority, see the canonical [State Machine and Operating Authority](governance/state-machine-and-operating-authority.md).
 
 FarDb supports backend scale-out for read serving using a single-writer /
 multi-reader model:

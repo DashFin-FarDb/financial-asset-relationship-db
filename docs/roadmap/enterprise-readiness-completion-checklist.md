@@ -555,11 +555,11 @@ evidence and restore rehearsal are complete.
 
 ### Completion criteria
 
-- [ ] Single-region durable release (items 3–8) and restore behaviour (item 7) are repeatable, measured, and costed.
-- [ ] A cost and provider model, including provider-specific HA decisions, is documented.
-- [ ] A proposed ADR defines the multi-region topology, RPO/RTO implications, and how single-writer rebuild semantics
-      hold per graph persistence boundary across regions.
-- [ ] The ADR is accepted and the roadmap, index, and operating model are reconciled to it.
+- [x] Single-region durable release (items 3–8) and restore behaviour (item 7) are repeatable, measured, and costed (`ADR 0012`).
+- [x] A cost and provider model, including provider-specific HA decisions, is documented (`docs/adr/0012-multi-region-and-advanced-hosting-strategy.md`).
+- [x] A proposed ADR defines the multi-region topology, RPO/RTO implications, and how single-writer rebuild semantics
+      hold per graph persistence boundary across regions (`ADR 0012`).
+- [x] The ADR is accepted and the roadmap, index, and operating model are reconciled to it.
 
 ### Non-negotiable boundary
 
