@@ -4,6 +4,7 @@ from __future__ import annotations
 
 # pylint: disable=import-error
 import logging
+import os
 from collections.abc import Mapping
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
@@ -346,25 +347,52 @@ def get_password_hash(password):
     return pwd_context.hash(password)
 
 
+def _boot_admin_upsert_allowed(settings: Settings, *, force_upsert: bool) -> bool:
+    """Return True when boot-time admin credential upsert is permitted (H-P3-03)."""
+    if force_upsert:
+        return True
+    env_value = getattr(settings.env, "value", str(settings.env)).lower()
+    if env_value in {"production", "staging"}:
+        return os.getenv("ALLOW_BOOT_ADMIN_UPSERT", "false").strip().lower() in {"1", "true", "yes", "on"}
+    return True
+
+
 def seed_credentials_from_settings(
     repository: UserRepository,
     settings: Settings,
-) -> None:
+    *,
+    force_upsert: bool = False,
+) -> bool:
     """
     Seed an administrative user into the repository from centralized settings.
 
-    If both admin username and password are configured, hash the password and
-    upsert a user using optional admin email, full name, and disabled flag. If
-    either username or password is missing, leave the repository unchanged.
+    In staging/production, refuses silent admin upsert on boot unless explicitly
+    authorized via ``ALLOW_BOOT_ADMIN_UPSERT=true`` or ``force_upsert=True`` (H-P3-03).
+    Returns True if a user record was written, False if skipped.
 
     Parameters:
         repository (UserRepository): Repository to seed.
         settings (Settings): Settings instance containing admin credentials.
+        force_upsert (bool): Explicit operator override allowing credential upsert.
     """
     username = settings.admin_username
     password = settings.admin_password
     if not username or not password:
-        return
+        return False
+
+    if not _boot_admin_upsert_allowed(settings, force_upsert=force_upsert):
+        _log_security_event(
+            _SecurityAuditEvent(
+                event_slug="admin_boot_upsert_blocked",
+                username=username,
+                metadata={
+                    "reason": "silent_boot_upsert_disabled",
+                    "env": getattr(settings.env, "value", str(settings.env)),
+                },
+                level=logging.WARNING,
+            )
+        )
+        return False
 
     hashed_password = get_password_hash(password)
     admin_disabled = settings.admin_disabled
@@ -378,6 +406,7 @@ def seed_credentials_from_settings(
             "is_disabled": admin_disabled,
         },
     )
+    return True
 
 
 def _seed_credentials_from_env(repository: UserRepository) -> None:
@@ -620,20 +649,36 @@ async def get_current_active_user(  # noqa: RUF029  # NOSONAR
     return current_user
 
 
+def _resolve_rebuild_operator_usernames(settings: Settings) -> frozenset[str]:
+    """Return the authorized rebuild operator username set from RBAC env + admin setting (H-P3-03)."""
+    operators: set[str] = set()
+    configured_admin = (settings.admin_username or "").strip()
+    if configured_admin:
+        operators.add(configured_admin)
+
+    raw_operators = os.getenv("REBUILD_OPERATOR_USERNAMES", "")
+    for item in raw_operators.split(","):
+        cleaned = item.strip()
+        if cleaned:
+            operators.add(cleaned)
+    return frozenset(operators)
+
+
 def get_current_rebuild_operator_user(
     current_user: Annotated[User, Depends(get_current_active_user)],
     settings: Annotated[Settings, Depends(get_settings)],
     request: Request = None,  # type: ignore[assignment]
 ) -> User:
     """
-    Enforce operator authorization for destructive graph rebuild actions.
+    Enforce RBAC operator authorization for destructive graph rebuild actions (H-P3-03).
 
-    Allows only the configured admin username from settings; denies other active
-    users with a bounded forbidden response.
+    Allows usernames listed in ``REBUILD_OPERATOR_USERNAMES`` or the configured
+    ``ADMIN_USERNAME``; denies all other active users with HTTP 403 and fails closed
+    with HTTP 503 when no operator policy is configured.
     """
-    configured_admin = (settings.admin_username or "").strip()
+    authorized_operators = _resolve_rebuild_operator_usernames(settings)
 
-    if not configured_admin:
+    if not authorized_operators:
         _log_security_event(
             _SecurityAuditEvent(
                 event_slug=_SECURITY_AUDIT_ACCESS_DENIED,
@@ -641,7 +686,7 @@ def get_current_rebuild_operator_user(
                 request=request,
                 metadata={
                     "reason": "operator_not_configured",
-                    "required_role": "operator",
+                    "required_role": "rebuild_operator",
                 },
                 level=logging.WARNING,
             )
@@ -651,7 +696,7 @@ def get_current_rebuild_operator_user(
             detail=REBUILD_OPERATOR_NOT_CONFIGURED_DETAIL,
         )
 
-    if current_user.username.strip() != configured_admin:
+    if current_user.username.strip() not in authorized_operators:
         _log_security_event(
             _SecurityAuditEvent(
                 event_slug=_SECURITY_AUDIT_ACCESS_DENIED,
@@ -659,7 +704,7 @@ def get_current_rebuild_operator_user(
                 request=request,
                 metadata={
                     "reason": "operator_required",
-                    "required_role": "operator",
+                    "required_role": "rebuild_operator",
                 },
                 level=logging.WARNING,
             )
