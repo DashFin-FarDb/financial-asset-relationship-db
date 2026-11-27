@@ -352,7 +352,7 @@ Board mirror: [Enterprise Readiness PR Board — Hardening backlog](roadmap/ente
 | H-P3-02 | P3       | Global rate limits + proxy-aware IP + shared store                                                                   | Security                           | Code + tests                                     | Satisfied - automated                                              |
 | H-P3-03 | P3       | Rebuild RBAC; stop silent admin upsert every boot                                                                    | Security / Governance              | Auth + audit tests                               | Satisfied - automated                                              |
 | H-P3-04 | P3       | Slim Vercel API deps; connection pooling                                                                             | Durable Persistence                | Deploy config + ADR Phase 4                      | Satisfied - automated                                              |
-| H-P3-05 | P3       | SoD + evidence expiry enforcement on RC packets                                                                      | Governance                         | Template + verifier                              | Partially satisfied                                                |
+| H-P3-05 | P3       | SoD + evidence expiry enforcement on RC packets                                                                      | Governance                         | Template + verifier                              | Satisfied - automated                                              |
 
 ### Hardening evidence markers
 
