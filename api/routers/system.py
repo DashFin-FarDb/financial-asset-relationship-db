@@ -6,6 +6,7 @@ import os
 from typing import Any, Literal, NoReturn, cast
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
+from fastapi.responses import JSONResponse
 from prometheus_client import CONTENT_TYPE_LATEST, generate_latest  # pylint: disable=import-error
 
 from src.models.financial_models import AssetClass
@@ -85,8 +86,42 @@ async def root() -> dict[str, Any]:
 
 @router.get("/api/health")
 async def health_check() -> dict[str, Any]:
-    """Return service health status."""
+    """Return service liveness status."""
     return {"status": "healthy", "graph_initialized": True}
+
+
+@router.get(
+    "/api/ready",
+    responses={
+        200: {"description": "Service is ready to serve traffic"},
+        503: {"description": "Service is not ready (graph unavailable or database unreachable)"},
+    },
+)
+async def readiness_check() -> JSONResponse:
+    """Return strict readiness status (200 only when graph is available and DB is reachable, else 503)."""
+    graph_health = _get_graph_health()
+    db_health = _get_database_health()
+    is_ready = bool(graph_health.available and db_health.reachable)
+    payload: dict[str, Any] = {
+        "status": "ready" if is_ready else "not_ready",
+        "checks": {
+            "graph": {
+                "available": graph_health.available,
+                "lifecycle_state": graph_health.lifecycle_state,
+                "asset_count": graph_health.asset_count,
+                "relationship_count": graph_health.relationship_count,
+            },
+            "database": {
+                "configured": db_health.configured,
+                "type": db_health.type,
+                "reachable": db_health.reachable,
+            },
+        },
+    }
+    return JSONResponse(
+        status_code=status.HTTP_200_OK if is_ready else status.HTTP_503_SERVICE_UNAVAILABLE,
+        content=payload,
+    )
 
 
 def _get_graph_health() -> GraphHealthResponse:
