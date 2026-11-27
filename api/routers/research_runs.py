@@ -18,6 +18,7 @@ from src.governance.research_run import ResearchRunCreate, ResearchRunRecord
 
 from ..auth import User, get_current_active_user, require_roles
 from ..metrics import record_research_run_created
+from ..tenant_context import TenantContext, get_tenant_context
 
 router = APIRouter(prefix="/api/research-runs", tags=["research-runs"])
 
@@ -118,6 +119,7 @@ def _to_response(record: ResearchRunRecord, linked: list[str] | None = None) -> 
 async def create_research_run(
     body: ResearchRunCreateRequest,
     current_user: Annotated[User, Depends(require_roles("analyst", "operator", "admin"))],
+    tenant_ctx: Annotated[TenantContext, Depends(get_tenant_context)],
     repo: Annotated[ResearchRunRepository, Depends(get_research_run_repository)],
 ) -> ResearchRunResponse:
     """Record an immutable ResearchRun provenance entry."""
@@ -127,7 +129,7 @@ async def create_research_run(
         "input_digest_sha256": body.input_digest_sha256,
         "parameters": body.parameters,
         "actor_id": current_user.username,
-        "tenant_id": getattr(current_user, "tenant_id", "default"),
+        "tenant_id": tenant_ctx.tenant_id,
     }
     if body.run_id is not None:
         kwargs["run_id"] = body.run_id
@@ -146,14 +148,15 @@ async def create_research_run(
 
 @router.get("", response_model=ResearchRunListResponse)
 async def list_research_runs(
-    current_user: Annotated[User, Depends(get_current_active_user)],
+    _current_user: Annotated[User, Depends(get_current_active_user)],
+    tenant_ctx: Annotated[TenantContext, Depends(get_tenant_context)],
     repo: Annotated[ResearchRunRepository, Depends(get_research_run_repository)],
     domain_id: Annotated[str | None, Query(max_length=128)] = None,
     limit: Annotated[int, Query(ge=1, le=200)] = 50,
     offset: Annotated[int, Query(ge=0)] = 0,
 ) -> ResearchRunListResponse:
     """List immutable ResearchRun records scoped to the caller's tenant."""
-    tenant_id = getattr(current_user, "tenant_id", "default")
+    tenant_id = tenant_ctx.tenant_id
     records, total = repo.list_runs(domain_id=domain_id, tenant_id=tenant_id, limit=limit, offset=offset)
     items = [_to_response(rec, linked=repo.list_linked_assertions(rec.run_id, tenant_id=tenant_id)) for rec in records]
     return ResearchRunListResponse(
@@ -167,11 +170,12 @@ async def list_research_runs(
 @router.get("/{run_id}", response_model=ResearchRunResponse)
 async def get_research_run(
     run_id: str,
-    current_user: Annotated[User, Depends(get_current_active_user)],
+    _current_user: Annotated[User, Depends(get_current_active_user)],
+    tenant_ctx: Annotated[TenantContext, Depends(get_tenant_context)],
     repo: Annotated[ResearchRunRepository, Depends(get_research_run_repository)],
 ) -> ResearchRunResponse:
     """Fetch a single immutable ResearchRun by ID within the caller's tenant."""
-    tenant_id = getattr(current_user, "tenant_id", "default")
+    tenant_id = tenant_ctx.tenant_id
     record = repo.get_run(run_id, tenant_id=tenant_id)
     if record is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="ResearchRun not found")
@@ -182,11 +186,12 @@ async def get_research_run(
 async def link_assertion_to_research_run(
     run_id: str,
     body: LinkAssertionRequest,
-    current_user: Annotated[User, Depends(require_roles("analyst", "operator", "admin"))],
+    _current_user: Annotated[User, Depends(require_roles("analyst", "operator", "admin"))],
+    tenant_ctx: Annotated[TenantContext, Depends(get_tenant_context)],
     repo: Annotated[ResearchRunRepository, Depends(get_research_run_repository)],
 ) -> ResearchRunResponse:
     """Immutably associate a proposed assertion ID with an existing ResearchRun."""
-    tenant_id = getattr(current_user, "tenant_id", "default")
+    tenant_id = tenant_ctx.tenant_id
     try:
         repo.link_assertion(run_id, body.assertion_id, tenant_id=tenant_id)
     except ResearchRunNotFoundError as exc:

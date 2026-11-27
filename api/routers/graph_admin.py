@@ -105,6 +105,7 @@ from ..metrics import (
     update_rebuild_state_metric,
 )
 from ..services.relationship_index import invalidate_governed_relationship_index_cache
+from ..tenant_context import TenantContext, get_tenant_context
 
 # Re-export only the minimal public API used by intra-package routing.
 # Private helpers (prefixed with _) remain module-internal and should be accessed
@@ -648,6 +649,7 @@ async def _execute_rebuild_with_error_handling(
 @router.post(_REBUILD_PATH)
 async def rebuild_graph(
     current_user: Annotated[User, Depends(get_current_rebuild_operator_user)],
+    _tenant_ctx: Annotated[TenantContext, Depends(get_tenant_context)],
     idempotency_key: Annotated[str | None, Header(alias="Idempotency-Key")] = None,
 ) -> GraphRebuildResponse:
     """Rebuild, persist, and synchronize graph state (supports optional Idempotency-Key)."""
@@ -2164,6 +2166,7 @@ def get_rebuild_job(
 def cancel_rebuild_job(
     job_id: str,
     _current_user: Annotated[User, Depends(get_current_rebuild_operator_user)],
+    _tenant_ctx: Annotated[TenantContext, Depends(get_tenant_context)],
 ) -> dict[str, str]:
     """Request cancellation of a pending or running rebuild job.
 
