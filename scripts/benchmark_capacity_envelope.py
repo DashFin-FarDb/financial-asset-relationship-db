@@ -12,15 +12,18 @@ import argparse
 import json
 import resource
 import statistics
+import tempfile
+import threading
 import time
 import tracemalloc
 from collections.abc import Iterator
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Literal
 
 from src.data.database import create_engine_from_url, create_session_factory, init_db
-from src.data.repository import AssetGraphRepository
+from src.data.repository import AssetGraphRepository, CoordinationLockRepository
 from src.logic.asset_graph import AssetRelationshipGraph
 from src.models.financial_models import AssetClass, Equity
 
@@ -244,9 +247,139 @@ def run_capacity_benchmark(
     )
 
 
+@dataclass(frozen=True, slots=True)
+class LockContentionResult:
+    """Structured output of a multi-worker distributed lock contention benchmark."""
+
+    workers: int
+    iterations_per_worker: int
+    total_attempts: int
+    acquisitions: int
+    contention_rejections: int
+    fencing_token_violations: int
+    acquire_p50_ms: float
+    acquire_p95_ms: float
+    acquire_max_ms: float
+    elapsed_seconds: float
+
+
+def run_lock_contention_benchmark(
+    *,
+    workers: int = 4,
+    iterations_per_worker: int = 10,
+    database_url: str = "sqlite:///:memory:",
+    ttl_seconds: int = 30,
+) -> LockContentionResult:
+    """Measure multi-worker distributed lock contention and fencing-token monotonicity."""
+    if workers < 1:
+        raise ValueError("workers must be at least 1")
+    if iterations_per_worker < 1:
+        raise ValueError("iterations_per_worker must be at least 1")
+
+    temp_dir: tempfile.TemporaryDirectory[str] | None = None
+    effective_url = database_url
+    if database_url == "sqlite:///:memory:":
+        # In-memory SQLite shares one StaticPool connection across threads; use a temp file
+        # so each worker thread gets an independent DBAPI connection for realistic contention.
+        temp_dir = tempfile.TemporaryDirectory(prefix="fardb-lock-bench-")
+        effective_url = f"sqlite:///{Path(temp_dir.name) / 'contention.db'}"
+
+    engine = create_engine_from_url(effective_url)
+    try:
+        if effective_url.startswith("sqlite"):
+            init_db(engine)
+        session_factory = create_session_factory(engine)
+        guard = threading.Lock()
+        latencies_ms: list[float] = []
+        acquisitions = 0
+        contention_rejections = 0
+        fencing_violations = 0
+
+        def _worker(worker_idx: int) -> None:
+            nonlocal acquisitions, contention_rejections, fencing_violations
+            holder_id = f"bench-worker-{worker_idx}"
+            for _ in range(iterations_per_worker):
+                start = time.perf_counter()
+                try:
+                    with session_factory() as session:
+                        repo = CoordinationLockRepository(session)
+                        res = repo.acquire_lock(
+                            lock_name="graph_rebuild",
+                            holder_id=holder_id,
+                            ttl_seconds=ttl_seconds,
+                        )
+                        session.commit()
+                        elapsed_ms = (time.perf_counter() - start) * 1000.0
+
+                        if res.success:
+                            refreshed = repo.refresh_lock(
+                                lock_name="graph_rebuild",
+                                holder_id=holder_id,
+                                ttl_seconds=ttl_seconds,
+                            )
+                            session.commit()
+                            valid = repo.verify_fencing_token(
+                                lock_name="graph_rebuild",
+                                holder_id=holder_id,
+                                expected_fencing_token=refreshed.fencing_token,
+                            )
+                            repo.release_lock(lock_name="graph_rebuild", holder_id=holder_id)
+                            session.commit()
+                            with guard:
+                                latencies_ms.append(elapsed_ms)
+                                acquisitions += 1
+                                if not valid or refreshed.fencing_token <= res.fencing_token:
+                                    fencing_violations += 1
+                        else:
+                            with guard:
+                                latencies_ms.append(elapsed_ms)
+                                contention_rejections += 1
+                except Exception:
+                    # Under SQLite write-lock contention, transient OperationalError counts as contention.
+                    elapsed_ms = (time.perf_counter() - start) * 1000.0
+                    with guard:
+                        latencies_ms.append(elapsed_ms)
+                        contention_rejections += 1
+
+        t_start = time.perf_counter()
+        with ThreadPoolExecutor(max_workers=workers) as pool:
+            futures = [pool.submit(_worker, idx) for idx in range(workers)]
+            for future in futures:
+                future.result()
+        elapsed_seconds = time.perf_counter() - t_start
+    finally:
+        engine.dispose()
+        if temp_dir is not None:
+            temp_dir.cleanup()
+
+    latencies_ms.sort()
+    p50 = statistics.median(latencies_ms) if latencies_ms else 0.0
+    p95 = _percentile(latencies_ms, 95.0)
+    max_ms = latencies_ms[-1] if latencies_ms else 0.0
+
+    return LockContentionResult(
+        workers=workers,
+        iterations_per_worker=iterations_per_worker,
+        total_attempts=workers * iterations_per_worker,
+        acquisitions=acquisitions,
+        contention_rejections=contention_rejections,
+        fencing_token_violations=fencing_violations,
+        acquire_p50_ms=round(p50, 4),
+        acquire_p95_ms=round(p95, 4),
+        acquire_max_ms=round(max_ms, 4),
+        elapsed_seconds=round(elapsed_seconds, 4),
+    )
+
+
 def main(argv: list[str] | None = None) -> int:
-    """CLI entrypoint for deterministic capacity and dense-subgraph benchmarks."""
-    parser = argparse.ArgumentParser(description="Run FarDB deterministic capacity & dense-subgraph benchmark.")
+    """CLI entrypoint for deterministic capacity and lock-contention benchmarks."""
+    parser = argparse.ArgumentParser(description="Run FarDB deterministic capacity & lock-contention benchmarks.")
+    parser.add_argument(
+        "--mode",
+        choices=("capacity", "contention"),
+        default="capacity",
+        help="Benchmark mode: graph capacity or multi-worker lock contention",
+    )
     parser.add_argument("--assets", type=int, default=1000, help="Number of synthetic assets (>= 2)")
     parser.add_argument("--relationships", type=int, default=5000, help="Number of directed relationships")
     parser.add_argument(
@@ -261,16 +394,26 @@ def main(argv: list[str] | None = None) -> int:
         help="SQLAlchemy database URL (defaults to in-memory SQLite)",
     )
     parser.add_argument("--query-iterations", type=int, default=20, help="Subgraph/pagination query iterations")
+    parser.add_argument("--workers", type=int, default=4, help="Concurrent workers for contention mode")
+    parser.add_argument("--iterations", type=int, default=10, help="Lock attempts per worker in contention mode")
     parser.add_argument("--json-out", type=Path, default=None, help="Optional path to write JSON report")
     args = parser.parse_args(argv)
 
-    result = run_capacity_benchmark(
-        asset_count=args.assets,
-        relationship_count=args.relationships,
-        topology=args.topology,
-        database_url=args.database_url,
-        query_iterations=args.query_iterations,
-    )
+    result: CapacityBenchmarkResult | LockContentionResult
+    if args.mode == "contention":
+        result = run_lock_contention_benchmark(
+            workers=args.workers,
+            iterations_per_worker=args.iterations,
+            database_url=args.database_url,
+        )
+    else:
+        result = run_capacity_benchmark(
+            asset_count=args.assets,
+            relationship_count=args.relationships,
+            topology=args.topology,
+            database_url=args.database_url,
+            query_iterations=args.query_iterations,
+        )
     payload = json.dumps(asdict(result), indent=2)
     if args.json_out is not None:
         args.json_out.parent.mkdir(parents=True, exist_ok=True)

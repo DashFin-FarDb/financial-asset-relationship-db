@@ -7,7 +7,12 @@ from pathlib import Path
 
 import pytest
 
-from scripts.benchmark_capacity_envelope import build_benchmark_graph, main, run_capacity_benchmark
+from scripts.benchmark_capacity_envelope import (
+    build_benchmark_graph,
+    main,
+    run_capacity_benchmark,
+    run_lock_contention_benchmark,
+)
 
 
 def test_build_benchmark_graph_dense_hub_creates_high_centrality_hub() -> None:
@@ -70,3 +75,34 @@ def test_cli_writes_json_report(tmp_path: Path) -> None:
     assert payload["loaded_asset_count"] == 20
     assert payload["loaded_relationship_count"] == 60
     assert payload["topology"] == "dense_hub"
+
+
+def test_run_lock_contention_benchmark_preserves_fencing_monotonicity() -> None:
+    """Multi-worker lock contention maintains monotonic fencing tokens with zero violations."""
+    result = run_lock_contention_benchmark(workers=4, iterations_per_worker=5)
+    assert result.total_attempts == 20
+    assert result.acquisitions >= 1
+    assert result.acquisitions + result.contention_rejections == 20
+    assert result.fencing_token_violations == 0
+    assert 0.0 <= result.acquire_p50_ms <= result.acquire_p95_ms <= result.acquire_max_ms
+
+
+def test_cli_contention_mode_writes_json_report(tmp_path: Path) -> None:
+    """CLI --mode contention exits 0 and writes structured contention JSON."""
+    report_path = tmp_path / "contention.json"
+    exit_code = main(
+        [
+            "--mode",
+            "contention",
+            "--workers",
+            "3",
+            "--iterations",
+            "4",
+            "--json-out",
+            str(report_path),
+        ]
+    )
+    assert exit_code == 0
+    payload = json.loads(report_path.read_text(encoding="utf-8"))
+    assert payload["total_attempts"] == 12
+    assert payload["fencing_token_violations"] == 0
