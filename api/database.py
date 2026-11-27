@@ -31,15 +31,17 @@ that psycopg2 replaces with properly escaped values. It does NOT use $1, $2, etc
 
 Connection Pooling:
 ------------------
-Production-grade serverless connection pooling is DEFERRED to a future PR.
-The current implementation creates a new connection per request, which is acceptable
-for low-traffic environments but not recommended for production at scale.
-See ADR 0002 Phase 4 for planned pooling implementation.
+PostgreSQL connections use a thread-safe ``psycopg2.pool.ThreadedConnectionPool``
+keyed by target URL and statement timeout (configurable via ``API_DB_POOL_ENABLED``
+and ``API_DB_POOL_MAX_CONN``), with automatic disposal on process exit (H-P3-04 /
+ADR 0002 Phase 4). Bounded cancellable operations use dedicated connections so
+cancellation cannot poison shared pool state.
 """
 
 from __future__ import annotations
 
 import atexit
+import os
 import sqlite3
 import threading
 from collections.abc import Iterator
@@ -459,6 +461,62 @@ def _create_postgres_connection(*, statement_timeout_milliseconds: int | None = 
     return conn
 
 
+_DEFAULT_CREATE_POSTGRES_CONNECTION = _create_postgres_connection
+_POSTGRES_POOL_LOCK = threading.Lock()
+_POSTGRES_POOLS: dict[tuple[str, int | None], Any] = {}
+
+
+def _is_postgres_pool_enabled() -> bool:
+    """Return whether PostgreSQL connection pooling is enabled for ordinary API requests."""
+    raw = os.getenv("API_DB_POOL_ENABLED", "true").strip().lower()
+    return raw not in {"0", "false", "no", "off"}
+
+
+def _postgres_pool_max_connections() -> int:
+    """Return the bounded maximum PostgreSQL pool size for this worker process."""
+    raw = os.getenv("API_DB_POOL_MAX_CONN", "5").strip()
+    try:
+        return max(1, min(int(raw), 50))
+    except ValueError:
+        return 5
+
+
+def _get_or_create_postgres_pool(url: str, statement_timeout_milliseconds: int | None) -> Any:
+    """Return a thread-safe psycopg2 ThreadedConnectionPool for the target and timeout."""
+    key = (url, statement_timeout_milliseconds)
+    with _POSTGRES_POOL_LOCK:
+        pool = _POSTGRES_POOLS.get(key)
+        if pool is not None and not getattr(pool, "closed", False):
+            return pool
+
+        import psycopg2.pool  # type: ignore[import-untyped]
+
+        connection_options: dict[str, Any] = {"connect_timeout": _POSTGRES_CONNECT_TIMEOUT_SECONDS}
+        if statement_timeout_milliseconds is not None:
+            connection_options["options"] = f"-c statement_timeout={statement_timeout_milliseconds}"
+        pool = psycopg2.pool.ThreadedConnectionPool(
+            1,
+            _postgres_pool_max_connections(),
+            url,
+            **connection_options,
+        )
+        _POSTGRES_POOLS[key] = pool
+        return pool
+
+
+def close_postgres_pool() -> None:
+    """Close and clear all active PostgreSQL connection pools."""
+    with _POSTGRES_POOL_LOCK:
+        pools = list(_POSTGRES_POOLS.values())
+        _POSTGRES_POOLS.clear()
+    for pool in pools:
+        with suppress(Exception):
+            pool.closeall()
+
+
+atexit.register(close_postgres_pool)
+
+
 class _DatabaseConnectionManager:
     """Manages SQLite connections to a configured database path.
 
@@ -733,21 +791,42 @@ def get_connection() -> Iterator[Any]:
         Connection object (sqlite3.Connection for SQLite, psycopg2 connection for PostgreSQL).
     """
     if _effective_database_target().database_type == "postgresql":
-        # PostgreSQL: create new connection, close on exit
         operation_guard = _POSTGRES_OPERATION_GUARD.get()
         if operation_guard is None:
             statement_timeout_milliseconds = get_settings().postgres_request_statement_timeout_milliseconds
         else:
             statement_timeout_milliseconds = _POSTGRES_STATEMENT_TIMEOUT_MILLISECONDS
-        connection = _create_postgres_connection(statement_timeout_milliseconds=statement_timeout_milliseconds)
-        if operation_guard is not None:
-            operation_guard.register(connection)
-        try:
-            yield connection
-        finally:
+
+        use_pool = (
+            operation_guard is None
+            and _CONNECTION_STATE.target is None
+            and _is_postgres_pool_enabled()
+            and _create_postgres_connection is _DEFAULT_CREATE_POSTGRES_CONNECTION
+        )
+        if use_pool:
+            pool = _get_or_create_postgres_pool(_effective_database_target().url, statement_timeout_milliseconds)
+            connection = pool.getconn()
+            broken = False
+            try:
+                yield connection
+            except Exception:
+                broken = True
+                with suppress(Exception):
+                    connection.rollback()
+                raise
+            finally:
+                is_closed = bool(getattr(connection, "closed", 0))
+                pool.putconn(connection, close=broken or is_closed)
+        else:
+            connection = _create_postgres_connection(statement_timeout_milliseconds=statement_timeout_milliseconds)
             if operation_guard is not None:
-                operation_guard.unregister(connection)
-            connection.close()
+                operation_guard.register(connection)
+            try:
+                yield connection
+            finally:
+                if operation_guard is not None:
+                    operation_guard.unregister(connection)
+                connection.close()
     else:
         # SQLite path (original logic)
         connection = _connect()

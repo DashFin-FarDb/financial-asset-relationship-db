@@ -205,21 +205,26 @@ class TestConnectionManagement:
 
     def test_ordinary_postgres_connection_enforces_configured_statement_timeout(self):
         """Ordinary request connections must apply the configured server-side statement timeout."""
+        database.close_postgres_pool()
         connection = Mock()
+        connection.closed = 0
         settings = Mock(postgres_request_statement_timeout_milliseconds=321_000)
-        with (
-            patch("api.database.DATABASE_TYPE", "postgresql"),
-            patch("api.database.get_settings", return_value=settings),
-            patch("psycopg2.connect", return_value=connection) as connect,
-            get_connection(),
-        ):
-            pass
+        try:
+            with (
+                patch("api.database.DATABASE_TYPE", "postgresql"),
+                patch("api.database.get_settings", return_value=settings),
+                patch("psycopg2.connect", return_value=connection) as connect,
+                get_connection(),
+            ):
+                pass
 
-        connect.assert_called_once_with(
-            database.DATABASE_URL,
-            connect_timeout=database._POSTGRES_CONNECT_TIMEOUT_SECONDS,  # pylint: disable=protected-access
-            options="-c statement_timeout=321000",
-        )
+            connect.assert_called_once_with(
+                database.DATABASE_URL,
+                connect_timeout=database._POSTGRES_CONNECT_TIMEOUT_SECONDS,  # pylint: disable=protected-access
+                options="-c statement_timeout=321000",
+            )
+        finally:
+            database.close_postgres_pool()
         connection.close.assert_called_once_with()
 
     def test_guarded_postgres_connection_enforces_server_statement_timeout(self):

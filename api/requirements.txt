@@ -1,0 +1,31 @@
+# Slim production FastAPI dependencies for Vercel (@vercel/python) deployments.
+# Excludes non-production Gradio UI, MCP server, and optional live-scraper packages
+# (gradio, mcp, fastmcp, yfinance, pandas, plotly, curl-cffi, Markdown, bleach)
+# to keep the serverless bundle well below Vercel size limits (H-P3-04).
+
+fastapi==0.162.5
+uvicorn[standard]>=0.24.0
+pydantic==2.14.3
+h11==0.16.0
+python-multipart>=0.0.20
+numpy>=1.26.0
+
+# Serverless / database dependencies
+mangum==0.22.0
+psycopg2-binary>=2.9.9
+sqlalchemy>=2.0.0,<2.1.0
+
+# Auth / rate-limiting dependencies
+PyJWT>=2.13.0
+passlib[bcrypt]>=1.7.4
+slowapi>=0.1.4
+
+# Observability dependencies
+prometheus_client>=0.19.0
+structlog>=24.1.0
+sentry-sdk[fastapi]>=2.66.1,<3.0.0
+
+# Security override pins
+urllib3>=2.7.0
+zipp>=4.1.0
+starlette>=1.3.1
