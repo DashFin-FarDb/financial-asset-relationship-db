@@ -21,11 +21,14 @@ on:
         type: boolean
         default: false
       hardening_tier:
-        description: "Hardening backlog tier to enforce. Only none and P0 are implemented; P0 (default) forces strict hosted readiness. none = soft rehearsal."
+        description: "Hardening backlog tier to enforce (cumulative: P0, P1, P2, P3). P0 (default) forces strict hosted readiness; none = soft rehearsal."
         type: choice
         options:
           - none
           - P0
+          - P1
+          - P2
+          - P3
         default: P0
       tags:
         description: "Manual sign-off tags (e.g., [manual-stop] or [star])"
@@ -281,6 +284,51 @@ jobs:
           echo "{\"status\":\"failed\",\"exit_code\":$code}" > db-authz-output.json
           exit 1
 
+      - name: Run Hardening Tier Gates (P1-P3)
+        id: gate_hardening_tier
+        continue-on-error: true
+        working-directory: release-source
+        env:
+          HARDENING_TIER: ${{ inputs.hardening_tier }}
+        run: |
+          if [ "$HARDENING_TIER" = "none" ] || [ "$HARDENING_TIER" = "P0" ]; then
+            echo "{\"status\":\"skipped\",\"tier\":\"$HARDENING_TIER\"}" > hardening-tier-output.json
+            exit 0
+          fi
+          set +e
+          status=0
+          # P1 checks (enforced for P1, P2, P3)
+          pytest \
+            tests/integration/test_hp004_db_authz_workflows.py \
+            tests/integration/test_production_container_workflow.py \
+            -q --junitxml=results-hardening-p1.xml || status=1
+          # P2 checks (enforced for P2, P3)
+          if [ "$HARDENING_TIER" = "P2" ] || [ "$HARDENING_TIER" = "P3" ]; then
+            pytest \
+              tests/unit/test_atomic_monotonic_fencing_cas.py \
+              tests/unit/test_h_p2_02_fencing_token_enforcement.py \
+              tests/unit/test_rebuild_recovery.py \
+              tests/unit/test_recovery_gate.py \
+              tests/unit/test_recovery_gate_startup.py \
+              -q --junitxml=results-hardening-p2.xml || status=1
+          fi
+          # P3 checks (enforced for P3)
+          if [ "$HARDENING_TIER" = "P3" ]; then
+            pytest \
+              tests/unit/test_h_p3_02_global_rate_limit.py \
+              tests/unit/test_shared_rate_limit_store.py \
+              tests/unit/test_jwt_rotation_and_revocation.py \
+              tests/unit/test_rebuild_idempotency_key.py \
+              tests/unit/test_readiness_endpoint.py \
+              -q --junitxml=results-hardening-p3.xml || status=1
+          fi
+          if [ "$status" -eq 0 ]; then
+            echo "{\"status\":\"passed\",\"tier\":\"$HARDENING_TIER\"}" > hardening-tier-output.json
+            exit 0
+          fi
+          echo "{\"status\":\"failed\",\"tier\":\"$HARDENING_TIER\"}" > hardening-tier-output.json
+          exit 1
+
       - name: Prepare Artifact Placeholders
         if: always()
         working-directory: release-source
@@ -294,6 +342,9 @@ jobs:
           if [ ! -f db-authz-output.json ]; then
             echo '{"status":"skipped","reason":"db_authz_not_run"}' > db-authz-output.json
           fi
+          if [ ! -f hardening-tier-output.json ]; then
+            echo '{"status":"skipped","reason":"hardening_tier_not_run"}' > hardening-tier-output.json
+          fi
 
       - name: Upload Artifacts
         if: always()
@@ -305,6 +356,7 @@ jobs:
             release-source/readiness-output.json
             release-source/docs-readiness.json
             release-source/db-authz-output.json
+            release-source/hardening-tier-output.json
 
       - name: Assert All Gates Passed
         if: always()
@@ -316,6 +368,7 @@ jobs:
           docs_status=$(jq -r '.status // "skipped"' docs-readiness.json 2>/dev/null || echo "skipped")
           readiness_status=$(jq -r '.status // "skipped"' readiness-output.json 2>/dev/null || echo "skipped")
           db_authz_status=$(jq -r '.status // "skipped"' db-authz-output.json 2>/dev/null || echo "skipped")
+          hardening_tier_status=$(jq -r '.status // "skipped"' hardening-tier-output.json 2>/dev/null || echo "skipped")
 
           EFFECTIVE_STRICT="$STRICT_RC_GATE"
           if [ "$HARDENING_TIER" != "none" ]; then
@@ -351,6 +404,11 @@ jobs:
             fi
             if [ "$db_authz_status" != "passed" ]; then
               FAILURES="${FAILURES}database authorization (H-P0-04), "
+            fi
+            if [ "$HARDENING_TIER" = "P1" ] || [ "$HARDENING_TIER" = "P2" ] || [ "$HARDENING_TIER" = "P3" ]; then
+              if [ "$hardening_tier_status" != "passed" ] || [ "${{ steps.gate_hardening_tier.outcome }}" != "success" ]; then
+                FAILURES="${FAILURES}hardening tier ${HARDENING_TIER} gates, "
+              fi
             fi
             if [ -n "$FAILURES" ]; then
               echo "Strict RC promotion requires the following to pass: ${FAILURES%, } (hardening_tier=$HARDENING_TIER)."
@@ -445,6 +503,9 @@ jobs:
               )
               out.write(
                   f"- Database authorization (H-P0-04): {json_status('db-authz-output.json')} (`db-authz-output.json`)\n"
+              )
+              out.write(
+                  f"- Hardening tier ({hardening_tier}): {json_status('hardening-tier-output.json')} (`hardening-tier-output.json`)\n"
               )
               out.write("\n")
               out.write("## Hardening backlog\n")
