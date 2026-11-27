@@ -13,6 +13,7 @@ assignees: ""
 **Target environment:** <!-- staging / production -->
 **Evidence owner:**
 **Evidence capture date:**
+**Evidence expiry date (UTC):** <!-- YYYY-MM-DD; max 14 days from capture (H-P3-05) -->
 **Canonical evidence framework/version:**
 **Linked operational evidence issue(s):**
 **Linked restore rehearsal evidence issue:**
@@ -96,6 +97,8 @@ Record named owners for this release candidate:
 | Rollback owner                 |             | Pending         |       |
 | Restore operator               |             | Pending         |       |
 | Persistence verification owner |             | Pending         |       |
+
+- [ ] H-P3-05 Separation of duties: `Deploy operator` and `Promotion approver` are distinct named individuals, and the evidence packet is within its expiry window.
 
 ## Disaster Recovery Rehearsal Evidence
 

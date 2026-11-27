@@ -6,8 +6,24 @@ import os
 import re
 import stat
 import sys
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import List, TypedDict
+
+UTC = timezone.utc
+DEFAULT_MAX_EVIDENCE_AGE_DAYS = 14
+_PLACEHOLDER_OWNERS = frozenset({"", "tbd", "todo", "n/a", "none", "pending", "<owner>", "unknown"})
+_TABLE_ROLE_PATTERN_TEMPLATE = r"^\s*\|\s*{role}\s*\|\s*([^|\n]+?)\s*\|"
+_KV_ROLE_PATTERN_TEMPLATE = r"^\s*{role}\s*:\s*([^\n]+)$"
+_CAPTURE_DATE_PATTERN = re.compile(
+    r"(?:\*\*Evidence capture date:\*\*|evidence_capture_date\s*:)\s*(\d{4}-\d{2}-\d{2}(?:T[0-9:+-]+Z?)?)",
+    re.IGNORECASE,
+)
+_EXPIRY_DATE_PATTERN = re.compile(
+    r"(?:\*\*Evidence expiry date(?:\s*\(UTC\))?:\*\*|evidence_expires_at\s*:)\s*(\d{4}-\d{2}-\d{2}(?:T[0-9:+-]+Z?)?)",
+    re.IGNORECASE,
+)
+_SOD_WAIVER_PATTERN = re.compile(r"^\s*sod_waiver\s*:\s*\S+", re.IGNORECASE | re.MULTILINE)
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 DISTINCT_BOUNDARY_PATTERN = re.compile(
@@ -353,7 +369,118 @@ def _check_hardening_foundation(content: str, missing: List[str]) -> None:
     _check_hardening_db_authz(content, missing)
 
 
-def verify_staging_promotion(evidence_file: str) -> None:
+def _extract_named_role(content: str, table_label: str, kv_key: str) -> str | None:
+    """Extract a named owner from either the sign-off Markdown table or a key-value marker."""
+    table_match = re.search(
+        _TABLE_ROLE_PATTERN_TEMPLATE.format(role=re.escape(table_label)),
+        content,
+        re.IGNORECASE | re.MULTILINE,
+    )
+    if table_match is not None:
+        raw = table_match.group(1).strip().strip("`*@ ")
+        if raw.lower() not in _PLACEHOLDER_OWNERS:
+            return raw
+
+    kv_match = re.search(
+        _KV_ROLE_PATTERN_TEMPLATE.format(role=re.escape(kv_key)),
+        content,
+        re.IGNORECASE | re.MULTILINE,
+    )
+    if kv_match is not None:
+        raw = kv_match.group(1).strip().strip("`*@ ")
+        if raw.lower() not in _PLACEHOLDER_OWNERS:
+            return raw
+    return None
+
+
+def _parse_iso_utc(raw: str) -> datetime | None:
+    """Parse an ISO date (YYYY-MM-DD) or ISO-8601 datetime into a UTC-aware datetime."""
+    cleaned = raw.strip()
+    if not cleaned:
+        return None
+    if cleaned.endswith(("Z", "z")):
+        cleaned = cleaned[:-1] + "+00:00"
+    try:
+        parsed = datetime.fromisoformat(cleaned)
+    except ValueError:
+        return None
+    if parsed.tzinfo is None:
+        # Date-only values expire at end of UTC day; datetimes default to UTC
+        if len(raw.strip()) == 10:
+            parsed = parsed.replace(hour=23, minute=59, second=59, tzinfo=UTC)
+        else:
+            parsed = parsed.replace(tzinfo=UTC)
+    return parsed.astimezone(UTC)
+
+
+def check_separation_of_duties(
+    content_raw: str,
+    missing: List[str],
+    *,
+    require_explicit: bool = False,
+) -> None:
+    """Enforce separation of duties between Deploy operator and Promotion approver (H-P3-05)."""
+    deploy_operator = _extract_named_role(content_raw, "Deploy operator", "deploy_operator")
+    promotion_approver = _extract_named_role(content_raw, "Promotion approver", "promotion_approver")
+
+    if require_explicit:
+        if not deploy_operator:
+            missing.append("Separation of duties (H-P3-05): named Deploy operator is required")
+        if not promotion_approver:
+            missing.append("Separation of duties (H-P3-05): named Promotion approver is required")
+        if not deploy_operator or not promotion_approver:
+            return
+
+    if deploy_operator and promotion_approver and deploy_operator.lower() == promotion_approver.lower():
+        if require_explicit or _SOD_WAIVER_PATTERN.search(content_raw) is None:
+            missing.append(
+                "Separation of duties (H-P3-05): Deploy operator and Promotion approver must be distinct individuals"
+            )
+
+
+def check_evidence_expiry(
+    content_raw: str,
+    missing: List[str],
+    *,
+    require_explicit: bool = False,
+    max_age_days: int = DEFAULT_MAX_EVIDENCE_AGE_DAYS,
+    now: datetime | None = None,
+) -> None:
+    """Enforce evidence packet expiry and maximum capture age (H-P3-05)."""
+    current_time = now.astimezone(UTC) if now is not None else datetime.now(UTC)
+
+    expiry_match = _EXPIRY_DATE_PATTERN.search(content_raw)
+    capture_match = _CAPTURE_DATE_PATTERN.search(content_raw)
+
+    if expiry_match is not None:
+        expiry_dt = _parse_iso_utc(expiry_match.group(1))
+        if expiry_dt is None:
+            missing.append("Evidence expiry (H-P3-05): unparseable evidence_expires_at date")
+        elif expiry_dt < current_time:
+            missing.append(f"Evidence expiry (H-P3-05): evidence packet expired on {expiry_match.group(1)}")
+
+    if capture_match is not None:
+        capture_dt = _parse_iso_utc(capture_match.group(1))
+        if capture_dt is None:
+            missing.append("Evidence expiry (H-P3-05): unparseable Evidence capture date")
+        elif current_time - capture_dt > timedelta(days=max_age_days):
+            missing.append(
+                f"Evidence expiry (H-P3-05): evidence capture date {capture_match.group(1)} "
+                f"exceeds maximum age of {max_age_days} days"
+            )
+
+    if require_explicit and expiry_match is None and capture_match is None:
+        missing.append("Evidence expiry (H-P3-05): Evidence capture date or evidence_expires_at is required")
+
+
+def verify_staging_promotion(
+    evidence_file: str,
+    *,
+    enforce_sod: bool = False,
+    enforce_expiry: bool = False,
+    max_evidence_age_days: int = DEFAULT_MAX_EVIDENCE_AGE_DAYS,
+    now: datetime | None = None,
+) -> None:
     """Verify baseline items in a staging promotion evidence file."""
     evidence_path_obj = REPO_ROOT / _repo_relative_evidence_path(evidence_file)
     if not evidence_path_obj.exists():
@@ -378,6 +505,14 @@ def verify_staging_promotion(evidence_file: str) -> None:
     _check_urls(content_lower, missing)
     _check_operational_evidence(content_lower, missing)
     _check_hardening_foundation(content_raw, missing)
+    check_separation_of_duties(content_raw, missing, require_explicit=enforce_sod)
+    check_evidence_expiry(
+        content_raw,
+        missing,
+        require_explicit=enforce_expiry,
+        max_age_days=max_evidence_age_days,
+        now=now,
+    )
 
     if missing:
         print(
@@ -395,6 +530,27 @@ def verify_staging_promotion(evidence_file: str) -> None:
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Verify staging promotion baseline items in an evidence file.")
     parser.add_argument("evidence_file", help="Path to the release-candidate evidence Markdown file.")
+    parser.add_argument(
+        "--enforce-sod",
+        action="store_true",
+        help="Require explicit distinct Deploy operator and Promotion approver (H-P3-05).",
+    )
+    parser.add_argument(
+        "--enforce-expiry",
+        action="store_true",
+        help="Require an explicit non-expired capture/expiry date on the RC evidence packet (H-P3-05).",
+    )
+    parser.add_argument(
+        "--max-evidence-age-days",
+        type=int,
+        default=DEFAULT_MAX_EVIDENCE_AGE_DAYS,
+        help=f"Maximum allowed evidence age in days (default: {DEFAULT_MAX_EVIDENCE_AGE_DAYS}).",
+    )
     args = parser.parse_args()
 
-    verify_staging_promotion(args.evidence_file)
+    verify_staging_promotion(
+        args.evidence_file,
+        enforce_sod=args.enforce_sod,
+        enforce_expiry=args.enforce_expiry,
+        max_evidence_age_days=args.max_evidence_age_days,
+    )
