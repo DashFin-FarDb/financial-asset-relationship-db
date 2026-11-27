@@ -68,4 +68,7 @@ def test_observability_compose_mounts_dashboards_and_pins_images() -> None:
     assert "monitoring/dashboards:/etc/grafana/dashboards:ro" in grafana_volumes
 
     grafana_env = "\n".join(services["grafana"]["environment"])
-    assert "GF_INSTALL_PLUGINS=grafana-vercel-datasource,grafana-netlify-datasource" in grafana_env
+    assert (
+        "GF_INSTALL_PLUGINS=grafana-vercel-datasource,grafana-netlify-datasource,grafana-sentry-datasource"
+        in grafana_env
+    )
