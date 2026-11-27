@@ -1,79 +1,78 @@
 # Database Integration
 
-This project uses Supabase as the database provider. The integration supports both the Supabase API client and direct PostgreSQL connections.
+This project uses a dual-backend database architecture supporting **PostgreSQL** (recommended for hosted/production deployments, including Supabase PostgreSQL) and **SQLite** (preserved for local development and unit tests).
 
-## Configuration
+Runtime database settings are centralized in `src/config/settings.py`.
 
-Add the following environment variables to your `.env` file:
+## Configuration Boundaries
+
+The application separates database concerns into distinct environment variables:
 
 ```text
-# Supabase Configuration
-SUPABASE_URL=https://your-project-id.supabase.co
-SUPABASE_KEY=your-supabase-anon-key
+# Auth and API application database (required by api.main:app)
+DATABASE_URL=sqlite:dev.db
+# Production example (direct PostgreSQL / Supabase pooler):
+# DATABASE_URL=postgresql://user:password@host:5432/database
 
-# Direct PostgreSQL Connection (Optional)
-DATABASE_URL=postgresql://postgres.your-project-id:your-password@aws-1-us-east-1.pooler.supabase.com:6543/postgres
+# Durable graph-truth and governed relationship assertion store
+ASSET_GRAPH_DATABASE_URL=sqlite:asset_graph.db
+# Production example:
+# ASSET_GRAPH_DATABASE_URL=postgresql://user:password@host:5432/database
+
+# Distributed rebuild lock and coordination store (optional; defaults to ASSET_GRAPH_DATABASE_URL)
+COORDINATION_DATABASE_URL=postgresql://user:password@host:5432/database
 ```
 
-## Usage
+> **SQLite URL Gotcha:** `api/database.py` uses a custom URL-to-path resolver. Use `sqlite:dev.db` (repo-relative), `sqlite:///:memory:`, or an explicit writable absolute path (`sqlite:////abs/path/dev.db`). Avoid `sqlite:///./dev.db`, which resolves to `/dev.db`.
 
-The database module provides a simple interface for connecting to and querying the database:
+## Migration Authority
+
+FastAPI startup **never** auto-creates tables. Schema initialization and upgrades are owned exclusively by the migration CLI:
+
+```bash
+python -m scripts.migrate_database
+```
+
+For full migration and ledger governance details, see [docs/runbooks/database-migration-authority.md](docs/runbooks/database-migration-authority.md) and [docs/adr/0007-database-authorization-boundary.md](docs/adr/0007-database-authorization-boundary.md).
+
+## Programmatic Usage (SQLAlchemy 2.0)
+
+Graph persistence uses SQLAlchemy 2.0 in `src/data/database.py` and `src/data/repository.py`:
 
 ```python
-from src.data.database import get_db
+from sqlalchemy import text
+from src.data.database import create_engine_from_url, create_session_factory, session_scope
 
-# Get database connection
-db = get_db()
+engine = create_engine_from_url()
+session_factory = create_session_factory(engine)
 
-# Connect to the database
-db.connect()
-
-# Query data
-assets = db.query("assets", limit=10)
-print(assets)
-
-# Close connection when done
-db.close()
+with session_scope(session_factory) as session:
+    result = session.execute(text("SELECT 1")).scalar()
 ```
 
-## Connection Methods
-
-The database module will attempt to connect using the Supabase client first, and fall back to a direct PostgreSQL connection if that fails.
-
-### Supabase Client
-
-The Supabase client provides a high-level API for interacting with your Supabase database, including:
-
-- Authentication
-- Storage
-- Realtime subscriptions
-- Database queries with Row Level Security
-
-### Direct PostgreSQL Connection
-
-The direct PostgreSQL connection provides lower-level access to the database using the `psycopg2` library.
+Auth/application SQLite & PostgreSQL connections are managed via `api/database.py` (with bounded `psycopg2.pool.ThreadedConnectionPool` pooling for PostgreSQL).
 
 ## Required Dependencies
 
-Install the required dependencies:
+Database dependencies are pinned in `requirements.txt` (and `api/requirements.txt` for Vercel):
 
-```bash
-pip install supabase psycopg2-binary python-dotenv
-```
+- `sqlalchemy>=2.0.0,<2.1.0`
+- `psycopg2-binary` (PostgreSQL driver)
 
-## Database Schema
+## Managed Schema Tables
 
-The database schema will be automatically created when you first connect to the database. The schema includes the following tables:
+The migration ledgers manage the following core tables:
 
-- `assets`: Stores information about financial assets
-- `relationships`: Stores relationships between assets
-- `metrics`: Stores metrics for assets
-- `users`: Stores user information
+- **Auth ledger (`DATABASE_URL`):** `user_credentials`
+- **Graph & GRAC v1 ledger (`ASSET_GRAPH_DATABASE_URL`):** `assets`, `asset_relationships`, `regulatory_events`, `regulatory_event_assets`, `rebuild_jobs`, `relationship_evidence`, `relationship_assertions`, `relationship_assertion_evidence`, `relationship_assertion_events`, `relationship_projection_snapshots`, `relationship_projection_edges`
+- **Coordination ledger (`COORDINATION_DATABASE_URL`):** `distributed_locks`
 
-## Testing
+## Smoke Testing
 
-You can test the database connection using the provided test scripts:
+Verify local SQLAlchemy database connectivity with:
 
 ```bash
 python scripts/test_db_module.py
 ```
+
+For opt-in live Supabase connectivity testing, see [TESTING.md](TESTING.md).

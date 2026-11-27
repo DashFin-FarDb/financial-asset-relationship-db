@@ -21,8 +21,8 @@ classes: **Equities, Bonds, Commodities, Currencies, and Regulatory Events**.
 
 ### Prerequisites
 
-- Python 3.10+
-- Node.js 18+ (for production frontend)
+- Python 3.10+ (3.12+ recommended)
+- Node.js 22 LTS (minimum `>=20.19.0`, for production frontend)
 - Virtual environment (recommended)
 
 ### Production Setup: Next.js Frontend + FastAPI Backend

@@ -34,12 +34,13 @@ For the architectural decision rationale, see [docs/adr/0001-production-architec
 │           API Layer               │   │ Core Business Logic Layer  │
 ├───────────────────────────────────┤   ├────────────────────────────┤
 │ FastAPI Backend (Port 8000)       │   │ Gradio calls the graph and │
-│ Endpoints:                        │   │ visualization stack         │
-│ - /api/assets                     │   │ directly; it does not flow │
-│ - /api/metrics                    │   │ through the FastAPI layer. │
+│ (api/app_factory.py, api/routers/)│   │ visualization stack         │
+│ Endpoints:                        │   │ directly; it does not flow │
+│ - /api/assets                     │   │ through the FastAPI layer. │
+│ - /api/graph/metrics              │   │                            │
 │ - /api/visualization              │   │                            │
 │ - /api/relationships              │   │                            │
-│ - /api/health                     │   │                            │
+│ - /api/health & /api/health/det.. │   │                            │
 └────────────┬──────────────────────┘   └────────────┬───────────────┘
              │                                        │
              └────────────────┬───────────────────────┘
@@ -79,11 +80,11 @@ For the architectural decision rationale, see [docs/adr/0001-production-architec
 │  └──────────────────────────────────────────────────────────────┘ │
 │                                                                      │
 │  ┌──────────────────────────────────────────────────────────────┐ │
-│  │  Data Sources (src/data/)                                    │ │
-│  │  ┌────────────────┐           ┌────────────────┐            │ │
-│  │  │ sample_data.py │           │real_data_fetch │            │ │
-│  │  │ (Static)       │           │(Yahoo Finance) │            │ │
-│  │  └────────────────┘           └────────────────┘            │ │
+│  │  Durable Persistence & Sources (src/data/, api/database.py)  │ │
+│  │  ┌────────────────┐  ┌──────────────────┐  ┌──────────────┐  │ │
+│  │  │ PostgreSQL /   │  │ sample_data.py / │  │ migrate_     │  │ │
+│  │  │ SQLite (ORM)   │  │ real_data_fetch  │  │ database.py  │  │ │
+│  │  └────────────────┘  └──────────────────┘  └──────────────┘  │ │
 │  └──────────────────────────────────────────────────────────────┘ │
 │                                                                      │
 └──────────────────────────────────────────────────────────────────────┘
@@ -106,7 +107,7 @@ API Client (lib/api.ts)
        │
        │ 3. HTTP Request (Axios)
        ▼
-FastAPI Endpoint (api/main.py)
+FastAPI Router (api/routers/visualization.py)
        │
        │ 4. get_visualization_data()
        ▼
@@ -160,10 +161,10 @@ Gradio Interface Update
 │ Next.js Frontend Stack              │
 │ ** PRODUCTION **                    │
 ├─────────────────────────────────────┤
-│ React 18      │ UI Framework        │
-│ Next.js 14    │ React Framework     │
-│ TypeScript    │ Type Safety         │
-│ Tailwind CSS  │ Styling             │
+│ React 19      │ UI Framework        │
+│ Next.js 16    │ React Framework     │
+│ TypeScript 5  │ Type Safety         │
+│ Tailwind CSS 4│ Styling             │
 │ Plotly.js     │ 3D Visualization    │
 │ Axios         │ HTTP Client         │
 └─────────────────────────────────────┘
@@ -172,7 +173,7 @@ Gradio Interface Update
 │ Gradio Frontend Stack               │
 │ ** NON-PRODUCTION **                │
 ├─────────────────────────────────────┤
-│ Gradio 4.x    │ UI Framework        │
+│ Gradio 6.x    │ UI Framework        │
 │ Plotly        │ Visualization       │
 │ Python        │ Demo/Internal Logic │
 └─────────────────────────────────────┘
@@ -188,7 +189,9 @@ Gradio Interface Update
 │ Uvicorn           │ ASGI Server           │
 │ Pydantic          │ Data Validation       │
 │ pydantic-settings │ Config Management     │
-│ Python 3.10+      │ Runtime               │
+│ SQLAlchemy 2.0    │ PostgreSQL / SQLite   │
+│ slowapi           │ Rate Limiting         │
+│ Python 3.12+      │ Runtime (min 3.10)    │
 └───────────────────────────────────────────┘
 
 ┌─────────────────────────────────────┐
@@ -306,13 +309,15 @@ Gradio Interface Update
 │     └── Secure WebSocket (future)       │
 │                                          │
 │  2. Application Layer                   │
-│     ├── CORS Configuration              │
+│     ├── CORS Policy (api/cors_policy.py)│
+│     ├── JWT Auth & Operator RBAC        │
 │     ├── Input Validation (Pydantic)     │
-│     └── Rate Limiting (future)          │
+│     └── Rate Limiting (slowapi)         │
 │                                          │
 │  3. Data Layer                          │
-│     ├── Data validation                 │
-│     └── Type checking                   │
+│     ├── Least-privilege DB roles        │
+│     ├── Parameterized SQLAlchemy ORM    │
+│     └── Schema migrations CLI           │
 │                                          │
 └─────────────────────────────────────────┘
 ```
@@ -363,7 +368,7 @@ High Traffic
 
 4. **New API Endpoint**
    ```text
-   api/main.py → Test → Update frontend API client → Use in components
+   api/routers/ → api/app_factory.py → Test → Update frontend API client → Use in components
    ```
 
 ---
