@@ -435,6 +435,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         APPLICATION_STARTUP_DURATION,
         APPLICATION_STARTUP_FAILURE_TOTAL,
         APPLICATION_STARTUP_SUCCESS_TOTAL,
+        update_graph_persistence_configured,
     )
 
     start_time = time.perf_counter()
@@ -445,6 +446,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         database_url = _get_durable_graph_database_url(settings)
         has_persistence_flag = getattr(settings, "has_durable_graph_persistence", None)
         has_persistence = bool(has_persistence_flag) if has_persistence_flag is not None else bool(database_url)
+        update_graph_persistence_configured(has_persistence)
         hosted_startup_degradation_allowed = should_degrade_hosted_startup(settings)
         trace_id, span_id = _generate_startup_trace_ids()
 

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import logging
 import threading
+import time
 from collections.abc import Callable
 from dataclasses import dataclass
 from enum import Enum
@@ -395,8 +396,14 @@ def stage_graph_snapshot(session: Session, graph: AssetRelationshipGraph) -> Non
     GRAC publication uses this boundary so the read-model snapshot, candidate
     revision, rebuild success transition, and publication row commit together.
     """
+    from .metrics import observe_graph_db_persistence_duration
+
+    start = time.perf_counter()
+    dialect = getattr(getattr(session, "bind", None), "dialect", None)
+    dialect_name = getattr(dialect, "name", None)
     try:
         AssetGraphRepository(session).save_graph(graph)
+        observe_graph_db_persistence_duration(time.perf_counter() - start, dialect_name)
     except Exception as exc:
         log_event(
             logger,
@@ -470,8 +477,12 @@ def _save_graph_with_engine(
         )
         raise GraphPersistenceSaveError(_GRAPH_PERSISTENCE_SAVE_ERROR_MESSAGE) from None
 
+    from .metrics import observe_graph_db_persistence_duration
+
+    start = time.perf_counter()
     try:
         _save_graph_with_session(session, graph, pre_commit_check=pre_commit_check)
+        observe_graph_db_persistence_duration(time.perf_counter() - start, engine.dialect.name)
     finally:
         session.close()
 
