@@ -16,6 +16,7 @@ monitoring/
 │   └── loki-recording.yml    # Log-to-Metric aggregations (pre-computed log counts)
 ├── dashboards/               # Grafana JSON exports (auto-provisioned into FarDB folder)
 │   ├── api-overview.json     # Global API health and performance
+│   ├── graph-postgres-bridge.json # Graph projection staleness, DB persistence latency & Postgres health
 │   ├── rebuild-operations.json # Graph rebuild lifecycle tracking
 │   └── slo-compliance.json   # SLO burn rates and compliance status
 ├── prometheus/
@@ -92,5 +93,7 @@ These alerts use both a short window (to detect spikes) and a long window (to en
 
 All dashboards and alerts rely on the **Phase 3 Observability Layer**:
 
-- **Metrics:** Standardized Prometheus metrics defined in `api/metrics.py`.
-- **Logs:** Structured JSON logs emitted via `src/observability/events.py`. Loki queries use the `event` label to filter for specific domain events (e.g., `graph_rebuild_failed`).
+- **Metrics (`GET /api/metrics`):** Standardized Prometheus metrics defined in `api/metrics.py`, including HTTP/SLO series, rebuild/coordination series, Graph↔DB boundary series (`fardb_graph_persistence_configured`, `graph_projection_last_published_timestamp_seconds`, `graph_db_persistence_duration_seconds`), and security/resilience series (`auth_login_total`, `auth_token_revocations_total`, `auth_access_denied_total`, `rate_limit_store_backend_info`, `http_rate_limit_exceeded_total`, `rebuild_idempotency_total`, `ingestion_resilience_events_total`).
+- **Readiness (`GET /api/ready`):** Strict readiness probe returning `200` only when both the published graph and database are healthy (`503` otherwise), distinct from `GET /api/health` liveness.
+- **Logs (Loki `{job="fardb_fastapi"}`):** Structured JSON logs emitted via `src/observability/events.py` and `src/observability/logging.py`. Set `LOG_FILE_PATH` to tee JSON logs to a file for Grafana Alloy `loki.source.file` tailing.
+- **Traces (Tempo OTLP):** Optional OpenTelemetry HTTP trace export in `src/observability/tracing.py` (no-op unless `OTEL_EXPORTER_OTLP_ENDPOINT` is set; service name via `OTEL_SERVICE_NAME`, default `fardb-api`), emitting HTTP request spans and `db.graph.stage_snapshot` child spans.

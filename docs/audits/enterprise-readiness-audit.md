@@ -1,9 +1,9 @@
 # Enterprise Production and Deployment Readiness Audit
 
-For the broader enterprise-readiness index, see [docs/enterprise-readiness-index.md](../enterprise-readiness-index.md).
+> **Historical Point-in-Time Record (Superseded for Current Status):** This audit was authored on `2026-06-25` and is preserved for historical traceability. For current enterprise-readiness status, merged PRs through `#2011`, and active release gates, use [docs/enterprise-readiness-index.md](../enterprise-readiness-index.md).
 
 **Date:** 2026-06-25
-**Last reconciled:** 2026-11-27 (all 11 H-P1–H-P3 hardenings, 5 operational drills, PG18 `SCALE10K` baseline, ADR 0012, and operator sign-off landed; remaining live workflow dispatches await GitHub Actions billing restoration)
+**Last reconciled:** 2026-11-27 (superseded for current status by `docs/enterprise-readiness-index.md` at `main@02be2e729`; all H-P1–H-P3 hardenings, observability/OTLP/RBAC/Dependabot remediations, operational drills, PG18 `SCALE10K` baseline, ADR 0012, and operator sign-off have landed)
 **Scope:** Production architecture readiness for FastAPI backend + Next.js frontend
 **Status:** Partial — repository-level enterprise-readiness remediation is substantially complete, but final enterprise release readiness still depends on target-environment promotion evidence, DR restore rehearsal, and bounded follow-up hardening
 

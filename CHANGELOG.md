@@ -17,7 +17,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Slim Vercel serverless `api/requirements.txt` and `psycopg2.pool.ThreadedConnectionPool` with `atexit` disposal
   - Separation-of-duties (`--enforce-sod`) and evidence-expiry (`--enforce-expiry`) checks in `scripts/verify_staging_promotion.py`
 - Executed all 5 operational drills (`docs/testing/operational-drill-execution-records.md`), recorded PostgreSQL 18.6 `SCALE10K` (10,000 assets / 50,000 relationships) baseline, adopted `ADR 0012` Active-Passive multi-region strategy, and recorded SHA-bound operator sign-off
-- Production container stack (`Dockerfile.api`, `Dockerfile.frontend`, `docker-compose.production.yml`)
+- Production container stack (`Dockerfile.api`, `Dockerfile.frontend`, `docker-compose.production.yml`) with strict `/api/ready` healthchecks and security/observability env passthroughs (PR #2009)
+- JWT key rotation (`JWT_KEY_ID`, `JWT_PREVIOUS_SECRET_KEYS`), TTL-bounded `jti` revocation, and `POST /api/auth/logout` (PR #1993)
+- Shared rate-limit store precedence (`RATE_LIMIT_STORAGE_URI` > `UPSTASH_REDIS_URL` > `REDIS_URL`) with fail-closed `REQUIRE_SHARED_RATE_LIMIT_STORE` guard (PR #1994)
+- Full observability stack: auto-provisioned Grafana dashboards (`api-overview.json`, `rebuild-operations.json`, `slo-compliance.json`, `graph-postgres-bridge.json`), Prometheus/Alertmanager routing, Grafana datasource plugins (`vercel`, `netlify`, `sentry`), Graph↔DB boundary metrics, optional OTLP tracing export (`src/observability/tracing.py`), optional `LOG_FILE_PATH` JSON log output, strict `GET /api/ready` probe, and auth/rate-limit/idempotency/ingestion Prometheus metrics (PRs #1995, #2001–#2007)
+- Full-stack Playwright E2E smoke suite (`npm run test:e2e`, PR #1996) and resilient data ingestion adapter (`src/data/ingestion_resilience.py`, PR #1997)
+- Atomic monotonic fencing CAS (`renew_owned_lock`), `Idempotency-Key` support on `POST /api/graph/rebuild`, and chunked PostgreSQL bulk upsert fast path (PRs #1998–#2000)
+- Application RBAC role hierarchy (`viewer`, `analyst`, `operator`, `admin`), reusable `require_roles()` dependency, JWT `roles` claim, `POST /api/assertions` proposer guard, and `auth_access_denied_total` metric (PR #2011)
+- Cumulative `hardening_tier` (`none`/`P0`/`P1`/`P2`/`P3`) workflow gates in `.github/workflows/release-evidence-verify.yml` (PR #2010)
+- Dependabot 0-alert remediation (`filelock==4.2.1` in `requirements-ci-security.txt`, `minimatch==11.0.9` in `frontend/package-lock.json`, PR #2008)
 
 ### Changed
 
