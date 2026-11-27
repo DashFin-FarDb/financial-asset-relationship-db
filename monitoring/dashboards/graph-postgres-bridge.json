@@ -1,0 +1,201 @@
+{
+  "annotations": { "list": [] },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "title": "Durable Persistence Configured",
+      "type": "stat",
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 0 },
+      "targets": [
+        {
+          "expr": "fardb_graph_persistence_configured{job=\"fardb_fastapi\"}",
+          "legendFormat": "Configured"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "0": { "text": "DISABLED", "color": "red" },
+                "1": { "text": "CONFIGURED", "color": "green" }
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "title": "Graph Projection Staleness",
+      "type": "stat",
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 0 },
+      "targets": [
+        {
+          "expr": "time() - (graph_projection_last_published_timestamp_seconds{job=\"fardb_fastapi\"} > 0)",
+          "legendFormat": "Lag (s)"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "orange", "value": 900 },
+              { "color": "red", "value": 3600 }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "title": "Published Graph Inventory",
+      "type": "stat",
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 0 },
+      "targets": [
+        {
+          "expr": "graph_assets_count{job=\"fardb_fastapi\"}",
+          "legendFormat": "Assets"
+        },
+        {
+          "expr": "graph_relationships_count{job=\"fardb_fastapi\"}",
+          "legendFormat": "Relationships"
+        }
+      ]
+    },
+    {
+      "title": "PostgreSQL Up",
+      "type": "stat",
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "gridPos": { "h": 4, "w": 6, "x": 18, "y": 0 },
+      "targets": [
+        {
+          "expr": "max(pg_up)",
+          "legendFormat": "Postgres"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "0": { "text": "DOWN", "color": "red" },
+                "1": { "text": "UP", "color": "green" }
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "title": "DB Snapshot Persistence vs Full Rebuild Latency (p95)",
+      "type": "timeseries",
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 4 },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum by (le, dialect) (rate(graph_db_persistence_duration_seconds_bucket{job=\"fardb_fastapi\"}[15m])))",
+          "legendFormat": "DB save p95 ({{dialect}})"
+        },
+        {
+          "expr": "histogram_quantile(0.95, sum by (le) (rate(graph_rebuild_duration_seconds_bucket{job=\"fardb_fastapi\"}[15m])))",
+          "legendFormat": "Total rebuild p95"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": { "unit": "s" }
+      }
+    },
+    {
+      "title": "Distributed Lock, Heartbeat & Checkpoint Activity",
+      "type": "timeseries",
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 4 },
+      "targets": [
+        {
+          "expr": "sum by (status) (rate(rebuild_lock_acquisition_total{job=\"fardb_fastapi\"}[15m]))",
+          "legendFormat": "lock_acquire ({{status}})"
+        },
+        {
+          "expr": "sum by (status) (rate(rebuild_lock_refresh_total{job=\"fardb_fastapi\"}[15m]))",
+          "legendFormat": "lock_refresh ({{status}})"
+        },
+        {
+          "expr": "sum by (status) (rate(rebuild_heartbeat_update_total{job=\"fardb_fastapi\"}[15m]))",
+          "legendFormat": "heartbeat ({{status}})"
+        },
+        {
+          "expr": "sum by (status) (rate(rebuild_checkpoints_total{job=\"fardb_fastapi\"}[15m]))",
+          "legendFormat": "checkpoint ({{status}})"
+        }
+      ]
+    },
+    {
+      "title": "Reconciliation Drift & Duration",
+      "type": "timeseries",
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 12 },
+      "targets": [
+        {
+          "expr": "sum by (drift_type, severity) (rate(reconciliation_drift_total{job=\"fardb_fastapi\"}[15m]))",
+          "legendFormat": "{{drift_type}} ({{severity}})"
+        },
+        {
+          "expr": "histogram_quantile(0.95, sum by (le) (rate(reconciliation_duration_seconds_bucket{job=\"fardb_fastapi\"}[15m])))",
+          "legendFormat": "Reconciliation p95 (s)"
+        }
+      ]
+    },
+    {
+      "title": "PostgreSQL Connections, Rollbacks & Deadlocks",
+      "type": "timeseries",
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 12 },
+      "targets": [
+        {
+          "expr": "sum(pg_stat_database_numbackends)",
+          "legendFormat": "Active backends"
+        },
+        {
+          "expr": "sum(rate(pg_stat_database_xact_rollback[5m]))",
+          "legendFormat": "Rollbacks/s"
+        },
+        {
+          "expr": "sum(rate(pg_stat_database_deadlocks[5m]))",
+          "legendFormat": "Deadlocks/s"
+        }
+      ]
+    }
+  ],
+  "schemaVersion": 39,
+  "style": "dark",
+  "tags": ["fardb", "graph", "postgres", "observability"],
+  "templating": {
+    "list": [
+      {
+        "name": "datasource",
+        "type": "datasource",
+        "query": "prometheus",
+        "label": "Prometheus",
+        "hide": 0,
+        "refresh": 1
+      }
+    ]
+  },
+  "time": { "from": "now-1h", "to": "now" },
+  "timepicker": {},
+  "timezone": "",
+  "title": "FarDB Graph <-> Postgres Bridge",
+  "uid": "fardb-graph-postgres-bridge",
+  "version": 1
+}

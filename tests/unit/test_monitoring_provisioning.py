@@ -14,7 +14,12 @@ MONITORING_DIR = REPO_ROOT / "monitoring"
 def test_grafana_dashboard_json_files_parse_and_have_panels() -> None:
     """All Grafana dashboard JSON files parse cleanly and define non-empty panel lists."""
     dashboards = sorted((MONITORING_DIR / "dashboards").glob("*.json"))
-    expected = {"api-overview.json", "rebuild-operations.json", "slo-compliance.json"}
+    expected = {
+        "api-overview.json",
+        "graph-postgres-bridge.json",
+        "rebuild-operations.json",
+        "slo-compliance.json",
+    }
     assert expected.issubset({d.name for d in dashboards})
 
     for dashboard_path in dashboards:
