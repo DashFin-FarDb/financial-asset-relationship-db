@@ -762,6 +762,14 @@ drift. CI and readiness fail clearly on drift or an unknown profile/lineage whil
 remains verify-only and cannot acquire migration, ownership, grant-management, history-adoption, or implicit
 credential-bootstrap authority.
 
+### Dated post-cutoff addendum — 2026-11-27 (`main@de676fc64`)
+
+- **Hardening backlog (PRs #1965–#1975):** Implemented and merged all 11 `H-P1`–`H-P3` hardening items (`H-P1-04`, `H-P2-01`–`H-P2-05`, `H-P3-01`–`H-P3-05`), including fencing tokens, single-running-job partial unique index, unified orphan auto-recovery, restore-boundary skew check, global `slowapi` rate limiting, `REBUILD_OPERATOR_USERNAMES` RBAC allowlist, slim Vercel `api/requirements.txt` + `psycopg2` pooling, production observability/docs lockdown, and SoD/expiry verification flags.
+- **Hosted `H-P2-03` migration (PR #1976):** Applied `20261127030000_enforce_single_running_rebuild_job.sql` to hosted Supabase with SHA-bound verification (`docs/evidence-records/hp203-single-running-index-migration-48a36108.md`).
+- **Operational drills, scale validation, ADR 0012, and operator sign-off (PRs #1982–#1985):** Closed `#1919` (all 5 operational drills passed), `#1918` (PostgreSQL 18.6 `SCALE10K` 10,000-asset / 50,000-relationship baseline), `#1920` (`docs/adr/0012-multi-region-and-advanced-hosting-strategy.md`), and `#1914` (`docs/evidence-records/operator-signoff-bf624469-2026-11-27.md`).
+- **Repository documentation cleanup (PRs #1986–#1990):** Archived 118 historical root and `docs/` files locally with SHA-256 manifests and refreshed core developer docs (`TESTING.md`, `DATABASE.md`, `QUICK_START.md`, `DOCKER.md`, `DEPLOYMENT.md`, `ARCHITECTURE.md`, `README.md`).
+- **Remaining blocker:** Open enterprise-readiness issues (`#1909`, `#1912`, `#1913`, `#1915`, `#1917` workflow wiring, `#1923`) await GitHub Actions billing restoration to execute `release-evidence-verify.yml` and `post-recovery-readiness.yml`.
+
 ## Backfill coverage and gaps
 
 ### Sources reviewed

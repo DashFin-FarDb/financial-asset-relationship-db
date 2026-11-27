@@ -5,11 +5,13 @@ For the governing operational semantics, see the canonical
 [ADR 0004: Distributed Hosting Semantics](../adr/0004-distributed-hosting-semantics.md)
 remains the historical decision record.
 
-This document is the PR 7 validation checklist. PR 6 defines the expected
-behavior; PR 7 should convert these rows into failure-mode, startup, recovery,
-and hosted-readiness tests.
+This document tracks the distributed hosting invariant matrix originally defined
+by PR 6 and validated across PR 7 (`failure-mode-and-scale-validation.md`),
+`H-P2-01`–`H-P2-05` hardening PRs, the 5 operational drills
+(`operational-drill-execution-records.md`), and the PostgreSQL 18.6 `SCALE10K`
+baseline (`../evidence-records/production-scale-pg18-baseline-2026-11-27.md`).
 
-| Invariant | Expected behavior | Future test target |
+| Invariant | Expected behavior | Validation target |
 | --- | --- | --- |
 | Single writer | Two concurrent rebuild requests cannot both persist graph truth. | integration/concurrency |
 | Multi-reader | Multiple instances can serve reads without rebuild lock. | integration/startup |
@@ -26,14 +28,14 @@ and hosted-readiness tests.
 
 ## Validation Boundary
 
-These are not claims that the PR 7 tests already exist. They are acceptance
-targets for the next validation PR.
-
-PR 7 should prefer tests that prove behavior at the same boundary operators
-depend on:
+Repository-level automated tests, operational drills, and local PostgreSQL 18.6
+scale benchmarks cover these invariants for `main` (see
+`failure-mode-and-scale-validation.md` and `operational-drill-execution-records.md`).
+Hosted staging/production promotion still requires target-environment evidence
+for the exact release SHA:
 
 - RecoveryGate for stale-owner and unsafe-plan behavior.
-- Rebuild orchestration for lock-loss aborts before persistence or success
-  marking.
+- Rebuild orchestration for lock-loss aborts and fencing-token validation before
+  persistence or success marking.
 - Startup/load paths for restart and redeploy evidence.
-- Hosted readiness smoke checks for durable graph truth proof.
+- Hosted readiness smoke checks (`--require-persistence`) for durable graph truth proof.
