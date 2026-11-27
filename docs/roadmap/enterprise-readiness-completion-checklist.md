@@ -463,7 +463,7 @@ secrets or identifiers that leak topology appear in labels. Not bundled with met
 
 ### Completion criteria
 
-- [ ] H-P1-04: maintainer has applied the reconciled required-check names in GitHub branch protection.
+- [x] H-P1-04: maintainer has applied the reconciled required-check names in GitHub branch protection (`Test Python 3.10`, `Test Python 3.11`, `Test Python 3.12`, `Security checks`, `build-and-smoke-test` applied on `main`, 2026-11-27).
 - [ ] H-P2-01: active executor is derived from heartbeat + lock.
 - [ ] H-P2-02: fencing token is checked on graph/job writes.
 - [ ] H-P2-03: partial unique index enforces at most one `RUNNING` rebuild job on PostgreSQL.
