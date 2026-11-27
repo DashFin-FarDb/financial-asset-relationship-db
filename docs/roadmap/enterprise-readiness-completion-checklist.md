@@ -346,11 +346,11 @@ rehearsal artefact is attached.
 
 ### Completion criteria
 
-- [ ] Named owners are recorded for deploy operator, promotion approver, rollback executor, Backup Operator, Restore
-      Operator, secret/config maintainer, persistence-verification operator, and Incident Commander.
-- [ ] Where one person holds several roles, each responsibility is still listed explicitly.
-- [ ] Sign-off is recorded against the exact release SHA in the RC evidence issue.
-- [ ] The promotion approver links the RC evidence issue from the promotion record.
+- [x] Named owners are recorded for deploy operator, promotion approver, rollback executor, Backup Operator, Restore
+      Operator, secret/config maintainer, persistence-verification operator, and Incident Commander (`docs/evidence-records/operator-signoff-bf624469-2026-11-27.md`).
+- [x] Where one person holds several roles, each responsibility is still listed explicitly (`mohavro`, with explicit `sod_waiver`).
+- [x] Sign-off is recorded against the exact release SHA (`bf6244691`) in the RC evidence issue (#1909).
+- [x] The promotion approver links the RC evidence issue from the promotion record.
 
 ### Non-negotiable boundary
 
