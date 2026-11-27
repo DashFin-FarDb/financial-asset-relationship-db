@@ -504,12 +504,12 @@ evidence remain outstanding.
 
 ### Completion criteria
 
-- [ ] A stable staging dataset and performance budget are agreed.
-- [ ] Production-scale rebuild, lock refresh, memory, and persistence-load evidence is captured outside normal CI
-      (manual, scheduled, or nightly).
-- [ ] Each run records environment, graph size, elapsed time, and whether the result is advisory or release-blocking.
-- [ ] Data is deterministic and results are attached to an evidence record.
-- [ ] PR 7 and roadmap status rows are reconciled to the recorded evidence.
+- [x] A stable staging dataset and performance budget are agreed (`SCALE10K`: 10,000 assets / 50,000 relationships; advisory budget recorded in `docs/evidence-records/production-scale-pg18-baseline-2026-11-27.md`).
+- [x] Production-scale rebuild, lock refresh, memory, and persistence-load evidence is captured outside normal CI
+      (manual, scheduled, or nightly) — PostgreSQL 18.6 baseline on commit `4f59a28ed` (`save: 21.881s`, `load: 1.614s`, `25/25` lock refreshes median `3.986ms`, peak RSS `429.7 MiB`).
+- [x] Each run records environment, graph size, elapsed time, and whether the result is advisory or release-blocking.
+- [x] Data is deterministic and results are attached to an evidence record.
+- [x] PR 7 and roadmap status rows are reconciled to the recorded evidence.
 
 ### Non-negotiable boundary
 
