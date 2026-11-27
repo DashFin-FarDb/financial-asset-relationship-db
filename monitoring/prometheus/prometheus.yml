@@ -1,0 +1,39 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    service: fardb-api
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+            - alertmanager:9093
+
+rule_files:
+  - /etc/prometheus/alerts/api-alerts.yml
+  - /etc/prometheus/alerts/rebuild-alerts.yml
+  - /etc/prometheus/alerts/slo-alerts.yml
+  - /etc/prometheus/alerts/fardb_starter_production_alerts.yml
+  - /etc/prometheus/rules/fardb_starter_recording_rules.yml
+
+scrape_configs:
+  - job_name: fardb-api
+    metrics_path: /api/metrics
+    scrape_interval: 15s
+    scrape_timeout: 10s
+    # When scraping ENV=production, mount a read-only bearer token file or configure basic_auth.
+    # authorization:
+    #   type: Bearer
+    #   credentials_file: /run/secrets/fardb_metrics_token
+    static_configs:
+      - targets:
+          - host.docker.internal:8000
+        labels:
+          app: fardb-api
+          component: backend
+
+  - job_name: prometheus
+    static_configs:
+      - targets:
+          - localhost:9090

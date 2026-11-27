@@ -1,0 +1,43 @@
+global:
+  resolve_timeout: 5m
+
+route:
+  group_by: ["alertname", "service", "severity"]
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 4h
+  receiver: default-webhook
+  routes:
+    - matchers:
+        - severity = "critical"
+      receiver: critical-paging
+      group_wait: 10s
+      repeat_interval: 1h
+    - matchers:
+        - severity = "warning"
+      receiver: warning-notifications
+      repeat_interval: 4h
+
+inhibit_rules:
+  - source_matchers:
+      - severity = "critical"
+    target_matchers:
+      - severity = "warning"
+    equal: ["alertname", "service"]
+
+receivers:
+  - name: default-webhook
+    webhook_configs:
+      - url: "http://127.0.0.1:5001/alerts/default"
+        send_resolved: true
+
+  - name: critical-paging
+    # Configure PagerDuty routing_key_file or Slack api_url_file via mounted secrets in hosted environments.
+    webhook_configs:
+      - url: "http://127.0.0.1:5001/alerts/critical"
+        send_resolved: true
+
+  - name: warning-notifications
+    webhook_configs:
+      - url: "http://127.0.0.1:5001/alerts/warning"
+        send_resolved: true

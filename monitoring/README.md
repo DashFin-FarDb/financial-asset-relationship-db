@@ -6,18 +6,36 @@ This directory contains the infrastructure-as-code definitions for the project's
 
 ```text
 monitoring/
+├── alertmanager/
+│   └── alertmanager.yml      # Severity-based alert routing (critical/warning + inhibit rules)
 ├── alerts/                   # Prometheus & Loki rules
 │   ├── api-alerts.yml        # Latency, Error Rate, and In-flight alerts
 │   ├── rebuild-alerts.yml    # Rebuild duration and failure alerts
 │   ├── slo-alerts.yml        # Multi-window burn rate and compliance alerts
+│   ├── fardb_starter_production_alerts.yml
 │   └── loki-recording.yml    # Log-to-Metric aggregations (pre-computed log counts)
-├── dashboards/               # Grafana JSON exports
+├── dashboards/               # Grafana JSON exports (auto-provisioned into FarDB folder)
 │   ├── api-overview.json     # Global API health and performance
 │   ├── rebuild-operations.json # Graph rebuild lifecycle tracking
 │   └── slo-compliance.json   # SLO burn rates and compliance status
+├── prometheus/
+│   └── prometheus.yml        # Scrape config (/api/metrics), alert rules, Alertmanager target
 └── provisioning/             # Grafana auto-configuration
-    └── datasources.yml       # Data source definitions for Prometheus/Loki
+    ├── datasources.yml       # Data source definitions for Prometheus/Loki
+    ├── dashboards.yml        # Grafana file-based dashboard provider
+    └── fardb_starter_recording_rules.yml
 ```
+
+## Quick Start (Docker Compose)
+
+Start Prometheus (`:9090`), Alertmanager (`:9093`), and Grafana (`:3001`) with all three FarDB dashboards auto-provisioned:
+
+```bash
+export GF_SECURITY_ADMIN_PASSWORD="replace-with-a-strong-password"
+docker compose -f docker-compose.observability.yml up -d
+```
+
+Grafana opens directly to `api-overview.json`, with `rebuild-operations.json` and `slo-compliance.json` provisioned under the **FarDB** folder. To route alerts to Slack or PagerDuty in hosted environments, mount secret files into `monitoring/alertmanager/alertmanager.yml` (`api_url_file` / `routing_key_file`).
 
 ## Setup Instructions
 
