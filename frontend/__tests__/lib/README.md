@@ -88,14 +88,6 @@ These tests provide comprehensive coverage of:
 - ✅ Performance characteristics
 - ✅ Production usage patterns
 
-## Documentation
-
-For detailed information about the axios upgrade tests:
-
-- Quick Reference: `../../AXIOS_TESTS_QUICK_REFERENCE.md`
-- Detailed Report: `../../AXIOS_UPGRADE_TEST_REPORT.md`
-- Complete Summary: `../../TEST_GENERATION_SUMMARY_FINAL.md`
-
 ## Maintenance
 
 When updating tests:
