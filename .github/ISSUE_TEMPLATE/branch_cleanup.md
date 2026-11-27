@@ -56,6 +56,5 @@ assignees: ''
 **Automated Detection**: This issue may have been created by the automated branch cleanup workflow.
 
 **Related Documentation**:
-- [Branch Cleanup Analysis](../../BRANCH_CLEANUP_ANALYSIS.md)
-- [Branch Cleanup Quick Reference](../../BRANCH_CLEANUP_QUICK_REFERENCE.md)
+- [Branch Cleanup Quick Reference](../../docs/operations/branch-cleanup-quick-reference.md)
 - [Contributing Guidelines](../../CONTRIBUTING.md)

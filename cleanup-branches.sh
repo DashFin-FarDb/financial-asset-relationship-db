@@ -71,7 +71,7 @@ done
 
 echo ""
 echo "=== Cleanup Recommendations ==="
-echo "1. Review the BRANCH_CLEANUP_ANALYSIS.md document for detailed analysis"
+echo "1. Review docs/operations/branch-cleanup-quick-reference.md for branch cleanup documentation"
 echo "2. Delete merged branches that are no longer needed"
 echo "3. Archive or delete stale branches (90+ days old)"
 echo "4. Ensure all important commits are merged to main"

@@ -254,7 +254,7 @@ npm run lint
 
 2. **Read the documentation**
    - [DEPLOYMENT.md](./DEPLOYMENT.md) - Full deployment guide
-   - [INTEGRATION_SUMMARY.md](./INTEGRATION_SUMMARY.md) - Technical details
+   - [ARCHITECTURE.md](./ARCHITECTURE.md) - System architecture
    - [frontend/README.md](./frontend/README.md) - Frontend specifics
 
 3. **Deploy to Vercel**
