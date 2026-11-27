@@ -118,6 +118,8 @@ class Settings(BaseModel):
 
     # Auth configuration
     secret_key: str | None = Field(default=None)
+    jwt_key_id: str = Field(default="primary")
+    jwt_previous_secret_keys_raw: str = Field(default="", repr=False, exclude=True)
     admin_username: str | None = Field(default=None)
     admin_password: str | None = Field(default=None)
     admin_email: str | None = Field(default=None)
@@ -251,6 +253,29 @@ class Settings(BaseModel):
             raise ValueError("SECRET_KEY environment variable must be set")
         return self.secret_key
 
+    @property
+    def jwt_previous_keys(self) -> list[tuple[str | None, str]]:
+        """Parse JWT_PREVIOUS_SECRET_KEYS into (kid, secret) pairs for zero-downtime rotation.
+
+        Accepts comma-separated entries formatted as either ``kid:secret`` or plain ``secret``.
+        """
+        if not self.jwt_previous_secret_keys_raw:
+            return []
+        parsed: list[tuple[str | None, str]] = []
+        for raw_entry in self.jwt_previous_secret_keys_raw.split(","):
+            entry = raw_entry.strip()
+            if not entry:
+                continue
+            if ":" in entry:
+                kid, secret = entry.split(":", 1)
+                kid_clean = kid.strip() or None
+                secret_clean = secret.strip()
+                if secret_clean:
+                    parsed.append((kid_clean, secret_clean))
+            else:
+                parsed.append((None, entry))
+        return parsed
+
 
 def load_settings() -> Settings:
     """
@@ -280,6 +305,8 @@ def load_settings() -> Settings:
         sentry_release=os.getenv("SENTRY_RELEASE"),
         allowed_origins_raw=os.getenv("ALLOWED_ORIGINS", ""),
         secret_key=os.getenv("SECRET_KEY"),
+        jwt_key_id=(os.getenv("JWT_KEY_ID") or "primary").strip() or "primary",
+        jwt_previous_secret_keys_raw=os.getenv("JWT_PREVIOUS_SECRET_KEYS", ""),
         admin_username=os.getenv("ADMIN_USERNAME"),
         admin_password=os.getenv("ADMIN_PASSWORD"),
         admin_email=os.getenv("ADMIN_EMAIL"),
