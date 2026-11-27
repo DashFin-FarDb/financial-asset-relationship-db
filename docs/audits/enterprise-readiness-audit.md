@@ -3,6 +3,7 @@
 For the broader enterprise-readiness index, see [docs/enterprise-readiness-index.md](../enterprise-readiness-index.md).
 
 **Date:** 2026-06-25
+**Last reconciled:** 2026-11-27 (all 11 H-P1–H-P3 hardenings, 5 operational drills, PG18 `SCALE10K` baseline, ADR 0012, and operator sign-off landed; remaining live workflow dispatches await GitHub Actions billing restoration)
 **Scope:** Production architecture readiness for FastAPI backend + Next.js frontend
 **Status:** Partial — repository-level enterprise-readiness remediation is substantially complete, but final enterprise release readiness still depends on target-environment promotion evidence, DR restore rehearsal, and bounded follow-up hardening
 
@@ -33,7 +34,7 @@ Roadmap source-of-truth status is now aligned with `docs/release-evidence-pack.m
 | PR 4 — API Contract Cleanup | Satisfied | Core density, pagination, visualization, and rebuild job-list truncation seams are aligned. |
 | PR 5 — Recovery-Plane Completion | Satisfied - automated | RecoveryGate and reconciliation path are covered by targeted tests. |
 | PR 6 — Distributed Hosting Semantics Spec | Satisfied - documented | Current interpretation is consolidated in the canonical state-machine authority. |
-| PR 7 — Failure-Mode and Scale Validation | Partially satisfied | CI-bounded validation exists; strict stale-owner composition is covered by the integration suite, the operational evidence-capture framework and drill pack are documented, and production-scale validation remains optional/future unless release-scoped. |
+| PR 7 — Failure-Mode and Scale Validation | Satisfied - documented | CI-bounded validation, strict stale-owner composition, all 5 operational drills (`#1982`), and the PostgreSQL 18.6 `SCALE10K` baseline (`#1983`) are now recorded. |
 | PR 8 — Security and Governance Hardening | Satisfied - manual evidence required | Repository controls exist; release requires scanner summaries, exception records, and approvals. |
 | PR 9 — Backup, Restore, and DR Runbook | Satisfied - manual evidence required | Strategy/runbook exist; restore rehearsal evidence is still required. |
 | PR C — Governance and State-Machine Hardening | Satisfied - documented | Canonical state-machine authority exists; governed behavior changes must keep it aligned. |

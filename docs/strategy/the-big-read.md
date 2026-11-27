@@ -22,6 +22,10 @@ Verified on 15 July 2026: the checked-out ref was `docs/fardb-big-read` and its 
 1480 was open against `main` and the ref differed from `main`; `origin/main` resolved to the baseline below; and
 PR 1477 was merged and closed.
 
+> **Post-merge note (2026-11-27):** PR #1480 has since been merged to `main`. Treat the 15 July 2026 verification
+> gate above as historical review provenance and consult [docs/enterprise-readiness-index.md](../enterprise-readiness-index.md)
+> and [fardb-project-continuity.md](fardb-project-continuity.md) for current repository state.
+
 **Evidence baseline:** repository main at
 7b424b0012f0e4e56f7b3f5f5e4cd1533ca55990, merged PR 1477 head at
 576cca12df449678ca9c146a0ff8fa2d2750fb60, and live platform observations made on 15 July 2026

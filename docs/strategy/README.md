@@ -7,6 +7,7 @@ strict P0 release evidence, database authorization, and named human sign-off are
 **Historical programme gate:** GRAC v1 programme **NEXT** until #1540; that gate is satisfied for the exact evidenced
 staging financial vertical slice only.
 **Reviewed:** 7 August 2026
+**Continuity reconciliation (2026-11-27):** Platform hardening (`H-P1`–`H-P3`), operational drills (`#1919`), PG18 `SCALE10K` baseline (`#1918`), ADR 0012 multi-region strategy (`#1920`), and operator sign-off (`#1914`) are reconciled in [docs/enterprise-readiness-index.md](../enterprise-readiness-index.md) and [fardb-project-continuity.md](fardb-project-continuity.md).
 
 Re-run the manuscript's reviewer verification gate before treating volatile ref and PR observations as current.
 

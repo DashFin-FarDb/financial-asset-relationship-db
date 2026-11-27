@@ -1,7 +1,7 @@
 # Enterprise Readiness Index
 
 **Publication date:** 2026-07-15
-**Last reconciled:** 2026-11-19 (limited evidence and tracking update; not a new full-repository audit)
+**Last reconciled:** 2026-11-27 (post-hardening, operational drills, PG18 scale baseline, ADR-0012, operator sign-off, and docs cleanup reconciliation; `main@de676fc64`)
 **Purpose:** Single entry point for enterprise-readiness audit, roadmap, PR plan, release criteria, and release evidence
 
 ## What To Read
@@ -22,6 +22,7 @@
 | `docs/runbooks/database-authorization-closure.md`             | Operator setup and remediation path for ADR 0007 / H-P0-04 (staging Satisfied — `db_authz: PASS` + `run-30002002715`)      |
 | `docs/adr/0006-release-and-deployment-automation.md`          | Release and Deployment automation strategy, GitHub Actions constraints                                                     |
 | `docs/adr/0005-backup-restore-dr-strategy.md`                 | Backup, restore, DR strategy, data classification, RPO, and RTO                                                            |
+| `docs/adr/0012-multi-region-and-advanced-hosting-strategy.md` | Accepted Active-Passive multi-region / advanced hosting strategy and failover protocol                                     |
 | `docs/runbooks/backup-restore-dr.md`                          | Operator procedures for backup verification, restore execution, and post-restore checks                                    |
 | `docs/compound/INDEX.md`                                      | Additive architecture-expert compounded memory index (provisional vs landed)                                               |
 | `docs/strategy/fardb-project-continuity.md`                   | Cross-session continuity ledger for decisions, commitments, milestones, and agent handoffs                                 |
@@ -68,17 +69,30 @@ not captured. See the
 [production-scale checklist item](roadmap/enterprise-readiness-completion-checklist.md#12-production-scale-validation)
 for the evidence boundary and remaining criteria.
 
+### Dated evidence update — 2026-11-27
+
+Between PRs #1965 and #1990 (through `main@de676fc64`), the following non-Actions readiness milestones landed:
+
+- **H-P1–H-P3 hardening backlog (PRs #1965–#1975):** All 11 hardening IDs implemented and merged (`H-P1-04`, `H-P2-01`–`H-P2-05`, `H-P3-01`–`H-P3-05`), and the `H-P2-03` single-running-job partial unique index was applied live to hosted Supabase with SHA-bound verification (`docs/evidence-records/hp203-single-running-index-migration-48a36108.md`, PR #1976). Only `hardening_tier` P1–P3 workflow wiring remains open under `#1917`.
+- **Operational drills (PR #1982, closing #1919):** All 5 representative operational drills executed and passed (`docs/testing/operational-drill-execution-records.md`).
+- **Production-scale validation (PR #1983, closing #1918):** Deterministic `SCALE10K` (10,000 assets / 50,000 directed relationships) PostgreSQL 18.6 baseline recorded (`docs/evidence-records/production-scale-pg18-baseline-2026-11-27.md`).
+- **Multi-region / advanced hosting strategy (PR #1984, closing #1920):** Accepted Active-Passive single-writer topology in `docs/adr/0012-multi-region-and-advanced-hosting-strategy.md`.
+- **Operator sign-off (PR #1985, closing #1914):** SHA-bound operator sign-off recorded in `docs/evidence-records/operator-signoff-bf624469-2026-11-27.md`.
+- **Documentation hygiene (PRs #1986–#1990):** Archived 118 historical root/`docs/` files locally with SHA-256 manifests and refreshed core developer docs.
+
+All remaining open enterprise-readiness issues (`#1909`, `#1912`, `#1913`, `#1915`, `#1917` workflow wiring, `#1923`) now depend solely on GitHub Actions billing restoration for live workflow dispatch.
+
 ## Roadmap Status Snapshot
 
 Status legend follows the [Release Evidence Pack](release-evidence-pack.md): **Satisfied - automated**, **Satisfied - documented**, **Satisfied - manual evidence required**, **Partially satisfied**, and **Blocked**.
 
 | Status                               | Current items                                                                                                                                                                                                                                                                                                                                           |
 | ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Satisfied - automated                | PR 1 durable graph persistence; PR 2 startup load/save integration; PR 4 core density, asset pagination, and frontend/backend contract seams; PR 5 RecoveryGate/reconciliation control-plane path; PR 7 CI-bounded failure-mode and representative-scale validation where covered; strict stale-owner restart composition                               |
-| Satisfied - documented               | PR 6 distributed hosting semantics; PR C governance/state-machine authority; production architecture and deployment operating model                                                                                                                                                                                                                     |
+| Satisfied - automated                | PR 1 durable graph persistence; PR 2 startup load/save integration; PR 4 core density, asset pagination, and frontend/backend contract seams; PR 5 RecoveryGate/reconciliation control-plane path; PR 7 CI-bounded failure-mode and representative-scale validation; strict stale-owner restart composition; H-P1–H-P3 hardening implementations (#1965–#1975) |
+| Satisfied - documented               | PR 6 distributed hosting semantics; PR C governance/state-machine authority; production architecture, deployment operating model, and ADR 0012 multi-region strategy; all 5 operational drills (#1982); PG18 `SCALE10K` baseline (#1983); SHA-bound operator sign-off (#1985)                                                                             |
 | Satisfied - manual evidence required | PR 3 hosted durable promotion proof for the target environment; fresh SHA-bound production database authorization evidence when that target is promoted; PR 8 security scanner summary, exception review, and release sign-off; PR 9 restore rehearsal and post-restore smoke evidence                                                                  |
-| Partially satisfied                  | The operational evidence-capture framework and drill pack are documented; production-scale validation remains future operating-maturity work                                                                                                                                                                                                            |
-| Blocked                              | Enterprise release sign-off for a selected target still requires hosted promotion evidence, target-specific database authorization evidence where applicable, release-commit security scanner/exception review (via `.github/workflows/release-evidence-verify.yml` plus source workflows), named operator sign-off, and DR restore rehearsal evidence. |
+| Partially satisfied                  | `hardening_tier` P1–P3 workflow wiring under `#1917` (code/migrations landed; workflow dispatch awaits GitHub Actions billing unlock)                                                                                                                                                                                                                  |
+| Blocked                              | Remaining live workflow evidence dispatches (`#1909`, `#1912`, `#1913`, `#1915`, `#1923`) — including hosted promotion evidence, target-specific database authorization evidence where applicable, release-commit security scanner review, and DR restore rehearsal via `.github/workflows/release-evidence-verify.yml` and `post-recovery-readiness.yml` — are blocked on GitHub Actions billing restoration. |
 
 ## Recommended Reading Order
 

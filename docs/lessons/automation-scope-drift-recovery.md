@@ -158,6 +158,6 @@ When a structural document is damaged, restore first, then re-apply scoped inten
 ## Related Documents
 
 - [Automation Scope Policy](../../.github/AUTOMATION_SCOPE_POLICY.md)
-- [Repository Control Plane](../REPOSITORY_CONTROL_PLANE.md)
+- [Agent Task Entry Route](../agent-task-entry.md)
 - [PR Scope Guardrails](../PR_SCOPE_GUARDRAILS.md)
 - [ADR 0001: Production Architecture](../adr/0001-production-architecture.md)
