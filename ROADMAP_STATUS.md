@@ -44,9 +44,9 @@ touched by CQ-03 or later authority work.
       The gate constructs `RebuildDriftEvaluator` and passes it to `ReconciliationEngine`; the engine invokes the
       evaluator's `evaluate_drift()` and returns the plan that those callers consume.
 
-## Phase 1.4 - Observability Enhancements (To Be Done)
+## Phase 1.4 - Observability Enhancements
 
-- [ ] Phase 1.4.a - Implement Rebuild Queue Metrics
-- [ ] Phase 1.4.b - Implement State Transition Counters
-- [ ] Phase 1.4.c - Implement Lock Acquisition Metrics
-- [ ] Phase 1.4.d - Implement Startup Metrics
+- [x] Phase 1.4.a - Implement Rebuild Queue Metrics
+- [x] Phase 1.4.b - Implement State Transition Counters
+- [x] Phase 1.4.c - Implement Lock Acquisition Metrics
+- [x] Phase 1.4.d - Implement Startup Metrics
