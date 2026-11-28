@@ -13,11 +13,11 @@ dataclasses-json>=0.5.7
 yfinance>=0.2.51
 fastapi==0.162.5  # pinned for API compatibility and stability; 0.133+ allows Starlette 1.x
 uvicorn[standard]>=0.24.0
-pydantic==2.14.3  # pinned for FastAPI compatibility
+pydantic==2.14.4  # pinned for FastAPI compatibility
 h11==0.16.0  # pinned for compatibility with uvicorn/httpx
 
 # YAML / configuration dependencies
-PyYAML==6.0.3  # updated for Python 3.12 compatibility
+PyYAML==6.0.4  # updated for Python 3.12 compatibility
 ruamel.yaml==0.19.1  # updated for Python 3.12 compatibility
 
 # Serverless / database dependencies
