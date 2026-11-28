@@ -142,6 +142,7 @@ class Settings(BaseModel):
     # Relationship strengths
     same_sector_strength: float = Field(default=0.7)
     corporate_bond_strength: float = Field(default=0.9)
+    max_sector_peers: int | None = Field(default=None, ge=1)
 
     # Database configuration
     asset_graph_database_url: str | None = Field(default=None)
@@ -325,6 +326,7 @@ def load_settings() -> Settings:
         line_length=os.getenv("LINE_LENGTH"),  # type: ignore[arg-type]
         same_sector_strength=os.getenv("SAME_SECTOR_STRENGTH"),  # type: ignore[arg-type]
         corporate_bond_strength=os.getenv("CORPORATE_BOND_STRENGTH"),  # type: ignore[arg-type]
+        max_sector_peers=(os.getenv("MAX_SECTOR_PEERS") or "").strip() or None,  # type: ignore[arg-type]
         asset_graph_database_url=os.getenv("ASSET_GRAPH_DATABASE_URL"),
         database_url=os.getenv("DATABASE_URL") or postgres_url,
         coordination_database_url=os.getenv("COORDINATION_DATABASE_URL") or os.getenv("DATABASE_URL") or postgres_url,

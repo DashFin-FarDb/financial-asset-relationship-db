@@ -21,6 +21,7 @@ class AssetRelationshipGraph:
         database_url: str | None = None,
         same_sector_strength: float | None = None,
         corporate_bond_strength: float | None = None,
+        max_sector_peers: int | None = None,
     ) -> None:
         """
         Initialize the AssetRelationshipGraph with empty internal stores.
@@ -33,6 +34,9 @@ class AssetRelationshipGraph:
                 assets in the same sector (must be in range [-1.0, 1.0]). Defaults to settings.
             corporate_bond_strength (float | None): The default connection strength from
                 a corporate bond to its issuer (must be in range [-1.0, 1.0]). Defaults to settings.
+            max_sector_peers (int | None): Optional cap on outgoing `same_sector` peer edges
+                per asset (links each asset to up to the top-K sector leaders by market cap).
+                Defaults to `settings.max_sector_peers` (`None` preserves all-pairs behavior).
 
         Attributes created:
             assets (dict[str, Asset]): Mapping of asset ID to Asset.
@@ -54,14 +58,19 @@ class AssetRelationshipGraph:
             same_sector_strength = settings.same_sector_strength
         if corporate_bond_strength is None:
             corporate_bond_strength = settings.corporate_bond_strength
+        if max_sector_peers is None:
+            max_sector_peers = getattr(settings, "max_sector_peers", None)
 
         if not -1.0 <= same_sector_strength <= 1.0:
             raise ValueError(f"same_sector_strength must be between -1.0 and 1.0, got {same_sector_strength}")
         if not -1.0 <= corporate_bond_strength <= 1.0:
             raise ValueError(f"corporate_bond_strength must be between -1.0 and 1.0, got {corporate_bond_strength}")
+        if max_sector_peers is not None and (isinstance(max_sector_peers, bool) or max_sector_peers < 1):
+            raise ValueError(f"max_sector_peers must be a positive integer or None, got {max_sector_peers}")
 
         self.same_sector_strength = same_sector_strength
         self.corporate_bond_strength = corporate_bond_strength
+        self.max_sector_peers = max_sector_peers
 
     def add_asset(self, asset: Asset) -> None:
         """
@@ -91,6 +100,11 @@ class AssetRelationshipGraph:
         """
         self.relationships = {}
 
+        if self.max_sector_peers is not None:
+            self._build_bounded_relationships(self.max_sector_peers)
+            self._apply_event_impacts()
+            return
+
         asset_ids = list(self.assets.keys())
         for idx, source_id in enumerate(asset_ids):
             for target_id in asset_ids[idx + 1 :]:
@@ -118,6 +132,40 @@ class AssetRelationshipGraph:
                     )
 
         self._apply_event_impacts()
+
+    def _build_bounded_relationships(self, max_sector_peers: int) -> None:
+        """Build O(N * K) sector-hub same_sector edges and O(N) bond corporate_link edges."""
+        by_sector: dict[str, list[Asset]] = {}
+        for asset in self.assets.values():
+            if asset.sector and asset.sector != "Unknown":
+                by_sector.setdefault(asset.sector, []).append(asset)
+
+        for sector_assets in by_sector.values():
+            leaders = sorted(
+                sector_assets,
+                key=lambda item: (-(item.market_cap or 0.0), item.id),
+            )[:max_sector_peers]
+            for asset in sector_assets:
+                for leader in leaders:
+                    if leader.id != asset.id:
+                        self.add_relationship(
+                            asset.id,
+                            leader.id,
+                            "same_sector",
+                            self.same_sector_strength,
+                            bidirectional=False,
+                        )
+
+        for asset_id, asset in self.assets.items():
+            if isinstance(asset, Bond) and asset.issuer_id and asset.issuer_id in self.assets:
+                if asset.issuer_id != asset_id:
+                    self.add_relationship(
+                        asset_id,
+                        asset.issuer_id,
+                        "corporate_link",
+                        self.corporate_bond_strength,
+                        bidirectional=False,
+                    )
 
     def add_relationship(
         self,
