@@ -7,7 +7,7 @@ fastapi==0.162.5
 uvicorn[standard]>=0.24.0
 pydantic==2.14.3
 h11==0.16.0
-python-multipart>=0.0.20
+python-multipart>=0.0.32
 numpy>=1.26.0
 
 # Serverless / database dependencies
